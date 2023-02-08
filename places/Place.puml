@@ -9,11 +9,6 @@ Missing:
 * Links with other locations/pins.
 * Links with buildings.
 * Translation to the chosen exchange format.
-** GeoJSON
-** JSON
-** OSM PBF
-** Parquet
-** Protobuf
 
 **Place** clashes with an OSM place: [[https://wiki.openstreetmap.org/wiki/Key:place]], used for (non-) administrative areas.
 end note
@@ -39,7 +34,7 @@ enum OsmCategory {
     definingProperties : KeyValuePair<String,String>[]
 }
 
-Category "1" -- "1" OsmCategory
+Category "1" <--> "1" OsmCategory
 
 
 ' enum OvertureCategory
@@ -49,11 +44,10 @@ Provide an exhaustive list of categories to use.
 end note
 
 class Address {
-    streetAddress : String
-    subpremise : String
-    zip : String
+    freeform : String
+    postcode : String
     locality : String
-    region : String<ISO-639-2>
+    region : String<ISO-3166-2>
     country : String<ISO-3166>
 
     ' houseNumber : String
@@ -74,6 +68,7 @@ Should we add?
 - script
 - language code
 - geopolitical view
+- relations to street, locality, postal
 end note
 
 class Point {
@@ -89,7 +84,7 @@ class Name {
     value : String
     type : String
     languageCode : String
-    script : String
+    script : String<ISO-15924 code>
 }
 
 class Phone {
