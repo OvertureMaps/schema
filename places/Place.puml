@@ -99,7 +99,7 @@ class Brand {
 
 Place --* "1..*" Address : address
 Place -up-|> Point
-Place --* "1..*" Name : names
+Place --* "0..*" Name : names
 Place --* "1" Name : primaryName
 Place --* "0..*" Phone : phones
 Place --> "0..1" Brand : brand
