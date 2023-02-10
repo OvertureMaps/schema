@@ -2,7 +2,12 @@
 Designs the Data Schema and the Global Entity Reference System to deliver easy-to-use, and interoperable open map data.
 
 ## Scope
+The Schema Working Group will develop the specification for a data schema and ontology that will support the following goals:
 
+    Support current and future mapping applications,
+    allow incorporating multiple data sources and types, and
+    encourage broad, industry wide adoption.
+    
 ## Appointments 
 
 ## Resources
