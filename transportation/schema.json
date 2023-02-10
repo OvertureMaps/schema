@@ -1,6 +1,6 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://overturemaps.org/schema-wg/transportation-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "goejson schema uses draft-07 + draft-07 introduces capability to introduce comments for schema editors like that one...",
   "title": "Overture Transportation Segment Feature",
   "description": "Prototype schema for Overture Transportation layer features as GeoJSON LineStrings",
   "type": "object",
