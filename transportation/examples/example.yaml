@@ -1,0 +1,7 @@
+---
+id: "overture:transportation_segment:GRRRRS123"
+type: "Feature"
+geometry:
+  type: "LineString"
+  coordinates: [[0,1], [1,2]]
+properties: {}
