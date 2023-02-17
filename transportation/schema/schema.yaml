@@ -34,39 +34,3 @@ oneOf:
             type: { enum: [segment] }
     then: { "$ref": transportation/segment.yaml }
     else: { propertyNames: false }
-properties:
-  properties:
-    "$comment": >-
-      The top-level properties listed here are those that are broadly
-      applicable to all Overture feature types across themes.
-      
-      A few other top-level feature types that are on the radar and which
-      might be included at the top level include: a localized default or
-      display name (flat); an 18n naming structure (map:string->string);
-      and details about feature version, update timestamp, and lineage.
-      
-      Please note that there is no GERS ID property under properties,
-      because GeoJSON already has an "id" attribute at the top level of
-      the feature object. It's up there somewhere! 👆
-    type: object
-    required: [theme, type]
-    unevaluatedProperties: false
-    properties:
-      theme:
-        description: Top-level Overture theme this feature belongs to
-        type: string
-        enum: [buildings, transportation]
-      type:
-        description: Specific feature type within the theme
-        type: string
-        oneOf:
-          - if: { properties: { theme: { enum: [ buildings ]}}}
-            then: { enum: [footprint] }
-          - if: { properties: { theme: { enum: [ buildings ]}}}
-            then: { enum: [connector, segment] }
-      level:
-        description: Z-order of the feature where 0 is visual level
-        type: integer
-        default: 0
-    patternProperties:
-      ^ext.*$: true

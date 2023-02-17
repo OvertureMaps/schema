@@ -1,0 +1,40 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Overture Maps Transportation Segment Schema
+description: Common schema definitions shared by all themes
+"$defs":
+  propertyDefinitions:
+    level:
+      description: Z-order of the feature where 0 is visual level
+      type: integer
+      default: 0
+    theme:
+      description: Top-level Overture theme this feature belongs to
+      type: string
+      enum: [buildings, transportation]
+    featureType:
+      description: Specific feature type within the theme
+      type: string
+      oneOf:
+        - if: { properties: { theme: { enum: [ buildings ]}}}
+          then: { enum: [footprint] }
+        - if: { properties: { theme: { enum: [ buildings ]}}}
+          then: { enum: [connector, segment] }
+  propertyContainers:
+    overtureFeaturePropertiesContainer:
+      description: Top-level properties shared by all Overture features
+      type: object
+      required: [ theme, type ]
+      patternProperties:
+        ^ext.*$: true
+      properties:
+        theme:
+          "$ref": "#/$defs/propertyDefinitions/theme"
+        type:
+          "$ref": "#/$defs/propertyDefinitions/featureType"
+    levelContainer:
+      description: Properties defining feature Z-order, i.e., stacking order
+      type: object
+      properties:
+        level:
+          "$ref": "#/$defs/propertyDefinitions/level"

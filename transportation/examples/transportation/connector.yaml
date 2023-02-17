@@ -10,3 +10,4 @@ properties:
   # Overture properties
   theme: transportation
   type: connector
+  level: 3
