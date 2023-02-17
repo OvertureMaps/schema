@@ -11,5 +11,3 @@ properties:
   theme: transportation
   type: segment
   subType: road
-  level: -1
-  road: {}
