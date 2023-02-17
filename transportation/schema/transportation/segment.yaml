@@ -37,3 +37,50 @@ properties:
       type: object
       unevaluatedProperties: false
       default: {}
+      properties:
+        class:
+          description: >-
+            Captures the kind of road and its position in the road
+            network hierarchy.
+          type: string
+          enum:
+            - unknown
+            - primary
+            - secondary
+            - tertiary
+            - residential
+            - parkingAisle
+            - driveway
+            - footway
+            - cycleway
+          default:
+            enum: [ unknown ]
+        surface:
+          description: Physical surface of the road
+          type: string
+          enum:
+            - unknown
+            - paved
+            - unpaved
+            - gravel
+            - dirt
+            - pavingStones
+            - metal
+          default:
+            enum: [unknown]
+          "$comment": >-
+            We should likely restrict the available surface types to
+            the subset of the common OSM surface=* tag values that are
+            useful both for routing and for map tile rendering.
+        flags:
+          description: Set of boolean attributes applicable to roads
+          type: array
+          items:
+            type: string
+            enum:
+              - isLink
+              - isTunnel
+              - isPrivate
+              - isTolled
+          uniqueItems: true
+          default: []

@@ -1,0 +1,16 @@
+{
+  "id": "bad-class",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[2, 2], [3, 3]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "subType": "road",
+    "road": {
+      "flags": ["isTunnel", "isTunnel"]
+    }
+  }
+}

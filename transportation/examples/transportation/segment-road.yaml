@@ -12,4 +12,7 @@ properties:
   type: segment
   subType: road
   level: -1
-  road: {}
+  road:
+    class: secondary
+    surface: gravel
+    flags: [isLink, isTunnel, isPrivate, isTolled]
