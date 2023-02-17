@@ -10,4 +10,5 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  level: 3
+  subType: road
+  level: -1

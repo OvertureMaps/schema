@@ -10,7 +10,30 @@ properties:
       - "$ref": https://geojson.org/schema/LineString.json
   properties:
     unevaluatedProperties: false
+    required: [subType]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
-"$defs": {}
+      - allOf:
+          - if: { properties: { subType: { enum: [road] } } }
+            then:
+              properties:
+                road: { "$ref": "#/$defs/types/road" }
+    properties:
+      subType:
+        description: Broad category of transportation segment.
+        type: string
+        enum: [road, rail, water]
+        "$comment": >-
+          Should not be confused with a transport mode. A segment
+          kind has an (implied) set of default transport modes.
+"$defs":
+  types:
+    road:
+      description: >-
+        Properties for segments whose segment subType is road. The road
+        subType includes any variety of road, street, or path, including
+        dedicated paths for walking and cycling.
+      type: object
+      unevaluatedProperties: false
+      default: {}
