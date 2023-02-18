@@ -1,0 +1,18 @@
+{
+  "id": "segment where directionality a rule with an invalid direction",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[0, 1], [1, 1]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "subType": "water",
+    "directionality": [
+      {
+        "direction": "sideways"
+      }
+    ]
+  }
+}

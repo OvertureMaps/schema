@@ -27,6 +27,26 @@ properties:
         "$comment": >-
           Should not be confused with a transport mode. A segment
           kind has an (implied) set of default transport modes.
+      directionality:
+        description: Rules stipulating direction of travel along the segment
+        type: array
+        items:
+          description: One instance of a direction rule
+          type: object
+          unevaluatedProperties: false
+          allOf:
+            - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+          required:
+            - direction
+          properties:
+            direction:
+              description: Direction or directions allowed by this rule
+              type: string
+              enum: [ bothWays, forward, backward, alternating, reversible ]
+        minItems: 1
+        default:
+          - rule: bothWays
+
 "$defs":
   propertyDefinitions:
     mode:

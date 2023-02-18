@@ -1,0 +1,21 @@
+{
+  "id": "segment where directionality a rule which is missing a direction",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[0, 1], [1, 1]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "subType": "water",
+    "directionality": [
+      {
+        "direction": "reversible"
+      },
+      {
+        "applyDuring": "Mo-Sa 09:00-12:00, We 15:00-18:00"
+      }
+    ]
+  }
+}
