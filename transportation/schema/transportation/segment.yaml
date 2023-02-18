@@ -18,7 +18,7 @@ properties:
           - if: { properties: { subType: { enum: [road] } } }
             then:
               properties:
-                road: { "$ref": "#/$defs/types/road" }
+                road: { "$ref": "#/$defs/propertyDefinitions/road" }
     properties:
       subType:
         description: Broad category of transportation segment.
@@ -28,7 +28,15 @@ properties:
           Should not be confused with a transport mode. A segment
           kind has an (implied) set of default transport modes.
 "$defs":
-  types:
+  propertyDefinitions:
+    mode:
+      description: >-
+        Enumerates possible travel modes. Some modes represent groups
+        of modes.
+      type: string
+      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle ]
+      "$comment": >-
+        motorVehicle includes car, truck and motorcycle
     road:
       description: >-
         Properties for segments whose segment subType is road. The road
@@ -84,3 +92,129 @@ properties:
               - isTolled
           uniqueItems: true
           default: []
+        restrictions:
+          descriptions: Restrictions on how the road may be used
+          type: object
+          allOf:
+            - "$ref": "#/$defs/propertyContainers/modesContainer"
+          unevaluatedProperties: false
+          properties:
+            speedLimits:
+              description: Rules governing speed on this road segment
+              type: array
+              items:
+                description: An individual speed limit rule
+                "$comment": >-
+                  TODO: Speed limits probably have directionality, so
+                  should factor out a directionContainer for this
+                  purpose and use it to introduce an optional
+                  direction property in each rule.
+                type: object
+                anyOf:
+                  - required: [minSpeed]
+                  - required: [maxSpeed]
+                allOf:
+                  - "$ref": "#/$defs/propertyContainers/modesContainer"
+                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                  - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+                unevaluatedProperties: false
+                properties:
+                  minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+                  maxSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+                  isMaxSpeedVariable:
+                    description: Indicates a variable speed corridor
+                    type: boolean
+                    default: false
+            sizeLimits:
+              description: Rules governing vehicle size on this road segment
+              type: array
+              items:
+                description: An individual vehicle size rule
+                "$comment": >-
+                  TODO: Is there a directionality aspect to vehicle
+                  size limits, similar to speed limits? Or at that
+                  point should we just split into two unidirectional
+                  segments?
+                type: object
+                allOf:
+                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                anyOf:
+                  - required: [maxHeightMeters]
+                  - required: [maxWidthMaters]
+                  - required: [maxWeightKilograms]
+                unevaluatedProperties: false
+                properties:
+                  maxHeightMeters:
+                    type: number
+                    minValueExclusive: 0
+                  maxWidthMeters:
+                    type: number
+                    minValueExclusive: 0
+                  maxWeightKilograms:
+                    type: number
+                    minValueExclusive: 0
+    speed:
+      description: >-
+        A speed value, i.e. a certain number of distance units
+        travelled per unit time.
+      type: array
+      prefixItems:
+        - description: Number of speed units
+          type: integer
+          minValue: 20
+        - description: One speed unit
+          type: string
+          enum: [ "km/h", "mph" ]
+      additionalItems: false
+  propertyContainers:
+    applyAtPositionContainer:
+      description: >-
+        Properties defining the discrete position on the segment where
+        a rule is active.
+      properties:
+        applyAt:
+          "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition
+    applyAtRangeContainer:
+      description: >-
+        Properties defining the range of positions on the segment where
+        a rule is active.
+      properties:
+        applyAt:
+          "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedRange
+    applyDuringContainer:
+      "$comment": >-
+        Properties defining the time spans when a recurring rule is
+        active.
+      properties:
+        applyDuring:
+          "$ref": ../defs.yaml#/$defs/propertyDefinitions/openingHours
+    modesContainer:
+      description: >-
+        Properties defining travel modes for which a rule is active.
+      type: object
+      oneOf:
+        - not:
+            anyOf:
+              - required: [modes]
+              - required: [notModes]
+        - required: [modes]
+          properties:
+            modes:
+              description: Travel modes to which the rule applies
+              type: array
+              items:
+                "$ref": "#/$defs/propertyDefinitions/mode"
+              uniqueItems: true
+              minLength: 1
+        - required: [notModes]
+          properties:
+            notModes:
+              description: Travel modes to which the rule does not apply
+              type: array
+              items:
+                "$ref": "#/$defs/propertyDefinitions/mode"
+              uniqueItems: true
+              minLength: 1
+      "$comment": >-
+        If neither modes nor notModes is specified, the rule has the
+        default travel modes for the segment subType.

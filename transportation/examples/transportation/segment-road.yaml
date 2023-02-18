@@ -16,3 +16,20 @@ properties:
     class: secondary
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]
+    restrictions:
+      notModes: [bicycle]
+      speedLimits:
+        - minSpeed: [90, "km/h"]
+          maxSpeed: [110, "mph"]
+          notModes: [ "truck" ]
+          isMaxSpeedVariable: true
+        - maxSpeed: [55, "mph"]
+          modes: [ "truck" ]
+        - maxSpeed: [30, "km/h"]
+          applyAt: [0.25, 0.50]
+          applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
+      sizeLimits:
+        - maxHeightMeters: 4
+          maxWidthMeters: 4
+          maxWeightKilograms: 500
+          applyAt: [0.1, 0.9]
