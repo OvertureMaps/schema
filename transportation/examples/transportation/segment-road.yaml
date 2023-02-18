@@ -16,6 +16,7 @@ properties:
     - direction: forward
     - direction: backward
       applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
+  connectors: [fooConnector, barConnector]
   road:
     class: secondary
     surface: gravel

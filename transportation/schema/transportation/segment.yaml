@@ -46,7 +46,19 @@ properties:
         minItems: 1
         default:
           - rule: bothWays
-
+      connectors:
+        description: >-
+          List of connector nodes this segment is physically connected
+          to.
+        type: array
+        items:
+          type: string
+          pattern: ^[a-z]+Connector$
+          "$comment": >-
+            Pattern is just a placeholder. Each entry in this array is
+            the GERS ID of a transportation connector feature.
+        uniqueItems: true
+        default: []
 "$defs":
   propertyDefinitions:
     mode:
