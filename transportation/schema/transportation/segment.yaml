@@ -268,6 +268,18 @@ properties:
                   maxWeightKilograms:
                     type: number
                     exclusiveMinimum: 0
+            entranceRestrictions:
+              description: >-
+                Rules restricting how traffic may enter the road at one
+                of its ends, a.k.a. via restrictions.
+              type: array
+              "$comment": "TODO"
+            exitRestrictions:
+              description: >-
+                Rules restricting how traffic may exit the road at one
+                of its ends, a.k.a. turn restrictions.
+              type: array
+              "$comment": "TODO"
     roadWidth:
       description: >-
         Edge-to-edge width of the road modeled by this segment, in

@@ -83,3 +83,7 @@ properties:
           maxWidthMeters: 4
           maxWeightKilograms: 500
           applyAt: [0.1, 0.9]
+      entranceRestrictions: []
+        # TODO: Sanjib
+      exitRestrictions: []
+        # TODO: Sanjib
