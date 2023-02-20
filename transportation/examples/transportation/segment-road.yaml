@@ -12,7 +12,7 @@ properties:
   type: segment
   subType: road
   level: -1
-  # TODO: Add width here.
+  widthMeters: 10
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
   road:
     class: secondary

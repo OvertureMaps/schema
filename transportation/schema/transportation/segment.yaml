@@ -19,6 +19,7 @@ properties:
             then:
               properties:
                 road: { "$ref": "#/$defs/propertyDefinitions/road" }
+                widthMeters: { "$ref": "#/$defs/propertyDefinitions/roadWidth"}
     properties:
       subType:
         description: Broad category of transportation segment.
@@ -260,13 +261,27 @@ properties:
                 properties:
                   maxHeightMeters:
                     type: number
-                    minValueExclusive: 0
+                    exclusiveMinimum: 0
                   maxWidthMeters:
                     type: number
-                    minValueExclusive: 0
+                    exclusiveMinimum: 0
                   maxWeightKilograms:
                     type: number
-                    minValueExclusive: 0
+                    exclusiveMinimum: 0
+    roadWidth:
+      description: >-
+        Edge-to-edge width of the road modeled by this segment, in
+        meters.
+        
+        Examples: (1) If this segment models a carriageway without
+        sidewalk, this value represents the edge-to-edge width of the
+        carriageway, inclusive of any shoulder. (2) If this segment
+        models a sidewalk by itself, this value represents the
+        edge-to-edge width of the sidewalk. (3) If this segment models a
+        combined sidewalk and carriageway, this value represents the
+        edge-to-edge width inclusive of sidewalk.
+      type: number
+      exclusiveMinimum: 0
     speed:
       description: >-
         A speed value, i.e. a certain number of distance units
