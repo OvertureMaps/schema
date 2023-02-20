@@ -27,25 +27,6 @@ properties:
         "$comment": >-
           Should not be confused with a transport mode. A segment
           kind has an (implied) set of default transport modes.
-      directionality:
-        description: Rules stipulating direction of travel along the segment
-        type: array
-        items:
-          description: One instance of a direction rule
-          type: object
-          unevaluatedProperties: false
-          allOf:
-            - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
-          required:
-            - direction
-          properties:
-            direction:
-              description: Direction or directions allowed by this rule
-              type: string
-              enum: [ bothWays, forward, backward, alternating, reversible ]
-        minItems: 1
-        default:
-          - rule: bothWays
       connectors:
         description: >-
           List of connector nodes this segment is physically connected
@@ -61,6 +42,52 @@ properties:
         default: []
 "$defs":
   propertyDefinitions:
+    lane:
+      description: >-
+        Properties for a single lane of traffic.
+      type: object
+      required: [direction]
+      allOf:
+        - "$ref": "#/$defs/propertyContainers/modesContainer"
+      unevaluatedProperties: false
+      properties:
+        direction: { "$ref": "#/$defs/propertyDefinitions/laneDirection" }
+        turns:
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/turnOption" }
+          minItems: 1
+          uniqueItems: true
+          "$comment": >-
+            If turns is omitted, the default turning options for a lane
+            are assumed. The default turning options depend on the lane
+            location. The leftmost lane for a given travel direction has
+            [left, through] by default. A rightmost lane has [right,
+            through] by default. Evidently if there is a single lane for
+            a given direction, it is both leftmost and rightmost and
+            consequently has [left, through, right]. A middle lane has
+            [through] by default.
+      "$comment": >-
+        TODO: HOV lane modeling.
+    laneDirection:
+      type: string
+      enum:
+        - forward       # Traffic flows in the segment direction.
+        - backward      # Traffic flows against the segment direction.
+        - bothWays      # Traffic flows simultaneously in both directions as, e.g., on a sidewalk.
+        - alternating   # Traffic flows alternately forward and backward following a predictable rhythm.
+        - reversible    # Traffic flows forward, but may be arbitrarily reversed by traffic authorities at any time.
+    laneDivider:
+      description: >-
+        Enumerates possible methods of dividing two lanes on a road
+        segment.
+      type: string
+      enum:
+        - barrier     # Crossing is prevented by a physical barrier.
+        - curb        # Crossing is prevented by a curb. (May be redundant given barrier?)
+        - mayChange   # Changing lanes is permitted when it is safe to do so.
+        - mayNotCross # Changing lanes is prohibited.
+        - mayPass     # Temporarily changing into oncoming traffic lane in order to pass is permitted when it is safe.
+        - signal      # Changing lanes is permitted only when a signal is activated.
     mode:
       description: >-
         Enumerates possible travel modes. Some modes represent groups
@@ -118,12 +145,67 @@ properties:
           items:
             type: string
             enum:
+              - isBridge
               - isLink
-              - isTunnel
               - isPrivate
               - isTolled
+              - isTunnel
           uniqueItems: true
           default: []
+        flow:
+          description: >-
+            Rules for how traffic flows along a road segment. Each rule
+            may optionally apply along a linearly referenced range,
+            during a specific set of opening hours, or both. Each rule
+            must fully specify the traffic flow for the part of the
+            segment to which it applies (i.e. there are no partial
+            rules).
+          type: array
+          items:
+            type: object
+            required: [lanes]
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+              - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+            unevaluatedProperties: false
+            properties:
+              dividers:
+                description: >-
+                  How the lanes are divided within this flow rule. There
+                  must be exactly one divider for each lane, so a flow
+                  rule with N lanes must have N-1 dividers. For two
+                  consecutive lane items (lanes[i], lanes[i+1]), the
+                  divider between them is given by dividers[i].
+                type: array
+                items: { "$ref": "#/$defs/propertyDefinitions/laneDivider" }
+                default: []
+              lanes:
+                description: >-
+                  The lanes existing within this flow rule. Lanes are
+                  specified from left to right from the perspective of a
+                  person standing on the segment facing in the forward
+                  direction.
+                type: array
+                items: { "$ref": "#/$defs/propertyDefinitions/lane" }
+                minItems: 1
+          minItems: 1
+          uniqueItems: true
+          "$comment": >-
+            Because lane ordering follows the physical layout of the
+            road, there is no default flow rule, since even a simple
+            bidirectional setup with two lanes would only be applicable
+            to the part of the world which shares the same driving
+            direction.
+
+            A possible alternative would be to make the default a
+            one-way flow with a single lane in the forward direction,
+            but given how few roads on the planet it would match, this
+            choice would reveal a very poor understanding of "default".
+
+            It may be that the "flows" concept is general enough to lift
+            up out of "road" and put at the top level. We would have to
+            be convinced that it also applies to water/ferry and rail,
+            however.
         restrictions:
           descriptions: Restrictions on how the road may be used
           type: object
@@ -198,6 +280,10 @@ properties:
           type: string
           enum: [ "km/h", "mph" ]
       additionalItems: false
+    turnOption:
+      description: Option for turning at a junction between segments
+      type: string
+      enum: [left, through, right]
   propertyContainers:
     applyAtPositionContainer:
       description: >-

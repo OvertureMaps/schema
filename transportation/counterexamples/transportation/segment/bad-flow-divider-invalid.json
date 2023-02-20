@@ -1,0 +1,26 @@
+{
+  "id": "bad-flow-divider-invalid",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[2, 2], [3, 3]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "subType": "road",
+    "road": {
+      "class": "primary",
+      "flow": [
+        {
+          "dividers": ["barrier", "this value is invalid"],
+          "lanes": [
+            {
+              "direction": "forward"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

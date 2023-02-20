@@ -50,6 +50,13 @@ done
 
 echo
 
+# TODO: A major shortcoming of the counterexamples is that there is no
+#       way to specify HOW they fail. Consequently if a counterexample
+#       becomes totally obsolete because we ripped out that part of the
+#       schema, we don't get any notice that the counterexample is now
+#       irrelevant. Pointless cruft will build up over time until this
+#       is fixed.
+
 echo "---- VERIFYING counterexamples ----"
 find counterexamples -type f | sort | while read -r instance_file; do
   printf "%s..." "$instance_file"

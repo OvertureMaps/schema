@@ -1,5 +1,5 @@
 ---
-id: overture:buildings:segment:456
+id: overture:transportation:segment:456
 type: Feature
 geometry:
   type: LineString

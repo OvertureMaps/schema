@@ -1,0 +1,19 @@
+---
+id: overture:transportation:segment:789
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subType: road
+  connectors: [fooConnector, barConnector]
+  road:
+    class: primary
+    surface: paved
+    flow:
+      # This flow models a single-lane road whose direction alternates
+      # on a regular rhythm.
+      - lanes:
+          - direction: alternating

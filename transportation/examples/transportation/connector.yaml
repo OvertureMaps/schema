@@ -1,5 +1,5 @@
 ---
-id: overture:buildings:connector:789
+id: overture:transportation:connector:789
 type: Feature
 geometry:
   type: Point
