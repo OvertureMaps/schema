@@ -17,9 +17,10 @@ Time 4:00pm UTC - See the time in your timezone https://everytimezone.com/s/a839
 ## Meeting notices
 
 ### Antitrust Policy
-Linux Foundation meetings involve participation by industry competitors, and it is the intention of the Linux Foundation to conduct all of its activities in accordance with applicable antitrust and competition laws. It is therefore extremely important that attendees adhere to meeting agendas, and be aware of, and not participate in, any activities that are prohibited under applicable US state, federal or foreign antitrust and competition laws.
 
-Examples of types of actions that are prohibited at Linux Foundation meetings and in connection with Linux Foundation activities are described in the Linux Foundation Antitrust Policy available at http://www.linuxfoundation.org/antitrust-policy. If you have questions about these matters, please contact your company counsel, or if you are a member of the Overture Map Foundation, feel free to contact Brad Biddle of the firm of BIDDLE LAW PC, which provides legal counsel to the Overture Maps Foundation.
+Joint Development Foundation meetings may involve participation by industry competitors, and it is the intention of the Joint Development Foundation to conduct all of its activities in accordance with applicable antitrust and competition laws. It is therefore extremely important that attendees adhere to meeting agendas, and be aware of, and not participate in, any activities that are prohibited under applicable US state, federal or foreign antitrust and competition laws.
+
+If you have questions about these matters, please contact your company counsel or counsel to the Joint Development Foundation, DLA Piper.
 
 **Reminder - Meeting is recorded**
 
