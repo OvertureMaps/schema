@@ -11,11 +11,10 @@ description: Common schema definitions shared by all themes
     featureType:
       description: Specific feature type within the theme
       type: string
-      oneOf:
-        - if: { properties: { theme: { enum: [ buildings ]}}}
-          then: { enum: [footprint] }
-        - if: { properties: { theme: { enum: [ buildings ]}}}
-          then: { enum: [connector, segment] }
+      enum:
+        - connector
+        - footprint
+        - segment
     theme:
       description: Top-level Overture theme this feature belongs to
       type: string
