@@ -15,6 +15,20 @@ description: Common schema definitions shared by all themes
         - connector
         - footprint
         - segment
+    featureUpdateTime:
+      description: Timestamp when the feature was last updated
+      type: string
+      format: date-time
+      pattern: ^[1-9]\d{3}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[-+]\d{2}:\d{2})$
+      "$comment": >-
+        Pattern is used as a fallback because not all JSON schema
+        implementations treat "format" as an assertion, for some it is
+        only an annotation.
+        
+        A somewhat more compact approach would be to reference the
+        Overture version where the feature last changed instead of the
+        update time, and expect clients to do a lookup if they really
+        care about the time.
     theme:
       description: Top-level Overture theme this feature belongs to
       type: string
@@ -67,14 +81,13 @@ description: Common schema definitions shared by all themes
     overtureFeaturePropertiesContainer:
       description: Top-level properties shared by all Overture features
       type: object
-      required: [ theme, type ]
+      required: [ theme, type, updateTime ]
       patternProperties:
         ^ext.*$: true
       properties:
-        theme:
-          "$ref": "#/$defs/propertyDefinitions/theme"
-        type:
-          "$ref": "#/$defs/propertyDefinitions/featureType"
+        theme: { "$ref": "#/$defs/propertyDefinitions/theme" }
+        type: { "$ref": "#/$defs/propertyDefinitions/featureType" }
+        updateTime: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
     levelContainer:
       description: Properties defining feature Z-order, i.e., stacking order
       type: object
