@@ -1,0 +1,18 @@
+{
+  "id": "road segment where road.restrictions.modes has a bad value",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[0, 1], [1, 1]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "subType": "road",
+    "road": {
+      "restrictions": {
+        "modes": ["foo"]
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+---
+id: overture:transportation:segment:1213
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subType: road
+  connectors: [fooConnector, barConnector]
+  road:
+    class: residential
+    surface: paved
+    flags: [isBridge]
+    flow:
+      # This flow models a physical situation resembling the Lion's Gate Bridge
+      # between Vancouver and North Vancouver. This is a three-lane bridge in
+      # which the middle lane direction can be reversed by traffic authorities
+      # at arbitrary times and entry into the alternating middle lane is
+      # controlled by a traffic signal.
+      #
+      #     https://www.openstreetmap.org/#map=16/49.3151/-123.1392
+      - dividers: [signal, signal]
+        lanes:
+          - direction: backward
+            modes: [motorVehicle]
+          - direction: reversible
+            modes: [motorVehicle]
+          - direction: forward
+            modes: [motorVehicle]

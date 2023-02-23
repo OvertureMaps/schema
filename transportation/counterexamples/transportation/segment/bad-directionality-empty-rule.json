@@ -1,0 +1,16 @@
+{
+  "id": "segment where directionality contains an empty rule",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[0, 1], [1, 1]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "subType": "water",
+    "directionality": [
+      {}
+    ]
+  }
+}

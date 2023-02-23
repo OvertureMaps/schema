@@ -1,0 +1,25 @@
+{
+  "id": "bad-flow-direction-invalid",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[2, 2], [3, 3]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "subType": "road",
+    "road": {
+      "class": "primary",
+      "flow": [
+        {
+          "lanes": [
+            {
+              "direction": "this value is invalid"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
