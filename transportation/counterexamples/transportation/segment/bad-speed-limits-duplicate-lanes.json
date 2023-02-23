@@ -1,0 +1,23 @@
+{
+  "id": "road segment where road.restrictions.speedLimits contains an empty rule",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[0, 1], [1, 1]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "subType": "road",
+    "road": {
+      "restrictions": {
+        "speedLimits": [
+          {
+            "maxSpeed": ["10", "mph"],
+            "lanes": [3, 3]
+          }
+        ]
+      }
+    }
+  }
+}

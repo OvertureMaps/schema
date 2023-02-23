@@ -240,6 +240,16 @@ properties:
                     description: Indicates a variable speed corridor
                     type: boolean
                     default: false
+                  lanes:
+                    description: >-
+                      Optionally specifies the lanes to which the speed
+                      limit rule applies. If omitted, the rule applies
+                      to all lanes.
+                    type: array
+                    items:
+                      type: integer
+                      minValue: 0
+                    uniqueItems: true
             sizeLimits:
               description: Rules governing vehicle size on this road segment
               type: array

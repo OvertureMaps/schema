@@ -75,6 +75,7 @@ properties:
           isMaxSpeedVariable: true
         - maxSpeed: [55, "mph"]
           modes: [ "truck" ]
+          lanes: [3]
         - maxSpeed: [30, "km/h"]
           applyAt: [0.25, 0.50]
           applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
