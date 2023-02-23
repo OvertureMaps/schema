@@ -16,6 +16,11 @@ properties:
   type: segment
   subType: road
   road:
+    surface:
+      - value: gravel
+        applyAt: [0, 0.25]
+      - value: paved
+        applyAt: [0.25, 1]
     flags:
       - values: [isTolled, isBridge]
       - values: []

@@ -141,16 +141,21 @@ properties:
           default:
             enum: [ unknown ]
         surface:
-          description: Physical surface of the road
-          type: string
-          enum:
-            - unknown
-            - paved
-            - unpaved
-            - gravel
-            - dirt
-            - pavingStones
-            - metal
+          description: Physical surface of the road. May either be
+            specified as a single global value for the segment, or as
+            an array of surface rules.
+          oneOf:
+            - { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
+            - type: array
+              items:
+                type: object
+                allOf:
+                  - { "$ref": "#/$defs/propertyContainers/applyAtRangeContainer" }
+                unevaluatedProperties: false
+                properties:
+                  value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
+              minItems: 1
+              uniqueItems: true
           default:
             enum: [unknown]
           "$comment": >-
@@ -323,6 +328,17 @@ properties:
         - isPrivate
         - isTolled
         - isTunnel
+    roadSurface:
+      description: Physical surface of the road
+      type: string
+      enum:
+        - unknown
+        - paved
+        - unpaved
+        - gravel
+        - dirt
+        - pavingStones
+        - metal
     roadWidth:
       description: >-
         Edge-to-edge width of the road modeled by this segment, in
