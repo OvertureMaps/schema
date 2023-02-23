@@ -1,0 +1,24 @@
+{
+  "id": "bad-class",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[2, 2], [3, 3]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "subType": "road",
+    "road": {
+      "flags": [
+        {
+          "values": ["isTolled"],
+          "applyAt":[0, 1]
+        },
+        {
+          "values": ["isPrivate", "foo"]
+        }
+      ]
+    }
+  }
+}

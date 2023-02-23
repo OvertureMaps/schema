@@ -44,8 +44,7 @@ properties:
 "$defs":
   propertyDefinitions:
     lane:
-      description: >-
-        Properties for a single lane of traffic.
+      description: Properties for a single lane of traffic.
       type: object
       required: [direction]
       allOf:
@@ -159,18 +158,25 @@ properties:
             the subset of the common OSM surface=* tag values that are
             useful both for routing and for map tile rendering.
         flags:
-          description: Set of boolean attributes applicable to roads
+          description: >-
+            Set of boolean attributes applicable to roads. May be
+            specified either as a single flag array of flag values, or
+            as an array of flag rules.
           type: array
           items:
-            type: string
-            enum:
-              - isBridge
-              - isLink
-              - isPrivate
-              - isTolled
-              - isTunnel
+            oneOf:
+              - { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
+              - type: object
+                allOf:
+                  - { "$ref": "#/$defs/propertyContainers/applyAtRangeContainer" }
+                  - { "$ref": "#/$defs/propertyContainers/applyDuringContainer" }
+                unevaluatedProperties: false
+                properties:
+                  values:
+                    type: array
+                    items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
+                    uniqueItems: true
           uniqueItems: true
-          default: []
         flow:
           description: >-
             Rules for how traffic flows along a road segment. Each rule
@@ -308,11 +314,20 @@ properties:
                 of its ends, a.k.a. turn restrictions.
               type: array
               "$comment": "TODO"
+    roadFlag:
+      description: Simple flags that can be on or off for a road segment
+      type: string
+      enum:
+        - isBridge
+        - isLink
+        - isPrivate
+        - isTolled
+        - isTunnel
     roadWidth:
       description: >-
         Edge-to-edge width of the road modeled by this segment, in
         meters.
-        
+
         Examples: (1) If this segment models a carriageway without
         sidewalk, this value represents the edge-to-edge width of the
         carriageway, inclusive of any shoulder. (2) If this segment
