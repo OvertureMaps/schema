@@ -335,7 +335,17 @@ properties:
     turnOption:
       description: Option for turning at a junction between segments
       type: string
-      enum: [left, through, right]
+      enum:
+        - mergeLeft
+        - slightLeft
+        - left
+        - sharpLeft
+        - through
+        - mergeRight
+        - slightRight
+        - right
+        - sharpRight
+        - reverse
   propertyContainers:
     applyAtPositionContainer:
       description: >-
