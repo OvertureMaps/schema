@@ -83,12 +83,27 @@ properties:
         segment.
       type: string
       enum:
+        - unknown     # We have no information on how lanes are divided
         - barrier     # Crossing is prevented by a physical barrier.
         - curb        # Crossing is prevented by a curb. (May be redundant given barrier?)
         - mayChange   # Changing lanes is permitted when it is safe to do so.
         - mayNotCross # Changing lanes is prohibited.
         - mayPass     # Temporarily changing into oncoming traffic lane in order to pass is permitted when it is safe.
         - signal      # Changing lanes is permitted only when a signal is activated.
+      "$comment": >-
+        The lane divider concept models ability to change lanes from a
+        navigation standpoint (equivalent to OSM "change" tags) and
+        from a visual standpoint (equivalent to OSM "divider" tags)
+        because abstract values such as "mayChange" can be mapped to the
+        appropriate line markings. Judging by fact that OSM has orders
+        of magnitude more "change" tags, the navigation function is
+        thought to be more important.
+
+        References:
+         o https://taginfo.openstreetmap.org/keys/change (7K entities)
+         o https://taginfo.openstreetmap.org/keys/change:lanes (50K entities)
+         o https://taginfo.openstreetmap.org/keys/divider (4K entities)
+         o https://taginfo.openstreetmap.org/keys/divider:lanes (0 entities)
     mode:
       description: >-
         Enumerates possible travel modes. Some modes represent groups
