@@ -69,6 +69,9 @@ properties:
             [through] by default.
       "$comment": >-
         TODO: HOV lane modeling.
+        TODO: The turns model fails to capture cases where there may be
+              a combined maneuver (slightLeft+slideRight). How important
+              is this? https://wiki.openstreetmap.org/wiki/Key:turn
     laneDirection:
       type: string
       enum:
