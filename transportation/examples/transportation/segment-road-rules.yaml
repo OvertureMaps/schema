@@ -15,6 +15,7 @@ properties:
   theme: transportation
   type: segment
   updateTime: 2023-02-23T00:03:59-08:00
+  version: 5
   subType: road
   road:
     surface:

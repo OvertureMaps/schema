@@ -8,6 +8,7 @@
   "properties": {
     "theme": "transportation",
     "type": "segment",
-    "subType": "water"
+    "version": 27,
+    "subType": "water",
   }
 }
