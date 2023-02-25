@@ -93,7 +93,20 @@ properties:
           maxWidthMeters: 4
           maxWeightKilograms: 500
           applyAt: [0.1, 0.9]
-      entranceRestrictions: []
-        # TODO: Sanjib
-      exitRestrictions: []
-        # TODO: Sanjib
+    relations: 
+      - relation:
+          target: overture:transportation:segment:124
+          relationType: Simple
+          condition: Legal
+      - relation:
+          target: overture:transportation:segment:124
+          relationType: Polyvalent
+          condition: Legal
+          via: [overture:transportation:segment:125, overture:transportation:segment:126]
+      - relation:
+          target: overture:transportation:segment:124
+          relationType: Signpost
+          directionType: East
+          instructionType: Branch
+
+     

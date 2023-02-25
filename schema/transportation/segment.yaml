@@ -328,18 +328,6 @@ properties:
                   maxWeightKilograms:
                     type: number
                     exclusiveMinimum: 0
-            entranceRestrictions:
-              description: >-
-                Rules restricting how traffic may enter the road at one
-                of its ends, a.k.a. via restrictions.
-              type: array
-              "$comment": "TODO"
-            exitRestrictions:
-              description: >-
-                Rules restricting how traffic may exit the road at one
-                of its ends, a.k.a. turn restrictions.
-              type: array
-              "$comment": "TODO"
         lanes:
           description: >-
             Captures information about lanes on road - including potential information about how those lanes connect with
@@ -362,7 +350,91 @@ properties:
                     type: array
                     items: { "$ref": "#/$defs/propertyDefinitions/lane" }
                     minItems: 1
-
+        relations:
+          descriptions: Relation of this segment with other segments. For some relation like turn the segments need to be connected but for some like signposts, the segments does not need to be connected.
+          type: array
+          items:
+             allOf:
+               - "$ref": "#/$defs/propertyContainers/modesContainer"
+               - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+             unevaluatedProperties: false
+             type: object
+             properties:
+               relation:
+                 unevaluatedProperties: false
+                 type: object
+                 properties:
+                   target:
+                     description: Target segement id that the relation targets
+                     type: string
+                   relationType:
+                     description: type of the relation
+                     type: string
+                     enum:
+                       - Simple
+                       - Polyvalent
+                       - Signpost
+                   condition:
+                      description: for restrictions, a rough description as to why the relation exist
+                      type: string
+                      enum:
+                        - Legal
+                        - Divider
+                        - GatedPermission
+                        - GatedKey
+                      default:
+                        enum: [Legal]
+                   applyAtEnd:
+                      description: Which end of the segment the relation applies to. Only required for self referencing relation, i.e. when the target of the relation is same as this segment
+                      type: string
+                      enum:
+                        - From
+                        - To
+                        - Both
+                 required: [target, relationType]
+                 allOf:
+                   - if: {properties: {relationType: {enum: [Polyvalent]}}}
+                     then:
+                       properties:
+                         via:
+                           description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
+                           type: array
+                           items:
+                             properties:
+                               viaId:
+                                 description: id of the related segment
+                                 type: string
+                           minItems: 1
+                           uniqueItems: true
+                       required: [via]
+                   - if: {properties: {relationType: {enum: [Signpost]}}}
+                     then:
+                       properties:
+                         directionType:
+                           description: Direction for a sign post relation
+                           type: string
+                           enum:
+                             - East
+                             - West
+                             - North
+                             - South
+                             - NorthEast
+                             - NorthWest
+                             - SouthEast
+                             - SouthWest
+                         instructionType:
+                           description: Instruction type for sign post
+                           type: string
+                           enum:
+                             - Towards
+                             - Branch
+                         exitNumber:
+                           description: Exit number for highway exits
+                           type: integer
+                         sighText:
+                           description: free format text to display for journey instruction
+                           type: string
+                       required: [directionType, instructionType]
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
