@@ -1,0 +1,297 @@
+EntityTypes:
+- Name: Populated Area
+  Description: Represents the area where people live
+  ParentEntityType: GeoEntity
+- Name: Administrative Area
+  Description: Populated area that has administrative status
+  ParentEntityType: Populated Area
+- Name: Non-Administrative Area
+  Description: Populated area that doesn't have administrative status
+  ParentEntityType: Populated Area
+- Name: Administrative Boundary
+  Description: Represents a border of an Administrative Area
+  ParentEntityType: GeoEntity
+EntityNameTypes:
+- Type: Standard
+  Description: Common default name
+- Type: 'Official '
+  Description: Official name which is often some more verbose version of the standard name
+- Type: 'Alternate '
+  Description: Other names that the feature may be known as locally
+- Type: Short
+  Description: Abbreviation of Standard name
+Languages:
+- LanguageCode: default
+  LanguageName: Invariant culture name
+  Script: Latin
+- LanguageCode: en
+  LanguageName: English
+  Script: Latin
+- LanguageCode: es
+  LanguageName: Spanish
+  Script: Latin
+- LanguageCode: de
+  LanguageName: German
+  Script: Latin
+- LanguageCode: fr
+  LanguageName: French
+  Script: Latin
+DataTypes:
+- &o2
+  Name: String
+  Description: Sequence of characters
+- Name: Int
+  Description: Whole number (negative, zero or positive)
+- &o3
+  Name: Bool
+  Description: True or False
+- &o1
+  Name: Unsigned Int
+  Description: Non-negative integer
+- &o0
+  Name: Enum
+  Description: User defined data type
+EntityProperties:
+- Name: Place Type
+  Description: Describes the entity's type in the categorical nomenclature used locally
+  DataType: *o0
+  EnumValues:
+  - Name: Country
+    Description: Nation with its own government, occupying a particular territory
+  - Name: County
+    Description: Political and administrative division of a state, providing certain local governmental services
+  - Name: State
+    Description: Nation or territory considered as an organized political community under one government
+  - Name: Region
+    Description: Area or division, especially part of a country or the world having definable characteristics but not always fixed boundaries
+  - Name: Province
+    Description: Principal administrative division of certain countries
+  - Name: District
+    Description: Area of a country or city, especially one regarded as a distinct unit because of a particular characteristic
+  - Name: City
+    Description: Large town
+  - Name: Town
+    Description: Urban area that has a name, defined boundaries, and local government, and that is generally larger than a village and smaller than a city
+  - Name: Village
+    Description: Group of houses and associated buildings, larger than a hamlet and smaller than a town, situated in a rural area
+  - Name: Hamlet
+    Description: Small settlement, generally one smaller than a village
+  - Name: Borough
+    Description: Town or district which is an administrative unit
+  - Name: Suburb
+    Description: Outlying district of a city, especially a residential one
+  - Name: Neighborhood
+    Description: District, especially one forming a community within a town or city
+  - Name: Municipality
+    Description: City or town that has corporate status and local government
+- Name: Admin Level
+  Description: Hierarchical level for administrative entity or border
+  DataType: *o1
+- Name: ISO3166-1
+  Description: ISO3166-1 code
+  DataType: *o2
+- Name: ISO3166-2
+  Description: ISO3166-2 code
+  DataType: *o2
+- Name: Default Language
+  Description: Most common language used within the area
+  DataType: *o2
+- Name: Official Language
+  Description: Official language used within the area
+  DataType: *o2
+- Name: Driving Side
+  Description: Left-hand traffic (LHT) or right-hand traffic (RHT)
+  DataType: *o2
+- Name: Maritime
+  Description: Flag that specifies if the boundary is maritime
+  DataType: *o3
+PolygonTypes:
+- Name: Base Polygon
+  Description: Root element for the PolygonType hierarchy
+  ParentPolygonType: Base Polygon
+- Name: Area
+  Description: General representation of polygonal cartographic objects
+  ParentPolygonType: Base Polygon
+LineTypes:
+- Name: Base Line
+  Description: Root element for the LineType hierarchy
+  ParentLineType: Base Line
+- Name: Boundary
+  Description: A line that marks the limits of an area
+  ParentLineType: Base Line
+NodeTypes:
+- Name: Base Node
+  Description: Root element for the NodeType hierarchy
+  ParentNodeType: Base Node
+- Name: Point
+  Description: General representation of cartographic objects
+  ParentNodeType: Base Node
+TopologyRelationships:
+- Name: Polygon building blocks
+  Description: Polygon topology is defined through a sequence of Line topologies
+  Relationships:
+    ? FromClass: PolygonType
+      FromName: Base Polygon
+      ToClass: LineType
+      ToName: Base Line
+    : &o7
+      Name: 1..*
+      Min: 1
+      Max: 2147483647
+- Name: Line building blocks
+  Description: Line topology is defined through a sequence of Node topologies
+  Relationships:
+    ? FromClass: LineType
+      FromName: Base Line
+      ToClass: NodeType
+      ToName: Base Node
+    : Name: 2..*
+      Min: 2
+      Max: 2147483647
+EntityRelationships:
+- Name: Context
+  Description: Context/parent for entity
+  Relationships:
+    ? FromClass: EntityType
+      FromName: GeoEntity
+      ToClass: EntityType
+      ToName: GeoEntity
+    : &o4
+      Name: 1
+      Min: 1
+      Max: 1
+EntityNameTypeRelationships:
+- Name: Standard name
+  Description: Standard name for single language
+  Relationships:
+    ? FromClass: EntityType
+      FromName: GeoEntity
+      ToClass: EntityNameType
+      ToName: Standard
+    : *o4
+- Name: Official name
+  Description: Official name for single language
+  Relationships:
+    ? FromClass: EntityType
+      FromName: GeoEntity
+      ToClass: EntityNameType
+      ToName: Official
+    : &o6
+      Name: 0..1
+      Max: 1
+- Name: Alternate name
+  Description: Alternate name for single language
+  Relationships:
+    ? FromClass: EntityType
+      FromName: GeoEntity
+      ToClass: EntityNameType
+      ToName: Alternate
+    : &o5
+      Name: 0..*
+      Max: 2147483647
+- Name: Short name
+  Description: Short name for single language
+  Relationships:
+    ? FromClass: EntityType
+      FromName: GeoEntity
+      ToClass: EntityNameType
+      ToName: Short
+    : *o5
+EntityPropertyRelationships:
+- Name: Place Type
+  Description: Populated Area's Place Type
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Populated Area
+      ToClass: Property
+      ToName: Place Type
+    : *o4
+- Name: Administrative Area's Level
+  Description: Administrative Area's Level
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Administrative Area
+      ToClass: Property
+      ToName: Admin Level
+    : *o4
+- Name: ISO3166-1 code
+  Description: Administrative Area's ISO3166-1 code
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Administrative Area
+      ToClass: Property
+      ToName: ISO3166-1
+    : *o6
+- Name: ISO3166-2 code
+  Description: Administrative Area's ISO3166-2 code
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Administrative Area
+      ToClass: Property
+      ToName: ISO3166-2
+    : *o6
+- Name: Default Language
+  Description: Administrative Area's Default Language
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Administrative Area
+      ToClass: Property
+      ToName: Default Language
+    : *o6
+- Name: Official Language
+  Description: Administrative Area's Official Language
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Administrative Area
+      ToClass: Property
+      ToName: Official Language
+    : *o5
+- Name: Driving Side
+  Description: Administrative Area's Driving Side
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Administrative Area
+      ToClass: Property
+      ToName: Driving Side
+    : *o6
+- Name: Administrative Boundary's Level
+  Description: Administrative Boundary's Level
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Administrative Boundary
+      ToClass: Property
+      ToName: Admin Level
+    : *o4
+- Name: Maritime designation
+  Description: Administrative Boundary's Maritime designation
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Administrative Boundary
+      ToClass: Property
+      ToName: Maritime
+    : *o6
+EntityGeometryRelationships:
+- Name: Populated Area polygonal representation
+  Description: Populated Area polygonal representation
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Populated Area
+      ToClass: PolygonType
+      ToName: Area
+    : *o5
+- Name: Populated Area point representation
+  Description: Populated Area point representation
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Populated Area
+      ToClass: NodeType
+      ToName: Point
+    : *o5
+- Name: Administrative Boundary line representation
+  Description: Administrative Boundary line representation
+  Relationships:
+    ? FromClass: EntityType
+      FromName: Administrative Boundary
+      ToClass: LineType
+      ToName: Boundary
+    : *o7
