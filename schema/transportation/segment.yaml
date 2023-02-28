@@ -336,6 +336,34 @@ properties:
                 of its ends, a.k.a. turn restrictions.
               type: array
               "$comment": "TODO"
+        lanes:
+          description: >-
+            Captures information about lanes on road - including potential information about how those lanes connect with
+            lanes of other roads if forward direction.
+          type: object
+          unevaluatedProperties: false
+          properties:
+            connectivity:
+              description: >-
+                Provides information about all possible lanes transitions from that segment onto lanes on other segments
+                which are directly connected to that 'source' segment in forward direction.
+              type: array
+              items:
+                type: object
+                unevaluatedProperties: false
+                properties:
+                  to:
+                    type: string
+                    description: >-
+                      Id of a segment
+                  transitions:
+                    type: array
+                    items:
+                      type: array
+                      minItems: 2
+                      maxItems: 2
+                      items:
+                        type: integer
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
