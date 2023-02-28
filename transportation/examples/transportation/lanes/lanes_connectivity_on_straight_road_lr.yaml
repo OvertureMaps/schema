@@ -1,0 +1,35 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  subType: road
+  road:
+    class: primary
+    lanes:
+      # Example shows modelling of new lane being introduced on a straight road which is a single segment
+      # |1|2|
+      # | |  \
+      # | | | |
+      # |1|2|3|
+      # | | | |
+      # | |  /
+      # |1|2|
+      connectivity:
+        - applyAtPosition: 10000 # in centimeters for better precision (for better precision)
+          transitions:
+            - [1, 1]
+            - [2, 2]
+            - [2, 3]
+        - applyAtPosition: 120000
+          transitions:
+            - [1, 1]
+            - [2, 2]
+            - [3, 2]
+
+

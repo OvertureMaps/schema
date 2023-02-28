@@ -12,16 +12,9 @@ properties:
   road:
     class: primary
     lanes:
-      # Example shows modelling of new lane being introduced on a straight road
-      # |1|2|3|
-      # | | | | # beginning of segment 123
-      # | |  /   # end of segment 234
-      # |1|2|
       connectivity:
-        - to: "123"
+        - applyAtPosition: "some string instead of integer (value in cm)"
           transitions:
             - [1, 1]
             - [2, 2]
             - [2, 3]
-
-

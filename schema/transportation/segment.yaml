@@ -349,21 +349,23 @@ properties:
                 which are directly connected to that 'source' segment in forward direction.
               type: array
               items:
-                type: object
-                unevaluatedProperties: false
-                properties:
-                  to:
-                    type: string
-                    description: >-
-                      Id of a segment
-                  transitions:
-                    type: array
-                    items:
-                      type: array
-                      minItems: 2
-                      maxItems: 2
-                      items:
-                        type: integer
+                oneOf:
+                  - type: object
+                    unevaluatedProperties: false
+                    properties:
+                      to:
+                        type: string
+                        description: >-
+                          Id of a segment
+                      transitions:
+                        "$ref": "#/$defs/propertyContainers/lanes/transitions"
+                  - type: object
+                    unevaluatedProperties: false
+                    properties:
+                      applyAtPosition:
+                        "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
+                      transitions:
+                        "$ref": "#/$defs/propertyContainers/lanes/transitions"
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
@@ -425,14 +427,16 @@ properties:
         - right
         - sharpRight
         - reverse
+        - merge # indicates that the traffic of a lane has to merge with the main traffic but the merge direction is not specified
   propertyContainers:
     applyAtPositionContainer:
       description: >-
         Properties defining the discrete position on the segment where
         a rule is active.
       properties:
-        applyAt:
-          "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition
+        applyAtPosition:
+          "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
+
     applyAtRangeContainer:
       description: >-
         Properties defining the range of positions on the segment where
@@ -477,3 +481,17 @@ properties:
       "$comment": >-
         If neither modes nor notModes is specified, the rule has the
         default travel modes for the segment subType.
+
+    lanes:
+      transitions:
+        description: >-
+          Allows to express which lanes (indexed from middle of road in forward direction) transitions into lanes
+          on either next segment or next portion of current segment (Linearly referenced option). Each item is a two
+          elements array where first element is an index of source lane and second is an index of target lane in transition.
+        type: array
+        items:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: integer
