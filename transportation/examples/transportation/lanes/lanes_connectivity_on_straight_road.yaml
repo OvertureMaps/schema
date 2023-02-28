@@ -12,6 +12,11 @@ properties:
   road:
     class: primary
     lanes:
+      # Example shows modelling of new lane being introduced on a straight road
+      # |1|2|3|
+      # | | | |
+      # | | |
+      # |1|2|
       connectivity:
         - to: "123"
           transitions:

@@ -1,0 +1,46 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  subType: road
+  road:
+    class: primary
+    lanes:
+      # Example shows modelling of new lanes on junction -> segment describes connectives for lanes in forward direction only
+      # |   |   |   |
+      # | | | ^ | ^ |
+      # | V | | | | | seg: 345 -> digitization from N to S -> two lanes in forward direction
+      # |   |   |   |
+      # | 1 | 1 | 2 |
+      #                 seg: 123 (digitization from W to E) -> 2 forward lanes
+      #               -------------
+      #                  <- 1
+      #               ----------
+      #                  -> 1
+      #               ----------
+      #                  -> 2
+      #             ----------------
+      # |   |   |
+      # | | | ^ |
+      # | v | | |  seg: 234 -> one lane in each direction, digitization of segment from S to N -> one (on the right) lane in forward direction
+      # |   |   |
+      # | 1 | 1 |
+      connectivity:
+        - to: "123" # right turn
+          transitions:
+            - [1, 1]
+            - [1, 2]
+        - to: "345" # going straight
+          transitions:
+            - [1, 1]
+            - [1, 2]
+
+
+
+
