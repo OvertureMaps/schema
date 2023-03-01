@@ -352,15 +352,24 @@ properties:
                 oneOf:
                   - type: object
                     unevaluatedProperties: false
+                    required: [to, transitions]
                     properties:
                       to:
                         type: string
                         description: >-
                           Id of a segment
+                      via:
+                        type: array
+                        items:
+                          type: string
+                          description: >-
+                            Ids of a segments via which connectivity of lanes happens. Note: via segments cannot have lanes by themselves.
+                        minItems: 1
                       transitions:
                         "$ref": "#/$defs/propertyContainers/lanes/transitions"
                   - type: object
                     unevaluatedProperties: false
+                    required: [applyAtPosition, transitions]
                     properties:
                       applyAtPosition:
                         "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
