@@ -24,7 +24,7 @@ properties:
           language: local
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]
-    flow:
+#    flow: TODO: provide alternative for that example
       # This flow section describes a fairly complex segment in which a
       # physically separate sidewalk and physically separated cycling lane are
       # modeled on the same segment. This segment sharing is not expected to be
@@ -37,41 +37,44 @@ properties:
       # direction. In the opposite period, there is only one vehicle lane in
       # each direction, presumably because the other lanes have transitioned
       # to parking.
-      - dividers: [curb, mayPass, curb, mayChange, mayNotCross, barrier, curb]
-        lanes: # Left to right when facing forward along segment.
-          - direction: bothWays
-            modes: [foot]
-          - direction: forward
-            modes: [bicycle]
-          - direction: backward
-            modes: [bicycle]
-          - direction: backward
-            modes: [motorVehicle]
-          - direction: backward
-            modes: [motorVehicle]
-            turns: [left, through, right]   # Overrides this lane's default of [through, right]
-          - direction: forward
-            modes: [motorVehicle]
-          - direction: forward
-            modes: [motorVehicle]
-          - direction: bothWays
-            modes: [foot]
-        applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
-      - dividers: [curb, mayPass, curb, mayNotCross, curb]
-        lanes:
-          - direction: bothWays
-            modes: [foot]
-          - direction: forward
-            modes: [bicycle]
-          - direction: backward
-            modes: [bicycle]
-          - direction: backward
-            modes: [motorVehicle]
-          - direction: forward
-            modes: [motorVehicle]
-          - direction: bothWays
-            modes: [foot]
-        applyDuring: Mo-Sa 09:00-12:00 closed, We 15:00-18:00 closed
+
+      # temporarily commenting
+      #- dividers: [curb, mayPass, curb, mayChange, mayNotCross, barrier, curb]
+
+      #  lanes: # Left to right when facing forward along segment.
+      #    - direction: bothWays
+      #      modes: [foot]
+      #    - direction: forward
+      #      modes: [bicycle]
+      #    - direction: backward
+      #      modes: [bicycle]
+      #    - direction: backward
+      #      modes: [motorVehicle]
+      #    - direction: backward
+      #      modes: [motorVehicle]
+      #      turns: [left, through, right]   # Overrides this lane's default of [through, right]
+      #    - direction: forward
+      #      modes: [motorVehicle]
+      #    - direction: forward
+      #      modes: [motorVehicle]
+      #    - direction: bothWays
+      #      modes: [foot]
+      #  applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
+      #- dividers: [curb, mayPass, curb, mayNotCross, curb]
+      #  lanes:
+      #    - direction: bothWays
+      #      modes: [foot]
+      #    - direction: forward
+      #      modes: [bicycle]
+      #    - direction: backward
+      #      modes: [bicycle]
+      #    - direction: backward
+      #      modes: [motorVehicle]
+      #    - direction: forward
+      #      modes: [motorVehicle]
+      #    - direction: bothWays
+      #      modes: [foot]
+      #  applyDuring: Mo-Sa 09:00-12:00 closed, We 15:00-18:00 closed
     restrictions:
       notModes: [bicycle]
       speedLimits:

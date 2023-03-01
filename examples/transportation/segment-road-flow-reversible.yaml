@@ -19,3 +19,4 @@ properties:
       # completely reversible at arbitrary times.
       - lanes:
           - direction: reversible
+            count: 1

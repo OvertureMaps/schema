@@ -19,3 +19,4 @@ properties:
       # on a regular rhythm.
       - lanes:
           - direction: alternating
+            count: 1

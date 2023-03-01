@@ -1,0 +1,18 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  subType: road
+  road:
+    class: primary
+    lanes:
+      # Example with missing count of lanes
+      info:
+        - direction: backward
+          

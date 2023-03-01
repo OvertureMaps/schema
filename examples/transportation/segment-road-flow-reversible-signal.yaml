@@ -26,8 +26,14 @@ properties:
       - dividers: [signal, signal]
         lanes:
           - direction: backward
-            modes: [motorVehicle]
+            count: 1
+            "1":
+              modes: [motorVehicle]
           - direction: reversible
-            modes: [motorVehicle]
+            count: 1
+            "1":
+              modes: [motorVehicle]
           - direction: forward
-            modes: [motorVehicle]
+            count: 1
+            "1":
+              modes: [motorVehicle]

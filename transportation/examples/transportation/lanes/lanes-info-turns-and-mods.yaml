@@ -1,0 +1,74 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  subType: road
+  road:
+    class: primary
+    # no oneway/flow information means segment is open in both direction by default
+    # lanes is complementing this information by providing which lanes are in which direction
+    lanes:
+      # Example shows modelling of new lanes on junction -> segment describes connectives for lanes in forward direction only
+      # 8 lanes in total
+      # |   |   |   |   |   |   |   |   |   |
+      # |   |   |   | ^ | ^ |<^ | ^ | ^ | ^>| # forward turns indications on lanes, starting from left: left;through | through | through | through;right
+      # |<V |<V | V>| V | V |   |   |   |   | # backward turns indications on lanes, starting from left:
+      # |   |   |   | R | R |   |   | H | B | -> H(OV) lane; B(US) lane, R(iversable) lane
+      # | HG|   | NB|   |   |   |   |   | 4 | -> HG(V) heavy goods vehicle; N(o)B(US) lane
+      # |   |   |   |   |   |   |   | ^>| /
+      # |   |   |   |   |   |   |   |   |
+      # | 3 | 2 | 1 | 1 | 2 | 1 | 2 | 3 |
+      info:
+        - direction: backward
+          count: 3
+          "1":
+            turns:
+              - through
+              - left
+            notModes:
+              - bus # all vehicles besides bus
+          "2":
+            turns:
+              - through
+          "3":
+            turns:
+              - through
+              - right
+            modes:
+              - hgv # only Heavy Goods Vehicles
+
+        - direction: forward
+          count:
+            - applyAtPosition: 0
+              value: 3
+            - applyAtPosition: 150
+              value: 4
+          "1":
+            turns:
+              - right
+              - through
+          "2":
+            turns:
+              - through
+          "3":
+            # turns are always indicated for end of the sub-segments so in this case in segment <0,150) there is
+            # through and slight right turn indicated while in next sub-segment <150, end) there is only through
+            # turn indicated
+            turns:
+              - applyAtPosition: 0
+                values:
+                  - through
+                  - slightRight
+              - applyAtPosition: 150
+                values:
+                  - through
+          "4":
+            turns:
+              - through
+              - right

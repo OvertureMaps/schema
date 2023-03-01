@@ -46,26 +46,60 @@ properties:
     lane:
       description: Properties for a single lane of traffic.
       type: object
-      required: [direction]
-      allOf:
-        - "$ref": "#/$defs/propertyContainers/modesContainer"
+      required: [direction, count]
       unevaluatedProperties: false
+      patternProperties:
+        ^[1-9][0-9]?$:
+          type: object
+          allOf:
+            - "$ref": "#/$defs/propertyContainers/modesContainer"
+          unevaluatedProperties: false
+          properties:
+            turns:
+              oneOf:
+                - type: array
+                  items: { "$ref": "#/$defs/propertyDefinitions/turnOption" }
+                  minItems: 1
+                  uniqueItems: true
+                - type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    unevaluatedProperties: false
+                    required: [applyAtPosition, values]
+                    properties:
+                      applyAtPosition:
+                        "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
+                      values:
+                        type: array
+                        items: { "$ref": "#/$defs/propertyDefinitions/turnOption" }
+                        minItems: 1
+                        uniqueItems: true
+              "$comment": >-
+                If turns is omitted, the default turning options for a lane
+                are assumed. The default turning options depend on the lane
+                location. The leftmost lane for a given travel direction has
+                [left, through] by default. A rightmost lane has [right,
+                through] by default. Evidently if there is a single lane for
+                a given direction, it is both leftmost and rightmost and
+                consequently has [left, through, right]. A middle lane has
+                [through] by default.
       properties:
         direction: { "$ref": "#/$defs/propertyDefinitions/laneDirection" }
-        turns:
-          type: array
-          items: { "$ref": "#/$defs/propertyDefinitions/turnOption" }
-          minItems: 1
-          uniqueItems: true
-          "$comment": >-
-            If turns is omitted, the default turning options for a lane
-            are assumed. The default turning options depend on the lane
-            location. The leftmost lane for a given travel direction has
-            [left, through] by default. A rightmost lane has [right,
-            through] by default. Evidently if there is a single lane for
-            a given direction, it is both leftmost and rightmost and
-            consequently has [left, through, right]. A middle lane has
-            [through] by default.
+        count:
+          oneOf:
+            - "$ref": "#/$defs/propertyDefinitions/lanesNumber"
+            - type: array
+              items:
+                type: object
+                unevaluatedProperties: false
+                required: [ applyAtPosition, value ]
+                properties:
+                  applyAtPosition:
+                    "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
+                  value:
+                    "$ref": "#/$defs/propertyDefinitions/lanesNumber"
+
       "$comment": >-
         TODO: HOV lane modeling.
         TODO: The turns model fails to capture cases where there may be
@@ -111,9 +145,14 @@ properties:
         Enumerates possible travel modes. Some modes represent groups
         of modes.
       type: string
-      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle ]
+      # TODO: this enumeration requires discussion about values
+      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv ]
       "$comment": >-
         motorVehicle includes car, truck and motorcycle
+    lanesNumber:
+      type: integer
+      minimum: 1
+      maximum: 99
     road:
       description: >-
         Properties for segments whose segment subType is road. The road
@@ -375,6 +414,10 @@ properties:
                         "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
                       transitions:
                         "$ref": "#/$defs/propertyContainers/lanes/transitions"
+            info:
+              type: array
+              items:
+                "$ref": "#/$defs/propertyDefinitions/lane"
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
