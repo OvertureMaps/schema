@@ -257,77 +257,6 @@ properties:
             up out of "road" and put at the top level. We would have to
             be convinced that it also applies to water/ferry and rail,
             however.
-        restrictions:
-          descriptions: Restrictions on how the road may be used
-          type: object
-          allOf:
-            - "$ref": "#/$defs/propertyContainers/modesContainer"
-          unevaluatedProperties: false
-          properties:
-            speedLimits:
-              description: Rules governing speed on this road segment
-              type: array
-              items:
-                description: An individual speed limit rule
-                "$comment": >-
-                  TODO: Speed limits probably have directionality, so
-                  should factor out a directionContainer for this
-                  purpose and use it to introduce an optional
-                  direction property in each rule.
-                type: object
-                anyOf:
-                  - required: [minSpeed]
-                  - required: [maxSpeed]
-                allOf:
-                  - "$ref": "#/$defs/propertyContainers/modesContainer"
-                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
-                  - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
-                unevaluatedProperties: false
-                properties:
-                  minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-                  maxSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-                  isMaxSpeedVariable:
-                    description: Indicates a variable speed corridor
-                    type: boolean
-                    default: false
-                  lanes:
-                    description: >-
-                      Optionally specifies the lanes to which the speed
-                      limit rule applies. If omitted, the rule applies
-                      to all lanes.
-                    type: array
-                    items:
-                      type: integer
-                      minValue: 0
-                    uniqueItems: true
-            sizeLimits:
-              description: Rules governing vehicle size on this road segment
-              type: array
-              items:
-                description: An individual vehicle size rule
-                "$comment": >-
-                  TODO: Is there a directionality aspect to vehicle
-                  size limits, similar to speed limits? Or at that
-                  point should we just split into two unidirectional
-                  segments?
-                type: object
-                allOf:
-                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
-                anyOf:
-                  - required: [maxHeightMeters]
-                  - required: [maxWidthMaters]
-                  - required: [maxWeightKilograms]
-                unevaluatedProperties: false
-                properties:
-                  maxHeightMeters:
-                    type: number
-                    exclusiveMinimum: 0
-                  maxWidthMeters:
-                    type: number
-                    exclusiveMinimum: 0
-                  maxWeightKilograms:
-                    type: number
-                    exclusiveMinimum: 0
         lanes:
           description: >-
             Captures information about lanes on road - including potential information about how those lanes connect with
@@ -350,91 +279,172 @@ properties:
                     type: array
                     items: { "$ref": "#/$defs/propertyDefinitions/lane" }
                     minItems: 1
-        relations:
-          descriptions: Relation of this segment with other segments. For some relation like turn the segments need to be connected but for some like signposts, the segments does not need to be connected.
-          type: array
-          items:
-             allOf:
-               - "$ref": "#/$defs/propertyContainers/modesContainer"
-               - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
-             unevaluatedProperties: false
-             type: object
-             properties:
-               relation:
+        restrictions:
+          description: Restrictions on how the road may be used
+          "$comment": >-
+            Restrictions define two kinds of rerstriction on this segemnt
+            Travel Restrictions defines how certain modes of transportation
+            may be limited on this segement, for example trucks are not 
+            permitted from 7AM to 7PM
+
+            Turn restrictions defines restrcited tunrs that orignates from
+            this segement, for example against driving side turn from this
+            segement to another connected segement is blocked.
+          type: object
+          allOf:
+            - "$ref": "#/$defs/propertyContainers/modesContainer"
+            - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+          unevaluatedProperties: false
+          properties:
+            travelRestrictions:
+              type: array
+              items:
+                description: An individual travel restriction
+                type: object
+                properties:
+                  speedLimits:
+                    description: Rules governing speed on this road segment
+                    type: array
+                    items:
+                      description: An individual speed limit rule
+                      "$comment": >-
+                        TODO: Speed limits probably have directionality, so
+                        should factor out a directionContainer for this
+                        purpose and use it to introduce an optional
+                        direction property in each rule.
+                      type: object
+                      anyOf:
+                        - required: [minSpeed]
+                        - required: [maxSpeed]
+                      allOf:
+                        - "$ref": "#/$defs/propertyContainers/modesContainer"
+                        - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                        - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+                      unevaluatedProperties: false
+                      properties:
+                        minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+                        maxSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+                        isMaxSpeedVariable:
+                          description: Indicates a variable speed corridor
+                          type: boolean
+                          default: false
+                        lanes:
+                          description: >-
+                            Optionally specifies the lanes to which the speed
+                            limit rule applies. If omitted, the rule applies
+                            to all lanes.
+                          type: array
+                          items:
+                            type: integer
+                            minValue: 0
+                          uniqueItems: true
+                  sizeLimits:
+                    description: Rules governing vehicle size on this road segment
+                    type: array
+                    items:
+                      description: An individual vehicle size rule
+                      "$comment": >-
+                         TODO: Is there a directionality aspect to vehicle
+                         size limits, similar to speed limits? Or at that
+                         point should we just split into two unidirectional
+                         segments?
+                      type: object
+                      allOf:
+                        - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                      anyOf:
+                        - required: [maxHeightMeters]
+                        - required: [maxWidthMaters]
+                        - required: [maxWeightKilograms]
+                      unevaluatedProperties: false
+                      properties:
+                        maxHeightMeters:
+                          type: number
+                          exclusiveMinimum: 0
+                        maxWidthMeters:
+                          type: number
+                          exclusiveMinimum: 0
+                        maxWeightKilograms:
+                          type: number
+                        exclusiveMinimum: 0
+            turnRestrictions:
+              description: Turn restriction from this segement to other segments.
+              type: array
+              items:
+                 allOf:
+                   - "$ref": "#/$defs/propertyContainers/modesContainer"
+                   - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
                  unevaluatedProperties: false
                  type: object
                  properties:
-                   target:
-                     description: Target segement id that the relation targets
-                     type: string
-                   relationType:
-                     description: type of the relation
-                     type: string
-                     enum:
-                       - Simple
-                       - Polyvalent
-                       - Signpost
-                   condition:
-                      description: for restrictions, a rough description as to why the relation exist
-                      type: string
-                      enum:
-                        - Legal
-                        - Divider
-                        - GatedPermission
-                        - GatedKey
-                      default:
-                        enum: [Legal]
-                   applyAtEnd:
-                      description: Which end of the segment the relation applies to. Only required for self referencing relation, i.e. when the target of the relation is same as this segment
-                      type: string
-                      enum:
-                        - From
-                        - To
-                        - Both
-                 required: [target, relationType]
-                 allOf:
-                   - if: {properties: {relationType: {enum: [Polyvalent]}}}
-                     then:
-                       properties:
-                         via:
-                           description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
-                           type: array
-                           items:
-                             properties:
-                               viaId:
-                                 description: id of the related segment
-                                 type: string
-                           minItems: 1
-                           uniqueItems: true
-                       required: [via]
-                   - if: {properties: {relationType: {enum: [Signpost]}}}
-                     then:
-                       properties:
-                         directionType:
-                           description: Direction for a sign post relation
-                           type: string
-                           enum:
-                             - East
-                             - West
-                             - North
-                             - South
-                             - NorthEast
-                             - NorthWest
-                             - SouthEast
-                             - SouthWest
-                         instructionType:
-                           description: Instruction type for sign post
-                           type: string
-                           enum:
-                             - Towards
-                             - Branch
-                         exitNumber:
-                           description: Exit number for highway exits
-                           type: integer
-                         sighText:
-                           description: free format text to display for journey instruction
-                           type: string
-                       required: [directionType, instructionType]
+                   turnRestriction:
+                     unevaluatedProperties: false
+                     type: object
+                     properties:
+                       to:
+                         description: Target segement id that the restriction targets
+                         type: string
+                       reason:
+                         description: for restriction restrictions, a rough description as to why the restriction exist
+                         type: string
+                         enum:
+                           - Legal
+                           - Divider
+                           - GatedPermission
+                           - GatedKey
+                         default:
+                           enum: [Legal]
+                       applyAtEnd:
+                         description: Which end of the segment the relation applies to. Only required for self referencing relation, i.e. when the target of the relation is same as this segment
+                         type: string
+                         enum:
+                          - From
+                          - To
+                          - Both
+                       via:
+                         description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
+                         type: array
+                         items:
+                           properties:
+                             viaId:
+                               description: id of the related segment
+                               type: string
+                         minItems: 1
+                         uniqueItems: true
+                     required: [to]
+        signPosts:
+          description: Sign post describes things like highway exits, branches, or sign pointing to a POI
+          type: array
+          items:
+            type: object
+            properties:
+              to:
+                description: Target segement id that the relation targets
+                type: string
+              directionType:
+                description: Direction for a sign post relation
+                type: string
+                enum:
+                  - East
+                  - West
+                  - North
+                  - South
+                  - NorthEast
+                  - NorthWest
+                  - SouthEast
+                  - SouthWest
+              instructionType:
+                description: Instruction type for sign post
+                type: string
+                enum:
+                  - Towards
+                  - Branch
+              exitNumber:
+                description: Exit number for highway exits
+                type: integer
+              sighText:
+                description: free format text to display for journey instruction
+                type: string
+            required: [directionType, instructionType]
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
