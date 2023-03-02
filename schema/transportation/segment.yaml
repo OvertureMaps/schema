@@ -118,6 +118,13 @@ properties:
       enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle ]
       "$comment": >-
         motorVehicle includes car, truck and motorcycle
+    direction:
+      description: >-
+        Enumerates direction of travel or connectivity with
+        another segment.
+      type: string
+      enum: [ forward, backward, both ]
+
     road:
       description: >-
         Properties for segments whose segment subType is road. The road
@@ -291,9 +298,6 @@ properties:
             this segement, for example against driving side turn from this
             segement to another connected segement is blocked.
           type: object
-          allOf:
-            - "$ref": "#/$defs/propertyContainers/modesContainer"
-            - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
           unevaluatedProperties: false
           properties:
             travelRestrictions:
@@ -376,45 +380,37 @@ properties:
                  unevaluatedProperties: false
                  type: object
                  properties:
-                   turnRestriction:
-                     unevaluatedProperties: false
-                     type: object
-                     properties:
-                       to:
-                         description: Target segement id that the restriction targets
-                         type: string
-                       reason:
-                         description: for restriction restrictions, a rough description as to why the restriction exist
-                         type: string
-                         enum:
-                           - Legal
-                           - Divider
-                           - GatedPermission
-                           - GatedKey
-                         default:
-                           enum: [Legal]
-                       applyAtEnd:
-                         description: Which end of the segment the relation applies to. Only required for self referencing relation, i.e. when the target of the relation is same as this segment
-                         type: string
-                         enum:
-                          - From
-                          - To
-                          - Both
-                       via:
-                         description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
-                         type: array
-                         items:
-                           properties:
-                             viaId:
-                               description: id of the related segment
-                               type: string
-                         minItems: 1
-                         uniqueItems: true
-                     required: [to]
+                   to:
+                     description: Target segement id that the restriction targets
+                     type: string
+                   reason:
+                     description: for turn restrictions, a rough description as to why the restriction exist
+                     type: string
+                     enum:
+                       - Legal
+                       - Divider
+                       - GatedPermission
+                       - GatedKey
+                     default:
+                       enum: [Legal]
+                   applyAtEnd:
+                     description: Which end of the segment the relation applies to. Only required for self referencing relation, i.e. when the target of the relation is same as this segment
+                     "$ref": "#/$defs/propertyDefinitions/direction"
+                   via:
+                     description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
+                     type: array
+                     items:
+                       type: string
+                       description: GERS id of the connected segments
+                     minItems: 1
+                     uniqueItems: true
+                 required: [to]
         signPosts:
           description: Sign post describes things like highway exits, branches, or sign pointing to a POI
           type: array
           items:
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
             type: object
             properties:
               to:
@@ -441,7 +437,7 @@ properties:
               exitNumber:
                 description: Exit number for highway exits
                 type: integer
-              sighText:
+              signText:
                 description: free format text to display for journey instruction
                 type: string
             required: [directionType, instructionType]
