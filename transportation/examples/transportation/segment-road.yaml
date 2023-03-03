@@ -10,6 +10,8 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
+  updateTime: 2023-02-23T00:02:30-08:00
+  version: 0
   subType: road
   level: -1
   widthMeters: 10

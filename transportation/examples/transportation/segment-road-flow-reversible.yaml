@@ -7,6 +7,8 @@ geometry:
 properties:
   theme: transportation
   type: segment
+  updateTime: 2023-02-23T00:03:45-08:00
+  version: 3
   subType: road
   connectors: [fooConnector, barConnector]
   road:

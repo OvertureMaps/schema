@@ -8,6 +8,8 @@
   "properties": {
     "theme": "transportation",
     "type": "segment",
+    "version": 9,
+    "updateTime": "2023-02-23T00:04:00-08:00",
     "subType": "road",
     "road": {
       "class": "primary",
