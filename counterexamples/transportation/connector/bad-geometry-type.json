@@ -1,0 +1,14 @@
+{
+  "id": "foo",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[0, 1], [2, 3]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "connector",
+    "version": 2,
+    "updateTime": "2023-02-23T00:04:00-08:00"
+  }
+}
