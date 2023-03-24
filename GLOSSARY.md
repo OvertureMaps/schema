@@ -14,5 +14,5 @@ A Feature Type is a type of entities with common properties as described in the 
 Instance is a synonym for "Feature". The preferred term is "Feature".
 
 # Object
-Object is a synonym for "Feature Type". The prefered term is "Feature Type".
+Object is a synonym for "Instance" or "Feature". The prefered term is "Feature".
 
