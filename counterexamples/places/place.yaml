@@ -1,0 +1,7 @@
+---
+id: overture:places:place:1
+type: Feature
+geometry:
+  type: MultiPolygon
+  coordinates: [[[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]]
+properties:
