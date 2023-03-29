@@ -1,0 +1,19 @@
+{
+  "id": "bad-flow-missing-lanes",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[2, 2], [3, 3]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "version": 13,
+    "updateTime": "2023-02-23T00:04:00-08:00",
+    "subType": "road",
+    "road": {
+      "class": "primary",
+      "flow": [ { } ]
+    }
+  }
+}
