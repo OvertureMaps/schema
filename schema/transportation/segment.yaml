@@ -369,7 +369,7 @@ properties:
                           exclusiveMinimum: 0
                         maxWeightKilograms:
                           type: number
-                        exclusiveMinimum: 0
+                          exclusiveMinimum: 0
             turnRestrictions:
               description: Turn restriction from this segement to other segments.
               type: array
@@ -381,8 +381,8 @@ properties:
                  type: object
                  properties:
                    to:
-                     description: Target segement id that the restriction targets
-                     type: string
+                     description: Target segement id of the restriction
+                     "$ref": "#/$defs/propertyDefinitions/relationTarget"
                    reason:
                      description: for turn restrictions, a rough description as to why the restriction exist
                      type: string
@@ -393,54 +393,18 @@ properties:
                        - GatedKey
                      default:
                        enum: [Legal]
-                   applyAtEnd:
-                     description: Which end of the segment the relation applies to. Only required for self referencing relation, i.e. when the target of the relation is same as this segment
+                   direction:
+                     description: direction of travel on the source that pertains to the relation
                      "$ref": "#/$defs/propertyDefinitions/direction"
                    via:
                      description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
                      type: array
                      items:
-                       type: string
                        description: GERS id of the connected segments
+                       "$ref": "#/$defs/propertyDefinitions/relationTarget"
                      minItems: 1
                      uniqueItems: true
                  required: [to]
-        signPosts:
-          description: Sign post describes things like highway exits, branches, or sign pointing to a POI
-          type: array
-          items:
-            allOf:
-              - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
-            type: object
-            properties:
-              to:
-                description: Target segement id that the relation targets
-                type: string
-              directionType:
-                description: Direction for a sign post relation
-                type: string
-                enum:
-                  - East
-                  - West
-                  - North
-                  - South
-                  - NorthEast
-                  - NorthWest
-                  - SouthEast
-                  - SouthWest
-              instructionType:
-                description: Instruction type for sign post
-                type: string
-                enum:
-                  - Towards
-                  - Branch
-              exitNumber:
-                description: Exit number for highway exits
-                type: integer
-              signText:
-                description: free format text to display for journey instruction
-                type: string
-            required: [directionType, instructionType]
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
@@ -503,6 +467,32 @@ properties:
         - sharpRight
         - reverse
         - merge # indicates that the traffic of a lane has to merge with the main traffic but the merge direction is not specified
+    relationTarget:
+      description: >-
+        A tripe that uniquely identifies that target
+        of a relation
+      type: object
+      properties:
+        segmentId:
+          description: >-
+            Segment ID of the target that the relation refers to 
+            (TODO replace with GERS ID schema)
+          type: string
+        connectorId:
+          description: Connector ID of the this segment that the relationship connects to
+          "$comment": >-
+            A segment can connect to another segment at multiple connector. So a 
+            connector id is necessary to uniquely identify the exact connection point.
+            However this is not a required property since a relationship target may not
+            necessarily be conncted to the source of the relation (for example  signposts)
+            (TODO replace with GERS ID)
+          type: string
+        toDirection:
+          description: direction of travel on the target that pertains to the relation
+          "$ref": "#/$defs/propertyDefinitions/direction"
+      required: [segmentId]
+
+
   propertyContainers:
     applyAtPositionContainer:
       description: >-
