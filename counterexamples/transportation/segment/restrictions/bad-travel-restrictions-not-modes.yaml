@@ -10,6 +10,8 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
+  updateTime: 2023-02-23T00:02:30-08:00
+  version: 0
   subType: road
   level: -1
   widthMeters: 10
@@ -18,14 +20,10 @@ properties:
     class: secondary
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]
-    flow:
-      - dividers: [curb, mayPass, curb, mayChange, mayNotCross, barrier, curb]
-        lanes: # Left to right when facing forward along segment.
-          - direction: bothWays
-            modes: [foot]
-    relations: 
-      - relation:
-          target: overture:transportation:segment:124
-          relationType: Signpost
-          instructionType: Branch
-     
+    restrictions:
+      travelRestrictions:        
+        - speedLimits:
+          - minSpeed: [90, "km/h"]
+            maxSpeed: [110, "mph"]
+            notModes: [ foo ]
+            isMaxSpeedVariable: true
