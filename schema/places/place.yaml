@@ -10,58 +10,58 @@ properties:
       - "$ref": https://geojson.org/schema/Point.json
   properties:
     unevaluatedProperties: false
+    required: [category]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
-    properties:
-      # Missing:
-      # - names -> shared names schema
-      # - addresses -> shared address schema
-      # - signals -> shared cross-cutting concern
-      category:
-        description: The category of the place. The list of categories can be found <TBD>.
-        type: string
-      confidence:
-        description: The confidence of the existence of the place. It's a number between 0 and 1.
-        type: number
-        minValue: 0
-        maxValue: 1
-      websites:
-        description: The websites of the place.
-        type: array
-        items:
-          type: string
-          format: uri
-        uniqueItems: true
-      socials:
-        description: The social media URLs of the place.
-        type: array
-        items:
-          type: string
-          format: uri
-        uniqueItems: true
-      emails:
-        description: The email addresses of the place.
-        type: array
-        items:
-          type: string
-          format: email
-        uniqueItems: true
-      phones:
-        description: The phone numbers of the place.
-        type: array
-        items:
-          type: string
-        uniqueItems: true
-      brand:
-        description: The brand of the place
-        type: object
+      -
         properties:
-          name:
-            description: The brand name
+          # Missing:
+          # - names -> shared names schema
+          # - addresses -> shared address schema
+          # - signals -> shared cross-cutting concern
+          category:
+            description: The category of the place. The list of categories can be found <TBD>.
             type: string
-          wikidata:
-            description: The wikidata reference of the brand, as found on https://www.wikidata.org/.
-            type: string
-    required:
-      - category
+          confidence:
+            description: The confidence of the existence of the place. It's a number between 0 and 1.
+            type: number
+            minValue: 0
+            maxValue: 1
+          websites:
+            description: The websites of the place.
+            type: array
+            items:
+              type: string
+              format: uri
+            uniqueItems: true
+          socials:
+            description: The social media URLs of the place.
+            type: array
+            items:
+              type: string
+              format: uri
+            uniqueItems: true
+          emails:
+            description: The email addresses of the place.
+            type: array
+            items:
+              type: string
+              format: email
+            uniqueItems: true
+          phones:
+            description: The phone numbers of the place.
+            type: array
+            items:
+              type: string
+            uniqueItems: true
+          brand:
+            description: The brand of the place
+            type: object
+            properties:
+              name:
+                description: The brand name
+                type: string
+              wikidata:
+                description: The wikidata reference of the brand, as found on https://www.wikidata.org/.
+                type: string

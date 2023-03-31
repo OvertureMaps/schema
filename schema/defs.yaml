@@ -17,6 +17,7 @@ description: Common schema definitions shared by all themes
         - segment
         - locality
         - administrativeBoundary
+        - place
     featureUpdateTime:
       description: Timestamp when the feature was last updated
       type: string
