@@ -16,3 +16,28 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      height:
+        description: Height of the building
+        type: number
+        exclusiveMinimum: 0
+      numFloors:
+        description: Number of above ground floors of the building
+        type: integer
+        exclusiveMinimum: 0
+      class:
+        type: string
+        enum:
+          - general
+          - residential
+          - outbuilding
+          - agricultural
+          - commercial
+          - industrial
+          - education
+          - utility / service
+          - religious
+          - civic
+          - transportation
+          - medical
+          - entertainment
+          - military

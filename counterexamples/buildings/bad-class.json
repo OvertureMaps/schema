@@ -1,0 +1,15 @@
+{
+  "id": "foo",
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[[-117.33804,47.77664],[-117.33772,47.77672],[-117.33764,47.77658],[-117.33797,47.77651],[-117.33804,47.77664]]]
+  },
+  "properties": {
+    "theme": "buildings",
+    "type": "footprint",
+    "class": "made-up-class",
+    "version": 0,
+    "updateTime": "2023-02-23T00:04:00-08:00"
+  }
+}
