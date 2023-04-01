@@ -17,7 +17,7 @@ properties:
     properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       height:
-        description: Height of the building
+        description: Height of the building in meters
         type: number
         exclusiveMinimum: 0
       numFloors:
