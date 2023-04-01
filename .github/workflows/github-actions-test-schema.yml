@@ -1,0 +1,20 @@
+# This is based on the Go starter workflow from:
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.19
+    - name: Install dependencies
+      run: go install github.com/santhosh-tekuri/jsonschema/cmd/jv@2dc9222a1373fb98ef88b76e597fa6cbe7e12247
+    - name: Test
+      run: ./test.sh
