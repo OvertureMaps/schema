@@ -126,10 +126,6 @@ properties:
       enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv ]
       "$comment": >-
         motorVehicle includes car, truck and motorcycle
-    lanesNumber:
-      type: integer
-      minimum: 1
-      maximum: 99
     road:
       description: >-
         Properties for segments whose segment subType is road. The road
@@ -364,7 +360,6 @@ properties:
               items:
                 type: object
                 allOf:
-                #  - "$ref": "#/$defs/propertyDefinitions/lane"
                   - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
                     default:
                       - 0
