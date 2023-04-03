@@ -1,0 +1,31 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  updateTime: 2023-03-31T12:02:30-08:00
+  version: 0
+  subType: road
+  road:
+    class: primary
+    lanes:
+      # Example shows modelling of new lane being introduced on a straight road
+      #    ^   |0|1|2|
+      #    |   | | | | # beginning of segment 123
+      #    |   | |  /   # end of segment 234
+      #    |   |0|1|
+      # digitization from bottom up
+      - direction: forward
+      - direction: forward
+        connectivity:
+          - toSegment: "123"
+            toLanes:
+              - 1
+              - 2
+
+

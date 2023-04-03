@@ -62,17 +62,6 @@ description: Common schema definitions shared by all themes
         distances is being able to trivially validate that the position
         lies "on" its segment (i.e. is between zero and one). Of course,
         this level of validity doesn't mean the number isn't nonsense.
-    linearlyReferencedPositionV2:
-      description: >-
-        Represents a linearly-referenced position calculated as segment
-        length in centimeters from beginning of road.
-      type: number
-      minValue: 0
-      "$comment": >-
-        1. Centimeters gives better precision then meters
-        2. Relative position against beginning of the segment calculated as length
-        limits maintenance of LR values when geometry of segment changes -> when segment is 
-        extended on shortened from either end.
     linearlyReferencedRange:
       description:
         Represents a non-empty range of positions along a path as a pair

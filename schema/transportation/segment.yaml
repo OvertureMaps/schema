@@ -46,60 +46,37 @@ properties:
     lane:
       description: Properties for a single lane of traffic.
       type: object
-      required: [direction, count]
       unevaluatedProperties: false
-      patternProperties:
-        ^[1-9][0-9]?$:
-          type: object
-          allOf:
-            - "$ref": "#/$defs/propertyContainers/modesContainer"
-          unevaluatedProperties: false
-          properties:
-            turns:
-              oneOf:
-                - type: array
-                  items: { "$ref": "#/$defs/propertyDefinitions/turnOption" }
-                  minItems: 1
-                  uniqueItems: true
-                - type: array
-                  minItems: 1
-                  items:
-                    type: object
-                    unevaluatedProperties: false
-                    required: [applyAtPosition, values]
-                    properties:
-                      applyAtPosition:
-                        "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
-                      values:
-                        type: array
-                        items: { "$ref": "#/$defs/propertyDefinitions/turnOption" }
-                        minItems: 1
-                        uniqueItems: true
-              "$comment": >-
-                If turns is omitted, the default turning options for a lane
-                are assumed. The default turning options depend on the lane
-                location. The leftmost lane for a given travel direction has
-                [left, through] by default. A rightmost lane has [right,
-                through] by default. Evidently if there is a single lane for
-                a given direction, it is both leftmost and rightmost and
-                consequently has [left, through, right]. A middle lane has
-                [through] by default.
+      required: [direction]
+      allOf:
+        - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
       properties:
         direction: { "$ref": "#/$defs/propertyDefinitions/laneDirection" }
-        count:
-          oneOf:
-            - "$ref": "#/$defs/propertyDefinitions/lanesNumber"
-            - type: array
-              items:
-                type: object
-                unevaluatedProperties: false
-                required: [ applyAtPosition, value ]
-                properties:
-                  applyAtPosition:
-                    "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
-                  value:
-                    "$ref": "#/$defs/propertyDefinitions/lanesNumber"
-
+        connectivity:
+          description: >-
+            Provides captured from signs and road markings information about all allowed lanes transitions from that segment onto lanes on other segments
+            which are directly connected to that 'source' segment. Note that it does describe maneuver for lanes guidance without providing
+            possible via segments since those can deducted from topology of roads. It is not also recommended to provide lanes connectivity
+            in cases where lanes transitions between segments are straightforward without explicit information.
+          type: array
+          items:
+            type: object
+            unevaluatedProperties: false
+            required:
+              - toLanes
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/applyAtPositionContainer"
+            properties:
+              toSegment:
+                type: string
+              toLanes:
+                type: array
+                items:
+                  type: integer
+                  description: >-
+                    Ids of lanes which are continuation of that lane on next part of that segment or on another segment
+                    connected to it.
+                minItems: 1
       "$comment": >-
         TODO: HOV lane modeling.
         TODO: The turns model fails to capture cases where there may be
@@ -378,46 +355,27 @@ properties:
         lanes:
           description: >-
             Captures information about lanes on road - including potential information about how those lanes connect with
-            lanes of other roads if forward direction.
-          type: object
-          unevaluatedProperties: false
-          properties:
-            connectivity:
-              description: >-
-                Provides information about all possible lanes transitions from that segment onto lanes on other segments
-                which are directly connected to that 'source' segment in forward direction.
-              type: array
+            lanes on other segments reachable from current segment.
+          oneOf:
+            - type: array
+              items: { "$ref": "#/$defs/propertyDefinitions/lane" }
+              minItems: 1
+            - type: array
               items:
-                oneOf:
-                  - type: object
-                    unevaluatedProperties: false
-                    required: [to, transitions]
-                    properties:
-                      to:
-                        type: string
-                        description: >-
-                          Id of a segment
-                      via:
-                        type: array
-                        items:
-                          type: string
-                          description: >-
-                            Ids of a segments via which connectivity of lanes happens. Note: via segments cannot have lanes by themselves.
-                        minItems: 1
-                      transitions:
-                        "$ref": "#/$defs/propertyContainers/lanes/transitions"
-                  - type: object
-                    unevaluatedProperties: false
-                    required: [applyAtPosition, transitions]
-                    properties:
-                      applyAtPosition:
-                        "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
-                      transitions:
-                        "$ref": "#/$defs/propertyContainers/lanes/transitions"
-            info:
-              type: array
-              items:
-                "$ref": "#/$defs/propertyDefinitions/lane"
+                type: object
+                allOf:
+                #  - "$ref": "#/$defs/propertyDefinitions/lane"
+                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                    default:
+                      - 0
+                      - 100
+                unevaluatedProperties: false
+                properties:
+                  value:
+                    type: array
+                    items: { "$ref": "#/$defs/propertyDefinitions/lane" }
+                    minItems: 1
+
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
@@ -487,8 +445,7 @@ properties:
         a rule is active.
       properties:
         applyAtPosition:
-          "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPositionV2
-
+          "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition
     applyAtRangeContainer:
       description: >-
         Properties defining the range of positions on the segment where
@@ -533,17 +490,3 @@ properties:
       "$comment": >-
         If neither modes nor notModes is specified, the rule has the
         default travel modes for the segment subType.
-
-    lanes:
-      transitions:
-        description: >-
-          Allows to express which lanes (indexed from middle of road in forward direction) transitions into lanes
-          on either next segment or next portion of current segment (Linearly referenced option). Each item is a two
-          elements array where first element is an index of source lane and second is an index of target lane in transition.
-        type: array
-        items:
-          type: array
-          minItems: 2
-          maxItems: 2
-          items:
-            type: integer
