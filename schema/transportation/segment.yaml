@@ -48,8 +48,6 @@ properties:
       type: object
       unevaluatedProperties: false
       required: [direction]
-      allOf:
-        - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
       properties:
         direction: { "$ref": "#/$defs/propertyDefinitions/laneDirection" }
         connectivity:
@@ -64,8 +62,6 @@ properties:
             unevaluatedProperties: false
             required:
               - toLanes
-            allOf:
-              - "$ref": "#/$defs/propertyContainers/applyAtPositionContainer"
             properties:
               toSegment:
                 type: string
@@ -78,10 +74,7 @@ properties:
                     connected to it.
                 minItems: 1
       "$comment": >-
-        TODO: HOV lane modeling.
-        TODO: The turns model fails to capture cases where there may be
-              a combined maneuver (slightLeft+slideRight). How important
-              is this? https://wiki.openstreetmap.org/wiki/Key:turn
+        TODO: HOV and other lanes attributes modeling.
     laneDirection:
       type: string
       enum:

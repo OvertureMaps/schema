@@ -42,7 +42,7 @@ properties:
             toLanes:
               - 0
               - 1
-          - toSegment: "234" # going left
+          - toSegment: "345" # going left
             toLanes:
               - 0
               - 1
