@@ -115,8 +115,7 @@ properties:
         Enumerates possible travel modes. Some modes represent groups
         of modes.
       type: string
-      # TODO: this enumeration requires discussion about values
-      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv ]
+      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle ]
       "$comment": >-
         motorVehicle includes car, truck and motorcycle
     road:
