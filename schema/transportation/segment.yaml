@@ -431,7 +431,7 @@ properties:
         Properties defining the discrete position on the segment where
         a rule is active.
       properties:
-        applyAtPosition:
+        applyAt:
           "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition
     applyAtRangeContainer:
       description: >-
