@@ -18,7 +18,6 @@ properties:
         properties:
           # Missing:
           # - names -> shared names schema
-          # - addresses -> shared address schema
           # - signals -> shared cross-cutting concern
           category:
             description: The category of the place. The list of categories can be found <TBD>.
@@ -65,3 +64,9 @@ properties:
               wikidata:
                 description: The wikidata reference of the brand, as found on https://www.wikidata.org/.
                 type: string
+          addresses:
+            description: The addresses of the place.
+            type: array
+            items:
+              "$ref": ../addresses/address.yaml
+            uniqueItems: true

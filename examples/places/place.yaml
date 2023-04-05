@@ -18,6 +18,13 @@ properties:
   brand:
     name: Example
     wikidata: Q1000
+  addresses:
+    - freeform: "770 Broadway, Floor 8"
+      locality: "New York"
+    - freeform: "770 Brodway, #802"
+      locality: "New York"
+      region: "NY"
+      country: "US"
   # Overture properties
   theme: places
   type: place
