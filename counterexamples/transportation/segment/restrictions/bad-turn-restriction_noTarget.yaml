@@ -20,9 +20,9 @@ properties:
     class: secondary
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]
-    restrictions:
-      speedLimits:
-        - minSpeed: [90, "km/h"]
-          maxSpeed: [110, "mph"]
-          notModes: [ foo ]
-          isMaxSpeedVariable: true
+    restrictions: 
+      turns:
+        - toDirection: forward
+          reason: legal
+          direction: forward
+     

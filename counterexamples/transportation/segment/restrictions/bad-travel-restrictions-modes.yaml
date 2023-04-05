@@ -15,15 +15,14 @@ properties:
   subType: road
   level: -1
   widthMeters: 10
-  connectors: [fooConnector, barConnector] # Topology: To discuss further.
+  connectors: [fooConnector, barConnector]
   road:
     class: secondary
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]
     restrictions:
-      travelRestrictions:        
-        - speedLimits:
-          - minSpeed: [90, "km/h"]
-            maxSpeed: [110, "mph"]
-            modes: [ foo ]
-            isMaxSpeedVariable: true
+      speedLimits:
+        - minSpeed: [90, "km/h"]
+          maxSpeed: [110, "mph"]
+          modes: [ foo ]
+          isMaxSpeedVariable: true

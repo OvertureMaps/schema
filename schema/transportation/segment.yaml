@@ -300,83 +300,68 @@ properties:
           type: object
           unevaluatedProperties: false
           properties:
-            travelRestrictions:
+            speedLimits:
+              description: Rules governing speed on this road segment
               type: array
               items:
-                description: An individual travel restriction
+                description: An individual speed limit rule
+                "$comment": >-
+                  TODO: Speed limits probably have directionality, so
+                  should factor out a directionContainer for this
+                  purpose and use it to introduce an optional
+                  direction property in each rule.
                 type: object
+                anyOf:
+                  - required: [minSpeed]
+                  - required: [maxSpeed]
+                allOf:
+                  - "$ref": "#/$defs/propertyContainers/modesContainer"
+                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                  - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+                unevaluatedProperties: false
                 properties:
-                  speedLimits:
-                    description: Rules governing speed on this road segment
-                    type: array
-                    items:
-                      description: An individual speed limit rule
-                      "$comment": >-
-                        TODO: Speed limits probably have directionality, so
-                        should factor out a directionContainer for this
-                        purpose and use it to introduce an optional
-                        direction property in each rule.
-                      type: object
-                      anyOf:
-                        - required: [minSpeed]
-                        - required: [maxSpeed]
-                      allOf:
-                        - "$ref": "#/$defs/propertyContainers/modesContainer"
-                        - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
-                        - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
-                      unevaluatedProperties: false
-                      properties:
-                        minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-                        maxSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-                        isMaxSpeedVariable:
-                          description: Indicates a variable speed corridor
-                          type: boolean
-                          default: false
-                        lanes:
-                          description: >-
-                            Optionally specifies the lanes to which the speed
-                            limit rule applies. If omitted, the rule applies
-                            to all lanes.
-                          type: array
-                          items:
-                            type: integer
-                            minValue: 0
-                          uniqueItems: true
-                  sizeLimits:
-                    description: Rules governing vehicle size on this road segment
-                    type: array
-                    items:
-                      description: An individual vehicle size rule
-                      "$comment": >-
-                         TODO: Is there a directionality aspect to vehicle
-                         size limits, similar to speed limits? Or at that
-                         point should we just split into two unidirectional
-                         segments?
-                      type: object
-                      allOf:
-                        - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
-                      anyOf:
-                        - required: [maxHeightMeters]
-                        - required: [maxWidthMaters]
-                        - required: [maxWeightKilograms]
-                      unevaluatedProperties: false
-                      properties:
-                        maxHeightMeters:
-                          type: number
-                          exclusiveMinimum: 0
-                        maxWidthMeters:
-                          type: number
-                          exclusiveMinimum: 0
-                        maxWeightKilograms:
-                          type: number
-                          exclusiveMinimum: 0
-            turnRestrictions:
+                  minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+                  maxSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+                  isMaxSpeedVariable:
+                    description: Indicates a variable speed corridor
+                    type: boolean
+                    default: false
+            sizeLimits:
+              description: Rules governing vehicle size on this road segment
+              type: array
+              items:
+                description: An individual vehicle size rule
+                "$comment": >-
+                    TODO Is there a directionality aspect to vehicle
+                    size limits, similar to speed limits? Or at that
+                    point should we just split into two unidirectional
+                    segments?
+                type: object
+                allOf:
+                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                anyOf:
+                  - required: [maxHeightMeters]
+                  - required: [maxWidthMaters]
+                  - required: [maxWeightKilograms]
+                unevaluatedProperties: false
+                properties:
+                  maxHeightMeters:
+                    type: number
+                    exclusiveMinimum: 0
+                  maxWidthMeters:
+                    type: number
+                    exclusiveMinimum: 0
+                  maxWeightKilograms:
+                    type: number
+                    exclusiveMinimum: 0
+            turns:
               description: Turn restriction from this segement to other segments.
               type: array
               items:
                  allOf:
                    - "$ref": "#/$defs/propertyContainers/modesContainer"
                    - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+                   - "$ref": "#/$defs/propertyDefinitions/relationTarget"
                  unevaluatedProperties: false
                  type: object
                  properties:
@@ -387,12 +372,12 @@ properties:
                      description: for turn restrictions, a rough description as to why the restriction exist
                      type: string
                      enum:
-                       - Legal
-                       - Divider
-                       - GatedPermission
-                       - GatedKey
+                       - legal
+                       - divider
+                       - gatedPermission
+                       - gatedKey
                      default:
-                       enum: [Legal]
+                       enum: [legal]
                    direction:
                      description: direction of travel on the source that pertains to the relation
                      "$ref": "#/$defs/propertyDefinitions/direction"
@@ -404,7 +389,6 @@ properties:
                        "$ref": "#/$defs/propertyDefinitions/relationTarget"
                      minItems: 1
                      uniqueItems: true
-                 required: [to]
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string

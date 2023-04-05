@@ -15,16 +15,16 @@ properties:
   subType: road
   level: -1
   widthMeters: 10
-  connectors: [fooConnector, barConnector] # Topology: To discuss further.
+  connectors: [fooConnector, barConnector]
   road:
     class: secondary
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]
     restrictions: 
-      turnRestrictions:
-        - to: # target missing segment id
-            connectorId: overture:transportation:connector:123
-            toDirection: forward
-          reason: Legal
+      turns:
+        - segmentId: overture:transportation:segment:234
+          connectorId: overture:transportation:connector:123
+          toDirection: forward
+          reason: foo
           direction: forward
      

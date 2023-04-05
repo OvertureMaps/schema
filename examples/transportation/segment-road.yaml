@@ -76,35 +76,31 @@ properties:
       #      modes: [foot]
       #  applyDuring: Mo-Sa 09:00-12:00 closed, We 15:00-18:00 closed
     restrictions:
-      travelRestrictions:        
-        - speedLimits:
-          - minSpeed: [90, "km/h"]
-            maxSpeed: [110, "mph"]
-            notModes: [ "truck" ]
-            isMaxSpeedVariable: true
-          - maxSpeed: [55, "mph"]
-            modes: [ "truck" ]
-            lanes: [3]
-          - maxSpeed: [30, "km/h"]
-            applyAt: [0.25, 0.50]
-            applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
-        - sizeLimits:
-          - maxHeightMeters: 4
-            maxWidthMeters: 4
-            maxWeightKilograms: 500
-            applyAt: [0.1, 0.9]
-      turnRestrictions:
-        - to:
-            segmentId: overture:transportation:segment:234
-            connectorId: overture:transportation:connector:123
-            toDirection: forward
-          reason: Legal
+      speedLimits:
+        - minSpeed: [90, "km/h"]
+          maxSpeed: [110, "mph"]
+          notModes: [ "truck" ]
+          isMaxSpeedVariable: true
+        - maxSpeed: [55, "mph"]
+          modes: [ "truck" ]
+        - maxSpeed: [30, "km/h"]
+          applyAt: [0.25, 0.50]
+          applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
+      sizeLimits:
+        - maxHeightMeters: 4
+          maxWidthMeters: 4
+          maxWeightKilograms: 500
+          applyAt: [0.1, 0.9]
+      turns:
+        - segmentId: overture:transportation:segment:234
+          connectorId: overture:transportation:connector:123
+          toDirection: forward
+          reason: legal
           direction: forward
-        - to:
-            segmentId: overture:transportation:segment:345
-            connectorId: overture:transportation:connector:234
-            toDirection: backward
-          reason: Divider
+        - segmentId: overture:transportation:segment:345
+          connectorId: overture:transportation:connector:234
+          toDirection: backward
+          reason: divider
           direction: backward
           via:
             - segmentId: overture:transportation:segment:456
@@ -113,5 +109,4 @@ properties:
             - segmentId: overture:transportation:segment:567
               connectorId: overture:transportation:connector:456
               toDirection: forward
-  
      
