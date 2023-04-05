@@ -29,6 +29,18 @@
     "theme": "places",
     "type": "place",
     "version": 0,
-    "updateTime": "2023-02-22T23:55:01-08:00"
+    "updateTime": "2023-02-22T23:55:01-08:00",
+    "addresses": [
+      {
+        "freeform": "770 Broadway, Floor 8",
+        "locality": "New York"
+      },
+      {
+        "freeform": "770 Broadway #802",
+        "locality": "New York",
+        "region": "NY",
+        "country": "US"
+      }
+    ]
   }
 }

@@ -2,32 +2,28 @@
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Overture Maps Address Schema
 description: Additive schema for addresses
-type: object
-properties:
-  geometry:
-    unevaluatedProperties: false
-    anyOf:
-      - "$ref": https://geojson.org/schema/Point.json
+address:
+  type: object
+  unevaluatedProperties: false
   properties:
-    unevaluatedProperties: false
-    
-    required: [country]
-    properties:
+    geometry:
       unevaluatedProperties: false
-      freeform:
-        description: Free form address that contains street name, house number and other address info
-        type: string
-      locality:
-        description: Name of the City or Neighborhood where the address is located
-        type: string
-      postcode:
-        description: Post code where the address is located
-        type: string
-      region:
-        description: ISO-3166-2 subdivision/province code
-        type: string
-      country:
-        description: ISO 3166 alpha2 country code
-        type: string
-        
+      anyOf:
+        - "$ref": https://geojson.org/schema/Point.json
+    freeform:
+      description: Free form address that contains street name, house number and other address info
+      type: string
+    locality:
+      description: Name of the City or Neighborhood where the address is located
+      type: string
+    postcode:
+      description: Post code where the address is located
+      type: string
+    region:
+      description: ISO-3166-2 subdivision/province code
+      type: string
+    country:
+      description: ISO 3166 alpha2 country code
+      type: string
+    
 
