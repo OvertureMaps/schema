@@ -32,7 +32,7 @@ Please add 'Attended' to this issue during the meeting to denote attendance.
  - [ ] **[Approve Previous Meeting Minutes](https://github.com/OvertureMaps/schema-wg/issues?q=is%3Aopen+is%3Aissue+label%3AAgenda%2FMinutes)** 
 
 ## Task Force (TF) Stand-up
-[Update status here](https://wiki.overturemaps.org/display/PROJ/Overture+H1+Technical+Deliverables+Tracking)
+**[Update status here](https://wiki.overturemaps.org/display/PROJ/Overture+H1+Technical+Deliverables+Tracking#OvertureH1TechnicalDeliverablesTracking-M3|APR-26(updatedApr-05))**
 - [ ] Places TF
 - [ ] Buildings TF
 - [ ] Transportation TF
