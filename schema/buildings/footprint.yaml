@@ -27,7 +27,6 @@ properties:
       class:
         type: string
         enum:
-          - general
           - residential
           - outbuilding
           - agricultural
