@@ -1,0 +1,60 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  subType: road
+  updateTime: 2023-03-31T12:02:30-08:00
+  version: 0
+  road:
+    class: primary
+    lanes:
+      #           segment 123 has one line from N to S (lane 0), and two lanes from S to N (lane 1 and 2)
+      #           segment digitization from S -> N (so 1 lane backward and 2 lanes forward)
+      #            |   |   |   |
+      #            |   |   |   |
+      #            |   |   |   |
+      #            | v | ^ | ^ |
+      #            |   |   |   |
+      # seg: 234   | 0 | 1 | 2 | seg: 567
+      # -----------            ----------------
+      # 2   <                      <         2
+      #------------            ----------------
+      # 1   ^            o         >         1       (note that line 1 of segment 234 is marked with '^' - meaning it allows only to turn left (no going straight)
+      #------------  connector ----------------
+      # 0   >                       >         0
+      #-------------           ----------------
+      # segment 234 has just one lane in each direction
+      # digitization of segment: E <-  W
+
+      - direction: backward # lane 0
+        connectivity:
+          - toSegment: "567"
+            toLanes:
+              - 0
+              - 1
+      - direction: backward # lane 1
+        connectivity:
+          - toSegment: "123" # going left (mandatory since there is no connectivity specified to lanes on segment 567)
+            toLanes:
+              - 1
+              - 2
+      - direction: forward # lane 2
+        connectivity:
+          - toSegment: "234" # going straight
+            toLanes:
+              - 2
+          - toSegment: "123" # going right
+            toLanes:
+              - 1
+              - 2
+
+
+
+
+
