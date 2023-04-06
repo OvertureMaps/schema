@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 ## Date: 2023 mm dd 
-Time 4:00pm UTC - See the time in your timezone https://everytimezone.com/s/a8399b00
+Time 3:00pm UTC - See the time in your timezone https://everytimezone.com/s/a8399b00
 
 - Co-Chair Rob Soetewey (TomTom)
 - Co-Chair Assaji Aluwihare (Amazon)
@@ -40,22 +40,15 @@ Please add 'Attended' to this issue during the meeting to denote attendance.
 - [ ] GERS TF
 
 ## [PRs](https://github.com/OvertureMaps/schema-wg/pulls) 
-**- [ ] https://github.com/OvertureMaps/schema-wg/pull/2**
-- [ ] https://github.com/OvertureMaps/schema-wg/pull/8
-- [ ] https://github.com/OvertureMaps/schema-wg/pull/9
-- [ ] https://github.com/OvertureMaps/schema-wg/pull/10
-- [ ] https://github.com/OvertureMaps/schema-wg/pull/11
-- [ ] https://github.com/OvertureMaps/schema-wg/pull/12
 
 ## [Issue](https://github.com/OvertureMaps/schema-wg/issues) 
-- [ ] https://github.com/OvertureMaps/schema-wg/issues/1
-- [ ] https://github.com/OvertureMaps/schema-wg/issues/5
+
 
 ## AOB
  - [ ] Add
 
 ## Next meeting
-- [x] dd mmm
+- [] dd mmm
 
 ## Adjourn
 - [ ] No objections?
