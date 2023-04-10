@@ -14,7 +14,7 @@ properties:
   version: 1
   updateTime: 2023-02-22T23:55:01-08:00
   names:
-    - variant: standard
+    - type: standard
       value: Empire State Building
       language: en
       script: Latn

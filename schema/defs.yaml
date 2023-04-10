@@ -106,9 +106,9 @@ description: Common schema definitions shared by all themes
           language (en, es, etc.), an optional script (Latn, Hebr, etc.)
           and a required value.
         type: object
-        required: [variant, value]
+        required: [type, value]
         properties:
-          value:
+          type:
             type: string
           variant:
             type: string
