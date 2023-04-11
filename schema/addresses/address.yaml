@@ -5,6 +5,7 @@ description: Additive schema for addresses
 address:
   type: object
   unevaluatedProperties: false
+  required: [freeform]
   properties:
     geometry:
       unevaluatedProperties: false
@@ -16,7 +17,7 @@ address:
     locality:
       description: Name of the City or Neighborhood where the address is located
       type: string
-    postcode:
+    postCode:
       description: Post code where the address is located
       type: string
     region:
