@@ -13,7 +13,6 @@ properties:
     required: [category]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
-      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
       -
         properties:
           # Missing:
