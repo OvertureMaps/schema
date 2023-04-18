@@ -14,7 +14,11 @@ properties:
   version: 1
   updateTime: 2023-02-22T23:55:01-08:00
   names:
-    - type: standard
-      value: United States
-    - type: official
-      value: United States of America
+    standard:
+      name: United States
+    official:
+      - name: United States of America
+      - name: USA
+    alternate:
+      - name: US
+
