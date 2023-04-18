@@ -121,7 +121,6 @@ description: Common schema definitions shared by all themes
     names:
       type: object
       required: [standard]
-      unevaluatedProperties: false
       properties:
         standard: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
         official: { "$ref": "#/$defs/propertyDefinitions/namesArray" }
