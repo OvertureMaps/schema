@@ -18,6 +18,9 @@ properties:
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
   road:
     class: secondary
+    streetName:
+      standard:
+        name: Standard Road Name
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]
     flow:
