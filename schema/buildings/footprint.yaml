@@ -1,0 +1,16 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Overture Maps Building Footprint Schema
+description: Additive schema for building footprints
+type: object
+properties:
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
