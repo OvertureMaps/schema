@@ -98,29 +98,34 @@ description: Common schema definitions shared by all themes
         https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
       type: string
       enum: [local, en, es, ar, he, ru]
-    namesArray:
-      type: array
-      items:
-        allOf:
-            - { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
-      minItems: 1
     nameProperty:
       type: object
-      required: [name]
+      required: [name, locale]
       unevaluatedProperties: false
       properties:
         name:
           type: string
         locale: { "$ref": "#/$defs/propertyDefinitions/locale" }
-
     names:
       type: object
       required: [standard]
       properties:
-        standard: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
-        official: { "$ref": "#/$defs/propertyDefinitions/namesArray" }
-        alternate: { "$ref": "#/$defs/propertyDefinitions/namesArray" }
-        short: { "$ref": "#/$defs/propertyDefinitions/namesArray" }
+        standard:
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+          minItems: 1
+        official:
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+          minItems: 1
+        alternate:
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+          minItems: 1
+        short:
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+          minItems: 1
 
   propertyContainers:
     overtureFeaturePropertiesContainer:
