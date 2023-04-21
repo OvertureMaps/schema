@@ -96,30 +96,37 @@ description: Common schema definitions shared by all themes
         TODO: Expand the list of supported languages
       type: string
       enum: [en, es, ar, he, ru]
-    names:
+    script:
+      description: >-
+        The script typically from ISO 15924. To be filled out more completely
+        TODO: Expand the list of supported scripts
+      type: string
+      enum: [ Latn, Hans, Hant ]
+    namesArray:
       type: array
-      minItems: 1
       items:
-        description: >-
-          A single name of an object that's represented by its name
-          variant (standard, official, alternate, local), an optional
-          language (en, es, etc.), an optional script (Latn, Hebr, etc.)
-          and a required value.
-        type: object
-        required: [type, value]
-        properties:
-          type:
-            type: string
-          variant:
-            type: string
-            enum: [standard, official, alternate, short]
-          language: { "$ref": "#/$defs/propertyDefinitions/language" }
-          script:
-            description: >-
-              The script typically from ISO 15924. To be filled out more completely
-              TODO: Expand the list of supported scripts
-            type: string
-            enum: [Latn, Hans, Hant]
+        allOf:
+            - { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+      minItems: 1
+    nameProperty:
+      type: object
+      required: [name]
+      unevaluatedProperties: false
+      properties:
+        name:
+          type: string
+        language: { "$ref": "#/$defs/propertyDefinitions/language" }
+        script: {"$ref": "#/$defs/propertyDefinitions/script"}
+
+    names:
+      type: object
+      required: [standard]
+      properties:
+        standard: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+        official: { "$ref": "#/$defs/propertyDefinitions/namesArray" }
+        alternate: { "$ref": "#/$defs/propertyDefinitions/namesArray" }
+        short: { "$ref": "#/$defs/propertyDefinitions/namesArray" }
+
   propertyContainers:
     overtureFeaturePropertiesContainer:
       description: Top-level properties shared by all Overture features

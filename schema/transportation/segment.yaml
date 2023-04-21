@@ -140,6 +140,23 @@ properties:
             - cycleway
           default:
             enum: [ unknown ]
+        streetName:
+          unevaluatedProperties: false
+          oneOf:
+            - type: object
+              allOf:
+                - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+            - type: array
+              items:
+                type: object
+                required: [applyAt]
+                unevaluatedProperties: false
+                allOf:
+                  - { "$ref": "#/$defs/propertyContainers/applyAtRangeContainer" }
+                  - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+              minItems: 1
+              uniqueItems: true
+
         surface:
           description: Physical surface of the road. May either be
             specified as a single global value for the segment, or as
