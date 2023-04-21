@@ -15,5 +15,5 @@ properties:
   updateTime: 2023-02-22T23:55:01-08:00
   names:
     standard:
-      language: en
       name: Empire State Building
+      locale: local

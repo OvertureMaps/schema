@@ -90,18 +90,14 @@ description: Common schema definitions shared by all themes
           Reasons for using the OSM opening hours specification for
           transportation rule time restrictions are documented in
           https://github.com/OvertureMaps/schema-wg/pull/10
-    language:
+    locale:
       description: >-
-        Overture supported language. Typically from ISO 639-1, -2, and -3.
-        TODO: Expand the list of supported languages
+        Locale according to definitions in IETF-BCP47 https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
+        Locales are formatted as "language-script". In some cases the script may be omitted when
+        it is standard for the language by using the "Suppress-Script" property in
+        https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
       type: string
-      enum: [en, es, ar, he, ru]
-    script:
-      description: >-
-        The script typically from ISO 15924. To be filled out more completely
-        TODO: Expand the list of supported scripts
-      type: string
-      enum: [ Latn, Hans, Hant ]
+      enum: [local, en, es, ar, he, ru]
     namesArray:
       type: array
       items:
@@ -115,8 +111,7 @@ description: Common schema definitions shared by all themes
       properties:
         name:
           type: string
-        language: { "$ref": "#/$defs/propertyDefinitions/language" }
-        script: {"$ref": "#/$defs/propertyDefinitions/script"}
+        locale: { "$ref": "#/$defs/propertyDefinitions/locale" }
 
     names:
       type: object
