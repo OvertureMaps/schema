@@ -145,7 +145,7 @@ properties:
           oneOf:
             - type: object
               allOf:
-                - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+                - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/name" }
             - type: array
               items:
                 type: object
@@ -153,7 +153,7 @@ properties:
                 unevaluatedProperties: false
                 allOf:
                   - { "$ref": "#/$defs/propertyContainers/applyAtRangeContainer" }
-                  - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+                  - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/name" }
               minItems: 1
               uniqueItems: true
 

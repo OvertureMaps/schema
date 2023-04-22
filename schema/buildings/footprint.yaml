@@ -15,4 +15,4 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     properties:
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      name: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/name" }

@@ -106,7 +106,7 @@ description: Common schema definitions shared by all themes
         name:
           type: string
         locale: { "$ref": "#/$defs/propertyDefinitions/locale" }
-    names:
+    name:
       type: object
       required: [common]
       properties:
