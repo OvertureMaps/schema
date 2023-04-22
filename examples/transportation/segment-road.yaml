@@ -19,8 +19,8 @@ properties:
   road:
     class: secondary
     streetName:
-      standard:
-        - name: Standard Road Name
+      common:
+        - name: Common Road Name
           locale: local
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]

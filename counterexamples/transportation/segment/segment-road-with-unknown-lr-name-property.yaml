@@ -21,8 +21,6 @@ properties:
       - applyAt:
           - 0
           - 50
-        standard:
-          name: Standard Road Name 1
+        common:
+          name: Common Road Name 1
         someUnknownProperty: unknown
-
-
