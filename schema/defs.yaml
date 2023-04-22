@@ -93,26 +93,28 @@ description: Common schema definitions shared by all themes
     language:
       description: >-
         Describes the language, script and other variants used to describe
-        names. It must be one of the literal "local" or a language according to
-        definitions in IETF-BCP47 https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
+        names. It must be either the literal "local" or a language tag according
+        to definition in IETF-BCP47
+        https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
 
-        When the language is "local" it indicates that we often don't know the
-        details of the language and script, etc. Such is the case when capturing
-        data from OpenStreetMap where only a "name" tag is supplied with no further
+        The value of "local" should be used to indicate the name in the local
+        language and script. Such is the case when capturing data from
+        OpenStreetMap where only a "name" tag is supplied with no further
         information.
 
-        The BCP47 language tag definition can be complex, a very simplified view
-        defines a language as "language-script-region" where script and region
-        are optional. The spec lists specific allowed values for language,
-        script, and region. It further describes how to include variants,
-        extensions and other private custom extensions.
+        Althought the BCP47 language tag definition is complex, a very
+        simplified view defines a language as "language-script-region" where
+        script and region are optional. The spec lists allowed values for
+        language, script, and region. It further describes how to include
+        variants, extensions and other private custom extensions, which are
+        allowed but not described here.
 
-        For some languages, the "Suppress-Script" property defines a script that
-        can be omitted from the language tag. For example, the "Latn" script can
-        be omitted for the "en" language. By convention, Overture will always
-        omit the script when it matches the Suppress-Script property for a
-        language. In other words, "en-Latn" is forbidden in favor of "en", and
-        same as "ru-Cyrl" in favor of "ru".
+        For some languages, the "Suppress-Script" property in BCP47 defines a
+        script that can be omitted from the language tag. For example, the
+        "Latn" script can be omitted for the "en" language. By convention,
+        Overture will always omit the script when it matches the Suppress-Script
+        property for a language. In other words, "en-Latn" is forbidden in favor
+        of "en", and same for "ru-Cyrl" in favor of "ru".
 
         The complete lists of allowed values can be found at:
         https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
@@ -123,8 +125,8 @@ description: Common schema definitions shared by all themes
           pattern: "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$"
           "$comment": >-
               The "pattern" is mostly a placeholder. It captures the
-              language[-script][-region] variation of BCP47 but not
-              the grandfathered values and other variants and extensions.
+              language[-script][-region] variation of BCP47 but not the
+              "grandfathered" values and other variants and extensions.
     nameProperty:
       type: object
       required: [name, language]
@@ -141,7 +143,7 @@ description: Common schema definitions shared by all themes
           description: >-
             The name most commonly used name when referring to a feature.
             The first entry in the array of common names must have a language
-            of "local" making it the easiest default name to use among all
+            of "local" making it the easiest, default name to use among all
             options.
           type: array
           prefixItems:
@@ -175,7 +177,6 @@ description: Common schema definitions shared by all themes
           type: array
           items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
           minItems: 1
-
   propertyContainers:
     overtureFeaturePropertiesContainer:
       description: Top-level properties shared by all Overture features
