@@ -21,7 +21,7 @@ properties:
     streetName:
       common:
         - name: Common Road Name
-          locale: local
+          language: local
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]
     flow:

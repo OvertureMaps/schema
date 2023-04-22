@@ -23,13 +23,13 @@ properties:
           - 50
         common:
           - name: Common Road Name 1
-            locale: local
+            language: local
         short:
           - name: SRN1
-            locale: local
+            language: local
       - applyAt:
         - 50
         - 100
         common:
           - name: Common Road Name 2
-            locale: local
+            language: local

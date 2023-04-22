@@ -90,45 +90,88 @@ description: Common schema definitions shared by all themes
           Reasons for using the OSM opening hours specification for
           transportation rule time restrictions are documented in
           https://github.com/OvertureMaps/schema-wg/pull/10
-    locale:
+    language:
       description: >-
-        Locale according to definitions in IETF-BCP47 https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
-        Locales are formatted as "language-script". In some cases the script may be omitted when
-        it is standard for the language by using the "Suppress-Script" property in
+        Describes the language, script and other variants used to describe
+        names. It must be one of the literal "local" or a language according to
+        definitions in IETF-BCP47 https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
+
+        When the language is "local" it indicates that we often don't know the
+        details of the language and script, etc. Such is the case when capturing
+        data from OpenStreetMap where only a "name" tag is supplied with no further
+        information.
+
+        The BCP47 language tag definition can be complex, a very simplified view
+        defines a language as "language-script-region" where script and region
+        are optional. The spec lists specific allowed values for language,
+        script, and region. It further describes how to include variants,
+        extensions and other private custom extensions.
+
+        For some languages, the "Suppress-Script" property defines a script that
+        can be omitted from the language tag. For example, the "Latn" script can
+        be omitted for the "en" language. By convention, Overture will always
+        omit the script when it matches the Suppress-Script property for a
+        language. In other words, "en-Latn" is forbidden in favor of "en", and
+        same as "ru-Cyrl" in favor of "ru".
+
+        The complete lists of allowed values can be found at:
         https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
-      type: string
-      enum: [local, en, es, ar, he, ru]
+      oneOf:
+        - type: string
+          const: local
+        - type: string
+          pattern: "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$"
+          "$comment": >-
+              The "pattern" is mostly a placeholder. It captures the
+              language[-script][-region] variation of BCP47 but not
+              the grandfathered values and other variants and extensions.
     nameProperty:
       type: object
-      required: [name, locale]
+      required: [name, language]
       unevaluatedProperties: false
       properties:
         name:
           type: string
-        locale: { "$ref": "#/$defs/propertyDefinitions/locale" }
+        language: { "$ref": "#/$defs/propertyDefinitions/language" }
     name:
       type: object
       required: [common]
       properties:
         common:
+          description: >-
+            The name most commonly used name when referring to a feature.
+            The first entry in the array of common names must have a language
+            of "local" making it the easiest default name to use among all
+            options.
           type: array
           prefixItems:
             - $ref: "#/$defs/propertyDefinitions/nameProperty"
               type: object
               properties:
-                locale:
+                language:
                   const: local
           items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
           minItems: 1
         official:
+          description: >-
+            An official name which is often a longer and more verbose version of
+            the common name. For example, the official name of the United Kingdom
+            is "United Kingdom of Great Britain and Northern Ireland" whereas the
+            common name would be "United Kingdom"
           type: array
           items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
           minItems: 1
         alternate:
+          description: >-
+            Alternative names used to refer to the feature that may not fit
+            into other categories.
           type: array
           items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
           minItems: 1
         short:
+          description: >-
+            Short names are often abbreviations or other shorthand forms of a name. The
+            short name of the United Kingdom is UK.
           type: array
           items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
           minItems: 1

@@ -15,14 +15,16 @@ properties:
   updateTime: 2023-02-22T23:55:01-08:00
   name:
     common:
-      - name: United States
+      - name: Local Name
         language: local
-      - name: Estados Unidos
-        language: es
+      - name: Language Script
+        language: ru-Latn
+      - name: Language Region
+        language: en-US
+      - name: Language Script Region
+        language: en-Latn-US
     official:
       - name: United States of America
-        language: local
-      - name: USA
         language: local
     alternate:
       - name: US

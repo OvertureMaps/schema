@@ -16,4 +16,4 @@ properties:
   name:
     common:
       - name: Empire State Building
-        locale: local
+        language: local
