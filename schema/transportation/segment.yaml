@@ -140,7 +140,7 @@ properties:
             - cycleway
           default:
             enum: [ unknown ]
-        streetName:
+        roadName:
           unevaluatedProperties: false
           oneOf:
             - type: object
