@@ -54,4 +54,3 @@ properties:
             - segmentId: overture:transportation:segment:567
               connectorId: overture:transportation:connector:456
               toDirection: forward
-     
