@@ -102,12 +102,12 @@ description: Common schema definitions shared by all themes
         OpenStreetMap where only a "name" tag is supplied with no further
         information.
 
-        Althought the BCP47 language tag definition is complex, a very
-        simplified view defines a language as "language-script-region" where
-        script and region are optional. The spec lists allowed values for
-        language, script, and region. It further describes how to include
-        variants, extensions and other private custom extensions, which are
-        allowed but not described here.
+        Although the BCP47 language tag definition is complex, a very simplified
+        view defines a language as "language-script-region" where script and
+        region are optional. The spec lists allowed values for language, script,
+        and region. It further describes how to include variants, extensions and
+        other private custom extensions, which are allowed but not described
+        here.
 
         For some languages, the "Suppress-Script" property in BCP47 defines a
         script that can be omitted from the language tag. For example, the
@@ -141,10 +141,9 @@ description: Common schema definitions shared by all themes
       properties:
         common:
           description: >-
-            The name most commonly used name when referring to a feature.
-            The first entry in the array of common names must have a language
-            of "local" making it the easiest, default name to use among all
-            options.
+            The most commonly used name when referring to a feature.  The first
+            entry in the array of common names must have a language of "local"
+            making it the easiest, default name to use among all options.
           type: array
           prefixItems:
             - $ref: "#/$defs/propertyDefinitions/nameProperty"
