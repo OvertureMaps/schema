@@ -15,15 +15,15 @@ properties:
   updateTime: 2023-02-22T23:55:01-08:00
   name:
     common:
-      - name: United States
+      - value: United States
         language: local
-      - name: Estados Unidos
+      - value: Estados Unidos
         language: es
     official:
-      - name: United States of America
+      - value: United States of America
         language: local
-      - name: USA
+      - value: USA
         language: local
     alternate:
-      - name: US
+      - value: US
         language: local

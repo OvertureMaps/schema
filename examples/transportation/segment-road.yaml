@@ -20,7 +20,7 @@ properties:
     class: secondary
     roadName:
       common:
-        - name: Common Road Name
+        - value: Common Road Name
           language: local
     surface: gravel
     flags: [isLink, isTunnel, isPrivate, isTolled]

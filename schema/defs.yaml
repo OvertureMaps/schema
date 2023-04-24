@@ -129,10 +129,10 @@ description: Common schema definitions shared by all themes
               "grandfathered" values and other variants and extensions.
     nameProperty:
       type: object
-      required: [name, language]
+      required: [value, language]
       unevaluatedProperties: false
       properties:
-        name:
+        value:
           type: string
         language: { "$ref": "#/$defs/propertyDefinitions/language" }
     name:

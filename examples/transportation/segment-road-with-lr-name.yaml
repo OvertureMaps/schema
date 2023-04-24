@@ -22,14 +22,14 @@ properties:
           - 0
           - 50
         common:
-          - name: Common Road Name 1
+          - value: Common Road Name 1
             language: local
         short:
-          - name: SRN1
+          - value: SRN1
             language: local
       - applyAt:
         - 50
         - 100
         common:
-          - name: Common Road Name 2
+          - value: Common Road Name 2
             language: local

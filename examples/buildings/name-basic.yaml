@@ -15,5 +15,5 @@ properties:
   updateTime: 2023-02-22T23:55:01-08:00
   name:
     common:
-      - name: Empire State Building
+      - value: Empire State Building
         language: local

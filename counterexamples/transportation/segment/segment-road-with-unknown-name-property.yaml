@@ -19,5 +19,5 @@ properties:
     class: secondary
     roadName:
         common:
-          name: Common Road Name 1
+          value: Common Road Name 1
         someUnknownProperty: unknown

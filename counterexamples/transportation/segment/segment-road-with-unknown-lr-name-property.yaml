@@ -22,5 +22,5 @@ properties:
           - 0
           - 50
         common:
-          name: Common Road Name 1
+          value: Common Road Name 1
         someUnknownProperty: unknown
