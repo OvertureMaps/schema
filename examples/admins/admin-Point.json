@@ -1,0 +1,67 @@
+{
+  "type": "Feature",
+  "properties": {
+    "theme": "admins",
+    "type": "locality",
+    "version": 0,
+    "updateTime": "2023-02-22T23:55:01-08:00",
+    "subType": "administrativeLocality",
+    "localityType": "country",
+    "adminLevel": 2,
+    "iso3166-1": "US",
+    "iso3166-2": "USA",
+    "defaultLanguage": "en",
+    "officialLanguage": [ "en", "es" ],
+    "drivingSide": "right",
+    "context": "northAmericaId",
+    "names": {
+      "common": [
+        {
+          "language": "local",
+          "value": "United States"
+        },
+        {
+          "language": "en",
+          "value": "United States"
+        },
+        {
+          "language": "es",
+          "value": "Estados Unidos"
+        }
+      ],
+      "official": [
+        {
+          "language": "local",
+          "value": "United States of America"
+        }
+      ],
+      "short": [
+        {
+          "language": "local",
+          "value": "US"
+        },
+        {
+          "language": "en",
+          "value": "US"
+        },
+        {
+          "language": "en",
+          "value": "U.S."
+        }
+      ],
+      "alternate": [
+        {
+          "language": "local",
+          "value": "States"
+        }
+      ]
+    }
+  },
+  "geometry": {
+    "type": "Point",
+    "coordinates": [
+      -99.1487581,
+      41.3768086
+    ]
+  }
+}

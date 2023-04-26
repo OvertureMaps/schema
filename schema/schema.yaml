@@ -14,6 +14,22 @@ oneOf:
       properties:
         properties:
           properties:
+            theme: { enum: [admins] }
+            type: { enum: [locality] }
+    then: { "$ref": admins/locality.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [admins] }
+            type: { enum: [administrativeBoundary] }
+    then: { "$ref": admins/administrativeBoundary.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
             theme: { enum: [buildings] }
             type: { enum: [footprint] }
     then: { "$ref": buildings/footprint.yaml }

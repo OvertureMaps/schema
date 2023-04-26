@@ -1,0 +1,20 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Overture Maps for administrative boundary
+description: Additive schema for administrative boundaries
+type: object
+properties:
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/LineString.json
+  properties:
+    unevaluatedProperties: false
+    required: [adminLevel]
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+    properties:
+      adminLevel: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/adminLevel" }
+      maritime:
+        description: Flag that specifies if the boundary is maritime.
+        type: boolean
