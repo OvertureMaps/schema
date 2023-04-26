@@ -97,10 +97,9 @@ description: Common schema definitions shared by all themes
         to definition in IETF-BCP47
         https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
 
-        The value of "local" should be used to indicate the name in the local
-        language and script. Such is the case when capturing data from
-        OpenStreetMap where only a "name" tag is supplied with no further
-        information.
+        The value of "local" is used to indicate the name in the local language
+        and script. Such is the case when capturing data from OpenStreetMap
+        where only a "name" tag is supplied with no further information.
 
         Although the BCP47 language tag definition is complex, a very simplified
         view defines a language as "language-script-region" where script and
