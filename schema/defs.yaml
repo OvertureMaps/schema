@@ -134,7 +134,7 @@ description: Common schema definitions shared by all themes
         value:
           type: string
         language: { "$ref": "#/$defs/propertyDefinitions/language" }
-    name:
+    names:
       type: object
       required: [common]
       properties:

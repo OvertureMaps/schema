@@ -140,12 +140,12 @@ properties:
             - cycleway
           default:
             enum: [ unknown ]
-        roadName:
+        roadNames:
           unevaluatedProperties: false
           oneOf:
             - type: object
               allOf:
-                - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/name" }
+                - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
             - type: array
               items:
                 type: object
@@ -153,7 +153,7 @@ properties:
                 unevaluatedProperties: false
                 allOf:
                   - { "$ref": "#/$defs/propertyContainers/applyAtRangeContainer" }
-                  - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/name" }
+                  - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
               minItems: 1
               uniqueItems: true
 

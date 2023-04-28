@@ -13,7 +13,7 @@ properties:
   type: footprint
   version: 1
   updateTime: 2023-02-22T23:55:01-08:00
-  name:
+  names:
     common:
       - value: Empire State Building
         language: en

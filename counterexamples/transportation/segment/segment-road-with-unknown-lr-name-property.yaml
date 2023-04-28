@@ -17,7 +17,7 @@ properties:
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
   road:
     class: secondary
-    roadName:
+    roadNames:
       - applyAt:
           - 0
           - 50

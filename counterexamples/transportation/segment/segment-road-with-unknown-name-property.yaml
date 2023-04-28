@@ -17,7 +17,7 @@ properties:
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
   road:
     class: secondary
-    roadName:
+    roadNames:
         common:
           value: Common Road Name 1
         someUnknownProperty: unknown
