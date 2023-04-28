@@ -16,8 +16,8 @@ properties:
       -
         properties:
           # Missing:
-          # - names -> shared names schema
           # - signals -> shared cross-cutting concern
+          names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
           category:
             description: The category of the place. The list of categories can be found <TBD>.
             type: string
@@ -57,9 +57,7 @@ properties:
             description: The brand of the place. We consider a location with multiple brands as separate places, each with their own brand.
             type: object
             properties:
-              name:
-                description: The brand name
-                type: string
+              names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
               wikidata:
                 description: The wikidata reference of the brand, as found on https://www.wikidata.org/.
                 type: string
