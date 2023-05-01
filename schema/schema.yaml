@@ -1,5 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
+"$id": schema.yaml
 title: Overture Maps Feature Schema
 description: >-
   Prototype schema for Overture Maps Foundation map entities as GeoJSON
@@ -11,7 +12,6 @@ allOf:
     "$comment": Every Overture feature IS A GeoJSON feature
 oneOf:
   - if:
-      description: "# Building Footprints"
       properties:
         properties:
           properties:
