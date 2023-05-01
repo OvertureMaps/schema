@@ -178,7 +178,7 @@ properties:
               items:
                 type: object
                 allOf:
-                  - { "$ref": "#/$defs/propertyContainers/applyAtRangeContainer" }
+                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
                 unevaluatedProperties: false
                 properties:
                   value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
@@ -201,8 +201,8 @@ properties:
               - { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
               - type: object
                 allOf:
-                  - { "$ref": "#/$defs/propertyContainers/applyAtRangeContainer" }
-                  - { "$ref": "#/$defs/propertyContainers/applyDuringContainer" }
+                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                  - { "$ref": "#/$defs/propertyContainers/duringContainer" }
                 unevaluatedProperties: false
                 properties:
                   values:
@@ -223,8 +223,8 @@ properties:
             type: object
             required: [lanes]
             allOf:
-              - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
-              - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+              - "$ref": "#/$defs/propertyContainers/atRangeContainer"
+              - "$ref": "#/$defs/propertyContainers/duringContainer"
             unevaluatedProperties: false
             properties:
               dividers:
@@ -276,7 +276,7 @@ properties:
               items:
                 type: object
                 allOf:
-                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                  - "$ref": "#/$defs/propertyContainers/atRangeContainer"
                     default:
                       - 0
                       - 100
@@ -316,8 +316,8 @@ properties:
                   - required: [maxSpeed]
                 allOf:
                   - "$ref": "#/$defs/propertyContainers/modesContainer"
-                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
-                  - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+                  - "$ref": "#/$defs/propertyContainers/atRangeContainer"
+                  - "$ref": "#/$defs/propertyContainers/duringContainer"
                 unevaluatedProperties: false
                 properties:
                   minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
@@ -326,41 +326,39 @@ properties:
                     description: Indicates a variable speed corridor
                     type: boolean
                     default: false
-            sizeLimits:
-              description: Rules governing vehicle size on this road segment
+            access:
               type: array
               items:
-                description: An individual vehicle size rule
-                "$comment": >-
-                    TODO Is there a directionality aspect to vehicle
-                    size limits, similar to speed limits? Or at that
-                    point should we just split into two unidirectional
-                    segments?
-                type: object
-                allOf:
-                  - "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
-                anyOf:
-                  - required: [maxHeightMeters]
-                  - required: [maxWidthMaters]
-                  - required: [maxWeightKilograms]
-                unevaluatedProperties: false
-                properties:
-                  maxHeightMeters:
-                    type: number
-                    exclusiveMinimum: 0
-                  maxWidthMeters:
-                    type: number
-                    exclusiveMinimum: 0
-                  maxWeightKilograms:
-                    type: number
-                    exclusiveMinimum: 0
+                oneOf:
+                  - "$ref": "#/$defs/propertyDefinitions/accessOption"
+                  - type: object
+                    properties:
+                      allowed:
+                        type: object
+                        allOf:
+                          - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                          - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
+                          - { "$ref": "#/$defs/propertyContainers/directionContainer"}
+                      denied:
+                        allOf:
+                          - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                          - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
+                          - { "$ref": "#/$defs/propertyContainers/directionContainer"}
+                      designated:
+                        allOf:
+                          - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                          - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
+                          - { "$ref": "#/$defs/propertyContainers/directionContainer"}
             turns:
               description: Turn restriction from this segement to other segments.
               type: array
               items:
                  allOf:
                    - "$ref": "#/$defs/propertyContainers/modesContainer"
-                   - "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+                   - "$ref": "#/$defs/propertyContainers/duringContainer"
                    - "$ref": "#/$defs/propertyDefinitions/relationTarget"
                  unevaluatedProperties: false
                  type: object
@@ -396,7 +394,6 @@ properties:
         - isBridge
         - isLink
         - isPrivate
-        - isTolled
         - isTunnel
     roadSurface:
       description: Physical surface of the road
@@ -451,6 +448,58 @@ properties:
         - sharpRight
         - reverse
         - merge # indicates that the traffic of a lane has to merge with the main traffic but the merge direction is not specified
+    accessOption:
+      description: access option (restriction) for a given segment
+      type: string
+      enum:
+        - allowed
+        - denied 
+    usageOption:
+      description: describes reason for which a person or entity travelling on the transportation network is using a particular location
+      tyye: string
+      enum:
+        - asCustomer
+        - atDestination
+        - toDeliver
+        - toFarm
+        - forForestry
+    recognizedOption:
+      description: describes the status of the person or entity travelling as recognized by authorities controlling the particular location
+      type: string
+      enum:
+        - asPermitted
+        - asPrivate
+        - asDisabled
+        - asEmployee
+        - asStudent
+    relationalExpression:
+      description: Represents a relational operator for describing simple relational expression in the data
+      oneOf:
+        - type: object
+          required: [isMoreThan]
+          properties:
+            isMoreThan:
+              type: number
+        - type: object
+          required: [isAtLeast]
+          properties:
+            isAtLeast:
+              type: number
+        - type: object
+          required: [isEqualTo]
+          properties:
+            isEqualTo:
+              type: number
+        - type: object
+          required: [isAtMost]
+          properties:
+            isAtMost:
+              type: number
+        - type: object
+          required: [isLessThan]
+          properties:
+            isLessThan:
+              type: number
     relationTarget:
       description: >-
         A tripe that uniquely identifies that target
@@ -478,26 +527,26 @@ properties:
 
 
   propertyContainers:
-    applyAtPositionContainer:
+    atPositionContainer:
       description: >-
         Properties defining the discrete position on the segment where
         a rule is active.
       properties:
-        applyAt:
+        at:
           "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition
-    applyAtRangeContainer:
+    atRangeContainer:
       description: >-
         Properties defining the range of positions on the segment where
         a rule is active.
       properties:
-        applyAt:
+        at:
           "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedRange
-    applyDuringContainer:
+    duringContainer:
       "$comment": >-
         Properties defining the time spans when a recurring rule is
         active.
       properties:
-        applyDuring:
+        during:
           "$ref": ../defs.yaml#/$defs/propertyDefinitions/openingHours
     modesContainer:
       description: >-
@@ -507,7 +556,7 @@ properties:
         - not:
             anyOf:
               - required: [modes]
-              - required: [notModes]
+              - required: [modeNots]
         - required: [modes]
           properties:
             modes:
@@ -517,9 +566,9 @@ properties:
                 "$ref": "#/$defs/propertyDefinitions/mode"
               uniqueItems: true
               minLength: 1
-        - required: [notModes]
+        - required: [modeNots]
           properties:
-            notModes:
+            modeNots:
               description: Travel modes to which the rule does not apply
               type: array
               items:
@@ -527,5 +576,43 @@ properties:
               uniqueItems: true
               minLength: 1
       "$comment": >-
-        If neither modes nor notModes is specified, the rule has the
+        If neither modes nor modeNots is specified, the rule has the
         default travel modes for the segment subType.
+    directionContainer:
+      description: properties defining direction for which a rule is active
+      properties:
+        direction:
+          "$ref": "#/$defs/propertyDefinitions/direction"
+    accessRuleContainer:
+      description: >-
+        Properties defining access restriction.
+      type: object
+      properties:
+        when:
+          description: describes a set of condition 
+          type: object
+          allOf:
+            - "$ref": "#/$defs/propertyContainers/modesContainer"
+          unevaluatedProperties: false
+          properties:
+            using:
+              type: array
+              items:
+                "$ref": "#/$defs/propertyDefinitions/usageOption"
+            recognized:
+              type: array
+              items:
+                "$ref": "#/$defs/propertyDefinitions/recognizedOption"
+            vehicle:
+              type: object
+              properties:
+                axleCount:
+                  "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+                length:
+                  "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+                weight:
+                  "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+
+
+
+        

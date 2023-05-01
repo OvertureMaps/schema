@@ -19,10 +19,8 @@ properties:
   road:
     class: secondary
     surface: gravel
-    flags: [isLink, isTunnel, isPrivate, isTolled]
+    flags: [isLink, isTunnel, isPrivate]
     restrictions:
-      speedLimits:
-        - minSpeed: [90, "km/h"]
-          maxSpeed: [110, "mph"]
-          modes: [ foo ]
-          isMaxSpeedVariable: true
+      access:
+        - allowed:
+            when: {using: [foo]}

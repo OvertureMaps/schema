@@ -21,15 +21,6 @@ properties:
     surface: gravel
     flags: [isLink, isTunnel, isPrivate]
     restrictions:
-      turns:
-        - segmentId: overture:transportation:segment:345
-          connectorId: overture:transportation:connector:234
-          toDirection: backward
-          reason: divider
-          direction: backward
-          via:
-            - connectorId: overture:transportation:connector:345
-              toDirection: forward
-            - connectorId: overture:transportation:connector:678
-              toDirection: forward
-     
+      access:
+        - allowed:
+            when: {modeNots: [foo]}

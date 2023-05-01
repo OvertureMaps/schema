@@ -25,7 +25,7 @@ properties:
       #    | |  /                                        \   | |
       #    |0|1|                                           |0|1|
       # digitization: S -> N
-      - applyAt: # two lanes between <0% and 10%) of segment
+      - at: # two lanes between <0% and 10%) of segment
           - 0
           - 10
         value:
@@ -38,7 +38,7 @@ properties:
               - toLanes:
                 - 1
                 - 2
-      - applyAt: # three lanes between <10% and 70%) of segment
+      - at: # three lanes between <10% and 70%) of segment
           - 10
           - 70
         value:
@@ -54,7 +54,7 @@ properties:
             connectivity:
               - toLanes:
                 - 1
-      - applyAt: # two lanes again between <70% and 100%> of segment
+      - at: # two lanes again between <70% and 100%> of segment
           - 70
           - 100
         value:

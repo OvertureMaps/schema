@@ -23,7 +23,7 @@ properties:
         - value: Common Road Name
           language: local
     surface: gravel
-    flags: [isLink, isTunnel, isPrivate, isTolled]
+    flags: [isLink, isTunnel, isPrivate]
 #    flow: TODO: provide alternative for that example
       # This flow section describes a fairly complex segment in which a
       # physically separate sidewalk and physically separated cycling lane are
@@ -59,7 +59,7 @@ properties:
       #      modes: [motorVehicle]
       #    - direction: bothWays
       #      modes: [foot]
-      #  applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
+      #  during: Mo-Sa 09:00-12:00, We 15:00-18:00
       #- dividers: [curb, mayPass, curb, mayNotCross, curb]
       #  lanes:
       #    - direction: bothWays
@@ -74,23 +74,21 @@ properties:
       #      modes: [motorVehicle]
       #    - direction: bothWays
       #      modes: [foot]
-      #  applyDuring: Mo-Sa 09:00-12:00 closed, We 15:00-18:00 closed
+      #  During: Mo-Sa 09:00-12:00 closed, We 15:00-18:00 closed
     restrictions:
       speedLimits:
         - minSpeed: [90, "km/h"]
           maxSpeed: [110, "mph"]
-          notModes: [ "truck" ]
+          modeNots: [ "truck" ]
           isMaxSpeedVariable: true
         - maxSpeed: [55, "mph"]
           modes: [ "truck" ]
         - maxSpeed: [30, "km/h"]
-          applyAt: [0.25, 0.50]
-          applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
-      sizeLimits:
-        - maxHeightMeters: 4
-          maxWidthMeters: 4
-          maxWeightKilograms: 500
-          applyAt: [0.1, 0.9]
+          at: [0.25, 0.50]
+          during: Mo-Sa 09:00-12:00, We 15:00-18:00
+      access:
+        - denied:
+            direction: forward
       turns:
         - segmentId: overture:transportation:segment:234
           connectorId: overture:transportation:connector:123

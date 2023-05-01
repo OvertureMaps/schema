@@ -18,16 +18,17 @@ properties:
   version: 5
   subType: road
   road:
-    surface:
-      - value: gravel
-        at: [0, 0.25]
-      - value: paved
-        at: [0.25, 1]
-    flags:
-      - values: [isPrivate, isBridge]
-      - values: []
-        at: [0.5, 0.75]
-      - values: [isTunnel]
-        at: [0.75, 0.9]
-      - values: [isPrivate]
-        during: Mo-Sa 09:00-12:00, We 15:00-18:00
+    restrictions:
+      access:
+        - denied
+        - designated:
+            when: {modes: [truck]}
+            at: [0.1, 0.25]
+        - allowed:
+            when:
+              using: [asCustomer, toFarm]
+              recognized: [asPermitted, asEmployee]
+            at: [0.25, 0.50]
+        - allowed:
+            when: {vehicle: {axleCount: {isMoreThan: 5}}}
+            at: [0.50, 0.70]
