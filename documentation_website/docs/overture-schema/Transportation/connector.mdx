@@ -1,0 +1,11 @@
+import CodeBlock from '@theme/CodeBlock';
+import Schema from "@site/static/jsonschema/schema/transportation/connector.json";
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+
+# Connector
+
+<JSONSchemaViewer schema={ Schema } />
+
+# Source :
+
+<CodeBlock language="json">{JSON.stringify(Schema, null, 2)}</CodeBlock>

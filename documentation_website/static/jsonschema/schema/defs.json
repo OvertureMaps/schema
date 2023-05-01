@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "defs.yaml",
+  "title": "Overture Maps Transportation Segment Schema",
+  "description": "Common schema definitions shared by all themes",
+  "$defs": {
+    "propertyDefinitions": {
+      "level": {
+        "description": "Z-order of the feature where 0 is visual level",
+        "type": "integer",
+        "default": 0
+      },
+      "featureType": {
+        "description": "Specific feature type within the theme",
+        "type": "string",
+        "enum": [
+          "connector",
+          "footprint",
+          "segment"
+        ]
+      },
+      "featureUpdateTime": {
+        "description": "Timestamp when the feature was last updated",
+        "type": "string",
+        "format": "date-time",
+        "pattern": "^[1-9]\\d{3}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(Z|[-+]\\d{2}:\\d{2})$",
+        "$comment": "Pattern is used as a fallback because not all JSON schema implementations treat \"format\" as an assertion, for some it is only an annotation.\nA somewhat more compact approach would be to reference the Overture version where the feature last changed instead of the update time, and expect clients to do a lookup if they really care about the time."
+      },
+      "featureVersion": {
+        "description": "Version number of the feature, incremented in each Overture release where the geometry or attributes of this feature changed.",
+        "type": "integer",
+        "minValue": 0,
+        "$comment": "It might be reasonable to combine \"updateTime\" and \"version\" in a single \"updateVersion\" field which gives the last Overture version number in which the feature changed. The downside to doing this is that the number would cease to be indicative of the \"rate of change\" of the feature."
+      },
+      "theme": {
+        "description": "Top-level Overture theme this feature belongs to",
+        "type": "string",
+        "enum": [
+          "buildings",
+          "transportation"
+        ]
+      },
+      "linearlyReferencedPosition": {
+        "description": "Represents a linearly-referenced position between 0% and 100% of the distance along a path such as a road segment or a river center-line segment.",
+        "type": "number",
+        "minValue": 0,
+        "maxValue": 1,
+        "$comment": "One possible advantage to using percentages over absolute distances is being able to trivially validate that the position lies \"on\" its segment (i.e. is between zero and one). Of course, this level of validity doesn't mean the number isn't nonsense."
+      },
+      "linearlyReferencedRange": {
+        "description": "Represents a non-empty range of positions along a path as a pair linearly-referenced positions. For example, the pair [0.25, 0.5] represents the range beginning 25% of the distance from the start of the path and ending 50% oof the distance from the path start.",
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/propertyDefinitions/linearlyReferencedPosition"
+        },
+        "minItems": 2,
+        "maxItems": 2,
+        "uniqueItems": true,
+        "$comment": "Ideally we would enforce sorted order of this pair, but sorting assertions aren't (yet?) supported by JSON schema."
+      },
+      "openingHours": {
+        "description": "Time span or time spans during which something is open or active, specified in the OSM opening hours specification:\n  https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification",
+        "type": "string",
+        "pattern": "^Mo-Sa 09:00-12:00( closed)?, We 15:00-18:00( closed)?$",
+        "$comment": "The \"pattern\" is just a placeholder. We assume we can specify a regular expression to give *some* degree of initial lexical validation, but higher-level validation will have to be done outside of JSON schema.\nReasons for using the OSM opening hours specification for transportation rule time restrictions are documented in https://github.com/OvertureMaps/schema-wg/pull/10"
+      },
+      "language": {
+        "description": "Describes the language, script and other variants used to describe names. It must be either the literal \"local\" or a language tag according to definition in IETF-BCP47 https://www.rfc-editor.org/rfc/bcp/bcp47.txt.\nThe value of \"local\" is used to indicate the name in the local language and script. Such is the case when capturing data from OpenStreetMap where only a \"name\" tag is supplied with no further information.\nAlthough the BCP47 language tag definition is complex, a very simplified view defines a language as \"language-script-region\" where script and region are optional. The spec lists allowed values for language, script, and region. It further describes how to include variants, extensions and other private custom extensions, which are allowed but not described here.\nFor some languages, the \"Suppress-Script\" property in BCP47 defines a script that can be omitted from the language tag. For example, the \"Latn\" script can be omitted for the \"en\" language. By convention, Overture will always omit the script when it matches the Suppress-Script property for a language. In other words, \"en-Latn\" is forbidden in favor of \"en\", and same for \"ru-Cyrl\" in favor of \"ru\".\nThe complete lists of allowed values can be found at: https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry",
+        "oneOf": [
+          {
+            "type": "string",
+            "const": "local"
+          },
+          {
+            "type": "string",
+            "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$",
+            "$comment": "The \"pattern\" is mostly a placeholder. It captures the language[-script][-region] variation of BCP47 but not the \"grandfathered\" values and other variants and extensions."
+          }
+        ]
+      },
+      "nameProperty": {
+        "type": "object",
+        "required": [
+          "value",
+          "language"
+        ],
+        "unevaluatedProperties": false,
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "language": {
+            "$ref": "#/$defs/propertyDefinitions/language"
+          }
+        }
+      },
+      "name": {
+        "type": "object",
+        "required": [
+          "common"
+        ],
+        "properties": {
+          "common": {
+            "description": "The most commonly used name when referring to a feature.  The first entry in the array of common names must have a language of \"local\" making it the easiest, default name to use among all options.",
+            "type": "array",
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/propertyDefinitions/nameProperty",
+                "type": "object",
+                "properties": {
+                  "language": {
+                    "const": "local"
+                  }
+                }
+              }
+            ],
+            "items": {
+              "$ref": "#/$defs/propertyDefinitions/nameProperty"
+            },
+            "minItems": 1
+          },
+          "official": {
+            "description": "An official name which is often a longer and more verbose version of the common name. For example, the official name of the United Kingdom is \"United Kingdom of Great Britain and Northern Ireland\" whereas the common name would be \"United Kingdom\"",
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/propertyDefinitions/nameProperty"
+            },
+            "minItems": 1
+          },
+          "alternate": {
+            "description": "Alternative names used to refer to the feature that may not fit into other categories.",
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/propertyDefinitions/nameProperty"
+            },
+            "minItems": 1
+          },
+          "short": {
+            "description": "Short names are often abbreviations or other shorthand forms of a name. The short name of the United Kingdom is UK.",
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/propertyDefinitions/nameProperty"
+            },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "propertyContainers": {
+      "overtureFeaturePropertiesContainer": {
+        "description": "Top-level properties shared by all Overture features",
+        "type": "object",
+        "required": [
+          "theme",
+          "type",
+          "version",
+          "updateTime"
+        ],
+        "patternProperties": {
+          "^ext.*$": true
+        },
+        "properties": {
+          "theme": {
+            "$ref": "#/$defs/propertyDefinitions/theme"
+          },
+          "type": {
+            "$ref": "#/$defs/propertyDefinitions/featureType"
+          },
+          "version": {
+            "$ref": "#/$defs/propertyDefinitions/featureVersion"
+          },
+          "updateTime": {
+            "$ref": "#/$defs/propertyDefinitions/featureUpdateTime"
+          }
+        }
+      },
+      "levelContainer": {
+        "description": "Properties defining feature Z-order, i.e., stacking order",
+        "type": "object",
+        "properties": {
+          "level": {
+            "$ref": "#/$defs/propertyDefinitions/level"
+          }
+        }
+      }
+    }
+  }
+}
