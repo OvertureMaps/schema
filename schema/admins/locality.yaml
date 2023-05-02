@@ -1,7 +1,7 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Overture Maps for populated area
-description: Additive schema for populated area
+title: Overture Maps for populated areas
+description: Additive schema for populated areas
 type: object
 properties:
   geometry:
@@ -30,7 +30,7 @@ properties:
       localityType: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/localityType" }
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       context:
-        description: Context entity is the entity the most granular entity that logically contains given entity (but doesn't have to contain it spatially due to minor discrepancies in geometries)
+        description: Context entity is the most granular entity that logically contains given entity (but doesn't have to contain it spatially due to minor discrepancies in geometries)
         type: string
         pattern: ^[a-zA-Z]+Id$
         "$comment": >-
