@@ -19,7 +19,7 @@ description: Common schema definitions shared by all themes
         - locality
         - administrativeBoundary
     featureUpdateTime:
-      description: ISO8601 Timestamp when the feature was last updated
+      description: Timestamp when the feature was last updated
       type: string
       format: date-time
       pattern: ^[1-9]\d{3}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[-+]\d{2}:\d{2})?$
