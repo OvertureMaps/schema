@@ -7,8 +7,8 @@ The Schema Working Group will develop the specification for a data schema and on
     Support current and future mapping applications,
     allow incorporating multiple data sources and types, and
     encourage broad, industry wide adoption.
-    
-## Appointments 
+
+## Appointments
 
 - Co-Chair Rob Soetewey (TomTom)
 - Co-Chair Assaji Aluwihare (Amazon)
@@ -38,7 +38,7 @@ Working Group Participants contributing data to a dataset to this Working Group 
 3. PR to be submitted against the TF ```feature-branch``` for TF agreement
 4. Agreed PR submitted against **DEV ```feature branch```**
 4. PR discussed with the WG. **Once agreed**, the WG Chair will merge into **DEV Feature branch**
- 
+
 <figure>
 	<img src="images/submission_process.svg" alt="submission_process">
 	<figcaption></figcaption>
