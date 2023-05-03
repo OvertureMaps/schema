@@ -1,10 +1,11 @@
 import CodeBlock from '@theme/CodeBlock';
-import Schema from "@site/static/jsonschema/schema/transportation/connector.json";
+import Schema from "@site/static/schema/transportation/connector.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 
 # Connector
 
-<JSONSchemaViewer schema={ Schema } />
+<JSONSchemaViewer schema={ Schema } resolverOptions={ generateResolverOptions({remote: true})}/>
 
 # Source :
 

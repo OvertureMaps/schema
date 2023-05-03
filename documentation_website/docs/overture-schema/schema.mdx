@@ -1,10 +1,18 @@
 import CodeBlock from '@theme/CodeBlock';
-import Schema from "@site/static/jsonschema/schema/schema.json";
+import Schema from "@site/static/schema/schema.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 
 # Feature
 
-<JSONSchemaViewer schema={ Schema } />
+`schema.json`
+
+<JSONSchemaViewer schema={ Schema } resolverOptions={generateResolverOptions(
+    {
+        remote:true,
+        basePath: "jsonschema/schema"
+    }
+)}/>
 
 # Source :
 

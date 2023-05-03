@@ -20,15 +20,15 @@
       "unevaluatedProperties": false,
       "allOf": [
         {
-          "$ref": "../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer"
+          "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyContainers/overtureFeaturePropertiesContainer"
         },
         {
-          "$ref": "../defs.yaml#/$defs/propertyContainers/levelContainer"
+          "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyContainers/levelContainer"
         }
       ],
       "properties": {
         "name": {
-          "$ref": "../defs.yaml#/$defs/propertyDefinitions/name"
+          "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyDefinitions/name"
         }
       }
     }

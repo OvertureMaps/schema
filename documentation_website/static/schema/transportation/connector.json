@@ -17,10 +17,10 @@
       "unevaluatedProperties": false,
       "allOf": [
         {
-          "$ref": "../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer"
+          "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyContainers/overtureFeaturePropertiesContainer"
         },
         {
-          "$ref": "../defs.yaml#/$defs/propertyContainers/levelContainer"
+          "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyContainers/levelContainer"
         }
       ]
     }

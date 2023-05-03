@@ -1,11 +1,15 @@
 import CodeBlock from '@theme/CodeBlock';
-import Schema from "@site/static/jsonschema/schema/buildings/footprint.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
 
-# Footprint
+import FootprintSchema from "@site/static/schema/buildings/footprint.json";
 
-<JSONSchemaViewer schema={ Schema } />
+# Building Footprint
+
+<JSONSchemaViewer schema={ FootprintSchema } resolverOptions={ generateResolverOptions({remote: true,
+basePath: "/jsonschema/schema/buildings/"}) } />
 
 # Source :
 
-<CodeBlock language="json">{JSON.stringify(Schema, null, 2)}</CodeBlock>
+<CodeBlock language="json">{JSON.stringify(FootprintSchema, null, 2)}</CodeBlock>
