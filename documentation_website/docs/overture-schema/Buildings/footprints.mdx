@@ -5,10 +5,13 @@ import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
 
 import FootprintSchema from "@site/static/schema/buildings/footprint.json";
 
+
+
 # Building Footprint
 
-<JSONSchemaViewer schema={ FootprintSchema } resolverOptions={ generateResolverOptions({remote: true,
-basePath: "/jsonschema/schema/buildings/"}) } />
+<JSONSchemaViewer schema={ FootprintSchema } resolverOptions={
+    generateResolverOptions({"remote": true, "basePath": "schema/"})
+} />
 
 # Source :
 

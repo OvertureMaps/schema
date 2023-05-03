@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-function LocalFileResolver(_type) {
+function RemoteFileResolver(_type) {
     if (_type === void 0) { _type = "http"; }
     return {
         resolve: function (ref) {
@@ -17,4 +17,4 @@ function LocalFileResolver(_type) {
         },
     };
 }
-exports.default = LocalFileResolver;
+exports.default = RemoteFileResolver;

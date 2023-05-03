@@ -16,14 +16,16 @@
         "enum": [
           "connector",
           "footprint",
-          "segment"
+          "segment",
+          "locality",
+          "administrativeBoundary"
         ]
       },
       "featureUpdateTime": {
         "description": "Timestamp when the feature was last updated",
         "type": "string",
         "format": "date-time",
-        "pattern": "^[1-9]\\d{3}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(Z|[-+]\\d{2}:\\d{2})$",
+        "pattern": "^[1-9]\\d{3}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?(Z|[-+]\\d{2}:\\d{2})?$",
         "$comment": "Pattern is used as a fallback because not all JSON schema implementations treat \"format\" as an assertion, for some it is only an annotation.\nA somewhat more compact approach would be to reference the Overture version where the feature last changed instead of the update time, and expect clients to do a lookup if they really care about the time."
       },
       "featureVersion": {
@@ -36,6 +38,7 @@
         "description": "Top-level Overture theme this feature belongs to",
         "type": "string",
         "enum": [
+          "admins",
           "buildings",
           "transportation"
         ]
@@ -94,7 +97,7 @@
           }
         }
       },
-      "name": {
+      "names": {
         "type": "object",
         "required": [
           "common"

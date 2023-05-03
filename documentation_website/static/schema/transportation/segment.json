@@ -20,10 +20,10 @@
       ],
       "allOf": [
         {
-          "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyContainers/overtureFeaturePropertiesContainer"
+          "$ref": "../defs.json#/$defs/propertyContainers/overtureFeaturePropertiesContainer"
         },
         {
-          "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyContainers/levelContainer"
+          "$ref": "../defs.json#/$defs/propertyContainers/levelContainer"
         },
         {
           "allOf": [
@@ -169,14 +169,14 @@
               ]
             }
           },
-          "roadName": {
+          "roadNames": {
             "unevaluatedProperties": false,
             "oneOf": [
               {
                 "type": "object",
                 "allOf": [
                   {
-                    "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyDefinitions/name"
+                    "$ref": "../defs.json#/$defs/propertyDefinitions/names"
                   }
                 ]
               },
@@ -193,7 +193,7 @@
                       "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
                     },
                     {
-                      "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyDefinitions/name"
+                      "$ref": "../defs.json#/$defs/propertyDefinitions/names"
                     }
                   ]
                 },
@@ -504,7 +504,7 @@
         "description": "Properties defining the discrete position on the segment where a rule is active.",
         "properties": {
           "applyAt": {
-            "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyDefinitions/linearlyReferencedPosition"
+            "$ref": "../defs.json#/$defs/propertyDefinitions/linearlyReferencedPosition"
           }
         }
       },
@@ -512,7 +512,7 @@
         "description": "Properties defining the range of positions on the segment where a rule is active.",
         "properties": {
           "applyAt": {
-            "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyDefinitions/linearlyReferencedRange"
+            "$ref": "../defs.json#/$defs/propertyDefinitions/linearlyReferencedRange"
           }
         }
       },
@@ -520,7 +520,7 @@
         "$comment": "Properties defining the time spans when a recurring rule is active.",
         "properties": {
           "applyDuring": {
-            "$ref": "http://localhost:3000/schema/defs.json#/$defs/propertyDefinitions/openingHours"
+            "$ref": "../defs.json#/$defs/propertyDefinitions/openingHours"
           }
         }
       },

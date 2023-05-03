@@ -19,6 +19,7 @@ function generatePath(path, basePath) {
             finalPath = "".concat(finalPath, "/").concat(parts[i]);
         }
     }
+    console.log(finalPath)
     return finalPath;
 }
 exports.default = generatePath;

@@ -9,7 +9,13 @@ function LocalFileResolver(basePath) {
             return new Promise(function (resolve, reject) {
                 var temp_url = (0, generatePath_1.default)(ref, basePath);
                 //import("@site/static/schemas/examples/array/additionalItems1.json")
-                Promise.resolve().then(function () { return require("@site/static/".concat(temp_url.substring(1))); }).then(function (result) { return resolve(result.default); })
+
+                console.log(temp_url)
+                var defs = require("@site/static/".concat(temp_url));
+                console.log(defs)
+                console.log("@site/static/".concat(temp_url.substring(1)))
+
+                Promise.resolve().then(function () { return require("@site/static/".concat(temp_url)); }).then(function (result) { return resolve(result)})
                     .catch(function (err) { return reject(err); });
             });
         },

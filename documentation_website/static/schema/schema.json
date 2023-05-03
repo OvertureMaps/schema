@@ -19,6 +19,58 @@
             "properties": {
               "theme": {
                 "enum": [
+                  "admins"
+                ]
+              },
+              "type": {
+                "enum": [
+                  "locality"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "$ref": "admins/locality.yaml"
+      },
+      "else": {
+        "propertyNames": false
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "properties": {
+            "properties": {
+              "theme": {
+                "enum": [
+                  "admins"
+                ]
+              },
+              "type": {
+                "enum": [
+                  "administrativeBoundary"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "$ref": "admins/administrativeBoundary.yaml"
+      },
+      "else": {
+        "propertyNames": false
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "properties": {
+            "properties": {
+              "theme": {
+                "enum": [
                   "buildings"
                 ]
               },
@@ -32,7 +84,7 @@
         }
       },
       "then": {
-        "$ref": "http://localhost:3000/schema/buildings/footprint.json"
+        "$ref": "buildings/footprint.json"
       },
       "else": {
         "propertyNames": false
@@ -59,7 +111,7 @@
         }
       },
       "then": {
-        "$ref": "http://localhost:3000/schema/transportation/connector.json"
+        "$ref": "transportation/connector.yaml"
       },
       "else": {
         "propertyNames": false
@@ -86,7 +138,7 @@
         }
       },
       "then": {
-        "$ref": "http://localhost:3000/schema/transportation/segment.json"
+        "$ref": "transportation/segment.json"
       },
       "else": {
         "propertyNames": false

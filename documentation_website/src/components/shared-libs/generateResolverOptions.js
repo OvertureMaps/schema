@@ -14,6 +14,7 @@ function generateResolverOptions(params) {
         if (config["resolvers"] === undefined) {
             config["resolvers"] = {};
         }
+
         config["resolvers"]["http"] = (0, remoteResolver_1.default)("http");
         config["resolvers"]["https"] = (0, remoteResolver_1.default)("https");
     }
