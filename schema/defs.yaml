@@ -15,6 +15,8 @@ description: Common schema definitions shared by all themes
         - connector
         - footprint
         - segment
+        - locality
+        - administrativeBoundary
     featureUpdateTime:
       description: Timestamp when the feature was last updated
       type: string
@@ -45,7 +47,7 @@ description: Common schema definitions shared by all themes
     theme:
       description: Top-level Overture theme this feature belongs to
       type: string
-      enum: [buildings, transportation]
+      enum: [admins, buildings, transportation]
     linearlyReferencedPosition:
       description: >-
         Represents a linearly-referenced position between 0% and 100% of
@@ -90,6 +92,91 @@ description: Common schema definitions shared by all themes
           Reasons for using the OSM opening hours specification for
           transportation rule time restrictions are documented in
           https://github.com/OvertureMaps/schema-wg/pull/10
+    language:
+      description: >-
+        Describes the language, script and other variants used to describe
+        names. It must be either the literal "local" or a language tag according
+        to definition in IETF-BCP47
+        https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
+
+        The value of "local" is used to indicate the name in the local language
+        and script. Such is the case when capturing data from OpenStreetMap
+        where only a "name" tag is supplied with no further information.
+
+        Although the BCP47 language tag definition is complex, a very simplified
+        view defines a language as "language-script-region" where script and
+        region are optional. The spec lists allowed values for language, script,
+        and region. It further describes how to include variants, extensions and
+        other private custom extensions, which are allowed but not described
+        here.
+
+        For some languages, the "Suppress-Script" property in BCP47 defines a
+        script that can be omitted from the language tag. For example, the
+        "Latn" script can be omitted for the "en" language. By convention,
+        Overture will always omit the script when it matches the Suppress-Script
+        property for a language. In other words, "en-Latn" is forbidden in favor
+        of "en", and same for "ru-Cyrl" in favor of "ru".
+
+        The complete lists of allowed values can be found at:
+        https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
+      oneOf:
+        - type: string
+          const: local
+        - type: string
+          pattern: "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$"
+          "$comment": >-
+              The "pattern" is mostly a placeholder. It captures the
+              language[-script][-region] variation of BCP47 but not the
+              "grandfathered" values and other variants and extensions.
+    nameProperty:
+      type: object
+      required: [value, language]
+      unevaluatedProperties: false
+      properties:
+        value:
+          type: string
+        language: { "$ref": "#/$defs/propertyDefinitions/language" }
+    names:
+      type: object
+      required: [common]
+      properties:
+        common:
+          description: >-
+            The most commonly used name when referring to a feature.  The first
+            entry in the array of common names must have a language of "local"
+            making it the easiest, default name to use among all options.
+          type: array
+          prefixItems:
+            - $ref: "#/$defs/propertyDefinitions/nameProperty"
+              type: object
+              properties:
+                language:
+                  const: local
+          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+          minItems: 1
+        official:
+          description: >-
+            An official name which is often a longer and more verbose version of
+            the common name. For example, the official name of the United Kingdom
+            is "United Kingdom of Great Britain and Northern Ireland" whereas the
+            common name would be "United Kingdom"
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+          minItems: 1
+        alternate:
+          description: >-
+            Alternative names used to refer to the feature that may not fit
+            into other categories.
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+          minItems: 1
+        short:
+          description: >-
+            Short names are often abbreviations or other shorthand forms of a name. The
+            short name of the United Kingdom is UK.
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+          minItems: 1
   propertyContainers:
     overtureFeaturePropertiesContainer:
       description: Top-level properties shared by all Overture features

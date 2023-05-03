@@ -1,0 +1,40 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Overture Maps for populated areas
+description: Additive schema for populated areas
+type: object
+properties:
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    required: [subType, localityType, names, context]
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - allOf:
+          - if: { properties: { subType: { enum: [administrativeLocality] } } }
+            then:
+              "$ref": "./defs.yaml#/$defs/propertyContainers/adminPropertiesContainer"
+          - if: { properties: { localityType: { enum: [country] } } }
+            then:
+              required: [officialLanguage]
+    properties:
+      subType:
+        description: populated area types
+        type: string
+        enum: [administrativeLocality, namedLocality]
+      localityType: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/localityType" }
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      context:
+        description: Context entity is the most granular entity that logically contains given entity (but doesn't have to contain it spatially due to minor discrepancies in geometries)
+        type: string
+        pattern: ^[a-zA-Z]+Id$
+        "$comment": >-
+          Pattern is just a placeholder. GERS ID must match the target feature type
+      dependencies:
+        context:
+          "$ref": "./defs.yaml#/$defs/propertyDefinitions/featureType"
