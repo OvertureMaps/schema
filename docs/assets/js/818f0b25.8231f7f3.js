@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkoverture_schema=self.webpackChunkoverture_schema||[]).push([[620],{5024:e=>{e.exports=JSON.parse('{"title":"Schema","description":"Overture Schema","slug":"/category/schema","permalink":"/category/schema","navigation":{"next":{"title":"Administrative Boundary","permalink":"/overture-schema/Admins/admin_boundary"}}}')}}]);

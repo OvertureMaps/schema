@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Overture Maps for administrative boundary",
+  "description": "Additive schema for administrative boundaries",
+  "type": "object",
+  "properties": {
+    "geometry": {
+      "unevaluatedProperties": false,
+      "oneOf": [
+        {
+          "$ref": "https://geojson.org/schema/LineString.json"
+        }
+      ]
+    },
+    "properties": {
+      "unevaluatedProperties": false,
+      "required": [
+        "adminLevel"
+      ],
+      "allOf": [
+        {
+          "$ref": "../defs.json#/$defs/propertyContainers/overtureFeaturePropertiesContainer"
+        }
+      ],
+      "properties": {
+        "adminLevel": {
+          "$ref": "./defs.json#/$defs/propertyDefinitions/adminLevel"
+        },
+        "maritime": {
+          "description": "Flag that specifies if the boundary is maritime (i.e., a boundary at a particular distance from a jurisdiction's coastline)",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
