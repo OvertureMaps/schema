@@ -11,7 +11,10 @@ def replace_refs(file):
 		('defs.yaml', 'defs.json'),
 		('schema.yaml', 'schema.json'),
 		('footprint.yaml', 'footprint.json'),
-		('segment.yaml', 'segment.json')
+		('segment.yaml', 'segment.json'),
+		('connector.yaml', 'connector.json'),
+		('administrativeBoundary.yaml', 'administrativeBoundary.json')
+
 	]
 
 	line_by_line = ""

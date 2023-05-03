@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "buildings/footprint.yaml",
   "title": "Overture Maps Building Footprint Schema",
   "description": "Additive schema for building footprints",
   "type": "object",

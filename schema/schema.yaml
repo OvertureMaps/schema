@@ -1,6 +1,5 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-"$id": schema.yaml
 title: Overture Maps Feature Schema
 description: >-
   Prototype schema for Overture Maps Foundation map entities as GeoJSON
@@ -36,7 +35,7 @@ oneOf:
     then: { "$ref": buildings/footprint.yaml }
     else: { propertyNames: false }
   - if:
-      description: "# Transportation Connectors"
+      description: "Transportation Connectors"
       properties:
         properties:
           properties:
@@ -45,7 +44,7 @@ oneOf:
     then: { "$ref": transportation/connector.yaml }
     else: { propertyNames: false }
   - if:
-      description: "# Transportation Segments"
+      description: "Transportation Segments"
       properties:
         properties:
           properties:
