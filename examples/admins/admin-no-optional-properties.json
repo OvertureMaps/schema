@@ -8,7 +8,6 @@
     "subType": "administrativeLocality",
     "localityType": "country",
     "adminLevel": 2,
-    "officialLanguage": [ "en", "es" ],
     "context": "northAmericaId",
     "names": {
       "common": [

@@ -79,12 +79,6 @@ description: Common schema definitions for admins theme
     defaultLanguage:
       description: Most common language used within the area.
       "$ref": "../defs.yaml#/$defs/propertyDefinitions/language"
-    officialLanguage:
-      description: Official language used within the area.
-      type: array
-      minItems: 1
-      items:
-        "$ref": "../defs.yaml#/$defs/propertyDefinitions/language"
     drivingSide:
       description: Left-hand traffic (LHT) or right-hand traffic (RHT).
       type: string
@@ -99,5 +93,4 @@ description: Common schema definitions for admins theme
         iso3166-1: { "$ref": "#/$defs/propertyDefinitions/iso3166-1" }
         iso3166-2: { "$ref": "#/$defs/propertyDefinitions/iso3166-2" }
         defaultLanguage: { "$ref": "#/$defs/propertyDefinitions/defaultLanguage" }
-        officialLanguage: { "$ref": "#/$defs/propertyDefinitions/officialLanguage" }
         drivingSide: { "$ref": "#/$defs/propertyDefinitions/drivingSide" }

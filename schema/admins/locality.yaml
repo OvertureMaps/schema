@@ -19,9 +19,6 @@ properties:
           - if: { properties: { subType: { enum: [administrativeLocality] } } }
             then:
               "$ref": "./defs.yaml#/$defs/propertyContainers/adminPropertiesContainer"
-          - if: { properties: { localityType: { enum: [country] } } }
-            then:
-              required: [officialLanguage]
     properties:
       subType:
         description: populated area types
