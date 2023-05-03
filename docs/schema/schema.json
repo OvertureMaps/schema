@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "schema.yaml",
   "title": "Overture Maps Feature Schema",
   "description": "Prototype schema for Overture Maps Foundation map entities as GeoJSON schemas.",
   "type": "object",
@@ -58,7 +57,7 @@
         }
       },
       "then": {
-        "$ref": "admins/administrativeBoundary.yaml"
+        "$ref": "admins/administrativeBoundary.json"
       },
       "else": {
         "propertyNames": false
@@ -92,7 +91,7 @@
     },
     {
       "if": {
-        "description": "# Transportation Connectors",
+        "description": "Transportation Connectors",
         "properties": {
           "properties": {
             "properties": {
@@ -111,7 +110,7 @@
         }
       },
       "then": {
-        "$ref": "transportation/connector.yaml"
+        "$ref": "transportation/connector.json"
       },
       "else": {
         "propertyNames": false
@@ -119,7 +118,7 @@
     },
     {
       "if": {
-        "description": "# Transportation Segments",
+        "description": "Transportation Segments",
         "properties": {
           "properties": {
             "properties": {

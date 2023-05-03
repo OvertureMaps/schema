@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "transportation/connector.yaml",
   "title": "Overture Maps Transportation Connector Schema",
   "description": "Additive schema for transportation connectors",
   "type": "object",
