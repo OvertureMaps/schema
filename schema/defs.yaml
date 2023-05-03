@@ -21,7 +21,7 @@ description: Common schema definitions shared by all themes
       description: Timestamp when the feature was last updated
       type: string
       format: date-time
-      pattern: ^[1-9]\d{3}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[-+]\d{2}:\d{2})$
+      pattern: ^[1-9]\d{3}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[-+]\d{2}:\d{2})?$
       "$comment": >-
         Pattern is used as a fallback because not all JSON schema
         implementations treat "format" as an assertion, for some it is
