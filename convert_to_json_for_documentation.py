@@ -4,16 +4,18 @@ import re
 
 ref_line = re.compile(""".*"\$ref": """)
 
-BASE_URL = "http://localhost:3000"
+def replace_refs(file, base_url="http://localhost:3000"):
 
-resolves = [
-	('../defs.yaml', f'{BASE_URL}/schema/defs.json'),
-	('defs.yaml', f'{BASE_URL}/schema/defs.json'),
-	('../schema.yaml', f'{BASE_URL}/schema/schema.json'),
-	('schema.yaml', f'{BASE_URL}/schema/schema.json')
-]
+	resolves = [
+		('../defs.yaml', f'{base_url}/schema/defs.json'),
+		('defs.yaml', f'{base_url}/schema/defs.json'),
+		('../schema.yaml', f'{base_url}/schema/schema.json'),
+		('schema.yaml', f'{base_url}/schema/schema.json'),
+		('buildings/footprint.yaml', f'{base_url}/schema/buildings/footprint.json'),
+		('transportation/segment.yaml', f'{base_url}/schema/transportation/segment.json'),
+		('transportation/connector.yaml', f'{base_url}/schema/transportation/connector.json')
+	]
 
-def main(file):
 	line_by_line = "";
 
 	for line in open(file,'r'):
@@ -37,9 +39,9 @@ def main(file):
 
 
 if __name__ == '__main__':
-	if len(sys.argv)>1 and '.yaml' in sys.argv[1]:
-		main(sys.argv[1])
+	base_url = "http://localhost:3000"
+	if len(sys.argv)>1 and 'http' in sys.argv[1]:
+		base_url=sys.argv[1]
 
-	else:
-		for file in glob.glob('schema/*.yaml') + glob.glob('schema/**/*.yaml'):
-			main(file)
+	for file in glob.glob('schema/*.yaml') + glob.glob('schema/**/*.yaml'):
+		replace_refs(file, base_url=base_url)

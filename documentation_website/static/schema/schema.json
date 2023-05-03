@@ -32,7 +32,7 @@
         }
       },
       "then": {
-        "$ref": "buildings/footprint.yaml"
+        "$ref": "http://localhost:3000/schema/buildings/footprint.json"
       },
       "else": {
         "propertyNames": false
@@ -59,7 +59,7 @@
         }
       },
       "then": {
-        "$ref": "transportation/connector.yaml"
+        "$ref": "http://localhost:3000/schema/transportation/connector.json"
       },
       "else": {
         "propertyNames": false
@@ -86,7 +86,7 @@
         }
       },
       "then": {
-        "$ref": "transportation/segment.yaml"
+        "$ref": "http://localhost:3000/schema/transportation/segment.json"
       },
       "else": {
         "propertyNames": false
