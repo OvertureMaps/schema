@@ -1,0 +1,96 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Administrative entity property definitions
+description: Common schema definitions for admins theme
+"$defs":
+  propertyDefinitions:
+    localityType:
+      description: Describes the entity's type in the categorical nomenclature used locally.
+      type: string
+      enum: [country, county, state, region, province, district, city, town, village, hamlet, borough, suburb, neighborhood, municipality]
+      "$comment": >-
+        country      = Distinct geographical and political region or territory that is governed by a sovereign power or government. It is usually defined by its borders, which are recognized by other countries and international organizations
+                       Examples: United States
+                                 Japan
+                                 Brazil
+        county       = Political and administrative division of a state, providing certain local governmental services
+                       Examples: Suffolk County, Massachusetts, United States
+                                 Essex County, Ontario, Canada
+                                 Oxfordshire, England, United Kingdom
+        state        = Nation or territory considered as an organized political community under one government
+                       Examples: California, United States
+                                 Bavaria, Germany
+                                 New South Wales, Australia
+        region       = Area or division, especially part of a country or the world having definable characteristics but not always fixed boundaries
+                       Examples: Tuscany, Italy
+                                 Provence-Alpes-Côte d'Azur, France
+                                 Andalusia, Spain
+        province     = Principal administrative division of certain countries
+                       Examples: Ontario, Canada
+                                 Yunnan, China
+                                 Buenos Aires, Argentina
+        district     = Area of a country or city, especially one regarded as a distinct unit because of a particular characteristic
+                       Examples: Central District, Hong Kong
+                                 Kreuzberg, Berlin, German
+                                 Le Marais, Paris, France
+        city         = Large town
+                       Examples: New York City, United States
+                                 London, United Kingdom
+                                 Paris, France
+        town         = Urban area that has a name, defined boundaries, and local government, and that is generally larger than a village and smaller than a city
+                       Examples: Stratford-upon-Avon, England, United Kingdom
+                                 Salem, Massachusetts, United States
+                                 Szentendre, Hungary
+        village      = Group of houses and associated buildings, larger than a hamlet and smaller than a town, situated in a rural area
+                       Examples: Bibury, England, United Kingdom
+                                 Giethoorn, Netherlands
+                                 Shirakawa-go, Japan
+        hamlet       = Small settlement, generally one smaller than a village
+                       Examples: Beulle, Maule, Yvelines, France
+                                 Levittown, New York, United States
+                                 Jhakar Bigha, Rohtas, Bihar, India
+        borough      = Town or district which is an administrative unit
+                       Examples: Brooklyn, New York City, United States
+                                 Southwark, London, United Kingdom
+                                 Södermalm, Stockholm, Sweden
+        suburb       = Outlying district of a city, especially a residential one
+                       Examples: Paddington, Sydney, Australia
+                                 Mount Eden, Auckland, New Zealand
+                                 Clontarf, Dublin, Ireland
+        neighborhood = District, especially one forming a community within a town or city
+                       Examples: Montmartre, Paris, France
+                                 Trastevere, Rome, Italy
+                                 La Boca, Buenos Aires, Argentina
+        municipality = City or town that has corporate status and local government
+                       Examples: Arame, Maranhão, Brazil
+                                 Vračar, Belgrade, Serbia
+                                 Arecibo, Puerto Rico
+    adminLevel:
+      description: Hierarchical level for administrative entity or border (matching admin_level in OSM taxonomy)
+      type: integer
+      minimum: 1
+      maximum: 11
+    iso3166-1:
+      description: ISO3166-1 code.
+      type: string
+    iso3166-2:
+      description: ISO3166-2 code.
+      type: string
+    defaultLanguage:
+      description: Most common language used within the area.
+      "$ref": "../defs.yaml#/$defs/propertyDefinitions/language"
+    drivingSide:
+      description: Left-hand traffic (LHT) or right-hand traffic (RHT).
+      type: string
+      enum: [left, right]
+  propertyContainers:
+    adminPropertiesContainer:
+      description: Top-level properties shared by all admin features
+      type: object
+      required: [adminLevel]
+      properties:
+        adminLevel: { "$ref": "#/$defs/propertyDefinitions/adminLevel" }
+        iso3166-1: { "$ref": "#/$defs/propertyDefinitions/iso3166-1" }
+        iso3166-2: { "$ref": "#/$defs/propertyDefinitions/iso3166-2" }
+        defaultLanguage: { "$ref": "#/$defs/propertyDefinitions/defaultLanguage" }
+        drivingSide: { "$ref": "#/$defs/propertyDefinitions/drivingSide" }
