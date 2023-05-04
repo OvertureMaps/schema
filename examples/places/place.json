@@ -9,7 +9,9 @@
     ]
   },
   "properties": {
-    "category": "someCategory",
+    "categories": {
+      "main": "someCategory"
+    },
     "websites": [
       "https://www.example.com"
     ],

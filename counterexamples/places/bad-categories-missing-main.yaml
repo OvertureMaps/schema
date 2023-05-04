@@ -1,0 +1,10 @@
+---
+id: overture:places:place:1
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  categories:
+    alternate:
+      - someCategory
