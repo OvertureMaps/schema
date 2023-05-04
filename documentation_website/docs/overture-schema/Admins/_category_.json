@@ -1,3 +1,9 @@
 {
-    "collapsed": false
+    "collapsed": false,
+    "link": {
+        "type": "generated-index",
+        "title": "Boundaries / Administrative Areas",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor massa et eros volutpat consequat. Curabitur vestibulum et eros fermentum posuere. Sed in elementum sapien. Praesent non eros lectus. Sed non arcu lorem. Maecenas id dolor nibh. Duis vitae metus eget massa ullamcorper feugiat. Phasellus efficitur dolor massa, ac vestibulum metus vulputate eget. Integer vulputate felis ut sem scelerisque, quis mattis metus malesuada. Donec ut iaculis ante, et elementum ipsum. Mauris vitae orci consequat, congue justo sit amet, ultricies mauris. Integer consectetur metus quis aliquet aliquet."
+      }
+
 }

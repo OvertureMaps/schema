@@ -150,7 +150,8 @@
     },
     "propertyContainers": {
       "overtureFeaturePropertiesContainer": {
-        "description": "Top-level properties shared by all Overture features",
+        "title": "Top-Level Overture Properties",
+        "description": "These properties shared by all Overture features",
         "type": "object",
         "required": [
           "theme",

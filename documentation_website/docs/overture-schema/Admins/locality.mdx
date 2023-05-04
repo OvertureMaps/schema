@@ -1,18 +1,11 @@
 import CodeBlock from '@theme/CodeBlock';
-import Schema from "@site/static/schema/defs.json";
+import Schema from "@site/static/schema/admins/locality.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 
-# Definitions
+# Locality
 
-`defs.json`
-
-<JSONSchemaViewer schema={ Schema } resolverOptions={generateResolverOptions(
-    {
-        remote:true,
-        basePath: "schema"
-    }
-)}/>
+<JSONSchemaViewer schema={ Schema } resolverOptions={ generateResolverOptions({remote: true, basePath: 'schema/admins'})}/>
 
 # Source :
 

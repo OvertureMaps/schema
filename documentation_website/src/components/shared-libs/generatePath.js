@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// Example of basePath = '/schemas/examples/refs'
+
 function generatePath(path, basePath) {
     if (basePath === void 0) { basePath = ""; }
     var parts = path.toString().split("/");
+
     var finalPath = basePath;
     for (var i = 0; i < parts.length; i++) {
         if (parts[i] === "..") {
@@ -19,7 +20,6 @@ function generatePath(path, basePath) {
             finalPath = "".concat(finalPath, "/").concat(parts[i]);
         }
     }
-    console.log(finalPath)
     return finalPath;
 }
 exports.default = generatePath;
