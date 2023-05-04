@@ -1,8 +1,11 @@
 {
-  "label": "Schema",
+  "label": "Overture Maps Data Schema",
   "position": 10,
+  "collapsible": true,
+  "collapsed": false,
   "link": {
     "type": "generated-index",
-    "description": "Overture Schema"
+    "description": "Overture Schema",
+    "slug": "/"
   }
 }
