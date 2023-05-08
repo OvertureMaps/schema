@@ -22,7 +22,7 @@ properties:
       access:
         - denied
         - designated:
-            when: {modes: [truck]}
+            when: {mode: [truck]}
             at: [0.1, 0.25]
         - allowed:
             when:

@@ -23,4 +23,4 @@ properties:
     restrictions:
       access:
         - allowed:
-            when: {modes: [foo]}
+            when: {mode: [foo]}

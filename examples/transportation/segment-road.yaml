@@ -79,10 +79,10 @@ properties:
       speedLimits:
         - minSpeed: [90, "km/h"]
           maxSpeed: [110, "mph"]
-          modeNots: [ "truck" ]
+          modeNot: [ "truck" ]
           isMaxSpeedVariable: true
         - maxSpeed: [55, "mph"]
-          modes: [ "truck" ]
+          mode: [ "truck" ]
         - maxSpeed: [30, "km/h"]
           at: [0.25, 0.50]
           during: Mo-Sa 09:00-12:00, We 15:00-18:00

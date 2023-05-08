@@ -332,26 +332,35 @@ properties:
                 oneOf:
                   - "$ref": "#/$defs/propertyDefinitions/accessOption"
                   - type: object
-                    properties:
-                      allowed:
-                        type: object
-                        allOf:
-                          - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                          - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
-                          - { "$ref": "#/$defs/propertyContainers/directionContainer"}
-                      denied:
-                        allOf:
-                          - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                          - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
-                          - { "$ref": "#/$defs/propertyContainers/directionContainer"}
-                      designated:
-                        allOf:
-                          - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                          - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
-                          - { "$ref": "#/$defs/propertyContainers/directionContainer"}
+                    oneOf:
+                      - required: [ allowed ]
+                        properties:
+                          allowed:
+                            type: object
+                            allOf:
+                              - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                              - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                              - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
+                              - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+                      - required: [ designated ]
+                        properties:
+                          designated:
+                            type: object
+                            allOf:
+                              - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                              - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                              - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
+                              - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+                      - required: [ denied ]
+                        properties:
+                          denied:
+                            type: object
+                            allOf:
+                              - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                              - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                              - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
+                              - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+                    minLength: 1
             turns:
               description: Turn restriction from this segement to other segments.
               type: array
@@ -456,7 +465,7 @@ properties:
         - denied 
     usageOption:
       description: describes reason for which a person or entity travelling on the transportation network is using a particular location
-      tyye: string
+      type: string
       enum:
         - asCustomer
         - atDestination
@@ -555,20 +564,20 @@ properties:
       oneOf:
         - not:
             anyOf:
-              - required: [modes]
-              - required: [modeNots]
-        - required: [modes]
+              - required: [mode]
+              - required: [modeNot]
+        - required: [mode]
           properties:
-            modes:
-              description: Travel modes to which the rule applies
+            mode:
+              description: Travel mode to which the rule applies
               type: array
               items:
                 "$ref": "#/$defs/propertyDefinitions/mode"
               uniqueItems: true
               minLength: 1
-        - required: [modeNots]
+        - required: [modeNot]
           properties:
-            modeNots:
+            modeNot:
               description: Travel modes to which the rule does not apply
               type: array
               items:
@@ -576,7 +585,7 @@ properties:
               uniqueItems: true
               minLength: 1
       "$comment": >-
-        If neither modes nor modeNots is specified, the rule has the
+        If neither mode nor modeNot is specified, the rule has the
         default travel modes for the segment subType.
     directionContainer:
       description: properties defining direction for which a rule is active
