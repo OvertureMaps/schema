@@ -5,8 +5,10 @@ Lanes is a complex property that describes lanes organization on given segment (
 Everything that is required to navigate through lanes is captured in that property. 
 In case of lack of that property number of lanes is implicitly assumed as one in each traffic direction captured for given segment.
 
-## Lanes numbering 
-Lanes are provided as array and index of lane in that array is assumed to be its identifier when referencing to given lane is needed. 
+## Lanes number & numbering 
+Lanes are provided as array. Number of elements in array informs about number of lanes on a segment (Either all lanes are provided in array 
+with at minimum information about direction or none lane information is given on segment).
+Index of lane in that array is assumed to be its identifier when referencing to given lane is needed. 
 Lanes should be captured in array starting from left to right when looking on segment in direction of segment's geometry digitization.
 
 ### Examples:
