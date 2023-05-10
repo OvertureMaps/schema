@@ -50,3 +50,11 @@ oneOf:
             type: { enum: [segment] }
     then: { "$ref": transportation/segment.yaml }
     else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [places] }
+            type: { enum: [place] }
+    then: { "$ref": places/place.yaml }
+    else: { propertyNames: false }

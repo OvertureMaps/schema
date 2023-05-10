@@ -17,6 +17,7 @@ description: Common schema definitions shared by all themes
         - segment
         - locality
         - administrativeBoundary
+        - place
     featureUpdateTime:
       description: Timestamp when the feature was last updated
       type: string
@@ -47,7 +48,7 @@ description: Common schema definitions shared by all themes
     theme:
       description: Top-level Overture theme this feature belongs to
       type: string
-      enum: [admins, buildings, transportation]
+      enum: [admins, buildings, places, transportation]
     linearlyReferencedPosition:
       description: >-
         Represents a linearly-referenced position between 0% and 100% of
