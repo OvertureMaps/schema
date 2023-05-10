@@ -31,7 +31,7 @@ Reversible means that route has to be changed to avoid that lane if at moment of
 Alternating means you route can include that lane and traffic in direction assumed but route is open on such lane in short, periodic cycles 
 (usually signaled by lights signalisation or has to be judged by driver with safety consideration).
 
-## Lane Connectivity 
+## Lane Connectivity (not included in schema yet)
 Lanes connectivity has a single purpose to guide during navigation how to transition between given lane of:
    1. one portion of a segment to another portion of same segment when number of lanes changes in a way it is ambiguous to infer lane's continuation 
    2. one segment to another segment when change in lanes number makes it ambiguous to infer lane's continuation

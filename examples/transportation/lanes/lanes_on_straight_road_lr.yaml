@@ -16,47 +16,31 @@ properties:
     lanes:
       # Example shows modelling of new lane being introduced on a straight road which is a single segment
       # whole lanes attribute is represented in LR way to keep LR referencing in root level of modeled attribute.
-      # Actual state to reflect:                   Possible state to infer without connectivity:
-      #    |0|1|                                           |0|1|
-      #    | |  \                                         /  | |
-      #    | | | |                                       | | | |
-      #    |0|1|2|                                       |0|1|2|
-      #    | | | |                                       | | | |
-      #    | |  /                                        \   | |
-      #    |0|1|                                           |0|1|
+      #
+      #    |0|1|
+      #    | |  \
+      #    | | | |
+      #    |0|1|2|
+      #    | | | |
+      #    | |  /
+      #    |0|1|
       # digitization: S -> N
       - at: # two lanes between <0% and 10%) of segment
           - 0
           - 10
         value:
           - direction: forward # lane 0
-            connectivity:
-              - toLanes:
-                - 0
           - direction: forward # lane 1
-            connectivity:
-              - toLanes:
-                - 1
-                - 2
       - at: # three lanes between <10% and 70%) of segment
           - 10
           - 70
         value:
           - direction: forward
-            connectivity:
-              - toLanes:
-                - 0
           - direction: forward
-            connectivity:
-              - toLanes:
-                - 1
           - direction: forward
-            connectivity:
-              - toLanes:
-                - 1
       - at: # two lanes again between <70% and 100%> of segment
           - 70
           - 100
         value:
-          - direction: forward # no connectivity provided at all means apply inferred logic for lanes
+          - direction: forward
           - direction: forward

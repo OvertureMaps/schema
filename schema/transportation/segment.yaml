@@ -68,32 +68,6 @@ properties:
                 only to HOVs then default minimal occupancy for vehicle to be treated as HOV is 2+ passengers (counting together with the driver).
                 This restriction can be provided to override the default understanding of HOV.
               "$ref": "#/$defs/propertyDefinitions/relationalExpression"
-
-        connectivity:
-          description: >-
-            Provides captured from signs and road markings information about all allowed lanes transitions from that segment onto lanes on other segments
-            which are directly connected to that 'source' segment. Note that it does describe maneuver for lanes guidance without providing
-            possible via segments since those can deducted from topology of roads. It is not also recommended to provide lanes connectivity
-            in cases where lanes transitions between segments are straightforward without explicit information.
-          type: array
-          items:
-            type: object
-            unevaluatedProperties: false
-            required:
-              - toLanes
-            properties:
-              toSegment:
-                type: string
-              toLanes:
-                type: array
-                items:
-                  type: integer
-                  description: >-
-                    Ids of lanes which are continuation of that lane on next part of that segment or on another segment
-                    connected to it.
-                minItems: 1
-      "$comment": >-
-        TODO: HOV and other lanes attributes modeling.
     laneDirection:
       type: string
       enum:
@@ -205,8 +179,9 @@ properties:
           uniqueItems: true
         lanes:
           description: >-
-            Captures information about lanes on road - including potential information about how those lanes connect with
-            lanes on other segments reachable from current segment.
+            Describes the layout of lanes on the road plus lane-related
+            information, including where appropriate: physical lane location,
+            allowed travel modes, and more.
           oneOf:
             - type: array
               items: { "$ref": "#/$defs/propertyDefinitions/lane" }
@@ -225,6 +200,7 @@ properties:
                     type: array
                     items: { "$ref": "#/$defs/propertyDefinitions/lane" }
                     minItems: 1
+              minItems: 1
         restrictions:
           description: Restrictions on how the road may be used
           "$comment": >-
@@ -242,7 +218,7 @@ properties:
             speedLimits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
             access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
             turns:
-              description: Turn restriction from this segement to other segments.
+              description: Turn restriction from this segment to other segments.
               type: array
               items:
                  allOf:
@@ -252,9 +228,6 @@ properties:
                  unevaluatedProperties: false
                  type: object
                  properties:
-                   to:
-                     description: Target segement id of the restriction
-                     "$ref": "#/$defs/propertyDefinitions/relationTarget"
                    reason:
                      description: for turn restrictions, a rough description as to why the restriction exist
                      type: string
@@ -413,8 +386,6 @@ properties:
           description: direction of travel on the target that pertains to the relation
           "$ref": "#/$defs/propertyDefinitions/direction"
       required: [segmentId]
-
-
   propertyContainers:
     atPositionContainer:
       description: >-
