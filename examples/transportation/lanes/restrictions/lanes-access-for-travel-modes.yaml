@@ -27,21 +27,25 @@ properties:
         restrictions:
           access:
             - denied:
-                mode: hgv
+                when:
+                  mode:
+                    - hgv
       - direction: forward # lane 1
       - direction: forward # lane 2 not allowed for buses and trucks
         restrictions:
           access:
             - denied:
-                mode:
-                 - hgv
-                 - bus
+                when:
+                  mode:
+                    - hgv
+                    - bus
       - direction: forward # lane 3 - allowed only for bicycles
         restrictions:
           access:
             - allowed:
-                mode:
-                  - bicycle
+                when:
+                  mode:
+                    - bicycle
 
 
 

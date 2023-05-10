@@ -501,6 +501,7 @@ properties:
                 properties:
                   allowed:
                     type: object
+                    unevaluatedProperties: false
                     allOf:
                       - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
                       - { "$ref": "#/$defs/propertyContainers/duringContainer" }
@@ -510,6 +511,7 @@ properties:
                 properties:
                   designated:
                     type: object
+                    unevaluatedProperties: false
                     allOf:
                       - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
                       - { "$ref": "#/$defs/propertyContainers/duringContainer" }
@@ -519,6 +521,7 @@ properties:
                 properties:
                   denied:
                     type: object
+                    unevaluatedProperties: false
                     allOf:
                       - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
                       - { "$ref": "#/$defs/propertyContainers/duringContainer" }

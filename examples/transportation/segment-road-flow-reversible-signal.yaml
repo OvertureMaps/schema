@@ -25,7 +25,9 @@ properties:
     restrictions:
       access:
         - allowed:
-            mode: [ motorVehicle ]
+            when:
+              mode:
+                - motorVehicle
     lanes:
       - direction: backward
       - direction: reversible
