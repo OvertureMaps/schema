@@ -13,7 +13,7 @@ properties:
   connectors: [fooConnector, barConnector]
   road:
     class: secondary
-    # one way road in backward direction (lanes only in forward direction)
+    # one way road in forward direction (lanes only in forward direction)
     lanes:
       - direction: forward
       - direction: forward

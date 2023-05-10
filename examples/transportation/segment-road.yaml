@@ -17,7 +17,7 @@ properties:
   widthMeters: 10
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
   road:
-    # no access not lanes information -> means by default road is accessible in both directions with at least one lane in each direction
+    # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
     class: secondary
     roadNames:
       common:
