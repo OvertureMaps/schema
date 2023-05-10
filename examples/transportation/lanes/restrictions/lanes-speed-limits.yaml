@@ -36,7 +36,7 @@ properties:
                 when:
                   mode:
                     - hgv
-      - direction: forward # lane 2 - available for all vehicles except hgv vehicles if their weigh is more than 3 tons, and they must limit their speed to 80 km/h
+      - direction: forward # lane 2 - available for all vehicles except hgv vehicles if their weight is more than 3 tons, and they must limit their speed to 80 km/h
         # for all other vehicles segment speed limit (100 km/h) applies
         restrictions:
           access:
