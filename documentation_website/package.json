@@ -10,7 +10,7 @@
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
-    "update-schema-yaml-doc-references": "cp -R ../schema/* docs/overture-schema/",
+    "update-schema-yaml-doc-references": "cp -R ../schema/* docs/yaml",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids"
   },

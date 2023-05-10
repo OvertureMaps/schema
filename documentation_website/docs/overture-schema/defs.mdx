@@ -2,10 +2,11 @@ import CodeBlock from '@theme/CodeBlock';
 import Schema from "@site/static/schema/defs.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import rawSchema from '!!raw-loader!@site/docs/yaml/defs.yaml';
 
 # Definitions
 
-`defs.json`
+`defs.yaml`
 
 <JSONSchemaViewer schema={ Schema } resolverOptions={generateResolverOptions(
     {
@@ -14,6 +15,6 @@ import generateResolverOptions from "@site/src/components/shared-libs/generateRe
     }
 )}/>
 
-# Source :
+# Raw Schema YAML :
 
-<CodeBlock language="json">{JSON.stringify(Schema, null, 2)}</CodeBlock>
+<CodeBlock language="jsx">{rawSchema}</CodeBlock>

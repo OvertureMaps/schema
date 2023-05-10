@@ -4,6 +4,7 @@ import generateResolverOptions from "@site/src/components/shared-libs/generateRe
 import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
 
 import FootprintSchema from "@site/static/schema/buildings/footprint.json";
+import rawSchema from '!!raw-loader!@site/docs/yaml/Buildings/footprint.yaml';
 
 
 
@@ -13,6 +14,6 @@ import FootprintSchema from "@site/static/schema/buildings/footprint.json";
     generateResolverOptions({"remote": true, "basePath": "schema/buildings"})
 } />
 
-# Source :
+# Raw Schema YAML :
 
-<CodeBlock language="json">{JSON.stringify(FootprintSchema, null, 2)}</CodeBlock>
+<CodeBlock language="jsx">{rawSchema}</CodeBlock>
