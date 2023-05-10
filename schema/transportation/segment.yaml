@@ -67,7 +67,15 @@ properties:
                 Minimal occupancy restriction relates to HOV (high occupancy vehicles) travel modes. If lane is restricted for use 
                 only to HOVs then default minimal occupancy for vehicle to be treated as HOV is 2+ passengers (counting together with the driver).
                 This restriction can be provided to override the default understanding of HOV.
-              "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+              oneOf:
+                - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+                - type: array
+                  items:
+                    type: object
+                    unevaluatedProperties: false
+                    allOf:
+                      - "$ref": "#/$defs/propertyContainers/ruleContainer"
+                      - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
     laneDirection:
       type: string
       enum:
