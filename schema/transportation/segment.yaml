@@ -97,7 +97,7 @@ properties:
         Enumerates possible travel modes. Some modes represent groups
         of modes.
       type: string
-      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov ]
+      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
       "$comment": >-
         motorVehicle includes car, truck and motorcycle
 
