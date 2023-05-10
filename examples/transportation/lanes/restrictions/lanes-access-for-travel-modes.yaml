@@ -1,0 +1,51 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  subType: road
+  updateTime: 2023-05-10T12:02:30-08:00
+  version: 0
+  road:
+    class: secondary
+    lanes:
+      # two-way road with access restrictions for specific travel modes
+      # digitization: S->N
+      # |   ||   |   |   |
+      # |   ||   |   |   |
+      # |   ||   |   |   |
+      # |   ||   |   |   |
+      # |   ||   |   |   |
+      # | 0 || 1 | 2 | 3 |
+
+      - direction: backward # lane 0 not allowed for trucks (heavy good vehicles)
+        restrictions:
+          access:
+            - denied:
+                mode: hgv
+      - direction: forward # lane 1
+      - direction: forward # lane 2 not allowed for buses and trucks
+        restrictions:
+          access:
+            - denied:
+                mode:
+                 - hgv
+                 - bus
+      - direction: forward # lane 3 - allowed only for bicycles
+        restrictions:
+          access:
+            - allowed:
+                mode:
+                  - bicycle
+
+
+
+
+
+
+

@@ -50,6 +50,16 @@ properties:
       required: [direction]
       properties:
         direction: { "$ref": "#/$defs/propertyDefinitions/laneDirection" }
+        restrictions:
+          description: Restrictions on how the lane may be used
+          "$comment": >-
+            Restrictions for lanes may be defined in same way as for whole road with exception of turn - there are 
+            no turn restrictions for lanes.
+          type: object
+          unevaluatedProperties: false
+          properties:
+            speedLimits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
+            access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
         connectivity:
           description: >-
             Provides captured from signs and road markings information about all allowed lanes transitions from that segment onto lanes on other segments
@@ -95,7 +105,7 @@ properties:
         Enumerates possible travel modes. Some modes represent groups
         of modes.
       type: string
-      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle ]
+      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv ]
       "$comment": >-
         motorVehicle includes car, truck and motorcycle
 
@@ -220,67 +230,8 @@ properties:
           type: object
           unevaluatedProperties: false
           properties:
-            speedLimits:
-              description: Rules governing speed on this road segment
-              type: array
-              items:
-                description: An individual speed limit rule
-                "$comment": >-
-                  TODO: Speed limits probably have directionality, so
-                  should factor out a directionContainer for this
-                  purpose and use it to introduce an optional
-                  direction property in each rule.
-                type: object
-                anyOf:
-                  - required: [minSpeed]
-                  - required: [maxSpeed]
-                allOf:
-                  - "$ref": "#/$defs/propertyContainers/modesContainer"
-                  - "$ref": "#/$defs/propertyContainers/atRangeContainer"
-                  - "$ref": "#/$defs/propertyContainers/duringContainer"
-                unevaluatedProperties: false
-                properties:
-                  minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-                  maxSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-                  isMaxSpeedVariable:
-                    description: Indicates a variable speed corridor
-                    type: boolean
-                    default: false
-            access:
-              type: array
-              items:
-                oneOf:
-                  - "$ref": "#/$defs/propertyDefinitions/accessOption"
-                  - type: object
-                    oneOf:
-                      - required: [ allowed ]
-                        properties:
-                          allowed:
-                            type: object
-                            allOf:
-                              - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                              - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                              - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
-                              - { "$ref": "#/$defs/propertyContainers/directionContainer" }
-                      - required: [ designated ]
-                        properties:
-                          designated:
-                            type: object
-                            allOf:
-                              - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                              - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                              - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
-                              - { "$ref": "#/$defs/propertyContainers/directionContainer" }
-                      - required: [ denied ]
-                        properties:
-                          denied:
-                            type: object
-                            allOf:
-                              - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                              - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                              - { "$ref": "#/$defs/propertyContainers/accessRuleContainer" }
-                              - { "$ref": "#/$defs/propertyContainers/directionContainer" }
-                    minLength: 1
+            speedLimits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
+            access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
             turns:
               description: Turn restriction from this segement to other segments.
               type: array
@@ -512,9 +463,71 @@ properties:
       properties:
         direction:
           "$ref": "#/$defs/propertyDefinitions/direction"
-    accessRuleContainer:
+    speedLimitsContainer:
+      description: Rules governing speed on this road segment or lane
+      type: array
+      items:
+        description: An individual speed limit rule
+        "$comment": >-
+          TODO: Speed limits probably have directionality, so
+          should factor out a directionContainer for this
+          purpose and use it to introduce an optional
+          direction property in each rule.
+        type: object
+        anyOf:
+          - required: [ minSpeed ]
+          - required: [ maxSpeed ]
+        allOf:
+          - "$ref": "#/$defs/propertyContainers/modesContainer"
+          - "$ref": "#/$defs/propertyContainers/atRangeContainer"
+          - "$ref": "#/$defs/propertyContainers/duringContainer"
+        unevaluatedProperties: false
+        properties:
+          minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+          maxSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+          isMaxSpeedVariable:
+            description: Indicates a variable speed corridor
+            type: boolean
+            default: false
+    accessContainer:
+      description: Rules governing access to this road segment or lane
+      type: array
+      items:
+        oneOf:
+          - "$ref": "#/$defs/propertyDefinitions/accessOption"
+          - type: object
+            oneOf:
+              - required: [ allowed ]
+                properties:
+                  allowed:
+                    type: object
+                    allOf:
+                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+              - required: [ designated ]
+                properties:
+                  designated:
+                    type: object
+                    allOf:
+                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+              - required: [ denied ]
+                properties:
+                  denied:
+                    type: object
+                    allOf:
+                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+            minLength: 1
+    ruleContainer:
       description: >-
-        Properties defining access restriction.
+        Properties that allow defining rules from environmental and subjective scoping properties .
       type: object
       properties:
         when:
@@ -522,6 +535,7 @@ properties:
           type: object
           allOf:
             - "$ref": "#/$defs/propertyContainers/modesContainer"
+            - "$ref": "#/$defs/propertyContainers/duringContainer"
           unevaluatedProperties: false
           properties:
             using:

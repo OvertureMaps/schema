@@ -22,10 +22,11 @@ properties:
       # controlled by a traffic signal.
       #
       #     https://www.openstreetmap.org/#map=16/49.3151/-123.1392
+    restrictions:
+      access:
+        - allowed:
+            mode: [ motorVehicle ]
     lanes:
       - direction: backward
-#        mode: [motorVehicle]
       - direction: reversible
-#        mode: [motorVehicle]
       - direction: forward
-#        mode: [motorVehicle]
