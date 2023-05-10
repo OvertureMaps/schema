@@ -1,0 +1,583 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Overture Maps Transportation Segment Schema",
+  "description": "Additive schema for transportation segments",
+  "type": "object",
+  "properties": {
+    "geometry": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        {
+          "$ref": "https://geojson.org/schema/LineString.json"
+        }
+      ]
+    },
+    "properties": {
+      "unevaluatedProperties": false,
+      "required": [
+        "subType"
+      ],
+      "allOf": [
+        {
+          "$ref": "../defs.json#/$defs/propertyContainers/overtureFeaturePropertiesContainer"
+        },
+        {
+          "$ref": "../defs.json#/$defs/propertyContainers/levelContainer"
+        },
+        {
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "subType": {
+                    "enum": [
+                      "road"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "road": {
+                    "$ref": "#/$defs/propertyDefinitions/road"
+                  },
+                  "widthMeters": {
+                    "$ref": "#/$defs/propertyDefinitions/roadWidth"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "subType": {
+          "description": "Broad category of transportation segment.",
+          "type": "string",
+          "enum": [
+            "road",
+            "rail",
+            "water"
+          ],
+          "$comment": "Should not be confused with a transport mode. A segment kind has an (implied) set of default transport modes."
+        },
+        "connectors": {
+          "description": "List of connector nodes this segment is physically connected to.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]+Connector$",
+            "$comment": "Pattern is just a placeholder. Each entry in this array is the GERS ID of a transportation connector feature."
+          },
+          "uniqueItems": true,
+          "default": []
+        }
+      }
+    }
+  },
+  "$defs": {
+    "propertyDefinitions": {
+      "lane": {
+        "description": "Properties for a single lane of traffic.",
+        "type": "object",
+        "required": [
+          "direction"
+        ],
+        "allOf": [
+          {
+            "$ref": "#/$defs/propertyContainers/modesContainer"
+          }
+        ],
+        "unevaluatedProperties": false,
+        "properties": {
+          "direction": {
+            "$ref": "#/$defs/propertyDefinitions/laneDirection"
+          },
+          "turns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/propertyDefinitions/turnOption"
+            },
+            "minItems": 1,
+            "uniqueItems": true,
+            "$comment": "If turns is omitted, the default turning options for a lane are assumed. The default turning options depend on the lane location. The leftmost lane for a given travel direction has [left, through] by default. A rightmost lane has [right, through] by default. Evidently if there is a single lane for a given direction, it is both leftmost and rightmost and consequently has [left, through, right]. A middle lane has [through] by default."
+          }
+        },
+        "$comment": "TODO: HOV lane modeling. TODO: The turns model fails to capture cases where there may be\n      a combined maneuver (slightLeft+slideRight). How important\n      is this? https://wiki.openstreetmap.org/wiki/Key:turn"
+      },
+      "laneDirection": {
+        "type": "string",
+        "enum": [
+          "forward",
+          "backward",
+          "bothWays",
+          "alternating",
+          "reversible"
+        ]
+      },
+      "laneDivider": {
+        "description": "Enumerates possible methods of dividing two lanes on a road segment.",
+        "type": "string",
+        "enum": [
+          "unknown",
+          "barrier",
+          "curb",
+          "mayChange",
+          "mayNotCross",
+          "mayPass",
+          "signal"
+        ],
+        "$comment": "The lane divider concept models ability to change lanes from a navigation standpoint (equivalent to OSM \"change\" tags) and from a visual standpoint (equivalent to OSM \"divider\" tags) because abstract values such as \"mayChange\" can be mapped to the appropriate line markings. Judging by fact that OSM has orders of magnitude more \"change\" tags, the navigation function is thought to be more important.\nReferences:\n o https://taginfo.openstreetmap.org/keys/change (7K entities)\n o https://taginfo.openstreetmap.org/keys/change:lanes (50K entities)\n o https://taginfo.openstreetmap.org/keys/divider (4K entities)\n o https://taginfo.openstreetmap.org/keys/divider:lanes (0 entities)"
+      },
+      "mode": {
+        "description": "Enumerates possible travel modes. Some modes represent groups of modes.",
+        "type": "string",
+        "enum": [
+          "motorVehicle",
+          "car",
+          "truck",
+          "motorcycle",
+          "foot",
+          "bicycle"
+        ],
+        "$comment": "motorVehicle includes car, truck and motorcycle"
+      },
+      "road": {
+        "description": "Properties for segments whose segment subType is road. The road subType includes any variety of road, street, or path, including dedicated paths for walking and cycling.",
+        "type": "object",
+        "unevaluatedProperties": false,
+        "default": {},
+        "properties": {
+          "class": {
+            "description": "Captures the kind of road and its position in the road network hierarchy.",
+            "type": "string",
+            "enum": [
+              "unknown",
+              "primary",
+              "secondary",
+              "tertiary",
+              "residential",
+              "parkingAisle",
+              "driveway",
+              "footway",
+              "cycleway"
+            ],
+            "default": {
+              "enum": [
+                "unknown"
+              ]
+            }
+          },
+          "roadNames": {
+            "unevaluatedProperties": false,
+            "oneOf": [
+              {
+                "type": "object",
+                "allOf": [
+                  {
+                    "$ref": "../defs.json#/$defs/propertyDefinitions/names"
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "applyAt"
+                  ],
+                  "unevaluatedProperties": false,
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                    },
+                    {
+                      "$ref": "../defs.json#/$defs/propertyDefinitions/names"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            ]
+          },
+          "surface": {
+            "description": "Physical surface of the road. May either be specified as a single global value for the segment, or as an array of surface rules.",
+            "oneOf": [
+              {
+                "$ref": "#/$defs/propertyDefinitions/roadSurface"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                    }
+                  ],
+                  "unevaluatedProperties": false,
+                  "properties": {
+                    "value": {
+                      "$ref": "#/$defs/propertyDefinitions/roadSurface"
+                    }
+                  }
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            ],
+            "default": {
+              "enum": [
+                "unknown"
+              ]
+            },
+            "$comment": "We should likely restrict the available surface types to the subset of the common OSM surface=* tag values that are useful both for routing and for map tile rendering."
+          },
+          "flags": {
+            "description": "Set of boolean attributes applicable to roads. May be specified either as a single flag array of flag values, or as an array of flag rules.",
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/propertyDefinitions/roadFlag"
+                },
+                {
+                  "type": "object",
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                    },
+                    {
+                      "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+                    }
+                  ],
+                  "unevaluatedProperties": false,
+                  "properties": {
+                    "values": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/$defs/propertyDefinitions/roadFlag"
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              ]
+            },
+            "uniqueItems": true
+          },
+          "flow": {
+            "description": "Rules for how traffic flows along a road segment. Each rule may optionally apply along a linearly referenced range, during a specific set of opening hours, or both. Each rule must fully specify the traffic flow for the part of the segment to which it applies (i.e. there are no partial rules).",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "lanes"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                },
+                {
+                  "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+                }
+              ],
+              "unevaluatedProperties": false,
+              "properties": {
+                "dividers": {
+                  "description": "How the lanes are divided within this flow rule. There must be exactly one divider for each lane, so a flow rule with N lanes must have N-1 dividers. For two consecutive lane items (lanes[i], lanes[i+1]), the divider between them is given by dividers[i].",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/propertyDefinitions/laneDivider"
+                  },
+                  "default": []
+                },
+                "lanes": {
+                  "description": "The lanes existing within this flow rule. Lanes are specified from left to right from the perspective of a person standing on the segment facing in the forward direction.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/propertyDefinitions/lane"
+                  },
+                  "minItems": 1
+                }
+              }
+            },
+            "minItems": 1,
+            "uniqueItems": true,
+            "$comment": "Because lane ordering follows the physical layout of the road, there is no default flow rule, since even a simple bidirectional setup with two lanes would only be applicable to the part of the world which shares the same driving direction.\nA possible alternative would be to make the default a one-way flow with a single lane in the forward direction, but given how few roads on the planet it would match, this choice would reveal a very poor understanding of \"default\".\nIt may be that the \"flows\" concept is general enough to lift up out of \"road\" and put at the top level. We would have to be convinced that it also applies to water/ferry and rail, however."
+          },
+          "restrictions": {
+            "descriptions": "Restrictions on how the road may be used",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/$defs/propertyContainers/modesContainer"
+              }
+            ],
+            "unevaluatedProperties": false,
+            "properties": {
+              "speedLimits": {
+                "description": "Rules governing speed on this road segment",
+                "type": "array",
+                "items": {
+                  "description": "An individual speed limit rule",
+                  "$comment": "TODO: Speed limits probably have directionality, so should factor out a directionContainer for this purpose and use it to introduce an optional direction property in each rule.",
+                  "type": "object",
+                  "anyOf": [
+                    {
+                      "required": [
+                        "minSpeed"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "maxSpeed"
+                      ]
+                    }
+                  ],
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/propertyContainers/modesContainer"
+                    },
+                    {
+                      "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                    },
+                    {
+                      "$ref": "#/$defs/propertyContainers/applyDuringContainer"
+                    }
+                  ],
+                  "unevaluatedProperties": false,
+                  "properties": {
+                    "minSpeed": {
+                      "$ref": "#/$defs/propertyDefinitions/speed"
+                    },
+                    "maxSpeed": {
+                      "$ref": "#/$defs/propertyDefinitions/speed"
+                    },
+                    "isMaxSpeedVariable": {
+                      "description": "Indicates a variable speed corridor",
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "lanes": {
+                      "description": "Optionally specifies the lanes to which the speed limit rule applies. If omitted, the rule applies to all lanes.",
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minValue": 0
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              },
+              "sizeLimits": {
+                "description": "Rules governing vehicle size on this road segment",
+                "type": "array",
+                "items": {
+                  "description": "An individual vehicle size rule",
+                  "$comment": "TODO: Is there a directionality aspect to vehicle size limits, similar to speed limits? Or at that point should we just split into two unidirectional segments?",
+                  "type": "object",
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/propertyContainers/applyAtRangeContainer"
+                    }
+                  ],
+                  "anyOf": [
+                    {
+                      "required": [
+                        "maxHeightMeters"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "maxWidthMaters"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "maxWeightKilograms"
+                      ]
+                    }
+                  ],
+                  "unevaluatedProperties": false,
+                  "properties": {
+                    "maxHeightMeters": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "maxWidthMeters": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "maxWeightKilograms": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                }
+              },
+              "entranceRestrictions": {
+                "description": "Rules restricting how traffic may enter the road at one of its ends, a.k.a. via restrictions.",
+                "type": "array",
+                "$comment": "TODO"
+              },
+              "exitRestrictions": {
+                "description": "Rules restricting how traffic may exit the road at one of its ends, a.k.a. turn restrictions.",
+                "type": "array",
+                "$comment": "TODO"
+              }
+            }
+          }
+        }
+      },
+      "roadFlag": {
+        "description": "Simple flags that can be on or off for a road segment",
+        "type": "string",
+        "enum": [
+          "isBridge",
+          "isLink",
+          "isPrivate",
+          "isTolled",
+          "isTunnel"
+        ]
+      },
+      "roadSurface": {
+        "description": "Physical surface of the road",
+        "type": "string",
+        "enum": [
+          "unknown",
+          "paved",
+          "unpaved",
+          "gravel",
+          "dirt",
+          "pavingStones",
+          "metal"
+        ]
+      },
+      "roadWidth": {
+        "description": "Edge-to-edge width of the road modeled by this segment, in meters.\nExamples: (1) If this segment models a carriageway without sidewalk, this value represents the edge-to-edge width of the carriageway, inclusive of any shoulder. (2) If this segment models a sidewalk by itself, this value represents the edge-to-edge width of the sidewalk. (3) If this segment models a combined sidewalk and carriageway, this value represents the edge-to-edge width inclusive of sidewalk.",
+        "type": "number",
+        "exclusiveMinimum": 0
+      },
+      "speed": {
+        "description": "A speed value, i.e. a certain number of distance units travelled per unit time.",
+        "type": "array",
+        "prefixItems": [
+          {
+            "description": "Number of speed units",
+            "type": "integer",
+            "minValue": 20
+          },
+          {
+            "description": "One speed unit",
+            "type": "string",
+            "enum": [
+              "km/h",
+              "mph"
+            ]
+          }
+        ],
+        "additionalItems": false
+      },
+      "turnOption": {
+        "description": "Option for turning at a junction between segments",
+        "type": "string",
+        "enum": [
+          "mergeLeft",
+          "slightLeft",
+          "left",
+          "sharpLeft",
+          "through",
+          "mergeRight",
+          "slightRight",
+          "right",
+          "sharpRight",
+          "reverse"
+        ]
+      }
+    },
+    "propertyContainers": {
+      "applyAtPositionContainer": {
+        "description": "Properties defining the discrete position on the segment where a rule is active.",
+        "properties": {
+          "applyAt": {
+            "$ref": "../defs.json#/$defs/propertyDefinitions/linearlyReferencedPosition"
+          }
+        }
+      },
+      "applyAtRangeContainer": {
+        "description": "Properties defining the range of positions on the segment where a rule is active.",
+        "properties": {
+          "applyAt": {
+            "$ref": "../defs.json#/$defs/propertyDefinitions/linearlyReferencedRange"
+          }
+        }
+      },
+      "applyDuringContainer": {
+        "$comment": "Properties defining the time spans when a recurring rule is active.",
+        "properties": {
+          "applyDuring": {
+            "$ref": "../defs.json#/$defs/propertyDefinitions/openingHours"
+          }
+        }
+      },
+      "modesContainer": {
+        "description": "Properties defining travel modes for which a rule is active.",
+        "type": "object",
+        "oneOf": [
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "modes"
+                  ]
+                },
+                {
+                  "required": [
+                    "notModes"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "required": [
+              "modes"
+            ],
+            "properties": {
+              "modes": {
+                "description": "Travel modes to which the rule applies",
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/propertyDefinitions/mode"
+                },
+                "uniqueItems": true,
+                "minLength": 1
+              }
+            }
+          },
+          {
+            "required": [
+              "notModes"
+            ],
+            "properties": {
+              "notModes": {
+                "description": "Travel modes to which the rule does not apply",
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/propertyDefinitions/mode"
+                },
+                "uniqueItems": true,
+                "minLength": 1
+              }
+            }
+          }
+        ],
+        "$comment": "If neither modes nor notModes is specified, the rule has the default travel modes for the segment subType."
+      }
+    }
+  }
+}

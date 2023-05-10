@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Administrative entity property definitions",
+  "description": "Common schema definitions for admins theme",
+  "$defs": {
+    "propertyDefinitions": {
+      "localityType": {
+        "description": "Describes the entity's type in the categorical nomenclature used locally.",
+        "type": "string",
+        "enum": [
+          "country",
+          "county",
+          "state",
+          "region",
+          "province",
+          "district",
+          "city",
+          "town",
+          "village",
+          "hamlet",
+          "borough",
+          "suburb",
+          "neighborhood",
+          "municipality"
+        ],
+        "$comment": "country      = Distinct geographical and political region or territory that is governed by a sovereign power or government. It is usually defined by its borders, which are recognized by other countries and international organizations\n               Examples: United States\n                         Japan\n                         Brazil\ncounty       = Political and administrative division of a state, providing certain local governmental services\n               Examples: Suffolk County, Massachusetts, United States\n                         Essex County, Ontario, Canada\n                         Oxfordshire, England, United Kingdom\nstate        = Nation or territory considered as an organized political community under one government\n               Examples: California, United States\n                         Bavaria, Germany\n                         New South Wales, Australia\nregion       = Area or division, especially part of a country or the world having definable characteristics but not always fixed boundaries\n               Examples: Tuscany, Italy\n                         Provence-Alpes-C\u00f4te d'Azur, France\n                         Andalusia, Spain\nprovince     = Principal administrative division of certain countries\n               Examples: Ontario, Canada\n                         Yunnan, China\n                         Buenos Aires, Argentina\ndistrict     = Area of a country or city, especially one regarded as a distinct unit because of a particular characteristic\n               Examples: Central District, Hong Kong\n                         Kreuzberg, Berlin, German\n                         Le Marais, Paris, France\ncity         = Large town\n               Examples: New York City, United States\n                         London, United Kingdom\n                         Paris, France\ntown         = Urban area that has a name, defined boundaries, and local government, and that is generally larger than a village and smaller than a city\n               Examples: Stratford-upon-Avon, England, United Kingdom\n                         Salem, Massachusetts, United States\n                         Szentendre, Hungary\nvillage      = Group of houses and associated buildings, larger than a hamlet and smaller than a town, situated in a rural area\n               Examples: Bibury, England, United Kingdom\n                         Giethoorn, Netherlands\n                         Shirakawa-go, Japan\nhamlet       = Small settlement, generally one smaller than a village\n               Examples: Beulle, Maule, Yvelines, France\n                         Levittown, New York, United States\n                         Jhakar Bigha, Rohtas, Bihar, India\nborough      = Town or district which is an administrative unit\n               Examples: Brooklyn, New York City, United States\n                         Southwark, London, United Kingdom\n                         S\u00f6dermalm, Stockholm, Sweden\nsuburb       = Outlying district of a city, especially a residential one\n               Examples: Paddington, Sydney, Australia\n                         Mount Eden, Auckland, New Zealand\n                         Clontarf, Dublin, Ireland\nneighborhood = District, especially one forming a community within a town or city\n               Examples: Montmartre, Paris, France\n                         Trastevere, Rome, Italy\n                         La Boca, Buenos Aires, Argentina\nmunicipality = City or town that has corporate status and local government\n               Examples: Arame, Maranh\u00e3o, Brazil\n                         Vra\u010dar, Belgrade, Serbia\n                         Arecibo, Puerto Rico"
+      },
+      "adminLevel": {
+        "description": "Hierarchical level for administrative entity or border (matching admin_level in OSM taxonomy)",
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 11
+      },
+      "iso3166-1": {
+        "description": "ISO3166-1 code.",
+        "type": "string"
+      },
+      "iso3166-2": {
+        "description": "ISO3166-2 code.",
+        "type": "string"
+      },
+      "defaultLanguage": {
+        "description": "Most common language used within the area.",
+        "$ref": "../defs.json#/$defs/propertyDefinitions/language"
+      },
+      "drivingSide": {
+        "description": "Left-hand traffic (LHT) or right-hand traffic (RHT).",
+        "type": "string",
+        "enum": [
+          "left",
+          "right"
+        ]
+      }
+    },
+    "propertyContainers": {
+      "adminPropertiesContainer": {
+        "description": "Top-level properties shared by all admin features",
+        "type": "object",
+        "required": [
+          "adminLevel"
+        ],
+        "properties": {
+          "adminLevel": {
+            "$ref": "#/$defs/propertyDefinitions/adminLevel"
+          },
+          "iso3166-1": {
+            "$ref": "#/$defs/propertyDefinitions/iso3166-1"
+          },
+          "iso3166-2": {
+            "$ref": "#/$defs/propertyDefinitions/iso3166-2"
+          },
+          "defaultLanguage": {
+            "$ref": "#/$defs/propertyDefinitions/defaultLanguage"
+          },
+          "drivingSide": {
+            "$ref": "#/$defs/propertyDefinitions/drivingSide"
+          }
+        }
+      }
+    }
+  }
+}

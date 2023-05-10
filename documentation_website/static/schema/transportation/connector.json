@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Overture Maps Transportation Connector Schema",
+  "description": "Additive schema for transportation connectors",
+  "type": "object",
+  "properties": {
+    "geometry": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        {
+          "$ref": "https://geojson.org/schema/Point.json"
+        }
+      ]
+    },
+    "properties": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        {
+          "$ref": "../defs.json#/$defs/propertyContainers/overtureFeaturePropertiesContainer"
+        },
+        {
+          "$ref": "../defs.json#/$defs/propertyContainers/levelContainer"
+        }
+      ]
+    }
+  }
+}

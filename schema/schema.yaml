@@ -35,6 +35,7 @@ oneOf:
     then: { "$ref": buildings/footprint.yaml }
     else: { propertyNames: false }
   - if:
+      description: "Transportation Connectors"
       properties:
         properties:
           properties:
@@ -43,6 +44,7 @@ oneOf:
     then: { "$ref": transportation/connector.yaml }
     else: { propertyNames: false }
   - if:
+      description: "Transportation Segments"
       properties:
         properties:
           properties:

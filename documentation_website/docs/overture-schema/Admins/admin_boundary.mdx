@@ -1,0 +1,33 @@
+import CodeBlock from '@theme/CodeBlock';
+import Schema from "@site/static/schema/admins/administrativeBoundary.json";
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+
+# Administrative Boundaries
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor massa et eros volutpat consequat. Curabitur vestibulum et eros fermentum posuere. Sed in elementum sapien. Praesent non eros lectus. Sed non arcu lorem. Maecenas id dolor nibh. Duis vitae metus eget massa ullamcorper feugiat. Phasellus efficitur dolor massa, ac vestibulum metus vulputate eget. Integer vulputate felis ut sem scelerisque, quis mattis metus malesuada. Donec ut iaculis ante, et elementum ipsum. Mauris vitae orci consequat, congue justo sit amet, ultricies mauris. Integer consectetur metus quis aliquet aliquet.
+
+## More Information
+
+Etiam auctor semper risus. Nulla rhoncus semper ligula, ut dictum lacus. Nunc mattis suscipit justo. Praesent vulputate tortor pretium ornare fringilla. Donec maximus ligula justo. Pellentesque eu diam at velit placerat malesuada. Proin eget est vel nibh lobortis sagittis.
+
+### Minor Point 1
+
+Nunc pretium facilisis felis, auctor sagittis sem pulvinar nec. Morbi malesuada, elit ut imperdiet posuere, enim felis scelerisque lorem, ac accumsan lacus lacus molestie eros. Curabitur non accumsan sapien, a aliquet enim. Sed et lectus vel lectus laoreet faucibus eget vitae libero. In hac habitasse platea dictumst. Sed in semper ante. Nulla eros nibh, lobortis eget diam a, gravida efficitur mauris. Fusce ac justo a tellus sagittis euismod. Proin ac dui tellus. Donec venenatis molestie massa, efficitur suscipit ipsum lobortis quis. Proin consectetur elit vitae massa tristique gravida.
+
+### Minor Point 2
+
+Etiam vehicula nisi in magna iaculis dictum sit amet quis ex. Ut mi nulla, vehicula non euismod ut, pharetra vitae nunc. Pellentesque hendrerit, sapien eget ullamcorper facilisis, turpis leo cursus augue, a consectetur dolor risus eget magna. Donec cursus ligula a mauris convallis ultrices eu et dui. Fusce varius mauris augue, vel interdum mi sagittis a. Proin ut mauris turpis. Curabitur vel mattis nunc. Praesent porta at mauris vitae tempor. Aliquam erat volutpat.
+
+
+# Schema
+
+<JSONSchemaViewer schema={ Schema } resolverOptions={ generateResolverOptions({remote: true, basePath: 'schema/admins'})}/>
+
+# Example(s)
+
+<CodeBlock language="json">{JSON.stringify({"foo":"bar"}, null, 2)}</CodeBlock>
+
+## Raw Schema JSON:
+
+<CodeBlock language="json">{JSON.stringify(Schema, null, 2)}</CodeBlock>
