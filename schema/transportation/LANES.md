@@ -6,9 +6,10 @@ Everything that is required to navigate through lanes is captured in that proper
 In case of lack of that property number of lanes is implicitly assumed as one in each traffic direction captured for given segment.
 
 ## Lanes number & numbering 
-Lanes are provided as array. Number of elements in array informs about number of lanes on a segment (Either all lanes are provided in array 
-with at minimum information about direction or none lane information is given on segment).
-Index of lane in that array is assumed to be its identifier when referencing to given lane is needed. 
+Lanes are provided as an array. The number of elements in the array indicates the number of lanes on
+a segment (Either all lanes are provided in the array with at least directionality or else no lane
+information is available for a segment). The index of the lane in that array is assumed to be its
+identifier when referencing a given lane is necessary. 
 Lanes should be captured in array starting from left to right when looking on segment in direction of segment's geometry digitization.
 
 ### Examples:
@@ -58,7 +59,7 @@ a like... is lane 0 of first segment fully aligned with lane 0 of other segment 
 lane 0 id added on left side of road, or maybe it's a delta shape situation where lane 0 of one road evenly widens int two lanes situation on next segment. 
 
 # TODO:
-* add toll on lane information (including payment types) -> toll information outside v1 scope since it was discarded from being simple road flag
+* add toll on lane information (including payment types) -> toll information is outside v1 scope as it could not be represented as a simple road flag
 * add connectors information to connectivity to support segmentation that is independent of topology what means specifying toConnector next toSegment (optionally) may be needed when there is more than one connector that leads to target segment
 * add (potentially) optional via(s) to connectivity modeling if there are examples when more than one set of intermediate segments (without lanes information on them) can lead to same target segment
 

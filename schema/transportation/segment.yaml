@@ -53,8 +53,8 @@ properties:
         restrictions:
           description: Restrictions on how the lane may be used
           "$comment": >-
-            Restrictions for lanes may be defined in same way as for whole road with exception of turn - there are 
-            no turn restrictions for lanes.
+            Lane restrictions may be defined in the same way as for whole roads with the exception
+            of turns; there are no turn restrictions for lanes.
           type: object
           unevaluatedProperties: false
           properties:
@@ -64,9 +64,10 @@ properties:
               "$ref": "#/$defs/propertyContainers/accessContainer"
             minOccupancy:
               description: >-
-                Minimal occupancy restriction relates to HOV (high occupancy vehicles) travel modes. If lane is restricted for use 
-                only to HOVs then default minimal occupancy for vehicle to be treated as HOV is 2+ passengers (counting together with the driver).
-                This restriction can be provided to override the default understanding of HOV.
+                Minimal occupancy restrictions relate to HOV (high occupancy vehicles) travel modes.
+                If a lane is restricted for use only by HOVs, then the default minimum vehicle
+                occupancy qualifying as HOV is 2+ passengers (including the driver).  This
+                restriction can be provided to override the default definition of HOV.
               oneOf:
                 - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
                 - type: array
