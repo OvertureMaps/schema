@@ -58,8 +58,17 @@ properties:
           type: object
           unevaluatedProperties: false
           properties:
-            speedLimits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
-            access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
+            speedLimits:
+              "$ref": "#/$defs/propertyContainers/speedLimitsContainer"
+            access:
+              "$ref": "#/$defs/propertyContainers/accessContainer"
+            minOccupancy:
+              description: >-
+                Minimal occupancy restriction relates to HOV (high occupancy vehicles) travel modes. If lane is restricted for use 
+                only to HOVs then default minimal occupancy for vehicle to be treated as HOV is 2+ passengers (counting together with the driver).
+                This restriction can be provided to override the default understanding of HOV.
+              "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+
         connectivity:
           description: >-
             Provides captured from signs and road markings information about all allowed lanes transitions from that segment onto lanes on other segments
@@ -105,7 +114,7 @@ properties:
         Enumerates possible travel modes. Some modes represent groups
         of modes.
       type: string
-      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv ]
+      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov ]
       "$comment": >-
         motorVehicle includes car, truck and motorcycle
 
