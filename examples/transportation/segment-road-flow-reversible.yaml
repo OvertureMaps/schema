@@ -14,8 +14,7 @@ properties:
   road:
     class: primary
     surface: paved
-    flow:
       # This flow models a single-lane road whose direction is
       # completely reversible at arbitrary times.
-      - lanes:
-          - direction: reversible
+    lanes:
+      - direction: reversible

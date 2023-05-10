@@ -15,19 +15,17 @@ properties:
     class: residential
     surface: paved
     flags: [isBridge]
-    flow:
-      # This flow models a physical situation resembling the Lion's Gate Bridge
+      # This models a physical situation resembling the Lion's Gate Bridge
       # between Vancouver and North Vancouver. This is a three-lane bridge in
       # which the middle lane direction can be reversed by traffic authorities
       # at arbitrary times and entry into the alternating middle lane is
       # controlled by a traffic signal.
       #
       #     https://www.openstreetmap.org/#map=16/49.3151/-123.1392
-      - dividers: [signal, signal]
-        lanes:
-          - direction: backward
-            #modes: [motorVehicle]
-          - direction: reversible
-            #modes: [motorVehicle]
-          - direction: forward
-            #modes: [motorVehicle]
+    lanes:
+      - direction: backward
+#        mode: [motorVehicle]
+      - direction: reversible
+#        mode: [motorVehicle]
+      - direction: forward
+#        mode: [motorVehicle]

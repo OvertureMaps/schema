@@ -1,0 +1,19 @@
+---
+id: overture:transportation:segment:1213
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  updateTime: 2023-05-11T00:03:50-08:00
+  version: 4
+  subType: road
+  connectors: [fooConnector, barConnector]
+  road:
+    class: secondary
+    # one way road in backward direction (lanes only in forward direction)
+    lanes:
+      - direction: forward
+      - direction: forward
