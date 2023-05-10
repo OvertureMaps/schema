@@ -14,7 +14,7 @@ properties:
   road:
     class: primary
     surface: paved
-      # This flow models a single-lane road whose direction alternates
+      # This models a single-lane road whose direction alternates
       # on a regular rhythm.
     lanes:
       - direction: alternating

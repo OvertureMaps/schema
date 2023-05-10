@@ -83,33 +83,13 @@ properties:
         - bothWays      # Traffic flows simultaneously in both directions as, e.g., on a sidewalk.
         - alternating   # Traffic flows alternately forward and backward following a predictable rhythm.
         - reversible    # Traffic flows forward, but may be arbitrarily reversed by traffic authorities at any time.
-    laneDivider:
+    direction:
       description: >-
-        Enumerates possible methods of dividing two lanes on a road
-        segment.
+        Enumerates direction of travel or connectivity with
+        another segment.
       type: string
-      enum:
-        - unknown     # We have no information on how lanes are divided
-        - barrier     # Crossing is prevented by a physical barrier.
-        - curb        # Crossing is prevented by a curb. (May be redundant given barrier?)
-        - mayChange   # Changing lanes is permitted when it is safe to do so.
-        - mayNotCross # Changing lanes is prohibited.
-        - mayPass     # Temporarily changing into oncoming traffic lane in order to pass is permitted when it is safe.
-        - signal      # Changing lanes is permitted only when a signal is activated.
-      "$comment": >-
-        The lane divider concept models ability to change lanes from a
-        navigation standpoint (equivalent to OSM "change" tags) and
-        from a visual standpoint (equivalent to OSM "divider" tags)
-        because abstract values such as "mayChange" can be mapped to the
-        appropriate line markings. Judging by fact that OSM has orders
-        of magnitude more "change" tags, the navigation function is
-        thought to be more important.
+      enum: [ forward, backward, both ]
 
-        References:
-         o https://taginfo.openstreetmap.org/keys/change (7K entities)
-         o https://taginfo.openstreetmap.org/keys/change:lanes (50K entities)
-         o https://taginfo.openstreetmap.org/keys/divider (4K entities)
-         o https://taginfo.openstreetmap.org/keys/divider:lanes (0 entities)
     mode:
       description: >-
         Enumerates possible travel modes. Some modes represent groups
@@ -118,12 +98,6 @@ properties:
       enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle ]
       "$comment": >-
         motorVehicle includes car, truck and motorcycle
-    direction:
-      description: >-
-        Enumerates direction of travel or connectivity with
-        another segment.
-      type: string
-      enum: [ forward, backward, both ]
 
     road:
       description: >-
@@ -210,60 +184,6 @@ properties:
                     items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
                     uniqueItems: true
           uniqueItems: true
-        flow:
-          description: >-
-            Rules for how traffic flows along a road segment. Each rule
-            may optionally apply along a linearly referenced range,
-            during a specific set of opening hours, or both. Each rule
-            must fully specify the traffic flow for the part of the
-            segment to which it applies (i.e. there are no partial
-            rules).
-          type: array
-          items:
-            type: object
-            required: [lanes]
-            allOf:
-              - "$ref": "#/$defs/propertyContainers/atRangeContainer"
-              - "$ref": "#/$defs/propertyContainers/duringContainer"
-            unevaluatedProperties: false
-            properties:
-              dividers:
-                description: >-
-                  How the lanes are divided within this flow rule. There
-                  must be exactly one divider for each lane, so a flow
-                  rule with N lanes must have N-1 dividers. For two
-                  consecutive lane items (lanes[i], lanes[i+1]), the
-                  divider between them is given by dividers[i].
-                type: array
-                items: { "$ref": "#/$defs/propertyDefinitions/laneDivider" }
-                default: []
-              lanes:
-                description: >-
-                  The lanes existing within this flow rule. Lanes are
-                  specified from left to right from the perspective of a
-                  person standing on the segment facing in the forward
-                  direction.
-                type: array
-                items: { "$ref": "#/$defs/propertyDefinitions/lane" }
-                minItems: 1
-          minItems: 1
-          uniqueItems: true
-          "$comment": >-
-            Because lane ordering follows the physical layout of the
-            road, there is no default flow rule, since even a simple
-            bidirectional setup with two lanes would only be applicable
-            to the part of the world which shares the same driving
-            direction.
-
-            A possible alternative would be to make the default a
-            one-way flow with a single lane in the forward direction,
-            but given how few roads on the planet it would match, this
-            choice would reveal a very poor understanding of "default".
-
-            It may be that the "flows" concept is general enough to lift
-            up out of "road" and put at the top level. We would have to
-            be convinced that it also applies to water/ferry and rail,
-            however.
         lanes:
           description: >-
             Captures information about lanes on road - including potential information about how those lanes connect with
