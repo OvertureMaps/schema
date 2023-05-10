@@ -58,12 +58,7 @@ a like... is lane 0 of first segment fully aligned with lane 0 of other segment 
 lane 0 id added on left side of road, or maybe it's a delta shape situation where lane 0 of one road evenly widens int two lanes situation on next segment. 
 
 # TODO:
-* proper examples for alternative and reversible lanes
-* add support for scoping attributes on lanes (modes, noModes)
-* add speed limits on lanes
-* add toll on lane information (including payment types)
-* add hov lane information (including hov lane conditions like number of passengers or clean fuel)
-* add (potentially) flags for entrance and exit lanes 
+* add toll on lane information (including payment types) -> toll information outside v1 scope since it was discarded from being simple road flag
 * add connectors information to connectivity to support segmentation that is independent of topology what means specifying toConnector next toSegment (optionally) may be needed when there is more than one connector that leads to target segment
 * add (potentially) optional via(s) to connectivity modeling if there are examples when more than one set of intermediate segments (without lanes information on them) can lead to same target segment
 

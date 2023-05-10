@@ -18,3 +18,11 @@ properties:
       # completely reversible at arbitrary times.
     lanes:
       - direction: reversible
+        restrictions:
+          access:
+            - allowed:
+                direction: forward
+                during: Mo-Su 00:00-12:00
+            - allowed:
+                direction: backward
+                during: Mo-Su 12:00-24:00
