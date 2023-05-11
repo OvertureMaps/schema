@@ -124,7 +124,7 @@ properties:
             - livingStreet # similar as residential but has implied legal restriction for motor vehicles (which can vary country by country)
             - trunk
             - unclassified # known roads, paved but of low importance which does not meet definition of being motorway, trunk, primary, secondary, tertiary
-            - parkingAisle # service road intended for paring
+            - parkingAisle # service road intended for parking
             - driveway # service road intended for deliveries
             - pedestrian
             - footway
