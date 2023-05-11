@@ -129,11 +129,9 @@ properties:
             - pedestrian
             - footway
             - steps
-            - path
             - track
             - cycleway
             - bridleway # similar as track but has implied access only for horses
-            - construction
             - unknown
           default:
             enum: [ unknown ]
@@ -276,6 +274,7 @@ properties:
         - isLink
         - isPrivate
         - isTunnel
+        - isUnderConstruction
     roadSurface:
       description: Physical surface of the road
       type: string
