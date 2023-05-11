@@ -11,18 +11,19 @@ properties:
   properties:
     unevaluatedProperties: false
     required: [freeform]
-    freeform:
-      description: Free form address that contains street name, house number and other address info
-      type: string
-    locality:
-      description: Name of the City or Neighborhood where the address is located
-      type: string
-    postCode:
-      description: Post code where the address is located
-      type: string
-    region:
-      description: ISO-3166-2 subdivision/province code
-      type: string
-    country:
-      description: ISO 3166 alpha2 country code
-      type: string
+    properties:
+      freeform:
+        description: Free form address that contains street name, house number and other address info
+        type: string
+      locality:
+        description: Name of the City or Neighborhood where the address is located
+        type: string
+      postCode:
+        description: Post code where the address is located
+        type: string
+      region:
+        description: ISO-3166-2 subdivision/province code
+        type: string
+      country:
+        description: ISO 3166 alpha2 country code
+        type: string

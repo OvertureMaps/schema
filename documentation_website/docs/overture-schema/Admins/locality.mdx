@@ -6,7 +6,7 @@ import LocalitySchema from '!!raw-loader!@site/docs/yaml/Admins/locality.yaml';
 
 # Locality
 
-<JSONSchemaViewer schema={ LocalitySchema } resolverOptions={ generateResolverOptions({remote: true, basePath: '/admins'})}/>
+<JSONSchemaViewer schema={ yamlToJSON(LocalitySchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
 
 ## Raw Schema YAML:
 
