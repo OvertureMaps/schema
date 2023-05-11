@@ -1,8 +1,8 @@
 import CodeBlock from '@theme/CodeBlock';
-import Schema from "@site/static/schema/admins/administrativeBoundary.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
-import rawSchema from '!!raw-loader!@site/docs/yaml/Admins/administrativeBoundary.yaml';
+import yamlToJSON from "@site/src/components/yamlToJSON"
+import AdminBoundary from '!!raw-loader!@site/docs/yaml/Admins/administrativeBoundary.yaml';
 
 # Administrative Boundaries
 
@@ -23,7 +23,7 @@ Etiam vehicula nisi in magna iaculis dictum sit amet quis ex. Ut mi nulla, vehic
 
 # Schema
 
-<JSONSchemaViewer schema={ Schema } resolverOptions={ generateResolverOptions({remote: true, basePath: 'schema/admins'})}/>
+<JSONSchemaViewer schema={ yamlToJSON(AdminBoundary) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
 
 # Example(s)
 
@@ -31,4 +31,4 @@ Etiam vehicula nisi in magna iaculis dictum sit amet quis ex. Ut mi nulla, vehic
 
 ## Raw Schema YAML:
 
-<CodeBlock language="jsx">{rawSchema}</CodeBlock>
+<CodeBlock language="jsx">{AdminBoundary}</CodeBlock>

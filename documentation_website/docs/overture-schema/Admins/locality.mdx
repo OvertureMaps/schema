@@ -1,13 +1,13 @@
 import CodeBlock from '@theme/CodeBlock';
-import Schema from "@site/static/schema/admins/locality.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
-import rawSchema from '!!raw-loader!@site/docs/yaml/Admins/locality.yaml';
+import yamlToJSON from "@site/src/components/yamlToJSON"
+import LocalitySchema from '!!raw-loader!@site/docs/yaml/Admins/locality.yaml';
 
 # Locality
 
-<JSONSchemaViewer schema={ Schema } resolverOptions={ generateResolverOptions({remote: true, basePath: 'schema/admins'})}/>
+<JSONSchemaViewer schema={ LocalitySchema } resolverOptions={ generateResolverOptions({remote: true, basePath: '/admins'})}/>
 
 ## Raw Schema YAML:
 
-<CodeBlock language="jsx">{rawSchema}</CodeBlock>
+<CodeBlock language="jsx">{LocalitySchema}</CodeBlock>

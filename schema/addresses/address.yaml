@@ -2,15 +2,15 @@
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Overture Maps Address Schema
 description: Additive schema for addresses
-address:
-  type: object
-  unevaluatedProperties: false
-  required: [freeform]
+type: object
+properties:
+  geometry:
+    unevaluatedProperties: false
+    anyOf:
+      - "$ref": https://geojson.org/schema/Point.json
   properties:
-    geometry:
-      unevaluatedProperties: false
-      anyOf:
-        - "$ref": https://geojson.org/schema/Point.json
+    unevaluatedProperties: false
+    required: [freeform]
     freeform:
       description: Free form address that contains street name, house number and other address info
       type: string
@@ -26,5 +26,3 @@ address:
     country:
       description: ISO 3166 alpha2 country code
       type: string
-    
-
