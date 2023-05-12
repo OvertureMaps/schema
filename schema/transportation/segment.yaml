@@ -144,10 +144,10 @@ properties:
             - type: array
               items:
                 type: object
-                required: [applyAt]
+                required: [at]
                 unevaluatedProperties: false
                 allOf:
-                  - { "$ref": "#/$defs/propertyContainers/applyAtRangeContainer" }
+                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
                   - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
               minItems: 1
               uniqueItems: true
