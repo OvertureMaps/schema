@@ -12,13 +12,21 @@ properties:
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:
     unevaluatedProperties: false
-    required: [subType, localityType, names, context]
+    required: [subType, localityType, names]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - allOf:
-          - if: { properties: { subType: { enum: [administrativeLocality] } } }
+          - if:
+              properties:
+                subType: { enum: [administrativeLocality] }
             then:
               "$ref": "./defs.yaml#/$defs/propertyContainers/adminPropertiesContainer"
+          - if:
+              properties:
+                subType: { enum: [administrativeLocality] }
+                adminLevel: { minimum: 3 }
+            then:
+              required: [context]
     properties:
       subType:
         description: populated area types
