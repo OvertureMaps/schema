@@ -1,43 +1,50 @@
-# Website
+# Overture Schema Documentation Webpage
 
-This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+This documentation page is build using [Docusaurus 2](https://docusaurus.io/) with the [JSON Schema Plugin](https://github.com/jy95/docusaurus-json-schema-plugin).
 
-### Installation
 
+## Local Development
+
+###
+First, install the dependencies:
 ```
 $ npm install
 ```
+Then, start the local server:
+```
+$ npm run start
+```
+This command does 2 things: First, it copies the contents of `schema/` into `documentation_website/docs/yaml`, then it runs the docusaurus server which reads the contents of `docs/overture-schema` pages and the `docs/yaml` files to build the page.
 
-### Local Development
+This command should also launch a browser window to `http://localhost:3000` where any changes to the source `.mdx` files are reflected live.
+
+### Editing
+All of the relevant editable `.mdx` files are here:
+```
+schema-wg/
+  documentation_website/
+    docs/
+      overture-schema/
+        -schema.mdx
+        Addresses/
+          -address.mdx
+        Buildings/
+          -footprint.mdx
 
 ```
-$ npm start
+These files may contain the headings, examples, etc. for each schema file, in markdown.
+
+Adding descriptions to the actual schema elements, however, should be done in the schema YAML files directly in the main (`schema-wg/schema/`) directory.
+
+_Note: each time you run `npm run start`, the official YAML schema files from `schema-wg/schema` are copied to the `documentation_website/docs/yaml` directory, where docusaurus parses them._
+
+### Adding a new Schema Page
+1. Update the `src/YAML_FILE_TREE.js` file to include the _relative_ path to the YAML file.
+2. Add a new `.mdx` file in the `docs/overture-schema` directory.
+
+
+## Publishing
 ```
-
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-<!-- Not sure about anything below here:  -->
-
-### Build
-
+$ npm run build
 ```
-$ yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-### Deployment
-
-Using SSH:
-
-```
-$ USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+Docusaurus builds a static web page in the `documentation/build` directory. The contents of this folder are then copied into the `schema-wg/docs` folder, which can be enabled as the root for github pages.

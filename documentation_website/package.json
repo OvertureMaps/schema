@@ -5,7 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "mkdir -p docs/yaml && cp -R ../schema/* docs/yaml/ && docusaurus start",
-    "build": "mkdir -p docs/yaml && cp -R ../schema/* docs/yaml/ && docusaurus build",
+    "build": "mkdir -p docs/yaml && cp -R ../schema/* docs/yaml/ && docusaurus build && mkdir -p ../docs && cp -R build/ ../docs/",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
