@@ -14,8 +14,15 @@ properties:
   road:
     class: primary
     surface: paved
-    flow:
-      # This flow models a single-lane road whose direction is
+      # This models a single-lane road whose direction is
       # completely reversible at arbitrary times.
-      - lanes:
-          - direction: reversible
+    lanes:
+      - direction: reversible
+        restrictions:
+          access:
+            - allowed:
+                direction: forward
+                during: Mo-Su 00:00-12:00
+            - allowed:
+                direction: backward
+                during: Mo-Su 12:00-24:00

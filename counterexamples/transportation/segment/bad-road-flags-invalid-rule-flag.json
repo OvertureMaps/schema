@@ -14,10 +14,6 @@
     "road": {
       "flags": [
         {
-          "values": ["isTolled"],
-          "applyAt":[0, 1]
-        },
-        {
           "values": ["isPrivate", "foo"]
         }
       ]

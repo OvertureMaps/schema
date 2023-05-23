@@ -17,80 +17,41 @@ properties:
   widthMeters: 10
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
   road:
+    # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
     class: secondary
     roadNames:
       common:
         - value: Common Road Name
           language: local
     surface: gravel
-    flags: [isLink, isTunnel, isPrivate, isTolled]
-    flow:
-      # This flow section describes a fairly complex segment in which a
-      # physically separate sidewalk and physically separated cycling lane are
-      # modeled on the same segment. This segment sharing is not expected to be
-      # the norm (we expect sidewalk and cycling lanes to more often have their
-      # own distinct segments); but where the data needs to be modeled this
-      # way, it can be.
-      #
-      # There are two flow rules operating within distinct time periods. In
-      # the first time period, there are two vehicle lanes travelling in each
-      # direction. In the opposite period, there is only one vehicle lane in
-      # each direction, presumably because the other lanes have transitioned
-      # to parking.
-      - dividers: [curb, mayPass, curb, mayChange, mayNotCross, barrier, curb]
-        lanes: # Left to right when facing forward along segment.
-          - direction: bothWays
-            modes: [foot]
-          - direction: forward
-            modes: [bicycle]
-          - direction: backward
-            modes: [bicycle]
-          - direction: backward
-            modes: [motorVehicle]
-          - direction: backward
-            modes: [motorVehicle]
-            turns: [left, through, right]   # Overrides this lane's default of [through, right]
-          - direction: forward
-            modes: [motorVehicle]
-          - direction: forward
-            modes: [motorVehicle]
-          - direction: bothWays
-            modes: [foot]
-        applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
-      - dividers: [curb, mayPass, curb, mayNotCross, curb]
-        lanes:
-          - direction: bothWays
-            modes: [foot]
-          - direction: forward
-            modes: [bicycle]
-          - direction: backward
-            modes: [bicycle]
-          - direction: backward
-            modes: [motorVehicle]
-          - direction: forward
-            modes: [motorVehicle]
-          - direction: bothWays
-            modes: [foot]
-        applyDuring: Mo-Sa 09:00-12:00 closed, We 15:00-18:00 closed
+    flags: [isLink, isTunnel, isPrivate]
     restrictions:
-      notModes: [bicycle]
       speedLimits:
         - minSpeed: [90, "km/h"]
           maxSpeed: [110, "mph"]
-          notModes: [ "truck" ]
+          modeNot: [ "truck" ]
           isMaxSpeedVariable: true
         - maxSpeed: [55, "mph"]
-          modes: [ "truck" ]
-          lanes: [3]
+          mode: [ "truck" ]
         - maxSpeed: [30, "km/h"]
-          applyAt: [0.25, 0.50]
-          applyDuring: Mo-Sa 09:00-12:00, We 15:00-18:00
-      sizeLimits:
-        - maxHeightMeters: 4
-          maxWidthMeters: 4
-          maxWeightKilograms: 500
-          applyAt: [0.1, 0.9]
-      entranceRestrictions: []
-        # TODO: Sanjib
-      exitRestrictions: []
-        # TODO: Sanjib
+          at: [0.25, 0.50]
+          during: Mo-Sa 09:00-12:00, We 15:00-18:00
+      turns:
+        - segmentId: overture:transportation:segment:234
+          connectorId: overture:transportation:connector:123
+          toDirection: forward
+          reason: legal
+          direction: forward
+        - segmentId: overture:transportation:segment:345
+          connectorId: overture:transportation:connector:234
+          toDirection: backward
+          reason: divider
+          direction: backward
+          via:
+            - segmentId: overture:transportation:segment:456
+              connectorId: overture:transportation:connector:345
+              toDirection: forward
+            - segmentId: overture:transportation:segment:567
+              connectorId: overture:transportation:connector:456
+              toDirection: forward
+     

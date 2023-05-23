@@ -18,7 +18,7 @@ properties:
   road:
     class: secondary
     roadNames:
-      - applyAt:
+      - at:
           - 0
           - 50
         common:
@@ -27,7 +27,7 @@ properties:
         short:
           - value: SRN1
             language: local
-      - applyAt:
+      - at:
         - 50
         - 100
         common:
