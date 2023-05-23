@@ -1,19 +1,20 @@
 import CodeBlock from '@theme/CodeBlock';
-import Schema from "@site/static/schema/schema.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlToJSON from "@site/src/components/yamlToJSON"
+import Schema from '!!raw-loader!@site/docs/yaml/schema.yaml';
 
 # Feature
 
-`schema.json`
+`schema.yaml`
 
-<JSONSchemaViewer schema={ Schema } resolverOptions={generateResolverOptions(
+<JSONSchemaViewer schema={ yamlToJSON(Schema) } resolverOptions={generateResolverOptions(
     {
         remote:true,
-        basePath: "schema"
+        yamlBasePath: ""
     }
 )}/>
 
-# Source :
+# Raw Schema YAML :
 
-<CodeBlock language="json">{JSON.stringify(Schema, null, 2)}</CodeBlock>
+<CodeBlock language="jsx">{Schema}</CodeBlock>

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkoverture_schema=self.webpackChunkoverture_schema||[]).push([[461],{8847:e=>{e.exports=JSON.parse('{"title":"Overture Maps Data Schema","description":"Overture Schema","slug":"/","permalink":"/","navigation":{"next":{"title":"Addresses","permalink":"/category/addresses"}}}')}}]);

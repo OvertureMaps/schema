@@ -1,0 +1,18 @@
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
+import yamlToJSON from "@site/src/components/yamlToJSON"
+import PlaceSchema from "!!raw-loader!@site/docs/yaml/places/place.yaml";
+
+
+
+# Place
+
+<JSONSchemaViewer schema={ yamlToJSON(PlaceSchema) } resolverOptions={
+    generateResolverOptions({"remote": true, "yamlBasePath": "/places"})
+} />
+
+# Source :
+
+<CodeBlock language="jsx">{PlaceSchema}</CodeBlock>

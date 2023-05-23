@@ -1,7 +1,8 @@
 import CodeBlock from '@theme/CodeBlock';
-import Schema from "@site/static/schema/transportation/connector.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlToJSON from "@site/src/components/yamlToJSON"
+import ConnectorSchema from '!!raw-loader!@site/docs/yaml/transportation/connector.yaml';
 
 # Connector
 
@@ -13,12 +14,17 @@ Etiam auctor semper risus. Nulla rhoncus semper ligula, ut dictum lacus. Nunc ma
 
 # Connector
 
-<JSONSchemaViewer schema={ Schema } resolverOptions={ generateResolverOptions({remote: true, basePath: 'schema/connector'})}/>
+<JSONSchemaViewer schema={ yamlToJSON(ConnectorSchema) } resolverOptions={ generateResolverOptions(
+    {
+        remote: true,
+        yamlBasePath: '/transportation'
+    }
+)}/>
 
 # Example(s)
 
 <CodeBlock language="json">{JSON.stringify({"foo":"bar"}, null, 2)}</CodeBlock>
 
-## Raw Schema JSON:
+## Raw Schema YAML:
 
-<CodeBlock language="json">{JSON.stringify(Schema, null, 2)}</CodeBlock>
+<CodeBlock language="jsx">{ConnectorSchema}</CodeBlock>

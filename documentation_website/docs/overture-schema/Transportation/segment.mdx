@@ -1,12 +1,13 @@
 import CodeBlock from '@theme/CodeBlock';
-import Schema from "@site/static/schema/transportation/segment.json";
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlToJSON from "@site/src/components/yamlToJSON"
+import SegmentSchema from '!!raw-loader!@site/docs/yaml/transportation/segment.yaml';
 
 # Segment
 
-<JSONSchemaViewer schema={ Schema } resolverOptions={ generateResolverOptions({remote: true, basePath: 'schema/segment'})}/>
+<JSONSchemaViewer schema={ yamlToJSON(SegmentSchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/transportation'})}/>
 
-# Source :
+# Raw Schema YAML :
 
-<CodeBlock language="json">{JSON.stringify(Schema, null, 2)}</CodeBlock>
+<CodeBlock language="jsx">{SegmentSchema}</CodeBlock>
