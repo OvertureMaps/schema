@@ -5,7 +5,8 @@ geometry:
   type: Point
   coordinates: [0, 0]
 properties:
-  category: someCategory
+  categories:
+    main: someCategory
   addresses:
     - freeform: "770 Broadway, Floor 8"
       locality: "New York"

@@ -7,6 +7,8 @@ geometry:
 properties:
   categories:
     main: someCategory
+    alternate:
+      - anotherCategory
   confidence: 0.9
   websites:
     - https://www.example.com
