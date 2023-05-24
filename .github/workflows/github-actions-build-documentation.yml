@@ -1,0 +1,67 @@
+name: build-documentation
+
+on:
+  push:
+    branches: [documentation_autobuilding]
+  pull_request:
+    branches: [main]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check out repo
+        uses: actions/checkout@v3
+      # Node is required for npm
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19"
+
+          # Install and build Docusaurus website
+      - name: Build Docusaurus website
+        run: |
+          cd docusaurus
+          npm install
+          npm run build
+      - name: Deploy to GitHub Pages
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v3
+        with:
+          target_branch: gh-pages
+          build_dir: docusaurus/build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+# name: Build Documentation
+
+# on:
+#   push:
+#     branches: [ documentation_autobuilding ]
+#   # pull_request:
+#     # branches: [  ]
+
+# jobs:
+#   build:
+
+#     runs-on: ubuntu-latest
+
+#     strategy:
+#       matrix:
+#         node-version: [19.x]
+
+#     steps:
+#       - uses: actions/checkout@v3
+#       - name: Use Node.js ${{ matrix.node-version }}
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: ${{ matrix.node-version }}
+#       - name: Install dependencies
+#         run: cd documentation_website && npm install
+#       - name: Build documentation website
+#         run: cd documentation_website && npm run build
