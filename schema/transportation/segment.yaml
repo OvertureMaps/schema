@@ -1,10 +1,11 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Overture Maps Transportation Segment Schema
-description: Additive schema for transportation segments
+description: Additive schema for transportation segments - compatible with GeoJson LineString feature.
 type: object
 properties:
   geometry:
+    description: Segment's geometry which MUST be a LineSting as defined by GeoJson schema.
     unevaluatedProperties: false
     allOf:
       - "$ref": https://geojson.org/schema/LineString.json
@@ -30,8 +31,8 @@ properties:
           kind has an (implied) set of default transport modes.
       connectors:
         description: >-
-          List of connector nodes this segment is physically connected
-          to.
+          List of connectors this segment is physically connected to. Each connector is a possible routing decision point
+          meaning it defines place along segment in which there is possibility to transition to other segments which share same connector.
         type: array
         items:
           type: string
