@@ -42,4 +42,4 @@ properties:
           Pattern is just a placeholder. GERS ID must match the target feature type
       dependencies:
         context:
-          "$ref": "./defs.yaml#/$defs/propertyDefinitions/featureType"
+          "$ref": "../defs.yaml#/$defs/propertyDefinitions/featureType"
