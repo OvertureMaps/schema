@@ -36,10 +36,11 @@ properties:
         type: array
         items:
           type: string
-          pattern: ^[a-z]+Connector$
+          #pattern: ^[a-z]+Connector$
           "$comment": >-
             Pattern is just a placeholder. Each entry in this array is
             the GERS ID of a transportation connector feature.
+            Note: Pattern commented since it wasn't final pattern for GERS ids.
         uniqueItems: true
         default: []
 "$defs":
