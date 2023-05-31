@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Overture Maps Transportation Segment Schema
+title: Overture Maps Feature Schema Common Definitions
 description: Common schema definitions shared by all themes
 "$defs":
   propertyDefinitions:
