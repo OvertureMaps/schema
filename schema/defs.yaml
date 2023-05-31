@@ -65,7 +65,7 @@ description: Common schema definitions shared by all themes
         will be specified in the overture list of approved sources from the 
         Overture Data Working Group that contains the relevant metadata for 
         that source including license and .
-      type: Object
+      type: object
       required: [propertyPointer, overtureDatasetIdentifier]
       unevaluatedProperties: false
       properties:
