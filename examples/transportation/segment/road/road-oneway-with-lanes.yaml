@@ -7,7 +7,7 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  updateTime: 2023-05-11T00:03:50-08:00
+  updateTime: "2023-05-11T00:03:50-08:00"
   version: 4
   subType: road
   connectors: [fooConnector, barConnector]
