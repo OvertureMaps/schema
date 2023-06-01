@@ -18,7 +18,7 @@ properties:
   numFloors: 1
   class: residential
   sources:
-  - propertyPointer: ""
-    overtureDatasetIdentifier: "microsoftMLBuildings"
-  - propertyPointer: "/properties/height"
-    overtureDatasetIdentifier:  "metaLidarExtractions"
+  - property: ""
+    dataset: "microsoftMLBuildings"
+  - property: "/properties/height"
+    dataset:  "metaLidarExtractions"
