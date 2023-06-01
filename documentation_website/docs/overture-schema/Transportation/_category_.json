@@ -3,6 +3,6 @@
     "link": {
         "type": "generated-index",
         "title": "Transportation Schemas",
-        "description": "The Overture Transportation layer is the collection of features and attributes that describe the infrastructure and conventions of how people and objects move about the world. Common use cases for the Transportation layer data include rendering a map of connected roads and paths, route guidance and directions, linkable for addresses, and analysis such as traffic safety or disaster planning. "
+        "description": "The Overture Transportation theme is the collection of features and attributes that describe the infrastructure and conventions of how people and objects move about the world. Common use cases for the Transportation layer data include rendering a map of connected roads and paths, route guidance and directions, linkable for addresses, and analysis such as traffic safety or disaster planning. "
       }
 }

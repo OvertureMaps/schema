@@ -9,8 +9,8 @@ import ConnectorSchema from '!!raw-loader!@site/docs/yaml/transportation/connect
 Connector is a Point feature, somewhat analogous to an OSM node, which helps create topological connections between segments.
 Unlike in OSM they represents routing decision point along segment.
 Each segment has at least two connectors: at the beginning of segment and at its end.
-Connectors align with places where segments meet with each other so either on segments ends or in intermediate points along segments.
-Connector coordinates always intersect with segment's geometry (note: it doesn't mean that coordinate of connector must be
+Connectors align with places where segments meet with each other so either on segment ends or in intermediate points along segments.
+Coordinate of a connector always intersects with segment's geometry (note: it doesn't mean that coordinate of connector must be
 reflected in segment's geometry with exception to begin and end connector).
 
 # Schema
