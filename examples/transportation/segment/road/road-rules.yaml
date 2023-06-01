@@ -1,0 +1,33 @@
+---
+id: overture:transportation:segment:1415
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Custom user properties.
+  extBaz: I am a custom user property...
+  extDescription: >-
+    This is an example road segment in which as many properties as
+    possible are specified using rules instead of flat values. For
+    example, the road flags are specified using rules.
+  # Overture properties
+  theme: transportation
+  type: segment
+  updateTime: "2023-02-23T00:03:59-08:00"
+  version: 5
+  subType: road
+  road:
+    surface:
+      - value: gravel
+        at: [0, 0.25]
+      - value: paved
+        at: [0.25, 1]
+    flags:
+      - values: [isPrivate, isBridge]
+      - values: []
+        at: [0.5, 0.75]
+      - values: [isTunnel]
+        at: [0.75, 0.9]
+      - values: [isPrivate]
+        during: Mo-Sa 09:00-12:00, We 15:00-18:00
