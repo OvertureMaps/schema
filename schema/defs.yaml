@@ -54,24 +54,25 @@ description: Common schema definitions shared by all themes
         level source which is the default source if a specific
         property's source is not specified.
       type: array
-      items: { "$ref": "#/$defs/propertyDefinitions/propertySource" }
+      items: { "$ref": "#/$defs/propertyDefinitions/property" }
       minItems: 1
       uniqueItems: true
-    propertySource: 
+    property: 
       description: >-
-        An object storing the source for a specificed property. 
-        The property will be referenced using JSON Pointer Notation RFC 
-        6901 (https://datatracker.ietf.org/doc/rfc6901/), and the Source 
-        will be specified in the overture list of approved sources from the 
-        Overture Data Working Group that contains the relevant metadata for 
-        that source including license and .
+        An object storing the source for a specificed property. The property 
+        is a reference to the property element within this Feature, and will be 
+        referenced using JSON Pointer Notation RFC 6901 
+        (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for 
+        that referenced property will be specified in the overture list of 
+        approved sources from the Overture Data Working Group that contains 
+        the relevant metadata for that dataset including license source organization.
       type: object
-      required: [propertyPointer, overtureDatasetIdentifier]
+      required: [property, dataset]
       unevaluatedProperties: false
       properties:
-        propertyPointer:
+        property:
           type: string
-        overtureDatasetIdentifier:
+        dataset:
           type: string
     theme:
       description: Top-level Overture theme this feature belongs to
