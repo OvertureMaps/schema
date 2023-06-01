@@ -5,8 +5,12 @@ This documentation page is build using [Docusaurus 2](https://docusaurus.io/) wi
 
 ## Local Development
 
-###
-First, install the dependencies:
+### nvm, node.js, and npm
+Project uses Node.js which is prerequisite to run next instructions.
+For Windows and/or WSL users on Windows (Ubuntu) here is a [link](https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl) to working instructions set.
+
+### First, install the dependencies:
+
 ```
 $ npm install
 ```

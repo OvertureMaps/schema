@@ -1,10 +1,11 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Overture Maps Transportation Connector Schema
-description: Additive schema for transportation connectors
+description: Additive schema for transportation connectors - compatible with GeoJSON Point feature.
 type: object
 properties:
   geometry:
+    description: Connector's geometry which MUST be a Point as defined by GeoJSON schema.
     unevaluatedProperties: false
     allOf:
       - "$ref": https://geojson.org/schema/Point.json
