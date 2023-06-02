@@ -1,17 +1,62 @@
 import CodeBlock from '@theme/CodeBlock';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
-import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
-
 import yamlLoad from "@site/src/components/yamlLoad"
 import FootprintSchema from "!!raw-loader!@site/docs/_schema/buildings/footprint.yaml";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # footprint
 
-<JSONSchemaViewer schema={ yamlLoad(FootprintSchema) } resolverOptions={
-    generateResolverOptions({"remote": true, "yamlBasePath": "/buildings"})
-} />
+Footprints describe real-world buildings, combining the geometry of the
+building footprint with other known facts about the building.
 
-## Full Schema YAML
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td>Polygon or MultiPolygon</td>
+  </tr>
+  <tr>
+    <th><code>theme</code></th>
+    <td><code>buildings</code></td>
+  </tr>
+  <tr>
+    <th><code>type</code></th>
+    <td><code>footprint</code></td>
+  </tr>
+</table>
 
-<CodeBlock language="jsx">{FootprintSchema}</CodeBlock>
+TODO: Buildings team, please write documentation here covering whatever
+      aspects are judged to be most important.
+
+---
+
+*TODO: As one of the people, if not the person, responsible for the name
+       building/footprint, I think footprint is a poor choice of name,
+       and a better fit would be theme=buildings, type=building. In my
+       mind footprint introduces conceptual confusion because, while the
+       geometry represents the footprint of the building, the rest of
+       the properties don't really have anything to do with the footprint
+       per se, they are about the whole building. It really hits home
+       when you try to write a sentence describing the feature type
+       which begins by "Footprints are ______. Can we change it? Sorry.
+       --Vic 2023-06-02*
+
+---
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(FootprintSchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/buildings'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{FootprintSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+TODO: Buildings team please add auto-validated examples. You can find
+      examples of how to add examples in the transportation segment
+      docs.
