@@ -4,13 +4,44 @@ import generateResolverOptions from "@site/src/components/shared-libs/generateRe
 import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
 import yamlLoad from "@site/src/components/yamlLoad"
 import PlaceSchema from "!!raw-loader!@site/docs/_schema/places/place.yaml";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # place
 
-<JSONSchemaViewer schema={ yamlLoad(PlaceSchema) } resolverOptions={
-    generateResolverOptions({"remote": true, "yamlBasePath": "/places"})
-} />
+Places are businesses and points of interest within the world.
 
-# Full Schema YAML
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td>Point</td>
+  </tr>
+  <tr>
+    <th><code>theme</code></th>
+    <td><code>places</code></td>
+  </tr>
+  <tr>
+    <th><code>type</code></th>
+    <td><code>place</code></td>
+  </tr>
+</table>
 
-<CodeBlock language="jsx">{PlaceSchema}</CodeBlock>
+TODO: Places team, please write documentation here covering whatever
+      aspects are judged to be most important.
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(PlaceSchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/places'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{PlaceSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+TODO: Places team please add auto-validated examples. You can find
+      examples of how to add examples in the transportation segment
+      docs.
