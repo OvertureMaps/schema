@@ -19,7 +19,7 @@ properties:
             then:
               properties:
                 road: { "$ref": "#/$defs/propertyDefinitions/road" }
-                widthMeters: { "$ref": "#/$defs/propertyDefinitions/roadWidth"}
+                width: { "$ref": "#/$defs/propertyDefinitions/roadWidth"}
     properties:
       subType:
         description: Broad category of transportation segment.
@@ -556,7 +556,3 @@ properties:
                   "$ref": "#/$defs/propertyDefinitions/relationalExpression"
                 weight:
                   "$ref": "#/$defs/propertyDefinitions/relationalExpression"
-
-
-
-        

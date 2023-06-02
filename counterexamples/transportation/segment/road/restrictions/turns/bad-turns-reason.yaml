@@ -14,7 +14,7 @@ properties:
   version: 0
   subType: road
   level: -1
-  widthMeters: 10
+  width: 10
   connectors: [fooConnector, barConnector]
   road:
     class: secondary
