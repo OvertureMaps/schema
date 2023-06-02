@@ -315,6 +315,7 @@ properties:
       additionalItems: false
     turnOption:
       description: Option for turning at a junction between segments
+      "$comment": "FIXME: This definition is currently unused as of 2023-06-02."
       type: string
       enum:
         - mergeLeft
