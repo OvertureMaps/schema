@@ -10,7 +10,7 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  updateTime: 2023-02-23T00:02:30-08:00
+  updateTime: "2023-02-23T00:02:30-08:00"
   version: 0
   subType: road
   level: -1
@@ -54,4 +54,3 @@ properties:
             - segmentId: overture:transportation:segment:567
               connectorId: overture:transportation:connector:456
               toDirection: forward
-     

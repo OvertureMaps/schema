@@ -2,15 +2,15 @@ import CodeBlock from '@theme/CodeBlock';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
-import yamlToJSON from "@site/src/components/yamlToJSON"
-import AddressSchema from '!!raw-loader!@site/docs/yaml/addresses/address.yaml';
+import yamlLoad from "@site/src/components/yamlLoad"
+import AddressSchema from '!!raw-loader!@site/docs/_schema/addresses/address.yaml';
 
-# Addresses
+# address
 
-<JSONSchemaViewer schema={ yamlToJSON(AddressSchema) } resolverOptions={
+<JSONSchemaViewer schema={ yamlLoad(AddressSchema) } resolverOptions={
     generateResolverOptions({"remote": true, "yamlBasePath": "/addresses"})
 } />
 
-# Raw Schema YAML :
+## Full Schema YAML
 
 <CodeBlock language="jsx">{AddressSchema}</CodeBlock>

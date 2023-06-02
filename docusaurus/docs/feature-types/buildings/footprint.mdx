@@ -3,17 +3,15 @@ import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
 
-import yamlToJSON from "@site/src/components/yamlToJSON"
-import FootprintSchema from "!!raw-loader!@site/docs/yaml/buildings/footprint.yaml";
+import yamlLoad from "@site/src/components/yamlLoad"
+import FootprintSchema from "!!raw-loader!@site/docs/_schema/buildings/footprint.yaml";
 
+# footprint
 
-# Building Footprint
-
-<JSONSchemaViewer schema={ yamlToJSON(FootprintSchema) } resolverOptions={
+<JSONSchemaViewer schema={ yamlLoad(FootprintSchema) } resolverOptions={
     generateResolverOptions({"remote": true, "yamlBasePath": "/buildings"})
 } />
 
-
-# Raw Schema YAML :
+## Full Schema YAML
 
 <CodeBlock language="jsx">{FootprintSchema}</CodeBlock>

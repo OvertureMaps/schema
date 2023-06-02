@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "mkdir -p docs/yaml && cp -R ../schema/* docs/yaml/ && docusaurus start",
-    "build": "mkdir -p docs/yaml && cp -R ../schema/* docs/yaml/ && docusaurus build && mkdir -p ../docs && cp -R build/ ../docs/",
+    "start": "mkdir -p docs/_schema && cp -R ../schema/* docs/_schema/ && mkdir -p docs/_examples && cp -R ../examples/* docs/_examples/ && docusaurus start",
+    "build": "mkdir -p docs/_schema && cp -R ../schema/* docs/_schema/ && mkdir -p docs/_examples && cp -R ../examples/* docs/_examples/ && docusaurus build && mkdir -p ../docs && cp -R build/ ../docs/",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",

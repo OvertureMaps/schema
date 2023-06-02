@@ -1,10 +1,10 @@
 import CodeBlock from '@theme/CodeBlock';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
-import yamlToJSON from "@site/src/components/yamlToJSON"
-import AdminBoundary from '!!raw-loader!@site/docs/yaml/admins/administrativeBoundary.yaml';
+import yamlLoad from "@site/src/components/yamlLoad"
+import AdminBoundary from '!!raw-loader!@site/docs/_schema/admins/administrativeBoundary.yaml';
 
-# Administrative Boundaries
+# adminBoundary
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor massa et eros volutpat consequat. Curabitur vestibulum et eros fermentum posuere. Sed in elementum sapien. Praesent non eros lectus. Sed non arcu lorem. Maecenas id dolor nibh. Duis vitae metus eget massa ullamcorper feugiat. Phasellus efficitur dolor massa, ac vestibulum metus vulputate eget. Integer vulputate felis ut sem scelerisque, quis mattis metus malesuada. Donec ut iaculis ante, et elementum ipsum. Mauris vitae orci consequat, congue justo sit amet, ultricies mauris. Integer consectetur metus quis aliquet aliquet.
 
@@ -23,12 +23,12 @@ Etiam vehicula nisi in magna iaculis dictum sit amet quis ex. Ut mi nulla, vehic
 
 # Schema
 
-<JSONSchemaViewer schema={ yamlToJSON(AdminBoundary) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
+<JSONSchemaViewer schema={ yamlLoad(AdminBoundary) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
 
 # Example(s)
 
 <CodeBlock language="json">{JSON.stringify({"foo":"bar"}, null, 2)}</CodeBlock>
 
-## Raw Schema YAML:
+## Full Schema YAML
 
 <CodeBlock language="jsx">{AdminBoundary}</CodeBlock>
