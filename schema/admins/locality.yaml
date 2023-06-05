@@ -39,7 +39,5 @@ properties:
         type: string
         pattern: ^[a-zA-Z]+Id$
         "$comment": >-
-          Pattern is just a placeholder. GERS ID must match the target feature type
-      dependencies:
-        context:
-          "$ref": "../defs.yaml#/$defs/propertyDefinitions/featureType"
+          Pattern is just a placeholder. GERS ID must match the target feature type.
+          TODO: Encode a constraint on the type of the target objects.
