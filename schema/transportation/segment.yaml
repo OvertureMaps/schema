@@ -313,22 +313,6 @@ properties:
           type: string
           enum: [ "km/h", "mph" ]
       additionalItems: false
-    turnOption:
-      description: Option for turning at a junction between segments
-      "$comment": "FIXME: This definition is currently unused as of 2023-06-02."
-      type: string
-      enum:
-        - mergeLeft
-        - slightLeft
-        - left
-        - sharpLeft
-        - through
-        - mergeRight
-        - slightRight
-        - right
-        - sharpRight
-        - reverse
-        - merge # indicates that the traffic of a lane has to merge with the main traffic but the merge direction is not specified
     accessOption:
       description: access option (restriction) for a given segment
       type: string
