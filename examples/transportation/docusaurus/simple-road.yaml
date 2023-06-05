@@ -1,5 +1,5 @@
 ---
-id: overture:transportation:road:simple-example
+id: overture:transportation:example:simple-road
 type: Feature
 geometry:
   type: LineString
@@ -13,6 +13,9 @@ properties:
   version: 3
   updateTime: "2023-06-01T16:42:00-06:00"
   subType: road
+  connectors:
+    - overture:transportation:example:simple-road-connector-1
+    - overture:transportation:example:simple-road-connector-2
   road:
     roadNames:
       common: [ { language: local, value: "Nicola Street" } ]
