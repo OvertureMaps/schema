@@ -1,0 +1,45 @@
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import AdministrativeBoundarySchema from '!!raw-loader!@site/docs/_schema/admins/administrativeBoundary.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# administrativeBoundary
+
+Administrative Boundaries are borders surrounding [Administrative Localities](administrativeLocality).
+
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td>LineString</td>
+  </tr>
+  <tr>
+    <th><code>theme</code></th>
+    <td><code>admins</code></td>
+  </tr>
+  <tr>
+    <th><code>type</code></th>
+    <td><code>administrativeBoundary</code></td>
+  </tr>
+</table>
+
+TODO: Administrative theme team, please fill this in.
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(AdministrativeBoundarySchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/admins'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{AdministrativeBoundarySchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+TODO: Admins team team please add auto-validated examples. You can find
+      examples of how to add examples in the transportation segment
+      docs.

@@ -1,0 +1,50 @@
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import LocalitySchema from '!!raw-loader!@site/docs/_schema/admins/locality.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# namedLocality
+
+Named Localities represent named areas which are not formally part of
+the hierarchical subdivision of a country (are not
+[Administrative Localities](administrativeLocality)).
+
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td>Point, Polygon or MultiPolygon</td>
+  </tr>
+  <tr>
+    <th><code>theme</code></th>
+    <td><code>admins</code></td>
+  </tr>
+  <tr>
+    <th><code>type</code></th>
+    <td><code>namedLocality</code></td>
+  </tr>
+</table>
+
+TODO: Administrative theme team, please fill this in.
+
+## Schema
+
+TODO: This is confusing because it is the schema for "all localities"
+not the schema dedicated to "named localities".
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(LocalitySchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/admins'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{LocalitySchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+TODO: Admins team team please add auto-validated examples. You can find
+      examples of how to add examples in the transportation segment
+      docs.
