@@ -1,0 +1,49 @@
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
+import yamlLoad from "@site/src/components/yamlLoad"
+import AddressSchema from '!!raw-loader!@site/docs/_schema/addresses/address.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# address
+
+Addresses are well-known locations described by a free-form or
+structured reference value.
+
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td>Point</td>
+  </tr>
+  <tr>
+    <th><code>theme</code></th>
+    <td><code>addresses</code></td>
+  </tr>
+  <tr>
+    <th><code>type</code></th>
+    <td><code>address</code></td>
+  </tr>
+</table>
+
+TODO: Someone please write a short documentary blurb about addresses.
+      You might find it useful to link to other feature types which may
+      have addresses, i.e. Building [Footprints](../buildings/footprint)
+      and [Places](../places/place).
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(AddressSchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/addresses'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{AddressSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+TODO: Please add auto-validated examples. You can find examples of how
+      to add examples in the transportation segment docs.
