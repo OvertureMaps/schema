@@ -1,7 +1,8 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Overture Maps for populated areas
-description: Additive schema for populated areas
+title: Locality Schema
+description: >-
+  Localities are named, populated areas.
 type: object
 properties:
   geometry:

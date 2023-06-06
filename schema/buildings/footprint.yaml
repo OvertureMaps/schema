@@ -1,14 +1,20 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Overture Maps Building Footprint Schema
-description: Additive schema for building footprints
+title: Building Footprint Schema
+description: >-
+  A building is a man-made structure having a roof and standing
+  more-or-less permanently in one place. Buildings are compatible with
+  GeoJSON Polygon features.
 type: object
 properties:
   geometry:
+    description: >-
+      Footprint's geometry which MUST be a Polygon as defined by GeoJSON
+      schema.
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Polygon.json
-      - "$ref": https://geojson.org/schema/MultiPolygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json # TODO: This is probably wrong - https://github.com/OvertureMaps/schema-wg/issues/116
   properties:
     unevaluatedProperties: false
     allOf:
@@ -21,7 +27,7 @@ properties:
         type: number
         exclusiveMinimum: 0
       numFloors:
-        description: Number of above ground floors of the building
+        description: Number of above-ground floors of the building
         type: integer
         exclusiveMinimum: 0
       class:

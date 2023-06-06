@@ -1,10 +1,15 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Overture Maps Place Schema
-description: Additive schema for places
+title: Place Schema
+description: >-
+  A Place is a point representation of a real-world facility, service,
+  or amenity. Place features are compatible with GeoJSON Point features.
 type: object
 properties:
   geometry:
+    description: >-
+      Place's geometry which MUST be a Point as defined by GeoJSON
+      schema.
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
@@ -19,7 +24,7 @@ properties:
           # - signals -> shared cross-cutting concern
           names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
           categories:
-            description: The categories of the place. The list of categories can be found <TBD>.
+            description: The categories of the place. The list of categories can be found <TODO>.
             type: object
             required: [main]
             properties:

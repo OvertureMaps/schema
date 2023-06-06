@@ -1,18 +1,23 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Overture Maps Address Schema
-description: Additive schema for addresses
+title: Address Schema
+description: >-
+  Addresses are well-known points locatable by a free-form or structured
+  reference value. Addresses are compatible with GeoJSON Point features.
 address:
   type: object
   unevaluatedProperties: false
   required: [freeform]
   properties:
     geometry:
+      description: >-
+        Address' geometry which MUST be A Point as defined by the
+        GeoJSON schema.
       unevaluatedProperties: false
       anyOf:
         - "$ref": https://geojson.org/schema/Point.json
-    freeform:
-      description: Free form address that contains street name, house number and other address info
+    freeform: # TODO: Should probably be renamed freeForm, as free-form is a two-word hyphenated construct.
+      description: Free-form address that contains street name, house number and other address info
       type: string
     locality:
       description: Name of the City or Neighborhood where the address is located

@@ -1,11 +1,15 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Overture Maps Transportation Segment Schema
-description: Additive schema for transportation segments - compatible with GeoJSON LineString feature.
+title: Transportation Segment
+description: >-
+  Segments are paths which can be traveled by people or things. Segments
+  are compatible with GeoJSON LineString features.
 type: object
 properties:
   geometry:
-    description: Segment's geometry which MUST be a LineSting as defined by GeoJSON schema.
+    description: >-
+      Segment's geometry which MUST be a LineSting as defined by GeoJSON
+      schema.
     unevaluatedProperties: false
     allOf:
       - "$ref": https://geojson.org/schema/LineString.json
