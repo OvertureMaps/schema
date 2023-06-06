@@ -1,0 +1,10 @@
+---
+label: Core Concepts
+position: 0
+collapsible: true
+collapsed: false
+link:
+  type: generated-index
+  title: Concepts
+  description: Core Concepts
+  slug: core

@@ -1,0 +1,10 @@
+---
+label: Theme Concepts
+position: 0
+collapsible: true
+collapsed: false
+link:
+  type: generated-index
+  title: Theme Concepts
+  description: Theme Concepts
+  slug: themes
