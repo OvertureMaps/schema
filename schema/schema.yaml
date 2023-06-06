@@ -1,9 +1,9 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Overture Maps schema Schema
+title: Overture Maps Schema
 description: >-
-  Prototype schema for Overture Maps Foundation map entities as GeoJSON
-  schemas.
+  A JSON Schema for the canonical GeoJSON form of Overture Maps
+  Features.
 type: object
 unevaluatedProperties: false
 allOf:
