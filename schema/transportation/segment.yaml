@@ -262,7 +262,7 @@ properties:
                      description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
                      type: array
                      items:
-                       description: GERS id of the connected segments
+                       description: GERS ID of the connected segments
                        "$ref": "#/$defs/propertyDefinitions/relationTarget"
                      minItems: 1
                      uniqueItems: true
