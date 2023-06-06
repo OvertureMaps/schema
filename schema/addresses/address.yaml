@@ -4,7 +4,7 @@ title: Address Schema
 description: >-
   Addresses are well-known points locatable by a free-form or structured
   reference value. Addresses are compatible with GeoJSON Point features.
-address:
+address: #TODO: This needs to be `properties` to render properly in docusaurus, but when I do this, it does not validate
   type: object
   unevaluatedProperties: false
   properties:
