@@ -2,8 +2,14 @@
 id: overture:buildings:footprint:1234
 type: Feature
 geometry:
+  coordinates: [[
+            [-77.03687304209062, 38.897804231678464],
+            [-77.03687304209062, 38.89755914948324],
+            [-77.03626048332023, 38.89755914948324],
+            [-77.03626048332023, 38.897804231678464],
+            [-77.03687304209062, 38.897804231678464]
+          ]]
   type: Polygon
-  coordinates: [[[-117.33804751017563,47.77664901229468],[-117.33772154554886,47.77672717189289],[-117.33764853649046,47.77658966259629],[-117.33797450111723,47.77651150279137],[-117.33804751017563,47.77664901229468]]]
 properties:
   # Custom user properties.
   extFoo: I am a customer user property.
@@ -13,7 +19,7 @@ properties:
   type: footprint
   version: 1
   level: -2
-  updateTime: "2023-02-22T23:55:01-08:00"
-  height: 3.42
-  numFloors: 1
-  class: residential
+  updateTime: "2023-06-06T10:30:00-08:00"
+  height: 21.34
+  numFloors: 4
+  class: civic
