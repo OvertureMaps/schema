@@ -3,6 +3,10 @@ import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import yamlLoad from "@site/src/components/yamlLoad"
 import FootprintSchema from "!!raw-loader!@site/docs/_schema/buildings/footprint.yaml";
+
+import PolygonExample from "!!raw-loader!@site/docs/_examples/buildings/footprint-polygon.yaml";
+import MultiPolygonExample from "!!raw-loader!@site/docs/_examples/buildings/footprint-multipolygon.yaml";
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -58,14 +62,12 @@ TODO: Buildings team, please write documentation here covering whatever
 ## Examples
 
 <Tabs>
-  <TabItem value="1" label="Simple" default>
-
+  <TabItem value="1" label="Polygon Building" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(PolygonExample), null, 2) }</CodeBlock>
   </TabItem>
-  <TabItem value="2" label="Complex" default>
 
+  <TabItem value="2" label="MultiPolygon Building" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(MultiPolygonExample), null, 2) }</CodeBlock>
   </TabItem>
+
 </Tabs>
-
-TODO: Buildings team please add auto-validated examples. You can find
-      examples of how to add examples in the transportation segment
-      docs.
