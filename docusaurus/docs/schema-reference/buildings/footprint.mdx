@@ -48,7 +48,7 @@ TODO: Buildings team, please write documentation here covering whatever
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>
-    <JSONSchemaViewer schema={ yamlLoad(FootprintSchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/buildings'})}/>
+    <JSONSchemaViewer schema={ yamlLoad(FootprintSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/buildings'})}/>
   </TabItem>
   <TabItem value="yaml" label="YAML" default>
     <CodeBlock language="jsx">{FootprintSchema}</CodeBlock>
@@ -56,6 +56,15 @@ TODO: Buildings team, please write documentation here covering whatever
 </Tabs>
 
 ## Examples
+
+<Tabs>
+  <TabItem value="1" label="Simple" default>
+
+  </TabItem>
+  <TabItem value="2" label="Complex" default>
+
+  </TabItem>
+</Tabs>
 
 TODO: Buildings team please add auto-validated examples. You can find
       examples of how to add examples in the transportation segment
