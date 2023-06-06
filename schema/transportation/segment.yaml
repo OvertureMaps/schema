@@ -390,24 +390,18 @@ properties:
           "$ref": "#/$defs/propertyDefinitions/direction"
       required: [segmentId]
   propertyContainers:
-    atPositionContainer:
-      description: >-
-        Properties defining the discrete position on the segment where
-        a rule is active.
-      properties:
-        at:
-          "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition
     atRangeContainer:
       description: >-
-        Properties defining the range of positions on the segment where
-        a rule is active.
+        Geometric scoping properties defining the range of positions on
+        the segment where something is physically located or where a
+        rule is active.
       properties:
         at:
           "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedRange
     duringContainer:
       "$comment": >-
-        Properties defining the time spans when a recurring rule is
-        active.
+        Temporal scoping properties defining the time spans when a
+        recurring rule is active.
       properties:
         during:
           "$ref": ../defs.yaml#/$defs/propertyDefinitions/openingHours
