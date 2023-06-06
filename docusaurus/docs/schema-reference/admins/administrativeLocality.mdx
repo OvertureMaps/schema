@@ -35,7 +35,7 @@ not the schema dedicated to "administrative localities".
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>
-    <JSONSchemaViewer schema={ yamlLoad(LocalitySchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/admins'})}/>
+    <JSONSchemaViewer schema={ yamlLoad(LocalitySchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
   </TabItem>
   <TabItem value="yaml" label="YAML" default>
     <CodeBlock language="jsx">{LocalitySchema}</CodeBlock>

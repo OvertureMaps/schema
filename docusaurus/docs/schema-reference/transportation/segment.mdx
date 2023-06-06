@@ -106,7 +106,7 @@ The schema for `rail` segments is under development.
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>
-    <JSONSchemaViewer schema={ yamlLoad(SegmentSchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/transportation'})}/>
+    <JSONSchemaViewer schema={ yamlLoad(SegmentSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/transportation'})}/>
   </TabItem>
   <TabItem value="yaml" label="YAML" default>
     <CodeBlock language="jsx">{SegmentSchema}</CodeBlock>

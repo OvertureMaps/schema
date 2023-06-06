@@ -33,7 +33,7 @@ TODO: Places team, please write documentation here covering whatever
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>
-    <JSONSchemaViewer schema={ yamlLoad(PlaceSchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/places'})}/>
+    <JSONSchemaViewer schema={ yamlLoad(PlaceSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/places'})}/>
   </TabItem>
   <TabItem value="yaml" label="YAML" default>
     <CodeBlock language="jsx">{PlaceSchema}</CodeBlock>

@@ -36,7 +36,7 @@ TODO: Someone please write a short documentary blurb about addresses.
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>
-    <JSONSchemaViewer schema={ yamlLoad(AddressSchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/addresses'})}/>
+    <JSONSchemaViewer schema={ yamlLoad(AddressSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/addresses'})}/>
   </TabItem>
   <TabItem value="yaml" label="YAML" default>
     <CodeBlock language="jsx">{AddressSchema}</CodeBlock>

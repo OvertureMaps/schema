@@ -38,7 +38,7 @@ properties.
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>
-    <JSONSchemaViewer schema={ yamlLoad(ConnectorSchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/transportation'})}/>
+    <JSONSchemaViewer schema={ yamlLoad(ConnectorSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/transportation'})}/>
   </TabItem>
   <TabItem value="yaml" label="YAML" default>
     <CodeBlock language="jsx">{ConnectorSchema}</CodeBlock>

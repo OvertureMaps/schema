@@ -31,7 +31,7 @@ TODO: Administrative theme team, please fill this in.
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>
-    <JSONSchemaViewer schema={ yamlLoad(AdministrativeBoundarySchema) } resolverOptions={ generateResolverOptions({remote: true, basePath: '/admins'})}/>
+    <JSONSchemaViewer schema={ yamlLoad(AdministrativeBoundarySchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
   </TabItem>
   <TabItem value="yaml" label="YAML" default>
     <CodeBlock language="jsx">{AdministrativeBoundarySchema}</CodeBlock>
