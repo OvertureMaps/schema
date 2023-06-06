@@ -16,18 +16,19 @@ properties:
       unevaluatedProperties: false
       anyOf:
         - "$ref": https://geojson.org/schema/Point.json
-    freeform: # TODO: Should probably be renamed freeForm, as free-form is a two-word hyphenated construct.
-      description: Free-form address that contains street name, house number and other address info
-      type: string
-    locality:
-      description: Name of the City or Neighborhood where the address is located
-      type: string
-    postCode:
-      description: Post code where the address is located
-      type: string
-    region:
-      description: ISO-3166-2 subdivision/province code
-      type: string
-    country:
-      description: ISO 3166 alpha2 country code
-      type: string
+    properites:
+      freeform: # TODO: Should probably be renamed freeForm, as free-form is a two-word hyphenated construct.
+        description: Free-form address that contains street name, house number and other address info
+        type: string
+      locality:
+        description: Name of the City or Neighborhood where the address is located
+        type: string
+      postCode:
+        description: Post code where the address is located
+        type: string
+      region:
+        description: ISO-3166-2 subdivision/province code
+        type: string
+      country:
+        description: ISO 3166 alpha2 country code
+        type: string
