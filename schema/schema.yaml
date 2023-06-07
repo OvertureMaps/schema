@@ -31,8 +31,8 @@ oneOf:
         properties:
           properties:
             theme: { enum: [buildings] }
-            type: { enum: [footprint] }
-    then: { "$ref": buildings/footprint.yaml }
+            type: { enum: [building] }
+    then: { "$ref": buildings/building.yaml }
     else: { propertyNames: false }
   - if:
       description: "Transportation Connectors"
