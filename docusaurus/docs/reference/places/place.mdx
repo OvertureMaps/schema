@@ -4,6 +4,8 @@ import generateResolverOptions from "@site/src/components/shared-libs/generateRe
 import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
 import yamlLoad from "@site/src/components/yamlLoad"
 import PlaceSchema from "!!raw-loader!@site/docs/_schema/places/place.yaml";
+import PlaceExample from "!!raw-loader!@site/docs/_examples/places/place.yaml";
+import PlaceExampleAlternateCategories from "!!raw-loader!@site/docs/_examples/places/place-alternate-categories.yaml";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -42,6 +44,12 @@ TODO: Places team, please write documentation here covering whatever
 
 ## Examples
 
-TODO: Places team please add auto-validated examples. You can find
-      examples of how to add examples in the transportation segment
-      docs.
+<Tabs>
+  <TabItem value="1" label="Place" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(PlaceExample), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="2" label="Alternate Categories" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(PlaceExampleAlternateCategories), null, 2) }</CodeBlock>
+  </TabItem>
+
+</Tabs>
