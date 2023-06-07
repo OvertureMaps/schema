@@ -1,7 +1,7 @@
 ---
-label: Place
+label: Places
 collapsible: true
 collapsed: true
 link:
   type: doc
-  id: place
+  id: places
