@@ -81,5 +81,5 @@ properties:
             description: The addresses of the place.
             type: array
             items:
-              "$ref": ../addresses/address.yaml#/address
+              "$ref": "../defs.yaml#/$defs/propertyDefinitions/address"
             uniqueItems: true
