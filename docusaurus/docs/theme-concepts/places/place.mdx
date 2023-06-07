@@ -1,0 +1,16 @@
+---
+title: Place
+---
+
+A place is a point representation of a real-world facility, service, or amenity.
+
+### Key Schema Design Choices
+
+#### Extensive attributes
+In this initial release, common basic attributes have been added like phone, mail, website, brand, etc. Attributes currently not covered in the official schema release are allowed to exist with a prefix or "ext" in their name. Attributes which are more specific for one or more types of Places are planned to be added later. For example, we foresee the addition of a confidence attribute describing the level of confidence in the existence of a place.
+
+#### Consistent schema
+The "address" and "name" attributes share the same schema when used in other Overture data layers.
+
+#### Controlled Categories
+An initial hierarchical categorization (taxonomy) has been created, allowing transformation of different hierarchical and non-hierarchical categorization systems to the Overture categorization. This first intention of the taxonomy is to be complete. The groups within the taxonomy will be fine-tuned as we progress.

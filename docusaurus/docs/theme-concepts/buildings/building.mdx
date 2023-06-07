@@ -6,11 +6,13 @@ title: Buildings
 
 _A building is a man-made structure with a roof that exists permanently in one place._
 
-### Extensible attributes
+### Key Schema Design Choices
+
+#### Extensible attributes
 In this initial release, we start from a basic model containing footprint polygons and a small number of optional attributes. Attributes currently not covered in the official schema release are allowed to exist with a prefix of "ext" in their name. We plan to cover more sophisticated geometries and attributes (e.g. building parts with different heights, detailed 3D models, etc.) in future releases.
 
-### Internal Consistency
+#### Internal Consistency
 Where applicable, fields such as "address" or "name" will always use the same schema as in other layers.
 
-### Easy transformation from other data sources
+#### Easy transformation from other data sources
 Classes such as "residential, commercial, or education" are intended to be broad categories in which many different OSM tagging combinations can map to the same class.

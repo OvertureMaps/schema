@@ -1,6 +1,9 @@
 ---
 collapsed: false
+label: Buildings
 link:
   type: generated-index
   description: |
-    The buildings theme associates attributes of a building with the basic geometry of a building. At minimum, these geometries represent the most outer footprint (or roofprint) of a building.
+    The buildings theme covers human built structures with roofs that exist permanently in one place.
+
+    Features in the building theme connect basic geometries that describe the physical footprint of the building to attributes that describe the building.
