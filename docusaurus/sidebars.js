@@ -36,10 +36,10 @@ const sidebars = {
           },
           collapsed: true,
           items: [
-            'themes/transportation/topology',
-            'themes/transportation/scoped-properties',
-            'themes/transportation/travel-modes',
-            {
+            //'themes/transportation/topology',
+            //'themes/transportation/scoped-properties',
+            //'themes/transportation/travel-modes',
+            /*{
               type: 'category',
               label: 'Roads',
               link: {
@@ -50,7 +50,7 @@ const sidebars = {
               items: [
                 'themes/transportation/roads/lanes'
               ],
-            }
+            }*/
           ]
         }
       ]
