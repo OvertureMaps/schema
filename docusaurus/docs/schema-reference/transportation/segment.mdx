@@ -4,6 +4,8 @@ import generateResolverOptions from "@site/src/components/shared-libs/generateRe
 import yamlLoad from "@site/src/components/yamlLoad"
 import SegmentSchema from '!!raw-loader!@site/docs/_schema/transportation/segment.yaml';
 import ExampleSimpleRoad from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/simple-road.yaml';
+import ExampleAccessRestriction from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction.yaml';
+import ExampleTurnRestriction from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -124,8 +126,10 @@ The schema for `rail` segments is under development.
   </TabItem>
 
   <TabItem value="accessRestrictions" label="Access Restrictions" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleAccessRestriction), null, 2) }</CodeBlock>
   </TabItem>
 
   <TabItem value="turnRestrictions" label="Turn Restrictions" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestriction), null, 2) }</CodeBlock>
   </TabItem>
 </Tabs>

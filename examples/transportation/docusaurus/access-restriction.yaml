@@ -1,0 +1,30 @@
+---
+id: overture:transportation:example:simple-road1
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-122.152944, 47.629681]
+    - [-122.152916, 47.629686]
+    - [-122.152501, 47.62977]
+    - [-122.152188, 47.62984]
+    - [-122.151813, 47.629934]
+    - [-122.151747, 47.629952]
+properties:
+  theme: transportation
+  type: segment
+  version: 3
+  updateTime: "2023-06-06T16:42:00-06:00"
+  subType: road
+  connectors:
+    - overture:transportation:example:simple-road-connector-1
+    - overture:transportation:example:simple-road-connector-2
+  road:
+    roadNames:
+      common: [ { language: local, value: "SR 520" } ]
+    class: motorway
+    surface: paved
+    restrictions:
+      access:
+        - denied:
+            when: {mode: [foot]}
