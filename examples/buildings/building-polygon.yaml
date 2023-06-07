@@ -16,7 +16,7 @@ properties:
   extBar: Me too!
   # Overture properties
   theme: buildings
-  type: footprint
+  type: building
   version: 1
   level: 1
   updateTime: "2023-06-06T10:30:00-08:00"

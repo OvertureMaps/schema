@@ -13,7 +13,7 @@ description: Common schema definitions shared by all themes
       type: string
       enum:
         - connector
-        - footprint
+        - building
         - segment
         - locality
         - administrativeBoundary
@@ -182,9 +182,9 @@ description: Common schema definitions shared by all themes
     address:
       type: object
       unevaluatedProperties: false
-      required: [freeForm]
+      required: [freeform]
       properties:
-        freeForm: # TODO: Should probably be renamed freeForm, as free-form is a two-word hyphenated construct.
+        freeform: # TODO: Should probably be renamed freeForm, as free-form is a two-word hyphenated construct.
           description: Free-form address that contains street name, house number and other address info
           type: string
         locality:
