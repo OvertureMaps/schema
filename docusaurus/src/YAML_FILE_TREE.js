@@ -2,13 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const _default = {
 
-    '/addresses/address.yaml': require('!!raw-loader!@site/docs/_schema/addresses/address.yaml'),
-
     '/admins/administrativeBoundaries.yaml': require('!!raw-loader!@site/docs/_schema/admins/administrativeBoundary.yaml'),
     '/admins/defs.yaml': require('!!raw-loader!@site/docs/_schema/admins/defs.yaml'),
     '/admins/locality.yaml': require('!!raw-loader!@site/docs/_schema/admins/locality.yaml'),
 
-    '/buildings/footprint.yaml': require('!!raw-loader!@site/docs/_schema/buildings/footprint.yaml'),
+    '/buildings/building.yaml': require('!!raw-loader!@site/docs/_schema/buildings/building.yaml'),
 
     '/places/place.yaml': require('!!raw-loader!@site/docs/_schema/places/place.yaml'),
 

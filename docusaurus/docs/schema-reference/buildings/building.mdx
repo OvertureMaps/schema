@@ -2,7 +2,7 @@ import CodeBlock from '@theme/CodeBlock';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import yamlLoad from "@site/src/components/yamlLoad"
-import FootprintSchema from "!!raw-loader!@site/docs/_schema/buildings/Building.yaml";
+import FootprintSchema from "!!raw-loader!@site/docs/_schema/buildings/building.yaml";
 
 import PolygonExample from "!!raw-loader!@site/docs/_examples/buildings/building-polygon.yaml";
 import MultiPolygonExample from "!!raw-loader!@site/docs/_examples/buildings/building-multipolygon.yaml";
@@ -11,10 +11,9 @@ import MultipleNamesExample from "!!raw-loader!@site/docs/_examples/buildings/na
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# building
+# Building
 
-Footprints describe real-world buildings, combining the geometry of the
-building footprint with other known facts about the building.
+A building is a man-made structure with a roof that exists permanently in one place.
 
 <table>
   <tr>
@@ -31,23 +30,8 @@ building footprint with other known facts about the building.
   </tr>
 </table>
 
-TODO: Buildings team, please write documentation here covering whatever
-      aspects are judged to be most important.
+The most basic form of a _building_ feature in the Overture Schema. The geometry is expected to be the most outer footprint (or roofprint if traced from satellite/aerial imagery) of a building.
 
----
-
-*TODO: As one of the people, if not the person, responsible for the name
-       building/footprint, I think footprint is a poor choice of name,
-       and a better fit would be theme=buildings, type=building. In my
-       mind footprint introduces conceptual confusion because, while the
-       geometry represents the footprint of the building, the rest of
-       the properties don't really have anything to do with the footprint
-       per se, they are about the whole building. It really hits home
-       when you try to write a sentence describing the feature type
-       which begins by "Footprints are ______. Can we change it? Sorry.
-       --Vic 2023-06-02*
-
----
 
 ## Schema
 

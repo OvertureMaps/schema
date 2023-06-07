@@ -1,0 +1,7 @@
+---
+label: Buildings
+collapsible: true
+collapsed: true
+link:
+  type: doc
+  id: building

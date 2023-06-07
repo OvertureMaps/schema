@@ -201,6 +201,7 @@ description: Common schema definitions shared by all themes
           type: string
   propertyContainers:
     overtureFeaturePropertiesContainer:
+      title: Overture Properties
       description: Top-level properties shared by all Overture features
       type: object
       required: [ theme, type, version, updateTime ]

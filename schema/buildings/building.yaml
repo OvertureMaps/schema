@@ -2,8 +2,7 @@
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Building Footprint Schema
 description: >-
-  A building is a man-made structure having a roof and standing
-  more-or-less permanently in one place. Buildings are compatible with
+  A building is a man-made structure with a roof that exists permanently in one place. Buildings are compatible with
   GeoJSON Polygon features.
 type: object
 properties:
@@ -14,7 +13,7 @@ properties:
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Polygon.json
-      - "$ref": https://geojson.org/schema/MultiPolygon.json # TODO: This is probably wrong - https://github.com/OvertureMaps/schema-wg/issues/116
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:
     unevaluatedProperties: false
     allOf:
