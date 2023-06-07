@@ -32,7 +32,7 @@ properties:
         exclusiveMinimum: 0
       class:
         description: >-
-          A broad category of the type building. When the current use of the building does not match the built purpose, the class should
+          A broad category of the building type / purpose. When the current use of the building does not match the built purpose, the class should
           be set to represent the current use of the building.
         type: string
         enum:

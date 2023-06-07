@@ -6,6 +6,7 @@ import FootprintSchema from "!!raw-loader!@site/docs/_schema/buildings/footprint
 
 import PolygonExample from "!!raw-loader!@site/docs/_examples/buildings/footprint-polygon.yaml";
 import MultiPolygonExample from "!!raw-loader!@site/docs/_examples/buildings/footprint-multipolygon.yaml";
+import MultipleNamesExample from "!!raw-loader!@site/docs/_examples/buildings/name-multiple.yaml";
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -68,6 +69,10 @@ TODO: Buildings team, please write documentation here covering whatever
 
   <TabItem value="2" label="MultiPolygon Building" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(MultiPolygonExample), null, 2) }</CodeBlock>
+  </TabItem>
+
+  <TabItem value="3" label="Building with Multiple Names" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(MultipleNamesExample), null, 2) }</CodeBlock>
   </TabItem>
 
 </Tabs>
