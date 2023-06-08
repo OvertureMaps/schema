@@ -1,5 +1,5 @@
 ---
-name: Build docs and copy to staging website (for Pull Request ${{github.event.number}})
+name: Build docs and copy to staging website (for Pull Request)
 
 on: [pull_request]
 
