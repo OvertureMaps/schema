@@ -1,5 +1,5 @@
 ---
-name: Build docs and copy to staging website (for Pull Request)
+name: Publish docs to staging website (for PR)
 
 on: [pull_request]
 
