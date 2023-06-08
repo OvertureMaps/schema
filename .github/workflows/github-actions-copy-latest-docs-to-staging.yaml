@@ -28,6 +28,9 @@ jobs:
         run: cd docusaurus && npm install
 
       - name: Build Docusaurus website
+        env:
+          DOCUSAURUS_URL: https://dfhx9f55j8eg5.cloudfront.net/
+          DOCUSAURUS_BASE_URL: /latest/
         run: cd docusaurus && npm run build
 
       - name: Fetch AWS credentials
