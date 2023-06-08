@@ -5,6 +5,7 @@ import yamlLoad from "@site/src/components/yamlLoad"
 import LocalitySchema from '!!raw-loader!@site/docs/_schema/admins/locality.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import AdminLocalityExample from '!!raw-loader!@site/docs/_examples/admins/admin-no-optional-properties.yaml';
 
 # administrativeLocality
 
@@ -44,6 +45,8 @@ not the schema dedicated to "administrative localities".
 
 ## Examples
 
-TODO: Admins team team please add auto-validated examples. You can find
-      examples of how to add examples in the transportation segment
-      docs.
+<Tabs>
+  <TabItem value="1" label="Administrative Locality" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(AdminLocalityExample), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>
