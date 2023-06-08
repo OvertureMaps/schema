@@ -1,0 +1,65 @@
+{
+    "id": "overture:transportation:segment:123",
+    "type": "Feature",
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [
+            [
+                0,
+                0
+            ],
+            [
+                1,
+                1
+            ]
+        ]
+    },
+    "properties": {
+        "extBaz": "I am a custom user property...",
+        "theme": "transportation",
+        "type": "segment",
+        "updateTime": "2023-02-23T00:02:30-08:00",
+        "version": 0,
+        "subType": "road",
+        "level": 1,
+        "connectors": [
+            "fooConnector",
+            "barConnector"
+        ],
+        "road": {
+            "class": "secondary",
+            "roadNames": [
+                {
+                    "at": [
+                        0,
+                        50
+                    ],
+                    "common": [
+                        {
+                            "value": "Common Road Name 1",
+                            "language": "local"
+                        }
+                    ],
+                    "short": [
+                        {
+                            "value": "SRN1",
+                            "language": "local"
+                        }
+                    ]
+                },
+                {
+                    "at": [
+                        50,
+                        100
+                    ],
+                    "common": [
+                        {
+                            "value": "Common Road Name 2",
+                            "language": "local"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

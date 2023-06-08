@@ -1,0 +1,79 @@
+{
+    "id": "overture:transportation:segment:1415",
+    "type": "Feature",
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [
+            [
+                0,
+                0
+            ],
+            [
+                1,
+                1
+            ]
+        ]
+    },
+    "properties": {
+        "extBaz": "I am a custom user property...",
+        "extDescription": "This is an example road segment in which as many properties as possible are specified using rules instead of flat values. For example, the road flags are specified using rules.",
+        "theme": "transportation",
+        "type": "segment",
+        "updateTime": "2023-02-23T00:03:59-08:00",
+        "version": 5,
+        "subType": "road",
+        "road": {
+            "restrictions": {
+                "access": [
+                    "denied",
+                    {
+                        "designated": {
+                            "when": {
+                                "mode": [
+                                    "truck"
+                                ]
+                            },
+                            "at": [
+                                0.1,
+                                0.25
+                            ]
+                        }
+                    },
+                    {
+                        "allowed": {
+                            "when": {
+                                "using": [
+                                    "asCustomer",
+                                    "toFarm"
+                                ],
+                                "recognized": [
+                                    "asPermitted",
+                                    "asEmployee"
+                                ]
+                            },
+                            "at": [
+                                0.25,
+                                0.5
+                            ]
+                        }
+                    },
+                    {
+                        "allowed": {
+                            "when": {
+                                "vehicle": {
+                                    "axleCount": {
+                                        "isMoreThan": 5
+                                    }
+                                }
+                            },
+                            "at": [
+                                0.5,
+                                0.7
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

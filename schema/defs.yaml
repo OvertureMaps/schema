@@ -13,7 +13,7 @@ description: Common schema definitions shared by all themes
       type: string
       enum:
         - connector
-        - footprint
+        - building
         - segment
         - locality
         - administrativeBoundary
@@ -179,8 +179,29 @@ description: Common schema definitions shared by all themes
           type: array
           items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
           minItems: 1
+    address:
+      type: object
+      unevaluatedProperties: false
+      required: [freeform]
+      properties:
+        freeform: # TODO: Should probably be renamed freeForm, as free-form is a two-word hyphenated construct.
+          description: Free-form address that contains street name, house number and other address info
+          type: string
+        locality:
+          description: Name of the City or Neighborhood where the address is located
+          type: string
+        postCode:
+          description: Post code where the address is located
+          type: string
+        region:
+          description: ISO-3166-2 subdivision/province code
+          type: string
+        country:
+          description: ISO 3166 alpha2 country code
+          type: string
   propertyContainers:
     overtureFeaturePropertiesContainer:
+      title: Overture Properties
       description: Top-level properties shared by all Overture features
       type: object
       required: [ theme, type, version, updateTime ]
@@ -192,6 +213,7 @@ description: Common schema definitions shared by all themes
         version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }
         updateTime: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
     levelContainer:
+      title: "Z-Order"
       description: Properties defining feature Z-order, i.e., stacking order
       type: object
       properties:

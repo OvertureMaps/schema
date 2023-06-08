@@ -37,10 +37,10 @@ Working Group Participants contributing data to a dataset to this Working Group 
 2. Discuss Issue with WG --> Create PR if required
 3. PR to be submitted against the TF ```feature-branch``` for TF agreement
 4. Agreed PR submitted against **DEV ```feature branch```**
-4. PR discussed with the WG. **Once agreed**, the WG Chair will merge into **DEV Feature branch**
+5. PR discussed with the WG. **Once agreed**, the WG Chair will merge into **DEV Feature branch**
 
 <figure>
-	<img src="images/submission_process.svg" alt="submission_process">
+	<img src="submission_process.svg" alt="submission_process">
 	<figcaption></figcaption>
 </figure>
 

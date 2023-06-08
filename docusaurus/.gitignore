@@ -1,4 +1,5 @@
 .docusaurus/
-docs/yaml/
-node_modules/
 build/
+docs/_examples/
+docs/_schema/
+node_modules/

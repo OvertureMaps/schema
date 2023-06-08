@@ -1,0 +1,50 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Building Footprint Schema
+description: >-
+  A building is a man-made structure with a roof that exists permanently in one place. Buildings are compatible with
+  GeoJSON Polygon features.
+type: object
+properties:
+  geometry:
+    description: >-
+      A regular building's geometry is deinfed as it's footprint or roofprint (if traced from aerial/satellite imagery). These MUST be a Polygon as defined by GeoJSON
+      schema.
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    properties:
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      height:
+        description: Height of the building in meters
+        type: number
+        exclusiveMinimum: 0
+      numFloors:
+        description: Number of above-ground floors of the building
+        type: integer
+        exclusiveMinimum: 0
+      class:
+        description: >-
+          A broad category of the building type / purpose. When the current use of the building does not match the built purpose, the class should
+          be set to represent the current use of the building.
+        type: string
+        enum:
+          - residential
+          - outbuilding
+          - agricultural
+          - commercial
+          - industrial
+          - education
+          - service
+          - religious
+          - civic
+          - transportation
+          - medical
+          - entertainment
+          - military

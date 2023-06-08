@@ -1,0 +1,77 @@
+{
+    "id": "overture:places:place:1",
+    "type": "Feature",
+    "geometry": {
+        "type": "Point",
+        "coordinates": [
+            0,
+            0
+        ]
+    },
+    "properties": {
+        "categories": {
+            "main": "someCategory",
+            "alternate": [
+                "anotherCategory"
+            ]
+        },
+        "confidence": 0.9,
+        "websites": [
+            "https://www.example.com"
+        ],
+        "emails": [
+            "info@example.com"
+        ],
+        "socials": [
+            "https://www.twitter.com/example"
+        ],
+        "phones": [
+            "+32 1207"
+        ],
+        "brand": {
+            "names": {
+                "common": [
+                    {
+                        "value": "My Sweet POI Brand",
+                        "language": "local"
+                    }
+                ]
+            },
+            "wikidata": "Q1000"
+        },
+        "addresses": [
+            {
+                "freeform": "770 Broadway, Floor 8",
+                "locality": "New York"
+            },
+            {
+                "freeform": "770 Brodway, #802",
+                "locality": "New York",
+                "region": "NY",
+                "country": "US"
+            }
+        ],
+        "theme": "places",
+        "type": "place",
+        "version": 0,
+        "updateTime": "2023-02-22T23:55:01-08:00",
+        "names": {
+            "common": [
+                {
+                    "value": "My Sweet POI",
+                    "language": "local"
+                },
+                {
+                    "value": "Something in Spanish",
+                    "language": "es"
+                }
+            ],
+            "short": [
+                {
+                    "value": "MSPOI",
+                    "language": "local"
+                }
+            ]
+        }
+    }
+}

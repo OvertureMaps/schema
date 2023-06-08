@@ -4,6 +4,14 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
+const defaultUrl = 'https://your-docusaurus-test-site.com';
+const defaultBaseUrl = '/';
+
+function getFromEnvironment(variableName, defaultValue) {
+  const environmentValue = process.env[variableName];
+  return environmentValue ? environmentValue : defaultValue;
+}
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Overture Schema Documentation',
@@ -11,10 +19,10 @@ const config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-test-site.com',
+  url: getFromEnvironment('DOCUSAURUS_URL', defaultUrl),
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: getFromEnvironment('DOCUSAURUS_BASE_URL', defaultBaseUrl),
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -22,7 +30,7 @@ const config = {
   projectName: 'schema-wg', // Usually your repo name.
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenMarkdownLinks: 'throw',
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -65,7 +73,7 @@ const config = {
         items: [
           {
             type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            sidebarId: 'docs',
             position: 'left',
             label: 'Documentation',
           },

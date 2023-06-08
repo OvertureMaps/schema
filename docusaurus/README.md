@@ -7,6 +7,9 @@ This documentation page is build using [Docusaurus 2](https://docusaurus.io/) wi
 
 ### nvm, node.js, and npm
 Project uses Node.js which is prerequisite to run next instructions.
+
+The minimum required Node.js version is `15.0.0`.
+
 For Windows and/or WSL users on Windows (Ubuntu) here is a [link](https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl) to working instructions set.
 
 ### First, install the dependencies:

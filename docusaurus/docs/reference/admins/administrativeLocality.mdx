@@ -1,0 +1,52 @@
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import LocalitySchema from '!!raw-loader!@site/docs/_schema/admins/locality.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import AdminLocalityExample from '!!raw-loader!@site/docs/_examples/admins/locality/no-optional-properties.yaml';
+
+# administrativeLocality
+
+Administrative Localities represent countries and hierarchical subdivisions
+of countries.
+
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Point</code>, <code>Polygon</code> or <code>MultiPolygon</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>admins</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>administrativeLocality</code></td>
+  </tr>
+</table>
+
+TODO: Administrative theme team, please fill this in.
+
+## Schema
+
+TODO: This is confusing because it is the schema for "all localities"
+not the schema dedicated to "administrative localities".
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(LocalitySchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{LocalitySchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="Administrative Locality" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(AdminLocalityExample), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>

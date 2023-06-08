@@ -35,7 +35,7 @@ properties:
   theme: places
   type: place
   version: 0
-  updateTime: 2023-02-22T23:55:01-08:00
+  updateTime: "2023-02-22T23:55:01-08:00"
   names:
     common:
       - value: "My Sweet POI"

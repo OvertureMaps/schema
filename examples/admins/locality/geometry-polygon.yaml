@@ -1,0 +1,48 @@
+---
+type: Feature
+geometry:
+  type: Polygon
+  coordinates:
+  - - - -61.8743292
+      - 48.8068635
+    - - -78.4016703
+      - 26.273714
+    - - -120.7749598
+      - 32.2499745
+    - - -126.928757
+      - 49.0378679
+    - - -61.8743292
+      - 48.8068635
+properties:
+  theme: admins
+  type: locality
+  updateTime: '2023-02-22T23:55:01-08:00'
+  version: 0
+  subType: administrativeLocality
+  adminLevel: 2
+  context: northAmericaId
+  defaultLanguage: en
+  drivingSide: right
+  isoCountryCodeAlpha2: US
+  localityType: country
+  names:
+    alternate:
+    - language: local
+      value: States
+    common:
+    - language: local
+      value: United States
+    - language: en
+      value: United States
+    - language: es
+      value: Estados Unidos
+    official:
+    - language: local
+      value: United States of America
+    short:
+    - language: local
+      value: US
+    - language: en
+      value: US
+    - language: en
+      value: U.S.

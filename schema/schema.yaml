@@ -1,9 +1,9 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Overture Maps Feature Schema
+title: Overture Maps Schema
 description: >-
-  Prototype schema for Overture Maps Foundation map entities as GeoJSON
-  schemas.
+  A JSON Schema for the canonical GeoJSON form of Overture Maps
+  Features.
 type: object
 unevaluatedProperties: false
 allOf:
@@ -31,8 +31,8 @@ oneOf:
         properties:
           properties:
             theme: { enum: [buildings] }
-            type: { enum: [footprint] }
-    then: { "$ref": buildings/footprint.yaml }
+            type: { enum: [building] }
+    then: { "$ref": buildings/building.yaml }
     else: { propertyNames: false }
   - if:
       description: "Transportation Connectors"

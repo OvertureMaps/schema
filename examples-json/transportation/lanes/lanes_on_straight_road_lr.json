@@ -1,0 +1,74 @@
+{
+    "id": "234",
+    "type": "Feature",
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [
+            [
+                0,
+                0
+            ],
+            [
+                1,
+                1
+            ]
+        ]
+    },
+    "properties": {
+        "theme": "transportation",
+        "type": "segment",
+        "subType": "road",
+        "updateTime": "2023-03-31T12:02:30-08:00",
+        "version": 0,
+        "road": {
+            "class": "primary",
+            "lanes": [
+                {
+                    "at": [
+                        0,
+                        10
+                    ],
+                    "value": [
+                        {
+                            "direction": "forward"
+                        },
+                        {
+                            "direction": "forward"
+                        }
+                    ]
+                },
+                {
+                    "at": [
+                        10,
+                        70
+                    ],
+                    "value": [
+                        {
+                            "direction": "forward"
+                        },
+                        {
+                            "direction": "forward"
+                        },
+                        {
+                            "direction": "forward"
+                        }
+                    ]
+                },
+                {
+                    "at": [
+                        70,
+                        100
+                    ],
+                    "value": [
+                        {
+                            "direction": "forward"
+                        },
+                        {
+                            "direction": "forward"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
