@@ -1,0 +1,24 @@
+---
+id: overture:transportation:example:simple-road2
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-122.1340957, 47.631529]
+    - [-122.1340731, 47.6315579 ]
+    - [-122.1340436, 47.6315911]
+    - [-122.1340139, 47.6316229]
+properties:
+  theme: transportation
+  type: segment
+  version: 3
+  updateTime: "2023-06-06T16:43:00-06:00"
+  subType: road
+  connectors:
+    - overture:transportation:example:simple-road-connector-2
+    - overture:transportation:example:simple-road-connector-3
+  road:
+    roadNames:
+      common: [ { language: local, value: "Bel-Red Road" } ]
+    class: tertiary
+    surface: paved

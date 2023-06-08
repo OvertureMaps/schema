@@ -1,0 +1,23 @@
+---
+id: overture:transportation:example:simple-road3
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-122.1340139, 47.6316229]
+    - [-122.134619, 47.631639]
+    - [-122.1353684, 47.631626]
+properties:
+  theme: transportation
+  type: segment
+  version: 3
+  updateTime: "2023-06-06T16:44:00-06:00"
+  subType: road
+  connectors:
+    - overture:transportation:example:simple-road-connector-3
+    - overture:transportation:example:simple-road-connector-4
+  road:
+    roadNames:
+      common: [ { language: local, value: "N.E 24th Street" } ]
+    class: tertiary
+    surface: paved
