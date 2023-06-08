@@ -38,4 +38,4 @@ jobs:
 
       - name: Copy Docusaurus website to staging bucket /latest/
         run: |
-          cd docusaurus/build && aws --region us-east-2 s3 sync . s3://overture-schema-docs-static-staging-us-east-2/latest
+          cd docusaurus/build && aws --region us-east-2 s3 sync --delete . s3://overture-schema-docs-static-staging-us-east-2/latest
