@@ -42,3 +42,7 @@ jobs:
       - name: Copy Docusaurus website to staging bucket /latest/
         run: |
           cd docusaurus/build && aws --region us-east-2 s3 sync --delete --storage-class INTELLIGENT_TIERING . s3://overture-schema-docs-static-staging-us-east-2/latest
+
+      - name: Purge CDN cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id E3L106P8HVBE9L --paths "/latest/*"
