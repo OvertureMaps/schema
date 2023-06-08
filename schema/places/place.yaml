@@ -18,68 +18,67 @@ properties:
     required: [categories]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
-      -
+    properties:
+      # Missing:
+      # - signals -> shared cross-cutting concern
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      categories:
+        description: The categories of the place. The list of categories can be found <TODO>.
+        type: object
+        required: [main]
         properties:
-          # Missing:
-          # - signals -> shared cross-cutting concern
+          main:
+            description: The main category of the place.
+            type: string
+          alternate:
+            description: Alternate categories of the place. Some places might fit into two categories, e.g. a book store and a coffee shop. In such a case, the main category can be augmented with additional applicable categories.
+            type: array
+            items:
+              type: string
+            uniqueItems: true
+      confidence:
+        description: The confidence of the existence of the place. It's a number between 0 and 1. 0 means that we're sure that the place doesn't exist (anymore). 1 means that we're sure that the place exists. If there's no value for the confidence, it means that we don't have any confidence information.
+        type: number
+        minValue: 0
+        maxValue: 1
+      websites:
+        description: The websites of the place.
+        type: array
+        items:
+          type: string
+          format: uri
+        uniqueItems: true
+      socials:
+        description: The social media URLs of the place.
+        type: array
+        items:
+          type: string
+          format: uri
+        uniqueItems: true
+      emails:
+        description: The email addresses of the place.
+        type: array
+        items:
+          type: string
+          format: email
+        uniqueItems: true
+      phones:
+        description: The phone numbers of the place.
+        type: array
+        items:
+          type: string
+        uniqueItems: true
+      brand:
+        description: The brand of the place. We consider a location with multiple brands as separate places, each with their own brand.
+        type: object
+        properties:
           names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-          categories:
-            description: The categories of the place. The list of categories can be found <TODO>.
-            type: object
-            required: [main]
-            properties:
-              main:
-                description: The main category of the place.
-                type: string
-              alternate:
-                description: Alternate categories of the place. Some places might fit into two categories, e.g. a book store and a coffee shop. In such a case, the main category can be augmented with additional applicable categories.
-                type: array
-                items:
-                  type: string
-                uniqueItems: true
-          confidence:
-            description: The confidence of the existence of the place. It's a number between 0 and 1. 0 means that we're sure that the place doesn't exist (anymore). 1 means that we're sure that the place exists. If there's no value for the confidence, it means that we don't have any confidence information.
-            type: number
-            minValue: 0
-            maxValue: 1
-          websites:
-            description: The websites of the place.
-            type: array
-            items:
-              type: string
-              format: uri
-            uniqueItems: true
-          socials:
-            description: The social media URLs of the place.
-            type: array
-            items:
-              type: string
-              format: uri
-            uniqueItems: true
-          emails:
-            description: The email addresses of the place.
-            type: array
-            items:
-              type: string
-              format: email
-            uniqueItems: true
-          phones:
-            description: The phone numbers of the place.
-            type: array
-            items:
-              type: string
-            uniqueItems: true
-          brand:
-            description: The brand of the place. We consider a location with multiple brands as separate places, each with their own brand.
-            type: object
-            properties:
-              names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-              wikidata:
-                description: The wikidata reference of the brand, as found on https://www.wikidata.org/.
-                type: string
-          addresses:
-            description: The addresses of the place.
-            type: array
-            items:
-              "$ref": "../defs.yaml#/$defs/propertyDefinitions/address"
-            uniqueItems: true
+          wikidata:
+            description: The wikidata reference of the brand, as found on https://www.wikidata.org/.
+            type: string
+      addresses:
+        description: The addresses of the place.
+        type: array
+        items:
+          "$ref": "../defs.yaml#/$defs/propertyDefinitions/address"
+        uniqueItems: true

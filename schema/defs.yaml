@@ -213,6 +213,7 @@ description: Common schema definitions shared by all themes
         version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }
         updateTime: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
     levelContainer:
+      title: "Z-Order"
       description: Properties defining feature Z-order, i.e., stacking order
       type: object
       properties:
