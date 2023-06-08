@@ -8,6 +8,10 @@ on:
   # Allow running from the actions tab
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -15,12 +19,12 @@ jobs:
       - name: Check out the schema-wg repository
         uses: actions/checkout@v3
 
-      - name: Set up Node
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "19"
 
-      - name: Install dependencies
+      - name: Install NPM dependencies
         run: cd docusaurus && npm install
 
       - name: Build Docusaurus website
@@ -34,4 +38,4 @@ jobs:
 
       - name: Copy Docusaurus website to staging bucket /latest/
         run: |
-          cd docusaurus && aws s3 sync . s3://overture-schema-docs-static-staging-us-east-2/latest
+          cd docusaurus/build && aws --region us-east-2 s3 sync . s3://overture-schema-docs-static-staging-us-east-2/latest
