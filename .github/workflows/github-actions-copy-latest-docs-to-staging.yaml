@@ -1,0 +1,37 @@
+---
+name: Build docs and copy to stating website (/latest/)
+
+on:
+  push:
+    branches: [documentation] # TODO: Change this to dev once documentation branch is closed.
+
+  # Allow running from the actions tab
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the schema-wg repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19"
+
+      - name: Install dependencies
+        run: cd docusaurus && npm install
+
+      - name: Build Docusaurus website
+        run: cd docusaurus && npm run build
+
+      - name: Fetch AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::207370808101:role/Overture_GitHub_schema-wg_Publish_Docs_Staging
+          aws-region: us-east-2
+
+      - name: Copy Docusaurus website to staging bucket /latest/
+        run: |
+          cd docusaurus && aws s3 sync . s3://overture-schema-docs-static-staging-us-east-2/latest
