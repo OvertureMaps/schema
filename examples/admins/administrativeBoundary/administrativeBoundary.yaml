@@ -1,4 +1,7 @@
+---
+type: Feature
 geometry:
+  type: LineString
   coordinates:
   - - -61.8743292
     - 48.8068635
@@ -8,12 +11,10 @@ geometry:
     - 32.2499745
   - - -126.928757
     - 49.0378679
-  type: LineString
 properties:
-  adminLevel: 2
-  maritime: true
   theme: admins
   type: administrativeBoundary
   updateTime: '2023-02-22T23:55:01-08:00'
   version: 0
-type: Feature
+  adminLevel: 2
+  maritime: true

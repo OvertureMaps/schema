@@ -70,11 +70,11 @@ description: Common schema definitions for admins theme
       type: integer
       minimum: 1
       maximum: 11
-    iso3166-1:
-      description: ISO3166-1 code.
+    isoCountryCodeAlpha2:
+      description: ISO 3166-1 alpha-2 country code.
       type: string
-    iso3166-2:
-      description: ISO3166-2 code.
+    isoSubCountryCode:
+      description: ISO-3166-2 Country subdivision code.
       type: string
     defaultLanguage:
       description: Most common language used within the area.
@@ -90,7 +90,7 @@ description: Common schema definitions for admins theme
       required: [adminLevel]
       properties:
         adminLevel: { "$ref": "#/$defs/propertyDefinitions/adminLevel" }
-        iso3166-1: { "$ref": "#/$defs/propertyDefinitions/iso3166-1" }
-        iso3166-2: { "$ref": "#/$defs/propertyDefinitions/iso3166-2" }
+        isoCountryCodeAlpha2: { "$ref": "#/$defs/propertyDefinitions/isoCountryCodeAlpha2" }
+        isoSubCountryCode: { "$ref": "#/$defs/propertyDefinitions/isoSubCountryCode" }
         defaultLanguage: { "$ref": "#/$defs/propertyDefinitions/defaultLanguage" }
         drivingSide: { "$ref": "#/$defs/propertyDefinitions/drivingSide" }

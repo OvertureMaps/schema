@@ -15,8 +15,8 @@ properties:
   updateTime: "2023-06-06T16:43:00-06:00"
   subType: road
   connectors:
-    - overture:transportation:example:simple-road-connector-2
-    - overture:transportation:example:simple-road-connector-3
+    - overture:transportation:example:turn-restriction-connector1
+    - overture:transportation:example:turn-restriction-connector2
   road:
     roadNames:
       common: [ { language: local, value: "Bel-Red Road" } ]

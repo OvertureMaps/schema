@@ -8,10 +8,10 @@
     "subType": "administrativeLocality",
     "localityType": "country",
     "adminLevel": 2,
-    "iso3166-1": "US",
-    "iso3166-2": "USA",
+    "isoCountryCodeAlpha2": "US",
     "defaultLanguage": "en",
     "drivingSide": "right",
+    "context": "northAmericaId",
     "names": {
       "common": [
         {

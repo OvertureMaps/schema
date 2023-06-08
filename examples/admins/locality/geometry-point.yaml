@@ -1,22 +1,21 @@
+---
+type: Feature
 geometry:
+  type: Point
   coordinates:
-  - - - - -61.8743292
-        - 48.8068635
-      - - -78.4016703
-        - 26.273714
-      - - -120.7749598
-        - 32.2499745
-      - - -126.928757
-        - 49.0378679
-      - - -61.8743292
-        - 48.8068635
-  type: MultiPolygon
+  - -99.1487581
+  - 41.3768086
 properties:
+  theme: admins
+  type: locality
+  updateTime: '2023-02-22T23:55:01-08:00'
+  version: 0
+  subType: administrativeLocality
   adminLevel: 2
+  context: northAmericaId
   defaultLanguage: en
   drivingSide: right
-  iso3166-1: US
-  iso3166-2: USA
+  isoCountryCodeAlpha2: US
   localityType: country
   names:
     alternate:
@@ -39,9 +38,3 @@ properties:
       value: US
     - language: en
       value: U.S.
-  subType: administrativeLocality
-  theme: admins
-  type: locality
-  updateTime: '2023-02-22T23:55:01-08:00'
-  version: 0
-type: Feature

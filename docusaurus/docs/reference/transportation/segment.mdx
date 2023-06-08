@@ -6,9 +6,11 @@ import SegmentSchema from '!!raw-loader!@site/docs/_schema/transportation/segmen
 import ExampleSimpleRoad from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/simple-road.yaml';
 import ExampleLanes from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-hov.yaml';
 import ExampleAccessRestriction from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction.yaml';
-import ExampleTurnRestrictionSrc from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-source.yaml';
+import ExampleTurnRestrictionSource from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-source.yaml';
 import ExampleTurnRestrictionTarget from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-target.yaml';
 import ExampleTurnRestrictionVia from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-via.yaml';
+import ExampleTurnRestrictionConnector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-connector1.yaml';
+import ExampleTurnRestrictionConnector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-connector2.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -19,7 +21,7 @@ Segments are paths which can be traveled by people or things.
 <table>
   <tr>
     <th>Geometry Type</th>
-    <td>LineString</td>
+    <td><code>LineString</code></td>
   </tr>
   <tr>
     <th>Theme</th>
@@ -138,16 +140,41 @@ The schema for `rail` segments is under development.
   </TabItem>
 
   <TabItem value="turnRestrictions" label="Turn Restrictions" default>
-    <Tabs>
-      <TabItem value="Source" label="Source" default>
-        <CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionSrc), null, 2) }</CodeBlock>
-      </TabItem>
-      <TabItem value="Target" label="Target" default>
-        <CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionTarget), null, 2) }</CodeBlock>
-      </TabItem>
-      <TabItem value="Via" label="Via" default>
-        <CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionVia), null, 2) }</CodeBlock>
-      </TabItem>
-    </Tabs>
+    This example illustrates a complex "via" type turn restriction across 3
+    connected segments. The turn restriction modeled on the "source" segment
+    indicates that, when travelling in the "forward" direction along the
+    segment, a transition to the "target" segment must go through the "via"
+    segment.
+
+<div style={{textAlign: 'center'}}>
+
+![Diagram of the "via" transition from source to destination segment.](/examples/turn-restrictions-example.png)
+
+</div>
+
+<details open>
+<summary>Source segment</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionSource), null, 2) }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 1</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionConnector1), null, 2) }</CodeBlock>
+</details>
+
+<details>
+<summary>Via segment</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionVia), null, 2) }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 2</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionConnector2), null, 2) }</CodeBlock>
+</details>
+
+<details>
+<summary>Target segment</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionTarget), null, 2) }</CodeBlock>
+</details>
   </TabItem>
 </Tabs>

@@ -6,52 +6,42 @@
     "version": 0,
     "updateTime": "2023-02-22T23:55:01-08:00",
     "subType": "administrativeLocality",
-    "localityType": "country",
-    "adminLevel": 2,
-    "iso3166-1": "US",
-    "iso3166-2": "USA",
+    "localityType": "state",
+    "adminLevel": 3,
+    "isoCountryCodeAlpha2": "US",
+    "isoSubCountryCode": "NE",
     "defaultLanguage": "en",
     "drivingSide": "right",
-    "context": "northAmericaId",
+    "context": "unitedStatesId",
     "names": {
       "common": [
         {
           "language": "local",
-          "value": "United States"
+          "value": "Nebraska"
         },
         {
           "language": "en",
-          "value": "United States"
+          "value": "Nebraska"
         },
         {
           "language": "es",
-          "value": "Estados Unidos"
+          "value": "Nebraska"
         }
       ],
       "official": [
         {
           "language": "local",
-          "value": "United States of America"
+          "value": "Nebraska"
         }
       ],
       "short": [
         {
           "language": "local",
-          "value": "US"
+          "value": "NE"
         },
         {
           "language": "en",
-          "value": "US"
-        },
-        {
-          "language": "en",
-          "value": "U.S."
-        }
-      ],
-      "alternate": [
-        {
-          "language": "local",
-          "value": "States"
+          "value": "NE"
         }
       ]
     }
@@ -59,8 +49,8 @@
   "geometry": {
     "type": "Point",
     "coordinates": [
-      -99.1487581,
-      41.3768086
+      -99.162276,
+      41.365698
     ]
   }
 }

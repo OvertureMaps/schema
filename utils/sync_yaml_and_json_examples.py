@@ -1,13 +1,13 @@
 """
 Releasing examples in YAML format is better than JSON because YAML allows for commenting.
 
-JSON, however, is a more common format. This script helps maintains the `examples_json` directory
+JSON, however, is a more common format. This script helps maintains the `examples-json` directory
 remain in sync with the `examples` directory.
 
-The `examples_json` directory will contain JSON versions of all of the YAML examples. Any JSON examples
+The `examples-json` directory will contain JSON versions of all of the YAML examples. Any JSON examples
 that do not exist as YAML in the `examples` directory will be created.
 
-Features in the `examples_json` directory will always be overwritten by their YAML versions.
+Features in the `examples-json` directory will always be overwritten by their YAML versions.
 
 Usage: python3 utils/sync_yaml_and_json_examples.py
 
@@ -23,8 +23,7 @@ class YAML_to_JSON():
 
 
     def load_json_examples(self):
-        self.json_examples = glob.glob('examples_json/**/*.json', recursive=True)
-
+        self.json_examples = glob.glob('examples-json/**/*.json', recursive=True)
 
     def ensure_json_mirrors_yaml(self):
         """
@@ -33,7 +32,7 @@ class YAML_to_JSON():
         """
         for example in self.yaml_examples:
             parts = example.split("/")
-            json_path = ['examples_json'] + parts[1:-1] + [parts[-1].replace(".yaml",".json")]
+            json_path = ['examples-json'] + parts[1:-1] + [parts[-1].replace(".yaml",".json")]
 
             # Ensure path exists
             makedirs("/".join(json_path[:-1]), exist_ok=True)

@@ -3,7 +3,7 @@ name: Publish docs to staging website (/latest/)
 
 on:
   push:
-    branches: [documentation] # TODO: Change this to dev once documentation branch is closed.
+    branches: [dev]
 
   # Allow running from the actions tab
   workflow_dispatch:
