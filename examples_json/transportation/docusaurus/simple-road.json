@@ -1,0 +1,52 @@
+{
+    "id": "overture:transportation:example:simple-road",
+    "type": "Feature",
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [
+            [
+                -123.13538016118466,
+                49.28584368472093
+            ],
+            [
+                -123.13430200328841,
+                49.28656927229528
+            ],
+            [
+                -123.13325122717998,
+                49.28727252390803
+            ]
+        ]
+    },
+    "properties": {
+        "theme": "transportation",
+        "type": "segment",
+        "version": 3,
+        "updateTime": "2023-06-01T16:42:00-06:00",
+        "subType": "road",
+        "connectors": [
+            "overture:transportation:example:simple-road-connector-1",
+            "overture:transportation:example:simple-road-connector-2"
+        ],
+        "road": {
+            "roadNames": {
+                "common": [
+                    {
+                        "language": "local",
+                        "value": "Nicola Street"
+                    }
+                ]
+            },
+            "class": "residential",
+            "surface": "paved",
+            "lanes": [
+                {
+                    "direction": "backward"
+                },
+                {
+                    "direction": "forward"
+                }
+            ]
+        }
+    }
+}
