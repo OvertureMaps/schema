@@ -14,13 +14,13 @@ properties:
   version: 0
   subType: road
   level: -1
-  widthMeters: 10
+  width: 10
   connectors: [fooConnector, barConnector]
   road:
     class: secondary
     surface: gravel
     flags: [isLink, isTunnel, isPrivate]
     restrictions:
-      access:
-        - allowed:
-            when: {recognized: [foo]}
+      speedLimits:
+        - maxSpeed: [110, "mph"]
+          when: {mode: [foo]}

@@ -14,14 +14,13 @@ properties:
   version: 0
   subType: road
   level: -1
-  widthMeters: 10
+  width: 10
   connectors: [fooConnector, barConnector]
   road:
     class: secondary
     surface: gravel
     flags: [isLink, isTunnel, isPrivate]
-    restrictions: 
-      turns:
-        - toDirection: forward
-          reason: legal
-          direction: forward
+    restrictions:
+      access:
+        - allowed:
+            when: {modeNot: [foo]}
