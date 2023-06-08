@@ -1,11 +1,25 @@
 ---
 description: Foo todo put real stuff here
 slug: /
+title: Introduction
 ---
 
 import DocCardList from '@theme/DocCardList';
 
+#TODO: Introduction here
 
-# Introduction
+## Principles
+**Address the core, enable the periphery.** The Overture schema doesn’t solve every problem. It describes fully-formed solutions only for the most fundamental use cases (“the core”) while enabling less common use cases (“the periphery”) via extensibility.
 
-We put the Foo into your Bar.
+**Invent across the gap.** Many excellent solutions including published standards, best practices, and open-source tools already exist and are well-understood in the community. The Overture schema reuses these existing solutions to maximize compatibility and focus our efforts on solving unaddressed high-priority pain points.
+
+**Backward-compatible is forward-compatible.** No design is future-proof, but good designs maintain relevance by adding features without breaking existing use cases. The Overture schema can be enhanced in a backward-compatible way.
+
+**Always open.** The Overture schema and format aim for compatibility with free and open-source tools and technologies and avoid depending on closed-source or proprietary tools and technologies.
+
+### Key Specifications
+1. The Overture Data Schema is documented in the [JSON Schema](https://json-schema.org/), a widely used, machine-readable database documentation method.
+2. We use GeoJSON as a mental model. The final format for Overture deliveries is still to be defined.
+3. Property names use camelCase descrbed in the [Google JSON Style Guide](https://google.github.io/styleguide/jsoncstyleguide.xml)
+4. Feature Geometries follow the [OGC Simple Feature Access specifications](https://www.ogc.org/standard/sfa/)
+5. Measurements will use SI units (meters for building heights) and local units for regulations and restrictions (speed limits in mph in the US and km/h in Germany).
