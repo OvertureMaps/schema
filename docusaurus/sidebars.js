@@ -13,6 +13,7 @@ const sidebars = {
       items: [
           'concepts/feature',
           'concepts/theme',
+          'concepts/gers',
       ]
     },
     {
