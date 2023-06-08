@@ -1,5 +1,5 @@
 ---
-name: Build docs and copy to stating website (/latest/)
+name: Build docs and copy to staging website (/latest/)
 
 on:
   push:
