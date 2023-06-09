@@ -14,7 +14,7 @@ properties:
   version: 0
   subType: road
   level: -1
-  widthMeters: 10
+  width: 10
   connectors: [fooConnector, barConnector]
   road:
     class: secondary
@@ -28,9 +28,7 @@ properties:
           reason: divider
           direction: backward
           via:
-            - segmentId: overture:transportation:segment:456
-              connectorId: overture:transportation:connector:345
+            - connectorId: overture:transportation:connector:345
               toDirection: forward
-            - segmentId: overture:transportation:segment:456
-              connectorId: overture:transportation:connector:345
+            - connectorId: overture:transportation:connector:678
               toDirection: forward

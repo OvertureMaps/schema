@@ -1,0 +1,20 @@
+geometry:
+  coordinates:
+  - -122.3183680
+  - 47.6238307
+  type: Point
+properties:
+  context: seattleId
+  localityType: neighborhood
+  names:
+    common:
+    - language: local
+      value: Capitol Hill
+    - language: en
+      value: Capitol Hill
+  subType: namedLocality
+  theme: admins
+  type: locality
+  updateTime: '2023-02-22T23:55:01-08:00'
+  version: 0
+type: Feature

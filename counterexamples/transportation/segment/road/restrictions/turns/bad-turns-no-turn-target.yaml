@@ -14,7 +14,7 @@ properties:
   version: 0
   subType: road
   level: -1
-  widthMeters: 10
+  width: 10
   connectors: [fooConnector, barConnector]
   road:
     class: secondary
@@ -22,8 +22,6 @@ properties:
     flags: [isLink, isTunnel, isPrivate]
     restrictions: 
       turns:
-        - segmentId: overture:transportation:segment:234
-          connectorId: overture:transportation:connector:123
-          toDirection: forward
-          reason: foo
+        - toDirection: forward
+          reason: legal
           direction: forward

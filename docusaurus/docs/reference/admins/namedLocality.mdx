@@ -3,7 +3,7 @@ import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import yamlLoad from "@site/src/components/yamlLoad"
 import LocalitySchema from '!!raw-loader!@site/docs/_schema/admins/locality.yaml';
-import LocalityExample from '!!raw-loader!@site/docs/_examples/admins/locality/geometry-polygon.yaml';
+import LocalityExample from '!!raw-loader!@site/docs/_examples/admins/locality/admin-named-locality.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -28,12 +28,9 @@ the hierarchical subdivision of a country (are not
   </tr>
 </table>
 
-TODO: Administrative theme team, please fill this in.
+Named Locality is a populated place that doesn't belong to any hierarchical subdivision of a country.
 
 ## Schema
-
-TODO: This is confusing because it is the schema for "all localities"
-not the schema dedicated to "named localities".
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>

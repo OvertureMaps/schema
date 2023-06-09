@@ -2,32 +2,57 @@
 const sidebars = {
   docs: [
     'index',
+    // {
+    //   type: 'category',
+    //   label: 'Core Concepts',
+    //   link: {
+    //     type: 'generated-index',
+    //     slug: '/concepts',
+    //   },
+    //   collapsed: false,
+    //   items: [
+    //       'concepts/feature',
+    //       'concepts/theme',
+    //       'concepts/gers',
+    //   ]
+    // },
+    /*
+      GERS
+    */
     {
       type: 'category',
-      label: 'Core Concepts',
-      link: {
-        type: 'generated-index',
-        slug: '/concepts',
-      },
-      collapsed: false,
+      label: 'Global Entity Reference System',
+      // link: {
+      //   type: 'doc',
+      //   id: 'gers/gers'
+      // },
+      collapsed: true,
       items: [
-          'concepts/feature',
-          'concepts/theme',
-          'concepts/gers',
+        {
+          type: 'doc',
+          id:'gers/gers',
+          label: 'Overview'
+        },
+        'gers/scenarios',
+        'gers/terminology'
       ]
     },
+    /*
+      Themes
+    */
     {
       type: 'category',
-      label: 'Theme Concepts',
+      label: 'Themes',
       link: {
-        type: 'generated-index',
-        slug: '/themes',
+        type: 'doc',
+        id: 'themes/themes'
       },
       collapsed: true,
       items: [
         'themes/admins/admins',
         'themes/buildings/building',
         'themes/places/place',
+
         {
           type: 'category',
           label: 'Transportation',
@@ -56,6 +81,9 @@ const sidebars = {
         }
       ]
     },
+    /*
+      Schema Reference
+    */
     {
       type: 'category',
       label: 'Schema Reference',
