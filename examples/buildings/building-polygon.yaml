@@ -23,3 +23,8 @@ properties:
   height: 21.34
   numFloors: 4
   class: civic
+  sources:
+  - property: ""
+    dataset: microsoftMLBuildings
+  - property: /properties/height
+    dataset:  metaLidarExtractions
