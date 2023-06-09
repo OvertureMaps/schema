@@ -49,24 +49,6 @@ transition in a particular case. Conversely, two segments are not
 physically connected—even if their geometries intersect—if they do not
 share a Connector in common.
 
----
-<em>
-TODO: Two things above contradict Ola's earlier summary regarding
-connectors. <strong>First</strong>, above says the segment geometries
- ave to contain the connector geometry, where earlier it said the opposite.
-My reasoning here is this will always be the case in practice, and it's
-the simplest and most foolproof way of asserting that the connector
-coordinates lie on both segment geometries. <strong>Second</strong>,
-there's no current assertion about segments needing a minimum of two
-connectors, one per endpoint, where it previously said that. I took
-that out because the schema doesn't currently have a min length on the
-connectors array. If we should put that requirement back in, could we
-please also update the constraints in the schema and create/update as
-many test cases as are appropriate?
-</em>
-
----
-
 ## Sub-Types
 
 A segment may have one of three possible sub-types.
