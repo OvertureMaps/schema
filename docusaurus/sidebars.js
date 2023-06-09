@@ -102,8 +102,7 @@ const sidebars = {
           collapsed: false,
           items: [
               'reference/admins/administrativeBoundary',
-              'reference/admins/administrativeLocality',
-              'reference/admins/namedLocality',
+              'reference/admins/locality',
           ]
         },
         {

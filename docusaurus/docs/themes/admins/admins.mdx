@@ -10,11 +10,12 @@ Overture provides country definitions without gaps or overlaps even in cases of 
 
 ### Key Admin Attributes
 
-1. [Administrative Locality](/reference/admins/administrativeLocality) represents a country or a hierarchical subdivision of a country. Each administrative locality has an administrative level
-indicating
+
+1. [Locality](/reference/admins/locality) describes a named and typically populated place.
+There are two subTypes:
+   - Administrative Localities model countries and their hierarchical subdivisions. Each Administrative Locality has an administrative level indicating
 their level within a country. Attributes like like driving side and default language have been added to the schema.
+   - Named Localities model named places that are not part of a countries administrative hierarchy.
 
 2. [Administrative Boundary](/reference/admins/administrativeBoundary) provides a boundary line of Administrative Localities. This feature allows for an easy display of country borders and
 administrative subdivisions within countries. Boundaries shared by different Administrative Localities are represented by one line. A maritime attribute has been added allowing to filter out boundaries located within seas or oceans.
-
-4. [Named Locality](/reference/admins/namedLocality) represents localities carrying a name and which do not belong to the hierarchical subdivision of a country, i.e. not an Administrative Locality.
