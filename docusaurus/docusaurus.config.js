@@ -77,6 +77,12 @@ const config = {
             position: 'left',
             label: 'Documentation',
           },
+          {
+            type: 'docSidebar',
+            sidebarId: 'gers',
+            // docId: 'gers/gers',
+            label: 'Global Entity Reference System',
+          },
         ],
       },
       footer: {
