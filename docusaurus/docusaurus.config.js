@@ -4,7 +4,7 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
-const defaultUrl = 'https://your-docusaurus-test-site.com';
+const defaultUrl = 'https://docs.overturemaps.org';
 const defaultBaseUrl = '/';
 
 function getFromEnvironment(variableName, defaultValue) {
@@ -27,7 +27,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'OvertureMaps', // Usually your GitHub org/user name.
-  projectName: 'schema-wg', // Usually your repo name.
+  projectName: 'schema-publication', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
