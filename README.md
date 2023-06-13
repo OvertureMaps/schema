@@ -29,7 +29,10 @@ Working Group Participants contributing source code to this Working Group agree 
 ## Dataset
 Working Group Participants contributing data to a dataset to this Working Group agree that those data contributions are subject to the license indicated below. The dataset may not be a required element of an Approved Deliverable specification.
 
-- Data contributed to ODBL licensed datasets will be contributed under both the ODBL and CDLA permissive v2. Contributions to CDLA permissive v2 datasets will be contributed under the CDLA permissive v2.
+- For Overture data layers which are CDLA Permissive 2.0, there are no restrictions on use of external data other than the attribution requirements. 
+- For Overture data layers which are ODbL, those layers must adhere to ODbL license terms, specifically whether any referenced data is considered a collective database or a derivative database. See [OpenStreetMap Community Guidelines](https://wiki.osmfoundation.org/wiki/Licence/Community_Guidelines) for definitions on the differences.
+
+You are responsible for understanding the licenses relating to data you work with.
 
 ## Collaborating in GitHub
 
