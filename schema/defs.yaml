@@ -45,26 +45,26 @@ description: Common schema definitions shared by all themes
         version number in which the feature changed. The downside to
         doing this is that the number would cease to be indicative of
         the "rate of change" of the feature.
-    sources: 
+    sources:
       description: >-
-        The array of source information for the properties of a 
-        given feature, with each entry being a source object which 
-        lists the property in JSON Pointer notation and the dataset 
-        that specific value came from. All features must have a root 
+        The array of source information for the properties of a
+        given feature, with each entry being a source object which
+        lists the property in JSON Pointer notation and the dataset
+        that specific value came from. All features must have a root
         level source which is the default source if a specific
         property's source is not specified.
       type: array
       items: { "$ref": "#/$defs/propertyDefinitions/property" }
       minItems: 1
       uniqueItems: true
-    property: 
+    property:
       description: >-
-        An object storing the source for a specificed property. The property 
-        is a reference to the property element within this Feature, and will be 
-        referenced using JSON Pointer Notation RFC 6901 
-        (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for 
-        that referenced property will be specified in the overture list of 
-        approved sources from the Overture Data Working Group that contains 
+        An object storing the source for a specificed property. The property
+        is a reference to the property element within this Feature, and will be
+        referenced using JSON Pointer Notation RFC 6901
+        (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for
+        that referenced property will be specified in the overture list of
+        approved sources from the Overture Data Working Group that contains
         the relevant metadata for that dataset including license source organization.
       type: object
       required: [property, dataset]
@@ -235,7 +235,8 @@ description: Common schema definitions shared by all themes
       type: object
       required: [ theme, type, version, updateTime ]
       patternProperties:
-        ^ext.*$: true
+        ^ext.*$:
+          description: "Additional top-level properties must be prefixed with `ext`."
       properties:
         theme: { "$ref": "#/$defs/propertyDefinitions/theme" }
         type: { "$ref": "#/$defs/propertyDefinitions/featureType" }
