@@ -65,7 +65,7 @@ const config = {
       // Replace with your project's social card
       image: 'img/omf_logo_transparent.png',
       navbar: {
-        title: 'Overture Maps Schema',
+        title: 'Overture Maps',
         logo: {
           alt: 'Overture Maps Foundation Logo',
           src: 'img/omf_logo_transparent.png',
@@ -75,7 +75,7 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'docs',
             position: 'left',
-            label: 'Documentation',
+            label: 'Data Schema',
           },
           {
             type: 'docSidebar',
