@@ -42,17 +42,20 @@ const sidebars = {
     */
     {
       type: 'category',
-      label: 'Themes',
+      label: 'Schema Themes',
       link: {
         type: 'doc',
         id: 'themes/themes'
       },
       collapsed: true,
       items: [
-        'themes/admins/admins',
+        {
+          type: 'doc',
+          id: 'themes/admins/admins',
+          label: 'Admins'
+        },
         'themes/buildings/building',
         'themes/places/place',
-
         {
           type: 'category',
           label: 'Transportation',
@@ -87,18 +90,18 @@ const sidebars = {
     {
       type: 'category',
       label: 'Schema Reference',
-      link: {
-        type: 'generated-index',
-        slug: '/reference',
-      },
+      // link: {
+      //   type: 'generated-index',
+      //   slug: '/reference',
+      // },
       collapsed: true,
       items: [
         {
           type: 'category',
           label: 'admins',
-          link: {
-            type: 'generated-index',
-          },
+          // link: {
+          //   type: 'generated-index',
+          // },
           collapsed: false,
           items: [
               'reference/admins/administrativeBoundary',
@@ -108,9 +111,9 @@ const sidebars = {
         {
           type: 'category',
           label: 'buildings',
-          link: {
-            type: 'generated-index',
-          },
+          // link: {
+          //   type: 'generated-index',
+          // },
           collapsed: false,
           items: [
             'reference/buildings/building',
@@ -119,9 +122,9 @@ const sidebars = {
         {
           type: 'category',
           label: 'places',
-          link: {
-            type: 'generated-index',
-          },
+          // link: {
+          //   type: 'generated-index',
+          // },
           collapsed: false,
           items: [
             'reference/places/place',
@@ -130,9 +133,9 @@ const sidebars = {
         {
           type: 'category',
           label: 'transportation',
-          link: {
-            type: 'generated-index',
-          },
+          // link: {
+          //   type: 'generated-index',
+          // },
           collapsed: false,
           items: [
             'reference/transportation/connector',
