@@ -503,7 +503,7 @@ memorial_park;[attractions_and_activities,park,memorial_park]
 national_park;[attractions_and_activities,park,national_park]
 state_park;[attractions_and_activities,park,state_park]
 active_life;[active_life]
-sports_and_recreation_venue;"[active_life,sports_and_recreation_venue];[recreation_spot,outdoor_places,super_non_businessplace]"
+sports_and_recreation_venue;[active_life,sports_and_recreation_venue]
 adventure_sports_center;[active_life,sports_and_recreation_venue,adventure_sports_center]
 american_football_field;[active_life,sports_and_recreation_venue,american_football_field]
 airsoft_fields;[active_life,sports_and_recreation_venue,airsoft_fields]
