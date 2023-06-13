@@ -90,10 +90,10 @@ const sidebars = {
     {
       type: 'category',
       label: 'Schema Reference',
-      // link: {
-      //   type: 'generated-index',
-      //   slug: '/reference',
-      // },
+      link: {
+        type: 'generated-index',
+        slug: '/reference',
+      },
       collapsed: true,
       items: [
         {
