@@ -1,2 +1,0 @@
-# schema
-schema publication
