@@ -18,6 +18,7 @@ jobs:
       - name: Check out the schema repository
         uses: actions/checkout@v3
 
+<<<<<<< HEAD
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -28,8 +29,25 @@ jobs:
 
       - name: Build Docusaurus Pages 🔧
         run: cd docusaurus && npm run build
+=======
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: "19"
+
+      # - name: Install NPM dependencies
+        # run: cd docusaurus && npm install
+
+      # - name: Build Docusaurus Pages 🔧
+      #   run: cd docusaurus && npm run build
+>>>>>>> main
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
+<<<<<<< HEAD
           folder: docusaurus/build
+=======
+          folder: build
+          # folder: docusaurus/build
+>>>>>>> main

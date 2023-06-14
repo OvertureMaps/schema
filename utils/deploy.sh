@@ -13,7 +13,6 @@ git rm .github/ISSUE_TEMPLATE/*
 
 # 4. Remove other irrelevant files
 git rm submission_process.svg
-git rm .gitignore
 
 git status
 git commit -am "Ready for publication to schema/main"
