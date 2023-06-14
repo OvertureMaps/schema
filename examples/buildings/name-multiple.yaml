@@ -1,5 +1,5 @@
 ---
-id: overture:buildings:footprint:1234
+id: overture:buildings:building:1234
 type: Feature
 properties:
   # Custom user properties.
