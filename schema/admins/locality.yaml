@@ -16,19 +16,16 @@ properties:
     unevaluatedProperties: false
     required: [subType, localityType, names]
     allOf:
-      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
-      - allOf:
-          - if:
-              properties:
-                subType: { enum: [administrativeLocality] }
-            then:
-              "$ref": "./defs.yaml#/$defs/propertyContainers/adminPropertiesContainer"
-          - if:
-              properties:
-                subType: { enum: [administrativeLocality] }
-                adminLevel: { minimum: 3 }
+      - title: Conditional Properties
+        if: { properties: {subType: { enum: [administrativeLocality] }}}
+        then:
+          allOf:
+          - "$ref": "./defs.yaml#/$defs/propertyContainers/adminPropertiesContainer"
+          - title: "Conditional Properties"
+            if: {properties: {adminLevel: { minimum: 3 }}}
             then:
               required: [context]
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     properties:
       subType:
         description: populated area types
@@ -39,7 +36,3 @@ properties:
       context:
         description: Context entity is the most granular entity that logically contains given entity (but doesn't have to contain it spatially due to minor discrepancies in geometries)
         type: string
-        pattern: ^[a-zA-Z]+Id$
-        "$comment": >-
-          Pattern is just a placeholder. GERS ID must match the target feature type.
-          TODO: Encode a constraint on the type of the target objects.

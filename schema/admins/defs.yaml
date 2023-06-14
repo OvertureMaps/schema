@@ -85,6 +85,7 @@ description: Common schema definitions for admins theme
       enum: [left, right]
   propertyContainers:
     adminPropertiesContainer:
+      title: "Administrative Properties"
       description: Top-level properties shared by all admin features
       type: object
       required: [adminLevel]
