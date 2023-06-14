@@ -1,8 +1,8 @@
 # The deploy script that prepares the schema-wg/main repository to publish at schema/main
 
 # 1. Create a new branch for publishing
-git branch -D "release-publication"
-git checkout -b "publication_test"
+git branch -D "release-schema"
+git checkout -b "release-schema"
 
 # 2. Remove extra github workflows
 git rm .github/workflows/github-actions-copy-latest-docs-to-staging.yaml
