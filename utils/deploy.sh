@@ -21,11 +21,12 @@ git rm README.md
 git rm SCHEMA_CONVENTIONS.md
 
 git rm -r utils/*
-git rm -r docusaurus/*
 git rm -r examples/*
 git rm -r counterexamples/*
 git rm -r schema/*
 git rm -r task-force-docs/*
+
+git rm -r docusaurus/*
 
 git status
 git commit -am "Ready for publication to schema/main"
