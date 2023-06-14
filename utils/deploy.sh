@@ -28,6 +28,7 @@ git rm -r schema/*
 git rm -r task-force-docs/*
 
 git status
-# git commit -am "Ready for publication to schema/main"
+git commit -am "Ready for publication to schema/main"
 
 git remote add public git@github.com:overturemaps/schema.git
+git push --set-upstream public
