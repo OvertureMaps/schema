@@ -18,18 +18,19 @@ jobs:
       - name: Check out the schema repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "19"
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: "19"
 
-      - name: Install NPM dependencies
-        run: cd docusaurus && npm install
+      # - name: Install NPM dependencies
+        # run: cd docusaurus && npm install
 
-      - name: Build Docusaurus Pages 🔧
-        run: cd docusaurus && npm run build
+      # - name: Build Docusaurus Pages 🔧
+      #   run: cd docusaurus && npm run build
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: build
+          # folder: docusaurus/build
