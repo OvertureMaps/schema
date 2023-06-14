@@ -1,0 +1,447 @@
+# Shape and Connectivity
+
+The Overture Transportation theme captures the physical shape and connectivity
+of the transportation network through the interaction of the theme's two feature
+types: Segments and Connectors.
+
+
+<div style={{textAlign: 'center'}}>
+
+<figure>
+
+![Three segments physically joined by a connector](/img/transportation/network.svg)
+
+<figcaption>
+
+*A connector physically joining three segments.*
+
+</figcaption>
+</figure>
+
+</div>
+
+## Connectors
+
+The [Connector](/reference/transportation/connector) feature type
+carries `Point` geometry which describes a location where a physical
+connection between two or more segments occurs (or may occur in the
+future).
+
+Connectors have no properties apart from geometry and standard Overture
+feature properties. All other aspects of the Transportation theme are
+modeled on Segments.
+
+<!--
+ The statement that Connectors have no other properties is technically
+ false since as of 2023-06-15, they have a `level` property which should
+ probably be removed: https://github.com/OvertureMaps/schema-wg/issues/138
+-->
+
+## Segments
+
+The [Segment](/reference/transportation/segment) feature type carries
+`LineString` geometry which describes the physical shape of a section of
+the transportation network. A segment may represent an entity with a
+tangible real-world existence, such as a paved road; or it may represent
+an intangible entity, such as a ferry route, which has a well-known
+shape but no observable presence in the real world.
+
+### Physical connectivity
+
+Two or more segments are physically connected at a given connector if
+each segment's `connectors` property contains a reference the
+connector. Where this is true, each segment's geometry must also contain
+the connector's coordinates, which defines the point of physical
+connection.
+
+Conversely, two segments are not physically connected if their
+`connectors` properties do not reference a shared connector, even if
+their geometries overlap or even share a coordinate in common.
+
+Travel from a point on one segment to another point on a second,
+physically connected, segment is allowed unless limited by the
+segment's [directionality](#direction-and-directionality) or an
+explicit restriction such as an access or turn restriction.
+
+All segments in official Overture Transportation data releases have a
+minimum of two connectors, one at each end of the geometry, even if
+those endpoint connectors are not attached to any other segment. This is
+not a mandatory minimum (and is not enforced by the schema). It is done
+to allow new segments to connect into the existing network without
+needing to change the properties of existing segments.
+
+### Back, front, and orientation
+
+The first coordinate in a segment's geometry is the "back" of the
+segment and the last coordinate is the "front". A segment is "oriented"
+away from the back and toward the front. The examples below show two
+segment geometries with identical coordinates, oriented in opposite
+directions.
+
+<div style={{ width: "49.5%", float: "left" }}>
+
+<figure>
+
+```yaml
+type: LineString
+coordinates:
+  - [1, 0]   # Back
+  - [0, 0]
+  - [-1, 0]  # Front
+```
+
+<div style={{textAlign: 'center'}}>
+
+![West-oriented segment geometry](/img/transportation/oriented-west.svg)
+
+</div>
+
+<figcaption>
+
+*This segment geometry is oriented due west.*
+
+</figcaption>
+</figure>
+
+</div>
+
+<div style={{ width: "49.5%", float: "right" }}>
+
+<figure>
+
+```yaml
+type: LineString
+coordinates:
+  - [-1, 0]  # Back
+  - [0, 0]
+  - [1, 0]   # Front
+```
+
+<div style={{textAlign: 'center'}}>
+
+![East-oriented segment geometry](/img/transportation/oriented-east.svg)
+
+</div>
+
+<figcaption>
+
+*This segment geometry is oriented due east.*
+
+</figcaption>
+</figure>
+
+</div>
+
+<div style={{ float: "none" }}/>
+
+
+### Direction and directionality
+
+Travel can proceed in one of two possible *directions* along a segment's
+geometry. The `forward` direction proceeds toward the front of the
+segment, while the `backward` direction proceeds toward the back of the
+segment.
+
+<div style={{textAlign: 'center'}}>
+
+<figure>
+
+![Travel direction along a segment oriented due east](/img/transportation/direction.svg)
+
+<figcaption>
+
+*Travel direction along a segment.*
+
+</figcaption>
+</figure>
+
+</div>
+
+A segment's `directionality` property documents allowed travel
+directions along the segment geometry. The following directionalities
+are possible:
+
+<figure>
+
+<div style={{width: '100%', display: 'flex', justifyContent: 'center'}}>
+
+| Directionality | Meaning |
+|-|-|
+| `forward` | Travel is only allowed in the `forward` direction. |
+| `backward` | Travel is only allowed in the `backward` direction. |
+| `bothWays` | Travel is allowed both `forward` and `backward`. |
+| `alternating` | Travel is one-way and changes between `forward` and `backward` constantly. |
+| `reversible` | Travel is one-way and changes between `forward` and `backward` infrequently. |
+
+</div>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*Allowed values for segment `directionality`.*
+
+</div>
+
+</figcaption>
+</figure>
+
+When the allowed travel direction changes based on a regular schedule,
+the appropriate "definite" directionalities (`forward`, `backward`, and
+`bothWays`) should be used along with Temporal Scoping. [**TODO: LINK**].
+
+When the allowed travel direction changes based on unpredictable local
+factors, such that direction at any given time can only be known by an
+observer actually present at the real-world location, the appropriate
+"indefinite" directionality (`alternating` or `reversible`) should be
+used.
+
+### Sub-types
+
+Segment features have a `subType` property whose value gives more
+specific information about the segment's role within the transportation
+network.
+
+The `subType` property may be one of `road`, `rail`, or `water` but only
+`road` is currently well defined. A `road` segment models any kind of
+road, street, or trail, including a dedicated path for walking, cycling,
+and like activities. For more information about `road` segments, see
+**TODO:Link to roads**.
+
+### Level (Z-order)
+
+At the moment, segment geometry is two-dimensional. In the real, 3D,
+world, however the entities represented by segments can be above or
+below each other, as may happen with tunnels, bridges, overpasses, and
+stacked multi-level highway interchanges. To accurately render
+"top-down" 2D maps, it is important to know the relative stacking order,
+or Z-order, of segments,
+
+Segment Z-order is given by the `level` property. A `level` value of
+`0` indicates visual level, with positive numbers indicating above
+visual level, negative numbers indicating below visual level, and in
+general, a lesser number indicating a lower position in the stacking
+order than a greater number.
+
+<div style={{textAlign: 'center'}}>
+
+<figure>
+
+![Three segments physically joined by a connector](/img/transportation/levels.svg)
+
+<figcaption>
+
+*Ground level segments stacking above tunnel segments.*
+
+</figcaption>
+</figure>
+
+</div>
+
+Note that two segments with different `level` values may be physically
+connected, since `level` is an approximation for rendering and is not
+meant be a precise indication of elevation at different points along the
+segment. Connectors do not have a `level`.
+
+<!--
+TODO: The statement that "Connectors do not have a `level`" is not
+      accurate as of 2023-06-15, but we have an open issue to fix this:
+      https://github.com/OvertureMaps/schema-wg/issues/138. We should
+      address the issue and delete this TODO comment afterward.
+-->
+
+## Segmentation
+
+The term "segmentation" describes the process of converting upstream source data
+into Overture Transportation shape and connectivity data modeled as segments and
+connectors.
+
+### Shape stability
+
+A primary goal of Overture's segmentation process is to promote stability of
+segment geometry across Overture data releases. For example, if a certain
+real-world stretch of Main Street is represented by a segment with particular
+geometry in release 1, ideally the same real-world stretch will be represented
+by a segment with exactly the same geometry in release 2; and where exact
+sameness is not possible, we want the representation to be as similar as possible
+between data releases.
+
+Several features of the Transportation theme schema were designed to allow the
+segmentation process to achieve its shape stability goal. These features
+include:
+
+- [Interior connectors](#interior-connectors).
+- [Geometrically scoped](#geometric-scoping) segment properties.
+
+<!---
+TODO: Once we have some usable comparative metrics for ID stability, we should
+      add a sub-heading under segmentation, with a table of the data.
+--->
+
+
+### GERS ID stability
+
+The reason we pursue shape stability is to improve our ability to assess whether
+two segments from different points in time (or from different upstream data
+sources) represent the same real-world entity. Our success at this assessment
+directly feeds into the stability and precision of
+[Global Entity Reference System](/gers) (GERS) IDs we assign to segments. In
+turn, higher GERS ID stability and precision makes Transportation theme data
+more useful for conflation.
+
+### Interior connectors
+
+A key feature of the Overture Transportation schema which enables shape
+stability is the ability of segments to support connectors at interior positions
+along their geometry, not only at their endpoints. The ability to add internal
+connectors prevents the segmentation process from having to blindly follow every
+split or join introduced in upstream source data.
+
+For example, imagine a square city block bordered by road on all four sides has
+been mapped in the source data, but a back alley dividing the block along the
+east-west axis has not. If the back alley is subsequently mapped in the source
+data, the Overture segmentation process can connect to the transportation
+network without having to subdivide any existing segments by simply introducing
+internal connectors on the north-south road segments bordering the block to the
+east and west. As a result, the [GERS](/gers) IDs of the north-south road
+segments remain as they were and no data needs to be re-conflated.
+
+<figure>
+
+<div style={{ width: "50%", float: "left" }}>
+
+![A city block without with back alley omitted](/img/transportation/interior-connectors-before.svg)
+
+</div>
+
+<div style={{ width: "50%", float: "right" }}>
+
+![A city block without with back alley omitted](/img/transportation/interior-connectors-after.svg)
+
+</div>
+
+<div style={{ float: "none" }}/>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*A square city block bordered by four roads before (left) and after (right) mapping the back alley using internal connectors.*
+
+</div>
+
+</figcaption>
+
+</figure>
+
+Note that in the above example, to maintain the invariant that every segment's
+geometry explicitly includes all the coordinates of its connectors, coordinates
+might need to be added to the shape of the north-south segments. This would not
+change their shapes.
+
+### Geometric scoping
+
+Many segment properties may include a linear reference so that they apply only
+to a part of the segment geometry. We refer to these linearly-referenced
+property values as being *geometrically scoped* and discuss geometric scoping
+at greater length in the page on Scoped Properties. **TODO: Link here.**
+
+Geometric scoping allows the segmentation algorithm to avoid introducing
+segment splits simply because a certain property has different values along
+different parts of the geometry. Like interior connectors, geometrically-scoped
+properties enable the segmentation process to make decisions that promote shape
+stability, ultimately resulting in more precise and stable [GERS](/gers) IDs and
+less churn in conflated data.
+
+<div style={{textAlign: 'center'}}>
+
+<figure>
+
+![A single segment with a geometrically-scoped speed limit](/img/transportation/geometrically-scoped-speed-limit.svg)
+
+<figcaption>
+
+*A single segment with multiple geometrically-scoped speed limit values.*
+
+</figcaption>
+</figure>
+
+</div>
+
+### Loops
+
+Although it is technically possible to use the Overture schema to express a
+segment forming a connected loop, such loops are considered invalid and will
+never be produced by the segmentation algorithm.
+
+An illegal loop where one of a segment connects to the other end can be
+corrected by splitting the segment and introducing a second connector to
+maintain physical connectivity. An illegal self-crossing loop of degree *N*
+can be corrected by splitting the segment into *N* pieces.
+
+
+<div style={{ width: "49.5%", float: "left" }}>
+
+<figure>
+
+<div style={{width: "50%", float: "left"}}>
+
+![Illegal circular loop](/img/transportation/circle-looped.svg)
+
+</div>
+
+<div style={{width: "50%", float: "left"}}>
+
+![Illegal circular loop](/img/transportation/circle-unlooped.svg)
+
+</div>
+
+<div style={{float: "none"}}/>
+
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*An illegal loop connected at its endpoints (left) and a possible correction (right).*
+
+</div>
+
+</figcaption>
+</figure>
+
+</div>
+
+<div style={{ width: "49.5%", float: "right" }}>
+
+<figure>
+
+<div style={{width: "50%", float: "left"}}>
+
+![Illegal self-crossing loop](/img/transportation/crossing-looped.svg)
+
+</div>
+
+<div style={{width: "50%", float: "left"}}>
+
+![Correction to self-crossing loop](/img/transportation/crossing-unlooped.svg)
+
+</div>
+
+<div style={{float: "none"}}/>
+
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*An illegal self-crossing loop (left) and a possible correction (right).*
+
+</div>
+
+</figcaption>
+</figure>
+
+</div>
+
+<div style={{ float: "none" }}/>
