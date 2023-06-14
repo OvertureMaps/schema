@@ -14,9 +14,9 @@ function getFromEnvironment(variableName, defaultValue) {
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Overture Schema Documentation',
+  title: 'Overture Maps Schema Documentation',
   tagline: '',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.png',
 
   // Set the production url of your site here
   url: getFromEnvironment('DOCUSAURUS_URL', defaultUrl),
@@ -27,7 +27,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'OvertureMaps', // Usually your GitHub org/user name.
-  projectName: 'schema-publication', // Usually your repo name.
+  projectName: 'schema', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
