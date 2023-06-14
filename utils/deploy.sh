@@ -14,20 +14,6 @@ git rm .github/ISSUE_TEMPLATE/*
 # 4. Remove other irrelevant files
 git rm submission_process.svg
 
-# 5. Temporary: empty the repository
-git rm GLOSSARY.md
-git rm LICENSE
-git rm README.md
-git rm SCHEMA_CONVENTIONS.md
-
-git rm -r utils/*
-git rm -r examples/*
-git rm -r counterexamples/*
-git rm -r schema/*
-git rm -r task-force-docs/*
-
-git rm -r docusaurus/*
-
 git status
 git commit -am "Ready for publication to schema/main"
 
