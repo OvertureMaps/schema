@@ -22,4 +22,4 @@ git commit -am "Ready for publication to schema/main"
 git remote add public git@github.com:overturemaps/schema.git
 git push --set-upstream public
 
-echo "Now go open a PR at https://github.com/OvertureMaps/schema" to merge the release-schema branch into `main`
+echo "Now go open a PR at https://github.com/OvertureMaps/schema to merge the release-schema branch into main"
