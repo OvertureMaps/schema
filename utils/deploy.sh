@@ -1,6 +1,7 @@
 # The deploy script that prepares the schema-wg/main repository to publish at schema/main
 
 # 1. Create a new branch for publishing
+git branch -D "release-publication"
 git checkout -b "publication_test"
 
 # 2. Remove extra github workflows
@@ -13,8 +14,7 @@ git rm .github/ISSUE_TEMPLATE/*
 # 4. Remove other irrelevant files
 git rm submission_process.svg
 
-# 4. Temporary: empty the repository
-git rm .gitignore
+# 5. Temporary: empty the repository
 git rm GLOSSARY.md
 git rm LICENSE
 git rm README.md
@@ -29,4 +29,5 @@ git rm -r task-force-docs/*
 
 git status
 # git commit -am "Ready for publication to schema/main"
-# git git
+
+git remote add public git@github.com:overturemaps/schema.git
