@@ -17,14 +17,14 @@ properties:
     unevaluatedProperties: false
     required: [subType]
     allOf:
+      - title: "Conditional Properties"
+        if: { properties: { subType: { enum: [road] } } }
+        then:
+          properties:
+            road: { "$ref": "#/$defs/propertyDefinitions/road" }
+            width: { "$ref": "#/$defs/propertyDefinitions/roadWidth"}
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
-      - allOf:
-          - if: { properties: { subType: { enum: [road] } } }
-            then:
-              properties:
-                road: { "$ref": "#/$defs/propertyDefinitions/road" }
-                width: { "$ref": "#/$defs/propertyDefinitions/roadWidth"}
     properties:
       subType:
         description: Broad category of transportation segment.
@@ -226,7 +226,7 @@ properties:
           "$comment": >-
             Restrictions define two kinds of rerstriction on this segemnt
             Travel Restrictions defines how certain modes of transportation
-            may be limited on this segement, for example trucks are not 
+            may be limited on this segement, for example trucks are not
             permitted from 7AM to 7PM
 
             Turn restrictions defines restrcited tunrs that orignates from
@@ -321,7 +321,7 @@ properties:
       type: string
       enum:
         - allowed
-        - denied 
+        - denied
     usageOption:
       description: describes reason for which a person or entity travelling on the transportation network is using a particular location
       type: string
@@ -376,13 +376,13 @@ properties:
       properties:
         segmentId:
           description: >-
-            Segment ID of the target that the relation refers to 
+            Segment ID of the target that the relation refers to
             (TODO replace with GERS ID schema)
           type: string
         connectorId:
           description: Connector ID of the this segment that the relationship connects to
           "$comment": >-
-            A segment can connect to another segment at multiple connector. So a 
+            A segment can connect to another segment at multiple connector. So a
             connector id is necessary to uniquely identify the exact connection point.
             However this is not a required property since a relationship target may not
             necessarily be conncted to the source of the relation (for example  signposts)
@@ -514,7 +514,7 @@ properties:
       type: object
       properties:
         when:
-          description: describes a set of condition 
+          description: describes a set of condition
           type: object
           allOf:
             - "$ref": "#/$defs/propertyContainers/modesContainer"
