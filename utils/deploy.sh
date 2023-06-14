@@ -10,6 +10,7 @@ git rm .github/workflows/github-actions-copy-pr-docs-to-staging.yaml
 
 # 3. Remove ISSUE_TEMPLATE
 git rm .github/ISSUE_TEMPLATE/*
+git rm -r utils
 
 # 4. Remove other irrelevant files
 git rm submission_process.svg

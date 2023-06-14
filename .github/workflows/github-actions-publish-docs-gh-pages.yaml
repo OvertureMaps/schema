@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   publish:
+    if: github.repository == 'overturemaps/schema'
     runs-on: ubuntu-latest
     steps:
       - name: Check out the schema repository
