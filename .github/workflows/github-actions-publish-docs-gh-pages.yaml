@@ -1,0 +1,35 @@
+---
+name: Build docusaurus on push to main and publish to gh-pages branch
+
+on:
+  push:
+    branches: [main]
+
+  # Allow running from the actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the schema repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19"
+
+      - name: Install NPM dependencies
+        run: cd docusaurus && npm install
+
+      - name: Build Docusaurus Pages 🔧
+        run: cd docusaurus && npm run build
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build
