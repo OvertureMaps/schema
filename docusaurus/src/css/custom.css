@@ -14,8 +14,8 @@
   --ifm-color-primary-lighter: #6673d6;
   --ifm-color-primary-lightest: #7985db;
   --ifm-code-font-size: 95%;
-  --ifm-heading-font-family: 'Montserrat';
-  --ifm-font-family-base: 'Montserrat';
+  --ifm-heading-font-family: 'Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"';
+  --ifm-font-family-base: 'Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"';
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
