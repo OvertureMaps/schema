@@ -16,7 +16,7 @@ Overture models the transportation network using Segments that embody sections o
 ## Scoping Dimensions
 
 ### Geometric Scoping: Linear Referencing
-- In general the <code>at</code> property MAY contain either a single scalar number, or pair (two-entry array) of numbers.
+- In general, the <code>at</code> property MAY contain either a single scalar number or a pair (two-entry array) of numbers.
   - A scalar number means the parent property applies at a discrete position along the segment, while a pair indicates the parent property along the whole sub-segment of the segment from the first position in the pair to the second position in the pair.
   - There is no negated version of the property, i.e. <code>notAt</code>, because this adds significant complexity to geometric scoping, and all use cases could use multiple at properties to instead define where a scoped property does apply.
 
@@ -39,7 +39,7 @@ There are currently five known sub-dimensions of subjective scoping:
 2. **Usage purpose**. The reason a person or entity is traveling on the transportation network. A common example of a usage purpose condition is delivery only or customer only.
 3. **Membership** in a recognized group, a.k.a. status.  Membership in a recognized group refers to the status of the person or entity traveling as recognized by authorities controlling the particular location. This includes private property or permitted portions of the transportation network.
 4. **Cargo**. Cargo refers to something the person or entity traveling on the transportation network is carrying. The most common example of a cargo scope is portions of the transportation network where transporting hazardous material is not allowed.
-5. **Vehicle Attributes**. These refer to specific attributes of vehicles that are too specific to infer from travel mode, or where it is overly cumbersome to generate a travel mode for each attribute combination. This includes scoping vehicles that are allowed based on attributes like height, weight or axle count.
+5. **Vehicle Attributes**. These refer to specific attributes of vehicles that are too specific to infer from travel mode, or where it is overly cumbersome to generate a travel mode for each attribute combination. This includes scoping vehicles that are allowed based on attributes like height, weight, or axle count.
 
 [View the Schema for a Connector Type](/reference/transportation/connector)
 

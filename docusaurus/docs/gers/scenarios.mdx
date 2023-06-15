@@ -4,9 +4,9 @@
 
 A company providing live traffic data operates by ingesting sensor data and then conflating, cleaning, and calculating traffic density for a variety of locations through proprietary methods. Ultimately, they provide a data feed of live traffic conditions that customers subscribe to for a monthly access fee.
 
-**Before GERS + Overture**: This company maintains a version of the OpenStreetMap road network to which they associate their traffic density information. The data-feed product is made of GeoJSON features, each with a LineString geometry representing a segment of road (from OSM) and properties including a timestamp and traffic information along that section of road. Using OSM is preferred because the geometries in the data feed will match road segment geometries for any customer using OSM. However, a more computationally expensive geospatial match operation is required to associate the traffic information with the road network.
+**Before GERS + Overture**: This company maintains a version of the OpenStreetMap road network to which they associate their traffic density information. The data-feed product is made of GeoJSON features, each with a LineString geometry representing a segment of the road (from OSM) and properties including a timestamp and traffic information along that section of the road. Using OSM is preferred because the geometries in the data feed will match road segment geometries for any customer using OSM. However, a more computationally expensive geospatial match operation is required to associate the traffic information with the road network.
 
-**With GERS + Overture**: The company uses the Overture road network internally. When they associate their traffic information to a road segment, they can publish the data feed with a GERS ID that represents the given road segment. Consumers that are also using Overture can then match this data by GERS ID to the Overture road segment, not needing to perform any geospatial computation. Additionally, even the geometry of the road segment could be omitted from the feed, since the ID will match for any customer also using the Overture road network.
+**With GERS + Overture**: The company uses the Overture road network internally. When they associate their traffic information with a road segment, they can publish the data feed with a GERS ID that represents the given road segment. Consumers that are also using Overture can then match this data by GERS ID to the Overture road segment, not needing to perform any geospatial computation. Additionally, even the geometry of the road segment could be omitted from the feed, since the ID will match for any customer also using the Overture road network.
 
 **What if the company has proprietary (better) road segment data extracted from their sensor network that they do not / cannot share?**
 
@@ -20,7 +20,7 @@ Venues – both private and public – are often an atomic unit in data environm
 - Businesses organize customer records based on home addresses.
 - Municipalities map property information and status by parcel identifiers.
 - Insurance companies use various building identifiers to organize policy information.
-- Retailers organize analyze market opportunities and challenges by their own and competitive retail outlets.
+- Retailers organize and analyze market opportunities and challenges through their own competitive retail outlets.
 - Delivery companies optimize services by destination address.
 
 Despite these common use cases, location is under-utilized as an organizing mechanism for data, applications, and analytics. Addresses are often inconsistent, messy, or simply wrong. Coordinate pairs are precise but often inaccurate and can be difficult to cluster correctly. GIS infrastructure on the whole is often out of reach for many teams or is maintained by a small, specialty group at the fringes of the organization.
