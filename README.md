@@ -13,7 +13,7 @@ Please use the [Discussions](https://github.com/OvertureMaps/schema/discussions)
 
 ## Licensing
 ### Copyright Licensing
-Each Working Group must specify the copyright license under which it will operate prior to initiating any work on any Draft Deliverable or Approved Deliverable other than source code or datasets. Source code and dataset copyright licenses are discussed below. The copyright license for this Working Group is the MIT license https://mit-license.org/.
+Each Working Group must specify the copyright license under which it will operate prior to initiating any work on any Draft Deliverable or Approved Deliverable other than source code or datasets. Source code and dataset copyright licenses are discussed below.
 
 ### Patent License
 Each Working Group must specify the patent policy under which it will operate prior to initiating any work on any Draft Deliverable or Approved Deliverable. The patent policy for this Working Group is W3C https://www.w3.org/Consortium/Patent-Policy-20200915/
