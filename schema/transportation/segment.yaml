@@ -1,0 +1,540 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Transportation Segment
+description: >-
+  Segments are paths which can be traveled by people or things. Segments
+  are compatible with GeoJSON LineString features.
+type: object
+properties:
+  geometry:
+    description: >-
+      Segment's geometry which MUST be a LineSting as defined by GeoJSON
+      schema.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": https://geojson.org/schema/LineString.json
+  properties:
+    unevaluatedProperties: false
+    required: [subType]
+    allOf:
+      - title: "Conditional Properties"
+        if: { properties: { subType: { enum: [road] } } }
+        then:
+          properties:
+            road: { "$ref": "#/$defs/propertyDefinitions/road" }
+            width: { "$ref": "#/$defs/propertyDefinitions/roadWidth"}
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    properties:
+      subType:
+        description: Broad category of transportation segment.
+        type: string
+        enum: [road, rail, water]
+        "$comment": >-
+          Should not be confused with a transport mode. A segment
+          kind has an (implied) set of default transport modes.
+      connectors:
+        description: >-
+          List of connectors this segment is physically connected to. Each connector is a possible routing decision point
+          meaning it defines place along segment in which there is possibility to transition to other segments which share same connector.
+        type: array
+        items:
+          type: string
+          "$comment": >-
+            Each entry in this array is the GERS ID of a transportation connector feature.
+        uniqueItems: true
+        default: []
+"$defs":
+  propertyDefinitions:
+    lane:
+      description: Properties for a single lane of traffic.
+      type: object
+      unevaluatedProperties: false
+      required: [direction]
+      properties:
+        direction: { "$ref": "#/$defs/propertyDefinitions/laneDirection" }
+        restrictions:
+          description: Restrictions on how the lane may be used
+          "$comment": >-
+            Lane restrictions may be defined in the same way as for whole roads with the exception
+            of turns; there are no turn restrictions for lanes.
+          type: object
+          unevaluatedProperties: false
+          properties:
+            speedLimits:
+              "$ref": "#/$defs/propertyContainers/speedLimitsContainer"
+            access:
+              "$ref": "#/$defs/propertyContainers/accessContainer"
+            minOccupancy:
+              description: >-
+                Minimal occupancy restrictions relate to HOV (high occupancy vehicles) travel modes.
+                If a lane is restricted for use only by HOVs, then the default minimum vehicle
+                occupancy qualifying as HOV is 2+ passengers (including the driver).  This
+                restriction can be provided to override the default definition of HOV.
+              oneOf:
+                - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+                - type: array
+                  items:
+                    type: object
+                    unevaluatedProperties: false
+                    allOf:
+                      - "$ref": "#/$defs/propertyContainers/ruleContainer"
+                      - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+    laneDirection:
+      type: string
+      enum:
+        - forward       # Traffic flows in the segment direction.
+        - backward      # Traffic flows against the segment direction.
+        - bothWays      # Traffic flows simultaneously in both directions as, e.g., on a sidewalk.
+        - alternating   # Traffic flows alternately forward and backward following a predictable rhythm.
+        - reversible    # Traffic flows forward, but may be arbitrarily reversed by traffic authorities at any time.
+    direction:
+      description: >-
+        Enumerates direction of travel or connectivity with
+        another segment.
+      type: string
+      enum: [ forward, backward, both ]
+
+    mode:
+      description: >-
+        Enumerates possible travel modes. Some modes represent groups
+        of modes.
+      type: string
+      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
+      "$comment": >-
+        motorVehicle includes car, truck and motorcycle
+
+    road:
+      description: >-
+        Properties for segments whose segment subType is road. The road
+        subType includes any variety of road, street, or path, including
+        dedicated paths for walking and cycling.
+      type: object
+      unevaluatedProperties: false
+      default: {}
+      properties:
+        class:
+          description: >-
+            Captures the kind of road and its position in the road
+            network hierarchy.
+          type: string
+          enum:
+            - motorway
+            - primary
+            - secondary
+            - tertiary
+            - residential
+            - livingStreet # similar as residential but has implied legal restriction for motor vehicles (which can vary country by country)
+            - trunk
+            - unclassified # known roads, paved but of low importance which does not meet definition of being motorway, trunk, primary, secondary, tertiary
+            - parkingAisle # service road intended for parking
+            - driveway # service road intended for deliveries
+            - pedestrian
+            - footway
+            - steps
+            - track
+            - cycleway
+            - bridleway # similar as track but has implied access only for horses
+            - unknown
+          default:
+            enum: [ unknown ]
+        roadNames:
+          unevaluatedProperties: false
+          oneOf:
+            - type: object
+              allOf:
+                - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+            - type: array
+              items:
+                type: object
+                required: [at]
+                unevaluatedProperties: false
+                allOf:
+                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                  - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+              minItems: 1
+              uniqueItems: true
+
+        surface:
+          description: Physical surface of the road. May either be
+            specified as a single global value for the segment, or as
+            an array of surface rules.
+          oneOf:
+            - { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
+            - type: array
+              items:
+                type: object
+                allOf:
+                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                unevaluatedProperties: false
+                properties:
+                  value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
+              minItems: 1
+              uniqueItems: true
+          default:
+            enum: [unknown]
+          "$comment": >-
+            We should likely restrict the available surface types to
+            the subset of the common OSM surface=* tag values that are
+            useful both for routing and for map tile rendering.
+        flags:
+          description: >-
+            Set of boolean attributes applicable to roads. May be
+            specified either as a single flag array of flag values, or
+            as an array of flag rules.
+          type: array
+          items:
+            oneOf:
+              - { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
+              - type: object
+                allOf:
+                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                  - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                unevaluatedProperties: false
+                properties:
+                  values:
+                    type: array
+                    items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
+                    uniqueItems: true
+          uniqueItems: true
+        lanes:
+          description: >-
+            Describes the layout of lanes on the road plus lane-related
+            information, including where appropriate: physical lane location,
+            allowed travel modes, and more.
+          oneOf:
+            - type: array
+              items: { "$ref": "#/$defs/propertyDefinitions/lane" }
+              minItems: 1
+            - type: array
+              items:
+                type: object
+                allOf:
+                  - "$ref": "#/$defs/propertyContainers/atRangeContainer"
+                    default:
+                      - 0
+                      - 100
+                unevaluatedProperties: false
+                properties:
+                  value:
+                    type: array
+                    items: { "$ref": "#/$defs/propertyDefinitions/lane" }
+                    minItems: 1
+              minItems: 1
+        restrictions:
+          description: Restrictions on how the road may be used
+          "$comment": >-
+            Restrictions define two kinds of rerstriction on this segemnt
+            Travel Restrictions defines how certain modes of transportation
+            may be limited on this segement, for example trucks are not
+            permitted from 7AM to 7PM
+
+            Turn restrictions defines restrcited tunrs that orignates from
+            this segement, for example against driving side turn from this
+            segement to another connected segement is blocked.
+          type: object
+          unevaluatedProperties: false
+          properties:
+            speedLimits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
+            access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
+            turns:
+              description: Turn restriction from this segment to other segments.
+              type: array
+              items:
+                 allOf:
+                   - "$ref": "#/$defs/propertyContainers/modesContainer"
+                   - "$ref": "#/$defs/propertyContainers/duringContainer"
+                   - "$ref": "#/$defs/propertyDefinitions/relationTarget"
+                 unevaluatedProperties: false
+                 type: object
+                 properties:
+                   reason:
+                     description: for turn restrictions, a rough description as to why the restriction exist
+                     type: string
+                     enum:
+                       - legal
+                       - divider
+                       - gatedPermission
+                       - gatedKey
+                     default:
+                       enum: [legal]
+                   direction:
+                     description: direction of travel on the source that pertains to the relation
+                     "$ref": "#/$defs/propertyDefinitions/direction"
+                   via:
+                     description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
+                     type: array
+                     items:
+                       description: GERS ID of the connected segments
+                       "$ref": "#/$defs/propertyDefinitions/relationTarget"
+                     minItems: 1
+                     uniqueItems: true
+    roadFlag:
+      description: Simple flags that can be on or off for a road segment
+      type: string
+      enum:
+        - isBridge
+        - isLink
+        - isPrivate
+        - isTunnel
+        - isUnderConstruction
+    roadSurface:
+      description: Physical surface of the road
+      type: string
+      enum:
+        - unknown
+        - paved
+        - unpaved
+        - gravel
+        - dirt
+        - pavingStones
+        - metal
+    roadWidth:
+      description: >-
+        Edge-to-edge width of the road modeled by this segment, in
+        meters.
+
+        Examples: (1) If this segment models a carriageway without
+        sidewalk, this value represents the edge-to-edge width of the
+        carriageway, inclusive of any shoulder. (2) If this segment
+        models a sidewalk by itself, this value represents the
+        edge-to-edge width of the sidewalk. (3) If this segment models a
+        combined sidewalk and carriageway, this value represents the
+        edge-to-edge width inclusive of sidewalk.
+      type: number
+      exclusiveMinimum: 0
+    speed:
+      description: >-
+        A speed value, i.e. a certain number of distance units
+        travelled per unit time.
+      type: array
+      prefixItems:
+        - description: Number of speed units
+          type: integer
+          minValue: 20
+        - description: One speed unit
+          type: string
+          enum: [ "km/h", "mph" ]
+      additionalItems: false
+    accessOption:
+      description: access option (restriction) for a given segment
+      type: string
+      enum:
+        - allowed
+        - denied
+    usageOption:
+      description: describes reason for which a person or entity travelling on the transportation network is using a particular location
+      type: string
+      enum:
+        - asCustomer
+        - atDestination
+        - toDeliver
+        - toFarm
+        - forForestry
+    recognizedOption:
+      description: describes the status of the person or entity travelling as recognized by authorities controlling the particular location
+      type: string
+      enum:
+        - asPermitted
+        - asPrivate
+        - asDisabled
+        - asEmployee
+        - asStudent
+    relationalExpression:
+      description: Represents a relational operator for describing simple relational expression in the data
+      oneOf:
+        - type: object
+          required: [isMoreThan]
+          properties:
+            isMoreThan:
+              type: number
+        - type: object
+          required: [isAtLeast]
+          properties:
+            isAtLeast:
+              type: number
+        - type: object
+          required: [isEqualTo]
+          properties:
+            isEqualTo:
+              type: number
+        - type: object
+          required: [isAtMost]
+          properties:
+            isAtMost:
+              type: number
+        - type: object
+          required: [isLessThan]
+          properties:
+            isLessThan:
+              type: number
+    relationTarget:
+      description: >-
+        A tripe that uniquely identifies that target
+        of a relation
+      type: object
+      properties:
+        segmentId:
+          description: >-
+            Segment ID of the target that the relation refers to
+            (TODO replace with GERS ID schema)
+          type: string
+        connectorId:
+          description: Connector ID of the this segment that the relationship connects to
+          "$comment": >-
+            A segment can connect to another segment at multiple connector. So a
+            connector id is necessary to uniquely identify the exact connection point.
+            However this is not a required property since a relationship target may not
+            necessarily be conncted to the source of the relation (for example  signposts)
+            (TODO replace with GERS ID)
+          type: string
+        toDirection:
+          description: direction of travel on the target that pertains to the relation
+          "$ref": "#/$defs/propertyDefinitions/direction"
+      required: [segmentId]
+  propertyContainers:
+    atRangeContainer:
+      description: >-
+        Geometric scoping properties defining the range of positions on
+        the segment where something is physically located or where a
+        rule is active.
+      properties:
+        at:
+          "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedRange
+    duringContainer:
+      "$comment": >-
+        Temporal scoping properties defining the time spans when a
+        recurring rule is active.
+      properties:
+        during:
+          "$ref": ../defs.yaml#/$defs/propertyDefinitions/openingHours
+    modesContainer:
+      description: >-
+        Properties defining travel modes for which a rule is active.
+      type: object
+      oneOf:
+        - not:
+            anyOf:
+              - required: [mode]
+              - required: [modeNot]
+        - required: [mode]
+          properties:
+            mode:
+              description: Travel mode to which the rule applies
+              type: array
+              items:
+                "$ref": "#/$defs/propertyDefinitions/mode"
+              uniqueItems: true
+              minLength: 1
+        - required: [modeNot]
+          properties:
+            modeNot:
+              description: Travel modes to which the rule does not apply
+              type: array
+              items:
+                "$ref": "#/$defs/propertyDefinitions/mode"
+              uniqueItems: true
+              minLength: 1
+      "$comment": >-
+        If neither mode nor modeNot is specified, the rule has the
+        default travel modes for the segment subType.
+    directionContainer:
+      description: properties defining direction for which a rule is active
+      properties:
+        direction:
+          "$ref": "#/$defs/propertyDefinitions/direction"
+    speedLimitsContainer:
+      description: Rules governing speed on this road segment or lane
+      type: array
+      items:
+        description: An individual speed limit rule
+        "$comment": >-
+          TODO: Speed limits probably have directionality, so
+          should factor out a directionContainer for this
+          purpose and use it to introduce an optional
+          direction property in each rule.
+        type: object
+        anyOf:
+          - required: [ minSpeed ]
+          - required: [ maxSpeed ]
+        allOf:
+          - "$ref": "#/$defs/propertyContainers/modesContainer"
+          - "$ref": "#/$defs/propertyContainers/atRangeContainer"
+          - "$ref": "#/$defs/propertyContainers/duringContainer"
+        unevaluatedProperties: false
+        properties:
+          minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+          maxSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+          isMaxSpeedVariable:
+            description: Indicates a variable speed corridor
+            type: boolean
+            default: false
+    accessContainer:
+      description: Rules governing access to this road segment or lane
+      type: array
+      items:
+        oneOf:
+          - "$ref": "#/$defs/propertyDefinitions/accessOption"
+          - type: object
+            oneOf:
+              - required: [ allowed ]
+                properties:
+                  allowed:
+                    type: object
+                    unevaluatedProperties: false
+                    allOf:
+                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+              - required: [ designated ]
+                properties:
+                  designated:
+                    type: object
+                    unevaluatedProperties: false
+                    allOf:
+                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+              - required: [ denied ]
+                properties:
+                  denied:
+                    type: object
+                    unevaluatedProperties: false
+                    allOf:
+                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+            minLength: 1
+    ruleContainer:
+      description: >-
+        Properties that allow defining rules from environmental and subjective scoping properties .
+      type: object
+      properties:
+        when:
+          description: describes a set of condition
+          type: object
+          allOf:
+            - "$ref": "#/$defs/propertyContainers/modesContainer"
+            - "$ref": "#/$defs/propertyContainers/duringContainer"
+          unevaluatedProperties: false
+          properties:
+            using:
+              type: array
+              items:
+                "$ref": "#/$defs/propertyDefinitions/usageOption"
+            recognized:
+              type: array
+              items:
+                "$ref": "#/$defs/propertyDefinitions/recognizedOption"
+            vehicle:
+              type: object
+              properties:
+                axleCount:
+                  "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+                length:
+                  "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+                weight:
+                  "$ref": "#/$defs/propertyDefinitions/relationalExpression"

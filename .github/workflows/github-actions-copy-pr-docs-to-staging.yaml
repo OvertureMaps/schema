@@ -1,0 +1,43 @@
+---
+name: Publish docs to staging website (for PR)
+
+on: [pull_request]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the schema-wg repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19"
+
+      - name: Install NPM dependencies
+        run: cd docusaurus && npm install
+
+      - name: Build Docusaurus website
+        env:
+          DOCUSAURUS_URL: https://dfhx9f55j8eg5.cloudfront.net/
+          DOCUSAURUS_BASE_URL: /pr/${{github.event.number}}/
+        run: cd docusaurus && npm run build
+
+      - name: Fetch AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::207370808101:role/Overture_GitHub_schema-wg_Publish_Docs_Staging
+          aws-region: us-east-2
+
+      - name: Copy Docusaurus website to staging bucket /pr/${{github.event.number}}/
+        run: |
+          cd docusaurus/build && aws --region us-east-2 s3 sync --delete --storage-class INTELLIGENT_TIERING . s3://overture-schema-docs-static-staging-us-east-2/pr/${{github.event.number}}
+
+      - name: Purge CDN cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id E3L106P8HVBE9L --paths "/pr/${{github.event.number}}/*"

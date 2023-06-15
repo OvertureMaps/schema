@@ -1,0 +1,38 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Locality Schema
+description: >-
+  Localities are named, populated areas. If a locality is a country or an official subdivision of a country, it will have adminLevel property set and its subType will be an administrativeLocality.
+  Otherwise, adminLevel property will not be set and its subType will be a namedLocality.
+type: object
+properties:
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    required: [subType, localityType, names]
+    allOf:
+      - title: Conditional Properties
+        if: { properties: {subType: { enum: [administrativeLocality] }}}
+        then:
+          allOf:
+          - "$ref": "./defs.yaml#/$defs/propertyContainers/adminPropertiesContainer"
+          - title: "Conditional Properties"
+            if: {properties: {adminLevel: { minimum: 3 }}}
+            then:
+              required: [context]
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+    properties:
+      subType:
+        description: populated area types
+        type: string
+        enum: [administrativeLocality, namedLocality]
+      localityType: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/localityType" }
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      context:
+        description: Context entity is the most granular entity that logically contains given entity (but doesn't have to contain it spatially due to minor discrepancies in geometries)
+        type: string

@@ -1,0 +1,49 @@
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import AdministrativeBoundarySchema from '!!raw-loader!@site/docs/_schema/admins/administrativeBoundary.yaml';
+import AdminBoundaryExample from '!!raw-loader!@site/docs/_examples/admins/administrativeBoundary/administrativeBoundary.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# administrativeBoundary
+
+Administrative Boundaries are borders surrounding Administrative [Localities](locality).
+
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>LineString</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>admins</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>administrativeBoundary</code></td>
+  </tr>
+</table>
+
+An Administrative Boundary defines the division between two Administrative [Localities](locality).
+The Administrative Boundary and two Administrative Localities do no share common geometry.
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(AdministrativeBoundarySchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{AdministrativeBoundarySchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="Administrative Boundary" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(AdminBoundaryExample), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>

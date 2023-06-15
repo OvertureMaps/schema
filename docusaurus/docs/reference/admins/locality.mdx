@@ -1,0 +1,84 @@
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import LocalitySchema from '!!raw-loader!@site/docs/_schema/admins/locality.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import AdminLocalityExample from '!!raw-loader!@site/docs/_examples/admins/locality/no-optional-properties.yaml';
+
+# locality
+
+Localities are named, and typically populated, areas.
+
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Point</code>, <code>Polygon</code> or <code>MultiPolygon</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>admins</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>administrativeLocality</code></td>
+  </tr>
+</table>
+
+## Sub-Types
+
+A locality may have one of two possible sub-types.
+
+<Tabs>
+  <TabItem value="administrativeLocality" label="Administrative Locality" default>
+    <table>
+      <tr>
+        <th><code>subType</code></th>
+        <td><code>administrativeLocality</code></td>
+      </tr>
+    </table>
+
+Administrative Localities represent countries and hierarchical
+subdivisions of countries.
+
+Every Administrative Locality has a valid `adminLevel` property set,
+defining its position in the subdivision hierarchy. All Administrative
+Localities at sub-country level must have a `context` property
+containing the GERS ID of the feature's parent Administrative Locality.
+
+The borders of Administrative Localities, if known, are given by
+[Administrative Boundary](administrativeBoundary) features.
+  </TabItem>
+  <TabItem value="namedLocality" label="Named Locality">
+    <table>
+      <tr>
+        <th><code>subType</code></th>
+        <td><code>namedLocality</code></td>
+      </tr>
+    </table>
+
+Named Localities represent named areas which are not formally part of
+the hierarchical subdivision of a country (are not Administrative
+Localities).
+  </TabItem>
+</Tabs>
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(LocalitySchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{LocalitySchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="administrativeLocality" label="Administrative Locality" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(AdminLocalityExample), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>

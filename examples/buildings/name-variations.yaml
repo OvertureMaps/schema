@@ -1,0 +1,31 @@
+---
+id: overture:buildings:building:1234
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  # Custom user properties.
+  extFoo: I am a customer user property.
+  extBar: Me too!
+  # Overture properties
+  theme: buildings
+  type: building
+  version: 1
+  updateTime: "2023-02-22T23:55:01-08:00"
+  names:
+    common:
+      - value: Local value
+        language: local
+      - value: Language Script
+        language: ru-Latn
+      - value: Language Region
+        language: en-US
+      - value: Language Script Region
+        language: en-Latn-US
+    official:
+      - value: United States of America
+        language: local
+    alternate:
+      - value: US
+        language: local
