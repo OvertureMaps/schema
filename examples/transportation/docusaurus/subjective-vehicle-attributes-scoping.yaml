@@ -1,0 +1,20 @@
+---
+id: overture:transportation:example:subjective-vehicle-attributes-scoping
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-123.12791513926058, 49.287502049554945]
+    - [-123.12795068403449, 49.287522915661725]
+    - [-123.12797769806272, 49.28756882106529]
+properties:
+  theme: transportation
+  type: segment
+  version: 0
+  updateTime: "2023-06-16T14:22:30-06:00"
+  subType: road
+  #road:
+    # TODO: This example needs the unit fixes from https://github.com/OvertureMaps/schema-wg/issues/147 to work.
+    #restrictions:
+    #  access:
+    #    denied: { when: { vehicle: { weight: { greaterThan: [23, tons] } } } }

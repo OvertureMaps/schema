@@ -66,7 +66,7 @@ const sidebars = {
           collapsed: true,
           items: [
             'themes/transportation/shape-connectivity',
-            //'themes/transportation/scoped-properties',
+            'themes/transportation/scoping-rules',
             //'themes/transportation/travel-modes',
             /*{
               type: 'category',

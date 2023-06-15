@@ -1,0 +1,20 @@
+---
+id: overture:transportation:example:subjective-usage-purpose-scoping
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-123.12700676422021, 49.279826628301635]
+    - [-123.12680748254229, 49.27995121574301]
+properties:
+  theme: transportation
+  type: segment
+  version: 0
+  updateTime: "2023-06-16T10:33:00-06:00"
+  subType: road
+  road:
+    restrictions:
+      access:
+        - denied
+        - allowed:
+            when: { using: [asCustomer, atDestination] }
