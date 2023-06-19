@@ -21,7 +21,7 @@ The Overture Transportation theme's schema model of the transportation
 network uses two related concepts to capture the partial application of
 facts and rules: Scoped values, and Rule-based properties.
 
-## Scoped values
+## Scoped values and Scoping properties
 
 A *Scoped* value is a value which only applies within a limited scope.
 Most scoped values are rules in the rule lists of
@@ -31,7 +31,7 @@ example a signpost property belonging to a road segment might be
 geometrically scoped to its position along the road.
 
 The scope in which a scoped value applies is controlled by one or more
-special child properties of the value known as scoping properties.
+special child properties of the value known as *Scoping* properties.
 
 ### Geometric scoping (linear referencing)
 
@@ -174,7 +174,8 @@ listed travel modes. Conversely, the construct
 `when: { modeNot: [...] }` scopes the parent value to apply only when
 the traveller is *not* using one of the listed travel modes.
 
-To dive deeper into this topic, see the page on Travel Modes. **TODO: Link.**
+To dive deeper into this topic, see the page on
+[Travel Modes](travel-modes).
 
 <!--
 

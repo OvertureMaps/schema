@@ -68,6 +68,7 @@ const sidebars = {
             'themes/transportation/shape-connectivity',
             'themes/transportation/scoping-rules',
             'themes/transportation/roads',
+            'themes/transportation/travel-modes',
           ]
         }
       ]
