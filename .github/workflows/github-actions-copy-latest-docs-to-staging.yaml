@@ -36,7 +36,7 @@ jobs:
       - name: Fetch AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::207370808101:role/Overture_GitHub_schema-wg_Publish_Docs_Staging
+          role-to-assume: arn:aws:iam::207370808101:role/Overture_GitHub_schema_Publish_Docs_Staging
           aws-region: us-east-2
 
       - name: Copy Docusaurus website to staging bucket /latest/
