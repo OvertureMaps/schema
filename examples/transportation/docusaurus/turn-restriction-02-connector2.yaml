@@ -1,5 +1,5 @@
 ---
-id: overture:transportation:example:turn-restriction-connector2
+id: overture:transportation:example:via-turn-restriction-connector2
 type: Feature
 geometry:
   type: Point
@@ -9,4 +9,3 @@ properties:
   type: connector
   version: 0
   updateTime: "2023-06-08T12:32:00-06:00"
-  level: 0

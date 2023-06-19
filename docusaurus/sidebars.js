@@ -67,19 +67,7 @@ const sidebars = {
           items: [
             'themes/transportation/shape-connectivity',
             'themes/transportation/scoping-rules',
-            //'themes/transportation/travel-modes',
-            /*{
-              type: 'category',
-              label: 'Roads',
-              link: {
-                type: 'doc',
-                id: 'themes/transportation/roads/index'
-              },
-              collapsed: true,
-              items: [
-                'themes/transportation/roads/lanes'
-              ],
-            }*/
+            'themes/transportation/roads',
           ]
         }
       ]

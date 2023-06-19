@@ -1,5 +1,5 @@
 ---
-id: overture:transportation:example:turn-restriction-source
+id: overture:transportation:example:via-turn-restriction-source
 type: Feature
 geometry:
   type: LineString
@@ -13,7 +13,7 @@ properties:
   updateTime: "2023-06-06T16:42:00-06:00"
   subType: road
   connectors:
-    - overture:transportation:example:turn-restriction-connector1
+    - overture:transportation:example:via-turn-restriction-connector1
   road:
     roadNames:
       common: [ { language: local, value: "Bel-Red Road" } ]
@@ -21,13 +21,13 @@ properties:
     surface: paved
     restrictions:
       turns:
-        - segmentId: overture:transportation:example:turn-restriction-target
-          connectorId: overture:transportation:example:turn-restriction-connector2
+        - segmentId: overture:transportation:example:via-turn-restriction-target
+          connectorId: overture:transportation:example:via-turn-restriction-connector2
           toDirection: forward
           reason: legal
           direction: forward
           during: Mo-Sa 16:00-18:00
           via:
-            - segmentId: overture:transportation:example:turn-restriction-via
-              connectorId: overture:transportation:example:turn-restriction-connector1
+            - segmentId: overture:transportation:example:via-turn-restriction-via
+              connectorId: overture:transportation:example:via-turn-restriction-connector1
               toDirection: forward

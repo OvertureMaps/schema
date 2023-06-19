@@ -1,0 +1,25 @@
+---
+id: overture:transportation:example:simple-turn-restriction-source
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-113.57822030759499, 50.01868388494378]
+    - [-113.57831482025354, 50.018860947117304]
+    - [-113.57851814418316, 50.01923724443006]
+properties:
+  theme: transportation
+  type: segment
+  version: 3
+  updateTime: "2023-06-21T13:41:00-07:00"
+  subType: road
+  connectors:
+    - overture:transportation:example:simple-turn-restriction-connector1
+    - overture:transportation:example:simple-turn-restriction-connector2
+  road:
+    restrictions:
+      turns:
+        - segmentId: overture:transportation:example:simple-turn-restriction-source
+          connectorId: overture:transportation:example:simple-turn-restriction-connector
+          direction: forward
+          toDirection: forward
