@@ -66,6 +66,7 @@ description: Common schema definitions shared by all themes
         that referenced property will be specified in the overture list of
         approved sources from the Overture Data Working Group that contains
         the relevant metadata for that dataset including license source organization.
+        The recordid refers to the specific record within the dataset that was used.
       type: object
       required: [property, dataset]
       unevaluatedProperties: false
@@ -73,6 +74,8 @@ description: Common schema definitions shared by all themes
         property:
           type: string
         dataset:
+          type: string
+        recordid:
           type: string
     theme:
       description: Top-level Overture theme this feature belongs to
