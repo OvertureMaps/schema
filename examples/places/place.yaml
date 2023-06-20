@@ -34,6 +34,13 @@ properties:
   type: place
   version: 0
   updateTime: "2023-02-22T23:55:01-08:00"
+  sources: 
+    - property: ""
+      dataset: metaPlaces
+      recordid: "10101"
+    - property: "/properties/brand"
+      dataset: msftPlaces
+      recordid: "10df72b8"
   names:
     common:
       - value: "My Sweet POI"
