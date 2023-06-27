@@ -1,0 +1,5 @@
+my_id,wkt,payload
+"ID100A","LINESTRING (-83.6411184 32.8294379, -83.6415476 32.8289533)","mock payload1 - small segment, suburb"
+"ID100B","LINESTRING (-83.6499179 32.8333279, -83.6493653 32.8330124)","mock payload2"
+"ID100C","LINESTRING (-83.6457156 32.8290998, -83.6451832 32.8297174, -83.6447629 32.8301937, -83.6442959 32.8307579, -83.6437461 32.8314047)","mock payload3 - spans two segments, suburb"
+"ID100D","LINESTRING (-83.6449266 32.8558541, -83.6464608 32.8577287, -83.6472708 32.8587201, -83.6481628 32.8597324)","mock payload4 - spans multiple small intersections with service roads and driveways"
