@@ -8,7 +8,7 @@ type: object
 properties:
   geometry:
     description: >-
-      A regular building's geometry is deinfed as it's footprint or roofprint (if traced from aerial/satellite imagery). These MUST be a Polygon as defined by GeoJSON
+      A regular building's geometry is defined as it's footprint or roofprint (if traced from aerial/satellite imagery). These MUST be a Polygon as defined by GeoJSON
       schema.
     unevaluatedProperties: false
     oneOf:
