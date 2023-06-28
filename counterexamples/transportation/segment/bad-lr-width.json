@@ -1,5 +1,5 @@
 {
-  "id": "segment with 0 meters width",
+  "id": "segment with missing value for one of ranges",
   "type": "Feature",
   "geometry": {
     "type": "LineString",
@@ -11,6 +11,14 @@
     "version": 25,
     "updateTime": "2023-02-23T00:04:00-08:00",
     "subType": "road",
-    "width": 0
+    "width": [
+      {
+        "at" : [0, 0.5],
+        "value:" : 1.5
+      },
+      {
+        "at" : [0.5, 1.0]
+      }
+    ]
   }
 }

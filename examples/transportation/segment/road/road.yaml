@@ -14,7 +14,6 @@ properties:
   version: 0
   subType: road
   level: -1
-  width: 10
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
   names:
     primary: Common Road Name
@@ -23,6 +22,8 @@ properties:
     class: secondary
     surface: gravel
     flags: [isLink, isTunnel]
+    width:
+      - value: 10
     restrictions:
       speedLimits:
         - minSpeed: [90, "km/h"]

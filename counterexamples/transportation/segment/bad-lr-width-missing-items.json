@@ -1,5 +1,5 @@
 {
-  "id": "segment with 0 meters width",
+  "id": "segment with empty road width rules array",
   "type": "Feature",
   "geometry": {
     "type": "LineString",
@@ -11,6 +11,11 @@
     "version": 25,
     "updateTime": "2023-02-23T00:04:00-08:00",
     "subType": "road",
-    "width": 0
+    "road": {
+      "width": []
+    },
+    "extExpectedErrors": [
+      "[I#/properties/road/width] [S#/$defs/propertyDefinitions/road/properties/width/minItems] minimum 1 items required, but found 0 items"
+    ]
   }
 }
