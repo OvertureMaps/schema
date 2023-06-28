@@ -24,7 +24,6 @@ properties:
         then:
           properties:
             road: { "$ref": "#/$defs/propertyDefinitions/road" }
-            width: { "$ref": "#/$defs/propertyDefinitions/roadWidth"}
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     properties:
@@ -183,6 +182,30 @@ properties:
                     items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
                     uniqueItems: true
           uniqueItems: true
+        width:
+          description: >-
+            Edge-to-edge width of the road modeled by this segment, in
+            meters.
+    
+            Examples: (1) If this segment models a carriageway without
+            sidewalk, this value represents the edge-to-edge width of the
+            carriageway, inclusive of any shoulder. (2) If this segment
+            models a sidewalk by itself, this value represents the
+            edge-to-edge width of the sidewalk. (3) If this segment models a
+            combined sidewalk and carriageway, this value represents the
+            edge-to-edge width inclusive of sidewalk.
+          type: array
+          items:
+            type: object
+            allOf:
+              - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+            properties:
+              value:
+                type: number
+                exclusiveMinimum: 0
+            unevaluatedProperties: false
+          minItems: 1
+          uniqueItems: true
         lanes:
           description: >-
             Describes the layout of lanes on the road plus lane-related
@@ -274,20 +297,6 @@ properties:
         - dirt
         - pavingStones
         - metal
-    roadWidth:
-      description: >-
-        Edge-to-edge width of the road modeled by this segment, in
-        meters.
-
-        Examples: (1) If this segment models a carriageway without
-        sidewalk, this value represents the edge-to-edge width of the
-        carriageway, inclusive of any shoulder. (2) If this segment
-        models a sidewalk by itself, this value represents the
-        edge-to-edge width of the sidewalk. (3) If this segment models a
-        combined sidewalk and carriageway, this value represents the
-        edge-to-edge width inclusive of sidewalk.
-      type: number
-      exclusiveMinimum: 0
     speed:
       description: >-
         A speed value, i.e. a certain number of distance units
