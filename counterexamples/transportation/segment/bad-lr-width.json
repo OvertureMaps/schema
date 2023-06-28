@@ -8,20 +8,17 @@
   "properties": {
     "theme": "transportation",
     "type": "segment",
-    "version": 26,
-    "subtype": "road",
-    "class": "primary",
-    "width_rules": [
+    "version": 25,
+    "updateTime": "2023-02-23T00:04:00-08:00",
+    "subType": "road",
+    "width": [
       {
-        "between" : [0, 0.5],
-        "value" : 1.5
+        "at" : [0, 0.5],
+        "value:" : 1.5
       },
       {
-        "between" : [0.5, 1.0]
+        "at" : [0.5, 1.0]
       }
-    ],
-    "ext_expected_errors": [
-      "[I#/properties/width_rules/1] [S#/$defs/propertyDefinitions/width_rules/items/required] missing properties: 'value'"
     ]
   }
 }

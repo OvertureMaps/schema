@@ -8,12 +8,14 @@
   "properties": {
     "theme": "transportation",
     "type": "segment",
-    "version": 26,
-    "subtype": "road",
-    "class": "primary",
-    "width_rules": [],
+    "version": 25,
+    "updateTime": "2023-02-23T00:04:00-08:00",
+    "subType": "road",
+    "road": {
+      "width": []
+    },
     "extExpectedErrors": [
-      "[I#/properties/road/width] [S#/$defs/propertyDefinitions//width_rules/minItems] minimum 1 items required, but found 0 items"
+      "[I#/properties/road/width] [S#/$defs/propertyDefinitions/road/properties/width/minItems] minimum 1 items required, but found 0 items"
     ]
   }
 }
