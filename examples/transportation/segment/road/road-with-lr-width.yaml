@@ -1,0 +1,24 @@
+---
+id: overture:transportation:segment:123
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Custom user properties.
+  extBaz: I am a custom user property...
+  # Overture properties
+  theme: transportation
+  type: segment
+  updateTime: "2023-06-28T00:02:30-08:00"
+  version: 0
+  subType: road
+  level: 1
+  connectors: [fooConnector, barConnector]
+  road:
+    class: secondary
+    width:
+    - at: [0, 0.5]
+      value: 1.5
+    - at: [0.5, 1]
+      value: 2.0
