@@ -2,13 +2,6 @@ from enum import Enum
 import os
 
 DEFAULT_H3_RESOLUTION = 12
-"""Default H3 resolution for all match types"""
-
-# default params for generic match
-DEFAULT_GENERIC_MATCH_BUFFER = 0.0001
-"""Buffer distance used by the generic match function. Unit is same as the unit of the input geometries."""
-DEFAULT_GENERIC_MATCH_MIN_BUFFERED_OVERLAP_RATIO = 0.1
-"""Minimum ratio of the buffered intersection to the buffered candidate geometry for a candidate to be considered a match."""
 
 # default params for nearest match
 DEFAULT_NEAREST_MAX_DISTANCE = 100 # meters
@@ -29,13 +22,6 @@ DEFAULT_BROKEN_DISTANCE_GAP_RESET_SEQUENCE = 300 # meters
 """default column separator of text files"""
 COLUMN_SEPARATOR = "\t"
 
-class SidecarMatchType(Enum):
-    MatchGeneric = 1
-    Nearest = 2
-    Containment = 3
-    SnapTraces = 4
-
 DATA_DIR = "gers/examples/python/data"
-RAW_TRACES_DOWNLOAD_DIR = os.path.join(DATA_DIR, "osm-traces")
 
 

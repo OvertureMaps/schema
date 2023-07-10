@@ -73,15 +73,23 @@ An example trace to match as geojson:
 }        
 ```
 
-## Run with sidecar_match script
+### Dependencies
 
-Example parameters for running traces matching either via side_car_match executable or when debugging the sidecar_match.py script with python:
+```
+pip install shapely h3 geopandas geojson haversine gpxpy
+```
+
+## Run with script
+
+Example parameters for running traces matching with the sidecar_match.py script:
 ```
 cd gers/examples/python/data
-python sidecar_match.py SnapTraces --input-to-match data/macon-manual-traces.geojson --input-overture data/overture-transportation-macon.geojson --output data/match-result.json
+python match_traces.py --input-to-match data/macon-manual-traces.geojson --input-overture data/overture-transportation-macon.geojson --output data/match-result.json
 ```
 
 See all (optional) parameters by running it with -h
+
+The script uses [H3 tiles](https://h3geo.org/) to first filter road segment candidates spatially.
 
 ## Run with notebook
 Alternative is to perform the traces match via notebook available here: [match_traces.ipynb](match_traces.ipynb)

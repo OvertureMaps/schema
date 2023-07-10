@@ -1,3 +1,4 @@
+import argparse
 import csv
 import json
 import os
@@ -9,10 +10,9 @@ from match_classes import TraceSnapOptions, MatchableFeature, TraceMatchResult, 
 from utils import get_features_with_cells, get_seconds_elapsed, get_distance, get_linestring_length, load_matchable_set
 
 from shapely import Point
-from shapely.geometry import shape
 from shapely.ops import nearest_points
 from timeit import default_timer as timer
-from typing import Dict, Iterable, Any
+from typing import Dict, Iterable
 
 def get_feature_id_to_connected_features(features_overture: Iterable[MatchableFeature]) -> Dict[str, Iterable[MatchableFeature]]:
     """returns a connected roads "graph" as a dictionary of feature id to features that are connected to it, as modeled in overture schema via connectors property"""
@@ -471,3 +471,39 @@ def snap_traces(features_to_match_file: str, overture_file: str, output_file: st
     end = timer()
     print(f"Writing time: {(end-start):.2f}s")
     calculate_error_rate(features_to_match_file.replace('.geojson', '.labeled.txt'), overture.features_by_id, match_results)
+
+def get_args():
+    parser = argparse.ArgumentParser(description="", add_help=True, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--input-to-match", help="Input file containing features to match in geojson format", required=True)
+    parser.add_argument("--input-overture", help="Input file containing overture features", required=True)
+    parser.add_argument("--output", help="Output file containing match results", required=True)
+    parser.add_argument("--resolution", help="H3 cell resolution used to pre-filter candidates", type=int, default=constants.DEFAULT_H3_RESOLUTION, choices=range(0,15))
+    parser.add_argument("--sigma", type=float, help=f"Sigma param - controlling tolerance to GPS noise", required=False, default=constants.DEFAULT_SIGMA)
+    parser.add_argument("--beta", type=float, help=f"Beta param - controlling confidence in route", required=False, default=constants.DEFAULT_BETA)
+    parser.add_argument("--allow_loops", type=bool, help=f"Allow same sequence to revisit same segment with other segment(s) in between", required=False, default=constants.DEFAULT_ALLOW_LOOPS)
+    parser.add_argument("--max_point_to_road_distance", type=float, help=f"Maximum distance in meters between a trace point and a match candidate road", required=False, default=constants.DEFAULT_MAX_POINT_TO_ROAD_DISTANCE)
+    parser.add_argument("--max_route_to_trace_distance_difference", type=float, help=f"Maximum difference between route and trace lengths in meters", required=False, default=constants.DEFAULT_MAX_ROUTE_TO_TRACE_DISTANCE_DIFFERENCE)
+    parser.add_argument("--revisit_segment_penalty_weight", type=float, help="How much to penalize a route with one segment revisit", required=False, default=constants.DEFAULT_SEGMENT_REVISIT_PENALTY)
+    parser.add_argument("--revisit_via_point_penalty_weight", type=float, help="How much to penalize a route with one via-point revisit", required=False, default=constants.DEFAULT_VIA_POINT_PENALTY_WEIGHT)
+    parser.add_argument("--broken_time_gap_reset_sequence", type=float, help="How big the time gap in seconds between points without valid route options before we consider it a broken sequence", required=False, default=constants.DEFAULT_BROKEN_TIME_GAP_RESET_SEQUENCE)
+    parser.add_argument("--broken_distance_gap_reset_sequence", type=float, help="How big the distance gap in meters between points without valid route options before we consider it a broken sequence", required=False, default=constants.DEFAULT_BROKEN_DISTANCE_GAP_RESET_SEQUENCE)
+    parser.add_argument("--j", help="Also output the matches as a 'pre-labeled' file for judgment", default=False, required=False)    
+    return parser.parse_args()
+
+def get_trace_snap_options_from_args(args):
+    return TraceSnapOptions(
+        sigma=args.sigma,
+        beta=args.beta,
+        allow_loops=args.allow_loops,
+        max_point_to_road_distance=args.max_point_to_road_distance,
+        max_route_to_trace_distance_difference=args.max_route_to_trace_distance_difference,
+        revisit_segment_penalty_weight=args.revisit_segment_penalty_weight,
+        revisit_via_point_penalty_weight=args.revisit_via_point_penalty_weight,
+        broken_time_gap_reset_sequence=args.broken_time_gap_reset_sequence,
+        broken_distance_gap_reset_sequence=args.broken_distance_gap_reset_sequence)    
+
+if __name__ == "__main__":
+    args = get_args()    
+    trace_snap_options = get_trace_snap_options_from_args(args)
+    snap_traces(args.input_to_match, args.input_overture, args.output, args.resolution, trace_snap_options, output_for_judgment=args.j)
+    

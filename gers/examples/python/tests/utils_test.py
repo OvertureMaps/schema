@@ -7,14 +7,6 @@ from shapely import Point, LineString
 
 class TestUtils(unittest.TestCase):
 
-    def test_load_matchable_set_csv(self):        
-        features_to_match_file = os.path.join(constants.DATA_DIR, "macon-line-segments.csv")
-        s = load_matchable_set(features_to_match_file, res=12, is_multiline=False)
-        self.assertIsNotNone(s)
-        self.assertEqual(len(s.features_by_id), 4)
-        self.assertEqual(len(s.cells_by_id), 4)
-        self.assertGreater(len(s.features_by_cell), 0)
-
     def test_load_matchable_set_geojson(self):
         features_to_match_file = os.path.join(constants.DATA_DIR, "macon-manual-traces.geojson")
         s = load_matchable_set(features_to_match_file, res=12, is_multiline=False)
