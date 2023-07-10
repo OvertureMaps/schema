@@ -66,26 +66,6 @@ class MatchedFeature:
     def __str__(self) -> str:
         return json.dumps(self.to_json())
 
-class MatchResult:
-    """"Result of matching a feature to a set of features"""
-    def __init__(self, id: str, source_feature: MatchableFeature, matched_features: Iterable[MatchedFeature]=None, elapsed: float=None) -> None:
-        self.id = id
-        self.source_feature = source_feature
-        self.matched_features = matched_features
-        self.elapsed = elapsed
-
-    def to_json(self, min_score:float=None):
-        j = { 
-            "id": str(self.id), 
-            "source_wkt": self.source_feature.geometry.wkt,
-            "elapsed": self.elapsed,
-            "matched_features": [f.to_json() for f in self.matched_features if min_score is None or f.score >= min_score],
-        } 
-        return j
-    
-    def __str__(self) -> str:
-        return json.dumps(self.to_json())
-
 class TraceSnapOptions:
     """"Parameters for matching a trace to road segments"""
     def __init__(self, \
