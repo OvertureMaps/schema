@@ -78,6 +78,10 @@ An example trace to match as geojson:
 ```
 pip install shapely h3 geopandas geojson haversine gpxpy
 ```
+Or:
+```
+pip install -r gers/examples/python/requirements.txt
+```
 
 ## Run with script
 
