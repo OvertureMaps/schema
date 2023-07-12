@@ -37,10 +37,10 @@ properties:
   sources: 
     - property: ""
       dataset: metaPlaces
-      recordid: "10101"
+      recordId: "10101"
     - property: "/properties/brand"
       dataset: msftPlaces
-      recordid: "10df72b8"
+      recordId: "10df72b8"
   names:
     common:
       - value: "My Sweet POI"
