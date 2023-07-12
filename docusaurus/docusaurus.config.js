@@ -69,6 +69,7 @@ const config = {
         logo: {
           alt: 'Overture Maps Foundation Logo',
           src: 'img/omf_logo_transparent.png',
+          href: 'https://overturemaps.org'
         },
         items: [
           {

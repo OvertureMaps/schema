@@ -21,34 +21,27 @@ Then, start the local server:
 ```
 $ npm run start
 ```
-This command does 2 things: First, it copies the contents of `schema/` into `docusaurus/docs/yaml`, then it runs the docusaurus server which reads the contents of `docs/overture-schema` pages and the `docs/yaml` files to build the page.
+This command does 2 things: First, it copies the contents of `schema/` into `docusaurus/docs/_schema`, and `examples/` into `docusaurus/docs/_examples`, then it runs the docusaurus server which builds the documentation.
 
 This command should also launch a browser window to `http://localhost:3000` where any changes to the source `.mdx` files are reflected live.
 
 ### Editing
 All of the relevant editable `.mdx` files are here:
 ```
-schema-wg/
+schema/
   docusaurus/
     docs/
-      overture-schema/
-        -schema.mdx
-        Addresses/
-          -address.mdx
-        Buildings/
-          -footprint.mdx
+        gers/
+        reference/
+        themes/
+        index.mdx
 
 ```
 These files may contain the headings, examples, etc. for each schema file, in markdown.
 
-Adding descriptions to the actual schema elements, however, should be done in the schema YAML files directly in the main (`schema-wg/schema/`) directory.
+Adding descriptions to the actual schema elements, however, should be done in the schema YAML files directly in the main (`schema/`) directory.
 
-_Note: each time you run `npm run start`, the official YAML schema files from `schema-wg/schema` are copied to the `docusaurus/docs/yaml` directory, where docusaurus parses them._
-
-### Adding a new Schema Page
-1. Update the `src/YAML_FILE_TREE.js` file to include the _relative_ path to the YAML file.
-2. Add a new `.mdx` file in the `docs/overture-schema` directory.
-
+_Note: each time you run `npm run start`, the official YAML schema files from `/schema` are copied to the `docusaurus/docs/_schema_` directory, where docusaurus parses them._
 
 ## Publishing
 ```
