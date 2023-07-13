@@ -11,14 +11,13 @@ The match process is exemplified below using a few mock traces as well as a few 
 ## Inputs
 We will use two inputs for the example:
 
-1. Overture road segments: [overture-transportation-macon.geojson.zip](https://wiki.overturemaps.org/download/attachments/393588/macon.json.zip?version=1&modificationDate=1680018861266&api=v2)
-2. GPS traces to be matched:  
+1. Overture road segments: [data\overture-transportation-macon.geojson](data\overture-transportation-macon.geojson) - Please note that this data set is included for demonstrative purposes, it is a sample that doesn't contain the latest properties defined in the Overture schema and its GERS IDs are provisional.
+2. GPS traces to be matched:     
+   [data\macon-osm-traces-combined.geojson](data\macon-osm-traces-combined.geojson) - sampled from OSM, see below for details.
 
-   [data\macon-manual-traces.geojson](data\macon-manual-traces.geojson) - mock traces with manually labeled expected prediction
+   [data\macon-manual-traces.geojson](data\macon-manual-traces.geojson) - mock traces simulating some noise edge cases with labeled expected prediction.
    
-   [data\macon-osm-traces-combined.geojson](data\macon-osm-traces-combined.geojson) - mock
-
-Below we describe how we prepared the two data sets for matching for reference, but we also provide a sample traces feed so you can experiment matching it directly.
+Below we describe how we prepared the two data sets for matching for reference, but we also include them so you can experiment with matching directly.
 
 ## Overture Data Set
 
@@ -30,24 +29,16 @@ GPS traces can be stored in many formats, some of the most common including GPX,
 
 In the case of OpenStreetMaps GPS traces we have GPX input traces, but we convert to GeoJSON for convenience, since having both data sets as GeoJSONs makes it very easy to initialize them both in the common class `MatchableFeature`.
 
-We plan to add native support for more input formats in the future, but since conversion between these formats is trivial, we consider it outside the scope for now. 
+Since conversion between these formats is trivial, we consider it outside the scope for this exercise. 
 
-### Downloading example traces
+In our example we downloaded public traces from openstreetmap.org. 
 
-In our example we downloaded public traces from openstreetmap.org via a paged web API. 
+A sample sub-set of the raw GPX OpenStreetMaps traces were converted to geojson format, with the times for each point stored as `properties.times`.
 
-A simple script [download_osm_traces.py](download_osm_traces.py) downloads and saves the traces in `data\osm_traces` 
+Points that are too close to each other, either distance-wise (<50 meters) or time-wise (<1sec), were filtered out.
+We also split traces that have big gaps between points (>100 meters) into separate traces. This was done to avoid processing a lot of data that doesn't add much useful information to the trace. Parameters are chosen arbitrarily, and appropriate values depend on the traces data and what type of sidecar feed we're trying to produce with what type of quality and performance constraints. There are more elaborate approaches for picking which points to drop, when to split traces and other preprocessing, but that is outside the scope of this exercise. 
 
-### Preprocessing Traces
-
-[convert_gpx.py](convert_gpx.py) takes the raw GPX OSM traces and converts them to geojson format, with the times for each point stored as `properties.times`, while also doing some processing of the traces for obtaining a small demo-size set of traces that can be used to obtain for example the average travel speeds per road segment or other traffic relevant information corresponding overture road segments.
-
-We filter out the points that are too close to each other, either distance-wise (<50 meters) or time-wise (<1sec).
-We also split traces that have big gaps between points (>100 meters) into separate traces.
-
-The parameters were chosen arbitrarily to avoid processing a lot of data that doesn't add much useful information to the trace. Appropriate values depend on the traces data and what type of sidecar feed we're trying to produce with what type of quality and performance constraints. 
-
-There are more elaborate approaches for picking which points to drop, when to split traces and other preprocessing, but that is outside the scope of this exercise.
+Result is a demo-size set of traces that can be used to obtain for example the average travel speeds per overture road segment or other traffic relevant information.
 
 An `id` is generated to uniquely identify each such trace and source properties are added to help identify each processed trace and its original source of data.
 
@@ -91,7 +82,7 @@ cd gers/examples/python/data
 python match_traces.py --input-to-match data/macon-manual-traces.geojson --input-overture data/overture-transportation-macon.geojson --output data/match-result.json
 ```
 
-See all (optional) parameters by running it with -h
+See all (optional) parameters by running it with `-h`.
 
 The script uses [H3 tiles](https://h3geo.org/) to first filter road segment candidates spatially.
 
@@ -109,35 +100,38 @@ Additional metrics are provided for the whole trace in the match result object.
 Below is an example of the output for a trace:
 ```json
     {
-        "id": "trace#5", 
-        "elapsed": 2.356133099994622,
-        "source_length": 8843,
-        "route_length": 8842.56,
+        "id": "trace#1",
+        "elapsed": 0.6450104000105057,
+        "source_length": 5165.4,
+        "route_length": 5167.13,
         "points": [
 
+
             {
-                "original_point": "POINT (-83.586161 32.818036)",
-                "time": "2023-04-15 16:45:16+00:00",
-                "seconds_since_prev_point": 1.0,
+                "original_point": "POINT (-83.586113 32.818006)",
+                "time": "2023-06-04 21:01:52+00:00",
+                "seconds_since_prev_point": 2.0,
                 "snap_prediction": {
-                    "id": "300000000658",
-                    "snapped_point": "POINT (-83.5861835260731 32.81799684930207)",
-                    "distance_to_snapped_road": 4.83,
-                    "route_distance_to_prev_point": 52.36
+                    "id": "8544c0bbfffffff-17976b4158ac1b2f",
+                    "snapped_point": "POINT (-83.58613449627562 32.81796863910759)",
+                    "distance_to_snapped_road": 4.61,
+                    "route_distance_to_prev_point": 50.35
                 }
             },
 
+
         ],
-        "points_with_matches": 172,
-        "avg_dist_to_road": 2.55,
+        "points_with_matches": 101,
+        "avg_dist_to_road": 3.12,
         "sequence_breaks": 0,
         "revisited_via_points": 0,
         "revisited_segments": 0,
-        "target_candidates_count": 64,
+        "target_candidates_count": 34,
         "target_ids": [
-            37382754,
-            300000000259,
-
+            "8744c0a36ffffff-13d7eb54760e4d65",
+            "8744c0a36ffffff-13979f2200827e1f",
+            "8544c0bbfffffff-17976b4158ac1b2f",
+            "8744c0a36ffffff-17d7b86aff4e68cd"
         ]
     },
 ```
@@ -161,8 +155,9 @@ Below are instructions on how to obtain the metric for your feed, and we exempli
 
    |trace_id|point_index|trace_point_wkt|gers_id|
    |-|-|-|-|
-   |trace#0|0|POINT (-83.585667 32.817693)|300000000658|
-   |trace#0|1|POINT (-83.586115 32.817949)|300000000658|
+   |manual_trace#1|0|POINT (-83.6455155 32.8246168)|`8844c0b1a7fffff-17fff78c078ff50b`|
+   |manual_trace#1|1|POINT (-83.64514 32.8251578)|`8844c0b1a7fffff-13def9663b8c091b`|
+   |...||||
 
    This will serve as a starting point for our "truth set", by using the results of the match to "pre-label" the data.
 3. Review the matches in QGIS. Load the overture features, the "pre-labeled" for_judgment.txt points, and the `snapped_points.txt` file. This should make it easy to observe which of the matches are incorrect. Optionally you could add an OSM tiles layer for example to add more context. 
