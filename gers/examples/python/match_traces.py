@@ -487,7 +487,7 @@ def get_args():
     parser.add_argument("--revisit_via_point_penalty_weight", type=float, help="How much to penalize a route with one via-point revisit", required=False, default=constants.DEFAULT_VIA_POINT_PENALTY_WEIGHT)
     parser.add_argument("--broken_time_gap_reset_sequence", type=float, help="How big the time gap in seconds between points without valid route options before we consider it a broken sequence", required=False, default=constants.DEFAULT_BROKEN_TIME_GAP_RESET_SEQUENCE)
     parser.add_argument("--broken_distance_gap_reset_sequence", type=float, help="How big the distance gap in meters between points without valid route options before we consider it a broken sequence", required=False, default=constants.DEFAULT_BROKEN_DISTANCE_GAP_RESET_SEQUENCE)
-    parser.add_argument("--j", help="Also output the matches as a 'pre-labeled' file for judgment", default=False, required=False)    
+    parser.add_argument("--j", action="store_true", help="Also output the matches as a 'pre-labeled' file for judgment", default=False, required=False)    
     return parser.parse_args()
 
 def get_trace_snap_options_from_args(args):
