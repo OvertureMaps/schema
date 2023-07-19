@@ -19,8 +19,6 @@ properties:
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     properties:
-      # Missing:
-      # - signals -> shared cross-cutting concern
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       categories:
         description: The categories of the place. The list of categories can be found <TODO>.

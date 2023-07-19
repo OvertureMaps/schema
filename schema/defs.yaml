@@ -74,6 +74,9 @@ description: Common schema definitions shared by all themes
           type: string
         dataset:
           type: string
+        recordId:
+          type: string
+          description: Refers to the specific record within the dataset that was used.
     theme:
       description: Top-level Overture theme this feature belongs to
       type: string
