@@ -32,5 +32,5 @@ description: Common schema definitions the context theme (primarily from OSM)
       properties:
         osmType: { "$ref": "#/$defs/propertyDefinitions/osmType" }
         osmId: { "$ref": "#/$defs/propertyDefinitions/osmId" }
-        osmTags: { "$ref": "#/$defs/propertyDefinitions/osmTags" }
         osmVersion: { "$ref": "#/$defs/propertyDefinitions/osmVersion" }
+        osmTags: { "$ref": "#/$defs/propertyDefinitions/osmTags" }
