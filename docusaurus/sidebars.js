@@ -142,6 +142,18 @@ const sidebars = {
             'reference/transportation/segment',
           ]
         },
+        {
+          type: 'category',
+          label: 'context layers',
+          // link: {
+          //   type: 'generated-index',
+          // },
+          collapsed: false,
+          items: [
+              'reference/context/water',
+              // 'reference/context/land',
+          ]
+        },
       ]
     }
   ],
