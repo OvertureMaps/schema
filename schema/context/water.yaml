@@ -1,0 +1,40 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Water Schema
+description: Bodies of water including oceans, lakes, and rivers
+type: object
+properties:
+  geometry:
+    description: >-
+      A regular building's geometry is defined as it's footprint or roofprint (if traced from aerial/satellite imagery). These MUST be a Polygon as defined by GeoJSON
+      schema.
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/LineString.json
+      - "$ref": https://geojson.org/schema/MultiLineString.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    properties:
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      subType:
+        description: >-
+          A broad category of the building type / purpose. When the current use of the building does not match the built purpose, the class should
+          be set to represent the current use of the building.
+        type: string
+        enum:
+          - ocean
+          - sea
+          - lake
+          - pond
+          - river
+          - stream
+          - human_made
+        salt:
+        description: Is it salt water or not
+        type: boolean
+        exclusiveMinimum: 0
