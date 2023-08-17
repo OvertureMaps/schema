@@ -13,6 +13,8 @@ const _default = {
     '/transportation/connector.yaml': require('!!raw-loader!@site/docs/_schema/transportation/connector.yaml'),
     '/transportation/segment.yaml': require('!!raw-loader!@site/docs/_schema/transportation/segment.yaml'),
 
+    '/context/water.yaml': require('!!raw-loader!@site/docs/_schema/context/water.yaml'),
+
     '/defs.yaml': require('!!raw-loader!@site/docs/_schema/defs.yaml'),
     '/schema.yaml': require('!!raw-loader!@site/docs/_schema/schema.yaml')
 

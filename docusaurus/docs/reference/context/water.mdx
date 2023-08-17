@@ -1,0 +1,43 @@
+---
+title: water
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import WaterSchema from "!!raw-loader!@site/docs/_schema/context/water.yaml";
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Water
+
+Buildings are human-made structures with roofs or interior spaces that are permanently or semi-permanently in one place ([OSM building definition](https://wiki.openstreetmap.org/wiki/Key:building)).
+
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Polygon</code> or <code>MultiPolygon</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>context</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>water</code></td>
+  </tr>
+</table>
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(WaterSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/context'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{WaterSchema}</CodeBlock>
+  </TabItem>
+</Tabs>

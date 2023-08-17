@@ -34,7 +34,7 @@ properties:
           - river
           - stream
           - human_made
-        salt:
+      salt:
         description: Is it salt water or not
         type: boolean
         exclusiveMinimum: 0
