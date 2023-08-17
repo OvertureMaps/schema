@@ -1,9 +1,36 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Context layer properties
-description: Common schema definitions the context theme (from OSM)
+description: Common schema definitions the context theme (primarily from OSM)
 "$defs":
   propertyDefinitions:
+    osmType:
+      description: "Type of OSM element"
+      type: string
+      enum:
+        - node
+        - way
+        - relation
+    osmId:
+      description: OSM Element ID
+      type: integer
+    osmVersion:
+      description: Version of element in OSM.
+      type: integer
     osmTags:
       description: All original tags from OSM.
       type: object
+    wikidata:
+      description: A wikidata ID if available
+      type: string
+  propertyContainers:
+    osmPropertiesContainer:
+      title: "OSM Properties"
+      description: OSM Properties
+      type: object
+      required: [osmId, osmType, osmVersion, osmTags]
+      properties:
+        osmType: { "$ref": "#/$defs/propertyDefinitions/osmType" }
+        osmId: { "$ref": "#/$defs/propertyDefinitions/osmId" }
+        osmTags: { "$ref": "#/$defs/propertyDefinitions/osmTags" }
+        osmVersion: { "$ref": "#/$defs/propertyDefinitions/osmVersion" }

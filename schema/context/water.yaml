@@ -5,9 +5,7 @@ description: Bodies of water including oceans, lakes, and rivers
 type: object
 properties:
   geometry:
-    description: >-
-      A regular building's geometry is defined as it's footprint or roofprint (if traced from aerial/satellite imagery). These MUST be a Polygon as defined by GeoJSON
-      schema.
+    description: Water TODO
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/LineString.json
@@ -17,23 +15,27 @@ properties:
   properties:
     unevaluatedProperties: false
     allOf:
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-      subType:
+      class:
         description: The type of water body such as an ocean or lake.
+        default: [water]
         type: string
         enum:
-          - ocean
-          - sea
+          - human_made
           - lake
+          - ocean
           - pond
           - river
           - stream
-          - human_made
+          - water
+      subclass:
+        description: "Subclass"
+        type: string
       salt:
         description: Is it salt water or not
         type: boolean
-        exclusiveMinimum: 0
-      osmTags: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/osmTags" }
+      wikidata: {"$ref" : "./defs.yaml#/$defs/propertyDefinitions/wikidata" }
