@@ -22,9 +22,7 @@ properties:
     properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       subType:
-        description: >-
-          A broad category of the building type / purpose. When the current use of the building does not match the built purpose, the class should
-          be set to represent the current use of the building.
+        description: The type of water body such as an ocean or lake.
         type: string
         enum:
           - ocean
@@ -38,3 +36,4 @@ properties:
         description: Is it salt water or not
         type: boolean
         exclusiveMinimum: 0
+      osmTags: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/osmTags" }
