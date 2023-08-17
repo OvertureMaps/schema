@@ -50,9 +50,14 @@ shape but no observable presence in the real world.
 
 Two or more segments are physically connected at a given connector if
 each segment's `connectors` property contains a reference the
-connector. Where this is true, each segment's geometry must also contain
-the connector's coordinates, which defines the point of physical
-connection.
+connector.
+
+The connector geometry's coordinates should preferably be contained
+within the segment geometry's coordinates, in which case the connector
+coordinates define the point of physical connection. This constraint
+will always be met by official Overture data releases. Where this is not
+possible, the point of physical connection is the closest point to the
+connector coordinates which intersects the segment geometry.
 
 Conversely, two segments are not physically connected if their
 `connectors` properties do not reference a shared connector, even if
@@ -70,11 +75,11 @@ not a mandatory minimum (and is not enforced by the schema). It is done
 to allow new segments to connect into the existing network without
 needing to change the properties of existing segments.
 
-### Back, front, and orientation
+### Start, end, and orientation
 
-The first coordinate in a segment's geometry is the "back" of the
-segment and the last coordinate is the "front". A segment is "oriented"
-away from the back and toward the front. The examples below show two
+The first coordinate in a segment's geometry is the "start" of the
+segment and the last coordinate is the "end". A segment is "oriented"
+away from the start and toward the end. The examples below show two
 segment geometries with identical coordinates, oriented in opposite
 directions.
 
@@ -85,9 +90,9 @@ directions.
 ```yaml
 type: LineString
 coordinates:
-  - [1, 0]   # Back
+  - [1, 0]   # Start
   - [0, 0]
-  - [-1, 0]  # Front
+  - [-1, 0]  # End
 ```
 
 <div style={{textAlign: 'center'}}>
@@ -112,9 +117,9 @@ coordinates:
 ```yaml
 type: LineString
 coordinates:
-  - [-1, 0]  # Back
+  - [-1, 0]  # Start
   - [0, 0]
-  - [1, 0]   # Front
+  - [1, 0]   # End
 ```
 
 <div style={{textAlign: 'center'}}>
@@ -138,8 +143,8 @@ coordinates:
 ### Direction and directionality
 
 Travel can proceed in one of two possible *directions* along a segment's
-geometry. The `forward` direction proceeds toward the front of the
-segment, while the `backward` direction proceeds toward the back of the
+geometry. The `forward` direction proceeds toward the end of the
+segment, while the `backward` direction proceeds toward the start of the
 segment.
 
 <div style={{textAlign: 'center'}}>
@@ -211,12 +216,11 @@ the page on [Roads](roads).
 
 ### Level (Z-order)
 
-At the moment, segment geometry is two-dimensional. In the real, 3D,
-world, however the entities represented by segments can be above or
-below each other, as may happen with tunnels, bridges, overpasses, and
-stacked multi-level highway interchanges. To accurately render
-"top-down" 2D maps, it is important to know the relative stacking order,
-or Z-order, of segments,
+Segment geometry is two-dimensional. In the real, 3D, world, however the
+entities represented by segments can be above or below each other, as
+may happen with tunnels, bridges, overpasses, and stacked multi-level
+highway interchanges. To accurately render "top-down" 2D maps, it is
+important to know the relative stacking order, or Z-order, of segments.
 
 Segment Z-order is given by the `level` property. A `level` value of
 `0` indicates visual level, with positive numbers indicating above
@@ -260,15 +264,20 @@ connectors.
 ### Shape stability
 
 A primary goal of Overture's segmentation process is to promote stability of
-segment geometry across Overture data releases. For example, if a certain
-real-world stretch of Main Street is represented by a segment with particular
-geometry in release 1, ideally the same real-world stretch will be represented
-by a segment with exactly the same geometry in release 2; and where exact
-sameness is not possible, we want the representation to be as similar as possible
-between data releases.
+segment shape across Overture data releases. For example, if a certain
+real-world stretch of Main Street is represented by a single segment with
+particular geometry in release 1, we will strive to avoid slicing the exact same
+geometry up into two, three, or four segments in release 2.
+
+Note that aiming for segment shape stability categorically does not mean that
+Overture aims for a stable transportation dataset. On the contrary, we aim to
+continuously improve data accuracy and coverage, and expect the transportation
+network dataset to constantly evolve and grow as a result. Our goal is simply
+to minimize unnecessary, semantically meaningless, changes in how the geometry
+is sliced into segments across data releases.
 
 Several features of the Transportation theme schema were designed to allow the
-segmentation process to achieve its shape stability goal. These features
+segmentation process to achieve its segment stability goal. These features
 include:
 
 - [Interior connectors](#interior-connectors).
@@ -336,10 +345,11 @@ segments remain as they were and no data needs to be re-conflated.
 
 </figure>
 
-Note that in the above example, to maintain the invariant that every segment's
-geometry explicitly includes all the coordinates of its connectors, coordinates
-might need to be added to the shape of the north-south segments. This would not
-change their shapes.
+Note that in the above example, an official Overture data release would insert
+coordinates in the middle of the north-south segments, if they did not already
+exist, because Overture data releases will always ensure that every segment's
+geometry includes all of its connectors. From a computer's perspective, this is
+a very minor alteration of the segment's shape.
 
 ### Geometric scoping
 

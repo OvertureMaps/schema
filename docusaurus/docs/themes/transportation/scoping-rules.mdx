@@ -48,13 +48,13 @@ number `a` where `0` &le; `a` &le; `1`; or a pair of numbers `[a, b]` where
 `0` &le; `a` &lt; `b` &le; `1`. In the first case, `at` represents a discrete
 position along the segment's geometry; in the second case it represents a
 range of positions. The numbers `a` and `b` are interpreted as percentage
-displacements along the parent segment's geometry starting at the back of the
-segment. (*The terms "back" and "front" are explained in
+displacements along the parent segment's geometry starting from the start of the
+segment. (*The terms "start" and "end" are explained in
 [Shape and Connectivity](shape-connectivity).*)
 
 So, for example, the scoping property `"at": 0.15` scopes its parent value to
 the position on the segment that is displaced 15% of the segment length from the
-back.
+start.
 
 <div style={{textAlign: 'center'}}>
 
@@ -77,7 +77,7 @@ back.
 
 The scoping property `"at": [0.35, 0.75]` scopes its parent value to the range of
 positions on the segment beginning at 35% and extending to 75% of the segment
-length from the back.
+length from the start.
 
 <div style={{textAlign: 'center'}}>
 
