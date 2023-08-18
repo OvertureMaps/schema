@@ -64,9 +64,8 @@ Conversely, two segments are not physically connected if their
 their geometries overlap or even share a coordinate in common.
 
 Travel from a point on one segment to another point on a second,
-physically connected, segment is allowed unless limited by the
-segment's [directionality](#direction-and-directionality) or an
-explicit restriction such as an access or turn restriction.
+physically connected, segment is allowed unless limited by an explicit
+restriction such as an access or turn restriction.
 
 All segments in official Overture Transportation data releases have a
 minimum of two connectors, one at each end of the geometry, even if
@@ -140,67 +139,40 @@ coordinates:
 <div style={{ clear: "both" }}/>
 
 
-### Direction and directionality
+### Heading
 
-Travel can proceed in one of two possible *directions* along a segment's
-geometry. The `forward` direction proceeds toward the end of the
-segment, while the `backward` direction proceeds toward the start of the
-segment.
+Travel along a segment's geometry can follow one of two possible
+*headings*: `forward` or `backward`. The `forward` heading proceeds
+toward the end of the segment; while the `backward` heading proceeds
+back toward the start of the segment.
 
 <div style={{textAlign: 'center'}}>
 
 <figure>
 
-![Travel direction along a segment oriented due east](/img/transportation/direction.svg)
+![Travel heading along a segment oriented due east](/img/transportation/heading.svg)
 
 <figcaption>
 
-*Travel direction along a segment.*
+*Travel heading along a segment.*
 
 </figcaption>
 </figure>
 
 </div>
 
-A segment's `directionality` property documents allowed travel
-directions along the segment geometry. The following directionalities
-are possible:
+### Directionality
 
-<figure>
+<!-- TODO: Update this section to align with:
 
-<div style={{width: '100%', display: 'flex', justifyContent: 'center'}}>
+          https://github.com/OvertureMaps/schema-wg/issues/134
+-->
 
-| Directionality | Meaning |
-|-|-|
-| `forward` | Travel is only allowed in the `forward` direction. |
-| `backward` | Travel is only allowed in the `backward` direction. |
-| `bothWays` | Travel is allowed both `forward` and `backward` at the same time. |
-| `alternating` | Travel is one-way and changes between `forward` and `backward` constantly. |
-| `reversible` | Travel is one-way and changes between `forward` and `backward` infrequently. |
 
-</div>
-
-<figcaption>
-
-<div style={{textAlign: 'center'}}>
-
-*Allowed values for segment `directionality`.*
-
-</div>
-
-</figcaption>
-</figure>
-
-When the allowed travel direction changes based on a regular schedule,
-the appropriate "definite" directionalities (`forward`, `backward`, and
-`bothWays`) should be used along with
-[Temporal Scoping](scoping-rules#temporal-scoping-opening-hours).
-
-When the allowed travel direction changes based on unpredictable local
-factors, such that direction at any given time can only be known by an
-observer actually present at the real-world location, the appropriate
-"indefinite" directionality (`alternating` or `reversible`) should be
-used.
+🚧 We are developing a segment-level directionality concept similar to
+[lane directionality](roads#lane-directionality) to indicate what travel
+headings are allowed or prohibited along the segment. This effort is
+ongoing, so please check back soon.
 
 ### Sub-types
 

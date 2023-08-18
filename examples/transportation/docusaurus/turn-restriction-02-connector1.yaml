@@ -3,9 +3,9 @@ id: overture:transportation:example:via-turn-restriction-connector1
 type: Feature
 geometry:
   type: Point
-  coordinates: [-122.1340957, 47.631529]
+  coordinates: [-71.11234408150312, 42.30149091145671]
 properties:
   theme: transportation
   type: connector
-  version: 0
-  updateTime: "2023-06-08T12:32:00-06:00"
+  version: 1
+  updateTime: "2023-08-18T11:21:00-06:00"

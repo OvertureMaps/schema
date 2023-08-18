@@ -118,7 +118,8 @@ places where scoping by travel mode is allowed, either `mode` or
 `modeNot`, or both, may be provided.
 
 1. **Neither**. When *neither* `mode` nor `modeNot` is provided, the
-   parent property's scope includes all possible travel modes.
+   parent property's scope includes all default travel modes implied by
+   the [road class](roads#road-class).
 2. **Only `mode`**. When `mode` is provided by itself, the parent
    property is scoped to include only those travel modes that included
    in the `mode` set.

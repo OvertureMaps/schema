@@ -16,7 +16,7 @@ import ExampleTurnRestriction1Target from '!!raw-loader!@site/docs/_examples/tra
 import ExampleTurnRestriction1Exit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-exit.yaml';
 import ExampleTurnRestriction1Connector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector1.yaml';
 import ExampleTurnRestriction1Connector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector2.yaml';
-import ExampleTurnRestriction1Connector3 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector2.yaml';
+import ExampleTurnRestriction1Connector3 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector3.yaml';
 import ExampleTurnRestriction2Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-source.yaml';
 import ExampleTurnRestriction2Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-target.yaml';
 import ExampleTurnRestriction2Via from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-via.yaml';
@@ -33,44 +33,21 @@ ground-based transportation segments. Roads are modeled using
 [Segment](/reference/transportation/segment) features with the `subType`
 property value set to the value `road`.
 
-## Granularity and geometry
+## Geometry and granularity
+
+A road segment's geometry is a virtual representation of the road which,
+in many cases, approximates the physical centerline of the section of
+road being modeled.
 
 Road segments support modeling the road network at a range of
 granularities. For example, a single road segment can represent:
 
 - A bidirectional street including all of its lanes and sidewalks.
-- A sidewalk by itself.
+- A sidewalk by itself. (🚧 Note that Overture's pedestrian model is embryonic and very much under construction.)
 - A one-way street or one direction of a dual carriageway.
 - A single lane or single section of a multi-lane highway.
 - A dedicated cycleway.
 - A hiking path.
-
-# Centerline and width
-
-A road segment's geometry represents the centerline of the section of
-road being modeled by the segment, with exactly half of the road's width
-occurring on each side of the segment at any given point along the
-segment geometry.
-
-<div style={{textAlign: 'center'}}>
-
-<figure>
-
-![Road segment geometry as centerline](/img/transportation/centerline.svg)
-
-<figcaption>
-
-*A road segment represents the centerline of a path, with half the width on each side.*
-
-</figcaption>
-</figure>
-
-</div>
-
-If the exact width of a road segment is known, it will be specified in
-the segment's `width` property (as a quantity in meters). If the exact
-width is not known, the road geometry still represents the centerline,
-but the data consumer will need to estimate the width if it is needed.
 
 ## Basic Properties
 
@@ -197,12 +174,16 @@ allowed from that segment into other
 segments segments.
 
 Every road segment has an *implied* set of allowed transitions
-defined by its [directionality](shape-connectivity#direction-and-directionality),
-physical connections to other segments, the directionality of the
-physically connected segments, as well as local rules, norms, and
-customs. (The Overture Transportation schema does not specify these
-implied transitions, which are left to the specific application to
-resolve.)
+defined by its [access restrictions](#access-restrictions) as well as
+local rules, norms, and customs. An example of a transition restriction
+implied by an access restriction, if the segment can only be used along
+the `forward` [heading](shape-connectivity#heading), then it is implied
+that no transitions are allowed to any connected segments if travelling
+along the `backward` heading. An example of a transition restriction
+implied by a local rule or norm would be a blanket prohibition on
+U-turns in a given jurisdiction. (The Overture Transportation schema
+does not specify these local rules, norms, and customs, which are left
+to the specific application to resolve.)
 
 Overture takes a permissive-by-default approach to transition
 restrictions. By default, all implied transitions are allowed. The
@@ -264,8 +245,8 @@ to the example.*
 <details>
 <summary>Connector 2</summary>
 
-*The right turn from the source segment (`forward` direction) to the
-target segment (`forward` direction) is prohibited at this connector.*
+*The right turn from the source segment (`forward` heading) to the
+target segment (`forward` heading) is prohibited at this connector.*
 
 <CodeBlock language="yaml">{ ExampleTurnRestriction1Connector2 }</CodeBlock>
 </details>
@@ -273,11 +254,11 @@ target segment (`forward` direction) is prohibited at this connector.*
 <details>
 <summary>Target segment</summary>
 
-*Traffic proceeding `forward` on the source segment may not enter this
-segment travelling `forward`, i.e. the right turn from the source
-segment to this segment is prohibited.*
+*Traffic heading `forward` on the source segment may not enter this
+segment heading `forward`, i.e. the right turn from the source segment
+to this segment is prohibited.*
 
-<CodeBlock language="yaml">{ ExampleTurnRestriction1Source }</CodeBlock>
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Target }</CodeBlock>
 </details>
 
 <details>
@@ -433,10 +414,11 @@ granular turn-by-turn or maneuver-by-maneuver navigation applications.
 ### Default lane structure
 
 If the `road.lanes` property is omitted from a road segment, reasonable
-default values should be assumed based on `road.class` and the overall
-segment [directionality](shape-connectivity#direction-and-directionality).
-For example, for a stock two-way road segment of class `primary`, a
-reasonable assumption is two lanes, one `forward` and one `backward`.
+default values should be assumed based on `road.class` and the
+road-level [access restrictions](#access-restrictions). For example, for
+a stock two-way road segment of class `primary` with no heading-scoped
+access restrictions, a reasonable assumption is two lanes, one
+`forward` and one `backward`.
 
 ### Lane numbering
 
@@ -500,16 +482,51 @@ respectively.
 
 ### Lane directionality
 
-Like the segment as a whole, each lane within a segment has a
-directionality, documenting which travel directions are allowed within
-the lane, with reference to the
-[direction of the segment](shape-connectivity#direction-and-directionality).
+Each lane within a segment has a directionality, documenting which
+travel directions are allowed within the lane, with reference to the
+[orientation of the segment](shape-connectivity#start-end-and-orientation).
 Lane directionality is specified by the lane object's `directionality`
-property, and the allowed values are the same as for the segment as a
-whole.
+property. The allowed values are:
+
+<figure>
+
+<div style={{width: '100%', display: 'flex', justifyContent: 'center'}}>
+
+| Directionality | Meaning |
+|-|-|
+| `forward` | Travel is only allowed along the `forward` heading. |
+| `backward` | Travel is only allowed along the `backward` heading. |
+| `bothWays` | Travel is allowed both `forward` and `backward` at the same time. |
+| `alternating` | Travel is one-way and changes between `forward` and `backward` constantly. |
+| `reversible` | Travel is one-way and changes between `forward` and `backward` infrequently. |
+
+</div>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*Allowed values for lane `directionality`.*
+
+</div>
+
+</figcaption>
+</figure>
 
 The `directionality` property is a mandatory property for lanes, and is
 the only mandatory property.
+
+When the allowed travel heading changes based on a regular schedule,
+the appropriate "definite" directionalities (`forward`, `backward`, and
+`bothWays`) should be used along with
+[Temporal Scoping](scoping-rules#temporal-scoping-opening-hours) at the
+lane block level.
+
+When the allowed travel heading changes based on unpredictable local
+factors, such that allowed heading at any given time can only be known
+by an observer actually present at the real-world location, the
+appropriate "indefinite" directionality (`alternating` or `reversible`)
+should be used.
 
 ### Lane restrictions
 

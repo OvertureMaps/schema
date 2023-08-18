@@ -10,8 +10,8 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 3
-  updateTime: "2023-06-21T13:41:00-07:00"
+  version: 4
+  updateTime: "2023-08-21T16:23:13-06:00"
   subType: road
   connectors:
     - overture:transportation:example:simple-turn-restriction-connector1
@@ -19,7 +19,7 @@ properties:
   road:
     restrictions:
       turns:
-        - segmentId: overture:transportation:example:simple-turn-restriction-source
-          connectorId: overture:transportation:example:simple-turn-restriction-connector
+        - segmentId: overture:transportation:example:simple-turn-restriction-target
+          connectorId: overture:transportation:example:simple-turn-restriction-connector2
           direction: forward
           toDirection: forward
