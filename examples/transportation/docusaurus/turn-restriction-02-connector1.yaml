@@ -1,0 +1,11 @@
+---
+id: overture:transportation:example:via-turn-restriction-connector1
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-71.11234408150312, 42.30149091145671]
+properties:
+  theme: transportation
+  type: connector
+  version: 1
+  updateTime: "2023-08-18T11:21:00-06:00"

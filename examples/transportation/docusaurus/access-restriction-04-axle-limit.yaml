@@ -1,0 +1,21 @@
+---
+id: access-restrictions-segment-axle-limit
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [0, 0]
+    - [0, 1]
+properties:
+  theme: transportation
+  type: segment
+  version: 0
+  updateTime: "2023-06-20T17:19:00-06:00"
+  subType: road
+  road:
+    restrictions:
+      access:
+        - denied:
+            when:
+              mode: [hgv]
+              vehicle: { axleCount: { isAtLeast: 5 } }

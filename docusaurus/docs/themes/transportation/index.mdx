@@ -2,45 +2,129 @@ import DocCardList from '@theme/DocCardList';
 
 # Transportation
 
-Overture Transportation data includes features and attributes that describe the infrastructure and conventions of how people and objects move about the world.
+Overture's Transportation theme schema describes the infrastructure and
+conventions of how people and objects travel around the world. Transportation
+data includes highways, footways, cycleways, railways, ferry routes, and public
+transportation.
 
-## Key Schema Design Choices
+<!--
+High-level description above 👆 lifted from:
+  https://wiki.overturemaps.org/display/PROJ/Transportation+Task+Force
+-->
 
-### Scoped Properties
-Overture supports rule-based properties to apply properties that only apply to sub-segments, certain directions of travel, points-in-time, environmental conditions, etc. Geometric scoping may be used to represent static value properties that are "always there."
+## Use Cases
 
-### Segmentation and Connector Model
-Overture models the transportation network using Segments that embody sections of road/trail/path that have similar properties and Connectors that indicate where, for given modes of transportation, it is possible to transition from one segment to another.
+Some common use cases for which data in Overture's Transportation theme schema
+may be used include:
 
+- **Mapping.** Rendering a map of connected roads and paths.
+- **Routing.** Calculating optimal routes from place to place.
+- **Navigation.** Generating granular instructions on the maneuvers needed to
+  follow a route.
+- **Analytics.** Transportation-related analysis including traffic safety
+  analysis and disaster planning.
+- **Geocoding.** Getting the coordinates of street intersections (geocodes); or
+  the street intersection near specific coordinates (reverse geocodes).
 
-## Scoping Dimensions
+## Key Concepts
 
-### Geometric Scoping: Linear Referencing
-- In general, the <code>at</code> property MAY contain either a single scalar number or a pair (two-entry array) of numbers.
-  - A scalar number means the parent property applies at a discrete position along the segment, while a pair indicates the parent property along the whole sub-segment of the segment from the first position in the pair to the second position in the pair.
-  - There is no negated version of the property, i.e. <code>notAt</code>, because this adds significant complexity to geometric scoping, and all use cases could use multiple at properties to instead define where a scoped property does apply.
+<ul>
+<li>
+<p>
 
-### Temporal Scoping: Opening Hours
+**Shape and Connectivity.** The Transportation theme schema captures the shape
+and connectivity of the transportation network using Segment and Connector
+features. The schema design allows the segmentation process to promote shape
+stability and ultimately GERS ID stability.
 
-- A single temporal scoping property named <code>during</code> MUST contain a string expressed in the [OSM opening hours specification](https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification).
-- The <code>during</code> property, if present, narrows the scope of the parent value to apply only during the time periods specified by the during value.
-- There is no negated version of the property, i.e. <code>notDuring</code>, because the phrase "not during X" can be expressed as "during the complement of X" and the OSM opening hours specification can handle all such cases.
+</p>
 
-### Environmental Scoping
+<p>
 
-There is a single environmental conditions scoping property named conditions which, if present, must contain a non-empty set of environmental condition values, modeled as an array containing unique items. These conditions include weather-related conditions (e.g. snow or fog), or local signaled conditions (e.g. OSM's flashing_light tag) that indicate some variation on the default properties of the transportation feature.
-The conditions property, if present, narrows the scope of the parent value to apply only when the local environment has at least one of the conditions specified in the conditions set
+Read more about these concepts on the [Shape and Connectivity](shape-connectivity)
+page.
 
-### Subjective Scoping
+</p>
+</li>
 
-There are currently five known sub-dimensions of subjective scoping:
+<li>
 
-1. **Travel mode**. The methods or vehicles allowed or not allowed to use a road or path.
-2. **Usage purpose**. The reason a person or entity is traveling on the transportation network. A common example of a usage purpose condition is delivery only or customer only.
-3. **Membership** in a recognized group, a.k.a. status.  Membership in a recognized group refers to the status of the person or entity traveling as recognized by authorities controlling the particular location. This includes private property or permitted portions of the transportation network.
-4. **Cargo**. Cargo refers to something the person or entity traveling on the transportation network is carrying. The most common example of a cargo scope is portions of the transportation network where transporting hazardous material is not allowed.
-5. **Vehicle Attributes**. These refer to specific attributes of vehicles that are too specific to infer from travel mode, or where it is overly cumbersome to generate a travel mode for each attribute combination. This includes scoping vehicles that are allowed based on attributes like height, weight, or axle count.
+<p>
 
-[View the Schema for a Connector Type](/reference/transportation/connector)
+**Scoped and Rule-Based Properties.** The Transportation theme schema allows property values
+to be specified for granular scopes at the sub-feature level. For example:
 
-[View the Schema for a Segment Type](/reference/transportation/segment)
+</p>
+
+- A speed limit on a road segment might be scoped to apply only to part of the
+  road geometry using Geometric Scoping.
+- The directionality of a segment, controlling the direction or directions in
+  which traffic can flow along the segment geometry, may be specified to change
+  at different times of day using Temporal Scoping.
+- The categories of people and vehicles who are allowed to travel on a segment
+  can be controlled using Subjective Scoping.
+- A real-world attribute that varies under changing environmental conditions can
+  be modeled using Environmental Scoping.
+
+<p>
+
+Read more about these concepts on the [Scoped and Rule-Based Properties](scoping-rules)
+page.
+
+</p>
+
+</li>
+
+<li>
+
+<p>
+
+**Roads.** The Transportation theme schema models any kind of road, street, or
+path, including dedicated walking and cycling paths, as `road` segments. Roads
+are currently the most developed part of the Transportation schema.
+
+</p>
+
+<p>
+
+Read more about roads on the [Roads](roads) page.
+
+</p>
+
+</li>
+
+<li>
+
+<p>
+
+**Travel Modes.** The Transportation theme supports a fuzzy concept called
+travel mode which can be used as a way of controlling the scope of scoped
+and rule-based properties.
+
+</p>
+
+<p>
+
+Read more about the travel modes concept and how travel modes interact
+with other scoping properties on the [Travel Modes](travel-modes) page.
+
+</p>
+
+</li>
+
+</ul>
+
+## Schema Reference
+
+- [View schema for the Connector feature type](/reference/transportation/connector)
+- [View schema for the Segment feature type](/reference/transportation/segment)
+
+## Status and Next Steps
+
+- For the initial `v0.4.0` schema release, we focused most of our efforts on
+  defining core transportations concepts and applying these concepts to roads.
+- In future releases, we hope to work through our backlog of known issues and
+  ideally start work on railways and waterways and, ideally, the public
+  transportation network.
+- We would value your input on the Transportation schema! Please consider
+  sharing feedback as indicated in the schema [Introduction](/).

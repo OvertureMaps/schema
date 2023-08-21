@@ -1,0 +1,11 @@
+---
+id: overture:transportation:example:simple-turn-restriction-connector1
+type: Feature
+geometry:
+  type: Point
+  coordinates:  [-113.57831482025354, 50.018860947117304]
+properties:
+  theme: transportation
+  type: connector
+  version: 0
+  updateTime: "2023-06-21T14:08:00-07:00"
