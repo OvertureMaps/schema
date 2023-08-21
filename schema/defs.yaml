@@ -38,7 +38,7 @@ description: Common schema definitions shared by all themes
         release where the geometry or attributes of this feature
         changed.
       type: integer
-      minValue: 0
+      minimum: 0
       "$comment": >-
         It might be reasonable to combine "updateTime" and "version"
         in a single "updateVersion" field which gives the last Overture
@@ -87,8 +87,8 @@ description: Common schema definitions shared by all themes
         the distance along a path such as a road segment or a river
         center-line segment.
       type: number
-      minValue: 0
-      maxValue: 1
+      minimum: 0
+      maxiumum: 1
       "$comment": >-
         One possible advantage to using percentages over absolute
         distances is being able to trivially validate that the position

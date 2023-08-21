@@ -311,7 +311,7 @@ properties:
       prefixItems:
         - description: Number of speed units
           type: integer
-          minValue: 20
+          minimum: 20
         - description: One speed unit
           type: string
           enum: [ "km/h", "mph" ]
