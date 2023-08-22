@@ -48,3 +48,8 @@ properties:
           - medical
           - entertainment
           - military
+      confidence:
+        description: Confidence score for the existence and accuracy of the building. Most relevant for buildings generated from AI.
+        type: number
+        minValue: 0
+        maxValue: 1
