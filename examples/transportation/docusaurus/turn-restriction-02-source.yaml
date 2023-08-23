@@ -1,0 +1,40 @@
+---
+id: overture:transportation:example:via-turn-restriction-source
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-71.1100226929593, 42.30156668552357]
+    - [-71.11055493812631, 42.30157222996385]
+    - [-71.11102971081017, 42.30157407811038]
+    - [-71.11143701579662, 42.30156114108277]
+    - [-71.11197425857047, 42.30152602627953]
+    - [-71.11234408150312, 42.30149091145671]
+    - [-71.1126589307566, 42.30147612626226]
+    - [-71.11301376086777, 42.301494607754876]
+    - [-71.11320616874515, 42.301516785538524]
+properties:
+  theme: transportation
+  type: segment
+  version: 4
+  updateTime: "2023-08-18T11:05:03-07:00"
+  subType: road
+  connectors:
+    - overture:transportation:example:via-turn-restriction-connector1
+  road:
+    roadNames:
+      common: [ { language: local, value: "Arborway" } ]
+    class: primary
+    surface: paved
+    restrictions:
+      turns:
+        - segmentId: overture:transportation:example:via-turn-restriction-target
+          connectorId: overture:transportation:example:via-turn-restriction-connector2
+          toDirection: forward
+          reason: legal
+          direction: forward
+          during: Mo-Fr 06:00-09:00, 15:00-19:00
+          via:
+            - segmentId: overture:transportation:example:via-turn-restriction-via
+              connectorId: overture:transportation:example:via-turn-restriction-connector1
+              toDirection: forward

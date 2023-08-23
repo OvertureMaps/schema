@@ -6,11 +6,11 @@ import SegmentSchema from '!!raw-loader!@site/docs/_schema/transportation/segmen
 import ExampleSimpleRoad from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/simple-road.yaml';
 import ExampleLanes from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-hov.yaml';
 import ExampleAccessRestriction from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction.yaml';
-import ExampleTurnRestrictionSource from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-source.yaml';
-import ExampleTurnRestrictionTarget from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-target.yaml';
-import ExampleTurnRestrictionVia from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-via.yaml';
-import ExampleTurnRestrictionConnector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-connector1.yaml';
-import ExampleTurnRestrictionConnector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-connector2.yaml';
+import ExampleTurnRestrictionSource from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-source.yaml';
+import ExampleTurnRestrictionTarget from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-target.yaml';
+import ExampleTurnRestrictionVia from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-via.yaml';
+import ExampleTurnRestrictionConnector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector1.yaml';
+import ExampleTurnRestrictionConnector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector2.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -63,7 +63,8 @@ A segment may have one of three possible sub-types.
     </table>
 
 A `road` segment represents a section of any kind of road, street, or
-path, including a dedicated path for walking or cycling).
+path, including a dedicated path for walking or cycling (but excluding
+a railway).
 
 <!--
 TODO: Uncomment this paragraph once Roads index page is ready for primetime.
@@ -130,7 +131,7 @@ The schema for `water` segments is under development.
 
 <div style={{textAlign: 'center'}}>
 
-![Diagram of the "via" transition from source to destination segment.](/examples/turn-restrictions-example.png)
+![Diagram of the "via" transition from source to destination segment.](/img/transportation/turn-restriction-02.svg)
 
 </div>
 

@@ -65,21 +65,10 @@ const sidebars = {
           },
           collapsed: true,
           items: [
-            //'themes/transportation/topology',
-            //'themes/transportation/scoped-properties',
-            //'themes/transportation/travel-modes',
-            /*{
-              type: 'category',
-              label: 'Roads',
-              link: {
-                type: 'doc',
-                id: 'themes/transportation/roads/index'
-              },
-              collapsed: true,
-              items: [
-                'themes/transportation/roads/lanes'
-              ],
-            }*/
+            'themes/transportation/shape-connectivity',
+            'themes/transportation/scoping-rules',
+            'themes/transportation/roads',
+            'themes/transportation/travel-modes',
           ]
         }
       ]

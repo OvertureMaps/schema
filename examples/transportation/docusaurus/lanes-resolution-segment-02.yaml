@@ -1,0 +1,19 @@
+---
+id: lanes-resolution-example-segment-2
+type: Feature
+geometry:
+  type: LineString
+  coordinates: # Oriented toward segment 1, due west.
+    - [-21.852776852103545, 22.079931368]
+    - [ -23.693418548, 22.079931368]
+properties:
+  theme: transportation
+  type: segment
+  version: 0
+  updateTime: "2023-06-20T13:51:00-06:00"
+  connectors: [lanes-resolution-example-connector]
+  subType: road
+  road:
+    lanes: # One static, unchanging lane block.
+      - direction: forward
+      - direction: backward

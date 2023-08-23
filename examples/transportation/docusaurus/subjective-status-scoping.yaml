@@ -1,0 +1,21 @@
+---
+id: overture:transportation:example:subjective-status-scoping
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-123.12791513926058, 49.287502049554945]
+    - [-123.12795068403449, 49.287522915661725]
+    - [-123.12797769806272, 49.28756882106529]
+properties:
+  theme: transportation
+  type: segment
+  version: 0
+  updateTime: "2023-06-16T14:08:00-06:00"
+  subType: road
+  road:
+    restrictions:
+      access:
+        - denied
+        - allowed:
+            when: { recognized: [asPrivate] }
