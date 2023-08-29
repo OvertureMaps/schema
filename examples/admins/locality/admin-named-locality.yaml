@@ -1,9 +1,11 @@
+id: capitolHillFeatureId
 geometry:
   coordinates:
   - -122.3183680
   - 47.6238307
   type: Point
 properties:
+  entityId: 08628d542fffffff0100000000052a6f
   context: seattleId
   localityType: neighborhood
   names:
