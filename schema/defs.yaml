@@ -4,6 +4,11 @@ title: Overture Maps Feature Schema Common Definitions
 description: Common schema definitions shared by all themes
 "$defs":
   propertyDefinitions:
+    entityId:
+      description: >-
+        Optional stable identifier for the feature. 128 bits represented as 32 hex characters.
+      type: string
+      pattern: ^[0-9a-f]{32}$
     level:
       description: Z-order of the feature where 0 is visual level
       type: integer
@@ -241,6 +246,7 @@ description: Common schema definitions shared by all themes
         ^ext.*$:
           description: "Additional top-level properties must be prefixed with `ext`."
       properties:
+        entityId: { "$ref": "#/$defs/propertyDefinitions/entityId" }
         theme: { "$ref": "#/$defs/propertyDefinitions/theme" }
         type: { "$ref": "#/$defs/propertyDefinitions/featureType" }
         version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }
