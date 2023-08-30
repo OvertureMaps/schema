@@ -25,6 +25,8 @@ properties:
   class: civic
   sources:
   - property: ""
-    dataset: microsoftMLBuildings
+    dataset: microsoftMLBuildings,
+    confidence: 1
   - property: /properties/height
-    dataset:  metaLidarExtractions
+    dataset:  metaLidarExtractions,
+    confidence: 0.95
