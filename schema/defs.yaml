@@ -80,8 +80,8 @@ description: Common schema definitions shared by all themes
         confidence:
           description: If the source data has a confidence value, especially for ml-derived data, record that here.
           type: number
-          minValue: 0
-          maxValue: 1
+          minimum: 0
+          maximum: 1
     theme:
       description: Top-level Overture theme this feature belongs to
       type: string
