@@ -1,13 +1,14 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Land(cover) Schema
-description: Landcover
+title: Land Schema
+description: Land
 type: object
 properties:
   geometry:
-    description: Landcover TODO
+    description: Land TODO
     unevaluatedProperties: false
     oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
       - "$ref": https://geojson.org/schema/LineString.json
       - "$ref": https://geojson.org/schema/MultiLineString.json
       - "$ref": https://geojson.org/schema/Polygon.json
@@ -21,22 +22,29 @@ properties:
     properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       class:
-        description: The type of water body such as an ocean or lake.
+        description: The type of land such as an mountain, valley, island, cave or reef.
         default: [land]
         type: string
         enum:
+          - beach
+          - dune
           - forest
           - glacier
+          - grass
+          - grassland
+          - hill
           - land
-          - physical
+          - meadow
+          - peak
           - reef
           - sand
           - scrub
           - tree
+          - tree_row
+          - valley
+          - volcano
           - wetland
-      subclass:
-        description: "Subclass"
-        type: string
+          - wood
       landuse:
         description: Value of the landuse tag if present
         type: string
@@ -46,6 +54,4 @@ properties:
       surface:
         description: Value of the surface tag if present
         type: string
-      wikidata:
-        description: Value of the surface tag if present
-        type: string
+      wikidata: {"$ref" : "./defs.yaml#/$defs/propertyDefinitions/wikidata" }

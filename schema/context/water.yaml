@@ -8,6 +8,7 @@ properties:
     description: Water TODO
     unevaluatedProperties: false
     oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
       - "$ref": https://geojson.org/schema/LineString.json
       - "$ref": https://geojson.org/schema/MultiLineString.json
       - "$ref": https://geojson.org/schema/Polygon.json
@@ -21,21 +22,49 @@ properties:
     properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       class:
-        description: The type of water body such as an ocean or lake.
+        description: The type of water body such as an river, ocean or lake.
         default: [water]
         type: string
         enum:
-          - human_made
+          - basin
+          - bay
+          - canal
+          - cape
+          - ditch
+          - dock
+          - drain
+          - fairway
+          - fish_pass
+          - fishpond
+          - geyser
+          - hot_spring
+          - lagoon
           - lake
+          - lock
+          - moat
           - ocean
+          - oxbow
           - pond
+          - reflecting_pool
+          - reservoir
           - river
+          - salt_pool
+          - sea
+          - sewage
+          - shoal
+          - spring
+          - strait
           - stream
+          - swimming_pool
+          - tidal_channel
+          - wastewater
           - water
-      subclass:
-        description: "Subclass"
-        type: string
+          - water_storage
+          - waterfall
       salt:
         description: Is it salt water or not
+        type: boolean
+      intermittent:
+        description: Is it intermittent water or not
         type: boolean
       wikidata: {"$ref" : "./defs.yaml#/$defs/propertyDefinitions/wikidata" }

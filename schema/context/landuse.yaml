@@ -1,0 +1,141 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Landuse Schema
+description: Landuse
+type: object
+properties:
+  geometry:
+    description: Landuse TODO
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
+      - "$ref": https://geojson.org/schema/LineString.json
+      - "$ref": https://geojson.org/schema/MultiLineString.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    properties:
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      class:
+        description: The type of water body such as an ocean or lake.
+        default: [land]
+        type: string
+        enum:
+        - farmland
+        - farmyard
+        - meadow
+        - animal_keeping
+        - helipad
+        - aerodrome
+        - heliport
+        - aquaculture
+        - camp_site
+        - cemetery
+        - conservation
+        - construction
+        - greenfield
+        - industrial
+        - commercial
+        - retail
+        - brownfield
+        - institutional
+        - school
+        - college
+        - university
+        - education
+        - schoolyard
+        - water_park
+        - theme_park
+        - zoo
+        - bunker
+        - tee
+        - green
+        - fairway
+        - water_hazard
+        - golf_course
+        - rough
+        - lateral_water_hazard
+        - driving_range
+        - orchard
+        - garden
+        - vineyard
+        - allotments
+        - greenhouse_horticulture
+        - plant_nursery
+        - flowerbed
+        - landfill
+        - hospital
+        - clinic
+        - doctors
+        - military
+        - military_other
+        - range
+        - training_area
+        - barracks
+        - airfield
+        - danger_area
+        - base
+        - obstacle_course
+        - nuclear_explosion_site
+        - naval_base
+        - trench
+        - grass
+        - park
+        - village_green
+        - common
+        - dog_park
+        - national_park
+        - state_park
+        - forest
+        - nature_reserve
+        - species_management_area
+        - protected_landscape_seascape
+        - environmental
+        - natural_monument
+        - wilderness_area
+        - aboriginal_land
+        - strict_nature_reserve
+        - civic_admin
+        - public
+        - pitch
+        - playground
+        - recreation_ground
+        - track
+        - stadium
+        - marina
+        - religious
+        - churchyard
+        - residential
+        - garages
+        - static_caravan
+        - quarry
+        - logging
+        - salt_pond
+        - peat_cutting
+        - pier
+        - dam
+        - highway
+        - traffic_island
+        - depot
+        - winter_sports
+      landuse:
+        description: Value of the landuse tag if present
+        type: string
+      level:
+        description: Value of the level tag if present
+        type: string
+      layer:
+        description: Value of the layer tag if present
+        type: string
+      sport:
+        description: Value of the sport tag if present
+        type: string
+      surface:
+        description: Value of the surface tag if present
+        type: string
+      wikidata: {"$ref" : "./defs.yaml#/$defs/propertyDefinitions/wikidata" }

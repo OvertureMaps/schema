@@ -1,0 +1,25 @@
+---
+title: landuse
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import LanduseSchema from "!!raw-loader!@site/docs/_schema/context/landuse.yaml";
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Landuse
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(LanduseSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/context'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{LanduseSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
