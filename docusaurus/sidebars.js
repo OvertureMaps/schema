@@ -111,6 +111,21 @@ const sidebars = {
         },
         {
           type: 'category',
+          label: 'context',
+          // link: {
+          //   type: 'generated-index',
+          // },
+          collapsed: false,
+          items: [
+              'reference/context/infrastructure',
+              'reference/context/land',
+              'reference/context/landuse',
+              'reference/context/placename',
+              'reference/context/water',
+          ]
+        },
+        {
+          type: 'category',
           label: 'places',
           // link: {
           //   type: 'generated-index',
@@ -131,22 +146,7 @@ const sidebars = {
             'reference/transportation/connector',
             'reference/transportation/segment',
           ]
-        },
-        {
-          type: 'category',
-          label: 'context layers',
-          // link: {
-          //   type: 'generated-index',
-          // },
-          collapsed: false,
-          items: [
-              'reference/context/infrastructure',
-              'reference/context/land',
-              'reference/context/landuse',
-              'reference/context/placename',
-              'reference/context/water',
-          ]
-        },
+        }
       ]
     }
   ],
