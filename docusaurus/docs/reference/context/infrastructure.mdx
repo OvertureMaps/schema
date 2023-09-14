@@ -1,25 +1,25 @@
 ---
-title: water
+title: infrastructure
 ---
 
 import CodeBlock from '@theme/CodeBlock';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import yamlLoad from "@site/src/components/yamlLoad"
-import WaterSchema from "!!raw-loader!@site/docs/_schema/context/water.yaml";
+import InfrastructureSchema from "!!raw-loader!@site/docs/_schema/context/infrastructure.yaml";
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Water
+# Infrastructure
 
 ## Schema
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>
-    <JSONSchemaViewer schema={ yamlLoad(WaterSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/context'})}/>
+    <JSONSchemaViewer schema={ yamlLoad(InfrastructureSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/context'})}/>
   </TabItem>
   <TabItem value="yaml" label="YAML" default>
-    <CodeBlock language="jsx">{WaterSchema}</CodeBlock>
+    <CodeBlock language="jsx">{InfrastructureSchema}</CodeBlock>
   </TabItem>
 </Tabs>

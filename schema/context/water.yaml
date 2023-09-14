@@ -67,4 +67,3 @@ properties:
       intermittent:
         description: Is it intermittent water or not
         type: boolean
-      wikidata: {"$ref" : "./defs.yaml#/$defs/propertyDefinitions/wikidata" }

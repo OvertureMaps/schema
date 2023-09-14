@@ -1,25 +1,25 @@
 ---
-title: water
+title: placename
 ---
 
 import CodeBlock from '@theme/CodeBlock';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import yamlLoad from "@site/src/components/yamlLoad"
-import WaterSchema from "!!raw-loader!@site/docs/_schema/context/water.yaml";
+import PlacenameSchema from "!!raw-loader!@site/docs/_schema/context/placename.yaml";
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Water
+# Placename
 
 ## Schema
 
 <Tabs>
   <TabItem value="browsable" label="Browsable" default>
-    <JSONSchemaViewer schema={ yamlLoad(WaterSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/context'})}/>
+    <JSONSchemaViewer schema={ yamlLoad(PlacenameSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/context'})}/>
   </TabItem>
   <TabItem value="yaml" label="YAML" default>
-    <CodeBlock language="jsx">{WaterSchema}</CodeBlock>
+    <CodeBlock language="jsx">{PlacenameSchema}</CodeBlock>
   </TabItem>
 </Tabs>

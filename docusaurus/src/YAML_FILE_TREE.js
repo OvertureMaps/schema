@@ -14,9 +14,11 @@ const _default = {
     '/transportation/segment.yaml': require('!!raw-loader!@site/docs/_schema/transportation/segment.yaml'),
 
     '/context/defs.yaml': require('!!raw-loader!@site/docs/_schema/context/defs.yaml'),
-    '/context/water.yaml': require('!!raw-loader!@site/docs/_schema/context/water.yaml'),
+    '/context/infrastructure.yaml': require('!!raw-loader!@site/docs/_schema/context/infrastructure.yaml'),
     '/context/land.yaml': require('!!raw-loader!@site/docs/_schema/context/land.yaml'),
     '/context/landuse.yaml': require('!!raw-loader!@site/docs/_schema/context/landuse.yaml'),
+    '/context/placename.yaml': require('!!raw-loader!@site/docs/_schema/context/placename.yaml'),
+    '/context/water.yaml': require('!!raw-loader!@site/docs/_schema/context/water.yaml'),
 
     '/defs.yaml': require('!!raw-loader!@site/docs/_schema/defs.yaml'),
     '/schema.yaml': require('!!raw-loader!@site/docs/_schema/schema.yaml')

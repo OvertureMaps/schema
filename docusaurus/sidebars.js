@@ -139,9 +139,11 @@ const sidebars = {
           // },
           collapsed: false,
           items: [
-              'reference/context/water',
+              'reference/context/infrastructure',
               'reference/context/land',
               'reference/context/landuse',
+              'reference/context/placename',
+              'reference/context/water',
           ]
         },
       ]
