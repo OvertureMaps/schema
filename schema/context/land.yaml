@@ -10,7 +10,6 @@ properties:
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
       - "$ref": https://geojson.org/schema/LineString.json
-      - "$ref": https://geojson.org/schema/MultiLineString.json
       - "$ref": https://geojson.org/schema/Polygon.json
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:
@@ -22,14 +21,26 @@ properties:
     properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       class:
-        description: The type of land such as an mountain, valley, island, cave or reef.
+        description: Broad class of landcover, such as forest, glacier, grass, or a physical feature.
         default: [land]
+        type: string
+        enum:
+          - forest
+          - glacier
+          - grass
+          - land
+          - physical
+          - reef
+          - sand
+          - scrub
+          - tree
+      subclass:
+        description: Further classification of type of landcover
         type: string
         enum:
           - beach
           - dune
           - forest
-          - glacier
           - grass
           - grassland
           - hill
