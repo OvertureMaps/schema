@@ -1,0 +1,21 @@
+---
+title: Context
+---
+
+# Context Theme
+
+Features from OpenStreetMap that provide additional context such as **land** and **water** that let users render a more complete basemap.
+
+## Key Schema Design Choices
+
+1. Basic classificaiton of features: type, class, and subclass where appropriate.
+2. Parsing and normalization of common OSM tags, such as `height` and `ele`.
+4. Extraction of consistent OSM tags, such as wikidata to top-level properties.
+3. Direct pass-thru of remaining relevant OSM tags.
+
+## Current Types:
+
+- [placename](/reference/context/placename)
+- [land](/reference/context/landuse)
+- [landuse](/reference/context/landuse)
+- [water](/reference/context/water)

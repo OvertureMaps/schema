@@ -55,6 +55,7 @@ const sidebars = {
           label: 'Admins'
         },
         'themes/buildings/building',
+        'themes/context/index',
         'themes/places/place',
         {
           type: 'category',

@@ -37,5 +37,8 @@ properties:
           - city
           - metropolis
           - megacity
+      capital:
+        type: string
+        enum: ['2','3,','4','yes']
       population:
         type: integer
