@@ -4,22 +4,6 @@ title: Context layer properties
 description: Common schema definitions the context theme (primarily from OSM)
 "$defs":
   propertyDefinitions:
-    osmType:
-      description: "Type of OSM element"
-      type: string
-      enum:
-        - node
-        - way
-        - relation
-    osmId:
-      description: OSM Element ID
-      type: integer
-    osmVersion:
-      description: Version of element in OSM.
-      type: integer
-    osmTags:
-      description: Original tags from OSM.
-      type: object
     wikidata:
       description: A wikidata ID if available
       type: string
@@ -28,11 +12,6 @@ description: Common schema definitions the context theme (primarily from OSM)
       title: "OSM Properties"
       description: OSM Properties
       type: object
-      # required: [osmId, osmType, osmVersion, osmTags]
       properties:
-        # Commenting these out because they can be more accurately embedded into the sources?
-        # osmType: { "$ref": "#/$defs/propertyDefinitions/osmType" }
-        # osmId: { "$ref": "#/$defs/propertyDefinitions/osmId" }
-        # osmVersion: { "$ref": "#/$defs/propertyDefinitions/osmVersion" }
-        osmTags: { "$ref": "#/$defs/propertyDefinitions/osmTags" }
+        sourceTags: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/sourceTags" }
         wikidata: { "$ref": "#/$defs/propertyDefinitions/wikidata" }
