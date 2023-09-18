@@ -1,0 +1,50 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Overture Maps Shared Building Properties
+description: Common schema definitions shared by building footprints and building parts
+shapeContainer:
+  properties:
+    height:
+      description: Height of the building in meters
+      type: number
+      exclusiveMinimum: 0
+    numFloors:
+      description: Number of above-ground floors of the building
+      type: integer
+      exclusiveMinimum: 0
+    minHeight:
+      description: The height of the bottom part of building in Height Units.  Used if a building or part of building starts above the ground leve
+      type: number
+    roofShape:
+      description: The shape of the roof
+      type: string
+      enum:
+        - dome
+        - flat
+        - gable
+        - gambrel
+        - half-hip
+        - hip
+        - mansard
+        - onion
+        - pyramid
+        - round
+        - spherical
+        - other
+    roofDirection:
+      description: Direction of the roof shape.
+      type: number
+      exclusiveMinimum: 0
+      exclusiveMaximum: 360
+    roofOrientation:
+      description: The shape of the roof
+      type: string
+      enum:
+        - across
+        - along
+    roofColor:
+      description: The color (name or color triplet) of the roof of a building or building part in hexadecimal 
+      type: string
+    eaveHeight:
+      description: The height of the building eave in Height Units
+      type: number
