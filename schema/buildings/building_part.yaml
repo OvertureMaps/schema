@@ -16,11 +16,10 @@ properties:
   properties:
     unevaluatedProperties: false
     allOf:
+      - "$ref": ./defs.yaml#/shapeContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
-      - "$ref": ./defs.yaml#/shapeContainer
     properties:
       building:
         description: The building ID that this part belongs to
         type: string
-        
