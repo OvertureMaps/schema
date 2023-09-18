@@ -3,6 +3,8 @@
 title: Overture Maps Shared Building Properties
 description: Common schema definitions shared by building footprints and building parts
 shapeContainer:
+  title: Shape
+  description: Propeties of the buildings shape, such as height or roof type.
   properties:
     height:
       description: Height of the building in meters
@@ -43,7 +45,7 @@ shapeContainer:
         - across
         - along
     roofColor:
-      description: The color (name or color triplet) of the roof of a building or building part in hexadecimal 
+      description: The color (name or color triplet) of the roof of a building or building part in hexadecimal
       type: string
     eaveHeight:
       description: The height of the building eave in Height Units
