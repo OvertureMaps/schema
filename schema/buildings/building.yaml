@@ -19,16 +19,9 @@ properties:
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+      - "$ref": ./defs.yaml#/shapeContainer
     properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-      height:
-        description: Height of the building in meters
-        type: number
-        exclusiveMinimum: 0
-      numFloors:
-        description: Number of above-ground floors of the building
-        type: integer
-        exclusiveMinimum: 0
       class:
         description: >-
           A broad category of the building type / purpose. When the current use of the building does not match the built purpose, the class should
@@ -48,3 +41,6 @@ properties:
           - medical
           - entertainment
           - military
+      hasParts:
+        description: Flag indicating whether the building has parts
+        type: boolean
