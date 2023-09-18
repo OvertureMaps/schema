@@ -71,15 +71,13 @@ properties:
                 If a lane is restricted for use only by HOVs, then the default minimum vehicle
                 occupancy qualifying as HOV is 2+ passengers (including the driver).  This
                 restriction can be provided to override the default definition of HOV.
-              oneOf:
-                - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
-                - type: array
-                  items:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - "$ref": "#/$defs/propertyContainers/ruleContainer"
-                      - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+              type: array
+              items:
+                type: object
+                unevaluatedProperties: false
+                allOf:
+                  - "$ref": "#/$defs/propertyContainers/ruleContainer"
+                  - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
     laneDirection:
       type: string
       enum:
@@ -140,39 +138,31 @@ properties:
             enum: [ unknown ]
         roadNames:
           unevaluatedProperties: false
-          oneOf:
-            - type: object
-              allOf:
-                - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-            - type: array
-              items:
-                type: object
-                required: [at]
-                unevaluatedProperties: false
-                allOf:
-                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                  - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-              minItems: 1
-              uniqueItems: true
+          type: array
+          items:
+            type: object
+            required: [at]
+            unevaluatedProperties: false
+            allOf:
+              - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+              - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+          minItems: 1
+          uniqueItems: true
 
         surface:
           description: Physical surface of the road. May either be
             specified as a single global value for the segment, or as
             an array of surface rules.
-          oneOf:
-            - { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
-            - type: array
-              items:
-                type: object
-                allOf:
-                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                unevaluatedProperties: false
-                properties:
-                  value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
-              minItems: 1
-              uniqueItems: true
-          default:
-            enum: [unknown]
+          type: array
+          items:
+            type: object
+            allOf:
+              - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+            unevaluatedProperties: false
+            properties:
+              value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
+          minItems: 1
+          uniqueItems: true
           "$comment": >-
             We should likely restrict the available surface types to
             the subset of the common OSM surface=* tag values that are
@@ -184,18 +174,16 @@ properties:
             as an array of flag rules.
           type: array
           items:
-            oneOf:
-              - { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
-              - type: object
-                allOf:
-                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                  - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                unevaluatedProperties: false
-                properties:
-                  values:
-                    type: array
-                    items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
-                    uniqueItems: true
+            type: object
+            allOf:
+              - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+              - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+            unevaluatedProperties: false
+            properties:
+              values:
+                type: array
+                items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
+                uniqueItems: true
           uniqueItems: true
         lanes:
           description: >-
@@ -473,41 +461,19 @@ properties:
       description: Rules governing access to this road segment or lane
       type: array
       items:
-        oneOf:
-          - "$ref": "#/$defs/propertyDefinitions/accessOption"
-          - type: object
-            oneOf:
-              - required: [ allowed ]
-                properties:
-                  allowed:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
-              - required: [ designated ]
-                properties:
-                  designated:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
-              - required: [ denied ]
-                properties:
-                  denied:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
-            minLength: 1
+        type: object
+        unevaluatedProperties: false
+        allOf:
+          - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+          - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
+          - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+        required: [accessType]
+        properties:
+          accessType:
+            type: string
+            enum: [allowed, denied, designated]
+        minLength: 1
     ruleContainer:
       description: >-
         Properties that allow defining rules from environmental and subjective scoping properties .
