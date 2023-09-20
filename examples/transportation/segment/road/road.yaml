@@ -25,7 +25,8 @@ properties:
           language: local
     surface: 
     - value: gravel
-    flags: [isLink, isTunnel, isPrivate]
+    flags: 
+    - values: [isLink, isTunnel, isPrivate]
     restrictions:
       speedLimits:
         - minSpeed: [90, "km/h"]
