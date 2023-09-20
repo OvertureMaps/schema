@@ -41,6 +41,6 @@ properties:
                 mode:
                   - hov
           minOccupancy:
-            isAtLeast: 3
+            - isAtLeast: 3
       - direction: forward # lane 1
       - direction: forward # lane 2
