@@ -15,6 +15,6 @@ properties:
   road:
     restrictions:
       access:
-        - denied
-        - allowed:
-            when: { using: [asCustomer, atDestination] }
+        - accessType: denied
+        - accessType: allowed
+          when: { using: [asCustomer, atDestination] }

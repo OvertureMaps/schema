@@ -21,6 +21,6 @@ properties:
     - overture:transportation:example:via-turn-restriction-connector2
   road:
     roadNames:
-      common: [ { language: local, value: "Arborway" } ]
+      - common: [ { language: local, value: "Arborway" } ]
     class: primary
     surface: paved

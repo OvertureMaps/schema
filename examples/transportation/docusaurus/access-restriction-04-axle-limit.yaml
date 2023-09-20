@@ -15,7 +15,7 @@ properties:
   road:
     restrictions:
       access:
-        - denied:
-            when:
-              mode: [hgv]
-              vehicle: { axleCount: { isAtLeast: 5 } }
+        - accessType: denied
+          when:
+            mode: [hgv]
+            vehicle: { axleCount: { isAtLeast: 5 } }

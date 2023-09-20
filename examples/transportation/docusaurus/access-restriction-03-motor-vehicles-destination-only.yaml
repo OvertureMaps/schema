@@ -15,5 +15,7 @@ properties:
   road:
     restrictions:
       access:
-        - denied: { when: { mode: [motorVehicle] } }
-        - allowed: { when: { using: [atDestination] } }
+        - accessType: denied
+          when: { mode: [motorVehicle] } }
+        - accessType: allowed
+          when: { using: [atDestination] } }

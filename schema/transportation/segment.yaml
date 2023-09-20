@@ -141,7 +141,6 @@ properties:
           type: array
           items:
             type: object
-            required: [at]
             unevaluatedProperties: false
             allOf:
               - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }

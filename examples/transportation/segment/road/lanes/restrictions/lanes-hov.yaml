@@ -32,10 +32,10 @@ properties:
       - direction: forward # lane 0 -> hov only
         restrictions:
           access:
-            - allowed:
-                when:
-                  mode:
-                    - hov
+            - accessType: allowed
+              when:
+                mode:
+                  - hov
           minOccupancy:
             isAtLeast: 3
       - direction: forward # lane 1

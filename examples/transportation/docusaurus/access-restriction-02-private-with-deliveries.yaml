@@ -15,8 +15,9 @@ properties:
   road:
     restrictions:
       access:
-        - denied
-        - allowed: { when: { recognized: [asPrivate] } }
-        - allowed:
-            when: { using: [toDeliver] }
-            during: Mo-Fr 08:30-16:30
+        - accessType: denied
+        - accessType: allowed
+          when: { recognized: [asPrivate] }
+        - accessType: allowed
+          when: { using: [toDeliver] }
+          during: Mo-Fr 08:30-16:30

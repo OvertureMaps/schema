@@ -21,10 +21,10 @@ properties:
     - overture:transportation:example:simple-road-connector-2
   road:
     roadNames:
-      common: [ { language: local, value: "SR 520" } ]
+      - common: [ { language: local, value: "SR 520" } ]
     class: motorway
     surface: paved
     restrictions:
       access:
-        - denied:
-            when: {mode: [foot]}
+        - accessType: denied
+          when: {mode: [foot]}

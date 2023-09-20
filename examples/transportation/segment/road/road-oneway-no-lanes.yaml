@@ -16,5 +16,5 @@ properties:
     # one way road in backward direction (forward access is denied)
     restrictions:
       access:
-        - denied:
-            direction: forward
+        - accessType: denied
+          direction: forward

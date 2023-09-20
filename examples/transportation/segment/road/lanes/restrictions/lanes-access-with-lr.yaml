@@ -28,10 +28,10 @@ properties:
       - direction: forward # lane 2 from its 60% of length (till the end) it is allowed only for buses (before 60% mark it is available for all vehicles)
         restrictions:
           access:
-            - allowed:
-                when:
-                  mode:
-                    - bus
+            - accessType: allowed
+              when:
+                mode:
+                  - bus
               at:
                 - 0.6
                 - 1.0

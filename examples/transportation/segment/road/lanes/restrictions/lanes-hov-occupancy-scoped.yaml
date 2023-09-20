@@ -32,11 +32,11 @@ properties:
       - direction: forward # lane 0 -> hov only that allows also bicycles
         restrictions:
           access:
-            - allowed:
-                when:
-                  mode:
-                    - hov
-                    - bicycle
+            - accessType: allowed
+              when:
+                mode:
+                  - hov
+                  - bicycle
           minOccupancy:
             - isAtLeast: 3
               when:
