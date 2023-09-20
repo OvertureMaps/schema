@@ -20,7 +20,8 @@ properties:
     roadNames:
       - common: [ { language: local, value: "Nicola Street" } ]
     class: residential
-    surface: paved
+    surface: 
+    - value: paved
     lanes:
       - direction: backward
       - direction: forward

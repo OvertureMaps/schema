@@ -25,7 +25,8 @@ properties:
     roadNames:
       - common: [ { language: local, value: "Arborway" } ]
     class: primary
-    surface: paved
+    surface: 
+    - value: paved
     restrictions:
       turns:
         - segmentId: overture:transportation:example:via-turn-restriction-target

@@ -23,7 +23,8 @@ properties:
       - common:
         - value: Common Road Name
           language: local
-    surface: gravel
+    surface: 
+    - value: gravel
     flags: [isLink, isTunnel, isPrivate]
     restrictions:
       speedLimits:

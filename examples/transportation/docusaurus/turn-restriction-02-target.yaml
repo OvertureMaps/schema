@@ -23,4 +23,5 @@ properties:
     roadNames:
       - common: [ { language: local, value: "Arborway" } ]
     class: primary
-    surface: paved
+    surface: 
+    - value: paved

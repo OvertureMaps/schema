@@ -16,6 +16,6 @@ properties:
     restrictions:
       access:
         - accessType: denied
-          when: { mode: [motorVehicle] } }
+          when: { mode: [motorVehicle] }
         - accessType: allowed
-          when: { using: [atDestination] } }
+          when: { using: [atDestination] }

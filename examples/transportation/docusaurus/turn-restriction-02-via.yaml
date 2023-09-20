@@ -21,4 +21,5 @@ properties:
     roadNames:
       - common: [ { language: local, value: "Washington Street" } ]
     class: secondary
-    surface: paved
+    surface: 
+    - value: paved

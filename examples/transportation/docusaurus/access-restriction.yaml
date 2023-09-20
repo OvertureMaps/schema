@@ -23,7 +23,8 @@ properties:
     roadNames:
       - common: [ { language: local, value: "SR 520" } ]
     class: motorway
-    surface: paved
+    surface: 
+    - value: paved
     restrictions:
       access:
         - accessType: denied
