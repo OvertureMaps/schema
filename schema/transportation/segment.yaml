@@ -149,8 +149,7 @@ properties:
           uniqueItems: true
 
         surface:
-          description: Physical surface of the road. May either be
-            specified as a single global value for the segment, or as
+          description: Physical surface of the road. Specified as
             an array of surface rules.
           type: array
           items:
@@ -168,9 +167,7 @@ properties:
             useful both for routing and for map tile rendering.
         flags:
           description: >-
-            Set of boolean attributes applicable to roads. May be
-            specified either as a single flag array of flag values, or
-            as an array of flag rules.
+            Set of boolean attributes applicable to roads. Specified as an array of flag rules.
           type: array
           items:
             type: object

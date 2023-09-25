@@ -18,4 +18,4 @@ properties:
       access:
         - accessType: denied
           during: "Mo-Fr 15:00-18:00"
-          when: { notMode: [bus] }
+          when: { modeNot: [bus] }
