@@ -111,17 +111,15 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: 'context',
+          label: 'Core',
           // link: {
           //   type: 'generated-index',
           // },
           collapsed: false,
           items: [
-              'reference/context/infrastructure',
-              'reference/context/land',
-              'reference/context/landuse',
-              'reference/context/placename',
-              'reference/context/water',
+              'reference/core/land',
+              'reference/core/landuse',
+              'reference/core/water',
           ]
         },
         {
