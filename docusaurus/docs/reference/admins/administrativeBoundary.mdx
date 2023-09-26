@@ -4,6 +4,7 @@ import generateResolverOptions from "@site/src/components/shared-libs/generateRe
 import yamlLoad from "@site/src/components/yamlLoad"
 import AdministrativeBoundarySchema from '!!raw-loader!@site/docs/_schema/admins/administrativeBoundary.yaml';
 import AdminBoundaryExample from '!!raw-loader!@site/docs/_examples/admins/administrativeBoundary/administrativeBoundary.yaml';
+import DisputedAdminBoundaryExample from '!!raw-loader!@site/docs/_examples/admins/administrativeBoundary/disputedAdministrativeBoundary.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -26,7 +27,8 @@ Administrative Boundaries are borders surrounding Administrative [Localities](lo
   </tr>
 </table>
 
-An Administrative Boundary defines the division between two Administrative [Localities](locality).
+An Administrative Boundary is typically an officially defined border between two Administrative [Localities](locality).
+In light of geopolitical issues, some Administrative Boundaries can represent standalone disputed or treaty lines and therefore do not coincide with the border of an Administrative Locality.
 The Administrative Boundary and two Administrative Localities do no share common geometry.
 
 ## Schema
@@ -45,5 +47,8 @@ The Administrative Boundary and two Administrative Localities do no share common
 <Tabs>
   <TabItem value="1" label="Administrative Boundary" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(AdminBoundaryExample), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="2" label="Disputed Administrative Boundary" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(DisputedAdminBoundaryExample), null, 2) }</CodeBlock>
   </TabItem>
 </Tabs>
