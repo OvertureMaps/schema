@@ -40,7 +40,7 @@ oneOf:
           properties:
             theme: { enum: [buildings] }
             type: { enum: [part] }
-    then: { "$ref": buildings/building_part.yaml }
+    then: { "$ref": buildings/part.yaml }
     else: { propertyNames: false }
   - if:
       properties:
