@@ -7,7 +7,7 @@ const _default = {
     '/admins/locality.yaml': require('!!raw-loader!@site/docs/_schema/admins/locality.yaml'),
 
     '/buildings/building.yaml': require('!!raw-loader!@site/docs/_schema/buildings/building.yaml'),
-    '/buildings/building_part.yaml': require('!!raw-loader!@site/docs/_schema/buildings/building_part.yaml'),
+    '/buildings/part.yaml': require('!!raw-loader!@site/docs/_schema/buildings/part.yaml'),
     '/buildings/defs.yaml': require('!!raw-loader!@site/docs/_schema/buildings/defs.yaml'),
 
     '/places/place.yaml': require('!!raw-loader!@site/docs/_schema/places/place.yaml'),
