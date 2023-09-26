@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Building Footprint Schema
+title: Building Part Schema
 description: >-
   A single building part. Parts describe their shape and color and other properties. Each
   building part must contain the building with which it is associated.
