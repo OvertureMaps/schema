@@ -26,34 +26,48 @@ properties:
         default: [land]
         type: string
         enum:
+           - forest
+           - glacier
+           - grass
+           - land
+           - physical
+           - reef
+           - rock
+           - sand
+           - shrub
+           - tree
+           - wetland
+      subclass:
+        description: Further classification of type of landcover
+        default: [land]
+        type: string
+        enum:
+          - bare_rock
+          - beach
+          - dune
+          - fell
           - forest
           - glacier
           - grass
-          - land
-          - physical
-          - reef
-          - sand
-          - scrub
-          - tree
-      subclass:
-        description: Further classification of type of landcover
-        type: string
-        enum:
-          - beach
-          - dune
-          - forest
-          - grass
           - grassland
+          - heath
           - hill
           - land
           - meadow
           - peak
           - reef
+          - rock
           - sand
+          - scree
           - scrub
+          - shingle
+          - shrub
+          - shrubbery
           - tree
           - tree_row
+          - tundra
           - valley
           - volcano
           - wetland
           - wood
+      sourceTags: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/sourceTags" }

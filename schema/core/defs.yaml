@@ -7,6 +7,9 @@ description: Common schema definitions the context theme (primarily from OSM)
     wikidata:
       description: A wikidata ID if available
       type: string
+    sourceTags:
+      description: Any attributes/tags from the original source data that should be passed through.
+      type: object
   propertyContainers:
     osmPropertiesContainer:
       title: "OSM Properties"

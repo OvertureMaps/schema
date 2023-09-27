@@ -241,9 +241,6 @@ description: Common schema definitions shared by all themes
         country:
           description: ISO 3166 alpha2 country code
           type: string
-    sourceTags:
-      description: Any attributes/tags from the original source data that should be passed through.
-      type: object
   propertyContainers:
     overtureFeaturePropertiesContainer:
       title: Overture Properties
