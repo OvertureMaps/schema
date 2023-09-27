@@ -5,7 +5,7 @@ description: Landuse features from OpenStreetMap
 type: object
 properties:
   geometry:
-    description: Landuse TODO
+    description: Landuse features from OpenStreetMap
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
@@ -22,107 +22,135 @@ properties:
     properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       class:
-        description: The type of water body such as an ocean or lake.
-        default: [land]
+        description: Broad type of land
         type: string
         enum:
-        - farmland
-        - farmyard
-        - meadow
-        - animal_keeping
-        - helipad
-        - aerodrome
-        - heliport
+        - agriculture
+        - airport
         - aquaculture
-        - camp_site
-        - cemetery
+        - campground
+        - cemetary
         - conservation
         - construction
-        - greenfield
-        - industrial
-        - commercial
-        - retail
-        - brownfield
-        - institutional
-        - school
-        - college
-        - university
+        - developed
         - education
-        - schoolyard
-        - water_park
-        - theme_park
-        - zoo
-        - bunker
-        - tee
-        - green
-        - fairway
-        - water_hazard
-        - golf_course
-        - rough
-        - lateral_water_hazard
-        - driving_range
-        - orchard
-        - garden
-        - vineyard
-        - allotments
-        - greenhouse_horticulture
-        - plant_nursery
-        - flowerbed
+        - entertainment
+        - golf
+        - horticulture
         - landfill
-        - hospital
-        - clinic
-        - doctors
+        - medical
         - military
-        - military_other
-        - range
-        - training_area
-        - barracks
-        - airfield
-        - danger_area
-        - base
-        - obstacle_course
-        - nuclear_explosion_site
-        - naval_base
-        - trench
-        - grass
         - park
-        - village_green
-        - common
-        - dog_park
-        - national_park
-        - state_park
-        - forest
-        - nature_reserve
-        - species_management_area
-        - protected_landscape_seascape
-        - environmental
-        - natural_monument
-        - wilderness_area
-        - aboriginal_land
-        - strict_nature_reserve
-        - civic_admin
         - public
-        - pitch
-        - playground
-        - recreation_ground
-        - track
-        - stadium
-        - marina
+        - protected
+        - recreation
         - religious
-        - churchyard
         - residential
-        - garages
-        - static_caravan
-        - quarry
-        - logging
-        - salt_pond
-        - peat_cutting
-        - pier
-        - dam
-        - highway
-        - traffic_island
-        - depot
+        - resource_extraction
+        - structure
+        - transportation
         - winter_sports
+      subclass:
+        description: Further classification of the landuse
+        type: string
+        enum:
+          - aboriginal_land
+          - aerodrome
+          - airfield
+          - allotments
+          - animal_keeping
+          - aquaculture
+          - barracks
+          - base
+          - brownfield
+          - bunker
+          - camp_site
+          - cemetery
+          - churchyard
+          - civic_admin
+          - clinic
+          - college
+          - commercial
+          - common
+          - conservation
+          - construction
+          - dam
+          - danger_area
+          - depot
+          - doctors
+          - dog_park
+          - driving_range
+          - education
+          - environmental
+          - fairway
+          - farmland
+          - farmyard
+          - flowerbed
+          - forest
+          - garages
+          - garden
+          - golf_course
+          - grass
+          - green
+          - greenfield
+          - greenhouse_horticulture
+          - helipad
+          - heliport
+          - highway
+          - hospital
+          - industrial
+          - institutional
+          - landfill
+          - lateral_water_hazard
+          - logging
+          - marina
+          - meadow
+          - military
+          - military_other
+          - national_park
+          - natural_monument
+          - nature_reserve
+          - naval_base
+          - nuclear_explosion_site
+          - obstacle_course
+          - orchard
+          - park
+          - peat_cutting
+          - pier
+          - pitch
+          - plant_nursery
+          - playground
+          - protected_landscape_seascape
+          - public
+          - quarry
+          - range
+          - recreation_ground
+          - religious
+          - residential
+          - retail
+          - rough
+          - salt_pond
+          - school
+          - schoolyard
+          - species_management_area
+          - stadium
+          - state_park
+          - static_caravan
+          - strict_nature_reserve
+          - tee
+          - theme_park
+          - track
+          - traffic_island
+          - training_area
+          - trench
+          - university
+          - village_green
+          - vineyard
+          - water_hazard
+          - water_park
+          - wilderness_area
+          - winter_sports
+          - zoo
       surface:
-        description: Surface
+        description: Surface material
         type: string
