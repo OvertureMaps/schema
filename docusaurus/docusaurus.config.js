@@ -84,6 +84,11 @@ const config = {
             // docId: 'gers/gers',
             label: 'Global Entity Reference System',
           },
+          {
+            to: 'https://labs.overturemaps.org/how-to',
+            label: 'How-To Guides',
+            target: ''
+          },
         ],
       },
       footer: {
