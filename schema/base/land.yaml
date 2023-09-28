@@ -19,8 +19,8 @@ properties:
       - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    required: [class, subclass]
     properties:
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       class:
         description: Broad class of landcover, such as forest, glacier, grass, or a physical feature.
         default: [land]
@@ -70,4 +70,4 @@ properties:
           - volcano
           - wetland
           - wood
-      sourceTags: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/sourceTags" }
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }

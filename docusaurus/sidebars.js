@@ -55,7 +55,7 @@ const sidebars = {
           label: 'Admins'
         },
         'themes/buildings/building',
-        'themes/context/index',
+        'themes/base/index',
         'themes/places/place',
         {
           type: 'category',
@@ -111,15 +111,15 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: 'Core',
+          label: 'Base',
           // link: {
           //   type: 'generated-index',
           // },
           collapsed: false,
           items: [
-              'reference/core/land',
-              'reference/core/landuse',
-              'reference/core/water',
+              'reference/base/land',
+              'reference/base/landuse',
+              'reference/base/water',
           ]
         },
         {

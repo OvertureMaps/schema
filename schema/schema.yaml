@@ -58,3 +58,19 @@ oneOf:
             type: { enum: [place] }
     then: { "$ref": places/place.yaml }
     else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [base] }
+            type: { enum: [land] }
+    then: { "$ref": base/land.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [base] }
+            type: { enum: [water] }
+    then: { "$ref": base/water.yaml }
+    else: { propertyNames: false }

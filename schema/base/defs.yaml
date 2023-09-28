@@ -16,5 +16,5 @@ description: Common schema definitions the context theme (primarily from OSM)
       description: OSM Properties
       type: object
       properties:
-        sourceTags: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/sourceTags" }
+        sourceTags: { "$ref": "#/$defs/propertyDefinitions/sourceTags" }
         wikidata: { "$ref": "#/$defs/propertyDefinitions/wikidata" }
