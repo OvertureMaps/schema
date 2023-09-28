@@ -100,18 +100,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: 'buildings',
-          // link: {
-          //   type: 'generated-index',
-          // },
-          collapsed: false,
-          items: [
-            'reference/buildings/building',
-          ]
-        },
-        {
-          type: 'category',
-          label: 'Base',
+          label: 'base',
           // link: {
           //   type: 'generated-index',
           // },
@@ -120,6 +109,17 @@ const sidebars = {
               'reference/base/land',
               'reference/base/landuse',
               'reference/base/water',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'buildings',
+          // link: {
+          //   type: 'generated-index',
+          // },
+          collapsed: false,
+          items: [
+            'reference/buildings/building',
           ]
         },
         {

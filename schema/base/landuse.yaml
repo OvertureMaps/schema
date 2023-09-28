@@ -19,8 +19,10 @@ properties:
       - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    required:
+      - class
+      - subclass
     properties:
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       class:
         description: Broad type of land
         type: string
@@ -151,6 +153,7 @@ properties:
           - wilderness_area
           - winter_sports
           - zoo
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       surface:
         description: Surface material
         type: string

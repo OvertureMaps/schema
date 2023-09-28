@@ -19,15 +19,30 @@ properties:
       - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    required:
+      - class
+      - subclass
     properties:
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       class:
         description: The type of water body such as an river, ocean or lake.
         default: [water]
         type: string
         enum:
+          - canal
+          - human_made
+          - lake
+          - ocean
+          - physical
+          - pond
+          - reservoir
+          - river
+          - stream
+          - water
+      subclass:
+        description: Further description of the type of water
+        default: [water]
+        enum:
           - basin
-          - bay
           - canal
           - cape
           - ditch
@@ -36,8 +51,6 @@ properties:
           - fairway
           - fish_pass
           - fishpond
-          - geyser
-          - hot_spring
           - lagoon
           - lake
           - lock
@@ -49,10 +62,8 @@ properties:
           - reservoir
           - river
           - salt_pool
-          - sea
           - sewage
           - shoal
-          - spring
           - strait
           - stream
           - swimming_pool
@@ -60,7 +71,7 @@ properties:
           - wastewater
           - water
           - water_storage
-          - waterfall
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       salt:
         description: Is it salt water or not
         type: boolean
