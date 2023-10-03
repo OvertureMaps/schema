@@ -19,6 +19,7 @@ properties:
       - "$ref": ./defs.yaml#/shapeContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    required: [building]
     properties:
       building:
         description: The building ID to which this part belongs

@@ -20,6 +20,7 @@ properties:
   version: 1
   level: 1
   updateTime: "2023-06-06T10:30:00-08:00"
+  building: abc123
   height: 21.34
   numFloors: 4
   minHeight: 15.0
