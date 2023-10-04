@@ -20,3 +20,11 @@ properties:
       maritime:
         description: Flag that specifies if the boundary is maritime (i.e., a boundary at a particular distance from a jurisdiction's coastline)
         type: boolean
+      geopolDisplay:
+        description: Optional value that indicates if the boundary needs special rendering logic
+        type: string
+        enum: [disputed, hidden, visible]
+        "$comment": >-
+          disputed     = Indicates that an Administrative Boundary is subject of a dispute between two or more countries
+          hidden       = Indicates that the Administrative Boundary must not be display though coinciding with an Administrative Area
+          visible      = Indicates that the Administrative Boundary is to be displayed (i.e. used to override a maritime=yes flag)
