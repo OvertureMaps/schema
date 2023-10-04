@@ -36,21 +36,18 @@ properties:
         - maxSpeed: [30, "km/h"]
           at: [0.25, 0.50]
           during: Mo-Sa 09:00-12:00, We 15:00-18:00
-      turns:
-        - segmentId: overture:transportation:segment:234
-          connectorId: overture:transportation:connector:123
-          toDirection: forward
+      prohibitedTransitions:
+        - sequence:
+          - segmentId: overture:transportation:segment:234
+            connectorId: overture:transportation:connector:123
+          finalHeading: forward
           reason: legal
-          direction: forward
-        - segmentId: overture:transportation:segment:345
-          connectorId: overture:transportation:connector:234
-          toDirection: backward
-          reason: divider
-          direction: backward
-          via:
+          when: {heading: forward}
+        - sequence:
             - segmentId: overture:transportation:segment:456
               connectorId: overture:transportation:connector:345
-              toDirection: forward
             - segmentId: overture:transportation:segment:567
               connectorId: overture:transportation:connector:456
-              toDirection: forward
+          finalHeading: backward
+          reason: divider
+          when: {heading: backward}

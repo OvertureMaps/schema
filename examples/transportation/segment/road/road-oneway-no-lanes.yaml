@@ -17,4 +17,4 @@ properties:
     restrictions:
       access:
         - denied:
-            direction: forward
+            heading: forward
