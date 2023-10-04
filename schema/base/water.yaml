@@ -5,7 +5,6 @@ description: Bodies of water including oceans, lakes, and rivers
 type: object
 properties:
   geometry:
-    description: Water TODO
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
