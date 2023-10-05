@@ -23,4 +23,4 @@ properties:
            - segmentId: overture:transportation:example:simple-turn-restriction-target
              connectorId: overture:transportation:example:simple-turn-restriction-connector2
            finalHeading: forward
-           when: {heading : forward} 
+           when: {heading: forward} 

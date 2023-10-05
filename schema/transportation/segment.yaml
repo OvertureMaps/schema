@@ -226,12 +226,12 @@ properties:
           "$comment": >-
             Restrictions define two kinds of rerstriction on this segemnt
             Travel Restrictions defines how certain modes of transportation
-            may be limited on this segement, for example trucks are not
+            may be limited on this segment, for example trucks are not
             permitted from 7AM to 7PM
 
             Turn restrictions defines restrcited tunrs that orignates from
-            this segement, for example against driving side turn from this
-            segement to another connected segement is blocked.
+            this segment, for example against driving side turn from this
+            segment to another connected segment is blocked.
           type: object
           unevaluatedProperties: false
           properties:
@@ -258,15 +258,15 @@ properties:
                      default:
                        enum: [legal]
                    sequence:
-                     description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
+                     description: Ordered sequence of segments that needs to be traversed in order for the relation to be effective
                      type: array
                      items:
-                       description: GERS ID of the connected segments and the relevent connector
+                       description: Pair of segment and connector IDs along the sequence 
                        "$ref": "#/$defs/propertyDefinitions/relationTarget"
                      minItems: 1
                      uniqueItems: true
                    finalHeading:
-                     description: direction of travel on the target that pertains to the relation
+                     description: Direction of travel that is prohibited on the destination segment of the sequence.
                      "$ref": "#/$defs/propertyDefinitions/direction"
 
     roadFlag:
