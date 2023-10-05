@@ -1,0 +1,28 @@
+---
+id: overture:transportation:example:simple-signpost-source
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-113.57822030759499, 50.01868388494378]
+    - [-113.57831482025354, 50.018860947117304]
+    - [-113.57851814418316, 50.01923724443006]
+properties:
+  theme: transportation
+  type: segment
+  version: 4
+  updateTime: "2023-08-21T16:23:13-06:00"
+  subType: road
+  connectors:
+    - overture:transportation:example:simple-signpost-connector1
+    - overture:transportation:example:simple-signpost-connector2
+  road:
+    signposts:
+      - direction: forward
+        destination:
+          segmentId: overture:transportation:example:simple-signposts-dest
+          connectorId: overture:transportation:example:simple-turn-restriction-connector2
+          signDirection: North
+          signTextType: Foo
+          signText: "M 21"
+          direction: forward

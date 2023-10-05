@@ -221,6 +221,31 @@ properties:
                     items: { "$ref": "#/$defs/propertyDefinitions/lane" }
                     minItems: 1
               minItems: 1
+        signposts:
+          description: Describes signpost along the a segment
+          type: array
+          items:
+             allOf:
+               - "$ref": "#/$defs/propertyContainers/directionContainer"
+             unevaluatedProperties: false
+             type: object
+             properties:
+               destination:
+                 type: object
+                 required: [segmentId, signTextType, signText]
+                 allOf:
+                   - "$ref": "#/$defs/propertyContainers/directionContainer"
+                 properties:
+                   segmentId: 
+                     type: string
+                   connectorId: 
+                     type: string # Connector id is optional if the segments are not connected or if the the connector can be unambiguously identified 
+                   signDirection:
+                     "$ref": "#/$defs/propertyDefinitions/compassDirection"
+                   signTextType:
+                     "$ref": "#/$defs/propertyDefinitions/signTextType"
+                   signText: 
+                     type: string            
         restrictions:
           description: Restrictions on how the road may be used
           "$comment": >-
@@ -392,6 +417,27 @@ properties:
           description: direction of travel on the target that pertains to the relation
           "$ref": "#/$defs/propertyDefinitions/direction"
       required: [segmentId]
+    compassDirection:
+      description: >-
+        Four cardinal and four ordinal direction
+      type: string
+      enum:
+        - East
+        - West 
+        - North
+        - South 
+        - NorthEast
+        - NorthWest 
+        - SouthEast
+        - SouthWest 
+    signTextType:
+      description: >-
+        Text type for a sign post. Gives general direction as to how to use the sign text 
+      type: string
+      enum:
+        - Text
+        - Branch 
+        - Route
   propertyContainers:
     atRangeContainer:
       description: >-
