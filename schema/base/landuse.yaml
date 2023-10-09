@@ -48,28 +48,28 @@ properties:
         - recreation
         - religious
         - residential
-        - resource_extraction
+        - resourceExtraction
         - structure
         - transportation
-        - winter_sports
-      subclass:
+        - winterSports
+      subClass:
         description: Further classification of the landuse
         type: string
         enum:
-          - aboriginal_land
+          - aboriginalLand
           - aerodrome
           - airfield
           - allotments
-          - animal_keeping
+          - animalKeeping
           - aquaculture
           - barracks
           - base
           - brownfield
           - bunker
-          - camp_site
+          - campSite
           - cemetery
           - churchyard
-          - civic_admin
+          - civicAdmin
           - clinic
           - college
           - commercial
@@ -77,11 +77,11 @@ properties:
           - conservation
           - construction
           - dam
-          - danger_area
+          - dangerArea
           - depot
           - doctors
-          - dog_park
-          - driving_range
+          - dog)ark
+          - drivingRange
           - education
           - environmental
           - fairway
@@ -91,11 +91,11 @@ properties:
           - forest
           - garages
           - garden
-          - golf_course
+          - golfCourse
           - grass
           - green
           - greenfield
-          - greenhouse_horticulture
+          - greenhouseHorticulture
           - helipad
           - heliport
           - highway
@@ -103,18 +103,18 @@ properties:
           - industrial
           - institutional
           - landfill
-          - lateral_water_hazard
+          - lateralWaterHazard
           - logging
           - marina
           - meadow
           - military
-          - military_other
-          - national_park
-          - natural_monument
-          - nature_reserve
-          - naval_base
-          - nuclear_explosion_site
-          - obstacle_course
+          - militaryOther
+          - nationalPark
+          - naturalMonument
+          - natureReserve
+          - navalBase
+          - nuclearExplosionSite
+          - obstacleCourse
           - orchard
           - park
           - peat_cutting

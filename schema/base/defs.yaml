@@ -7,6 +7,7 @@ description: Common schema definitions the base theme (primarily from OSM)
     wikidata:
       description: A wikidata ID if available
       type: string
+      pattern: ^Q\d+
     sourceTags:
       description: Any attributes/tags from the original source data that should be passed through.
       type: object
