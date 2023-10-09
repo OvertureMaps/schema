@@ -7,16 +7,16 @@ properties:
   theme: base
   type: land
   class: sand
-  subClass: dune
+  subclass: dune
   names:
-    - common:
-      - value: Hadeida
-        language: local
+    common:
+      value: Hadeida
+      language: local
   sourceTags:
     natural: dune
     surface: sand
   sources:
-    - recordID: w407753930@3
+    - recordId: w407753930@3
       property: ""
       dataset: OpenStreetMap
   version: 0

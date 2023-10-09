@@ -4,10 +4,6 @@ title: Base layer properties
 description: Common schema definitions the base theme (primarily from OSM)
 "$defs":
   propertyDefinitions:
-    wikidata:
-      description: A wikidata ID if available
-      type: string
-      pattern: ^Q\d+
     sourceTags:
       description: Any attributes/tags from the original source data that should be passed through.
       type: object
@@ -18,4 +14,4 @@ description: Common schema definitions the base theme (primarily from OSM)
       type: object
       properties:
         sourceTags: { "$ref": "#/$defs/propertyDefinitions/sourceTags" }
-        wikidata: { "$ref": "#/$defs/propertyDefinitions/wikidata" }
+        wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }

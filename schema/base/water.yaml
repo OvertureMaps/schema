@@ -28,7 +28,7 @@ properties:
         type: string
         enum:
           - canal
-          - human_made
+          - humanMade
           - lake
           - ocean
           - physical
@@ -48,7 +48,7 @@ properties:
           - dock
           - drain
           - fairway
-          - fish_pass
+          - fishPass
           - fishpond
           - lagoon
           - lake
@@ -57,16 +57,16 @@ properties:
           - ocean
           - oxbow
           - pond
-          - reflecting_pool
+          - reflectingPool
           - reservoir
           - river
-          - salt_pool
+          - saltPool
           - sewage
           - shoal
           - strait
           - stream
-          - swimming_pool
-          - tidal_channel
+          - swimmingPool
+          - tidalChannel
           - wastewater
           - water
           - water_storage

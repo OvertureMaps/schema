@@ -9,13 +9,13 @@ properties:
   class: river
   subclass: river
   names:
-    - common:
-      - value: Root River
-        language: local
+    common:
+      value: Root River
+      language: local
   sourceTags:
     waterway: river
   sources:
-    - recordID: w54320702@1
+    - recordId: w54320702@1
       property: ""
       dataset: OpenStreetMap
   isSalt: false

@@ -66,7 +66,7 @@ const sidebars = {
           collapsed: false,
           items: [
               'reference/base/land',
-              'reference/base/landuse',
+              'reference/base/landUse',
               'reference/base/water',
           ]
         },

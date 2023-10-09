@@ -71,6 +71,14 @@ oneOf:
         properties:
           properties:
             theme: { enum: [base] }
+            type: { enum: [landuse] }
+    then: { "$ref": base/landUse.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [base] }
             type: { enum: [water] }
     then: { "$ref": base/water.yaml }
     else: { propertyNames: false }

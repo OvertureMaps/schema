@@ -43,7 +43,7 @@ properties:
         default: [land]
         type: string
         enum:
-          - bare_rock
+          - bareRock
           - beach
           - dune
           - fell
@@ -65,7 +65,7 @@ properties:
           - shrub
           - shrubbery
           - tree
-          - tree_row
+          - treeRow
           - tundra
           - valley
           - volcano

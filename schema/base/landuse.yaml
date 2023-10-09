@@ -1,11 +1,11 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Landuse Schema
-description: Landuse features from OpenStreetMap
+title: Land Use Schema
+description: Land use features from OpenStreetMap
 type: object
 properties:
   geometry:
-    description: Landuse features from OpenStreetMap
+    description: Land use features from OpenStreetMap
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
@@ -52,7 +52,7 @@ properties:
         - structure
         - transportation
         - winterSports
-      subClass:
+      subclass:
         description: Further classification of the landuse
         type: string
         enum:
@@ -80,7 +80,7 @@ properties:
           - dangerArea
           - depot
           - doctors
-          - dog)ark
+          - dogPark
           - drivingRange
           - education
           - environmental
@@ -117,41 +117,41 @@ properties:
           - obstacleCourse
           - orchard
           - park
-          - peat_cutting
+          - peatCutting
           - pier
           - pitch
-          - plant_nursery
+          - plantNursery
           - playground
-          - protected_landscape_seascape
+          - protectedLandscapeSeascape
           - public
           - quarry
           - range
-          - recreation_ground
+          - recreationGround
           - religious
           - residential
           - retail
           - rough
-          - salt_pond
+          - saltPond
           - school
           - schoolyard
-          - species_management_area
+          - speciesManagementArea
           - stadium
-          - state_park
-          - static_caravan
-          - strict_nature_reserve
+          - statePark
+          - staticCaravan
+          - strictNatureReserve
           - tee
-          - theme_park
+          - themePark
           - track
-          - traffic_island
-          - training_area
+          - trafficIsland
+          - trainingArea
           - trench
           - university
-          - village_green
+          - villageGreen
           - vineyard
-          - water_hazard
-          - water_park
-          - wilderness_area
-          - winter_sports
+          - waterHazard
+          - waterPark
+          - wildernessArea
+          - winterSports
           - zoo
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       surface:

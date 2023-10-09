@@ -9,13 +9,13 @@ properties:
   class: river
   subclass: river
   names:
-    - common:
-      - value: Rio Santana
-        language: local
+    common:
+      value: Rio Santana
+      language: local
   sourceTags:
     waterway: river
   sources:
-    - recordID: w353912370@4
+    - recordId: w353912370@4
       property: ""
       dataset: OpenStreetMap
   wikidata: Q7420045
