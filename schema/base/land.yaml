@@ -23,7 +23,7 @@ properties:
       - subclass
     properties:
       class:
-        description: Broad class of landcover, such as forest, glacier, grass, or a physical feature.
+        description: Broad class of land cover, such as forest, glacier, grass, or a physical feature, such as a mountain peak.
         default: [land]
         type: string
         enum:

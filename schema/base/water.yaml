@@ -71,9 +71,9 @@ properties:
           - water
           - water_storage
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-      salt:
+      isSalt:
         description: Is it salt water or not
         type: boolean
-      intermittent:
+      isIntermittent:
         description: Is it intermittent water or not
         type: boolean

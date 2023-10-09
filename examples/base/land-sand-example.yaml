@@ -7,7 +7,7 @@ properties:
   theme: base
   type: land
   class: sand
-  subclass: dune
+  subClass: dune
   names:
     - common:
       - value: Hadeida

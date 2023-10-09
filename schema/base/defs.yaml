@@ -1,7 +1,7 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Context layer properties
-description: Common schema definitions the context theme (primarily from OSM)
+title: Base layer properties
+description: Common schema definitions the base theme (primarily from OSM)
 "$defs":
   propertyDefinitions:
     wikidata:

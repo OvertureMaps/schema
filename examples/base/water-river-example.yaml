@@ -18,7 +18,7 @@ properties:
     - recordID: w54320702@1
       property: ""
       dataset: OpenStreetMap
-  salt: false
-  intermittent: false
+  isSalt: false
+  isIntermittent: false
   version: 0
   updateTime: "2023-09-27T00:00:00Z"
