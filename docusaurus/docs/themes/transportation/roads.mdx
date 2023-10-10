@@ -175,11 +175,11 @@ segments segments.
 
 Every road segment has an *implied* set of allowed transitions
 defined by its [access restrictions](#access-restrictions) as well as
-local rules, norms, and customs. An example of a transition restriction
+local rules, norms, and customs. An example of a turn restriction
 implied by an access restriction, if the segment can only be used along
 the `forward` [heading](shape-connectivity#heading), then it is implied
 that no transitions are allowed to any connected segments if travelling
-along the `backward` heading. An example of a transition restriction
+along the `backward` heading. An example of a turn restriction
 implied by a local rule or norm would be a blanket prohibition on
 U-turns in a given jurisdiction. (The Overture Transportation schema
 does not specify these local rules, norms, and customs, which are left
@@ -187,8 +187,8 @@ to the specific application to resolve.)
 
 Overture takes a permissive-by-default approach to transition
 restrictions. By default, all implied transitions are allowed. The
-set of allowed transitions may be reduced by adding explicit transition
-restrictions in the `road.restrictions.turns` property.
+set of allowed transitions may be reduced by adding explicit turn
+restrictions in the `road.restrictions.prohibitedTurns` property.
 
 Turn restrictions come in two flavors: simple and via. A simple turn
 restriction allows a simple regulation to be stated, such as "No right

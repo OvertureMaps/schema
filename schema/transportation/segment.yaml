@@ -237,7 +237,7 @@ properties:
           properties:
             speedLimits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
             access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
-            prohibitedTransitions:
+            prohibitedTurns:
               description: Turn restriction from this segment to other segments.
               type: array
               items:
