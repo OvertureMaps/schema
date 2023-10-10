@@ -27,7 +27,7 @@ properties:
     class: primary
     surface: paved
     restrictions:
-      prohibitedTransitions:
+      prohibitedTurns:
         - sequence:
             - segmentId: overture:transportation:example:via-turn-restriction-target
               connectorId: overture:transportation:example:via-turn-restriction-connector2

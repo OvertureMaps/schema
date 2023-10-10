@@ -21,9 +21,12 @@ properties:
     surface: gravel
     flags: [isLink, isTunnel, isPrivate]
     restrictions: 
-      turns:
-        - segmentId: overture:transportation:segment:234
-          connectorId: overture:transportation:connector:123
-          toDirection: forward
-          reason: foo
-          direction: forward
+      prohibitedTurns:
+         - sequence:  
+           - segmentId: overture:transportation:example:simple-turn-restriction-target
+             connectorId: overture:transportation:example:simple-turn-restriction-connector2
+           - segmentId: overture:transportation:example:simple-turn-restriction-target2
+             connectorId: overture:transportation:example:simple-turn-restriction-connector2
+           finalHeading: forward
+           reason: foo
+           when: {heading: forward} 

@@ -18,7 +18,7 @@ properties:
     - overture:transportation:example:simple-turn-restriction-connector2
   road:
     restrictions:
-      prohibitedTransitions:
+      prohibitedTurns:
          - sequence:  
            - segmentId: overture:transportation:example:simple-turn-restriction-target
              connectorId: overture:transportation:example:simple-turn-restriction-connector2

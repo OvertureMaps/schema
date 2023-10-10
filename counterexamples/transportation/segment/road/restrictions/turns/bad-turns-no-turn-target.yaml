@@ -21,7 +21,7 @@ properties:
     surface: gravel
     flags: [isLink, isTunnel, isPrivate]
     restrictions: 
-      turns:
-        - toDirection: forward
+      prohibitedTurns:
+          finalHeading: forward
           reason: legal
-          direction: forward
+          when: {heading: forward}
