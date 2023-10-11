@@ -10,8 +10,8 @@ properties:
   class: river
   names:
     common:
-      value: Root River
-      language: local
+      - value: Root River
+        language: local
   sourceTags:
     waterway: river
   sources:

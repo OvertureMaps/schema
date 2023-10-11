@@ -71,7 +71,7 @@ oneOf:
         properties:
           properties:
             theme: { enum: [base] }
-            type: { enum: [landuse] }
+            type: { enum: [landUse] }
     then: { "$ref": base/landUse.yaml }
     else: { propertyNames: false }
   - if:
