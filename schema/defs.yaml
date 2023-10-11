@@ -244,7 +244,7 @@ description: Common schema definitions shared by all themes
           description: ISO 3166 alpha2 country code
           type: string
     wikidata:
-      description: A wikidata ID if available
+      description: A wikidata ID if available, as found on https://www.wikidata.org/.
       type: string
       pattern: ^Q\d+
   propertyContainers:
