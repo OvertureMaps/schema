@@ -20,10 +20,10 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     required:
+      - subType
       - class
-      - subclass
     properties:
-      class:
+      subType:
         description: Broad type of land
         type: string
         enum:
@@ -52,7 +52,7 @@ properties:
         - structure
         - transportation
         - winterSports
-      subclass:
+      class:
         description: Further classification of the landuse
         type: string
         enum:

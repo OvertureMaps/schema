@@ -6,8 +6,8 @@ geometry:
 properties:
   theme: base
   type: water
+  subType: river
   class: river
-  subclass: river
   names:
     common:
       value: Rio Santana

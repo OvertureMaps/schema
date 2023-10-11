@@ -19,10 +19,10 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     required:
+      - subType
       - class
-      - subclass
     properties:
-      class:
+      subType:
         description: The type of water body such as an river, ocean or lake.
         default: [water]
         type: string
@@ -37,7 +37,7 @@ properties:
           - river
           - stream
           - water
-      subclass:
+      class:
         description: Further description of the type of water
         default: [water]
         enum:

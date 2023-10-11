@@ -19,11 +19,11 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     required:
+      - subType
       - class
-      - subclass
     properties:
-      class:
-        description: Broad class of land cover, such as forest, glacier, grass, or a physical feature, such as a mountain peak.
+      subType:
+        description: Further description of the type of land cover, such as forest, glacier, grass, or a physical feature, such as a mountain peak.
         default: [land]
         type: string
         enum:
@@ -38,7 +38,7 @@ properties:
            - shrub
            - tree
            - wetland
-      subclass:
+      class:
         description: Further classification of type of landcover
         default: [land]
         type: string
