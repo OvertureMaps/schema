@@ -1,0 +1,79 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Water Schema
+description: Physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap.
+type: object
+properties:
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
+      - "$ref": https://geojson.org/schema/LineString.json
+      - "$ref": https://geojson.org/schema/MultiLineString.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    required:
+      - subType
+      - class
+    properties:
+      subType:
+        description: The type of water body such as an river, ocean or lake.
+        default: [water]
+        type: string
+        enum:
+          - canal
+          - humanMade
+          - lake
+          - ocean
+          - physical
+          - pond
+          - reservoir
+          - river
+          - stream
+          - water
+      class:
+        description: Further description of the type of water
+        default: [water]
+        enum:
+          - basin
+          - canal
+          - cape
+          - ditch
+          - dock
+          - drain
+          - fairway
+          - fishPass
+          - fishpond
+          - lagoon
+          - lake
+          - lock
+          - moat
+          - ocean
+          - oxbow
+          - pond
+          - reflectingPool
+          - reservoir
+          - river
+          - saltPool
+          - sewage
+          - shoal
+          - strait
+          - stream
+          - swimmingPool
+          - tidalChannel
+          - wastewater
+          - water
+          - water_storage
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      isSalt:
+        description: Is it salt water or not
+        type: boolean
+      isIntermittent:
+        description: Is it intermittent water or not
+        type: boolean

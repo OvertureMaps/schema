@@ -1,0 +1,17 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Base layer properties
+description: Common schema definitions the base theme (primarily from OSM)
+"$defs":
+  propertyDefinitions:
+    sourceTags:
+      description: Any attributes/tags from the original source data that should be passed through.
+      type: object
+  propertyContainers:
+    osmPropertiesContainer:
+      title: "OSM Properties"
+      description: OSM Properties
+      type: object
+      properties:
+        sourceTags: { "$ref": "#/$defs/propertyDefinitions/sourceTags" }
+        wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
