@@ -1,7 +1,7 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Water Schema
-description: Bodies of water including oceans, lakes, and rivers
+description: Physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap.
 type: object
 properties:
   geometry:

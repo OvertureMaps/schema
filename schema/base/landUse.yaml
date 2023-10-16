@@ -5,7 +5,7 @@ description: Land use features from OpenStreetMap
 type: object
 properties:
   geometry:
-    description: Land use features from OpenStreetMap
+    description: Classifications of the human use of a section of land. Translates `landuse` from OpenStreetMap tag from OpenStreetMap.
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
@@ -155,5 +155,5 @@ properties:
           - zoo
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       surface:
-        description: Surface material
+        description: Surface material, mostly form the OSM tag, with some normalization.
         type: string
