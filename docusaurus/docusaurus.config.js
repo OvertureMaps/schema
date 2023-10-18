@@ -86,7 +86,7 @@ const config = {
           },
           {
             to: 'https://labs.overturemaps.org/how-to/',
-            label: 'How-To Guides',
+            label: 'How-to Guides',
             target: ''
           },
         ],
