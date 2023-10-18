@@ -226,26 +226,25 @@ properties:
           "$comment": >-
             Restrictions define two kinds of rerstriction on this segemnt
             Travel Restrictions defines how certain modes of transportation
-            may be limited on this segement, for example trucks are not
+            may be limited on this segment, for example trucks are not
             permitted from 7AM to 7PM
 
             Turn restrictions defines restrcited tunrs that orignates from
-            this segement, for example against driving side turn from this
-            segement to another connected segement is blocked.
+            this segment, for example against driving side turn from this
+            segment to another connected segment is blocked.
           type: object
           unevaluatedProperties: false
           properties:
             speedLimits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
             access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
-            turns:
+            prohibitedTransitions:
               description: Turn restriction from this segment to other segments.
               type: array
               items:
-                 allOf:
-                   - "$ref": "#/$defs/propertyContainers/modesContainer"
-                   - "$ref": "#/$defs/propertyContainers/duringContainer"
-                   - "$ref": "#/$defs/propertyDefinitions/relationTarget"
                  unevaluatedProperties: false
+                 allOf:
+                   - "$ref": "#/$defs/propertyContainers/ruleContainer"
+                   - "$ref": "#/$defs/propertyContainers/duringContainer"
                  type: object
                  properties:
                    reason:
@@ -258,17 +257,18 @@ properties:
                        - gatedKey
                      default:
                        enum: [legal]
-                   direction:
-                     description: direction of travel on the source that pertains to the relation
-                     "$ref": "#/$defs/propertyDefinitions/direction"
-                   via:
-                     description: Sequence of ordered segements that needs to be traversed in order for the relation to be effective
+                   sequence:
+                     description: Ordered sequence of segments that needs to be traversed in order for the relation to be effective
                      type: array
                      items:
-                       description: GERS ID of the connected segments
+                       description: Pair of segment and connector IDs along the sequence 
                        "$ref": "#/$defs/propertyDefinitions/relationTarget"
                      minItems: 1
                      uniqueItems: true
+                   finalHeading:
+                     description: Direction of travel that is prohibited on the destination segment of the sequence.
+                     "$ref": "#/$defs/propertyDefinitions/direction"
+
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
@@ -388,10 +388,7 @@ properties:
             necessarily be conncted to the source of the relation (for example  signposts)
             (TODO replace with GERS ID)
           type: string
-        toDirection:
-          description: direction of travel on the target that pertains to the relation
-          "$ref": "#/$defs/propertyDefinitions/direction"
-      required: [segmentId]
+      required: [segmentId, connectorId]
   propertyContainers:
     atRangeContainer:
       description: >-
@@ -438,10 +435,10 @@ properties:
       "$comment": >-
         If neither mode nor modeNot is specified, the rule has the
         default travel modes for the segment subType.
-    directionContainer:
+    headingContainer:
       description: properties defining direction for which a rule is active
       properties:
-        direction:
+        heading:
           "$ref": "#/$defs/propertyDefinitions/direction"
     speedLimitsContainer:
       description: Rules governing speed on this road segment or lane
@@ -450,7 +447,7 @@ properties:
         description: An individual speed limit rule
         "$comment": >-
           TODO: Speed limits probably have directionality, so
-          should factor out a directionContainer for this
+          should factor out a headingContainer for this
           purpose and use it to introduce an optional
           direction property in each rule.
         type: object
@@ -486,7 +483,7 @@ properties:
                       - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
                       - { "$ref": "#/$defs/propertyContainers/duringContainer" }
                       - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/headingContainer" }
               - required: [ designated ]
                 properties:
                   designated:
@@ -496,7 +493,7 @@ properties:
                       - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
                       - { "$ref": "#/$defs/propertyContainers/duringContainer" }
                       - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/headingContainer" }
               - required: [ denied ]
                 properties:
                   denied:
@@ -506,7 +503,7 @@ properties:
                       - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
                       - { "$ref": "#/$defs/propertyContainers/duringContainer" }
                       - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/directionContainer" }
+                      - { "$ref": "#/$defs/propertyContainers/headingContainer" }
             minLength: 1
     ruleContainer:
       description: >-
@@ -518,7 +515,7 @@ properties:
           type: object
           allOf:
             - "$ref": "#/$defs/propertyContainers/modesContainer"
-            - "$ref": "#/$defs/propertyContainers/duringContainer"
+            - "$ref": "#/$defs/propertyContainers/headingContainer"
           unevaluatedProperties: false
           properties:
             using:

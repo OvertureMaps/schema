@@ -4,11 +4,6 @@ title: Overture Maps Feature Schema Common Definitions
 description: Common schema definitions shared by all themes
 "$defs":
   propertyDefinitions:
-    entityId:
-      description: >-
-        Optional stable identifier for the feature. 128 bits represented as 32 hex characters.
-      type: string
-      pattern: ^[0-9a-f]{32}$
     level:
       description: Z-order of the feature where 0 is visual level
       type: integer
@@ -17,12 +12,15 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - connector
-        - building
-        - segment
-        - locality
         - administrativeBoundary
+        - building
+        - connector
+        - land
+        - landUse
+        - locality
         - place
+        - segment
+        - water
     featureUpdateTime:
       description: Timestamp when the feature was last updated
       type: string
@@ -90,7 +88,12 @@ description: Common schema definitions shared by all themes
     theme:
       description: Top-level Overture theme this feature belongs to
       type: string
-      enum: [admins, buildings, places, transportation]
+      enum:
+        - admins
+        - base
+        - buildings
+        - places
+        - transportation
     linearlyReferencedPosition:
       description: >-
         Represents a linearly-referenced position between 0% and 100% of
@@ -241,6 +244,10 @@ description: Common schema definitions shared by all themes
         country:
           description: ISO 3166 alpha2 country code
           type: string
+    wikidata:
+      description: A wikidata ID if available, as found on https://www.wikidata.org/.
+      type: string
+      pattern: ^Q\d+
   propertyContainers:
     overtureFeaturePropertiesContainer:
       title: Overture Properties
@@ -251,7 +258,6 @@ description: Common schema definitions shared by all themes
         ^ext.*$:
           description: "Additional top-level properties must be prefixed with `ext`."
       properties:
-        entityId: { "$ref": "#/$defs/propertyDefinitions/entityId" }
         theme: { "$ref": "#/$defs/propertyDefinitions/theme" }
         type: { "$ref": "#/$defs/propertyDefinitions/featureType" }
         version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }

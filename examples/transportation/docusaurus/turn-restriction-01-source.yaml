@@ -18,8 +18,9 @@ properties:
     - overture:transportation:example:simple-turn-restriction-connector2
   road:
     restrictions:
-      turns:
-        - segmentId: overture:transportation:example:simple-turn-restriction-target
-          connectorId: overture:transportation:example:simple-turn-restriction-connector2
-          direction: forward
-          toDirection: forward
+      prohibitedTransitions:
+         - sequence:  
+           - segmentId: overture:transportation:example:simple-turn-restriction-target
+             connectorId: overture:transportation:example:simple-turn-restriction-connector2
+           finalHeading: forward
+           when: {heading: forward} 

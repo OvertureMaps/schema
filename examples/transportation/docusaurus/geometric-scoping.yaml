@@ -3,7 +3,7 @@ id: overture:transportation:example:geometric-scoping
 type: Feature
 geometry:
   type: LineString
-  coordinates: [[0, 0], [1, 1]] #TODO get some real geometry
+  coordinates: [[0, 0], [1, 1]]
 properties:
   theme: transportation
   type: segment
@@ -13,7 +13,7 @@ properties:
   road:
     restrictions:
       speedLimits:
-        - at: [0, 0.15]               # TODO: Put real values.
+        - at: [0, 0.15]
           maxSpeed: [100, "km/h"]
         - at: [0.15, 1]
           maxSpeed: [60, "km/h"]

@@ -71,9 +71,7 @@ properties:
         type: object
         properties:
           names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-          wikidata:
-            description: The wikidata reference of the brand, as found on https://www.wikidata.org/.
-            type: string
+          wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
       addresses:
         description: The addresses of the place.
         type: array

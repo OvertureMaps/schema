@@ -2,41 +2,6 @@
 const sidebars = {
   docs: [
     'index',
-    // {
-    //   type: 'category',
-    //   label: 'Core Concepts',
-    //   link: {
-    //     type: 'generated-index',
-    //     slug: '/concepts',
-    //   },
-    //   collapsed: false,
-    //   items: [
-    //       'concepts/feature',
-    //       'concepts/theme',
-    //       'concepts/gers',
-    //   ]
-    // },
-    /*
-      GERS
-    {
-      type: 'category',
-      label: 'Global Entity Reference System',
-      // link: {
-      //   type: 'doc',
-      //   id: 'gers/gers'
-      // },
-      collapsed: true,
-      items: [
-        {
-          type: 'doc',
-          id:'gers/gers',
-          label: 'Overview'
-        },
-        'gers/scenarios',
-        'gers/terminology'
-      ]
-    },
-    // */
     /*
       Themes
     */
@@ -54,6 +19,7 @@ const sidebars = {
           id: 'themes/admins/admins',
           label: 'Admins'
         },
+        'themes/base/index',
         'themes/buildings/building',
         'themes/places/place',
         {
@@ -88,9 +54,6 @@ const sidebars = {
         {
           type: 'category',
           label: 'admins',
-          // link: {
-          //   type: 'generated-index',
-          // },
           collapsed: false,
           items: [
               'reference/admins/administrativeBoundary',
@@ -99,10 +62,17 @@ const sidebars = {
         },
         {
           type: 'category',
+          label: 'base',
+          collapsed: false,
+          items: [
+              'reference/base/land',
+              'reference/base/landUse',
+              'reference/base/water',
+          ]
+        },
+        {
+          type: 'category',
           label: 'buildings',
-          // link: {
-          //   type: 'generated-index',
-          // },
           collapsed: false,
           items: [
             'reference/buildings/building',
@@ -111,9 +81,6 @@ const sidebars = {
         {
           type: 'category',
           label: 'places',
-          // link: {
-          //   type: 'generated-index',
-          // },
           collapsed: false,
           items: [
             'reference/places/place',
@@ -122,15 +89,12 @@ const sidebars = {
         {
           type: 'category',
           label: 'transportation',
-          // link: {
-          //   type: 'generated-index',
-          // },
           collapsed: false,
           items: [
             'reference/transportation/connector',
             'reference/transportation/segment',
           ]
-        },
+        }
       ]
     }
   ],
