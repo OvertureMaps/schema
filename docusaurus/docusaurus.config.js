@@ -85,7 +85,7 @@ const config = {
             label: 'Global Entity Reference System',
           },
           {
-            to: 'https://labs.overturemaps.org/how-to',
+            to: 'https://labs.overturemaps.org/how-to/',
             label: 'How-To Guides',
             target: ''
           },
