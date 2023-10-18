@@ -12,12 +12,15 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - connector
-        - building
-        - segment
-        - locality
         - administrativeBoundary
+        - building
+        - connector
+        - land
+        - landUse
+        - locality
         - place
+        - segment
+        - water
     featureUpdateTime:
       description: Timestamp when the feature was last updated
       type: string
@@ -77,10 +80,20 @@ description: Common schema definitions shared by all themes
         recordId:
           type: string
           description: Refers to the specific record within the dataset that was used.
+        confidence:
+          description: If the source data has a confidence value, especially for ml-derived data, record that here.
+          type: number
+          minimum: 0
+          maximum: 1
     theme:
       description: Top-level Overture theme this feature belongs to
       type: string
-      enum: [admins, buildings, places, transportation]
+      enum:
+        - admins
+        - base
+        - buildings
+        - places
+        - transportation
     linearlyReferencedPosition:
       description: >-
         Represents a linearly-referenced position between 0% and 100% of
@@ -231,6 +244,10 @@ description: Common schema definitions shared by all themes
         country:
           description: ISO 3166 alpha2 country code
           type: string
+    wikidata:
+      description: A wikidata ID if available, as found on https://www.wikidata.org/.
+      type: string
+      pattern: ^Q\d+
   propertyContainers:
     overtureFeaturePropertiesContainer:
       title: Overture Properties

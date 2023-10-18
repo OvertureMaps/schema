@@ -1,0 +1,20 @@
+---
+title: Base
+---
+
+# Base Theme
+
+The Overture Base Theme provides additional context such as land and water that are critical to rendering a complete basemap. These features are currently derived from the [Daylight Earth Tables](https://daylightmap.org/earth/) schema and include the [Daylight Coastlines](https://daylightmap.org/coastlines.html).
+
+## Key Schema Design Choices
+
+1. Basic classification of features into type, subType, and class where appropriate.
+2. Parsing and normalization of common OSM tags, such as `height` and `ele`.
+4. Extraction of consistent OSM tags, such as wikidata to top-level properties.
+3. Direct pass-through of remaining relevant OSM tags.
+
+## Current Types:
+
+1. [land](/reference/base/landuse): Physical representations of land surfaces. Global land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap.
+2. [landUse](/reference/base/landUse): Classifications of the human use of a section of land. Translates `landuse` from OpenStreetMap tag from OpenStreetMap.
+3. [water](/reference/base/water): Physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap.
