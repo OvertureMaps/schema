@@ -11,7 +11,6 @@ properties:
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
       - "$ref": https://geojson.org/schema/LineString.json
-      - "$ref": https://geojson.org/schema/MultiLineString.json
       - "$ref": https://geojson.org/schema/Polygon.json
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:
