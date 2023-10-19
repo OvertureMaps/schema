@@ -10,7 +10,6 @@ properties:
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
       - "$ref": https://geojson.org/schema/LineString.json
-      - "$ref": https://geojson.org/schema/MultiLineString.json
       - "$ref": https://geojson.org/schema/Polygon.json
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:
@@ -27,31 +26,31 @@ properties:
         description: Broad type of land
         type: string
         enum:
-        - agriculture
-        - airport
-        - aquaculture
-        - campground
-        - cemetary
-        - conservation
-        - construction
-        - developed
-        - education
-        - entertainment
-        - golf
-        - horticulture
-        - landfill
-        - medical
-        - military
-        - park
-        - public
-        - protected
-        - recreation
-        - religious
-        - residential
-        - resourceExtraction
-        - structure
-        - transportation
-        - winterSports
+          - agriculture
+          - airport
+          - aquaculture
+          - campground
+          - cemetary
+          - conservation
+          - construction
+          - developed
+          - education
+          - entertainment
+          - golf
+          - horticulture
+          - landfill
+          - medical
+          - military
+          - park
+          - public
+          - protected
+          - recreation
+          - religious
+          - residential
+          - resourceExtraction
+          - structure
+          - transportation
+          - winterSports
       class:
         description: Further classification of the landuse
         type: string
