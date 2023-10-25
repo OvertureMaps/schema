@@ -11,8 +11,8 @@ properties:
     - freeform: "770 Broadway, Floor 8"
       locality: "New York"
     - locality: "New York"
-      region: "NY"
-      country: "US"
+      isoSubCountryCode: "NY"
+      isoCountryCodeAlpha2: "US"
   # Overture properties
   theme: places
   type: place

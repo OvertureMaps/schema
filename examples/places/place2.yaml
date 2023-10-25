@@ -8,10 +8,10 @@ properties:
   addresses:
   - freeform: 770 Broadway, Floor 8
     locality: New York
-  - country: US
+  - isoCountryCodeAlpha2: US
     freeform: '770 Broadway #802'
     locality: New York
-    region: NY
+    isoSubCountryCode: "NY"
   brand:
     name: Example
     wikidata: Q1000

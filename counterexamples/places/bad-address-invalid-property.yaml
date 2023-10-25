@@ -12,8 +12,8 @@ properties:
       locality: "New York"
     - freeform: "770 Brodway, #802"
       locality: "New York"
-      region2: "NY"
-      country: "US"
+      isoSubCountryCode2: "NY"
+      isoCountryCodeAlpha2: "US"
   # Overture properties
   theme: places
   type: place

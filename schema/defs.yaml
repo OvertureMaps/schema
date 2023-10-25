@@ -238,16 +238,18 @@ description: Common schema definitions shared by all themes
         postCode:
           description: Post code where the address is located
           type: string
-        region:
-          description: ISO-3166-2 subdivision/province code
-          type: string
-        country:
-          description: ISO 3166 alpha2 country code
-          type: string
+        isoSubCountryCode: { "$ref": "#/$defs/propertyDefinitions/isoSubCountryCode" }
+        isoCountryCodeAlpha2: { "$ref": "#/$defs/propertyDefinitions/isoCountryCodeAlpha2" }
     wikidata:
       description: A wikidata ID if available, as found on https://www.wikidata.org/.
       type: string
       pattern: ^Q\d+
+    isoCountryCodeAlpha2:
+      description: ISO 3166-1 alpha-2 country code.
+      type: string
+    isoSubCountryCode:
+      description: ISO-3166-2 Country subdivision code.
+      type: string
   propertyContainers:
     overtureFeaturePropertiesContainer:
       title: Overture Properties
