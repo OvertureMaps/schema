@@ -4,6 +4,8 @@ title: Water Schema
 description: Physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap.
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     unevaluatedProperties: false
     oneOf:

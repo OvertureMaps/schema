@@ -6,6 +6,8 @@ description: >-
   or amenity. Place features are compatible with GeoJSON Point features.
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     description: >-
       Place's geometry which MUST be a Point as defined by GeoJSON

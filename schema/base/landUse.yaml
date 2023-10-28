@@ -4,6 +4,8 @@ title: Land Use Schema
 description: Land use features from OpenStreetMap
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     description: Classifications of the human use of a section of land. Translates `landuse` from OpenStreetMap tag from OpenStreetMap.
     unevaluatedProperties: false

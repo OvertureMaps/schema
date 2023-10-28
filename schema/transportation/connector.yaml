@@ -6,6 +6,8 @@ description: >-
   are compatible with GeoJSON Point features.
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     description: >-
       Connector's geometry which MUST be a Point as defined by GeoJSON
