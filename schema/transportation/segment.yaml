@@ -6,6 +6,8 @@ description: >-
   are compatible with GeoJSON LineString features.
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     description: >-
       Segment's geometry which MUST be a LineSting as defined by GeoJSON
@@ -261,7 +263,7 @@ properties:
                      description: Ordered sequence of segments that needs to be traversed in order for the relation to be effective
                      type: array
                      items:
-                       description: Pair of segment and connector IDs along the sequence 
+                       description: Pair of segment and connector IDs along the sequence
                        "$ref": "#/$defs/propertyDefinitions/relationTarget"
                      minItems: 1
                      uniqueItems: true

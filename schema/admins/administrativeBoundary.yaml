@@ -6,6 +6,8 @@ description: >-
   Locality. Boundaries are compatible with GeoJSON LineString features.
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     unevaluatedProperties: false
     oneOf:

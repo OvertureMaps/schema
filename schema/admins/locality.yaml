@@ -6,6 +6,8 @@ description: >-
   Otherwise, adminLevel property will not be set and its subType will be a namedLocality.
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     unevaluatedProperties: false
     oneOf:
