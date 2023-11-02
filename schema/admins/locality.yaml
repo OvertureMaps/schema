@@ -12,8 +12,6 @@ properties:
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
-      - "$ref": https://geojson.org/schema/Polygon.json
-      - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:
     unevaluatedProperties: false
     required: [subType, localityType, names]

@@ -30,6 +30,14 @@ oneOf:
       properties:
         properties:
           properties:
+            theme: { enum: [admins] }
+            type: { enum: [area] }
+    then: { "$ref": admins/area.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
             theme: { enum: [buildings] }
             type: { enum: [building] }
     then: { "$ref": buildings/building.yaml }
