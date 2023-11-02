@@ -12,7 +12,7 @@ properties:
   version: 0
   subType: administrativeLocality
   adminLevel: 2
-  context: northAmericaId
+  contextId: northAmericaId
   defaultLanguage: en
   drivingSide: right
   isoCountryCodeAlpha2: US

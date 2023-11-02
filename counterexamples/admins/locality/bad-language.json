@@ -11,7 +11,7 @@
     "isoCountryCodeAlpha2": "US",
     "defaultLanguage": "english",
     "drivingSide": "right",
-    "context": "northAmericaId",
+    "contextId": "northAmericaId",
     "names": {
       "common": [
         {
