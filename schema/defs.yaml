@@ -106,7 +106,7 @@ description: Common schema definitions shared by all themes
         center-line segment.
       type: number
       minimum: 0
-      maxiumum: 1
+      maximum: 1
       "$comment": >-
         One possible advantage to using percentages over absolute
         distances is being able to trivially validate that the position
