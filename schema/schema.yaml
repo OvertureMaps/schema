@@ -31,8 +31,8 @@ oneOf:
         properties:
           properties:
             theme: { enum: [admins] }
-            type: { enum: [area] }
-    then: { "$ref": admins/area.yaml }
+            type: { enum: [localityArea] }
+    then: { "$ref": admins/localityArea.yaml }
     else: { propertyNames: false }
   - if:
       properties:

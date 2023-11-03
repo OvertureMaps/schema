@@ -15,8 +15,8 @@ geometry:
         - 48.8068635
 properties:
   theme: admins
-  type: area
+  type: localityArea
   updateTime: '2023-02-22T23:55:01-08:00'
   version: 0
   localityId: unitedStates
-  maritime: false
+  isMaritime: false

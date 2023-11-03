@@ -83,6 +83,9 @@ description: Common schema definitions for admins theme
       description: Left-hand traffic (LHT) or right-hand traffic (RHT).
       type: string
       enum: [left, right]
+    isMaritime:
+      description: Flag that specifies if feature is maritime (i.e., a boundary at a particular distance from a jurisdiction's coastline)
+      type: boolean
   propertyContainers:
     adminPropertiesContainer:
       title: "Administrative Properties"

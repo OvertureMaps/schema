@@ -58,7 +58,7 @@ const sidebars = {
           items: [
               'reference/admins/administrativeBoundary',
               'reference/admins/locality',
-              'reference/admins/area',
+              'reference/admins/localityArea',
           ]
         },
         {
