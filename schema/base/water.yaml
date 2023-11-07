@@ -70,7 +70,7 @@ properties:
           - tidalChannel
           - wastewater
           - water
-          - water_storage
+          - waterStorage
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       isSalt:
         description: Is it salt water or not
