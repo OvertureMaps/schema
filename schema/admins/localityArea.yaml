@@ -21,4 +21,3 @@ properties:
       localityId:
         description: References specific feature of locality type
         type: string
-      isMaritime: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/isMaritime" }
