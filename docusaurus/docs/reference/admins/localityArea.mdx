@@ -1,0 +1,48 @@
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import LocalityAreaSchema from '!!raw-loader!@site/docs/_schema/admins/localityArea.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import LocalityAreaExample from '!!raw-loader!@site/docs/_examples/admins/localityArea/area-admin-country-no-context.yaml';
+
+# localityArea
+
+Adds land or maritime area polygon to locality.
+
+Property <code>localityId</code> points at [Locality](locality) feature that this area belongs to.
+
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Polygon</code> or <code>MultiPolygon</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>admins</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>localityArea</code></td>
+  </tr>
+</table>
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(LocalityAreaSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/admins'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{LocalityAreaSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="localityArea" label="LocalityArea" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(LocalityAreaExample), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>

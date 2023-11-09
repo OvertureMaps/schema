@@ -1,0 +1,23 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Locality Area Schema
+description: >-
+  Adds land or maritime area polygon to locality.
+type: object
+properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    required: [localityId]
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+    properties:
+      localityId:
+        description: References specific feature of locality type
+        type: string

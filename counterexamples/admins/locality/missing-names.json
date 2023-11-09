@@ -8,7 +8,7 @@
     "subType": "administrativeLocality",
     "localityType": "country",
     "adminLevel": 2,
-    "context": "northAmericaId"
+    "contextId": "northAmericaId"
   },
   "geometry": {
     "type": "Polygon",

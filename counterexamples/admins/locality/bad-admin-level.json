@@ -8,7 +8,7 @@
     "subType": "administrativeLocality",
     "localityType": "country",
     "adminLevel": 100,
-    "context": "northAmericaId",
+    "contextId": "northAmericaId",
     "names": {
       "common": [
         {

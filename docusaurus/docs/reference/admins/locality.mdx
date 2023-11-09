@@ -11,10 +11,12 @@ import AdminLocalityExample from '!!raw-loader!@site/docs/_examples/admins/local
 
 Localities are named, and typically populated, areas.
 
+Area polygon of Localities, if known, are given by [Locality Area](localityArea) features.
+
 <table>
   <tr>
     <th>Geometry Type</th>
-    <td><code>Point</code>, <code>Polygon</code> or <code>MultiPolygon</code></td>
+    <td><code>Point</code></td>
   </tr>
   <tr>
     <th>Theme</th>
@@ -44,7 +46,7 @@ subdivisions of countries.
 
 Every Administrative Locality has a valid `adminLevel` property set,
 defining its position in the subdivision hierarchy. All Administrative
-Localities at sub-country level must have a `context` property
+Localities at sub-country level must have a `contextId` property
 containing the GERS ID of the feature's parent Administrative Locality.
 
 The borders of Administrative Localities, if known, are given by
