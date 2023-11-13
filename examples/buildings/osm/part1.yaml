@@ -16,7 +16,7 @@ geometry:
     [-117.1707971, 32.7240658]
   ]]
 properties:
-  building: '1234'
+  buildingId: '1234'
   extFoo: I am a customer user property.
   extBar: Me too!
   theme: buildings
