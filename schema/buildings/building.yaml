@@ -6,6 +6,8 @@ description: >-
   GeoJSON Polygon features.
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     description: >-
       A regular building's geometry is defined as it's footprint or roofprint (if traced from aerial/satellite imagery). These MUST be a Polygon as defined by GeoJSON

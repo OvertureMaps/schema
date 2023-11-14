@@ -2,11 +2,10 @@
 
 Overture Administrative Boundary (Admins) data includes features that describe named localities in the real world including settlements, cities, regions, provinces, and countries.
 
-The current version of the schema does not support the modeling of disputed boundaries or multiple geo-political views. In future schema versions, we will have support for:
+The current version of the schema does not support the modeling of multiple geo-political views. In future schema versions, we will have support for:
 
-1. Marking a boundary as disputed.
-2. Providing multiple views of a country boundary based on the user's region.
-3. Modeling the relationship between a country and its overseas territories or other disputed territories.
+1. Providing multiple views of a country boundary based on the user's region.
+2. Modeling the relationship between a country and its overseas territories or other disputed territories.
 
 ## Key Schema Design Choices
 
@@ -22,5 +21,6 @@ There are two sub-types:
    - Administrative Localities model countries and their hierarchical subdivisions. Each Administrative Locality has an administrative level indicating its level within a country. Attributes like driving side and default language are also available.
    - Named Localities model named places that are not part of a countries administrative hierarchy.
 
-2. [Administrative Boundary](/reference/admins/administrativeBoundary) provides a boundary line of Administrative Localities. This feature allows for an easy display of country borders and
+2. [LocalityArea](/reference/admins/localityArea) adds land or maritime polygon to [Locality](/reference/admins/locality).
+3. [Administrative Boundary](/reference/admins/administrativeBoundary) provides a boundary line of Administrative Localities. This feature allows for an easy display of country borders and
 administrative subdivisions within countries. Boundaries shared by different Administrative Localities are represented by one line. A maritime attribute supports filtering on boundaries located within seas or oceans.

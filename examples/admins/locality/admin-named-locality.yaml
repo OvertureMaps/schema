@@ -4,7 +4,7 @@ geometry:
   - 47.6238307
   type: Point
 properties:
-  context: seattleId
+  contextId: seattleId
   localityType: neighborhood
   names:
     common:

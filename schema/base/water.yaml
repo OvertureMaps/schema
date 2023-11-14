@@ -4,12 +4,13 @@ title: Water Schema
 description: Physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap.
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
       - "$ref": https://geojson.org/schema/LineString.json
-      - "$ref": https://geojson.org/schema/MultiLineString.json
       - "$ref": https://geojson.org/schema/Polygon.json
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:
@@ -69,7 +70,7 @@ properties:
           - tidalChannel
           - wastewater
           - water
-          - water_storage
+          - waterStorage
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       isSalt:
         description: Is it salt water or not

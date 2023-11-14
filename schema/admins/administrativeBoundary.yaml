@@ -6,6 +6,8 @@ description: >-
   Locality. Boundaries are compatible with GeoJSON LineString features.
 type: object
 properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     unevaluatedProperties: false
     oneOf:
@@ -17,9 +19,7 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     properties:
       adminLevel: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/adminLevel" }
-      maritime:
-        description: Flag that specifies if the boundary is maritime (i.e., a boundary at a particular distance from a jurisdiction's coastline)
-        type: boolean
+      isMaritime: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/isMaritime" }
       geopolDisplay:
         description: Optional value that indicates if the boundary needs special rendering logic
         type: string

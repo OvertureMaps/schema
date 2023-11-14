@@ -7,7 +7,7 @@
     "updateTime": "2023-02-22T23:55:01-08:00",
     "subType": "administrativeLocality",
     "adminLevel": 2,
-    "context": "northAmericaId",
+    "contextId": "northAmericaId",
     "names": {
       "common": [
         {
