@@ -232,7 +232,6 @@ description: Common schema definitions shared by all themes
     address:
       type: object
       unevaluatedProperties: false
-      required: [freeform]
       properties:
         freeform: # TODO: Should probably be renamed freeForm, as free-form is a two-word hyphenated construct.
           description: Free-form address that contains street name, house number and other address info
@@ -240,7 +239,7 @@ description: Common schema definitions shared by all themes
         locality:
           description: Name of the City or Neighborhood where the address is located
           type: string
-        postCode:
+        postcode:
           description: Post code where the address is located
           type: string
         region:
