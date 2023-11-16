@@ -232,7 +232,7 @@ description: Common schema definitions shared by all themes
       type: object
       unevaluatedProperties: false
       properties:
-        freeform: # TODO: Should probably be renamed freeForm, as free-form is a two-word hyphenated construct.
+        freeform:
           description: Free-form address that contains street name, house number and other address info
           type: string
         locality:
