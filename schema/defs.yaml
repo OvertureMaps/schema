@@ -22,6 +22,7 @@ description: Common schema definitions shared by all themes
         - land
         - landUse
         - locality
+        - part
         - place
         - segment
         - water
