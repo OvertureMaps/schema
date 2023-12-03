@@ -39,7 +39,6 @@ shapeContainer:
         - plastic
         - stone
         - wood
-        - other
     roofMaterial:
       description: >-
         The outermost material of the roof.
@@ -57,7 +56,6 @@ shapeContainer:
         - tar_paper
         - thatch
         - wood
-        - other
     roofShape:
       description: The shape of the roof
       type: string
@@ -73,7 +71,6 @@ shapeContainer:
         - pyramid
         - round
         - spherical
-        - other
     roofDirection:
       description: >-
         Bearing of the roof ridge line.
