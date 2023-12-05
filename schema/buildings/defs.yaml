@@ -31,13 +31,14 @@ shapeContainer:
       enum:
         - brick
         - cement_block
+        - clay
         - concrete
         - glass
         - metal
-        - mud
         - plaster
         - plastic
         - stone
+        - timber_framing
         - wood
     roof_material:
       description: >-
@@ -49,9 +50,11 @@ shapeContainer:
         - eternit
         - glass
         - grass
+        - gravel
         - metal
         - plastic
         - roof_tiles
+        - solar_panels
         - slate
         - tar_paper
         - thatch
@@ -62,14 +65,17 @@ shapeContainer:
       enum:
         - dome
         - flat
-        - gable
+        - gabled
         - gambrel
-        - half_hip
-        - hip
+        - half-hipped
+        - hipped
         - mansard
         - onion
-        - pyramid
+        - pyramidal
         - round
+        - saltbox
+        - sawtooth
+        - skillion
         - spherical
     roof_direction:
       description: >-
