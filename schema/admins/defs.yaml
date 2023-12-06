@@ -66,10 +66,10 @@ description: Common schema definitions for admins theme
                                  Vračar, Belgrade, Serbia
                                  Arecibo, Puerto Rico
     adminLevel:
-      description: Hierarchical level for administrative entity or border (matching admin_level in OSM taxonomy)
+      description: Hierarchical level for administrative entity or border. E.g. in United States, Country locality representing United States has adminLevel=0, States have adminLevel=1, Counties have adminLevel=2.
       type: integer
-      minimum: 1
-      maximum: 11
+      minimum: 0
+      maximum: 6
     isoCountryCodeAlpha2:
       description: ISO 3166-1 alpha-2 country code.
       type: string

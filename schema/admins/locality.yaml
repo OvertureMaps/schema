@@ -22,7 +22,7 @@ properties:
           allOf:
           - "$ref": "./defs.yaml#/$defs/propertyContainers/adminPropertiesContainer"
           - title: "Conditional Properties"
-            if: {properties: {adminLevel: { minimum: 3 }}}
+            if: {properties: {adminLevel: { minimum: 1 }}}
             then:
               required: [contextId]
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
