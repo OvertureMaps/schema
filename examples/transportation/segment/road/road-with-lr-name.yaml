@@ -20,7 +20,7 @@ properties:
     roadNames:
       - at:
           - 0
-          - 50
+          - 0.5
         common:
           - value: Common Road Name 1
             language: local
@@ -28,8 +28,8 @@ properties:
           - value: SRN1
             language: local
       - at:
-        - 50
-        - 100
+        - 0.5
+        - 1
         common:
           - value: Common Road Name 2
             language: local
