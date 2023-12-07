@@ -132,6 +132,7 @@ properties:
             - parkingAisle # service road intended for parking
             - driveway # service road intended for deliveries
             - pedestrian
+            - footway
             - sidewalk
             - crosswalk
             - steps
