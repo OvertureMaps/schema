@@ -66,7 +66,7 @@ description: Common schema definitions for admins theme
                                  Vračar, Belgrade, Serbia
                                  Arecibo, Puerto Rico
     adminLevel:
-      description: Hierarchical level for administrative entity or border. E.g. in United States, Country locality representing United States has adminLevel=0, States have adminLevel=1, Counties have adminLevel=2.
+      description: Hierarchical level for administrative entity or border. E.g. in United States, Country locality representing United States has adminLevel=1, States have adminLevel=2, Counties have adminLevel=3.
       type: integer
       minimum: 0
       maximum: 6
