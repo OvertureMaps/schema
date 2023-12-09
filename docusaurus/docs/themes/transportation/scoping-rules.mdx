@@ -1,6 +1,8 @@
 import CodeBlock from '@theme/CodeBlock';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import ExampleGeometricScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/geometric-scoping.yaml';
 import ExampleTemporalScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/temporal-scoping.yaml';
 import ExampleSubjectiveUsagePurposeScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-usage-purpose-scoping.yaml';
@@ -60,7 +62,13 @@ start.
 
 <figure>
 
-![Diagram showing a single geometrically-scoped position.](/img/transportation/geometric-scoping-position.svg)
+<ThemedImage
+  alt="Diagram showing a single geometrically-scoped position"
+  sources={{
+    light: useBaseUrl('/img/transportation/geometric-scoping-position-light.svg'),
+    dark: useBaseUrl('/img/transportation/geometric-scoping-position-dark.svg'),
+  }}
+/>
 
 <figcaption>
 
@@ -83,7 +91,13 @@ length from the start.
 
 <figure>
 
-![Diagram showing a geometrically-scoped range.](/img/transportation/geometric-scoping-range.svg)
+<ThemedImage
+  alt="Diagram showing a geometrically-scoped range"
+  sources={{
+    light: useBaseUrl('/img/transportation/geometric-scoping-range-light.svg'),
+    dark: useBaseUrl('/img/transportation/geometric-scoping-range-dark.svg'),
+  }}
+/>
 
 <figcaption>
 

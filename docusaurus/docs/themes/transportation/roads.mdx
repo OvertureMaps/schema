@@ -1,6 +1,8 @@
 import CodeBlock from '@theme/CodeBlock';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import ExampleAccessRestrictionsBlanketDeny from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-01-blanket.yaml';
 import ExampleAccessRestrictionPrivateAccessWithDeliveries from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-02-private-with-deliveries.yaml';
 import ExampleAccessRestrictionMotorVehiclesDestinationOnly from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-03-motor-vehicles-destination-only.yaml';
@@ -202,7 +204,13 @@ where the sequence of maneuvers is important.
 
 <figure>
 
-![A simple transition restriction prohibiting a right turn](/img/transportation/turn-restriction-01.svg)
+<ThemedImage
+  alt="A simple transition restriction prohibiting a right turn"
+  sources={{
+    light: useBaseUrl('/img/transportation/turn-restriction-01-light.png'),
+    dark: useBaseUrl('/img/transportation/turn-restriction-01-dark.png'),
+  }}
+/>
 
 <figcaption>
 
@@ -284,7 +292,13 @@ real-world context to the example.*
 
 <figure>
 
-![A via restriction](/img/transportation/turn-restriction-02.svg)
+<ThemedImage
+  alt="A via restriction"
+  sources={{
+    light: useBaseUrl('/img/transportation/turn-restriction-02-light.png'),
+    dark: useBaseUrl('/img/transportation/turn-restriction-02-dark.png'),
+  }}
+/>
 
 <figcaption>
 
@@ -439,27 +453,57 @@ respectively.
 
 <div style={{ display: "flex", alignItems: "center" }}>
 
-<div style={{ width: "24.625%", float: "left", textAlign: "center" }}>
+<div style={{ width: "27%", float: "left", textAlign: "center" }}>
 
-![West-oriented road segment with two lanes](/img/transportation/lane-number-01-west.svg)
-
-</div>
-
-<div style={{ width: "24.625%", float: "left", textAlign: "center" }}>
-
-![North-oriented road segment with two lanes](/img/transportation/lane-number-02-north.svg)
-
-</div>
-
-<div style={{ width: "24.625%", float: "left", textAlign: "center" }}>
-
-![East-oriented road segment with two lanes](/img/transportation/lane-number-03-east.svg)
+<ThemedImage
+  alt='West-oriented road segment with two lanes'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-number-01-west-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-number-01-west-dark.png'),
+  }}
+/>
 
 </div>
 
-<div style={{ width: "24.625%", float: "left", textAlign: "center" }}>
+<div style={{ width: "10px", float: "left" }}/>
 
-![East-oriented road segment with two lanes](/img/transportation/lane-number-04-south.svg)
+<div style={{ width: "23%", float: "left", textAlign: "center" }}>
+
+<ThemedImage
+  alt='North-oriented road segment with two lanes'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-number-02-north-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-number-02-north-dark.png'),
+  }}
+/>
+
+</div>
+
+<div style={{ width: "10px", float: "left" }}/>
+
+<div style={{ width: "27%", float: "left", textAlign: "center" }}>
+
+<ThemedImage
+  alt='East-oriented road segment with two lanes'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-number-03-east-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-number-03-east-dark.png'),
+  }}
+/>
+
+</div>
+
+<div style={{ width: "10px", float: "left" }}/>
+
+<div style={{ width: "23%", float: "left", textAlign: "center" }}>
+
+<ThemedImage
+  alt='South-oriented road segment with two lanes'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-number-04-south-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-number-04-south-dark.png'),
+  }}
+/>
 
 </div>
 
@@ -586,7 +630,13 @@ segments.
 
 <figure>
 
-![A segment with two geometrically-scoped lane blocks connected to a segment oriented in the opposite direction](/img/transportation/lane-blocks.svg)
+<ThemedImage
+  alt='A segment with two geometrically-scoped lane blocks connected to a segment oriented in the opposite direction'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-blocks-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-blocks-dark.png'),
+  }}
+/>
 
 <figcaption>
 

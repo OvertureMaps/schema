@@ -1,3 +1,6 @@
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 # Shape and Connectivity
 
 The Overture Transportation theme captures the physical shape and connectivity
@@ -9,7 +12,13 @@ types: Segments and Connectors.
 
 <figure>
 
-![Three segments physically joined by a connector](/img/transportation/network.svg)
+<ThemedImage
+  alt="Three segments physically joined by a connector"
+  sources={{
+    light: useBaseUrl('/img/transportation/network-light.png'),
+    dark: useBaseUrl('/img/transportation/network-dark.png'),
+  }}
+/>
 
 <figcaption>
 
@@ -96,13 +105,23 @@ coordinates:
 
 <div style={{textAlign: 'center'}}>
 
-![West-oriented segment geometry](/img/transportation/oriented-west.svg)
+<ThemedImage
+  alt="West-oriented segment geometry"
+  sources={{
+    light: useBaseUrl('/img/transportation/oriented-west-light.svg'),
+    dark: useBaseUrl('/img/transportation/oriented-west-dark.svg'),
+  }}
+/>
 
 </div>
 
 <figcaption>
 
+<div style={{textAlign: 'center'}}>
+
 *This segment geometry is oriented due west.*
+
+</div>
 
 </figcaption>
 </figure>
@@ -123,13 +142,23 @@ coordinates:
 
 <div style={{textAlign: 'center'}}>
 
-![East-oriented segment geometry](/img/transportation/oriented-east.svg)
+<ThemedImage
+  alt="East-oriented segment geometry"
+  sources={{
+    light: useBaseUrl('/img/transportation/oriented-east-light.svg'),
+    dark: useBaseUrl('/img/transportation/oriented-east-dark.svg'),
+  }}
+/>
 
 </div>
 
 <figcaption>
 
+<div style={{textAlign: 'center'}}>
+
 *This segment geometry is oriented due east.*
+
+</div>
 
 </figcaption>
 </figure>
@@ -150,7 +179,13 @@ back toward the start of the segment.
 
 <figure>
 
-![Travel heading along a segment oriented due east](/img/transportation/heading.svg)
+<ThemedImage
+  alt="Travel heading along a segment oriented due east"
+  sources={{
+    light: useBaseUrl('/img/transportation/heading-light.svg'),
+    dark: useBaseUrl('/img/transportation/heading-dark.svg'),
+  }}
+/>
 
 <figcaption>
 
@@ -204,7 +239,13 @@ order than a greater number.
 
 <figure>
 
-![Three segments physically joined by a connector](/img/transportation/levels.svg)
+<ThemedImage
+  alt="Level 0 segments stacked above level -1 segments"
+  sources={{
+    light: useBaseUrl('/img/transportation/level-light.png'),
+    dark: useBaseUrl('/img/transportation/level-dark.png'),
+  }}
+/>
 
 <figcaption>
 
@@ -292,14 +333,25 @@ segments remain as they were and no data needs to be re-conflated.
 
 <div style={{ width: "50%", float: "left" , textAlign: "center" }}>
 
-![A city block without with back alley omitted](/img/transportation/interior-connectors-before.svg)
-
+<ThemedImage
+  alt="A city block without with back alley omitted"
+  sources={{
+    light: useBaseUrl('/img/transportation/interior-connectors-before-light.png'),
+    dark: useBaseUrl('/img/transportation/interior-connectors-before-dark.png'),
+  }}
+/>
 
 </div>
 
 <div style={{ width: "50%", float: "right", textAlign: "center" }}>
 
-![A city block without with back alley omitted](/img/transportation/interior-connectors-after.svg)
+<ThemedImage
+  alt="A city block after adding a new back alley segment"
+  sources={{
+    light: useBaseUrl('/img/transportation/interior-connectors-after-light.png'),
+    dark: useBaseUrl('/img/transportation/interior-connectors-after-dark.png'),
+  }}
+/>
 
 </div>
 
@@ -341,7 +393,13 @@ less churn in conflated data.
 
 <figure>
 
-![A single segment with a geometrically-scoped speed limit](/img/transportation/geometrically-scoped-speed-limit.svg)
+<ThemedImage
+  alt="A single segment with a geometrically-scoped speed limit"
+  sources={{
+    light: useBaseUrl('/img/transportation/geometrically-scoped-speed-limit-light.png'),
+    dark: useBaseUrl('/img/transportation/geometrically-scoped-speed-limit-dark.png'),
+  }}
+/>
 
 <figcaption>
 
@@ -370,13 +428,25 @@ can be corrected by splitting the segment into *N* pieces.
 
 <div style={{width: "50%", float: "left"}}>
 
-![Illegal circular loop](/img/transportation/circle-looped.svg)
+<ThemedImage
+  alt="Illegal circular loop"
+  sources={{
+    light: useBaseUrl('/img/transportation/circle-looped-light.png'),
+    dark: useBaseUrl('/img/transportation/circle-looped-dark.png'),
+  }}
+/>
 
 </div>
 
 <div style={{width: "50%", float: "left"}}>
 
-![Illegal circular loop](/img/transportation/circle-unlooped.svg)
+<ThemedImage
+  alt="One possible correction for illegal circular loop"
+  sources={{
+    light: useBaseUrl('/img/transportation/circle-unlooped-light.png'),
+    dark: useBaseUrl('/img/transportation/circle-unlooped-dark.png'),
+  }}
+/>
 
 </div>
 
@@ -402,13 +472,25 @@ can be corrected by splitting the segment into *N* pieces.
 
 <div style={{width: "50%", float: "left"}}>
 
-![Illegal self-crossing loop](/img/transportation/crossing-looped.svg)
+<ThemedImage
+  alt="Illegal self-crossing loop"
+  sources={{
+    light: useBaseUrl('/img/transportation/crossing-looped-light.png'),
+    dark: useBaseUrl('/img/transportation/crossing-looped-dark.png'),
+  }}
+/>
 
 </div>
 
 <div style={{width: "50%", float: "left"}}>
 
-![Correction to self-crossing loop](/img/transportation/crossing-unlooped.svg)
+<ThemedImage
+  alt="One possible correction to self-crossing loop"
+  sources={{
+    light: useBaseUrl('/img/transportation/crossing-unlooped-light.png'),
+    dark: useBaseUrl('/img/transportation/crossing-unlooped-dark.png'),
+  }}
+/>
 
 </div>
 
