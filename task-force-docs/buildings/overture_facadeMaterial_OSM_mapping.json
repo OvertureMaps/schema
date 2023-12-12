@@ -11,7 +11,7 @@
     "brick_block",
     "muddy_brick"
   ],
-  "cement_block": [
+  "cementBlock": [
     "cement_block",
     "block",
     "cement block",
@@ -70,7 +70,7 @@
     "marble",
     "tiles"
   ],
-  "timber_framing": [
+  "timberFraming": [
     "timber_framing",
     "traditional"
   ],
