@@ -39,7 +39,7 @@
     "plastic",
     "composite"
   ],
-  "roof_tiles": [
+  "roofTiles": [
     "roof_tiles",
     "tile",
     "tiles",
@@ -53,7 +53,7 @@
     "stone",
     "marble"
   ],
-  "solar_panels": [
+  "solarPanels": [
     "solar_panels"
   ],
   "thatch": [

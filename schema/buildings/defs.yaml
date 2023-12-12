@@ -30,7 +30,7 @@ shapeContainer:
       type: string
       enum:
         - brick
-        - cement_block
+        - cementBlock
         - clay
         - concrete
         - glass
@@ -38,7 +38,7 @@ shapeContainer:
         - plaster
         - plastic
         - stone
-        - timber_framing
+        - timberFraming
         - wood
     roof_material:
       description: >-
@@ -53,10 +53,10 @@ shapeContainer:
         - gravel
         - metal
         - plastic
-        - roof_tiles
-        - solar_panels
+        - roofTiles
+        - solarPanels
         - slate
-        - tar_paper
+        - tarPaper
         - thatch
         - wood
     roof_shape:
@@ -67,7 +67,7 @@ shapeContainer:
         - flat
         - gabled
         - gambrel
-        - half-hipped
+        - halfHipped
         - hipped
         - mansard
         - onion
