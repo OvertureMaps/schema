@@ -1,3 +1,6 @@
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 # Travel Modes
 
 In the real world, a travel mode can be thought of intuitively as a way
@@ -174,21 +177,15 @@ in the diagram below.
 
 <figure>
 
-<div style={{ display: "flex", alignItems: "center" }}>
+<div style={{textAlign: 'center'}}>
 
-<div style={{ width: "72%", float: "left", paddingRight: "3px" }}>
-
-![The Overture travel modes taxonomy](/img/transportation/travel-modes-taxonomy.svg)
-
-</div>
-
-<div style={{ width: "28%", float: "right", paddingLeft: "3px" }}>
-
-![Legend graphic for Overture travel modes taxonomy](/img/transportation/travel-modes-legend.svg)
-
-</div>
-
-<div style={{ clear: "both" }}/>
+<ThemedImage
+  alt="Overture travel modes taxonomy"
+  sources={{
+    light: useBaseUrl('/img/transportation/travel-modes-light.png'),
+    dark: useBaseUrl('/img/transportation/travel-modes-dark.png'),
+  }}
+/>
 
 </div>
 
