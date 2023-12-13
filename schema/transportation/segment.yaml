@@ -133,6 +133,8 @@ properties:
             - driveway # service road intended for deliveries
             - pedestrian
             - footway
+            - sidewalk
+            - crosswalk
             - steps
             - track
             - cycleway

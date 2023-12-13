@@ -46,6 +46,14 @@ oneOf:
       properties:
         properties:
           properties:
+            theme: { enum: [buildings] }
+            type: { enum: [part] }
+    then: { "$ref": buildings/part.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
             theme: { enum: [transportation] }
             type: { enum: [connector] }
     then: { "$ref": transportation/connector.yaml }

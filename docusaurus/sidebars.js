@@ -77,6 +77,7 @@ const sidebars = {
           collapsed: false,
           items: [
             'reference/buildings/building',
+            'reference/buildings/part'
           ]
         },
         {
