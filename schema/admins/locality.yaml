@@ -33,6 +33,7 @@ properties:
         enum: [administrativeLocality, namedLocality]
       localityType: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/localityType" }
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
       contextId:
         description: Context entity is the most granular entity that logically contains given entity (but doesn't have to contain it spatially due to minor discrepancies in geometries)
         type: string
