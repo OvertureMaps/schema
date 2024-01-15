@@ -24,3 +24,11 @@ There are two sub-types:
 2. [LocalityArea](/reference/admins/localityArea) adds land or maritime polygon to [Locality](/reference/admins/locality).
 3. [Administrative Boundary](/reference/admins/administrativeBoundary) provides a boundary line of Administrative Localities. This feature allows for an easy display of country borders and
 administrative subdivisions within countries. Boundaries shared by different Administrative Localities are represented by one line. A maritime attribute supports filtering on boundaries located within seas or oceans.
+
+### Perspectives
+
+Different countries can have different views on borders, names or other properties of localities and boundaries.
+To be able to present different perspectives data can contain two versions of locality, with different properties or geometry.
+For example one version will have `includePerspective=US` and other will have `excludePerspective=US`, so one version will be visible only in United States and other version will be visible to rest of the world.
+Another example is West Sahara which would have `excludePerspective=MA` to be excluded from Morocco.
+To get default world view perspective you should filter out all entries with set `includePerspective` to some value.

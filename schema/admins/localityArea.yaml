@@ -21,3 +21,5 @@ properties:
       localityId:
         description: References specific feature of locality type
         type: string
+      includePerspective: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/includePerspective" }
+      excludePerspective: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/excludePerspective" }

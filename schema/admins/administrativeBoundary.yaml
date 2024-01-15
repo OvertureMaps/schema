@@ -28,3 +28,5 @@ properties:
           disputed     = Indicates that an Administrative Boundary is subject of a dispute between two or more countries
           hidden       = Indicates that the Administrative Boundary must not be display though coinciding with an Administrative Area
           visible      = Indicates that the Administrative Boundary is to be displayed (i.e. used to override a maritime=yes flag)
+      includePerspective: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/includePerspective" }
+      excludePerspective: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/excludePerspective" }

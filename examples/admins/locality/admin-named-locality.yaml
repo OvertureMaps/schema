@@ -13,6 +13,7 @@ properties:
     - language: en
       value: Capitol Hill
   subType: namedLocality
+  excludePerspective: MX,CA
   theme: admins
   type: locality
   updateTime: '2023-02-22T23:55:01-08:00'
