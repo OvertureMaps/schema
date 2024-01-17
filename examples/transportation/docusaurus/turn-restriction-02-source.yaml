@@ -21,9 +21,9 @@ properties:
   subType: road
   connectors:
     - overture:transportation:example:via-turn-restriction-connector1
+  names:
+    primary: Arborway
   road:
-    roadNames:
-      common: [ { language: local, value: "Arborway" } ]
     class: primary
     surface: paved
     restrictions:

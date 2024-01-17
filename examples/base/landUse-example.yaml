@@ -14,9 +14,7 @@ properties:
     surface: grass
     aeroway: aerodrome
   names:
-    common:
-      - value: Murphy's Landing Balloonport
-        language: local
+    primary: Murphy's Landing Balloonport
   wikidata: Q61723671
   sources:
     - recordId: w839506975@2

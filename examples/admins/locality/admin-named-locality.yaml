@@ -7,11 +7,9 @@ properties:
   contextId: seattleId
   localityType: neighborhood
   names:
+    primary: Capitol Hill
     common:
-    - language: local
-      value: Capitol Hill
-    - language: en
-      value: Capitol Hill
+      en: Capitol Hill
   subType: namedLocality
   theme: admins
   type: locality

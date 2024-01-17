@@ -23,9 +23,7 @@ properties:
   level: 1
   updateTime: '2023-06-06T10:30:00-08:00'
   names:
-    common:
-    - value: Valentina by Alta
-      language: local
+    primary: Valentina by Alta
   numFloors: 8
   class: commercial
   sources:

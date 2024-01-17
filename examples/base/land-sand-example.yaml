@@ -10,9 +10,7 @@ properties:
   subType: sand
   class: dune
   names:
-    common:
-      - value: Hadeida
-        language: local
+    primary: Hadeida
   sourceTags:
     natural: dune
     surface: sand

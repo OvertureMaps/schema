@@ -15,21 +15,23 @@ properties:
   subType: road
   level: 1
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
-  road:
-    class: secondary
-    roadNames:
-      - at:
+  names:
+    primary: Common Road Name 1
+    rules:
+      - variant: common
+        value: Common Road Name 1
+        at:
           - 0
           - 0.5
-        common:
-          - value: Common Road Name 1
-            language: local
-        short:
-          - value: SRN1
-            language: local
-      - at:
-        - 0.5
-        - 1
-        common:
-          - value: Common Road Name 2
-            language: local
+      - variant: short
+        value: SRN1
+        at:
+          - 0
+          - 0.5
+      - variant: common
+        value: Common Road Name 2
+        at:
+          - 0.5
+          - 1
+  road:
+    class: secondary

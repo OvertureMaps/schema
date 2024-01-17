@@ -46,6 +46,7 @@ properties:
             Each entry in this array is the GERS ID of a transportation connector feature.
         uniqueItems: true
         default: []
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
 "$defs":
   propertyDefinitions:
     lane:
@@ -105,7 +106,6 @@ properties:
       enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
       "$comment": >-
         motorVehicle includes car, truck and motorcycle
-
     road:
       description: >-
         Properties for segments whose segment subType is road. The road
@@ -142,23 +142,6 @@ properties:
             - unknown
           default:
             enum: [ unknown ]
-        roadNames:
-          unevaluatedProperties: false
-          oneOf:
-            - type: object
-              allOf:
-                - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-            - type: array
-              items:
-                type: object
-                required: [at]
-                unevaluatedProperties: false
-                allOf:
-                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-                  - { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-              minItems: 1
-              uniqueItems: true
-
         surface:
           description: Physical surface of the road. May either be
             specified as a single global value for the segment, or as
@@ -169,7 +152,7 @@ properties:
               items:
                 type: object
                 allOf:
-                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                  - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
                 unevaluatedProperties: false
                 properties:
                   value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
@@ -192,7 +175,7 @@ properties:
               - { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
               - type: object
                 allOf:
-                  - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                  - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
                   - { "$ref": "#/$defs/propertyContainers/duringContainer" }
                 unevaluatedProperties: false
                 properties:
@@ -214,7 +197,7 @@ properties:
               items:
                 type: object
                 allOf:
-                  - "$ref": "#/$defs/propertyContainers/atRangeContainer"
+                  - "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer"
                     default:
                       - 0
                       - 100
@@ -394,14 +377,6 @@ properties:
           type: string
       required: [segmentId, connectorId]
   propertyContainers:
-    atRangeContainer:
-      description: >-
-        Geometric scoping properties defining the range of positions on
-        the segment where something is physically located or where a
-        rule is active.
-      properties:
-        at:
-          "$ref": ../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedRange
     duringContainer:
       "$comment": >-
         Temporal scoping properties defining the time spans when a
@@ -460,7 +435,7 @@ properties:
           - required: [ maxSpeed ]
         allOf:
           - "$ref": "#/$defs/propertyContainers/modesContainer"
-          - "$ref": "#/$defs/propertyContainers/atRangeContainer"
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
           - "$ref": "#/$defs/propertyContainers/duringContainer"
         unevaluatedProperties: false
         properties:
@@ -484,7 +459,7 @@ properties:
                     type: object
                     unevaluatedProperties: false
                     allOf:
-                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                      - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
                       - { "$ref": "#/$defs/propertyContainers/duringContainer" }
                       - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
                       - { "$ref": "#/$defs/propertyContainers/headingContainer" }
@@ -494,7 +469,7 @@ properties:
                     type: object
                     unevaluatedProperties: false
                     allOf:
-                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                      - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
                       - { "$ref": "#/$defs/propertyContainers/duringContainer" }
                       - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
                       - { "$ref": "#/$defs/propertyContainers/headingContainer" }
@@ -504,7 +479,7 @@ properties:
                     type: object
                     unevaluatedProperties: false
                     allOf:
-                      - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+                      - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
                       - { "$ref": "#/$defs/propertyContainers/duringContainer" }
                       - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
                       - { "$ref": "#/$defs/propertyContainers/headingContainer" }

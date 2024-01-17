@@ -17,23 +17,20 @@ properties:
   isoCountryCodeAlpha2: US
   localityType: country
   names:
-    alternate:
-    - language: local
-      value: States
+    primary: United States
     common:
-    - language: local
-      value: United States
-    - language: en
-      value: United States
-    - language: es
-      value: Estados Unidos
-    official:
-    - language: local
-      value: United States of America
-    short:
-    - language: local
-      value: US
-    - language: en
-      value: US
-    - language: en
-      value: U.S.
+      en: United States
+      es: Estados Unidos
+    rules:
+      - variant: alternate
+        value: States
+      - variant: official
+        value: United States of America
+      - variant: short
+        value: US
+      - variant: short
+        language: en
+        value: US
+      - variant: short
+        language: en
+        value: U.S.
