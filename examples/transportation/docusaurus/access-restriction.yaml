@@ -19,9 +19,9 @@ properties:
   connectors:
     - overture:transportation:example:simple-road-connector-1
     - overture:transportation:example:simple-road-connector-2
+  names:
+    primary: SR 520
   road:
-    roadNames:
-      common: [ { language: local, value: "SR 520" } ]
     class: motorway
     surface: paved
     restrictions:

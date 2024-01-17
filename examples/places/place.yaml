@@ -18,9 +18,7 @@ properties:
     - +32 1207
   brand:
     names:
-      common:
-        - value: "My Sweet POI Brand"
-          language: local
+      primary: My Sweet POI Brand
     wikidata: Q1000
   addresses:
     - freeform: "770 Broadway, Floor 8"
@@ -42,11 +40,9 @@ properties:
       dataset: msftPlaces
       recordId: "10df72b8"
   names:
+    primary: My Sweet POI
     common:
-      - value: "My Sweet POI"
-        language: local
-      - value: "Something in Spanish"
-        language: es
-    short:
-      - value: "MSPOI"
-        language: local
+      es: Something in Spanish
+    rules:
+      - variant: short
+        value: MSPOI
