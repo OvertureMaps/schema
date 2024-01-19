@@ -133,17 +133,12 @@ description: Common schema definitions shared by all themes
         active, specified in the OSM opening hours specification:
           https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification
       type: string
-      # pattern: ^Mo-Sa 09:00-12:00( closed)?, We 15:00-18:00( closed)?$
       "$comment": >-
-          The "pattern" is just a placeholder. We assume we can
-          specify a regular expression to give *some* degree of
-          initial lexical validation, but higher-level validation
-          will have to be done outside of JSON schema.
+          Validating the opening hours value is going to have to happen outside of JSON Schema.
 
           Reasons for using the OSM opening hours specification for
           transportation rule time restrictions are documented in
           https://github.com/OvertureMaps/schema-wg/pull/10
-          Note: removing pattern since it's limiting values for initial schema release.
     language:
       description: >-
         Describes the language, script and other variants used to describe
