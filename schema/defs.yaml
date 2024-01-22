@@ -183,46 +183,49 @@ description: Common schema definitions shared by all themes
         value:
           type: string
         language: { "$ref": "#/$defs/propertyDefinitions/language" }
+    nameRule:
+      type: object
+      required: [value]
+      allOf:
+        - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
+        - { "$ref": "#/$defs/propertyContainers/sideContainer" }
+      properties:
+        variant:
+          type: string
+          enum:
+            - common
+            - official
+            - alternate
+            - short
+        language: { "$ref": "#/$defs/propertyDefinitions/language" }
+        value:
+          type: string
     names:
       type: object
-      required: [common]
+      required: [primary]
+      unevaluatedProperties: false
       properties:
+        primary:
+          description: The most commonly used name when referring to a feature.
+          type: string
         common:
           description: >-
-            The most commonly used name when referring to a feature.  The first
-            entry in the array of common names must have a language of "local"
-            making it the easiest, default name to use among all options.
-          type: array
-          prefixItems:
-            - $ref: "#/$defs/propertyDefinitions/nameProperty"
-              type: object
-              properties:
-                language:
-                  const: local
-          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
-          minItems: 1
-        official:
+            The "common" variant are the common translations of the name. The official, alternate,
+            and other variants are in the rules property.
+          type: object
+          minProperties: 1
+          additionalProperties: false
+          patternProperties:
+            "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$":
+              "$comment": >-
+                This is an incomplete pattern for BCP47 language tags. See the
+                language section below for more details
+              type: string
+        rules:
           description: >-
-            An official name which is often a longer and more verbose version of
-            the common name. For example, the official name of the United Kingdom
-            is "United Kingdom of Great Britain and Northern Ireland" whereas the
-            common name would be "United Kingdom"
+            Contains the names that are not the primary name or common translations.
           type: array
-          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
-          minItems: 1
-        alternate:
-          description: >-
-            Alternative names used to refer to the feature that may not fit
-            into other categories.
-          type: array
-          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
-          minItems: 1
-        short:
-          description: >-
-            Short names are often abbreviations or other shorthand forms of a name. The
-            short name of the United Kingdom is UK.
-          type: array
-          items: { "$ref": "#/$defs/propertyDefinitions/nameProperty" }
+          items: { "$ref": "#/$defs/propertyDefinitions/nameRule" }
           minItems: 1
     address:
       type: object
@@ -269,3 +272,20 @@ description: Common schema definitions shared by all themes
       properties:
         level:
           "$ref": "#/$defs/propertyDefinitions/level"
+    atRangeContainer:
+      description: >-
+        Geometric scoping properties defining the range of positions on
+        the segment where something is physically located or where a
+        rule is active.
+      properties:
+        at: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedRange" }
+    sideContainer:
+      description: >-
+        Geometric scoping properties defining the side of a road modeled when
+        moving along the line from beginning to end
+      properties:
+        side:
+          type: string
+          enum:
+            - left
+            - right

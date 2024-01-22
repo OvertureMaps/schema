@@ -1,5 +1,5 @@
 ---
-id: overture:buildings:building:1234
+id: overture:buildings:footprint:1234
 type: Feature
 geometry:
   type: Polygon
@@ -14,10 +14,6 @@ properties:
   version: 1
   updateTime: "2023-02-22T23:55:01-08:00"
   names:
-    primary: Local value
+    primary: Empire State Building
     common:
-      ru-Latn: Language Script
-      en-US: Language Region
-    rules:
-      - variant: official
-        value: Official Name
+      abc123def456: Empire State Building

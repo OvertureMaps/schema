@@ -17,8 +17,8 @@ properties:
   connectors:
     - overture:transportation:example:via-turn-restriction-connector1
     - overture:transportation:example:via-turn-restriction-connector2
+  names:
+    primary: Washington Street
   road:
-    roadNames:
-      common: [ { language: local, value: "Washington Street" } ]
     class: secondary
     surface: paved

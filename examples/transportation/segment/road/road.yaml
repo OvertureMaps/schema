@@ -16,13 +16,11 @@ properties:
   level: -1
   width: 10
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
+  names:
+    primary: Common Road Name
   road:
     # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
     class: secondary
-    roadNames:
-      common:
-        - value: Common Road Name
-          language: local
     surface: gravel
     flags: [isLink, isTunnel, isPrivate]
     restrictions:

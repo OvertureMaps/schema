@@ -11,17 +11,14 @@ properties:
   version: 1
   updateTime: "2023-02-22T23:55:01-08:00"
   names:
+    primary: The White house
     common:
-      - value: The White House
-        language: local
-      - value: La Casa Blanca
-        language: es
-    official:
-      - value: The White House
-        language: local
-    alternate:
-      - value: White House
-        language: local
+      es: La Casa Blanca
+    rules:
+      - variant: official
+        value: The White House
+      - variant: alternate
+        value: White House
 geometry:
   type: Polygon
   coordinates: [[

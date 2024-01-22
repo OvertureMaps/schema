@@ -9,9 +9,7 @@ properties:
   subType: river
   class: river
   names:
-    common:
-      - value: Root River
-        language: local
+    primary: Root River
   sourceTags:
     waterway: river
   sources:

@@ -16,9 +16,9 @@ properties:
   connectors:
     - overture:transportation:example:simple-road-connector-1
     - overture:transportation:example:simple-road-connector-2
+  names:
+    primary: Nicola Street
   road:
-    roadNames:
-      common: [ { language: local, value: "Nicola Street" } ]
     class: residential
     surface: paved
     lanes:
