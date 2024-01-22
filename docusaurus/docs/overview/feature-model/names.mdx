@@ -7,14 +7,44 @@ import generateResolverOptions from "@site/src/components/shared-libs/generateRe
 import yamlLoad from "@site/src/components/yamlLoad"
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
+# Common Overture Names Schema
 
 
+Named entities in Overture share a common name schema.
 
-Overture Names Schema
-===
+### `primary`
+
+If a feature has a name, expect the `names` attribute to have at least one property: `primary`. `names.primary` will always be populated with the primary, localized name of a feature. Example: "Empire State Building" or "White House" or "Eiffel Tower"
+
+```yaml
+names:
+  primary: The White House
+```
 
 
-Any named entity in Overture shares a common name schema.
+### Variations
 
+#### `common`
+Common name variations are translations of a name.
+
+```yaml
+names:
+  common:
+    es: La Casa Blanca
+```
+
+#### `rules`
+Additional variations such as `official`, `alternate`, or `short` name variations exist as `rules`.
+
+```yaml
+names:
+  rules:
+    - variant: official
+      value: The White House
+    - variant: alternate
+      value: White House
+```
+
+View the complete JSON schema below
 
 <JSONSchemaViewer schema={ yamlLoad(MainDefs) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/defs.yaml', jsonPointer: '#/$defs/propertyDefinitions/names'})}/>
