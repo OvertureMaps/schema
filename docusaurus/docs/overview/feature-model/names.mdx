@@ -1,0 +1,20 @@
+---
+title: Names
+---
+
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
+
+
+
+
+Overture Names Schema
+===
+
+
+Any named entity in Overture shares a common name schema.
+
+
+<JSONSchemaViewer schema={ yamlLoad(MainDefs) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/defs.yaml', jsonPointer: '#/$defs/propertyDefinitions/names'})}/>

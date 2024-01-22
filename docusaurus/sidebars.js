@@ -1,7 +1,31 @@
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
   docs: [
-    'index',
+    /*
+    Overview
+    */
+    {
+      type: 'category',
+      label: 'Overview',
+      collapsed: false,
+      items: [
+        {
+          type: 'doc',
+          id: 'overview/index'
+        },
+        {
+          type: 'category',
+          label: 'Feature Model',
+          collapsed: false,
+          items: [
+            'overview/feature-model/geojson',
+            'overview/feature-model/names',
+            'overview/feature-model/scoping-rules',
+          ]
+        }
+
+      ]
+    },
     /*
       Themes
     */
@@ -32,7 +56,6 @@ const sidebars = {
           collapsed: true,
           items: [
             'themes/transportation/shape-connectivity',
-            'themes/transportation/scoping-rules',
             'themes/transportation/roads',
             'themes/transportation/travel-modes',
           ]
