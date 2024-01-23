@@ -65,7 +65,7 @@ travel modes.
 
 Unlike many road segment properties, a road segment's `road.class`
 property does not support
-[geometric scoping](scoping-rules#geometric-scoping-linear-referencing)
+[geometric scoping](/overview/feature-model/scoping-rules#geometric-scoping-linear-referencing)
 (linear referencing). Consequently whenever a linear range of real-world
 road makes a class transition (for example, between `secondary` and
 `residential`), the Overture Transportation
@@ -98,7 +98,7 @@ omitted, a reasonable default value should be assumed based on the
 `road.class`.
 
 Like many road segment properties, the `road.surface` property supports
-[geometric scoping](scoping-rules#geometric-scoping-linear-referencing)
+[geometric scoping](/overview/feature-model/scoping-rules#geometric-scoping-linear-referencing)
 (linear referencing). Consequently, the effective road surface may vary
 along different sub-ranges of a road segment's geometry.
 
@@ -112,7 +112,7 @@ For example, a road segment with
 physically under construction.
 
 Like many road segment properties, the `road.flags` property supports
-[geometric scoping](scoping-rules#geometric-scoping-linear-referencing)
+[geometric scoping](/overview/feature-model/scoping-rules#geometric-scoping-linear-referencing)
 (linear referencing). Consequently, the applicable road flags may vary
 along different sub-ranges of a road segment's geometry.
 
@@ -137,7 +137,7 @@ at the level of individual [lanes](#lanes), as explained elsewhere.)
 It is technically possible to specify a blanket access grant or refusal
 of access applying to everyone and everything; but where, as is typical,
 a more precise outcome is needed, one or more
-[rules](scoping-rules#rules-and-rule-based-properties) will be used to
+[rules](/overview/feature-model/scoping-rules#rules-and-rule-based-properties) will be used to
 specify access restrictions. As with all rule-based properties, if no
 rule matches the specific facts, then the default restrictions for the
 road class govern.
@@ -364,7 +364,7 @@ specified at the level of individual [lanes](#lanes), as explained
 elsewhere.)
 
 As with access restrictions and turn restrictions, speed limits can be
-specified using [rules](scoping-rules#rules-and-rule-based-properties).
+specified using [rules](/overview/feature-model/scoping-rules#rules-and-rule-based-properties).
 
 <Tabs>
   <TabItem value="speedLimitSimple" label="Simple speed limit" default>
@@ -405,7 +405,7 @@ the physical structure and rules applicable to the road's lanes at a
 granularity sufficient to support the navigation use case. More
 generally, instead of directly carrying the lane block, `road.lanes` may
 instead contain a list of geometrically and/or temporally scoped
-[rules](scoping-rules) for resolving the lane block applicable at any
+[rules](/overview/feature-model/scoping-rules) for resolving the lane block applicable at any
 given place and/or time along the segment.
 
 <!--
@@ -563,7 +563,7 @@ the only mandatory property.
 When the allowed travel heading changes based on a regular schedule,
 the appropriate "definite" directionalities (`forward`, `backward`, and
 `bothWays`) should be used along with
-[Temporal Scoping](scoping-rules#temporal-scoping-opening-hours) at the
+[Temporal Scoping](/overview/feature-model/scoping-rules#temporal-scoping-opening-hours) at the
 lane block level.
 
 When the allowed travel heading changes based on unpredictable local
@@ -603,7 +603,7 @@ lanes, that block defines the lane structure for the whole of the lane
 geometry and all times. If, instead, `road.lanes` contains a list of
 lane rules, the *determining rule* for any given location and time must
 be chosen using the
-[rule evaluation algorithm](scoping-rules#rule-evaluation-algorithm)
+[rule evaluation algorithm](/overview/feature-model/scoping-rules#rule-evaluation-algorithm)
 for rule-based properties. Once the determining rule for a certain scope
 is known, its rule block defines the lane structure.
 
@@ -640,7 +640,7 @@ segments.
 
 <figcaption>
 
-*A segment with two [geometrically-scoped](scoping-rules#geometric-scoping-linear-referencing)
+*A segment with two [geometrically-scoped](/overview/feature-model/scoping-rules#geometric-scoping-linear-referencing)
 lane blocks connected to a segment oriented in the opposite direction.*
 
 </figcaption>
