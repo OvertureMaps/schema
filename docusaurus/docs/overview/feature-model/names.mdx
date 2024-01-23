@@ -14,7 +14,7 @@ Named entities in Overture share a common name schema.
 
 ### `primary`
 
-If a feature has a name, expect the `names` attribute to have at least one property: `primary`. `names.primary` will always be populated with the primary, localized name of a feature. Example: "Empire State Building" or "White House" or "Eiffel Tower"
+If a feature has a name, expect the `names` attribute to have at least one property: `primary`. This will always be populated with the primary, localized name of a feature. Example: "Empire State Building" or "Eiffel Tower"
 
 ```yaml
 names:
@@ -34,7 +34,7 @@ names:
 ```
 
 #### `rules`
-Additional variations such as `official`, `alternate`, or `short` name variations exist as `rules`.
+Additional variations such as _official_, _alternate_, or _short_ name variations exist as `rules`.
 
 ```yaml
 names:
@@ -45,6 +45,6 @@ names:
       value: White House
 ```
 
-View the complete JSON schema below
+### Official Names Schema
 
 <JSONSchemaViewer schema={ yamlLoad(MainDefs) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/defs.yaml', jsonPointer: '#/$defs/propertyDefinitions/names'})}/>
