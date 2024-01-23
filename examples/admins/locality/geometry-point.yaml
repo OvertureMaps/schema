@@ -11,8 +11,8 @@ properties:
   updateTime: '2023-02-22T23:55:01-08:00'
   version: 0
   subType: administrativeLocality
-  adminLevel: 2
   contextId: northAmericaId
+  adminLevel: 1
   defaultLanguage: en
   drivingSide: right
   isoCountryCodeAlpha2: US
