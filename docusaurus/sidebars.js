@@ -22,7 +22,7 @@ const sidebars = {
           },
           collapsed: false,
           items: [
-            'overview/feature-model/geojson',
+            // 'overview/feature-model/geojson',
             'overview/feature-model/names',
             'overview/feature-model/scoping-rules',
           ]
