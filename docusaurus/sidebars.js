@@ -16,6 +16,10 @@ const sidebars = {
         {
           type: 'category',
           label: 'Feature Model',
+          link: {
+            type: 'doc',
+            id: 'overview/feature-model/index'
+          },
           collapsed: false,
           items: [
             'overview/feature-model/geojson',
