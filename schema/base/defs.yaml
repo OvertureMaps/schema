@@ -7,6 +7,10 @@ description: Common schema definitions the base theme (primarily from OSM)
     sourceTags:
       description: Any attributes/tags from the original source data that should be passed through.
       type: object
+    elevation:
+      description: Elevation above sea level (in meters) of the feature.
+      type: integer
+      maximum: 9000
   propertyContainers:
     osmPropertiesContainer:
       title: "OSM Properties"
