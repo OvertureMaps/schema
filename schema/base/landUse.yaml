@@ -155,6 +155,7 @@ properties:
           - winterSports
           - zoo
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
       surface:
         description: Surface material, mostly form the OSM tag, with some normalization.
         type: string
