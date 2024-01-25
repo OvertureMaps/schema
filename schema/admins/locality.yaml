@@ -22,7 +22,7 @@ properties:
           allOf:
           - "$ref": "./defs.yaml#/$defs/propertyContainers/adminPropertiesContainer"
           - title: "Conditional Properties"
-            if: {properties: {adminLevel: { minimum: 3 }}}
+            if: {properties: {adminLevel: { minimum: 2 }}}
             then:
               required: [contextId]
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
@@ -33,6 +33,10 @@ properties:
         enum: [administrativeLocality, namedLocality]
       localityType: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/localityType" }
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
       contextId:
         description: Context entity is the most granular entity that logically contains given entity (but doesn't have to contain it spatially due to minor discrepancies in geometries)
         type: string
+      population:
+        description: Population in the locality.
+        type: integer

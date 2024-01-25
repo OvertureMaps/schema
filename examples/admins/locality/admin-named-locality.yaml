@@ -11,8 +11,10 @@ properties:
     common:
       en: Capitol Hill
   subType: namedLocality
+  population: 30000
   theme: admins
   type: locality
+  wikidata: Q5083
   updateTime: '2023-02-22T23:55:01-08:00'
   version: 0
 type: Feature
