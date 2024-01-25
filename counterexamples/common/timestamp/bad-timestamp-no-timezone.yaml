@@ -1,0 +1,15 @@
+---
+id: bad-timestamp-no-timezone
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  categories:
+    main: someCategory
+  theme: places
+  type: place
+  version: 0
+  updateTime: "2024-11-22T12:44:22"
+  extExpectedErrors:
+    - "does not match pattern"
