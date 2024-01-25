@@ -4,17 +4,19 @@ slug: /
 title: Introduction
 ---
 
-Welcome to the Overture data schema documentation. We have focused on designing a data schema that is easy for developers to quickly understand and use in building map products. Our schema currently focuses on buildings, places, transportation, admin, and base data layers.
+Welcome to the Overture Maps Foundation's data documentation. We currently offer the following data themes in `[parquet](https://parquet.apache.org/)`, an open source, column-oriented data file format: buildings, places, transportation, admin, and base. We designed a data schema that is easy for developers to quickly understand and use in building map products. We can't wait to see what you do with our data.
 
-## Getting started
-- Explore a higher-level overview of the schema for each data [theme](themes). 
-- View the technical details of the schema and example implementations under [reference](reference).
-- Learn about our [Global Entity Reference System (GERS)](gers).
+## Get started
 - [Download and query data](https://github.com/OvertureMaps/data).
 - [Visualize data and make a basemap](https://labs.overturemaps.org/how-to/).
 - Check out projects from our developer ecosystem (coming soon).
-- Send us feedback! Please reach out to our [schema](https://github.com/OvertureMaps/schema/discussions) and [data](https://github.com/OvertureMaps/data/discussions) teams on GitHub; we appreciate your input to improve future iterations.
+- Reach out to us! Please engage with us via our [schema](https://github.com/OvertureMaps/schema/discussions) and [data](https://github.com/OvertureMaps/data/discussions) teams on GitHub; your feedback and questions will help us improve future iterations.
 
+## Dig deeper
+- Explore a higher-level overview of the schema for each data [theme](themes). 
+- Consult the technical [reference](reference) for the schema.
+- Learn about the [simple feature model](feature-model) we use to describe our data and common properties of our data features.
+- Let us help you understand our [Global Entity Reference System (GERS)](gers) and how it works.
 
 ## Our vision
 **Address the core, enable the periphery.** The Overture schema doesn't solve every problem. It describes fully-formed solutions only for the most fundamental use cases ("the core") while enabling
@@ -27,11 +29,11 @@ less common use cases ("the periphery") via extensibility.
 **Always open.** The Overture schema and format aim for compatibility with free and open-source tools and technologies and avoid depending on closed-source or proprietary tools and technologies.
 
 
-## Key Specifications
-- The Overture Data Schema is documented in [JSON Schema](https://json-schema.org/), a widely used, machine-readable schema declaration language for JSON documents.
+## Key specifications
+- The Overture data schema is documented in [JSON Schema](https://json-schema.org/), a widely used, machine-readable schema declaration language for JSON documents.
 - We use GeoJSON as a mental model. We aim to deliver our data in the most developer-friendly formats. 
 - Property names use camelCase as described in the [Google JSON Style Guide](https://google.github.io/styleguide/jsoncstyleguide.xml).
-- Feature Geometries follow the [OGC Simple Feature Access specifications](https://www.ogc.org/standard/sfa/).
+- Feature geometries follow the [OGC Simple Feature Access specifications](https://www.ogc.org/standard/sfa/).
 - Measurements use SI units (e.g. meters for building heights) and local units for regulations and restrictions (e.g. speed limits in mph in the US and km/h in Germany).
 
 ## License
