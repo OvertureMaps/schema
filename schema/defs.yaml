@@ -175,14 +175,6 @@ description: Common schema definitions shared by all themes
               The "pattern" is mostly a placeholder. It captures the
               language[-script][-region] variation of BCP47 but not the
               "grandfathered" values and other variants and extensions.
-    nameProperty:
-      type: object
-      required: [value, language]
-      unevaluatedProperties: false
-      properties:
-        value:
-          type: string
-        language: { "$ref": "#/$defs/propertyDefinitions/language" }
     nameRule:
       type: object
       required: [value]
