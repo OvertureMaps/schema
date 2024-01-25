@@ -1,0 +1,18 @@
+{
+    "id": "unrecognizedLevelProperty",
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [0, 0]
+    },
+    "properties": {
+      "theme": "transportation",
+      "type": "connector",
+      "version": 0,
+      "updateTime": "2023-04-24T09:19:00-07:00",
+      "level": 3,
+      "extExpectedErrors": [
+        "[I#/properties/level] [S#/properties/properties/unevaluatedProperties] not allowed"
+      ]
+    }
+  }

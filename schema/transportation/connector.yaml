@@ -19,4 +19,3 @@ properties:
     unevaluatedProperties: false
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
-      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
