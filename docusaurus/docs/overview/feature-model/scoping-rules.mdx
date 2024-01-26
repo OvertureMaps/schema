@@ -10,7 +10,7 @@ import ExampleSubjectiveStatusScoping from '!!raw-loader!@site/docs/_examples/tr
 import ExampleSubjectiveVehicleAttributesScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-vehicle-attributes-scoping.yaml';
 import ExampleLanesAbsoluteForm from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-absolute-form.yaml';
 
-# Scoped and Rule-Based Properties
+# Scoped and rule-based Properties
 
 In the real-world, many facts and rules affecting transportation have
 only a partial application, meaning they don't apply everywhere, or
@@ -21,19 +21,19 @@ vary according to the day of the week.
 
 The Overture Transportation theme's schema model of the transportation
 network uses two related concepts to capture the partial application of
-facts and rules: Scoped values, and Rule-based properties.
+facts and rules: scoped values, and rule-based properties.
 
-## Scoped values and Scoping properties
+## Scoped values and scoping properties
 
-A *Scoped* value is a value which only applies within a limited scope.
+A *scoped* value is a value which only applies within a limited scope.
 Most scoped values are rules in the rule lists of
-[Rule-based properties](#rules-and-rule-based-properties). However,
+[rule-based properties](#rules-and-rule-based-properties). However,
 scoped values also exist outside of rule-based properties. For
 example a signpost property belonging to a road segment might be
 geometrically scoped to its position along the road.
 
 The scope in which a scoped value applies is controlled by one or more
-special child properties of the value known as *Scoping* properties.
+special child properties of the value known as *scoping* properties.
 
 ### Geometric scoping (linear referencing)
 
@@ -41,7 +41,7 @@ special child properties of the value known as *Scoping* properties.
   <TabItem value="description" label="Description" default>
 
 The geometric scoping property `at` limits the scope of its parent value to a
-position or range of positions along a Segment's geometry. When the parent value
+position or range of positions along a segment's geometry. When the parent value
 is a rule object, the rule only matches the position or range of positions
 specified in the `at` property.
 
@@ -326,7 +326,7 @@ TODO: Environmental scoping is omitted from the documentation for the
 
 ## Rules and rule-based properties
 
-A *Rule-based* property is a property whose value in a given situation is
+A *rule-based* property is a property whose value in a given situation is
 determined by evaluating a list of rules against the facts applicable to that
 situation. Each individual rule in the list of rules is itself a scoped value,
 a scoped value, and the assessment of which rule applies to a given set of facts
