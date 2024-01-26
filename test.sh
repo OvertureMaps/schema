@@ -135,7 +135,7 @@ function expected_errors() {
   local instance_file="$1"
   local type
   type=$(yq -r '.properties | type' "$instance_file")
-  if [ "$type" != "object" ]; then
+  if [[ "$type" != "object" && "$type" != "!!map" ]]; then
     return 1
   fi
   yq -r '(.properties.extExpectedErrors // []) | .[]' "$instance_file"
@@ -178,7 +178,7 @@ function counterexamples() {
   if command -v yq >/dev/null; then
     yq_installed=true
   else
-    >&2 printf "WARNING: yq is not installed. Install yq for higher-fidelity counterexample testing."
+    >&2 printf "WARNING: yq is not installed. Install yq for higher-fidelity counterexample testing.\n"
   fi
   find counterexamples -type f | sort | while read -r instance_file; do
     if ! match "$instance_file"; then
@@ -198,6 +198,7 @@ function counterexamples() {
       for expected_error in "${expected_errors[@]}"; do
         for actual_error in "${actual_errors[@]}"; do
           if [[ "$actual_error" == *"$expected_error"* ]]; then
+            echo OK
             continue 2
           fi
         done
