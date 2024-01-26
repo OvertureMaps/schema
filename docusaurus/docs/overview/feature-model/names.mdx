@@ -7,8 +7,7 @@ import generateResolverOptions from "@site/src/components/shared-libs/generateRe
 import yamlLoad from "@site/src/components/yamlLoad"
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
-# Common Overture Names Schema
-
+## Common names schema
 
 Named entities in Overture share a common name schema.
 
@@ -45,6 +44,6 @@ names:
       value: White House
 ```
 
-### Official Names Schema
+## Official Names Schema
 
 <JSONSchemaViewer schema={ yamlLoad(MainDefs) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/defs.yaml', jsonPointer: '#/$defs/propertyDefinitions/names'})}/>
