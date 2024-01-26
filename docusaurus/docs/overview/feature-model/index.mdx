@@ -2,14 +2,88 @@
 title: Simple Feature Model
 ---
 
-Overture uses a _simple feature model_ to describe the data. This means that each Overture _entity_ can be represented as a single feature. We use a GeoJSON mental model: every Overture feature can be represented as a single GeoJSON feature, and feature examples in the documentation will always be represented as such.
+Overture uses the [_simple feature model_](https://www.ogc.org/standard/sfa/), defined by the Open Geospatial Consortium, to describe data. This means that each Overture _entity_ is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with associated properties. 
 
-## Common Feature Properties
+For example, an _entity_ from the Overture buildings data theme might be represented in this way: 
+
+```
+{
+  "id": "overture:buildings:building:1234",
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -77.036873,
+          38.897804
+        ],
+        [
+          -77.036873,
+          38.897559
+        ],
+        [
+          -77.03626,
+          38.897559
+        ],
+        [
+          -77.03626,
+          38.897804
+        ],
+        [
+          -77.036873,
+          38.897804
+        ]
+      ]
+    ]
+  },
+  "properties": {
+    "extFoo": "I am a customer user property.",
+    "extBar": "Me too!",
+    "theme": "buildings",
+    "type": "building",
+    "version": 1,
+    "level": 1,
+    "updateTime": "2023-06-06T10:30:00-08:00",
+    "height": 21.34,
+    "numFloors": 4,
+    "class": "civic",
+    "names": {
+      "common": [
+        {
+          "value": "Springfield Town Hall",
+          "language": "local"
+        }
+      ]
+    }, 
+    "sources": [
+      {
+        "property": "",
+        "dataset": "microsoftMLBuildings,",
+        "confidence": 1
+      },
+      {
+        "property": "/properties/height",
+        "dataset": "metaLidarExtractions,",
+        "confidence": 0.95
+      }
+    ]
+  }
+}
+```     
+
+## Common properties
+The feature described above has a geometry and many associated properties, some originating from Overture, others coming from data our users bring to the table. The common properties available to all features are GERS ID, `theme`. `type`, and `sources`. Other feature properties vary depending on data theme and data sources. 
+
+## Common defintions
+Some feature properties and attributes have common definitions across all data themes. These definitions can be quite complex; we explain them here in detail.  
 
 - Global Entity Reference System (GERS) IDs
 - Names
-- Scoped and Rule-Based Properties
+- Scoped and rule-based properties
 
-## Data Formats
+Note: Every Overture _entity_ is assigned a GERS ID, but not every _entity_ has a `names` property or scoped and rule-based properties.  
 
-We say GeoJSON _mental model_ because while we describe features as GeoJSON, Overture data is distributed as GeoParquet.
+## Data formats
+
+We describe data using a GeoJSON mental model and represent our data as GeoJSON features. Instead of releasing data in that format, Overture made the decision to distribute data as [GeoParquet](https://geoparquet.org/), a format that is accessible to a wider range of developers, not just those with geospatial expertise. Throughout this documentation, we provide many examples of how to work with data stored in GeoParquet files.
