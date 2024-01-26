@@ -2,7 +2,7 @@
 title: Simple Feature Model
 ---
 
-Overture uses the [_simple feature model_](https://www.ogc.org/standard/sfa/), defined by the Open Geospatial Consortium, to describe data. This means that each Overture _entity_ is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with associated properties. 
+Overture uses the [_simple feature model_](https://www.ogc.org/standard/sfa/), defined by the Open Geospatial Consortium, to describe data. This means that each Overture _entity_ is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with associated attributes and properties. 
 
 For example, an _entity_ from the Overture buildings data theme might be represented in this way: 
 
@@ -73,17 +73,17 @@ For example, an _entity_ from the Overture buildings data theme might be represe
 ```     
 
 ## Common properties
-The feature described above has a geometry and many associated properties, some originating from Overture, others coming from data our users bring to the table. The common properties available to all features are GERS ID, `theme`. `type`, and `sources`. Other feature properties vary depending on data theme and data sources. 
+The feature described above containes a polygon geometry and its metadata. Some properties within this metadata originate from Overture, others come from the data our users bring to the table. Common properties available to all features are [GERS ID](gers), `theme`. `type`, and `sources`. A few properties are shared across two `themes` and `types` but aren't common across all themes. An example of this is 'level', which is a property of line segment features in the buildings and transportation themes. 
 
-## Common defintions
-Some feature properties and attributes have common definitions across all data themes. These definitions can be quite complex; we explain them here in detail.  
+## Common methods for specifying properties
+Some feature properties and attributes have common definitions and specifications that are complex enough to explain in detail. 
 
-- Global Entity Reference System (GERS) IDs
-- Names
-- Scoped and rule-based properties
+- [Global Entity Reference System (GERS) IDs](gers)
+- [Names](names)
+- [Scoped and rule-based properties](scoping-rules)
 
-Note: Every Overture _entity_ is assigned a GERS ID, but not every _entity_ has a `names` property or scoped and rule-based properties.  
+Note: Every Overture _entity_ is assigned a GERS ID, but not every _entity_ has a `names` property or scoped and rule-based specifications of properties.  
 
 ## Data formats
 
-We describe data using a GeoJSON mental model and represent our data as GeoJSON features. Instead of releasing data in that format, Overture made the decision to distribute data as [GeoParquet](https://geoparquet.org/), a format that is accessible to a wider range of developers, not just those with geospatial expertise. Throughout this documentation, we provide many examples of how to work with data stored in GeoParquet files.
+Overture describes data using a GeoJSON mental model and represents data as GeoJSON features. Instead of releasing data in that format, Overture made the decision to distribute data as [GeoParquet](https://geoparquet.org/), a format that is accessible to a wider range of developers, not just those with geospatial expertise. Throughout this documentation, we provide many examples of how to work with data stored in GeoParquet files.
