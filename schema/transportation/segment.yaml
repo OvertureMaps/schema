@@ -176,7 +176,6 @@ properties:
               - type: object
                 allOf:
                   - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                  - { "$ref": "#/$defs/propertyContainers/duringContainer" }
                 unevaluatedProperties: false
                 properties:
                   values:
@@ -262,7 +261,6 @@ properties:
       enum:
         - isBridge
         - isLink
-        - isPrivate
         - isTunnel
         - isUnderConstruction
     roadSurface:
