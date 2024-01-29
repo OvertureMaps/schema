@@ -24,10 +24,8 @@ properties:
       - value: paved
         at: [0.25, 1]
     flags:
-      - values: [isPrivate, isBridge]
+      - values: [isBridge]
       - values: []
         at: [0.5, 0.75]
       - values: [isTunnel]
         at: [0.75, 0.9]
-      - values: [isPrivate]
-        during: Mo-Sa 09:00-12:00, We 15:00-18:00
