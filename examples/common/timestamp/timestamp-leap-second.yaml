@@ -1,0 +1,12 @@
+---
+id: timestamp-leap-second
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subType: road
+  version: 0
+  updateTime: "1990-12-31T15:59:60-08:00"

@@ -1,5 +1,5 @@
 ---
-id: bad-yaml-timestamp
+id: bad-timestamp-yaml-no-quotes
 type: Feature
 geometry:
   type: Point
