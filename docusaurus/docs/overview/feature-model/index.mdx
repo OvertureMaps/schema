@@ -1,10 +1,10 @@
 ---
-title: Simple Feature Model
+title: Data Model
 ---
 
-Overture uses the [_simple feature model_](https://www.ogc.org/standard/sfa/), defined by the Open Geospatial Consortium, to describe data. This means that each Overture _entity_ is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with associated attributes and properties. 
+## Key specifications
 
-For example, an _entity_ from the Overture buildings data theme might be represented in this way: 
+Overture data is described by the [_simple feature model_](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. This means that each Overture _entity_ is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with associated attributes and properties. For example, an _entity_ from the Overture buildings data theme might be represented in this way: 
 
 ```
 {
@@ -71,12 +71,13 @@ For example, an _entity_ from the Overture buildings data theme might be represe
   }
 }
 ```     
+Note: Measurements use SI units (e.g. meters for building heights) and local units for regulations and restrictions (e.g. speed limits in mph in the US and km/h in Germany).
 
 ## Common properties
-The feature described above containes a polygon geometry and its metadata. Some properties within this metadata originate from Overture datasets and Contributed datasets from Overture Foundation members, others come from the Outside datasets users might bring to the table. Common properties available to all features are GERS ID, `theme`. `type`, and `sources`. A few properties are shared across two `themes` and `types` but aren't common across all themes. An example of this is 'level', which is a property of line segment features in the buildings and transportation themes. 
+The feature described above containes a polygon geometry and its metadata. Some properties within this metadata originate from Overture datasets and contributed datasets from Overture Foundation members, while other properties come from outside datasets that users bring to the table. Common properties available to all features are GERS ID, `theme`. `type`, and `sources`. A few properties are shared across a subset of the `themes` but aren't common across all themes. An example of this is `level`, which is a property of line segment features in the buildings and transportation themes. 
 
 ## Common methods for specifying properties
-Some feature properties and attributes have common definitions and specifications that are complex enough to explain in detail. 
+Some feature properties and attributes have common definitions and specifications that can be quite complex. 
 
 - Global Entity Reference System (GERS) IDs
 - [Names](names)
