@@ -4,37 +4,20 @@ title: Data Model
 
 ## Key specifications
 
-Overture data is described by the [_simple feature model_](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. This means that each Overture _entity_ is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with associated attributes and properties. For example, an _entity_ from the Overture buildings data theme might be represented in this way: 
+Overture data is described by the [_simple feature model_](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. This means that each Overture _entity_ is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with associated attributes and properties. For example, an _entity_ from the Overture buildings data theme might be represented in this way:
 
-```
+```json
 {
   "id": "overture:buildings:building:1234",
   "type": "Feature",
   "geometry": {
     "type": "Polygon",
     "coordinates": [
-      [
-        [
-          -77.036873,
-          38.897804
-        ],
-        [
-          -77.036873,
-          38.897559
-        ],
-        [
-          -77.03626,
-          38.897559
-        ],
-        [
-          -77.03626,
-          38.897804
-        ],
-        [
-          -77.036873,
-          38.897804
-        ]
-      ]
+      [ [-77.036873, 38.897804],
+        [-77.036873, 38.897559],
+        [-77.03626, 38.897559],
+        [-77.03626, 38.897804],
+        [-77.036873, 38.897804] ]
     ]
   },
   "properties": {
@@ -50,7 +33,7 @@ Overture data is described by the [_simple feature model_](https://www.ogc.org/s
     "class": "civic",
     "names": {
       "primary": "Springfield Town Hall"
-    }, 
+    },
     "sources": [
       {
         "property": "",
@@ -65,20 +48,20 @@ Overture data is described by the [_simple feature model_](https://www.ogc.org/s
     ]
   }
 }
-```     
+```
 Note: Measurements use SI units (e.g. meters for building heights) and local units for regulations and restrictions (e.g. speed limits in mph in the US and km/h in Germany).
 
 ## Common properties
-The feature described above containes a polygon geometry and its metadata. Some properties within this metadata originate from Overture datasets and contributed datasets from Overture Foundation members, while other properties come from outside datasets that users bring to the table. Common properties available to all features are GERS ID, `theme`. `type`, and `sources`. A few properties are shared across a subset of the `themes` but aren't common across all themes. An example of this is `level`, which is a property of line segment features in the buildings and transportation themes. 
+The feature described above containes a polygon geometry and its metadata. Some properties within this metadata originate from Overture datasets and contributed datasets from Overture Foundation members, while other properties come from outside datasets that users bring to the table. Common properties available to all features are GERS ID, `theme`. `type`, and `sources`. A few properties are shared across a subset of the `themes` but aren't common across all themes. An example of this is `level`, which is a property of line segment features in the buildings and transportation themes.
 
 ## Common methods for specifying properties
-Some feature properties and attributes have common definitions and specifications that can be quite complex. 
+Some feature properties and attributes have common definitions and specifications that can be quite complex.
 
 - Global Entity Reference System (GERS) IDs
 - [Names](names)
 - [Scoped and rule-based properties](scoping-rules)
 
-Note: Every Overture _entity_ is assigned a GERS ID, but not every _entity_ has a `names` property or scoped and rule-based specifications of properties.  
+Note: Every Overture _entity_ is assigned a GERS ID, but not every _entity_ has a `names` property or scoped and rule-based specifications of properties.
 
 ## Data formats
 
