@@ -5,7 +5,7 @@ label: GERS
 
 Overture's Global Entity Reference System (GERS) is a framework for structuring, encoding and referencing map data to a shared universal reference. GERS provides a mechanism to conflate geospatial datasets, matching `entity` to `entity` across datasets via a unique GERS ID.
 
-## Defining an `entity`
+## Defining an entity
 
 An `entity` is basically a thing in the real world. That thing could be a segment of road, a city, a grocery store, a building, a park bench, a lamp post, etc. An `entity` in GERS is assigned a unique GERS ID. These IDs are useful to anyone looking to match their data with Overture data. 
 
@@ -16,7 +16,7 @@ For example, two geospatial datasets each containing a polygon that represents t
 
 A GERS ID is a combination of a theme identifier, an H3 tile address, and a 56 bit value generated uniformly applied across a given theme.
 
-Here's a `duckdb` query that yields a list of GERS IDs from Overture's recent release of buildings data. 
+For example, here is a list of GERS IDs from Overture's recent release of buildings data, generated from a [query of GeoParquet file](https://github.com/OvertureMaps/data) using duckdb. 
 
 ```
 D SET s3_region='us-west-2';
@@ -42,7 +42,7 @@ D SELECT id FROM read_parquet('s3://overturemaps-us-west-2/release/2024-01-17-al
 
 # Stability and traceability
 
-GERS IDs are stable (with a reasonable tolerance of error) across multiple versions of Overture data. We strive to ensure the mapping of a real-world `thing` to a GERS ID remains consistent. When stability is not possible, traceability will be provided. Examples:
+GERS IDs are stable (with a reasonable tolerance of error) across multiple versions of Overture data. We strive to ensure the mapping of a real-world thing to a GERS ID remains consistent. When stability is not possible, traceability will be provided. For example:
 
 - a single road segment is bisected by a new road and becomes two road segments: 1 GERS ID → 2 new GERS IDs
 - one large building footprint on the map is determined to be four smaller buildings when a higher resolution dataset becomes available: 1 GERS ID → 4 new GERS IDs
@@ -50,9 +50,9 @@ GERS IDs are stable (with a reasonable tolerance of error) across multiple versi
 
 
 ## Licensing
-For Overture data layers which are CDLA Permissive 2.0, there are no restrictions on use of external data other than the attribution requirements. As with many other Overture projects, GERS will be licensed CDLA Permissive 2.0.
+For Overture data layers which are [CDLA Permissive 2.0](https://cdla.dev/permissive-2-0/), there are no restrictions on use of external data other than the attribution requirements. As with many other Overture projects, GERS will be licensed CDLA Permissive 2.0.
 
-For Overture data layers which are ODbL, external data must adhere to ODbL license terms, specifically whether the external data are considered a Collective Database or a Derivative Database. See
+For Overture data layers which are [ODbL](https://opendatacommons.org/licenses/odbl/), external data must adhere to ODbL license terms, specifically whether the external data are considered a Collective Database or a Derivative Database. See
 [OpenStreetMap Community Guidelines](https://wiki.osmfoundation.org/wiki/Licence/Community_Guidelines/Collective_Database_Guideline_Guideline) for definitions on the differences.
 
 You are responsible for understanding the licenses relating to data you work with.
