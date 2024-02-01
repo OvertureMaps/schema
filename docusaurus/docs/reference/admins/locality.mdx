@@ -7,11 +7,11 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import AdminLocalityExample from '!!raw-loader!@site/docs/_examples/admins/locality/no-optional-properties.yaml';
 
-# locality
+# Locality
 
-Localities are named, and typically populated, areas.
+Localities are populated areas that are named.
 
-Area polygon of Localities, if known, are given by [Locality Area](localityArea) features.
+Area polygons of localities, if known, are given by [locality area](localityArea) features.
 
 <table>
   <tr>
@@ -28,7 +28,7 @@ Area polygon of Localities, if known, are given by [Locality Area](localityArea)
   </tr>
 </table>
 
-## Sub-Types
+## Sub-types
 
 A locality may have one of two possible sub-types.
 
@@ -41,16 +41,16 @@ A locality may have one of two possible sub-types.
       </tr>
     </table>
 
-Administrative Localities represent countries and hierarchical
+Administrative localities represent countries and hierarchical
 subdivisions of countries.
 
-Every Administrative Locality has a valid `adminLevel` property set,
-defining its position in the subdivision hierarchy. All Administrative
-Localities at sub-country level must have a `contextId` property
-containing the GERS ID of the feature's parent Administrative Locality.
+Every administrative locality has a valid `adminLevel` property set,
+defining its position in the subdivision hierarchy. All administrative
+localities at sub-country level must have a `contextId` property
+containing the GERS ID of the feature's parent administrative locality.
 
-The borders of Administrative Localities, if known, are given by
-[Administrative Boundary](administrativeBoundary) features.
+The borders of administrative localities, if known, are given by
+[administrative boundary](administrativeBoundary) features.
   </TabItem>
   <TabItem value="namedLocality" label="Named Locality">
     <table>
@@ -60,9 +60,9 @@ The borders of Administrative Localities, if known, are given by
       </tr>
     </table>
 
-Named Localities represent named areas which are not formally part of
-the hierarchical subdivision of a country (are not Administrative
-Localities).
+Named localities represent named areas that are not formally part of
+the hierarchical subdivision of a country and are not administrative
+localities.
   </TabItem>
 </Tabs>
 

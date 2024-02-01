@@ -1,11 +1,11 @@
 import ThemedImage from '@theme/ThemedImage';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-# Shape and Connectivity
+# Shape and connectivity
 
-The Overture Transportation theme captures the physical shape and connectivity
+The Overture transportation theme captures the physical shape and connectivity
 of the transportation network through the interaction of the theme's two feature
-types: Segments and Connectors.
+types: segments and connectors.
 
 
 <div style={{textAlign: 'center'}}>
@@ -31,13 +31,13 @@ types: Segments and Connectors.
 
 ## Connectors
 
-The [Connector](/reference/transportation/connector) feature type
-carries `Point` geometry which describes a location where a physical
+The [connector](/reference/transportation/connector) feature type
+carries `point` geometry which describes a location where a physical
 connection between two or more segments occurs (or may occur in the
 future).
 
 Connectors have no properties apart from geometry and standard Overture
-feature properties. All other aspects of the Transportation theme are
+feature properties. All other aspects of the transportation theme are
 modeled on Segments.
 
 <!--
@@ -48,7 +48,7 @@ modeled on Segments.
 
 ## Segments
 
-The [Segment](/reference/transportation/segment) feature type carries
+The [segment](/reference/transportation/segment) feature type carries
 `LineString` geometry which describes the physical shape of a section of
 the transportation network. A segment may represent an entity with a
 tangible real-world existence, such as a paved road; or it may represent
@@ -76,14 +76,14 @@ Travel from a point on one segment to another point on a second,
 physically connected, segment is allowed unless limited by an explicit
 restriction such as an access or turn restriction.
 
-All segments in official Overture Transportation data releases have a
+All segments in official Overture transportation data releases have a
 minimum of two connectors, one at each end of the geometry, even if
 those endpoint connectors are not attached to any other segment. This is
 not a mandatory minimum (and is not enforced by the schema). It is done
 to allow new segments to connect into the existing network without
 needing to change the properties of existing segments.
 
-### Start, end, and orientation
+### Start, end and orientation
 
 The first coordinate in a segment's geometry is the "start" of the
 segment and the last coordinate is the "end". A segment is "oriented"
@@ -217,9 +217,9 @@ network.
 
 The `subType` property may be one of `road`, `rail`, or `water` but only
 `road` is currently well defined. A `road` segment models any kind of
-road, street, or trail, including a dedicated path for walking, cycling,
-and like activities. For more information about `road` segments, see
-the page on [Roads](roads).
+road, street, or trail, including a dedicated path for walking, cycling
+and similar activities. For more information about `road` segments, see
+the page on [roads](roads).
 
 ### Level (Z-order)
 
@@ -271,7 +271,7 @@ TODO: The statement that "Connectors do not have a `level`" is not
 ## Segmentation
 
 The term "segmentation" describes the process of converting upstream source data
-into Overture Transportation shape and connectivity data modeled as segments and
+into Overture transportation shape and connectivity data modeled as segments and
 connectors.
 
 ### Shape stability
@@ -289,12 +289,12 @@ network dataset to constantly evolve and grow as a result. Our goal is simply
 to minimize unnecessary, semantically meaningless, changes in how the geometry
 is sliced into segments across data releases.
 
-Several features of the Transportation theme schema were designed to allow the
+Several features of the transportation theme schema were designed to allow the
 segmentation process to achieve its segment stability goal. These features
 include:
 
-- [Interior connectors](#interior-connectors).
-- [Geometrically scoped](#geometric-scoping) segment properties.
+- [interior connectors](#interior-connectors).
+- [geometrically scoped](#geometric-scoping) segment properties.
 
 <!---
 TODO: Once we have some usable comparative metrics for ID stability, we should
@@ -314,7 +314,7 @@ more useful for conflation.
 
 ### Interior connectors
 
-A key feature of the Overture Transportation schema which enables shape
+A key feature of the Overture transportation schema which enables shape
 stability is the ability of segments to support connectors at interior positions
 along their geometry, not only at their endpoints. The ability to add internal
 connectors prevents the segmentation process from having to blindly follow every

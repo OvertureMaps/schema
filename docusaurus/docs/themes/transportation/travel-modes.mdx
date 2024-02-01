@@ -1,18 +1,18 @@
 import ThemedImage from '@theme/ThemedImage';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-# Travel Modes
+# Travel modes
 
 In the real world, a travel mode can be thought of intuitively as a way
 of getting from point A to point B. Travel modes can include non-vehicle
-modes (foot), vehicle modes (a bicycle or motor vehicle), and
+modes (foot), vehicle modes (a bicycle or motor vehicle) and
 occasionally more granular details (that motor vehicle might be
 classified as a "high occupancy vehicle" or a "heavy goods vehicle").
 
-Within the Overture Transportation theme's schema model, the real world
+Within the Overture transportation theme's schema model, the real world
 intuition translates to the following definition: a travel mode is a
 recognized mode by which a person or thing may use a
-[Segment](/reference/transportation/segment) feature.
+[segment](/reference/transportation/segment) feature.
 
 ## Understanding travel modes
 
@@ -44,10 +44,10 @@ jurisdiction may say "heavy goods vehicle" and another may say
 Despite being broadly-applicable, travel modes may have different
 definitions in different places and at different times.
 
-- In one jurisdiction, an `hgv` might mean any vehicle with a gross
+- in one jurisdiction, an `hgv` might mean any vehicle with a gross
   vehicle weight in excess of 3.5 tonnes (3,500 kg). In another place,
   an `hgv` might have a gross vehicle weight of at least 10,001 lbs.
-- In one jurisdiction, an `hov` might require a minimum of 2 passengers
+- in one jurisdiction, an `hov` might require a minimum of 2 passengers
   while in another place it might have a higher minimum passenger count,
   or include battery-electric vehicles, or exclude certain classes of
   vehicle or usage.
@@ -58,7 +58,7 @@ precise definition to those applications that require them.
 
 ### When is a travel mode recognized?
 
-A travel mode is recognized by the Overture Transportation schema when
+A travel mode is recognized by the Overture transportation schema when
 it becomes part of the [`mode`](https://github.com/OvertureMaps/schema/blob/5f82f1d6a916031cb32730e1fac7e1a353f10c60/schema/transportation/segment.yaml#L103)
 enumeration. As of our draft schema release `v0.4.0`, this enumeration
 is relatively small and contains only travel modes which we have some
@@ -104,8 +104,7 @@ properties within the schema. For example, they can affect the scope of
 access restrictions, turn restrictions, or speed limits on [road](roads)
 segments. Since travel modes are expressed via scoping properties, it
 is recommended to read the section on
-[Scoped and Rule-Based Properties](/overview/feature-model/scoping-rules) before proceeding
-further.
+[scoped and rule-based properties](/overview/feature-model/scoping-rules) before proceeding further.
 
 #### Travel mode scoping: `mode` and `modeNot`
 
@@ -247,7 +246,6 @@ schema documentation, but that heading needs to be written first. -->
 work for features, we could, for example, allow travel mode names with
 the `ext*` to be ignored by the schema validation rules.
 
-What do you think?
 
 ### Internal consistency
 
@@ -265,5 +263,3 @@ Arguably, `emergency` should be removed from the taxonomy, and an
 `asEmergencyResponder` should be included in the status values
 enumeration for the `recognized` property.
 
-What are your suggestions relating to keeping the travel modes and other
-scoping properties internally consistent and minimally overlapping?
