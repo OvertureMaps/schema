@@ -1,26 +1,23 @@
-# Administrative Boundaries
+# Administrative boundaries
 
-Overture Administrative Boundary (Admins) data includes features that describe named localities in the real world including settlements, cities, regions, provinces, and countries.
+Overture administrative boundary data (`admins`) includes entities that describe named localities in the real world including settlements, cities, regions, provinces and countries.
 
 The current version of the schema does not support the modeling of multiple geo-political views. In future schema versions, we will have support for:
 
-1. Providing multiple views of a country boundary based on the user's region.
-2. Modeling the relationship between a country and its overseas territories or other disputed territories.
+1. providing multiple views of a country boundary based on the user's region.
+2. modeling the relationship between a country and its overseas territories or other disputed territories.
 
-## Key Schema Design Choices
+## Key schema design choices
 
-### Clear Country Definitions
+### Clear country definitions
 
-There are no gaps or overlaps at the country level (<code>adminLevel=1</code>) in order to support visualization, sectioning, and other mapping use cases, even in cases of disputed boundaries.
-Additionally, all countries have been assigned an ISO3166-1 ISO country code which has been kept as close as possible to the standard. For some disputed areas and remote overseas territories, custom ISO codes have been created to describe the region which can be easily identified.
+There are no gaps or overlaps at the country level `adminLevel=1` in order to support visualization, sectioning and other mapping use cases, even in cases of disputed boundaries. Additionally, all countries have been assigned an ISO3166-1 ISO country code which has been kept as close as possible to the standard. For some disputed areas and remote overseas territories, custom ISO codes have been created to describe the region which can be easily identified.
 
-### Admin Types
+### Admin types
 
-1. [Locality](/reference/admins/locality) describes a named and typically populated place.
-There are two sub-types:
-   - Administrative Localities model countries and their hierarchical subdivisions. Each Administrative Locality has an administrative level indicating its level within a country. Attributes like driving side and default language are also available.
-   - Named Localities model named places that are not part of a countries administrative hierarchy.
+1. [locality](/reference/admins/locality) describes a named and typically populated place. There are two sub-types:
+   - administrative localities model countries and their hierarchical subdivisions. Each administrative locality has an administrative level indicating its level within a country. Attributes like driving side and default language are also available.
+   - named localities model named places that are not part of a countries administrative hierarchy.
 
-2. [LocalityArea](/reference/admins/localityArea) adds land or maritime polygon to [Locality](/reference/admins/locality).
-3. [Administrative Boundary](/reference/admins/administrativeBoundary) provides a boundary line of Administrative Localities. This feature allows for an easy display of country borders and
-administrative subdivisions within countries. Boundaries shared by different Administrative Localities are represented by one line. A maritime attribute supports filtering on boundaries located within seas or oceans.
+2. [locality area](/reference/admins/localityArea) adds land or maritime polygons to [locality](/reference/admins/locality).
+3. [administrative boundary](/reference/admins/administrativeBoundary) provides a boundary line of administrative localities. This feature allows for an easy display of country borders and administrative subdivisions within countries. Boundaries shared by different administrative localities are represented by one line. A maritime attribute supports filtering on boundaries located within seas or oceans.

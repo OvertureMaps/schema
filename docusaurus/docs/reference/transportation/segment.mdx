@@ -17,9 +17,9 @@ import ThemedImage from '@theme/ThemedImage';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
 
-# segment
+# Segment
 
-Segments are paths which can be traveled by people or things.
+Segments are paths which can be traveled by people or objects.
 
 <table>
   <tr>
@@ -36,23 +36,21 @@ Segments are paths which can be traveled by people or things.
   </tr>
 </table>
 
-Segment geometry represents the center-line of a path which may be
-traveled. Segment properties describe both the physical attributes
+Segment geometry represents the center-line of a path that a person or object may
+travel. Segment properties describe both the physical attributes
 (*e.g.* road surface and width) and non-physical attributes (*e.g.*
 access restriction rules) of that path.
 
-Two Segments are physically connected if a common [Connector](connector)
-is referenced from the `connectors` property of both Segments. Where
-this occurs, both Segment geometries must contain the common Connector's
-coordinates. A physical connection between Segments indicates that it
+Two segments are physically connected if a common [connector](connector)
+is referenced from the `connector` property of both segments. Where
+this occurs, both segment geometries must contain the common connector's
+coordinates. A physical connection between segments indicates that it
 *may be* possible to travel from one segment to the next at the
-connected location, provided the Segment properties do not indicate a
+connected location provided the segment properties do not indicate a
 restriction, such as a turn restriction, which would prevent the
-transition in a particular case. Conversely, two segments are not
-physically connected—even if their geometries intersect—if they do not
-share a Connector in common.
+transition. Conversely, two segments are not physically connected -— even if their geometries intersect —- if they do not share a common connector.
 
-## Sub-Types
+## Sub-types
 
 A segment may have one of three possible sub-types.
 
@@ -65,16 +63,16 @@ A segment may have one of three possible sub-types.
       </tr>
     </table>
 
-A `road` segment represents a section of any kind of road, street, or
-path, including a dedicated path for walking or cycling (but excluding
-a railway).
+A `road` segment represents a section of any kind of road, street or
+path, including a dedicated path for walking or cycling, but excluding
+a railway.
 
 <!--
-TODO: Uncomment this paragraph once Roads index page is ready for primetime.
+TODO: Uncomment this paragraph once roads index page is ready for primetime.
 
 To learn the core concepts of roads, see the
 [Roads](/themes/transportation/roads/index) section of the
-[Transportation](/themes/transportation/index) theme concepts page.
+[transportation](/themes/transportation/index) theme concepts page.
 -->
   </TabItem>
   <TabItem value="rail" label="Railway">
@@ -126,16 +124,13 @@ The schema for `water` segments is under development.
   </TabItem>
 
   <TabItem value="turnRestrictions" label="Turn Restrictions" default>
-    This example illustrates a complex "via" type turn restriction across 3
-    connected segments. The turn restriction modeled on the "source" segment
-    indicates that, when travelling in the "forward" direction along the
-    segment, a transition to the "target" segment is not allowed to go
-    through the "via" segment.
+    This example illustrates a complex `via` type turn restriction across three
+    connected segments. When traveling forward along the `source` segment, the transition to the `target` segment is not allowed to go through the `via` segment.
 
 <div style={{textAlign: 'center'}}>
 
 <ThemedImage
-  alt='Diagram of the "via" transition from source to destination segment'
+  alt='Diagram of the `via` transition from source to destination segment'
   sources={{
     light: useBaseUrl('/img/transportation/turn-restriction-02-light.png'),
     dark: useBaseUrl('/img/transportation/turn-restriction-02-dark.png'),
