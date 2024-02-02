@@ -1,4 +1,4 @@
---
+---
 title: Travel modes
 ---
 
@@ -11,7 +11,7 @@ In the real world, a travel mode can be thought of intuitively as a way
 of getting from point A to point B. Travel modes can include non-vehicle
 modes (foot), vehicle modes (a bicycle or motor vehicle) and
 occasionally more granular details (that motor vehicle might be
-classified as a "high occupancy vehicle" or a "heavy goods vehicle").
+classified as a high occupancy vehicle or a heavy goods vehicle).
 
 Within the Overture transportation theme's schema model, the real world
 intuition translates to the following definition: a travel mode is a
@@ -23,17 +23,17 @@ recognized mode by which a person or thing may use a
 ### Implied travel modes
 
 Every segment has an *implied* set of travel modes that are allowed to
-use the segment. For [Road](roads) segments, this implied set derives
+use the segment. For [road](roads) segments, this implied set derives
 from the [road class](roads#road-class), as well as local rules, norms,
 and customs operative where the road segment is situated.
 
 Since this implied set depends on locality or jurisdiction, and is
-susceptible of varying over time, the Overture Transportation schema
+susceptible of varying over time, the Overture transportation schema
 does not try to specify the implied set. Resolution of the implied set
 is done by the specific application in the case where this level of
-detail is important for its proper functioning. (An accurate routing
+detail is important for its proper functioning. Note: an accurate routing
 engine may need this information, whereas a 2D map render or a geocoder
-likely do not.)
+likely do not.
 
 ### General definitions
 
@@ -42,10 +42,10 @@ broadly applicable, for example `hov` is a high-occupancy vehicle and
 `hgv` is a heavy goods vehicle. In most jurisdictions, these general
 terms map to a concept that is in use within the jurisdiction, even
 though the local name for the concept may vary, for example one
-jurisdiction may say "heavy goods vehicle" and another may say
-"large goods vehicle".
+jurisdiction may say heavy goods vehicle and another may say
+large goods vehicle.
 
-Despite being broadly-applicable, travel modes may have different
+Despite being broadly applicable, travel modes may have different
 definitions in different places and at different times.
 
 - in one jurisdiction, an `hgv` might mean any vehicle with a gross
@@ -73,24 +73,24 @@ as the world changes and new information arises.
 
 Our criteria for recognizing a proposed new travel mode are:
 
-1. The proposed new travel mode should represent a *generally-accepted*
+- the proposed new travel mode should represent a generally-accepted
    concept meaning that the concept exists in many places with roughly
    the same definition.
-2. The proposed new travel mode should be referred to with well-known
+- the proposed new travel mode should be referred to with well-known
    sign iconography or sign text in those jurisdictions where the
    concept exists; and this iconography or sign text is preferably
    somewhat consistent across many jurisdictions and over time.
-3. It must be possible to give a relatively precise *definition* to the
-   proposed new travel mode and explain how it *differs* from, or
+- it must be possible to give a relatively precise definition to the
+   proposed new travel mode and explain how it differs from, or
    *intersects* with, other similar travel modes which are already
    recognized in the Overture schema.
-4. The proposed new travel mode should preferably not be trivially
+- the proposed new travel mode should preferably not be trivially
    expressible using another existing
-   [Scoping Property](/overview/feature-model/scoping-rules#scoped-values-and-scoping-properties).
+   [scoping property](/overview/feature-model/scoping-rules#scoped-values-and-scoping-properties).
    (*An example of such a trivially-expressible concept might be a
-   "three-axle vehicle" which is more appropriately phrased as
+   three-axle vehicle which is more appropriately phrased as
    `vehicle: { axleCount: { isEqualTo: 3 } }`.*)
-5. The proposed new travel mode must be supported by existing data in at
+- the proposed new travel mode must be supported by existing data in at
    least one of Overture's upstream data sources.
 
 There is a risk that the above-described approach will be too slow to
@@ -123,30 +123,28 @@ The `mode` and `modeNot` properties are not mutually exclusive: in
 places where scoping by travel mode is allowed, either `mode` or
 `modeNot`, or both, may be provided.
 
-1. **Neither**. When *neither* `mode` nor `modeNot` is provided, the
+- **Neither**. When neither `mode` nor `modeNot` is provided, the
    parent property's scope includes all default travel modes implied by
    the [road class](roads#road-class).
-2. **Only `mode`**. When `mode` is provided by itself, the parent
+- **Only `mode`**. When `mode` is provided by itself, the parent
    property is scoped to include only those travel modes that included
    in the `mode` set.
-3. **Only `modeNot`**. When `modeNot` is provided by itself, the parent
+- **Only `modeNot`**. When `modeNot` is provided by itself, the parent
    property is scoped to include all those travel modes that are not
    included in the `modeNot` set.
-4. **Both**. When both `mode` and `modeNot` are provided, the parent
+- **Both**. When both `mode` and `modeNot` are provided, the parent
    property is scoped to include all those travel modes that are
-   included in the `mode` set *except* those that are included in the
-   `modeNot` set. (*For example,
+   included in the `mode` set except those that are included in the
+   `modeNot` set. For example,
     `mode: [motorVehicle], modeNot: [motorcycle]` expresses the travel
-    mode scope "all motor vehicles except motorcycles".*)
+    mode scope "all motor vehicles except motorcycles".
 
 #### Vehicle attribute scoping: `vehicle`
 
-Because travel modes are an "fuzzy" concept, there are inevitably areas
+Because travel modes are an fuzzy concept, there are inevitably areas
 of overlap between with the more precise, but more limited, `vehicle`
 scoping property which is used for
-[vehicle attributes scoping](/overview/feature-model/scoping-rules#vehicle-attributes-scoping).
-
-Where there is potential overlap, the method of scoping used in Overture
+[vehicle attributes scoping](/overview/feature-model/scoping-rules#vehicle-attributes-scoping). Where there is potential overlap, the method of scoping used in Overture
 data releases will depend on how the upstream data source has expressed
 the equivalent concept. Where there is choice, it is preferable to
 select the scoping method that most accurately reflects the intention
@@ -173,9 +171,7 @@ are meant to be orthogonal to (completely separate from) travel modes.
 Overture travel modes form a shallow taxonomy. Some travel modes are
 more general, while others are more specific, and a more general travel
 mode may contain a more specific one. For example, the general travel
-mode `vehicle` contains the more specific mode `motorVehicle`.
-
-The taxonomy supported in our draft schema `v0.4.0` can be visualized
+mode `vehicle` contains the more specific mode `motorVehicle`. The taxonomy supported in our draft schema `v0.4.0` can be visualized
 in the diagram below.
 
 <figure>
@@ -208,16 +204,16 @@ in the diagram below.
 As many of the above travel modes draw on the body of knowledge
 accumulated in relation to OpenStreetMap
 [transport mode access restrictions](https://wiki.openstreetmap.org/wiki/Key:access#Transport_mode_restrictions),
-we would like acknowledge a intellectual debt to the OSM community in
+Overture would like acknowledge a intellectual debt to the OSM community in
 relation to travel modes as well as to other aspects of the
-Transportation schema.
+transportation schema.
 
 ## Open questions
 
 This section discusses some open questions are debating internally with
 regard to travel modes. We would love to hear
 [your feedback](https://github.com/OvertureMaps/schema/discussions) on
-these questions (and any others that you may have).
+these questions and any others that you may have.
 
 ### Minimum required travel modes
 
