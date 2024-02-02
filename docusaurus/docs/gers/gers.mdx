@@ -5,16 +5,12 @@ label: GERS
 
 Overture's Global Entity Reference System (GERS) is a framework for structuring, encoding and referencing map data to a shared universal reference. Overture is building this common ID system to solve the difficult problem of integrating geospatial datasets; to make it easier to share and sell map data; and to enable cooperation among companies, non-profits, government agencies and other organizations.
 
-## Defining an entity
-
-GERS provides a mechanism to conflate datasets, matching _entity_ to _entity_ via a unique GERS ID. An _entity_ is basically a thing in the real world. That thing could be a segment of road, a city, a grocery store, a building, a park bench or a lamp post. An _entity_ in GERS is assigned a unique GERS ID. These IDs are useful to anyone looking to match their data with Overture data.
-
-For example, two geospatial datasets each containing a polygon that represents the Empire State Building can be easily conflated because both polygons will contain the same GERS ID, referring to the _entity_ defined as: "a polygonal representation of the footprint of New York's Empire State Building."
+GERS provides a mechanism to conflate datasets, matching one or more entities via a unique GERS ID. For example, two geospatial datasets each containing a polygon that represents the Empire State Building can be easily conflated because both polygons will contain the same GERS ID, referring to the entity defined as: "a polygonal representation of the footprint of New York's Empire State Building."
 
 
 ## Components of a GERS ID
 
-The Global Entity Reference System generates IDs in a consistent format:
+Overture generates GERS IDs in a consistent format:
 
 `H3 tile address` +
 `data theme identifier` +

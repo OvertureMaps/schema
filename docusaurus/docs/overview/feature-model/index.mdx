@@ -2,9 +2,9 @@
 title: Data model
 ---
 
-## Key specifications
+## Key concepts
 
-Overture data is described by the [_simple feature model_](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. This means that each Overture _entity_ is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with associated attributes and properties. For example, an _entity_ from the Overture buildings data theme might be represented in this way:
+Overture data is described by the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. This means that each Overture entity is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with an ID and associated properties. For example, an entity from an Overture buildings dataset might be represented in this way:
 
 ```json
 {
@@ -21,8 +21,6 @@ Overture data is described by the [_simple feature model_](https://www.ogc.org/s
     ]
   },
   "properties": {
-    "extFoo": "I am a customer user property.",
-    "extBar": "Me too!",
     "theme": "buildings",
     "type": "building",
     "version": 1,
@@ -47,19 +45,34 @@ Overture data is described by the [_simple feature model_](https://www.ogc.org/s
   }
 }
 ```
-Note: Measurements use SI units (e.g. meters for building heights) and local units for regulations and restrictions (e.g. speed limits in mph in the US and km/h in Germany).
+Note: measurements use SI units (e.g. meters for building heights) and local units for regulations and restrictions (e.g. speed limits in mph in the US and km/h in Germany).
+
+## Defining an entity
+An entity is basically a thing in the real world. That thing could be a segment of road, a city, a grocery store, a building, a park bench or a lamp post. Overture assigns every entity a unique ID called a GERS ID. GERS IDs are useful to anyone looking to match their data with Overture data.
 
 ## Common properties
-The feature described above containes a polygon geometry and its metadata. Some properties within this metadata originate from Overture datasets and contributed datasets from Overture Foundation members, while other properties come from outside datasets that users bring to the table. Common properties available to all features are GERS ID, `theme`. `type`, and `sources`. A few properties are shared across a subset of the `themes` but aren't common across all themes. An example of this is `level`, which is a property of line segment features in the buildings and transportation themes.
+Every Overture feature has the following properties:
+- theme
+- type
+- version
+- level
+- updateTime
 
-## Common definitions and specifications
-Some feature properties and attributes have common definitions and specifications that can be quite complex.
+Different theme and type values will bring in additional properties. For example, in the building entity described above, the buildings theme with type building has a class property that defines what kind of building it is. It also has an optional height property indicating how tall the building is.
+
+You can find more detail about the properties associated with each theme types below:
+- building 
+- base 
+- transportation
+
+
+## Complex attributes
+Some feature properties are quite complex and require further explanation:
 
 - [Global Entity Reference System (GERS) IDs](../../gers/gers.mdx)
 - [Names](names)
 - [Scoped and rule-based properties](scoping-rules)
 
-Note: every Overture entity is assigned a GERS ID, but not every _entity_ has a names property or scoped and rule-based specifications of properties.
 
 ## Data formats
 
