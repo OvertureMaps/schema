@@ -13,73 +13,24 @@
     "drivingSide": "right",
     "contextId": "northAmericaId",
     "names": {
-      "common": [
+      "primary": "United States",
+      "common": {
+        "en": "United States",
+        "es": "Estados Unidos"
+      },
+      "rules": [
         {
-          "language": "local",
-          "value": "United States"
-        },
-        {
-          "language": "en",
-          "value": "United States"
-        },
-        {
-          "language": "es",
-          "value": "Estados Unidos"
-        }
-      ],
-      "official": [
-        {
-          "language": "local",
+          "variant": "official",
           "value": "United States of America"
-        }
-      ],
-      "short": [
-        {
-          "language": "local",
-          "value": "US"
-        },
-        {
-          "language": "en",
-          "value": "US"
-        },
-        {
-          "language": "en",
-          "value": "U.S."
-        }
-      ],
-      "alternate": [
-        {
-          "language": "local",
-          "value": "States"
         }
       ]
     }
   },
   "geometry": {
-    "type": "Polygon",
+    "type": "Point",
     "coordinates": [
-      [
-        [
           -61.8743292,
           48.8068635
-        ],
-        [
-          -78.4016703,
-          26.273714
-        ],
-        [
-          -120.7749598,
-          32.2499745
-        ],
-        [
-          -126.928757,
-          49.0378679
-        ],
-        [
-          -61.8743292,
-          48.8068635
-        ]
-      ]
     ]
   }
 }

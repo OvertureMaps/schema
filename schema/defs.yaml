@@ -166,15 +166,12 @@ description: Common schema definitions shared by all themes
 
         The complete lists of allowed values can be found at:
         https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
-      oneOf:
-        - type: string
-          const: local
-        - type: string
-          pattern: "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$"
-          "$comment": >-
-              The "pattern" is mostly a placeholder. It captures the
-              language[-script][-region] variation of BCP47 but not the
-              "grandfathered" values and other variants and extensions.
+      type: string
+      pattern: "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$"
+      "$comment": >-
+          The "pattern" is mostly a placeholder. It captures the
+          language[-script][-region] variation of BCP47 but not the
+          "grandfathered" values and other variants and extensions.
     nameRule:
       type: object
       required: [value]
