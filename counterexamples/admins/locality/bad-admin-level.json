@@ -10,43 +10,32 @@
     "adminLevel": 100,
     "contextId": "northAmericaId",
     "names": {
-      "common": [
+      "primary": "United States",
+      "common": {
+        "en": "United States",
+        "es": "Estados Unidos"
+      },
+      "rules": [
         {
-          "language": "local",
-          "value": "United States"
-        },
-        {
-          "language": "en",
-          "value": "United States"
-        },
-        {
-          "language": "es",
-          "value": "Estados Unidos"
-        }
-      ],
-      "official": [
-        {
-          "language": "local",
+          "variant": "official",
           "value": "United States of America"
-        }
-      ],
-      "short": [
+        },
         {
-          "language": "local",
+          "variant": "short",
           "value": "US"
         },
         {
           "language": "en",
+          "variant": "short",
           "value": "US"
         },
         {
           "language": "en",
+          "variant": "short",
           "value": "U.S."
-        }
-      ],
-      "alternate": [
+        },
         {
-          "language": "local",
+          "variant": "alternate",
           "value": "States"
         }
       ]

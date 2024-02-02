@@ -20,4 +20,11 @@ properties:
       en-US: Language Region
     rules:
       - variant: official
+        language: es
         value: Official Name
+      - variant: short
+        language: es
+        value: Official Spanish Name
+      - variant: alternate
+        language: ru
+        value: Official Russian Name
