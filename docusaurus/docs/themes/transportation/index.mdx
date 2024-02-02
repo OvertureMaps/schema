@@ -1,4 +1,4 @@
---
+---
 title: Transportation
 ---
 
@@ -6,10 +6,7 @@ import DocCardList from '@theme/DocCardList';
 
 # Transportation theme
 
-Overture's `transportation` theme schema describes the infrastructure and
-conventions of how people and objects travel around the world. Transportation
-data includes highways, footways, cycleways, railways, ferry routes and public
-transportation.
+Overture's `transportation` layer is the collection of features and attributes that describe the infrastructure and conventions of how people and objects travel around the world. Transportation data includes highways, footways, cycleways, railways, ferry routes and public transportation.
 
 <!--
 High-level description above 👆 lifted from:
@@ -31,92 +28,34 @@ Some common use cases for Overture's `transportation` theme schema include:
 
 ## Key concepts
 
-<ul>
-<li>
-<p>
-
 - **Shape and connectivity.** The `transportation` theme schema captures the shape
 and connectivity of the transportation network using segment and connector
 features. The schema design allows the segmentation process to promote shape
-stability and ultimately GERS ID stability.
-
-</p>
-
-<p>
-
-Read more about these concepts on the [shape and connectivity](shape-connectivity)
-page.
-
-</p>
-</li>
-
-<li>
-
-<p>
+stability and ultimately GERS ID stability. Read more on the [shape and connectivity](shape-connectivity) page.
 
 - **Scoped and rule-based properties.** The `transportation` theme schema allows property values to be specified for granular scopes at the sub-feature level. For example:
-
-</p>
-
-- a speed limit on a road segment might be scoped to apply only to part of the
+  - a speed limit on a road segment might be scoped to apply only to part of the
   road geometry using _geometric scoping_.
-- the directionality of a segment, controlling the direction or directions in
+  - the directionality of a segment, controlling the direction or directions in
   which traffic can flow along the segment geometry, may be specified to change
   at different times of day using _temporal scoping_.
-- the categories of people and vehicles who are allowed to travel on a segment
+  - the categories of people and vehicles who are allowed to travel on a segment
   can be controlled using _subjective scoping_.
-- a real-world attribute that varies under changing environmental conditions can
+  - a real-world attribute that varies under changing environmental conditions can
   be modeled using _environmental scoping_.
-
-<p>
-
 Read more about these concepts on the [scoped and rule-based properties](/overview/feature-model/scoping-rules) page.
 
-</p>
-
-</li>
-
-<li>
-
-<p>
-
-**Roads.** The `transportation` theme schema models any kind of road, street or
+- **Roads.** The `transportation` theme schema models any kind of road, street or
 path, including dedicated walking and cycling paths, as `road` segments. Roads
-are currently the most developed part of the `transportation` schema.
+are currently the most developed part of the `transportation` schema. Read more about roads on the [roads](roads) page.
 
-</p>
-
-<p>
-
-Read more about roads on the [roads](roads) page.
-
-</p>
-
-</li>
-
-<li>
-
-<p>
-
-**Travel modes.** the `transportation` theme supports a fuzzy concept called
+- **Travel modes.** the `transportation` theme supports a fuzzy concept called
 travel mode which can be used as a way of controlling the scope of scoped
-and rule-based properties.
+and rule-based properties. Read more about the travel modes concept and how travel modes interact with other scoping properties on the [travel modes](travel-modes) page.
 
-</p>
-
-<p>
-
-Read more about the travel modes concept and how travel modes interact
-with other scoping properties on the [travel modes](travel-modes) page.
-
-</p>
-
-</li>
-
-</ul>
 
 ## Schema reference
 
-- [Explore the schema for the connector feature type](/reference/transportation/connector)
-- [Explore the schema for the segment feature type](/reference/transportation/segment)
+- [Explore the schema for the connector feature type](/reference/transportation/connector).
+- [Explore the schema for the segment feature type](/reference/transportation/segment).
 
