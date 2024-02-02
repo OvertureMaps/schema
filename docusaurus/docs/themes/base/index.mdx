@@ -12,16 +12,16 @@ add use cases here
 
 ## Key schema design choices
 
-1. basic classification of features into `type`, `subType` and `class` where appropriate.
-2. parsing and normalization of common OSM tags, such as `height` and `ele`.
-4. extraction of consistent OSM tags, such as `wikidata` to top-level properties.
-3. direct pass-through of remaining relevant OSM tags.
+- basic classification of features into `type`, `subType` and `class` where appropriate.
+- parsing and normalization of common OSM tags, such as `height` and `ele`.
+- extraction of consistent OSM tags, such as `wikidata` to top-level properties.
+- direct pass-through of remaining relevant OSM tags.
 
-## Current types:
+## Current types
 
-1. [land](/reference/base/landuse): physical representations of land surfaces. Global land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap.
-2. [landUse](/reference/base/landUse): classifications of the human use of a section of land. Translates `landuse` from OpenStreetMap tag from OpenStreetMap.
-3. [water](/reference/base/water): physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap.
+- [land](/reference/base/landuse): physical representations of land surfaces. Global land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap.
+- [landUse](/reference/base/landUse): classifications of the human use of a section of land. Translates `landuse` from OpenStreetMap tag from OpenStreetMap.
+- [water](/reference/base/water): physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap.
 
 ## Schema reference
 
