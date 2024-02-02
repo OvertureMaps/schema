@@ -16,4 +16,8 @@ properties:
   names:
     primary: Empire State Building
     common:
-      local: Empire State Building
+      en: Empire State Building
+    rules:
+      - variant: common
+        language: local
+        value: Blah
