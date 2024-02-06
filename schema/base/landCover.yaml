@@ -1,0 +1,55 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Land Cover Schema
+description: representation of the Earth's natural surfaces 
+type: object
+properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
+  geometry:
+    description: classification of surface, can correspond to the 'natural' tag from OpenStreetMap
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+    required:
+      - subType
+      - minZoom
+      - maxZoom
+    properties:
+      subType:
+        description: type of surface represented
+        type: string
+        enum:
+          - barren
+          - crop
+          - forest
+          - grass
+          - mangrove
+          - moss
+          - shrub
+          - snow
+          - urban
+          - wetland
+      minZoom:
+        description: recommended minimum zoom according to bing tile zoom levels
+        type: number
+        minimum: 0
+        maximum: 24
+      maxZoom:
+        description: recommended minimum zoom according to bing tile zoom levels
+        type: number
+        minimum: 0
+        maximum: 24
+      year:
+        description: 4 digit year format representing the year the land cover data was created
+        type: number
+      source:
+        description: source of the land cover data
+        type: string
