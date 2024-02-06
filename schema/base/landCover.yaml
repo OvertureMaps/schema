@@ -15,7 +15,6 @@ properties:
   properties:
     unevaluatedProperties: false
     allOf:
-      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     required:
