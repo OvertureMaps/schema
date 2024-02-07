@@ -10,11 +10,15 @@ GERS provides a mechanism to conflate datasets, matching one or more entities vi
 
 ## Components of a GERS ID
 
-Overture generates GERS IDs in a consistent format:
+Overture assigns a unique ID for an entity the first time that entity interacts with GERS. GERS generates IDs using this formula:
 
 `H3 tile address` +
 `data theme identifier` +
 `56-bit value applied uniformly across a given theme`
+
+The H3 index reflects the location of an entity when it was first assigned a GERS ID. Because GERS IDs are intended to be stable over time, Overture will not generate a new ID for that entity if it moves slightly. The same is true for the data theme identifier; if Overture moves an entity from an existing data theme to a new data theme, the ID will not change.
+
+Put another way, a GERS ID should be treated as a unique identifier for an entity, and nothing more. We discourage users from attempting to extract information about an entity from its GERS ID.
 
 Here you can see a list of IDs from Overture's recent release of buildings data, pulled from the GeoParquet file with a simple [duckdb](https://duckdb.org/) query. You can find more information on accessing and querying Overture datasets in the How-to section of our documentation.
 
