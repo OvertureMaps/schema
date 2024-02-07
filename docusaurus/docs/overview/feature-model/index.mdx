@@ -48,30 +48,35 @@ Overture data is described by the [simple feature model](https://www.ogc.org/sta
 Note: measurements use SI units (e.g. meters for building heights) and local units for regulations and restrictions (e.g. speed limits in mph in the US and km/h in Germany).
 
 ## Defining an entity
-An entity is basically a thing in the real world. That thing could be a segment of road, a city, a grocery store, a building, a park bench or a lamp post. Overture assigns every entity a unique ID called a GERS ID. GERS IDs are useful to anyone looking to match their data with Overture data.
+An entity is a physical thing or concept in the real world. It could be a segment of road, a city boundary, a grocery store, a building, a park bench or a lamp post. Overture assigns entities unique IDs called GERS IDs. An entrance to a school building might very well be a separate entity from the building itself, each with its own GERS ID.
+
 
 ## Common properties
 Every Overture feature has the following properties:
-- theme
-- type
+- theme: 
+themes are top-level categories of map features.
+- type: a theme may have multiple types of features; the transportation theme, for example, has both segments and connectors.
+- sources: a list of the data sources from which the feature's attributes originated.
 - version
-- level
-- updateTime
+- updateTime 
 
-Different theme and type values will bring in additional properties. For example, in the building entity described above, the buildings theme with type building has a class property that defines what kind of building it is. It also has an optional height property indicating how tall the building is.
 
-You can find more detail about the properties associated with each theme types below:
-- building 
-- base 
-- transportation
+
+Different theme and type values will contribute additional properties to the schema. For example, in the building entity described above, the buildings theme with type building has a class property that defines what kind of building it is. It also has an optional height property. You can find more detail about the properties associated with each theme and type in the Schema Themes and Schema Reference sections of this documentation.
 
 
 ## Complex attributes
+
 Some feature properties are quite complex and require further explanation:
 
-- [Global Entity Reference System (GERS) IDs](../../gers/gers.mdx)
-- [Names](names)
-- [Scoped and rule-based properties](scoping-rules)
+- [Global Entity Reference System (GERS) IDs](../../gers/gers.mdx): the [Global Entity Reference System](/gers) is responsible for handling persistent identification across entities in the Overture corpus.
+- [Names](names): where applicable, complex attributes such as names will always use the same schema across all themes.
+- [Scoped and rule-based properties](scoping-rules): a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at lease one scoping property.
+
+
+## Extensible attributes
+
+Any additional top-level property prefixed with `ext` may be added to an Overture feature, usually via the conflation of an external dataset and an Overture dataset.
 
 
 ## Data formats
