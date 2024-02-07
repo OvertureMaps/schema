@@ -4,38 +4,34 @@ title: Data model
 
 ## Key concepts
 
-Overture data is described by the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. This means that each Overture entity is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with an ID and associated properties. For example, an entity from an Overture buildings dataset might be represented in this way:
+Overture data is described by the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. This means that each Overture entity is represented as a single [GeoJSON](https://geojson.org/) feature: a geometric object with an ID and associated properties. For example, an entity in Seattle from the Overture buildings dataset might be represented in this way:
 
 ```json
 {
-  "id": "08ba0085884a4fff0200ab2e3ad3f37c",
+  "id": "08828d542c9fffff02ffffff1953aec1",
   "type": "Feature",
   "geometry": {
     "type": "Polygon",
     "coordinates": [
-      [ [-77.036873, 38.897804],
-        [-77.036873, 38.897559],
-        [-77.03626, 38.897559],
-        [-77.03626, 38.897804],
-        [-77.036873, 38.897804] ]
+      [ [-122.3301821, 47.6090116],[-122.3301197, 47.6089409],[-122.3300642, 47.6088779],[-122.3300094, 47.6088158],[-122.329729, 47.6089282],[-122.3297466, 47.6089481],[-122.3296561, 47.6089844],[-122.3296934, 47.6090266],[-122.3297562, 47.6090978], [-122.3298113, 47.6091603],[-122.3298611, 47.6092168],[-122.3299517, 47.6091804],[-122.329963, 47.6091932],[-122.3299793, 47.6091867],[-122.3301728, 47.6091091],[-122.3301916, 47.6091016],[-122.3301714, 47.6090787],[-122.330223, 47.609058] ]
     ]
   },
   "properties": {
     "theme": "buildings",
     "type": "building",
-    "version": 1,
-    "level": 1,
-    "updateTime": "2023-06-06T10:30:00-08:00",
-    "height": 21.34,
-    "numFloors": 4,
+    "version": 0,
+    "updateTime": "2023-01-30T00:04:13.000Z",
+    "height": 22.7,
+    "numFloors": 3,
     "class": "civic",
     "names": {
-      "primary": "Springfield Town Hall"
+      "primary": "Town Hall Seattle"
     },
     "sources": [
       {
-        "property": "",
-        "dataset": "microsoftMLBuildings,"
+        "property": "dataset",
+        "dataset": "OpenStreetMap,"
+        "recordid": "w140675988@10"
       },
       {
         "property": "/properties/height",
@@ -52,26 +48,25 @@ An entity is a physical thing or concept in the real world. It could be a segmen
 
 
 ## Common properties
-Every Overture feature has the following properties:
+
+The Overture corpus has a set of core properties for each feature.
 - `theme`: 
 themes are top-level categories of map features.
 - `type`: a theme may have multiple types of features; the transportation theme, for example, has both segments and connectors.
-- `sources`: a list of the data sources from which the feature's attributes originated.
+- `sources`: Overture captures the data sources from which a feature's attributes originated.
 - `version`
-- `updateTime` 
+- `updateTime`: how fresh is the entity and its attributes?
 
-
-
-Different theme and type values will contribute additional properties to the schema. For example, in the building entity described above, the buildings `theme` with `type`:`building` has a `class` property that defines what kind of building it is. It also has an optional `height` property. You can find more detail about the properties associated with each theme and type in the Schema Themes and Schema Reference sections of this documentation.
+Different theme and type values will contribute additional properties to the schema. For example, in the building described above, the buildings `theme` with building `type` has a `class` property that defines what kind of building it is, in this case a civic building. It also has an optional `height` property. You can find more detail about the properties associated with each theme and type in the Schema Themes and Schema Reference sections of this documentation.
 
 
 ## Complex attributes
 
-Some feature properties are quite complex and require further explanation:
+Some feature properties are quite complex and require further explanation in the documentation.
 
-- [Global Entity Reference System (GERS) IDs](../../gers/gers.mdx): the [Global Entity Reference System](/gers) is responsible for handling persistent identification across entities in the Overture corpus.
-- [Names](names): where applicable, complex attributes such as names will always use the same schema across all themes.
-- [Scoped and rule-based properties](scoping-rules): a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at lease one scoping property.
+- **[Global Entity Reference System (GERS) IDs](../../gers/gers.mdx)**: the [Global Entity Reference System](/gers) is responsible for handling persistent identification across entities in the Overture corpus.
+- **[Names](names)**: where applicable, complex attributes such as names will always use the same schema across all themes.
+- **[Scoped and rule-based properties](scoping-rules)**: a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at lease one scoping property.
 
 
 ## Extensible attributes
