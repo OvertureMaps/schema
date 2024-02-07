@@ -14,7 +14,7 @@ Overture generates a unique ID for an entity the first time that entity interact
 
 `H3 tile address` +
 `data theme identifier` +
-`56-bit value`
+`56-bit value dependent on theme`
 
 The H3 index reflects the location of an entity when Overture first assigns it an ID. Because GERS IDs are intended to be stable over time, Overture will not generate a new ID for that entity if its location changes slightly. The same is true for the data theme identifier; if Overture moves an entity from an existing data theme to a new data theme, the ID will not change. Put another way, a GERS ID should be treated as a unique identifier and nothing more. Overture discourages users from attempting to extract information about an entity from its GERS ID.
 
