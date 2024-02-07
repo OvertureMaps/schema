@@ -16,11 +16,11 @@ Overture generates a unique ID for an entity the first time that entity interact
 `data theme identifier` +
 `56-bit value dependent on theme`
 
-The H3 index reflects the location of an entity when Overture first assigns it an ID. Because GERS IDs are intended to be stable over time, Overture will not generate a new ID for that entity if its location changes slightly. The same is true for the data theme identifier; if Overture moves an entity from an existing data theme to a new data theme, the ID will not change. Put another way, a GERS ID should be treated as a unique identifier and nothing more. Overture discourages users from attempting to extract information about an entity from its GERS ID.
+The H3 index reflects the location of an entity when Overture first assigns it an ID. Because GERS IDs are intended to be stable over time, Overture will not generate a new ID for that entity if its location moves within its assigned H3 layer. Put another way, a GERS ID should be treated as a unique identifier and nothing more. Overture discourages users from attempting to extract information about an entity from its GERS ID.
 
 Here you can see a list of unique IDs from Overture's recent release of buildings data, selected from the GeoParquet file with a simple [duckdb](https://duckdb.org/) query. You can find more information on accessing and querying Overture datasets in the How-to section of our documentation.
 
-```
+```sql
 D SET s3_region='us-west-2';
 D SELECT id FROM read_parquet('s3://overturemaps-us-west-2/release/2024-01-17-alpha.0/theme=buildings/type=*/*', filename=true, hive_partitioning=1) limit 10;
 ┌──────────────────────────────────┐
@@ -55,7 +55,7 @@ GERS IDs are stable (within a reasonable tolerance of error) across multiple ver
 Right now there are two paths to getting started with GERS. Both require you to reach out to the Overture Maps Foundation team at data@overturemaps.org.
 
 1. **Contribute your data.** The Overture engineering team will generate new GERS IDs or match existing IDs for your dataset as it relates to current Overture datasets. Your data becomes part of the Overture corpus.
-2. **Associate your data.** The Overture engineering team can help you conflate your data with a current Overture dataset, identifying matches between existing entities with a GERS ID and the features in your own dataset. Your data will not become part of the Overture corpus, but it will become GERS-enabled data, ready to be matched to any of the available datasets in the Overture data ecosystem.
+2. **Associate your data.** You can conflate your data with a current Overture dataset, identifying matches between existing entities with a GERS ID and the features in your own dataset. Your data will not become part of the Overture corpus, but it will become GERS-enabled data, ready to be matched to any of the available datasets in the Overture data ecosystem.
 
 In option 2, only the features in your dataset that match an existing feature in the Overture data corpus can be assigned a GERS ID. See the [scenarios](scenarios) section of this documentation for more detailed examples of how and when these situations arise.
 
