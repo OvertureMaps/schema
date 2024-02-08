@@ -7,7 +7,7 @@ description: Common schema definitions for admins theme
     localityType:
       description: Describes the entity's type in the categorical nomenclature used locally.
       type: string
-      enum: [country, county, state, region, province, district, city, town, village, hamlet, borough, suburb, neighborhood, municipality]
+      enum: [country, county, state, region, province, district, city, town, village, hamlet, borough, suburb, neighborhood, municipality, department, parish, governorate]
       "$comment": >-
         country      = Distinct geographical and political region or territory that is governed by a sovereign power or government. It is usually defined by its borders, which are recognized by other countries and international organizations
                        Examples: United States
@@ -65,6 +65,18 @@ description: Common schema definitions for admins theme
                        Examples: Arame, Maranhão, Brazil
                                  Vračar, Belgrade, Serbia
                                  Arecibo, Puerto Rico
+        department = Another name for a political and administrative division of a state
+                       Examples: Departamento Deseado, Argentina
+                                 Departamento de Santa Cruz, Bolivia
+                                 Le département d'Indre-et-Loire, France
+        parish = Administrative division of a state, usually deriving from previously ecclestiastical grounds
+                       Examples: Canillo, Andorra
+                                 Saint David Parish, Dominica
+                                 Trinity, Jersey
+        governorate = Administrative division of a state headed by a governor
+                       Examples: El Wadi El Gedid Governorate, Egypt
+                                 Dhi Qar Governorate, Iraq
+                                 Al-Ahsa Governorate, Saudi Arabia
     adminLevel:
       description: Hierarchical level for administrative entity or border (matching admin_level in OSM taxonomy)
       type: integer
