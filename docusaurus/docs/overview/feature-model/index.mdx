@@ -41,7 +41,6 @@ Overture data is described using the [simple feature model](https://www.ogc.org/
   }
 }
 ```
-Note: measurements use SI units (e.g. meters for building heights) and local units for regulations and restrictions (e.g. speed limits in mph in the US and km/h in Germany).
 
 ## Features represent entities in the world
 Overture defines an entity as a physical thing or concept in the real world, represented as a feature in a geospatial dataset. It could be a segment of road, a city boundary, a grocery store, a building, a park bench or a lamp post. Overture assigns unique IDs, called GERS IDs, to these features. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity in the world could be represented by multiple features in a dataset, and a feature in a dataset might be a representation of multiple entities in the world. For example, a school building, including its entrances and exits, might be considered a single entity in the world, but it could be represented as multple features in a dataset -- a building and an entrance, for example -- each feature with its own GERS ID.
@@ -72,6 +71,10 @@ Some feature properties are quite complex and require further explanation in the
 ## Extensible attributes
 
 Any additional top-level property prefixed with `ext` may be added to an Overture feature, usually via the conflation of an external dataset and an Overture dataset.
+
+## Measurements
+
+Measurements in the schema follow [The International System of Units (SI)](https://www.bipm.org/en/publications/si-brochure), e.g. meters for building heights. Regulations and restrictions encoded in the schema follow local units. Speed limits, for example, are encoded as miles per hour (mph) in features that are in the United States. Features located in Germany have kilometers per hour (kph) for speed limits.
 
 
 ## Data formats
