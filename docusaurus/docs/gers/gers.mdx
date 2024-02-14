@@ -9,7 +9,7 @@ Overture's Global Entity Reference System (GERS) is a framework for structuring,
 
 GERS provides a mechanism to conflate datasets, matching one or more features via a unique GERS ID. For example, two geospatial datasets each containing a polygon that represents the footprint of the Empire State Building can be easily matched because both polygons will contain the same GERS ID. The resulting dataset will have a single polygon feature, with one GERS ID, that represents the real-world entity known as "New York's Empire State Building."
 
-## What exactly is an entity?
+## What Is An Entity?
 Overture defines an entity as a physical thing or concept in the real world, represented as a feature in a geospatial dataset. It could be a segment of road, a city boundary, a grocery store, a building or a park. Overture assigns unique IDs, called GERS IDs, to these features. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity in the world could be represented by multiple features in a dataset, and a feature in a dataset might be a representation of multiple entities in the world. For example, a school building and its entrances and exits might be considered a single entity in the world but could be represented as multiple features in a dataset, each feature with its own GERS ID.
 
 ## GERS ID
@@ -44,7 +44,7 @@ Generally, Overture discourages users from attempting to glean information about
 
 ## Stability and Traceability
 
-GERS IDs are intended to be stable (within a reasonable tolerance of error) across multiple versions of Overture data. When stability is not possible, Overture intends to provide traceability. For example:
+GERS IDs are intended to be stable (within a reasonable tolerance of error) across multiple versions of Overture data. When stability is not possible, Overture will attempt to provide traceability. For example:
 
 - a single road segment is bisected by a new road and becomes two road segments: 1 GERS ID → 2 new GERS IDs
 - a large building footprint is determined to be four smaller buildings when a higher resolution dataset becomes available: 1 GERS ID → 4 new GERS IDs
