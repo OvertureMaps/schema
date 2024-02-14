@@ -4,7 +4,7 @@ title: Feature model
 
 ## Key concepts
 
-Overture data is described using the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. Each feature is represented as a geometric object with an ID and associated properties. For example, the Town Hall building in Seattle is represented in the Overture buildings dataset as [GeoJSON](https://geojson.org/) feature that looks like this:
+Overture data is described using the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. Each feature includes a geometric object with a unique ID and associated properties. For example, the Town Hall building in Seattle is represented in the Overture buildings dataset as a [GeoJSON](https://geojson.org/) feature that looks like this:
 
 ```json
 {
@@ -43,7 +43,7 @@ Overture data is described using the [simple feature model](https://www.ogc.org/
 ```
 
 ## Features represent entities in the world
-Overture defines an entity as a physical thing or concept in the real world, represented as a feature in a geospatial dataset. It could be a segment of road, a city boundary, a grocery store, a building, a park bench or a lamp post. Overture assigns unique IDs, called GERS IDs, to these features. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity in the world could be represented by multiple features in a dataset, and a feature in a dataset might be a representation of multiple entities in the world. For example, a school building and its entrances and exits might be considered a single entity in the world, but it could be represented as multple features in a dataset -- a building and an entrance, for example -- each feature with its own GERS ID.
+Features in the Overture corpus represent entities in the real world. An entity is a physical thing or concept: a segment of road, a city boundary, a grocery store, a building, a park bench or a lamp post. Overture assigns unique IDs, called GERS IDs, to these features. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity could be represented by multiple features in a geospatial dataset, and a feature in a dataset might be a representation of multiple entities. For example, a school building and its entrances and exits might be considered a single entity in the real world but could be represented as multiple features in a dataset, each feature with its own GERS ID.
 
 
 ## Common properties
@@ -67,7 +67,6 @@ Some feature properties are quite complex and require further explanation in the
 - **[Names](names)**: where applicable, complex attributes such as names will always use the same schema across all themes.
 - **[Scoped and rule-based properties](scoping-rules)**: a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at lease one scoping property.
 
-
 ## Extensible attributes
 
 Any additional top-level property prefixed with `ext` may be added to an Overture feature, usually via the conflation of an external dataset and an Overture dataset.
@@ -76,7 +75,9 @@ Any additional top-level property prefixed with `ext` may be added to an Overtur
 
 Measurements in the schema follow [The International System of Units (SI)](https://www.bipm.org/en/publications/si-brochure), e.g. meters for building heights. Regulations and restrictions encoded in the schema follow local units. Speed limits, for example, appear as miles per hour (mph) in features located in the United States. Features in Germany show kilometers per hour (kph) for speed limits.
 
-
 ## Data formats
 
 Overture describes data using a GeoJSON mental model and represents data as GeoJSON features. Instead of releasing data in that format, Overture made the decision to distribute data as [GeoParquet](https://geoparquet.org/). This documentation includes many examples of how to work with data stored in GeoParquet files.
+
+## Licensing
+Overture's data themes and schema are licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode). GERS IDs are licensed under [CDLA Permissive v 2.0](https://cdla.dev/permissive-2-0/). Data that are associated with the themes through GERS can carry different licenses. However, if the data associated though GERS with an [ODbL](https://opendatacommons.org/licenses/odbl/) licensed theme constitutes a derivative dataset, it must be licensed under ODbL. See [OpenStreetMap Community Guidelines](https://osmfoundation.org/wiki/Licence/Community_Guidelines/Collective_Database_Guideline_Guideline) for definitions of a derivative database.
