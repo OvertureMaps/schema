@@ -150,7 +150,7 @@ class BugIndicatingError extends Error {
         // Because we know for sure only buggy code throws this,
         // we definitely want to break here and fix the bug.
         // eslint-disable-next-line no-debugger
-        debugger;
+        // debugger;
     }
 }
 
@@ -159,7 +159,10 @@ class BugIndicatingError extends Error {
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-function once(fn) {
+/**
+ * Given a function, returns a function that is only calling that function once.
+ */
+function functional_createSingleCallFunction(fn) {
     const _this = this;
     let didCall = false;
     let result;
@@ -206,6 +209,12 @@ var Iterable;
         return iterable || _empty;
     }
     Iterable.from = from;
+    function* reverse(array) {
+        for (let i = array.length - 1; i >= 0; i--) {
+            yield array[i];
+        }
+    }
+    Iterable.reverse = reverse;
     function isEmpty(iterable) {
         return !iterable || iterable[Symbol.iterator]().next().done === true;
     }
@@ -304,10 +313,6 @@ var Iterable;
 })(Iterable || (Iterable = {}));
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/lifecycle.js
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 
 
 // #region Disposable Tracking
@@ -424,10 +429,12 @@ function combinedDisposable(...disposables) {
 }
 /**
  * Turn a function that implements dispose into an {@link IDisposable}.
+ *
+ * @param fn Clean up function, guaranteed to be called only **once**.
  */
 function lifecycle_toDisposable(fn) {
     const self = trackDisposable({
-        dispose: once(() => {
+        dispose: functional_createSingleCallFunction(() => {
             markAsDisposed(self);
             fn();
         })
@@ -501,9 +508,20 @@ class DisposableStore {
         }
         return o;
     }
+    /**
+     * Deletes the value from the store, but does not dispose it.
+     */
+    deleteAndLeak(o) {
+        if (!o) {
+            return;
+        }
+        if (this._toDispose.has(o)) {
+            this._toDispose.delete(o);
+            setParentOfDisposable(o, null);
+        }
+    }
 }
 DisposableStore.DISABLE_DISPOSED_WARNING = false;
-
 /**
  * Abstract base class for a {@link IDisposable disposable} object.
  *
@@ -535,7 +553,6 @@ class lifecycle_Disposable {
  * TODO: This should not be a static property.
  */
 lifecycle_Disposable.None = Object.freeze({ dispose() { } });
-
 /**
  * Manages the lifecycle of a disposable value that may be changed.
  *
@@ -574,18 +591,6 @@ class MutableDisposable {
         (_a = this._value) === null || _a === void 0 ? void 0 : _a.dispose();
         this._value = undefined;
     }
-    /**
-     * Clears the value, but does not dispose it.
-     * The old value is returned.
-    */
-    clearAndLeak() {
-        const oldValue = this._value;
-        this._value = undefined;
-        if (oldValue) {
-            setParentOfDisposable(oldValue, null);
-        }
-        return oldValue;
-    }
 }
 class RefCountedDisposable {
     constructor(_disposable) {
@@ -600,31 +605,6 @@ class RefCountedDisposable {
         if (--this._counter === 0) {
             this._disposable.dispose();
         }
-        return this;
-    }
-}
-/**
- * A safe disposable can be `unset` so that a leaked reference (listener)
- * can be cut-off.
- */
-class SafeDisposable {
-    constructor() {
-        this.dispose = () => { };
-        this.unset = () => { };
-        this.isset = () => false;
-        trackDisposable(this);
-    }
-    set(fn) {
-        let callback = fn;
-        this.unset = () => callback = undefined;
-        this.isset = () => callback !== undefined;
-        this.dispose = () => {
-            if (callback) {
-                callback();
-                callback = undefined;
-                markAsDisposed(this);
-            }
-        };
         return this;
     }
 }
@@ -679,6 +659,14 @@ class DisposableMap {
             (_a = this._store.get(key)) === null || _a === void 0 ? void 0 : _a.dispose();
         }
         this._store.set(key, value);
+    }
+    /**
+     * Delete the value stored for `key` from this map and also dispose of it.
+     */
+    deleteAndDispose(key) {
+        var _a;
+        (_a = this._store.get(key)) === null || _a === void 0 ? void 0 : _a.dispose();
+        this._store.delete(key);
     }
     [Symbol.iterator]() {
         return this._store[Symbol.iterator]();
@@ -811,360 +799,18 @@ class linkedList_LinkedList {
     }
 }
 
-;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/nls.js
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-let isPseudo = (typeof document !== 'undefined' && document.location && document.location.hash.indexOf('pseudo=true') >= 0);
-const DEFAULT_TAG = 'i-default';
-function _format(message, args) {
-    let result;
-    if (args.length === 0) {
-        result = message;
-    }
-    else {
-        result = message.replace(/\{(\d+)\}/g, (match, rest) => {
-            const index = rest[0];
-            const arg = args[index];
-            let result = match;
-            if (typeof arg === 'string') {
-                result = arg;
-            }
-            else if (typeof arg === 'number' || typeof arg === 'boolean' || arg === void 0 || arg === null) {
-                result = String(arg);
-            }
-            return result;
-        });
-    }
-    if (isPseudo) {
-        // FF3B and FF3D is the Unicode zenkaku representation for [ and ]
-        result = '\uFF3B' + result.replace(/[aouei]/g, '$&$&') + '\uFF3D';
-    }
-    return result;
-}
-function findLanguageForModule(config, name) {
-    let result = config[name];
-    if (result) {
-        return result;
-    }
-    result = config['*'];
-    if (result) {
-        return result;
-    }
-    return null;
-}
-function endWithSlash(path) {
-    if (path.charAt(path.length - 1) === '/') {
-        return path;
-    }
-    return path + '/';
-}
-function getMessagesFromTranslationsService(translationServiceUrl, language, name) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const url = endWithSlash(translationServiceUrl) + endWithSlash(language) + 'vscode/' + endWithSlash(name);
-        const res = yield fetch(url);
-        if (res.ok) {
-            const messages = yield res.json();
-            return messages;
-        }
-        throw new Error(`${res.status} - ${res.statusText}`);
-    });
-}
-function createScopedLocalize(scope) {
-    return function (idx, defaultValue) {
-        const restArgs = Array.prototype.slice.call(arguments, 2);
-        return _format(scope[idx], restArgs);
-    };
-}
-function localize(data, message, ...args) {
-    return _format(message, args);
-}
-function getConfiguredDefaultLocale(_) {
-    // This returns undefined because this implementation isn't used and is overwritten by the loader
-    // when loaded.
-    return undefined;
-}
-function setPseudoTranslation(value) {
-    isPseudo = value;
-}
-/**
- * Invoked in a built product at run-time
- */
-function create(key, data) {
-    var _a;
-    return {
-        localize: createScopedLocalize(data[key]),
-        getConfiguredDefaultLocale: (_a = data.getConfiguredDefaultLocale) !== null && _a !== void 0 ? _a : ((_) => undefined)
-    };
-}
-/**
- * Invoked by the loader at run-time
- */
-function load(name, req, load, config) {
-    var _a;
-    const pluginConfig = (_a = config['vs/nls']) !== null && _a !== void 0 ? _a : {};
-    if (!name || name.length === 0) {
-        return load({
-            localize: localize,
-            getConfiguredDefaultLocale: () => { var _a; return (_a = pluginConfig.availableLanguages) === null || _a === void 0 ? void 0 : _a['*']; }
-        });
-    }
-    const language = pluginConfig.availableLanguages ? findLanguageForModule(pluginConfig.availableLanguages, name) : null;
-    const useDefaultLanguage = language === null || language === DEFAULT_TAG;
-    let suffix = '.nls';
-    if (!useDefaultLanguage) {
-        suffix = suffix + '.' + language;
-    }
-    const messagesLoaded = (messages) => {
-        if (Array.isArray(messages)) {
-            messages.localize = createScopedLocalize(messages);
-        }
-        else {
-            messages.localize = createScopedLocalize(messages[name]);
-        }
-        messages.getConfiguredDefaultLocale = () => { var _a; return (_a = pluginConfig.availableLanguages) === null || _a === void 0 ? void 0 : _a['*']; };
-        load(messages);
-    };
-    if (typeof pluginConfig.loadBundle === 'function') {
-        pluginConfig.loadBundle(name, language, (err, messages) => {
-            // We have an error. Load the English default strings to not fail
-            if (err) {
-                req([name + '.nls'], messagesLoaded);
-            }
-            else {
-                messagesLoaded(messages);
-            }
-        });
-    }
-    else if (pluginConfig.translationServiceUrl && !useDefaultLanguage) {
-        (() => __awaiter(this, void 0, void 0, function* () {
-            var _b;
-            try {
-                const messages = yield getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, language, name);
-                return messagesLoaded(messages);
-            }
-            catch (err) {
-                // Language is already as generic as it gets, so require default messages
-                if (!language.includes('-')) {
-                    console.error(err);
-                    return req([name + '.nls'], messagesLoaded);
-                }
-                try {
-                    // Since there is a dash, the language configured is a specific sub-language of the same generic language.
-                    // Since we were unable to load the specific language, try to load the generic language. Ex. we failed to find a
-                    // Swiss German (de-CH), so try to load the generic German (de) messages instead.
-                    const genericLanguage = language.split('-')[0];
-                    const messages = yield getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, genericLanguage, name);
-                    // We got some messages, so we configure the configuration to use the generic language for this session.
-                    (_b = pluginConfig.availableLanguages) !== null && _b !== void 0 ? _b : (pluginConfig.availableLanguages = {});
-                    pluginConfig.availableLanguages['*'] = genericLanguage;
-                    return messagesLoaded(messages);
-                }
-                catch (err) {
-                    console.error(err);
-                    return req([name + '.nls'], messagesLoaded);
-                }
-            }
-        }))();
-    }
-    else {
-        req([name + suffix], messagesLoaded, (err) => {
-            if (suffix === '.nls') {
-                console.error('Failed trying to load default language strings', err);
-                return;
-            }
-            console.error(`Failed to load message bundle for language ${language}. Falling back to the default language:`, err);
-            req([name + '.nls'], messagesLoaded);
-        });
-    }
-}
-
-;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/platform.js
-var _a;
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
-const LANGUAGE_DEFAULT = 'en';
-let _isWindows = false;
-let _isMacintosh = false;
-let _isLinux = false;
-let _isLinuxSnap = false;
-let _isNative = false;
-let _isWeb = false;
-let _isElectron = false;
-let _isIOS = false;
-let _isCI = false;
-let _isMobile = false;
-let _locale = undefined;
-let _language = (/* unused pure expression or super */ null && (LANGUAGE_DEFAULT));
-let _translationsConfigFile = (/* unused pure expression or super */ null && (undefined));
-let _userAgent = undefined;
-/**
- * @deprecated use `globalThis` instead
- */
-const platform_globals = (typeof self === 'object' ? self : typeof global === 'object' ? global : {});
-let nodeProcess = undefined;
-if (typeof platform_globals.vscode !== 'undefined' && typeof platform_globals.vscode.process !== 'undefined') {
-    // Native environment (sandboxed)
-    nodeProcess = platform_globals.vscode.process;
-}
-else if (typeof process !== 'undefined') {
-    // Native environment (non-sandboxed)
-    nodeProcess = process;
-}
-const isElectronProcess = typeof ((_a = nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.versions) === null || _a === void 0 ? void 0 : _a.electron) === 'string';
-const isElectronRenderer = isElectronProcess && (nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.type) === 'renderer';
-// Web environment
-if (typeof navigator === 'object' && !isElectronRenderer) {
-    _userAgent = navigator.userAgent;
-    _isWindows = _userAgent.indexOf('Windows') >= 0;
-    _isMacintosh = _userAgent.indexOf('Macintosh') >= 0;
-    _isIOS = (_userAgent.indexOf('Macintosh') >= 0 || _userAgent.indexOf('iPad') >= 0 || _userAgent.indexOf('iPhone') >= 0) && !!navigator.maxTouchPoints && navigator.maxTouchPoints > 0;
-    _isLinux = _userAgent.indexOf('Linux') >= 0;
-    _isMobile = (_userAgent === null || _userAgent === void 0 ? void 0 : _userAgent.indexOf('Mobi')) >= 0;
-    _isWeb = true;
-    const configuredLocale = getConfiguredDefaultLocale(
-    // This call _must_ be done in the file that calls `nls.getConfiguredDefaultLocale`
-    // to ensure that the NLS AMD Loader plugin has been loaded and configured.
-    // This is because the loader plugin decides what the default locale is based on
-    // how it's able to resolve the strings.
-    localize({ key: 'ensureLoaderPluginIsLoaded', comment: ['{Locked}'] }, '_'));
-    _locale = configuredLocale || LANGUAGE_DEFAULT;
-    _language = _locale;
-}
-// Native environment
-else if (typeof nodeProcess === 'object') {
-    _isWindows = (nodeProcess.platform === 'win32');
-    _isMacintosh = (nodeProcess.platform === 'darwin');
-    _isLinux = (nodeProcess.platform === 'linux');
-    _isLinuxSnap = _isLinux && !!nodeProcess.env['SNAP'] && !!nodeProcess.env['SNAP_REVISION'];
-    _isElectron = isElectronProcess;
-    _isCI = !!nodeProcess.env['CI'] || !!nodeProcess.env['BUILD_ARTIFACTSTAGINGDIRECTORY'];
-    _locale = LANGUAGE_DEFAULT;
-    _language = LANGUAGE_DEFAULT;
-    const rawNlsConfig = nodeProcess.env['VSCODE_NLS_CONFIG'];
-    if (rawNlsConfig) {
-        try {
-            const nlsConfig = JSON.parse(rawNlsConfig);
-            const resolved = nlsConfig.availableLanguages['*'];
-            _locale = nlsConfig.locale;
-            // VSCode's default language is 'en'
-            _language = resolved ? resolved : LANGUAGE_DEFAULT;
-            _translationsConfigFile = nlsConfig._translationsConfigFile;
-        }
-        catch (e) {
-        }
-    }
-    _isNative = true;
-}
-// Unknown environment
-else {
-    console.error('Unable to resolve platform.');
-}
-let _platform = 0 /* Platform.Web */;
-if (_isMacintosh) {
-    _platform = 1 /* Platform.Mac */;
-}
-else if (_isWindows) {
-    _platform = 3 /* Platform.Windows */;
-}
-else if (_isLinux) {
-    _platform = 2 /* Platform.Linux */;
-}
-const isWindows = _isWindows;
-const isMacintosh = _isMacintosh;
-const isLinux = (/* unused pure expression or super */ null && (_isLinux));
-const isNative = (/* unused pure expression or super */ null && (_isNative));
-const platform_isWeb = (/* unused pure expression or super */ null && (_isWeb));
-const isWebWorker = (_isWeb && typeof platform_globals.importScripts === 'function');
-const isIOS = (/* unused pure expression or super */ null && (_isIOS));
-const isMobile = (/* unused pure expression or super */ null && (_isMobile));
-const userAgent = _userAgent;
-/**
- * The language used for the user interface. or the locale specified by --locale
- * The format of the string is all lower case (e.g. zh-tw for Traditional
- * Chinese)
- */
-const language = (/* unused pure expression or super */ null && (_language));
-const setTimeout0IsFaster = (typeof platform_globals.postMessage === 'function' && !platform_globals.importScripts);
-/**
- * See https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#:~:text=than%204%2C%20then-,set%20timeout%20to%204,-.
- *
- * Works similarly to `setTimeout(0)` but doesn't suffer from the 4ms artificial delay
- * that browsers set when the nesting level is > 5.
- */
-const setTimeout0 = (() => {
-    if (setTimeout0IsFaster) {
-        const pending = [];
-        platform_globals.addEventListener('message', (e) => {
-            if (e.data && e.data.vscodeScheduleAsyncWork) {
-                for (let i = 0, len = pending.length; i < len; i++) {
-                    const candidate = pending[i];
-                    if (candidate.id === e.data.vscodeScheduleAsyncWork) {
-                        pending.splice(i, 1);
-                        candidate.callback();
-                        return;
-                    }
-                }
-            }
-        });
-        let lastId = 0;
-        return (callback) => {
-            const myId = ++lastId;
-            pending.push({
-                id: myId,
-                callback: callback
-            });
-            platform_globals.postMessage({ vscodeScheduleAsyncWork: myId }, '*');
-        };
-    }
-    return (callback) => setTimeout(callback);
-})();
-const OS = ((/* unused pure expression or super */ null && (_isMacintosh || _isIOS ? 2 /* OperatingSystem.Macintosh */ : (_isWindows ? 1 /* OperatingSystem.Windows */ : 3 /* OperatingSystem.Linux */))));
-let _isLittleEndian = true;
-let _isLittleEndianComputed = false;
-function isLittleEndian() {
-    if (!_isLittleEndianComputed) {
-        _isLittleEndianComputed = true;
-        const test = new Uint8Array(2);
-        test[0] = 1;
-        test[1] = 2;
-        const view = new Uint16Array(test.buffer);
-        _isLittleEndian = (view[0] === (2 << 8) + 1);
-    }
-    return _isLittleEndian;
-}
-const isChrome = !!(userAgent && userAgent.indexOf('Chrome') >= 0);
-const isFirefox = !!(userAgent && userAgent.indexOf('Firefox') >= 0);
-const isSafari = !!(!isChrome && (userAgent && userAgent.indexOf('Safari') >= 0));
-const isEdge = !!(userAgent && userAgent.indexOf('Edg/') >= 0);
-const isAndroid = !!(userAgent && userAgent.indexOf('Android') >= 0);
-
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/stopwatch.js
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-
-const hasPerformanceNow = (platform_globals.performance && typeof platform_globals.performance.now === 'function');
+const hasPerformanceNow = (globalThis.performance && typeof globalThis.performance.now === 'function');
 class StopWatch {
-    static create(highResolution = true) {
+    static create(highResolution) {
         return new StopWatch(highResolution);
     }
     constructor(highResolution) {
-        this._highResolution = hasPerformanceNow && highResolution;
+        this._now = hasPerformanceNow && highResolution === false ? Date.now : globalThis.performance.now.bind(globalThis.performance);
         this._startTime = this._now();
         this._stopTime = -1;
     }
@@ -1176,9 +822,6 @@ class StopWatch {
             return this._stopTime - this._startTime;
         }
         return this._now() - this._startTime;
-    }
-    _now() {
-        return this._highResolution ? platform_globals.performance.now() : Date.now();
     }
 }
 
@@ -1281,9 +924,15 @@ var Event;
     }
     Event.map = map;
     /**
+     * Wraps an event in another event that performs some function on the event object before firing.
+     *
      * *NOTE* that this function returns an `Event` and it MUST be called with a `DisposableStore` whenever the returned
      * event is accessible to "third parties", e.g the event is a public property. Otherwise a leaked listener on the
      * returned event causes this utility to leak a listener on the original event.
+     *
+     * @param event The event source for the new event.
+     * @param each The function to perform on the event object.
+     * @param disposable A disposable store to add the new EventEmitter to.
      */
     function forEach(event, each, disposable) {
         return snapshot((listener, thisArgs = null, disposables) => event(i => { each(i); listener.call(thisArgs, i); }, null, disposables), disposable);
@@ -1301,7 +950,10 @@ var Event;
     }
     Event.signal = signal;
     function any(...events) {
-        return (listener, thisArgs = null, disposables) => combinedDisposable(...events.map(event => event(e => listener.call(thisArgs, e), null, disposables)));
+        return (listener, thisArgs = null, disposables) => {
+            const disposable = combinedDisposable(...events.map(event => event(e => listener.call(thisArgs, e))));
+            return addAndReturnDisposable(disposable, disposables);
+        };
     }
     Event.any = any;
     /**
@@ -1333,6 +985,19 @@ var Event;
         const emitter = new Emitter(options);
         disposable === null || disposable === void 0 ? void 0 : disposable.add(emitter);
         return emitter.event;
+    }
+    /**
+     * Adds the IDisposable to the store if it's set, and returns it. Useful to
+     * Event function implementation.
+     */
+    function addAndReturnDisposable(d, store) {
+        if (store instanceof Array) {
+            store.push(d);
+        }
+        else if (store) {
+            store.add(d);
+        }
+        return d;
     }
     function debounce(event, merge, delay = 100, leading = false, flushOnListenerRemove = false, leakWarningThreshold, disposable) {
         let subscription;
@@ -1407,9 +1072,22 @@ var Event;
     }
     Event.accumulate = accumulate;
     /**
+     * Filters an event such that some condition is _not_ met more than once in a row, effectively ensuring duplicate
+     * event objects from different sources do not fire the same event object.
+     *
      * *NOTE* that this function returns an `Event` and it MUST be called with a `DisposableStore` whenever the returned
      * event is accessible to "third parties", e.g the event is a public property. Otherwise a leaked listener on the
      * returned event causes this utility to leak a listener on the original event.
+     *
+     * @param event The event source for the new event.
+     * @param equals The equality condition.
+     * @param disposable A disposable store to add the new EventEmitter to.
+     *
+     * @example
+     * ```
+     * // Fire only one time when a single window is opened or focused
+     * Event.latch(Event.any(onDidOpenWindow, onDidFocusWindow))
+     * ```
      */
     function latch(event, equals = (a, b) => a === b, disposable) {
         let firstCall = true;
@@ -1447,11 +1125,26 @@ var Event;
     }
     Event.split = split;
     /**
+     * Buffers an event until it has a listener attached.
+     *
      * *NOTE* that this function returns an `Event` and it MUST be called with a `DisposableStore` whenever the returned
      * event is accessible to "third parties", e.g the event is a public property. Otherwise a leaked listener on the
      * returned event causes this utility to leak a listener on the original event.
+     *
+     * @param event The event source for the new event.
+     * @param flushAfterTimeout Determines whether to flush the buffer after a timeout immediately or after a
+     * `setTimeout` when the first event listener is added.
+     * @param _buffer Internal: A source event array used for tests.
+     *
+     * @example
+     * ```
+     * // Start accumulating events, when the first listener is attached, flush
+     * // the event after a timeout such that multiple listeners attached before
+     * // the timeout would receive the event
+     * this.onInstallExtension = Event.buffer(service.onInstallExtension, true);
+     * ```
      */
-    function buffer(event, flushAfterTimeout = false, _buffer = []) {
+    function buffer(event, flushAfterTimeout = false, _buffer = [], disposable) {
         let buffer = _buffer.slice();
         let listener = event(e => {
             if (buffer) {
@@ -1461,6 +1154,9 @@ var Event;
                 emitter.fire(e);
             }
         });
+        if (disposable) {
+            disposable.add(listener);
+        }
         const flush = () => {
             buffer === null || buffer === void 0 ? void 0 : buffer.forEach(e => emitter.fire(e));
             buffer = null;
@@ -1469,6 +1165,9 @@ var Event;
             onWillAddFirstListener() {
                 if (!listener) {
                     listener = event(e => emitter.fire(e));
+                    if (disposable) {
+                        disposable.add(listener);
+                    }
                 }
             },
             onDidAddFirstListener() {
@@ -1488,46 +1187,95 @@ var Event;
                 listener = null;
             }
         });
+        if (disposable) {
+            disposable.add(emitter);
+        }
         return emitter.event;
     }
     Event.buffer = buffer;
-    class ChainableEvent {
-        constructor(event) {
-            this.event = event;
-            this.disposables = new DisposableStore();
-        }
-        map(fn) {
-            return new ChainableEvent(map(this.event, fn, this.disposables));
-        }
-        forEach(fn) {
-            return new ChainableEvent(forEach(this.event, fn, this.disposables));
-        }
-        filter(fn) {
-            return new ChainableEvent(filter(this.event, fn, this.disposables));
-        }
-        reduce(merge, initial) {
-            return new ChainableEvent(reduce(this.event, merge, initial, this.disposables));
-        }
-        latch() {
-            return new ChainableEvent(latch(this.event, undefined, this.disposables));
-        }
-        debounce(merge, delay = 100, leading = false, flushOnListenerRemove = false, leakWarningThreshold) {
-            return new ChainableEvent(debounce(this.event, merge, delay, leading, flushOnListenerRemove, leakWarningThreshold, this.disposables));
-        }
-        on(listener, thisArgs, disposables) {
-            return this.event(listener, thisArgs, disposables);
-        }
-        once(listener, thisArgs, disposables) {
-            return once(this.event)(listener, thisArgs, disposables);
-        }
-        dispose() {
-            this.disposables.dispose();
-        }
-    }
-    function chain(event) {
-        return new ChainableEvent(event);
+    /**
+     * Wraps the event in an {@link IChainableEvent}, allowing a more functional programming style.
+     *
+     * @example
+     * ```
+     * // Normal
+     * const onEnterPressNormal = Event.filter(
+     *   Event.map(onKeyPress.event, e => new StandardKeyboardEvent(e)),
+     *   e.keyCode === KeyCode.Enter
+     * ).event;
+     *
+     * // Using chain
+     * const onEnterPressChain = Event.chain(onKeyPress.event, $ => $
+     *   .map(e => new StandardKeyboardEvent(e))
+     *   .filter(e => e.keyCode === KeyCode.Enter)
+     * );
+     * ```
+     */
+    function chain(event, sythensize) {
+        const fn = (listener, thisArgs, disposables) => {
+            const cs = sythensize(new ChainableSynthesis());
+            return event(function (value) {
+                const result = cs.evaluate(value);
+                if (result !== HaltChainable) {
+                    listener.call(thisArgs, result);
+                }
+            }, undefined, disposables);
+        };
+        return fn;
     }
     Event.chain = chain;
+    const HaltChainable = Symbol('HaltChainable');
+    class ChainableSynthesis {
+        constructor() {
+            this.steps = [];
+        }
+        map(fn) {
+            this.steps.push(fn);
+            return this;
+        }
+        forEach(fn) {
+            this.steps.push(v => {
+                fn(v);
+                return v;
+            });
+            return this;
+        }
+        filter(fn) {
+            this.steps.push(v => fn(v) ? v : HaltChainable);
+            return this;
+        }
+        reduce(merge, initial) {
+            let last = initial;
+            this.steps.push(v => {
+                last = merge(last, v);
+                return last;
+            });
+            return this;
+        }
+        latch(equals = (a, b) => a === b) {
+            let firstCall = true;
+            let cache;
+            this.steps.push(value => {
+                const shouldEmit = firstCall || !equals(value, cache);
+                firstCall = false;
+                cache = value;
+                return shouldEmit ? value : HaltChainable;
+            });
+            return this;
+        }
+        evaluate(value) {
+            for (const step of this.steps) {
+                value = step(value);
+                if (value === HaltChainable) {
+                    break;
+                }
+            }
+            return value;
+        }
+    }
+    /**
+     * Creates an {@link Event} from a node event emitter.
+     */
     function fromNodeEventEmitter(emitter, eventName, map = id => id) {
         const fn = (...args) => result.fire(map(...args));
         const onFirstListenerAdd = () => emitter.on(eventName, fn);
@@ -1536,6 +1284,9 @@ var Event;
         return result.event;
     }
     Event.fromNodeEventEmitter = fromNodeEventEmitter;
+    /**
+     * Creates an {@link Event} from a DOM event emitter.
+     */
     function fromDOMEventEmitter(emitter, eventName, map = id => id) {
         const fn = (...args) => result.fire(map(...args));
         const onFirstListenerAdd = () => emitter.addEventListener(eventName, fn);
@@ -1544,15 +1295,47 @@ var Event;
         return result.event;
     }
     Event.fromDOMEventEmitter = fromDOMEventEmitter;
+    /**
+     * Creates a promise out of an event, using the {@link Event.once} helper.
+     */
     function toPromise(event) {
         return new Promise(resolve => once(event)(resolve));
     }
     Event.toPromise = toPromise;
+    /**
+     * Creates an event out of a promise that fires once when the promise is
+     * resolved with the result of the promise or `undefined`.
+     */
+    function fromPromise(promise) {
+        const result = new Emitter();
+        promise.then(res => {
+            result.fire(res);
+        }, () => {
+            result.fire(undefined);
+        }).finally(() => {
+            result.dispose();
+        });
+        return result.event;
+    }
+    Event.fromPromise = fromPromise;
+    /**
+     * Adds a listener to an event and calls the listener immediately with undefined as the event object.
+     *
+     * @example
+     * ```
+     * // Initialize the UI and update it when dataChangeEvent fires
+     * runAndSubscribe(dataChangeEvent, () => this._updateUI());
+     * ```
+     */
     function runAndSubscribe(event, handler) {
         handler(undefined);
         return event(e => handler(e));
     }
     Event.runAndSubscribe = runAndSubscribe;
+    /**
+     * Adds a listener to an event and calls the listener immediately with undefined as the event object. A new
+     * {@link DisposableStore} is passed to the listener which is disposed when the returned disposable is disposed.
+     */
     function runAndSubscribeWithStore(event, handler) {
         let store = null;
         function run(e) {
@@ -1569,16 +1352,16 @@ var Event;
     }
     Event.runAndSubscribeWithStore = runAndSubscribeWithStore;
     class EmitterObserver {
-        constructor(obs, store) {
-            this.obs = obs;
+        constructor(_observable, store) {
+            this._observable = _observable;
             this._counter = 0;
             this._hasChanged = false;
             const options = {
                 onWillAddFirstListener: () => {
-                    obs.addObserver(this);
+                    _observable.addObserver(this);
                 },
                 onDidRemoveLastListener: () => {
-                    obs.removeObserver(this);
+                    _observable.removeObserver(this);
                 }
             };
             if (!store) {
@@ -1590,26 +1373,75 @@ var Event;
             }
         }
         beginUpdate(_observable) {
-            // console.assert(_observable === this.obs);
+            // assert(_observable === this.obs);
             this._counter++;
         }
+        handlePossibleChange(_observable) {
+            // assert(_observable === this.obs);
+        }
         handleChange(_observable, _change) {
+            // assert(_observable === this.obs);
             this._hasChanged = true;
         }
         endUpdate(_observable) {
-            if (--this._counter === 0) {
+            // assert(_observable === this.obs);
+            this._counter--;
+            if (this._counter === 0) {
+                this._observable.reportChanges();
                 if (this._hasChanged) {
                     this._hasChanged = false;
-                    this.emitter.fire(this.obs.get());
+                    this.emitter.fire(this._observable.get());
                 }
             }
         }
     }
+    /**
+     * Creates an event emitter that is fired when the observable changes.
+     * Each listeners subscribes to the emitter.
+     */
     function fromObservable(obs, store) {
         const observer = new EmitterObserver(obs, store);
         return observer.emitter.event;
     }
     Event.fromObservable = fromObservable;
+    /**
+     * Each listener is attached to the observable directly.
+     */
+    function fromObservableLight(observable) {
+        return (listener) => {
+            let count = 0;
+            let didChange = false;
+            const observer = {
+                beginUpdate() {
+                    count++;
+                },
+                endUpdate() {
+                    count--;
+                    if (count === 0) {
+                        observable.reportChanges();
+                        if (didChange) {
+                            didChange = false;
+                            listener();
+                        }
+                    }
+                },
+                handlePossibleChange() {
+                    // noop
+                },
+                handleChange() {
+                    didChange = true;
+                }
+            };
+            observable.addObserver(observer);
+            observable.reportChanges();
+            return {
+                dispose() {
+                    observable.removeObserver(observer);
+                }
+            };
+        };
+    }
+    Event.fromObservableLight = fromObservableLight;
 })(Event || (Event = {}));
 class EventProfiling {
     constructor(name) {
@@ -1621,7 +1453,7 @@ class EventProfiling {
         EventProfiling.all.add(this);
     }
     start(listenerCount) {
-        this._stopWatch = new StopWatch(true);
+        this._stopWatch = new StopWatch();
         this.listenerCount = listenerCount;
     }
     stop() {
@@ -1636,7 +1468,6 @@ class EventProfiling {
 }
 EventProfiling.all = new Set();
 EventProfiling._idPool = 0;
-
 let _globalLeakWarningThreshold = -1;
 class LeakageMonitor {
     constructor(threshold, name = Math.random().toString(18).slice(2, 5)) {
@@ -1693,17 +1524,25 @@ class Stacktrace {
         console.warn(this.value.split('\n').slice(2).join('\n'));
     }
 }
-class Listener {
-    constructor(callback, callbackThis, stack) {
-        this.callback = callback;
-        this.callbackThis = callbackThis;
-        this.stack = stack;
-        this.subscription = new SafeDisposable();
-    }
-    invoke(e) {
-        this.callback.call(this.callbackThis, e);
+class UniqueContainer {
+    constructor(value) {
+        this.value = value;
     }
 }
+const compactionThreshold = 2;
+const forEachListener = (listeners, fn) => {
+    if (listeners instanceof UniqueContainer) {
+        fn(listeners);
+    }
+    else {
+        for (let i = 0; i < listeners.length; i++) {
+            const l = listeners[i];
+            if (l) {
+                fn(l);
+            }
+        }
+    }
+};
 /**
  * The Emitter can be used to expose an Event to the public
  * to fire it from the insides.
@@ -1728,7 +1567,7 @@ class Listener {
 class Emitter {
     constructor(options) {
         var _a, _b, _c, _d, _e;
-        this._disposed = false;
+        this._size = 0;
         this._options = options;
         this._leakageMon = _globalLeakWarningThreshold > 0 || ((_a = this._options) === null || _a === void 0 ? void 0 : _a.leakWarningThreshold) ? new LeakageMonitor((_c = (_b = this._options) === null || _b === void 0 ? void 0 : _b.leakWarningThreshold) !== null && _c !== void 0 ? _c : _globalLeakWarningThreshold) : undefined;
         this._perfMon = ((_d = this._options) === null || _d === void 0 ? void 0 : _d._profName) ? new EventProfiling(this._options._profName) : undefined;
@@ -1747,22 +1586,19 @@ class Emitter {
             // this._disposables.add(someModel.onDidChange(() => { ... }); // (2) subscribe and register model-event listener
             // ...later...
             // this._disposables.dispose(); disposes (1) then (2): don't warn after (1) but after the "overall dispose" is done
+            if (((_a = this._deliveryQueue) === null || _a === void 0 ? void 0 : _a.current) === this) {
+                this._deliveryQueue.reset();
+            }
             if (this._listeners) {
                 if (_enableDisposeWithListenerWarning) {
-                    const listeners = Array.from(this._listeners);
+                    const listeners = this._listeners;
                     queueMicrotask(() => {
-                        var _a;
-                        for (const listener of listeners) {
-                            if (listener.subscription.isset()) {
-                                listener.subscription.unset();
-                                (_a = listener.stack) === null || _a === void 0 ? void 0 : _a.print();
-                            }
-                        }
+                        forEachListener(listeners, l => { var _a; return (_a = l.stack) === null || _a === void 0 ? void 0 : _a.print(); });
                     });
                 }
-                this._listeners.clear();
+                this._listeners = undefined;
+                this._size = 0;
             }
-            (_a = this._deliveryQueue) === null || _a === void 0 ? void 0 : _a.clear(this);
             (_c = (_b = this._options) === null || _b === void 0 ? void 0 : _b.onDidRemoveLastListener) === null || _c === void 0 ? void 0 : _c.call(_b);
             (_d = this._leakageMon) === null || _d === void 0 ? void 0 : _d.dispose();
         }
@@ -1772,138 +1608,171 @@ class Emitter {
      * to events from this Emitter
      */
     get event() {
-        if (!this._event) {
-            this._event = (callback, thisArgs, disposables) => {
-                var _a, _b, _c;
-                if (!this._listeners) {
-                    this._listeners = new linkedList_LinkedList();
-                }
-                if (this._leakageMon && this._listeners.size > this._leakageMon.threshold * 3) {
-                    console.warn(`[${this._leakageMon.name}] REFUSES to accept new listeners because it exceeded its threshold by far`);
-                    return lifecycle_Disposable.None;
-                }
-                const firstListener = this._listeners.isEmpty();
-                if (firstListener && ((_a = this._options) === null || _a === void 0 ? void 0 : _a.onWillAddFirstListener)) {
-                    this._options.onWillAddFirstListener(this);
-                }
-                let removeMonitor;
-                let stack;
-                if (this._leakageMon && this._listeners.size >= Math.ceil(this._leakageMon.threshold * 0.2)) {
-                    // check and record this emitter for potential leakage
-                    stack = Stacktrace.create();
-                    removeMonitor = this._leakageMon.check(stack, this._listeners.size + 1);
-                }
-                if (_enableDisposeWithListenerWarning) {
-                    stack = stack !== null && stack !== void 0 ? stack : Stacktrace.create();
-                }
-                const listener = new Listener(callback, thisArgs, stack);
-                const removeListener = this._listeners.push(listener);
-                if (firstListener && ((_b = this._options) === null || _b === void 0 ? void 0 : _b.onDidAddFirstListener)) {
-                    this._options.onDidAddFirstListener(this);
-                }
-                if ((_c = this._options) === null || _c === void 0 ? void 0 : _c.onDidAddListener) {
-                    this._options.onDidAddListener(this, callback, thisArgs);
-                }
-                const result = listener.subscription.set(() => {
-                    var _a, _b;
-                    removeMonitor === null || removeMonitor === void 0 ? void 0 : removeMonitor();
-                    if (!this._disposed) {
-                        (_b = (_a = this._options) === null || _a === void 0 ? void 0 : _a.onWillRemoveListener) === null || _b === void 0 ? void 0 : _b.call(_a, this);
-                        removeListener();
-                        if (this._options && this._options.onDidRemoveLastListener) {
-                            const hasListeners = (this._listeners && !this._listeners.isEmpty());
-                            if (!hasListeners) {
-                                this._options.onDidRemoveLastListener(this);
-                            }
-                        }
-                    }
-                });
-                if (disposables instanceof DisposableStore) {
-                    disposables.add(result);
-                }
-                else if (Array.isArray(disposables)) {
-                    disposables.push(result);
-                }
-                return result;
-            };
-        }
+        var _a;
+        (_a = this._event) !== null && _a !== void 0 ? _a : (this._event = (callback, thisArgs, disposables) => {
+            var _a, _b, _c, _d, _e;
+            if (this._leakageMon && this._size > this._leakageMon.threshold * 3) {
+                console.warn(`[${this._leakageMon.name}] REFUSES to accept new listeners because it exceeded its threshold by far`);
+                return lifecycle_Disposable.None;
+            }
+            if (this._disposed) {
+                // todo: should we warn if a listener is added to a disposed emitter? This happens often
+                return lifecycle_Disposable.None;
+            }
+            if (thisArgs) {
+                callback = callback.bind(thisArgs);
+            }
+            const contained = new UniqueContainer(callback);
+            let removeMonitor;
+            let stack;
+            if (this._leakageMon && this._size >= Math.ceil(this._leakageMon.threshold * 0.2)) {
+                // check and record this emitter for potential leakage
+                contained.stack = Stacktrace.create();
+                removeMonitor = this._leakageMon.check(contained.stack, this._size + 1);
+            }
+            if (_enableDisposeWithListenerWarning) {
+                contained.stack = stack !== null && stack !== void 0 ? stack : Stacktrace.create();
+            }
+            if (!this._listeners) {
+                (_b = (_a = this._options) === null || _a === void 0 ? void 0 : _a.onWillAddFirstListener) === null || _b === void 0 ? void 0 : _b.call(_a, this);
+                this._listeners = contained;
+                (_d = (_c = this._options) === null || _c === void 0 ? void 0 : _c.onDidAddFirstListener) === null || _d === void 0 ? void 0 : _d.call(_c, this);
+            }
+            else if (this._listeners instanceof UniqueContainer) {
+                (_e = this._deliveryQueue) !== null && _e !== void 0 ? _e : (this._deliveryQueue = new EventDeliveryQueuePrivate());
+                this._listeners = [this._listeners, contained];
+            }
+            else {
+                this._listeners.push(contained);
+            }
+            this._size++;
+            const result = lifecycle_toDisposable(() => { removeMonitor === null || removeMonitor === void 0 ? void 0 : removeMonitor(); this._removeListener(contained); });
+            if (disposables instanceof DisposableStore) {
+                disposables.add(result);
+            }
+            else if (Array.isArray(disposables)) {
+                disposables.push(result);
+            }
+            return result;
+        });
         return this._event;
+    }
+    _removeListener(listener) {
+        var _a, _b, _c, _d;
+        (_b = (_a = this._options) === null || _a === void 0 ? void 0 : _a.onWillRemoveListener) === null || _b === void 0 ? void 0 : _b.call(_a, this);
+        if (!this._listeners) {
+            return; // expected if a listener gets disposed
+        }
+        if (this._size === 1) {
+            this._listeners = undefined;
+            (_d = (_c = this._options) === null || _c === void 0 ? void 0 : _c.onDidRemoveLastListener) === null || _d === void 0 ? void 0 : _d.call(_c, this);
+            this._size = 0;
+            return;
+        }
+        // size > 1 which requires that listeners be a list:
+        const listeners = this._listeners;
+        const index = listeners.indexOf(listener);
+        if (index === -1) {
+            console.log('disposed?', this._disposed);
+            console.log('size?', this._size);
+            console.log('arr?', JSON.stringify(this._listeners));
+            throw new Error('Attempted to dispose unknown listener');
+        }
+        this._size--;
+        listeners[index] = undefined;
+        const adjustDeliveryQueue = this._deliveryQueue.current === this;
+        if (this._size * compactionThreshold <= listeners.length) {
+            let n = 0;
+            for (let i = 0; i < listeners.length; i++) {
+                if (listeners[i]) {
+                    listeners[n++] = listeners[i];
+                }
+                else if (adjustDeliveryQueue) {
+                    this._deliveryQueue.end--;
+                    if (n < this._deliveryQueue.i) {
+                        this._deliveryQueue.i--;
+                    }
+                }
+            }
+            listeners.length = n;
+        }
+    }
+    _deliver(listener, value) {
+        var _a;
+        if (!listener) {
+            return;
+        }
+        const errorHandler = ((_a = this._options) === null || _a === void 0 ? void 0 : _a.onListenerError) || onUnexpectedError;
+        if (!errorHandler) {
+            listener.value(value);
+            return;
+        }
+        try {
+            listener.value(value);
+        }
+        catch (e) {
+            errorHandler(e);
+        }
+    }
+    /** Delivers items in the queue. Assumes the queue is ready to go. */
+    _deliverQueue(dq) {
+        const listeners = dq.current._listeners;
+        while (dq.i < dq.end) {
+            // important: dq.i is incremented before calling deliver() because it might reenter deliverQueue()
+            this._deliver(listeners[dq.i++], dq.value);
+        }
+        dq.reset();
     }
     /**
      * To be kept private to fire an event to
      * subscribers
      */
     fire(event) {
-        var _a, _b;
-        if (this._listeners) {
-            // put all [listener,event]-pairs into delivery queue
-            // then emit all event. an inner/nested event might be
-            // the driver of this
-            if (!this._deliveryQueue) {
-                this._deliveryQueue = new PrivateEventDeliveryQueue();
-            }
-            for (const listener of this._listeners) {
-                this._deliveryQueue.push(this, listener, event);
-            }
-            // start/stop performance insight collection
-            (_a = this._perfMon) === null || _a === void 0 ? void 0 : _a.start(this._deliveryQueue.size);
-            this._deliveryQueue.deliver();
-            (_b = this._perfMon) === null || _b === void 0 ? void 0 : _b.stop();
+        var _a, _b, _c, _d;
+        if ((_a = this._deliveryQueue) === null || _a === void 0 ? void 0 : _a.current) {
+            this._deliverQueue(this._deliveryQueue);
+            (_b = this._perfMon) === null || _b === void 0 ? void 0 : _b.stop(); // last fire() will have starting perfmon, stop it before starting the next dispatch
         }
+        (_c = this._perfMon) === null || _c === void 0 ? void 0 : _c.start(this._size);
+        if (!this._listeners) {
+            // no-op
+        }
+        else if (this._listeners instanceof UniqueContainer) {
+            this._deliver(this._listeners, event);
+        }
+        else {
+            const dq = this._deliveryQueue;
+            dq.enqueue(this, event, this._listeners.length);
+            this._deliverQueue(dq);
+        }
+        (_d = this._perfMon) === null || _d === void 0 ? void 0 : _d.stop();
     }
     hasListeners() {
-        if (!this._listeners) {
-            return false;
-        }
-        return !this._listeners.isEmpty();
+        return this._size > 0;
     }
 }
-class EventDeliveryQueue {
+const createEventDeliveryQueue = () => new EventDeliveryQueuePrivate();
+class EventDeliveryQueuePrivate {
     constructor() {
-        this._queue = new linkedList_LinkedList();
+        /**
+         * Index in current's listener list.
+         */
+        this.i = -1;
+        /**
+         * The last index in the listener's list to deliver.
+         */
+        this.end = 0;
     }
-    get size() {
-        return this._queue.size;
+    enqueue(emitter, value, end) {
+        this.i = 0;
+        this.end = end;
+        this.current = emitter;
+        this.value = value;
     }
-    push(emitter, listener, event) {
-        this._queue.push(new EventDeliveryQueueElement(emitter, listener, event));
-    }
-    clear(emitter) {
-        const newQueue = new linkedList_LinkedList();
-        for (const element of this._queue) {
-            if (element.emitter !== emitter) {
-                newQueue.push(element);
-            }
-        }
-        this._queue = newQueue;
-    }
-    deliver() {
-        while (this._queue.size > 0) {
-            const element = this._queue.shift();
-            try {
-                element.listener.invoke(element.event);
-            }
-            catch (e) {
-                onUnexpectedError(e);
-            }
-        }
-    }
-}
-/**
- * An `EventDeliveryQueue` that is guaranteed to be used by a single `Emitter`.
- */
-class PrivateEventDeliveryQueue extends EventDeliveryQueue {
-    clear(emitter) {
-        // Here we can just clear the entire linked list because
-        // all elements are guaranteed to belong to this emitter
-        this._queue.clear();
-    }
-}
-class EventDeliveryQueueElement {
-    constructor(emitter, listener, event) {
-        this.emitter = emitter;
-        this.listener = listener;
-        this.event = event;
+    reset() {
+        this.i = this.end; // force any current emission loop to stop, mainly for during dispose
+        this.current = undefined;
+        this.value = undefined;
     }
 }
 class PauseableEmitter extends (/* unused pure expression or super */ null && (Emitter)) {
@@ -1937,7 +1806,7 @@ class PauseableEmitter extends (/* unused pure expression or super */ null && (E
         }
     }
     fire(event) {
-        if (this._listeners) {
+        if (this._size) {
             if (this._isPaused !== 0) {
                 this._eventQueue.push(event);
             }
@@ -1992,6 +1861,29 @@ class MicrotaskEmitter extends (/* unused pure expression or super */ null && (E
         }
     }
 }
+/**
+ * An event emitter that multiplexes many events into a single event.
+ *
+ * @example Listen to the `onData` event of all `Thing`s, dynamically adding and removing `Thing`s
+ * to the multiplexer as needed.
+ *
+ * ```typescript
+ * const anythingDataMultiplexer = new EventMultiplexer<{ data: string }>();
+ *
+ * const thingListeners = DisposableMap<Thing, IDisposable>();
+ *
+ * thingService.onDidAddThing(thing => {
+ *   thingListeners.set(thing, anythingDataMultiplexer.add(thing.onData);
+ * });
+ * thingService.onDidRemoveThing(thing => {
+ *   thingListeners.deleteAndDispose(thing);
+ * });
+ *
+ * anythingDataMultiplexer.event(e => {
+ *   console.log('Something fired data ' + e.data)
+ * });
+ * ```
+ */
 class EventMultiplexer {
     constructor() {
         this.hasListeners = false;
@@ -2017,7 +1909,7 @@ class EventMultiplexer {
             const idx = this.events.indexOf(e);
             this.events.splice(idx, 1);
         };
-        return toDisposable(onceFn(dispose));
+        return toDisposable(createSingleCallFunction(dispose));
     }
     onFirstListenerAdd() {
         this.hasListeners = true;
@@ -2274,10 +2166,9 @@ function objects_equals(one, other) {
 }
 function getAllPropertyNames(obj) {
     let res = [];
-    let proto = Object.getPrototypeOf(obj);
-    while (Object.prototype !== proto) {
-        res = res.concat(Object.getOwnPropertyNames(proto));
-        proto = Object.getPrototypeOf(proto);
+    while (Object.prototype !== obj) {
+        res = res.concat(Object.getOwnPropertyNames(obj));
+        obj = Object.getPrototypeOf(obj);
     }
     return res;
 }
@@ -2303,6 +2194,362 @@ function createProxyObject(methodNames, invoke) {
     }
     return result;
 }
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/nls.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+let isPseudo = (typeof document !== 'undefined' && document.location && document.location.hash.indexOf('pseudo=true') >= 0);
+const DEFAULT_TAG = 'i-default';
+function _format(message, args) {
+    let result;
+    if (args.length === 0) {
+        result = message;
+    }
+    else {
+        result = message.replace(/\{(\d+)\}/g, (match, rest) => {
+            const index = rest[0];
+            const arg = args[index];
+            let result = match;
+            if (typeof arg === 'string') {
+                result = arg;
+            }
+            else if (typeof arg === 'number' || typeof arg === 'boolean' || arg === void 0 || arg === null) {
+                result = String(arg);
+            }
+            return result;
+        });
+    }
+    if (isPseudo) {
+        // FF3B and FF3D is the Unicode zenkaku representation for [ and ]
+        result = '\uFF3B' + result.replace(/[aouei]/g, '$&$&') + '\uFF3D';
+    }
+    return result;
+}
+function findLanguageForModule(config, name) {
+    let result = config[name];
+    if (result) {
+        return result;
+    }
+    result = config['*'];
+    if (result) {
+        return result;
+    }
+    return null;
+}
+function endWithSlash(path) {
+    if (path.charAt(path.length - 1) === '/') {
+        return path;
+    }
+    return path + '/';
+}
+function getMessagesFromTranslationsService(translationServiceUrl, language, name) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const url = endWithSlash(translationServiceUrl) + endWithSlash(language) + 'vscode/' + endWithSlash(name);
+        const res = yield fetch(url);
+        if (res.ok) {
+            const messages = yield res.json();
+            return messages;
+        }
+        throw new Error(`${res.status} - ${res.statusText}`);
+    });
+}
+function createScopedLocalize(scope) {
+    return function (idx, defaultValue) {
+        const restArgs = Array.prototype.slice.call(arguments, 2);
+        return _format(scope[idx], restArgs);
+    };
+}
+/**
+ * @skipMangle
+ */
+function nls_localize(data, message, ...args) {
+    return _format(message, args);
+}
+/**
+ * @skipMangle
+ */
+function getConfiguredDefaultLocale(_) {
+    // This returns undefined because this implementation isn't used and is overwritten by the loader
+    // when loaded.
+    return undefined;
+}
+/**
+ * @skipMangle
+ */
+function setPseudoTranslation(value) {
+    isPseudo = value;
+}
+/**
+ * Invoked in a built product at run-time
+ * @skipMangle
+ */
+function create(key, data) {
+    var _a;
+    return {
+        localize: createScopedLocalize(data[key]),
+        getConfiguredDefaultLocale: (_a = data.getConfiguredDefaultLocale) !== null && _a !== void 0 ? _a : ((_) => undefined)
+    };
+}
+/**
+ * Invoked by the loader at run-time
+ * @skipMangle
+ */
+function load(name, req, load, config) {
+    var _a;
+    const pluginConfig = (_a = config['vs/nls']) !== null && _a !== void 0 ? _a : {};
+    if (!name || name.length === 0) {
+        // TODO: We need to give back the mangled names here
+        return load({
+            localize: nls_localize,
+            getConfiguredDefaultLocale: () => { var _a; return (_a = pluginConfig.availableLanguages) === null || _a === void 0 ? void 0 : _a['*']; }
+        });
+    }
+    const language = pluginConfig.availableLanguages ? findLanguageForModule(pluginConfig.availableLanguages, name) : null;
+    const useDefaultLanguage = language === null || language === DEFAULT_TAG;
+    let suffix = '.nls';
+    if (!useDefaultLanguage) {
+        suffix = suffix + '.' + language;
+    }
+    const messagesLoaded = (messages) => {
+        if (Array.isArray(messages)) {
+            messages.localize = createScopedLocalize(messages);
+        }
+        else {
+            messages.localize = createScopedLocalize(messages[name]);
+        }
+        messages.getConfiguredDefaultLocale = () => { var _a; return (_a = pluginConfig.availableLanguages) === null || _a === void 0 ? void 0 : _a['*']; };
+        load(messages);
+    };
+    if (typeof pluginConfig.loadBundle === 'function') {
+        pluginConfig.loadBundle(name, language, (err, messages) => {
+            // We have an error. Load the English default strings to not fail
+            if (err) {
+                req([name + '.nls'], messagesLoaded);
+            }
+            else {
+                messagesLoaded(messages);
+            }
+        });
+    }
+    else if (pluginConfig.translationServiceUrl && !useDefaultLanguage) {
+        (() => __awaiter(this, void 0, void 0, function* () {
+            var _b;
+            try {
+                const messages = yield getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, language, name);
+                return messagesLoaded(messages);
+            }
+            catch (err) {
+                // Language is already as generic as it gets, so require default messages
+                if (!language.includes('-')) {
+                    console.error(err);
+                    return req([name + '.nls'], messagesLoaded);
+                }
+                try {
+                    // Since there is a dash, the language configured is a specific sub-language of the same generic language.
+                    // Since we were unable to load the specific language, try to load the generic language. Ex. we failed to find a
+                    // Swiss German (de-CH), so try to load the generic German (de) messages instead.
+                    const genericLanguage = language.split('-')[0];
+                    const messages = yield getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, genericLanguage, name);
+                    // We got some messages, so we configure the configuration to use the generic language for this session.
+                    (_b = pluginConfig.availableLanguages) !== null && _b !== void 0 ? _b : (pluginConfig.availableLanguages = {});
+                    pluginConfig.availableLanguages['*'] = genericLanguage;
+                    return messagesLoaded(messages);
+                }
+                catch (err) {
+                    console.error(err);
+                    return req([name + '.nls'], messagesLoaded);
+                }
+            }
+        }))();
+    }
+    else {
+        req([name + suffix], messagesLoaded, (err) => {
+            if (suffix === '.nls') {
+                console.error('Failed trying to load default language strings', err);
+                return;
+            }
+            console.error(`Failed to load message bundle for language ${language}. Falling back to the default language:`, err);
+            req([name + '.nls'], messagesLoaded);
+        });
+    }
+}
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/platform.js
+var _a;
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+const LANGUAGE_DEFAULT = 'en';
+let _isWindows = false;
+let _isMacintosh = false;
+let _isLinux = false;
+let _isLinuxSnap = false;
+let _isNative = false;
+let _isWeb = false;
+let _isElectron = false;
+let _isIOS = false;
+let _isCI = false;
+let _isMobile = false;
+let _locale = undefined;
+let _language = (/* unused pure expression or super */ null && (LANGUAGE_DEFAULT));
+let _platformLocale = (/* unused pure expression or super */ null && (LANGUAGE_DEFAULT));
+let _translationsConfigFile = (/* unused pure expression or super */ null && (undefined));
+let _userAgent = undefined;
+/**
+ * @deprecated use `globalThis` instead
+ */
+const globals = (typeof self === 'object' ? self : typeof global === 'object' ? global : {});
+let nodeProcess = undefined;
+if (typeof globals.vscode !== 'undefined' && typeof globals.vscode.process !== 'undefined') {
+    // Native environment (sandboxed)
+    nodeProcess = globals.vscode.process;
+}
+else if (typeof process !== 'undefined') {
+    // Native environment (non-sandboxed)
+    nodeProcess = process;
+}
+const isElectronProcess = typeof ((_a = nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.versions) === null || _a === void 0 ? void 0 : _a.electron) === 'string';
+const isElectronRenderer = isElectronProcess && (nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.type) === 'renderer';
+// Web environment
+if (typeof navigator === 'object' && !isElectronRenderer) {
+    _userAgent = navigator.userAgent;
+    _isWindows = _userAgent.indexOf('Windows') >= 0;
+    _isMacintosh = _userAgent.indexOf('Macintosh') >= 0;
+    _isIOS = (_userAgent.indexOf('Macintosh') >= 0 || _userAgent.indexOf('iPad') >= 0 || _userAgent.indexOf('iPhone') >= 0) && !!navigator.maxTouchPoints && navigator.maxTouchPoints > 0;
+    _isLinux = _userAgent.indexOf('Linux') >= 0;
+    _isMobile = (_userAgent === null || _userAgent === void 0 ? void 0 : _userAgent.indexOf('Mobi')) >= 0;
+    _isWeb = true;
+    const configuredLocale = getConfiguredDefaultLocale(
+    // This call _must_ be done in the file that calls `nls.getConfiguredDefaultLocale`
+    // to ensure that the NLS AMD Loader plugin has been loaded and configured.
+    // This is because the loader plugin decides what the default locale is based on
+    // how it's able to resolve the strings.
+    nls_localize({ key: 'ensureLoaderPluginIsLoaded', comment: ['{Locked}'] }, '_'));
+    _locale = configuredLocale || LANGUAGE_DEFAULT;
+    _language = _locale;
+    _platformLocale = navigator.language;
+}
+// Native environment
+else if (typeof nodeProcess === 'object') {
+    _isWindows = (nodeProcess.platform === 'win32');
+    _isMacintosh = (nodeProcess.platform === 'darwin');
+    _isLinux = (nodeProcess.platform === 'linux');
+    _isLinuxSnap = _isLinux && !!nodeProcess.env['SNAP'] && !!nodeProcess.env['SNAP_REVISION'];
+    _isElectron = isElectronProcess;
+    _isCI = !!nodeProcess.env['CI'] || !!nodeProcess.env['BUILD_ARTIFACTSTAGINGDIRECTORY'];
+    _locale = LANGUAGE_DEFAULT;
+    _language = LANGUAGE_DEFAULT;
+    const rawNlsConfig = nodeProcess.env['VSCODE_NLS_CONFIG'];
+    if (rawNlsConfig) {
+        try {
+            const nlsConfig = JSON.parse(rawNlsConfig);
+            const resolved = nlsConfig.availableLanguages['*'];
+            _locale = nlsConfig.locale;
+            _platformLocale = nlsConfig.osLocale;
+            // VSCode's default language is 'en'
+            _language = resolved ? resolved : LANGUAGE_DEFAULT;
+            _translationsConfigFile = nlsConfig._translationsConfigFile;
+        }
+        catch (e) {
+        }
+    }
+    _isNative = true;
+}
+// Unknown environment
+else {
+    console.error('Unable to resolve platform.');
+}
+let _platform = 0 /* Platform.Web */;
+if (_isMacintosh) {
+    _platform = 1 /* Platform.Mac */;
+}
+else if (_isWindows) {
+    _platform = 3 /* Platform.Windows */;
+}
+else if (_isLinux) {
+    _platform = 2 /* Platform.Linux */;
+}
+const isWindows = _isWindows;
+const isMacintosh = _isMacintosh;
+const isLinux = (/* unused pure expression or super */ null && (_isLinux));
+const isNative = (/* unused pure expression or super */ null && (_isNative));
+const platform_isWeb = (/* unused pure expression or super */ null && (_isWeb));
+const isWebWorker = (_isWeb && typeof globals.importScripts === 'function');
+const isIOS = (/* unused pure expression or super */ null && (_isIOS));
+const isMobile = (/* unused pure expression or super */ null && (_isMobile));
+const userAgent = _userAgent;
+/**
+ * The language used for the user interface. The format of
+ * the string is all lower case (e.g. zh-tw for Traditional
+ * Chinese)
+ */
+const language = (/* unused pure expression or super */ null && (_language));
+const setTimeout0IsFaster = (typeof globals.postMessage === 'function' && !globals.importScripts);
+/**
+ * See https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#:~:text=than%204%2C%20then-,set%20timeout%20to%204,-.
+ *
+ * Works similarly to `setTimeout(0)` but doesn't suffer from the 4ms artificial delay
+ * that browsers set when the nesting level is > 5.
+ */
+const setTimeout0 = (() => {
+    if (setTimeout0IsFaster) {
+        const pending = [];
+        globals.addEventListener('message', (e) => {
+            if (e.data && e.data.vscodeScheduleAsyncWork) {
+                for (let i = 0, len = pending.length; i < len; i++) {
+                    const candidate = pending[i];
+                    if (candidate.id === e.data.vscodeScheduleAsyncWork) {
+                        pending.splice(i, 1);
+                        candidate.callback();
+                        return;
+                    }
+                }
+            }
+        });
+        let lastId = 0;
+        return (callback) => {
+            const myId = ++lastId;
+            pending.push({
+                id: myId,
+                callback: callback
+            });
+            globals.postMessage({ vscodeScheduleAsyncWork: myId }, '*');
+        };
+    }
+    return (callback) => setTimeout(callback);
+})();
+const OS = ((/* unused pure expression or super */ null && (_isMacintosh || _isIOS ? 2 /* OperatingSystem.Macintosh */ : (_isWindows ? 1 /* OperatingSystem.Windows */ : 3 /* OperatingSystem.Linux */))));
+let _isLittleEndian = true;
+let _isLittleEndianComputed = false;
+function isLittleEndian() {
+    if (!_isLittleEndianComputed) {
+        _isLittleEndianComputed = true;
+        const test = new Uint8Array(2);
+        test[0] = 1;
+        test[1] = 2;
+        const view = new Uint16Array(test.buffer);
+        _isLittleEndian = (view[0] === (2 << 8) + 1);
+    }
+    return _isLittleEndian;
+}
+const isChrome = !!(userAgent && userAgent.indexOf('Chrome') >= 0);
+const isFirefox = !!(userAgent && userAgent.indexOf('Firefox') >= 0);
+const isSafari = !!(!isChrome && (userAgent && userAgent.indexOf('Safari') >= 0));
+const isEdge = !!(userAgent && userAgent.indexOf('Edg/') >= 0);
+const isAndroid = !!(userAgent && userAgent.indexOf('Android') >= 0);
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/cache.js
 /**
@@ -2537,12 +2784,6 @@ function regExpLeadsToEndlessLoop(regexp) {
     // (e.g. ends in an endless loop) it will match an empty string.
     const match = regexp.exec('');
     return !!(match && regexp.lastIndex === 0);
-}
-function regExpFlags(regexp) {
-    return (regexp.global ? 'g' : '')
-        + (regexp.ignoreCase ? 'i' : '')
-        + (regexp.multiline ? 'm' : '')
-        + (regexp /* standalone editor compilation */.unicode ? 'u' : '');
 }
 function splitLines(str) {
     return str.split(/\r\n|\r|\n/);
@@ -3119,10 +3360,10 @@ function isEmojiModifier(codePoint) {
 const noBreakWhitespace = '\xa0';
 class AmbiguousCharacters {
     static getInstance(locales) {
-        return AmbiguousCharacters.cache.get(Array.from(locales));
+        return strings_a.cache.get(Array.from(locales));
     }
     static getLocales() {
-        return AmbiguousCharacters._locales.value;
+        return strings_a._locales.value;
     }
     constructor(confusableDictionary) {
         this.confusableDictionary = confusableDictionary;
@@ -3145,7 +3386,7 @@ strings_a = AmbiguousCharacters;
 AmbiguousCharacters.ambiguousCharacterData = new Lazy(() => {
     // Generated using https://github.com/hediet/vscode-unicode-data
     // Stored as key1, value1, key2, value2, ...
-    return JSON.parse('{\"_common\":[8232,32,8233,32,5760,32,8192,32,8193,32,8194,32,8195,32,8196,32,8197,32,8198,32,8200,32,8201,32,8202,32,8287,32,8199,32,8239,32,2042,95,65101,95,65102,95,65103,95,8208,45,8209,45,8210,45,65112,45,1748,45,8259,45,727,45,8722,45,10134,45,11450,45,1549,44,1643,44,8218,44,184,44,42233,44,894,59,2307,58,2691,58,1417,58,1795,58,1796,58,5868,58,65072,58,6147,58,6153,58,8282,58,1475,58,760,58,42889,58,8758,58,720,58,42237,58,451,33,11601,33,660,63,577,63,2429,63,5038,63,42731,63,119149,46,8228,46,1793,46,1794,46,42510,46,68176,46,1632,46,1776,46,42232,46,1373,96,65287,96,8219,96,8242,96,1370,96,1523,96,8175,96,65344,96,900,96,8189,96,8125,96,8127,96,8190,96,697,96,884,96,712,96,714,96,715,96,756,96,699,96,701,96,700,96,702,96,42892,96,1497,96,2036,96,2037,96,5194,96,5836,96,94033,96,94034,96,65339,91,10088,40,10098,40,12308,40,64830,40,65341,93,10089,41,10099,41,12309,41,64831,41,10100,123,119060,123,10101,125,65342,94,8270,42,1645,42,8727,42,66335,42,5941,47,8257,47,8725,47,8260,47,9585,47,10187,47,10744,47,119354,47,12755,47,12339,47,11462,47,20031,47,12035,47,65340,92,65128,92,8726,92,10189,92,10741,92,10745,92,119311,92,119355,92,12756,92,20022,92,12034,92,42872,38,708,94,710,94,5869,43,10133,43,66203,43,8249,60,10094,60,706,60,119350,60,5176,60,5810,60,5120,61,11840,61,12448,61,42239,61,8250,62,10095,62,707,62,119351,62,5171,62,94015,62,8275,126,732,126,8128,126,8764,126,65372,124,65293,45,120784,50,120794,50,120804,50,120814,50,120824,50,130034,50,42842,50,423,50,1000,50,42564,50,5311,50,42735,50,119302,51,120785,51,120795,51,120805,51,120815,51,120825,51,130035,51,42923,51,540,51,439,51,42858,51,11468,51,1248,51,94011,51,71882,51,120786,52,120796,52,120806,52,120816,52,120826,52,130036,52,5070,52,71855,52,120787,53,120797,53,120807,53,120817,53,120827,53,130037,53,444,53,71867,53,120788,54,120798,54,120808,54,120818,54,120828,54,130038,54,11474,54,5102,54,71893,54,119314,55,120789,55,120799,55,120809,55,120819,55,120829,55,130039,55,66770,55,71878,55,2819,56,2538,56,2666,56,125131,56,120790,56,120800,56,120810,56,120820,56,120830,56,130040,56,547,56,546,56,66330,56,2663,57,2920,57,2541,57,3437,57,120791,57,120801,57,120811,57,120821,57,120831,57,130041,57,42862,57,11466,57,71884,57,71852,57,71894,57,9082,97,65345,97,119834,97,119886,97,119938,97,119990,97,120042,97,120094,97,120146,97,120198,97,120250,97,120302,97,120354,97,120406,97,120458,97,593,97,945,97,120514,97,120572,97,120630,97,120688,97,120746,97,65313,65,119808,65,119860,65,119912,65,119964,65,120016,65,120068,65,120120,65,120172,65,120224,65,120276,65,120328,65,120380,65,120432,65,913,65,120488,65,120546,65,120604,65,120662,65,120720,65,5034,65,5573,65,42222,65,94016,65,66208,65,119835,98,119887,98,119939,98,119991,98,120043,98,120095,98,120147,98,120199,98,120251,98,120303,98,120355,98,120407,98,120459,98,388,98,5071,98,5234,98,5551,98,65314,66,8492,66,119809,66,119861,66,119913,66,120017,66,120069,66,120121,66,120173,66,120225,66,120277,66,120329,66,120381,66,120433,66,42932,66,914,66,120489,66,120547,66,120605,66,120663,66,120721,66,5108,66,5623,66,42192,66,66178,66,66209,66,66305,66,65347,99,8573,99,119836,99,119888,99,119940,99,119992,99,120044,99,120096,99,120148,99,120200,99,120252,99,120304,99,120356,99,120408,99,120460,99,7428,99,1010,99,11429,99,43951,99,66621,99,128844,67,71922,67,71913,67,65315,67,8557,67,8450,67,8493,67,119810,67,119862,67,119914,67,119966,67,120018,67,120174,67,120226,67,120278,67,120330,67,120382,67,120434,67,1017,67,11428,67,5087,67,42202,67,66210,67,66306,67,66581,67,66844,67,8574,100,8518,100,119837,100,119889,100,119941,100,119993,100,120045,100,120097,100,120149,100,120201,100,120253,100,120305,100,120357,100,120409,100,120461,100,1281,100,5095,100,5231,100,42194,100,8558,68,8517,68,119811,68,119863,68,119915,68,119967,68,120019,68,120071,68,120123,68,120175,68,120227,68,120279,68,120331,68,120383,68,120435,68,5024,68,5598,68,5610,68,42195,68,8494,101,65349,101,8495,101,8519,101,119838,101,119890,101,119942,101,120046,101,120098,101,120150,101,120202,101,120254,101,120306,101,120358,101,120410,101,120462,101,43826,101,1213,101,8959,69,65317,69,8496,69,119812,69,119864,69,119916,69,120020,69,120072,69,120124,69,120176,69,120228,69,120280,69,120332,69,120384,69,120436,69,917,69,120492,69,120550,69,120608,69,120666,69,120724,69,11577,69,5036,69,42224,69,71846,69,71854,69,66182,69,119839,102,119891,102,119943,102,119995,102,120047,102,120099,102,120151,102,120203,102,120255,102,120307,102,120359,102,120411,102,120463,102,43829,102,42905,102,383,102,7837,102,1412,102,119315,70,8497,70,119813,70,119865,70,119917,70,120021,70,120073,70,120125,70,120177,70,120229,70,120281,70,120333,70,120385,70,120437,70,42904,70,988,70,120778,70,5556,70,42205,70,71874,70,71842,70,66183,70,66213,70,66853,70,65351,103,8458,103,119840,103,119892,103,119944,103,120048,103,120100,103,120152,103,120204,103,120256,103,120308,103,120360,103,120412,103,120464,103,609,103,7555,103,397,103,1409,103,119814,71,119866,71,119918,71,119970,71,120022,71,120074,71,120126,71,120178,71,120230,71,120282,71,120334,71,120386,71,120438,71,1292,71,5056,71,5107,71,42198,71,65352,104,8462,104,119841,104,119945,104,119997,104,120049,104,120101,104,120153,104,120205,104,120257,104,120309,104,120361,104,120413,104,120465,104,1211,104,1392,104,5058,104,65320,72,8459,72,8460,72,8461,72,119815,72,119867,72,119919,72,120023,72,120179,72,120231,72,120283,72,120335,72,120387,72,120439,72,919,72,120494,72,120552,72,120610,72,120668,72,120726,72,11406,72,5051,72,5500,72,42215,72,66255,72,731,105,9075,105,65353,105,8560,105,8505,105,8520,105,119842,105,119894,105,119946,105,119998,105,120050,105,120102,105,120154,105,120206,105,120258,105,120310,105,120362,105,120414,105,120466,105,120484,105,618,105,617,105,953,105,8126,105,890,105,120522,105,120580,105,120638,105,120696,105,120754,105,1110,105,42567,105,1231,105,43893,105,5029,105,71875,105,65354,106,8521,106,119843,106,119895,106,119947,106,119999,106,120051,106,120103,106,120155,106,120207,106,120259,106,120311,106,120363,106,120415,106,120467,106,1011,106,1112,106,65322,74,119817,74,119869,74,119921,74,119973,74,120025,74,120077,74,120129,74,120181,74,120233,74,120285,74,120337,74,120389,74,120441,74,42930,74,895,74,1032,74,5035,74,5261,74,42201,74,119844,107,119896,107,119948,107,120000,107,120052,107,120104,107,120156,107,120208,107,120260,107,120312,107,120364,107,120416,107,120468,107,8490,75,65323,75,119818,75,119870,75,119922,75,119974,75,120026,75,120078,75,120130,75,120182,75,120234,75,120286,75,120338,75,120390,75,120442,75,922,75,120497,75,120555,75,120613,75,120671,75,120729,75,11412,75,5094,75,5845,75,42199,75,66840,75,1472,108,8739,73,9213,73,65512,73,1633,108,1777,73,66336,108,125127,108,120783,73,120793,73,120803,73,120813,73,120823,73,130033,73,65321,73,8544,73,8464,73,8465,73,119816,73,119868,73,119920,73,120024,73,120128,73,120180,73,120232,73,120284,73,120336,73,120388,73,120440,73,65356,108,8572,73,8467,108,119845,108,119897,108,119949,108,120001,108,120053,108,120105,73,120157,73,120209,73,120261,73,120313,73,120365,73,120417,73,120469,73,448,73,120496,73,120554,73,120612,73,120670,73,120728,73,11410,73,1030,73,1216,73,1493,108,1503,108,1575,108,126464,108,126592,108,65166,108,65165,108,1994,108,11599,73,5825,73,42226,73,93992,73,66186,124,66313,124,119338,76,8556,76,8466,76,119819,76,119871,76,119923,76,120027,76,120079,76,120131,76,120183,76,120235,76,120287,76,120339,76,120391,76,120443,76,11472,76,5086,76,5290,76,42209,76,93974,76,71843,76,71858,76,66587,76,66854,76,65325,77,8559,77,8499,77,119820,77,119872,77,119924,77,120028,77,120080,77,120132,77,120184,77,120236,77,120288,77,120340,77,120392,77,120444,77,924,77,120499,77,120557,77,120615,77,120673,77,120731,77,1018,77,11416,77,5047,77,5616,77,5846,77,42207,77,66224,77,66321,77,119847,110,119899,110,119951,110,120003,110,120055,110,120107,110,120159,110,120211,110,120263,110,120315,110,120367,110,120419,110,120471,110,1400,110,1404,110,65326,78,8469,78,119821,78,119873,78,119925,78,119977,78,120029,78,120081,78,120185,78,120237,78,120289,78,120341,78,120393,78,120445,78,925,78,120500,78,120558,78,120616,78,120674,78,120732,78,11418,78,42208,78,66835,78,3074,111,3202,111,3330,111,3458,111,2406,111,2662,111,2790,111,3046,111,3174,111,3302,111,3430,111,3664,111,3792,111,4160,111,1637,111,1781,111,65359,111,8500,111,119848,111,119900,111,119952,111,120056,111,120108,111,120160,111,120212,111,120264,111,120316,111,120368,111,120420,111,120472,111,7439,111,7441,111,43837,111,959,111,120528,111,120586,111,120644,111,120702,111,120760,111,963,111,120532,111,120590,111,120648,111,120706,111,120764,111,11423,111,4351,111,1413,111,1505,111,1607,111,126500,111,126564,111,126596,111,65259,111,65260,111,65258,111,65257,111,1726,111,64428,111,64429,111,64427,111,64426,111,1729,111,64424,111,64425,111,64423,111,64422,111,1749,111,3360,111,4125,111,66794,111,71880,111,71895,111,66604,111,1984,79,2534,79,2918,79,12295,79,70864,79,71904,79,120782,79,120792,79,120802,79,120812,79,120822,79,130032,79,65327,79,119822,79,119874,79,119926,79,119978,79,120030,79,120082,79,120134,79,120186,79,120238,79,120290,79,120342,79,120394,79,120446,79,927,79,120502,79,120560,79,120618,79,120676,79,120734,79,11422,79,1365,79,11604,79,4816,79,2848,79,66754,79,42227,79,71861,79,66194,79,66219,79,66564,79,66838,79,9076,112,65360,112,119849,112,119901,112,119953,112,120005,112,120057,112,120109,112,120161,112,120213,112,120265,112,120317,112,120369,112,120421,112,120473,112,961,112,120530,112,120544,112,120588,112,120602,112,120646,112,120660,112,120704,112,120718,112,120762,112,120776,112,11427,112,65328,80,8473,80,119823,80,119875,80,119927,80,119979,80,120031,80,120083,80,120187,80,120239,80,120291,80,120343,80,120395,80,120447,80,929,80,120504,80,120562,80,120620,80,120678,80,120736,80,11426,80,5090,80,5229,80,42193,80,66197,80,119850,113,119902,113,119954,113,120006,113,120058,113,120110,113,120162,113,120214,113,120266,113,120318,113,120370,113,120422,113,120474,113,1307,113,1379,113,1382,113,8474,81,119824,81,119876,81,119928,81,119980,81,120032,81,120084,81,120188,81,120240,81,120292,81,120344,81,120396,81,120448,81,11605,81,119851,114,119903,114,119955,114,120007,114,120059,114,120111,114,120163,114,120215,114,120267,114,120319,114,120371,114,120423,114,120475,114,43847,114,43848,114,7462,114,11397,114,43905,114,119318,82,8475,82,8476,82,8477,82,119825,82,119877,82,119929,82,120033,82,120189,82,120241,82,120293,82,120345,82,120397,82,120449,82,422,82,5025,82,5074,82,66740,82,5511,82,42211,82,94005,82,65363,115,119852,115,119904,115,119956,115,120008,115,120060,115,120112,115,120164,115,120216,115,120268,115,120320,115,120372,115,120424,115,120476,115,42801,115,445,115,1109,115,43946,115,71873,115,66632,115,65331,83,119826,83,119878,83,119930,83,119982,83,120034,83,120086,83,120138,83,120190,83,120242,83,120294,83,120346,83,120398,83,120450,83,1029,83,1359,83,5077,83,5082,83,42210,83,94010,83,66198,83,66592,83,119853,116,119905,116,119957,116,120009,116,120061,116,120113,116,120165,116,120217,116,120269,116,120321,116,120373,116,120425,116,120477,116,8868,84,10201,84,128872,84,65332,84,119827,84,119879,84,119931,84,119983,84,120035,84,120087,84,120139,84,120191,84,120243,84,120295,84,120347,84,120399,84,120451,84,932,84,120507,84,120565,84,120623,84,120681,84,120739,84,11430,84,5026,84,42196,84,93962,84,71868,84,66199,84,66225,84,66325,84,119854,117,119906,117,119958,117,120010,117,120062,117,120114,117,120166,117,120218,117,120270,117,120322,117,120374,117,120426,117,120478,117,42911,117,7452,117,43854,117,43858,117,651,117,965,117,120534,117,120592,117,120650,117,120708,117,120766,117,1405,117,66806,117,71896,117,8746,85,8899,85,119828,85,119880,85,119932,85,119984,85,120036,85,120088,85,120140,85,120192,85,120244,85,120296,85,120348,85,120400,85,120452,85,1357,85,4608,85,66766,85,5196,85,42228,85,94018,85,71864,85,8744,118,8897,118,65366,118,8564,118,119855,118,119907,118,119959,118,120011,118,120063,118,120115,118,120167,118,120219,118,120271,118,120323,118,120375,118,120427,118,120479,118,7456,118,957,118,120526,118,120584,118,120642,118,120700,118,120758,118,1141,118,1496,118,71430,118,43945,118,71872,118,119309,86,1639,86,1783,86,8548,86,119829,86,119881,86,119933,86,119985,86,120037,86,120089,86,120141,86,120193,86,120245,86,120297,86,120349,86,120401,86,120453,86,1140,86,11576,86,5081,86,5167,86,42719,86,42214,86,93960,86,71840,86,66845,86,623,119,119856,119,119908,119,119960,119,120012,119,120064,119,120116,119,120168,119,120220,119,120272,119,120324,119,120376,119,120428,119,120480,119,7457,119,1121,119,1309,119,1377,119,71434,119,71438,119,71439,119,43907,119,71919,87,71910,87,119830,87,119882,87,119934,87,119986,87,120038,87,120090,87,120142,87,120194,87,120246,87,120298,87,120350,87,120402,87,120454,87,1308,87,5043,87,5076,87,42218,87,5742,120,10539,120,10540,120,10799,120,65368,120,8569,120,119857,120,119909,120,119961,120,120013,120,120065,120,120117,120,120169,120,120221,120,120273,120,120325,120,120377,120,120429,120,120481,120,5441,120,5501,120,5741,88,9587,88,66338,88,71916,88,65336,88,8553,88,119831,88,119883,88,119935,88,119987,88,120039,88,120091,88,120143,88,120195,88,120247,88,120299,88,120351,88,120403,88,120455,88,42931,88,935,88,120510,88,120568,88,120626,88,120684,88,120742,88,11436,88,11613,88,5815,88,42219,88,66192,88,66228,88,66327,88,66855,88,611,121,7564,121,65369,121,119858,121,119910,121,119962,121,120014,121,120066,121,120118,121,120170,121,120222,121,120274,121,120326,121,120378,121,120430,121,120482,121,655,121,7935,121,43866,121,947,121,8509,121,120516,121,120574,121,120632,121,120690,121,120748,121,1199,121,4327,121,71900,121,65337,89,119832,89,119884,89,119936,89,119988,89,120040,89,120092,89,120144,89,120196,89,120248,89,120300,89,120352,89,120404,89,120456,89,933,89,978,89,120508,89,120566,89,120624,89,120682,89,120740,89,11432,89,1198,89,5033,89,5053,89,42220,89,94019,89,71844,89,66226,89,119859,122,119911,122,119963,122,120015,122,120067,122,120119,122,120171,122,120223,122,120275,122,120327,122,120379,122,120431,122,120483,122,7458,122,43923,122,71876,122,66293,90,71909,90,65338,90,8484,90,8488,90,119833,90,119885,90,119937,90,119989,90,120041,90,120197,90,120249,90,120301,90,120353,90,120405,90,120457,90,918,90,120493,90,120551,90,120609,90,120667,90,120725,90,5059,90,42204,90,71849,90,65282,34,65284,36,65285,37,65286,38,65290,42,65291,43,65294,46,65295,47,65296,48,65297,49,65298,50,65299,51,65300,52,65301,53,65302,54,65303,55,65304,56,65305,57,65308,60,65309,61,65310,62,65312,64,65316,68,65318,70,65319,71,65324,76,65329,81,65330,82,65333,85,65334,86,65335,87,65343,95,65346,98,65348,100,65350,102,65355,107,65357,109,65358,110,65361,113,65362,114,65364,116,65365,117,65367,119,65370,122,65371,123,65373,125],\"_default\":[160,32,8211,45,65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"cs\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"de\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"es\":[8211,45,65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"fr\":[65374,126,65306,58,65281,33,8216,96,8245,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"it\":[160,32,8211,45,65374,126,65306,58,65281,33,8216,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"ja\":[8211,45,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65292,44,65307,59],\"ko\":[8211,45,65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"pl\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"pt-BR\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"qps-ploc\":[160,32,8211,45,65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"ru\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,305,105,921,73,1009,112,215,120,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"tr\":[160,32,8211,45,65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"zh-hans\":[65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65288,40,65289,41],\"zh-hant\":[8211,45,65374,126,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65307,59]}');
+    return JSON.parse('{\"_common\":[8232,32,8233,32,5760,32,8192,32,8193,32,8194,32,8195,32,8196,32,8197,32,8198,32,8200,32,8201,32,8202,32,8287,32,8199,32,8239,32,2042,95,65101,95,65102,95,65103,95,8208,45,8209,45,8210,45,65112,45,1748,45,8259,45,727,45,8722,45,10134,45,11450,45,1549,44,1643,44,8218,44,184,44,42233,44,894,59,2307,58,2691,58,1417,58,1795,58,1796,58,5868,58,65072,58,6147,58,6153,58,8282,58,1475,58,760,58,42889,58,8758,58,720,58,42237,58,451,33,11601,33,660,63,577,63,2429,63,5038,63,42731,63,119149,46,8228,46,1793,46,1794,46,42510,46,68176,46,1632,46,1776,46,42232,46,1373,96,65287,96,8219,96,8242,96,1370,96,1523,96,8175,96,65344,96,900,96,8189,96,8125,96,8127,96,8190,96,697,96,884,96,712,96,714,96,715,96,756,96,699,96,701,96,700,96,702,96,42892,96,1497,96,2036,96,2037,96,5194,96,5836,96,94033,96,94034,96,65339,91,10088,40,10098,40,12308,40,64830,40,65341,93,10089,41,10099,41,12309,41,64831,41,10100,123,119060,123,10101,125,65342,94,8270,42,1645,42,8727,42,66335,42,5941,47,8257,47,8725,47,8260,47,9585,47,10187,47,10744,47,119354,47,12755,47,12339,47,11462,47,20031,47,12035,47,65340,92,65128,92,8726,92,10189,92,10741,92,10745,92,119311,92,119355,92,12756,92,20022,92,12034,92,42872,38,708,94,710,94,5869,43,10133,43,66203,43,8249,60,10094,60,706,60,119350,60,5176,60,5810,60,5120,61,11840,61,12448,61,42239,61,8250,62,10095,62,707,62,119351,62,5171,62,94015,62,8275,126,732,126,8128,126,8764,126,65372,124,65293,45,120784,50,120794,50,120804,50,120814,50,120824,50,130034,50,42842,50,423,50,1000,50,42564,50,5311,50,42735,50,119302,51,120785,51,120795,51,120805,51,120815,51,120825,51,130035,51,42923,51,540,51,439,51,42858,51,11468,51,1248,51,94011,51,71882,51,120786,52,120796,52,120806,52,120816,52,120826,52,130036,52,5070,52,71855,52,120787,53,120797,53,120807,53,120817,53,120827,53,130037,53,444,53,71867,53,120788,54,120798,54,120808,54,120818,54,120828,54,130038,54,11474,54,5102,54,71893,54,119314,55,120789,55,120799,55,120809,55,120819,55,120829,55,130039,55,66770,55,71878,55,2819,56,2538,56,2666,56,125131,56,120790,56,120800,56,120810,56,120820,56,120830,56,130040,56,547,56,546,56,66330,56,2663,57,2920,57,2541,57,3437,57,120791,57,120801,57,120811,57,120821,57,120831,57,130041,57,42862,57,11466,57,71884,57,71852,57,71894,57,9082,97,65345,97,119834,97,119886,97,119938,97,119990,97,120042,97,120094,97,120146,97,120198,97,120250,97,120302,97,120354,97,120406,97,120458,97,593,97,945,97,120514,97,120572,97,120630,97,120688,97,120746,97,65313,65,119808,65,119860,65,119912,65,119964,65,120016,65,120068,65,120120,65,120172,65,120224,65,120276,65,120328,65,120380,65,120432,65,913,65,120488,65,120546,65,120604,65,120662,65,120720,65,5034,65,5573,65,42222,65,94016,65,66208,65,119835,98,119887,98,119939,98,119991,98,120043,98,120095,98,120147,98,120199,98,120251,98,120303,98,120355,98,120407,98,120459,98,388,98,5071,98,5234,98,5551,98,65314,66,8492,66,119809,66,119861,66,119913,66,120017,66,120069,66,120121,66,120173,66,120225,66,120277,66,120329,66,120381,66,120433,66,42932,66,914,66,120489,66,120547,66,120605,66,120663,66,120721,66,5108,66,5623,66,42192,66,66178,66,66209,66,66305,66,65347,99,8573,99,119836,99,119888,99,119940,99,119992,99,120044,99,120096,99,120148,99,120200,99,120252,99,120304,99,120356,99,120408,99,120460,99,7428,99,1010,99,11429,99,43951,99,66621,99,128844,67,71922,67,71913,67,65315,67,8557,67,8450,67,8493,67,119810,67,119862,67,119914,67,119966,67,120018,67,120174,67,120226,67,120278,67,120330,67,120382,67,120434,67,1017,67,11428,67,5087,67,42202,67,66210,67,66306,67,66581,67,66844,67,8574,100,8518,100,119837,100,119889,100,119941,100,119993,100,120045,100,120097,100,120149,100,120201,100,120253,100,120305,100,120357,100,120409,100,120461,100,1281,100,5095,100,5231,100,42194,100,8558,68,8517,68,119811,68,119863,68,119915,68,119967,68,120019,68,120071,68,120123,68,120175,68,120227,68,120279,68,120331,68,120383,68,120435,68,5024,68,5598,68,5610,68,42195,68,8494,101,65349,101,8495,101,8519,101,119838,101,119890,101,119942,101,120046,101,120098,101,120150,101,120202,101,120254,101,120306,101,120358,101,120410,101,120462,101,43826,101,1213,101,8959,69,65317,69,8496,69,119812,69,119864,69,119916,69,120020,69,120072,69,120124,69,120176,69,120228,69,120280,69,120332,69,120384,69,120436,69,917,69,120492,69,120550,69,120608,69,120666,69,120724,69,11577,69,5036,69,42224,69,71846,69,71854,69,66182,69,119839,102,119891,102,119943,102,119995,102,120047,102,120099,102,120151,102,120203,102,120255,102,120307,102,120359,102,120411,102,120463,102,43829,102,42905,102,383,102,7837,102,1412,102,119315,70,8497,70,119813,70,119865,70,119917,70,120021,70,120073,70,120125,70,120177,70,120229,70,120281,70,120333,70,120385,70,120437,70,42904,70,988,70,120778,70,5556,70,42205,70,71874,70,71842,70,66183,70,66213,70,66853,70,65351,103,8458,103,119840,103,119892,103,119944,103,120048,103,120100,103,120152,103,120204,103,120256,103,120308,103,120360,103,120412,103,120464,103,609,103,7555,103,397,103,1409,103,119814,71,119866,71,119918,71,119970,71,120022,71,120074,71,120126,71,120178,71,120230,71,120282,71,120334,71,120386,71,120438,71,1292,71,5056,71,5107,71,42198,71,65352,104,8462,104,119841,104,119945,104,119997,104,120049,104,120101,104,120153,104,120205,104,120257,104,120309,104,120361,104,120413,104,120465,104,1211,104,1392,104,5058,104,65320,72,8459,72,8460,72,8461,72,119815,72,119867,72,119919,72,120023,72,120179,72,120231,72,120283,72,120335,72,120387,72,120439,72,919,72,120494,72,120552,72,120610,72,120668,72,120726,72,11406,72,5051,72,5500,72,42215,72,66255,72,731,105,9075,105,65353,105,8560,105,8505,105,8520,105,119842,105,119894,105,119946,105,119998,105,120050,105,120102,105,120154,105,120206,105,120258,105,120310,105,120362,105,120414,105,120466,105,120484,105,618,105,617,105,953,105,8126,105,890,105,120522,105,120580,105,120638,105,120696,105,120754,105,1110,105,42567,105,1231,105,43893,105,5029,105,71875,105,65354,106,8521,106,119843,106,119895,106,119947,106,119999,106,120051,106,120103,106,120155,106,120207,106,120259,106,120311,106,120363,106,120415,106,120467,106,1011,106,1112,106,65322,74,119817,74,119869,74,119921,74,119973,74,120025,74,120077,74,120129,74,120181,74,120233,74,120285,74,120337,74,120389,74,120441,74,42930,74,895,74,1032,74,5035,74,5261,74,42201,74,119844,107,119896,107,119948,107,120000,107,120052,107,120104,107,120156,107,120208,107,120260,107,120312,107,120364,107,120416,107,120468,107,8490,75,65323,75,119818,75,119870,75,119922,75,119974,75,120026,75,120078,75,120130,75,120182,75,120234,75,120286,75,120338,75,120390,75,120442,75,922,75,120497,75,120555,75,120613,75,120671,75,120729,75,11412,75,5094,75,5845,75,42199,75,66840,75,1472,108,8739,73,9213,73,65512,73,1633,108,1777,73,66336,108,125127,108,120783,73,120793,73,120803,73,120813,73,120823,73,130033,73,65321,73,8544,73,8464,73,8465,73,119816,73,119868,73,119920,73,120024,73,120128,73,120180,73,120232,73,120284,73,120336,73,120388,73,120440,73,65356,108,8572,73,8467,108,119845,108,119897,108,119949,108,120001,108,120053,108,120105,73,120157,73,120209,73,120261,73,120313,73,120365,73,120417,73,120469,73,448,73,120496,73,120554,73,120612,73,120670,73,120728,73,11410,73,1030,73,1216,73,1493,108,1503,108,1575,108,126464,108,126592,108,65166,108,65165,108,1994,108,11599,73,5825,73,42226,73,93992,73,66186,124,66313,124,119338,76,8556,76,8466,76,119819,76,119871,76,119923,76,120027,76,120079,76,120131,76,120183,76,120235,76,120287,76,120339,76,120391,76,120443,76,11472,76,5086,76,5290,76,42209,76,93974,76,71843,76,71858,76,66587,76,66854,76,65325,77,8559,77,8499,77,119820,77,119872,77,119924,77,120028,77,120080,77,120132,77,120184,77,120236,77,120288,77,120340,77,120392,77,120444,77,924,77,120499,77,120557,77,120615,77,120673,77,120731,77,1018,77,11416,77,5047,77,5616,77,5846,77,42207,77,66224,77,66321,77,119847,110,119899,110,119951,110,120003,110,120055,110,120107,110,120159,110,120211,110,120263,110,120315,110,120367,110,120419,110,120471,110,1400,110,1404,110,65326,78,8469,78,119821,78,119873,78,119925,78,119977,78,120029,78,120081,78,120185,78,120237,78,120289,78,120341,78,120393,78,120445,78,925,78,120500,78,120558,78,120616,78,120674,78,120732,78,11418,78,42208,78,66835,78,3074,111,3202,111,3330,111,3458,111,2406,111,2662,111,2790,111,3046,111,3174,111,3302,111,3430,111,3664,111,3792,111,4160,111,1637,111,1781,111,65359,111,8500,111,119848,111,119900,111,119952,111,120056,111,120108,111,120160,111,120212,111,120264,111,120316,111,120368,111,120420,111,120472,111,7439,111,7441,111,43837,111,959,111,120528,111,120586,111,120644,111,120702,111,120760,111,963,111,120532,111,120590,111,120648,111,120706,111,120764,111,11423,111,4351,111,1413,111,1505,111,1607,111,126500,111,126564,111,126596,111,65259,111,65260,111,65258,111,65257,111,1726,111,64428,111,64429,111,64427,111,64426,111,1729,111,64424,111,64425,111,64423,111,64422,111,1749,111,3360,111,4125,111,66794,111,71880,111,71895,111,66604,111,1984,79,2534,79,2918,79,12295,79,70864,79,71904,79,120782,79,120792,79,120802,79,120812,79,120822,79,130032,79,65327,79,119822,79,119874,79,119926,79,119978,79,120030,79,120082,79,120134,79,120186,79,120238,79,120290,79,120342,79,120394,79,120446,79,927,79,120502,79,120560,79,120618,79,120676,79,120734,79,11422,79,1365,79,11604,79,4816,79,2848,79,66754,79,42227,79,71861,79,66194,79,66219,79,66564,79,66838,79,9076,112,65360,112,119849,112,119901,112,119953,112,120005,112,120057,112,120109,112,120161,112,120213,112,120265,112,120317,112,120369,112,120421,112,120473,112,961,112,120530,112,120544,112,120588,112,120602,112,120646,112,120660,112,120704,112,120718,112,120762,112,120776,112,11427,112,65328,80,8473,80,119823,80,119875,80,119927,80,119979,80,120031,80,120083,80,120187,80,120239,80,120291,80,120343,80,120395,80,120447,80,929,80,120504,80,120562,80,120620,80,120678,80,120736,80,11426,80,5090,80,5229,80,42193,80,66197,80,119850,113,119902,113,119954,113,120006,113,120058,113,120110,113,120162,113,120214,113,120266,113,120318,113,120370,113,120422,113,120474,113,1307,113,1379,113,1382,113,8474,81,119824,81,119876,81,119928,81,119980,81,120032,81,120084,81,120188,81,120240,81,120292,81,120344,81,120396,81,120448,81,11605,81,119851,114,119903,114,119955,114,120007,114,120059,114,120111,114,120163,114,120215,114,120267,114,120319,114,120371,114,120423,114,120475,114,43847,114,43848,114,7462,114,11397,114,43905,114,119318,82,8475,82,8476,82,8477,82,119825,82,119877,82,119929,82,120033,82,120189,82,120241,82,120293,82,120345,82,120397,82,120449,82,422,82,5025,82,5074,82,66740,82,5511,82,42211,82,94005,82,65363,115,119852,115,119904,115,119956,115,120008,115,120060,115,120112,115,120164,115,120216,115,120268,115,120320,115,120372,115,120424,115,120476,115,42801,115,445,115,1109,115,43946,115,71873,115,66632,115,65331,83,119826,83,119878,83,119930,83,119982,83,120034,83,120086,83,120138,83,120190,83,120242,83,120294,83,120346,83,120398,83,120450,83,1029,83,1359,83,5077,83,5082,83,42210,83,94010,83,66198,83,66592,83,119853,116,119905,116,119957,116,120009,116,120061,116,120113,116,120165,116,120217,116,120269,116,120321,116,120373,116,120425,116,120477,116,8868,84,10201,84,128872,84,65332,84,119827,84,119879,84,119931,84,119983,84,120035,84,120087,84,120139,84,120191,84,120243,84,120295,84,120347,84,120399,84,120451,84,932,84,120507,84,120565,84,120623,84,120681,84,120739,84,11430,84,5026,84,42196,84,93962,84,71868,84,66199,84,66225,84,66325,84,119854,117,119906,117,119958,117,120010,117,120062,117,120114,117,120166,117,120218,117,120270,117,120322,117,120374,117,120426,117,120478,117,42911,117,7452,117,43854,117,43858,117,651,117,965,117,120534,117,120592,117,120650,117,120708,117,120766,117,1405,117,66806,117,71896,117,8746,85,8899,85,119828,85,119880,85,119932,85,119984,85,120036,85,120088,85,120140,85,120192,85,120244,85,120296,85,120348,85,120400,85,120452,85,1357,85,4608,85,66766,85,5196,85,42228,85,94018,85,71864,85,8744,118,8897,118,65366,118,8564,118,119855,118,119907,118,119959,118,120011,118,120063,118,120115,118,120167,118,120219,118,120271,118,120323,118,120375,118,120427,118,120479,118,7456,118,957,118,120526,118,120584,118,120642,118,120700,118,120758,118,1141,118,1496,118,71430,118,43945,118,71872,118,119309,86,1639,86,1783,86,8548,86,119829,86,119881,86,119933,86,119985,86,120037,86,120089,86,120141,86,120193,86,120245,86,120297,86,120349,86,120401,86,120453,86,1140,86,11576,86,5081,86,5167,86,42719,86,42214,86,93960,86,71840,86,66845,86,623,119,119856,119,119908,119,119960,119,120012,119,120064,119,120116,119,120168,119,120220,119,120272,119,120324,119,120376,119,120428,119,120480,119,7457,119,1121,119,1309,119,1377,119,71434,119,71438,119,71439,119,43907,119,71919,87,71910,87,119830,87,119882,87,119934,87,119986,87,120038,87,120090,87,120142,87,120194,87,120246,87,120298,87,120350,87,120402,87,120454,87,1308,87,5043,87,5076,87,42218,87,5742,120,10539,120,10540,120,10799,120,65368,120,8569,120,119857,120,119909,120,119961,120,120013,120,120065,120,120117,120,120169,120,120221,120,120273,120,120325,120,120377,120,120429,120,120481,120,5441,120,5501,120,5741,88,9587,88,66338,88,71916,88,65336,88,8553,88,119831,88,119883,88,119935,88,119987,88,120039,88,120091,88,120143,88,120195,88,120247,88,120299,88,120351,88,120403,88,120455,88,42931,88,935,88,120510,88,120568,88,120626,88,120684,88,120742,88,11436,88,11613,88,5815,88,42219,88,66192,88,66228,88,66327,88,66855,88,611,121,7564,121,65369,121,119858,121,119910,121,119962,121,120014,121,120066,121,120118,121,120170,121,120222,121,120274,121,120326,121,120378,121,120430,121,120482,121,655,121,7935,121,43866,121,947,121,8509,121,120516,121,120574,121,120632,121,120690,121,120748,121,1199,121,4327,121,71900,121,65337,89,119832,89,119884,89,119936,89,119988,89,120040,89,120092,89,120144,89,120196,89,120248,89,120300,89,120352,89,120404,89,120456,89,933,89,978,89,120508,89,120566,89,120624,89,120682,89,120740,89,11432,89,1198,89,5033,89,5053,89,42220,89,94019,89,71844,89,66226,89,119859,122,119911,122,119963,122,120015,122,120067,122,120119,122,120171,122,120223,122,120275,122,120327,122,120379,122,120431,122,120483,122,7458,122,43923,122,71876,122,66293,90,71909,90,65338,90,8484,90,8488,90,119833,90,119885,90,119937,90,119989,90,120041,90,120197,90,120249,90,120301,90,120353,90,120405,90,120457,90,918,90,120493,90,120551,90,120609,90,120667,90,120725,90,5059,90,42204,90,71849,90,65282,34,65284,36,65285,37,65286,38,65290,42,65291,43,65294,46,65295,47,65296,48,65297,49,65298,50,65299,51,65300,52,65301,53,65302,54,65303,55,65304,56,65305,57,65308,60,65309,61,65310,62,65312,64,65316,68,65318,70,65319,71,65324,76,65329,81,65330,82,65333,85,65334,86,65335,87,65343,95,65346,98,65348,100,65350,102,65355,107,65357,109,65358,110,65361,113,65362,114,65364,116,65365,117,65367,119,65370,122,65371,123,65373,125,119846,109],\"_default\":[160,32,8211,45,65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"cs\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"de\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"es\":[8211,45,65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"fr\":[65374,126,65306,58,65281,33,8216,96,8245,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"it\":[160,32,8211,45,65374,126,65306,58,65281,33,8216,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"ja\":[8211,45,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65292,44,65307,59],\"ko\":[8211,45,65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"pl\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"pt-BR\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"qps-ploc\":[160,32,8211,45,65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"ru\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,305,105,921,73,1009,112,215,120,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"tr\":[160,32,8211,45,65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"zh-hans\":[65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65288,40,65289,41],\"zh-hant\":[8211,45,65374,126,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65307,59]}');
 });
 AmbiguousCharacters.cache = new LRUCachedFunction((locales) => {
     function arrayToMap(arr) {
@@ -3186,10 +3427,9 @@ AmbiguousCharacters.cache = new LRUCachedFunction((locales) => {
     }
     const commonMap = arrayToMap(data['_common']);
     const map = mergeMaps(commonMap, languageSpecificMap);
-    return new AmbiguousCharacters(map);
+    return new strings_a(map);
 });
-AmbiguousCharacters._locales = new Lazy(() => Object.keys(AmbiguousCharacters.ambiguousCharacterData.value).filter((k) => !k.startsWith('_')));
-
+AmbiguousCharacters._locales = new Lazy(() => Object.keys(strings_a.ambiguousCharacterData.value).filter((k) => !k.startsWith('_')));
 class InvisibleCharacters {
     static getRawData() {
         // Generated using https://github.com/hediet/vscode-unicode-data
@@ -3209,7 +3449,6 @@ class InvisibleCharacters {
     }
 }
 InvisibleCharacters._data = undefined;
-
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/worker/simpleWorker.js
 /*---------------------------------------------------------------------------------------------
@@ -3460,13 +3699,14 @@ class SimpleWorkerClient extends (/* unused pure expression or super */ null && 
         this._protocol.setWorkerId(this._worker.getId());
         // Gather loader configuration
         let loaderConfiguration = null;
-        if (typeof globals.require !== 'undefined' && typeof globals.require.getConfig === 'function') {
+        const globalRequire = globalThis.require;
+        if (typeof globalRequire !== 'undefined' && typeof globalRequire.getConfig === 'function') {
             // Get the configuration from the Monaco AMD Loader
-            loaderConfiguration = globals.require.getConfig();
+            loaderConfiguration = globalRequire.getConfig();
         }
-        else if (typeof globals.requirejs !== 'undefined') {
+        else if (typeof globalThis.requirejs !== 'undefined') {
             // Get the configuration from requirejs
-            loaderConfiguration = globals.requirejs.s.contexts._.config;
+            loaderConfiguration = globalThis.requirejs.s.contexts._.config;
         }
         const hostMethods = getAllMethodNames(host);
         // Send initialize message
@@ -3624,15 +3864,15 @@ class SimpleWorkerServer {
             }
             // Since this is in a web worker, enable catching errors
             loaderConfig.catchError = true;
-            platform_globals.require.config(loaderConfig);
+            globalThis.require.config(loaderConfig);
         }
         return new Promise((resolve, reject) => {
             // Use the global require to be sure to get the global config
             // ESM-comment-begin
-            // 			const req = (globals.require || require);
+            // 			const req = (globalThis.require || require);
             // ESM-comment-end
             // ESM-uncomment-begin
-            const req = platform_globals.require;
+            const req = globalThis.require;
             // ESM-uncomment-end
             req([moduleId], (module) => {
                 this._requestHandler = module.create(hostProxy);
@@ -3647,6 +3887,7 @@ class SimpleWorkerServer {
 }
 /**
  * Called on the worker side
+ * @skipMangle
  */
 function simpleWorker_create(postMessage) {
     return new SimpleWorkerServer(postMessage, null);
@@ -3945,7 +4186,6 @@ class StringSHA1 {
     }
 }
 StringSHA1._bigBlock32 = new DataView(new ArrayBuffer(320)); // 80 * 4 = 320
-
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/diff/diff.js
 /*---------------------------------------------------------------------------------------------
@@ -4856,8 +5096,8 @@ class LcsDiff {
 
 let safeProcess;
 // Native sandbox environment
-if (typeof platform_globals.vscode !== 'undefined' && typeof platform_globals.vscode.process !== 'undefined') {
-    const sandboxProcess = platform_globals.vscode.process;
+if (typeof globals.vscode !== 'undefined' && typeof globals.vscode.process !== 'undefined') {
+    const sandboxProcess = globals.vscode.process;
     safeProcess = {
         get platform() { return sandboxProcess.platform; },
         get arch() { return sandboxProcess.arch; },
@@ -4890,6 +5130,8 @@ else {
  * environments.
  *
  * Note: in web, this property is hardcoded to be `/`.
+ *
+ * @skipMangle
  */
 const process_cwd = safeProcess.cwd;
 /**
@@ -6561,9 +6803,15 @@ class uri_URI {
         }
         return new Uri('file', authority, path, _empty, _empty);
     }
-    static from(components) {
-        const result = new Uri(components.scheme, components.authority, components.path, components.query, components.fragment);
-        _validateUri(result, true);
+    /**
+     * Creates new URI from uri components.
+     *
+     * Unless `strict` is `true` the scheme is defaults to be `file`. This function performs
+     * validation and should be used for untrusted uri components retrieved from storage,
+     * user input, command arguments etc
+     */
+    static from(components, strict) {
+        const result = new Uri(components.scheme, components.authority, components.path, components.query, components.fragment, strict);
         return result;
     }
     /**
@@ -6605,6 +6853,7 @@ class uri_URI {
         return this;
     }
     static revive(data) {
+        var _a, _b;
         if (!data) {
             return data;
         }
@@ -6613,8 +6862,8 @@ class uri_URI {
         }
         else {
             const result = new Uri(data);
-            result._formatted = data.external;
-            result._fsPath = data._sep === _pathSepMarker ? data.fsPath : null;
+            result._formatted = (_a = data.external) !== null && _a !== void 0 ? _a : null;
+            result._fsPath = data._sep === _pathSepMarker ? (_b = data.fsPath) !== null && _b !== void 0 ? _b : null : null;
             return result;
         }
     }
@@ -6657,10 +6906,14 @@ class Uri extends uri_URI {
         if (this._formatted) {
             res.external = this._formatted;
         }
-        // uri components
+        //--- uri components
         if (this.path) {
             res.path = this.path;
         }
+        // TODO
+        // this isn't correct and can violate the UriComponents contract but
+        // this is part of the vscode.Uri API and we shouldn't change how that
+        // works anymore
         if (this.scheme) {
             res.scheme = this.scheme;
         }
@@ -6678,14 +6931,14 @@ class Uri extends uri_URI {
 }
 // reserved characters: https://tools.ietf.org/html/rfc3986#section-2.2
 const encodeTable = {
-    [58 /* CharCode.Colon */]: '%3A',
+    [58 /* CharCode.Colon */]: '%3A', // gen-delims
     [47 /* CharCode.Slash */]: '%2F',
     [63 /* CharCode.QuestionMark */]: '%3F',
     [35 /* CharCode.Hash */]: '%23',
     [91 /* CharCode.OpenSquareBracket */]: '%5B',
     [93 /* CharCode.CloseSquareBracket */]: '%5D',
     [64 /* CharCode.AtSign */]: '%40',
-    [33 /* CharCode.ExclamationMark */]: '%21',
+    [33 /* CharCode.ExclamationMark */]: '%21', // sub-delims
     [36 /* CharCode.DollarSign */]: '%24',
     [38 /* CharCode.Ampersand */]: '%26',
     [39 /* CharCode.SingleQuote */]: '%27',
@@ -7521,27 +7774,6 @@ function binarySearch2(length, compareToKey) {
     }
     return -(low + 1);
 }
-/**
- * Takes a sorted array and a function p. The array is sorted in such a way that all elements where p(x) is false
- * are located before all elements where p(x) is true.
- * @returns the least x for which p(x) is true or array.length if no element fullfills the given function.
- */
-function findFirstInSorted(array, p) {
-    let low = 0, high = array.length;
-    if (high === 0) {
-        return 0; // no children
-    }
-    while (low < high) {
-        const mid = Math.floor((low + high) / 2);
-        if (p(array[mid])) {
-            high = mid;
-        }
-        else {
-            low = mid + 1;
-        }
-    }
-    return low;
-}
 function quickSelect(nth, data, compare) {
     nth = nth | 0;
     if (nth >= data.length) {
@@ -7588,6 +7820,40 @@ function groupBy(data, compare) {
     return result;
 }
 /**
+ * Splits the given items into a list of (non-empty) groups.
+ * `shouldBeGrouped` is used to decide if two consecutive items should be in the same group.
+ * The order of the items is preserved.
+ */
+function* groupAdjacentBy(items, shouldBeGrouped) {
+    let currentGroup;
+    let last;
+    for (const item of items) {
+        if (last !== undefined && shouldBeGrouped(last, item)) {
+            currentGroup.push(item);
+        }
+        else {
+            if (currentGroup) {
+                yield currentGroup;
+            }
+            currentGroup = [item];
+        }
+        last = item;
+    }
+    if (currentGroup) {
+        yield currentGroup;
+    }
+}
+function forEachAdjacent(arr, f) {
+    for (let i = 0; i <= arr.length; i++) {
+        f(i === 0 ? undefined : arr[i - 1], i === arr.length ? undefined : arr[i]);
+    }
+}
+function forEachWithNeighbors(arr, f) {
+    for (let i = 0; i < arr.length; i++) {
+        f(i === 0 ? undefined : arr[i - 1], arr[i], i + 1 === arr.length ? undefined : arr[i + 1]);
+    }
+}
+/**
  * @returns New array with all falsy values removed. The original array IS NOT modified.
  */
 function coalesce(array) {
@@ -7629,22 +7895,6 @@ function distinct(array, keyFn = value => value) {
         seen.add(key);
         return true;
     });
-}
-function findLast(arr, predicate) {
-    const idx = lastIndex(arr, predicate);
-    if (idx === -1) {
-        return undefined;
-    }
-    return arr[idx];
-}
-function lastIndex(array, fn) {
-    for (let i = array.length - 1; i >= 0; i--) {
-        const element = array[i];
-        if (fn(element)) {
-            return i;
-        }
-    }
-    return -1;
 }
 function firstOrDefault(array, notFoundValue) {
     return array.length > 0 ? array[0] : notFoundValue;
@@ -7737,7 +7987,11 @@ function insertInto(array, start, newItems) {
  */
 function splice(array, start, deleteCount, newItems) {
     const index = getActualStartIndex(array, start);
-    const result = array.splice(index, deleteCount);
+    let result = array.splice(index, deleteCount);
+    if (result === undefined) {
+        // see https://bugs.webkit.org/show_bug.cgi?id=261140
+        result = [];
+    }
     insertInto(array, index, newItems);
     return result;
 }
@@ -7757,6 +8011,10 @@ var CompareResult;
         return result < 0;
     }
     CompareResult.isLessThan = isLessThan;
+    function isLessThanOrEqual(result) {
+        return result <= 0;
+    }
+    CompareResult.isLessThanOrEqual = isLessThanOrEqual;
     function isGreaterThan(result) {
         return result > 0;
     }
@@ -7772,47 +8030,24 @@ var CompareResult;
 function compareBy(selector, comparator) {
     return (a, b) => comparator(selector(a), selector(b));
 }
+function tieBreakComparators(...comparators) {
+    return (item1, item2) => {
+        for (const comparator of comparators) {
+            const result = comparator(item1, item2);
+            if (!CompareResult.isNeitherLessOrGreaterThan(result)) {
+                return result;
+            }
+        }
+        return CompareResult.neitherLessOrGreaterThan;
+    };
+}
 /**
  * The natural order on numbers.
 */
 const numberComparator = (a, b) => a - b;
-/**
- * Returns the first item that is equal to or greater than every other item.
-*/
-function findMaxBy(items, comparator) {
-    if (items.length === 0) {
-        return undefined;
-    }
-    let max = items[0];
-    for (let i = 1; i < items.length; i++) {
-        const item = items[i];
-        if (comparator(item, max) > 0) {
-            max = item;
-        }
-    }
-    return max;
-}
-/**
- * Returns the last item that is equal to or greater than every other item.
-*/
-function findLastMaxBy(items, comparator) {
-    if (items.length === 0) {
-        return undefined;
-    }
-    let max = items[0];
-    for (let i = 1; i < items.length; i++) {
-        const item = items[i];
-        if (comparator(item, max) >= 0) {
-            max = item;
-        }
-    }
-    return max;
-}
-/**
- * Returns the first item that is equal to or less than every other item.
-*/
-function findMinBy(items, comparator) {
-    return findMaxBy(items, (a, b) => -comparator(a, b));
+const booleanComparator = (a, b) => numberComparator(a ? 1 : 0, b ? 1 : 0);
+function reverseOrder(comparator) {
+    return (a, b) => -comparator(a, b);
 }
 class ArrayQueue {
     /**
@@ -7921,7 +8156,6 @@ class CallbackIterable {
     }
 }
 CallbackIterable.empty = new CallbackIterable(_callback => { });
-
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/uint.js
 /*---------------------------------------------------------------------------------------------
@@ -8829,7 +9063,6 @@ class BasicInplaceReplace {
 }
 BasicInplaceReplace.INSTANCE = new BasicInplaceReplace();
 
-
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/cancellation.js
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
@@ -8981,251 +9214,251 @@ const IMMUTABLE_KEY_CODE_TO_CODE = [];
 for (let i = 0; i <= 193 /* ScanCode.MAX_VALUE */; i++) {
     IMMUTABLE_CODE_TO_KEY_CODE[i] = -1 /* KeyCode.DependsOnKbLayout */;
 }
-for (let i = 0; i <= 127 /* KeyCode.MAX_VALUE */; i++) {
+for (let i = 0; i <= 132 /* KeyCode.MAX_VALUE */; i++) {
     IMMUTABLE_KEY_CODE_TO_CODE[i] = -1 /* ScanCode.DependsOnKbLayout */;
 }
 (function () {
     // See https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
-    // See https://github.com/microsoft/node-native-keymap/blob/master/deps/chromium/keyboard_codes_win.h
+    // See https://github.com/microsoft/node-native-keymap/blob/88c0b0e5/deps/chromium/keyboard_codes_win.h
     const empty = '';
     const mappings = [
-        // keyCodeOrd, immutable, scanCode, scanCodeStr, keyCode, keyCodeStr, eventKeyCode, vkey, usUserSettingsLabel, generalUserSettingsLabel
-        [0, 1, 0 /* ScanCode.None */, 'None', 0 /* KeyCode.Unknown */, 'unknown', 0, 'VK_UNKNOWN', empty, empty],
-        [0, 1, 1 /* ScanCode.Hyper */, 'Hyper', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 2 /* ScanCode.Super */, 'Super', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 3 /* ScanCode.Fn */, 'Fn', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 4 /* ScanCode.FnLock */, 'FnLock', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 5 /* ScanCode.Suspend */, 'Suspend', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 6 /* ScanCode.Resume */, 'Resume', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 7 /* ScanCode.Turbo */, 'Turbo', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 8 /* ScanCode.Sleep */, 'Sleep', 0 /* KeyCode.Unknown */, empty, 0, 'VK_SLEEP', empty, empty],
-        [0, 1, 9 /* ScanCode.WakeUp */, 'WakeUp', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [31, 0, 10 /* ScanCode.KeyA */, 'KeyA', 31 /* KeyCode.KeyA */, 'A', 65, 'VK_A', empty, empty],
-        [32, 0, 11 /* ScanCode.KeyB */, 'KeyB', 32 /* KeyCode.KeyB */, 'B', 66, 'VK_B', empty, empty],
-        [33, 0, 12 /* ScanCode.KeyC */, 'KeyC', 33 /* KeyCode.KeyC */, 'C', 67, 'VK_C', empty, empty],
-        [34, 0, 13 /* ScanCode.KeyD */, 'KeyD', 34 /* KeyCode.KeyD */, 'D', 68, 'VK_D', empty, empty],
-        [35, 0, 14 /* ScanCode.KeyE */, 'KeyE', 35 /* KeyCode.KeyE */, 'E', 69, 'VK_E', empty, empty],
-        [36, 0, 15 /* ScanCode.KeyF */, 'KeyF', 36 /* KeyCode.KeyF */, 'F', 70, 'VK_F', empty, empty],
-        [37, 0, 16 /* ScanCode.KeyG */, 'KeyG', 37 /* KeyCode.KeyG */, 'G', 71, 'VK_G', empty, empty],
-        [38, 0, 17 /* ScanCode.KeyH */, 'KeyH', 38 /* KeyCode.KeyH */, 'H', 72, 'VK_H', empty, empty],
-        [39, 0, 18 /* ScanCode.KeyI */, 'KeyI', 39 /* KeyCode.KeyI */, 'I', 73, 'VK_I', empty, empty],
-        [40, 0, 19 /* ScanCode.KeyJ */, 'KeyJ', 40 /* KeyCode.KeyJ */, 'J', 74, 'VK_J', empty, empty],
-        [41, 0, 20 /* ScanCode.KeyK */, 'KeyK', 41 /* KeyCode.KeyK */, 'K', 75, 'VK_K', empty, empty],
-        [42, 0, 21 /* ScanCode.KeyL */, 'KeyL', 42 /* KeyCode.KeyL */, 'L', 76, 'VK_L', empty, empty],
-        [43, 0, 22 /* ScanCode.KeyM */, 'KeyM', 43 /* KeyCode.KeyM */, 'M', 77, 'VK_M', empty, empty],
-        [44, 0, 23 /* ScanCode.KeyN */, 'KeyN', 44 /* KeyCode.KeyN */, 'N', 78, 'VK_N', empty, empty],
-        [45, 0, 24 /* ScanCode.KeyO */, 'KeyO', 45 /* KeyCode.KeyO */, 'O', 79, 'VK_O', empty, empty],
-        [46, 0, 25 /* ScanCode.KeyP */, 'KeyP', 46 /* KeyCode.KeyP */, 'P', 80, 'VK_P', empty, empty],
-        [47, 0, 26 /* ScanCode.KeyQ */, 'KeyQ', 47 /* KeyCode.KeyQ */, 'Q', 81, 'VK_Q', empty, empty],
-        [48, 0, 27 /* ScanCode.KeyR */, 'KeyR', 48 /* KeyCode.KeyR */, 'R', 82, 'VK_R', empty, empty],
-        [49, 0, 28 /* ScanCode.KeyS */, 'KeyS', 49 /* KeyCode.KeyS */, 'S', 83, 'VK_S', empty, empty],
-        [50, 0, 29 /* ScanCode.KeyT */, 'KeyT', 50 /* KeyCode.KeyT */, 'T', 84, 'VK_T', empty, empty],
-        [51, 0, 30 /* ScanCode.KeyU */, 'KeyU', 51 /* KeyCode.KeyU */, 'U', 85, 'VK_U', empty, empty],
-        [52, 0, 31 /* ScanCode.KeyV */, 'KeyV', 52 /* KeyCode.KeyV */, 'V', 86, 'VK_V', empty, empty],
-        [53, 0, 32 /* ScanCode.KeyW */, 'KeyW', 53 /* KeyCode.KeyW */, 'W', 87, 'VK_W', empty, empty],
-        [54, 0, 33 /* ScanCode.KeyX */, 'KeyX', 54 /* KeyCode.KeyX */, 'X', 88, 'VK_X', empty, empty],
-        [55, 0, 34 /* ScanCode.KeyY */, 'KeyY', 55 /* KeyCode.KeyY */, 'Y', 89, 'VK_Y', empty, empty],
-        [56, 0, 35 /* ScanCode.KeyZ */, 'KeyZ', 56 /* KeyCode.KeyZ */, 'Z', 90, 'VK_Z', empty, empty],
-        [22, 0, 36 /* ScanCode.Digit1 */, 'Digit1', 22 /* KeyCode.Digit1 */, '1', 49, 'VK_1', empty, empty],
-        [23, 0, 37 /* ScanCode.Digit2 */, 'Digit2', 23 /* KeyCode.Digit2 */, '2', 50, 'VK_2', empty, empty],
-        [24, 0, 38 /* ScanCode.Digit3 */, 'Digit3', 24 /* KeyCode.Digit3 */, '3', 51, 'VK_3', empty, empty],
-        [25, 0, 39 /* ScanCode.Digit4 */, 'Digit4', 25 /* KeyCode.Digit4 */, '4', 52, 'VK_4', empty, empty],
-        [26, 0, 40 /* ScanCode.Digit5 */, 'Digit5', 26 /* KeyCode.Digit5 */, '5', 53, 'VK_5', empty, empty],
-        [27, 0, 41 /* ScanCode.Digit6 */, 'Digit6', 27 /* KeyCode.Digit6 */, '6', 54, 'VK_6', empty, empty],
-        [28, 0, 42 /* ScanCode.Digit7 */, 'Digit7', 28 /* KeyCode.Digit7 */, '7', 55, 'VK_7', empty, empty],
-        [29, 0, 43 /* ScanCode.Digit8 */, 'Digit8', 29 /* KeyCode.Digit8 */, '8', 56, 'VK_8', empty, empty],
-        [30, 0, 44 /* ScanCode.Digit9 */, 'Digit9', 30 /* KeyCode.Digit9 */, '9', 57, 'VK_9', empty, empty],
-        [21, 0, 45 /* ScanCode.Digit0 */, 'Digit0', 21 /* KeyCode.Digit0 */, '0', 48, 'VK_0', empty, empty],
-        [3, 1, 46 /* ScanCode.Enter */, 'Enter', 3 /* KeyCode.Enter */, 'Enter', 13, 'VK_RETURN', empty, empty],
-        [9, 1, 47 /* ScanCode.Escape */, 'Escape', 9 /* KeyCode.Escape */, 'Escape', 27, 'VK_ESCAPE', empty, empty],
-        [1, 1, 48 /* ScanCode.Backspace */, 'Backspace', 1 /* KeyCode.Backspace */, 'Backspace', 8, 'VK_BACK', empty, empty],
-        [2, 1, 49 /* ScanCode.Tab */, 'Tab', 2 /* KeyCode.Tab */, 'Tab', 9, 'VK_TAB', empty, empty],
-        [10, 1, 50 /* ScanCode.Space */, 'Space', 10 /* KeyCode.Space */, 'Space', 32, 'VK_SPACE', empty, empty],
-        [83, 0, 51 /* ScanCode.Minus */, 'Minus', 83 /* KeyCode.Minus */, '-', 189, 'VK_OEM_MINUS', '-', 'OEM_MINUS'],
-        [81, 0, 52 /* ScanCode.Equal */, 'Equal', 81 /* KeyCode.Equal */, '=', 187, 'VK_OEM_PLUS', '=', 'OEM_PLUS'],
-        [87, 0, 53 /* ScanCode.BracketLeft */, 'BracketLeft', 87 /* KeyCode.BracketLeft */, '[', 219, 'VK_OEM_4', '[', 'OEM_4'],
-        [89, 0, 54 /* ScanCode.BracketRight */, 'BracketRight', 89 /* KeyCode.BracketRight */, ']', 221, 'VK_OEM_6', ']', 'OEM_6'],
-        [88, 0, 55 /* ScanCode.Backslash */, 'Backslash', 88 /* KeyCode.Backslash */, '\\', 220, 'VK_OEM_5', '\\', 'OEM_5'],
-        [0, 0, 56 /* ScanCode.IntlHash */, 'IntlHash', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [80, 0, 57 /* ScanCode.Semicolon */, 'Semicolon', 80 /* KeyCode.Semicolon */, ';', 186, 'VK_OEM_1', ';', 'OEM_1'],
-        [90, 0, 58 /* ScanCode.Quote */, 'Quote', 90 /* KeyCode.Quote */, '\'', 222, 'VK_OEM_7', '\'', 'OEM_7'],
-        [86, 0, 59 /* ScanCode.Backquote */, 'Backquote', 86 /* KeyCode.Backquote */, '`', 192, 'VK_OEM_3', '`', 'OEM_3'],
-        [82, 0, 60 /* ScanCode.Comma */, 'Comma', 82 /* KeyCode.Comma */, ',', 188, 'VK_OEM_COMMA', ',', 'OEM_COMMA'],
-        [84, 0, 61 /* ScanCode.Period */, 'Period', 84 /* KeyCode.Period */, '.', 190, 'VK_OEM_PERIOD', '.', 'OEM_PERIOD'],
-        [85, 0, 62 /* ScanCode.Slash */, 'Slash', 85 /* KeyCode.Slash */, '/', 191, 'VK_OEM_2', '/', 'OEM_2'],
-        [8, 1, 63 /* ScanCode.CapsLock */, 'CapsLock', 8 /* KeyCode.CapsLock */, 'CapsLock', 20, 'VK_CAPITAL', empty, empty],
-        [59, 1, 64 /* ScanCode.F1 */, 'F1', 59 /* KeyCode.F1 */, 'F1', 112, 'VK_F1', empty, empty],
-        [60, 1, 65 /* ScanCode.F2 */, 'F2', 60 /* KeyCode.F2 */, 'F2', 113, 'VK_F2', empty, empty],
-        [61, 1, 66 /* ScanCode.F3 */, 'F3', 61 /* KeyCode.F3 */, 'F3', 114, 'VK_F3', empty, empty],
-        [62, 1, 67 /* ScanCode.F4 */, 'F4', 62 /* KeyCode.F4 */, 'F4', 115, 'VK_F4', empty, empty],
-        [63, 1, 68 /* ScanCode.F5 */, 'F5', 63 /* KeyCode.F5 */, 'F5', 116, 'VK_F5', empty, empty],
-        [64, 1, 69 /* ScanCode.F6 */, 'F6', 64 /* KeyCode.F6 */, 'F6', 117, 'VK_F6', empty, empty],
-        [65, 1, 70 /* ScanCode.F7 */, 'F7', 65 /* KeyCode.F7 */, 'F7', 118, 'VK_F7', empty, empty],
-        [66, 1, 71 /* ScanCode.F8 */, 'F8', 66 /* KeyCode.F8 */, 'F8', 119, 'VK_F8', empty, empty],
-        [67, 1, 72 /* ScanCode.F9 */, 'F9', 67 /* KeyCode.F9 */, 'F9', 120, 'VK_F9', empty, empty],
-        [68, 1, 73 /* ScanCode.F10 */, 'F10', 68 /* KeyCode.F10 */, 'F10', 121, 'VK_F10', empty, empty],
-        [69, 1, 74 /* ScanCode.F11 */, 'F11', 69 /* KeyCode.F11 */, 'F11', 122, 'VK_F11', empty, empty],
-        [70, 1, 75 /* ScanCode.F12 */, 'F12', 70 /* KeyCode.F12 */, 'F12', 123, 'VK_F12', empty, empty],
-        [0, 1, 76 /* ScanCode.PrintScreen */, 'PrintScreen', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [79, 1, 77 /* ScanCode.ScrollLock */, 'ScrollLock', 79 /* KeyCode.ScrollLock */, 'ScrollLock', 145, 'VK_SCROLL', empty, empty],
-        [7, 1, 78 /* ScanCode.Pause */, 'Pause', 7 /* KeyCode.PauseBreak */, 'PauseBreak', 19, 'VK_PAUSE', empty, empty],
-        [19, 1, 79 /* ScanCode.Insert */, 'Insert', 19 /* KeyCode.Insert */, 'Insert', 45, 'VK_INSERT', empty, empty],
-        [14, 1, 80 /* ScanCode.Home */, 'Home', 14 /* KeyCode.Home */, 'Home', 36, 'VK_HOME', empty, empty],
-        [11, 1, 81 /* ScanCode.PageUp */, 'PageUp', 11 /* KeyCode.PageUp */, 'PageUp', 33, 'VK_PRIOR', empty, empty],
-        [20, 1, 82 /* ScanCode.Delete */, 'Delete', 20 /* KeyCode.Delete */, 'Delete', 46, 'VK_DELETE', empty, empty],
-        [13, 1, 83 /* ScanCode.End */, 'End', 13 /* KeyCode.End */, 'End', 35, 'VK_END', empty, empty],
-        [12, 1, 84 /* ScanCode.PageDown */, 'PageDown', 12 /* KeyCode.PageDown */, 'PageDown', 34, 'VK_NEXT', empty, empty],
-        [17, 1, 85 /* ScanCode.ArrowRight */, 'ArrowRight', 17 /* KeyCode.RightArrow */, 'RightArrow', 39, 'VK_RIGHT', 'Right', empty],
-        [15, 1, 86 /* ScanCode.ArrowLeft */, 'ArrowLeft', 15 /* KeyCode.LeftArrow */, 'LeftArrow', 37, 'VK_LEFT', 'Left', empty],
-        [18, 1, 87 /* ScanCode.ArrowDown */, 'ArrowDown', 18 /* KeyCode.DownArrow */, 'DownArrow', 40, 'VK_DOWN', 'Down', empty],
-        [16, 1, 88 /* ScanCode.ArrowUp */, 'ArrowUp', 16 /* KeyCode.UpArrow */, 'UpArrow', 38, 'VK_UP', 'Up', empty],
-        [78, 1, 89 /* ScanCode.NumLock */, 'NumLock', 78 /* KeyCode.NumLock */, 'NumLock', 144, 'VK_NUMLOCK', empty, empty],
-        [108, 1, 90 /* ScanCode.NumpadDivide */, 'NumpadDivide', 108 /* KeyCode.NumpadDivide */, 'NumPad_Divide', 111, 'VK_DIVIDE', empty, empty],
-        [103, 1, 91 /* ScanCode.NumpadMultiply */, 'NumpadMultiply', 103 /* KeyCode.NumpadMultiply */, 'NumPad_Multiply', 106, 'VK_MULTIPLY', empty, empty],
-        [106, 1, 92 /* ScanCode.NumpadSubtract */, 'NumpadSubtract', 106 /* KeyCode.NumpadSubtract */, 'NumPad_Subtract', 109, 'VK_SUBTRACT', empty, empty],
-        [104, 1, 93 /* ScanCode.NumpadAdd */, 'NumpadAdd', 104 /* KeyCode.NumpadAdd */, 'NumPad_Add', 107, 'VK_ADD', empty, empty],
-        [3, 1, 94 /* ScanCode.NumpadEnter */, 'NumpadEnter', 3 /* KeyCode.Enter */, empty, 0, empty, empty, empty],
-        [94, 1, 95 /* ScanCode.Numpad1 */, 'Numpad1', 94 /* KeyCode.Numpad1 */, 'NumPad1', 97, 'VK_NUMPAD1', empty, empty],
-        [95, 1, 96 /* ScanCode.Numpad2 */, 'Numpad2', 95 /* KeyCode.Numpad2 */, 'NumPad2', 98, 'VK_NUMPAD2', empty, empty],
-        [96, 1, 97 /* ScanCode.Numpad3 */, 'Numpad3', 96 /* KeyCode.Numpad3 */, 'NumPad3', 99, 'VK_NUMPAD3', empty, empty],
-        [97, 1, 98 /* ScanCode.Numpad4 */, 'Numpad4', 97 /* KeyCode.Numpad4 */, 'NumPad4', 100, 'VK_NUMPAD4', empty, empty],
-        [98, 1, 99 /* ScanCode.Numpad5 */, 'Numpad5', 98 /* KeyCode.Numpad5 */, 'NumPad5', 101, 'VK_NUMPAD5', empty, empty],
-        [99, 1, 100 /* ScanCode.Numpad6 */, 'Numpad6', 99 /* KeyCode.Numpad6 */, 'NumPad6', 102, 'VK_NUMPAD6', empty, empty],
-        [100, 1, 101 /* ScanCode.Numpad7 */, 'Numpad7', 100 /* KeyCode.Numpad7 */, 'NumPad7', 103, 'VK_NUMPAD7', empty, empty],
-        [101, 1, 102 /* ScanCode.Numpad8 */, 'Numpad8', 101 /* KeyCode.Numpad8 */, 'NumPad8', 104, 'VK_NUMPAD8', empty, empty],
-        [102, 1, 103 /* ScanCode.Numpad9 */, 'Numpad9', 102 /* KeyCode.Numpad9 */, 'NumPad9', 105, 'VK_NUMPAD9', empty, empty],
-        [93, 1, 104 /* ScanCode.Numpad0 */, 'Numpad0', 93 /* KeyCode.Numpad0 */, 'NumPad0', 96, 'VK_NUMPAD0', empty, empty],
-        [107, 1, 105 /* ScanCode.NumpadDecimal */, 'NumpadDecimal', 107 /* KeyCode.NumpadDecimal */, 'NumPad_Decimal', 110, 'VK_DECIMAL', empty, empty],
-        [92, 0, 106 /* ScanCode.IntlBackslash */, 'IntlBackslash', 92 /* KeyCode.IntlBackslash */, 'OEM_102', 226, 'VK_OEM_102', empty, empty],
-        [58, 1, 107 /* ScanCode.ContextMenu */, 'ContextMenu', 58 /* KeyCode.ContextMenu */, 'ContextMenu', 93, empty, empty, empty],
-        [0, 1, 108 /* ScanCode.Power */, 'Power', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 109 /* ScanCode.NumpadEqual */, 'NumpadEqual', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [71, 1, 110 /* ScanCode.F13 */, 'F13', 71 /* KeyCode.F13 */, 'F13', 124, 'VK_F13', empty, empty],
-        [72, 1, 111 /* ScanCode.F14 */, 'F14', 72 /* KeyCode.F14 */, 'F14', 125, 'VK_F14', empty, empty],
-        [73, 1, 112 /* ScanCode.F15 */, 'F15', 73 /* KeyCode.F15 */, 'F15', 126, 'VK_F15', empty, empty],
-        [74, 1, 113 /* ScanCode.F16 */, 'F16', 74 /* KeyCode.F16 */, 'F16', 127, 'VK_F16', empty, empty],
-        [75, 1, 114 /* ScanCode.F17 */, 'F17', 75 /* KeyCode.F17 */, 'F17', 128, 'VK_F17', empty, empty],
-        [76, 1, 115 /* ScanCode.F18 */, 'F18', 76 /* KeyCode.F18 */, 'F18', 129, 'VK_F18', empty, empty],
-        [77, 1, 116 /* ScanCode.F19 */, 'F19', 77 /* KeyCode.F19 */, 'F19', 130, 'VK_F19', empty, empty],
-        [0, 1, 117 /* ScanCode.F20 */, 'F20', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F20', empty, empty],
-        [0, 1, 118 /* ScanCode.F21 */, 'F21', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F21', empty, empty],
-        [0, 1, 119 /* ScanCode.F22 */, 'F22', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F22', empty, empty],
-        [0, 1, 120 /* ScanCode.F23 */, 'F23', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F23', empty, empty],
-        [0, 1, 121 /* ScanCode.F24 */, 'F24', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F24', empty, empty],
-        [0, 1, 122 /* ScanCode.Open */, 'Open', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 123 /* ScanCode.Help */, 'Help', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 124 /* ScanCode.Select */, 'Select', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 125 /* ScanCode.Again */, 'Again', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 126 /* ScanCode.Undo */, 'Undo', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 127 /* ScanCode.Cut */, 'Cut', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 128 /* ScanCode.Copy */, 'Copy', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 129 /* ScanCode.Paste */, 'Paste', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 130 /* ScanCode.Find */, 'Find', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 131 /* ScanCode.AudioVolumeMute */, 'AudioVolumeMute', 112 /* KeyCode.AudioVolumeMute */, 'AudioVolumeMute', 173, 'VK_VOLUME_MUTE', empty, empty],
-        [0, 1, 132 /* ScanCode.AudioVolumeUp */, 'AudioVolumeUp', 113 /* KeyCode.AudioVolumeUp */, 'AudioVolumeUp', 175, 'VK_VOLUME_UP', empty, empty],
-        [0, 1, 133 /* ScanCode.AudioVolumeDown */, 'AudioVolumeDown', 114 /* KeyCode.AudioVolumeDown */, 'AudioVolumeDown', 174, 'VK_VOLUME_DOWN', empty, empty],
-        [105, 1, 134 /* ScanCode.NumpadComma */, 'NumpadComma', 105 /* KeyCode.NUMPAD_SEPARATOR */, 'NumPad_Separator', 108, 'VK_SEPARATOR', empty, empty],
-        [110, 0, 135 /* ScanCode.IntlRo */, 'IntlRo', 110 /* KeyCode.ABNT_C1 */, 'ABNT_C1', 193, 'VK_ABNT_C1', empty, empty],
-        [0, 1, 136 /* ScanCode.KanaMode */, 'KanaMode', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 0, 137 /* ScanCode.IntlYen */, 'IntlYen', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 138 /* ScanCode.Convert */, 'Convert', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 139 /* ScanCode.NonConvert */, 'NonConvert', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 140 /* ScanCode.Lang1 */, 'Lang1', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 141 /* ScanCode.Lang2 */, 'Lang2', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 142 /* ScanCode.Lang3 */, 'Lang3', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 143 /* ScanCode.Lang4 */, 'Lang4', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 144 /* ScanCode.Lang5 */, 'Lang5', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 145 /* ScanCode.Abort */, 'Abort', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 146 /* ScanCode.Props */, 'Props', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 147 /* ScanCode.NumpadParenLeft */, 'NumpadParenLeft', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 148 /* ScanCode.NumpadParenRight */, 'NumpadParenRight', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 149 /* ScanCode.NumpadBackspace */, 'NumpadBackspace', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 150 /* ScanCode.NumpadMemoryStore */, 'NumpadMemoryStore', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 151 /* ScanCode.NumpadMemoryRecall */, 'NumpadMemoryRecall', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 152 /* ScanCode.NumpadMemoryClear */, 'NumpadMemoryClear', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 153 /* ScanCode.NumpadMemoryAdd */, 'NumpadMemoryAdd', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 154 /* ScanCode.NumpadMemorySubtract */, 'NumpadMemorySubtract', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 155 /* ScanCode.NumpadClear */, 'NumpadClear', 126 /* KeyCode.Clear */, 'Clear', 12, 'VK_CLEAR', empty, empty],
-        [0, 1, 156 /* ScanCode.NumpadClearEntry */, 'NumpadClearEntry', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [5, 1, 0 /* ScanCode.None */, empty, 5 /* KeyCode.Ctrl */, 'Ctrl', 17, 'VK_CONTROL', empty, empty],
-        [4, 1, 0 /* ScanCode.None */, empty, 4 /* KeyCode.Shift */, 'Shift', 16, 'VK_SHIFT', empty, empty],
-        [6, 1, 0 /* ScanCode.None */, empty, 6 /* KeyCode.Alt */, 'Alt', 18, 'VK_MENU', empty, empty],
-        [57, 1, 0 /* ScanCode.None */, empty, 57 /* KeyCode.Meta */, 'Meta', 0, 'VK_COMMAND', empty, empty],
-        [5, 1, 157 /* ScanCode.ControlLeft */, 'ControlLeft', 5 /* KeyCode.Ctrl */, empty, 0, 'VK_LCONTROL', empty, empty],
-        [4, 1, 158 /* ScanCode.ShiftLeft */, 'ShiftLeft', 4 /* KeyCode.Shift */, empty, 0, 'VK_LSHIFT', empty, empty],
-        [6, 1, 159 /* ScanCode.AltLeft */, 'AltLeft', 6 /* KeyCode.Alt */, empty, 0, 'VK_LMENU', empty, empty],
-        [57, 1, 160 /* ScanCode.MetaLeft */, 'MetaLeft', 57 /* KeyCode.Meta */, empty, 0, 'VK_LWIN', empty, empty],
-        [5, 1, 161 /* ScanCode.ControlRight */, 'ControlRight', 5 /* KeyCode.Ctrl */, empty, 0, 'VK_RCONTROL', empty, empty],
-        [4, 1, 162 /* ScanCode.ShiftRight */, 'ShiftRight', 4 /* KeyCode.Shift */, empty, 0, 'VK_RSHIFT', empty, empty],
-        [6, 1, 163 /* ScanCode.AltRight */, 'AltRight', 6 /* KeyCode.Alt */, empty, 0, 'VK_RMENU', empty, empty],
-        [57, 1, 164 /* ScanCode.MetaRight */, 'MetaRight', 57 /* KeyCode.Meta */, empty, 0, 'VK_RWIN', empty, empty],
-        [0, 1, 165 /* ScanCode.BrightnessUp */, 'BrightnessUp', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 166 /* ScanCode.BrightnessDown */, 'BrightnessDown', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 167 /* ScanCode.MediaPlay */, 'MediaPlay', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 168 /* ScanCode.MediaRecord */, 'MediaRecord', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 169 /* ScanCode.MediaFastForward */, 'MediaFastForward', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 170 /* ScanCode.MediaRewind */, 'MediaRewind', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [114, 1, 171 /* ScanCode.MediaTrackNext */, 'MediaTrackNext', 119 /* KeyCode.MediaTrackNext */, 'MediaTrackNext', 176, 'VK_MEDIA_NEXT_TRACK', empty, empty],
-        [115, 1, 172 /* ScanCode.MediaTrackPrevious */, 'MediaTrackPrevious', 120 /* KeyCode.MediaTrackPrevious */, 'MediaTrackPrevious', 177, 'VK_MEDIA_PREV_TRACK', empty, empty],
-        [116, 1, 173 /* ScanCode.MediaStop */, 'MediaStop', 121 /* KeyCode.MediaStop */, 'MediaStop', 178, 'VK_MEDIA_STOP', empty, empty],
-        [0, 1, 174 /* ScanCode.Eject */, 'Eject', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [117, 1, 175 /* ScanCode.MediaPlayPause */, 'MediaPlayPause', 122 /* KeyCode.MediaPlayPause */, 'MediaPlayPause', 179, 'VK_MEDIA_PLAY_PAUSE', empty, empty],
-        [0, 1, 176 /* ScanCode.MediaSelect */, 'MediaSelect', 123 /* KeyCode.LaunchMediaPlayer */, 'LaunchMediaPlayer', 181, 'VK_MEDIA_LAUNCH_MEDIA_SELECT', empty, empty],
-        [0, 1, 177 /* ScanCode.LaunchMail */, 'LaunchMail', 124 /* KeyCode.LaunchMail */, 'LaunchMail', 180, 'VK_MEDIA_LAUNCH_MAIL', empty, empty],
-        [0, 1, 178 /* ScanCode.LaunchApp2 */, 'LaunchApp2', 125 /* KeyCode.LaunchApp2 */, 'LaunchApp2', 183, 'VK_MEDIA_LAUNCH_APP2', empty, empty],
-        [0, 1, 179 /* ScanCode.LaunchApp1 */, 'LaunchApp1', 0 /* KeyCode.Unknown */, empty, 0, 'VK_MEDIA_LAUNCH_APP1', empty, empty],
-        [0, 1, 180 /* ScanCode.SelectTask */, 'SelectTask', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 181 /* ScanCode.LaunchScreenSaver */, 'LaunchScreenSaver', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 182 /* ScanCode.BrowserSearch */, 'BrowserSearch', 115 /* KeyCode.BrowserSearch */, 'BrowserSearch', 170, 'VK_BROWSER_SEARCH', empty, empty],
-        [0, 1, 183 /* ScanCode.BrowserHome */, 'BrowserHome', 116 /* KeyCode.BrowserHome */, 'BrowserHome', 172, 'VK_BROWSER_HOME', empty, empty],
-        [112, 1, 184 /* ScanCode.BrowserBack */, 'BrowserBack', 117 /* KeyCode.BrowserBack */, 'BrowserBack', 166, 'VK_BROWSER_BACK', empty, empty],
-        [113, 1, 185 /* ScanCode.BrowserForward */, 'BrowserForward', 118 /* KeyCode.BrowserForward */, 'BrowserForward', 167, 'VK_BROWSER_FORWARD', empty, empty],
-        [0, 1, 186 /* ScanCode.BrowserStop */, 'BrowserStop', 0 /* KeyCode.Unknown */, empty, 0, 'VK_BROWSER_STOP', empty, empty],
-        [0, 1, 187 /* ScanCode.BrowserRefresh */, 'BrowserRefresh', 0 /* KeyCode.Unknown */, empty, 0, 'VK_BROWSER_REFRESH', empty, empty],
-        [0, 1, 188 /* ScanCode.BrowserFavorites */, 'BrowserFavorites', 0 /* KeyCode.Unknown */, empty, 0, 'VK_BROWSER_FAVORITES', empty, empty],
-        [0, 1, 189 /* ScanCode.ZoomToggle */, 'ZoomToggle', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 190 /* ScanCode.MailReply */, 'MailReply', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 191 /* ScanCode.MailForward */, 'MailForward', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 192 /* ScanCode.MailSend */, 'MailSend', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        // immutable, scanCode, scanCodeStr, keyCode, keyCodeStr, eventKeyCode, vkey, usUserSettingsLabel, generalUserSettingsLabel
+        [1, 0 /* ScanCode.None */, 'None', 0 /* KeyCode.Unknown */, 'unknown', 0, 'VK_UNKNOWN', empty, empty],
+        [1, 1 /* ScanCode.Hyper */, 'Hyper', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 2 /* ScanCode.Super */, 'Super', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 3 /* ScanCode.Fn */, 'Fn', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 4 /* ScanCode.FnLock */, 'FnLock', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 5 /* ScanCode.Suspend */, 'Suspend', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 6 /* ScanCode.Resume */, 'Resume', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 7 /* ScanCode.Turbo */, 'Turbo', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 8 /* ScanCode.Sleep */, 'Sleep', 0 /* KeyCode.Unknown */, empty, 0, 'VK_SLEEP', empty, empty],
+        [1, 9 /* ScanCode.WakeUp */, 'WakeUp', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 10 /* ScanCode.KeyA */, 'KeyA', 31 /* KeyCode.KeyA */, 'A', 65, 'VK_A', empty, empty],
+        [0, 11 /* ScanCode.KeyB */, 'KeyB', 32 /* KeyCode.KeyB */, 'B', 66, 'VK_B', empty, empty],
+        [0, 12 /* ScanCode.KeyC */, 'KeyC', 33 /* KeyCode.KeyC */, 'C', 67, 'VK_C', empty, empty],
+        [0, 13 /* ScanCode.KeyD */, 'KeyD', 34 /* KeyCode.KeyD */, 'D', 68, 'VK_D', empty, empty],
+        [0, 14 /* ScanCode.KeyE */, 'KeyE', 35 /* KeyCode.KeyE */, 'E', 69, 'VK_E', empty, empty],
+        [0, 15 /* ScanCode.KeyF */, 'KeyF', 36 /* KeyCode.KeyF */, 'F', 70, 'VK_F', empty, empty],
+        [0, 16 /* ScanCode.KeyG */, 'KeyG', 37 /* KeyCode.KeyG */, 'G', 71, 'VK_G', empty, empty],
+        [0, 17 /* ScanCode.KeyH */, 'KeyH', 38 /* KeyCode.KeyH */, 'H', 72, 'VK_H', empty, empty],
+        [0, 18 /* ScanCode.KeyI */, 'KeyI', 39 /* KeyCode.KeyI */, 'I', 73, 'VK_I', empty, empty],
+        [0, 19 /* ScanCode.KeyJ */, 'KeyJ', 40 /* KeyCode.KeyJ */, 'J', 74, 'VK_J', empty, empty],
+        [0, 20 /* ScanCode.KeyK */, 'KeyK', 41 /* KeyCode.KeyK */, 'K', 75, 'VK_K', empty, empty],
+        [0, 21 /* ScanCode.KeyL */, 'KeyL', 42 /* KeyCode.KeyL */, 'L', 76, 'VK_L', empty, empty],
+        [0, 22 /* ScanCode.KeyM */, 'KeyM', 43 /* KeyCode.KeyM */, 'M', 77, 'VK_M', empty, empty],
+        [0, 23 /* ScanCode.KeyN */, 'KeyN', 44 /* KeyCode.KeyN */, 'N', 78, 'VK_N', empty, empty],
+        [0, 24 /* ScanCode.KeyO */, 'KeyO', 45 /* KeyCode.KeyO */, 'O', 79, 'VK_O', empty, empty],
+        [0, 25 /* ScanCode.KeyP */, 'KeyP', 46 /* KeyCode.KeyP */, 'P', 80, 'VK_P', empty, empty],
+        [0, 26 /* ScanCode.KeyQ */, 'KeyQ', 47 /* KeyCode.KeyQ */, 'Q', 81, 'VK_Q', empty, empty],
+        [0, 27 /* ScanCode.KeyR */, 'KeyR', 48 /* KeyCode.KeyR */, 'R', 82, 'VK_R', empty, empty],
+        [0, 28 /* ScanCode.KeyS */, 'KeyS', 49 /* KeyCode.KeyS */, 'S', 83, 'VK_S', empty, empty],
+        [0, 29 /* ScanCode.KeyT */, 'KeyT', 50 /* KeyCode.KeyT */, 'T', 84, 'VK_T', empty, empty],
+        [0, 30 /* ScanCode.KeyU */, 'KeyU', 51 /* KeyCode.KeyU */, 'U', 85, 'VK_U', empty, empty],
+        [0, 31 /* ScanCode.KeyV */, 'KeyV', 52 /* KeyCode.KeyV */, 'V', 86, 'VK_V', empty, empty],
+        [0, 32 /* ScanCode.KeyW */, 'KeyW', 53 /* KeyCode.KeyW */, 'W', 87, 'VK_W', empty, empty],
+        [0, 33 /* ScanCode.KeyX */, 'KeyX', 54 /* KeyCode.KeyX */, 'X', 88, 'VK_X', empty, empty],
+        [0, 34 /* ScanCode.KeyY */, 'KeyY', 55 /* KeyCode.KeyY */, 'Y', 89, 'VK_Y', empty, empty],
+        [0, 35 /* ScanCode.KeyZ */, 'KeyZ', 56 /* KeyCode.KeyZ */, 'Z', 90, 'VK_Z', empty, empty],
+        [0, 36 /* ScanCode.Digit1 */, 'Digit1', 22 /* KeyCode.Digit1 */, '1', 49, 'VK_1', empty, empty],
+        [0, 37 /* ScanCode.Digit2 */, 'Digit2', 23 /* KeyCode.Digit2 */, '2', 50, 'VK_2', empty, empty],
+        [0, 38 /* ScanCode.Digit3 */, 'Digit3', 24 /* KeyCode.Digit3 */, '3', 51, 'VK_3', empty, empty],
+        [0, 39 /* ScanCode.Digit4 */, 'Digit4', 25 /* KeyCode.Digit4 */, '4', 52, 'VK_4', empty, empty],
+        [0, 40 /* ScanCode.Digit5 */, 'Digit5', 26 /* KeyCode.Digit5 */, '5', 53, 'VK_5', empty, empty],
+        [0, 41 /* ScanCode.Digit6 */, 'Digit6', 27 /* KeyCode.Digit6 */, '6', 54, 'VK_6', empty, empty],
+        [0, 42 /* ScanCode.Digit7 */, 'Digit7', 28 /* KeyCode.Digit7 */, '7', 55, 'VK_7', empty, empty],
+        [0, 43 /* ScanCode.Digit8 */, 'Digit8', 29 /* KeyCode.Digit8 */, '8', 56, 'VK_8', empty, empty],
+        [0, 44 /* ScanCode.Digit9 */, 'Digit9', 30 /* KeyCode.Digit9 */, '9', 57, 'VK_9', empty, empty],
+        [0, 45 /* ScanCode.Digit0 */, 'Digit0', 21 /* KeyCode.Digit0 */, '0', 48, 'VK_0', empty, empty],
+        [1, 46 /* ScanCode.Enter */, 'Enter', 3 /* KeyCode.Enter */, 'Enter', 13, 'VK_RETURN', empty, empty],
+        [1, 47 /* ScanCode.Escape */, 'Escape', 9 /* KeyCode.Escape */, 'Escape', 27, 'VK_ESCAPE', empty, empty],
+        [1, 48 /* ScanCode.Backspace */, 'Backspace', 1 /* KeyCode.Backspace */, 'Backspace', 8, 'VK_BACK', empty, empty],
+        [1, 49 /* ScanCode.Tab */, 'Tab', 2 /* KeyCode.Tab */, 'Tab', 9, 'VK_TAB', empty, empty],
+        [1, 50 /* ScanCode.Space */, 'Space', 10 /* KeyCode.Space */, 'Space', 32, 'VK_SPACE', empty, empty],
+        [0, 51 /* ScanCode.Minus */, 'Minus', 88 /* KeyCode.Minus */, '-', 189, 'VK_OEM_MINUS', '-', 'OEM_MINUS'],
+        [0, 52 /* ScanCode.Equal */, 'Equal', 86 /* KeyCode.Equal */, '=', 187, 'VK_OEM_PLUS', '=', 'OEM_PLUS'],
+        [0, 53 /* ScanCode.BracketLeft */, 'BracketLeft', 92 /* KeyCode.BracketLeft */, '[', 219, 'VK_OEM_4', '[', 'OEM_4'],
+        [0, 54 /* ScanCode.BracketRight */, 'BracketRight', 94 /* KeyCode.BracketRight */, ']', 221, 'VK_OEM_6', ']', 'OEM_6'],
+        [0, 55 /* ScanCode.Backslash */, 'Backslash', 93 /* KeyCode.Backslash */, '\\', 220, 'VK_OEM_5', '\\', 'OEM_5'],
+        [0, 56 /* ScanCode.IntlHash */, 'IntlHash', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty], // has been dropped from the w3c spec
+        [0, 57 /* ScanCode.Semicolon */, 'Semicolon', 85 /* KeyCode.Semicolon */, ';', 186, 'VK_OEM_1', ';', 'OEM_1'],
+        [0, 58 /* ScanCode.Quote */, 'Quote', 95 /* KeyCode.Quote */, '\'', 222, 'VK_OEM_7', '\'', 'OEM_7'],
+        [0, 59 /* ScanCode.Backquote */, 'Backquote', 91 /* KeyCode.Backquote */, '`', 192, 'VK_OEM_3', '`', 'OEM_3'],
+        [0, 60 /* ScanCode.Comma */, 'Comma', 87 /* KeyCode.Comma */, ',', 188, 'VK_OEM_COMMA', ',', 'OEM_COMMA'],
+        [0, 61 /* ScanCode.Period */, 'Period', 89 /* KeyCode.Period */, '.', 190, 'VK_OEM_PERIOD', '.', 'OEM_PERIOD'],
+        [0, 62 /* ScanCode.Slash */, 'Slash', 90 /* KeyCode.Slash */, '/', 191, 'VK_OEM_2', '/', 'OEM_2'],
+        [1, 63 /* ScanCode.CapsLock */, 'CapsLock', 8 /* KeyCode.CapsLock */, 'CapsLock', 20, 'VK_CAPITAL', empty, empty],
+        [1, 64 /* ScanCode.F1 */, 'F1', 59 /* KeyCode.F1 */, 'F1', 112, 'VK_F1', empty, empty],
+        [1, 65 /* ScanCode.F2 */, 'F2', 60 /* KeyCode.F2 */, 'F2', 113, 'VK_F2', empty, empty],
+        [1, 66 /* ScanCode.F3 */, 'F3', 61 /* KeyCode.F3 */, 'F3', 114, 'VK_F3', empty, empty],
+        [1, 67 /* ScanCode.F4 */, 'F4', 62 /* KeyCode.F4 */, 'F4', 115, 'VK_F4', empty, empty],
+        [1, 68 /* ScanCode.F5 */, 'F5', 63 /* KeyCode.F5 */, 'F5', 116, 'VK_F5', empty, empty],
+        [1, 69 /* ScanCode.F6 */, 'F6', 64 /* KeyCode.F6 */, 'F6', 117, 'VK_F6', empty, empty],
+        [1, 70 /* ScanCode.F7 */, 'F7', 65 /* KeyCode.F7 */, 'F7', 118, 'VK_F7', empty, empty],
+        [1, 71 /* ScanCode.F8 */, 'F8', 66 /* KeyCode.F8 */, 'F8', 119, 'VK_F8', empty, empty],
+        [1, 72 /* ScanCode.F9 */, 'F9', 67 /* KeyCode.F9 */, 'F9', 120, 'VK_F9', empty, empty],
+        [1, 73 /* ScanCode.F10 */, 'F10', 68 /* KeyCode.F10 */, 'F10', 121, 'VK_F10', empty, empty],
+        [1, 74 /* ScanCode.F11 */, 'F11', 69 /* KeyCode.F11 */, 'F11', 122, 'VK_F11', empty, empty],
+        [1, 75 /* ScanCode.F12 */, 'F12', 70 /* KeyCode.F12 */, 'F12', 123, 'VK_F12', empty, empty],
+        [1, 76 /* ScanCode.PrintScreen */, 'PrintScreen', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 77 /* ScanCode.ScrollLock */, 'ScrollLock', 84 /* KeyCode.ScrollLock */, 'ScrollLock', 145, 'VK_SCROLL', empty, empty],
+        [1, 78 /* ScanCode.Pause */, 'Pause', 7 /* KeyCode.PauseBreak */, 'PauseBreak', 19, 'VK_PAUSE', empty, empty],
+        [1, 79 /* ScanCode.Insert */, 'Insert', 19 /* KeyCode.Insert */, 'Insert', 45, 'VK_INSERT', empty, empty],
+        [1, 80 /* ScanCode.Home */, 'Home', 14 /* KeyCode.Home */, 'Home', 36, 'VK_HOME', empty, empty],
+        [1, 81 /* ScanCode.PageUp */, 'PageUp', 11 /* KeyCode.PageUp */, 'PageUp', 33, 'VK_PRIOR', empty, empty],
+        [1, 82 /* ScanCode.Delete */, 'Delete', 20 /* KeyCode.Delete */, 'Delete', 46, 'VK_DELETE', empty, empty],
+        [1, 83 /* ScanCode.End */, 'End', 13 /* KeyCode.End */, 'End', 35, 'VK_END', empty, empty],
+        [1, 84 /* ScanCode.PageDown */, 'PageDown', 12 /* KeyCode.PageDown */, 'PageDown', 34, 'VK_NEXT', empty, empty],
+        [1, 85 /* ScanCode.ArrowRight */, 'ArrowRight', 17 /* KeyCode.RightArrow */, 'RightArrow', 39, 'VK_RIGHT', 'Right', empty],
+        [1, 86 /* ScanCode.ArrowLeft */, 'ArrowLeft', 15 /* KeyCode.LeftArrow */, 'LeftArrow', 37, 'VK_LEFT', 'Left', empty],
+        [1, 87 /* ScanCode.ArrowDown */, 'ArrowDown', 18 /* KeyCode.DownArrow */, 'DownArrow', 40, 'VK_DOWN', 'Down', empty],
+        [1, 88 /* ScanCode.ArrowUp */, 'ArrowUp', 16 /* KeyCode.UpArrow */, 'UpArrow', 38, 'VK_UP', 'Up', empty],
+        [1, 89 /* ScanCode.NumLock */, 'NumLock', 83 /* KeyCode.NumLock */, 'NumLock', 144, 'VK_NUMLOCK', empty, empty],
+        [1, 90 /* ScanCode.NumpadDivide */, 'NumpadDivide', 113 /* KeyCode.NumpadDivide */, 'NumPad_Divide', 111, 'VK_DIVIDE', empty, empty],
+        [1, 91 /* ScanCode.NumpadMultiply */, 'NumpadMultiply', 108 /* KeyCode.NumpadMultiply */, 'NumPad_Multiply', 106, 'VK_MULTIPLY', empty, empty],
+        [1, 92 /* ScanCode.NumpadSubtract */, 'NumpadSubtract', 111 /* KeyCode.NumpadSubtract */, 'NumPad_Subtract', 109, 'VK_SUBTRACT', empty, empty],
+        [1, 93 /* ScanCode.NumpadAdd */, 'NumpadAdd', 109 /* KeyCode.NumpadAdd */, 'NumPad_Add', 107, 'VK_ADD', empty, empty],
+        [1, 94 /* ScanCode.NumpadEnter */, 'NumpadEnter', 3 /* KeyCode.Enter */, empty, 0, empty, empty, empty],
+        [1, 95 /* ScanCode.Numpad1 */, 'Numpad1', 99 /* KeyCode.Numpad1 */, 'NumPad1', 97, 'VK_NUMPAD1', empty, empty],
+        [1, 96 /* ScanCode.Numpad2 */, 'Numpad2', 100 /* KeyCode.Numpad2 */, 'NumPad2', 98, 'VK_NUMPAD2', empty, empty],
+        [1, 97 /* ScanCode.Numpad3 */, 'Numpad3', 101 /* KeyCode.Numpad3 */, 'NumPad3', 99, 'VK_NUMPAD3', empty, empty],
+        [1, 98 /* ScanCode.Numpad4 */, 'Numpad4', 102 /* KeyCode.Numpad4 */, 'NumPad4', 100, 'VK_NUMPAD4', empty, empty],
+        [1, 99 /* ScanCode.Numpad5 */, 'Numpad5', 103 /* KeyCode.Numpad5 */, 'NumPad5', 101, 'VK_NUMPAD5', empty, empty],
+        [1, 100 /* ScanCode.Numpad6 */, 'Numpad6', 104 /* KeyCode.Numpad6 */, 'NumPad6', 102, 'VK_NUMPAD6', empty, empty],
+        [1, 101 /* ScanCode.Numpad7 */, 'Numpad7', 105 /* KeyCode.Numpad7 */, 'NumPad7', 103, 'VK_NUMPAD7', empty, empty],
+        [1, 102 /* ScanCode.Numpad8 */, 'Numpad8', 106 /* KeyCode.Numpad8 */, 'NumPad8', 104, 'VK_NUMPAD8', empty, empty],
+        [1, 103 /* ScanCode.Numpad9 */, 'Numpad9', 107 /* KeyCode.Numpad9 */, 'NumPad9', 105, 'VK_NUMPAD9', empty, empty],
+        [1, 104 /* ScanCode.Numpad0 */, 'Numpad0', 98 /* KeyCode.Numpad0 */, 'NumPad0', 96, 'VK_NUMPAD0', empty, empty],
+        [1, 105 /* ScanCode.NumpadDecimal */, 'NumpadDecimal', 112 /* KeyCode.NumpadDecimal */, 'NumPad_Decimal', 110, 'VK_DECIMAL', empty, empty],
+        [0, 106 /* ScanCode.IntlBackslash */, 'IntlBackslash', 97 /* KeyCode.IntlBackslash */, 'OEM_102', 226, 'VK_OEM_102', empty, empty],
+        [1, 107 /* ScanCode.ContextMenu */, 'ContextMenu', 58 /* KeyCode.ContextMenu */, 'ContextMenu', 93, empty, empty, empty],
+        [1, 108 /* ScanCode.Power */, 'Power', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 109 /* ScanCode.NumpadEqual */, 'NumpadEqual', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 110 /* ScanCode.F13 */, 'F13', 71 /* KeyCode.F13 */, 'F13', 124, 'VK_F13', empty, empty],
+        [1, 111 /* ScanCode.F14 */, 'F14', 72 /* KeyCode.F14 */, 'F14', 125, 'VK_F14', empty, empty],
+        [1, 112 /* ScanCode.F15 */, 'F15', 73 /* KeyCode.F15 */, 'F15', 126, 'VK_F15', empty, empty],
+        [1, 113 /* ScanCode.F16 */, 'F16', 74 /* KeyCode.F16 */, 'F16', 127, 'VK_F16', empty, empty],
+        [1, 114 /* ScanCode.F17 */, 'F17', 75 /* KeyCode.F17 */, 'F17', 128, 'VK_F17', empty, empty],
+        [1, 115 /* ScanCode.F18 */, 'F18', 76 /* KeyCode.F18 */, 'F18', 129, 'VK_F18', empty, empty],
+        [1, 116 /* ScanCode.F19 */, 'F19', 77 /* KeyCode.F19 */, 'F19', 130, 'VK_F19', empty, empty],
+        [1, 117 /* ScanCode.F20 */, 'F20', 78 /* KeyCode.F20 */, 'F20', 131, 'VK_F20', empty, empty],
+        [1, 118 /* ScanCode.F21 */, 'F21', 79 /* KeyCode.F21 */, 'F21', 132, 'VK_F21', empty, empty],
+        [1, 119 /* ScanCode.F22 */, 'F22', 80 /* KeyCode.F22 */, 'F22', 133, 'VK_F22', empty, empty],
+        [1, 120 /* ScanCode.F23 */, 'F23', 81 /* KeyCode.F23 */, 'F23', 134, 'VK_F23', empty, empty],
+        [1, 121 /* ScanCode.F24 */, 'F24', 82 /* KeyCode.F24 */, 'F24', 135, 'VK_F24', empty, empty],
+        [1, 122 /* ScanCode.Open */, 'Open', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 123 /* ScanCode.Help */, 'Help', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 124 /* ScanCode.Select */, 'Select', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 125 /* ScanCode.Again */, 'Again', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 126 /* ScanCode.Undo */, 'Undo', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 127 /* ScanCode.Cut */, 'Cut', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 128 /* ScanCode.Copy */, 'Copy', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 129 /* ScanCode.Paste */, 'Paste', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 130 /* ScanCode.Find */, 'Find', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 131 /* ScanCode.AudioVolumeMute */, 'AudioVolumeMute', 117 /* KeyCode.AudioVolumeMute */, 'AudioVolumeMute', 173, 'VK_VOLUME_MUTE', empty, empty],
+        [1, 132 /* ScanCode.AudioVolumeUp */, 'AudioVolumeUp', 118 /* KeyCode.AudioVolumeUp */, 'AudioVolumeUp', 175, 'VK_VOLUME_UP', empty, empty],
+        [1, 133 /* ScanCode.AudioVolumeDown */, 'AudioVolumeDown', 119 /* KeyCode.AudioVolumeDown */, 'AudioVolumeDown', 174, 'VK_VOLUME_DOWN', empty, empty],
+        [1, 134 /* ScanCode.NumpadComma */, 'NumpadComma', 110 /* KeyCode.NUMPAD_SEPARATOR */, 'NumPad_Separator', 108, 'VK_SEPARATOR', empty, empty],
+        [0, 135 /* ScanCode.IntlRo */, 'IntlRo', 115 /* KeyCode.ABNT_C1 */, 'ABNT_C1', 193, 'VK_ABNT_C1', empty, empty],
+        [1, 136 /* ScanCode.KanaMode */, 'KanaMode', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 137 /* ScanCode.IntlYen */, 'IntlYen', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 138 /* ScanCode.Convert */, 'Convert', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 139 /* ScanCode.NonConvert */, 'NonConvert', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 140 /* ScanCode.Lang1 */, 'Lang1', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 141 /* ScanCode.Lang2 */, 'Lang2', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 142 /* ScanCode.Lang3 */, 'Lang3', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 143 /* ScanCode.Lang4 */, 'Lang4', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 144 /* ScanCode.Lang5 */, 'Lang5', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 145 /* ScanCode.Abort */, 'Abort', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 146 /* ScanCode.Props */, 'Props', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 147 /* ScanCode.NumpadParenLeft */, 'NumpadParenLeft', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 148 /* ScanCode.NumpadParenRight */, 'NumpadParenRight', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 149 /* ScanCode.NumpadBackspace */, 'NumpadBackspace', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 150 /* ScanCode.NumpadMemoryStore */, 'NumpadMemoryStore', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 151 /* ScanCode.NumpadMemoryRecall */, 'NumpadMemoryRecall', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 152 /* ScanCode.NumpadMemoryClear */, 'NumpadMemoryClear', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 153 /* ScanCode.NumpadMemoryAdd */, 'NumpadMemoryAdd', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 154 /* ScanCode.NumpadMemorySubtract */, 'NumpadMemorySubtract', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 155 /* ScanCode.NumpadClear */, 'NumpadClear', 131 /* KeyCode.Clear */, 'Clear', 12, 'VK_CLEAR', empty, empty],
+        [1, 156 /* ScanCode.NumpadClearEntry */, 'NumpadClearEntry', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 5 /* KeyCode.Ctrl */, 'Ctrl', 17, 'VK_CONTROL', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 4 /* KeyCode.Shift */, 'Shift', 16, 'VK_SHIFT', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 6 /* KeyCode.Alt */, 'Alt', 18, 'VK_MENU', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 57 /* KeyCode.Meta */, 'Meta', 91, 'VK_COMMAND', empty, empty],
+        [1, 157 /* ScanCode.ControlLeft */, 'ControlLeft', 5 /* KeyCode.Ctrl */, empty, 0, 'VK_LCONTROL', empty, empty],
+        [1, 158 /* ScanCode.ShiftLeft */, 'ShiftLeft', 4 /* KeyCode.Shift */, empty, 0, 'VK_LSHIFT', empty, empty],
+        [1, 159 /* ScanCode.AltLeft */, 'AltLeft', 6 /* KeyCode.Alt */, empty, 0, 'VK_LMENU', empty, empty],
+        [1, 160 /* ScanCode.MetaLeft */, 'MetaLeft', 57 /* KeyCode.Meta */, empty, 0, 'VK_LWIN', empty, empty],
+        [1, 161 /* ScanCode.ControlRight */, 'ControlRight', 5 /* KeyCode.Ctrl */, empty, 0, 'VK_RCONTROL', empty, empty],
+        [1, 162 /* ScanCode.ShiftRight */, 'ShiftRight', 4 /* KeyCode.Shift */, empty, 0, 'VK_RSHIFT', empty, empty],
+        [1, 163 /* ScanCode.AltRight */, 'AltRight', 6 /* KeyCode.Alt */, empty, 0, 'VK_RMENU', empty, empty],
+        [1, 164 /* ScanCode.MetaRight */, 'MetaRight', 57 /* KeyCode.Meta */, empty, 0, 'VK_RWIN', empty, empty],
+        [1, 165 /* ScanCode.BrightnessUp */, 'BrightnessUp', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 166 /* ScanCode.BrightnessDown */, 'BrightnessDown', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 167 /* ScanCode.MediaPlay */, 'MediaPlay', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 168 /* ScanCode.MediaRecord */, 'MediaRecord', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 169 /* ScanCode.MediaFastForward */, 'MediaFastForward', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 170 /* ScanCode.MediaRewind */, 'MediaRewind', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 171 /* ScanCode.MediaTrackNext */, 'MediaTrackNext', 124 /* KeyCode.MediaTrackNext */, 'MediaTrackNext', 176, 'VK_MEDIA_NEXT_TRACK', empty, empty],
+        [1, 172 /* ScanCode.MediaTrackPrevious */, 'MediaTrackPrevious', 125 /* KeyCode.MediaTrackPrevious */, 'MediaTrackPrevious', 177, 'VK_MEDIA_PREV_TRACK', empty, empty],
+        [1, 173 /* ScanCode.MediaStop */, 'MediaStop', 126 /* KeyCode.MediaStop */, 'MediaStop', 178, 'VK_MEDIA_STOP', empty, empty],
+        [1, 174 /* ScanCode.Eject */, 'Eject', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 175 /* ScanCode.MediaPlayPause */, 'MediaPlayPause', 127 /* KeyCode.MediaPlayPause */, 'MediaPlayPause', 179, 'VK_MEDIA_PLAY_PAUSE', empty, empty],
+        [1, 176 /* ScanCode.MediaSelect */, 'MediaSelect', 128 /* KeyCode.LaunchMediaPlayer */, 'LaunchMediaPlayer', 181, 'VK_MEDIA_LAUNCH_MEDIA_SELECT', empty, empty],
+        [1, 177 /* ScanCode.LaunchMail */, 'LaunchMail', 129 /* KeyCode.LaunchMail */, 'LaunchMail', 180, 'VK_MEDIA_LAUNCH_MAIL', empty, empty],
+        [1, 178 /* ScanCode.LaunchApp2 */, 'LaunchApp2', 130 /* KeyCode.LaunchApp2 */, 'LaunchApp2', 183, 'VK_MEDIA_LAUNCH_APP2', empty, empty],
+        [1, 179 /* ScanCode.LaunchApp1 */, 'LaunchApp1', 0 /* KeyCode.Unknown */, empty, 0, 'VK_MEDIA_LAUNCH_APP1', empty, empty],
+        [1, 180 /* ScanCode.SelectTask */, 'SelectTask', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 181 /* ScanCode.LaunchScreenSaver */, 'LaunchScreenSaver', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 182 /* ScanCode.BrowserSearch */, 'BrowserSearch', 120 /* KeyCode.BrowserSearch */, 'BrowserSearch', 170, 'VK_BROWSER_SEARCH', empty, empty],
+        [1, 183 /* ScanCode.BrowserHome */, 'BrowserHome', 121 /* KeyCode.BrowserHome */, 'BrowserHome', 172, 'VK_BROWSER_HOME', empty, empty],
+        [1, 184 /* ScanCode.BrowserBack */, 'BrowserBack', 122 /* KeyCode.BrowserBack */, 'BrowserBack', 166, 'VK_BROWSER_BACK', empty, empty],
+        [1, 185 /* ScanCode.BrowserForward */, 'BrowserForward', 123 /* KeyCode.BrowserForward */, 'BrowserForward', 167, 'VK_BROWSER_FORWARD', empty, empty],
+        [1, 186 /* ScanCode.BrowserStop */, 'BrowserStop', 0 /* KeyCode.Unknown */, empty, 0, 'VK_BROWSER_STOP', empty, empty],
+        [1, 187 /* ScanCode.BrowserRefresh */, 'BrowserRefresh', 0 /* KeyCode.Unknown */, empty, 0, 'VK_BROWSER_REFRESH', empty, empty],
+        [1, 188 /* ScanCode.BrowserFavorites */, 'BrowserFavorites', 0 /* KeyCode.Unknown */, empty, 0, 'VK_BROWSER_FAVORITES', empty, empty],
+        [1, 189 /* ScanCode.ZoomToggle */, 'ZoomToggle', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 190 /* ScanCode.MailReply */, 'MailReply', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 191 /* ScanCode.MailForward */, 'MailForward', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [1, 192 /* ScanCode.MailSend */, 'MailSend', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
         // See https://lists.w3.org/Archives/Public/www-dom/2010JulSep/att-0182/keyCode-spec.html
         // If an Input Method Editor is processing key input and the event is keydown, return 229.
-        [109, 1, 0 /* ScanCode.None */, empty, 109 /* KeyCode.KEY_IN_COMPOSITION */, 'KeyInComposition', 229, empty, empty, empty],
-        [111, 1, 0 /* ScanCode.None */, empty, 111 /* KeyCode.ABNT_C2 */, 'ABNT_C2', 194, 'VK_ABNT_C2', empty, empty],
-        [91, 1, 0 /* ScanCode.None */, empty, 91 /* KeyCode.OEM_8 */, 'OEM_8', 223, 'VK_OEM_8', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_KANA', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_HANGUL', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_JUNJA', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_FINAL', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_HANJA', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_KANJI', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_CONVERT', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_NONCONVERT', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_ACCEPT', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_MODECHANGE', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_SELECT', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PRINT', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_EXECUTE', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_SNAPSHOT', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_HELP', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_APPS', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PROCESSKEY', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PACKET', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_DBE_SBCSCHAR', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_DBE_DBCSCHAR', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_ATTN', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_CRSEL', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_EXSEL', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_EREOF', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PLAY', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_ZOOM', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_NONAME', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PA1', empty, empty],
-        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_OEM_CLEAR', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 114 /* KeyCode.KEY_IN_COMPOSITION */, 'KeyInComposition', 229, empty, empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 116 /* KeyCode.ABNT_C2 */, 'ABNT_C2', 194, 'VK_ABNT_C2', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 96 /* KeyCode.OEM_8 */, 'OEM_8', 223, 'VK_OEM_8', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_KANA', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_HANGUL', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_JUNJA', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_FINAL', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_HANJA', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_KANJI', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_CONVERT', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_NONCONVERT', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_ACCEPT', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_MODECHANGE', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_SELECT', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PRINT', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_EXECUTE', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_SNAPSHOT', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_HELP', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_APPS', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PROCESSKEY', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PACKET', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_DBE_SBCSCHAR', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_DBE_DBCSCHAR', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_ATTN', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_CRSEL', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_EXSEL', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_EREOF', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PLAY', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_ZOOM', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_NONAME', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PA1', empty, empty],
+        [1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_OEM_CLEAR', empty, empty],
     ];
     const seenKeyCode = [];
     const seenScanCode = [];
     for (const mapping of mappings) {
-        const [_keyCodeOrd, immutable, scanCode, scanCodeStr, keyCode, keyCodeStr, eventKeyCode, vkey, usUserSettingsLabel, generalUserSettingsLabel] = mapping;
+        const [immutable, scanCode, scanCodeStr, keyCode, keyCodeStr, eventKeyCode, vkey, usUserSettingsLabel, generalUserSettingsLabel] = mapping;
         if (!seenScanCode[scanCode]) {
             seenScanCode[scanCode] = true;
             scanCodeIntToStr[scanCode] = scanCodeStr;
@@ -9285,7 +9518,7 @@ var KeyCodeUtils;
     }
     KeyCodeUtils.fromUserSettings = fromUserSettings;
     function toElectronAccelerator(keyCode) {
-        if (keyCode >= 93 /* KeyCode.Numpad0 */ && keyCode <= 108 /* KeyCode.NumpadDivide */) {
+        if (keyCode >= 98 /* KeyCode.Numpad0 */ && keyCode <= 113 /* KeyCode.NumpadDivide */) {
             // [Electron Accelerators] Electron is able to parse numpad keys, but unfortunately it
             // renders them just as regular keys in menus. For example, num0 is rendered as "0",
             // numdiv is rendered as "/", numsub is rendered as "-".
@@ -9579,12 +9812,6 @@ function validateConstraint(arg, constraint) {
         throw new Error(`argument does not match one of these constraints: arg instanceof constraint, arg.constructor === constraint, nor constraint(arg) === true`);
     }
 }
-/**
- * Converts null to undefined, passes all other values through.
- */
-function withNullAsUndefined(x) {
-    return x === null ? undefined : x;
-}
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/codicons.js
 
@@ -9632,6 +9859,7 @@ const Codicon = {
     tag: register('tag', 0xea66),
     tagAdd: register('tag-add', 0xea66),
     tagRemove: register('tag-remove', 0xea66),
+    gitPullRequestLabel: register('git-pull-request-label', 0xea66),
     person: register('person', 0xea67),
     personFollow: register('person-follow', 0xea67),
     personOutline: register('person-outline', 0xea67),
@@ -9886,6 +10114,7 @@ const Codicon = {
     megaphone: register('megaphone', 0xeb1e),
     mention: register('mention', 0xeb1f),
     milestone: register('milestone', 0xeb20),
+    gitPullRequestMilestone: register('git-pull-request-milestone', 0xeb20),
     mortarBoard: register('mortar-board', 0xeb21),
     move: register('move', 0xeb22),
     multipleWindows: register('multiple-windows', 0xeb23),
@@ -9894,7 +10123,7 @@ const Codicon = {
     note: register('note', 0xeb26),
     octoface: register('octoface', 0xeb27),
     openPreview: register('open-preview', 0xeb28),
-    package_: register('package', 0xeb29),
+    package: register('package', 0xeb29),
     paintcan: register('paintcan', 0xeb2a),
     pin: register('pin', 0xeb2b),
     play: register('play', 0xeb2c),
@@ -10010,9 +10239,11 @@ const Codicon = {
     menu: register('menu', 0xeb94),
     expandAll: register('expand-all', 0xeb95),
     feedback: register('feedback', 0xeb96),
+    gitPullRequestReviewer: register('git-pull-request-reviewer', 0xeb96),
     groupByRefType: register('group-by-ref-type', 0xeb97),
     ungroupByRefType: register('ungroup-by-ref-type', 0xeb98),
     account: register('account', 0xeb99),
+    gitPullRequestAssignee: register('git-pull-request-assignee', 0xeb99),
     bellDot: register('bell-dot', 0xeb9a),
     debugConsole: register('debug-console', 0xeb9b),
     library: register('library', 0xeb9c),
@@ -10132,12 +10363,16 @@ const Codicon = {
     gitPullRequestNewChanges: register('git-pull-request-new-changes', 0xec0c),
     searchFuzzy: register('search-fuzzy', 0xec0d),
     commentDraft: register('comment-draft', 0xec0e),
+    send: register('send', 0xec0f),
+    sparkle: register('sparkle', 0xec10),
+    insert: register('insert', 0xec11),
+    mic: register('mic', 0xec12),
     // derived icons, that could become separate icons
     dialogError: register('dialog-error', 'error'),
     dialogWarning: register('dialog-warning', 'warning'),
     dialogInfo: register('dialog-info', 'info'),
     dialogClose: register('dialog-close', 'close'),
-    treeItemExpanded: register('tree-item-expanded', 'chevron-down'),
+    treeItemExpanded: register('tree-item-expanded', 'chevron-down'), // collapsed is done with rotation
     treeFilterOnTypeOn: register('tree-filter-on-type-on', 'list-filter'),
     treeFilterOnTypeOff: register('tree-filter-on-type-off', 'list-selection'),
     treeFilterClear: register('tree-filter-clear', 'close'),
@@ -10171,28 +10406,31 @@ var tokenizationRegistry_awaiter = (undefined && undefined.__awaiter) || functio
 
 class TokenizationRegistry {
     constructor() {
-        this._map = new Map();
+        this._tokenizationSupports = new Map();
         this._factories = new Map();
         this._onDidChange = new Emitter();
         this.onDidChange = this._onDidChange.event;
         this._colorMap = null;
     }
-    fire(languages) {
+    handleChange(languageIds) {
         this._onDidChange.fire({
-            changedLanguages: languages,
+            changedLanguages: languageIds,
             changedColorMap: false
         });
     }
-    register(language, support) {
-        this._map.set(language, support);
-        this.fire([language]);
+    register(languageId, support) {
+        this._tokenizationSupports.set(languageId, support);
+        this.handleChange([languageId]);
         return lifecycle_toDisposable(() => {
-            if (this._map.get(language) !== support) {
+            if (this._tokenizationSupports.get(languageId) !== support) {
                 return;
             }
-            this._map.delete(language);
-            this.fire([language]);
+            this._tokenizationSupports.delete(languageId);
+            this.handleChange([languageId]);
         });
+    }
+    get(languageId) {
+        return this._tokenizationSupports.get(languageId) || null;
     }
     registerFactory(languageId, factory) {
         var _a;
@@ -10224,9 +10462,6 @@ class TokenizationRegistry {
             return this.get(languageId);
         });
     }
-    get(language) {
-        return (this._map.get(language) || null);
-    }
     isResolved(languageId) {
         const tokenizationSupport = this.get(languageId);
         if (tokenizationSupport) {
@@ -10241,7 +10476,7 @@ class TokenizationRegistry {
     setColorMap(colorMap) {
         this._colorMap = colorMap;
         this._onDidChange.fire({
-            changedLanguages: Array.from(this._map.keys()),
+            changedLanguages: Array.from(this._tokenizationSupports.keys()),
             changedColorMap: true
         });
     }
@@ -10282,7 +10517,7 @@ class TokenizationSupportFactoryData extends lifecycle_Disposable {
     }
     _create() {
         return tokenizationRegistry_awaiter(this, void 0, void 0, function* () {
-            const value = yield Promise.resolve(this._factory.createTokenizationSupport());
+            const value = yield this._factory.tokenizationSupport;
             this._isResolved = true;
             if (value && !this._isDisposed) {
                 this._register(this._registry.register(this._languageId, value));
@@ -10292,10 +10527,7 @@ class TokenizationSupportFactoryData extends lifecycle_Disposable {
 }
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/languages.js
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+
 
 
 
@@ -10444,6 +10676,20 @@ var InlineCompletionTriggerKind;
      */
     InlineCompletionTriggerKind[InlineCompletionTriggerKind["Explicit"] = 1] = "Explicit";
 })(InlineCompletionTriggerKind || (InlineCompletionTriggerKind = {}));
+class SelectedSuggestionInfo {
+    constructor(range, text, completionKind, isSnippetText) {
+        this.range = range;
+        this.text = text;
+        this.completionKind = completionKind;
+        this.isSnippetText = isSnippetText;
+    }
+    equals(other) {
+        return Range.lift(this.range).equalsRange(other.range)
+            && this.text === other.text
+            && this.completionKind === other.completionKind
+            && this.isSnippetText === other.isSnippetText;
+    }
+}
 var SignatureHelpTriggerKind;
 (function (SignatureHelpTriggerKind) {
     SignatureHelpTriggerKind[SignatureHelpTriggerKind["Invoke"] = 1] = "Invoke";
@@ -10476,6 +10722,43 @@ function isLocationLink(thing) {
         && URI.isUri(thing.uri)
         && Range.isIRange(thing.range)
         && (Range.isIRange(thing.originSelectionRange) || Range.isIRange(thing.targetSelectionRange));
+}
+/**
+ * @internal
+ */
+const symbolKindNames = {
+    [17 /* SymbolKind.Array */]: nls_localize('Array', "array"),
+    [16 /* SymbolKind.Boolean */]: nls_localize('Boolean', "boolean"),
+    [4 /* SymbolKind.Class */]: nls_localize('Class', "class"),
+    [13 /* SymbolKind.Constant */]: nls_localize('Constant', "constant"),
+    [8 /* SymbolKind.Constructor */]: nls_localize('Constructor', "constructor"),
+    [9 /* SymbolKind.Enum */]: nls_localize('Enum', "enumeration"),
+    [21 /* SymbolKind.EnumMember */]: nls_localize('EnumMember', "enumeration member"),
+    [23 /* SymbolKind.Event */]: nls_localize('Event', "event"),
+    [7 /* SymbolKind.Field */]: nls_localize('Field', "field"),
+    [0 /* SymbolKind.File */]: nls_localize('File', "file"),
+    [11 /* SymbolKind.Function */]: nls_localize('Function', "function"),
+    [10 /* SymbolKind.Interface */]: nls_localize('Interface', "interface"),
+    [19 /* SymbolKind.Key */]: nls_localize('Key', "key"),
+    [5 /* SymbolKind.Method */]: nls_localize('Method', "method"),
+    [1 /* SymbolKind.Module */]: nls_localize('Module', "module"),
+    [2 /* SymbolKind.Namespace */]: nls_localize('Namespace', "namespace"),
+    [20 /* SymbolKind.Null */]: nls_localize('Null', "null"),
+    [15 /* SymbolKind.Number */]: nls_localize('Number', "number"),
+    [18 /* SymbolKind.Object */]: nls_localize('Object', "object"),
+    [24 /* SymbolKind.Operator */]: nls_localize('Operator', "operator"),
+    [3 /* SymbolKind.Package */]: nls_localize('Package', "package"),
+    [6 /* SymbolKind.Property */]: nls_localize('Property', "property"),
+    [14 /* SymbolKind.String */]: nls_localize('String', "string"),
+    [22 /* SymbolKind.Struct */]: nls_localize('Struct', "struct"),
+    [25 /* SymbolKind.TypeParameter */]: nls_localize('TypeParameter', "type parameter"),
+    [12 /* SymbolKind.Variable */]: nls_localize('Variable', "variable"),
+};
+/**
+ * @internal
+ */
+function getAriaLabelForSymbol(symbolName, kind) {
+    return localize('symbolAriaLabel', '{0} ({1})', symbolName, symbolKindNames[kind]);
 }
 /**
  * @internal
@@ -10522,6 +10805,9 @@ var SymbolKinds;
     }
     SymbolKinds.toIcon = toIcon;
 })(SymbolKinds || (SymbolKinds = {}));
+/** @internal */
+class TextEdit {
+}
 class FoldingRangeKind {
     /**
      * Returns a {@link FoldingRangeKind} for the given value.
@@ -10558,7 +10844,6 @@ FoldingRangeKind.Imports = new FoldingRangeKind('imports');
  * The value of the kind is 'region'.
  */
 FoldingRangeKind.Region = new FoldingRangeKind('region');
-
 /**
  * @internal
  */
@@ -10581,6 +10866,30 @@ var InlayHintKind;
     InlayHintKind[InlayHintKind["Type"] = 1] = "Type";
     InlayHintKind[InlayHintKind["Parameter"] = 2] = "Parameter";
 })(InlayHintKind || (InlayHintKind = {}));
+/**
+ * @internal
+ */
+class LazyTokenizationSupport {
+    constructor(createSupport) {
+        this.createSupport = createSupport;
+        this._tokenizationSupport = null;
+    }
+    dispose() {
+        if (this._tokenizationSupport) {
+            this._tokenizationSupport.then((support) => {
+                if (support) {
+                    support.dispose();
+                }
+            });
+        }
+    }
+    get tokenizationSupport() {
+        if (!this._tokenizationSupport) {
+            this._tokenizationSupport = this.createSupport();
+        }
+        return this._tokenizationSupport;
+    }
+}
 /**
  * @internal
  */
@@ -10765,141 +11074,149 @@ var EditorOption;
     EditorOption[EditorOption["accessibilitySupport"] = 2] = "accessibilitySupport";
     EditorOption[EditorOption["accessibilityPageSize"] = 3] = "accessibilityPageSize";
     EditorOption[EditorOption["ariaLabel"] = 4] = "ariaLabel";
-    EditorOption[EditorOption["autoClosingBrackets"] = 5] = "autoClosingBrackets";
-    EditorOption[EditorOption["autoClosingDelete"] = 6] = "autoClosingDelete";
-    EditorOption[EditorOption["autoClosingOvertype"] = 7] = "autoClosingOvertype";
-    EditorOption[EditorOption["autoClosingQuotes"] = 8] = "autoClosingQuotes";
-    EditorOption[EditorOption["autoIndent"] = 9] = "autoIndent";
-    EditorOption[EditorOption["automaticLayout"] = 10] = "automaticLayout";
-    EditorOption[EditorOption["autoSurround"] = 11] = "autoSurround";
-    EditorOption[EditorOption["bracketPairColorization"] = 12] = "bracketPairColorization";
-    EditorOption[EditorOption["guides"] = 13] = "guides";
-    EditorOption[EditorOption["codeLens"] = 14] = "codeLens";
-    EditorOption[EditorOption["codeLensFontFamily"] = 15] = "codeLensFontFamily";
-    EditorOption[EditorOption["codeLensFontSize"] = 16] = "codeLensFontSize";
-    EditorOption[EditorOption["colorDecorators"] = 17] = "colorDecorators";
-    EditorOption[EditorOption["colorDecoratorsLimit"] = 18] = "colorDecoratorsLimit";
-    EditorOption[EditorOption["columnSelection"] = 19] = "columnSelection";
-    EditorOption[EditorOption["comments"] = 20] = "comments";
-    EditorOption[EditorOption["contextmenu"] = 21] = "contextmenu";
-    EditorOption[EditorOption["copyWithSyntaxHighlighting"] = 22] = "copyWithSyntaxHighlighting";
-    EditorOption[EditorOption["cursorBlinking"] = 23] = "cursorBlinking";
-    EditorOption[EditorOption["cursorSmoothCaretAnimation"] = 24] = "cursorSmoothCaretAnimation";
-    EditorOption[EditorOption["cursorStyle"] = 25] = "cursorStyle";
-    EditorOption[EditorOption["cursorSurroundingLines"] = 26] = "cursorSurroundingLines";
-    EditorOption[EditorOption["cursorSurroundingLinesStyle"] = 27] = "cursorSurroundingLinesStyle";
-    EditorOption[EditorOption["cursorWidth"] = 28] = "cursorWidth";
-    EditorOption[EditorOption["disableLayerHinting"] = 29] = "disableLayerHinting";
-    EditorOption[EditorOption["disableMonospaceOptimizations"] = 30] = "disableMonospaceOptimizations";
-    EditorOption[EditorOption["domReadOnly"] = 31] = "domReadOnly";
-    EditorOption[EditorOption["dragAndDrop"] = 32] = "dragAndDrop";
-    EditorOption[EditorOption["dropIntoEditor"] = 33] = "dropIntoEditor";
-    EditorOption[EditorOption["emptySelectionClipboard"] = 34] = "emptySelectionClipboard";
-    EditorOption[EditorOption["experimentalWhitespaceRendering"] = 35] = "experimentalWhitespaceRendering";
-    EditorOption[EditorOption["extraEditorClassName"] = 36] = "extraEditorClassName";
-    EditorOption[EditorOption["fastScrollSensitivity"] = 37] = "fastScrollSensitivity";
-    EditorOption[EditorOption["find"] = 38] = "find";
-    EditorOption[EditorOption["fixedOverflowWidgets"] = 39] = "fixedOverflowWidgets";
-    EditorOption[EditorOption["folding"] = 40] = "folding";
-    EditorOption[EditorOption["foldingStrategy"] = 41] = "foldingStrategy";
-    EditorOption[EditorOption["foldingHighlight"] = 42] = "foldingHighlight";
-    EditorOption[EditorOption["foldingImportsByDefault"] = 43] = "foldingImportsByDefault";
-    EditorOption[EditorOption["foldingMaximumRegions"] = 44] = "foldingMaximumRegions";
-    EditorOption[EditorOption["unfoldOnClickAfterEndOfLine"] = 45] = "unfoldOnClickAfterEndOfLine";
-    EditorOption[EditorOption["fontFamily"] = 46] = "fontFamily";
-    EditorOption[EditorOption["fontInfo"] = 47] = "fontInfo";
-    EditorOption[EditorOption["fontLigatures"] = 48] = "fontLigatures";
-    EditorOption[EditorOption["fontSize"] = 49] = "fontSize";
-    EditorOption[EditorOption["fontWeight"] = 50] = "fontWeight";
-    EditorOption[EditorOption["fontVariations"] = 51] = "fontVariations";
-    EditorOption[EditorOption["formatOnPaste"] = 52] = "formatOnPaste";
-    EditorOption[EditorOption["formatOnType"] = 53] = "formatOnType";
-    EditorOption[EditorOption["glyphMargin"] = 54] = "glyphMargin";
-    EditorOption[EditorOption["gotoLocation"] = 55] = "gotoLocation";
-    EditorOption[EditorOption["hideCursorInOverviewRuler"] = 56] = "hideCursorInOverviewRuler";
-    EditorOption[EditorOption["hover"] = 57] = "hover";
-    EditorOption[EditorOption["inDiffEditor"] = 58] = "inDiffEditor";
-    EditorOption[EditorOption["inlineSuggest"] = 59] = "inlineSuggest";
-    EditorOption[EditorOption["letterSpacing"] = 60] = "letterSpacing";
-    EditorOption[EditorOption["lightbulb"] = 61] = "lightbulb";
-    EditorOption[EditorOption["lineDecorationsWidth"] = 62] = "lineDecorationsWidth";
-    EditorOption[EditorOption["lineHeight"] = 63] = "lineHeight";
-    EditorOption[EditorOption["lineNumbers"] = 64] = "lineNumbers";
-    EditorOption[EditorOption["lineNumbersMinChars"] = 65] = "lineNumbersMinChars";
-    EditorOption[EditorOption["linkedEditing"] = 66] = "linkedEditing";
-    EditorOption[EditorOption["links"] = 67] = "links";
-    EditorOption[EditorOption["matchBrackets"] = 68] = "matchBrackets";
-    EditorOption[EditorOption["minimap"] = 69] = "minimap";
-    EditorOption[EditorOption["mouseStyle"] = 70] = "mouseStyle";
-    EditorOption[EditorOption["mouseWheelScrollSensitivity"] = 71] = "mouseWheelScrollSensitivity";
-    EditorOption[EditorOption["mouseWheelZoom"] = 72] = "mouseWheelZoom";
-    EditorOption[EditorOption["multiCursorMergeOverlapping"] = 73] = "multiCursorMergeOverlapping";
-    EditorOption[EditorOption["multiCursorModifier"] = 74] = "multiCursorModifier";
-    EditorOption[EditorOption["multiCursorPaste"] = 75] = "multiCursorPaste";
-    EditorOption[EditorOption["multiCursorLimit"] = 76] = "multiCursorLimit";
-    EditorOption[EditorOption["occurrencesHighlight"] = 77] = "occurrencesHighlight";
-    EditorOption[EditorOption["overviewRulerBorder"] = 78] = "overviewRulerBorder";
-    EditorOption[EditorOption["overviewRulerLanes"] = 79] = "overviewRulerLanes";
-    EditorOption[EditorOption["padding"] = 80] = "padding";
-    EditorOption[EditorOption["parameterHints"] = 81] = "parameterHints";
-    EditorOption[EditorOption["peekWidgetDefaultFocus"] = 82] = "peekWidgetDefaultFocus";
-    EditorOption[EditorOption["definitionLinkOpensInPeek"] = 83] = "definitionLinkOpensInPeek";
-    EditorOption[EditorOption["quickSuggestions"] = 84] = "quickSuggestions";
-    EditorOption[EditorOption["quickSuggestionsDelay"] = 85] = "quickSuggestionsDelay";
-    EditorOption[EditorOption["readOnly"] = 86] = "readOnly";
-    EditorOption[EditorOption["renameOnType"] = 87] = "renameOnType";
-    EditorOption[EditorOption["renderControlCharacters"] = 88] = "renderControlCharacters";
-    EditorOption[EditorOption["renderFinalNewline"] = 89] = "renderFinalNewline";
-    EditorOption[EditorOption["renderLineHighlight"] = 90] = "renderLineHighlight";
-    EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 91] = "renderLineHighlightOnlyWhenFocus";
-    EditorOption[EditorOption["renderValidationDecorations"] = 92] = "renderValidationDecorations";
-    EditorOption[EditorOption["renderWhitespace"] = 93] = "renderWhitespace";
-    EditorOption[EditorOption["revealHorizontalRightPadding"] = 94] = "revealHorizontalRightPadding";
-    EditorOption[EditorOption["roundedSelection"] = 95] = "roundedSelection";
-    EditorOption[EditorOption["rulers"] = 96] = "rulers";
-    EditorOption[EditorOption["scrollbar"] = 97] = "scrollbar";
-    EditorOption[EditorOption["scrollBeyondLastColumn"] = 98] = "scrollBeyondLastColumn";
-    EditorOption[EditorOption["scrollBeyondLastLine"] = 99] = "scrollBeyondLastLine";
-    EditorOption[EditorOption["scrollPredominantAxis"] = 100] = "scrollPredominantAxis";
-    EditorOption[EditorOption["selectionClipboard"] = 101] = "selectionClipboard";
-    EditorOption[EditorOption["selectionHighlight"] = 102] = "selectionHighlight";
-    EditorOption[EditorOption["selectOnLineNumbers"] = 103] = "selectOnLineNumbers";
-    EditorOption[EditorOption["showFoldingControls"] = 104] = "showFoldingControls";
-    EditorOption[EditorOption["showUnused"] = 105] = "showUnused";
-    EditorOption[EditorOption["snippetSuggestions"] = 106] = "snippetSuggestions";
-    EditorOption[EditorOption["smartSelect"] = 107] = "smartSelect";
-    EditorOption[EditorOption["smoothScrolling"] = 108] = "smoothScrolling";
-    EditorOption[EditorOption["stickyScroll"] = 109] = "stickyScroll";
-    EditorOption[EditorOption["stickyTabStops"] = 110] = "stickyTabStops";
-    EditorOption[EditorOption["stopRenderingLineAfter"] = 111] = "stopRenderingLineAfter";
-    EditorOption[EditorOption["suggest"] = 112] = "suggest";
-    EditorOption[EditorOption["suggestFontSize"] = 113] = "suggestFontSize";
-    EditorOption[EditorOption["suggestLineHeight"] = 114] = "suggestLineHeight";
-    EditorOption[EditorOption["suggestOnTriggerCharacters"] = 115] = "suggestOnTriggerCharacters";
-    EditorOption[EditorOption["suggestSelection"] = 116] = "suggestSelection";
-    EditorOption[EditorOption["tabCompletion"] = 117] = "tabCompletion";
-    EditorOption[EditorOption["tabIndex"] = 118] = "tabIndex";
-    EditorOption[EditorOption["unicodeHighlighting"] = 119] = "unicodeHighlighting";
-    EditorOption[EditorOption["unusualLineTerminators"] = 120] = "unusualLineTerminators";
-    EditorOption[EditorOption["useShadowDOM"] = 121] = "useShadowDOM";
-    EditorOption[EditorOption["useTabStops"] = 122] = "useTabStops";
-    EditorOption[EditorOption["wordBreak"] = 123] = "wordBreak";
-    EditorOption[EditorOption["wordSeparators"] = 124] = "wordSeparators";
-    EditorOption[EditorOption["wordWrap"] = 125] = "wordWrap";
-    EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 126] = "wordWrapBreakAfterCharacters";
-    EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 127] = "wordWrapBreakBeforeCharacters";
-    EditorOption[EditorOption["wordWrapColumn"] = 128] = "wordWrapColumn";
-    EditorOption[EditorOption["wordWrapOverride1"] = 129] = "wordWrapOverride1";
-    EditorOption[EditorOption["wordWrapOverride2"] = 130] = "wordWrapOverride2";
-    EditorOption[EditorOption["wrappingIndent"] = 131] = "wrappingIndent";
-    EditorOption[EditorOption["wrappingStrategy"] = 132] = "wrappingStrategy";
-    EditorOption[EditorOption["showDeprecated"] = 133] = "showDeprecated";
-    EditorOption[EditorOption["inlayHints"] = 134] = "inlayHints";
-    EditorOption[EditorOption["editorClassName"] = 135] = "editorClassName";
-    EditorOption[EditorOption["pixelRatio"] = 136] = "pixelRatio";
-    EditorOption[EditorOption["tabFocusMode"] = 137] = "tabFocusMode";
-    EditorOption[EditorOption["layoutInfo"] = 138] = "layoutInfo";
-    EditorOption[EditorOption["wrappingInfo"] = 139] = "wrappingInfo";
+    EditorOption[EditorOption["ariaRequired"] = 5] = "ariaRequired";
+    EditorOption[EditorOption["autoClosingBrackets"] = 6] = "autoClosingBrackets";
+    EditorOption[EditorOption["autoClosingComments"] = 7] = "autoClosingComments";
+    EditorOption[EditorOption["screenReaderAnnounceInlineSuggestion"] = 8] = "screenReaderAnnounceInlineSuggestion";
+    EditorOption[EditorOption["autoClosingDelete"] = 9] = "autoClosingDelete";
+    EditorOption[EditorOption["autoClosingOvertype"] = 10] = "autoClosingOvertype";
+    EditorOption[EditorOption["autoClosingQuotes"] = 11] = "autoClosingQuotes";
+    EditorOption[EditorOption["autoIndent"] = 12] = "autoIndent";
+    EditorOption[EditorOption["automaticLayout"] = 13] = "automaticLayout";
+    EditorOption[EditorOption["autoSurround"] = 14] = "autoSurround";
+    EditorOption[EditorOption["bracketPairColorization"] = 15] = "bracketPairColorization";
+    EditorOption[EditorOption["guides"] = 16] = "guides";
+    EditorOption[EditorOption["codeLens"] = 17] = "codeLens";
+    EditorOption[EditorOption["codeLensFontFamily"] = 18] = "codeLensFontFamily";
+    EditorOption[EditorOption["codeLensFontSize"] = 19] = "codeLensFontSize";
+    EditorOption[EditorOption["colorDecorators"] = 20] = "colorDecorators";
+    EditorOption[EditorOption["colorDecoratorsLimit"] = 21] = "colorDecoratorsLimit";
+    EditorOption[EditorOption["columnSelection"] = 22] = "columnSelection";
+    EditorOption[EditorOption["comments"] = 23] = "comments";
+    EditorOption[EditorOption["contextmenu"] = 24] = "contextmenu";
+    EditorOption[EditorOption["copyWithSyntaxHighlighting"] = 25] = "copyWithSyntaxHighlighting";
+    EditorOption[EditorOption["cursorBlinking"] = 26] = "cursorBlinking";
+    EditorOption[EditorOption["cursorSmoothCaretAnimation"] = 27] = "cursorSmoothCaretAnimation";
+    EditorOption[EditorOption["cursorStyle"] = 28] = "cursorStyle";
+    EditorOption[EditorOption["cursorSurroundingLines"] = 29] = "cursorSurroundingLines";
+    EditorOption[EditorOption["cursorSurroundingLinesStyle"] = 30] = "cursorSurroundingLinesStyle";
+    EditorOption[EditorOption["cursorWidth"] = 31] = "cursorWidth";
+    EditorOption[EditorOption["disableLayerHinting"] = 32] = "disableLayerHinting";
+    EditorOption[EditorOption["disableMonospaceOptimizations"] = 33] = "disableMonospaceOptimizations";
+    EditorOption[EditorOption["domReadOnly"] = 34] = "domReadOnly";
+    EditorOption[EditorOption["dragAndDrop"] = 35] = "dragAndDrop";
+    EditorOption[EditorOption["dropIntoEditor"] = 36] = "dropIntoEditor";
+    EditorOption[EditorOption["emptySelectionClipboard"] = 37] = "emptySelectionClipboard";
+    EditorOption[EditorOption["experimentalWhitespaceRendering"] = 38] = "experimentalWhitespaceRendering";
+    EditorOption[EditorOption["extraEditorClassName"] = 39] = "extraEditorClassName";
+    EditorOption[EditorOption["fastScrollSensitivity"] = 40] = "fastScrollSensitivity";
+    EditorOption[EditorOption["find"] = 41] = "find";
+    EditorOption[EditorOption["fixedOverflowWidgets"] = 42] = "fixedOverflowWidgets";
+    EditorOption[EditorOption["folding"] = 43] = "folding";
+    EditorOption[EditorOption["foldingStrategy"] = 44] = "foldingStrategy";
+    EditorOption[EditorOption["foldingHighlight"] = 45] = "foldingHighlight";
+    EditorOption[EditorOption["foldingImportsByDefault"] = 46] = "foldingImportsByDefault";
+    EditorOption[EditorOption["foldingMaximumRegions"] = 47] = "foldingMaximumRegions";
+    EditorOption[EditorOption["unfoldOnClickAfterEndOfLine"] = 48] = "unfoldOnClickAfterEndOfLine";
+    EditorOption[EditorOption["fontFamily"] = 49] = "fontFamily";
+    EditorOption[EditorOption["fontInfo"] = 50] = "fontInfo";
+    EditorOption[EditorOption["fontLigatures"] = 51] = "fontLigatures";
+    EditorOption[EditorOption["fontSize"] = 52] = "fontSize";
+    EditorOption[EditorOption["fontWeight"] = 53] = "fontWeight";
+    EditorOption[EditorOption["fontVariations"] = 54] = "fontVariations";
+    EditorOption[EditorOption["formatOnPaste"] = 55] = "formatOnPaste";
+    EditorOption[EditorOption["formatOnType"] = 56] = "formatOnType";
+    EditorOption[EditorOption["glyphMargin"] = 57] = "glyphMargin";
+    EditorOption[EditorOption["gotoLocation"] = 58] = "gotoLocation";
+    EditorOption[EditorOption["hideCursorInOverviewRuler"] = 59] = "hideCursorInOverviewRuler";
+    EditorOption[EditorOption["hover"] = 60] = "hover";
+    EditorOption[EditorOption["inDiffEditor"] = 61] = "inDiffEditor";
+    EditorOption[EditorOption["inlineSuggest"] = 62] = "inlineSuggest";
+    EditorOption[EditorOption["letterSpacing"] = 63] = "letterSpacing";
+    EditorOption[EditorOption["lightbulb"] = 64] = "lightbulb";
+    EditorOption[EditorOption["lineDecorationsWidth"] = 65] = "lineDecorationsWidth";
+    EditorOption[EditorOption["lineHeight"] = 66] = "lineHeight";
+    EditorOption[EditorOption["lineNumbers"] = 67] = "lineNumbers";
+    EditorOption[EditorOption["lineNumbersMinChars"] = 68] = "lineNumbersMinChars";
+    EditorOption[EditorOption["linkedEditing"] = 69] = "linkedEditing";
+    EditorOption[EditorOption["links"] = 70] = "links";
+    EditorOption[EditorOption["matchBrackets"] = 71] = "matchBrackets";
+    EditorOption[EditorOption["minimap"] = 72] = "minimap";
+    EditorOption[EditorOption["mouseStyle"] = 73] = "mouseStyle";
+    EditorOption[EditorOption["mouseWheelScrollSensitivity"] = 74] = "mouseWheelScrollSensitivity";
+    EditorOption[EditorOption["mouseWheelZoom"] = 75] = "mouseWheelZoom";
+    EditorOption[EditorOption["multiCursorMergeOverlapping"] = 76] = "multiCursorMergeOverlapping";
+    EditorOption[EditorOption["multiCursorModifier"] = 77] = "multiCursorModifier";
+    EditorOption[EditorOption["multiCursorPaste"] = 78] = "multiCursorPaste";
+    EditorOption[EditorOption["multiCursorLimit"] = 79] = "multiCursorLimit";
+    EditorOption[EditorOption["occurrencesHighlight"] = 80] = "occurrencesHighlight";
+    EditorOption[EditorOption["overviewRulerBorder"] = 81] = "overviewRulerBorder";
+    EditorOption[EditorOption["overviewRulerLanes"] = 82] = "overviewRulerLanes";
+    EditorOption[EditorOption["padding"] = 83] = "padding";
+    EditorOption[EditorOption["pasteAs"] = 84] = "pasteAs";
+    EditorOption[EditorOption["parameterHints"] = 85] = "parameterHints";
+    EditorOption[EditorOption["peekWidgetDefaultFocus"] = 86] = "peekWidgetDefaultFocus";
+    EditorOption[EditorOption["definitionLinkOpensInPeek"] = 87] = "definitionLinkOpensInPeek";
+    EditorOption[EditorOption["quickSuggestions"] = 88] = "quickSuggestions";
+    EditorOption[EditorOption["quickSuggestionsDelay"] = 89] = "quickSuggestionsDelay";
+    EditorOption[EditorOption["readOnly"] = 90] = "readOnly";
+    EditorOption[EditorOption["readOnlyMessage"] = 91] = "readOnlyMessage";
+    EditorOption[EditorOption["renameOnType"] = 92] = "renameOnType";
+    EditorOption[EditorOption["renderControlCharacters"] = 93] = "renderControlCharacters";
+    EditorOption[EditorOption["renderFinalNewline"] = 94] = "renderFinalNewline";
+    EditorOption[EditorOption["renderLineHighlight"] = 95] = "renderLineHighlight";
+    EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 96] = "renderLineHighlightOnlyWhenFocus";
+    EditorOption[EditorOption["renderValidationDecorations"] = 97] = "renderValidationDecorations";
+    EditorOption[EditorOption["renderWhitespace"] = 98] = "renderWhitespace";
+    EditorOption[EditorOption["revealHorizontalRightPadding"] = 99] = "revealHorizontalRightPadding";
+    EditorOption[EditorOption["roundedSelection"] = 100] = "roundedSelection";
+    EditorOption[EditorOption["rulers"] = 101] = "rulers";
+    EditorOption[EditorOption["scrollbar"] = 102] = "scrollbar";
+    EditorOption[EditorOption["scrollBeyondLastColumn"] = 103] = "scrollBeyondLastColumn";
+    EditorOption[EditorOption["scrollBeyondLastLine"] = 104] = "scrollBeyondLastLine";
+    EditorOption[EditorOption["scrollPredominantAxis"] = 105] = "scrollPredominantAxis";
+    EditorOption[EditorOption["selectionClipboard"] = 106] = "selectionClipboard";
+    EditorOption[EditorOption["selectionHighlight"] = 107] = "selectionHighlight";
+    EditorOption[EditorOption["selectOnLineNumbers"] = 108] = "selectOnLineNumbers";
+    EditorOption[EditorOption["showFoldingControls"] = 109] = "showFoldingControls";
+    EditorOption[EditorOption["showUnused"] = 110] = "showUnused";
+    EditorOption[EditorOption["snippetSuggestions"] = 111] = "snippetSuggestions";
+    EditorOption[EditorOption["smartSelect"] = 112] = "smartSelect";
+    EditorOption[EditorOption["smoothScrolling"] = 113] = "smoothScrolling";
+    EditorOption[EditorOption["stickyScroll"] = 114] = "stickyScroll";
+    EditorOption[EditorOption["stickyTabStops"] = 115] = "stickyTabStops";
+    EditorOption[EditorOption["stopRenderingLineAfter"] = 116] = "stopRenderingLineAfter";
+    EditorOption[EditorOption["suggest"] = 117] = "suggest";
+    EditorOption[EditorOption["suggestFontSize"] = 118] = "suggestFontSize";
+    EditorOption[EditorOption["suggestLineHeight"] = 119] = "suggestLineHeight";
+    EditorOption[EditorOption["suggestOnTriggerCharacters"] = 120] = "suggestOnTriggerCharacters";
+    EditorOption[EditorOption["suggestSelection"] = 121] = "suggestSelection";
+    EditorOption[EditorOption["tabCompletion"] = 122] = "tabCompletion";
+    EditorOption[EditorOption["tabIndex"] = 123] = "tabIndex";
+    EditorOption[EditorOption["unicodeHighlighting"] = 124] = "unicodeHighlighting";
+    EditorOption[EditorOption["unusualLineTerminators"] = 125] = "unusualLineTerminators";
+    EditorOption[EditorOption["useShadowDOM"] = 126] = "useShadowDOM";
+    EditorOption[EditorOption["useTabStops"] = 127] = "useTabStops";
+    EditorOption[EditorOption["wordBreak"] = 128] = "wordBreak";
+    EditorOption[EditorOption["wordSeparators"] = 129] = "wordSeparators";
+    EditorOption[EditorOption["wordWrap"] = 130] = "wordWrap";
+    EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 131] = "wordWrapBreakAfterCharacters";
+    EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 132] = "wordWrapBreakBeforeCharacters";
+    EditorOption[EditorOption["wordWrapColumn"] = 133] = "wordWrapColumn";
+    EditorOption[EditorOption["wordWrapOverride1"] = 134] = "wordWrapOverride1";
+    EditorOption[EditorOption["wordWrapOverride2"] = 135] = "wordWrapOverride2";
+    EditorOption[EditorOption["wrappingIndent"] = 136] = "wrappingIndent";
+    EditorOption[EditorOption["wrappingStrategy"] = 137] = "wrappingStrategy";
+    EditorOption[EditorOption["showDeprecated"] = 138] = "showDeprecated";
+    EditorOption[EditorOption["inlayHints"] = 139] = "inlayHints";
+    EditorOption[EditorOption["editorClassName"] = 140] = "editorClassName";
+    EditorOption[EditorOption["pixelRatio"] = 141] = "pixelRatio";
+    EditorOption[EditorOption["tabFocusMode"] = 142] = "tabFocusMode";
+    EditorOption[EditorOption["layoutInfo"] = 143] = "layoutInfo";
+    EditorOption[EditorOption["wrappingInfo"] = 144] = "wrappingInfo";
+    EditorOption[EditorOption["defaultColorDecorators"] = 145] = "defaultColorDecorators";
+    EditorOption[EditorOption["colorDecoratorsActivatedOn"] = 146] = "colorDecoratorsActivatedOn";
+    EditorOption[EditorOption["inlineCompletionsAccessibilityVerbose"] = 147] = "inlineCompletionsAccessibilityVerbose";
 })(EditorOption || (EditorOption = {}));
 /**
  * End of line character preference.
@@ -10933,6 +11250,14 @@ var EndOfLineSequence;
      */
     EndOfLineSequence[EndOfLineSequence["CRLF"] = 1] = "CRLF";
 })(EndOfLineSequence || (EndOfLineSequence = {}));
+/**
+ * Vertical Lane in the glyph margin of the editor.
+ */
+var GlyphMarginLane;
+(function (GlyphMarginLane) {
+    GlyphMarginLane[GlyphMarginLane["Left"] = 1] = "Left";
+    GlyphMarginLane[GlyphMarginLane["Right"] = 2] = "Right";
+})(GlyphMarginLane || (GlyphMarginLane = {}));
 /**
  * Describes what to do with the indentation when pressing Enter.
  */
@@ -11074,116 +11399,121 @@ var KeyCode;
     KeyCode[KeyCode["F17"] = 75] = "F17";
     KeyCode[KeyCode["F18"] = 76] = "F18";
     KeyCode[KeyCode["F19"] = 77] = "F19";
-    KeyCode[KeyCode["NumLock"] = 78] = "NumLock";
-    KeyCode[KeyCode["ScrollLock"] = 79] = "ScrollLock";
+    KeyCode[KeyCode["F20"] = 78] = "F20";
+    KeyCode[KeyCode["F21"] = 79] = "F21";
+    KeyCode[KeyCode["F22"] = 80] = "F22";
+    KeyCode[KeyCode["F23"] = 81] = "F23";
+    KeyCode[KeyCode["F24"] = 82] = "F24";
+    KeyCode[KeyCode["NumLock"] = 83] = "NumLock";
+    KeyCode[KeyCode["ScrollLock"] = 84] = "ScrollLock";
     /**
      * Used for miscellaneous characters; it can vary by keyboard.
      * For the US standard keyboard, the ';:' key
      */
-    KeyCode[KeyCode["Semicolon"] = 80] = "Semicolon";
+    KeyCode[KeyCode["Semicolon"] = 85] = "Semicolon";
     /**
      * For any country/region, the '+' key
      * For the US standard keyboard, the '=+' key
      */
-    KeyCode[KeyCode["Equal"] = 81] = "Equal";
+    KeyCode[KeyCode["Equal"] = 86] = "Equal";
     /**
      * For any country/region, the ',' key
      * For the US standard keyboard, the ',<' key
      */
-    KeyCode[KeyCode["Comma"] = 82] = "Comma";
+    KeyCode[KeyCode["Comma"] = 87] = "Comma";
     /**
      * For any country/region, the '-' key
      * For the US standard keyboard, the '-_' key
      */
-    KeyCode[KeyCode["Minus"] = 83] = "Minus";
+    KeyCode[KeyCode["Minus"] = 88] = "Minus";
     /**
      * For any country/region, the '.' key
      * For the US standard keyboard, the '.>' key
      */
-    KeyCode[KeyCode["Period"] = 84] = "Period";
+    KeyCode[KeyCode["Period"] = 89] = "Period";
     /**
      * Used for miscellaneous characters; it can vary by keyboard.
      * For the US standard keyboard, the '/?' key
      */
-    KeyCode[KeyCode["Slash"] = 85] = "Slash";
+    KeyCode[KeyCode["Slash"] = 90] = "Slash";
     /**
      * Used for miscellaneous characters; it can vary by keyboard.
      * For the US standard keyboard, the '`~' key
      */
-    KeyCode[KeyCode["Backquote"] = 86] = "Backquote";
+    KeyCode[KeyCode["Backquote"] = 91] = "Backquote";
     /**
      * Used for miscellaneous characters; it can vary by keyboard.
      * For the US standard keyboard, the '[{' key
      */
-    KeyCode[KeyCode["BracketLeft"] = 87] = "BracketLeft";
+    KeyCode[KeyCode["BracketLeft"] = 92] = "BracketLeft";
     /**
      * Used for miscellaneous characters; it can vary by keyboard.
      * For the US standard keyboard, the '\|' key
      */
-    KeyCode[KeyCode["Backslash"] = 88] = "Backslash";
+    KeyCode[KeyCode["Backslash"] = 93] = "Backslash";
     /**
      * Used for miscellaneous characters; it can vary by keyboard.
      * For the US standard keyboard, the ']}' key
      */
-    KeyCode[KeyCode["BracketRight"] = 89] = "BracketRight";
+    KeyCode[KeyCode["BracketRight"] = 94] = "BracketRight";
     /**
      * Used for miscellaneous characters; it can vary by keyboard.
      * For the US standard keyboard, the ''"' key
      */
-    KeyCode[KeyCode["Quote"] = 90] = "Quote";
+    KeyCode[KeyCode["Quote"] = 95] = "Quote";
     /**
      * Used for miscellaneous characters; it can vary by keyboard.
      */
-    KeyCode[KeyCode["OEM_8"] = 91] = "OEM_8";
+    KeyCode[KeyCode["OEM_8"] = 96] = "OEM_8";
     /**
      * Either the angle bracket key or the backslash key on the RT 102-key keyboard.
      */
-    KeyCode[KeyCode["IntlBackslash"] = 92] = "IntlBackslash";
-    KeyCode[KeyCode["Numpad0"] = 93] = "Numpad0";
-    KeyCode[KeyCode["Numpad1"] = 94] = "Numpad1";
-    KeyCode[KeyCode["Numpad2"] = 95] = "Numpad2";
-    KeyCode[KeyCode["Numpad3"] = 96] = "Numpad3";
-    KeyCode[KeyCode["Numpad4"] = 97] = "Numpad4";
-    KeyCode[KeyCode["Numpad5"] = 98] = "Numpad5";
-    KeyCode[KeyCode["Numpad6"] = 99] = "Numpad6";
-    KeyCode[KeyCode["Numpad7"] = 100] = "Numpad7";
-    KeyCode[KeyCode["Numpad8"] = 101] = "Numpad8";
-    KeyCode[KeyCode["Numpad9"] = 102] = "Numpad9";
-    KeyCode[KeyCode["NumpadMultiply"] = 103] = "NumpadMultiply";
-    KeyCode[KeyCode["NumpadAdd"] = 104] = "NumpadAdd";
-    KeyCode[KeyCode["NUMPAD_SEPARATOR"] = 105] = "NUMPAD_SEPARATOR";
-    KeyCode[KeyCode["NumpadSubtract"] = 106] = "NumpadSubtract";
-    KeyCode[KeyCode["NumpadDecimal"] = 107] = "NumpadDecimal";
-    KeyCode[KeyCode["NumpadDivide"] = 108] = "NumpadDivide";
+    KeyCode[KeyCode["IntlBackslash"] = 97] = "IntlBackslash";
+    KeyCode[KeyCode["Numpad0"] = 98] = "Numpad0";
+    KeyCode[KeyCode["Numpad1"] = 99] = "Numpad1";
+    KeyCode[KeyCode["Numpad2"] = 100] = "Numpad2";
+    KeyCode[KeyCode["Numpad3"] = 101] = "Numpad3";
+    KeyCode[KeyCode["Numpad4"] = 102] = "Numpad4";
+    KeyCode[KeyCode["Numpad5"] = 103] = "Numpad5";
+    KeyCode[KeyCode["Numpad6"] = 104] = "Numpad6";
+    KeyCode[KeyCode["Numpad7"] = 105] = "Numpad7";
+    KeyCode[KeyCode["Numpad8"] = 106] = "Numpad8";
+    KeyCode[KeyCode["Numpad9"] = 107] = "Numpad9";
+    KeyCode[KeyCode["NumpadMultiply"] = 108] = "NumpadMultiply";
+    KeyCode[KeyCode["NumpadAdd"] = 109] = "NumpadAdd";
+    KeyCode[KeyCode["NUMPAD_SEPARATOR"] = 110] = "NUMPAD_SEPARATOR";
+    KeyCode[KeyCode["NumpadSubtract"] = 111] = "NumpadSubtract";
+    KeyCode[KeyCode["NumpadDecimal"] = 112] = "NumpadDecimal";
+    KeyCode[KeyCode["NumpadDivide"] = 113] = "NumpadDivide";
     /**
      * Cover all key codes when IME is processing input.
      */
-    KeyCode[KeyCode["KEY_IN_COMPOSITION"] = 109] = "KEY_IN_COMPOSITION";
-    KeyCode[KeyCode["ABNT_C1"] = 110] = "ABNT_C1";
-    KeyCode[KeyCode["ABNT_C2"] = 111] = "ABNT_C2";
-    KeyCode[KeyCode["AudioVolumeMute"] = 112] = "AudioVolumeMute";
-    KeyCode[KeyCode["AudioVolumeUp"] = 113] = "AudioVolumeUp";
-    KeyCode[KeyCode["AudioVolumeDown"] = 114] = "AudioVolumeDown";
-    KeyCode[KeyCode["BrowserSearch"] = 115] = "BrowserSearch";
-    KeyCode[KeyCode["BrowserHome"] = 116] = "BrowserHome";
-    KeyCode[KeyCode["BrowserBack"] = 117] = "BrowserBack";
-    KeyCode[KeyCode["BrowserForward"] = 118] = "BrowserForward";
-    KeyCode[KeyCode["MediaTrackNext"] = 119] = "MediaTrackNext";
-    KeyCode[KeyCode["MediaTrackPrevious"] = 120] = "MediaTrackPrevious";
-    KeyCode[KeyCode["MediaStop"] = 121] = "MediaStop";
-    KeyCode[KeyCode["MediaPlayPause"] = 122] = "MediaPlayPause";
-    KeyCode[KeyCode["LaunchMediaPlayer"] = 123] = "LaunchMediaPlayer";
-    KeyCode[KeyCode["LaunchMail"] = 124] = "LaunchMail";
-    KeyCode[KeyCode["LaunchApp2"] = 125] = "LaunchApp2";
+    KeyCode[KeyCode["KEY_IN_COMPOSITION"] = 114] = "KEY_IN_COMPOSITION";
+    KeyCode[KeyCode["ABNT_C1"] = 115] = "ABNT_C1";
+    KeyCode[KeyCode["ABNT_C2"] = 116] = "ABNT_C2";
+    KeyCode[KeyCode["AudioVolumeMute"] = 117] = "AudioVolumeMute";
+    KeyCode[KeyCode["AudioVolumeUp"] = 118] = "AudioVolumeUp";
+    KeyCode[KeyCode["AudioVolumeDown"] = 119] = "AudioVolumeDown";
+    KeyCode[KeyCode["BrowserSearch"] = 120] = "BrowserSearch";
+    KeyCode[KeyCode["BrowserHome"] = 121] = "BrowserHome";
+    KeyCode[KeyCode["BrowserBack"] = 122] = "BrowserBack";
+    KeyCode[KeyCode["BrowserForward"] = 123] = "BrowserForward";
+    KeyCode[KeyCode["MediaTrackNext"] = 124] = "MediaTrackNext";
+    KeyCode[KeyCode["MediaTrackPrevious"] = 125] = "MediaTrackPrevious";
+    KeyCode[KeyCode["MediaStop"] = 126] = "MediaStop";
+    KeyCode[KeyCode["MediaPlayPause"] = 127] = "MediaPlayPause";
+    KeyCode[KeyCode["LaunchMediaPlayer"] = 128] = "LaunchMediaPlayer";
+    KeyCode[KeyCode["LaunchMail"] = 129] = "LaunchMail";
+    KeyCode[KeyCode["LaunchApp2"] = 130] = "LaunchApp2";
     /**
      * VK_CLEAR, 0x0C, CLEAR key
      */
-    KeyCode[KeyCode["Clear"] = 126] = "Clear";
+    KeyCode[KeyCode["Clear"] = 131] = "Clear";
     /**
      * Placed last to cover the length of the enum.
      * Please do not depend on this value!
      */
-    KeyCode[KeyCode["MAX_VALUE"] = 127] = "MAX_VALUE";
+    KeyCode[KeyCode["MAX_VALUE"] = 132] = "MAX_VALUE";
 })(KeyCode || (KeyCode = {}));
 var MarkerSeverity;
 (function (MarkerSeverity) {
@@ -11516,11 +11846,10 @@ KeyMod.CtrlCmd = 2048 /* ConstKeyMod.CtrlCmd */;
 KeyMod.Shift = 1024 /* ConstKeyMod.Shift */;
 KeyMod.Alt = 512 /* ConstKeyMod.Alt */;
 KeyMod.WinCtrl = 256 /* ConstKeyMod.WinCtrl */;
-
 function createMonacoBaseAPI() {
     return {
-        editor: undefined,
-        languages: undefined,
+        editor: undefined, // undefined override expected here
+        languages: undefined, // undefined override expected here
         CancellationTokenSource: CancellationTokenSource,
         Emitter: Emitter,
         KeyCode: KeyCode,
@@ -11552,7 +11881,7 @@ class WordCharacterClassifier extends CharacterClassifier {
         this.set(9 /* CharCode.Tab */, 1 /* WordCharacterClass.Whitespace */);
     }
 }
-function wordCharacterClassifier_once(computeFn) {
+function once(computeFn) {
     const cache = {}; // TODO@Alex unbounded cache
     return (input) => {
         if (!cache.hasOwnProperty(input)) {
@@ -11561,7 +11890,7 @@ function wordCharacterClassifier_once(computeFn) {
         return cache[input];
     };
 }
-const wordCharacterClassifier_getMapForWordSeparators = wordCharacterClassifier_once((input) => new WordCharacterClassifier(input));
+const wordCharacterClassifier_getMapForWordSeparators = once((input) => new WordCharacterClassifier(input));
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/model.js
 /*---------------------------------------------------------------------------------------------
@@ -11579,6 +11908,14 @@ var model_OverviewRulerLane;
     OverviewRulerLane[OverviewRulerLane["Right"] = 4] = "Right";
     OverviewRulerLane[OverviewRulerLane["Full"] = 7] = "Full";
 })(model_OverviewRulerLane || (model_OverviewRulerLane = {}));
+/**
+ * Vertical Lane in the glyph margin of the editor.
+ */
+var model_GlyphMarginLane;
+(function (GlyphMarginLane) {
+    GlyphMarginLane[GlyphMarginLane["Left"] = 1] = "Left";
+    GlyphMarginLane[GlyphMarginLane["Right"] = 2] = "Right";
+})(model_GlyphMarginLane || (model_GlyphMarginLane = {}));
 /**
  * Position in the minimap to render the decoration.
  */
@@ -12396,38 +12733,441 @@ function isAllowedInvisibleCharacter(character) {
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-/**
- * Maps a line range in the original text model to a line range in the modified text model.
- */
-class LineRangeMapping {
-    constructor(originalRange, modifiedRange, innerChanges) {
-        this.originalRange = originalRange;
-        this.modifiedRange = modifiedRange;
-        this.innerChanges = innerChanges;
-    }
-    toString() {
-        return `{${this.originalRange.toString()}->${this.modifiedRange.toString()}}`;
-    }
-}
-/**
- * Maps a range in the original text model to a range in the modified text model.
- */
-class RangeMapping {
-    constructor(originalRange, modifiedRange) {
-        this.originalRange = originalRange;
-        this.modifiedRange = modifiedRange;
-    }
-    toString() {
-        return `{${this.originalRange.toString()}->${this.modifiedRange.toString()}}`;
+class LinesDiff {
+    constructor(changes, 
+    /**
+     * Sorted by original line ranges.
+     * The original line ranges and the modified line ranges must be disjoint (but can be touching).
+     */
+    moves, 
+    /**
+     * Indicates if the time out was reached.
+     * In that case, the diffs might be an approximation and the user should be asked to rerun the diff with more time.
+     */
+    hitTimeout) {
+        this.changes = changes;
+        this.moves = moves;
+        this.hitTimeout = hitTimeout;
     }
 }
+class MovedText {
+    constructor(lineRangeMapping, changes) {
+        this.lineRangeMapping = lineRangeMapping;
+        this.changes = changes;
+    }
+}
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * A range of offsets (0-based).
+*/
+class OffsetRange {
+    static addRange(range, sortedRanges) {
+        let i = 0;
+        while (i < sortedRanges.length && sortedRanges[i].endExclusive < range.start) {
+            i++;
+        }
+        let j = i;
+        while (j < sortedRanges.length && sortedRanges[j].start <= range.endExclusive) {
+            j++;
+        }
+        if (i === j) {
+            sortedRanges.splice(i, 0, range);
+        }
+        else {
+            const start = Math.min(range.start, sortedRanges[i].start);
+            const end = Math.max(range.endExclusive, sortedRanges[j - 1].endExclusive);
+            sortedRanges.splice(i, j - i, new OffsetRange(start, end));
+        }
+    }
+    static tryCreate(start, endExclusive) {
+        if (start > endExclusive) {
+            return undefined;
+        }
+        return new OffsetRange(start, endExclusive);
+    }
+    static ofLength(length) {
+        return new OffsetRange(0, length);
+    }
+    constructor(start, endExclusive) {
+        this.start = start;
+        this.endExclusive = endExclusive;
+        if (start > endExclusive) {
+            throw new BugIndicatingError(`Invalid range: ${this.toString()}`);
+        }
+    }
+    get isEmpty() {
+        return this.start === this.endExclusive;
+    }
+    delta(offset) {
+        return new OffsetRange(this.start + offset, this.endExclusive + offset);
+    }
+    deltaStart(offset) {
+        return new OffsetRange(this.start + offset, this.endExclusive);
+    }
+    deltaEnd(offset) {
+        return new OffsetRange(this.start, this.endExclusive + offset);
+    }
+    get length() {
+        return this.endExclusive - this.start;
+    }
+    toString() {
+        return `[${this.start}, ${this.endExclusive})`;
+    }
+    equals(other) {
+        return this.start === other.start && this.endExclusive === other.endExclusive;
+    }
+    containsRange(other) {
+        return this.start <= other.start && other.endExclusive <= this.endExclusive;
+    }
+    contains(offset) {
+        return this.start <= offset && offset < this.endExclusive;
+    }
+    /**
+     * for all numbers n: range1.contains(n) or range2.contains(n) => range1.join(range2).contains(n)
+     * The joined range is the smallest range that contains both ranges.
+     */
+    join(other) {
+        return new OffsetRange(Math.min(this.start, other.start), Math.max(this.endExclusive, other.endExclusive));
+    }
+    /**
+     * for all numbers n: range1.contains(n) and range2.contains(n) <=> range1.intersect(range2).contains(n)
+     *
+     * The resulting range is empty if the ranges do not intersect, but touch.
+     * If the ranges don't even touch, the result is undefined.
+     */
+    intersect(other) {
+        const start = Math.max(this.start, other.start);
+        const end = Math.min(this.endExclusive, other.endExclusive);
+        if (start <= end) {
+            return new OffsetRange(start, end);
+        }
+        return undefined;
+    }
+    slice(arr) {
+        return arr.slice(this.start, this.endExclusive);
+    }
+    /**
+     * Returns the given value if it is contained in this instance, otherwise the closest value that is contained.
+     * The range must not be empty.
+     */
+    clip(value) {
+        if (this.isEmpty) {
+            throw new BugIndicatingError(`Invalid clipping range: ${this.toString()}`);
+        }
+        return Math.max(this.start, Math.min(this.endExclusive - 1, value));
+    }
+    /**
+     * Returns `r := value + k * length` such that `r` is contained in this range.
+     * The range must not be empty.
+     *
+     * E.g. `[5, 10).clipCyclic(10) === 5`, `[5, 10).clipCyclic(11) === 6` and `[5, 10).clipCyclic(4) === 9`.
+     */
+    clipCyclic(value) {
+        if (this.isEmpty) {
+            throw new BugIndicatingError(`Invalid clipping range: ${this.toString()}`);
+        }
+        if (value < this.start) {
+            return this.endExclusive - ((this.start - value) % this.length);
+        }
+        if (value >= this.endExclusive) {
+            return this.start + ((value - this.start) % this.length);
+        }
+        return value;
+    }
+    forEach(f) {
+        for (let i = this.start; i < this.endExclusive; i++) {
+            f(i);
+        }
+    }
+}
+class OffsetRangeSet {
+    constructor() {
+        this._sortedRanges = [];
+    }
+    addRange(range) {
+        let i = 0;
+        while (i < this._sortedRanges.length && this._sortedRanges[i].endExclusive < range.start) {
+            i++;
+        }
+        let j = i;
+        while (j < this._sortedRanges.length && this._sortedRanges[j].start <= range.endExclusive) {
+            j++;
+        }
+        if (i === j) {
+            this._sortedRanges.splice(i, 0, range);
+        }
+        else {
+            const start = Math.min(range.start, this._sortedRanges[i].start);
+            const end = Math.max(range.endExclusive, this._sortedRanges[j - 1].endExclusive);
+            this._sortedRanges.splice(i, j - i, new OffsetRange(start, end));
+        }
+    }
+    toString() {
+        return this._sortedRanges.map(r => r.toString()).join(', ');
+    }
+    /**
+     * Returns of there is a value that is contained in this instance and the given range.
+     */
+    intersectsStrict(other) {
+        // TODO use binary search
+        let i = 0;
+        while (i < this._sortedRanges.length && this._sortedRanges[i].endExclusive <= other.start) {
+            i++;
+        }
+        return i < this._sortedRanges.length && this._sortedRanges[i].start < other.endExclusive;
+    }
+    intersectWithRange(other) {
+        // TODO use binary search + slice
+        const result = new OffsetRangeSet();
+        for (const range of this._sortedRanges) {
+            const intersection = range.intersect(other);
+            if (intersection) {
+                result.addRange(intersection);
+            }
+        }
+        return result;
+    }
+    intersectWithRangeLength(other) {
+        return this.intersectWithRange(other).length;
+    }
+    get length() {
+        return this._sortedRanges.reduce((prev, cur) => prev + cur.length, 0);
+    }
+}
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/arraysFind.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+function findLast(array, predicate, fromIdx) {
+    const idx = findLastIdx(array, predicate);
+    if (idx === -1) {
+        return undefined;
+    }
+    return array[idx];
+}
+function findLastIdx(array, predicate, fromIndex = array.length - 1) {
+    for (let i = fromIndex; i >= 0; i--) {
+        const element = array[i];
+        if (predicate(element)) {
+            return i;
+        }
+    }
+    return -1;
+}
+/**
+ * Finds the last item where predicate is true using binary search.
+ * `predicate` must be monotonous, i.e. `arr.map(predicate)` must be like `[true, ..., true, false, ..., false]`!
+ *
+ * @returns `undefined` if no item matches, otherwise the last item that matches the predicate.
+ */
+function findLastMonotonous(array, predicate) {
+    const idx = findLastIdxMonotonous(array, predicate);
+    return idx === -1 ? undefined : array[idx];
+}
+/**
+ * Finds the last item where predicate is true using binary search.
+ * `predicate` must be monotonous, i.e. `arr.map(predicate)` must be like `[true, ..., true, false, ..., false]`!
+ *
+ * @returns `startIdx - 1` if predicate is false for all items, otherwise the index of the last item that matches the predicate.
+ */
+function findLastIdxMonotonous(array, predicate, startIdx = 0, endIdxEx = array.length) {
+    let i = startIdx;
+    let j = endIdxEx;
+    while (i < j) {
+        const k = Math.floor((i + j) / 2);
+        if (predicate(array[k])) {
+            i = k + 1;
+        }
+        else {
+            j = k;
+        }
+    }
+    return i - 1;
+}
+/**
+ * Finds the first item where predicate is true using binary search.
+ * `predicate` must be monotonous, i.e. `arr.map(predicate)` must be like `[false, ..., false, true, ..., true]`!
+ *
+ * @returns `undefined` if no item matches, otherwise the first item that matches the predicate.
+ */
+function findFirstMonotonous(array, predicate) {
+    const idx = findFirstIdxMonotonousOrArrLen(array, predicate);
+    return idx === array.length ? undefined : array[idx];
+}
+/**
+ * Finds the first item where predicate is true using binary search.
+ * `predicate` must be monotonous, i.e. `arr.map(predicate)` must be like `[false, ..., false, true, ..., true]`!
+ *
+ * @returns `endIdxEx` if predicate is false for all items, otherwise the index of the first item that matches the predicate.
+ */
+function findFirstIdxMonotonousOrArrLen(array, predicate, startIdx = 0, endIdxEx = array.length) {
+    let i = startIdx;
+    let j = endIdxEx;
+    while (i < j) {
+        const k = Math.floor((i + j) / 2);
+        if (predicate(array[k])) {
+            j = k;
+        }
+        else {
+            i = k + 1;
+        }
+    }
+    return i;
+}
+/**
+ * Use this when
+ * * You have a sorted array
+ * * You query this array with a monotonous predicate to find the last item that has a certain property.
+ * * You query this array multiple times with monotonous predicates that get weaker and weaker.
+ */
+class MonotonousArray {
+    constructor(_array) {
+        this._array = _array;
+        this._findLastMonotonousLastIdx = 0;
+    }
+    /**
+     * The predicate must be monotonous, i.e. `arr.map(predicate)` must be like `[true, ..., true, false, ..., false]`!
+     * For subsequent calls, current predicate must be weaker than (or equal to) the previous predicate, i.e. more entries must be `true`.
+     */
+    findLastMonotonous(predicate) {
+        if (MonotonousArray.assertInvariants) {
+            if (this._prevFindLastPredicate) {
+                for (const item of this._array) {
+                    if (this._prevFindLastPredicate(item) && !predicate(item)) {
+                        throw new Error('MonotonousArray: current predicate must be weaker than (or equal to) the previous predicate.');
+                    }
+                }
+            }
+            this._prevFindLastPredicate = predicate;
+        }
+        const idx = findLastIdxMonotonous(this._array, predicate, this._findLastMonotonousLastIdx);
+        this._findLastMonotonousLastIdx = idx + 1;
+        return idx === -1 ? undefined : this._array[idx];
+    }
+}
+MonotonousArray.assertInvariants = false;
+/**
+ * Returns the first item that is equal to or greater than every other item.
+*/
+function findFirstMaxBy(array, comparator) {
+    if (array.length === 0) {
+        return undefined;
+    }
+    let max = array[0];
+    for (let i = 1; i < array.length; i++) {
+        const item = array[i];
+        if (comparator(item, max) > 0) {
+            max = item;
+        }
+    }
+    return max;
+}
+/**
+ * Returns the last item that is equal to or greater than every other item.
+*/
+function findLastMaxBy(array, comparator) {
+    if (array.length === 0) {
+        return undefined;
+    }
+    let max = array[0];
+    for (let i = 1; i < array.length; i++) {
+        const item = array[i];
+        if (comparator(item, max) >= 0) {
+            max = item;
+        }
+    }
+    return max;
+}
+/**
+ * Returns the first item that is equal to or less than every other item.
+*/
+function findFirstMinBy(array, comparator) {
+    return findFirstMaxBy(array, (a, b) => -comparator(a, b));
+}
+function findMaxIdxBy(array, comparator) {
+    if (array.length === 0) {
+        return -1;
+    }
+    let maxIdx = 0;
+    for (let i = 1; i < array.length; i++) {
+        const item = array[i];
+        if (comparator(item, array[maxIdx]) > 0) {
+            maxIdx = i;
+        }
+    }
+    return maxIdx;
+}
+/**
+ * Returns the first mapped value of the array which is not undefined.
+ */
+function mapFindFirst(items, mapFn) {
+    for (const value of items) {
+        const mapped = mapFn(value);
+        if (mapped !== undefined) {
+            return mapped;
+        }
+    }
+    return undefined;
+}
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/core/lineRange.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+
+
+
 /**
  * A range of lines (1-based).
  */
 class LineRange {
+    static fromRange(range) {
+        return new LineRange(range.startLineNumber, range.endLineNumber);
+    }
+    /**
+     * @param lineRanges An array of sorted line ranges.
+     */
+    static joinMany(lineRanges) {
+        if (lineRanges.length === 0) {
+            return [];
+        }
+        let result = new LineRangeSet(lineRanges[0].slice());
+        for (let i = 1; i < lineRanges.length; i++) {
+            result = result.getUnion(new LineRangeSet(lineRanges[i].slice()));
+        }
+        return result.ranges;
+    }
+    static ofLength(startLineNumber, length) {
+        return new LineRange(startLineNumber, startLineNumber + length);
+    }
+    /**
+     * @internal
+     */
+    static deserialize(lineRange) {
+        return new LineRange(lineRange[0], lineRange[1]);
+    }
     constructor(startLineNumber, endLineNumberExclusive) {
+        if (startLineNumber > endLineNumberExclusive) {
+            throw new BugIndicatingError(`startLineNumber ${startLineNumber} cannot be after endLineNumberExclusive ${endLineNumberExclusive}`);
+        }
         this.startLineNumber = startLineNumber;
         this.endLineNumberExclusive = endLineNumberExclusive;
+    }
+    /**
+     * Indicates if this line range contains the given line number.
+     */
+    contains(lineNumber) {
+        return this.startLineNumber <= lineNumber && lineNumber < this.endLineNumberExclusive;
     }
     /**
      * Indicates if this line range is empty.
@@ -12440,6 +13180,9 @@ class LineRange {
      */
     delta(offset) {
         return new LineRange(this.startLineNumber + offset, this.endLineNumberExclusive + offset);
+    }
+    deltaLength(offset) {
+        return new LineRange(this.startLineNumber, this.endLineNumberExclusive + offset);
     }
     /**
      * The number of lines this line range spans.
@@ -12456,9 +13199,285 @@ class LineRange {
     toString() {
         return `[${this.startLineNumber},${this.endLineNumberExclusive})`;
     }
+    /**
+     * The resulting range is empty if the ranges do not intersect, but touch.
+     * If the ranges don't even touch, the result is undefined.
+     */
+    intersect(other) {
+        const startLineNumber = Math.max(this.startLineNumber, other.startLineNumber);
+        const endLineNumberExclusive = Math.min(this.endLineNumberExclusive, other.endLineNumberExclusive);
+        if (startLineNumber <= endLineNumberExclusive) {
+            return new LineRange(startLineNumber, endLineNumberExclusive);
+        }
+        return undefined;
+    }
+    intersectsStrict(other) {
+        return this.startLineNumber < other.endLineNumberExclusive && other.startLineNumber < this.endLineNumberExclusive;
+    }
+    overlapOrTouch(other) {
+        return this.startLineNumber <= other.endLineNumberExclusive && other.startLineNumber <= this.endLineNumberExclusive;
+    }
+    equals(b) {
+        return this.startLineNumber === b.startLineNumber && this.endLineNumberExclusive === b.endLineNumberExclusive;
+    }
+    toInclusiveRange() {
+        if (this.isEmpty) {
+            return null;
+        }
+        return new range_Range(this.startLineNumber, 1, this.endLineNumberExclusive - 1, Number.MAX_SAFE_INTEGER);
+    }
+    toExclusiveRange() {
+        return new range_Range(this.startLineNumber, 1, this.endLineNumberExclusive, 1);
+    }
+    mapToLineArray(f) {
+        const result = [];
+        for (let lineNumber = this.startLineNumber; lineNumber < this.endLineNumberExclusive; lineNumber++) {
+            result.push(f(lineNumber));
+        }
+        return result;
+    }
+    forEach(f) {
+        for (let lineNumber = this.startLineNumber; lineNumber < this.endLineNumberExclusive; lineNumber++) {
+            f(lineNumber);
+        }
+    }
+    /**
+     * @internal
+     */
+    serialize() {
+        return [this.startLineNumber, this.endLineNumberExclusive];
+    }
+    includes(lineNumber) {
+        return this.startLineNumber <= lineNumber && lineNumber < this.endLineNumberExclusive;
+    }
+    /**
+     * Converts this 1-based line range to a 0-based offset range (subtracts 1!).
+     * @internal
+     */
+    toOffsetRange() {
+        return new OffsetRange(this.startLineNumber - 1, this.endLineNumberExclusive - 1);
+    }
+}
+class LineRangeSet {
+    constructor(
+    /**
+     * Sorted by start line number.
+     * No two line ranges are touching or intersecting.
+     */
+    _normalizedRanges = []) {
+        this._normalizedRanges = _normalizedRanges;
+    }
+    get ranges() {
+        return this._normalizedRanges;
+    }
+    addRange(range) {
+        if (range.length === 0) {
+            return;
+        }
+        // Idea: Find joinRange such that:
+        // replaceRange = _normalizedRanges.replaceRange(joinRange, range.joinAll(joinRange.map(idx => this._normalizedRanges[idx])))
+        // idx of first element that touches range or that is after range
+        const joinRangeStartIdx = findFirstIdxMonotonousOrArrLen(this._normalizedRanges, r => r.endLineNumberExclusive >= range.startLineNumber);
+        // idx of element after { last element that touches range or that is before range }
+        const joinRangeEndIdxExclusive = findLastIdxMonotonous(this._normalizedRanges, r => r.startLineNumber <= range.endLineNumberExclusive) + 1;
+        if (joinRangeStartIdx === joinRangeEndIdxExclusive) {
+            // If there is no element that touches range, then joinRangeStartIdx === joinRangeEndIdxExclusive and that value is the index of the element after range
+            this._normalizedRanges.splice(joinRangeStartIdx, 0, range);
+        }
+        else if (joinRangeStartIdx === joinRangeEndIdxExclusive - 1) {
+            // Else, there is an element that touches range and in this case it is both the first and last element. Thus we can replace it
+            const joinRange = this._normalizedRanges[joinRangeStartIdx];
+            this._normalizedRanges[joinRangeStartIdx] = joinRange.join(range);
+        }
+        else {
+            // First and last element are different - we need to replace the entire range
+            const joinRange = this._normalizedRanges[joinRangeStartIdx].join(this._normalizedRanges[joinRangeEndIdxExclusive - 1]).join(range);
+            this._normalizedRanges.splice(joinRangeStartIdx, joinRangeEndIdxExclusive - joinRangeStartIdx, joinRange);
+        }
+    }
+    contains(lineNumber) {
+        const rangeThatStartsBeforeEnd = findLastMonotonous(this._normalizedRanges, r => r.startLineNumber <= lineNumber);
+        return !!rangeThatStartsBeforeEnd && rangeThatStartsBeforeEnd.endLineNumberExclusive > lineNumber;
+    }
+    getUnion(other) {
+        if (this._normalizedRanges.length === 0) {
+            return other;
+        }
+        if (other._normalizedRanges.length === 0) {
+            return this;
+        }
+        const result = [];
+        let i1 = 0;
+        let i2 = 0;
+        let current = null;
+        while (i1 < this._normalizedRanges.length || i2 < other._normalizedRanges.length) {
+            let next = null;
+            if (i1 < this._normalizedRanges.length && i2 < other._normalizedRanges.length) {
+                const lineRange1 = this._normalizedRanges[i1];
+                const lineRange2 = other._normalizedRanges[i2];
+                if (lineRange1.startLineNumber < lineRange2.startLineNumber) {
+                    next = lineRange1;
+                    i1++;
+                }
+                else {
+                    next = lineRange2;
+                    i2++;
+                }
+            }
+            else if (i1 < this._normalizedRanges.length) {
+                next = this._normalizedRanges[i1];
+                i1++;
+            }
+            else {
+                next = other._normalizedRanges[i2];
+                i2++;
+            }
+            if (current === null) {
+                current = next;
+            }
+            else {
+                if (current.endLineNumberExclusive >= next.startLineNumber) {
+                    // merge
+                    current = new LineRange(current.startLineNumber, Math.max(current.endLineNumberExclusive, next.endLineNumberExclusive));
+                }
+                else {
+                    // push
+                    result.push(current);
+                    current = next;
+                }
+            }
+        }
+        if (current !== null) {
+            result.push(current);
+        }
+        return new LineRangeSet(result);
+    }
+    /**
+     * Subtracts all ranges in this set from `range` and returns the result.
+     */
+    subtractFrom(range) {
+        // idx of first element that touches range or that is after range
+        const joinRangeStartIdx = findFirstIdxMonotonousOrArrLen(this._normalizedRanges, r => r.endLineNumberExclusive >= range.startLineNumber);
+        // idx of element after { last element that touches range or that is before range }
+        const joinRangeEndIdxExclusive = findLastIdxMonotonous(this._normalizedRanges, r => r.startLineNumber <= range.endLineNumberExclusive) + 1;
+        if (joinRangeStartIdx === joinRangeEndIdxExclusive) {
+            return new LineRangeSet([range]);
+        }
+        const result = [];
+        let startLineNumber = range.startLineNumber;
+        for (let i = joinRangeStartIdx; i < joinRangeEndIdxExclusive; i++) {
+            const r = this._normalizedRanges[i];
+            if (r.startLineNumber > startLineNumber) {
+                result.push(new LineRange(startLineNumber, r.startLineNumber));
+            }
+            startLineNumber = r.endLineNumberExclusive;
+        }
+        if (startLineNumber < range.endLineNumberExclusive) {
+            result.push(new LineRange(startLineNumber, range.endLineNumberExclusive));
+        }
+        return new LineRangeSet(result);
+    }
+    toString() {
+        return this._normalizedRanges.map(r => r.toString()).join(', ');
+    }
+    getIntersection(other) {
+        const result = [];
+        let i1 = 0;
+        let i2 = 0;
+        while (i1 < this._normalizedRanges.length && i2 < other._normalizedRanges.length) {
+            const r1 = this._normalizedRanges[i1];
+            const r2 = other._normalizedRanges[i2];
+            const i = r1.intersect(r2);
+            if (i && !i.isEmpty) {
+                result.push(i);
+            }
+            if (r1.endLineNumberExclusive < r2.endLineNumberExclusive) {
+                i1++;
+            }
+            else {
+                i2++;
+            }
+        }
+        return new LineRangeSet(result);
+    }
+    getWithDelta(value) {
+        return new LineRangeSet(this._normalizedRanges.map(r => r.delta(value)));
+    }
 }
 
-;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/smartLinesDiffComputer.js
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/rangeMapping.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Maps a line range in the original text model to a line range in the modified text model.
+ */
+class LineRangeMapping {
+    static inverse(mapping, originalLineCount, modifiedLineCount) {
+        const result = [];
+        let lastOriginalEndLineNumber = 1;
+        let lastModifiedEndLineNumber = 1;
+        for (const m of mapping) {
+            const r = new DetailedLineRangeMapping(new LineRange(lastOriginalEndLineNumber, m.original.startLineNumber), new LineRange(lastModifiedEndLineNumber, m.modified.startLineNumber), undefined);
+            if (!r.modified.isEmpty) {
+                result.push(r);
+            }
+            lastOriginalEndLineNumber = m.original.endLineNumberExclusive;
+            lastModifiedEndLineNumber = m.modified.endLineNumberExclusive;
+        }
+        const r = new DetailedLineRangeMapping(new LineRange(lastOriginalEndLineNumber, originalLineCount + 1), new LineRange(lastModifiedEndLineNumber, modifiedLineCount + 1), undefined);
+        if (!r.modified.isEmpty) {
+            result.push(r);
+        }
+        return result;
+    }
+    constructor(originalRange, modifiedRange) {
+        this.original = originalRange;
+        this.modified = modifiedRange;
+    }
+    toString() {
+        return `{${this.original.toString()}->${this.modified.toString()}}`;
+    }
+    flip() {
+        return new LineRangeMapping(this.modified, this.original);
+    }
+    join(other) {
+        return new LineRangeMapping(this.original.join(other.original), this.modified.join(other.modified));
+    }
+}
+/**
+ * Maps a line range in the original text model to a line range in the modified text model.
+ * Also contains inner range mappings.
+ */
+class DetailedLineRangeMapping extends LineRangeMapping {
+    constructor(originalRange, modifiedRange, innerChanges) {
+        super(originalRange, modifiedRange);
+        this.innerChanges = innerChanges;
+    }
+    flip() {
+        var _a;
+        return new DetailedLineRangeMapping(this.modified, this.original, (_a = this.innerChanges) === null || _a === void 0 ? void 0 : _a.map(c => c.flip()));
+    }
+}
+/**
+ * Maps a range in the original text model to a range in the modified text model.
+ */
+class RangeMapping {
+    constructor(originalRange, modifiedRange) {
+        this.originalRange = originalRange;
+        this.modifiedRange = modifiedRange;
+    }
+    toString() {
+        return `{${this.originalRange.toString()}->${this.modifiedRange.toString()}}`;
+    }
+    flip() {
+        return new RangeMapping(this.modifiedRange, this.originalRange);
+    }
+}
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/legacyLinesDiffComputer.js
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12468,8 +13487,10 @@ class LineRange {
 
 
 
+
+
 const MINIMUM_MATCHING_CHARACTER_LENGTH = 3;
-class SmartLinesDiffComputer {
+class LegacyLinesDiffComputer {
     computeDiff(originalLines, modifiedLines, options) {
         var _a;
         const diffComputer = new DiffComputer(originalLines, modifiedLines, {
@@ -12499,12 +13520,12 @@ class SmartLinesDiffComputer {
             else {
                 modifiedRange = new LineRange(c.modifiedStartLineNumber, c.modifiedEndLineNumber + 1);
             }
-            let change = new LineRangeMapping(originalRange, modifiedRange, (_a = c.charChanges) === null || _a === void 0 ? void 0 : _a.map(c => new RangeMapping(new range_Range(c.originalStartLineNumber, c.originalStartColumn, c.originalEndLineNumber, c.originalEndColumn), new range_Range(c.modifiedStartLineNumber, c.modifiedStartColumn, c.modifiedEndLineNumber, c.modifiedEndColumn))));
+            let change = new DetailedLineRangeMapping(originalRange, modifiedRange, (_a = c.charChanges) === null || _a === void 0 ? void 0 : _a.map(c => new RangeMapping(new range_Range(c.originalStartLineNumber, c.originalStartColumn, c.originalEndLineNumber, c.originalEndColumn), new range_Range(c.modifiedStartLineNumber, c.modifiedStartColumn, c.modifiedEndLineNumber, c.modifiedEndColumn))));
             if (lastChange) {
-                if (lastChange.modifiedRange.endLineNumberExclusive === change.modifiedRange.startLineNumber
-                    || lastChange.originalRange.endLineNumberExclusive === change.originalRange.startLineNumber) {
+                if (lastChange.modified.endLineNumberExclusive === change.modified.startLineNumber
+                    || lastChange.original.endLineNumberExclusive === change.original.startLineNumber) {
                     // join touching diffs. Probably moving diffs up/down in the algorithm causes touching diffs.
-                    change = new LineRangeMapping(lastChange.originalRange.join(change.originalRange), lastChange.modifiedRange.join(change.modifiedRange), lastChange.innerChanges && change.innerChanges ?
+                    change = new DetailedLineRangeMapping(lastChange.original.join(change.original), lastChange.modified.join(change.modified), lastChange.innerChanges && change.innerChanges ?
                         lastChange.innerChanges.concat(change.innerChanges) : undefined);
                     changes.pop();
                 }
@@ -12513,15 +13534,12 @@ class SmartLinesDiffComputer {
             lastChange = change;
         }
         assertFn(() => {
-            return checkAdjacentItems(changes, (m1, m2) => m2.originalRange.startLineNumber - m1.originalRange.endLineNumberExclusive === m2.modifiedRange.startLineNumber - m1.modifiedRange.endLineNumberExclusive &&
+            return checkAdjacentItems(changes, (m1, m2) => m2.original.startLineNumber - m1.original.endLineNumberExclusive === m2.modified.startLineNumber - m1.modified.endLineNumberExclusive &&
                 // There has to be an unchanged line in between (otherwise both diffs should have been joined)
-                m1.originalRange.endLineNumberExclusive < m2.originalRange.startLineNumber &&
-                m1.modifiedRange.endLineNumberExclusive < m2.modifiedRange.startLineNumber);
+                m1.original.endLineNumberExclusive < m2.original.startLineNumber &&
+                m1.modified.endLineNumberExclusive < m2.modified.startLineNumber);
         });
-        return {
-            quitEarly: result.quitEarly,
-            changes,
-        };
+        return new LinesDiff(changes, [], result.quitEarly);
     }
 }
 function computeDiff(originalSequence, modifiedSequence, continueProcessingPredicate, pretty) {
@@ -12927,49 +13945,127 @@ function createContinueProcessingPredicate(maximumRuntime) {
     };
 }
 
-;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/diffAlgorithm.js
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/diffAlgorithm.js
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
+
+
+class DiffAlgorithmResult {
+    static trivial(seq1, seq2) {
+        return new DiffAlgorithmResult([new SequenceDiff(OffsetRange.ofLength(seq1.length), OffsetRange.ofLength(seq2.length))], false);
+    }
+    static trivialTimedOut(seq1, seq2) {
+        return new DiffAlgorithmResult([new SequenceDiff(OffsetRange.ofLength(seq1.length), OffsetRange.ofLength(seq2.length))], true);
+    }
+    constructor(diffs, 
+    /**
+     * Indicates if the time out was reached.
+     * In that case, the diffs might be an approximation and the user should be asked to rerun the diff with more time.
+     */
+    hitTimeout) {
+        this.diffs = diffs;
+        this.hitTimeout = hitTimeout;
+    }
+}
 class SequenceDiff {
+    static invert(sequenceDiffs, doc1Length) {
+        const result = [];
+        forEachAdjacent(sequenceDiffs, (a, b) => {
+            result.push(SequenceDiff.fromOffsetPairs(a ? a.getEndExclusives() : OffsetPair.zero, b ? b.getStarts() : new OffsetPair(doc1Length, (a ? a.seq2Range.endExclusive - a.seq1Range.endExclusive : 0) + doc1Length)));
+        });
+        return result;
+    }
+    static fromOffsetPairs(start, endExclusive) {
+        return new SequenceDiff(new OffsetRange(start.offset1, endExclusive.offset1), new OffsetRange(start.offset2, endExclusive.offset2));
+    }
     constructor(seq1Range, seq2Range) {
         this.seq1Range = seq1Range;
         this.seq2Range = seq2Range;
     }
-    reverse() {
+    swap() {
         return new SequenceDiff(this.seq2Range, this.seq1Range);
     }
     toString() {
         return `${this.seq1Range} <-> ${this.seq2Range}`;
     }
-}
-/**
- * Todo move this class to some top level utils.
-*/
-class OffsetRange {
-    constructor(start, endExclusive) {
-        this.start = start;
-        this.endExclusive = endExclusive;
-    }
-    get isEmpty() {
-        return this.start === this.endExclusive;
+    join(other) {
+        return new SequenceDiff(this.seq1Range.join(other.seq1Range), this.seq2Range.join(other.seq2Range));
     }
     delta(offset) {
-        return new OffsetRange(this.start + offset, this.endExclusive + offset);
+        if (offset === 0) {
+            return this;
+        }
+        return new SequenceDiff(this.seq1Range.delta(offset), this.seq2Range.delta(offset));
     }
-    get length() {
-        return this.endExclusive - this.start;
+    deltaStart(offset) {
+        if (offset === 0) {
+            return this;
+        }
+        return new SequenceDiff(this.seq1Range.deltaStart(offset), this.seq2Range.deltaStart(offset));
+    }
+    deltaEnd(offset) {
+        if (offset === 0) {
+            return this;
+        }
+        return new SequenceDiff(this.seq1Range.deltaEnd(offset), this.seq2Range.deltaEnd(offset));
+    }
+    intersect(other) {
+        const i1 = this.seq1Range.intersect(other.seq1Range);
+        const i2 = this.seq2Range.intersect(other.seq2Range);
+        if (!i1 || !i2) {
+            return undefined;
+        }
+        return new SequenceDiff(i1, i2);
+    }
+    getStarts() {
+        return new OffsetPair(this.seq1Range.start, this.seq2Range.start);
+    }
+    getEndExclusives() {
+        return new OffsetPair(this.seq1Range.endExclusive, this.seq2Range.endExclusive);
+    }
+}
+class OffsetPair {
+    constructor(offset1, offset2) {
+        this.offset1 = offset1;
+        this.offset2 = offset2;
     }
     toString() {
-        return `[${this.start}, ${this.endExclusive})`;
+        return `${this.offset1} <-> ${this.offset2}`;
     }
-    join(other) {
-        return new OffsetRange(Math.min(this.start, other.start), Math.max(this.endExclusive, other.endExclusive));
+}
+OffsetPair.zero = new OffsetPair(0, 0);
+OffsetPair.max = new OffsetPair(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+class InfiniteTimeout {
+    isValid() {
+        return true;
+    }
+}
+InfiniteTimeout.instance = new InfiniteTimeout();
+class DateTimeout {
+    constructor(timeout) {
+        this.timeout = timeout;
+        this.startTime = Date.now();
+        this.valid = true;
+        if (timeout <= 0) {
+            throw new BugIndicatingError('timeout must be positive');
+        }
+    }
+    // Recommendation: Set a log-point `{this.disable()}` in the body
+    isValid() {
+        const valid = Date.now() - this.startTime < this.timeout;
+        if (!valid && this.valid) {
+            this.valid = false; // timeout reached
+            // eslint-disable-next-line no-debugger
+            debugger; // WARNING: Most likely debugging caused the timeout. Call `this.disable()` to continue without timing out.
+        }
+        return this.valid;
     }
 }
 
-;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/utils.js
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/utils.js
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12988,12 +14084,56 @@ class Array2D {
         this.array[x + y * this.width] = value;
     }
 }
+function isSpace(charCode) {
+    return charCode === 32 /* CharCode.Space */ || charCode === 9 /* CharCode.Tab */;
+}
+class LineRangeFragment {
+    static getKey(chr) {
+        let key = this.chrKeys.get(chr);
+        if (key === undefined) {
+            key = this.chrKeys.size;
+            this.chrKeys.set(chr, key);
+        }
+        return key;
+    }
+    constructor(range, lines, source) {
+        this.range = range;
+        this.lines = lines;
+        this.source = source;
+        this.histogram = [];
+        let counter = 0;
+        for (let i = range.startLineNumber - 1; i < range.endLineNumberExclusive - 1; i++) {
+            const line = lines[i];
+            for (let j = 0; j < line.length; j++) {
+                counter++;
+                const chr = line[j];
+                const key = LineRangeFragment.getKey(chr);
+                this.histogram[key] = (this.histogram[key] || 0) + 1;
+            }
+            counter++;
+            const key = LineRangeFragment.getKey('\n');
+            this.histogram[key] = (this.histogram[key] || 0) + 1;
+        }
+        this.totalCount = counter;
+    }
+    computeSimilarity(other) {
+        var _a, _b;
+        let sumDifferences = 0;
+        const maxLength = Math.max(this.histogram.length, other.histogram.length);
+        for (let i = 0; i < maxLength; i++) {
+            sumDifferences += Math.abs(((_a = this.histogram[i]) !== null && _a !== void 0 ? _a : 0) - ((_b = other.histogram[i]) !== null && _b !== void 0 ? _b : 0));
+        }
+        return 1 - (sumDifferences / (this.totalCount + other.totalCount));
+    }
+}
+LineRangeFragment.chrKeys = new Map();
 
-;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/dynamicProgrammingDiffing.js
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/dynamicProgrammingDiffing.js
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 
 
 /**
@@ -13001,7 +14141,10 @@ class Array2D {
  * The algorithm can be improved by processing the 2d array diagonally.
 */
 class DynamicProgrammingDiffing {
-    compute(sequence1, sequence2, equalityScore) {
+    compute(sequence1, sequence2, timeout = InfiniteTimeout.instance, equalityScore) {
+        if (sequence1.length === 0 || sequence2.length === 0) {
+            return DiffAlgorithmResult.trivial(sequence1, sequence2);
+        }
         /**
          * lcsLengths.get(i, j): Length of the longest common subsequence of sequence1.substring(0, i + 1) and sequence2.substring(0, j + 1).
          */
@@ -13011,6 +14154,9 @@ class DynamicProgrammingDiffing {
         // ==== Initializing lcsLengths ====
         for (let s1 = 0; s1 < sequence1.length; s1++) {
             for (let s2 = 0; s2 < sequence2.length; s2++) {
+                if (!timeout.isValid()) {
+                    return DiffAlgorithmResult.trivialTimedOut(sequence1, sequence2);
+                }
                 const horizontalLen = s1 === 0 ? 0 : lcsLengths.get(s1 - 1, s2);
                 const verticalLen = s2 === 0 ? 0 : lcsLengths.get(s1, s2 - 1);
                 let extendedSeqScore;
@@ -13078,171 +14224,31 @@ class DynamicProgrammingDiffing {
         }
         reportDecreasingAligningPositions(-1, -1);
         result.reverse();
-        return result;
+        return new DiffAlgorithmResult(result, false);
     }
 }
 
-;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/joinSequenceDiffs.js
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/myersDiffAlgorithm.js
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-function optimizeSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
-    let result = sequenceDiffs;
-    result = joinSequenceDiffs(sequence1, sequence2, result);
-    result = shiftSequenceDiffs(sequence1, sequence2, result);
-    return result;
-}
-function smoothenSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
-    const result = [];
-    for (const s of sequenceDiffs) {
-        const last = result[result.length - 1];
-        if (!last) {
-            result.push(s);
-            continue;
-        }
-        if (s.seq1Range.start - last.seq1Range.endExclusive <= 2 || s.seq2Range.start - last.seq2Range.endExclusive <= 2) {
-            result[result.length - 1] = new SequenceDiff(last.seq1Range.join(s.seq1Range), last.seq2Range.join(s.seq2Range));
-        }
-        else {
-            result.push(s);
-        }
-    }
-    return result;
-}
-/**
- * This function fixes issues like this:
- * ```
- * import { Baz, Bar } from "foo";
- * ```
- * <->
- * ```
- * import { Baz, Bar, Foo } from "foo";
- * ```
- * Computed diff: [ {Add "," after Bar}, {Add "Foo " after space} }
- * Improved diff: [{Add ", Foo" after Bar}]
- */
-function joinSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
-    const result = [];
-    if (sequenceDiffs.length > 0) {
-        result.push(sequenceDiffs[0]);
-    }
-    for (let i = 1; i < sequenceDiffs.length; i++) {
-        const lastResult = result[result.length - 1];
-        const cur = sequenceDiffs[i];
-        if (cur.seq1Range.isEmpty) {
-            let all = true;
-            const length = cur.seq1Range.start - lastResult.seq1Range.endExclusive;
-            for (let i = 1; i <= length; i++) {
-                if (sequence2.getElement(cur.seq2Range.start - i) !== sequence2.getElement(cur.seq2Range.endExclusive - i)) {
-                    all = false;
-                    break;
-                }
-            }
-            if (all) {
-                // Merge previous and current diff
-                result[result.length - 1] = new SequenceDiff(lastResult.seq1Range, new OffsetRange(lastResult.seq2Range.start, cur.seq2Range.endExclusive - length));
-                continue;
-            }
-        }
-        result.push(cur);
-    }
-    return result;
-}
-// align character level diffs at whitespace characters
-// import { IBar } from "foo";
-// import { I[Arr, I]Bar } from "foo";
-// ->
-// import { [IArr, ]IBar } from "foo";
-// import { ITransaction, observableValue, transaction } from 'vs/base/common/observable';
-// import { ITransaction, observable[FromEvent, observable]Value, transaction } from 'vs/base/common/observable';
-// ->
-// import { ITransaction, [observableFromEvent, ]observableValue, transaction } from 'vs/base/common/observable';
-// collectBrackets(level + 1, levelPerBracketType);
-// collectBrackets(level + 1, levelPerBracket[ + 1, levelPerBracket]Type);
-// ->
-// collectBrackets(level + 1, [levelPerBracket + 1, ]levelPerBracketType);
-function shiftSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
-    if (!sequence1.getBoundaryScore || !sequence2.getBoundaryScore) {
-        return sequenceDiffs;
-    }
-    for (let i = 0; i < sequenceDiffs.length; i++) {
-        const diff = sequenceDiffs[i];
-        if (diff.seq1Range.isEmpty) {
-            const seq2PrevEndExclusive = (i > 0 ? sequenceDiffs[i - 1].seq2Range.endExclusive : -1);
-            const seq2NextStart = (i + 1 < sequenceDiffs.length ? sequenceDiffs[i + 1].seq2Range.start : sequence2.length);
-            sequenceDiffs[i] = shiftDiffToBetterPosition(diff, sequence1, sequence2, seq2NextStart, seq2PrevEndExclusive);
-        }
-        else if (diff.seq2Range.isEmpty) {
-            const seq1PrevEndExclusive = (i > 0 ? sequenceDiffs[i - 1].seq1Range.endExclusive : -1);
-            const seq1NextStart = (i + 1 < sequenceDiffs.length ? sequenceDiffs[i + 1].seq1Range.start : sequence1.length);
-            sequenceDiffs[i] = shiftDiffToBetterPosition(diff.reverse(), sequence2, sequence1, seq1NextStart, seq1PrevEndExclusive).reverse();
-        }
-    }
-    return sequenceDiffs;
-}
-function shiftDiffToBetterPosition(diff, sequence1, sequence2, seq2NextStart, seq2PrevEndExclusive) {
-    const maxShiftLimit = 20; // To prevent performance issues
-    // don't touch previous or next!
-    let deltaBefore = 1;
-    while (diff.seq2Range.start - deltaBefore > seq2PrevEndExclusive &&
-        sequence2.getElement(diff.seq2Range.start - deltaBefore) ===
-            sequence2.getElement(diff.seq2Range.endExclusive - deltaBefore) && deltaBefore < maxShiftLimit) {
-        deltaBefore++;
-    }
-    deltaBefore--;
-    let deltaAfter = 0;
-    while (diff.seq2Range.start + deltaAfter < seq2NextStart &&
-        sequence2.getElement(diff.seq2Range.start + deltaAfter) ===
-            sequence2.getElement(diff.seq2Range.endExclusive + deltaAfter) && deltaAfter < maxShiftLimit) {
-        deltaAfter++;
-    }
-    if (deltaBefore === 0 && deltaAfter === 0) {
-        return diff;
-    }
-    // Visualize `[sequence1.text, diff.seq1Range.start + deltaAfter]`
-    // and `[sequence2.text, diff.seq2Range.start + deltaAfter, diff.seq2Range.endExclusive + deltaAfter]`
-    let bestDelta = 0;
-    let bestScore = -1;
-    // find best scored delta
-    for (let delta = -deltaBefore; delta <= deltaAfter; delta++) {
-        const seq2OffsetStart = diff.seq2Range.start + delta;
-        const seq2OffsetEndExclusive = diff.seq2Range.endExclusive + delta;
-        const seq1Offset = diff.seq1Range.start + delta;
-        const score = sequence1.getBoundaryScore(seq1Offset) + sequence2.getBoundaryScore(seq2OffsetStart) + sequence2.getBoundaryScore(seq2OffsetEndExclusive);
-        if (score > bestScore) {
-            bestScore = score;
-            bestDelta = delta;
-        }
-    }
-    if (bestDelta !== 0) {
-        return new SequenceDiff(diff.seq1Range.delta(bestDelta), diff.seq2Range.delta(bestDelta));
-    }
-    return diff;
-}
-
-;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/myersDiffAlgorithm.js
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 
 /**
  * An O(ND) diff algorithm that has a quadratic space worst-case complexity.
 */
 class MyersDiffAlgorithm {
-    compute(seq1, seq2) {
+    compute(seq1, seq2, timeout = InfiniteTimeout.instance) {
         // These are common special cases.
         // The early return improves performance dramatically.
-        if (seq1.length === 0) {
-            return [new SequenceDiff(new OffsetRange(0, 0), new OffsetRange(0, seq2.length))];
+        if (seq1.length === 0 || seq2.length === 0) {
+            return DiffAlgorithmResult.trivial(seq1, seq2);
         }
-        else if (seq2.length === 0) {
-            return [new SequenceDiff(new OffsetRange(0, seq1.length), new OffsetRange(0, 0))];
-        }
+        const seqX = seq1; // Text on the x axis
+        const seqY = seq2; // Text on the y axis
         function getXAfterSnake(x, y) {
-            while (x < seq1.length && y < seq2.length && seq1.getElement(x) === seq2.getElement(y)) {
+            while (x < seqX.length && y < seqY.length && seqX.getElement(x) === seqY.getElement(y)) {
                 x++;
                 y++;
             }
@@ -13252,6 +14258,7 @@ class MyersDiffAlgorithm {
         // V[k]: X value of longest d-line that ends in diagonal k.
         // d-line: path from (0,0) to (x,y) that uses exactly d non-diagonals.
         // diagonal k: Set of points (x,y) with x-y = k.
+        // k=1 -> (1,0),(2,1)
         const V = new FastInt32Array();
         V.set(0, getXAfterSnake(0, 0));
         const paths = new FastArrayNegativeIndices();
@@ -13259,24 +14266,39 @@ class MyersDiffAlgorithm {
         let k = 0;
         loop: while (true) {
             d++;
-            for (k = -d; k <= d; k += 2) {
-                const maxXofDLineTop = k === d ? -1 : V.get(k + 1); // We take a vertical non-diagonal
-                const maxXofDLineLeft = k === -d ? -1 : V.get(k - 1) + 1; // We take a horizontal non-diagonal (+1 x)
-                const x = Math.min(Math.max(maxXofDLineTop, maxXofDLineLeft), seq1.length);
+            if (!timeout.isValid()) {
+                return DiffAlgorithmResult.trivialTimedOut(seqX, seqY);
+            }
+            // The paper has `for (k = -d; k <= d; k += 2)`, but we can ignore diagonals that cannot influence the result.
+            const lowerBound = -Math.min(d, seqY.length + (d % 2));
+            const upperBound = Math.min(d, seqX.length + (d % 2));
+            for (k = lowerBound; k <= upperBound; k += 2) {
+                let step = 0;
+                // We can use the X values of (d-1)-lines to compute X value of the longest d-lines.
+                const maxXofDLineTop = k === upperBound ? -1 : V.get(k + 1); // We take a vertical non-diagonal (add a symbol in seqX)
+                const maxXofDLineLeft = k === lowerBound ? -1 : V.get(k - 1) + 1; // We take a horizontal non-diagonal (+1 x) (delete a symbol in seqX)
+                step++;
+                const x = Math.min(Math.max(maxXofDLineTop, maxXofDLineLeft), seqX.length);
                 const y = x - k;
+                step++;
+                if (x > seqX.length || y > seqY.length) {
+                    // This diagonal is irrelevant for the result.
+                    // TODO: Don't pay the cost for this in the next iteration.
+                    continue;
+                }
                 const newMaxX = getXAfterSnake(x, y);
                 V.set(k, newMaxX);
                 const lastPath = x === maxXofDLineTop ? paths.get(k + 1) : paths.get(k - 1);
                 paths.set(k, newMaxX !== x ? new SnakePath(lastPath, x, y, newMaxX - x) : lastPath);
-                if (V.get(k) === seq1.length && V.get(k) - k === seq2.length) {
+                if (V.get(k) === seqX.length && V.get(k) - k === seqY.length) {
                     break loop;
                 }
             }
         }
         let path = paths.get(k);
         const result = [];
-        let lastAligningPosS1 = seq1.length;
-        let lastAligningPosS2 = seq2.length;
+        let lastAligningPosS1 = seqX.length;
+        let lastAligningPosS2 = seqY.length;
         while (true) {
             const endX = path ? path.x + path.length : 0;
             const endY = path ? path.y + path.length : 0;
@@ -13291,7 +14313,7 @@ class MyersDiffAlgorithm {
             path = path.prev;
         }
         result.reverse();
-        return result;
+        return new DiffAlgorithmResult(result, false);
     }
 }
 class SnakePath {
@@ -13367,7 +14389,551 @@ class FastArrayNegativeIndices {
     }
 }
 
-;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/standardLinesDiffComputer.js
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/map.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+var map_a, _b;
+class ResourceMapEntry {
+    constructor(uri, value) {
+        this.uri = uri;
+        this.value = value;
+    }
+}
+function isEntries(arg) {
+    return Array.isArray(arg);
+}
+class ResourceMap {
+    constructor(arg, toKey) {
+        this[map_a] = 'ResourceMap';
+        if (arg instanceof ResourceMap) {
+            this.map = new Map(arg.map);
+            this.toKey = toKey !== null && toKey !== void 0 ? toKey : ResourceMap.defaultToKey;
+        }
+        else if (isEntries(arg)) {
+            this.map = new Map();
+            this.toKey = toKey !== null && toKey !== void 0 ? toKey : ResourceMap.defaultToKey;
+            for (const [resource, value] of arg) {
+                this.set(resource, value);
+            }
+        }
+        else {
+            this.map = new Map();
+            this.toKey = arg !== null && arg !== void 0 ? arg : ResourceMap.defaultToKey;
+        }
+    }
+    set(resource, value) {
+        this.map.set(this.toKey(resource), new ResourceMapEntry(resource, value));
+        return this;
+    }
+    get(resource) {
+        var _c;
+        return (_c = this.map.get(this.toKey(resource))) === null || _c === void 0 ? void 0 : _c.value;
+    }
+    has(resource) {
+        return this.map.has(this.toKey(resource));
+    }
+    get size() {
+        return this.map.size;
+    }
+    clear() {
+        this.map.clear();
+    }
+    delete(resource) {
+        return this.map.delete(this.toKey(resource));
+    }
+    forEach(clb, thisArg) {
+        if (typeof thisArg !== 'undefined') {
+            clb = clb.bind(thisArg);
+        }
+        for (const [_, entry] of this.map) {
+            clb(entry.value, entry.uri, this);
+        }
+    }
+    *values() {
+        for (const entry of this.map.values()) {
+            yield entry.value;
+        }
+    }
+    *keys() {
+        for (const entry of this.map.values()) {
+            yield entry.uri;
+        }
+    }
+    *entries() {
+        for (const entry of this.map.values()) {
+            yield [entry.uri, entry.value];
+        }
+    }
+    *[(map_a = Symbol.toStringTag, Symbol.iterator)]() {
+        for (const [, entry] of this.map) {
+            yield [entry.uri, entry.value];
+        }
+    }
+}
+ResourceMap.defaultToKey = (resource) => resource.toString();
+class LinkedMap {
+    constructor() {
+        this[_b] = 'LinkedMap';
+        this._map = new Map();
+        this._head = undefined;
+        this._tail = undefined;
+        this._size = 0;
+        this._state = 0;
+    }
+    clear() {
+        this._map.clear();
+        this._head = undefined;
+        this._tail = undefined;
+        this._size = 0;
+        this._state++;
+    }
+    isEmpty() {
+        return !this._head && !this._tail;
+    }
+    get size() {
+        return this._size;
+    }
+    get first() {
+        var _c;
+        return (_c = this._head) === null || _c === void 0 ? void 0 : _c.value;
+    }
+    get last() {
+        var _c;
+        return (_c = this._tail) === null || _c === void 0 ? void 0 : _c.value;
+    }
+    has(key) {
+        return this._map.has(key);
+    }
+    get(key, touch = 0 /* Touch.None */) {
+        const item = this._map.get(key);
+        if (!item) {
+            return undefined;
+        }
+        if (touch !== 0 /* Touch.None */) {
+            this.touch(item, touch);
+        }
+        return item.value;
+    }
+    set(key, value, touch = 0 /* Touch.None */) {
+        let item = this._map.get(key);
+        if (item) {
+            item.value = value;
+            if (touch !== 0 /* Touch.None */) {
+                this.touch(item, touch);
+            }
+        }
+        else {
+            item = { key, value, next: undefined, previous: undefined };
+            switch (touch) {
+                case 0 /* Touch.None */:
+                    this.addItemLast(item);
+                    break;
+                case 1 /* Touch.AsOld */:
+                    this.addItemFirst(item);
+                    break;
+                case 2 /* Touch.AsNew */:
+                    this.addItemLast(item);
+                    break;
+                default:
+                    this.addItemLast(item);
+                    break;
+            }
+            this._map.set(key, item);
+            this._size++;
+        }
+        return this;
+    }
+    delete(key) {
+        return !!this.remove(key);
+    }
+    remove(key) {
+        const item = this._map.get(key);
+        if (!item) {
+            return undefined;
+        }
+        this._map.delete(key);
+        this.removeItem(item);
+        this._size--;
+        return item.value;
+    }
+    shift() {
+        if (!this._head && !this._tail) {
+            return undefined;
+        }
+        if (!this._head || !this._tail) {
+            throw new Error('Invalid list');
+        }
+        const item = this._head;
+        this._map.delete(item.key);
+        this.removeItem(item);
+        this._size--;
+        return item.value;
+    }
+    forEach(callbackfn, thisArg) {
+        const state = this._state;
+        let current = this._head;
+        while (current) {
+            if (thisArg) {
+                callbackfn.bind(thisArg)(current.value, current.key, this);
+            }
+            else {
+                callbackfn(current.value, current.key, this);
+            }
+            if (this._state !== state) {
+                throw new Error(`LinkedMap got modified during iteration.`);
+            }
+            current = current.next;
+        }
+    }
+    keys() {
+        const map = this;
+        const state = this._state;
+        let current = this._head;
+        const iterator = {
+            [Symbol.iterator]() {
+                return iterator;
+            },
+            next() {
+                if (map._state !== state) {
+                    throw new Error(`LinkedMap got modified during iteration.`);
+                }
+                if (current) {
+                    const result = { value: current.key, done: false };
+                    current = current.next;
+                    return result;
+                }
+                else {
+                    return { value: undefined, done: true };
+                }
+            }
+        };
+        return iterator;
+    }
+    values() {
+        const map = this;
+        const state = this._state;
+        let current = this._head;
+        const iterator = {
+            [Symbol.iterator]() {
+                return iterator;
+            },
+            next() {
+                if (map._state !== state) {
+                    throw new Error(`LinkedMap got modified during iteration.`);
+                }
+                if (current) {
+                    const result = { value: current.value, done: false };
+                    current = current.next;
+                    return result;
+                }
+                else {
+                    return { value: undefined, done: true };
+                }
+            }
+        };
+        return iterator;
+    }
+    entries() {
+        const map = this;
+        const state = this._state;
+        let current = this._head;
+        const iterator = {
+            [Symbol.iterator]() {
+                return iterator;
+            },
+            next() {
+                if (map._state !== state) {
+                    throw new Error(`LinkedMap got modified during iteration.`);
+                }
+                if (current) {
+                    const result = { value: [current.key, current.value], done: false };
+                    current = current.next;
+                    return result;
+                }
+                else {
+                    return { value: undefined, done: true };
+                }
+            }
+        };
+        return iterator;
+    }
+    [(_b = Symbol.toStringTag, Symbol.iterator)]() {
+        return this.entries();
+    }
+    trimOld(newSize) {
+        if (newSize >= this.size) {
+            return;
+        }
+        if (newSize === 0) {
+            this.clear();
+            return;
+        }
+        let current = this._head;
+        let currentSize = this.size;
+        while (current && currentSize > newSize) {
+            this._map.delete(current.key);
+            current = current.next;
+            currentSize--;
+        }
+        this._head = current;
+        this._size = currentSize;
+        if (current) {
+            current.previous = undefined;
+        }
+        this._state++;
+    }
+    addItemFirst(item) {
+        // First time Insert
+        if (!this._head && !this._tail) {
+            this._tail = item;
+        }
+        else if (!this._head) {
+            throw new Error('Invalid list');
+        }
+        else {
+            item.next = this._head;
+            this._head.previous = item;
+        }
+        this._head = item;
+        this._state++;
+    }
+    addItemLast(item) {
+        // First time Insert
+        if (!this._head && !this._tail) {
+            this._head = item;
+        }
+        else if (!this._tail) {
+            throw new Error('Invalid list');
+        }
+        else {
+            item.previous = this._tail;
+            this._tail.next = item;
+        }
+        this._tail = item;
+        this._state++;
+    }
+    removeItem(item) {
+        if (item === this._head && item === this._tail) {
+            this._head = undefined;
+            this._tail = undefined;
+        }
+        else if (item === this._head) {
+            // This can only happen if size === 1 which is handled
+            // by the case above.
+            if (!item.next) {
+                throw new Error('Invalid list');
+            }
+            item.next.previous = undefined;
+            this._head = item.next;
+        }
+        else if (item === this._tail) {
+            // This can only happen if size === 1 which is handled
+            // by the case above.
+            if (!item.previous) {
+                throw new Error('Invalid list');
+            }
+            item.previous.next = undefined;
+            this._tail = item.previous;
+        }
+        else {
+            const next = item.next;
+            const previous = item.previous;
+            if (!next || !previous) {
+                throw new Error('Invalid list');
+            }
+            next.previous = previous;
+            previous.next = next;
+        }
+        item.next = undefined;
+        item.previous = undefined;
+        this._state++;
+    }
+    touch(item, touch) {
+        if (!this._head || !this._tail) {
+            throw new Error('Invalid list');
+        }
+        if ((touch !== 1 /* Touch.AsOld */ && touch !== 2 /* Touch.AsNew */)) {
+            return;
+        }
+        if (touch === 1 /* Touch.AsOld */) {
+            if (item === this._head) {
+                return;
+            }
+            const next = item.next;
+            const previous = item.previous;
+            // Unlink the item
+            if (item === this._tail) {
+                // previous must be defined since item was not head but is tail
+                // So there are more than on item in the map
+                previous.next = undefined;
+                this._tail = previous;
+            }
+            else {
+                // Both next and previous are not undefined since item was neither head nor tail.
+                next.previous = previous;
+                previous.next = next;
+            }
+            // Insert the node at head
+            item.previous = undefined;
+            item.next = this._head;
+            this._head.previous = item;
+            this._head = item;
+            this._state++;
+        }
+        else if (touch === 2 /* Touch.AsNew */) {
+            if (item === this._tail) {
+                return;
+            }
+            const next = item.next;
+            const previous = item.previous;
+            // Unlink the item.
+            if (item === this._head) {
+                // next must be defined since item was not tail but is head
+                // So there are more than on item in the map
+                next.previous = undefined;
+                this._head = next;
+            }
+            else {
+                // Both next and previous are not undefined since item was neither head nor tail.
+                next.previous = previous;
+                previous.next = next;
+            }
+            item.next = undefined;
+            item.previous = this._tail;
+            this._tail.next = item;
+            this._tail = item;
+            this._state++;
+        }
+    }
+    toJSON() {
+        const data = [];
+        this.forEach((value, key) => {
+            data.push([key, value]);
+        });
+        return data;
+    }
+    fromJSON(data) {
+        this.clear();
+        for (const [key, value] of data) {
+            this.set(key, value);
+        }
+    }
+}
+class LRUCache extends (/* unused pure expression or super */ null && (LinkedMap)) {
+    constructor(limit, ratio = 1) {
+        super();
+        this._limit = limit;
+        this._ratio = Math.min(Math.max(0, ratio), 1);
+    }
+    get limit() {
+        return this._limit;
+    }
+    set limit(limit) {
+        this._limit = limit;
+        this.checkTrim();
+    }
+    get(key, touch = 2 /* Touch.AsNew */) {
+        return super.get(key, touch);
+    }
+    peek(key) {
+        return super.get(key, 0 /* Touch.None */);
+    }
+    set(key, value) {
+        super.set(key, value, 2 /* Touch.AsNew */);
+        this.checkTrim();
+        return this;
+    }
+    checkTrim() {
+        if (this.size > this._limit) {
+            this.trimOld(Math.round(this._limit * this._ratio));
+        }
+    }
+}
+/**
+ * A map that allows access both by keys and values.
+ * **NOTE**: values need to be unique.
+ */
+class BidirectionalMap {
+    constructor(entries) {
+        this._m1 = new Map();
+        this._m2 = new Map();
+        if (entries) {
+            for (const [key, value] of entries) {
+                this.set(key, value);
+            }
+        }
+    }
+    clear() {
+        this._m1.clear();
+        this._m2.clear();
+    }
+    set(key, value) {
+        this._m1.set(key, value);
+        this._m2.set(value, key);
+    }
+    get(key) {
+        return this._m1.get(key);
+    }
+    getKey(value) {
+        return this._m2.get(value);
+    }
+    delete(key) {
+        const value = this._m1.get(key);
+        if (value === undefined) {
+            return false;
+        }
+        this._m1.delete(key);
+        this._m2.delete(value);
+        return true;
+    }
+    keys() {
+        return this._m1.keys();
+    }
+    values() {
+        return this._m1.values();
+    }
+}
+class SetMap {
+    constructor() {
+        this.map = new Map();
+    }
+    add(key, value) {
+        let values = this.map.get(key);
+        if (!values) {
+            values = new Set();
+            this.map.set(key, values);
+        }
+        values.add(value);
+    }
+    delete(key, value) {
+        const values = this.map.get(key);
+        if (!values) {
+            return;
+        }
+        values.delete(value);
+        if (values.size === 0) {
+            this.map.delete(key);
+        }
+    }
+    forEach(key, fn) {
+        const values = this.map.get(key);
+        if (!values) {
+            return;
+        }
+        values.forEach(fn);
+    }
+    get(key) {
+        const values = this.map.get(key);
+        if (!values) {
+            return new Set();
+        }
+        return values;
+    }
+}
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/linesSliceCharSequence.js
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13377,170 +14943,58 @@ class FastArrayNegativeIndices {
 
 
 
-
-
-
-class StandardLinesDiffComputer {
-    constructor() {
-        this.dynamicProgrammingDiffing = new DynamicProgrammingDiffing();
-        this.myersDiffingAlgorithm = new MyersDiffAlgorithm();
-    }
-    computeDiff(originalLines, modifiedLines, options) {
-        const perfectHashes = new Map();
-        function getOrCreateHash(text) {
-            let hash = perfectHashes.get(text);
-            if (hash === undefined) {
-                hash = perfectHashes.size;
-                perfectHashes.set(text, hash);
-            }
-            return hash;
-        }
-        const srcDocLines = originalLines.map((l) => getOrCreateHash(l.trim()));
-        const tgtDocLines = modifiedLines.map((l) => getOrCreateHash(l.trim()));
-        const sequence1 = new standardLinesDiffComputer_LineSequence(srcDocLines, originalLines);
-        const sequence2 = new standardLinesDiffComputer_LineSequence(tgtDocLines, modifiedLines);
-        let lineAlignments = (() => {
-            if (sequence1.length + sequence2.length < 1500) {
-                // Use the improved algorithm for small files
-                return this.dynamicProgrammingDiffing.compute(sequence1, sequence2, (offset1, offset2) => originalLines[offset1] === modifiedLines[offset2]
-                    ? modifiedLines[offset2].length === 0
-                        ? 0.1
-                        : 1 + Math.log(1 + modifiedLines[offset2].length)
-                    : 0.99);
-            }
-            return this.myersDiffingAlgorithm.compute(sequence1, sequence2);
-        })();
-        lineAlignments = optimizeSequenceDiffs(sequence1, sequence2, lineAlignments);
-        const alignments = [];
-        const scanForWhitespaceChanges = (equalLinesCount) => {
-            for (let i = 0; i < equalLinesCount; i++) {
-                const seq1Offset = seq1LastStart + i;
-                const seq2Offset = seq2LastStart + i;
-                if (originalLines[seq1Offset] !== modifiedLines[seq2Offset]) {
-                    // This is because of whitespace changes, diff these lines
-                    const characterDiffs = this.refineDiff(originalLines, modifiedLines, new SequenceDiff(new OffsetRange(seq1Offset, seq1Offset + 1), new OffsetRange(seq2Offset, seq2Offset + 1)));
-                    for (const a of characterDiffs) {
-                        alignments.push(a);
-                    }
-                }
-            }
-        };
-        let seq1LastStart = 0;
-        let seq2LastStart = 0;
-        for (const diff of lineAlignments) {
-            assertFn(() => diff.seq1Range.start - seq1LastStart === diff.seq2Range.start - seq2LastStart);
-            const equalLinesCount = diff.seq1Range.start - seq1LastStart;
-            scanForWhitespaceChanges(equalLinesCount);
-            seq1LastStart = diff.seq1Range.endExclusive;
-            seq2LastStart = diff.seq2Range.endExclusive;
-            const characterDiffs = this.refineDiff(originalLines, modifiedLines, diff);
-            for (const a of characterDiffs) {
-                alignments.push(a);
-            }
-        }
-        scanForWhitespaceChanges(originalLines.length - seq1LastStart);
-        const changes = lineRangeMappingFromRangeMappings(alignments);
-        return {
-            quitEarly: false,
-            changes: changes,
-        };
-    }
-    refineDiff(originalLines, modifiedLines, diff) {
-        const sourceSlice = new Slice(originalLines, diff.seq1Range);
-        const targetSlice = new Slice(modifiedLines, diff.seq2Range);
-        const originalDiffs = sourceSlice.length + targetSlice.length < 500
-            ? this.dynamicProgrammingDiffing.compute(sourceSlice, targetSlice)
-            : this.myersDiffingAlgorithm.compute(sourceSlice, targetSlice);
-        let diffs = optimizeSequenceDiffs(sourceSlice, targetSlice, originalDiffs);
-        diffs = smoothenSequenceDiffs(sourceSlice, targetSlice, diffs);
-        const result = diffs.map((d) => new RangeMapping(sourceSlice.translateRange(d.seq1Range).delta(diff.seq1Range.start), targetSlice.translateRange(d.seq2Range).delta(diff.seq2Range.start)));
-        return result;
-    }
-}
-function lineRangeMappingFromRangeMappings(alignments) {
-    const changes = [];
-    for (const g of group(alignments, (a1, a2) => (a2.originalRange.startLineNumber - (a1.originalRange.endLineNumber - (a1.originalRange.endColumn > 1 ? 0 : 1)) <= 1)
-        || (a2.modifiedRange.startLineNumber - (a1.modifiedRange.endLineNumber - (a1.modifiedRange.endColumn > 1 ? 0 : 1)) <= 1))) {
-        const first = g[0];
-        const last = g[g.length - 1];
-        changes.push(new LineRangeMapping(new LineRange(first.originalRange.startLineNumber, last.originalRange.endLineNumber + (last.originalRange.endColumn > 1 || last.modifiedRange.endColumn > 1 ? 1 : 0)), new LineRange(first.modifiedRange.startLineNumber, last.modifiedRange.endLineNumber + (last.originalRange.endColumn > 1 || last.modifiedRange.endColumn > 1 ? 1 : 0)), g));
-    }
-    assertFn(() => {
-        return checkAdjacentItems(changes, (m1, m2) => m2.originalRange.startLineNumber - m1.originalRange.endLineNumberExclusive === m2.modifiedRange.startLineNumber - m1.modifiedRange.endLineNumberExclusive &&
-            // There has to be an unchanged line in between (otherwise both diffs should have been joined)
-            m1.originalRange.endLineNumberExclusive < m2.originalRange.startLineNumber &&
-            m1.modifiedRange.endLineNumberExclusive < m2.modifiedRange.startLineNumber);
-    });
-    return changes;
-}
-function* group(items, shouldBeGrouped) {
-    let currentGroup;
-    let last;
-    for (const item of items) {
-        if (last !== undefined && shouldBeGrouped(last, item)) {
-            currentGroup.push(item);
-        }
-        else {
-            if (currentGroup) {
-                yield currentGroup;
-            }
-            currentGroup = [item];
-        }
-        last = item;
-    }
-    if (currentGroup) {
-        yield currentGroup;
-    }
-}
-class standardLinesDiffComputer_LineSequence {
-    constructor(trimmedHash, lines) {
-        this.trimmedHash = trimmedHash;
+class LinesSliceCharSequence {
+    constructor(lines, lineRange, considerWhitespaceChanges) {
+        // This slice has to have lineRange.length many \n! (otherwise diffing against an empty slice will be problematic)
+        // (Unless it covers the entire document, in that case the other slice also has to cover the entire document ands it's okay)
         this.lines = lines;
-    }
-    getElement(offset) {
-        return this.trimmedHash[offset];
-    }
-    get length() {
-        return this.trimmedHash.length;
-    }
-    getBoundaryScore(length) {
-        const indentationBefore = length === 0 ? 0 : getIndentation(this.lines[length - 1]);
-        const indentationAfter = length === this.lines.length ? 0 : getIndentation(this.lines[length]);
-        return 1000 - (indentationBefore + indentationAfter);
-    }
-}
-function getIndentation(str) {
-    let i = 0;
-    while (i < str.length && (str.charCodeAt(i) === 32 /* CharCode.Space */ || str.charCodeAt(i) === 9 /* CharCode.Tab */)) {
-        i++;
-    }
-    return i;
-}
-class Slice {
-    constructor(lines, lineRange) {
-        this.lines = lines;
+        this.considerWhitespaceChanges = considerWhitespaceChanges;
+        this.elements = [];
+        this.firstCharOffsetByLine = [];
+        // To account for trimming
+        this.additionalOffsetByLine = [];
+        // If the slice covers the end, but does not start at the beginning, we include just the \n of the previous line.
+        let trimFirstLineFully = false;
+        if (lineRange.start > 0 && lineRange.endExclusive >= lines.length) {
+            lineRange = new OffsetRange(lineRange.start - 1, lineRange.endExclusive);
+            trimFirstLineFully = true;
+        }
         this.lineRange = lineRange;
-        let chars = 0;
-        this.firstCharOnLineOffsets = new Int32Array(lineRange.length);
-        for (let i = lineRange.start; i < lineRange.endExclusive; i++) {
-            const line = lines[i];
-            chars += line.length;
-            this.firstCharOnLineOffsets[i - lineRange.start] = chars + 1;
-            chars++;
-        }
-        this.elements = new Int32Array(chars);
-        let offset = 0;
-        for (let i = lineRange.start; i < lineRange.endExclusive; i++) {
-            const line = lines[i];
+        this.firstCharOffsetByLine[0] = 0;
+        for (let i = this.lineRange.start; i < this.lineRange.endExclusive; i++) {
+            let line = lines[i];
+            let offset = 0;
+            if (trimFirstLineFully) {
+                offset = line.length;
+                line = '';
+                trimFirstLineFully = false;
+            }
+            else if (!considerWhitespaceChanges) {
+                const trimmedStartLine = line.trimStart();
+                offset = line.length - trimmedStartLine.length;
+                line = trimmedStartLine.trimEnd();
+            }
+            this.additionalOffsetByLine.push(offset);
             for (let i = 0; i < line.length; i++) {
-                this.elements[offset + i] = line.charCodeAt(i);
+                this.elements.push(line.charCodeAt(i));
             }
-            offset += line.length;
+            // Don't add an \n that does not exist in the document.
             if (i < lines.length - 1) {
-                this.elements[offset] = '\n'.charCodeAt(0);
-                offset += 1;
+                this.elements.push('\n'.charCodeAt(0));
+                this.firstCharOffsetByLine[i - this.lineRange.start + 1] = this.elements.length;
             }
         }
+        // To account for the last line
+        this.additionalOffsetByLine.push(0);
+    }
+    toString() {
+        return `Slice: "${this.text}"`;
+    }
+    get text() {
+        return this.getText(new OffsetRange(0, this.length));
+    }
+    getText(range) {
+        return this.elements.slice(range.start, range.endExclusive).map(e => String.fromCharCode(e)).join('');
     }
     getElement(offset) {
         return this.elements[offset];
@@ -13560,7 +15014,7 @@ class Slice {
         let score = 0;
         if (prevCategory !== nextCategory) {
             score += 10;
-            if (nextCategory === 1 /* CharBoundaryCategory.WordUpper */) {
+            if (prevCategory === 0 /* CharBoundaryCategory.WordLower */ && nextCategory === 1 /* CharBoundaryCategory.WordUpper */) {
                 score += 1;
             }
         }
@@ -13569,24 +15023,55 @@ class Slice {
         return score;
     }
     translateOffset(offset) {
-        // find smallest i, so that lineBreakOffsets[i] > offset using binary search
-        let i = 0;
-        let j = this.firstCharOnLineOffsets.length;
-        while (i < j) {
-            const k = Math.floor((i + j) / 2);
-            if (this.firstCharOnLineOffsets[k] > offset) {
-                j = k;
-            }
-            else {
-                i = k + 1;
-            }
+        // find smallest i, so that lineBreakOffsets[i] <= offset using binary search
+        if (this.lineRange.isEmpty) {
+            return new position_Position(this.lineRange.start + 1, 1);
         }
-        const offsetOfPrevLineBreak = i === 0 ? 0 : this.firstCharOnLineOffsets[i - 1];
-        return new position_Position(i + 1, offset - offsetOfPrevLineBreak + 1);
+        const i = findLastIdxMonotonous(this.firstCharOffsetByLine, (value) => value <= offset);
+        return new position_Position(this.lineRange.start + i + 1, offset - this.firstCharOffsetByLine[i] + this.additionalOffsetByLine[i] + 1);
     }
     translateRange(range) {
         return range_Range.fromPositions(this.translateOffset(range.start), this.translateOffset(range.endExclusive));
     }
+    /**
+     * Finds the word that contains the character at the given offset
+     */
+    findWordContaining(offset) {
+        if (offset < 0 || offset >= this.elements.length) {
+            return undefined;
+        }
+        if (!isWordChar(this.elements[offset])) {
+            return undefined;
+        }
+        // find start
+        let start = offset;
+        while (start > 0 && isWordChar(this.elements[start - 1])) {
+            start--;
+        }
+        // find end
+        let end = offset;
+        while (end < this.elements.length && isWordChar(this.elements[end])) {
+            end++;
+        }
+        return new OffsetRange(start, end);
+    }
+    countLinesIn(range) {
+        return this.translateOffset(range.endExclusive).lineNumber - this.translateOffset(range.start).lineNumber;
+    }
+    isStronglyEqual(offset1, offset2) {
+        return this.elements[offset1] === this.elements[offset2];
+    }
+    extendToFullLines(range) {
+        var _a, _b;
+        const start = (_a = findLastMonotonous(this.firstCharOffsetByLine, x => x <= range.start)) !== null && _a !== void 0 ? _a : 0;
+        const end = (_b = findFirstMonotonous(this.firstCharOffsetByLine, x => range.endExclusive <= x)) !== null && _b !== void 0 ? _b : this.elements.length;
+        return new OffsetRange(start, end);
+    }
+}
+function isWordChar(charCode) {
+    return charCode >= 97 /* CharCode.a */ && charCode <= 122 /* CharCode.z */
+        || charCode >= 65 /* CharCode.A */ && charCode <= 90 /* CharCode.Z */
+        || charCode >= 48 /* CharCode.Digit0 */ && charCode <= 57 /* CharCode.Digit9 */;
 }
 const score = {
     [0 /* CharBoundaryCategory.WordLower */]: 0,
@@ -13627,8 +15112,868 @@ function getCategory(charCode) {
         return 4 /* CharBoundaryCategory.Other */;
     }
 }
-function isSpace(charCode) {
-    return charCode === 32 /* CharCode.Space */ || charCode === 9 /* CharCode.Tab */;
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/computeMovedLines.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+
+
+function computeMovedLines(changes, originalLines, modifiedLines, hashedOriginalLines, hashedModifiedLines, timeout) {
+    let { moves, excludedChanges } = computeMovesFromSimpleDeletionsToSimpleInsertions(changes, originalLines, modifiedLines, timeout);
+    if (!timeout.isValid()) {
+        return [];
+    }
+    const filteredChanges = changes.filter(c => !excludedChanges.has(c));
+    const unchangedMoves = computeUnchangedMoves(filteredChanges, hashedOriginalLines, hashedModifiedLines, originalLines, modifiedLines, timeout);
+    pushMany(moves, unchangedMoves);
+    moves = joinCloseConsecutiveMoves(moves);
+    // Ignore too short moves
+    moves = moves.filter(current => {
+        const originalText = current.original.toOffsetRange().slice(originalLines).map(l => l.trim()).join('\n');
+        return originalText.length >= 10;
+    });
+    moves = removeMovesInSameDiff(changes, moves);
+    return moves;
+}
+function computeMovesFromSimpleDeletionsToSimpleInsertions(changes, originalLines, modifiedLines, timeout) {
+    const moves = [];
+    const deletions = changes
+        .filter(c => c.modified.isEmpty && c.original.length >= 3)
+        .map(d => new LineRangeFragment(d.original, originalLines, d));
+    const insertions = new Set(changes
+        .filter(c => c.original.isEmpty && c.modified.length >= 3)
+        .map(d => new LineRangeFragment(d.modified, modifiedLines, d)));
+    const excludedChanges = new Set();
+    for (const deletion of deletions) {
+        let highestSimilarity = -1;
+        let best;
+        for (const insertion of insertions) {
+            const similarity = deletion.computeSimilarity(insertion);
+            if (similarity > highestSimilarity) {
+                highestSimilarity = similarity;
+                best = insertion;
+            }
+        }
+        if (highestSimilarity > 0.90 && best) {
+            insertions.delete(best);
+            moves.push(new LineRangeMapping(deletion.range, best.range));
+            excludedChanges.add(deletion.source);
+            excludedChanges.add(best.source);
+        }
+        if (!timeout.isValid()) {
+            return { moves, excludedChanges };
+        }
+    }
+    return { moves, excludedChanges };
+}
+function computeUnchangedMoves(changes, hashedOriginalLines, hashedModifiedLines, originalLines, modifiedLines, timeout) {
+    const moves = [];
+    const original3LineHashes = new SetMap();
+    for (const change of changes) {
+        for (let i = change.original.startLineNumber; i < change.original.endLineNumberExclusive - 2; i++) {
+            const key = `${hashedOriginalLines[i - 1]}:${hashedOriginalLines[i + 1 - 1]}:${hashedOriginalLines[i + 2 - 1]}`;
+            original3LineHashes.add(key, { range: new LineRange(i, i + 3) });
+        }
+    }
+    const possibleMappings = [];
+    changes.sort(compareBy(c => c.modified.startLineNumber, numberComparator));
+    for (const change of changes) {
+        let lastMappings = [];
+        for (let i = change.modified.startLineNumber; i < change.modified.endLineNumberExclusive - 2; i++) {
+            const key = `${hashedModifiedLines[i - 1]}:${hashedModifiedLines[i + 1 - 1]}:${hashedModifiedLines[i + 2 - 1]}`;
+            const currentModifiedRange = new LineRange(i, i + 3);
+            const nextMappings = [];
+            original3LineHashes.forEach(key, ({ range }) => {
+                for (const lastMapping of lastMappings) {
+                    // does this match extend some last match?
+                    if (lastMapping.originalLineRange.endLineNumberExclusive + 1 === range.endLineNumberExclusive &&
+                        lastMapping.modifiedLineRange.endLineNumberExclusive + 1 === currentModifiedRange.endLineNumberExclusive) {
+                        lastMapping.originalLineRange = new LineRange(lastMapping.originalLineRange.startLineNumber, range.endLineNumberExclusive);
+                        lastMapping.modifiedLineRange = new LineRange(lastMapping.modifiedLineRange.startLineNumber, currentModifiedRange.endLineNumberExclusive);
+                        nextMappings.push(lastMapping);
+                        return;
+                    }
+                }
+                const mapping = {
+                    modifiedLineRange: currentModifiedRange,
+                    originalLineRange: range,
+                };
+                possibleMappings.push(mapping);
+                nextMappings.push(mapping);
+            });
+            lastMappings = nextMappings;
+        }
+        if (!timeout.isValid()) {
+            return [];
+        }
+    }
+    possibleMappings.sort(reverseOrder(compareBy(m => m.modifiedLineRange.length, numberComparator)));
+    const modifiedSet = new LineRangeSet();
+    const originalSet = new LineRangeSet();
+    for (const mapping of possibleMappings) {
+        const diffOrigToMod = mapping.modifiedLineRange.startLineNumber - mapping.originalLineRange.startLineNumber;
+        const modifiedSections = modifiedSet.subtractFrom(mapping.modifiedLineRange);
+        const originalTranslatedSections = originalSet.subtractFrom(mapping.originalLineRange).getWithDelta(diffOrigToMod);
+        const modifiedIntersectedSections = modifiedSections.getIntersection(originalTranslatedSections);
+        for (const s of modifiedIntersectedSections.ranges) {
+            if (s.length < 3) {
+                continue;
+            }
+            const modifiedLineRange = s;
+            const originalLineRange = s.delta(-diffOrigToMod);
+            moves.push(new LineRangeMapping(originalLineRange, modifiedLineRange));
+            modifiedSet.addRange(modifiedLineRange);
+            originalSet.addRange(originalLineRange);
+        }
+    }
+    moves.sort(compareBy(m => m.original.startLineNumber, numberComparator));
+    const monotonousChanges = new MonotonousArray(changes);
+    for (let i = 0; i < moves.length; i++) {
+        const move = moves[i];
+        const firstTouchingChangeOrig = monotonousChanges.findLastMonotonous(c => c.original.startLineNumber <= move.original.startLineNumber);
+        const firstTouchingChangeMod = findLastMonotonous(changes, c => c.modified.startLineNumber <= move.modified.startLineNumber);
+        const linesAbove = Math.max(move.original.startLineNumber - firstTouchingChangeOrig.original.startLineNumber, move.modified.startLineNumber - firstTouchingChangeMod.modified.startLineNumber);
+        const lastTouchingChangeOrig = monotonousChanges.findLastMonotonous(c => c.original.startLineNumber < move.original.endLineNumberExclusive);
+        const lastTouchingChangeMod = findLastMonotonous(changes, c => c.modified.startLineNumber < move.modified.endLineNumberExclusive);
+        const linesBelow = Math.max(lastTouchingChangeOrig.original.endLineNumberExclusive - move.original.endLineNumberExclusive, lastTouchingChangeMod.modified.endLineNumberExclusive - move.modified.endLineNumberExclusive);
+        let extendToTop;
+        for (extendToTop = 0; extendToTop < linesAbove; extendToTop++) {
+            const origLine = move.original.startLineNumber - extendToTop - 1;
+            const modLine = move.modified.startLineNumber - extendToTop - 1;
+            if (origLine > originalLines.length || modLine > modifiedLines.length) {
+                break;
+            }
+            if (modifiedSet.contains(modLine) || originalSet.contains(origLine)) {
+                break;
+            }
+            if (!areLinesSimilar(originalLines[origLine - 1], modifiedLines[modLine - 1], timeout)) {
+                break;
+            }
+        }
+        if (extendToTop > 0) {
+            originalSet.addRange(new LineRange(move.original.startLineNumber - extendToTop, move.original.startLineNumber));
+            modifiedSet.addRange(new LineRange(move.modified.startLineNumber - extendToTop, move.modified.startLineNumber));
+        }
+        let extendToBottom;
+        for (extendToBottom = 0; extendToBottom < linesBelow; extendToBottom++) {
+            const origLine = move.original.endLineNumberExclusive + extendToBottom;
+            const modLine = move.modified.endLineNumberExclusive + extendToBottom;
+            if (origLine > originalLines.length || modLine > modifiedLines.length) {
+                break;
+            }
+            if (modifiedSet.contains(modLine) || originalSet.contains(origLine)) {
+                break;
+            }
+            if (!areLinesSimilar(originalLines[origLine - 1], modifiedLines[modLine - 1], timeout)) {
+                break;
+            }
+        }
+        if (extendToBottom > 0) {
+            originalSet.addRange(new LineRange(move.original.endLineNumberExclusive, move.original.endLineNumberExclusive + extendToBottom));
+            modifiedSet.addRange(new LineRange(move.modified.endLineNumberExclusive, move.modified.endLineNumberExclusive + extendToBottom));
+        }
+        if (extendToTop > 0 || extendToBottom > 0) {
+            moves[i] = new LineRangeMapping(new LineRange(move.original.startLineNumber - extendToTop, move.original.endLineNumberExclusive + extendToBottom), new LineRange(move.modified.startLineNumber - extendToTop, move.modified.endLineNumberExclusive + extendToBottom));
+        }
+    }
+    return moves;
+}
+function areLinesSimilar(line1, line2, timeout) {
+    if (line1.trim() === line2.trim()) {
+        return true;
+    }
+    if (line1.length > 300 && line2.length > 300) {
+        return false;
+    }
+    const myersDiffingAlgorithm = new MyersDiffAlgorithm();
+    const result = myersDiffingAlgorithm.compute(new LinesSliceCharSequence([line1], new OffsetRange(0, 1), false), new LinesSliceCharSequence([line2], new OffsetRange(0, 1), false), timeout);
+    let commonNonSpaceCharCount = 0;
+    const inverted = SequenceDiff.invert(result.diffs, line1.length);
+    for (const seq of inverted) {
+        seq.seq1Range.forEach(idx => {
+            if (!isSpace(line1.charCodeAt(idx))) {
+                commonNonSpaceCharCount++;
+            }
+        });
+    }
+    function countNonWsChars(str) {
+        let count = 0;
+        for (let i = 0; i < line1.length; i++) {
+            if (!isSpace(str.charCodeAt(i))) {
+                count++;
+            }
+        }
+        return count;
+    }
+    const longerLineLength = countNonWsChars(line1.length > line2.length ? line1 : line2);
+    const r = commonNonSpaceCharCount / longerLineLength > 0.6 && longerLineLength > 10;
+    return r;
+}
+function joinCloseConsecutiveMoves(moves) {
+    if (moves.length === 0) {
+        return moves;
+    }
+    moves.sort(compareBy(m => m.original.startLineNumber, numberComparator));
+    const result = [moves[0]];
+    for (let i = 1; i < moves.length; i++) {
+        const last = result[result.length - 1];
+        const current = moves[i];
+        const originalDist = current.original.startLineNumber - last.original.endLineNumberExclusive;
+        const modifiedDist = current.modified.startLineNumber - last.modified.endLineNumberExclusive;
+        const currentMoveAfterLast = originalDist >= 0 && modifiedDist >= 0;
+        if (currentMoveAfterLast && originalDist + modifiedDist <= 2) {
+            result[result.length - 1] = last.join(current);
+            continue;
+        }
+        result.push(current);
+    }
+    return result;
+}
+function removeMovesInSameDiff(changes, moves) {
+    const changesMonotonous = new MonotonousArray(changes);
+    moves = moves.filter(m => {
+        const diffBeforeEndOfMoveOriginal = changesMonotonous.findLastMonotonous(c => c.original.endLineNumberExclusive < m.original.endLineNumberExclusive)
+            || new LineRangeMapping(new LineRange(1, 1), new LineRange(1, 1));
+        const diffBeforeEndOfMoveModified = findLastMonotonous(changes, c => c.modified.endLineNumberExclusive < m.modified.endLineNumberExclusive);
+        const differentDiffs = diffBeforeEndOfMoveOriginal !== diffBeforeEndOfMoveModified;
+        return differentDiffs;
+    });
+    return moves;
+}
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/heuristicSequenceOptimizations.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+
+
+function optimizeSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
+    let result = sequenceDiffs;
+    result = joinSequenceDiffsByShifting(sequence1, sequence2, result);
+    result = shiftSequenceDiffs(sequence1, sequence2, result);
+    return result;
+}
+/**
+ * This function fixes issues like this:
+ * ```
+ * import { Baz, Bar } from "foo";
+ * ```
+ * <->
+ * ```
+ * import { Baz, Bar, Foo } from "foo";
+ * ```
+ * Computed diff: [ {Add "," after Bar}, {Add "Foo " after space} }
+ * Improved diff: [{Add ", Foo" after Bar}]
+ */
+function joinSequenceDiffsByShifting(sequence1, sequence2, sequenceDiffs) {
+    if (sequenceDiffs.length === 0) {
+        return sequenceDiffs;
+    }
+    const result = [];
+    result.push(sequenceDiffs[0]);
+    // First move them all to the left as much as possible and join them if possible
+    for (let i = 1; i < sequenceDiffs.length; i++) {
+        const prevResult = result[result.length - 1];
+        let cur = sequenceDiffs[i];
+        if (cur.seq1Range.isEmpty || cur.seq2Range.isEmpty) {
+            const length = cur.seq1Range.start - prevResult.seq1Range.endExclusive;
+            let d;
+            for (d = 1; d <= length; d++) {
+                if (sequence1.getElement(cur.seq1Range.start - d) !== sequence1.getElement(cur.seq1Range.endExclusive - d) ||
+                    sequence2.getElement(cur.seq2Range.start - d) !== sequence2.getElement(cur.seq2Range.endExclusive - d)) {
+                    break;
+                }
+            }
+            d--;
+            if (d === length) {
+                // Merge previous and current diff
+                result[result.length - 1] = new SequenceDiff(new OffsetRange(prevResult.seq1Range.start, cur.seq1Range.endExclusive - length), new OffsetRange(prevResult.seq2Range.start, cur.seq2Range.endExclusive - length));
+                continue;
+            }
+            cur = cur.delta(-d);
+        }
+        result.push(cur);
+    }
+    const result2 = [];
+    // Then move them all to the right and join them again if possible
+    for (let i = 0; i < result.length - 1; i++) {
+        const nextResult = result[i + 1];
+        let cur = result[i];
+        if (cur.seq1Range.isEmpty || cur.seq2Range.isEmpty) {
+            const length = nextResult.seq1Range.start - cur.seq1Range.endExclusive;
+            let d;
+            for (d = 0; d < length; d++) {
+                if (!sequence1.isStronglyEqual(cur.seq1Range.start + d, cur.seq1Range.endExclusive + d) ||
+                    !sequence2.isStronglyEqual(cur.seq2Range.start + d, cur.seq2Range.endExclusive + d)) {
+                    break;
+                }
+            }
+            if (d === length) {
+                // Merge previous and current diff, write to result!
+                result[i + 1] = new SequenceDiff(new OffsetRange(cur.seq1Range.start + length, nextResult.seq1Range.endExclusive), new OffsetRange(cur.seq2Range.start + length, nextResult.seq2Range.endExclusive));
+                continue;
+            }
+            if (d > 0) {
+                cur = cur.delta(d);
+            }
+        }
+        result2.push(cur);
+    }
+    if (result.length > 0) {
+        result2.push(result[result.length - 1]);
+    }
+    return result2;
+}
+// align character level diffs at whitespace characters
+// import { IBar } from "foo";
+// import { I[Arr, I]Bar } from "foo";
+// ->
+// import { [IArr, ]IBar } from "foo";
+// import { ITransaction, observableValue, transaction } from 'vs/base/common/observable';
+// import { ITransaction, observable[FromEvent, observable]Value, transaction } from 'vs/base/common/observable';
+// ->
+// import { ITransaction, [observableFromEvent, ]observableValue, transaction } from 'vs/base/common/observable';
+// collectBrackets(level + 1, levelPerBracketType);
+// collectBrackets(level + 1, levelPerBracket[ + 1, levelPerBracket]Type);
+// ->
+// collectBrackets(level + 1, [levelPerBracket + 1, ]levelPerBracketType);
+function shiftSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
+    if (!sequence1.getBoundaryScore || !sequence2.getBoundaryScore) {
+        return sequenceDiffs;
+    }
+    for (let i = 0; i < sequenceDiffs.length; i++) {
+        const prevDiff = (i > 0 ? sequenceDiffs[i - 1] : undefined);
+        const diff = sequenceDiffs[i];
+        const nextDiff = (i + 1 < sequenceDiffs.length ? sequenceDiffs[i + 1] : undefined);
+        const seq1ValidRange = new OffsetRange(prevDiff ? prevDiff.seq1Range.start + 1 : 0, nextDiff ? nextDiff.seq1Range.endExclusive - 1 : sequence1.length);
+        const seq2ValidRange = new OffsetRange(prevDiff ? prevDiff.seq2Range.start + 1 : 0, nextDiff ? nextDiff.seq2Range.endExclusive - 1 : sequence2.length);
+        if (diff.seq1Range.isEmpty) {
+            sequenceDiffs[i] = shiftDiffToBetterPosition(diff, sequence1, sequence2, seq1ValidRange, seq2ValidRange);
+        }
+        else if (diff.seq2Range.isEmpty) {
+            sequenceDiffs[i] = shiftDiffToBetterPosition(diff.swap(), sequence2, sequence1, seq2ValidRange, seq1ValidRange).swap();
+        }
+    }
+    return sequenceDiffs;
+}
+function shiftDiffToBetterPosition(diff, sequence1, sequence2, seq1ValidRange, seq2ValidRange) {
+    const maxShiftLimit = 100; // To prevent performance issues
+    // don't touch previous or next!
+    let deltaBefore = 1;
+    while (diff.seq1Range.start - deltaBefore >= seq1ValidRange.start &&
+        diff.seq2Range.start - deltaBefore >= seq2ValidRange.start &&
+        sequence2.isStronglyEqual(diff.seq2Range.start - deltaBefore, diff.seq2Range.endExclusive - deltaBefore) && deltaBefore < maxShiftLimit) {
+        deltaBefore++;
+    }
+    deltaBefore--;
+    let deltaAfter = 0;
+    while (diff.seq1Range.start + deltaAfter < seq1ValidRange.endExclusive &&
+        diff.seq2Range.endExclusive + deltaAfter < seq2ValidRange.endExclusive &&
+        sequence2.isStronglyEqual(diff.seq2Range.start + deltaAfter, diff.seq2Range.endExclusive + deltaAfter) && deltaAfter < maxShiftLimit) {
+        deltaAfter++;
+    }
+    if (deltaBefore === 0 && deltaAfter === 0) {
+        return diff;
+    }
+    // Visualize `[sequence1.text, diff.seq1Range.start + deltaAfter]`
+    // and `[sequence2.text, diff.seq2Range.start + deltaAfter, diff.seq2Range.endExclusive + deltaAfter]`
+    let bestDelta = 0;
+    let bestScore = -1;
+    // find best scored delta
+    for (let delta = -deltaBefore; delta <= deltaAfter; delta++) {
+        const seq2OffsetStart = diff.seq2Range.start + delta;
+        const seq2OffsetEndExclusive = diff.seq2Range.endExclusive + delta;
+        const seq1Offset = diff.seq1Range.start + delta;
+        const score = sequence1.getBoundaryScore(seq1Offset) + sequence2.getBoundaryScore(seq2OffsetStart) + sequence2.getBoundaryScore(seq2OffsetEndExclusive);
+        if (score > bestScore) {
+            bestScore = score;
+            bestDelta = delta;
+        }
+    }
+    return diff.delta(bestDelta);
+}
+function removeShortMatches(sequence1, sequence2, sequenceDiffs) {
+    const result = [];
+    for (const s of sequenceDiffs) {
+        const last = result[result.length - 1];
+        if (!last) {
+            result.push(s);
+            continue;
+        }
+        if (s.seq1Range.start - last.seq1Range.endExclusive <= 2 || s.seq2Range.start - last.seq2Range.endExclusive <= 2) {
+            result[result.length - 1] = new SequenceDiff(last.seq1Range.join(s.seq1Range), last.seq2Range.join(s.seq2Range));
+        }
+        else {
+            result.push(s);
+        }
+    }
+    return result;
+}
+function extendDiffsToEntireWordIfAppropriate(sequence1, sequence2, sequenceDiffs) {
+    const additional = [];
+    let lastModifiedWord = undefined;
+    function maybePushWordToAdditional() {
+        if (!lastModifiedWord) {
+            return;
+        }
+        const originalLength1 = lastModifiedWord.s1Range.length - lastModifiedWord.deleted;
+        const originalLength2 = lastModifiedWord.s2Range.length - lastModifiedWord.added;
+        if (originalLength1 !== originalLength2) {
+            // TODO figure out why this happens
+        }
+        if (Math.max(lastModifiedWord.deleted, lastModifiedWord.added) + (lastModifiedWord.count - 1) > originalLength1) {
+            additional.push(new SequenceDiff(lastModifiedWord.s1Range, lastModifiedWord.s2Range));
+        }
+        lastModifiedWord = undefined;
+    }
+    for (const s of sequenceDiffs) {
+        function processWord(s1Range, s2Range) {
+            var _a, _b, _c, _d;
+            if (!lastModifiedWord || !lastModifiedWord.s1Range.containsRange(s1Range) || !lastModifiedWord.s2Range.containsRange(s2Range)) {
+                if (lastModifiedWord && !(lastModifiedWord.s1Range.endExclusive < s1Range.start && lastModifiedWord.s2Range.endExclusive < s2Range.start)) {
+                    const s1Added = OffsetRange.tryCreate(lastModifiedWord.s1Range.endExclusive, s1Range.start);
+                    const s2Added = OffsetRange.tryCreate(lastModifiedWord.s2Range.endExclusive, s2Range.start);
+                    lastModifiedWord.deleted += (_a = s1Added === null || s1Added === void 0 ? void 0 : s1Added.length) !== null && _a !== void 0 ? _a : 0;
+                    lastModifiedWord.added += (_b = s2Added === null || s2Added === void 0 ? void 0 : s2Added.length) !== null && _b !== void 0 ? _b : 0;
+                    lastModifiedWord.s1Range = lastModifiedWord.s1Range.join(s1Range);
+                    lastModifiedWord.s2Range = lastModifiedWord.s2Range.join(s2Range);
+                }
+                else {
+                    maybePushWordToAdditional();
+                    lastModifiedWord = { added: 0, deleted: 0, count: 0, s1Range: s1Range, s2Range: s2Range };
+                }
+            }
+            const changedS1 = s1Range.intersect(s.seq1Range);
+            const changedS2 = s2Range.intersect(s.seq2Range);
+            lastModifiedWord.count++;
+            lastModifiedWord.deleted += (_c = changedS1 === null || changedS1 === void 0 ? void 0 : changedS1.length) !== null && _c !== void 0 ? _c : 0;
+            lastModifiedWord.added += (_d = changedS2 === null || changedS2 === void 0 ? void 0 : changedS2.length) !== null && _d !== void 0 ? _d : 0;
+        }
+        const w1Before = sequence1.findWordContaining(s.seq1Range.start - 1);
+        const w2Before = sequence2.findWordContaining(s.seq2Range.start - 1);
+        const w1After = sequence1.findWordContaining(s.seq1Range.endExclusive);
+        const w2After = sequence2.findWordContaining(s.seq2Range.endExclusive);
+        if (w1Before && w1After && w2Before && w2After && w1Before.equals(w1After) && w2Before.equals(w2After)) {
+            processWord(w1Before, w2Before);
+        }
+        else {
+            if (w1Before && w2Before) {
+                processWord(w1Before, w2Before);
+            }
+            if (w1After && w2After) {
+                processWord(w1After, w2After);
+            }
+        }
+    }
+    maybePushWordToAdditional();
+    const merged = mergeSequenceDiffs(sequenceDiffs, additional);
+    return merged;
+}
+function mergeSequenceDiffs(sequenceDiffs1, sequenceDiffs2) {
+    const result = [];
+    while (sequenceDiffs1.length > 0 || sequenceDiffs2.length > 0) {
+        const sd1 = sequenceDiffs1[0];
+        const sd2 = sequenceDiffs2[0];
+        let next;
+        if (sd1 && (!sd2 || sd1.seq1Range.start < sd2.seq1Range.start)) {
+            next = sequenceDiffs1.shift();
+        }
+        else {
+            next = sequenceDiffs2.shift();
+        }
+        if (result.length > 0 && result[result.length - 1].seq1Range.endExclusive >= next.seq1Range.start) {
+            result[result.length - 1] = result[result.length - 1].join(next);
+        }
+        else {
+            result.push(next);
+        }
+    }
+    return result;
+}
+function removeVeryShortMatchingLinesBetweenDiffs(sequence1, _sequence2, sequenceDiffs) {
+    let diffs = sequenceDiffs;
+    if (diffs.length === 0) {
+        return diffs;
+    }
+    let counter = 0;
+    let shouldRepeat;
+    do {
+        shouldRepeat = false;
+        const result = [
+            diffs[0]
+        ];
+        for (let i = 1; i < diffs.length; i++) {
+            const cur = diffs[i];
+            const lastResult = result[result.length - 1];
+            function shouldJoinDiffs(before, after) {
+                const unchangedRange = new OffsetRange(lastResult.seq1Range.endExclusive, cur.seq1Range.start);
+                const unchangedText = sequence1.getText(unchangedRange);
+                const unchangedTextWithoutWs = unchangedText.replace(/\s/g, '');
+                if (unchangedTextWithoutWs.length <= 4
+                    && (before.seq1Range.length + before.seq2Range.length > 5 || after.seq1Range.length + after.seq2Range.length > 5)) {
+                    return true;
+                }
+                return false;
+            }
+            const shouldJoin = shouldJoinDiffs(lastResult, cur);
+            if (shouldJoin) {
+                shouldRepeat = true;
+                result[result.length - 1] = result[result.length - 1].join(cur);
+            }
+            else {
+                result.push(cur);
+            }
+        }
+        diffs = result;
+    } while (counter++ < 10 && shouldRepeat);
+    return diffs;
+}
+function removeVeryShortMatchingTextBetweenLongDiffs(sequence1, sequence2, sequenceDiffs) {
+    let diffs = sequenceDiffs;
+    if (diffs.length === 0) {
+        return diffs;
+    }
+    let counter = 0;
+    let shouldRepeat;
+    do {
+        shouldRepeat = false;
+        const result = [
+            diffs[0]
+        ];
+        for (let i = 1; i < diffs.length; i++) {
+            const cur = diffs[i];
+            const lastResult = result[result.length - 1];
+            function shouldJoinDiffs(before, after) {
+                const unchangedRange = new OffsetRange(lastResult.seq1Range.endExclusive, cur.seq1Range.start);
+                const unchangedLineCount = sequence1.countLinesIn(unchangedRange);
+                if (unchangedLineCount > 5 || unchangedRange.length > 500) {
+                    return false;
+                }
+                const unchangedText = sequence1.getText(unchangedRange).trim();
+                if (unchangedText.length > 20 || unchangedText.split(/\r\n|\r|\n/).length > 1) {
+                    return false;
+                }
+                const beforeLineCount1 = sequence1.countLinesIn(before.seq1Range);
+                const beforeSeq1Length = before.seq1Range.length;
+                const beforeLineCount2 = sequence2.countLinesIn(before.seq2Range);
+                const beforeSeq2Length = before.seq2Range.length;
+                const afterLineCount1 = sequence1.countLinesIn(after.seq1Range);
+                const afterSeq1Length = after.seq1Range.length;
+                const afterLineCount2 = sequence2.countLinesIn(after.seq2Range);
+                const afterSeq2Length = after.seq2Range.length;
+                // TODO: Maybe a neural net can be used to derive the result from these numbers
+                const max = 2 * 40 + 50;
+                function cap(v) {
+                    return Math.min(v, max);
+                }
+                if (Math.pow(Math.pow(cap(beforeLineCount1 * 40 + beforeSeq1Length), 1.5) + Math.pow(cap(beforeLineCount2 * 40 + beforeSeq2Length), 1.5), 1.5)
+                    + Math.pow(Math.pow(cap(afterLineCount1 * 40 + afterSeq1Length), 1.5) + Math.pow(cap(afterLineCount2 * 40 + afterSeq2Length), 1.5), 1.5) > (Math.pow((Math.pow(max, 1.5)), 1.5)) * 1.3) {
+                    return true;
+                }
+                return false;
+            }
+            const shouldJoin = shouldJoinDiffs(lastResult, cur);
+            if (shouldJoin) {
+                shouldRepeat = true;
+                result[result.length - 1] = result[result.length - 1].join(cur);
+            }
+            else {
+                result.push(cur);
+            }
+        }
+        diffs = result;
+    } while (counter++ < 10 && shouldRepeat);
+    const newDiffs = [];
+    // Remove short suffixes/prefixes
+    forEachWithNeighbors(diffs, (prev, cur, next) => {
+        let newDiff = cur;
+        function shouldMarkAsChanged(text) {
+            return text.length > 0 && text.trim().length <= 3 && cur.seq1Range.length + cur.seq2Range.length > 100;
+        }
+        const fullRange1 = sequence1.extendToFullLines(cur.seq1Range);
+        const prefix = sequence1.getText(new OffsetRange(fullRange1.start, cur.seq1Range.start));
+        if (shouldMarkAsChanged(prefix)) {
+            newDiff = newDiff.deltaStart(-prefix.length);
+        }
+        const suffix = sequence1.getText(new OffsetRange(cur.seq1Range.endExclusive, fullRange1.endExclusive));
+        if (shouldMarkAsChanged(suffix)) {
+            newDiff = newDiff.deltaEnd(suffix.length);
+        }
+        const availableSpace = SequenceDiff.fromOffsetPairs(prev ? prev.getEndExclusives() : OffsetPair.zero, next ? next.getStarts() : OffsetPair.max);
+        const result = newDiff.intersect(availableSpace);
+        newDiffs.push(result);
+    });
+    return newDiffs;
+}
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/lineSequence.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+class lineSequence_LineSequence {
+    constructor(trimmedHash, lines) {
+        this.trimmedHash = trimmedHash;
+        this.lines = lines;
+    }
+    getElement(offset) {
+        return this.trimmedHash[offset];
+    }
+    get length() {
+        return this.trimmedHash.length;
+    }
+    getBoundaryScore(length) {
+        const indentationBefore = length === 0 ? 0 : getIndentation(this.lines[length - 1]);
+        const indentationAfter = length === this.lines.length ? 0 : getIndentation(this.lines[length]);
+        return 1000 - (indentationBefore + indentationAfter);
+    }
+    getText(range) {
+        return this.lines.slice(range.start, range.endExclusive).join('\n');
+    }
+    isStronglyEqual(offset1, offset2) {
+        return this.lines[offset1] === this.lines[offset2];
+    }
+}
+function getIndentation(str) {
+    let i = 0;
+    while (i < str.length && (str.charCodeAt(i) === 32 /* CharCode.Space */ || str.charCodeAt(i) === 9 /* CharCode.Tab */)) {
+        i++;
+    }
+    return i;
+}
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/defaultLinesDiffComputer.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class DefaultLinesDiffComputer {
+    constructor() {
+        this.dynamicProgrammingDiffing = new DynamicProgrammingDiffing();
+        this.myersDiffingAlgorithm = new MyersDiffAlgorithm();
+    }
+    computeDiff(originalLines, modifiedLines, options) {
+        if (originalLines.length <= 1 && arrays_equals(originalLines, modifiedLines, (a, b) => a === b)) {
+            return new LinesDiff([], [], false);
+        }
+        if (originalLines.length === 1 && originalLines[0].length === 0 || modifiedLines.length === 1 && modifiedLines[0].length === 0) {
+            return new LinesDiff([
+                new DetailedLineRangeMapping(new LineRange(1, originalLines.length + 1), new LineRange(1, modifiedLines.length + 1), [
+                    new RangeMapping(new range_Range(1, 1, originalLines.length, originalLines[0].length + 1), new range_Range(1, 1, modifiedLines.length, modifiedLines[0].length + 1))
+                ])
+            ], [], false);
+        }
+        const timeout = options.maxComputationTimeMs === 0 ? InfiniteTimeout.instance : new DateTimeout(options.maxComputationTimeMs);
+        const considerWhitespaceChanges = !options.ignoreTrimWhitespace;
+        const perfectHashes = new Map();
+        function getOrCreateHash(text) {
+            let hash = perfectHashes.get(text);
+            if (hash === undefined) {
+                hash = perfectHashes.size;
+                perfectHashes.set(text, hash);
+            }
+            return hash;
+        }
+        const originalLinesHashes = originalLines.map((l) => getOrCreateHash(l.trim()));
+        const modifiedLinesHashes = modifiedLines.map((l) => getOrCreateHash(l.trim()));
+        const sequence1 = new lineSequence_LineSequence(originalLinesHashes, originalLines);
+        const sequence2 = new lineSequence_LineSequence(modifiedLinesHashes, modifiedLines);
+        const lineAlignmentResult = (() => {
+            if (sequence1.length + sequence2.length < 1700) {
+                // Use the improved algorithm for small files
+                return this.dynamicProgrammingDiffing.compute(sequence1, sequence2, timeout, (offset1, offset2) => originalLines[offset1] === modifiedLines[offset2]
+                    ? modifiedLines[offset2].length === 0
+                        ? 0.1
+                        : 1 + Math.log(1 + modifiedLines[offset2].length)
+                    : 0.99);
+            }
+            return this.myersDiffingAlgorithm.compute(sequence1, sequence2);
+        })();
+        let lineAlignments = lineAlignmentResult.diffs;
+        let hitTimeout = lineAlignmentResult.hitTimeout;
+        lineAlignments = optimizeSequenceDiffs(sequence1, sequence2, lineAlignments);
+        lineAlignments = removeVeryShortMatchingLinesBetweenDiffs(sequence1, sequence2, lineAlignments);
+        const alignments = [];
+        const scanForWhitespaceChanges = (equalLinesCount) => {
+            if (!considerWhitespaceChanges) {
+                return;
+            }
+            for (let i = 0; i < equalLinesCount; i++) {
+                const seq1Offset = seq1LastStart + i;
+                const seq2Offset = seq2LastStart + i;
+                if (originalLines[seq1Offset] !== modifiedLines[seq2Offset]) {
+                    // This is because of whitespace changes, diff these lines
+                    const characterDiffs = this.refineDiff(originalLines, modifiedLines, new SequenceDiff(new OffsetRange(seq1Offset, seq1Offset + 1), new OffsetRange(seq2Offset, seq2Offset + 1)), timeout, considerWhitespaceChanges);
+                    for (const a of characterDiffs.mappings) {
+                        alignments.push(a);
+                    }
+                    if (characterDiffs.hitTimeout) {
+                        hitTimeout = true;
+                    }
+                }
+            }
+        };
+        let seq1LastStart = 0;
+        let seq2LastStart = 0;
+        for (const diff of lineAlignments) {
+            assertFn(() => diff.seq1Range.start - seq1LastStart === diff.seq2Range.start - seq2LastStart);
+            const equalLinesCount = diff.seq1Range.start - seq1LastStart;
+            scanForWhitespaceChanges(equalLinesCount);
+            seq1LastStart = diff.seq1Range.endExclusive;
+            seq2LastStart = diff.seq2Range.endExclusive;
+            const characterDiffs = this.refineDiff(originalLines, modifiedLines, diff, timeout, considerWhitespaceChanges);
+            if (characterDiffs.hitTimeout) {
+                hitTimeout = true;
+            }
+            for (const a of characterDiffs.mappings) {
+                alignments.push(a);
+            }
+        }
+        scanForWhitespaceChanges(originalLines.length - seq1LastStart);
+        const changes = lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLines);
+        let moves = [];
+        if (options.computeMoves) {
+            moves = this.computeMoves(changes, originalLines, modifiedLines, originalLinesHashes, modifiedLinesHashes, timeout, considerWhitespaceChanges);
+        }
+        // Make sure all ranges are valid
+        assertFn(() => {
+            function validatePosition(pos, lines) {
+                if (pos.lineNumber < 1 || pos.lineNumber > lines.length) {
+                    return false;
+                }
+                const line = lines[pos.lineNumber - 1];
+                if (pos.column < 1 || pos.column > line.length + 1) {
+                    return false;
+                }
+                return true;
+            }
+            function validateRange(range, lines) {
+                if (range.startLineNumber < 1 || range.startLineNumber > lines.length + 1) {
+                    return false;
+                }
+                if (range.endLineNumberExclusive < 1 || range.endLineNumberExclusive > lines.length + 1) {
+                    return false;
+                }
+                return true;
+            }
+            for (const c of changes) {
+                if (!c.innerChanges) {
+                    return false;
+                }
+                for (const ic of c.innerChanges) {
+                    const valid = validatePosition(ic.modifiedRange.getStartPosition(), modifiedLines) && validatePosition(ic.modifiedRange.getEndPosition(), modifiedLines) &&
+                        validatePosition(ic.originalRange.getStartPosition(), originalLines) && validatePosition(ic.originalRange.getEndPosition(), originalLines);
+                    if (!valid) {
+                        return false;
+                    }
+                }
+                if (!validateRange(c.modified, modifiedLines) || !validateRange(c.original, originalLines)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        return new LinesDiff(changes, moves, hitTimeout);
+    }
+    computeMoves(changes, originalLines, modifiedLines, hashedOriginalLines, hashedModifiedLines, timeout, considerWhitespaceChanges) {
+        const moves = computeMovedLines(changes, originalLines, modifiedLines, hashedOriginalLines, hashedModifiedLines, timeout);
+        const movesWithDiffs = moves.map(m => {
+            const moveChanges = this.refineDiff(originalLines, modifiedLines, new SequenceDiff(m.original.toOffsetRange(), m.modified.toOffsetRange()), timeout, considerWhitespaceChanges);
+            const mappings = lineRangeMappingFromRangeMappings(moveChanges.mappings, originalLines, modifiedLines, true);
+            return new MovedText(m, mappings);
+        });
+        return movesWithDiffs;
+    }
+    refineDiff(originalLines, modifiedLines, diff, timeout, considerWhitespaceChanges) {
+        const slice1 = new LinesSliceCharSequence(originalLines, diff.seq1Range, considerWhitespaceChanges);
+        const slice2 = new LinesSliceCharSequence(modifiedLines, diff.seq2Range, considerWhitespaceChanges);
+        const diffResult = slice1.length + slice2.length < 500
+            ? this.dynamicProgrammingDiffing.compute(slice1, slice2, timeout)
+            : this.myersDiffingAlgorithm.compute(slice1, slice2, timeout);
+        let diffs = diffResult.diffs;
+        diffs = optimizeSequenceDiffs(slice1, slice2, diffs);
+        diffs = extendDiffsToEntireWordIfAppropriate(slice1, slice2, diffs);
+        diffs = removeShortMatches(slice1, slice2, diffs);
+        diffs = removeVeryShortMatchingTextBetweenLongDiffs(slice1, slice2, diffs);
+        const result = diffs.map((d) => new RangeMapping(slice1.translateRange(d.seq1Range), slice2.translateRange(d.seq2Range)));
+        // Assert: result applied on original should be the same as diff applied to original
+        return {
+            mappings: result,
+            hitTimeout: diffResult.hitTimeout,
+        };
+    }
+}
+function lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLines, dontAssertStartLine = false) {
+    const changes = [];
+    for (const g of groupAdjacentBy(alignments.map(a => getLineRangeMapping(a, originalLines, modifiedLines)), (a1, a2) => a1.original.overlapOrTouch(a2.original)
+        || a1.modified.overlapOrTouch(a2.modified))) {
+        const first = g[0];
+        const last = g[g.length - 1];
+        changes.push(new DetailedLineRangeMapping(first.original.join(last.original), first.modified.join(last.modified), g.map(a => a.innerChanges[0])));
+    }
+    assertFn(() => {
+        if (!dontAssertStartLine) {
+            if (changes.length > 0 && changes[0].original.startLineNumber !== changes[0].modified.startLineNumber) {
+                return false;
+            }
+        }
+        return checkAdjacentItems(changes, (m1, m2) => m2.original.startLineNumber - m1.original.endLineNumberExclusive === m2.modified.startLineNumber - m1.modified.endLineNumberExclusive &&
+            // There has to be an unchanged line in between (otherwise both diffs should have been joined)
+            m1.original.endLineNumberExclusive < m2.original.startLineNumber &&
+            m1.modified.endLineNumberExclusive < m2.modified.startLineNumber);
+    });
+    return changes;
+}
+function getLineRangeMapping(rangeMapping, originalLines, modifiedLines) {
+    let lineStartDelta = 0;
+    let lineEndDelta = 0;
+    // rangeMapping describes the edit that replaces `rangeMapping.originalRange` with `newText := getText(modifiedLines, rangeMapping.modifiedRange)`.
+    // original: ]xxx \n <- this line is not modified
+    // modified: ]xx  \n
+    if (rangeMapping.modifiedRange.endColumn === 1 && rangeMapping.originalRange.endColumn === 1
+        && rangeMapping.originalRange.startLineNumber + lineStartDelta <= rangeMapping.originalRange.endLineNumber
+        && rangeMapping.modifiedRange.startLineNumber + lineStartDelta <= rangeMapping.modifiedRange.endLineNumber) {
+        // We can only do this if the range is not empty yet
+        lineEndDelta = -1;
+    }
+    // original: xxx[ \n <- this line is not modified
+    // modified: xxx[ \n
+    if (rangeMapping.modifiedRange.startColumn - 1 >= modifiedLines[rangeMapping.modifiedRange.startLineNumber - 1].length
+        && rangeMapping.originalRange.startColumn - 1 >= originalLines[rangeMapping.originalRange.startLineNumber - 1].length
+        && rangeMapping.originalRange.startLineNumber <= rangeMapping.originalRange.endLineNumber + lineEndDelta
+        && rangeMapping.modifiedRange.startLineNumber <= rangeMapping.modifiedRange.endLineNumber + lineEndDelta) {
+        // We can only do this if the range is not empty yet
+        lineStartDelta = 1;
+    }
+    const originalLineRange = new LineRange(rangeMapping.originalRange.startLineNumber + lineStartDelta, rangeMapping.originalRange.endLineNumber + 1 + lineEndDelta);
+    const modifiedLineRange = new LineRange(rangeMapping.modifiedRange.startLineNumber + lineStartDelta, rangeMapping.modifiedRange.endLineNumber + 1 + lineEndDelta);
+    return new DetailedLineRangeMapping(originalLineRange, modifiedLineRange, [rangeMapping]);
 }
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/diff/linesDiffComputers.js
@@ -13639,9 +15984,610 @@ function isSpace(charCode) {
 
 
 const linesDiffComputers = {
-    smart: new SmartLinesDiffComputer(),
-    experimental: new StandardLinesDiffComputer(),
+    getLegacy: () => new LegacyLinesDiffComputer(),
+    getDefault: () => new DefaultLinesDiffComputer(),
 };
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/base/common/color.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+function roundFloat(number, decimalPoints) {
+    const decimal = Math.pow(10, decimalPoints);
+    return Math.round(number * decimal) / decimal;
+}
+class RGBA {
+    constructor(r, g, b, a = 1) {
+        this._rgbaBrand = undefined;
+        this.r = Math.min(255, Math.max(0, r)) | 0;
+        this.g = Math.min(255, Math.max(0, g)) | 0;
+        this.b = Math.min(255, Math.max(0, b)) | 0;
+        this.a = roundFloat(Math.max(Math.min(1, a), 0), 3);
+    }
+    static equals(a, b) {
+        return a.r === b.r && a.g === b.g && a.b === b.b && a.a === b.a;
+    }
+}
+class HSLA {
+    constructor(h, s, l, a) {
+        this._hslaBrand = undefined;
+        this.h = Math.max(Math.min(360, h), 0) | 0;
+        this.s = roundFloat(Math.max(Math.min(1, s), 0), 3);
+        this.l = roundFloat(Math.max(Math.min(1, l), 0), 3);
+        this.a = roundFloat(Math.max(Math.min(1, a), 0), 3);
+    }
+    static equals(a, b) {
+        return a.h === b.h && a.s === b.s && a.l === b.l && a.a === b.a;
+    }
+    /**
+     * Converts an RGB color value to HSL. Conversion formula
+     * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+     * Assumes r, g, and b are contained in the set [0, 255] and
+     * returns h in the set [0, 360], s, and l in the set [0, 1].
+     */
+    static fromRGBA(rgba) {
+        const r = rgba.r / 255;
+        const g = rgba.g / 255;
+        const b = rgba.b / 255;
+        const a = rgba.a;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h = 0;
+        let s = 0;
+        const l = (min + max) / 2;
+        const chroma = max - min;
+        if (chroma > 0) {
+            s = Math.min((l <= 0.5 ? chroma / (2 * l) : chroma / (2 - (2 * l))), 1);
+            switch (max) {
+                case r:
+                    h = (g - b) / chroma + (g < b ? 6 : 0);
+                    break;
+                case g:
+                    h = (b - r) / chroma + 2;
+                    break;
+                case b:
+                    h = (r - g) / chroma + 4;
+                    break;
+            }
+            h *= 60;
+            h = Math.round(h);
+        }
+        return new HSLA(h, s, l, a);
+    }
+    static _hue2rgb(p, q, t) {
+        if (t < 0) {
+            t += 1;
+        }
+        if (t > 1) {
+            t -= 1;
+        }
+        if (t < 1 / 6) {
+            return p + (q - p) * 6 * t;
+        }
+        if (t < 1 / 2) {
+            return q;
+        }
+        if (t < 2 / 3) {
+            return p + (q - p) * (2 / 3 - t) * 6;
+        }
+        return p;
+    }
+    /**
+     * Converts an HSL color value to RGB. Conversion formula
+     * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+     * Assumes h in the set [0, 360] s, and l are contained in the set [0, 1] and
+     * returns r, g, and b in the set [0, 255].
+     */
+    static toRGBA(hsla) {
+        const h = hsla.h / 360;
+        const { s, l, a } = hsla;
+        let r, g, b;
+        if (s === 0) {
+            r = g = b = l; // achromatic
+        }
+        else {
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = HSLA._hue2rgb(p, q, h + 1 / 3);
+            g = HSLA._hue2rgb(p, q, h);
+            b = HSLA._hue2rgb(p, q, h - 1 / 3);
+        }
+        return new RGBA(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255), a);
+    }
+}
+class HSVA {
+    constructor(h, s, v, a) {
+        this._hsvaBrand = undefined;
+        this.h = Math.max(Math.min(360, h), 0) | 0;
+        this.s = roundFloat(Math.max(Math.min(1, s), 0), 3);
+        this.v = roundFloat(Math.max(Math.min(1, v), 0), 3);
+        this.a = roundFloat(Math.max(Math.min(1, a), 0), 3);
+    }
+    static equals(a, b) {
+        return a.h === b.h && a.s === b.s && a.v === b.v && a.a === b.a;
+    }
+    // from http://www.rapidtables.com/convert/color/rgb-to-hsv.htm
+    static fromRGBA(rgba) {
+        const r = rgba.r / 255;
+        const g = rgba.g / 255;
+        const b = rgba.b / 255;
+        const cmax = Math.max(r, g, b);
+        const cmin = Math.min(r, g, b);
+        const delta = cmax - cmin;
+        const s = cmax === 0 ? 0 : (delta / cmax);
+        let m;
+        if (delta === 0) {
+            m = 0;
+        }
+        else if (cmax === r) {
+            m = ((((g - b) / delta) % 6) + 6) % 6;
+        }
+        else if (cmax === g) {
+            m = ((b - r) / delta) + 2;
+        }
+        else {
+            m = ((r - g) / delta) + 4;
+        }
+        return new HSVA(Math.round(m * 60), s, cmax, rgba.a);
+    }
+    // from http://www.rapidtables.com/convert/color/hsv-to-rgb.htm
+    static toRGBA(hsva) {
+        const { h, s, v, a } = hsva;
+        const c = v * s;
+        const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        const m = v - c;
+        let [r, g, b] = [0, 0, 0];
+        if (h < 60) {
+            r = c;
+            g = x;
+        }
+        else if (h < 120) {
+            r = x;
+            g = c;
+        }
+        else if (h < 180) {
+            g = c;
+            b = x;
+        }
+        else if (h < 240) {
+            g = x;
+            b = c;
+        }
+        else if (h < 300) {
+            r = x;
+            b = c;
+        }
+        else if (h <= 360) {
+            r = c;
+            b = x;
+        }
+        r = Math.round((r + m) * 255);
+        g = Math.round((g + m) * 255);
+        b = Math.round((b + m) * 255);
+        return new RGBA(r, g, b, a);
+    }
+}
+class Color {
+    static fromHex(hex) {
+        return Color.Format.CSS.parseHex(hex) || Color.red;
+    }
+    static equals(a, b) {
+        if (!a && !b) {
+            return true;
+        }
+        if (!a || !b) {
+            return false;
+        }
+        return a.equals(b);
+    }
+    get hsla() {
+        if (this._hsla) {
+            return this._hsla;
+        }
+        else {
+            return HSLA.fromRGBA(this.rgba);
+        }
+    }
+    get hsva() {
+        if (this._hsva) {
+            return this._hsva;
+        }
+        return HSVA.fromRGBA(this.rgba);
+    }
+    constructor(arg) {
+        if (!arg) {
+            throw new Error('Color needs a value');
+        }
+        else if (arg instanceof RGBA) {
+            this.rgba = arg;
+        }
+        else if (arg instanceof HSLA) {
+            this._hsla = arg;
+            this.rgba = HSLA.toRGBA(arg);
+        }
+        else if (arg instanceof HSVA) {
+            this._hsva = arg;
+            this.rgba = HSVA.toRGBA(arg);
+        }
+        else {
+            throw new Error('Invalid color ctor argument');
+        }
+    }
+    equals(other) {
+        return !!other && RGBA.equals(this.rgba, other.rgba) && HSLA.equals(this.hsla, other.hsla) && HSVA.equals(this.hsva, other.hsva);
+    }
+    /**
+     * http://www.w3.org/TR/WCAG20/#relativeluminancedef
+     * Returns the number in the set [0, 1]. O => Darkest Black. 1 => Lightest white.
+     */
+    getRelativeLuminance() {
+        const R = Color._relativeLuminanceForComponent(this.rgba.r);
+        const G = Color._relativeLuminanceForComponent(this.rgba.g);
+        const B = Color._relativeLuminanceForComponent(this.rgba.b);
+        const luminance = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+        return roundFloat(luminance, 4);
+    }
+    static _relativeLuminanceForComponent(color) {
+        const c = color / 255;
+        return (c <= 0.03928) ? c / 12.92 : Math.pow(((c + 0.055) / 1.055), 2.4);
+    }
+    /**
+     *	http://24ways.org/2010/calculating-color-contrast
+     *  Return 'true' if lighter color otherwise 'false'
+     */
+    isLighter() {
+        const yiq = (this.rgba.r * 299 + this.rgba.g * 587 + this.rgba.b * 114) / 1000;
+        return yiq >= 128;
+    }
+    isLighterThan(another) {
+        const lum1 = this.getRelativeLuminance();
+        const lum2 = another.getRelativeLuminance();
+        return lum1 > lum2;
+    }
+    isDarkerThan(another) {
+        const lum1 = this.getRelativeLuminance();
+        const lum2 = another.getRelativeLuminance();
+        return lum1 < lum2;
+    }
+    lighten(factor) {
+        return new Color(new HSLA(this.hsla.h, this.hsla.s, this.hsla.l + this.hsla.l * factor, this.hsla.a));
+    }
+    darken(factor) {
+        return new Color(new HSLA(this.hsla.h, this.hsla.s, this.hsla.l - this.hsla.l * factor, this.hsla.a));
+    }
+    transparent(factor) {
+        const { r, g, b, a } = this.rgba;
+        return new Color(new RGBA(r, g, b, a * factor));
+    }
+    isTransparent() {
+        return this.rgba.a === 0;
+    }
+    isOpaque() {
+        return this.rgba.a === 1;
+    }
+    opposite() {
+        return new Color(new RGBA(255 - this.rgba.r, 255 - this.rgba.g, 255 - this.rgba.b, this.rgba.a));
+    }
+    makeOpaque(opaqueBackground) {
+        if (this.isOpaque() || opaqueBackground.rgba.a !== 1) {
+            // only allow to blend onto a non-opaque color onto a opaque color
+            return this;
+        }
+        const { r, g, b, a } = this.rgba;
+        // https://stackoverflow.com/questions/12228548/finding-equivalent-color-with-opacity
+        return new Color(new RGBA(opaqueBackground.rgba.r - a * (opaqueBackground.rgba.r - r), opaqueBackground.rgba.g - a * (opaqueBackground.rgba.g - g), opaqueBackground.rgba.b - a * (opaqueBackground.rgba.b - b), 1));
+    }
+    toString() {
+        if (!this._toString) {
+            this._toString = Color.Format.CSS.format(this);
+        }
+        return this._toString;
+    }
+    static getLighterColor(of, relative, factor) {
+        if (of.isLighterThan(relative)) {
+            return of;
+        }
+        factor = factor ? factor : 0.5;
+        const lum1 = of.getRelativeLuminance();
+        const lum2 = relative.getRelativeLuminance();
+        factor = factor * (lum2 - lum1) / lum2;
+        return of.lighten(factor);
+    }
+    static getDarkerColor(of, relative, factor) {
+        if (of.isDarkerThan(relative)) {
+            return of;
+        }
+        factor = factor ? factor : 0.5;
+        const lum1 = of.getRelativeLuminance();
+        const lum2 = relative.getRelativeLuminance();
+        factor = factor * (lum1 - lum2) / lum1;
+        return of.darken(factor);
+    }
+}
+Color.white = new Color(new RGBA(255, 255, 255, 1));
+Color.black = new Color(new RGBA(0, 0, 0, 1));
+Color.red = new Color(new RGBA(255, 0, 0, 1));
+Color.blue = new Color(new RGBA(0, 0, 255, 1));
+Color.green = new Color(new RGBA(0, 255, 0, 1));
+Color.cyan = new Color(new RGBA(0, 255, 255, 1));
+Color.lightgrey = new Color(new RGBA(211, 211, 211, 1));
+Color.transparent = new Color(new RGBA(0, 0, 0, 0));
+(function (Color) {
+    let Format;
+    (function (Format) {
+        let CSS;
+        (function (CSS) {
+            function formatRGB(color) {
+                if (color.rgba.a === 1) {
+                    return `rgb(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b})`;
+                }
+                return Color.Format.CSS.formatRGBA(color);
+            }
+            CSS.formatRGB = formatRGB;
+            function formatRGBA(color) {
+                return `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${+(color.rgba.a).toFixed(2)})`;
+            }
+            CSS.formatRGBA = formatRGBA;
+            function formatHSL(color) {
+                if (color.hsla.a === 1) {
+                    return `hsl(${color.hsla.h}, ${(color.hsla.s * 100).toFixed(2)}%, ${(color.hsla.l * 100).toFixed(2)}%)`;
+                }
+                return Color.Format.CSS.formatHSLA(color);
+            }
+            CSS.formatHSL = formatHSL;
+            function formatHSLA(color) {
+                return `hsla(${color.hsla.h}, ${(color.hsla.s * 100).toFixed(2)}%, ${(color.hsla.l * 100).toFixed(2)}%, ${color.hsla.a.toFixed(2)})`;
+            }
+            CSS.formatHSLA = formatHSLA;
+            function _toTwoDigitHex(n) {
+                const r = n.toString(16);
+                return r.length !== 2 ? '0' + r : r;
+            }
+            /**
+             * Formats the color as #RRGGBB
+             */
+            function formatHex(color) {
+                return `#${_toTwoDigitHex(color.rgba.r)}${_toTwoDigitHex(color.rgba.g)}${_toTwoDigitHex(color.rgba.b)}`;
+            }
+            CSS.formatHex = formatHex;
+            /**
+             * Formats the color as #RRGGBBAA
+             * If 'compact' is set, colors without transparancy will be printed as #RRGGBB
+             */
+            function formatHexA(color, compact = false) {
+                if (compact && color.rgba.a === 1) {
+                    return Color.Format.CSS.formatHex(color);
+                }
+                return `#${_toTwoDigitHex(color.rgba.r)}${_toTwoDigitHex(color.rgba.g)}${_toTwoDigitHex(color.rgba.b)}${_toTwoDigitHex(Math.round(color.rgba.a * 255))}`;
+            }
+            CSS.formatHexA = formatHexA;
+            /**
+             * The default format will use HEX if opaque and RGBA otherwise.
+             */
+            function format(color) {
+                if (color.isOpaque()) {
+                    return Color.Format.CSS.formatHex(color);
+                }
+                return Color.Format.CSS.formatRGBA(color);
+            }
+            CSS.format = format;
+            /**
+             * Converts an Hex color value to a Color.
+             * returns r, g, and b are contained in the set [0, 255]
+             * @param hex string (#RGB, #RGBA, #RRGGBB or #RRGGBBAA).
+             */
+            function parseHex(hex) {
+                const length = hex.length;
+                if (length === 0) {
+                    // Invalid color
+                    return null;
+                }
+                if (hex.charCodeAt(0) !== 35 /* CharCode.Hash */) {
+                    // Does not begin with a #
+                    return null;
+                }
+                if (length === 7) {
+                    // #RRGGBB format
+                    const r = 16 * _parseHexDigit(hex.charCodeAt(1)) + _parseHexDigit(hex.charCodeAt(2));
+                    const g = 16 * _parseHexDigit(hex.charCodeAt(3)) + _parseHexDigit(hex.charCodeAt(4));
+                    const b = 16 * _parseHexDigit(hex.charCodeAt(5)) + _parseHexDigit(hex.charCodeAt(6));
+                    return new Color(new RGBA(r, g, b, 1));
+                }
+                if (length === 9) {
+                    // #RRGGBBAA format
+                    const r = 16 * _parseHexDigit(hex.charCodeAt(1)) + _parseHexDigit(hex.charCodeAt(2));
+                    const g = 16 * _parseHexDigit(hex.charCodeAt(3)) + _parseHexDigit(hex.charCodeAt(4));
+                    const b = 16 * _parseHexDigit(hex.charCodeAt(5)) + _parseHexDigit(hex.charCodeAt(6));
+                    const a = 16 * _parseHexDigit(hex.charCodeAt(7)) + _parseHexDigit(hex.charCodeAt(8));
+                    return new Color(new RGBA(r, g, b, a / 255));
+                }
+                if (length === 4) {
+                    // #RGB format
+                    const r = _parseHexDigit(hex.charCodeAt(1));
+                    const g = _parseHexDigit(hex.charCodeAt(2));
+                    const b = _parseHexDigit(hex.charCodeAt(3));
+                    return new Color(new RGBA(16 * r + r, 16 * g + g, 16 * b + b));
+                }
+                if (length === 5) {
+                    // #RGBA format
+                    const r = _parseHexDigit(hex.charCodeAt(1));
+                    const g = _parseHexDigit(hex.charCodeAt(2));
+                    const b = _parseHexDigit(hex.charCodeAt(3));
+                    const a = _parseHexDigit(hex.charCodeAt(4));
+                    return new Color(new RGBA(16 * r + r, 16 * g + g, 16 * b + b, (16 * a + a) / 255));
+                }
+                // Invalid color
+                return null;
+            }
+            CSS.parseHex = parseHex;
+            function _parseHexDigit(charCode) {
+                switch (charCode) {
+                    case 48 /* CharCode.Digit0 */: return 0;
+                    case 49 /* CharCode.Digit1 */: return 1;
+                    case 50 /* CharCode.Digit2 */: return 2;
+                    case 51 /* CharCode.Digit3 */: return 3;
+                    case 52 /* CharCode.Digit4 */: return 4;
+                    case 53 /* CharCode.Digit5 */: return 5;
+                    case 54 /* CharCode.Digit6 */: return 6;
+                    case 55 /* CharCode.Digit7 */: return 7;
+                    case 56 /* CharCode.Digit8 */: return 8;
+                    case 57 /* CharCode.Digit9 */: return 9;
+                    case 97 /* CharCode.a */: return 10;
+                    case 65 /* CharCode.A */: return 10;
+                    case 98 /* CharCode.b */: return 11;
+                    case 66 /* CharCode.B */: return 11;
+                    case 99 /* CharCode.c */: return 12;
+                    case 67 /* CharCode.C */: return 12;
+                    case 100 /* CharCode.d */: return 13;
+                    case 68 /* CharCode.D */: return 13;
+                    case 101 /* CharCode.e */: return 14;
+                    case 69 /* CharCode.E */: return 14;
+                    case 102 /* CharCode.f */: return 15;
+                    case 70 /* CharCode.F */: return 15;
+                }
+                return 0;
+            }
+        })(CSS = Format.CSS || (Format.CSS = {}));
+    })(Format = Color.Format || (Color.Format = {}));
+})(Color || (Color = {}));
+
+;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/languages/defaultDocumentColorsComputer.js
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+function _parseCaptureGroups(captureGroups) {
+    const values = [];
+    for (const captureGroup of captureGroups) {
+        const parsedNumber = Number(captureGroup);
+        if (parsedNumber || parsedNumber === 0 && captureGroup.replace(/\s/g, '') !== '') {
+            values.push(parsedNumber);
+        }
+    }
+    return values;
+}
+function _toIColor(r, g, b, a) {
+    return {
+        red: r / 255,
+        blue: b / 255,
+        green: g / 255,
+        alpha: a
+    };
+}
+function _findRange(model, match) {
+    const index = match.index;
+    const length = match[0].length;
+    if (!index) {
+        return;
+    }
+    const startPosition = model.positionAt(index);
+    const range = {
+        startLineNumber: startPosition.lineNumber,
+        startColumn: startPosition.column,
+        endLineNumber: startPosition.lineNumber,
+        endColumn: startPosition.column + length
+    };
+    return range;
+}
+function _findHexColorInformation(range, hexValue) {
+    if (!range) {
+        return;
+    }
+    const parsedHexColor = Color.Format.CSS.parseHex(hexValue);
+    if (!parsedHexColor) {
+        return;
+    }
+    return {
+        range: range,
+        color: _toIColor(parsedHexColor.rgba.r, parsedHexColor.rgba.g, parsedHexColor.rgba.b, parsedHexColor.rgba.a)
+    };
+}
+function _findRGBColorInformation(range, matches, isAlpha) {
+    if (!range || matches.length !== 1) {
+        return;
+    }
+    const match = matches[0];
+    const captureGroups = match.values();
+    const parsedRegex = _parseCaptureGroups(captureGroups);
+    return {
+        range: range,
+        color: _toIColor(parsedRegex[0], parsedRegex[1], parsedRegex[2], isAlpha ? parsedRegex[3] : 1)
+    };
+}
+function _findHSLColorInformation(range, matches, isAlpha) {
+    if (!range || matches.length !== 1) {
+        return;
+    }
+    const match = matches[0];
+    const captureGroups = match.values();
+    const parsedRegex = _parseCaptureGroups(captureGroups);
+    const colorEquivalent = new Color(new HSLA(parsedRegex[0], parsedRegex[1] / 100, parsedRegex[2] / 100, isAlpha ? parsedRegex[3] : 1));
+    return {
+        range: range,
+        color: _toIColor(colorEquivalent.rgba.r, colorEquivalent.rgba.g, colorEquivalent.rgba.b, colorEquivalent.rgba.a)
+    };
+}
+function _findMatches(model, regex) {
+    if (typeof model === 'string') {
+        return [...model.matchAll(regex)];
+    }
+    else {
+        return model.findMatches(regex);
+    }
+}
+function computeColors(model) {
+    const result = [];
+    // Early validation for RGB and HSL
+    const initialValidationRegex = /\b(rgb|rgba|hsl|hsla)(\([0-9\s,.\%]*\))|(#)([A-Fa-f0-9]{3})\b|(#)([A-Fa-f0-9]{4})\b|(#)([A-Fa-f0-9]{6})\b|(#)([A-Fa-f0-9]{8})\b/gm;
+    const initialValidationMatches = _findMatches(model, initialValidationRegex);
+    // Potential colors have been found, validate the parameters
+    if (initialValidationMatches.length > 0) {
+        for (const initialMatch of initialValidationMatches) {
+            const initialCaptureGroups = initialMatch.filter(captureGroup => captureGroup !== undefined);
+            const colorScheme = initialCaptureGroups[1];
+            const colorParameters = initialCaptureGroups[2];
+            if (!colorParameters) {
+                continue;
+            }
+            let colorInformation;
+            if (colorScheme === 'rgb') {
+                const regexParameters = /^\(\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])\s*\)$/gm;
+                colorInformation = _findRGBColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), false);
+            }
+            else if (colorScheme === 'rgba') {
+                const regexParameters = /^\(\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])\s*,\s*(0[.][0-9]+|[.][0-9]+|[01][.]|[01])\s*\)$/gm;
+                colorInformation = _findRGBColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), true);
+            }
+            else if (colorScheme === 'hsl') {
+                const regexParameters = /^\(\s*(36[0]|3[0-5][0-9]|[12][0-9][0-9]|[1-9]?[0-9])\s*,\s*(100|\d{1,2}[.]\d*|\d{1,2})%\s*,\s*(100|\d{1,2}[.]\d*|\d{1,2})%\s*\)$/gm;
+                colorInformation = _findHSLColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), false);
+            }
+            else if (colorScheme === 'hsla') {
+                const regexParameters = /^\(\s*(36[0]|3[0-5][0-9]|[12][0-9][0-9]|[1-9]?[0-9])\s*,\s*(100|\d{1,2}[.]\d*|\d{1,2})%\s*,\s*(100|\d{1,2}[.]\d*|\d{1,2})%\s*,\s*(0[.][0-9]+|[.][0-9]+|[01][.]|[01])\s*\)$/gm;
+                colorInformation = _findHSLColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), true);
+            }
+            else if (colorScheme === '#') {
+                colorInformation = _findHexColorInformation(_findRange(model, initialMatch), colorScheme + colorParameters);
+            }
+            if (colorInformation) {
+                result.push(colorInformation);
+            }
+        }
+    }
+    return result;
+}
+/**
+ * Returns an array of all default document colors in the provided document
+ */
+function computeDefaultDocumentColors(model) {
+    if (!model || typeof model.getValue !== 'function' || typeof model.positionAt !== 'function') {
+        // Unknown caller!
+        return [];
+    }
+    return computeColors(model);
+}
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/common/services/editorSimpleWorker.js
 /*---------------------------------------------------------------------------------------------
@@ -13683,6 +16629,21 @@ class MirrorModel extends MirrorTextModel {
     }
     getValue() {
         return this.getText();
+    }
+    findMatches(regex) {
+        const matches = [];
+        for (let i = 0; i < this._lines.length; i++) {
+            const line = this._lines[i];
+            const offsetToAdd = this.offsetAt(new position_Position(i + 1, 1));
+            const iteratorOverMatches = line.matchAll(regex);
+            for (const match of iteratorOverMatches) {
+                if (match.index || match.index === 0) {
+                    match.index = match.index + offsetToAdd;
+                }
+                matches.push(match);
+            }
+        }
+        return matches;
     }
     getLinesContent() {
         return this._lines.slice(0);
@@ -13898,17 +16859,15 @@ class EditorSimpleWorker {
         });
     }
     static computeDiff(originalTextModel, modifiedTextModel, options, algorithm) {
-        const diffAlgorithm = algorithm === 'experimental' ? linesDiffComputers.experimental : linesDiffComputers.smart;
+        const diffAlgorithm = algorithm === 'advanced' ? linesDiffComputers.getDefault() : linesDiffComputers.getLegacy();
         const originalLines = originalTextModel.getLinesContent();
         const modifiedLines = modifiedTextModel.getLinesContent();
         const result = diffAlgorithm.computeDiff(originalLines, modifiedLines, options);
         const identical = (result.changes.length > 0 ? false : this._modelsAreIdentical(originalTextModel, modifiedTextModel));
-        return {
-            identical,
-            quitEarly: result.quitEarly,
-            changes: result.changes.map(m => {
+        function getLineChanges(changes) {
+            return changes.map(m => {
                 var _a;
-                return ([m.originalRange.startLineNumber, m.originalRange.endLineNumberExclusive, m.modifiedRange.startLineNumber, m.modifiedRange.endLineNumberExclusive, (_a = m.innerChanges) === null || _a === void 0 ? void 0 : _a.map(m => [
+                return ([m.original.startLineNumber, m.original.endLineNumberExclusive, m.modified.startLineNumber, m.modified.endLineNumberExclusive, (_a = m.innerChanges) === null || _a === void 0 ? void 0 : _a.map(m => [
                         m.originalRange.startLineNumber,
                         m.originalRange.startColumn,
                         m.originalRange.endLineNumber,
@@ -13918,7 +16877,19 @@ class EditorSimpleWorker {
                         m.modifiedRange.endLineNumber,
                         m.modifiedRange.endColumn,
                     ])]);
-            })
+            });
+        }
+        return {
+            identical,
+            quitEarly: result.hitTimeout,
+            changes: getLineChanges(result.changes),
+            moves: result.moves.map(m => ([
+                m.lineRangeMapping.original.startLineNumber,
+                m.lineRangeMapping.original.endLineNumberExclusive,
+                m.lineRangeMapping.modified.startLineNumber,
+                m.lineRangeMapping.modified.endLineNumberExclusive,
+                getLineChanges(m.changes)
+            ])),
         };
     }
     static _modelsAreIdentical(original, modified) {
@@ -13936,7 +16907,7 @@ class EditorSimpleWorker {
         }
         return true;
     }
-    computeMoreMinimalEdits(modelUrl, edits) {
+    computeMoreMinimalEdits(modelUrl, edits, pretty) {
         return editorSimpleWorker_awaiter(this, void 0, void 0, function* () {
             const model = this._getModel(modelUrl);
             if (!model) {
@@ -13953,6 +16924,19 @@ class EditorSimpleWorker {
                 const bRng = b.range ? 0 : 1;
                 return aRng - bRng;
             });
+            // merge adjacent edits
+            let writeIndex = 0;
+            for (let readIndex = 1; readIndex < edits.length; readIndex++) {
+                if (range_Range.getEndPosition(edits[writeIndex].range).equals(range_Range.getStartPosition(edits[readIndex].range))) {
+                    edits[writeIndex].range = range_Range.fromPositions(range_Range.getStartPosition(edits[writeIndex].range), range_Range.getEndPosition(edits[readIndex].range));
+                    edits[writeIndex].text += edits[readIndex].text;
+                }
+                else {
+                    writeIndex++;
+                    edits[writeIndex] = edits[readIndex];
+                }
+            }
+            edits.length = writeIndex + 1;
             for (let { range, text, eol } of edits) {
                 if (typeof eol === 'number') {
                     lastEol = eol;
@@ -13973,7 +16957,7 @@ class EditorSimpleWorker {
                     continue;
                 }
                 // compute diff between original and edit.text
-                const changes = stringDiff(original, text, false);
+                const changes = stringDiff(original, text, pretty);
                 const editOffset = model.offsetAt(range_Range.lift(range).getStartPosition());
                 for (const change of changes) {
                     const start = model.positionAt(editOffset + change.originalStart);
@@ -14003,9 +16987,19 @@ class EditorSimpleWorker {
             return computeLinks(model);
         });
     }
+    // --- BEGIN default document colors -----------------------------------------------------------
+    computeDefaultDocumentColors(modelUrl) {
+        return editorSimpleWorker_awaiter(this, void 0, void 0, function* () {
+            const model = this._getModel(modelUrl);
+            if (!model) {
+                return null;
+            }
+            return computeDefaultDocumentColors(model);
+        });
+    }
     textualSuggest(modelUrls, leadingWord, wordDef, wordDefFlags) {
         return editorSimpleWorker_awaiter(this, void 0, void 0, function* () {
-            const sw = new StopWatch(true);
+            const sw = new StopWatch();
             const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
             const seen = new Set();
             outer: for (const url of modelUrls) {
@@ -14133,7 +17127,6 @@ class EditorSimpleWorker {
 EditorSimpleWorker._diffLimit = 100000;
 // ---- BEGIN suggest --------------------------------------------------------------------------
 EditorSimpleWorker._suggestionsLimit = 10000;
-
 /**
  * Called on the worker side
  * @internal
@@ -14143,7 +17136,7 @@ function editorSimpleWorker_create(host) {
 }
 if (typeof importScripts === 'function') {
     // Running in a web worker
-    platform_globals.monaco = createMonacoBaseAPI();
+    globalThis.monaco = createMonacoBaseAPI();
 }
 
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/editor/editor.worker.js
@@ -14160,13 +17153,13 @@ function initialize(foreignModule) {
     }
     initialized = true;
     const simpleWorker = new SimpleWorkerServer((msg) => {
-        self.postMessage(msg);
+        globalThis.postMessage(msg);
     }, (host) => new EditorSimpleWorker(host, foreignModule));
-    self.onmessage = (e) => {
+    globalThis.onmessage = (e) => {
         simpleWorker.onmessage(e.data);
     };
 }
-self.onmessage = (e) => {
+globalThis.onmessage = (e) => {
     // Ignore first message in this case and initialize if not yet initialized
     if (!initialized) {
         initialize(null);
@@ -14176,7 +17169,7 @@ self.onmessage = (e) => {
 ;// CONCATENATED MODULE: ./node_modules/monaco-editor/esm/vs/language/json/json.worker.js
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.36.1(6c56744c3419458f0dd48864520b759d1a3a1ca8)
+ * Version: 0.44.0(3e047efd345ff102c8c61b5398fb30845aaac166)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -15254,7 +18247,7 @@ var LocationLink;
   }
   LocationLink2.is = is;
 })(LocationLink || (LocationLink = {}));
-var Color;
+var json_worker_Color;
 (function(Color2) {
   function create(red, green, blue, alpha) {
     return {
@@ -15270,7 +18263,7 @@ var Color;
     return Is.numberRange(candidate.red, 0, 1) && Is.numberRange(candidate.green, 0, 1) && Is.numberRange(candidate.blue, 0, 1) && Is.numberRange(candidate.alpha, 0, 1);
   }
   Color2.is = is;
-})(Color || (Color = {}));
+})(json_worker_Color || (json_worker_Color = {}));
 var ColorInformation;
 (function(ColorInformation2) {
   function create(range, color) {
@@ -15282,7 +18275,7 @@ var ColorInformation;
   ColorInformation2.create = create;
   function is(value) {
     var candidate = value;
-    return json_worker_Range.is(candidate.range) && Color.is(candidate.color);
+    return json_worker_Range.is(candidate.range) && json_worker_Color.is(candidate.color);
   }
   ColorInformation2.is = is;
 })(ColorInformation || (ColorInformation = {}));
@@ -15298,7 +18291,7 @@ var ColorPresentation;
   ColorPresentation2.create = create;
   function is(value) {
     var candidate = value;
-    return Is.string(candidate.label) && (Is.undefined(candidate.textEdit) || TextEdit.is(candidate)) && (Is.undefined(candidate.additionalTextEdits) || Is.typedArray(candidate.additionalTextEdits, TextEdit.is));
+    return Is.string(candidate.label) && (Is.undefined(candidate.textEdit) || json_worker_TextEdit.is(candidate)) && (Is.undefined(candidate.additionalTextEdits) || Is.typedArray(candidate.additionalTextEdits, json_worker_TextEdit.is));
   }
   ColorPresentation2.is = is;
 })(ColorPresentation || (ColorPresentation = {}));
@@ -15414,7 +18407,7 @@ var json_worker_Command;
   }
   Command2.is = is;
 })(json_worker_Command || (json_worker_Command = {}));
-var TextEdit;
+var json_worker_TextEdit;
 (function(TextEdit2) {
   function replace(range, newText) {
     return { range, newText };
@@ -15433,7 +18426,7 @@ var TextEdit;
     return Is.objectLiteral(candidate) && Is.string(candidate.newText) && json_worker_Range.is(candidate.range);
   }
   TextEdit2.is = is;
-})(TextEdit || (TextEdit = {}));
+})(json_worker_TextEdit || (json_worker_TextEdit = {}));
 var ChangeAnnotation;
 (function(ChangeAnnotation2) {
   function create(label, needsConfirmation, description) {
@@ -15477,7 +18470,7 @@ var AnnotatedTextEdit;
   AnnotatedTextEdit2.del = del;
   function is(value) {
     var candidate = value;
-    return TextEdit.is(candidate) && (ChangeAnnotation.is(candidate.annotationId) || ChangeAnnotationIdentifier.is(candidate.annotationId));
+    return json_worker_TextEdit.is(candidate) && (ChangeAnnotation.is(candidate.annotationId) || ChangeAnnotationIdentifier.is(candidate.annotationId));
   }
   AnnotatedTextEdit2.is = is;
 })(AnnotatedTextEdit || (AnnotatedTextEdit = {}));
@@ -15583,7 +18576,7 @@ var TextEditChangeImpl = function() {
     var edit;
     var id;
     if (annotation === void 0) {
-      edit = TextEdit.insert(position, newText);
+      edit = json_worker_TextEdit.insert(position, newText);
     } else if (ChangeAnnotationIdentifier.is(annotation)) {
       id = annotation;
       edit = AnnotatedTextEdit.insert(position, newText, annotation);
@@ -15601,7 +18594,7 @@ var TextEditChangeImpl = function() {
     var edit;
     var id;
     if (annotation === void 0) {
-      edit = TextEdit.replace(range, newText);
+      edit = json_worker_TextEdit.replace(range, newText);
     } else if (ChangeAnnotationIdentifier.is(annotation)) {
       id = annotation;
       edit = AnnotatedTextEdit.replace(range, newText, annotation);
@@ -15619,7 +18612,7 @@ var TextEditChangeImpl = function() {
     var edit;
     var id;
     if (annotation === void 0) {
-      edit = TextEdit.del(range);
+      edit = json_worker_TextEdit.del(range);
     } else if (ChangeAnnotationIdentifier.is(annotation)) {
       id = annotation;
       edit = AnnotatedTextEdit.del(range, annotation);
@@ -18032,7 +21025,7 @@ var JSONCompletion = function() {
             }
           }
           if (overwriteRange && suggestion.insertText !== void 0) {
-            suggestion.textEdit = TextEdit.replace(overwriteRange, suggestion.insertText);
+            suggestion.textEdit = json_worker_TextEdit.replace(overwriteRange, suggestion.insertText);
           }
           if (supportsCommitCharacters) {
             suggestion.commitCharacters = suggestion.kind === json_worker_CompletionItemKind.Property ? propertyCommitCharacters : valueCommitCharacters;
@@ -19441,7 +22434,7 @@ var JSONDocumentSymbols = function() {
     } else {
       label = "#".concat(toTwoDigitHex(red256)).concat(toTwoDigitHex(green256)).concat(toTwoDigitHex(blue256)).concat(toTwoDigitHex(Math.round(color.alpha * 255)));
     }
-    result.push({ label, textEdit: TextEdit.replace(range, JSON.stringify(label)) });
+    result.push({ label, textEdit: json_worker_TextEdit.replace(range, JSON.stringify(label)) });
     return result;
   };
   return JSONDocumentSymbols2;
@@ -21313,7 +24306,7 @@ function getLanguageService(params) {
       }
       var options = { tabSize: o ? o.tabSize : 4, insertSpaces: (o === null || o === void 0 ? void 0 : o.insertSpaces) === true, insertFinalNewline: (o === null || o === void 0 ? void 0 : o.insertFinalNewline) === true, eol: "\n" };
       return format2(d.getText(), range, options).map(function(e) {
-        return TextEdit.replace(json_worker_Range.create(d.positionAt(e.offset), d.positionAt(e.offset + e.length)), e.content);
+        return json_worker_TextEdit.replace(json_worker_Range.create(d.positionAt(e.offset), d.positionAt(e.offset + e.length)), e.content);
       });
     }
   };
