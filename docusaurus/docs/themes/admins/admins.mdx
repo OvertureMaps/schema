@@ -3,9 +3,9 @@ title: Admins
 ---
 
 
-# Admins theme
+# Admins Theme
 
-The Overture `admins` theme includes entities that describe named localities in the real world including settlements, cities, regions, provinces and countries. The current version of the schema does not support the modeling of multiple geo-political views. In future schema versions, we will have support for:
+The Overture `admins` theme includes entities that describe named localities in the real world including settlements, cities, regions, provinces and countries. The current version of the schema does not support the modeling of multiple geo-political views. In future schema versions, Overture will have support for:
 
 - providing multiple views of a country boundary based on the user's region.
 - modeling the relationship between a country and its overseas territories or other disputed territories.
@@ -14,11 +14,12 @@ The Overture `admins` theme includes entities that describe named localities in 
 add use cases here
 -->
 
-## Key schema design choices
+- providing multiple views of a country boundary based on the user's region.
+- modeling the relationship between a country and its overseas territories or other disputed territories.
 
 **Clear country definitions.** There are no gaps or overlaps at the country level `adminLevel=1` in order to support visualization, sectioning and other mapping use cases, even in cases of disputed boundaries. Additionally, all countries have been assigned an [ISO3166-1](https://www.iso.org/iso-3166-country-codes.html) ISO country code which has been kept as close as possible to the standard. For some disputed areas and remote overseas territories, custom ISO codes have been created to describe the region which can be easily identified.
 
-## Admin types
+## Admin Types
 
 - [locality](/reference/admins/locality) describes a named and typically populated place. There are two sub-types:
    - administrative localities model countries and their hierarchical subdivisions. Each administrative locality has an administrative level indicating its level within a country. Attributes like driving side and default language are also available.
@@ -26,7 +27,7 @@ add use cases here
 - [locality area](/reference/admins/localityArea) adds land or maritime polygons to [locality](/reference/admins/locality).
 - [administrative boundary](/reference/admins/administrativeBoundary) provides a boundary line of administrative localities. This feature allows for an easy display of country borders and administrative subdivisions within countries. Boundaries shared by different administrative localities are represented by one line. A maritime attribute supports filtering on boundaries located within seas or oceans.
 
-## Schema reference
+## Schema Reference
 
 - [Explore the schema for administrative boundaries](/reference/admins/administrativeBoundary).
 - [Explore the schema for the locality feature type](/reference/admins/locality).

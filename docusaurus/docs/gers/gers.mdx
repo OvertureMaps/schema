@@ -3,28 +3,28 @@ title: Global Entity Reference System
 label: GERS
 ---
 
-Overture's Global Entity Reference System (GERS) is a framework for structuring, encoding and referencing map data to a shared universal reference. Overture is building this common ID system to solve the difficult problem of integrating geospatial datasets; to make it easier to share and sell map data; and to enable cooperation among companies, non-profits, government agencies and other organizations.
+## Overview of GERS
 
-## Defining an entity
+Overture's Global Entity Reference System (GERS) is a framework for structuring, encoding and matching map data to a shared universal reference. Overture is building this common ID system to solve the difficult problem of integrating geospatial datasets; to make it easier to share and sell map data; and to enable cooperation among companies, non-profits, government agencies and other organizations.
 
-GERS provides a mechanism to conflate datasets, matching _entity_ to _entity_ via a unique GERS ID. An _entity_ is basically a thing in the real world. That thing could be a segment of road, a city, a grocery store, a building, a park bench or a lamp post. An _entity_ in GERS is assigned a unique GERS ID. These IDs are useful to anyone looking to match their data with Overture data.
+GERS provides a mechanism to conflate datasets, matching one or more features via a unique GERS ID. For example, two geospatial datasets each containing a polygon that represents the footprint of the Empire State Building can be easily matched because both polygons will contain the same GERS ID. The resulting dataset will have a single polygon feature, with one GERS ID, that represents the real-world entity known as "New York's Empire State Building."
 
-For example, two geospatial datasets each containing a polygon that represents the Empire State Building can be easily conflated because both polygons will contain the same GERS ID, referring to the _entity_ defined as: "a polygonal representation of the footprint of New York's Empire State Building."
+## What Is An Entity?
+Overture defines an entity as a physical thing or concept in the real world, represented as a feature in a geospatial dataset. It could be a segment of road, a city boundary, a grocery store, a building or a park. Overture assigns unique IDs, called GERS IDs, to these features. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity in the world could be represented by multiple features in a dataset, and a feature in a dataset might be a representation of multiple entities in the world. For example, a school building and its entrances and exits might be considered a single entity in the world but could be represented as multiple features in a dataset, each feature with its own GERS ID.
 
+## GERS ID
 
-## Components of a GERS ID
+GERS IDs have the following structure:
 
-The Global Entity Reference System generates IDs in a consistent format:
-
-`H3 tile address` +
+`H3 index` +
 `data theme identifier` +
-`56-bit value applied uniformly across a given theme`
+`56-bit value dependent on theme`
 
-Here you can see a list of IDs from Overture's recent release of buildings data, pulled from the GeoParquet file with a simple [duckdb](https://duckdb.org/) query. You can find more information on accessing and querying Overture datasets in the How-to section of our documentation.
+Here is an example query that outputs a short list of GERS IDs from the buildings theme in Overture's January 2024 data release.
 
-```
+```sql
 D SET s3_region='us-west-2';
-D SELECT id FROM read_parquet('s3://overturemaps-us-west-2/release/2024-01-17-alpha.0/theme=buildings/type=*/*', filename=true, hive_partitioning=1) limit 10;
+D SELECT id FROM read_parquet('s3://overturemaps-us-west-2/release/2024-01-17-alpha.0/theme=buildings/type=*/*', filename=true, hive_partitioning=1) limit 5;
 ┌──────────────────────────────────┐
 │                id                │
 │             varchar              │
@@ -33,44 +33,33 @@ D SELECT id FROM read_parquet('s3://overturemaps-us-west-2/release/2024-01-17-al
 │ 08ba00858a164fff020008cf146d28e6 │
 │ 08ba00858a16cfff0200271c60f0a5ea │
 │ 08ba00858a161fff02008633c8f27bf7 │
-│ 08ba00858a163fff0200bf648279e290 │
-│ 08ba00858a163fff02001756776dd6ca │
-│ 08ba00858a163fff0200e04e60516f5c │
-│ 08ba00858a16efff02008127dee56493 │
-│ 08ba00858a16efff020065a1f1e26a85 │
-│ 08ba00858a144fff020057e23ab30103 │
+│ 08ba00858a163fff0200bf648279e290 │ 
 ├──────────────────────────────────┤
-│             10 rows              │
+│             5 rows               │
 └──────────────────────────────────┘
 ```
 
-## Stability and traceability
-
-GERS IDs are stable (with a reasonable tolerance of error) across multiple versions of Overture data. We strive to ensure the mapping of a real-world thing to a GERS ID remains consistent. When stability is not possible, traceability will be provided. For example:
-
+Generally, Overture discourages users from attempting to glean information about a feature from its GERS ID. The ID should be treated as a unique identifier and nothing more. It is worth going into more detail about Overture's use of the [hexagonal hierarchical geospatial indexing system (H3)](https://h3geo.org/) in GERS. H3 is used primarily to prevent hashing conflicts among features with similar attributes. The H3 index component of a GERS ID reflects a feature's location in the H3 grid system when Overture first assigns it an ID. Different data themes use different H3 resolutions. Because GERS IDs are intended to be stable over time, Overture will not generate a new ID for a feature if its moves within the H3 cell it was originally assigned. 
 - a single road segment is bisected by a new road and becomes two road segments: 1 GERS ID → 2 new GERS IDs
 - one large building footprint on the map is determined to be four smaller buildings when a higher resolution dataset becomes available: 1 GERS ID → 4 new GERS IDs
 - a building is shifted 10m west when higher resolution imagery is made available: GERS ID is preserved for that feature
 
-## Getting started
+## Stability and Traceability
 
-Right now there are two paths to getting started with GERS. Both require you to reach out to the Overture Maps Foundation team at data@overturemaps.org.
+GERS IDs are intended to be stable (within a reasonable tolerance of error) across multiple versions of Overture data. When stability is not possible, Overture will attempt to provide traceability. For example:
 
-1. **Contribute your data.** The Overture engineering team will generate new GERS IDs or match existing IDs for your dataset as it relates to current Overture datasets. Your data becomes part of the Overture corpus.
-2. **Associate your data.** The Overture engineering team can help you conflate your data with a current Overture dataset, identifying matches between existing entities with a GERS ID and the features in your own dataset. Your data will not become part of the Overture corpus, but it will become GERS-enabled data, ready to be matched to any of the available datasets in the Overture data ecosystem.
+- a single road segment is bisected by a new road and becomes two road segments: 1 GERS ID → 2 new GERS IDs
+- a large building footprint is determined to be four smaller buildings when a higher resolution dataset becomes available: 1 GERS ID → 4 new GERS IDs
+- a building is shifted 10 meters to the west when higher resolution imagery is made available: GERS ID is preserved for that feature
 
-In option 2, new GERS IDs cannot be obtained for entities in one's data that do not already exist in the map. Only features in the Overture data corpus can be assigned a new GERS ID. See the [scenarios](scenarios) section of this documentation for more detailed examples of how and when these situations arise.
+## Using GERS
 
-We invite you to [join the Overture Maps Foundation at one of our membership levels](https://overturemaps.org/become-a-member/).
+Currently, Overture's partners are using GERS in two ways:
 
-Feedback on GERS is welcome on [GitHub](https://github.com/OvertureMaps/schema/discussions).
+1. **Contributing data.** The Overture engineering team generates new GERS IDs or matches existing IDs for contributed datasets as they relate to current Overture datasets. The contributed data becomes part of the Overture corpus.
+2. **Associating data.** Users independently conflate their own data with a current Overture dataset, identifying matches among features in both datasets. Only the features in the associated dataset that match an existing feature in the Overture data corpus can be assigned a GERS ID. The associated data will not become part of the Overture corpus, but it will become GERS-enabled data, ready to be matched to any of the available datasets in the Overture data ecosystem.
+
+See the [scenarios](scenarios) section of this documentation for more detailed examples of GERS use cases. Feedback on GERS is welcome on [GitHub](https://github.com/OvertureMaps/schema/discussions).
 
 ## Licensing
-For Overture data layers which are [CDLA Permissive 2.0](https://cdla.dev/permissive-2-0/), there are no restrictions on use of external data other than the attribution requirements. As with many other Overture projects, GERS will be licensed CDLA Permissive 2.0.
-
-For Overture data layers which are [ODbL](https://opendatacommons.org/licenses/odbl/), external data must adhere to ODbL license terms, specifically whether the external data are considered a Collective Database or a Derivative Database. See
-[OpenStreetMap Community Guidelines](https://wiki.osmfoundation.org/wiki/Licence/Community_Guidelines/Collective_Database_Guideline_Guideline) for definitions on the differences.
-
-You are responsible for understanding the licenses relating to data you work with.
-
-
+Overture's data themes and schema are licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode). GERS IDs are licensed under [CDLA Permissive v 2.0](https://cdla.dev/permissive-2-0/). Data that are associated with the themes through GERS can carry different licenses. However, if the data associated though GERS with an [ODbL](https://opendatacommons.org/licenses/odbl/) licensed theme constitutes a derivative dataset, it must be licensed under ODbL. See [OpenStreetMap Community Guidelines](https://osmfoundation.org/wiki/Licence/Community_Guidelines/Collective_Database_Guideline_Guideline) for definitions of a derivative database.
