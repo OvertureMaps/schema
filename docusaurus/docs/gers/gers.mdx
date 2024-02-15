@@ -40,7 +40,9 @@ D SELECT id FROM read_parquet('s3://overturemaps-us-west-2/release/2024-01-17-al
 ```
 
 Generally, Overture discourages users from attempting to glean information about a feature from its GERS ID. The ID should be treated as a unique identifier and nothing more. It is worth going into more detail about Overture's use of the [hexagonal hierarchical geospatial indexing system (H3)](https://h3geo.org/) in GERS. H3 is used primarily to prevent hashing conflicts among features with similar attributes. The H3 index component of a GERS ID reflects a feature's location in the H3 grid system when Overture first assigns it an ID. Different data themes use different H3 resolutions. Because GERS IDs are intended to be stable over time, Overture will not generate a new ID for a feature if its moves within the H3 cell it was originally assigned. 
-
+- a single road segment is bisected by a new road and becomes two road segments: 1 GERS ID → 2 new GERS IDs
+- one large building footprint on the map is determined to be four smaller buildings when a higher resolution dataset becomes available: 1 GERS ID → 4 new GERS IDs
+- a building is shifted 10m west when higher resolution imagery is made available: GERS ID is preserved for that feature
 
 ## Stability and Traceability
 
@@ -61,5 +63,3 @@ See the [scenarios](scenarios) section of this documentation for more detailed e
 
 ## Licensing
 Overture's data themes and schema are licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode). GERS IDs are licensed under [CDLA Permissive v 2.0](https://cdla.dev/permissive-2-0/). Data that are associated with the themes through GERS can carry different licenses. However, if the data associated though GERS with an [ODbL](https://opendatacommons.org/licenses/odbl/) licensed theme constitutes a derivative dataset, it must be licensed under ODbL. See [OpenStreetMap Community Guidelines](https://osmfoundation.org/wiki/Licence/Community_Guidelines/Collective_Database_Guideline_Guideline) for definitions of a derivative database.
-
-
