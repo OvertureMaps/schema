@@ -1,5 +1,5 @@
 ---
-title: Scoping rules
+title: Scoping Rules
 ---
 
 
@@ -15,7 +15,7 @@ import ExampleSubjectiveStatusScoping from '!!raw-loader!@site/docs/_examples/tr
 import ExampleSubjectiveVehicleAttributesScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-vehicle-attributes-scoping.yaml';
 import ExampleLanesAbsoluteForm from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-absolute-form.yaml';
 
-# Scoped and rule-based properties
+# Scoped and Rule-based Properties
 
 In the real-world, many facts and rules affecting transportation have
 only a partial application, meaning they don't apply everywhere, or
@@ -28,7 +28,7 @@ The Overture Transportation theme's schema model of the transportation
 network uses two related concepts to capture the partial application of
 facts and rules: scoped values, and rule-based properties.
 
-## Scoped values and scoping properties
+## Scoped Values and Scoping Properties
 
 A *scoped* value is a value which only applies within a limited scope.
 Most scoped values are rules in the rule lists of
@@ -153,7 +153,7 @@ from access to the segment on weekdays between 3PM and 6PM.
   </TabItem>
 </Tabs>
 
-### Subjective scoping
+### Subjective Scoping
 
 Subjective scoping means that the scope of a property can be constrained based
 on subjective factors like *who* or *what* is travelling on the transportation
@@ -182,7 +182,7 @@ TODO: Direction of travel is not implemented yet, but is described in
 The sub-headings below explain each of these subjective factors in greater
 detail.
 
-#### Travel mode scoping
+#### Travel Mode Scoping
 
 A travel mode is a way of moving about the transportation network, for
 example driving in a motor vehicle, or, more specifically, driving in a
@@ -203,7 +203,7 @@ TODO: Direction of travel is not implemented yet, but is described in
       the following issue: https://github.com/OvertureMaps/schema-wg/issues/134.
 
 
-#### Direction of travel
+#### Direction of Travel
 
 <Tabs>
   <TabItem value="description" label="Description" default>
@@ -229,7 +229,7 @@ https://github.com/OvertureMaps/schema-wg/issues/134
 
 -->
 
-#### Purpose of use scoping
+#### Purpose of Use Scoping
 
 <Tabs>
   <TabItem value="description" label="Description" default>
@@ -255,7 +255,7 @@ or as a final destination is allowed):
   </TabItem>
 </Tabs>
 
-#### Status scoping (membership in a recognized group)
+#### Status Scoping (membership in a recognized group)
 
 <Tabs>
   <TabItem value="description" label="Description" default>
@@ -281,7 +281,7 @@ to privately-authorized individuals, such as condo unit owners:
   </TabItem>
 </Tabs>
 
-#### Vehicle attributes scoping
+#### Vehicle Attributes Scoping
 
 <!--
 TODO: Once https://github.com/OvertureMaps/schema-wg/issues/147 is
@@ -329,7 +329,7 @@ TODO: Environmental scoping is omitted from the documentation for the
 
 -->
 
-## Rules and rule-based properties
+## Rules and Rule-based Properties
 
 A *rule-based* property is a property whose value in a given situation is
 determined by evaluating a list of rules against the facts applicable to that
@@ -345,7 +345,7 @@ TODO: Feedback from Karen given 2023-08-29 that 👆 is very abstract and could
       entries.
 -->
 
-### Absolute form
+### Absolute Form
 
 There are cases when specifying a property value using rules makes sense, and
 cases where doing so is unnecessarily complicated because the real-world entity
@@ -443,7 +443,7 @@ properties:
 
 <div style={{ clear: "both" }}/>
 
-### Rule evaluation algorithm
+### Rule Evaluation Algorithm
 
 Given a rule-based property, the actual value of the property in a given fact
 pattern is determined by a three-step process: first, all matching rules are
