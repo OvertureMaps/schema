@@ -1,24 +1,24 @@
 ---
-id: "overture:landUse:example:1"
+id: "overture:land_use:example:1"
 type: Feature
 geometry:
   type: Polygon
   coordinates: [[[-73.1902319,41.6678018],[-73.1896302,41.667817],[-73.1890448,41.6667723],[-73.1899188,41.6666994],[-73.1902319,41.6678018]]]
 properties:
   theme: base
-  type: landUse
-  subType: airport
+  type: land_use
+  subtype: airport
   class: aerodrome
   surface: grass
-  sourceTags:
+  source_tags:
     surface: grass
     aeroway: aerodrome
   names:
     primary: Murphy's Landing Balloonport
   wikidata: Q61723671
   sources:
-    - recordId: w839506975@2
+    - record_id: w839506975@2
       property: ""
       dataset: OpenStreetMap
   version: 0
-  updateTime: "2023-09-27T00:00:00Z"
+  update_time: "2023-09-27T00:00:00Z"

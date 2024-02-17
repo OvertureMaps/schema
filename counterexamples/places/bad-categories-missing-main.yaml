@@ -5,6 +5,13 @@ geometry:
   type: Point
   coordinates: [0, 0]
 properties:
+  ext_expected_errors: ["missing properties: 'main'"]
+  theme: places
+  type: place
+  version: 0
+  update_time: "2023-02-22T23:55:01-08:00"
+  names:
+    primary: Fancy POI missing main category property
   categories:
     alternate:
-      - someCategory
+      - some_category

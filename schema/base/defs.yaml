@@ -17,5 +17,5 @@ description: Common schema definitions the base theme (primarily from OSM)
       description: OSM Properties
       type: object
       properties:
-        sourceTags: { "$ref": "#/$defs/propertyDefinitions/sourceTags" }
+        source_tags: { "$ref": "#/$defs/propertyDefinitions/sourceTags" }
         wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }

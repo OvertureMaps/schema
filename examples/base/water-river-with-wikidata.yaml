@@ -6,16 +6,16 @@ geometry:
 properties:
   theme: base
   type: water
-  subType: river
+  subtype: river
   class: river
   names:
     primary: Rio Sanatana
-  sourceTags:
+  source_tags:
     waterway: river
   sources:
-    - recordId: w353912370@4
+    - record_id: w353912370@4
       property: ""
       dataset: OpenStreetMap
   wikidata: Q7420045
   version: 0
-  updateTime: "2023-09-27T00:00:00Z"
+  update_time: "2023-09-27T00:00:00Z"

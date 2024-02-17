@@ -6,16 +6,17 @@ import CodeBlock from '@theme/CodeBlock';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import yamlLoad from "@site/src/components/yamlLoad"
-import LocalityAreaSchema from '!!raw-loader!@site/docs/_schema/admins/localityArea.yaml';
+import LocalityAreaSchema from '!!raw-loader!@site/docs/_schema/admins/locality_area.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import LocalityAreaExample from '!!raw-loader!@site/docs/_examples/admins/localityArea/area-admin-country-no-context.yaml';
+import LocalityAreaExample from '!!raw-loader!@site/docs/_examples/admins/locality_area/area-admin-country-no-context.yaml';
 
-# localityArea
+# Locality Area
 
 Adds land or maritime area polygon to locality.
 
-Property `localityId` points at [locality](locality) feature that this area belongs to.
+Property `locality_id` points at [locality](locality) feature that this
+area belongs to.
 
 <table>
   <tr>
@@ -28,7 +29,7 @@ Property `localityId` points at [locality](locality) feature that this area belo
   </tr>
   <tr>
     <th>Type</th>
-    <td><code>localityArea</code></td>
+    <td><code>locality_area</code></td>
   </tr>
 </table>
 
@@ -46,7 +47,7 @@ Property `localityId` points at [locality](locality) feature that this area belo
 ## Examples
 
 <Tabs>
-  <TabItem value="localityArea" label="LocalityArea" default>
+  <TabItem value="locality_area" label="Locality Area" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(LocalityAreaExample), null, 2) }</CodeBlock>
   </TabItem>
 </Tabs>

@@ -15,12 +15,12 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - administrativeBoundary
-        - localityArea
+        - administrative_boundary
+        - locality_area
         - building
         - connector
         - land
-        - landUse
+        - land_use
         - locality
         - part
         - place
@@ -48,7 +48,7 @@ description: Common schema definitions shared by all themes
       type: integer
       minimum: 0
       "$comment": >-
-        It might be reasonable to combine "updateTime" and "version"
+        It might be reasonable to combine "update_time" and "version"
         in a single "updateVersion" field which gives the last Overture
         version number in which the feature changed. The downside to
         doing this is that the number would cease to be indicative of
@@ -82,11 +82,11 @@ description: Common schema definitions shared by all themes
           type: string
         dataset:
           type: string
-        recordId:
+        record_id:
           type: string
           description: Refers to the specific record within the dataset that was used.
         confidence:
-          description: If the source data has a confidence value, especially for ml-derived data, record that here.
+          description: Confidence value from the source dataset, particularly relevant for ML-derived data.
           type: number
           minimum: 0
           maximum: 1
@@ -221,19 +221,23 @@ description: Common schema definitions shared by all themes
       unevaluatedProperties: false
       properties:
         freeform:
-          description: Free-form address that contains street name, house number and other address info
+          description: >-
+            Free-form address that contains street name, house number
+            and other address info
           type: string
         locality:
-          description: Name of the City or Neighborhood where the address is located
+          description: >-
+            Name of the city or neighborhood where the address is
+            located
           type: string
         postcode:
-          description: Post code where the address is located
+          description: Postal code where the address is located
           type: string
         region:
-          description: ISO-3166-2 subdivision/province code
+          description: ISO 3166-2 subdivision/province code
           type: string
         country:
-          description: ISO 3166 alpha2 country code
+          description: ISO 3166-1 alpha-2 country code
           type: string
     wikidata:
       description: A wikidata ID if available, as found on https://www.wikidata.org/.
@@ -244,15 +248,15 @@ description: Common schema definitions shared by all themes
       title: Overture Properties
       description: Top-level properties shared by all Overture features
       type: object
-      required: [ theme, type, version, updateTime ]
+      required: [ theme, type, version, update_time ]
       patternProperties:
-        ^ext.*$:
-          description: "Additional top-level properties must be prefixed with `ext`."
+        ^ext_.*$:
+          description: "Additional top-level properties must be prefixed with `ext_`."
       properties:
         theme: { "$ref": "#/$defs/propertyDefinitions/theme" }
         type: { "$ref": "#/$defs/propertyDefinitions/featureType" }
         version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }
-        updateTime: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
+        update_time: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
         sources: { "$ref": "#/$defs/propertyDefinitions/sources" }
     levelContainer:
       title: "Z-Order"

@@ -12,10 +12,10 @@ properties:
   theme: transportation
   type: segment
   version: 0
-  updateTime: "2023-06-21T09:57:15-06:00"
-  subType: road
+  update_time: "2023-06-21T09:57:15-06:00"
+  subtype: road
   road:
     restrictions:
-      speedLimits:
-        - maxSpeed: [100, "km/h"]
-          isMaxSpeedVariable: true
+      speed_limits:
+        - max_speed: [100, "km/h"]
+          is_max_speed_variable: true

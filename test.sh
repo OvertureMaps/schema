@@ -138,7 +138,7 @@ function expected_errors() {
   if [[ "$type" != "object" && "$type" != "!!map" ]]; then
     return 1
   fi
-  yq -r '(.properties.extExpectedErrors // []) | .[]' "$instance_file"
+  yq -r '(.properties.ext_expected_errors // []) | .[]' "$instance_file"
 }
 
 function schema() {

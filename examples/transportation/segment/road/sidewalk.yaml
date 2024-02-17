@@ -7,9 +7,9 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  updateTime: "2023-11-13T00:02:30-08:00"
+  update_time: "2023-11-13T00:02:30-08:00"
   version: 0
-  subType: road
+  subtype: road
   connectors: [fooConnector, barConnector]
   road:
     class: sidewalk

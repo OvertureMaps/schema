@@ -1,0 +1,25 @@
+{
+    "id": "invalidIsPrivateFlag",
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[2, 2], [3, 3]]
+    },
+    "properties": {
+      "theme": "transportation",
+      "type": "segment",
+      "version": 19,
+      "update_time": "2023-02-23T00:04:00-08:00",
+      "subtype": "road",
+      "road": {
+        "flags": [
+          {
+            "values": ["is_private"]
+          }
+        ]
+      },
+      "ext_expected_errors": [
+        "value must be one of"
+      ]
+    }
+  }

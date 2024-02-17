@@ -12,16 +12,16 @@ geometry:
           ]]
 properties:
   # Custom user properties.
-  extFoo: I am a customer user property.
-  extBar: Me too!
+  ext_foo: I am a customer user property.
+  ext_bar: Me too!
   # Overture properties
   theme: buildings
   type: building
   version: 1
   level: 1
-  updateTime: "2023-06-06T10:30:00-08:00"
+  update_time: "2023-06-06T10:30:00-08:00"
   height: 21.34
-  numFloors: 4
+  num_floors: 4
   class: civic
   sources:
   - property: ""

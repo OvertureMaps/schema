@@ -10,6 +10,7 @@ import ThemedImage from '@theme/ThemedImage';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import ExampleGeometricScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/geometric-scoping.yaml';
 import ExampleTemporalScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/temporal-scoping.yaml';
+import ExampleSubjectiveHeadingScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-heading-scoping.yaml'
 import ExampleSubjectiveUsagePurposeScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-usage-purpose-scoping.yaml';
 import ExampleSubjectiveStatusScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-status-scoping.yaml';
 import ExampleSubjectiveVehicleAttributesScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-vehicle-attributes-scoping.yaml';
@@ -153,7 +154,9 @@ from access to the segment on weekdays between 3PM and 6PM.
   </TabItem>
 </Tabs>
 
-### Subjective Scoping
+<!-- TODO: Document side scoping here. -->
+
+### Subjective scoping
 
 Subjective scoping means that the scope of a property can be constrained based
 on subjective factors like *who* or *what* is travelling on the transportation
@@ -161,23 +164,11 @@ network, or *how* they are doing it.
 
 The Overture transportation supports the following subjective factors:
 
-<!-- TODO: Add Heading scoping entry and develop it in a heading below: https://github.com/OvertureMaps/schema-wg/issues/134 -->
 1. [Travel mode](#travel-mode-scoping)
+1. [Heading](#heading)
 1. [Purpose of use](#purpose-of-use-scoping)
 1. [Status, or membership in a recognized group](#status-scoping-membership-in-a-recognized-group)
 1. [Vehicle attributes](#vehicle-attributes-scoping)
-
-
-<!--
-TODO: Direction of travel is not implemented yet, but is described in
-      the following issue: https://github.com/OvertureMaps/schema-wg/issues/134.
-      Once implemented, insert this element at the proper place in the
-      list above.
-
-1. [Direction of travel](#direction-of-travel)
-
--->
-
 
 The sub-headings below explain each of these subjective factors in greater
 detail.
@@ -191,43 +182,39 @@ high-occupancy vehicle.
 The property construct `when: { mode: [...] }` limits the scope its
 parent value to apply only to people or things travelling using the
 listed travel modes. Conversely, the construct
-`when: { modeNot: [...] }` scopes the parent value to apply only when
+`when: { mode_not: [...] }` scopes the parent value to apply only when
 the traveller is *not* using one of the listed travel modes.
 
 To dive deeper into this topic, see the page on
 [Travel Modes](/themes/transportation/travel-modes).
 
-<!--
-
-TODO: Direction of travel is not implemented yet, but is described in
-      the following issue: https://github.com/OvertureMaps/schema-wg/issues/134.
-
-
-#### Direction of Travel
+#### Heading
 
 <Tabs>
   <TabItem value="description" label="Description" default>
 
-Travel direction scoping limits the the scope of a parent value to apply
-only when the traveller is proceeding along the segment geometry in the
-named direction, either `forward` or `backward`. (*The directions
-`forward` and `backward` are defined on the
-[Shape and Connectivity](shape-connectivity) page.*)
+Heading scoping limits the the scope of a parent value to apply only
+when the traveller is proceeding along the segment geometry in the named
+direction, either `forward` or `backward`. (*The directions `forward`
+and `backward` are defined on the
+[Shape and Connectivity](/themes/transportation/shape-connectivity) page.*)
 
-The property construct `when: { proceeding: { inDirection: forward|backward } }`
-applies travel direction scoping to a parent value.
+The property construct `when: { heading: forward|backward }` applies
+heading scoping to a parent value.
 
 
   </TabItem>
   <TabItem value="example" label="Example" default>
 
-TODO: Create a validated example once this feature is implemented:
-https://github.com/OvertureMaps/schema-wg/issues/134
+The example below shows a road segment with multiple heading-scoped
+access restriction rules. The rules allow all standard travel modes for
+the segment class to travel in the forward direction, but only allow
+buses to travel in the backward direction.
 
+<CodeBlock language="yaml">{ ExampleSubjectiveHeadingScoping }</CodeBlock>
   </TabItem>
 </Tabs>
 
--->
 
 #### Purpose of Use Scoping
 
@@ -341,7 +328,7 @@ is done by the rule evaluation algorithm.
 
 TODO: Feedback from Karen given 2023-08-29 that 👆 is very abstract and could
       use an immediate example. I think an "easy" solution would be to wangle
-      a speed limits example with two rules that are just one-liner `maxSpeed`
+      a speed limits example with two rules that are just one-liner `max_speed`
       entries.
 -->
 
@@ -412,8 +399,8 @@ properties:
   theme: transportation
   type: segment
   version: 0
-  updateTime: "2023-06-16T15:57:00-06:00"
-  subType: road
+  update_time: "2023-06-16T15:57:00-06:00"
+  subtype: road
   road:
     lanes:
       - value:

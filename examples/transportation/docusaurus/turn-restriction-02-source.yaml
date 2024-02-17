@@ -17,8 +17,8 @@ properties:
   theme: transportation
   type: segment
   version: 4
-  updateTime: "2023-08-18T11:05:03-07:00"
-  subType: road
+  update_time: "2023-08-18T11:05:03-07:00"
+  subtype: road
   connectors:
     - overture:transportation:example:via-turn-restriction-connector1
   names:
@@ -27,13 +27,13 @@ properties:
     class: primary
     surface: paved
     restrictions:
-      prohibitedTransitions:
+      prohibited_transitions:
         - sequence:
-            - segmentId: overture:transportation:example:via-turn-restriction-target
-              connectorId: overture:transportation:example:via-turn-restriction-connector2
-            - segmentId: overture:transportation:example:via-turn-restriction-via
-              connectorId: overture:transportation:example:via-turn-restriction-connector1
-          finalHeading: forward
+            - segment_id: overture:transportation:example:via-turn-restriction-target
+              connector_id: overture:transportation:example:via-turn-restriction-connector2
+            - segment_id: overture:transportation:example:via-turn-restriction-via
+              connector_id: overture:transportation:example:via-turn-restriction-connector1
+          final_heading: forward
           reason: legal
           when: {heading: forward}
           during: Mo-Fr 06:00-09:00, 15:00-19:00

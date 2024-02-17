@@ -6,17 +6,17 @@ geometry:
   coordinates: [[0, 0], [1, 1]]
 properties:
   # Custom user properties.
-  extBaz: I am a custom user property...
-  extDescription: >-
+  ext_baz: I am a custom user property...
+  ext_description: >-
     This is an example road segment in which as many properties as
     possible are specified using rules instead of flat values. For
     example, the road flags are specified using rules.
   # Overture properties
   theme: transportation
   type: segment
-  updateTime: "2023-02-23T00:03:59-08:00"
+  update_time: "2023-02-23T00:03:59-08:00"
   version: 5
-  subType: road
+  subtype: road
   road:
     restrictions:
       access:
@@ -26,9 +26,9 @@ properties:
             at: [0.1, 0.25]
         - allowed:
             when:
-              using: [asCustomer, toFarm]
-              recognized: [asPermitted, asEmployee]
+              using: [as_customer, to_farm]
+              recognized: [as_permitted, as_employee]
             at: [0.25, 0.50]
         - allowed:
-            when: {vehicle: {axleCount: {isMoreThan: 5}}}
+            when: {vehicle: {axle_count: {is_more_than: 5}}}
             at: [0.50, 0.70]

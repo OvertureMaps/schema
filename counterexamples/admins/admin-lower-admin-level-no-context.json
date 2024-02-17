@@ -1,16 +1,19 @@
 {
   "type": "Feature",
   "properties": {
+    "ext_expected_errors": [
+      "missing properties: 'context_id'"
+    ],
     "theme": "admins",
     "type": "locality",
     "version": 0,
-    "updateTime": "2023-02-22T23:55:01-08:00",
-    "subType": "administrativeLocality",
-    "localityType": "country",
-    "adminLevel": 3,
-    "isoCountryCodeAlpha2": "US",
-    "defaultLanguage": "en",
-    "drivingSide": "right",
+    "update_time": "2023-02-22T23:55:01-08:00",
+    "subtype": "administrative_locality",
+    "locality_type": "country",
+    "admin_level": 2,
+    "iso_country_code_alpha_2": "US",
+    "default_language": "en",
+    "driving_side": "right",
     "names": {
       "primary": "United States",
       "common": {

@@ -6,13 +6,13 @@ geometry:
   coordinates: [[0, 0], [1, 1]]
 properties:
   # Custom user properties.
-  extBaz: I am a custom user property...
+  ext_baz: I am a custom user property...
   # Overture properties
   theme: transportation
   type: segment
-  updateTime: "2023-02-23T00:02:30-08:00"
+  update_time: "2023-02-23T00:02:30-08:00"
   version: 0
-  subType: road
+  subtype: road
   level: -1
   connectors: [fooConnector, barConnector] # Topology: To discuss further.
   names:
@@ -21,32 +21,32 @@ properties:
     # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
     class: secondary
     surface: gravel
-    flags: [isLink, isTunnel]
+    flags: [is_link, is_tunnel]
     width:
       - value: 10
     restrictions:
-      speedLimits:
-        - minSpeed: [90, "km/h"]
-          maxSpeed: [110, "mph"]
-          modeNot: [ "truck" ]
-          isMaxSpeedVariable: true
-        - maxSpeed: [55, "mph"]
+      speed_limits:
+        - min_speed: [90, "km/h"]
+          max_speed: [110, "mph"]
+          mode_not: [ "truck" ]
+          is_max_speed_variable: true
+        - max_speed: [55, "mph"]
           mode: [ "truck" ]
-        - maxSpeed: [30, "km/h"]
+        - max_speed: [30, "km/h"]
           at: [0.25, 0.50]
           during: Mo-Sa 09:00-12:00, We 15:00-18:00
-      prohibitedTransitions:
+      prohibited_transitions:
         - sequence:
-          - segmentId: overture:transportation:segment:234
-            connectorId: overture:transportation:connector:123
-          finalHeading: forward
+          - segment_id: overture:transportation:segment:234
+            connector_id: overture:transportation:connector:123
+          final_heading: forward
           reason: legal
           when: {heading: forward}
         - sequence:
-            - segmentId: overture:transportation:segment:456
-              connectorId: overture:transportation:connector:345
-            - segmentId: overture:transportation:segment:567
-              connectorId: overture:transportation:connector:456
-          finalHeading: backward
+            - segment_id: overture:transportation:segment:456
+              connector_id: overture:transportation:connector:345
+            - segment_id: overture:transportation:segment:567
+              connector_id: overture:transportation:connector:456
+          final_heading: backward
           reason: divider
           when: {heading: backward}

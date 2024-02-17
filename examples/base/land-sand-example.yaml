@@ -7,16 +7,16 @@ geometry:
 properties:
   theme: base
   type: land
-  subType: sand
+  subtype: sand
   class: dune
   names:
     primary: Hadeida
-  sourceTags:
+  source_tags:
     natural: dune
     surface: sand
   sources:
-    - recordId: w407753930@3
+    - record_id: w407753930@3
       property: ""
       dataset: OpenStreetMap
   version: 0
-  updateTime: "2023-09-27T00:00:00Z"
+  update_time: "2023-09-27T00:00:00Z"
