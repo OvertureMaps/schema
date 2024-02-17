@@ -8,14 +8,14 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  subType: road
-  updateTime: "2023-05-10T12:02:30-08:00"
+  subtype: road
+  update_time: "2023-05-10T12:02:30-08:00"
   version: 0
   road:
     class: secondary
     restrictions:
-      speedLimits:
-        - maxSpeed:
+      speed_limits:
+        - max_speed:
             - 100
             - "km/h"
     lanes:
@@ -46,9 +46,9 @@ properties:
                     - hgv
                   vehicle:
                     weight:
-                      isAtMost: 3
-          speedLimits:
-            - maxSpeed:
+                      is_at_most: 3
+          speed_limits:
+            - max_speed:
                 - 80
                 - "km/h"
               mode:

@@ -6,10 +6,10 @@ geometry:
   coordinates: [0, 0]
 properties:
   categories:
-    main: someCategory
+    main: some_category
   theme: places
   type: place
   version: 0
-  updateTime: "2024-02-32T15:45:22Z"
-  extExpectedErrors:
+  update_time: "2024-02-32T15:45:22Z"
+  ext_expected_errors:
     - "does not match pattern"

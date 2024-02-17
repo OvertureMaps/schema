@@ -11,8 +11,8 @@ properties:
   theme: transportation
   type: segment
   version: 0
-  updateTime: "2023-06-16T14:22:30-06:00"
-  subType: road
+  update_time: "2023-06-16T14:22:30-06:00"
+  subtype: road
   #road:
     # TODO: This example needs the unit fixes from https://github.com/OvertureMaps/schema-wg/issues/147 to work.
     #restrictions:

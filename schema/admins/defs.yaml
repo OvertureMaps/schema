@@ -97,10 +97,10 @@ description: Common schema definitions for admins theme
       title: "Administrative Properties"
       description: Top-level properties shared by all admin features
       type: object
-      required: [adminLevel]
+      required: [admin_level]
       properties:
-        adminLevel: { "$ref": "#/$defs/propertyDefinitions/adminLevel" }
-        isoCountryCodeAlpha2: { "$ref": "#/$defs/propertyDefinitions/isoCountryCodeAlpha2" }
-        isoSubCountryCode: { "$ref": "#/$defs/propertyDefinitions/isoSubCountryCode" }
-        defaultLanguage: { "$ref": "#/$defs/propertyDefinitions/defaultLanguage" }
-        drivingSide: { "$ref": "#/$defs/propertyDefinitions/drivingSide" }
+        admin_level: { "$ref": "#/$defs/propertyDefinitions/adminLevel" }
+        iso_country_code_alpha_2: { "$ref": "#/$defs/propertyDefinitions/isoCountryCodeAlpha2" }
+        iso_sub_country_code: { "$ref": "#/$defs/propertyDefinitions/isoSubCountryCode" }
+        default_language: { "$ref": "#/$defs/propertyDefinitions/defaultLanguage" }
+        driving_side: { "$ref": "#/$defs/propertyDefinitions/drivingSide" }

@@ -6,10 +6,10 @@ import CodeBlock from '@theme/CodeBlock';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import yamlLoad from "@site/src/components/yamlLoad"
-import LandUseSchema from "!!raw-loader!@site/docs/_schema/base/landUse.yaml";
+import LandUseSchema from "!!raw-loader!@site/docs/_schema/base/land_use.yaml";
 
-import LandUseExample from "!!raw-loader!@site/docs/_examples/base/landUse-example.yaml";
-import LandUseExample2 from "!!raw-loader!@site/docs/_examples/base/landUse-example.yaml";
+import LandUseExample from "!!raw-loader!@site/docs/_examples/base/land-use-example.yaml";
+import LandUseExample2 from "!!raw-loader!@site/docs/_examples/base/land-use-example.yaml";
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -31,7 +31,7 @@ Features in the land use theme come primarily from OpenStreetMap features contai
   </tr>
   <tr>
     <th>Type</th>
-    <td><code>landUse</code></td>
+    <td><code>land_use</code></td>
   </tr>
 </table>
 
@@ -50,11 +50,12 @@ Features in the land use theme come primarily from OpenStreetMap features contai
 ## Examples
 
 <Tabs>
-  <TabItem value="1" label="landUse Example" default>
+  <TabItem value="1" label="Example 1" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(LandUseExample), null, 2) }</CodeBlock>
   </TabItem>
 
-  <TabItem value="2" label="landUse Example 2" default>
+  <TabItem value="2" label="Example 2" default>
+    <!-- FIXME: This is just repeating the first example again! -->
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(LandUseExample2), null, 2) }</CodeBlock>
   </TabItem>
 

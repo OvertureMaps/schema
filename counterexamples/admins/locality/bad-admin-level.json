@@ -1,14 +1,17 @@
 {
   "type": "Feature",
   "properties": {
+    "ext_expected_errors": [
+      "[I#/properties/admin_level] [S#/$defs/propertyDefinitions/adminLevel/maximum] must be <= 6 but found 100"
+    ],
     "theme": "admins",
     "type": "locality",
     "version": 0,
-    "updateTime": "2023-02-22T23:55:01-08:00",
-    "subType": "administrativeLocality",
-    "localityType": "country",
-    "adminLevel": 100,
-    "contextId": "northAmericaId",
+    "update_time": "2023-02-22T23:55:01-08:00",
+    "subtype": "administrative_locality",
+    "locality_type": "country",
+    "admin_level": 100,
+    "context_id": "northAmericaId",
     "names": {
       "primary": "United States",
       "common": {
@@ -25,13 +28,13 @@
           "value": "US"
         },
         {
-          "language": "en",
           "variant": "short",
+          "language": "en",
           "value": "US"
         },
         {
-          "language": "en",
           "variant": "short",
+          "language": "en",
           "value": "U.S."
         },
         {

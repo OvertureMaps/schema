@@ -5,6 +5,6 @@ geometry:
   type: Point
   coordinates: [0, 0]
 properties:
-  updateTime: 2023-05-31T17:24:13-06:00
-  extExpectedErrors:
+  update_time: 2023-05-31T17:24:13-06:00
+  ext_expected_errors:
     - "jsonschema: invalid jsonType: time.Time"

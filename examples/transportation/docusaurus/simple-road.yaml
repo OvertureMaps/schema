@@ -11,8 +11,8 @@ properties:
   theme: transportation
   type: segment
   version: 3
-  updateTime: "2023-06-01T16:42:00-06:00"
-  subType: road
+  update_time: "2023-06-01T16:42:00-06:00"
+  subtype: road
   connectors:
     - overture:transportation:example:simple-road-connector-1
     - overture:transportation:example:simple-road-connector-2

@@ -6,9 +6,12 @@
     "coordinates": [[2, 2], [3, 3]]
   },
   "properties": {
+    "ext_expected_errors": [
+      "missing properties: 'subtype'"
+    ],
     "theme": "transportation",
     "type": "segment",
     "version": 26,
-    "updateTime": "2023-02-23T00:04:00-08:00"
+    "update_time": "2023-02-23T00:04:00-08:00"
   }
 }

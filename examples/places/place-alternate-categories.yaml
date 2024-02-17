@@ -6,9 +6,9 @@ geometry:
   coordinates: [0, 0]
 properties:
   categories:
-    main: someCategory
+    main: some_category
     alternate:
-      - anotherCategory
+      - another_category
   confidence: 0.9
   websites:
     - https://www.example.com
@@ -33,7 +33,7 @@ properties:
   theme: places
   type: place
   version: 0
-  updateTime: "2023-02-22T23:55:01-08:00"
+  update_time: "2023-02-22T23:55:01-08:00"
   names:
     primary: My Sweet POI
     common:

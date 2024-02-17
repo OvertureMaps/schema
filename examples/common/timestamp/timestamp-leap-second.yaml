@@ -7,6 +7,6 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  subType: road
+  subtype: road
   version: 0
-  updateTime: "1990-12-31T15:59:60-08:00"
+  update_time: "1990-12-31T15:59:60-08:00"

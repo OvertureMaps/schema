@@ -6,10 +6,10 @@ geometry:
   coordinates: [0, 0]
 properties:
   # Custom user properties.
-  extBaz: I am a custom user property...
+  ext_baz: I am a custom user property...
   # Overture properties
   theme: transportation
   type: connector
   version: 0
-  updateTime: "2023-02-23T00:02:01-08:00"
+  update_time: "2023-02-23T00:02:01-08:00"
 #

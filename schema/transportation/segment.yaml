@@ -17,17 +17,17 @@ properties:
       - "$ref": https://geojson.org/schema/LineString.json
   properties:
     unevaluatedProperties: false
-    required: [subType]
+    required: [subtype]
     allOf:
       - title: "Conditional Properties"
-        if: { properties: { subType: { enum: [road] } } }
+        if: { properties: { subtype: { enum: [road] } } }
         then:
           properties:
             road: { "$ref": "#/$defs/propertyDefinitions/road" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     properties:
-      subType:
+      subtype:
         description: Broad category of transportation segment.
         type: string
         enum: [road, rail, water]
@@ -35,9 +35,12 @@ properties:
           Should not be confused with a transport mode. A segment
           kind has an (implied) set of default transport modes.
       connectors:
+        "$comment": 'FIXME: Must rename to connectorIds to meet schema standard'
         description: >-
-          List of connectors this segment is physically connected to. Each connector is a possible routing decision point
-          meaning it defines place along segment in which there is possibility to transition to other segments which share same connector.
+          List of connectors this segment is physically connected to.
+          Each connector is a possible routing decision point meaning it
+          defines place along segment in which there is possibility to
+          transition to other segments which share same connector.
         type: array
         items:
           type: string
@@ -63,11 +66,11 @@ properties:
           type: object
           unevaluatedProperties: false
           properties:
-            speedLimits:
+            speed_limits:
               "$ref": "#/$defs/propertyContainers/speedLimitsContainer"
             access:
               "$ref": "#/$defs/propertyContainers/accessContainer"
-            minOccupancy:
+            min_occupancy:
               description: >-
                 Minimal occupancy restrictions relate to HOV (high occupancy vehicles) travel modes.
                 If a lane is restricted for use only by HOVs, then the default minimum vehicle
@@ -87,28 +90,27 @@ properties:
       enum:
         - forward       # Traffic flows in the segment direction.
         - backward      # Traffic flows against the segment direction.
-        - bothWays      # Traffic flows simultaneously in both directions as, e.g., on a sidewalk.
+        - both_ways     # Traffic flows simultaneously in both directions as, e.g., on a sidewalk.
         - alternating   # Traffic flows alternately forward and backward following a predictable rhythm.
         - reversible    # Traffic flows forward, but may be arbitrarily reversed by traffic authorities at any time.
-    direction:
+    heading:
       description: >-
-        Enumerates direction of travel or connectivity with
-        another segment.
+        Enumerates possible travel headings along segment geometry.
       type: string
-      enum: [ forward, backward, both ]
+      enum: [ forward, backward ]
 
     mode:
       description: >-
         Enumerates possible travel modes. Some modes represent groups
         of modes.
       type: string
-      enum: [ motorVehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
+      enum: [ motor_vehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
       "$comment": >-
-        motorVehicle includes car, truck and motorcycle
+        motor_vehicle includes car, truck and motorcycle
     road:
       description: >-
-        Properties for segments whose segment subType is road. The road
-        subType includes any variety of road, street, or path, including
+        Properties for segments whose segment subtype is road. The road
+        subtype includes any variety of road, street, or path, including
         dedicated paths for walking and cycling.
       type: object
       unevaluatedProperties: false
@@ -125,11 +127,11 @@ properties:
             - secondary
             - tertiary
             - residential
-            - livingStreet # similar as residential but has implied legal restriction for motor vehicles (which can vary country by country)
+            - living_street   # Similar to residential but has implied legal restriction for motor vehicles (which can vary country by country)
             - trunk
-            - unclassified # known roads, paved but of low importance which does not meet definition of being motorway, trunk, primary, secondary, tertiary
-            - parkingAisle # service road intended for parking
-            - driveway # service road intended for deliveries
+            - unclassified    # Known roads, paved, but subordinate to all of: motorway, trunk, primary, secondary, tertiary
+            - parking_aisle   # Service road intended for parking
+            - driveway        # Service road intended for deliveries
             - pedestrian
             - footway
             - sidewalk
@@ -137,7 +139,7 @@ properties:
             - steps
             - track
             - cycleway
-            - bridleway # similar as track but has implied access only for horses
+            - bridleway       # Similar to track but has implied access only for horses
             - unknown
           default:
             enum: [ unknown ]
@@ -232,22 +234,15 @@ properties:
               minItems: 1
         restrictions:
           description: Restrictions on how the road may be used
-          "$comment": >-
-            Restrictions define two kinds of rerstriction on this segemnt
-            Travel Restrictions defines how certain modes of transportation
-            may be limited on this segment, for example trucks are not
-            permitted from 7AM to 7PM
-
-            Turn restrictions defines restrcited tunrs that orignates from
-            this segment, for example against driving side turn from this
-            segment to another connected segment is blocked.
           type: object
           unevaluatedProperties: false
           properties:
-            speedLimits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
+            speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
             access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
-            prohibitedTransitions:
-              description: Turn restriction from this segment to other segments.
+            prohibited_transitions:
+              description: >-
+                Rules preventing transitions from this segment to
+                another segment.
               type: array
               items:
                  unevaluatedProperties: false
@@ -257,35 +252,42 @@ properties:
                  type: object
                  properties:
                    reason:
-                     description: for turn restrictions, a rough description as to why the restriction exist
+                     "$comment": TODO - This property should be dropped and handled by inhibitors/barriers.
+                     description: >-
+                       A rough description of why the transition is
+                       prohibited.
                      type: string
                      enum:
                        - legal
                        - divider
-                       - gatedPermission
-                       - gatedKey
+                       - gated_permission
+                       - gated_key
                      default:
                        enum: [legal]
                    sequence:
-                     description: Ordered sequence of segments that needs to be traversed in order for the relation to be effective
+                     description: >-
+                       Ordered sequence of connector/segment pairs that it is
+                       prohibited to follow from this segment.
                      type: array
                      items:
                        description: Pair of segment and connector IDs along the sequence
-                       "$ref": "#/$defs/propertyDefinitions/relationTarget"
+                       "$ref": "#/$defs/propertyDefinitions/sequenceEntry"
                      minItems: 1
                      uniqueItems: true
-                   finalHeading:
-                     description: Direction of travel that is prohibited on the destination segment of the sequence.
-                     "$ref": "#/$defs/propertyDefinitions/direction"
+                   final_heading:
+                     description: >-
+                       Direction of travel that is prohibited on the destination
+                       segment of the sequence.
+                     "$ref": "#/$defs/propertyDefinitions/heading"
 
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
       enum:
-        - isBridge
-        - isLink
-        - isTunnel
-        - isUnderConstruction
+        - is_bridge
+        - is_link
+        - is_tunnel
+        - is_under_construction
     roadSurface:
       description: Physical surface of the road
       type: string
@@ -295,7 +297,7 @@ properties:
         - unpaved
         - gravel
         - dirt
-        - pavingStones
+        - paving_stones
         - metal
     speed:
       description: >-
@@ -311,78 +313,80 @@ properties:
           enum: [ "km/h", "mph" ]
       additionalItems: false
     accessOption:
-      description: access option (restriction) for a given segment
+      description: Effect of an access restriction rule
       type: string
       enum:
         - allowed
         - denied
     usageOption:
-      description: describes reason for which a person or entity travelling on the transportation network is using a particular location
+      description: >-
+        Reason why a person or entity travelling on the transportation
+        network is using a particular location.
       type: string
       enum:
-        - asCustomer
-        - atDestination
-        - toDeliver
-        - toFarm
-        - forForestry
+        - as_customer
+        - at_destination
+        - to_deliver
+        - to_farm
+        - for_forestry
     recognizedOption:
-      description: describes the status of the person or entity travelling as recognized by authorities controlling the particular location
+      description: >-
+        Status of the person or entity travelling as recognized by
+        authorities controlling the particular location
       type: string
       enum:
-        - asPermitted
-        - asPrivate
-        - asDisabled
-        - asEmployee
-        - asStudent
+        - as_permitted
+        - as_private
+        - as_disabled
+        - as_employee
+        - as_student
     relationalExpression:
-      description: Represents a relational operator for describing simple relational expression in the data
+      description: >-
+        Creates a relational expression with the containing object.
       oneOf:
         - type: object
-          required: [isMoreThan]
+          required: [is_more_than]
           properties:
-            isMoreThan:
+            is_more_than:
               type: number
         - type: object
-          required: [isAtLeast]
+          required: [is_at_least]
           properties:
-            isAtLeast:
+            is_at_least:
               type: number
         - type: object
-          required: [isEqualTo]
+          required: [is_equal_to]
           properties:
-            isEqualTo:
+            is_equal_to:
               type: number
         - type: object
-          required: [isAtMost]
+          required: [is_at_most]
           properties:
-            isAtMost:
+            is_at_most:
               type: number
         - type: object
-          required: [isLessThan]
+          required: [is_less_than]
           properties:
-            isLessThan:
+            is_less_than:
               type: number
-    relationTarget:
+    sequenceEntry:
       description: >-
-        A tripe that uniquely identifies that target
-        of a relation
+        A segment/connector pair in a prohibited transition sequence.
       type: object
+      required: [connector_id, segment_id]
       properties:
-        segmentId:
+        connector_id:
           description: >-
-            Segment ID of the target that the relation refers to
-            (TODO replace with GERS ID schema)
+            Identifies the point of physical connection between the
+            previous segment in the sequence and the segment in this
+            sequence entry.
           type: string
-        connectorId:
-          description: Connector ID of the this segment that the relationship connects to
-          "$comment": >-
-            A segment can connect to another segment at multiple connector. So a
-            connector id is necessary to uniquely identify the exact connection point.
-            However this is not a required property since a relationship target may not
-            necessarily be conncted to the source of the relation (for example  signposts)
-            (TODO replace with GERS ID)
+        segment_id:
+          description: >-
+            Identifies the segment that the previous segment in the
+            sequence is physically connected to via the sequence entry's
+            connector.
           type: string
-      required: [segmentId, connectorId]
   propertyContainers:
     duringContainer:
       "$comment": >-
@@ -399,7 +403,7 @@ properties:
         - not:
             anyOf:
               - required: [mode]
-              - required: [modeNot]
+              - required: [mode_not]
         - required: [mode]
           properties:
             mode:
@@ -409,9 +413,9 @@ properties:
                 "$ref": "#/$defs/propertyDefinitions/mode"
               uniqueItems: true
               minLength: 1
-        - required: [modeNot]
+        - required: [mode_not]
           properties:
-            modeNot:
+            mode_not:
               description: Travel modes to which the rule does not apply
               type: array
               items:
@@ -419,13 +423,13 @@ properties:
               uniqueItems: true
               minLength: 1
       "$comment": >-
-        If neither mode nor modeNot is specified, the rule has the
-        default travel modes for the segment subType.
+        If neither mode nor mode_not is specified, the rule has the
+        default travel modes for the segment subtype.
     headingContainer:
-      description: properties defining direction for which a rule is active
+      description: Properties defining heading for which a rule is active.
       properties:
         heading:
-          "$ref": "#/$defs/propertyDefinitions/direction"
+          "$ref": "#/$defs/propertyDefinitions/heading"
     speedLimitsContainer:
       description: Rules governing speed on this road segment or lane
       type: array
@@ -438,17 +442,17 @@ properties:
           direction property in each rule.
         type: object
         anyOf:
-          - required: [ minSpeed ]
-          - required: [ maxSpeed ]
+          - required: [ min_speed ]
+          - required: [ max_speed ]
         allOf:
           - "$ref": "#/$defs/propertyContainers/modesContainer"
           - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
           - "$ref": "#/$defs/propertyContainers/duringContainer"
         unevaluatedProperties: false
         properties:
-          minSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-          maxSpeed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-          isMaxSpeedVariable:
+          min_speed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+          max_speed: { "$ref": "#/$defs/propertyDefinitions/speed" }
+          is_max_speed_variable:
             description: Indicates a variable speed corridor
             type: boolean
             default: false
@@ -515,7 +519,7 @@ properties:
             vehicle:
               type: object
               properties:
-                axleCount:
+                axle_count:
                   "$ref": "#/$defs/propertyDefinitions/relationalExpression"
                 length:
                   "$ref": "#/$defs/propertyDefinitions/relationalExpression"

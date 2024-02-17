@@ -13,9 +13,8 @@ geometry:
     - 49.0378679
 properties:
   theme: admins
-  type: administrativeBoundary
-  updateTime: '2023-02-22T23:55:01-08:00'
+  type: administrative_boundary
+  update_time: '2023-02-22T23:55:01-08:00'
   version: 0
-  adminLevel: 1
-  isMaritime: true
-  geopolDisplay: disputed
+  admin_level: 1
+  is_maritime: true

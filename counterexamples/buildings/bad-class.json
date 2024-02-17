@@ -6,10 +6,13 @@
     "coordinates": [[[-117.33804,47.77664],[-117.33772,47.77672],[-117.33764,47.77658],[-117.33797,47.77651],[-117.33804,47.77664]]]
   },
   "properties": {
+    "ext_expected_errors": [
+      "[I#/properties/class] [S#/properties/properties/properties/class/enum] value must be one of"
+    ],
     "theme": "buildings",
     "type": "building",
     "class": "made-up-class",
     "version": 0,
-    "updateTime": "2023-02-23T00:04:00-08:00"
+    "update_time": "2023-02-23T00:04:00-08:00"
   }
 }

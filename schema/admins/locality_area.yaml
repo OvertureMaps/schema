@@ -14,10 +14,10 @@ properties:
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:
     unevaluatedProperties: false
-    required: [localityId]
+    required: [locality_id]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     properties:
-      localityId:
+      locality_id:
         description: References specific feature of locality type
         type: string

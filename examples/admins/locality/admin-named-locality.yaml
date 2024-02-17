@@ -1,20 +1,20 @@
+type: Feature
 geometry:
   coordinates:
   - -122.3183680
   - 47.6238307
   type: Point
 properties:
-  contextId: seattleId
-  localityType: neighborhood
+  context_id: seattleId
+  locality_type: neighborhood
   names:
     primary: Capitol Hill
     common:
       en: Capitol Hill
-  subType: namedLocality
+  subtype: named_locality
   population: 30000
   theme: admins
   type: locality
   wikidata: Q5083
-  updateTime: '2023-02-22T23:55:01-08:00'
+  update_time: '2023-02-22T23:55:01-08:00'
   version: 0
-type: Feature

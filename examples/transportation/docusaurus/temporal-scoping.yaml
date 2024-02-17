@@ -11,10 +11,10 @@ properties:
   theme: transportation
   type: segment
   version: 0
-  updateTime: "2023-06-16T10:33:00-06:00"
-  subType: road
+  update_time: "2023-06-16T10:33:00-06:00"
+  subtype: road
   road:
     restrictions:
       access:
         - denied: { during: "Mo-Fr 15:00-18:00" }
-          when: { notMode: [bus] }
+          when: { not_mode: [bus] }

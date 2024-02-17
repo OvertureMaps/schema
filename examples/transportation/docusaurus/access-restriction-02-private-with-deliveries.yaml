@@ -10,13 +10,13 @@ properties:
   theme: transportation
   type: segment
   version: 0
-  updateTime: "2023-06-20T16:54:00-06:00"
-  subType: road
+  update_time: "2023-06-20T16:54:00-06:00"
+  subtype: road
   road:
     restrictions:
       access:
         - denied
-        - allowed: { when: { recognized: [asPrivate] } }
+        - allowed: { when: { recognized: [as_private] } }
         - allowed:
-            when: { using: [toDeliver] }
+            when: { using: [to_deliver] }
             during: Mo-Fr 08:30-16:30
