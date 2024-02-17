@@ -9,10 +9,10 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 2
+  version: 0
+  update_time: "2023-06-16T15:33:00-06:00"
   subtype: road
-  class: secondary
-  lanes:
-    - value:
+  road:
+    lanes:
       - direction: backward
       - direction: forward

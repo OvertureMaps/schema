@@ -14,23 +14,21 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
+  update_time: "2023-02-23T00:03:59-08:00"
   version: 5
   subtype: road
-  class: primary
-  access_restrictions:
-    - access_type: denied
-    - access_type: designated
-      when: {mode: [truck]}
-      between: [0.1, 0.25]
-    - access_type: allowed
-      when:
-        using: [as_customer, to_farm]
-        recognized: [as_permitted, as_employee]
-      between: [0.25, 0.50]
-    - access_type: allowed
-      when:
-        vehicle:
-          - dimension: axle_count
-            comparison: greater_than
-            value: 5
-      between: [0.50, 0.70]
+  road:
+    restrictions:
+      access:
+        - denied
+        - designated:
+            when: {mode: [truck]}
+            at: [0.1, 0.25]
+        - allowed:
+            when:
+              using: [as_customer, to_farm]
+              recognized: [as_permitted, as_employee]
+            at: [0.25, 0.50]
+        - allowed:
+            when: {vehicle: {axle_count: {is_more_than: 5}}}
+            at: [0.50, 0.70]

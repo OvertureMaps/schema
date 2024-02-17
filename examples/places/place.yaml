@@ -6,7 +6,7 @@ geometry:
   coordinates: [0, 0]
 properties:
   categories:
-    primary: some_category
+    main: some_category
   confidence: 0.9
   websites:
     - https://www.example.com
@@ -25,12 +25,13 @@ properties:
       locality: "New York"
     - freeform: "770 Brodway, #802"
       locality: "New York"
-      region: "US-NY"
+      region: "NY"
       country: "US"
   # Overture properties
   theme: places
   type: place
-  version: 1
+  version: 0
+  update_time: "2023-02-22T23:55:01-08:00"
   sources:
     - property: ""
       dataset: metaPlaces

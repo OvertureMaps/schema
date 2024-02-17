@@ -9,15 +9,12 @@ properties:
   theme: buildings
   type: building
   version: 1
+  update_time: "2023-02-22T23:55:01-08:00"
   names:
     primary: Empire State Building
     common:
       en: Empire State Building
     rules:
       - variant: common
-<<<<<<<< HEAD:counterexamples/buildings/bad-names/bad-name-language.yaml
-        language: ga:genitive
-========
         language: local
->>>>>>>> 444399f (Remove "local" as a language. Fix counterexamples):counterexamples/buildings/bad-names/bad-name-local-not-allowed.yaml
         value: Blah

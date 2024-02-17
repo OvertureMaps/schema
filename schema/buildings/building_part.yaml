@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: part
+title: Building Part Schema
 description: >-
   A single building part. Parts describe their shape and color and other properties. Each
   building part must contain the building with which it is associated.
@@ -16,9 +16,9 @@ properties:
   properties:
     unevaluatedProperties: false
     allOf:
+      - "$ref": ./defs.yaml#/shapeContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
-      - "$ref": ./defs.yaml#/$defs/propertyContainers/shapeContainer
     required: [building_id]
     properties:
       building_id:

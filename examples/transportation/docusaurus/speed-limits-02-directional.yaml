@@ -9,12 +9,15 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 2
+  version: 0
+  update_time: "2023-06-21T11:46:15-07:00"
   subtype: road
-  class: secondary
-  speed_limits:
-    - max_speed: {value: 70, unit: "mph"}
-    - when:
-        mode: [hgv]
-        heading: forward
-      max_speed: {value: 65, unit: "mph"}
+  road:
+    restrictions:
+      speed_limits:
+        - max_speed: [70, "mph"]
+        - #when: TODO: Uncomment and re-introduce `when` once this issue is sorted: schema-wg #155.
+          mode: [hgv]
+            # TODO: Uncomment below once this issue is sorted: schema-wg #155.
+            # proceeding: { inDirection: forward }
+          max_speed: [65, "mph"]

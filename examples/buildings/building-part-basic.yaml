@@ -16,18 +16,17 @@ properties:
   ext_bar: Me too!
   # Overture properties
   theme: buildings
-  type: building_part
+  type: part
   version: 1
   level: 1
+  update_time: "2023-06-06T10:30:00-08:00"
   building_id: abc123
   height: 21.34
   num_floors: 4
   min_height: 15.0
-  min_floor: 2
   roof_shape: dome
   roof_orientation: across
   roof_direction: 23.4
-  roof_height: 3.4
   sources:
   - property: ""
     dataset: microsoftMLBuildings

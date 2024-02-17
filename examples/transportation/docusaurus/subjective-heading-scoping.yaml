@@ -13,13 +13,16 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 2
+  version: 1
+  update_time: "2024-02-20T15:56:31-06:00"
   subtype: road
-  class: primary
-  access_restrictions:
-    - access_type: denied
-      when: { heading: backward }
-    - access_type: allowed
-      when:
-        heading: backward
-        mode: [bus]
+  road:
+    class: primary
+    restrictions:
+      access:
+        - denied:
+            when: { heading: backward }
+        - allowed:
+            when:
+              heading: backward
+              mode: [bus]

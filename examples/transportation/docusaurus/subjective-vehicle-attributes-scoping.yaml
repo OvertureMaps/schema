@@ -10,14 +10,11 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  version: 0
+  update_time: "2023-06-16T14:22:30-06:00"
   subtype: road
-  class: residential
-  access_restrictions:
-    - access_type: denied
-      when:
-        vehicle:
-          - dimension: weight
-            comparison: greater_than
-            value: 23
-            unit: 't'
+  #road:
+    # TODO: This example needs the unit fixes from https://github.com/OvertureMaps/schema-wg/issues/147 to work.
+    #restrictions:
+    #  access:
+    #    denied: { when: { vehicle: { weight: { greaterThan: [23, tons] } } } }

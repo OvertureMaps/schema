@@ -9,14 +9,13 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  version: 0
+  update_time: "2023-06-20T17:19:00-06:00"
   subtype: road
-  class: motorway
-  access_restrictions:
-    - access_type: denied
-      when:
-        mode: [hgv]
-        vehicle:
-          - dimension: axle_count
-            comparison: greater_than_equal
-            value: 5
+  road:
+    restrictions:
+      access:
+        - denied:
+            when:
+              mode: [hgv]
+              vehicle: { axle_count: { is_at_least: 5 } }

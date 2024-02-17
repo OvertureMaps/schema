@@ -1,0 +1,56 @@
+{
+  "type": "Feature",
+  "properties": {
+    "ext_expected_errors": [
+      "missing properties: 'context_id'"
+    ],
+    "theme": "admins",
+    "type": "locality",
+    "version": 0,
+    "update_time": "2023-02-22T23:55:01-08:00",
+    "subtype": "administrative_locality",
+    "locality_type": "country",
+    "admin_level": 2,
+    "iso_country_code_alpha_2": "US",
+    "default_language": "en",
+    "driving_side": "right",
+    "names": {
+      "primary": "United States",
+      "common": {
+        "en": "United States",
+        "es": "Estados Unidos"
+      },
+      "rules": [
+        {
+          "variant": "official",
+          "value": "United States of America"
+        },
+        {
+          "variant": "short",
+          "value": "US"
+        },
+        {
+          "language": "en",
+          "variant": "short",
+          "value": "US"
+        },
+        {
+          "language": "en",
+          "variant": "short",
+          "value": "U.S."
+        },
+        {
+          "variant": "alternate",
+          "value": "States"
+        }
+      ]
+    }
+  },
+  "geometry": {
+    "type": "Point",
+    "coordinates": [
+          -61.8743292,
+          48.8068635
+    ]
+  }
+}

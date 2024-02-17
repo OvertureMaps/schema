@@ -9,10 +9,10 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  version: 0
+  update_time: "2023-06-21T09:53:32-06:00"
   subtype: road
-  class: residential
-  speed_limits:
-    - max_speed:
-        value: 30
-        unit: km/h
+  road:
+    restrictions:
+      speed_limits:
+        - max_speed: [30, "km/h"]

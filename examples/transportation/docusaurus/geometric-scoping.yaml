@@ -7,15 +7,13 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  version: 0
+  update_time: "2023-06-15T17:24:01-06:00"
   subtype: road
-  class: primary
-  speed_limits:
-    - between: [0, 0.15]
-      max_speed:
-        value: 100
-        unit: km/h
-    - between: [0.15, 1]
-      max_speed:
-        value: 60
-        unit: km/h
+  road:
+    restrictions:
+      speed_limits:
+        - at: [0, 0.15]
+          max_speed: [100, "km/h"]
+        - at: [0.15, 1]
+          max_speed: [60, "km/h"]

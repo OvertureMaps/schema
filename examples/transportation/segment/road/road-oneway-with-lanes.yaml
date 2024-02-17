@@ -7,18 +7,13 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 6
+  update_time: "2023-05-11T00:03:50-08:00"
+  version: 4
   subtype: road
-  class: secondary
-  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
-  connector_ids: [fooConnector, barConnector]
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  # one way road in forward direction (lanes only in forward direction)
-  lanes:
-    - value:
+  connectors: [fooConnector, barConnector]
+  road:
+    class: secondary
+    # one way road in forward direction (lanes only in forward direction)
+    lanes:
       - direction: forward
       - direction: forward

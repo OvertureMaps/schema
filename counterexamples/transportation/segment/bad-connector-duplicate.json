@@ -12,21 +12,8 @@
     "theme": "transportation",
     "type": "segment",
     "version": 4,
+    "update_time": "2023-02-23T00:04:00-08:00",
     "subtype": "rail",
-    "connector_ids": ["fooConnector", "bazConnector", "fooConnector"],
-    "connectors": [
-      {
-        "connector_id": "fooConnector",
-        "at": 0
-      },
-      {
-        "connector_id": "bazConnector",
-        "at": 1
-      },
-      {
-        "connector_id": "fooConnector",
-        "at": 0
-      }
-    ]
+    "connectors": ["fooConnector", "bazConnector", "fooConnector"]
   }
 }

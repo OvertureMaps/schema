@@ -1,0 +1,86 @@
+---
+title: Feature Model
+---
+
+## Key Concepts
+
+Overture data is described using the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. Each feature includes a geometric object with a unique ID and associated properties. For example, the Town Hall building in Seattle is represented in the Overture buildings dataset as a [GeoJSON](https://geojson.org/) feature that looks like this:
+
+<!-- TODO: Push the below example into the examples/ directory and reference it by
+           filename: This will ensure that it always passes validation. 👇 -->
+
+```json
+{
+  "id": "08828d542c9fffff02ffffff1953aec1",
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [ [-122.3301821, 47.6090116],[-122.3301197, 47.6089409],[-122.3300642, 47.6088779],[-122.3300094, 47.6088158],[-122.329729, 47.6089282],[-122.3297466, 47.6089481],[-122.3296561, 47.6089844],[-122.3296934, 47.6090266],[-122.3297562, 47.6090978], [-122.3298113, 47.6091603],[-122.3298611, 47.6092168],[-122.3299517, 47.6091804],[-122.329963, 47.6091932],[-122.3299793, 47.6091867],[-122.3301728, 47.6091091],[-122.3301916, 47.6091016],[-122.3301714, 47.6090787],[-122.330223, 47.609058] ]
+    ]
+  },
+  "properties": {
+    "theme": "buildings",
+    "type": "building",
+    "version": 0,
+    "update_time": "2023-01-30T00:04:13.000Z",
+    "height": 22.7,
+    "num_floors": 3,
+    "class": "civic",
+    "names": {
+      "primary": "Town Hall Seattle"
+    },
+    "sources": [
+      {
+        "property": "dataset",
+        "dataset": "OpenStreetMap,"
+        "record_id": "w140675988@10"
+      },
+      {
+        "property": "/properties/height",
+        "dataset": "USGS Lidar"
+      }
+    ]
+  }
+}
+```
+
+## Features Represent Entities
+Features in the Overture corpus represent entities in the real world. An entity is a physical thing or concept: a segment of road, a city boundary, a grocery store, a building or a park. Overture assigns unique IDs, called GERS IDs, to these features. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity could be represented by multiple features in a geospatial dataset, and a feature in a dataset might be a representation of multiple entities. For example, a school building and its entrances and exits might be considered a single entity in the real world but could be represented as multiple features in a dataset, each feature with its own GERS ID.
+
+
+## Common Properties
+
+The Overture corpus has a core set of properties for every feature.
+- `theme`: 
+themes are top-level categories of map features.
+- `type`: a theme may have multiple types of features; the transportation theme, for example, has both segments and connectors.
+- `sources`: this is the array of information about the data sources from which a feature's attributes originated.
+- `version`: the version number of a feature is incremented in each Overture release whenever the geometry or attributes of the feature change.
+- `update_time`: the timestamp indicates when the feature was last updated.
+
+Different theme and type values will contribute additional properties to the schema. For example, in the building described above, the buildings `theme` with building `type` has a `class` property that defines what kind of building it is, in this case a civic building. It also has an optional `height` property. You can find more detail about the properties associated with each theme and type in the Schema Themes and Schema Reference sections of this documentation.
+
+
+## Complex Attributes
+
+Some feature properties are quite complex and require further explanation in the documentation.
+
+- **[Global Entity Reference System (GERS) IDs](../../gers/gers.mdx)**: the [Global Entity Reference System](/gers) is responsible for handling persistent identification across entities in the Overture corpus.
+- **[Names](names)**: where applicable, complex attributes such as names will always use the same schema across all themes.
+- **[Scoped and rule-based properties](scoping-rules)**: a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at least one scoping property.
+
+## Extensible Attributes
+
+Any additional top-level property prefixed with `ext_` may be added to an Overture feature, usually via the conflation of an external dataset and an Overture dataset.
+
+## Measurements
+
+Measurements of real-world objects and features follow [The International System of Units (SI)](https://www.bipm.org/en/publications/si-brochure): heights, widths, lengths, etc. In the Overture schema, these values are provided as scalar numeric value without units such as feet or meters. Overture does this to maximize consistency and predictability. 
+
+Quantities specified in regulatory rules, norms and customs follow local specifications wherever possible. In the schema, these values are provided as two-element arrays where the first element is the scalar numeric value and the second value is the units. Overture uses local units of measurement -- feet in the United States and meters in the EU, for example. 
+
+
+## Data Formats
+
+Overture describes data using a GeoJSON mental model and represents data as GeoJSON features. Overture distributes data as [GeoParquet](https://geoparquet.org/). This documentation includes many examples of how to work with data stored in GeoParquet files.

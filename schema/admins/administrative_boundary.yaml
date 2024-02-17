@@ -1,0 +1,30 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Administrative Boundary Schema
+description: >-
+  An Administrative Boundary is a border surrounding an Administrative
+  Locality. Boundaries are compatible with GeoJSON LineString features.
+type: object
+properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/LineString.json
+  properties:
+    unevaluatedProperties: false
+    required: [admin_level]
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+    properties:
+      admin_level: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/adminLevel" }
+      is_maritime: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/isMaritime" }
+      geopol_display:
+        description: Optional value that indicates if the boundary needs special rendering logic
+        type: string
+        enum: [disputed, hidden, visible]
+        "$comment": >-
+          disputed     = Indicates that an Administrative Boundary is subject of a dispute between two or more countries
+          hidden       = Indicates that the Administrative Boundary must not be display though coinciding with an Administrative Area
+          visible      = Indicates that the Administrative Boundary is to be displayed (i.e. used to override a maritime=yes flag)

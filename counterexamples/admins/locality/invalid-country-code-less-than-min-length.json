@@ -4,43 +4,23 @@
       "theme": "admins",
       "type": "locality",
       "version": 0,
-      "updateTime": "2023-02-22T23:55:01-08:00",
-      "subType": "administrativeLocality",
-      "localityType": "country",
-      "adminLevel": 1,
-      "isoCountryCodeAlpha2": "U",
-      "defaultLanguage": "english",
-      "drivingSide": "right",
-      "contextId": "northAmericaId",
-      "extExpectedErrors": [
-        "[I#/properties/isoCountryCodeAlpha2] [S#/$defs/propertyDefinitions/isoCountryCodeAlpha2/pattern] does not match pattern '^[A-Z]{2}$'"
+      "update_time": "2023-02-22T23:55:01-08:00",
+      "subtype": "administrative_locality",
+      "names": {
+        "primary": "USA with invalid country code"
+      },
+      "locality_type": "country",
+      "admin_level": 1,
+      "iso_country_code_alpha_2": "U",
+      "default_language": "en",
+      "driving_side": "right",
+      "context_id": "northAmericaId",
+      "ext_expected_errors": [
+        "[I#/properties/iso_country_code_alpha_2] [S#/$defs/propertyDefinitions/isoCountryCodeAlpha2/pattern] does not match pattern '^[A-Z]{2}$'"
       ]
     },
     "geometry": {
-      "type": "Polygon",
-      "coordinates": [
-        [
-          [
-            -61.8743292,
-            48.8068635
-          ],
-          [
-            -78.4016703,
-            26.273714
-          ],
-          [
-            -120.7749598,
-            32.2499745
-          ],
-          [
-            -126.928757,
-            49.0378679
-          ],
-          [
-            -61.8743292,
-            48.8068635
-          ]
-        ]
-      ]
+      "type": "Point",
+      "coordinates": [0, 0]
     }
   }

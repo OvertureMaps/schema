@@ -8,15 +8,15 @@ geometry:
 properties:
   theme: admins
   type: locality
-  updateTime: '2023-02-22T23:55:01-08:00'
+  update_time: '2023-02-22T23:55:01-08:00'
   version: 0
-  subType: administrativeLocality
-  adminLevel: 1
-  defaultLanguage: en
-  drivingSide: right
-  isoCountryCodeAlpha2: US
-  isoSubCountryCode: US-NY
-  localityType: country
+  subtype: administrative_locality
+  admin_level: 1
+  default_language: en
+  driving_side: right
+  iso_country_code_alpha_2: US
+  iso_sub_country_code: US-NY
+  locality_type: country
   names:
     primary: United States
     common:

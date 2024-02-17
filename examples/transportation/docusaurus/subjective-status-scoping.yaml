@@ -10,10 +10,12 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  version: 0
+  update_time: "2023-06-16T14:08:00-06:00"
   subtype: road
-  class: tertiary
-  access_restrictions:
-    - access_type: denied
-    - access_type: allowed
-      when: { recognized: [as_private] }
+  road:
+    restrictions:
+      access:
+        - denied
+        - allowed:
+            when: { recognized: [as_private] }

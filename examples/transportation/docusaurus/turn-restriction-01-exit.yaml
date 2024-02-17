@@ -12,15 +12,9 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  version: 0
+  update_time: "2023-06-21T14:12:56-07:00"
   subtype: road
-  class: secondary
-  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
-  connector_ids:
-    - overture:transportation:example:via-turn-restriction-connector1
-    - overture:transportation:example:via-turn-restriction-connector2
   connectors:
-    - connector_id: overture:transportation:example:via-turn-restriction-connector1
-      at: 0
-    - connector_id: overture:transportation:example:via-turn-restriction-connector2
-      at: 1
+    - overture:transportation:example:simple-turn-restriction-connector1
+    - overture:transportation:example:simple-turn-restriction-connector3
