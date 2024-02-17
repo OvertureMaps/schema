@@ -8,14 +8,14 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  subType: road
-  updateTime: "2023-05-10T12:02:30-08:00"
+  subtype: road
+  update_time: "2023-05-10T12:02:30-08:00"
   version: 0
   road:
     class: secondary
     restrictions:
-      speedLimits:
-        - maxSpeed:
+      speed_limits:
+        - max_speed:
             - 100
             - "km/h"
     lanes:
@@ -37,18 +37,18 @@ properties:
                   mode:
                     - hov
                     - bicycle
-          minOccupancy:
-            - isAtLeast: 3
+          min_occupancy:
+            - is_at_least: 3
               when:
                 mode:
                   - hov
-            - isAtLeast: 1
+            - is_at_least: 1
               when:
                 mode:
                   - hov
                 recognized:
-                  - asPermitted
-            - isAtLeast: 1
+                  - as_permitted
+            - is_at_least: 1
               when:
                 mode:
                 - bicycle

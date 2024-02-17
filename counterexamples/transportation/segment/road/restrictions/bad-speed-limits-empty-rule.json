@@ -1,5 +1,5 @@
 {
-  "id": "road segment where road.restrictions.speedLimits contains an empty rule",
+  "id": "road segment where road.restrictions.speed_limits contains an empty rule",
   "type": "Feature",
   "geometry": {
     "type": "LineString",
@@ -9,11 +9,11 @@
     "theme": "transportation",
     "type": "segment",
     "version": 24,
-    "updateTime": "2023-02-23T00:04:00-08:00",
-    "subType": "road",
+    "update_time": "2023-02-23T00:04:00-08:00",
+    "subtype": "road",
     "road": {
       "restrictions": {
-        "speedLimits": [
+        "speed_limits": [
           { }
         ]
       }

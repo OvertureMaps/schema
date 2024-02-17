@@ -1,17 +1,20 @@
 {
   "type": "Feature",
   "properties": {
+    "ext_expected_errors": [
+      "[I#/properties/default_language] [S#/$defs/propertyDefinitions/language/pattern] does not match pattern '^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$'"
+    ],
     "theme": "admins",
     "type": "locality",
     "version": 0,
-    "updateTime": "2023-02-22T23:55:01-08:00",
-    "subType": "administrativeLocality",
-    "localityType": "country",
-    "adminLevel": 1,
-    "isoCountryCodeAlpha2": "US",
-    "defaultLanguage": "english",
-    "drivingSide": "right",
-    "contextId": "northAmericaId",
+    "update_time": "2023-02-22T23:55:01-08:00",
+    "subtype": "administrative_locality",
+    "locality_type": "country",
+    "admin_level": 1,
+    "iso_country_code_alpha_2": "US",
+    "default_language": "english",
+    "driving_side": "right",
+    "context_id": "northAmericaId",
     "names": {
       "primary": "United States",
       "common": {

@@ -15,7 +15,7 @@ import AdminLocalityExample from '!!raw-loader!@site/docs/_examples/admins/local
 
 Localities are populated areas that are named.
 
-Area polygons of localities, if known, are given by [locality area](localityArea) features.
+Area polygons of localities, if known, are given by [locality area](locality-area) features.
 
 <table>
   <tr>
@@ -37,30 +37,30 @@ Area polygons of localities, if known, are given by [locality area](localityArea
 A locality may have one of two possible sub-types.
 
 <Tabs>
-  <TabItem value="administrativeLocality" label="Administrative Locality" default>
+  <TabItem value="administrative_locality" label="Administrative Locality" default>
     <table>
       <tr>
-        <th><code>subType</code></th>
-        <td><code>administrativeLocality</code></td>
+        <th><code>subtype</code></th>
+        <td><code>administrative_locality</code></td>
       </tr>
     </table>
 
 Administrative localities represent countries and hierarchical
 subdivisions of countries.
 
-Every administrative locality has a valid `adminLevel` property set,
+Every administrative locality has a valid `admin_level` property set,
 defining its position in the subdivision hierarchy. All administrative
-localities at sub-country level must have a `contextId` property
+localities at sub-country level must have a `context_id` property
 containing the GERS ID of the feature's parent administrative locality.
 
 The borders of administrative localities, if known, are given by
-[administrative boundary](administrativeBoundary) features.
+[administrative boundary](administrative-boundary) features.
   </TabItem>
-  <TabItem value="namedLocality" label="Named Locality">
+  <TabItem value="named_locality" label="Named Locality">
     <table>
       <tr>
-        <th><code>subType</code></th>
-        <td><code>namedLocality</code></td>
+        <th><code>subtype</code></th>
+        <td><code>named_locality</code></td>
       </tr>
     </table>
 
@@ -84,7 +84,7 @@ localities.
 ## Examples
 
 <Tabs>
-  <TabItem value="administrativeLocality" label="Administrative Locality" default>
+  <TabItem value="administrative_locality" label="Administrative Locality" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(AdminLocalityExample), null, 2) }</CodeBlock>
   </TabItem>
 </Tabs>

@@ -11,16 +11,16 @@ properties:
   theme: transportation
   type: segment
   version: 4
-  updateTime: "2023-08-21T16:23:13-06:00"
-  subType: road
+  update_time: "2023-08-21T16:23:13-06:00"
+  subtype: road
   connectors:
     - overture:transportation:example:simple-turn-restriction-connector1
     - overture:transportation:example:simple-turn-restriction-connector2
   road:
     restrictions:
-      prohibitedTransitions:
+      prohibited_transitions:
          - sequence:  
-           - segmentId: overture:transportation:example:simple-turn-restriction-target
-             connectorId: overture:transportation:example:simple-turn-restriction-connector2
-           finalHeading: forward
+           - segment_id: overture:transportation:example:simple-turn-restriction-target
+             connector_id: overture:transportation:example:simple-turn-restriction-connector2
+           final_heading: forward
            when: {heading: forward} 

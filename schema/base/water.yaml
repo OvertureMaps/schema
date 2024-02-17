@@ -20,10 +20,10 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     required:
-      - subType
+      - subtype
       - class
     properties:
-      subType:
+      subtype:
         description: The type of water body such as an river, ocean or lake.
         default: [water]
         type: string
@@ -72,9 +72,9 @@ properties:
           - water
           - waterStorage
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
-      isSalt:
+      is_salt:
         description: Is it salt water or not
         type: boolean
-      isIntermittent:
+      is_intermittent:
         description: Is it intermittent water or not
         type: boolean

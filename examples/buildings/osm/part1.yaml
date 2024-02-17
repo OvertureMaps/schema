@@ -16,15 +16,15 @@ geometry:
     [-117.1707971, 32.7240658]
   ]]
 properties:
-  buildingId: '1234'
-  extFoo: I am a customer user property.
-  extBar: Me too!
+  building_id: '1234'
+  ext_foo: I am a customer user property.
+  ext_bar: Me too!
   theme: buildings
   type: part
   version: 1
   level: 1
-  updateTime: '2023-06-06T10:30:00-08:00'
-  numFloors: 8
+  update_time: '2023-06-06T10:30:00-08:00'
+  num_floors: 8
   sources:
   - property: ''
     dataset: OpenStreetMap

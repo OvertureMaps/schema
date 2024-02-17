@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const _default = {
 
-    '/admins/administrativeBoundaries.yaml': require('!!raw-loader!@site/docs/_schema/admins/administrativeBoundary.yaml'),
+    '/admins/administrative_boundary.yaml': require('!!raw-loader!@site/docs/_schema/admins/administrative_boundary.yaml'),
     '/admins/defs.yaml': require('!!raw-loader!@site/docs/_schema/admins/defs.yaml'),
     '/admins/locality.yaml': require('!!raw-loader!@site/docs/_schema/admins/locality.yaml'),
 
@@ -17,7 +17,7 @@ const _default = {
 
     '/base/defs.yaml': require('!!raw-loader!@site/docs/_schema/base/defs.yaml'),
     '/base/land.yaml': require('!!raw-loader!@site/docs/_schema/base/land.yaml'),
-    '/base/landUse.yaml': require('!!raw-loader!@site/docs/_schema/base/landUse.yaml'),
+    '/base/land_use.yaml': require('!!raw-loader!@site/docs/_schema/base/land_use.yaml'),
     '/base/water.yaml': require('!!raw-loader!@site/docs/_schema/base/water.yaml'),
 
     '/defs.yaml': require('!!raw-loader!@site/docs/_schema/defs.yaml'),

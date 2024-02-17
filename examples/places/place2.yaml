@@ -16,7 +16,7 @@ properties:
     name: Example
     wikidata: Q1000
   categories:
-    main: someCategory
+    main: some_category
   emails:
   - info@example.com
   phones:
@@ -25,7 +25,7 @@ properties:
   - https://www.twitter.com/example
   theme: places
   type: place
-  updateTime: '2023-02-22T23:55:01-08:00'
+  update_time: '2023-02-22T23:55:01-08:00'
   version: 0
   websites:
   - https://www.example.com

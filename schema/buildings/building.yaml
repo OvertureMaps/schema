@@ -26,8 +26,10 @@ properties:
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       class:
         description: >-
-          A broad category of the building type / purpose. When the current use of the building does not match the built purpose, the class should
-          be set to represent the current use of the building.
+          A broad category of the building type/purpose. When the
+          current use of the building does not match the built purpose,
+          the class should be set to represent the current use of the
+          building.
         type: string
         enum:
           - residential
@@ -43,6 +45,6 @@ properties:
           - medical
           - entertainment
           - military
-      hasParts:
+      has_parts:
         description: Flag indicating whether the building has parts
         type: boolean

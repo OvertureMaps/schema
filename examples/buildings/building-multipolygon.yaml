@@ -6,10 +6,10 @@ geometry:
   coordinates: [[[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]]
 properties:
   # Custom user properties.
-  extFoo: I am a customer user property.
-  extBar: Me too!
+  ext_foo: I am a customer user property.
+  ext_bar: Me too!
   # Overture properties
   theme: buildings
   type: building
   version: 0
-  updateTime: "2023-02-22T23:55:01-08:00"
+  update_time: "2023-02-22T23:55:01-08:00"

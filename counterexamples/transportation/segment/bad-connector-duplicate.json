@@ -6,11 +6,14 @@
     "coordinates": [[0, 1], [1, 1]]
   },
   "properties": {
+    "ext_expected_errors": [
+      "items at index 0 and 2 are equal"
+    ],
     "theme": "transportation",
     "type": "segment",
     "version": 4,
-    "updateTime": "2023-02-23T00:04:00-08:00",
-    "subType": "rail",
+    "update_time": "2023-02-23T00:04:00-08:00",
+    "subtype": "rail",
     "connectors": ["fooConnector", "bazConnector", "fooConnector"]
   }
 }

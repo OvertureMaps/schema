@@ -89,7 +89,7 @@ Our criteria for recognizing a proposed new travel mode are:
    [scoping property](/overview/feature-model/scoping-rules#scoped-values-and-scoping-properties).
    (*An example of such a trivially-expressible concept might be a
    three-axle vehicle which is more appropriately phrased as
-   `vehicle: { axleCount: { isEqualTo: 3 } }`.*)
+   `vehicle: { axle_count: { is_equal_to: 3 } }`.*)
 - the proposed new travel mode must be supported by existing data in at
    least one of Overture's upstream data sources.
 
@@ -110,33 +110,33 @@ segments. Since travel modes are expressed via scoping properties, it
 is recommended to read the section on
 [scoped and rule-based properties](/overview/feature-model/scoping-rules) before proceeding further.
 
-#### Travel mode scoping: `mode` and `modeNot`
+#### Travel mode scoping: `mode` and `mode_not`
 
 Two scoping properties control whether a given scoped property applies
-to a given travel mode: `mode` and `modeNot`.
+to a given travel mode: `mode` and `mode_not`.
 
-If either `mode` or `modeNot` property is specified, the property value
+If either `mode` or `mode_not` property is specified, the property value
 must be a non-empty, array of travel modes, and is interpreted as a set.
 Values must be unique, but order is not important.
 
-The `mode` and `modeNot` properties are not mutually exclusive: in
+The `mode` and `mode_not` properties are not mutually exclusive: in
 places where scoping by travel mode is allowed, either `mode` or
-`modeNot`, or both, may be provided.
+`mode_not`, or both, may be provided.
 
-- **Neither**. When neither `mode` nor `modeNot` is provided, the
+- **Neither**. When neither `mode` nor `mode_not` is provided, the
    parent property's scope includes all default travel modes implied by
    the [road class](roads#road-class).
 - **Only `mode`**. When `mode` is provided by itself, the parent
    property is scoped to include only those travel modes that included
    in the `mode` set.
-- **Only `modeNot`**. When `modeNot` is provided by itself, the parent
+- **Only `mode_not`**. When `mode_not` is provided by itself, the parent
    property is scoped to include all those travel modes that are not
-   included in the `modeNot` set.
-- **Both**. When both `mode` and `modeNot` are provided, the parent
+   included in the `mode_not` set.
+- **Both**. When both `mode` and `mode_not` are provided, the parent
    property is scoped to include all those travel modes that are
    included in the `mode` set except those that are included in the
-   `modeNot` set. For example,
-    `mode: [motorVehicle], modeNot: [motorcycle]` expresses the travel
+   `mode_not` set. For example,
+    `mode: [motor_vehicle], mode_not: [motorcycle]` expresses the travel
     mode scope "all motor vehicles except motorcycles".
 
 #### Vehicle attribute scoping: `vehicle`
@@ -171,8 +171,9 @@ are meant to be orthogonal to (completely separate from) travel modes.
 Overture travel modes form a shallow taxonomy. Some travel modes are
 more general, while others are more specific, and a more general travel
 mode may contain a more specific one. For example, the general travel
-mode `vehicle` contains the more specific mode `motorVehicle`. The taxonomy supported in our draft schema `v0.4.0` can be visualized
-in the diagram below.
+mode `vehicle` contains the more specific mode `motor_vehicle`. The
+taxonomy supported in our draft schema `v0.8.0` can be visualized in the
+diagram below.
 
 <figure>
 
@@ -244,7 +245,7 @@ the list of travel modes. If we did this consistently with how extension
 properties <!-- TODO: This should be a link to a heading in the main
 schema documentation, but that heading needs to be written first. -->
 work for features, we could, for example, allow travel mode names with
-the `ext*` to be ignored by the schema validation rules.
+the `ext_*` to be ignored by the schema validation rules.
 
 
 ### Internal consistency
@@ -260,6 +261,5 @@ travel modes and the other
 (`using` and `recognized`). One area where we may have been unsuccessful
 is the `emergency` travel mode in the [current taxonomy](#the-travel-modes-taxonomy).
 Arguably, `emergency` should be removed from the taxonomy, and an
-`asEmergencyResponder` should be included in the status values
+`as_emergency_responder` should be included in the status values
 enumeration for the `recognized` property.
-

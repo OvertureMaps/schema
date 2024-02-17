@@ -21,10 +21,10 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     required:
-      - subType
+      - subtype
       - class
     properties:
-      subType:
+      subtype:
         description: Broad type of land
         type: string
         enum:
@@ -49,28 +49,28 @@ properties:
           - recreation
           - religious
           - residential
-          - resourceExtraction
+          - resource_extraction
           - structure
           - transportation
-          - winterSports
+          - winter_sports
       class:
-        description: Further classification of the landuse
+        description: Further classification of the land use
         type: string
         enum:
-          - aboriginalLand
+          - aboriginal_land
           - aerodrome
           - airfield
           - allotments
-          - animalKeeping
+          - animal_keeping
           - aquaculture
           - barracks
           - base
           - brownfield
           - bunker
-          - campSite
+          - camp_site
           - cemetery
           - churchyard
-          - civicAdmin
+          - civic_admin
           - clinic
           - college
           - commercial
@@ -78,11 +78,11 @@ properties:
           - conservation
           - construction
           - dam
-          - dangerArea
+          - danger_area
           - depot
           - doctors
-          - dogPark
-          - drivingRange
+          - dog_park
+          - driving_range
           - education
           - environmental
           - fairway
@@ -92,11 +92,11 @@ properties:
           - forest
           - garages
           - garden
-          - golfCourse
+          - golf_course
           - grass
           - green
           - greenfield
-          - greenhouseHorticulture
+          - greenhouse_horticulture
           - helipad
           - heliport
           - highway
@@ -104,55 +104,55 @@ properties:
           - industrial
           - institutional
           - landfill
-          - lateralWaterHazard
+          - lateral_water_hazard
           - logging
           - marina
           - meadow
           - military
-          - militaryOther
-          - nationalPark
-          - naturalMonument
-          - natureReserve
-          - navalBase
-          - nuclearExplosionSite
-          - obstacleCourse
+          - military_other
+          - national_park
+          - natural_monument
+          - nature_reserve
+          - naval_base
+          - nuclear_explosion_site
+          - obstacle_course
           - orchard
           - park
-          - peatCutting
+          - peat_cutting
           - pier
           - pitch
-          - plantNursery
+          - plant_nursery
           - playground
-          - protectedLandscapeSeascape
+          - protected_landscape_seascape
           - public
           - quarry
           - range
-          - recreationGround
+          - recreation_ground
           - religious
           - residential
           - retail
           - rough
-          - saltPond
+          - salt_pond
           - school
           - schoolyard
-          - speciesManagementArea
+          - species_management_area
           - stadium
-          - statePark
-          - staticCaravan
-          - strictNatureReserve
+          - state_park
+          - static_caravan
+          - strict_nature_reserve
           - tee
-          - themePark
+          - theme_park
           - track
-          - trafficIsland
-          - trainingArea
+          - traffic_island
+          - training_area
           - trench
           - university
-          - villageGreen
+          - village_green
           - vineyard
-          - waterHazard
-          - waterPark
-          - wildernessArea
-          - winterSports
+          - water_hazard
+          - water_park
+          - wilderness_area
+          - winter_sports
           - zoo
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }

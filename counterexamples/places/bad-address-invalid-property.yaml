@@ -5,17 +5,19 @@ geometry:
   type: Point
   coordinates: [0, 0]
 properties:
-  categories:
-    main: someCategory
-  addresses:
-    - freeform: "770 Broadway, Floor 8"
-      locality: "New York"
-    - freeform: "770 Brodway, #802"
-      locality: "New York"
-      region2: "NY"
-      country: "US"
-  # Overture properties
+  ext_expected_errors: ["[I#/properties/addresses/1/region2] [S#/$defs/propertyDefinitions/address/unevaluatedProperties] not allowed"]
   theme: places
   type: place
   version: 0
-  updateTime: "2023-02-22T23:55:01-08:00"
+  update_time: "2023-02-22T23:55:01-08:00"
+  names:
+    primary: Fancy POI with invalid address property (region2)
+  categories:
+    main: some_category
+  addresses:
+    - freeform: "770 Broadway, Floor 8"
+      locality: "New York"
+    - freeform: "770 Broadway, #802"
+      locality: "New York"
+      region2: "NY"
+      country: "US"

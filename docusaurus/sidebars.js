@@ -83,9 +83,9 @@ const sidebars = {
           label: 'admins',
           collapsed: false,
           items: [
-              'reference/admins/administrativeBoundary',
+              'reference/admins/administrative-boundary',
               'reference/admins/locality',
-              'reference/admins/localityArea',
+              'reference/admins/locality-area',
           ]
         },
         {
@@ -94,7 +94,7 @@ const sidebars = {
           collapsed: false,
           items: [
               'reference/base/land',
-              'reference/base/landUse',
+              'reference/base/land-use',
               'reference/base/water',
           ]
         },

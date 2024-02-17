@@ -69,7 +69,9 @@ properties:
           type: string
         uniqueItems: true
       brand:
-        description: The brand of the place. We consider a location with multiple brands as separate places, each with their own brand.
+        description: >-
+          The brand of the place. A location with multiple brands is
+          modeled as multiple separate places, each with its own brand.
         type: object
         properties:
           names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }

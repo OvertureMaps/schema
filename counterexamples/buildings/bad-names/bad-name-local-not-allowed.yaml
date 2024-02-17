@@ -5,14 +5,11 @@ geometry:
   type: Polygon
   coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
 properties:
-  # Custom user properties.
-  extFoo: I am a customer user property.
-  extBar: Me too!
-  # Overture properties
+  ext_expected_errors: ["[I#/properties/names/rules/0/language] [S#/$defs/propertyDefinitions/language/pattern] does not match pattern"]
   theme: buildings
   type: building
   version: 1
-  updateTime: "2023-02-22T23:55:01-08:00"
+  update_time: "2023-02-22T23:55:01-08:00"
   names:
     primary: Empire State Building
     common:

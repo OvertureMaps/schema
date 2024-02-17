@@ -6,7 +6,7 @@ geometry:
   coordinates: [0, 0]
 properties:
   categories:
-    main: someCategory
+    main: some_category
   confidence: 0.9
   websites:
     - https://www.example.com
@@ -31,14 +31,14 @@ properties:
   theme: places
   type: place
   version: 0
-  updateTime: "2023-02-22T23:55:01-08:00"
+  update_time: "2023-02-22T23:55:01-08:00"
   sources:
     - property: ""
       dataset: metaPlaces
-      recordId: "10101"
+      record_id: "10101"
     - property: "/properties/brand"
       dataset: msftPlaces
-      recordId: "10df72b8"
+      record_id: "10df72b8"
   names:
     primary: My Sweet POI
     common:

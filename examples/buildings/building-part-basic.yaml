@@ -12,21 +12,21 @@ geometry:
           ]]
 properties:
   # Custom user properties.
-  extFoo: I am a customer user property.
-  extBar: Me too!
+  ext_foo: I am a customer user property.
+  ext_bar: Me too!
   # Overture properties
   theme: buildings
   type: part
   version: 1
   level: 1
-  updateTime: "2023-06-06T10:30:00-08:00"
-  buildingId: abc123
+  update_time: "2023-06-06T10:30:00-08:00"
+  building_id: abc123
   height: 21.34
-  numFloors: 4
-  minHeight: 15.0
-  roofShape: dome
-  roofOrientation: across
-  roofDirection: 23.4
+  num_floors: 4
+  min_height: 15.0
+  roof_shape: dome
+  roof_orientation: across
+  roof_direction: 23.4
   sources:
   - property: ""
     dataset: microsoftMLBuildings

@@ -14,13 +14,13 @@ properties:
       - "$ref": https://geojson.org/schema/LineString.json
   properties:
     unevaluatedProperties: false
-    required: [adminLevel]
+    required: [admin_level]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     properties:
-      adminLevel: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/adminLevel" }
-      isMaritime: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/isMaritime" }
-      geopolDisplay:
+      admin_level: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/adminLevel" }
+      is_maritime: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/isMaritime" }
+      geopol_display:
         description: Optional value that indicates if the boundary needs special rendering logic
         type: string
         enum: [disputed, hidden, visible]

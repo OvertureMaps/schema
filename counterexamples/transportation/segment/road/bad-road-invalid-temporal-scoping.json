@@ -9,13 +9,17 @@
     "theme": "transportation",
     "type": "segment",
     "version": 19,
-    "updateTime": "2023-02-23T00:04:00-08:00",
-    "subType": "road",
+    "update_time": "2023-02-23T00:04:00-08:00",
+    "subtype": "road",
     "road": {
-      "flags": ["isBridge"],
+      "flags": [
+        {
+          "values": ["is_bridge"]
+        }
+      ],
       "during": "Mo-Sa 09:00-12:00, We 15:00-18:00"
     },
-    "extExpectedErrors": [
+    "ext_expected_errors": [
       "[I#/properties/road/during] [S#/$defs/propertyDefinitions/road/unevaluatedProperties] not allowed"
     ]
   }

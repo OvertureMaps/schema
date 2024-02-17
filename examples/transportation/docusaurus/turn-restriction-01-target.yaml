@@ -13,8 +13,8 @@ properties:
   theme: transportation
   type: segment
   version: 0
-  updateTime: "2023-06-21T13:42:35-07:00"
-  subType: road
+  update_time: "2023-06-21T13:42:35-07:00"
+  subtype: road
   connectors:
     - overture:transportation:example:simple-turn-restriction-connector2
     - overture:transportation:example:simple-turn-restriction-connector3
