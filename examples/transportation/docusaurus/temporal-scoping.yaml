@@ -10,11 +10,11 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 2
+  version: 0
+  update_time: "2023-06-16T10:33:00-06:00"
   subtype: road
-  class: unknown
-  access_restrictions:
-    - access_type: denied
-      when:
-        mode: [bus]
-        during: "Mo-Fr 15:00-18:00"
+  road:
+    restrictions:
+      access:
+        - denied: { during: "Mo-Fr 15:00-18:00" }
+          when: { not_mode: [bus] }

@@ -1,0 +1,26 @@
+---
+id: lanes-resolution-example-segment-1
+type: Feature
+geometry:
+  type: LineString
+  coordinates: # Oriented toward segment 2, roughly NE.
+    - [-26.383587179327378, 19.309035206]
+    - [ -23.693418548, 22.079931368]
+properties:
+  theme: transportation
+  type: segment
+  version: 0
+  update_time: "2023-06-20T13:51:00-06:00"
+  connectors: [lanes-resolution-example-connector]
+  subtype: road
+  road:
+    lanes: # A list of two geometrically-scoped rules for resolving the lane block.
+      - at: [0, 0.67]
+        value:
+          - direction: backward
+          - direction: forward
+          - direction: forward
+      - at: [0.67, 1]
+        value:
+          - direction: backward
+          - direction: forward

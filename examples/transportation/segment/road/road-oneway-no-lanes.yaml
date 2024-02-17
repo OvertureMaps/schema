@@ -7,15 +7,14 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 6
+  update_time: "2023-05-11T00:03:50-08:00"
+  version: 4
   subtype: road
-  class: secondary
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  # one way road in backward direction (forward access is denied)
-  access_restrictions:
-    - access_type: denied
-      when: {heading: forward}
+  connectors: [fooConnector, barConnector]
+  road:
+    class: secondary
+    # one way road in backward direction (forward access is denied)
+    restrictions:
+      access:
+        - denied:
+            heading: forward

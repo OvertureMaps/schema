@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: building
+title: Building Footprint Schema
 description: >-
   A building is a man-made structure with a roof that exists permanently in one place. Buildings are compatible with
   GeoJSON Polygon features.
@@ -10,9 +10,8 @@ properties:
     "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     description: >-
-      A regular building's geometry is defined as its footprint or
-      roofprint (if traced from aerial/satellite imagery). It MUST be a
-      Polygon or MultiPolygon as defined by the GeoJSON schema.
+      A regular building's geometry is defined as it's footprint or roofprint (if traced from aerial/satellite imagery). These MUST be a Polygon as defined by GeoJSON
+      schema.
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Polygon.json
@@ -20,125 +19,32 @@ properties:
   properties:
     unevaluatedProperties: false
     allOf:
+      - "$ref": ./defs.yaml#/shapeContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
-      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
-      - "$ref": ./defs.yaml#/$defs/propertyContainers/shapeContainer
     properties:
-      subtype:
+      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
+      class:
         description: >-
           A broad category of the building type/purpose. When the
           current use of the building does not match the built purpose,
-          the subtype should be set to represent the current use of the
+          the class should be set to represent the current use of the
           building.
         type: string
         enum:
+          - residential
+          - outbuilding
           - agricultural
-          - civic
           - commercial
+          - industrial
           - education
-          - entertainment
-          - industrial
-          - medical
-          - military
-          - outbuilding
-          - religious
-          - residential
           - service
-          - transportation
-      class:
-        description: >-
-          Further delineation of the building's built purpose.
-        type: string
-        enum:
-          - agricultural
-          - allotment_house
-          - apartments
-          - barn
-          - beach_hut
-          - boathouse
-          - bridge_structure
-          - bungalow
-          - bunker
-          - cabin
-          - carport
-          - cathedral
-          - chapel
-          - church
+          - religious
           - civic
-          - college
-          - commercial
-          - cowshed
-          - detached
-          - digester
-          - dormitory
-          - dwelling_house
-          - factory
-          - farm
-          - farm_auxiliary
-          - fire_station
-          - garage
-          - garages
-          - ger
-          - glasshouse
-          - government
-          - grandstand
-          - greenhouse
-          - guardhouse
-          - hangar
-          - hospital
-          - hotel
-          - house
-          - houseboat
-          - hut
-          - industrial
-          - kindergarten
-          - kiosk
-          - library
-          - manufacture
-          - military
-          - monastery
-          - mosque
-          - office
-          - outbuilding
-          - parking
-          - pavilion
-          - post_office
-          - presbytery
-          - public
-          - religious
-          - residential
-          - retail
-          - roof
-          - school
-          - semi
-          - semidetached_house
-          - service
-          - shed
-          - shrine
-          - silo
-          - slurry_tank
-          - sports_centre
-          - sports_hall
-          - stable
-          - stadium
-          - static_caravan
-          - stilt_house
-          - storage_tank
-          - sty
-          - supermarket
-          - synagogue
-          - temple
-          - terrace
-          - toilets
-          - train_station
-          - transformer_tower
           - transportation
-          - trullo
-          - university
-          - warehouse
-          - wayside_shrine
-
+          - medical
+          - entertainment
+          - military
       has_parts:
         description: Flag indicating whether the building has parts
         type: boolean

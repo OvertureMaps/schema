@@ -6,12 +6,9 @@
     "coordinates": [0, 1]
   },
   "properties": {
-    "ext_expected_errors": [
-      "at '/geometry/type' [S#/properties/type/enum]: value must be 'LineString'"
-    ],
     "theme": "transportation",
     "type": "segment",
-    "subtype": "water",
-    "version": 15
+    "version": 14,
+    "update_time": "2023-02-23T00:04:00-08:00"
   }
 }

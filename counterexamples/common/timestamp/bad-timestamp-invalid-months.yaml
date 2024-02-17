@@ -1,0 +1,15 @@
+---
+id: bad-timestamp-invalid-months
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  categories:
+    main: some_category
+  theme: places
+  type: place
+  version: 0
+  update_time: "2024-13-22T12:59:22-08:00"
+  ext_expected_errors:
+    - "does not match pattern"

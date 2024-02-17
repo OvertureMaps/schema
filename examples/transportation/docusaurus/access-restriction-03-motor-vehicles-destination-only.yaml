@@ -9,11 +9,11 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  version: 0
+  update_time: "2023-06-20T16:58:00-06:00"
   subtype: road
-  class: residential
-  access_restrictions:
-    - access_type: denied
-      when: { mode: [motor_vehicle] }
-    - access_type: allowed
-      when: { using: [at_destination] }
+  road:
+    restrictions:
+      access:
+        - denied: { when: { mode: [motor_vehicle] } }
+        - allowed: { when: { using: [at_destination] } }

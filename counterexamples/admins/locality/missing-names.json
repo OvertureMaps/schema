@@ -1,0 +1,20 @@
+{
+  "type": "Feature",
+  "properties": {
+    "ext_expected_errors": [
+      "missing properties: 'names'"
+    ],
+    "theme": "admins",
+    "type": "locality",
+    "version": 0,
+    "update_time": "2023-02-22T23:55:01-08:00",
+    "subtype": "administrative_locality",
+    "locality_type": "country",
+    "admin_level": 1,
+    "context_id": "northAmericaId"
+  },
+  "geometry": {
+    "type": "Point",
+    "coordinates": [0, 0]
+  }
+}

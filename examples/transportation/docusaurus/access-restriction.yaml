@@ -13,16 +13,18 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 4
+  version: 3
+  update_time: "2023-06-06T16:42:00-06:00"
   subtype: road
-  class: motorway
   connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
+    - overture:transportation:example:simple-road-connector-1
+    - overture:transportation:example:simple-road-connector-2
   names:
     primary: SR 520
-  access_restrictions:
-    - access_type: denied
-      when: {mode: [foot]}
+  road:
+    class: motorway
+    surface: paved
+    restrictions:
+      access:
+        - denied:
+            when: {mode: [foot]}

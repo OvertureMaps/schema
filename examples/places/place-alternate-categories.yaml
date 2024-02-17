@@ -6,7 +6,7 @@ geometry:
   coordinates: [0, 0]
 properties:
   categories:
-    primary: the1_category_you_want_first
+    main: some_category
     alternate:
       - another_category
   confidence: 0.9
@@ -25,14 +25,15 @@ properties:
   addresses:
     - freeform: "770 Broadway, Floor 8"
       locality: "New York"
-    - freeform: "770 Broadway, #802"
+    - freeform: "770 Brodway, #802"
       locality: "New York"
-      region: "US-NY"
+      region: "NY"
       country: "US"
   # Overture properties
   theme: places
   type: place
-  version: 1
+  version: 0
+  update_time: "2023-02-22T23:55:01-08:00"
   names:
     primary: My Sweet POI
     common:

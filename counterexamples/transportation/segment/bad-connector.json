@@ -7,14 +7,14 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "got string, want object",
-      "got number, want object",
-      "got boolean, want object"
+      "expected string, but got number",
+      "expected string, but got boolean"
     ],
     "theme": "transportation",
     "type": "segment",
     "version": 3,
+    "update_time": "2023-02-23T00:04:00-08:00",
     "subtype": "rail",
-    "connectors": [{"connector_id": "foo", "at": 0.0}, {"connector_id": "bar", "at": 1.0}, "bazConnector", "qux", 1, false]
+    "connectors": ["bazConnector", "qux", 1, false]
   }
 }

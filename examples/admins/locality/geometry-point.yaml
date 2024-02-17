@@ -1,0 +1,37 @@
+---
+type: Feature
+geometry:
+  type: Point
+  coordinates:
+  - -99.1487581
+  - 41.3768086
+properties:
+  theme: admins
+  type: locality
+  update_time: '2023-02-22T23:55:01-08:00'
+  version: 0
+  subtype: administrative_locality
+  context_id: northAmericaId
+  admin_level: 1
+  default_language: en
+  driving_side: right
+  iso_country_code_alpha_2: US
+  locality_type: country
+  names:
+    primary: United States
+    common:
+      en: United States
+      es: Estados Unidos
+    rules:
+      - variant: alternate
+        value: States
+      - variant: official
+        value: United States of America
+      - variant: short
+        value: US
+      - variant: short
+        language: en
+        value: US
+      - variant: short
+        language: en
+        value: U.S.

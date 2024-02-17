@@ -10,15 +10,17 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 5
+  version: 3
+  update_time: "2023-06-01T16:42:00-06:00"
   subtype: road
-  class: residential
   connectors:
-    - connector_id: overture:transportation:example:via-turn-restriction-connector1
-      at: 0
-    - connector_id: overture:transportation:example:via-turn-restriction-connector2
-      at: 1
+    - overture:transportation:example:simple-road-connector-1
+    - overture:transportation:example:simple-road-connector-2
   names:
     primary: Nicola Street
-  road_surface:
-    - value: paved
+  road:
+    class: residential
+    surface: paved
+    lanes:
+      - direction: backward
+      - direction: forward

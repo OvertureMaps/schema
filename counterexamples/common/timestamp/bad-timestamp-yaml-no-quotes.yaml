@@ -1,0 +1,10 @@
+---
+id: bad-timestamp-yaml-no-quotes
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  update_time: 2023-05-31T17:24:13-06:00
+  ext_expected_errors:
+    - "jsonschema: invalid jsonType: time.Time"

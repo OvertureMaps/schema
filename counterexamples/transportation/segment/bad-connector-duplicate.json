@@ -7,25 +7,13 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "items at 0 and 2 are equal"
+      "items at index 0 and 2 are equal"
     ],
     "theme": "transportation",
     "type": "segment",
     "version": 4,
+    "update_time": "2023-02-23T00:04:00-08:00",
     "subtype": "rail",
-    "connectors": [
-      {
-        "connector_id": "fooConnector",
-        "at": 0
-      },
-      {
-        "connector_id": "bazConnector",
-        "at": 1
-      },
-      {
-        "connector_id": "fooConnector",
-        "at": 0
-      }
-    ]
+    "connectors": ["fooConnector", "bazConnector", "fooConnector"]
   }
 }

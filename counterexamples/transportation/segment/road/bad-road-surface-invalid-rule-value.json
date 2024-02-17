@@ -8,16 +8,15 @@
   "properties": {
     "theme": "transportation",
     "type": "segment",
-    "version": 23,
+    "version": 22,
+    "update_time": "2023-02-23T00:04:00-08:00",
     "subtype": "road",
-    "class": "primary",
-    "road_surface": [
-      {
-        "value": "hot mess"
-      }
-    ],
-    "ext_expected_errors": [
-      "[S#/$defs/propertyDefinitions/roadSurface/enum]: value must be one of"
-    ]
+    "road": {
+      "surface": [
+        {
+          "value": "hot mess"
+        }
+      ]
+    }
   }
 }

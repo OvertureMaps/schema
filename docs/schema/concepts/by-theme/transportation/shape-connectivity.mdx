@@ -7,7 +7,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 # Shape and connectivity
 
-The Overture transportation theme captures the physical shape and connectivity
+The Overture `transportation` theme captures the physical shape and connectivity
 of the transportation network through the interaction of the theme's two feature
 types: segments and connectors.
 
@@ -35,7 +35,9 @@ types: segments and connectors.
 
 ## Connectors
 
-The [connector](/schema/reference/transportation/connector) feature type carries point geometry which describes a location where a physical connection between two or more segments occurs (or may occur in the
+The [connector](/reference/transportation/connector) feature type
+carries point geometry which describes a location where a physical
+connection between two or more segments occurs (or may occur in the
 future).
 
 Connectors have no properties apart from geometry and standard Overture
@@ -50,7 +52,9 @@ modeled on segments.
 
 ## Segments
 
-The [segment](/schema/reference/transportation/segment) feature type carries `LineString` geometry which describes the physical shape of a section of the transportation network. A segment may represent an entity with a
+The [segment](/reference/transportation/segment) feature type carries
+`LineString` geometry which describes the physical shape of a section of
+the transportation network. A segment may represent an entity with a
 tangible real-world existence, such as a paved road; or it may represent
 an intangible entity, such as a ferry route, which has a well-known
 shape but no observable presence in the real world.
@@ -83,7 +87,7 @@ not a mandatory minimum and is not enforced by the schema. It is done
 to allow new segments to connect into the existing network without
 needing to change the properties of existing segments.
 
-### Start, end, and orientation
+### Start, end and orientation
 
 The first coordinate in a segment's geometry is the start of the
 segment and the last coordinate is the end. A segment is oriented
@@ -204,7 +208,9 @@ back toward the start of the segment.
 -->
 
 
-🚧 We are developing a segment-level directionality concept to indicate what travel headings are allowed or prohibited along the segment. This effort is
+🚧 We are developing a segment-level directionality concept similar to
+[lane directionality](roads#lane-directionality) to indicate what travel
+headings are allowed or prohibited along the segment. This effort is
 ongoing, so please check back soon.
 
 ### Sub-types
@@ -216,7 +222,8 @@ network.
 The `subtype` property may be one of `road`, `rail`, or `water` but
 only `road` is currently well defined. A `road` segment models any kind
 of road, street, or trail, including a dedicated path for walking,
-cycling and similar activities. For more information about `road` segments, see the page on [roads](/schema/concepts/by-theme/transportation/roads).
+cycling and similar activities. For more information about `road`
+segments, see the page on [roads](roads).
 
 ### Level (Z-order)
 
@@ -298,10 +305,16 @@ TODO: Once we have some usable comparative metrics for ID stability, we should
       add a sub-heading under segmentation, with a table of the data.
 --->
 
-### Overture ID stability
 
-Overture pursues shape stability to improve the ability to assess whether two segments from different points in time (or from different upstream data
-sources) represent the same real world entity. Overture's success at this assessment directly feeds into the stability and precision of [Overture IDs](https://docs.overturemaps.org/gers) assigned to segments. In turn, higher Overture ID stability and precision makes transportation theme data more useful for conflation.
+### GERS ID stability
+
+The reason Overture pursues shape stability is to improve the ability to assess whether
+two segments from different points in time (or from different upstream data
+sources) represent the same real-world entity. Overture's success at this assessment
+directly feeds into the stability and precision of
+[Global Entity Reference System](/gers) (GERS) IDs assigned to segments. In
+turn, higher GERS ID stability and precision makes transportation theme data
+more useful for conflation.
 
 ### Interior connectors
 
@@ -316,7 +329,9 @@ been mapped in the source data, but a back alley dividing the block along the
 east-west axis has not. If the back alley is subsequently mapped in the source
 data, the Overture segmentation process can connect to the transportation
 network without having to subdivide any existing segments by simply introducing
-internal connectors on the north-south road segments bordering the block to the east and west. As a result, the [Overture IDs](https://docs.overturemaps.org/gers) of the north-south road segments remain as they were and no data needs to be re-conflated.
+internal connectors on the north-south road segments bordering the block to the
+east and west. As a result, the [GERS](/gers) IDs of the north-south road
+segments remain as they were and no data needs to be re-conflated.
 
 <figure>
 
@@ -368,13 +383,15 @@ a very minor alteration of the segment's shape.
 
 Many segment properties may include a linear reference so that they apply only
 to a part of the segment geometry. We refer to these linearly-referenced
-property values as being geometrically scoped and discuss geometric scoping at greater length in the page on [scoped properties](/schema/concepts/scoping-rules).
+property values as being geometrically scoped and discuss geometric scoping
+at greater length in the page on [scoped properties](/overview/feature-model/scoping-rules).
 
 Geometric scoping allows the segmentation algorithm to avoid introducing
 segment splits simply because a certain property has different values along
 different parts of the geometry. Like interior connectors, geometrically-scoped
 properties enable the segmentation process to make decisions that promote shape
-stability, ultimately resulting in more precise and stable [Overture IDs](https://docs.overturemaps.org/gers) and less churn in conflated data.
+stability, ultimately resulting in more precise and stable [GERS](/gers) IDs and
+less churn in conflated data.
 
 <div style={{textAlign: 'center'}}>
 
@@ -408,6 +425,7 @@ corrected by splitting the segment and introducing a second connector to
 maintain physical connectivity. An illegal self-crossing loop of degree *N*
 can be corrected by splitting the segment into N pieces.
 
+
 <div style={{ width: "49.5%", float: "left", textAlign: "center" }}>
 
 <figure>
@@ -437,6 +455,7 @@ can be corrected by splitting the segment into N pieces.
 </div>
 
 <div style={{clear: "both"}}/>
+
 
 <figcaption>
 

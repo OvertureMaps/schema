@@ -7,16 +7,10 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  update_time: "2023-11-13T00:02:30-08:00"
+  version: 0
   subtype: road
-  class: footway
-  subclass: sidewalk
-  subclass_rules:
-    - value: sidewalk
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  road_surface:
-    - value: paved
+  connectors: [fooConnector, barConnector]
+  road:
+    class: sidewalk
+    surface: paved

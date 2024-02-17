@@ -1,0 +1,28 @@
+---
+id: overture:transportation:segment:1011
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  update_time: "2023-02-23T00:03:45-08:00"
+  version: 3
+  subtype: road
+  connectors: [fooConnector, barConnector]
+  road:
+    class: primary
+    surface: paved
+      # This models a single-lane road whose direction is
+      # completely reversible at arbitrary times.
+    lanes:
+      - direction: reversible
+        restrictions:
+          access:
+            - allowed:
+                heading: forward
+                during: Mo-Su 00:00-12:00
+            - allowed:
+                heading: backward
+                during: Mo-Su 12:00-24:00

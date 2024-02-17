@@ -8,14 +8,16 @@
     "properties": {
       "theme": "transportation",
       "type": "segment",
-      "version": 20,
+      "version": 19,
+      "update_time": "2023-02-23T00:04:00-08:00",
       "subtype": "road",
-      "class": "primary",
-      "road_flags": [
-        {
-          "values": ["is_private"]
-        }
-      ],
+      "road": {
+        "flags": [
+          {
+            "values": ["is_private"]
+          }
+        ]
+      },
       "ext_expected_errors": [
         "value must be one of"
       ]

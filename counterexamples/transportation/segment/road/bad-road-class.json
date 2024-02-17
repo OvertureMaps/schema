@@ -7,12 +7,15 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "[S#/$defs/propertyDefinitions/roadClass/enum]: value must be one of"
+      "[I#/properties/road/class] [S#/$defs/propertyDefinitions/road/properties/class/enum] value must be one of"
     ],
     "theme": "transportation",
     "type": "segment",
-    "version": 18,
+    "version": 17,
+    "update_time": "2023-02-23T00:04:00-08:00",
     "subtype": "road",
-    "class": "foo"
+    "road": {
+      "class": "foo"
+    }
   }
 }

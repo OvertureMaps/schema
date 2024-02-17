@@ -8,5 +8,5 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  class: primary
-  version: 1
+  version: 0
+  update_time: "1990-12-31T15:59:60-08:00"

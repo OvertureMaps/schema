@@ -1,0 +1,18 @@
+{
+  "id": "bad-class",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[2, 2], [3, 3]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "version": 21,
+    "update_time": "2023-02-23T00:04:00-08:00",
+    "subtype": "road",
+    "road": {
+      "surface": "hot mess"
+    }
+  }
+}
