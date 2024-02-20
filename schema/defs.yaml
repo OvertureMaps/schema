@@ -26,6 +26,7 @@ description: Common schema definitions shared by all themes
         - connector
         - division
         - division_area
+        - infrastructure
         - land
         - land_use
         - locality                # DEPRECATED
