@@ -1,0 +1,101 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Infrastructure Schema
+description: Various features from OpenStreetMap such as bridges, airport runways, aerialways, or communication towers and lines.
+type: object
+properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
+      - "$ref": https://geojson.org/schema/LineString.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
+    required:
+      - subtype
+      - class
+    properties:
+      subtype:
+        description: Further description of the type of infrastructure.
+        type: string
+        enum:
+          - airport
+          - bridge
+          - communication
+          - dam
+          - manhole
+          - pier
+          - power
+          - tower
+          - transit
+      class:
+        description: Further classification of the infrastructure type
+        type: string
+        enum:
+          - airstrip
+          - aqueduct
+          - bell_tower
+          - boardwalk
+          - bridge
+          - bus_route
+          - bus_station
+          - bus_stop
+          - cable
+          - cable_distribution
+          - cantilever
+          - catenary_mast
+          - communication_line
+          - communication_pole
+          - communication_tower
+          - connection
+          - cooling
+          - covered
+          - dam
+          - defensive
+          - diving
+          - drain
+          - ferry_terminal
+          - generator
+          - heliostat
+          - helipad
+          - hose
+          - insulator
+          - lighting
+          - lightning_protection
+          - manhole
+          - minaret
+          - minor_line
+          - mobile_phone_tower
+          - monitoring
+          - movable
+          - observation
+          - pier
+          - plant
+          - portal
+          - power_line
+          - power_pole
+          - power_tower
+          - radar
+          - railway_halt
+          - railway_station
+          - runway
+          - sewer
+          - siren
+          - sub_station
+          - substation
+          - switch
+          - taxiway
+          - terminal
+          - transformer
+          - trestle
+          - viaduct
+          - watchtower
