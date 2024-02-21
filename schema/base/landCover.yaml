@@ -37,17 +37,17 @@ properties:
           - urban
           - wetland
       minZoom:
-        description: recommended minimum zoom according to bing tile zoom levels
+        description: recommended minimum tile zoom
         type: number
         minimum: 1
         maximum: 24
       maxZoom:
-        description: recommended maximum zoom according to bing tile zoom levels
+        description: recommended maximum tile zoom
         type: number
         minimum: 1
         maximum: 24
       referenceScale:
-        description: refrence scale as mapped to bing tile zoom levels from 1-24
+        description: refrence scale is the ratio between map distance and ground distance measured at the equator for a given screen dpi (dots per inch).
         type: string
         enum:
           - 147914381.897889
@@ -73,11 +73,3 @@ properties:
           - 141.062147
           - 70.5310735
           - 35.2655368
-
-
-
-
-
-
-
-
