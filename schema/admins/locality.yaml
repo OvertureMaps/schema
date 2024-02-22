@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Locality Schema
+title: locality
 description: >-
   Localities are named, populated areas. If a locality is a country or
   an official subdivision of a country, it will have adminLevel property
