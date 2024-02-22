@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Land Use Schema
+title: land_use
 description: Land use features from OpenStreetMap
 type: object
 properties:

@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Water Schema
+title: water
 description: Physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap.
 type: object
 properties:

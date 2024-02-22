@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Locality Area Schema
+title: locality_area
 description: >-
   Adds land or maritime area polygon to locality.
 type: object
