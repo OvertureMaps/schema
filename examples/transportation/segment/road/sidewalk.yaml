@@ -13,4 +13,5 @@ properties:
   connectors: [fooConnector, barConnector]
   road:
     class: sidewalk
-    surface: paved
+    surface:
+      - value: paved

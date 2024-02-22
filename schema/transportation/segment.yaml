@@ -147,20 +147,16 @@ properties:
           description: Physical surface of the road. May either be
             specified as a single global value for the segment, or as
             an array of surface rules.
-          oneOf:
-            - { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
-            - type: array
-              items:
-                type: object
-                allOf:
-                  - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                unevaluatedProperties: false
-                properties:
-                  value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
-              minItems: 1
-              uniqueItems: true
-          default:
-            enum: unknown
+          type: array
+          items:
+            type: object
+            allOf:
+              - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+            unevaluatedProperties: false
+            properties:
+              value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
+          minItems: 1
+          uniqueItems: true
           "$comment": >-
             We should likely restrict the available surface types to
             the subset of the common OSM surface=* tag values that are
