@@ -20,7 +20,8 @@ properties:
     primary: Nicola Street
   road:
     class: residential
-    surface: paved
+    surface:
+      - value: paved
     lanes:
       - direction: backward
       - direction: forward

@@ -21,4 +21,5 @@ properties:
     primary: Washington Street
   road:
     class: secondary
-    surface: paved
+    surface:
+      - value: paved
