@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Building Footprint Schema
+title: building
 description: >-
   A building is a man-made structure with a roof that exists permanently in one place. Buildings are compatible with
   GeoJSON Polygon features.

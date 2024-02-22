@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Administrative Boundary Schema
+title: administrative_boundary
 description: >-
   An Administrative Boundary is a border surrounding an Administrative
   Locality. Boundaries are compatible with GeoJSON LineString features.
