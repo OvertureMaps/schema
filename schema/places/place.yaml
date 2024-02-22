@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Place Schema
+title: place
 description: >-
   A Place is a point representation of a real-world facility, service,
   or amenity. Place features are compatible with GeoJSON Point features.
