@@ -142,13 +142,8 @@ description: Common schema definitions shared by all themes
     language:
       description: >-
         Describes the language, script and other variants used to describe
-        names. It must be either the literal "local" or a language tag according
-        to definition in IETF-BCP47
+        names. It must be a language tag according to definition in IETF-BCP47
         https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
-
-        The value of "local" is used to indicate the name in the local language
-        and script. Such is the case when capturing data from OpenStreetMap
-        where only a "name" tag is supplied with no further information.
 
         Although the BCP47 language tag definition is complex, a very simplified
         view defines a language as "language-script-region" where script and
@@ -189,33 +184,40 @@ description: Common schema definitions shared by all themes
         language: { "$ref": "#/$defs/propertyDefinitions/language" }
         value:
           type: string
-    names:
+    allNames:
       type: object
       required: [primary]
       unevaluatedProperties: false
+      allOf:
+        - { "$ref": "#/$defs/propertyDefinitions/commonNames" }
+      properties:
+        rules:
+          description: >-
+            Rules for names that cannot be specified in the simple
+            common names property. These rules can cover other name
+            variants such as official, alternate, and short; and they
+            can optionally include geometric scoping (linear
+            referencing) and side-of-road scoping for complex cases.
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/nameRule" }
+          minItems: 1
+    commonNames:
+      type: object
+      required: [primary]
       properties:
         primary:
-          description: The most commonly used name when referring to a feature.
+          description: The most commonly used name.
           type: string
         common:
-          description: >-
-            The "common" variant are the common translations of the name. The official, alternate,
-            and other variants are in the rules property.
+          description: The common translations of the name.
           type: object
           minProperties: 1
           additionalProperties: false
           patternProperties:
             "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$":
               "$comment": >-
-                This is an incomplete pattern for BCP47 language tags. See the
-                language section below for more details
+                This is an incomplete pattern for BCP47 language tags.
               type: string
-        rules:
-          description: >-
-            Contains the names that are not the primary name or common translations.
-          type: array
-          items: { "$ref": "#/$defs/propertyDefinitions/nameRule" }
-          minItems: 1
     address:
       type: object
       unevaluatedProperties: false
@@ -263,7 +265,7 @@ description: Common schema definitions shared by all themes
       type: object
       properties:
         names:
-          "$ref": "#/$defs/propertyDefinitions/names"
+          "$ref": "#/$defs/propertyDefinitions/allNames"
     levelContainer:
       description: Properties defining feature Z-order, i.e., stacking order
       type: object
