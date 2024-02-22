@@ -16,9 +16,10 @@ properties:
   properties:
     unevaluatedProperties: false
     allOf:
-      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
     required:
       - subtype
       - class
@@ -73,4 +74,3 @@ properties:
           - wetland
           - wood
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
