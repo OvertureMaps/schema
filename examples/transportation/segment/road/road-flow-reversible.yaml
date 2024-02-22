@@ -13,7 +13,8 @@ properties:
   connectors: [fooConnector, barConnector]
   road:
     class: primary
-    surface: paved
+    surface:
+      - value: paved
       # This models a single-lane road whose direction is
       # completely reversible at arbitrary times.
     lanes:
