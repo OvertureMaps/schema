@@ -10,8 +10,9 @@ properties:
     "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
     description: >-
-      A regular building's geometry is defined as it's footprint or roofprint (if traced from aerial/satellite imagery). These MUST be a Polygon as defined by GeoJSON
-      schema.
+      A regular building's geometry is defined as its footprint or
+      roofprint (if traced from aerial/satellite imagery). It MUST be a
+      Polygon or MultiPolygon as defined by the GeoJSON schema.
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Polygon.json
