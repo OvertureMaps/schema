@@ -29,13 +29,13 @@ properties:
             then:
               required: [context_id]
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
     properties:
       subtype:
         description: populated area types
         type: string
         enum: [administrative_locality, named_locality]
       locality_type: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/localityType" }
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
       context_id:
         description: Context entity is the most granular entity that logically contains given entity (but doesn't have to contain it spatially due to minor discrepancies in geometries)

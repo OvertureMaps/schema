@@ -20,11 +20,11 @@ properties:
   properties:
     unevaluatedProperties: false
     allOf:
-      - "$ref": ./defs.yaml#/shapeContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+      - "$ref": ./defs.yaml#/shapeContainer
     properties:
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       class:
         description: >-
           A broad category of the building type/purpose. When the
