@@ -25,6 +25,7 @@ properties:
           properties:
             road: { "$ref": "#/$defs/propertyDefinitions/road" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     properties:
       subtype:
@@ -48,7 +49,6 @@ properties:
             Each entry in this array is the GERS ID of a transportation connector feature.
         uniqueItems: true
         default: []
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
 "$defs":
   propertyDefinitions:
     lane:
