@@ -23,4 +23,5 @@ properties:
     primary: Arborway
   road:
     class: primary
-    surface: paved
+    surface:
+      - value: paved
