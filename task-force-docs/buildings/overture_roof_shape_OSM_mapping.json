@@ -28,7 +28,7 @@
     "gabred",
     "cross_gabled"
   ],
-  "halfHipped": [
+  "half_hipped": [
     "half-hipped"
   ],
   "hipped": [
@@ -58,6 +58,9 @@
     "saltbox",
     "double_saltbox",
     "quadruple_saltbox"
+  ],
+  "sawtooth":[
+    "sawtooth"
   ],
   "skillion": [
     "skillion",
