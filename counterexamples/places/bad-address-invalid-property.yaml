@@ -19,5 +19,5 @@ properties:
       locality: "New York"
     - freeform: "770 Broadway, #802"
       locality: "New York"
-      region2: "NY"
+      region2: "US-NY"
       country: "US"

@@ -7,6 +7,7 @@ geometry:
 properties:
   theme: divisions
   type: division
+  update_time: "2024-02-23T23:15:31Z"
   version: 0
   subtype: country
   names:
@@ -18,6 +19,6 @@ properties:
         name: A division with an invalid capital_division_id property.
   norms:
     driving_side: right
-  capital_division_ids: ['    ']
+  capital_division_id: '    '
   ext_expected_errors:
     - "'    ' does not match pattern"

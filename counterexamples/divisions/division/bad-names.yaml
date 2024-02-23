@@ -7,6 +7,7 @@ geometry:
 properties:
   theme: divisions
   type: division
+  update_time: "2024-02-26T17:59:35Z"
   version: 0
   subtype: country
   names:
@@ -21,5 +22,5 @@ properties:
   norms:
     driving_side: left
   ext_expected_errors:
-    - "/propertyDefinitions/allNames/properties/primary/type]: got null, want string"
-    - additional properties 'a-b-c-d-e-f-g-h-i-j-k-l' not allowed
+    - "[I#/properties/names/primary] [S#/$defs/propertyDefinitions/commonNames/properties/primary/type] expected string, but got null"
+    - additionalProperties 'a-b-c-d-e-f-g-h-i-j-k-l' not allowed

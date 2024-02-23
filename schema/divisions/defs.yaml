@@ -2,7 +2,7 @@
 "$schema": https://json-schema.org/draft/2020-12/schema
 description: Common schema definitions for divisions theme
 "$defs":
-  propertyDefinitions:
+  typeDefinitions:
     placetype:
       description:
         Category of the division from a finite, hierarchical, ordered
@@ -70,7 +70,7 @@ description: Common schema definitions for divisions theme
         city of Concord, NH would be [United States, New Hampshire,
         Merrimack County, Concord].
       type: array
-      items: { "$ref": "#/$defs/propertyDefinitions/hierarchyItem" }
+      items: { "$ref": "#/$defs/typeDefinitions/hierarchyItem" }
       minItems: 1
       uniqueItems: true
     hierarchyItem:
@@ -83,36 +83,60 @@ description: Common schema definitions for divisions theme
           description: ID of the division
           allOf:
             - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
-        subtype: { "$ref": "#/$defs/propertyDefinitions/placetype" }
+        subtype: { "$ref": "#/$defs/typeDefinitions/placetype" }
         name:
           description: Primary name of the division
           type: string
           minLength: 1
           pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
-    perspectives:
-      description: Political perspectives from which division is viewed.
+    perspective:
+      description:
+        A political perspective from which the division is viewed
       type: object
       unevaluatedProperties: false
-      required: [mode, countries]
+      required: [type, holder]
+      oneOf:
+        - if:
+            properties:
+              type: { enum: [country] }
+          then:
+            properties:
+              holder: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+          else:
+            false
       properties:
-        mode:
-          description: Whether perspective holder accept or dispute this division.
+        type:
+          description:
+            Type of perspective
+
+            If the perspective is of type 'country', then the 'holder'
+            property must be an ISO 3166-1 alpha-2 country code
+            identifying the country that holds this perspective.
           type: string
-          enum: [accepted_by, disputed_by]
-        countries:
-          description: Countries holding the given mode of perspective.
-          type: array
-          items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
-          minItems: 1
-          uniqueItems: true
-    capitalOfDivisionItem:
-      description: One division that has capital
+          enum:
+            - country   # The perspective is held by the sovereign state
+                        # identified by the ISO-3166-1 alpha-2 country
+                        # code in the 'value' property.
+        holder:
+          type: string
+    boundarySideDivision:
+      description:
+        Represents a division on one side or the other of a boundary
+        line, along with that division's stance on whether or not it
+        disputes the boundary.
       type: object
       unevaluatedProperties: false
-      required: [division_id, subtype]
+      required: [division_id]
       properties:
         division_id:
-          description: ID of the division
+          description:
+            Division ID of the division.
           allOf:
             - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
-        subtype: { "$ref": "#/$defs/propertyDefinitions/placetype" }
+        is_disputing:
+          description:
+            Whether the division disputes the boundary location. If this
+            property is omitted, the division's dispute status is
+            unknown, but for many applications it will be safe to assume
+            there is no dispute.
+          type: boolean

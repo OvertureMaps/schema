@@ -7,10 +7,11 @@ geometry:
 properties:
   theme: divisions
   type: division
+  update_time: "2024-02-23T15:53:17Z"
   version: 0
   subtype: region
   local_type:
-    en: state
+    primary: state
   names:
     primary: New York
   sources:
@@ -26,5 +27,5 @@ properties:
       - division_id: example:division:region:us-ny
         subtype: region
         name: New York
-  capital_division_ids: [ example:division:locality:albany ]
+  capital_division_id: example:division:locality:albany
   parent_division_id: example:division:country:us

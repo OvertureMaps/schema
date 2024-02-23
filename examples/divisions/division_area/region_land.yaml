@@ -70,6 +70,7 @@ geometry:
 properties:
   theme: divisions
   type: division_area
+  update_time: "2024-02-23T20:23:56Z"
   version: 0
   subtype: region
   class: land

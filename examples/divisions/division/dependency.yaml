@@ -7,10 +7,11 @@ geometry:
 properties:
   theme: divisions
   type: division
+  update_time: "2024-02-23T15:08:01Z"
   version: 0
   subtype: dependency
   local_type:
-    en: territory
+    primary: territory
   names:
     primary: Puerto Rico
     common:
@@ -34,5 +35,5 @@ properties:
         name: United States
   norms:
     driving_side: right
-  capital_division_ids: [ example:division:locality:san_juan ]
+  capital_division_id: example:division:locality:san_juan
   parent_division_id: example:division:country:us
