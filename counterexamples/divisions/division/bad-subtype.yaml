@@ -1,0 +1,22 @@
+---
+id: counterexample:division:bad-subtype
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division
+  update_time: "2024-02-26T18:17:04Z"
+  version: 0
+  subtype: foo
+  names:
+    primary: A division with an invalid subtype
+  country: ZZ
+  hierarchies:
+    - - division_id: counterexample:division:bad-subtype
+        subtype: foo
+        name: A division with an invalid subtype
+  ext_expected_errors:
+    - '[I#/properties/subtype] [S#/$defs/typeDefinitions/placetype/enum] value must be one of "country",'
+    - '[I#/properties/hierarchies/0/0/subtype] [S#/$defs/typeDefinitions/placetype/enum] value must be one of "country",'

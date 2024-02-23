@@ -1,0 +1,21 @@
+---
+id: counterexample:division_area:bad-region
+type: Feature
+geometry:
+  type: MultiPolygon
+  coordinates: [[[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]]
+properties:
+  theme: divisions
+  type: division_area
+  update_time: "2024-02-23T23:40:25Z"
+  version: 0
+  subtype: region
+  class: maritime
+  division_id: counterexample:division:some-division
+  names:
+    primary: A division area with an invalid ISO 3166-2 primary subdivision code ('region')
+  country: ZZ
+  region: this just seems wrong
+  ext_expected_errors:
+    - length must be <= 6, but got 21
+    - does not match pattern

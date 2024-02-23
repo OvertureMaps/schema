@@ -1,0 +1,24 @@
+---
+id: counterexample:division:bad-country
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  theme: divisions
+  type: division
+  update_time: "2024-02-23T23:17:24Z"
+  version: 0
+  subtype: country
+  names:
+    primary: A division with an invalid country property.
+  country: ZZZ
+  hierarchies:
+    - - division_id: counterexample:division:bad-country
+        subtype: country
+        name: A division with an invalid country property.
+  norms:
+    driving_side: left
+  ext_expected_errors:
+    - "[I#/properties/country] [S#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode/maxLength] length must be <= 2, but got 3"
+    - "[I#/properties/country] [S#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode/pattern] does not match pattern"
