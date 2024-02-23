@@ -16,7 +16,8 @@
       "driving_side": "right",
       "context_id": "northAmericaId",
       "ext_expected_errors": [
-        "[I#/properties/iso_country_code_alpha_2] [S#/$defs/propertyDefinitions/isoCountryCodeAlpha2/pattern] does not match pattern '^[A-Z]{2}$'"
+        "[I#/properties/iso_country_code_alpha_2] [S#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode/minLength] length must be >= 2, but got 1",
+        "[I#/properties/iso_country_code_alpha_2] [S#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode/pattern] does not match pattern '^[A-Z]{2}$'"
       ]
     },
     "geometry": {

@@ -7,7 +7,7 @@
       "update_time": "2023-02-22T23:55:01-08:00",
       "subtype": "administrative_locality",
       "names": {
-        "primary": "Administrative locality with bad principal subdivison code"
+        "primary": "Administrative locality with bad principal subdivision code"
       },
       "locality_type": "country",
       "admin_level": 1,
@@ -16,7 +16,8 @@
       "driving_side": "right",
       "context_id": "northAmericaId",
       "ext_expected_errors": [
-        "[I#/properties/iso_sub_country_code] [S#/$defs/propertyDefinitions/isoSubCountryCode/pattern] does not match pattern '^[A-Z]{2}-[A-Z0-9]{1,3}$'"
+        "[I#/properties/iso_sub_country_code] [S#/$defs/propertyDefinitions/iso3166_2SubdivisionCode/minLength] length must be >= 4, but got 2",
+        "[I#/properties/iso_sub_country_code] [S#/$defs/propertyDefinitions/iso3166_2SubdivisionCode/pattern] does not match pattern '^[A-Z]{2}-[A-Z0-9]{1,3}$'"
       ]
     },
     "geometry": {

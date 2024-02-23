@@ -7,10 +7,11 @@ geometry:
 properties:
   theme: divisions
   type: division
+  update_time: "2024-02-23T15:55:28Z"
   version: 0
   subtype: region
   local_type:
-    en: province
+    primary: province
   names:
     primary: Ontario
   sources:
@@ -26,6 +27,6 @@ properties:
       - division_id: example:division:region:ca-on
         subtype: region
         name: Ontario
-  capital_division_ids: [ example:division:locality:toronto ]
+  capital_division_id: example:division:locality:toronto
   parent_division_id: example:division:country:ca
   population: 13550900

@@ -11,7 +11,7 @@ properties:
   - country: US
     freeform: '770 Broadway #802'
     locality: New York
-    region: NY
+    region: US-NY
   brand:
     name: Example
     wikidata: Q1000
