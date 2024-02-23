@@ -1,0 +1,27 @@
+---
+id: counterexample:division:bad-region
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division
+  update_time: "2024-02-26T18:13:48Z"
+  version: 0
+  subtype: region
+  names:
+    primary: A division with an invalid region
+  country: ZZ
+  region: foo
+  hierarchies:
+    - - division_id: counterexample:division:some-parent-division
+        subtype: country
+        name: Some parent division
+      - division_id: counterexample:division:bad-region
+        subtype: region
+        name: A division with an invalid ISO 3166-2 primary subdivision code ('region')
+  parent_division_id: counterexample:division:some-parent-division
+  ext_expected_errors:
+    - length must be >= 4, but got 3
+    - does not match pattern

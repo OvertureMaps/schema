@@ -1,0 +1,16 @@
+---
+id: example:boundary:maritime
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 1], [1, 2]]
+properties:
+  theme: divisions
+  type: boundary
+  update_time: "2024-02-23T21:59:56Z"
+  version: 0
+  subtype: country
+  class: maritime
+  divisions:
+    - division_id: example:division:country:left
+    - division_id: example:division:country:right

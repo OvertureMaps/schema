@@ -1,0 +1,20 @@
+---
+id: counterexample:division_area:bad-region
+type: Feature
+geometry:
+  type: MultiPolygon
+  coordinates: [[[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]]
+properties:
+  theme: divisions
+  type: division_area
+  update_time: "2024-02-23T23:41:42Z"
+  version: 0
+  subtype: région
+  class: land
+  division_id: counterexample:division:some-division
+  names:
+    primary: A division area with an invalid subtype property.
+  country: ZZ
+  region: ZZ-AB
+  ext_expected_errors:
+    - '[I#/properties/subtype] [S#/$defs/typeDefinitions/placetype/enum] value must be one of "country",'

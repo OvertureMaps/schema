@@ -1,0 +1,178 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: division
+description:
+  Divisions are recognized official or non-official organizations of
+  people as seen from a given political perspective. Examples include
+  countries, provinces, cities, towns, neighborhoods, etc.
+type: object
+properties:     # JSON Schema: Top-level object properties.
+  id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
+  geometry:
+    description:
+      Division geometry MUST be a Point as defined by GeoJSON schema.
+      It represents the approximate location of a position commonly
+      associated with the real-world entity modeled by the division
+      feature.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": https://geojson.org/schema/Point.json
+  properties:   # GeoJSON: top-level object 'properties' property.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      - if:
+          properties:
+            subtype: { enum: [country] }
+        then:
+          required: [names, subtype, country, hierarchies]
+          not: { required: [parent_division_id] }
+        else:
+          required: [names, subtype, country, hierarchies, parent_division_id]
+    properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
+      subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/placetype" }
+      local_type:
+        description:
+          Local name for the subtype property, optionally localized.
+
+          For example, the Canadian province of Quebec has the subtype
+          'region', but in the local administrative hierarchy it is
+          referred to as a 'province'. Similarly, the Canadian Yukon
+          territory also has subtype 'region', but is locally called
+          a 'territory'.
+
+          This property is localized using a standard Overture names
+          structure. So for example, in Switzerland the top-level
+          administrative subdivision corresponding to subtype 'region'
+          is the canton, which is may be translated in each of
+          Switzerland's official languages as, 'canton' in French, 
+          'kanton' in German, 'cantone' in Italian, and 'chantun' in
+          Romansh.
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/commonNames"
+      country:
+        description: >-
+          ISO 3166-1 alpha-2 country code of the country or country-like
+          entity, that this division represents or belongs to.
+  
+          If the entity this division represents has a country code, the
+          country property contains it. If it does not, the country
+          property contains the country code of the first division
+          encountered by traversing the parent_division_id chain to the
+          root.
+
+          For example:
+            - The country value for the United States is 'US'
+            - The country value for New York City is 'US'
+            - The country value for Puerto Rico, a dependency of the US,
+              is 'PR'.
+            - The country value for San Juan, Puerto Rico is 'PR'.
+
+          If an entity has an internationally-recognized ISO 3166-1
+          alpha-2 country code, it should always be used. In cases where
+          the schema requires the code but no internationally-recognized
+          code is available, a synthetic code may be used provided it
+          does not conflict with any internationally-recognized codes.
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode"
+      region:
+        description: >-
+          ISO 3166-2 principal subdivision code of the subdivision-like
+          entity this division represents or belongs to.
+          
+          If the entity this division represents has a principal
+          subdivision code, the region property contains it. If it does
+          not, the region property contains the principal subdivision
+          code of the first division encountered by traversing the
+          parent_division_id chain to the root.
+
+          For example:
+            - The region value for the United States is omitted.
+            - The region value for the U.S. state of New York is 'US-NY'.
+            - The region value for New York City is 'US-NY', which it
+              inherits from the state of New York.
+            - The region value for Puerto Rico is 'US-PR'.
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_2SubdivisionCode"
+      hierarchies:
+        description:
+          Hierarchies in which this division participates.
+
+          Every division participates in at least one hierarchy. Most
+          participate in only one. Some divisions may participate in
+          more than one hierarchy, for example if they are claimed by
+          different parent divisions from different political
+          perspectives; or if there are other real-world reasons why the
+          division or one of its ancestors has multiple parents.
+
+          The first hierarchy in the list is the default hierarchy, and
+          the second-to-last entry in the default hierarchy (if there
+          is such an entry) always corresponds to the `parent_division_id'
+          property. The ordering of hierarchies after the first one is
+          arbitrary.
+        type: array
+        items: { "$ref": "./defs.yaml#/$defs/typeDefinitions/hierarchy" }
+        minItems: 1
+        uniqueItems: true
+      parent_division_id:
+        description:
+          Division ID of this division's parent division.
+          
+          Not allowed for top-level divisions (countries) and required
+          for all other divisions.
+          
+          The default parent division is the parent division as seen
+          from the default political perspective, if there is one, and
+          is otherwise chosen somewhat arbitrarily. The hierarchies
+          property can be used to inspect the exhaustive list of
+          parent divisions.
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
+      perspectives:
+        description:
+          Political perspectives from which this division is considered
+          to be an accurate representation.
+
+          If this property is absent, then this division is seen from
+          the default political perspective. If this property is
+          present, then this division is seen from the political
+          perspectives enumerated in the list.
+        type: array
+        items: { "$ref": "./defs.yaml#/$defs/typeDefinitions/perspective" }
+        minItems: 1
+        uniqueItems: true
+      norms:
+        description:
+          Collects information about local norms and rules within the
+          division that are generally useful for mapping and map-related
+          use cases.
+
+          If the norms property or a desired sub-property of the norms
+          property is missing on a division, but at least one of its
+          ancestor divisions has the norms property and the desired
+          sub-property, then the value from the nearest ancestor division
+          may be assumed.
+        "$comment":
+          If we decide to include default language, it will go here. But
+          is it really generally-useful information?
+        type: object
+        unevaluatedProperties: false
+        properties:
+          driving_side:
+            description:
+              Side of the road on which vehicles drive in the division.
+            allOf:
+              - "$ref": "../defs.yaml#/$defs/propertyDefinitions/side"
+      population:
+        description: Population of the division
+        type: integer
+        minimum: 0
+      capital_division_id:
+        description:
+          Division ID of this division's capital division. If present,
+          this property will refer to the division ID of the capital
+          city, county seat, etc. of a division.
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
+      wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
