@@ -1,0 +1,230 @@
+{
+  "facade_material":
+  {
+    "brick": [
+      "brick",
+      "slate",
+      "ladrillos",
+      "masonry",
+      "silicate brick",
+      "bricks",
+      "unburnt brick",
+      "silicate_brick",
+      "brick_block",
+      "muddy_brick"
+    ],
+    "cement_block": [
+      "cement_block",
+      "block",
+      "cement block",
+      "cement_blocks",
+      "cement blocks"
+    ],
+    "clay": [
+      "clay",
+      "mud",
+      "rammed_earth",
+      "loam",
+      "earth",
+      "grass",
+      "pressed_soil_blocks"
+    ],
+    "concrete": [
+      "concrete",
+      "concrete masonry unit",
+      "cement",
+      "concrete_reinforced",
+      "reinforced_concrete"
+    ],
+    "glass": [
+      "glass",
+      "mirror"
+    ],
+    "metal": [
+      "metal",
+      "steel",
+      "metal_plates",
+      "tin",
+      "iron_sheet",
+      "copper",
+      "metal_sheet",
+      "ironsheets",
+      "panel",
+      "aluminium"
+    ],
+    "plaster": [
+      "plaster",
+      "plastered",
+      "hard"
+    ],
+    "plastic": [
+      "plastic",
+      "vinyl",
+      "plastic_sheeting",
+      "composite",
+      "vinyl_siding"
+    ],
+    "stone": [
+      "stone",
+      "limestone",
+      "sandstone",
+      "granite",
+      "marble",
+      "tiles"
+    ],
+    "timber_framing": [
+      "timber_framing",
+      "traditional"
+    ],
+    "wood": [
+      "wood",
+      "reed",
+      "wattle_and_daub",
+      "timber_planks",
+      "wood/masonry",
+      "wood/bamboo",
+      "bamboo"
+    ]
+  },
+  "roof_material":{
+      "concrete": [
+        "concrete",
+        "concrete slab",
+        "rcc",
+        "asphalt",
+        "asphalt_shingle"
+      ],
+      "copper": [
+        "copper"
+      ],
+      "eternit": [
+        "eternit",
+        "asbestos",
+        "a/c sheets"
+      ],
+      "glass": [
+        "glass",
+        "acrylic_glass"
+      ],
+      "grass": [
+        "grass",
+        "plants",
+        "roof_greening"
+      ],
+      "gravel": [
+        "gravel"
+      ],
+      "metal": [
+        "metal",
+        "metal:sheet",
+        "zinc",
+        "zink",
+        "corrugated_iron_sheets",
+        "corrugated_iron",
+        "iron_sheet",
+        "corrugated"
+      ],
+      "plastic": [
+        "plastic",
+        "composite"
+      ],
+      "roof_tiles": [
+        "roof_tiles",
+        "tile",
+        "tiles",
+        "roof-tiles",
+        "clay_tiles"
+      ],
+      "slate": [
+        "slate",
+        "brick",
+        "sandstone",
+        "stone",
+        "marble"
+      ],
+      "solar_panels": [
+        "solar_panels"
+      ],
+      "thatch": [
+        "thatch",
+        "cadjan_palmyrah_straw"
+      ],
+      "wood": [
+        "wood",
+        "wooden"
+      ]
+    },
+  "roof_shape":{
+    "dome": [
+      "dome"
+    ],
+    "flat": [
+      "flat"
+    ],
+    "gambrel": [
+      "gambrel"
+    ],
+    "gabled": [
+      "gabled",
+      "pitched",
+      "crosspiched",
+      "double_pitch",
+      "gabled_height_moved",
+      "hip-and-gabled",
+      "gable",
+      "gabled_row",
+      "round_gabled",
+      "dutch_gabled",
+      "monopitch",
+      "2 faces (pitched)",
+      "gabeled",
+      "gabed",
+      "gambled",
+      "double_gabled",
+      "gabred",
+      "cross_gabled"
+    ],
+    "half_hipped": [
+      "half-hipped"
+    ],
+    "hipped": [
+      "hipped",
+      "side_hipped",
+      "hyped",
+      "equal_hipped",
+      "4 faces (hipped)",
+      "side_half-hipped",
+      "side_half_hipped"
+    ],
+    "mansard": [
+      "mansard"
+    ],
+    "onion": [
+      "onion",
+      "cone",
+      "conical"
+    ],
+    "pyramidal": [
+      "pyramidal"
+    ],
+    "round": [
+      "round"
+    ],
+    "saltbox": [
+      "saltbox",
+      "double_saltbox",
+      "quadruple_saltbox"
+    ],
+    "sawtooth":[
+      "sawtooth"
+    ],
+    "skillion": [
+      "skillion",
+      "lean_to",
+      "triple_skillion"
+    ],
+    "spherical": [
+      "spherical"
+    ]
+  }
+}
