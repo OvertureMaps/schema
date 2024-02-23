@@ -1,0 +1,17 @@
+---
+id: counterexample:boundary:bad-class
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: divisions
+  type: boundary
+  update_time: "2024-02-23T23:01:50Z"
+  version: 0
+  class: land
+  divisions:
+    - division_id: lhs_division
+    - division_id: rhs_division
+  ext_expected_errors:
+    - "missing properties: 'subtype'"
