@@ -4,11 +4,11 @@
 2. [GeoJSON](https://geojson.org/) is used as a canonical geospatial format
 	i.e. GeoJSON provides us a mental model and language to express data constructions, without being the data format in which the Overture data is published
 ## Schema notation conventions
-   - camelCase is used for all property names as described in the [Google JSON Style Guide](https://google.github.io/styleguide/jsoncstyleguide.xml)
+   - `snake_case` is used for all property names, string enumeration members, and string-valued enumeration equivalents
    - boolean properties have a prefix verb "is" or "has" in a way that grammatically makes sense
       e.g.
-	     hasStreetLights=true
-		 isAccesible=false
+	     has_street_lights=true
+		 is_accessible=false
 
 ## Core Concepts
 ### Overture Feature Types
