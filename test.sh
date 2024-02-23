@@ -198,7 +198,6 @@ function counterexamples() {
       for expected_error in "${expected_errors[@]}"; do
         for actual_error in "${actual_errors[@]}"; do
           if [[ "$actual_error" == *"$expected_error"* ]]; then
-            echo OK
             continue 2
           fi
         done
@@ -210,6 +209,7 @@ function counterexamples() {
         printf "%s\n" "${actual_errors[@]}"
         exit 1
       done
+      echo OK
     fi
   done
 }
