@@ -29,7 +29,7 @@ properties:
         type: string
         enum:
           - canal
-          - humanMade
+          - human_made
           - lake
           - ocean
           - physical
@@ -49,7 +49,7 @@ properties:
           - dock
           - drain
           - fairway
-          - fishPass
+          - fish_pass
           - fishpond
           - lagoon
           - lake
@@ -58,19 +58,19 @@ properties:
           - ocean
           - oxbow
           - pond
-          - reflectingPool
+          - reflecting_pool
           - reservoir
           - river
-          - saltPool
+          - salt_pool
           - sewage
           - shoal
           - strait
           - stream
-          - swimmingPool
-          - tidalChannel
+          - swimming_pool
+          - tidal_channel
           - wastewater
           - water
-          - waterStorage
+          - water_storage
       names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       is_salt:
         description: Is it salt water or not
