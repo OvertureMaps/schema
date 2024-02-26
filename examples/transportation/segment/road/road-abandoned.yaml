@@ -12,6 +12,6 @@ properties:
   version: 2
   subtype: road
   road:
-      class: secondary
+      class: tertiary
       surface: gravel
       flags: [is_abandoned]
