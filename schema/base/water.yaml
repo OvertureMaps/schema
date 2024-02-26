@@ -50,7 +50,7 @@ properties:
           - drain
           - fairway
           - fish_pass
-          - fishpond
+          - fish_pond
           - lagoon
           - lake
           - lock
