@@ -57,6 +57,7 @@ shapeContainer:
         - slate
         - solar_panels
         - thatch
+        - tar_paper
         - wood
     roof_shape:
       description: The shape of the roof
