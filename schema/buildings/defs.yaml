@@ -35,7 +35,6 @@ shapeContainer:
         - concrete
         - glass
         - metal
-        - mud
         - plaster
         - plastic
         - stone
@@ -55,9 +54,8 @@ shapeContainer:
         - metal
         - plastic
         - roof_tiles
-        - solar_panels
         - slate
-        - tar_paper
+        - solar_panels
         - thatch
         - wood
     roof_shape:

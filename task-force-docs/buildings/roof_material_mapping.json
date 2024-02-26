@@ -1,18 +1,18 @@
 {
     "concrete": [
-      "concrete",
-      "concrete slab",
-      "rcc",
+      "asphalt_shingle",
       "asphalt",
-      "asphalt_shingle"
+      "concrete slab",
+      "concrete",
+      "rcc"
     ],
     "copper": [
       "copper"
     ],
     "eternit": [
-      "eternit",
+      "a/c sheets",
       "asbestos",
-      "a/c sheets"
+      "eternit"
     ],
     "glass": [
       "glass",
@@ -27,14 +27,16 @@
       "gravel"
     ],
     "metal": [
-      "metal",
-      "metal:sheet",
-      "zinc",
-      "zink",
       "corrugated_iron_sheets",
       "corrugated_iron",
+      "corrugated",
       "iron_sheet",
-      "corrugated"
+      "metal_sheet",
+      "metal:sheet",
+      "metal",
+      "tin",
+      "zinc",
+      "zink"
     ],
     "plastic": [
       "plastic",
@@ -48,18 +50,21 @@
       "clay_tiles"
     ],
     "slate": [
-      "slate",
       "brick",
+      "marble",
       "sandstone",
-      "stone",
-      "marble"
+      "slate",
+      "stone"
     ],
     "solar_panels": [
       "solar_panels"
     ],
+    "tar_paper": [
+      "tar_paper"
+    ],
     "thatch": [
-      "thatch",
-      "cadjan_palmyrah_straw"
+      "cadjan_palmyrah_straw",
+      "thatch"
     ],
     "wood": [
       "wood",
