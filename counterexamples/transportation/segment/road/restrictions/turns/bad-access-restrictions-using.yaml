@@ -19,7 +19,8 @@ properties:
   road:
     class: secondary
     surface: gravel
-    flags: [is_link, is_tunnel, isPrivate]
+    flags: 
+      - [is_link, is_tunnel]
     restrictions:
       access:
         - allowed:
