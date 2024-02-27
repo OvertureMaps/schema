@@ -132,6 +132,7 @@ properties:
             - unclassified    # Known roads, paved, but subordinate to all of: motorway, trunk, primary, secondary, tertiary
             - parking_aisle   # Service road intended for parking
             - driveway        # Service road intended for deliveries
+            - alley           # Service road intended for rear entrances, fire exits
             - pedestrian
             - footway
             - sidewalk
