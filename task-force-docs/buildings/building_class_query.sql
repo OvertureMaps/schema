@@ -196,6 +196,6 @@ CASE
             'bicycle_parking',
             'bus_station',
             'parking'
-        )THEN 'transportation'
+        ) THEN 'transportation'
     ELSE NULL
 END
