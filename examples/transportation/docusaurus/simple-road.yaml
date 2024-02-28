@@ -13,7 +13,7 @@ properties:
   version: 3
   update_time: "2023-06-01T16:42:00-06:00"
   subtype: road
-  connectors:
+  connector_ids:
     - overture:transportation:example:simple-road-connector-1
     - overture:transportation:example:simple-road-connector-2
   names:

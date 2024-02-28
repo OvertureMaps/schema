@@ -15,12 +15,12 @@ properties:
   subtype: road
   level: -1
   width: 10
-  connectors: [fooConnector, barConnector]
+  connector_ids: [fooConnector, barConnector]
   road:
     class: secondary
     surface: gravel
     flags: [is_link, is_tunnel, isPrivate]
-    restrictions: 
+    restrictions:
       turns:
         - toDirection: forward
           reason: legal

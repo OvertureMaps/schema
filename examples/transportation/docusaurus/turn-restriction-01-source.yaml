@@ -13,14 +13,14 @@ properties:
   version: 4
   update_time: "2023-08-21T16:23:13-06:00"
   subtype: road
-  connectors:
+  connector_ids:
     - overture:transportation:example:simple-turn-restriction-connector1
     - overture:transportation:example:simple-turn-restriction-connector2
   road:
     restrictions:
       prohibited_transitions:
-         - sequence:  
+         - sequence:
            - segment_id: overture:transportation:example:simple-turn-restriction-target
              connector_id: overture:transportation:example:simple-turn-restriction-connector2
            final_heading: forward
-           when: {heading: forward} 
+           when: {heading: forward}

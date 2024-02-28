@@ -15,10 +15,10 @@ from timeit import default_timer as timer
 from typing import Dict, Iterable
 
 def get_feature_id_to_connected_features(features_overture: Iterable[MatchableFeature]) -> Dict[str, Iterable[MatchableFeature]]:
-    """returns a connected roads "graph" as a dictionary of feature id to features that are connected to it, as modeled in overture schema via connectors property"""
+    """returns a connected roads "graph" as a dictionary of feature id to features that are connected to it, as modeled in overture schema via connector_ids property"""
     connector_id_to_features = {}
     for feature in features_overture:
-        for connector_id in feature.get_connectors():
+        for connector_id in feature.get_connector_ids():
             if not connector_id in connector_id_to_features:
                 connector_id_to_features[connector_id] = []
             connector_id_to_features[connector_id].append(feature)
@@ -26,11 +26,11 @@ def get_feature_id_to_connected_features(features_overture: Iterable[MatchableFe
     feature_id_to_connected_features = {}
     for feature in features_overture:
         feature_id_to_connected_features[feature.id] = []
-        for connector_id in feature.get_connectors():
+        for connector_id in feature.get_connector_ids():
             for other_feature in connector_id_to_features[connector_id]:
                 if other_feature.id != feature.id:
                     feature_id_to_connected_features[feature.id].append(other_feature)
-    return feature_id_to_connected_features    
+    return feature_id_to_connected_features
 
 def read_predictions(predictions_file: str):
     """reads snap predictions from tab separated file with columns: trace_id, point_index, gers_id, score"""
@@ -54,13 +54,13 @@ def calculate_error_rate(labeled_file: str, target_features_by_id: Dict[str, Ite
     if not(os.path.exists(labeled_file)):
         print(f'no metrics to compute (file {labeled_file} does not exist)')
         return
-    
+
     labels = read_predictions(labeled_file)
     total_correct_distance = 0
     total_incorrect_distance = 0
     with open(labeled_file + ".actual.txt",'w') as f:
-        f.write(constants.COLUMN_SEPARATOR.join(["trace_id", "point_index", "label_gers_id", "prediction_gers_id", "label_snapped_wkt", "prediction_snapped_wkt", "distance_to_prev_point", "is_correct"]) + "\n") 
-        for trace_match_result in match_results:        
+        f.write(constants.COLUMN_SEPARATOR.join(["trace_id", "point_index", "label_gers_id", "prediction_gers_id", "label_snapped_wkt", "prediction_snapped_wkt", "distance_to_prev_point", "is_correct"]) + "\n")
+        for trace_match_result in match_results:
             if not(trace_match_result.id in labels):
                 continue
 
@@ -104,7 +104,7 @@ def calculate_error_rate(labeled_file: str, target_features_by_id: Dict[str, Ite
                     str(dist_to_prev_point), \
                     str(is_correct), \
                     ]
-                f.write(constants.COLUMN_SEPARATOR.join(columns) + "\n") 
+                f.write(constants.COLUMN_SEPARATOR.join(columns) + "\n")
 
                 prev_point = point.original_point
 
@@ -112,15 +112,15 @@ def calculate_error_rate(labeled_file: str, target_features_by_id: Dict[str, Ite
             print(rf"trace_id={trace_match_result.id} trace_error_rate={trace_error_rate:.2f} correct_distance={correct_distance:.2f} incorrect_distance={incorrect_distance:.2f}")
             total_correct_distance += correct_distance
             total_incorrect_distance += incorrect_distance
-    
+
     if total_correct_distance == 0:
         print('no correct distance')
         return -1
-    
+
     total_error_rate = total_incorrect_distance / total_correct_distance
     print(rf"total_error_rate={total_error_rate:.2f} total_correct_distance={total_correct_distance:.2f} total_incorrect_distance={total_incorrect_distance:.2f}")
     return total_error_rate
-        
+
 def output_trace_snap_results(match_results: Iterable[TraceMatchResult], output_file_name: str, output_for_judgment: bool = False):
     results_json = list(map(lambda x: x.to_json(diagnostic_mode=False, include_all_predictions=False), match_results))
     with open(output_file_name, 'w') as f:
@@ -136,19 +136,19 @@ def output_trace_snap_results(match_results: Iterable[TraceMatchResult], output_
 
     if output_for_judgment:
         with open(output_file_name + ".for_judgment.txt",'w') as f:
-            f.write(constants.COLUMN_SEPARATOR.join(["trace_id", "point_index", "trace_point_wkt", "gers_id"]) + "\n") 
+            f.write(constants.COLUMN_SEPARATOR.join(["trace_id", "point_index", "trace_point_wkt", "gers_id"]) + "\n")
             for r in match_results:
                 for idx, p in enumerate(r.points):
                     columns = [
                         str(r.id),
                         str(idx),
                         p.original_point.wkt,
-                        str(p.best_prediction.id) if p.best_prediction is not None else "" 
+                        str(p.best_prediction.id) if p.best_prediction is not None else ""
                     ]
-                    f.write(constants.COLUMN_SEPARATOR.join(columns) + "\n") 
+                    f.write(constants.COLUMN_SEPARATOR.join(columns) + "\n")
 
         with open(output_file_name + ".snapped_points.txt",'w') as f:
-            f.write(constants.COLUMN_SEPARATOR.join(["trace_id", "point_index", "gers_id", "snapped_point_wkt"]) + "\n") 
+            f.write(constants.COLUMN_SEPARATOR.join(["trace_id", "point_index", "gers_id", "snapped_point_wkt"]) + "\n")
             for r in match_results:
                 for idx, p in enumerate(r.points):
                     columns = [
@@ -157,7 +157,7 @@ def output_trace_snap_results(match_results: Iterable[TraceMatchResult], output_
                         str(p.best_prediction.id) if p.best_prediction is not None else "",
                         p.best_prediction.snapped_point.wkt if p.best_prediction is not None else ""
                     ]
-                    f.write(constants.COLUMN_SEPARATOR.join(columns) + "\n") 
+                    f.write(constants.COLUMN_SEPARATOR.join(columns) + "\n")
 
     with open(output_file_name + ".auto_metrics.txt",'w') as f:
         header = [
@@ -170,14 +170,14 @@ def output_trace_snap_results(match_results: Iterable[TraceMatchResult], output_
             "target_candidates_count",
             "matched_target_ids_count",
             "avg_dist_to_road",
-            "sequence_breaks", 
+            "sequence_breaks",
             "revisited_via_points",
             "revisited_segments",
-            "elapsed", 
+            "elapsed",
             "source_wkt"
         ]
-        f.write(constants.COLUMN_SEPARATOR.join(header) + "\n") 
-        for r in match_results:            
+        f.write(constants.COLUMN_SEPARATOR.join(header) + "\n")
+        for r in match_results:
             columns = [
                 str(r.id),
                 str(r.source_length),
@@ -194,15 +194,15 @@ def output_trace_snap_results(match_results: Iterable[TraceMatchResult], output_
                 str(r.elapsed),
                 str(r.source_wkt),
             ]
-            f.write(constants.COLUMN_SEPARATOR.join(columns) + "\n") 
+            f.write(constants.COLUMN_SEPARATOR.join(columns) + "\n")
 
 def set_best_path_predictions(points: Iterable[PointSnapInfo]):
     """Sets the best prediction for each point in the sequence, starting from the end and going backwards following the best_prev_prediction chain"""
 
     last_point = points[-1]
-    if last_point.predictions is None or len(last_point.predictions) == 0 or last_point.predictions[0].best_log_prob == 0:        
+    if last_point.predictions is None or len(last_point.predictions) == 0 or last_point.predictions[0].best_log_prob == 0:
         return # no path found
-    
+
     last_point.best_prediction = last_point.predictions[0] # this is sorted descending by probability, so the first one is the best
     for idx in range(len(points)-2, -1, -1):
         if points[idx + 1].best_prediction is not None:
@@ -218,7 +218,7 @@ def extend_sequence(steps: Iterable[RouteStep], prev_prediction: SnappedPointPre
     extended_sequence = prev_prediction.best_sequence.copy() if prev_prediction.best_sequence is not None else []
     revisited_segments_count = 0
     added_via_points = []
-    for step in steps:                            
+    for step in steps:
         if len(extended_sequence) == 0 or step.feature.id != extended_sequence[-1]: # either first step or new feature
             if len(extended_sequence) > 0 and step.feature.id in extended_sequence: # different than prev segment but present in the sequence, so we are revisiting it
                 revisited_segments_count += 1
@@ -255,7 +255,7 @@ def get_trace_matches(source_feature: MatchableFeature, target_candidates: Itera
     prev_point = None
     sequence_breaks = 0
     for idx, coord in enumerate(source_feature.geometry.coords):
-                
+
         original_point = Point(coord[0], coord[1])
         predictions = []
 
@@ -264,7 +264,7 @@ def get_trace_matches(source_feature: MatchableFeature, target_candidates: Itera
             distance_to_road = get_distance(original_point, snapped_point)
             if distance_to_road > options.max_point_to_road_distance:
                 continue
-            
+
             emission_prob = (1 / (math.sqrt(2*math.pi) * options.sigma)) * math.exp(-0.5 * ((distance_to_road/options.sigma)**2)) # measurement probability - if was on this road how likely is it to have measured the point at this distance
             best_log_prob = None
             best_transition_prob = None
@@ -292,9 +292,9 @@ def get_trace_matches(source_feature: MatchableFeature, target_candidates: Itera
                     if route is None or route.distance == float('inf') :
                         # couldn't find path, skip this prev_match as impossible to transition from it to this match
                         continue
-                    
+
                     dist_diff = abs(trace_dist_from_prev_point - route.distance)
-                    
+
                     transition_prob = (1 / options.beta) * math.exp(-dist_diff / options.beta)
 
                     extended_sequence, revisited_segments_count, revisited_via_points_count = extend_sequence(route.steps, prev_prediction)
@@ -305,7 +305,7 @@ def get_trace_matches(source_feature: MatchableFeature, target_candidates: Itera
                         continue
                     #match_prob = prev_prediction.best_prob * emission_prob * transition_prob
                     # probabilities multiplied over many points go to zero (floating point underflow), so use log of product is sum of logs
-                    match_log_prob = prev_prediction.best_log_prob + math.log(emission_prob) + math.log(transition_prob) 
+                    match_log_prob = prev_prediction.best_log_prob + math.log(emission_prob) + math.log(transition_prob)
                     #print(f'point#{idx} prev_prediction={prev_prediction.id} transition_prob={transition_prob} emission_prob={emission_prob} match_prob={match_prob} route_dist_from_prev_point={route_dist_from_prev_point} trace_dist_from_prev_point={trace_dist_from_prev_point} dist_diff={dist_diff}')
                     if best_log_prob is None or match_log_prob > best_log_prob:
                         best_log_prob = match_log_prob
@@ -316,10 +316,10 @@ def get_trace_matches(source_feature: MatchableFeature, target_candidates: Itera
                         best_route_via_points = []
                         best_revisited_via_points_count = revisited_via_points_count
                         best_revisited_segments_count = revisited_segments_count
-                        for step in route.steps:                            
+                        for step in route.steps:
                             if step.via_point is not None:
                                 best_route_via_points.append(step.via_point.wkt)
-                            # todo: also include the intermediate features in route.path                        
+                            # todo: also include the intermediate features in route.path
 
             if best_log_prob is None:
                 continue # couldn't find a path to this point, skip it
@@ -329,20 +329,20 @@ def get_trace_matches(source_feature: MatchableFeature, target_candidates: Itera
             predictions.append(prediction)
 
         predictions.sort(key=lambda x: x.best_log_prob, reverse=True)
-        time_since_prev_point = None if times is None or prev_point is None else get_seconds_elapsed(times[prev_point.index], times[idx])        
+        time_since_prev_point = None if times is None or prev_point is None else get_seconds_elapsed(times[prev_point.index], times[idx])
         time = None if times is None else times[idx]
         point = PointSnapInfo(idx, original_point, time, time_since_prev_point, predictions)
         points.append(point)
 
         if len(predictions) > 0:
-            prev_point = point # don't update prev_point unless it has at least one prediction   
+            prev_point = point # don't update prev_point unless it has at least one prediction
         else:
             # no predictions for this point, so ignore current point and previous point to attempt to recover sequence;
-            # if gap between current point and prev_point is too big, abandon the prev_point and reset; 
+            # if gap between current point and prev_point is too big, abandon the prev_point and reset;
             # this will happen when there is no road in the target map to match the trace
             point.ignore = True
             if prev_point is not None:
-                prev_point.ignore = True                
+                prev_point.ignore = True
                 if prev_point.index > 0:
                     prev_point = points[prev_point.index - 1]
                     # gap with no candidates too big if 60seconds or 200m since last point
@@ -360,7 +360,7 @@ def get_trace_matches(source_feature: MatchableFeature, target_candidates: Itera
     end = timer()
     elapsed = end - start
     source_feature_length = get_linestring_length(source_feature.geometry)
-    t = TraceMatchResult(source_feature.id, source_feature.geometry.wkt, points, source_feature_length, len(target_candidates), elapsed=elapsed, sequence_breaks=sequence_breaks)    
+    t = TraceMatchResult(source_feature.id, source_feature.geometry.wkt, points, source_feature_length, len(target_candidates), elapsed=elapsed, sequence_breaks=sequence_breaks)
     set_trace_match_metrics(t)
     return t
 
@@ -422,7 +422,7 @@ def print_stats(source_features: Iterable[MatchableFeature], target_features: It
 def snap_traces(features_to_match_file: str, overture_file: str, output_file: str, res: int, snap_options: TraceSnapOptions=None, output_for_judgment: bool=False) -> None:
     if snap_options is None:
         snap_options = TraceSnapOptions() # loads default options
-    
+
     # save the options we used next to the output file for debugging or comparison with other runs
     with open(output_file + ".options.json", "w") as f:
         json.dump(snap_options.__dict__, f, indent=4)
@@ -453,7 +453,7 @@ def snap_traces(features_to_match_file: str, overture_file: str, output_file: st
         target_candidates = get_features_with_cells(overture.features_by_cell, to_match.cells_by_id[source_feature.id])
         match_res = get_trace_matches(source_feature, target_candidates, snap_options)
         match_results.append(match_res)
-        
+
         total_elapsed += match_res.elapsed
         avg_runtime_per_feature = total_elapsed / i
 
@@ -487,7 +487,7 @@ def get_args():
     parser.add_argument("--revisit_via_point_penalty_weight", type=float, help="How much to penalize a route with one via-point revisit", required=False, default=constants.DEFAULT_VIA_POINT_PENALTY_WEIGHT)
     parser.add_argument("--broken_time_gap_reset_sequence", type=float, help="How big the time gap in seconds between points without valid route options before we consider it a broken sequence", required=False, default=constants.DEFAULT_BROKEN_TIME_GAP_RESET_SEQUENCE)
     parser.add_argument("--broken_distance_gap_reset_sequence", type=float, help="How big the distance gap in meters between points without valid route options before we consider it a broken sequence", required=False, default=constants.DEFAULT_BROKEN_DISTANCE_GAP_RESET_SEQUENCE)
-    parser.add_argument("--j", action="store_true", help="Also output the matches as a 'pre-labeled' file for judgment", default=False, required=False)    
+    parser.add_argument("--j", action="store_true", help="Also output the matches as a 'pre-labeled' file for judgment", default=False, required=False)
     return parser.parse_args()
 
 def get_trace_snap_options_from_args(args):
@@ -500,10 +500,9 @@ def get_trace_snap_options_from_args(args):
         revisit_segment_penalty_weight=args.revisit_segment_penalty_weight,
         revisit_via_point_penalty_weight=args.revisit_via_point_penalty_weight,
         broken_time_gap_reset_sequence=args.broken_time_gap_reset_sequence,
-        broken_distance_gap_reset_sequence=args.broken_distance_gap_reset_sequence)    
+        broken_distance_gap_reset_sequence=args.broken_distance_gap_reset_sequence)
 
 if __name__ == "__main__":
-    args = get_args()    
+    args = get_args()
     trace_snap_options = get_trace_snap_options_from_args(args)
     snap_traces(args.input_to_match, args.input_overture, args.output, args.resolution, trace_snap_options, output_for_judgment=args.j)
-    
