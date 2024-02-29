@@ -27,5 +27,5 @@ properties:
       - value: paved
     restrictions:
       access:
-        - denied:
-            when: {mode: [foot]}
+        - access_type: denied
+          when: {mode: [foot]}

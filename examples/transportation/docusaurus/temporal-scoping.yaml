@@ -16,5 +16,6 @@ properties:
   road:
     restrictions:
       access:
-        - denied: { during: "Mo-Fr 15:00-18:00" }
-          when: { not_mode: [bus] }
+        - access_type: denied
+          during: "Mo-Fr 15:00-18:00"
+          when: { mode_not: [bus] }

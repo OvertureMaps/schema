@@ -21,9 +21,9 @@ properties:
       - direction: reversible
         restrictions:
           access:
-            - allowed:
-                heading: forward
-                during: Mo-Su 00:00-12:00
-            - allowed:
-                heading: backward
-                during: Mo-Su 12:00-24:00
+            - access_type: allowed
+              heading: forward
+              during: Mo-Su 00:00-12:00
+            - access_type: allowed
+              heading: backward
+              during: Mo-Su 12:00-24:00

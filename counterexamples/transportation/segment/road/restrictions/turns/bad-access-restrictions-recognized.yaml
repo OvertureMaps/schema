@@ -22,5 +22,5 @@ properties:
     flags: [is_link, is_tunnel, isPrivate]
     restrictions:
       access:
-        - allowed:
-            when: {recognized: [foo]}
+        - access_type: allowed
+          when: {recognized: [foo]}

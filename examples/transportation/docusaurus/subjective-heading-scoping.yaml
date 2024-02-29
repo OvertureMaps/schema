@@ -20,9 +20,9 @@ properties:
     class: primary
     restrictions:
       access:
-        - denied:
-            when: { heading: backward }
-        - allowed:
-            when:
-              heading: backward
-              mode: [bus]
+        - access_type: denied
+          when: { heading: backward }
+        - access_type: allowed
+          when:
+            heading: backward
+            mode: [bus]
