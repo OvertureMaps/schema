@@ -22,9 +22,10 @@ TODO.
 
 1. [ ] Add relevant examples.
 2. [ ] Add relevant counterexamples.
-3. [ ] Update in-schema documentation using plain English written in complete sentences, if an update is required.
-4. [ ] Update Docusaurus documentation, if an update is required.
-5. [ ] Review change with Overture technical writer to ensure any advanced documentation needs will be taken care of, unless the change is trivial and would not affect the documentation.
+3. [ ] Update any counterexamples that became obsolete. For example, if a counterexample uses property `A` but is not intended to test property `A`'s validity, and you made a schema change that invalidates property `A` in that counterexample, fix the counterexample to align it with your schema change.  
+4. [ ] Update in-schema documentation using plain English written in complete sentences, if an update is required.
+5. [ ] Update Docusaurus documentation, if an update is required.
+6. [ ] Review change with Overture technical writer to ensure any advanced documentation needs will be taken care of, unless the change is trivial and would not affect the documentation.
 
 # Documentation Website
 
