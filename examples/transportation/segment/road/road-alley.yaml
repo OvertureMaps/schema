@@ -18,5 +18,3 @@ properties:
         - allowed:
             when:
               using: [at_destination]
-      speed_limits:
-        - max_speed: [15, "mph"]
