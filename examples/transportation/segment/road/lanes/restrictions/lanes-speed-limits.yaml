@@ -32,21 +32,21 @@ properties:
       - direction: forward # lane 1  -> hgv vehicles cannot use that lane
         restrictions:
           access:
-            - denied:
-                when:
-                  mode:
-                    - hgv
+            - access_type: denied
+              when:
+                mode:
+                  - hgv
       - direction: forward # lane 2 - available for all vehicles except hgv vehicles if their weight is more than 3 tons, and they must limit their speed to 80 km/h
         # for all other vehicles segment speed limit (100 km/h) applies
         restrictions:
           access:
-            - denied:
-                when:
-                  mode:
-                    - hgv
-                  vehicle:
-                    weight:
-                      is_at_most: 3
+            - access_type: denied
+              when:
+                mode:
+                  - hgv
+                vehicle:
+                  weight:
+                    is_at_most: 3
           speed_limits:
             - max_speed:
                 - 80
