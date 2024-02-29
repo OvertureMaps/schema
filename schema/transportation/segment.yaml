@@ -457,41 +457,19 @@ properties:
       description: Rules governing access to this road segment or lane
       type: array
       items:
-        oneOf:
-          - "$ref": "#/$defs/propertyDefinitions/accessOption"
-          - type: object
-            oneOf:
-              - required: [ allowed ]
-                properties:
-                  allowed:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/headingContainer" }
-              - required: [ designated ]
-                properties:
-                  designated:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/headingContainer" }
-              - required: [ denied ]
-                properties:
-                  denied:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/headingContainer" }
-            minLength: 1
+        type: object
+        unevaluatedProperties: false
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+          - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
+          - { "$ref": "#/$defs/propertyContainers/headingContainer" }
+        required: [access_type]
+        properties:
+          access_type:
+            type: string
+            enum: [allowed, denied, designated]
+        minLength: 1
     ruleContainer:
       description: >-
         Properties that allow defining rules from environmental and subjective scoping properties .
