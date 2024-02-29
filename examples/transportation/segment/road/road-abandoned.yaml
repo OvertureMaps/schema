@@ -8,10 +8,10 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  version: 3
+  update_time: "2023-02-23T00:03:15-08:00"
+  version: 2
   subtype: road
-  class: tertiary
-  road_surface:
-    - value: gravel
-  road_flags:
-    - values: [is_abandoned]
+  road:
+      class: tertiary
+      surface: gravel
+      flags: [is_abandoned]
