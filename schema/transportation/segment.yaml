@@ -36,9 +36,9 @@ properties:
           kind has an (implied) set of default transport modes.
       connector_ids:
         description: >-
-          List of connector IDs this segment is physically connected to.
-          Each connector is a possible routing decision point, meaning it
-          defines a place along the segment in which there is possibility to
+          List of connector IDs identifying the connectors this segment is physically
+          connected to. Each connector is a possible routing decision point, meaning
+          it defines a place along the segment in which there is possibility to
           transition to other segments which share the same connector.
         type: array
         items:
@@ -187,7 +187,7 @@ properties:
           description: >-
             Edge-to-edge width of the road modeled by this segment, in
             meters.
-    
+
             Examples: (1) If this segment models a carriageway without
             sidewalk, this value represents the edge-to-edge width of the
             carriageway, inclusive of any shoulder. (2) If this segment
