@@ -7,13 +7,15 @@
     },
     "properties": {
       "ext_expected_errors": [
-        "got string, want object"
+        "[I#/properties/road/flags/0] [S#/$defs/propertyDefinitions/road/properties/flags/items/type] expected object, but got string"
       ],
       "theme": "transportation",
       "type": "segment",
-      "version": 20,
+      "version": 19,
+      "update_time": "2023-02-23T00:04:00-08:00",
       "subtype": "road",
-      "class": "primary",
-      "road_flags": ["is_tunnel"]
+      "road": {
+        "flags": ["is_tunnel"]
+      }
     }
   }
