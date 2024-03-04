@@ -11,7 +11,7 @@ properties:
   version: 0
   subtype: region
   local_type:
-    primary: province
+    en: province
   names:
     primary: Ontario
   sources:
