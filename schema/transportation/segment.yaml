@@ -168,17 +168,15 @@ properties:
             as an array of flag rules.
           type: array
           items:
-            oneOf:
-              - { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
-              - type: object
-                allOf:
-                  - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                unevaluatedProperties: false
-                properties:
-                  values:
-                    type: array
-                    items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
-                    uniqueItems: true
+            type: object
+            allOf:
+              - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+            unevaluatedProperties: false
+            properties:
+              values:
+                type: array
+                items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
+                uniqueItems: true
           uniqueItems: true
         width:
           description: >-
