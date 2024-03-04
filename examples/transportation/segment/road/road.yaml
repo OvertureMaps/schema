@@ -22,7 +22,8 @@ properties:
     class: secondary
     surface:
       - value: gravel
-    flags: [is_link, is_tunnel]
+    flags: 
+      - values: [is_link, is_tunnel]
     width:
       - value: 10
     restrictions:
