@@ -1,0 +1,30 @@
+---
+id: counterexample:division:bad-hierarchies
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division
+  update_time: "2024-02-26T16:43:15Z"
+  version: 0
+  subtype: county
+  names:
+    primary: A division with an invalid hierarchies property
+  country: ZZ
+  hierarchies:
+    - - division_id: counterexample:division:bad-hierarchies-country
+        subtype: country
+      - name: foo
+        subtype: region
+      - division_id: counterexample:division:bad-hierarchies-county
+        name: bar
+    - []
+  norms:
+    driving_side: left
+  ext_expected_errors:
+    - "[I#/properties/hierarchies/0/0] [S#/$defs/typeDefinitions/hierarchyItem/required] missing properties: 'name'"
+    - "[I#/properties/hierarchies/0/1] [S#/$defs/typeDefinitions/hierarchyItem/required] missing properties: 'division_id'"
+    - "[I#/properties/hierarchies/0/2] [S#/$defs/typeDefinitions/hierarchyItem/required] missing properties: 'subtype'"
+    - "[I#/properties/hierarchies/1] [S#/$defs/typeDefinitions/hierarchy/minItems] minimum 1 items required, but found 0 items"

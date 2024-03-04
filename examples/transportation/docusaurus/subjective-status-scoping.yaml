@@ -16,6 +16,6 @@ properties:
   road:
     restrictions:
       access:
-        - denied
-        - allowed:
-            when: { recognized: [as_private] }
+        - access_type: denied
+        - access_type: allowed
+          when: { recognized: [as_private] }

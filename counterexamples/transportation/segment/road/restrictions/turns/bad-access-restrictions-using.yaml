@@ -23,5 +23,5 @@ properties:
       - [is_link, is_tunnel]
     restrictions:
       access:
-        - allowed:
-            when: {using: [foo]}
+        - access_type: allowed
+          when: {using: [foo]}

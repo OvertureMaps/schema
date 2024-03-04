@@ -15,14 +15,6 @@ oneOf:
         properties:
           properties:
             theme: { enum: [admins] }
-            type: { enum: [locality] }
-    then: { "$ref": admins/locality.yaml }
-    else: { propertyNames: false }
-  - if:
-      properties:
-        properties:
-          properties:
-            theme: { enum: [admins] }
             type: { enum: [administrative_boundary] }
     then: { "$ref": admins/administrative_boundary.yaml }
     else: { propertyNames: false }
@@ -31,48 +23,16 @@ oneOf:
         properties:
           properties:
             theme: { enum: [admins] }
+            type: { enum: [locality] }
+    then: { "$ref": admins/locality.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [admins] }
             type: { enum: [locality_area] }
     then: { "$ref": admins/locality_area.yaml }
-    else: { propertyNames: false }
-  - if:
-      properties:
-        properties:
-          properties:
-            theme: { enum: [buildings] }
-            type: { enum: [building] }
-    then: { "$ref": buildings/building.yaml }
-    else: { propertyNames: false }
-  - if:
-      properties:
-        properties:
-          properties:
-            theme: { enum: [buildings] }
-            type: { enum: [part] }
-    then: { "$ref": buildings/part.yaml }
-    else: { propertyNames: false }
-  - if:
-      properties:
-        properties:
-          properties:
-            theme: { enum: [transportation] }
-            type: { enum: [connector] }
-    then: { "$ref": transportation/connector.yaml }
-    else: { propertyNames: false }
-  - if:
-      properties:
-        properties:
-          properties:
-            theme: { enum: [transportation] }
-            type: { enum: [segment] }
-    then: { "$ref": transportation/segment.yaml }
-    else: { propertyNames: false }
-  - if:
-      properties:
-        properties:
-          properties:
-            theme: { enum: [places] }
-            type: { enum: [place] }
-    then: { "$ref": places/place.yaml }
     else: { propertyNames: false }
   - if:
       properties:
@@ -97,4 +57,68 @@ oneOf:
             theme: { enum: [base] }
             type: { enum: [water] }
     then: { "$ref": base/water.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [buildings] }
+            type: { enum: [building] }
+    then: { "$ref": buildings/building.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [buildings] }
+            type: { enum: [part] }
+    then: { "$ref": buildings/part.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [divisions] }
+            type: { enum: [boundary] }
+    then: { "$ref": divisions/boundary.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [divisions] }
+            type: { enum: [division] }
+    then: { "$ref": divisions/division.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [divisions] }
+            type: { enum: [division_area] }
+    then: { "$ref": divisions/division_area.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [places] }
+            type: { enum: [place] }
+    then: { "$ref": places/place.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [transportation] }
+            type: { enum: [connector] }
+    then: { "$ref": transportation/connector.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [transportation] }
+            type: { enum: [segment] }
+    then: { "$ref": transportation/segment.yaml }
     else: { propertyNames: false }

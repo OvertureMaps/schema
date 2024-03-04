@@ -1,0 +1,20 @@
+---
+id: counterexample:division_area:bad-geometry-type
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division_area
+  update_time: "2024-02-23T23:37:36Z"
+  version: 0
+  subtype: country
+  class: land
+  division_id: counterexample:division:some-division
+  names:
+    primary: A division area with an invalid geometry type.
+  country: ZZ
+  ext_expected_errors:
+    - '[I#/geometry/type] [S#/properties/type/enum] value must be "Polygon"'
+    - '[I#/geometry/type] [S#/properties/type/enum] value must be "MultiPolygon"'

@@ -20,7 +20,8 @@ properties:
   road:
     # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
     class: secondary
-    surface: gravel
+    surface:
+      - value: gravel
     flags: 
       - values: [is_link, is_tunnel]
     width:

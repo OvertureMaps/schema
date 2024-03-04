@@ -1,0 +1,13 @@
+---
+id: counterexample:division:missing-properties
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division
+  update_time: "2024-02-26T18:19:56Z"
+  version: 0
+  ext_expected_errors:
+    - "missing properties: 'names', 'subtype', 'country', 'hierarchies'"

@@ -13,16 +13,17 @@ properties:
   connectors: [fooConnector, barConnector]
   road:
     class: primary
-    surface: paved
+    surface:
+      - value: paved
       # This models a single-lane road whose direction is
       # completely reversible at arbitrary times.
     lanes:
       - direction: reversible
         restrictions:
           access:
-            - allowed:
-                heading: forward
-                during: Mo-Su 00:00-12:00
-            - allowed:
-                heading: backward
-                during: Mo-Su 12:00-24:00
+            - access_type: allowed
+              heading: forward
+              during: Mo-Su 00:00-12:00
+            - access_type: allowed
+              heading: backward
+              during: Mo-Su 12:00-24:00
