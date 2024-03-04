@@ -22,5 +22,5 @@ properties:
   norms:
     driving_side: left
   ext_expected_errors:
-    - "[I#/properties/names/primary] [S#/$defs/propertyDefinitions/commonNames/properties/primary/type] expected string, but got null"
+    - "[I#/properties/names/primary] [S#/$defs/propertyDefinitions/allNames/properties/primary/type] expected string, but got null"
     - additionalProperties 'a-b-c-d-e-f-g-h-i-j-k-l' not allowed
