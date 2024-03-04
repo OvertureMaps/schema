@@ -11,7 +11,7 @@ properties:
   version: 0
   subtype: borough
   local_type:
-    primary: borough
+    en: borough
   names:
     primary: The Bronx
   country: US

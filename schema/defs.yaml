@@ -206,9 +206,13 @@ description: Common schema definitions shared by all themes
       type: object
       required: [primary]
       unevaluatedProperties: false
-      allOf:
-        - { "$ref": "#/$defs/propertyDefinitions/commonNames" }
       properties:
+        primary:
+          description: The most commonly used name.
+          type: string
+          minLength: 1
+          pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+        common: { "$ref": "#/$defs/propertyDefinitions/commonNames" }
         rules:
           description: >-
             Rules for names that cannot be specified in the simple
@@ -220,26 +224,17 @@ description: Common schema definitions shared by all themes
           items: { "$ref": "#/$defs/propertyDefinitions/nameRule" }
           minItems: 1
     commonNames:
+      description: The common translations of the name.
       type: object
-      required: [primary]
-      properties:
-        primary:
-          description: The most commonly used name.
+      minProperties: 1
+      additionalProperties: false
+      patternProperties:
+        "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$":
+          "$comment": >-
+            This is an incomplete pattern for BCP47 language tags.
           type: string
           minLength: 1
           pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
-        common:
-          description: The common translations of the name.
-          type: object
-          minProperties: 1
-          additionalProperties: false
-          patternProperties:
-            "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$":
-              "$comment": >-
-                This is an incomplete pattern for BCP47 language tags.
-              type: string
-              minLength: 1
-              pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
     iso3166_1Alpha2CountryCode:
       description: ISO 3166-1 alpha-2 country code.
       type: string
