@@ -11,7 +11,7 @@ properties:
   version: 0
   subtype: dependency
   local_type:
-    primary: territory
+    en: territory
   names:
     primary: Puerto Rico
     common:
