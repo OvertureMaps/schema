@@ -5,15 +5,16 @@ geometry:
   type: LineString
   coordinates: [[0, 0], [1, 1]]
 properties:
+  # Overture properties
   theme: transportation
   type: segment
-  version: 5
+  update_time: "2023-02-23T00:03:59-08:00"
+  version: 4
   subtype: road
-  class: service
-  subclass_rules:
-    - value: alley
-      between: [0, 0.5]
-  access_restrictions:
-    - access_type: allowed
-      when:
-        using: [at_destination]
+  road:
+    class: alley
+    restrictions:
+      access:
+        - access_type: allowed
+          when:
+            using: [at_destination]
