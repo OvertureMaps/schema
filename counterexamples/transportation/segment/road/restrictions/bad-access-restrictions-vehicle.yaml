@@ -15,7 +15,7 @@ properties:
   subtype: road
   level: -1
   widthMeters: 10
-  connectors: [fooConnector, barConnector]
+  connector_ids: [fooConnector, barConnector]
   road:
     class: secondary
     surface: gravel
