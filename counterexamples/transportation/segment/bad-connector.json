@@ -1,5 +1,5 @@
 {
-  "id": "segment with an invalid entry in the connectors array",
+  "id": "segment with an invalid entry in the connector_ids array",
   "type": "Feature",
   "geometry": {
     "type": "LineString",
@@ -15,6 +15,6 @@
     "version": 3,
     "update_time": "2023-02-23T00:04:00-08:00",
     "subtype": "rail",
-    "connectors": ["bazConnector", "qux", 1, false]
+    "connector_ids": ["bazConnector", "qux", 1, false]
   }
 }
