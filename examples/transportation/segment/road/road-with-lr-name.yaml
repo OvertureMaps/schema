@@ -14,7 +14,7 @@ properties:
   version: 0
   subtype: road
   level: 1
-  connectors: [fooConnector, barConnector] # Topology: To discuss further.
+  connector_ids: [fooConnector, barConnector] # Topology: To discuss further.
   names:
     primary: Common Road Name 1
     rules:
