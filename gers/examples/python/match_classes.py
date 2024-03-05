@@ -13,17 +13,17 @@ class MatchableFeature:
         self.id = str(id)
         self.geometry = geometry
         self.properties = properties
-    
+
     def __str__(self) -> str:
-        return json.dumps({ 
-            "id": self.id, 
-            "geometry": self.geometry.wkt, 
+        return json.dumps({
+            "id": self.id,
+            "geometry": self.geometry.wkt,
             "properties": self.properties
         })
 
-    def get_connectors(self) -> Iterable[str]:
-        return self.properties["connectors"] if self.properties is not None and "connectors" in self.properties else []        
-    
+    def get_connector_ids(self) -> Iterable[str]:
+        return self.properties["connector_ids"] if self.properties is not None and "connector_ids" in self.properties else []
+
 class MatchableFeaturesSet:
     """Collection of matchable features, indexed by id, and by cells (H3 in current implementation)"""
     def __init__(self, features: Dict[str, Iterable[MatchableFeature]], cells_by_id: Dict[str, Iterable[str]], features_by_cell: Dict[str, Iterable[MatchableFeature]]) -> None:
@@ -51,18 +51,18 @@ class MatchedFeature:
         self.candidate_lr = candidate_lr
 
     def to_json(self):
-        j = { 
-            "id": str(self.id), 
+        j = {
+            "id": str(self.id),
             "candidate_wkt": self.matched_feature.geometry.wkt,
             "overlapping_wkt": self.overlapping_geometry.wkt if self.overlapping_geometry is not None else None,
             "score": self.score,
-        } 
+        }
         if self.source_lr is not None:
             j["source_lr"] = self.source_lr
         if self.candidate_lr is not None:
             j["candidate_lr"] = self.candidate_lr
         return j
-    
+
     def __str__(self) -> str:
         return json.dumps(self.to_json())
 
@@ -105,7 +105,7 @@ class Route:
         self.distance = distance
         self.steps = steps
 
-class SnappedPointPrediction:    
+class SnappedPointPrediction:
     """A road segment feature as a snap prediction for point in a trace, with relevant match signals"""
     def __init__(self, id: str, snapped_point: Point, referenced_feature: MatchableFeature, distance_to_snapped_road: float, route_distance_to_prev_point: float, emission_prob: float, best_transition_prob: float, best_log_prob: float, best_prev_prediction: float, best_sequence: Iterable[str], best_route_via_points: Iterable[str], best_revisited_via_points_count:int, best_revisited_segments_count:int) -> None:
         self.id = str(id)
@@ -126,13 +126,13 @@ class SnappedPointPrediction:
         best_prev_prediction_id = ""
         if self.best_prev_prediction is not None:
             best_prev_prediction_id = self.best_prev_prediction.id
-            
-        j = { 
+
+        j = {
             "id": self.id,
             "snapped_point": self.snapped_point.wkt,
             "distance_to_snapped_road": self.distance_to_snapped_road,
             "route_distance_to_prev_point": self.route_distance_to_prev_point,
-        } 
+        }
 
         if diagnostic_mode:
             j["referenced_feature"] = self.referenced_feature.geometry.wkt
@@ -142,7 +142,7 @@ class SnappedPointPrediction:
             j["best_prev_prediction"] = best_prev_prediction_id
             j["best_route_via_points"] = self.best_route_via_points
             j["best_revisited_via_points_count"] = self.best_revisited_via_points_count
-            j["best_revisited_segments_count"] = self.best_revisited_segments_count 
+            j["best_revisited_segments_count"] = self.best_revisited_segments_count
 
         return j
 
@@ -156,7 +156,7 @@ class PointSnapInfo:
         self.predictions = predictions
         self.best_prediction = None
         self.ignore = False
-    
+
     def to_json(self, diagnostic_mode: bool=False, include_all_predictions: bool=False,):
         best_prediction_json = None if self.best_prediction is None else self.best_prediction.to_json(diagnostic_mode)
 
@@ -192,12 +192,12 @@ class TraceMatchResult:
         self.route_length = route_length
         self.avg_dist_to_road = avg_dist_to_road
         self.revisited_via_points = revisited_via_points
-        self.revisited_segments = revisited_segments        
+        self.revisited_segments = revisited_segments
 
     def to_json(self, diagnostic_mode=False, include_all_predictions=False):
         points_json = list(map(lambda x: x.to_json(diagnostic_mode, include_all_predictions), self.points))
-        return { 
-            "id": str(self.id), 
+        return {
+            "id": str(self.id),
             "elapsed": self.elapsed,
             "source_length": self.source_length,
             "route_length": self.route_length,
