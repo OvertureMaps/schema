@@ -15,6 +15,6 @@ properties:
     class: alley
     restrictions:
       access:
-        - allowed:
-            when:
-              using: [at_destination]
+        - access_type: allowed
+          when:
+            using: [at_destination]
