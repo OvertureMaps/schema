@@ -1,0 +1,24 @@
+---
+id: counterexample:division:bad-capital-division-id
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  theme: divisions
+  type: division
+  update_time: "2024-02-23T23:15:31Z"
+  version: 0
+  subtype: country
+  names:
+    primary: A division with an invalid capital_division_id property.
+  country: ZZ
+  hierarchies:
+    - - division_id: counterexample:division:bad-capital-division-id
+        subtype: country
+        name: A division with an invalid capital_division_id property.
+  norms:
+    driving_side: right
+  capital_division_id: '    '
+  ext_expected_errors:
+    - "[I#/properties/capital_division_id] [S#/$defs/propertyDefinitions/id/pattern] does not match pattern"

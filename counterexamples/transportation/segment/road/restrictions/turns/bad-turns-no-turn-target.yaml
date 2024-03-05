@@ -19,8 +19,9 @@ properties:
   road:
     class: secondary
     surface: gravel
-    flags: [is_link, is_tunnel, isPrivate]
-    restrictions:
+    flags: 
+      - [is_link, is_tunnel]
+    restrictions: 
       turns:
         - toDirection: forward
           reason: legal

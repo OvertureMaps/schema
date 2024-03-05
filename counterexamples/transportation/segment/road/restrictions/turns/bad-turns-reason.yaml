@@ -19,8 +19,9 @@ properties:
   road:
     class: secondary
     surface: gravel
-    flags: [is_link, is_tunnel, isPrivate]
-    restrictions:
+    flags: 
+      - [is_link, is_tunnel]
+    restrictions: 
       turns:
         - segment_id: overture:transportation:segment:234
           connector_id: overture:transportation:connector:123

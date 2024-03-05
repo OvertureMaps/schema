@@ -13,7 +13,8 @@ properties:
   connector_ids: [fooConnector, barConnector]
   road:
     class: primary
-    surface: paved
+    surface:
+      - value: paved
       # This models a single-lane road whose direction alternates
       # on a regular rhythm (by default instructed by signals).
     lanes:

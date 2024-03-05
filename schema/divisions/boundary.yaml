@@ -1,0 +1,47 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: boundary
+description:
+  Boundaries represent borders between divisions of the same subtype.
+  Some boundaries may be disputed by the divisions on one or both sides.
+type: object
+properties:     # JSON Schema: Top-level object properties.
+  id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
+  geometry:
+    description:
+      Boundary's geometry which MUST be a LineString as defined by the
+      GeoJSON schema.
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/LineString.json
+  properties:   # GeoJSON: top-level object 'properties' property.
+    unevaluatedProperties: false
+    required: [subtype, class, divisions]
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+    properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
+      subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/placetype" }
+      class:
+        type: string
+        enum:
+          - land        # None of the boundary geometry extends beyond the
+                        # coastline of either associated division.
+
+          - maritime    # All the boundary geometry extends beyond the
+                        # coastline of both associated divisions.
+      divisions:
+        description:
+          The two divisions to the left and right, respectively, of the
+          boundary line, along with an indication of whether they dispute
+          the boundary. The left- and right-hand sides of the boundary are
+          considered from the perspective of a person standing on the
+          line facing in the direction in which the geometry is oriented,
+          i.e. facing toward the end of the line.
+          
+          The first array element represents the left division. The second
+          element represents the right division.
+        type: array
+        items: { "$ref": ./defs.yaml#/$defs/typeDefinitions/boundarySideDivision }
+        minItems: 2
+        maxItems: 2
+        uniqueItems: true

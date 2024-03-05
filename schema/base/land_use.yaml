@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Land Use Schema
+title: land_use
 description: Land use features from OpenStreetMap
 type: object
 properties:
@@ -17,9 +17,10 @@ properties:
   properties:
     unevaluatedProperties: false
     allOf:
-      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
     required:
       - subtype
       - class
@@ -154,7 +155,6 @@ properties:
           - wilderness_area
           - winter_sports
           - zoo
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
       surface:
         description: Surface material, mostly form the OSM tag, with some normalization.

@@ -1,0 +1,23 @@
+---
+id: counterexample:division:bad-geometry-coordinates
+type: Feature
+geometry:
+  type: Point
+  coordinates: ['foo', 123]
+properties:
+  theme: divisions
+  type: division
+  update_time: "2024-02-23T23:20:53Z"
+  version: 0
+  subtype: country
+  names:
+    primary: A division with invalid geometry coordinates.
+  country: ZZ
+  hierarchies:
+    - - division_id: counterexample:division:bad-geometry-coordinates
+        subtype: country
+        name: A division with invalid geometry coordinates.
+  norms:
+    driving_side: left
+  ext_expected_errors:
+    - "[I#/geometry/coordinates/0] [S#/properties/coordinates/items/type] expected number, but got string"

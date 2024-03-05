@@ -23,8 +23,9 @@ properties:
     primary: SR 520
   road:
     class: motorway
-    surface: paved
+    surface:
+      - value: paved
     restrictions:
       access:
-        - denied:
-            when: {mode: [foot]}
+        - access_type: denied
+          when: {mode: [foot]}

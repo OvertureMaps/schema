@@ -1,0 +1,19 @@
+---
+id: counterexample:division_area:bad-class
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  theme: divisions
+  type: division_area
+  update_time: "2024-02-23T23:17:24Z"
+  version: 0
+  subtype: country
+  class: mammalia
+  division_id: counterexample:division:some-division
+  names:
+    primary: A division area with an invalid class property.
+  country: ZZ
+  ext_expected_errors:
+    - 'value must be one of "land", "maritime"'
