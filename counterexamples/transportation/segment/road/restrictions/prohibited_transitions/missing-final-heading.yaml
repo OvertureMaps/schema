@@ -7,17 +7,17 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 2
+  version: 1
+  update_time: "2024-03-06T09:41:27-07:00"
   subtype: road
-  class: primary
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  prohibited_transitions:
-    - sequence:
-        - segment_id: foo
-          connector_id: bar
+  connector_ids:
+    - overture:transportation:example:connector:1
+  road:
+    class: primary
+    restrictions:
+      prohibited_transitions:
+        - sequence:
+            - segment_id: foo
+              connector_id: bar
   ext_expected_errors:
-    - "missing property 'final_heading'"
+    - "missing properties: 'final_heading'"
