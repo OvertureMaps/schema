@@ -244,6 +244,7 @@ properties:
                    - "$ref": "#/$defs/propertyContainers/ruleContainer"
                    - "$ref": "#/$defs/propertyContainers/duringContainer"
                  type: object
+                 required: [sequence, final_heading]
                  properties:
                    reason:
                      "$comment": TODO - This property should be dropped and handled by inhibitors/barriers.
