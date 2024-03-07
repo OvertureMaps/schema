@@ -23,5 +23,7 @@ properties:
       - [is_link, is_tunnel]
     restrictions:
       speed_limits:
-        - max_speed: [110, "mph"]
+        - max_speed:
+            value: 110
+            unit: mph
           when: {mode: [foo]}
