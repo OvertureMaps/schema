@@ -13,9 +13,9 @@
     "subtype": "road",
     "road": {
       "restrictions": {
-        "speed_limits": [
-          { }
-        ]
+        "speed_limits": {
+
+        }
       }
     }
   }

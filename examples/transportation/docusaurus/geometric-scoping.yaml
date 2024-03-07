@@ -14,6 +14,10 @@ properties:
     restrictions:
       speed_limits:
         - at: [0, 0.15]
-          max_speed: [100, "km/h"]
+          max_speed:
+            value: 100
+            unit: km/h
         - at: [0.15, 1]
-          max_speed: [60, "km/h"]
+          max_speed:
+            value: 60
+            unit: km/h

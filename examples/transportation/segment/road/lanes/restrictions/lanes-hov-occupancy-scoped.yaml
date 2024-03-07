@@ -16,8 +16,8 @@ properties:
     restrictions:
       speed_limits:
         - max_speed:
-            - 100
-            - "km/h"
+            value: 100
+            unit: km/h
     lanes:
       # one-way road with access and speed limit restrictions
       # digitization: S->N

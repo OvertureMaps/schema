@@ -15,4 +15,6 @@ properties:
   road:
     restrictions:
       speed_limits:
-        - max_speed: [30, "km/h"]
+        - max_speed:
+            value: 30
+            unit: km/h

@@ -15,9 +15,13 @@ properties:
   road:
     restrictions:
       speed_limits:
-        - max_speed: [70, "mph"]
+        - max_speed:
+            value: 70
+            unit: mph
         - #when: TODO: Uncomment and re-introduce `when` once this issue is sorted: schema-wg #155.
           mode: [hgv]
             # TODO: Uncomment below once this issue is sorted: schema-wg #155.
             # proceeding: { inDirection: forward }
-          max_speed: [65, "mph"]
+          max_speed:
+            value: 65
+            unit: mph
