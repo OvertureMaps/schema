@@ -299,15 +299,22 @@ properties:
       description: >-
         A speed value, i.e. a certain number of distance units
         travelled per unit time.
-      type: array
-      prefixItems:
-        - description: Number of speed units
+      type: object
+      properties:
+        value:
+          description: Speed value
           type: integer
           minimum: 20
-        - description: One speed unit
+        unit:
+          description: Speed unit
           type: string
-          enum: [ "km/h", "mph" ]
-      additionalItems: false
+          enum: 
+            - km/h
+            - mph
+      required:
+        - value
+        - unit  
+      unevaluatedProperties: false
     accessOption:
       description: Effect of an access restriction rule
       type: string
