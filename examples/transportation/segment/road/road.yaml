@@ -28,13 +28,21 @@ properties:
       - value: 10
     restrictions:
       speed_limits:
-        - min_speed: [90, "km/h"]
-          max_speed: [110, "mph"]
+        - min_speed:
+            value: 90
+            unit: km/h
+          max_speed:
+            value: 110
+            unit: mph
           mode_not: [ "truck" ]
           is_max_speed_variable: true
-        - max_speed: [55, "mph"]
+        - max_speed:
+            value: 55
+            unit: mph
           mode: [ "truck" ]
-        - max_speed: [30, "km/h"]
+        - max_speed:
+            value: 30
+            unit: km/h
           at: [0.25, 0.50]
           during: Mo-Sa 09:00-12:00, We 15:00-18:00
       prohibited_transitions:
