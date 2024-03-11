@@ -388,26 +388,25 @@ correct it in an upcoming release.* 🐞
 
 ## Lanes
 
-A road may optionally carry a `road.lanes` property which specifies the
-road's lane block. The lane block is a list of lane objects describing
-the physical structure and rules applicable to the road's lanes at a
-granularity sufficient to support the navigation use case. More
-generally, instead of directly carrying the lane block, `road.lanes` may
-instead contain a list of geometrically and/or temporally scoped
-[rules](/overview/feature-model/scoping-rules) for resolving the lane block applicable at any
-given place and/or time along the segment.
-
-<!--
-TODO: The statement that we support both geometric AND temporal scoping
-      for lanes is aspirationally true (we should) but factually false
-      (we do not). Please see:
-
-          https://github.com/OvertureMaps/schema-wg/issues/148
--->
+A road may optionally carry a `road.lanes` property which, if present, contains
+a list of rules that can be used to resolve the applicable traffic lane block
+for the road. A lane block is a list of lane objects. Each lane object in the
+block describes the physical structure and properties applicable to one the
+road's traffic lanes at a granularity sufficient to support the navigation use
+case. Note that the `road.lanes` property applies to traffic lanes, not to
+parking lanes.
 
 ### Use cases for lanes
 
-Many transportation [use cases](/themes/transportation#use-cases) can be
+<!--
+    FIXME: I found this dangling link on 2024-03-11. Once fixed, this
+           comment can be removed and the text can be replaced in its
+           former state. 👇
+
+    Many transportation [use cases](/themes/transportation#use-cases) can be
+-->
+
+Many transportation use cases can be
 solved either entirely or in large part without examining the lane
 structure of the road network. For example, optimal route calculation
 can be entirely solved without lane-level information, as can most 2D
@@ -426,12 +425,12 @@ access restrictions, a reasonable assumption is two lanes, one
 ### Lane numbering
 
 The number of lanes at a given place and time on a road segment is equal to
-the length of the resolved lanes list.
+the length of the lanes list within the resolved lane block.
 
 Each entry in the resolved lanes list represents one lane on the road.
 Order is important. The list captures the lanes in left-to-right order
 as they would be observed by a person standing on the physical road
-being modeled, facing in the [direction](shape-connectivity#direction-and-directionality)
+being modeled, facing in the [direction](/themes/transportation/shape-connectivity#direction-and-directionality)
 of the segment geometry. The leftmost lane has index `0`; the rightmost
 lane, assuming there are N total lanes, has index N-1. The example
 below illustrates how lane numbering works with example two-lane
@@ -587,29 +586,41 @@ to release soon.
 
 ### Resolving the applicable lane block
 
-If a segment's `road.lanes` property contains a single static block of
-lanes, that block defines the lane structure for the whole of the lane
-geometry and all times. If, instead, `road.lanes` contains a list of
-lane rules, the *determining rule* for any given location and time must
-be chosen using the
-[rule evaluation algorithm](/overview/feature-model/scoping-rules#rule-evaluation-algorithm)
-for rule-based properties. Once the determining rule for a certain scope
-is known, its rule block defines the lane structure.
+The traffic lane structure of a road segment can be different at different
+points along the segment, or at different times of the day, or both.
+Consequently, instead of having a static lane block, road segments carry a list
+of lane block [rules](https://docs.overturemaps.org/overview/feature-model/scoping-rules#rules-and-rule-based-properties)
+in the optional `road.lanes`  property.
+
+- A rule may be scoped [geometrically](https://docs.overturemaps.org/overview/feature-model/scoping-rules#geometric-scoping-linear-referencing),
+which allows linear referencing to be used to specify the portion of the
+segment geometry where the lane block exists.
+- A rule may also be scoped [temporally](https://docs.overturemaps.org/overview/feature-model/scoping-rules#temporal-scoping-opening-hours),
+which allows the time of day that the lane block exists to be specified.
+Temporal scoping is useful for modeling cases like lanes which are used
+for parking at off hours and traffic during peak hours. In such a case,
+the lane block rule would be scoped to peak hours.
+
+As with all rule-based properties in the Overture schema, the
+[rule evaluation algorithm](https://docs.overturemaps.org/overview/feature-model/scoping-rules#rule-evaluation-algorithm)
+must be applied to determine which lane block rule, if any, is
+applicable at a given place and time along the road segment. Once the
+determining rule for a certain scope is known, its rule block defines
+the lane structure within that scope.
 
 The example below illustrates lane block resolution for two connected
 segments.
 
 - The blue shaded, or southwesterly, segment is
   [oriented](shape-connectivity#direction-and-directionality) toward
-  the north-east. It has two geometrically-scoped lane resolution
-  rules.
+  the north-east. It has two geometrically-scoped lane block rules:
     - The first rule, applying to the first two thirds of the
       segment's length, establishes three lanes: one going
       `backward` (SW), and two `forward` (NE).
     - The second rule, applying to the last third of the segment,
       establishes two lanes, one in either direction.
-- The orange shaded, or northeasterly, segment is oriented due west.
-  It has a single static lane block that applies to the whole segment
+- The green shaded, or northeasterly, segment is oriented due west. It
+  has a single static lane block that applies to the whole segment
   geometry at all times.
 
 <Tabs>

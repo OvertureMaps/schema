@@ -10,8 +10,8 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 3
-  update_time: "2023-06-01T16:42:00-06:00"
+  version: 4
+  update_time: "2024-03-11T10:52:52-07:00"
   subtype: road
   connector_ids:
     - overture:transportation:example:simple-road-connector-1
@@ -23,5 +23,6 @@ properties:
     surface:
       - value: paved
     lanes:
-      - direction: backward
-      - direction: forward
+      - value:
+        - direction: backward
+        - direction: forward

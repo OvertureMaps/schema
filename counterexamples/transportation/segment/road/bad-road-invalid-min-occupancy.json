@@ -19,19 +19,23 @@
         ],
         "lanes": [
           {
-              "restrictions": {
+            "value": [
+              {
+                "direction": "forward",
+                "restrictions": {
                   "min_occupancy": [
-                      {
-                          "is_at_least": 3
-                      }
+                    {
+                      "is_at_least": 3
+                    }
                   ]
+                }
               }
+            ]
           }
-      ]
-
+        ]
       },
       "ext_expected_errors": [
-        "[I#/properties/road/lanes/0/restrictions] [S#/$defs/propertyDefinitions/road/properties/lanes/oneOf/1/items/unevaluatedProperties] not allowed"
+        "[I#/properties/road/lanes/0/value/0/restrictions/min_occupancy] [S#/$defs/propertyDefinitions/lane/properties/restrictions/properties/min_occupancy/type] expected integer, but got array"
       ]
     }
   }

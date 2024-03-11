@@ -7,20 +7,16 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 4
+  update_time: "2024-03-11T11:13:36-07:00"
+  version: 3
   subtype: road
-  class: primary
-  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
   connector_ids: [fooConnector, barConnector]
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  road_surface:
-    - value: paved
-  lanes:
-    - value:
-        # This models a single-lane road whose direction alternates
-        # on a regular rhythm (by default instructed by signals).
-        - direction: alternating
+  road:
+    class: primary
+    surface:
+      - value: paved
+    lanes:
+      - value:
+          # This models a single-lane road whose direction alternates
+          # on a regular rhythm (by default instructed by signals).
+         - direction: alternating
