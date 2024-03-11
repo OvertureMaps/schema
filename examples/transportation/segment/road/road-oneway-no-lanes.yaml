@@ -10,11 +10,11 @@ properties:
   update_time: "2023-05-11T00:03:50-08:00"
   version: 4
   subtype: road
-  connectors: [fooConnector, barConnector]
+  connector_ids: [fooConnector, barConnector]
   road:
     class: secondary
     # one way road in backward direction (forward access is denied)
     restrictions:
       access:
-        - denied:
-            heading: forward
+        - access_type: denied
+          heading: forward

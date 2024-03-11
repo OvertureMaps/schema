@@ -1,0 +1,22 @@
+---
+id: example:division:country:us
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-100.4458820, 39.7837304]
+properties:
+  theme: divisions
+  type: division
+  update_time: "2024-02-23T15:08:01Z"
+  version: 0
+  subtype: country
+  names:
+    primary: United States
+  country: US
+  hierarchies:
+    - - division_id: example:division:country:us
+        subtype: country
+        name: United States
+  norms:
+    driving_side: right
+  capital_division_id: example:division:locality:washington_dc

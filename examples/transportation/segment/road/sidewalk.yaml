@@ -10,7 +10,8 @@ properties:
   update_time: "2023-11-13T00:02:30-08:00"
   version: 0
   subtype: road
-  connectors: [fooConnector, barConnector]
+  connector_ids: [fooConnector, barConnector]
   road:
     class: sidewalk
-    surface: paved
+    surface:
+      - value: paved

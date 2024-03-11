@@ -17,10 +17,11 @@ properties:
   version: 4
   update_time: "2023-08-18T11:22:00-06:00"
   subtype: road
-  connectors:
+  connector_ids:
     - overture:transportation:example:via-turn-restriction-connector2
   names:
     primary: Arborway
   road:
     class: primary
-    surface: paved
+    surface:
+      - value: paved

@@ -15,11 +15,12 @@ properties:
   subtype: road
   level: -1
   width: 10
-  connectors: [fooConnector, barConnector]
+  connector_ids: [fooConnector, barConnector]
   road:
     class: secondary
     surface: gravel
-    flags: [is_link, is_tunnel, isPrivate]
+    flags: 
+      - [is_link, is_tunnel]
     restrictions:
       speed_limits:
         - max_speed: [110, "mph"]

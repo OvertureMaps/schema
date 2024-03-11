@@ -1,0 +1,16 @@
+---
+id: example:boundary:land
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 1], [1, 2]]
+properties:
+  theme: divisions
+  type: boundary
+  update_time: "2024-02-23T22:00:28Z"
+  version: 0
+  subtype: region
+  class: land
+  divisions:
+    - division_id: example:division:region:left
+    - division_id: example:division:region:right

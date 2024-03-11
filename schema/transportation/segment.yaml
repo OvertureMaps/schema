@@ -25,6 +25,7 @@ properties:
           properties:
             road: { "$ref": "#/$defs/propertyDefinitions/road" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     properties:
       subtype:
@@ -34,13 +35,12 @@ properties:
         "$comment": >-
           Should not be confused with a transport mode. A segment
           kind has an (implied) set of default transport modes.
-      connectors:
-        "$comment": 'FIXME: Must rename to connectorIds to meet schema standard'
+      connector_ids:
         description: >-
-          List of connectors this segment is physically connected to.
-          Each connector is a possible routing decision point meaning it
-          defines place along segment in which there is possibility to
-          transition to other segments which share same connector.
+          List of connector IDs identifying the connectors this segment is physically
+          connected to. Each connector is a possible routing decision point, meaning
+          it defines a place along the segment in which there is possibility to
+          transition to other segments which share the same connector.
         type: array
         items:
           type: string
@@ -48,7 +48,6 @@ properties:
             Each entry in this array is the GERS ID of a transportation connector feature.
         uniqueItems: true
         default: []
-      names: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/names" }
 "$defs":
   propertyDefinitions:
     lane:
@@ -125,6 +124,7 @@ properties:
             - unclassified    # Known roads, paved, but subordinate to all of: motorway, trunk, primary, secondary, tertiary
             - parking_aisle   # Service road intended for parking
             - driveway        # Service road intended for deliveries
+            - alley           # Service road intended for rear entrances, fire exits
             - pedestrian
             - footway
             - sidewalk
@@ -140,20 +140,16 @@ properties:
           description: Physical surface of the road. May either be
             specified as a single global value for the segment, or as
             an array of surface rules.
-          oneOf:
-            - { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
-            - type: array
-              items:
-                type: object
-                allOf:
-                  - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                unevaluatedProperties: false
-                properties:
-                  value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
-              minItems: 1
-              uniqueItems: true
-          default:
-            enum: unknown
+          type: array
+          items:
+            type: object
+            allOf:
+              - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+            unevaluatedProperties: false
+            properties:
+              value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
+          minItems: 1
+          uniqueItems: true
           "$comment": >-
             We should likely restrict the available surface types to
             the subset of the common OSM surface=* tag values that are
@@ -165,23 +161,21 @@ properties:
             as an array of flag rules.
           type: array
           items:
-            oneOf:
-              - { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
-              - type: object
-                allOf:
-                  - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                unevaluatedProperties: false
-                properties:
-                  values:
-                    type: array
-                    items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
-                    uniqueItems: true
+            type: object
+            allOf:
+              - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+            unevaluatedProperties: false
+            properties:
+              values:
+                type: array
+                items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
+                uniqueItems: true
           uniqueItems: true
         width:
           description: >-
             Edge-to-edge width of the road modeled by this segment, in
             meters.
-    
+
             Examples: (1) If this segment models a carriageway without
             sidewalk, this value represents the edge-to-edge width of the
             carriageway, inclusive of any shoulder. (2) If this segment
@@ -243,6 +237,7 @@ properties:
                    - "$ref": "#/$defs/propertyContainers/ruleContainer"
                    - "$ref": "#/$defs/propertyContainers/duringContainer"
                  type: object
+                 required: [sequence, final_heading]
                  properties:
                    reason:
                      "$comment": TODO - This property should be dropped and handled by inhibitors/barriers.
@@ -281,6 +276,7 @@ properties:
         - is_link
         - is_tunnel
         - is_under_construction
+        - is_abandoned
     roadSurface:
       description: Physical surface of the road
       type: string
@@ -453,41 +449,19 @@ properties:
       description: Rules governing access to this road segment or lane
       type: array
       items:
-        oneOf:
-          - "$ref": "#/$defs/propertyDefinitions/accessOption"
-          - type: object
-            oneOf:
-              - required: [ allowed ]
-                properties:
-                  allowed:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/headingContainer" }
-              - required: [ designated ]
-                properties:
-                  designated:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/headingContainer" }
-              - required: [ denied ]
-                properties:
-                  denied:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-                      - { "$ref": "#/$defs/propertyContainers/headingContainer" }
-            minLength: 1
+        type: object
+        unevaluatedProperties: false
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
+          - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
+          - { "$ref": "#/$defs/propertyContainers/headingContainer" }
+        required: [access_type]
+        properties:
+          access_type:
+            type: string
+            enum: [allowed, denied, designated]
+        minLength: 1
     ruleContainer:
       description: >-
         Properties that allow defining rules from environmental and subjective scoping properties .

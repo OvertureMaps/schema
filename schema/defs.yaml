@@ -6,7 +6,12 @@ description: Common schema definitions shared by all themes
   propertyDefinitions:
     id:
       type: string
-      description: A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if—and-only-if the feature represents an entity that is part of GERS.
+      description: >-
+        A feature ID. This may be an ID associated with the Global
+        Entity Reference System (GERS) if—and-only-if the feature
+        represents an entity that is part of GERS.
+      minLength: 1
+      pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
     level:
       description: Z-order of the feature where 0 is visual level
       type: integer
@@ -15,13 +20,16 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - administrative_boundary
-        - locality_area
+        - administrative_boundary # DEPRECATED
+        - boundary
         - building
         - connector
+        - division
+        - division_area
         - land
         - land_use
-        - locality
+        - locality                # DEPRECATED
+        - locality_area           # DEPRECATED
         - part
         - place
         - segment
@@ -97,6 +105,7 @@ description: Common schema definitions shared by all themes
         - admins
         - base
         - buildings
+        - divisions
         - places
         - transportation
     linearlyReferencedPosition:
@@ -127,6 +136,14 @@ description: Common schema definitions shared by all themes
       "$comment":
         Ideally we would enforce sorted order of this pair, but sorting
         assertions aren't (yet?) supported by JSON schema.
+    side:
+      description:
+        Represents the side on which something appears relative to a
+        facing or heading direction, e.g. the side of a road relative
+        to the road orientation, or relative to the direction of travel
+        of a person or vehicle.
+      type: string
+      enum: [left, right]
     openingHours:
       description: >-
         Time span or time spans during which something is open or
@@ -141,21 +158,15 @@ description: Common schema definitions shared by all themes
           https://github.com/OvertureMaps/schema-wg/pull/10
     language:
       description: >-
-        Describes the language, script and other variants used to describe
-        names. It must be either the literal "local" or a language tag according
-        to definition in IETF-BCP47
+        An IETF-BCP47 language tag, as defined in  
         https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
 
-        The value of "local" is used to indicate the name in the local language
-        and script. Such is the case when capturing data from OpenStreetMap
-        where only a "name" tag is supplied with no further information.
-
-        Although the BCP47 language tag definition is complex, a very simplified
+        Although the BCP47 language tag definition is complex, a simplified
         view defines a language as "language-script-region" where script and
-        region are optional. The spec lists allowed values for language, script,
-        and region. It further describes how to include variants, extensions and
-        other private custom extensions, which are allowed but not described
-        here.
+        region are optional. The specification lists allowed values for language,
+        script, and region. It further describes how to include variants,
+        extensions and other private custom extensions, which are allowed but
+        not described here.
 
         For some languages, the "Suppress-Script" property in BCP47 defines a
         script that can be omitted from the language tag. For example, the
@@ -189,33 +200,53 @@ description: Common schema definitions shared by all themes
         language: { "$ref": "#/$defs/propertyDefinitions/language" }
         value:
           type: string
-    names:
+          minLength: 1
+          pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+    allNames:
       type: object
       required: [primary]
       unevaluatedProperties: false
       properties:
         primary:
-          description: The most commonly used name when referring to a feature.
+          description: The most commonly used name.
           type: string
-        common:
-          description: >-
-            The "common" variant are the common translations of the name. The official, alternate,
-            and other variants are in the rules property.
-          type: object
-          minProperties: 1
-          additionalProperties: false
-          patternProperties:
-            "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$":
-              "$comment": >-
-                This is an incomplete pattern for BCP47 language tags. See the
-                language section below for more details
-              type: string
+          minLength: 1
+          pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+        common: { "$ref": "#/$defs/propertyDefinitions/commonNames" }
         rules:
           description: >-
-            Contains the names that are not the primary name or common translations.
+            Rules for names that cannot be specified in the simple
+            common names property. These rules can cover other name
+            variants such as official, alternate, and short; and they
+            can optionally include geometric scoping (linear
+            referencing) and side-of-road scoping for complex cases.
           type: array
           items: { "$ref": "#/$defs/propertyDefinitions/nameRule" }
           minItems: 1
+    commonNames:
+      description: The common translations of the name.
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      patternProperties:
+        "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$":
+          "$comment": >-
+            This is an incomplete pattern for BCP47 language tags.
+          type: string
+          minLength: 1
+          pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+    iso3166_1Alpha2CountryCode:
+      description: ISO 3166-1 alpha-2 country code.
+      type: string
+      minLength: 2
+      maxLength: 2
+      pattern: ^[A-Z]{2}$
+    iso3166_2SubdivisionCode:
+      description: ISO 3166-2 principal subdivision code.
+      type: string
+      minLength: 4
+      maxLength: 6
+      pattern: ^[A-Z]{2}-[A-Z0-9]{1,3}$
     address:
       type: object
       unevaluatedProperties: false
@@ -233,12 +264,8 @@ description: Common schema definitions shared by all themes
         postcode:
           description: Postal code where the address is located
           type: string
-        region:
-          description: ISO 3166-2 subdivision/province code
-          type: string
-        country:
-          description: ISO 3166-1 alpha-2 country code
-          type: string
+        region: { "$ref": "#/$defs/propertyDefinitions/iso3166_2SubdivisionCode" }
+        country: { "$ref": "#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
     wikidata:
       description: A wikidata ID if available, as found on https://www.wikidata.org/.
       type: string
@@ -258,8 +285,13 @@ description: Common schema definitions shared by all themes
         version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }
         update_time: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
         sources: { "$ref": "#/$defs/propertyDefinitions/sources" }
+    namesContainer:
+      description: Properties defining the names of a feature.
+      type: object
+      properties:
+        names:
+          "$ref": "#/$defs/propertyDefinitions/allNames"
     levelContainer:
-      title: "Z-Order"
       description: Properties defining feature Z-order, i.e., stacking order
       type: object
       properties:
@@ -277,8 +309,4 @@ description: Common schema definitions shared by all themes
         Geometric scoping properties defining the side of a road modeled when
         moving along the line from beginning to end
       properties:
-        side:
-          type: string
-          enum:
-            - left
-            - right
+        side: { "$ref": "#/$defs/propertyDefinitions/side" }

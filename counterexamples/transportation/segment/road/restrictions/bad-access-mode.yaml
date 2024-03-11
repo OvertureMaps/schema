@@ -17,12 +17,13 @@ properties:
   subtype: road
   level: -1
   width: 10
-  connectors: [fooConnector, barConnector]
+  connector_ids: [fooConnector, barConnector]
   road:
     class: secondary
     surface: gravel
-    flags: [is_link, is_tunnel]
+    flags: 
+      - [is_link, is_tunnel]
     restrictions:
       access:
-        - allowed:
-            when: {mode: [foo]}
+        - access_type: allowed
+          when: {mode: [foo]}
