@@ -7,21 +7,23 @@ geometry:
 properties:
   # Custom user properties.
   ext_baz: I am a custom user property...
-  ext_expected_errors:
-    - "'/properties/speed_limits/0/when/mode/0' [S#/$defs/propertyDefinitions/travelMode/enum]: value must be one of"
   # Overture properties
   theme: transportation
   type: segment
-  version: 2
+  update_time: "2023-02-23T00:02:30-08:00"
+  version: 0
   subtype: road
-  class: secondary
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  speed_limits:
-    - max_speed:
-        value: 110
-        unit: mph
-      when: {mode: [foo]}
+  level: -1
+  width: 10
+  connector_ids: [fooConnector, barConnector]
+  road:
+    class: secondary
+    surface: gravel
+    flags: 
+      - [is_link, is_tunnel]
+    restrictions:
+      speed_limits:
+        - max_speed:
+            value: 110
+            unit: mph
+          when: {mode: [foo]}

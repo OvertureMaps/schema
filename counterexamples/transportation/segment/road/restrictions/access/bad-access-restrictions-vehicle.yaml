@@ -10,16 +10,18 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  version: 1
+  update_time: "2023-02-23T00:02:30-08:00"
+  version: 0
   subtype: road
-  class: secondary
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  access_restrictions:
-    - access_type: allowed
-      when: {vehicle: [{dimension: axle_count, comparison: greater_than, value: {is_foo: 5}}]}
-  ext_expected_errors:
-    - "propertyContainers/vehicleScopeContainer/properties/vehicle/items/properties/value/type]: got object, want number"
+  level: -1
+  widthMeters: 10
+  connector_ids: [fooConnector, barConnector]
+  road:
+    class: secondary
+    surface: gravel
+    flags: 
+      - [is_link, is_tunnel]
+    restrictions:
+      access:
+        - access_type: allowed
+          when: {vehicle: {axle_count: {is_foo: 5}}}

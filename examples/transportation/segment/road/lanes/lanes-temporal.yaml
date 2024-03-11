@@ -1,0 +1,18 @@
+---
+id: overture:transportation:segment:example:lanes:temporal
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 0]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  version: 0
+  update_time: "2024-03-11T14:10:08-07:00"
+  road:
+    lanes:
+      - value:
+          - direction: forward
+          - direction: backward
+        during: "Mo-Fr 08:00-18:00"

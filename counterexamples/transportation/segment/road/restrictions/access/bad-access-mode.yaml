@@ -6,26 +6,24 @@ geometry:
   coordinates: [[0, 0], [1, 1]]
 properties:
   ext_expected_errors:
-    - "travelMode/enum]: value must be one of"
+    - value must be one of "motor_vehicle"
   # Custom user properties.
   ext_baz: I am a custom user property...
   # Overture properties
   theme: transportation
   type: segment
-  version: 1
+  update_time: "2023-02-23T00:02:30-08:00"
+  version: 0
   subtype: road
-  class: secondary
-  subclass: link
-  subclass_rules:
-    - value: link
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  road_surface: gravel
-  road_flags:
-    - [is_link, is_tunnel] # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
-  access_restrictions:
-    - access_type: allowed
-      when: {mode: [foo]}
+  level: -1
+  width: 10
+  connector_ids: [fooConnector, barConnector]
+  road:
+    class: secondary
+    surface: gravel
+    flags: 
+      - [is_link, is_tunnel]
+    restrictions:
+      access:
+        - access_type: allowed
+          when: {mode: [foo]}

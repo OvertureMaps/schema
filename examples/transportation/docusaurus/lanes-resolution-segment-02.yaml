@@ -9,11 +9,12 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 0
-  update_time: "2023-06-20T13:51:00-06:00"
+  version: 1
+  update_time: "2024-03-11T10:50:44-07:00"
   connector_ids: [lanes-resolution-example-connector]
   subtype: road
   road:
-    lanes: # One static, unchanging lane block.
-      - direction: forward
-      - direction: backward
+    lanes:
+      - value:  # A lane block rule containing one globally-applicable lane block.
+        - direction: forward
+        - direction: backward

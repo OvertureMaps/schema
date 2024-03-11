@@ -7,23 +7,26 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2023-02-23T00:03:45-08:00"
-  version: 3
+  update_time: "2024-03-11T11:14:47-07:00"
+  version: 4
   subtype: road
   connector_ids: [fooConnector, barConnector]
   road:
     class: primary
     surface:
       - value: paved
-      # This models a single-lane road whose direction is
-      # completely reversible at arbitrary times.
     lanes:
-      - direction: reversible
-        restrictions:
-          access:
-            - access_type: allowed
-              heading: forward
-              during: Mo-Su 00:00-12:00
-            - access_type: allowed
-              heading: backward
-              during: Mo-Su 12:00-24:00
+      - value:
+          # This models a single-lane road whose direction is
+          # completely reversible at arbitrary times.
+        - direction: reversible
+          restrictions:
+            access:
+              - access_type: allowed
+                when:
+                  heading: forward
+                during: Mo-Su 00:00-12:00
+              - access_type: allowed
+                when:
+                  heading: backward
+                during: Mo-Su 12:00-24:00

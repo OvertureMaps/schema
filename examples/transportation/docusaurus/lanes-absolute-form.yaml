@@ -9,10 +9,11 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 0
-  update_time: "2023-06-16T15:33:00-06:00"
+  version: 1
+  update_time: "2024-03-11T10:51:22-07:00"
   subtype: road
   road:
     lanes:
-      - direction: backward
-      - direction: forward
+      - value:
+        - direction: backward
+        - direction: forward

@@ -7,13 +7,16 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  class: tertiary
-  version: 1
-  access_restrictions:
-    - foo: bar
-    - access_type: denied
-      when:
-        baz: qux
+  version: 0
+  update_time: "2024-03-11T16:00:31-07:00"
+  road:
+    restrictions:
+      access:
+        - foo: bar
+        - access_type: denied
+          when:
+            baz: qux
   ext_expected_errors:
-    - "'/properties/access_restrictions/0' [S#/$defs/propertyContainers/accessContainer/items/required]: missing property 'access_type'"
-    - "'/properties/access_restrictions/1/when/baz' [S#/$defs/propertyContainers/accessContainer/items/properties/when/unevaluatedProperties]: false schema"
+    - "[I#/properties/road/restrictions/access/0] [S#/$defs/propertyContainers/accessContainer/items/required] missing properties: 'access_type'"
+    - "[I#/properties/road/restrictions/access/0/foo] [S#/$defs/propertyContainers/accessContainer/items/unevaluatedProperties] not allowed"
+    - "[I#/properties/road/restrictions/access/1/when/baz] [S#/$defs/propertyContainers/accessContainer/items/properties/when/unevaluatedProperties] not allowed"
