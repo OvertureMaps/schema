@@ -75,15 +75,8 @@ properties:
                 If a lane is restricted for use only by HOVs, then the default minimum vehicle
                 occupancy qualifying as HOV is 2+ passengers (including the driver).  This
                 restriction can be provided to override the default definition of HOV.
-              oneOf:
-                - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
-                - type: array
-                  items:
-                    type: object
-                    unevaluatedProperties: false
-                    allOf:
-                      - "$ref": "#/$defs/propertyContainers/ruleContainer"
-                      - "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+              type: integer
+              minimum: 1
     laneDirection:
       type: string
       enum:

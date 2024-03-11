@@ -1,0 +1,37 @@
+{
+    "id": "invalidMinOccupancyType",
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[2, 2], [3, 3]]
+    },
+    "properties": {
+      "theme": "transportation",
+      "type": "segment",
+      "version": 19,
+      "update_time": "2023-02-23T00:04:00-08:00",
+      "subtype": "road",
+      "road": {
+        "flags": [
+          {
+            "values": ["is_tunnel"]
+          }
+        ],
+        "lanes": [
+          {
+              "restrictions": {
+                  "min_occupancy": [
+                      {
+                          "is_at_least": 3
+                      }
+                  ]
+              }
+          }
+      ]
+
+      },
+      "ext_expected_errors": [
+        "[I#/properties/road/lanes/0/restrictions] [S#/$defs/propertyDefinitions/road/properties/lanes/oneOf/1/items/unevaluatedProperties] not allowed"
+      ]
+    }
+  }
