@@ -90,8 +90,7 @@ properties:
         Enumerates possible travel headings along segment geometry.
       type: string
       enum: [ forward, backward ]
-
-    mode:
+    travelMode:
       description: >-
         Enumerates possible travel modes. Some modes represent groups
         of modes.
@@ -106,7 +105,6 @@ properties:
         dedicated paths for walking and cycling.
       type: object
       unevaluatedProperties: false
-      default: {}
       properties:
         class:
           description: >-
@@ -144,7 +142,7 @@ properties:
           items:
             type: object
             allOf:
-              - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+              - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
             unevaluatedProperties: false
             properties:
               value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
@@ -163,7 +161,7 @@ properties:
           items:
             type: object
             allOf:
-              - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+              - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
             unevaluatedProperties: false
             properties:
               values:
@@ -187,7 +185,7 @@ properties:
           items:
             type: object
             allOf:
-              - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
+              - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
             properties:
               value:
                 type: number
@@ -197,28 +195,30 @@ properties:
           uniqueItems: true
         lanes:
           description: >-
-            Describes the layout of lanes on the road plus lane-related
-            information, including where appropriate: physical lane location,
-            allowed travel modes, and more.
-          oneOf:
-            - type: array
-              items: { "$ref": "#/$defs/propertyDefinitions/lane" }
-              minItems: 1
-            - type: array
-              items:
-                type: object
-                allOf:
-                  - "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer"
-                    default:
-                      - 0
-                      - 100
-                unevaluatedProperties: false
-                properties:
-                  value:
-                    type: array
-                    items: { "$ref": "#/$defs/propertyDefinitions/lane" }
-                    minItems: 1
-              minItems: 1
+            List of lane block rules describing the layout of lanes on
+            the road plus lane-related information. The standard rule
+            evaluation algorithm is used to determine which lane block
+            applies at a given place and time along the segment.
+
+            Each lane block contains the list of lanes that make up the
+            block. Lanes in the block are listed from left to right as
+            they would be seen by a person standing on the road segment
+            facing in the direction of the segment's orientation (toward
+            the end).
+          type: array
+          items:
+            type: object
+            unevaluatedProperties: false
+            allOf:
+              - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"   # FIXME: Move under `when` - https://github.com/OvertureMaps/tf-transportation/issues/110
+            properties:
+              value:
+                type: array
+                items:  { "$ref": "#/$defs/propertyDefinitions/lane" }
+                minItems: 1
+          minItems: 1
+          uniqueItems: true
         restrictions:
           description: Restrictions on how the road may be used
           type: object
@@ -232,42 +232,50 @@ properties:
                 another segment.
               type: array
               items:
-                 unevaluatedProperties: false
-                 allOf:
-                   - "$ref": "#/$defs/propertyContainers/ruleContainer"
-                   - "$ref": "#/$defs/propertyContainers/duringContainer"
-                 type: object
-                 required: [sequence, final_heading]
-                 properties:
-                   reason:
-                     "$comment": TODO - This property should be dropped and handled by inhibitors/barriers.
-                     description: >-
+                type: object
+                unevaluatedProperties: false
+                allOf:
+                  - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
+                  - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"   # FIXME: Move under `when` - https://github.com/OvertureMaps/tf-transportation/issues/110
+                required: [sequence, final_heading]
+                properties:
+                  reason:
+                    "$comment": TODO - This property should be dropped and handled by inhibitors/barriers. # https://github.com/OvertureMaps/tf-transportation/issues/112
+                    description: >-
                        A rough description of why the transition is
                        prohibited.
-                     type: string
-                     enum:
-                       - legal
-                       - divider
-                       - gated_permission
-                       - gated_key
-                     default:
-                       enum: [legal]
-                   sequence:
-                     description: >-
-                       Ordered sequence of connector/segment pairs that it is
-                       prohibited to follow from this segment.
-                     type: array
-                     items:
-                       description: Pair of segment and connector IDs along the sequence
-                       "$ref": "#/$defs/propertyDefinitions/sequenceEntry"
-                     minItems: 1
-                     uniqueItems: true
-                   final_heading:
-                     description: >-
-                       Direction of travel that is prohibited on the destination
-                       segment of the sequence.
-                     "$ref": "#/$defs/propertyDefinitions/heading"
-
+                    type: string
+                    enum:
+                      - legal
+                      - divider
+                      - gated_permission
+                      - gated_key
+                    default:
+                      enum: [legal]
+                  sequence:
+                    description: >-
+                      Ordered sequence of connector/segment pairs that it is
+                      prohibited to follow from this segment.
+                    type: array
+                    items:
+                      description: Pair of segment and connector IDs along the sequence
+                      "$ref": "#/$defs/propertyDefinitions/sequenceEntry"
+                    minItems: 1
+                    uniqueItems: true
+                  final_heading:
+                    description: >-
+                      Direction of travel that is prohibited on the destination
+                      segment of the sequence.
+                    "$ref": "#/$defs/propertyDefinitions/heading"
+                  when:
+                    allOf:
+                      - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
+                      - "$ref": "#/$defs/propertyContainers/purposeOfUseScopeContainer"
+                      - "$ref": "#/$defs/propertyContainers/recognizedStatusScopeContainer"
+                      - "$ref": "#/$defs/propertyContainers/travelModeScopeContainer"
+                      - "$ref": "#/$defs/propertyContainers/vehicleScopeContainer"
+                    minProperties: 1
+                    unevaluatedProperties: false
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
@@ -301,20 +309,14 @@ properties:
         unit:
           description: Speed unit
           type: string
-          enum: 
+          enum:
             - km/h
             - mph
       required:
         - value
         - unit  
       unevaluatedProperties: false
-    accessOption:
-      description: Effect of an access restriction rule
-      type: string
-      enum:
-        - allowed
-        - denied
-    usageOption:
+    purposeOfUse:
       description: >-
         Reason why a person or entity travelling on the transportation
         network is using a particular location.
@@ -325,7 +327,7 @@ properties:
         - to_deliver
         - to_farm
         - for_forestry
-    recognizedOption:
+    recognizedStatus:
       description: >-
         Status of the person or entity travelling as recognized by
         authorities controlling the particular location
@@ -336,35 +338,111 @@ properties:
         - as_disabled
         - as_employee
         - as_student
-    relationalExpression:
+    integerRelation:
       description: >-
-        Creates a relational expression with the containing object.
+        Completes an integer relational expression of the form
+        <lhs> <operator> <integer_value>. An example of such an
+        expression is:
+          `{ axle_count: { is_more_than: 2 } }`.
+      type: object
+      unevaluatedProperties: false
       oneOf:
-        - type: object
-          required: [is_more_than]
-          properties:
-            is_more_than:
-              type: number
-        - type: object
-          required: [is_at_least]
-          properties:
-            is_at_least:
-              type: number
-        - type: object
-          required: [is_equal_to]
-          properties:
-            is_equal_to:
-              type: number
-        - type: object
-          required: [is_at_most]
-          properties:
-            is_at_most:
-              type: number
-        - type: object
-          required: [is_less_than]
-          properties:
-            is_less_than:
-              type: number
+        - required: [is_more_than]
+          properties: { is_more_than: { type: integer } }
+        - required: [is_at_least]
+          properties: { is_at_least: { type: integer } }
+        - required: [is_equal_to]
+          properties: { is_equal_to: { type: integer } }
+        - required: [is_at_most]
+          properties: { is_at_most: { type: integer } }
+        - required: [is_less_than]
+          properties: { is_less_than: { type: integer } }
+    lengthUnit:
+      description: Enumerates length units supported by the Overture schema.
+      "$comment": Keep in sync with `combobulib/measure.py`.
+      type: string
+      enum:
+        # Imperial units.
+        - in            # Imperial: Inch.
+        - ft            # Imperial: Foot.
+        - yd            # Imperial: Yard.
+        - mi            # Imperial: Mile.
+        # SI units.
+        - cm            # SI: centimeter.
+        - m             # SI: meter.
+        - km            # SI: kilometer.
+    lengthValueWithUnit:
+      description: Combines a length value with a length unit.
+      type: object
+      unevaluatedProperties: false
+      required: [value, unit]
+      properties:
+        value:
+          type: number
+          minimum: 0
+        unit: { "$ref": "#/$defs/propertyDefinitions/lengthUnit" }
+    lengthRelation:
+      description: >-
+        Completes a length relational expression of the form
+        <lhs> <operator> <length_value>. An example of such an
+        expression is:
+          `{ height: { is_less_than: { value: 3, unit: 'm' } } }`.
+      type: object
+      unevaluatedProperties: false
+      oneOf:
+        - required: [is_more_than]
+          properties: { is_more_than: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/lengthValueWithUnit" } ] } }
+        - required: [is_at_least]
+          properties: { is_at_least: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/lengthValueWithUnit" } ] } }
+        - required: [is_equal_to]
+          properties: { is_equal_to: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/lengthValueWithUnit" } ] } }
+        - required: [is_at_most]
+          properties: { is_at_most: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/lengthValueWithUnit" } ] } }
+        - required: [is_less_than]
+          properties: { is_less_than: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/lengthValueWithUnit" } ] } }
+    weightUnit:
+      description: Enumerates weight units supported by the Overture schema.
+      "$comment": Keep in sync with `combobulib/measure.py`.
+      type: string
+      enum:
+        # Imperial units.
+        - oz            # Imperial: Ounce.
+        - lb            # Imperial: Pound.
+        - st            # Imperial: Short Ton.
+        - lt            # Imperial: Long Ton.
+        # SI units.
+        - g             # SI: gram.
+        - kg            # SI: kilogram.
+        - t             # SI: tonne.
+    weightValueWithUnit:
+      description: Combines a weight value with a weight unit.
+      type: object
+      unevaluatedProperties: false
+      required: [value, unit]
+      properties:
+        value:
+          type: number
+          minimum: 0
+        unit: { "$ref": "#/$defs/propertyDefinitions/weightUnit" }
+    weightRelation:
+      description: >-
+        Completes a weight relational expression of the form
+        <lhs> <operator> <weight_value>. An example of such an
+        expression is:
+          `{ weight: { is_more_than: { value: 2, unit: 't' } } }`.
+      type: object
+      unevaluatedProperties: false
+      oneOf:
+        - required: [is_more_than]
+          properties: { is_more_than: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/weightValueWithUnit" } ] } }
+        - required: [is_at_least]
+          properties: { is_at_least: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/weightValueWithUnit" } ] } }
+        - required: [is_equal_to]
+          properties: { is_equal_to: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/weightValueWithUnit" } ] } }
+        - required: [is_at_most]
+          properties: { is_at_most: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/weightValueWithUnit" } ] } }
+        - required: [is_less_than]
+          properties: { is_less_than: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/weightValueWithUnit" } ] } }
     sequenceEntry:
       description: >-
         A segment/connector pair in a prohibited transition sequence.
@@ -384,56 +462,72 @@ properties:
             connector.
           type: string
   propertyContainers:
-    duringContainer:
+    headingScopeContainer:
+      description: Properties defining travel headings that match a rule.
+      properties:
+        heading:
+          "$ref": "#/$defs/propertyDefinitions/heading"
+    purposeOfUseScopeContainer:
+      description: Properties defining usage purposes that match a rule.
+      properties:
+        using:
+          type: array
+          items:
+            "$ref": "#/$defs/propertyDefinitions/purposeOfUse"
+          uniqueItems: true
+          minLength: 1
+    temporalScopeContainer:
       "$comment": >-
         Temporal scoping properties defining the time spans when a
         recurring rule is active.
       properties:
         during:
           "$ref": ../defs.yaml#/$defs/propertyDefinitions/openingHours
-    modesContainer:
-      description: >-
-        Properties defining travel modes for which a rule is active.
+    travelModeScopeContainer:
+      description: Properties defining travel modes that match a rule.
       type: object
-      oneOf:
-        - not:
-            anyOf:
-              - required: [mode]
-              - required: [mode_not]
-        - required: [mode]
-          properties:
-            mode:
-              description: Travel mode to which the rule applies
-              type: array
-              items:
-                "$ref": "#/$defs/propertyDefinitions/mode"
-              uniqueItems: true
-              minLength: 1
-        - required: [mode_not]
-          properties:
-            mode_not:
-              description: Travel modes to which the rule does not apply
-              type: array
-              items:
-                "$ref": "#/$defs/propertyDefinitions/mode"
-              uniqueItems: true
-              minLength: 1
-      "$comment": >-
-        If neither mode nor mode_not is specified, the rule has the
-        default travel modes for the segment subtype.
-    headingContainer:
-      description: Properties defining heading for which a rule is active.
       properties:
-        heading:
-          "$ref": "#/$defs/propertyDefinitions/heading"
-    speedLimitsContainer:
+        mode:
+          description: Travel mode(s) to which the rule applies
+          type: array
+          items:
+            "$ref": "#/$defs/propertyDefinitions/travelMode"
+          uniqueItems: true
+          minLength: 1
+    recognizedStatusScopeContainer:
+      description: Properties defining statuses that match a rule.
+      properties:
+        recognized:
+          type: array
+          items:
+            "$ref": "#/$defs/propertyDefinitions/recognizedStatus"
+          uniqueItems: true
+          minLength: 1
+    vehicleScopeContainer:
+      description: >-
+        Properties defining vehicle attributes for which a rule is
+        active.
+      type: object
+      properties:
+        vehicle:
+          description: Vehicle attributes for which the rule applies
+          type: object
+          unevaluatedProperties: false
+          minProperties: 1
+          properties:
+            axle_count: { "$ref": "#/$defs/propertyDefinitions/integerRelation" }
+            height: { "$ref": "#/$defs/propertyDefinitions/lengthRelation" }
+            length: { "$ref": "#/$defs/propertyDefinitions/lengthRelation" }
+            weight: { "$ref": "#/$defs/propertyDefinitions/weightRelation" }
+            width: { "$ref": "#/$defs/propertyDefinitions/lengthRelation" }
+    speedLimitsContainer:  # FIXME: Not a 'container', move up.
       description: Rules governing speed on this road segment or lane
       type: array
       items:
         description: An individual speed limit rule
         "$comment": >-
           TODO: Speed limits probably have directionality, so
-          should factor out a headingContainer for this
+          should factor out a headingScopeContainer for this
           purpose and use it to introduce an optional
           direction property in each rule.
         type: object
@@ -441,9 +535,8 @@ properties:
           - required: [ min_speed ]
           - required: [ max_speed ]
         allOf:
-          - "$ref": "#/$defs/propertyContainers/modesContainer"
-          - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-          - "$ref": "#/$defs/propertyContainers/duringContainer"
+          - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
+          - "$ref": "#/$defs/propertyContainers/temporalScopeContainer" # FIXME: Move under `when` - https://github.com/OvertureMaps/tf-transportation/issues/110
         unevaluatedProperties: false
         properties:
           min_speed: { "$ref": "#/$defs/propertyDefinitions/speed" }
@@ -452,50 +545,39 @@ properties:
             description: Indicates a variable speed corridor
             type: boolean
             default: false
-    accessContainer:
+          when:
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/purposeOfUseScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/recognizedStatusScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/travelModeScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/vehicleScopeContainer"
+            minProperties: 1
+            unevaluatedProperties: false
+      minLength: 1
+      uniqueItems: true
+    accessContainer: # FIXME: Not a 'container', move up.
       description: Rules governing access to this road segment or lane
       type: array
       items:
         type: object
         unevaluatedProperties: false
         allOf:
-          - { "$ref": "../defs.yaml#/$defs/propertyContainers/atRangeContainer" }
-          - { "$ref": "#/$defs/propertyContainers/duringContainer" }
-          - { "$ref": "#/$defs/propertyContainers/ruleContainer" }
-          - { "$ref": "#/$defs/propertyContainers/headingContainer" }
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+          - { "$ref": "#/$defs/propertyContainers/temporalScopeContainer" }  # FIXME: Move under `when` - https://github.com/OvertureMaps/tf-transportation/issues/110
         required: [access_type]
         properties:
           access_type:
             type: string
             enum: [allowed, denied, designated]
+          when:
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/purposeOfUseScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/recognizedStatusScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/travelModeScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/vehicleScopeContainer"
+            minProperties: 1
+            unevaluatedProperties: false
         minLength: 1
-    ruleContainer:
-      description: >-
-        Properties that allow defining rules from environmental and subjective scoping properties .
-      type: object
-      properties:
-        when:
-          description: describes a set of condition
-          type: object
-          allOf:
-            - "$ref": "#/$defs/propertyContainers/modesContainer"
-            - "$ref": "#/$defs/propertyContainers/headingContainer"
-          unevaluatedProperties: false
-          properties:
-            using:
-              type: array
-              items:
-                "$ref": "#/$defs/propertyDefinitions/usageOption"
-            recognized:
-              type: array
-              items:
-                "$ref": "#/$defs/propertyDefinitions/recognizedOption"
-            vehicle:
-              type: object
-              properties:
-                axle_count:
-                  "$ref": "#/$defs/propertyDefinitions/relationalExpression"
-                length:
-                  "$ref": "#/$defs/propertyDefinitions/relationalExpression"
-                weight:
-                  "$ref": "#/$defs/propertyDefinitions/relationalExpression"
+        uniqueItems: true

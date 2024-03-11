@@ -110,34 +110,15 @@ segments. Since travel modes are expressed via scoping properties, it
 is recommended to read the section on
 [scoped and rule-based properties](/overview/feature-model/scoping-rules) before proceeding further.
 
-#### Travel mode scoping: `mode` and `mode_not`
+#### Travel mode scoping: `mode`
 
-Two scoping properties control whether a given scoped property applies
-to a given travel mode: `mode` and `mode_not`.
+The scoping property `mode` controls whether a given scoped property
+applies when a given travel mode is being used for travelling along a
+road segment.
 
-If either `mode` or `mode_not` property is specified, the property value
-must be a non-empty, array of travel modes, and is interpreted as a set.
-Values must be unique, but order is not important.
-
-The `mode` and `mode_not` properties are not mutually exclusive: in
-places where scoping by travel mode is allowed, either `mode` or
-`mode_not`, or both, may be provided.
-
-- **Neither**. When neither `mode` nor `mode_not` is provided, the
-   parent property's scope includes all default travel modes implied by
-   the [road class](roads#road-class).
-- **Only `mode`**. When `mode` is provided by itself, the parent
-   property is scoped to include only those travel modes that included
-   in the `mode` set.
-- **Only `mode_not`**. When `mode_not` is provided by itself, the parent
-   property is scoped to include all those travel modes that are not
-   included in the `mode_not` set.
-- **Both**. When both `mode` and `mode_not` are provided, the parent
-   property is scoped to include all those travel modes that are
-   included in the `mode` set except those that are included in the
-   `mode_not` set. For example,
-    `mode: [motor_vehicle], mode_not: [motorcycle]` expresses the travel
-    mode scope "all motor vehicles except motorcycles".
+If `mode` is provided, it must be a non-empty array of string values
+identifying travel modes, and is interpreted as a set. Values must be
+unique, but order is not important.
 
 #### Vehicle attribute scoping: `vehicle`
 
