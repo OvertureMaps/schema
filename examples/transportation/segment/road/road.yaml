@@ -13,7 +13,6 @@ properties:
   update_time: "2024-03-12T17:17:33-08:00"
   version: 1
   subtype: road
-  level: -1
   connector_ids: [fooConnector, barConnector] # Topology: To discuss further.
   names:
     primary: Common Road Name
@@ -24,6 +23,8 @@ properties:
       - value: gravel
     flags: 
       - values: [is_link, is_tunnel]
+    level:
+      - value: -1
     width:
       - value: 10
     restrictions:
