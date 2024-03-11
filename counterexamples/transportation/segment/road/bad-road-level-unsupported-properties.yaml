@@ -7,16 +7,14 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  update_time: "2023-03-13T15:59:18-08:00"
+  version: 0
   subtype: road
-  class: secondary
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  level_rules:
-    - value: 1
-      foo: bar
+  connector_ids: [fooConnector, barConnector]
+  road:
+    class: secondary
+    level:
+      - value: 1
+        foo: bar
   ext_expected_errors:
-    - "'/properties/level_rules/0/foo' [S#/$defs/propertyContainers/levelRulesContainer/items/unevaluatedProperties]: false schema"
+    - "[I#/properties/road/level/0/foo] [S#/$defs/propertyDefinitions/road/properties/level/items/unevaluatedProperties] not allowed"

@@ -7,15 +7,13 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
+  update_time: "2023-03-13T15:59:18-08:00"
+  version: 0
   subtype: road
-  class: secondary
-  connectors:
-    - connector_id: fooConnector
-      at: 0
-    - connector_id: barConnector
-      at: 1
-  level_rules:
-    - value: 1.5
+  connector_ids: [fooConnector, barConnector]
+  road:
+    class: secondary
+    level:
+      - value: 1.5
   ext_expected_errors:
-    - "schema/defs.yaml#/$defs/propertyDefinitions/level/type]: got number, want integer"
+    - "[I#/properties/road/level/0/value] [S#/$defs/propertyDefinitions/level/type] expected integer, but got number"
