@@ -37,20 +37,6 @@ properties:
                 mode:
                   - hov
                   - bicycle
-          min_occupancy:
-            - is_at_least: 3
-              when:
-                mode:
-                  - hov
-            - is_at_least: 1
-              when:
-                mode:
-                  - hov
-                recognized:
-                  - as_permitted
-            - is_at_least: 1
-              when:
-                mode:
-                - bicycle
+          min_occupancy: 3
       - direction: forward # lane 1
       - direction: forward # lane 2
