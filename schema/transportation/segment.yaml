@@ -26,7 +26,6 @@ properties:
             road: { "$ref": "#/$defs/propertyDefinitions/road" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
-      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     properties:
       subtype:
         description: Broad category of transportation segment.
@@ -105,6 +104,7 @@ properties:
         dedicated paths for walking and cycling.
       type: object
       unevaluatedProperties: false
+      default: {}
       properties:
         class:
           description: >-
@@ -148,12 +148,12 @@ properties:
               value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
           minItems: 1
           uniqueItems: true
-          "$comment": >-
+          "$comment":
             We should likely restrict the available surface types to
             the subset of the common OSM surface=* tag values that are
             useful both for routing and for map tile rendering.
         flags:
-          description: >-
+          description:
             Set of boolean attributes applicable to roads. May be
             specified either as a single flag array of flag values, or
             as an array of flag rules.
@@ -168,7 +168,26 @@ properties:
                 type: array
                 items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
                 uniqueItems: true
+                minLength: 1
           uniqueItems: true
+          minLength: 1
+        level:
+          description:
+            Defines the Z-order, i.e. stacking order, of the road
+            segment.
+          type: array
+          items:
+            description:
+              A single level rule defining the Z-order, i.e. stacking
+              order, applicable within a given scope on the road
+              segment.
+            type: object
+            allOf:
+              - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+            unevaluatedProperties: false
+            required: [value]
+            properties:
+              value: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
         width:
           description: >-
             Edge-to-edge width of the road modeled by this segment, in
