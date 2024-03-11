@@ -187,8 +187,8 @@ description: Common schema definitions shared by all themes
       type: object
       required: [value]
       allOf:
-        - { "$ref": "#/$defs/propertyContainers/atRangeContainer" }
-        - { "$ref": "#/$defs/propertyContainers/sideContainer" }
+        - { "$ref": "#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        - { "$ref": "#/$defs/propertyContainers/sideScopeContainer" }
       properties:
         variant:
           type: string
@@ -297,14 +297,14 @@ description: Common schema definitions shared by all themes
       properties:
         level:
           "$ref": "#/$defs/propertyDefinitions/level"
-    atRangeContainer:
+    geometricRangeScopeContainer:
       description: >-
         Geometric scoping properties defining the range of positions on
         the segment where something is physically located or where a
         rule is active.
       properties:
         at: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedRange" }
-    sideContainer:
+    sideScopeContainer:
       description: >-
         Geometric scoping properties defining the side of a road modeled when
         moving along the line from beginning to end

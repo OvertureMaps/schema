@@ -7,8 +7,8 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2023-05-11T00:03:50-08:00"
-  version: 4
+  update_time: "2024-03-11T11:15:20-07:00"
+  version: 5
   subtype: road
   connector_ids: [fooConnector, barConnector]
   road:
@@ -17,4 +17,4 @@ properties:
     restrictions:
       access:
         - access_type: denied
-          heading: forward
+          when: {heading: forward}

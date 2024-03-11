@@ -13,8 +13,8 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  update_time: "2023-06-08T12:02:30-08:00"
-  version: 0
+  update_time: "2024-03-11T10:51:51-07:00"
+  version: 1
   road:
     class: secondary
     restrictions:
@@ -32,14 +32,14 @@ properties:
       # | v |   |   |
       # |   |   |   |
       # | 0 | 1 | 2 |
-
-      - direction: forward # lane 0 -> hov only
-        restrictions:
-          access:
-            - access_type: allowed
-              when:
-                mode:
-                  - hov
-          min_occupancy: 3
-      - direction: forward # lane 1
-      - direction: forward # lane 2
+      - value:
+        - direction: forward # lane 0 -> hov only
+          restrictions:
+           access:
+             - access_type: allowed
+               when:
+                 mode:
+                   - hov
+           min_occupancy: 3
+        - direction: forward # lane 1
+        - direction: forward # lane 2

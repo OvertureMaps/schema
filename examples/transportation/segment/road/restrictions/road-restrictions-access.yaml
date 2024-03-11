@@ -1,0 +1,52 @@
+---
+id: overture:transportation:segment:example:access
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 0]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  version: 0
+  update_time: "2024-03-11T14:10:08-07:00"
+  road:
+    restrictions:
+      access:
+        - access_type: denied
+          at: [ 0, 0.5 ]
+        - access_type: denied
+          during: PH
+        - access_type: denied
+          when: {heading: forward}
+        - access_type: allowed
+          when:
+            heading: forward
+            mode: [car, hgv]
+        - access_type: allowed
+          when:
+            heading: forward
+            using: [at_destination]
+        - access_type: allowed
+          when:
+            heading: forward
+            recognized: [as_employee]
+        - access_type: allowed
+          when:
+            heading: forward
+            vehicle:
+              axle_count: {is_less_than: 3}
+              weight: {is_at_most: {value: 600, unit: 'kg'}}
+              height: {is_less_than: {value: 12, unit: 'ft'}}
+        - access_type: denied
+          at: [0.25, 0.5]
+          during: PH
+          when:
+            heading: forward
+            mode: [car, hgv]
+            using: [at_destination]
+            recognized: [as_employee]
+            vehicle:
+              axle_count: { is_less_than: 3 }
+              weight: { is_at_most: { value: 600, unit: 'kg' } }
+              height: { is_less_than: { value: 12, unit: 'ft' } }
