@@ -9,8 +9,8 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  update_time: "2023-05-10T12:02:30-08:00"
-  version: 0
+  update_time: "2024-03-11T11:15:04-07:00"
+  version: 1
   road:
     class: secondary
     restrictions:
@@ -19,23 +19,23 @@ properties:
             value: 100
             unit: km/h
     lanes:
-      # one-way road with access and speed limit restrictions
-      # digitization: S->N
-      # |   |   |   |
-      # |   |   |   | => max speeds: 100 km/h for whole segment
-      # | h |   |   |    but on lane 2 is limited to 80 km/h for hgv vehicles
-      # | o |   |   |
-      # | v |   |   |
-      # |   |   |   |
-      # | 0 | 1 | 2 |
-
-      - direction: forward # lane 0 -> hov only
-        restrictions:
-          access:
-            - access_type: allowed
-              when:
-                mode:
-                  - hov
-          min_occupancy: 3
-      - direction: forward # lane 1
-      - direction: forward # lane 2
+      - value:
+        # one-way road with access and speed limit restrictions
+        # digitization: S->N
+        # |   |   |   |
+        # |   |   |   | => max speeds: 100 km/h for whole segment
+        # | h |   |   |    but on lane 2 is limited to 80 km/h for hgv vehicles
+        # | o |   |   |
+        # | v |   |   |
+        # |   |   |   |
+        # | 0 | 1 | 2 |
+        - direction: forward # lane 0 -> hov only
+          restrictions:
+            access:
+              - access_type: allowed
+                when:
+                  mode:
+                    - hov
+            min_occupancy: 3
+        - direction: forward # lane 1
+        - direction: forward # lane 2
