@@ -15,8 +15,6 @@ properties:
   update_time: "2023-02-23T00:02:30-08:00"
   version: 0
   subtype: road
-  level: -1
-  width: 10
   connector_ids: [fooConnector, barConnector]
   road:
     class: secondary
