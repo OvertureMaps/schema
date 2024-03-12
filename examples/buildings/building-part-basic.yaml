@@ -24,6 +24,7 @@ properties:
   height: 21.34
   num_floors: 4
   min_height: 15.0
+  min_floor: 2
   roof_shape: dome
   roof_orientation: across
   roof_direction: 23.4
