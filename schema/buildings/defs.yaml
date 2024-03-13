@@ -25,6 +25,7 @@ shapeContainer:
         The "start" floor of this building or part. This is the analog of "min_height" but is sometimes populated when the
         start height is unknown.
       type: integer
+      exclusiveMinimum: 0
     facade_color:
       description: >-
         The color (name or color triplet) of the facade of a building or building part in hexadecimal
