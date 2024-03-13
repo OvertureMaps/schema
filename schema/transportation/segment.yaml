@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Transportation Segment
+title: segment
 description: >-
   Segments are paths which can be traveled by people or things. Segments
   are compatible with GeoJSON LineString features.
@@ -22,7 +22,9 @@ properties:
       - title: "Conditional Properties"
         if: { properties: { subtype: { enum: [road] } } }
         then:
+          required: [class]
           properties:
+            class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
             road: { "$ref": "#/$defs/propertyDefinitions/road" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
@@ -49,6 +51,32 @@ properties:
         default: []
 "$defs":
   propertyDefinitions:
+    roadClass:
+      description:
+        Captures the kind of road and its position in the road network
+        hierarchy.
+      type: string
+      enum:
+        - motorway
+        - primary
+        - secondary
+        - tertiary
+        - residential
+        - living_street   # Similar to residential but has implied legal restriction for motor vehicles (which can vary country by country)
+        - trunk
+        - unclassified    # Known roads, paved, but subordinate to all of: motorway, trunk, primary, secondary, tertiary
+        - parking_aisle   # Service road intended for parking
+        - driveway        # Service road intended for deliveries
+        - alley           # Service road intended for rear entrances, fire exits
+        - pedestrian
+        - footway
+        - sidewalk
+        - crosswalk
+        - steps
+        - track
+        - cycleway
+        - bridleway       # Similar to track but has implied access only for horses
+        - unknown
     lane:
       description: Properties for a single lane of traffic.
       type: object
@@ -106,34 +134,6 @@ properties:
       unevaluatedProperties: false
       default: {}
       properties:
-        class:
-          description: >-
-            Captures the kind of road and its position in the road
-            network hierarchy.
-          type: string
-          enum:
-            - motorway
-            - primary
-            - secondary
-            - tertiary
-            - residential
-            - living_street   # Similar to residential but has implied legal restriction for motor vehicles (which can vary country by country)
-            - trunk
-            - unclassified    # Known roads, paved, but subordinate to all of: motorway, trunk, primary, secondary, tertiary
-            - parking_aisle   # Service road intended for parking
-            - driveway        # Service road intended for deliveries
-            - alley           # Service road intended for rear entrances, fire exits
-            - pedestrian
-            - footway
-            - sidewalk
-            - crosswalk
-            - steps
-            - track
-            - cycleway
-            - bridleway       # Similar to track but has implied access only for horses
-            - unknown
-          default:
-            enum: [ unknown ]
         surface:
           description: Physical surface of the road. May either be
             specified as a single global value for the segment, or as

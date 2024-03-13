@@ -8,20 +8,17 @@
   "properties": {
     "theme": "transportation",
     "type": "segment",
-    "version": 26,
-    "update_time": "2024-03-14T08:25:53-08:00",
+    "version": 0,
+    "update_time": "2024-03-14T08:14:05-08:00",
     "subtype": "road",
     "class": "primary",
     "road": {
       "restrictions": {
-        "speed_limits": [
-          {}
-        ]
+        "speed_limits": {}
       }
     },
     "ext_expected_errors": [
-      "anyOf/0/required] missing properties: 'min_speed'",
-      "anyOf/1/required] missing properties: 'max_speed'"
+      "[I#/properties/road/restrictions/speed_limits] [S#/$defs/propertyContainers/speedLimitsContainer/type] expected array, but got object"
     ]
   }
 }

@@ -11,15 +11,16 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 0
-  update_time: "2023-06-16T15:57:00-06:00"
+  version: 1
+  update_time: "2024-03-13T16:36:14-08:00"
   subtype: road
+  class: primary
   road:
     lanes:
       - value:
           - direction: forward
           - direction: forward
-      - # during: Mo-Fr 15:00-18:00     TODO: Uncomment this after fixing https://github.com/OvertureMaps/schema-wg/issues/148
+      - during: Mo-Fr 15:00-18:00
         value:
           - direction: forward
           - direction: forward

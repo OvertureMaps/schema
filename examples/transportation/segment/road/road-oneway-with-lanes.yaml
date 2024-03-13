@@ -7,12 +7,12 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2024-03-11T11:17:09-07:00"
-  version: 5
+  update_time: "2024-03-13T16:15:37-08:00"
+  version: 6
   subtype: road
+  class: secondary
   connector_ids: [fooConnector, barConnector]
   road:
-    class: secondary
     lanes:
       # one way road in forward direction (lanes only in forward direction)
       - value:

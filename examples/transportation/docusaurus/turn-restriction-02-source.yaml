@@ -16,15 +16,15 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 4
-  update_time: "2023-08-18T11:05:03-07:00"
+  version: 5
+  update_time: "2024-03-13T16:34:25-08:00"
   subtype: road
+  class: primary
   connector_ids:
     - overture:transportation:example:via-turn-restriction-connector1
   names:
     primary: Arborway
   road:
-    class: primary
     surface:
       - value: paved
     restrictions:

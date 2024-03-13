@@ -9,10 +9,11 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 0
-  update_time: "2023-06-20T13:51:00-06:00"
+  version: 1
+  update_time: "2024-03-13T16:35:58-08:00"
   connector_ids: [lanes-resolution-example-connector]
   subtype: road
+  class: motorway
   road:
     lanes: # A list of two geometrically-scoped rules for resolving the lane block.
       - at: [0, 0.67]
