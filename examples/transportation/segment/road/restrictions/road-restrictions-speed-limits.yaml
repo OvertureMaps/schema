@@ -8,8 +8,9 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  version: 0
-  update_time: "2024-03-11T14:24:03-07:00"
+  class: tertiary
+  version: 3
+  update_time: "2024-03-16T16:23:31-08:00"
   road:
     restrictions:
       speed_limits:

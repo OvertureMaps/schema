@@ -11,9 +11,10 @@
     ],
     "theme": "transportation",
     "type": "segment",
-    "version": 19,
-    "update_time": "2023-02-23T00:04:00-08:00",
+    "version": 20,
+    "update_time": "2024-03-14T08:08:07-08:00",
     "subtype": "road",
+    "class": "primary",
     "road": {
       "flags": [
         {

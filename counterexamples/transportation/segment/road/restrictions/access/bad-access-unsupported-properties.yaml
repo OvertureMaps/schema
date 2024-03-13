@@ -7,8 +7,9 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  version: 0
-  update_time: "2024-03-11T16:00:31-07:00"
+  class: tertiary
+  version: 1
+  update_time: "2024-03-14T08:10:55-08:00"
   road:
     restrictions:
       access:

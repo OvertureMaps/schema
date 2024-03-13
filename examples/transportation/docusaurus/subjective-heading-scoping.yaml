@@ -13,11 +13,11 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
-  update_time: "2024-02-20T15:56:31-06:00"
+  version: 2
+  update_time: "2024-03-13T16:37:21-08:00"
   subtype: road
+  class: primary
   road:
-    class: primary
     restrictions:
       access:
         - access_type: denied
