@@ -179,7 +179,6 @@ CASE
             'boathouse',
             'digester',
             'guardhouse',
-            'parking',
             'service',
             'slurry_tank',
             'storage_tank',
@@ -191,6 +190,7 @@ CASE
     WHEN tags['building'] IN (
             'hangar',
             'train_station',
+            'parking',
             'transportation'
         ) OR tags['amenity'] IN (
             'bicycle_parking',
