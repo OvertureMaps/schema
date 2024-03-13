@@ -9,14 +9,13 @@ geometry:
     - [-122.2442307, 47.6386337]
     - [-122.2445016, 47.6386753]
 properties:
-  # Overture properties
   theme: transportation
   type: segment
   subtype: road
-  update_time: "2024-03-11T10:51:51-07:00"
-  version: 1
+  update_time: "2024-03-13T16:35:53-08:00"
+  version: 2
+  class: secondary
   road:
-    class: secondary
     restrictions:
       speed_limits:
         - max_speed:

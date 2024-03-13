@@ -10,9 +10,10 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 0
-  update_time: "2023-06-16T14:08:00-06:00"
+  version: 1
+  update_time: "2024-03-13T16:33:10-08:00"
   subtype: road
+  class: tertiary
   road:
     restrictions:
       access:

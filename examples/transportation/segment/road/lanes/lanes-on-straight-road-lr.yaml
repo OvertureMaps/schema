@@ -9,10 +9,10 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  update_time: "2023-03-31T12:02:30-08:00"
-  version: 0
+  class: primary
+  update_time: "2024-03-13T16:19:03-08:00"
+  version: 1
   road:
-    class: primary
     lanes:
       # Example shows modelling of new lane being introduced on a straight road which is a single segment
       # whole lanes attribute is represented in LR way to keep LR referencing in root level of modeled attribute.

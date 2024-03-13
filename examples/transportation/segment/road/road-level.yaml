@@ -8,10 +8,10 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  version: 0
-  update_time: "2024-03-13T15:53:21-08:00"
+  version: 1
+  update_time: "2024-03-13T16:14:45-08:00"
+  class: residential
   road:
-    class: residential
     level:
       - value: -1
         at: [0, 0.5]
