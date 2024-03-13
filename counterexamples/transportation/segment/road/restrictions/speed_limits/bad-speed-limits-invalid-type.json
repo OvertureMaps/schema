@@ -9,11 +9,16 @@
     "theme": "transportation",
     "type": "segment",
     "version": 0,
+    "update_time": "2024-03-14T08:14:05-08:00",
     "subtype": "road",
     "class": "primary",
-    "speed_limits": {},
+    "road": {
+      "restrictions": {
+        "speed_limits": {}
+      }
+    },
     "ext_expected_errors": [
-      "'/properties/speed_limits' [S#/$defs/propertyContainers/speedLimitsContainer/type]: got object, want array"
+      "[I#/properties/road/restrictions/speed_limits] [S#/$defs/propertyContainers/speedLimitsContainer/type] expected array, but got object"
     ]
   }
 }

@@ -10,17 +10,16 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  update_time: "2023-02-23T00:02:30-08:00"
-  version: 0
+  update_time: "2024-03-14T08:10:54-08:00"
+  version: 1
   subtype: road
-  widthMeters: 10
+  class: secondary
   connector_ids: [fooConnector, barConnector]
   road:
-    class: secondary
-    surface: gravel
-    flags: 
-      - [is_link, is_tunnel]
     restrictions:
       access:
         - access_type: allowed
           when: {vehicle: {axle_count: {is_foo: 5}}}
+  ext_expected_errors:
+    - "[I#/properties/road/restrictions/access/0/when/vehicle/axle_count] [S#/$defs/propertyDefinitions/integerRelation/oneOf] oneOf failed"
+    - "[I#/properties/road/restrictions/access/0/when/vehicle/axle_count/is_foo] [S#/$defs/propertyDefinitions/integerRelation/unevaluatedProperties] not allowed"

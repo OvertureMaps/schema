@@ -8,8 +8,9 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  version: 0
-  update_time: "2024-03-11T14:10:08-07:00"
+  class: living_street
+  version: 1
+  update_time: "2024-03-13T16:19:01-08:00"
   road:
     lanes:
       - value:
