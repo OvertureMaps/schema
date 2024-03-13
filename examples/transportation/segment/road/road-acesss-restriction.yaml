@@ -14,9 +14,10 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  update_time: "2023-02-23T00:03:59-08:00"
+  update_time: "2024-02-23T00:03:59-08:00"
   version: 5
   subtype: road
+  class: primary
   road:
     restrictions:
       access:

@@ -13,16 +13,16 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 3
-  update_time: "2023-06-06T16:42:00-06:00"
+  version: 4
+  update_time: "2024-03-13T16:34:41-08:00"
   subtype: road
+  class: motorway
   connector_ids:
     - overture:transportation:example:simple-road-connector-1
     - overture:transportation:example:simple-road-connector-2
   names:
     primary: SR 520
   road:
-    class: motorway
     surface:
       - value: paved
     restrictions:

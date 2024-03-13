@@ -10,10 +10,11 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  update_time: "2023-02-23T00:02:30-08:00"
-  version: 0
+  update_time: "2024-03-13T16:16:53-08:00"
+  version: 1
   subtype: road
-  connector_ids: [fooConnector, barConnector] # Topology: To discuss further.
+  class: secondary
+  connector_ids: [fooConnector, barConnector]
   names:
     primary: Common Road Name 1
     rules:
@@ -32,5 +33,3 @@ properties:
         at:
           - 0.5
           - 1
-  road:
-    class: secondary

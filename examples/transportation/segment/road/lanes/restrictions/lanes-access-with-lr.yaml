@@ -5,14 +5,13 @@ geometry:
   type: LineString
   coordinates: [[0, 0], [1, 1]]
 properties:
-  # Overture properties
   theme: transportation
   type: segment
   subtype: road
-  update_time: "2024-03-11T11:15:02-07:00"
-  version: 1
+  class: secondary
+  update_time: "2024-03-13T16:21:45-08:00"
+  version: 2
   road:
-    class: secondary
     lanes:
       - value:
         # two-way road with access restrictions for specific travel modes

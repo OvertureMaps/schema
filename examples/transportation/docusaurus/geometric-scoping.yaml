@@ -7,9 +7,10 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 0
-  update_time: "2023-06-15T17:24:01-06:00"
+  version: 1
+  update_time: "2024-03-13T16:35:37-08:00"
   subtype: road
+  class: primary
   road:
     restrictions:
       speed_limits:

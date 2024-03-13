@@ -7,12 +7,12 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2023-03-13T15:59:18-08:00"
-  version: 0
+  update_time: "2024-03-14T08:08:48-08:00"
+  version: 1
   subtype: road
+  class: secondary
   connector_ids: [fooConnector, barConnector]
   road:
-    class: secondary
     level:
       - value: 1
         foo: bar

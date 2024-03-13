@@ -7,8 +7,9 @@ properties:
   theme: transportation
   type: segment
   subtype: road
-  version: 0
-  update_time: "2024-03-11T16:03:21-07:00"
+  class: residential
+  version: 1
+  update_time: "2024-03-14T08:12:00-08:00"
   road:
     restrictions:
       prohibited_transitions:

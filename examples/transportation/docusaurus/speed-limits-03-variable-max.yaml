@@ -11,9 +11,10 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 0
-  update_time: "2023-06-21T09:57:15-06:00"
+  version: 1
+  update_time: "2024-03-13T16:36:57-08:00"
   subtype: road
+  class: motorway
   road:
     restrictions:
       speed_limits:
