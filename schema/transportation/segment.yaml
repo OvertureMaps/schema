@@ -259,19 +259,6 @@ properties:
                   - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"   # FIXME: Move under `when` - https://github.com/OvertureMaps/tf-transportation/issues/110
                 required: [sequence, final_heading]
                 properties:
-                  reason:
-                    "$comment": TODO - This property should be dropped and handled by inhibitors/barriers. # https://github.com/OvertureMaps/tf-transportation/issues/112
-                    description: >-
-                       A rough description of why the transition is
-                       prohibited.
-                    type: string
-                    enum:
-                      - legal
-                      - divider
-                      - gated_permission
-                      - gated_key
-                    default:
-                      enum: [legal]
                   sequence:
                     description: >-
                       Ordered sequence of connector/segment pairs that it is
