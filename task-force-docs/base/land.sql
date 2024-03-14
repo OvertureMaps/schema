@@ -14,7 +14,7 @@ SELECT
         WHEN subclass IN ('glacier', 'reef') THEN subclass
         WHEN subclass IN ('forest', 'wood') THEN 'forest'
         WHEN subclass IN ('fell','grass', 'grassland','meadow','tundra') THEN 'grass'
-        WHEN subclass IN ('hill', 'peak', 'valley', 'volcano') THEN 'physical'
+        WHEN subclass IN ('hill', 'peak', 'saddle', 'valley', 'volcano') THEN 'physical'
         WHEN subclass IN ('bare_rock','rock','scree','shingle') THEN 'rock'
         WHEN subclass IN ('sand', 'beach', 'dune') THEN 'sand'
         WHEN subclass IN ('heath','scrub','shrub','shrubbery') THEN 'shrub'
@@ -82,6 +82,7 @@ FROM (
                 'reef',
                 'rock',
                 'sand',
+                'saddle',
                 'scree',
                 'scrub',
                 'shingle',
