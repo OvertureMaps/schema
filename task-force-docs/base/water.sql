@@ -26,7 +26,15 @@ SELECT
             'reflecting_pool',
             'swimming_pool'
         ) THEN 'human_made'
-        WHEN subclass IN ('cape', 'fairway', 'shoal', 'strait') THEN 'physical'
+        WHEN subclass IN (
+            'bay',
+            'cape',
+            'fairway',
+            'ocean',
+            'shoal',
+            'strait'
+        ) THEN 'physical'
+        WHEN subclass IN ('spring','hot_spring','geyser') THEN 'spring'
         -- Default to just 'water'
         ELSE 'water'
     END AS subtype,
@@ -118,7 +126,7 @@ FROM (
                 'wastewater'
             ) THEN tags['water']
 
-            WHEN tags['natural'] IN ('spring','hot_spring') THEN tags['natural']
+            WHEN tags['natural'] IN ('spring','hot_spring','geyser','blowhole') THEN tags['natural']
 
             -- Check size of still water to reclassify as pond:
             WHEN tags['water'] IN ('lake', 'oxbow', 'reservoir', 'pond')
@@ -212,9 +220,25 @@ FROM (
             WHERE
                 release = '{daylight_version}'
                 AND (
-                    -- The primary OSM key/value for water features
-                    tags['natural'] IN ('water','spring','hot_spring')
+                    -- Consider anything with a water tag
+                    tags['water'] IS NOT NULL
 
+                    -- The OSM key/values for water features considered 'natural'
+                    OR tags['natural'] IN (
+                        'bay',
+                        'cape',
+                        'hot_spring',
+                        'shoal',
+                        'spring',
+                        'straight',
+                        'water'
+                    )
+
+                    -- Reservoirs and basins are tagged this way
+                    OR tags['basin'] IS NOT NULL
+                    OR tags['landuse'] IN ('basin', 'reservoir')
+
+                    -- Swimming pools are complicated:
                     OR (
                         -- swimming pools are cool
                         -- but not if they are a building/indoor
@@ -234,16 +258,9 @@ FROM (
                             )
                         )
                     )
-                    -- add some new feature/label types
-                    OR (
-                        tags['natural'] IN ('cape', 'shoal', 'strait')
-                        OR tags['seamark:type'] = 'fairway'
-                    )
-                    OR tags['water'] IS NOT NULL
-
-                    OR tags['basin'] IS NOT NULL
-
-                    OR tags['landuse'] IN ('basin', 'reservoir')
+                    -- Mostly for labeling:
+                    OR tags['seamark:type'] = 'fairway'
+                    OR tags['place'] IN ('sea','ocean')
 
                     -- Filter IN for waterway features to avoid dams, locks, etc.
                     OR (
