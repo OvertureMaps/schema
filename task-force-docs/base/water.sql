@@ -1,5 +1,5 @@
 SELECT
-    -- Needed to compute ID and satisfy Overture requirements.
+    -- Needed to compute GERS ID and satisfy Overture requirements.
     type,
     id,
     version,
@@ -7,9 +7,11 @@ SELECT
     max_lon,
     min_lat,
     max_lat,
+
+    -- Use the OSM timestamp as update_time
     created_at AS update_time,
 
-    -- Determine class from subclass or tags
+    -- Determine class from subclass
     CASE
         WHEN subclass IN ('stream') THEN 'stream'
         WHEN subclass IN ('river') THEN 'river'
@@ -30,6 +32,7 @@ SELECT
     END AS subtype,
     subclass as class,
 
+    -- The complex logic that builds the Overture names object will be injected
     '__OVERTURE_NAMES_QUERY' AS names,
 
     -- Relevant OSM tags for water type
@@ -49,11 +52,26 @@ SELECT
     -- Temporary for debugging
     tags AS osm_tags,
 
-    '__OVERTURE_SOURCES_LIST' AS sources,
+    -- Sources are an array of structs.
+    ARRAY [ CAST(
+        ROW(
+            '',
+            'OpenStreetMap',
+            SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
+            NULL
+        )
+        AS ROW(
+            property varchar,
+            dataset varchar,
+            record_id varchar,
+            confidence double
+        )
+    ) ] AS sources,
 
     -- Wikidata is a top-level property in the OSM Container
     tags['wikidata'] as wikidata,
 
+    -- Elevation is common on some ponds / lakes.
     TRY_CAST(tags['ele'] AS integer) AS elevation,
 
     -- Other type=water top-level attributes
@@ -76,7 +94,8 @@ FROM (
                 'fish_pass',
                 'river',
                 'stream',
-                'tidal_channel'
+                'tidal_channel',
+                'waterfall'
             ) THEN tags['waterway']
 
             WHEN tags['waterway'] = 'riverbank' THEN 'river'
@@ -98,6 +117,8 @@ FROM (
                 'stream',
                 'wastewater'
             ) THEN tags['water']
+
+            WHEN tags['natural'] IN ('spring','hot_spring') THEN tags['natural']
 
             -- Check size of still water to reclassify as pond:
             WHEN tags['water'] IN ('lake', 'oxbow', 'reservoir', 'pond')
@@ -192,7 +213,7 @@ FROM (
                 release = '{daylight_version}'
                 AND (
                     -- The primary OSM key/value for water features
-                    tags['natural'] = 'water'
+                    tags['natural'] IN ('water','spring','hot_spring')
 
                     OR (
                         -- swimming pools are cool
