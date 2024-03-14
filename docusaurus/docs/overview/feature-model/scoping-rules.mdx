@@ -135,10 +135,10 @@ two geometrically-scoped speed limit rules:
 <Tabs>
   <TabItem value="description" label="Description" default>
 
-The temporal, or time-based, scoping property `during` limits the scope of its
-parent value to one or more recurring time ranges. When the parent value is a
-rule object, the rule only matches the time range or time ranges specified in
-the `during` property.
+The temporal, or time-based, scoping construct `when: { during: "..." }` limits
+the scope of its parent value to one or more recurring time ranges. When the
+parent value is a rule object, the rule only matches the time range or time
+ranges specified in the `during` property.
 
 The `during` property must contain a string expressed in the OpenStreetMap
 [opening hours specification](https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification).

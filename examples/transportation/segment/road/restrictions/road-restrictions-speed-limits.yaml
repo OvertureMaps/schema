@@ -17,7 +17,8 @@ properties:
         - max_speed: {value: 20, unit: 'km/h'}
           between: [ 0, 0.5 ]
         - min_speed: {value: 25, unit: 'mph'}
-          during: PH
+          when:
+            during: PH
         - max_speed: {value: 100, unit: 'km/h'}
           min_speed: {value: 75, unit: 'km/h'}
           when: {heading: forward}
@@ -45,9 +46,9 @@ properties:
           min_speed: {value: 20, unit: 'mph'}
           is_max_speed_variable: true
           between: [0.25, 0.5]
-          during: PH
           when:
             heading: forward
+            during: PH
             mode: [car, hgv]
             using: [at_destination]
             recognized: [as_employee]
