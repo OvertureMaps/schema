@@ -18,10 +18,12 @@
           "values": ["is_bridge"]
         }
       ],
-      "during": "Mo-Sa 09:00-12:00, We 15:00-18:00"
+      "when": {
+        "during": "Mo-Sa 09:00-12:00, We 15:00-18:00"
+      }
     },
     "ext_expected_errors": [
-      "[I#/properties/road/during] [S#/$defs/propertyDefinitions/road/unevaluatedProperties] not allowed"
+      "[I#/properties/road/when] [S#/$defs/propertyDefinitions/road/unevaluatedProperties] not allowed"
     ]
   }
 } 
