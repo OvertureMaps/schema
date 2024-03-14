@@ -35,6 +35,5 @@ properties:
             - segment_id: overture:transportation:example:via-turn-restriction-via
               connector_id: overture:transportation:example:via-turn-restriction-connector1
           final_heading: forward
-          reason: legal
           when: {heading: forward}
           during: Mo-Fr 06:00-09:00, 15:00-19:00
