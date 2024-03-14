@@ -186,6 +186,7 @@ properties:
             type: object
             allOf:
               - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+            required: [value]
             properties:
               value:
                 type: number
