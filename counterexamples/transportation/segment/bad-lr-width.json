@@ -11,14 +11,19 @@
     "version": 25,
     "update_time": "2023-02-23T00:04:00-08:00",
     "subtype": "road",
-    "width": [
-      {
-        "at" : [0, 0.5],
-        "value:" : 1.5
-      },
-      {
-        "at" : [0.5, 1.0]
-      }
+    "road": {
+      "width": [
+        {
+          "at" : [0, 0.5],
+          "value" : 1.5
+        },
+        {
+          "at" : [0.5, 1.0]
+        }
+      ]
+    },
+    "ext_expected_errors": [
+      "[I#/properties/road/width/1] [S#/$defs/propertyDefinitions/road/properties/width/items/required] missing properties: 'value'"
     ]
   }
 }
