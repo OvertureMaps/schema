@@ -196,7 +196,7 @@ FROM (
                 NULL -- null trap to throw out polygons
             )
 
-            WHEN tags['']
+            WHEN tags['place'] IN ('sea','ocean') THEN tags['place']
             -- Default subclass is just 'water'
             ELSE 'water'
         END AS subclass
