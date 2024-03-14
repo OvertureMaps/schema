@@ -11,22 +11,22 @@ SELECT
     -- Use the OSM timestamp as update_time
     TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
 
-    -- Determine class from subclass
+    -- Determine subtype from class
     CASE
-        WHEN subclass IN ('stream') THEN 'stream'
-        WHEN subclass IN ('river') THEN 'river'
-        WHEN subclass IN ('pond', 'fishpond') THEN 'pond'
-        WHEN subclass IN ('lake', 'oxbow', 'lagoon') THEN 'lake'
-        WHEN subclass IN ('reservoir', 'basin', 'water_storage') THEN 'reservoir'
-        WHEN subclass IN ('canal', 'ditch', 'moat') THEN 'canal'
-        WHEN subclass IN (
+        WHEN class IN ('stream') THEN 'stream'
+        WHEN class IN ('river') THEN 'river'
+        WHEN class IN ('pond', 'fishpond') THEN 'pond'
+        WHEN class IN ('lake', 'oxbow', 'lagoon') THEN 'lake'
+        WHEN class IN ('reservoir', 'basin', 'water_storage') THEN 'reservoir'
+        WHEN class IN ('canal', 'ditch', 'moat') THEN 'canal'
+        WHEN class IN (
             'drain',
             'fish_pass',
             'fish_ladder',
             'reflecting_pool',
             'swimming_pool'
         ) THEN 'human_made'
-        WHEN subclass IN (
+        WHEN class IN (
             'bay',
             'cape',
             'fairway',
@@ -35,11 +35,11 @@ SELECT
             'shoal',
             'strait'
         ) THEN 'physical'
-        WHEN subclass IN ('spring','hot_spring','geyser') THEN 'spring'
+        WHEN class IN ('spring','hot_spring','geyser') THEN 'spring'
         -- Default to just 'water'
         ELSE 'water'
     END AS subtype,
-    subclass as class,
+    class,
 
     -- The complex logic that builds the Overture names object will be injected
     '__OVERTURE_NAMES_QUERY' AS names,
@@ -92,9 +92,9 @@ SELECT
 FROM (
     SELECT
         *,
-        -- Determine subclass
+        -- Determine class
         CASE
-            -- Waterway values that become subclasses
+            -- Waterway values that become classes
             WHEN tags['waterway'] IN (
                 'canal',
                 'ditch',
@@ -109,7 +109,7 @@ FROM (
 
             WHEN tags['waterway'] = 'riverbank' THEN 'river'
 
-            -- Water tags that become subclasses, independent of surface area
+            -- Water tags that become classes, independent of surface area
             WHEN tags['water'] IN (
                 'basin',
                 'canal',
@@ -143,17 +143,18 @@ FROM (
                 THEN IF(surface_area_sq_m < 4000, 'pond', tags['water'])
 
             -- Basins and Reservoirs are classified in landuse
-            WHEN tags['landuse'] IN ('reservoir', 'basin') THEN CASE
-                WHEN tags['basin'] IN (
-                    'evaporation',
-                    'detention',
-                    'retention',
-                    'infiltration',
-                    'cooling'
-                ) THEN 'basin'
-                WHEN tags['reservoir_type'] IN ('sewage','water_storage') THEN tags['reservoir_type']
-                ELSE 'reservoir'
-            END
+            WHEN tags['landuse'] IN ('reservoir', 'basin') THEN
+                CASE
+                    WHEN tags['basin'] IN (
+                        'evaporation',
+                        'detention',
+                        'retention',
+                        'infiltration',
+                        'cooling'
+                    ) THEN 'basin'
+                    WHEN tags['reservoir_type'] IN ('sewage','water_storage') THEN tags['reservoir_type']
+                    ELSE 'reservoir'
+                END
 
             WHEN tags['leisure'] = 'swimming_pool' THEN tags['leisure']
 
@@ -197,9 +198,9 @@ FROM (
             )
 
             WHEN tags['place'] IN ('sea','ocean') THEN tags['place']
-            -- Default subclass is just 'water'
+            -- Default class is just 'water'
             ELSE 'water'
-        END AS subclass
+        END AS class
     FROM (
         SELECT
             id,
@@ -296,7 +297,7 @@ FROM (
         )
     )
 WHERE
-    subclass IS NOT NULL
+    class IS NOT NULL
 
 UNION ALL
 -- Water derived from the OSM Coastline tool delivered via Daylight Earth Table
@@ -311,7 +312,7 @@ SELECT
     ST_YMAX(ST_GeometryFromText(wkt)) AS max_lat,
     -- Stub with today's date for now
     TO_ISO8601(cast(now() as timestamp) AT TIME ZONE 'UTC') AS update_time,
-    class as sub_type,
+    class as subtype,
     subclass as class,
     NULL AS names,
     MAP() AS source_tags,
