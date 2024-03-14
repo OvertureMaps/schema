@@ -9,20 +9,62 @@ SELECT
     max_lat,
     TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
 
-    -- Determine class from subclass or tags
+    -- Determine subtype from class:
     CASE
-        WHEN subclass IN ('glacier', 'reef') THEN subclass
-        WHEN subclass IN ('forest', 'wood') THEN 'forest'
-        WHEN subclass IN ('fell','grass', 'grassland','meadow','tundra') THEN 'grass'
-        WHEN subclass IN ('hill', 'peak', 'saddle', 'valley', 'volcano') THEN 'physical'
-        WHEN subclass IN ('bare_rock','rock','scree','shingle') THEN 'rock'
-        WHEN subclass IN ('sand', 'beach', 'dune') THEN 'sand'
-        WHEN subclass IN ('heath','scrub','shrub','shrubbery') THEN 'shrub'
-        WHEN subclass IN ('tree', 'tree_row') THEN 'tree'
+        -- Forest
+        WHEN class IN ('forest', 'wood') THEN 'forest'
+
+        -- Glacier
+        WHEN class IN ('glacier') THEN 'glacier'
+
+        -- Grass
+        WHEN class IN ('fell','grass', 'grassland','meadow','tundra') THEN 'grass'
+
+        -- Physical
+        WHEN class IN (
+            'hill',
+            'peak',
+            'plateau',
+            'saddle',
+            'valley',
+            'volcano'
+        ) THEN 'physical'
+
+        -- Reef
+        WHEN class IN ('reef') THEN 'reef'
+
+        -- Rock
+        WHEN class IN (
+            'bare_rock',
+            'rock',
+            'scree',
+            'shingle'
+        ) THEN 'rock'
+
+        --Sand
+        WHEN class IN (
+            'sand',
+            'beach',
+            'dune'
+        ) THEN 'sand'
+
+        --Shrub
+        WHEN class IN (
+            'heath',
+            'scrub',
+            'shrub',
+            'shrubbery'
+        ) THEN 'shrub'
+
+        -- Tree
+        WHEN class IN ('tree', 'tree_row') THEN 'tree'
+
+        -- Wetland
         WHEN tags [ 'natural' ] IN ('wetland') THEN 'wetland'
     END AS subtype,
-    subclass AS class,
+    class,
 
+    -- Complex name logic gets injected here
     '__OVERTURE_NAMES_QUERY' AS names,
 
     -- Relevant OSM tags for land type
@@ -59,15 +101,14 @@ SELECT
     -- Elevation as integer (meters above sea level)
     TRY_CAST(tags['ele'] AS integer) AS elevation,
 
-    -- Apparently there are corrupt geometries that are breaking Athena, so write WKT for now:
     wkt_geometry
 
 FROM (
     SELECT
         *,
-        -- Determine subclass
+        -- Determine classes from OSM tags
         CASE
-            -- Natural tags that become subclasses
+            -- Natural tags that map to specific classes:
             WHEN tags [ 'natural' ] IN (
                 'bare_rock',
                 'beach',
@@ -79,6 +120,7 @@ FROM (
                 'heath',
                 'hill',
                 'peak',
+                'plateau',
                 'reef',
                 'rock',
                 'sand',
@@ -97,15 +139,15 @@ FROM (
                 'wood'
             ) THEN tags [ 'natural' ]
 
-            -- Surface tags that become subclasses
+            -- Surface tags that become classes
             WHEN tags [ 'surface' ] IN ('grass') THEN tags [ 'surface' ]
             WHEN tags [ 'landcover' ] = 'trees' THEN 'forest'
-            WHEN tags [ 'landcover' ] IN ('grass', 'scrub', 'tree') THEN tags [ 'landcover' ] -- These landuse tags become subclasses
+            WHEN tags [ 'landcover' ] IN ('grass', 'scrub', 'tree') THEN tags [ 'landcover' ]
 
             WHEN tags['name'] IS NULL AND tags [ 'meadow' ] IS NULL
                 AND tags [ 'landuse' ] IN ('forest', 'meadow', 'grass') THEN tags [ 'landuse' ]
             ELSE NULL
-        END AS subclass
+        END AS class
     FROM (
         SELECT
             id,
@@ -124,35 +166,38 @@ FROM (
                 {daylight_table}
             WHERE
                 release = '{daylight_version}'
-            -- These features belong in other themes / types
-            AND tags [ 'highway' ] IS NULL
-            AND tags [ 'building' ] IS NULL
-            AND tags [ 'golf' ] IS NULL
-            AND tags [ 'sport' ] IS NULL
-            AND tags [ 'leisure' ] IS NULL
-            AND (
+
+            -- These tags are considered for the land type:
+            AND
+            (
                 tags [ 'natural' ] IS NOT NULL
                 OR tags [ 'surface' ] IS NOT NULL
                 OR tags [ 'landcover' ] IS NOT NULL
                 OR tags [ 'landuse' ] IN ('forest', 'meadow', 'grass')
             )
+            -- None of the below tags can be present; they go in other theme/types
+            AND tags [ 'highway' ] IS NULL
+            AND tags [ 'building' ] IS NULL
+            AND tags [ 'golf' ] IS NULL
+            AND tags [ 'sport' ] IS NULL
+            AND tags [ 'leisure' ] IS NULL
     )
 )
 WHERE
-    subclass IS NOT NULL -- The only points/lines allowed are trees and peaks
-    -- everything else should be a polygon:
+    class IS NOT NULL -- Ignore anything that didn't get assigned a class
     AND (
+        -- Polygons are always allowed
         wkt_geometry LIKE '%POLYGON%'
-        -- ST_GEOMETRYTYPE(geom) IN ('ST_Polygon', 'ST_MultiPolygon')
+
+        -- Valid Point classes:
         OR (
             wkt_geometry LIKE '%POINT%'
-            -- ST_GEOMETRYTYPE(geom) IN ('ST_Point', 'ST_MultiPoint')
-            AND subclass IN ('hill', 'peak', 'tree', 'shrub', 'valley', 'volcano','saddle')
+            AND class IN ('hill', 'plateau', 'peak', 'tree', 'shrub', 'valley', 'volcano', 'saddle')
         )
+        -- Valid LineStrings
         OR (
             wkt_geometry LIKE '%LINESTRING%'
-            -- ST_GEOMETRYTYPE(geom) IN ('ST_LineString', 'ST_MultiLineString')
-            AND subclass = 'tree_row'
+            AND class = 'tree_row'
         )
     )
 
