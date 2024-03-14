@@ -29,6 +29,7 @@ properties:
         default: [land]
         type: string
         enum:
+           - desert
            - forest
            - glacier
            - grass
@@ -47,6 +48,8 @@ properties:
         enum:
           - bare_rock
           - beach
+          - cave_entrance
+          - desert
           - dune
           - fell
           - forest
@@ -57,9 +60,13 @@ properties:
           - hill
           - land
           - meadow
+          - mountain_range
           - peak
+          - plateau
+          - peninsula
           - reef
           - rock
+          - saddle
           - sand
           - scree
           - scrub

@@ -63,6 +63,7 @@ properties:
           - reservoir
           - river
           - salt_pool
+          - sea
           - sewage
           - shoal
           - strait
@@ -71,6 +72,7 @@ properties:
           - tidal_channel
           - wastewater
           - water
+          - waterfall
           - water_storage
       is_salt:
         description: Is it salt water or not
