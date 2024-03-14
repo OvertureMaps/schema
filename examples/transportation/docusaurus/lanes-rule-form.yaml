@@ -11,8 +11,8 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  version: 1
-  update_time: "2024-03-13T16:36:14-08:00"
+  version: 2
+  update_time: "2024-03-15T09:35:16-08:00"
   subtype: road
   class: primary
   road:
@@ -20,7 +20,7 @@ properties:
       - value:
           - direction: forward
           - direction: forward
-      - during: Mo-Fr 15:00-18:00
+      - when: {during: Mo-Fr 15:00-18:00}
         value:
           - direction: forward
           - direction: forward
