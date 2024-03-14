@@ -31,6 +31,7 @@ SELECT
             'cape',
             'fairway',
             'ocean',
+            'sea',
             'shoal',
             'strait'
         ) THEN 'physical'
@@ -126,7 +127,16 @@ FROM (
                 'wastewater'
             ) THEN tags['water']
 
-            WHEN tags['natural'] IN ('spring','hot_spring','geyser','blowhole') THEN tags['natural']
+            WHEN tags['natural'] IN (
+                'bay',
+                'cape',
+                'spring',
+                'hot_spring',
+                'geyser',
+                'blowhole'
+            ) THEN tags['natural']
+
+            WHEN tags['place'] IN ('sea','ocean') THEN tags['place']
 
             -- Check size of still water to reclassify as pond:
             WHEN tags['water'] IN ('lake', 'oxbow', 'reservoir', 'pond')
@@ -185,6 +195,8 @@ FROM (
                 tags['seamark:type'],
                 NULL -- null trap to throw out polygons
             )
+
+            WHEN tags['']
             -- Default subclass is just 'water'
             ELSE 'water'
         END AS subclass
