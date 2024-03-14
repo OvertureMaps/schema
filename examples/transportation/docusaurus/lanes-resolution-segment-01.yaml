@@ -16,12 +16,12 @@ properties:
   class: motorway
   road:
     lanes: # A list of two geometrically-scoped rules for resolving the lane block.
-      - at: [0, 0.67]
+      - between: [0, 0.67]
         value:
           - direction: backward
           - direction: forward
           - direction: forward
-      - at: [0.67, 1]
+      - between: [0.67, 1]
         value:
           - direction: backward
           - direction: forward

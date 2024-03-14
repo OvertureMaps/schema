@@ -31,4 +31,4 @@ properties:
                 when:
                   mode:
                     - bus
-                at: [0.6, 1]
+                between: [0.6, 1]

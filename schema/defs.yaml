@@ -303,7 +303,7 @@ description: Common schema definitions shared by all themes
         the segment where something is physically located or where a
         rule is active.
       properties:
-        at: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedRange" }
+        between: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedRange" }
     sideScopeContainer:
       description: >-
         Geometric scoping properties defining the side of a road modeled when
