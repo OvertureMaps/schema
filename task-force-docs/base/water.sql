@@ -296,3 +296,48 @@ FROM (
     )
 WHERE
     subclass IS NOT NULL
+
+UNION ALL
+-- Water derived from the OSM Coastline tool delivered via Daylight Earth Table
+SELECT
+    -- Needed to compute ID and satisfy Overture requirements.
+    'area' AS type,
+    NULL AS id,
+    0 version,
+    ST_XMIN(ST_GeometryFromText(wkt)) as min_lon,
+    ST_XMAX(ST_GeometryFromText(wkt)) as max_lon,
+    ST_YMIN(ST_GeometryFromText(wkt)) AS min_lat,
+    ST_YMAX(ST_GeometryFromText(wkt)) AS max_lat,
+    -- Stub with today's date for now
+    TO_ISO8601(cast(now() as timestamp) AT TIME ZONE 'UTC') AS update_time,
+    class as sub_type,
+    subclass as class,
+    NULL AS names,
+    MAP() AS source_tags,
+    MAP() AS osm_tags,
+    -- Source is OSM
+    ARRAY [ CAST(
+        ROW(
+            '',
+            'OpenStreetMap',
+            NULL,
+            NULL
+        ) AS ROW(
+            property varchar,
+            dataset varchar,
+            record_id varchar,
+            confidence double
+        )
+    ) ] as sources,
+    -- Wikidata is a top-level property in the OSM Container
+    NULL as wikidata,
+    -- Other type=water top-level attributes
+    0 AS elevation,
+    TRUE AS is_salt,
+    FALSE AS is_intermittent,
+    ST_AsBinary(ST_GeometryFromText(wkt)) as geometry
+FROM {daylight_earth_table}
+WHERE release = '{daylight_version}'
+    AND theme = 'water'
+    AND class = 'ocean'
+    AND subclass = 'ocean'

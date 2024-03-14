@@ -241,7 +241,21 @@ FROM (
 
         tags as osm_tags,
 
-        '__OVERTURE_SOURCES_LIST' AS sources,
+        -- Sources are an array of structs.
+        ARRAY [ CAST(
+            ROW(
+                '',
+                'OpenStreetMap',
+                SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
+                NULL
+            )
+            AS ROW(
+                property varchar,
+                dataset varchar,
+                record_id varchar,
+                confidence double
+            )
+        ) ] AS sources,
 
         -- Wikidata is a top-level property in the OSM Container
         tags['wikidata'] as wikidata,

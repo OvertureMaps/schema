@@ -37,7 +37,21 @@ SELECT
     -- Add all OSM Tags for debugging
     tags AS osm_tags,
 
-    '__OVERTURE_SOURCES_LIST' AS sources,
+    -- Sources are an array of structs.
+    ARRAY [ CAST(
+        ROW(
+            '',
+            'OpenStreetMap',
+            SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
+            NULL
+        )
+        AS ROW(
+            property varchar,
+            dataset varchar,
+            record_id varchar,
+            confidence double
+        )
+    ) ] AS sources,
 
     -- Wikidata is a top-level property in the OSM Container
     tags['wikidata'] as wikidata,
@@ -140,3 +154,44 @@ WHERE
             AND subclass = 'tree_row'
         )
     )
+
+UNION ALL
+-- Land derived from the OSM Coastline tool
+SELECT
+    -- Needed to compute ID and satisfy Overture requirements.
+    'area' AS type,
+    NULL AS id,
+    0 version,
+    ST_XMIN(ST_GeometryFromText(wkt)) as min_lon,
+    ST_XMAX(ST_GeometryFromText(wkt)) as max_lon,
+    ST_YMIN(ST_GeometryFromText(wkt)) AS min_lat,
+    ST_YMAX(ST_GeometryFromText(wkt)) AS max_lat,
+    -- Stub with today's date for now
+    TO_ISO8601(cast(now() as timestamp) AT TIME ZONE 'UTC') AS update_time,
+    class as subType,
+    subclass as class,
+    NULL AS names,
+    MAP() AS sourceTags,
+    MAP() AS osmTags,
+    -- Source is OSM
+    ARRAY [ CAST(
+        ROW(
+            '',
+            'OpenStreetMap',
+            NULL,
+            NULL
+        ) AS ROW(
+            property varchar,
+            dataset varchar,
+            record_id varchar,
+            confidence double
+        )
+    ) ] as sources,
+    NULL AS wikidata,
+    NULL AS elevation,
+    wkt AS wkt_geometry
+FROM {daylight_earth_table}
+WHERE release = '{daylight_version}'
+    AND theme = 'land'
+    AND class = 'land'
+    AND subclass = 'land'
