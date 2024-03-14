@@ -172,8 +172,8 @@ SELECT
     class as subType,
     subclass as class,
     NULL AS names,
-    MAP() AS sourceTags,
-    MAP() AS osmTags,
+    MAP() AS source_tags,
+    MAP() AS osm_tags,
     -- Source is OSM
     ARRAY [ CAST(
         ROW(
