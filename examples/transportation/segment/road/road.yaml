@@ -50,7 +50,6 @@ properties:
           - segment_id: overture:transportation:segment:234
             connector_id: overture:transportation:connector:123
           final_heading: forward
-          reason: legal
           when: {heading: forward}
         - sequence:
             - segment_id: overture:transportation:segment:456
@@ -58,5 +57,4 @@ properties:
             - segment_id: overture:transportation:segment:567
               connector_id: overture:transportation:connector:456
           final_heading: backward
-          reason: divider
           when: {heading: backward}
