@@ -18,7 +18,7 @@ properties:
             - connector_id: connector1
               segment_id: segment1
           final_heading: forward
-          at: [ 0, 0.5 ]
+          between: [ 0, 0.5 ]
         - sequence:
             - connector_id: connector1
               segment_id: segment1
@@ -64,7 +64,7 @@ properties:
             - connector_id: connector1
               segment_id: segment1
           final_heading: forward
-          at: [0.25, 0.5]
+          between: [0.25, 0.5]
           during: PH
           when:
             heading: forward
