@@ -133,7 +133,9 @@ FROM (
                 'spring',
                 'hot_spring',
                 'geyser',
-                'blowhole'
+                'blowhole',
+                'shoal',
+                'strait'
             ) THEN tags['natural']
 
             WHEN tags['place'] IN ('sea','ocean') THEN tags['place']
@@ -174,27 +176,6 @@ FROM (
                     tags['man_made'],
                     'water'
                 )
-            )
-
-            -- Add some new feature/label types for points only
-            WHEN tags['natural'] IN ('cape', 'shoal', 'strait') THEN IF(
-                ST_GEOMETRYTYPE(geom) IN (
-                    'ST_Point',
-                    'ST_LineString',
-                    'ST_MultiLineString'
-                ),
-                tags['natural'],
-                NULL -- null trap to throw out polygons
-            )
-
-            WHEN tags['seamark:type'] IN ('fairway') THEN IF(
-                ST_GEOMETRYTYPE(geom) IN (
-                    'ST_Point',
-                    'ST_LineString',
-                    'ST_MultiLineString'
-                ),
-                tags['seamark:type'],
-                NULL -- null trap to throw out polygons
             )
 
             WHEN tags['place'] IN ('sea','ocean') THEN tags['place']

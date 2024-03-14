@@ -44,6 +44,8 @@ properties:
         default: [water]
         enum:
           - basin
+          - bay
+          - blowhole
           - canal
           - cape
           - ditch
@@ -52,6 +54,8 @@ properties:
           - fairway
           - fish_pass
           - fish_pond
+          - geyser
+          - hot_spring
           - lagoon
           - lake
           - lock
@@ -66,14 +70,15 @@ properties:
           - sea
           - sewage
           - shoal
+          - spring
           - strait
           - stream
           - swimming_pool
           - tidal_channel
           - wastewater
           - water
-          - waterfall
           - water_storage
+          - waterfall
       is_salt:
         description: Is it salt water or not
         type: boolean
