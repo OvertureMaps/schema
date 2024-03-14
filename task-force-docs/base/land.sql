@@ -11,6 +11,9 @@ SELECT
 
     -- Determine subtype from class:
     CASE
+        -- Desert
+        WHEN class IN ('desert') THEN 'desert'
+
         -- Forest
         WHEN class IN ('forest', 'wood') THEN 'forest'
 
@@ -18,12 +21,15 @@ SELECT
         WHEN class IN ('glacier') THEN 'glacier'
 
         -- Grass
-        WHEN class IN ('fell','grass', 'grassland','meadow','tundra') THEN 'grass'
+        WHEN class IN ('fell', 'grass', 'grassland', 'meadow', 'tundra') THEN 'grass'
 
         -- Physical
         WHEN class IN (
+            'cave_entrance',
             'hill',
+            'mountain_range',
             'peak',
+            'peninsula',
             'plateau',
             'saddle',
             'valley',
@@ -112,6 +118,8 @@ FROM (
             WHEN tags [ 'natural' ] IN (
                 'bare_rock',
                 'beach',
+                'cave_entrance',
+                'desert',
                 'dune',
                 'fell',
                 'forest',
@@ -119,7 +127,9 @@ FROM (
                 'grassland',
                 'heath',
                 'hill',
+                'mountain_range',
                 'peak',
+                'peninsula',
                 'plateau',
                 'reef',
                 'rock',
@@ -192,12 +202,24 @@ WHERE
         -- Valid Point classes:
         OR (
             wkt_geometry LIKE '%POINT%'
-            AND class IN ('hill', 'plateau', 'peak', 'tree', 'shrub', 'valley', 'volcano', 'saddle')
+            AND class IN (
+                'cave_entrance',
+                'hill',
+                'mountain_range',
+                'peak',
+                'peninsula',
+                'plateau',
+                'saddle',
+                'shrub',
+                'tree',
+                'valley',
+                'volcano'
+            )
         )
         -- Valid LineStrings
         OR (
             wkt_geometry LIKE '%LINESTRING%'
-            AND class = 'tree_row'
+            AND class IN ('mountain_range','tree_row')
         )
     )
 
