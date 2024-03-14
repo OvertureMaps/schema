@@ -20,16 +20,16 @@ properties:
     rules:
       - variant: common
         value: Common Road Name 1
-        at:
+        between:
           - 0
           - 0.5
       - variant: short
         value: SRN1
-        at:
+        between:
           - 0
           - 0.5
       - variant: common
         value: Common Road Name 2
-        at:
+        between:
           - 0.5
           - 1

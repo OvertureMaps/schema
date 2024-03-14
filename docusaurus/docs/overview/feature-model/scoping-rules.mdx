@@ -46,23 +46,24 @@ special child properties of the value known as *scoping* properties.
 <Tabs>
   <TabItem value="description" label="Description" default>
 
-The geometric scoping property `at` limits the scope of its parent value to a
-position or range of positions along a segment's geometry. When the parent value
-is a rule object, the rule only matches the position or range of positions
-specified in the `at` property.
+The geometric scoping properties `at` and `between` limit the scope of their
+parent value to a position or range of positions, respectively, along a
+segment's geometry. When the parent value is a rule object, the rule only
+matches the position or range of positions specified in the `at` or
+`between` property.
 
-Depending on context, the value of the `at` property is either a single real
-number `a` where `0` &le; `a` &le; `1`; or a pair of numbers `[a, b]` where
-`0` &le; `a` &lt; `b` &le; `1`. In the first case, `at` represents a discrete
-position along the segment's geometry; in the second case it represents a
-range of positions. The numbers `a` and `b` are interpreted as percentage
-displacements along the parent segment's geometry starting from the start of the
-segment. (*The terms "start" and "end" are explained in
+The value of the `at` property is a single real number `a` where `0` &le; `a`
+&le; `1`. It represents a discrete position along the segment's geometry. The
+value of the `between` property is a pair of numbers `[a, b]` where `0` &le;
+`a` &lt; `b` &le; `1`. It represents a range of positions along the segment's
+geometry. The numbers `a` and `b` are interpreted as percentage displacements
+along the parent segment's geometry starting from the start of the segment.
+(*The terms "start" and "end" are explained in
 [Shape and Connectivity](/themes/transportation/shape-connectivity).*)
 
-So, for example, the scoping property `"at": 0.15` scopes its parent value to
-the position on the segment that is displaced 15% of the segment length from the
-start.
+So, for example, the scoping property `"at": 0.15` scopes its parent value
+to the position on the segment that is displaced 15% of the segment length from
+the start.
 
 <div style={{textAlign: 'center'}}>
 
@@ -89,9 +90,9 @@ start.
 
 </div>
 
-The scoping property `"at": [0.35, 0.75]` scopes its parent value to the range of
-positions on the segment beginning at 35% and extending to 75% of the segment
-length from the start.
+The scoping property `"between": [0.35, 0.75]` scopes its parent value to the
+range of positions on the segment beginning at 35% and extending to 75% of the
+segment length from the start.
 
 <div style={{textAlign: 'center'}}>
 
@@ -109,7 +110,7 @@ length from the start.
 
 <div style={{textAlign: 'center'}}>
 
-*The range on the segment geometry described by `"at": [0.35, 0.75]`.*
+*The range on the segment geometry described by `"between": [0.35, 0.75]`.*
 
 </div>
 
