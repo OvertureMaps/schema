@@ -43,7 +43,7 @@ properties:
         - max_speed:
             value: 30
             unit: km/h
-          at: [0.25, 0.50]
+          between: [0.25, 0.50]
           during: Mo-Sa 09:00-12:00, We 15:00-18:00
       prohibited_transitions:
         - sequence:
