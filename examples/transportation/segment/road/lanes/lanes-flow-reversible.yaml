@@ -7,7 +7,7 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2024-03-13T16:19:02-08:00"
+  update_time: "2024-03-14T16:33:50-08:00"
   version: 5
   subtype: road
   class: primary
@@ -25,8 +25,8 @@ properties:
               - access_type: allowed
                 when:
                   heading: forward
-                during: Mo-Su 00:00-12:00
+                  during: Mo-Su 00:00-12:00
               - access_type: allowed
                 when:
                   heading: backward
-                during: Mo-Su 12:00-24:00
+                  during: Mo-Su 12:00-24:00

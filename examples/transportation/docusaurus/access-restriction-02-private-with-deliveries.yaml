@@ -10,7 +10,7 @@ properties:
   theme: transportation
   type: segment
   version: 1
-  update_time: "2024-03-13T16:34:49-08:00"
+  update_time: "2024-03-14T16:32:53-08:00"
   subtype: road
   class: residential
   road:
@@ -20,5 +20,6 @@ properties:
         - access_type: allowed
           when: { recognized: [as_private] }
         - access_type: allowed
-          when: { using: [to_deliver] }
-          during: Mo-Fr 08:30-16:30
+          when:
+            using: [to_deliver]
+            during: Mo-Fr 08:30-16:30

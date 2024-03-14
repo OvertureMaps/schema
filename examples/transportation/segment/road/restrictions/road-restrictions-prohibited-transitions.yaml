@@ -23,7 +23,8 @@ properties:
             - connector_id: connector1
               segment_id: segment1
           final_heading: forward
-          during: PH
+          when:
+            during: PH
         - sequence:
             - connector_id: connector1
               segment_id: segment1
@@ -65,9 +66,9 @@ properties:
               segment_id: segment1
           final_heading: forward
           between: [0.25, 0.5]
-          during: PH
           when:
             heading: forward
+            during: PH
             mode: [car, hgv]
             using: [at_destination]
             recognized: [as_employee]
