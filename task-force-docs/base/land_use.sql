@@ -27,7 +27,7 @@ FROM (
         max_lon,
         min_lat,
         max_lat,
-        created_at AS update_time,
+        TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
 
         -- Determine class from subclass or tags
         CASE
