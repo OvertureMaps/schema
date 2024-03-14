@@ -231,12 +231,16 @@ properties:
             unevaluatedProperties: false
             allOf:
               - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
-              - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"   # FIXME: Move under `when` - https://github.com/OvertureMaps/tf-transportation/issues/110
             properties:
               value:
                 type: array
                 items:  { "$ref": "#/$defs/propertyDefinitions/lane" }
                 minItems: 1
+              when:
+                allOf:
+                  - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"
+                minProperties: 1
+                unevaluatedProperties: false
           minItems: 1
           uniqueItems: true
         restrictions:
@@ -256,7 +260,6 @@ properties:
                 unevaluatedProperties: false
                 allOf:
                   - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
-                  - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"   # FIXME: Move under `when` - https://github.com/OvertureMaps/tf-transportation/issues/110
                 required: [sequence, final_heading]
                 properties:
                   sequence:
@@ -277,6 +280,7 @@ properties:
                   when:
                     allOf:
                       - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
+                      - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"
                       - "$ref": "#/$defs/propertyContainers/purposeOfUseScopeContainer"
                       - "$ref": "#/$defs/propertyContainers/recognizedStatusScopeContainer"
                       - "$ref": "#/$defs/propertyContainers/travelModeScopeContainer"
@@ -543,7 +547,6 @@ properties:
           - required: [ max_speed ]
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
-          - "$ref": "#/$defs/propertyContainers/temporalScopeContainer" # FIXME: Move under `when` - https://github.com/OvertureMaps/tf-transportation/issues/110
         unevaluatedProperties: false
         properties:
           min_speed: { "$ref": "#/$defs/propertyDefinitions/speed" }
@@ -554,6 +557,7 @@ properties:
             default: false
           when:
             allOf:
+              - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"
               - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
               - "$ref": "#/$defs/propertyContainers/purposeOfUseScopeContainer"
               - "$ref": "#/$defs/propertyContainers/recognizedStatusScopeContainer"
@@ -571,7 +575,6 @@ properties:
         unevaluatedProperties: false
         allOf:
           - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
-          - { "$ref": "#/$defs/propertyContainers/temporalScopeContainer" }  # FIXME: Move under `when` - https://github.com/OvertureMaps/tf-transportation/issues/110
         required: [access_type]
         properties:
           access_type:
@@ -579,6 +582,7 @@ properties:
             enum: [allowed, denied, designated]
           when:
             allOf:
+              - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"
               - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
               - "$ref": "#/$defs/propertyContainers/purposeOfUseScopeContainer"
               - "$ref": "#/$defs/propertyContainers/recognizedStatusScopeContainer"
