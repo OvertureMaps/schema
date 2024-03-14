@@ -287,7 +287,8 @@ FROM (
                             'river',
                             'riverbank',
                             'stream',
-                            'tidal_channel'
+                            'tidal_channel',
+                            'waterfall'
                         )
                     )
                 )
