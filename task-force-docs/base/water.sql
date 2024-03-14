@@ -221,6 +221,7 @@ FROM (
                     OR tags['natural'] IN (
                         'bay',
                         'cape',
+                        'geyser',
                         'hot_spring',
                         'shoal',
                         'spring',
