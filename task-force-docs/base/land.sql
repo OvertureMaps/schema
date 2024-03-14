@@ -147,7 +147,7 @@ WHERE
         OR (
             wkt_geometry LIKE '%POINT%'
             -- ST_GEOMETRYTYPE(geom) IN ('ST_Point', 'ST_MultiPoint')
-            AND subclass IN ('hill', 'peak', 'tree', 'shrub', 'valley', 'volcano')
+            AND subclass IN ('hill', 'peak', 'tree', 'shrub', 'valley', 'volcano','saddle')
         )
         OR (
             wkt_geometry LIKE '%LINESTRING%'
