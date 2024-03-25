@@ -118,6 +118,16 @@ const sidebars = {
         },
         {
           type: 'category',
+          label: 'divisions',
+          collapsed: false,
+          items: [
+              'reference/divisions/boundary',
+              'reference/divisions/division',
+              'reference/divisions/division_area',
+          ]
+        },
+        {
+          type: 'category',
           label: 'transportation',
           collapsed: false,
           items: [

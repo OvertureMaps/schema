@@ -1,0 +1,92 @@
+---
+title: division area
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import divisions_division_area_schema from '!!raw-loader!@site/docs/_schema/divisions/division_area.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import division_area_example_country_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/country_land.yaml';
+import division_area_example_region_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/region_land.yaml';
+import division_area_example_country_maritime from '!!raw-loader!@site/docs/_examples/divisions/division_area/country_maritime.yaml';
+
+
+# Division Area
+
+A division area is a polygon that represents the land or maritime area associated with a [division](division).
+
+
+<table>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Polygon</code> or <code>MultiPolygon</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>divisions</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>division_area</code></td>
+  </tr>
+</table>
+
+## Sub-types
+
+Like a division, a division area may have one of two possible sub-types: `country` or `region`.
+
+<Tabs>
+  <TabItem value="country" label="Country" default>
+    <table>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>country</code></td>
+      </tr>
+    </table>
+
+
+The border of a country, if known, is given by
+[boundary](boundary) features.
+  </TabItem>
+
+  <TabItem value="region" label="Region">
+    <table>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>region</code></td>
+      </tr>
+    </table>
+
+A region represents a named area that is not formally part of
+the hierarchical subdivision of a country.
+  </TabItem>
+</Tabs>
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(divisions_division_area_schema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/divisions'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{divisions_division_area_schema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="country_land" label="Country, land class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_land), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="country_maritime" label="Country, maritime class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_maritime), null, 2) }</CodeBlock>
+  </TabItem>
+   <TabItem value="region_land" label="Region, land class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_region_land), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>
