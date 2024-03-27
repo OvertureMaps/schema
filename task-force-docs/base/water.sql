@@ -1,5 +1,5 @@
 SELECT
-    -- Needed to compute ID and satisfy Overture requirements.
+    -- Needed to compute GERS ID and satisfy Overture requirements.
     type,
     id,
     version,
@@ -7,29 +7,41 @@ SELECT
     max_lon,
     min_lat,
     max_lat,
-    created_at AS update_time,
 
-    -- Determine class from subclass or tags
+    -- Use the OSM timestamp as update_time
+    TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
+
+    -- Determine subtype from class
     CASE
-        WHEN subclass IN ('stream') THEN 'stream'
-        WHEN subclass IN ('river') THEN 'river'
-        WHEN subclass IN ('pond', 'fishpond') THEN 'pond'
-        WHEN subclass IN ('lake', 'oxbow', 'lagoon') THEN 'lake'
-        WHEN subclass IN ('reservoir', 'basin', 'water_storage') THEN 'reservoir'
-        WHEN subclass IN ('canal', 'ditch', 'moat') THEN 'canal'
-        WHEN subclass IN (
+        WHEN class IN ('stream') THEN 'stream'
+        WHEN class IN ('river') THEN 'river'
+        WHEN class IN ('pond', 'fishpond') THEN 'pond'
+        WHEN class IN ('lake', 'oxbow', 'lagoon') THEN 'lake'
+        WHEN class IN ('reservoir', 'basin', 'water_storage') THEN 'reservoir'
+        WHEN class IN ('canal', 'ditch', 'moat') THEN 'canal'
+        WHEN class IN (
             'drain',
             'fish_pass',
             'fish_ladder',
             'reflecting_pool',
             'swimming_pool'
         ) THEN 'human_made'
-        WHEN subclass IN ('cape', 'fairway', 'shoal', 'strait') THEN 'physical'
+        WHEN class IN (
+            'bay',
+            'cape',
+            'fairway',
+            'ocean',
+            'sea',
+            'shoal',
+            'strait'
+        ) THEN 'physical'
+        WHEN class IN ('spring','hot_spring','geyser') THEN 'spring'
         -- Default to just 'water'
         ELSE 'water'
     END AS subtype,
-    subclass as class,
+    class,
 
+    -- The complex logic that builds the Overture names object will be injected
     '__OVERTURE_NAMES_QUERY' AS names,
 
     -- Relevant OSM tags for water type
@@ -49,11 +61,26 @@ SELECT
     -- Temporary for debugging
     tags AS osm_tags,
 
-    '__OVERTURE_SOURCES_LIST' AS sources,
+    -- Sources are an array of structs.
+    ARRAY [ CAST(
+        ROW(
+            '',
+            'OpenStreetMap',
+            SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
+            NULL
+        )
+        AS ROW(
+            property varchar,
+            dataset varchar,
+            record_id varchar,
+            confidence double
+        )
+    ) ] AS sources,
 
     -- Wikidata is a top-level property in the OSM Container
     tags['wikidata'] as wikidata,
 
+    -- Elevation is common on some ponds / lakes.
     TRY_CAST(tags['ele'] AS integer) AS elevation,
 
     -- Other type=water top-level attributes
@@ -65,9 +92,9 @@ SELECT
 FROM (
     SELECT
         *,
-        -- Determine subclass
+        -- Determine class
         CASE
-            -- Waterway values that become subclasses
+            -- Waterway values that become classes
             WHEN tags['waterway'] IN (
                 'canal',
                 'ditch',
@@ -76,12 +103,13 @@ FROM (
                 'fish_pass',
                 'river',
                 'stream',
-                'tidal_channel'
+                'tidal_channel',
+                'waterfall'
             ) THEN tags['waterway']
 
             WHEN tags['waterway'] = 'riverbank' THEN 'river'
 
-            -- Water tags that become subclasses, independent of surface area
+            -- Water tags that become classes, independent of surface area
             WHEN tags['water'] IN (
                 'basin',
                 'canal',
@@ -99,22 +127,36 @@ FROM (
                 'wastewater'
             ) THEN tags['water']
 
+            WHEN tags['natural'] IN (
+                'bay',
+                'cape',
+                'spring',
+                'hot_spring',
+                'geyser',
+                'blowhole',
+                'shoal',
+                'strait'
+            ) THEN tags['natural']
+
+            WHEN tags['place'] IN ('sea','ocean') THEN tags['place']
+
             -- Check size of still water to reclassify as pond:
             WHEN tags['water'] IN ('lake', 'oxbow', 'reservoir', 'pond')
                 THEN IF(surface_area_sq_m < 4000, 'pond', tags['water'])
 
             -- Basins and Reservoirs are classified in landuse
-            WHEN tags['landuse'] IN ('reservoir', 'basin') THEN CASE
-                WHEN tags['basin'] IN (
-                    'evaporation',
-                    'detention',
-                    'retention',
-                    'infiltration',
-                    'cooling'
-                ) THEN 'basin'
-                WHEN tags['reservoir_type'] IN ('sewage','water_storage') THEN tags['reservoir_type']
-                ELSE 'reservoir'
-            END
+            WHEN tags['landuse'] IN ('reservoir', 'basin') THEN
+                CASE
+                    WHEN tags['basin'] IN (
+                        'evaporation',
+                        'detention',
+                        'retention',
+                        'infiltration',
+                        'cooling'
+                    ) THEN 'basin'
+                    WHEN tags['reservoir_type'] IN ('sewage','water_storage') THEN tags['reservoir_type']
+                    ELSE 'reservoir'
+                END
 
             WHEN tags['leisure'] = 'swimming_pool' THEN tags['leisure']
 
@@ -136,29 +178,10 @@ FROM (
                 )
             )
 
-            -- Add some new feature/label types for points only
-            WHEN tags['natural'] IN ('cape', 'shoal', 'strait') THEN IF(
-                ST_GEOMETRYTYPE(geom) IN (
-                    'ST_Point',
-                    'ST_LineString',
-                    'ST_MultiLineString'
-                ),
-                tags['natural'],
-                NULL -- null trap to throw out polygons
-            )
-
-            WHEN tags['seamark:type'] IN ('fairway') THEN IF(
-                ST_GEOMETRYTYPE(geom) IN (
-                    'ST_Point',
-                    'ST_LineString',
-                    'ST_MultiLineString'
-                ),
-                tags['seamark:type'],
-                NULL -- null trap to throw out polygons
-            )
-            -- Default subclass is just 'water'
+            WHEN tags['place'] IN ('sea','ocean') THEN tags['place']
+            -- Default class is just 'water'
             ELSE 'water'
-        END AS subclass
+        END AS class
     FROM (
         SELECT
             id,
@@ -191,9 +214,28 @@ FROM (
             WHERE
                 release = '{daylight_version}'
                 AND (
-                    -- The primary OSM key/value for water features
-                    tags['natural'] = 'water'
+                    -- Consider anything with a water tag
+                    tags['water'] IS NOT NULL
+                    -- The OSM key/values for water features considered 'natural'
+                    OR tags['natural'] IN (
+                        'bay',
+                        'cape',
+                        'geyser',
+                        'hot_spring',
+                        'shoal',
+                        'spring',
+                        'straight',
+                        'water'
+                    )
 
+                    -- Reservoirs and basins are tagged this way
+                    OR tags['basin'] IS NOT NULL
+                    OR tags['landuse'] IN ('basin', 'reservoir')
+
+                    -- Some buildings are tagged as having running water
+                    AND tags['building'] IS NULL
+    
+                    -- Swimming pools are complicated:
                     OR (
                         -- swimming pools are cool
                         -- but not if they are a building/indoor
@@ -213,16 +255,9 @@ FROM (
                             )
                         )
                     )
-                    -- add some new feature/label types
-                    OR (
-                        tags['natural'] IN ('cape', 'shoal', 'strait')
-                        OR tags['seamark:type'] = 'fairway'
-                    )
-                    OR tags['water'] IS NOT NULL
-
-                    OR tags['basin'] IS NOT NULL
-
-                    OR tags['landuse'] IN ('basin', 'reservoir')
+                    -- Mostly for labeling:
+                    OR tags['seamark:type'] = 'fairway'
+                    OR tags['place'] IN ('sea','ocean')
 
                     -- Filter IN for waterway features to avoid dams, locks, etc.
                     OR (
@@ -237,7 +272,8 @@ FROM (
                             'river',
                             'riverbank',
                             'stream',
-                            'tidal_channel'
+                            'tidal_channel',
+                            'waterfall'
                         )
                     )
                 )
@@ -245,4 +281,49 @@ FROM (
         )
     )
 WHERE
-    subclass IS NOT NULL
+    class IS NOT NULL
+
+UNION ALL
+-- Water derived from the OSM Coastline tool delivered via Daylight Earth Table
+SELECT
+    -- Needed to compute ID and satisfy Overture requirements.
+    'area' AS type,
+    NULL AS id,
+    0 version,
+    ST_XMIN(ST_GeometryFromText(wkt)) as min_lon,
+    ST_XMAX(ST_GeometryFromText(wkt)) as max_lon,
+    ST_YMIN(ST_GeometryFromText(wkt)) AS min_lat,
+    ST_YMAX(ST_GeometryFromText(wkt)) AS max_lat,
+    -- Stub with today's date for now
+    TO_ISO8601(cast(now() as timestamp) AT TIME ZONE 'UTC') AS update_time,
+    class as subtype,
+    subclass as class,
+    NULL AS names,
+    MAP() AS source_tags,
+    MAP() AS osm_tags,
+    -- Source is OSM
+    ARRAY [ CAST(
+        ROW(
+            '',
+            'OpenStreetMap',
+            NULL,
+            NULL
+        ) AS ROW(
+            property varchar,
+            dataset varchar,
+            record_id varchar,
+            confidence double
+        )
+    ) ] as sources,
+    -- Wikidata is a top-level property in the OSM Container
+    NULL as wikidata,
+    -- Other type=water top-level attributes
+    0 AS elevation,
+    TRUE AS is_salt,
+    FALSE AS is_intermittent,
+    ST_AsBinary(ST_GeometryFromText(wkt)) as geometry
+FROM {daylight_earth_table}
+WHERE release = '{daylight_version}'
+    AND theme = 'water'
+    AND class = 'ocean'
+    AND subclass = 'ocean'
