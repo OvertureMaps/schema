@@ -177,6 +177,7 @@ FROM (
 
             -- Recreation
             WHEN class IN (
+                'beach_resort',
                 'recreation_grass',
                 'recreation_paved',
                 'pitch',
@@ -367,10 +368,6 @@ FROM (
                         'water_hazard'
                     ) THEN tags['golf']
 
-                    -- Specific sport surfaces
-                    WHEN tags['leisure'] IN ('pitch', 'playground', 'track', 'stadium')
-                        THEN tags['leisure']
-
                     -- Meadows are tagged this way
                     WHEN tags['meadow'] IN ('agricultural', 'agriculture', 'pasture')
                         THEN 'meadow'
@@ -391,14 +388,19 @@ FROM (
 
                     -- Leisure values that become classes:
                     WHEN tags['leisure'] IN (
+                        'beach_resort',
                         'common',
                         'garden',
                         'golf_course',
                         'marina',
                         'nature_reserve',
                         'park',
+                        'pitch', -- specific sport surface
+                        'playground', -- specific sport surface
+                        'recreation_ground', -- tagging mistake, but there are 8k of them.
                         'schoolyard',
-                        'stadium',
+                        'stadium', -- specific sport surface
+                        'track', -- specific sport surface
                         'water_park'
                     ) THEN tags['leisure']
 
