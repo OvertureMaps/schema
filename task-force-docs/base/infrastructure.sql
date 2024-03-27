@@ -119,10 +119,15 @@ SELECT
 
     -- Relevant OSM tags for land type
     MAP_FILTER(tags, (k,v) -> k IN (
-            'tower',
-            'route',
+            'access',
+            'aerodrome:type',
+            'aerodrome',
             'icao',
+            'landuse',
+            'military',
             'ref'
+            'route',
+            'tower',
         )
     ) AS source_tags,
 
