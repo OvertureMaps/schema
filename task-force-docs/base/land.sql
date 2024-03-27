@@ -78,7 +78,10 @@ SELECT
             'landcover',
             'landuse',
             'natural',
-            'surface'
+            'surface',
+            'type',
+            'volcano:status',
+            'volcano:type'
         )
     ) AS source_tags,
 
@@ -144,10 +147,15 @@ FROM (
                 'tree',
                 'tundra',
                 'valley',
-                'volcano',
                 'wetland',
                 'wood'
-            ) THEN tags [ 'natural' ]
+            ) THEN tags ['natural']
+
+            -- More complicated logic for turning volcanoes into peaks.
+            WHEN tags['natural'] = 'volcano' THEN CASE
+                WHEN tags['type'] = 'extinct' OR tags['volcano:status'] = 'extinct' THEN 'peak'
+                WHEN (tags['type'] <> 'extinct' OR tags['type'] IS NULL) AND (tags['volcano:status'] <> 'extinct' OR tags['volcano:status'] IS NULL) THEN 'volcano'
+            END
 
             -- Surface tags that become classes
             WHEN tags [ 'surface' ] IN ('grass') THEN tags [ 'surface' ]
