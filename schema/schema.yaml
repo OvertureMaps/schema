@@ -79,8 +79,8 @@ oneOf:
         properties:
           properties:
             theme: { enum: [buildings] }
-            type: { enum: [part] }
-    then: { "$ref": buildings/part.yaml }
+            type: { enum: [building_part] }
+    then: { "$ref": buildings/building_part.yaml }
     else: { propertyNames: false }
   - if:
       properties:
