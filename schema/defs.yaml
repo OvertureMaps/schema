@@ -31,7 +31,7 @@ description: Common schema definitions shared by all themes
         - land_use
         - locality                # DEPRECATED
         - locality_area           # DEPRECATED
-        - part
+        - building_part
         - place
         - segment
         - water
