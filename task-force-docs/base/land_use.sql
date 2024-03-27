@@ -29,10 +29,10 @@ FROM (
         max_lat,
         TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
 
-        -- Determine class from subclass or tags
+        -- Determine subtype from class or tags
         CASE
             -- Agriculture
-            WHEN subclass IN (
+            WHEN class IN (
                 'animal_keeping',
                 'farmland',
                 'farmyard',
@@ -40,32 +40,32 @@ FROM (
             ) THEN 'agriculture'
 
             -- Airports
-            WHEN subclass IN (
+            WHEN class IN (
                 'aerodrome',
                 'helipad',
                 'heliport'
             ) THEN 'airport'
 
             -- Aquaculture
-            WHEN subclass IN ('aquaculture') THEN 'aquaculture'
+            WHEN class IN ('aquaculture') THEN 'aquaculture'
 
             -- Campground
-            WHEN subclass IN ('camp_site') THEN 'campground'
+            WHEN class IN ('camp_site') THEN 'campground'
 
             -- Cemetery
-            WHEN subclass IN ('cemetery') THEN 'cemetery'
+            WHEN class IN ('cemetery') THEN 'cemetery'
 
             -- Conservation
-            WHEN subclass IN ('conservation') THEN 'conservation'
+            WHEN class IN ('conservation') THEN 'conservation'
 
             -- Construction
-            WHEN subclass IN (
+            WHEN class IN (
                 'construction',
                 'greenfield'
             ) THEN 'construction'
 
             -- Developed
-            WHEN subclass IN (
+            WHEN class IN (
                 'commercial',
                 'retail',
                 'industrial',
@@ -74,7 +74,7 @@ FROM (
             ) THEN 'developed'
 
             -- Education
-            WHEN subclass IN (
+            WHEN class IN (
                 'college',
                 'education',
                 'school',
@@ -83,14 +83,14 @@ FROM (
             ) THEN 'education'
 
             -- Entertainment
-            WHEN subclass IN (
+            WHEN class IN (
                 'theme_park',
                 'water_park',
                 'zoo'
             ) THEN 'entertainment'
 
             -- Golf
-            WHEN subclass IN (
+            WHEN class IN (
                 'bunker',
                 'driving_range',
                 'fairway',
@@ -103,7 +103,7 @@ FROM (
             ) THEN 'golf'
 
             -- Horticulture
-            WHEN subclass IN (
+            WHEN class IN (
                 'allotments',
                 'garden',
                 'greenhouse_horticulture',
@@ -114,17 +114,17 @@ FROM (
             ) THEN 'horticulture'
 
             -- Landfill
-            WHEN subclass IN ('landfill') THEN 'landfill'
+            WHEN class IN ('landfill') THEN 'landfill'
 
             -- Medical
-            WHEN subclass IN (
+            WHEN class IN (
                 'clinic',
                 'doctors',
                 'hospital'
             ) THEN 'medical'
 
             -- Military
-            WHEN subclass IN (
+            WHEN class IN (
                 'airfield',
                 'barracks',
                 'base',
@@ -140,7 +140,7 @@ FROM (
             ) THEN 'military'
 
             -- Parks / Greenspace
-            WHEN subclass IN (
+            WHEN class IN (
                 'common',
                 'dog_park',
                 'park',
@@ -148,13 +148,13 @@ FROM (
             ) THEN 'park'
 
             -- Public
-            WHEN subclass IN (
+            WHEN class IN (
                 'civic_admin',
                 'public'
             ) THEN 'public'
 
             -- Protected
-            WHEN subclass IN (
+            WHEN class IN (
                 'aboriginal_land',
                 'environmental',
                 'forest',
@@ -170,7 +170,7 @@ FROM (
             ) THEN 'protected'
 
             -- Recreation
-            WHEN subclass IN (
+            WHEN class IN (
                 'recreation_grass',
                 'recreation_paved',
                 'pitch',
@@ -185,14 +185,14 @@ FROM (
             ) THEN 'recreation'
 
             -- Religious
-            WHEN subclass IN ('religious', 'churchyard') THEN 'religious'
+            WHEN class IN ('religious', 'churchyard') THEN 'religious'
 
             -- Residential
-            WHEN subclass IN ('residential', 'static_caravan', 'garages')
+            WHEN class IN ('residential', 'static_caravan', 'garages')
                 THEN 'residential'
 
             -- Resource
-            WHEN subclass IN (
+            WHEN class IN (
                 'logging',
                 'peat_cutting',
                 'quarry',
@@ -200,17 +200,17 @@ FROM (
             ) THEN 'resource_extraction'
 
             -- Structure
-            WHEN subclass IN ('pier', 'dam', 'bridge') THEN 'structure'
+            WHEN class IN ('pier', 'dam', 'bridge') THEN 'structure'
 
             -- Transportation
-            WHEN subclass IN ('depot', 'traffic_island', 'highway')
+            WHEN class IN ('depot', 'traffic_island', 'highway')
                 THEN 'transportation'
 
             -- Winter Sports
-            WHEN subclass IN ('winter_sports') THEN 'winter_sports'
+            WHEN class IN ('winter_sports') THEN 'winter_sports'
 
         END AS subtype,
-        subclass as class,
+        class,
 
         '__OVERTURE_NAMES_QUERY' AS names,
 
@@ -379,7 +379,7 @@ FROM (
                     WHEN tags['tourism'] = 'camp_site' AND tags['refugee'] IS NULL
                         THEN 'camp_site'
 
-                    -- Leisure values that become subclasses:
+                    -- Leisure values that become classes:
                     WHEN tags['leisure'] IN (
                         'common',
                         'garden',
@@ -405,7 +405,7 @@ FROM (
                     -- Some tracks are linestrings and they are not included elsewhere
                     WHEN tags['leisure'] IN ('track') THEN tags['leisure']
                 END
-            ) AS subclass,
+            ) AS class,
 
             -- Transform tags to ROW(k,v) for names conversion
             TRANSFORM(
@@ -487,7 +487,7 @@ FROM (
             )
         )
     WHERE
-        subclass IS NOT NULL
+        class IS NOT NULL
     )
 WHERE
     subtype IS NOT NULL
