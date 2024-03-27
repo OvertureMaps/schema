@@ -7,6 +7,16 @@ geometry:
 properties:
   theme: transportation
   type: segment
+  update_time: "2024-03-08T01:03:34-08:00"
   version: 5
   subtype: road
   class: path
+  road:
+    surface:
+      - value: dirt
+    restrictions:
+      access:
+        - access_type: allowed
+          when: {mode: [foot]}
+        - access_type: denied
+          when: {mode: [bicycle]}
