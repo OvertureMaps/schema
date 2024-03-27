@@ -53,7 +53,7 @@ FROM (
             WHEN class IN ('camp_site') THEN 'campground'
 
             -- Cemetery
-            WHEN class IN ('cemetery') THEN 'cemetery'
+            WHEN class IN ('cemetery','grave_yard') THEN 'cemetery'
 
             -- Conservation
             WHEN class IN ('conservation') THEN 'conservation'
@@ -372,14 +372,15 @@ FROM (
                     WHEN tags['meadow'] IN ('agricultural', 'agriculture', 'pasture')
                         THEN 'meadow'
 
-                    -- Amenity (Campuses)
+                    -- Amenity Pass-through tags
                     WHEN tags['amenity'] IN (
                         'college',
                         'university',
                         'school',
                         'hospital',
                         'clinic',
-                        'doctors'
+                        'doctors',
+                        'grave_yard'
                     ) THEN tags['amenity']
 
                     -- Campgrounds
