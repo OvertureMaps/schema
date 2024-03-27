@@ -147,6 +147,12 @@ FROM (
                 'village_green'
             ) THEN 'park'
 
+            -- Pedestrian Infrastructure
+            WHEN class IN (
+                'pedestrian',
+                'plaza'
+            ) THEN 'pedestrian'
+
             -- Public
             WHEN class IN (
                 'civic_admin',
@@ -305,6 +311,10 @@ FROM (
                     WHEN tags['boundary'] IN ('aboriginal_lands') OR (
                         tags['boundary'] = 'protected_area' AND tags['protect_class'] = '24'
                     ) THEN 'aboriginal_land'
+
+                    -- Pedestrian land use, such as plazas
+                    WHEN tags['place'] = 'square' THEN 'plaza'
+                    WHEN tags['highway'] = 'pedestrian' THEN 'pedestrian'
 
                     -- Is there is an official Protect Class Designation (wiki.openstreetmap.org/wiki/Key:protect_class)?
                     WHEN tags['protect_class'] IN ('1a', '1', '2', '3', '4', '5') THEN CASE
