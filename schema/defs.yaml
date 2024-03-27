@@ -159,7 +159,7 @@ description: Common schema definitions shared by all themes
           https://github.com/OvertureMaps/schema-wg/pull/10
     language:
       description: >-
-        An IETF-BCP47 language tag, as defined in  
+        An IETF-BCP47 language tag, as defined in
         https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
 
         Although the BCP47 language tag definition is complex, a simplified
@@ -287,12 +287,14 @@ description: Common schema definitions shared by all themes
         update_time: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
         sources: { "$ref": "#/$defs/propertyDefinitions/sources" }
     namesContainer:
+      title: Names
       description: Properties defining the names of a feature.
       type: object
       properties:
         names:
           "$ref": "#/$defs/propertyDefinitions/allNames"
     levelContainer:
+      title: Level
       description: Properties defining feature Z-order, i.e., stacking order
       type: object
       properties:
