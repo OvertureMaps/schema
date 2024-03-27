@@ -73,6 +73,7 @@ properties:
         - sidewalk
         - crosswalk
         - steps
+        - path
         - track
         - cycleway
         - bridleway       # Similar to track but has implied access only for horses
@@ -325,7 +326,7 @@ properties:
             - mph
       required:
         - value
-        - unit  
+        - unit
       unevaluatedProperties: false
     purposeOfUse:
       description: >-
