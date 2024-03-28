@@ -11,12 +11,3 @@ properties:
   version: 5
   subtype: road
   class: path
-  road:
-    surface:
-      - value: dirt
-    restrictions:
-      access:
-        - access_type: allowed
-          when: {mode: [foot]}
-        - access_type: denied
-          when: {mode: [bicycle]}
