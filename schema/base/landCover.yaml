@@ -19,8 +19,6 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     required:
       - subType
-      - minZoom
-      - maxZoom
     properties:
       subType:
         description: type of surface represented
@@ -36,40 +34,17 @@ properties:
           - snow
           - urban
           - wetland
-      minZoom:
-        description: recommended minimum tile zoom
-        type: number
-        minimum: 1
-        maximum: 24
-      maxZoom:
-        description: recommended maximum tile zoom
-        type: number
-        minimum: 1
-        maximum: 24
-      referenceScale:
-        description: refrence scale is the ratio between map distance and ground distance measured at the equator for a given screen dpi (dots per inch).
-        type: string
-        enum:
-          - 147914381.897889
-          - 73957190.948944
-          - 36978595.474472
-          - 18489297.737236
-          - 9244648.868618
-          - 4622324.434309
-          - 2311162.217155
-          - 1155581.108577
-          - 577790.554289
-          - 288895.277144
-          - 144447.638572
-          - 72223.819286
-          - 36111.909643
-          - 18055.954822
-          - 9027.977411
-          - 4513.988705
-          - 2256.994353
-          - 1128.497176
-          - 564.248588
-          - 282.124294
-          - 141.062147
-          - 70.5310735
-          - 35.2655368
+      cartography:
+        suggested_min_zoom:
+          description: recommended minimum tile zoom
+          type: number
+          minimum: 1
+          maximum: 24
+        suggested_max_zoom:
+          description: recommended maximum tile zoom
+          type: number
+          minimum: 1
+          maximum: 24
+        suggest_hidden:
+          description: true/false if the feature is suggested to be hidden for cartographic display
+          type: boolean
