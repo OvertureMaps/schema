@@ -9,7 +9,7 @@ Overture's Global Entity Reference System (GERS) is a framework for structuring,
 
 GERS provides a mechanism to conflate datasets, matching one or more features via unique IDs. For example, two geospatial datasets each containing a polygon that represents the footprint of the Empire State Building can be easily matched because both polygons will contain the same GERS ID. The resulting dataset will have a single polygon feature, with one GERS ID, that represents the real-world entity known as "New York's Empire State Building."
 
-## What Is An Entity?
+## What is an entity?
 Overture defines an entity as a physical thing or concept in the real world, represented as a feature in a geospatial dataset. It could be a segment of road, a city boundary, a grocery store, a building or a park. Overture assigns unique IDs to these features. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity in the world could be represented by multiple features in a dataset, and a feature in a dataset might be a representation of multiple entities in the world. For example, a school building and its entrances and exits might be considered a single entity in the world but could be represented as multiple features in a dataset, each feature with its own GERS ID.
 
 ## What does a GERS ID look like?
@@ -23,17 +23,17 @@ D SELECT id FROM read_parquet('s3://overturemaps-us-west-2/release/2024-03-12-al
 │                id                │
 │             varchar              │
 ├──────────────────────────────────┤
-│ 08ba0085884a4fff0200ab2e3ad3f37c │
-│ 08ba00858a164fff020008cf146d28e6 │
-│ 08ba00858a16cfff0200271c60f0a5ea │
-│ 08ba00858a161fff02008633c8f27bf7 │
-│ 08ba00858a163fff0200bf648279e290 │ 
+│ 08bf2a40219b0fff0200c394dae731bd │
+│ 08bf35ad6a05afff0200e90ab3b011fa │
+│ 08bf35ad6a058fff020009945ce09d65 │
+│ 08bf35ad6a04efff02006264a736fc56 │
+│ 08bf35ad6a04afff0200cf5e511a3f1b │ 
 ├──────────────────────────────────┤
 │             5 rows               │
 └──────────────────────────────────┘
 ```
 
-## Stability and Traceability
+## Stability and traceability
 
 GERS IDs are intended to be stable (within a reasonable tolerance of error) across multiple versions of Overture data. When stability is not possible, Overture will attempt to provide traceability. For example:
 
