@@ -47,10 +47,15 @@ SELECT
     -- Relevant OSM tags for water type
     MAP_FILTER(tags, (k,v) -> k IN (
             'basin',
+            'building',
+            'dock',
             'intermittent',
             'landuse',
             'leisure',
+            'location',
+            'man_made',
             'natural',
+            'reservoir_type',
             'salt',
             'seamark:type',
             'water',
@@ -268,7 +273,6 @@ FROM (
                             'drain',
                             'fairway',
                             'fish_pass',
-                            'river',
                             'river',
                             'riverbank',
                             'stream',
