@@ -228,6 +228,7 @@ FROM (
                 'amenity',
                 'area',
                 'boundary',
+                'building',
                 'golf',
                 'highway',
                 'landuse',
@@ -237,13 +238,16 @@ FROM (
                 'man_made',
                 'meadow',
                 'military',
+                'name',
                 'natural',
                 'place',
                 'protect_class',
                 'protection_title',
+                'refugee',
                 'sport',
                 'surface',
-                'tourism'
+                'tourism',
+                'waterway'
             )
         ) as source_tags,
 
@@ -319,26 +323,28 @@ FROM (
                     WHEN tags['highway'] = 'pedestrian' THEN 'pedestrian'
 
                     -- Is there is an official Protect Class Designation (wiki.openstreetmap.org/wiki/Key:protect_class)?
-                    WHEN tags['protect_class'] IN ('1a', '1', '2', '3', '4', '5') THEN CASE
+                    WHEN tags['protect_class'] IN ('1a', '1b', '1', '2', '3', '4', '5', '6') THEN CASE
                         WHEN tags['protect_class'] = '1a' THEN 'strict_nature_reserve'
                         WHEN tags['protect_class'] IN ('1b', '1') THEN 'wilderness_area'
                         WHEN tags['protect_class'] = '2' THEN 'national_park'
                         WHEN tags['protect_class'] = '3' THEN 'natural_monument'
                         WHEN tags['protect_class'] = '4' THEN 'species_management_area'
                         WHEN tags['protect_class'] = '5' THEN 'protected_landscape_seascape'
+                        WHEN tags['protect_class'] = '6' THEN 'nature_reserve'
                     END
 
                     -- protect_class >= 6 or null:
                     WHEN tags['boundary'] = 'protected_area' THEN CASE
                         WHEN LOWER(tags['protection_title']) IN ('national forest', 'state forest')
                             THEN 'forest'
-                        WHEN LOWER(tags['protection_title']) IN ('national park') THEN 'national_park'
+                        WHEN LOWER(tags['protection_title']) IN ('national park', 'parque nacional', 'national_park')
+                            THEN 'national_park'
                         WHEN LOWER(tags['protection_title']) IN ('state park') THEN 'state_park'
                         WHEN LOWER(tags['protection_title']) IN (
                             'wilderness area',
                             'wilderness study area'
                         ) THEN 'wilderness_area'
-                        WHEN LOWER(tags['protection_title']) IN ('nature reserve', 'nature refuge')
+                        WHEN LOWER(tags['protection_title']) IN ('nature reserve', 'nature refuge', 'reserva nacional')
                             THEN 'nature_reserve'
                         WHEN LOWER(tags['protection_title']) IN ('environmental use')
                             THEN 'environmental'
@@ -355,6 +361,8 @@ FROM (
 
                     WHEN STRPOS(LOWER(tags['name']), 'state park') > 0 OR LOWER(tags['protection_title'])
                         = 'state park' THEN 'state_park'
+
+                    WHEN tags['protected_area'] = 'national_park' THEN 'national_park'
 
                     -- Pull out golf before going into sport-specific logic
                     WHEN tags['golf'] IN (
@@ -477,23 +485,36 @@ FROM (
                 {daylight_table}
                 WHERE release = '{daylight_version}'
                 --
-                AND ARRAYS_OVERLAP(
-                    MAP_KEYS(tags),
-                    ARRAY[
-                        'aeroway',
-                        'amenity',
-                        'boundary',
-                        'golf',
-                        'highway',
-                        'landuse',
-                        'leisure',
-                        'man_made',
-                        'military',
-                        'place',
-                        'tourism',
-                        'waterway'
-                    ]
-                ) = TRUE
+                AND (
+                    ARRAYS_OVERLAP(
+                        MAP_KEYS(tags),
+                        ARRAY[
+                            'aeroway',
+                            'amenity',
+                            'boundary',
+                            'golf',
+                            'highway',
+                            'landuse',
+                            'leisure',
+                            'man_made',
+                            'meadow',
+                            'military',
+                            'place',
+                            'protect_class',
+                            'protection_title',
+                            'tourism',
+                            'waterway'
+                        ]
+                    ) = TRUE
+                    OR (
+                        tags['name'] IS NOT NULL
+                        AND (
+                            STRPOS(LOWER(tags['name']), 'national park') > 0
+                            OR STRPOS(LOWER(tags['name']), 'state park') > 0
+                        )
+                    )
+                )
+
                 AND (
                     tags['building'] IS NULL
                     OR tags['building'] = 'no'
