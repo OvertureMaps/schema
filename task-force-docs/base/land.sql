@@ -75,9 +75,15 @@ SELECT
 
     -- Relevant OSM tags for land type
     MAP_FILTER(tags, (k,v) -> k IN (
+            'building',
+            'golf',
+            'highway',
             'landcover',
             'landuse',
+            'leisure',
+            'meadow',
             'natural',
+            'sport',
             'surface',
             'type',
             'volcano:status',
@@ -162,8 +168,7 @@ FROM (
             WHEN tags [ 'landcover' ] = 'trees' THEN 'forest'
             WHEN tags [ 'landcover' ] IN ('grass', 'scrub', 'tree') THEN tags [ 'landcover' ]
 
-            WHEN tags['name'] IS NULL AND tags [ 'meadow' ] IS NULL
-                AND tags [ 'landuse' ] IN ('forest', 'meadow', 'grass') THEN tags [ 'landuse' ]
+            WHEN tags [ 'meadow' ] IS NULL AND tags [ 'landuse' ] IN ('forest', 'meadow', 'grass') THEN tags [ 'landuse' ]
             ELSE NULL
         END AS class
     FROM (
