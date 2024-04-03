@@ -168,7 +168,7 @@ FROM (
             WHEN tags [ 'landcover' ] = 'trees' THEN 'forest'
             WHEN tags [ 'landcover' ] IN ('grass', 'scrub', 'tree') THEN tags [ 'landcover' ]
 
-            WHEN tags [ 'meadow' ] IS NULL AND tags [ 'landuse' ] IN ('forest', 'meadow', 'grass') THEN tags [ 'landuse' ]
+            WHEN tags [ 'meadow' ] IS NULL AND tags [ 'landuse' ] = 'forest' THEN 'forest'
             ELSE NULL
         END AS class
     FROM (
@@ -196,7 +196,7 @@ FROM (
                 tags [ 'natural' ] IS NOT NULL
                 OR tags [ 'surface' ] IS NOT NULL
                 OR tags [ 'landcover' ] IS NOT NULL
-                OR tags [ 'landuse' ] IN ('forest', 'meadow', 'grass')
+                OR tags [ 'landuse' ] IN ('forest', 'meadow')
             )
             -- None of the below tags can be present; they go in other theme/types
             AND tags [ 'highway' ] IS NULL
