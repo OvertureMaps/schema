@@ -291,7 +291,7 @@ FROM (
                 wkt_geometry like '%POLYGON%',
                 CASE
 
-                    --logic for piers / dams
+                    -- First, extract polygonal piers and dams.
                     WHEN tags['man_made'] IN ('pier') AND tags['highway'] = NULL THEN tags['man_made']
                     WHEN tags['waterway'] = 'dam' THEN 'dam'
 
@@ -311,11 +311,14 @@ FROM (
                         ), tags['military'],
                         'military_other')
 
-                    -- Priority landuse tags to pass to class logic:
-                    WHEN tags['landuse'] IN ('military') THEN tags['landuse']
+                    -- Other general military landuse
+                    WHEN tags['landuse'] = 'military' THEN 'military'
 
                     -- Use these secondary more descriptive tags first:
-                    WHEN tags['tourism'] IN ('zoo','theme_park') THEN tags['tourism']
+                    WHEN tags['tourism'] IN (
+                        'zoo',
+                        'theme_park'
+                    ) THEN tags['tourism']
 
                     -- Aboriginal Lands & Reservations
                     WHEN tags['boundary'] IN ('aboriginal_lands') OR (
@@ -381,11 +384,11 @@ FROM (
                         'water_hazard'
                     ) THEN tags['golf']
 
-                    -- Meadows are tagged this way
+                    -- Meadows can be tagged this way:
                     WHEN tags['meadow'] IN ('agricultural', 'agriculture', 'pasture')
                         THEN 'meadow'
 
-                    -- Amenity Pass-through tags
+                    -- These amenity tags become classes
                     WHEN tags['amenity'] IN (
                         'college',
                         'university',
@@ -418,17 +421,17 @@ FROM (
                         'water_park'
                     ) THEN tags['leisure']
 
+                    -- Airport landuses that become classes
                     WHEN tags['aeroway'] IN ('aerodrome', 'helipad', 'heliport') THEN tags['aeroway']
 
-                    -- Some landuse tags we let through only when a more descriptive `natural`
-                    -- tag is not present
+                    -- Only let some landuse tags through when a more descriptive `natural` tag is not present:
                     WHEN tags['natural'] IS NULL AND tags['landuse'] IN (
                         'grass'
                     ) THEN tags['landuse']
 
                     -- Else use the landuse tag and assign it to a class above
                     -- (refer aginfo.osm.org/keys/landuse#values for top landuse values)
-                    WHEN tags['landuse'] NOT IN ('meadow','forest') THEN tags['landuse']
+                    WHEN tags['landuse'] NOT IN ('meadow','forest','grass') THEN tags['landuse']
                 END,
                 -- Linestrings / Points
                 CASE
@@ -438,12 +441,6 @@ FROM (
                     WHEN tags['leisure'] IN ('track') THEN tags['leisure']
                 END
             ) AS class,
-
-            -- Transform tags to ROW(k,v) for names conversion
-            TRANSFORM(
-                MAP_ENTRIES(tags),
-                r->CAST(r AS ROW(k VARCHAR, v VARCHAR))
-            ) AS kv,
 
             -- Transform the surface tag
             IF(
