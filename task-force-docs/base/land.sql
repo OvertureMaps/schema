@@ -23,6 +23,9 @@ SELECT
         -- Grass
         WHEN class IN ('fell', 'grass', 'grassland', 'meadow', 'tundra') THEN 'grass'
 
+        -- General land (including islands)
+        WHEN class IN ('archipelago','islet','island') THEN 'land'
+
         -- Physical
         WHEN class IN (
             'cave_entrance',
@@ -88,7 +91,8 @@ SELECT
             'surface',
             'type',
             'volcano:status',
-            'volcano:type'
+            'volcano:type',
+            'place'
         )
     ) AS source_tags,
 
@@ -124,6 +128,7 @@ FROM (
         *,
         -- Determine classes from OSM tags
         CASE
+
             -- Natural tags that map to specific classes:
             WHEN tags [ 'natural' ] IN (
                 'bare_rock',
@@ -171,6 +176,10 @@ FROM (
             WHEN tags [ 'landcover' ] IN ('grass', 'scrub', 'tree') THEN tags [ 'landcover' ]
 
             WHEN tags [ 'meadow' ] IS NULL AND tags [ 'landuse' ] = 'forest' THEN 'forest'
+
+            -- If there was no other land tag, we can send these up to `land`
+            WHEN tags ['place'] IN ('archipelago','island','islet') THEN tags['place']
+
             ELSE NULL
         END AS class
     FROM (
@@ -199,6 +208,7 @@ FROM (
                 OR tags [ 'surface' ] IS NOT NULL
                 OR tags [ 'landcover' ] IS NOT NULL
                 OR tags [ 'landuse' ] IN ('forest', 'meadow')
+                OR tags [ 'place' ] IN ('archipelago','island','islet')
             )
             -- None of the below tags can be present; they go in other theme/types
             AND tags [ 'highway' ] IS NULL
