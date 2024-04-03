@@ -45,6 +45,7 @@ SELECT
             'rock',
             'scree',
             'shingle'
+            'stone',
         ) THEN 'rock'
 
         --Sand
@@ -149,6 +150,7 @@ FROM (
                 'shingle',
                 'shrub',
                 'shrubbery',
+                'stone',
                 'tree_row',
                 'tree',
                 'tundra',
@@ -226,13 +228,17 @@ WHERE
                 'shrub',
                 'tree',
                 'valley',
-                'volcano'
+                'volcano',
+                'stone'
             )
         )
         -- Valid LineStrings
         OR (
             wkt_geometry LIKE '%LINESTRING%'
-            AND class IN ('mountain_range','tree_row')
+            AND class IN (
+                'mountain_range',
+                'tree_row'
+            )
         )
     )
 
