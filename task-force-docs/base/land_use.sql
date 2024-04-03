@@ -147,7 +147,7 @@ FROM (
                 'village_green'
             ) THEN 'park'
 
-            -- There are 6M landuse=grass OSM tags.
+            -- There are 5.3M landuse=grass tags without other more descriptive tags
             WHEN class IN (
                 'grass'
             ) THEN 'grass'
@@ -243,7 +243,6 @@ FROM (
                 'man_made',
                 'meadow',
                 'military',
-                'name',
                 'natural',
                 'place',
                 'protect_class',
@@ -421,7 +420,7 @@ FROM (
 
                     WHEN tags['aeroway'] IN ('aerodrome', 'helipad', 'heliport') THEN tags['aeroway']
 
-                    -- Some landuse tags we let through specifically when a more descriptive `natural`
+                    -- Some landuse tags we let through only when a more descriptive `natural`
                     -- tag is not present
                     WHEN tags['natural'] IS NULL AND tags['landuse'] IN (
                         'grass'

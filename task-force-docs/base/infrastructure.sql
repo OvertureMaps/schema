@@ -125,9 +125,9 @@ SELECT
             'icao',
             'landuse',
             'military',
-            'ref'
+            'ref',
             'route',
-            'tower',
+            'tower'
         )
     ) AS source_tags,
 
