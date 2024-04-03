@@ -147,6 +147,11 @@ FROM (
                 'village_green'
             ) THEN 'park'
 
+            -- There are 6M landuse=grass OSM tags.
+            WHEN class IN (
+                'grass'
+            ) THEN 'grass'
+
             -- Pedestrian Infrastructure
             WHEN class IN (
                 'pedestrian',
@@ -415,6 +420,12 @@ FROM (
                     ) THEN tags['leisure']
 
                     WHEN tags['aeroway'] IN ('aerodrome', 'helipad', 'heliport') THEN tags['aeroway']
+
+                    -- Some landuse tags we let through specifically when a more descriptive `natural`
+                    -- tag is not present
+                    WHEN tags['natural'] IS NULL AND tags['landuse'] IN (
+                        'grass'
+                    ) THEN tags['landuse']
 
                     -- Else use the landuse tag and assign it to a class above
                     -- (refer aginfo.osm.org/keys/landuse#values for top landuse values)
