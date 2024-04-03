@@ -5,7 +5,7 @@ const {themes} = require('prism-react-renderer');
 const lightCodeTheme = themes.github;
 const darkCodeTheme = themes.dracula;
 
-const defaultUrl = 'https://docs.overturemaps.org';
+const defaultUrl = 'https://schema.overturemaps.org';
 const defaultBaseUrl = '/';
 
 function getFromEnvironment(variableName, defaultValue) {
@@ -74,21 +74,27 @@ const config = {
         },
         items: [
           {
+            to: 'https://docs.overturemaps.org',
+            label: 'Docs',
+            target: ''
+          },
+          {
             type: 'docSidebar',
             sidebarId: 'docs',
             position: 'left',
-            label: 'Data Schema',
+            label: 'Schema Reference',
           },
           {
-            type: 'docSidebar',
-            sidebarId: 'gers',
-            // docId: 'gers/gers',
-            label: 'Global Entity Reference System',
+            to: '#',
+            label: 'Blog',
+            target: '',
+            className: 'header-github-link',
           },
           {
-            to: 'https://labs.overturemaps.org/how-to/',
-            label: 'How-to Guides',
-            target: ''
+            to: '#',
+            label: 'Community',
+            target: '',
+            className: 'header-github-link',
           },
         ],
       },
