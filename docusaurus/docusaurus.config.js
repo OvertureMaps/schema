@@ -84,11 +84,14 @@ const config = {
             position: 'left',
             label: 'Schema Reference',
           },
-          // {
-          //   type: 'docSidebar',
-          //   sidebarId: 'gers',
-          //   label: 'Global Entity Reference System',
-          // },
+          {
+            to: 'https://overturemaps.org/news-blogs/',
+            label: 'Blog',
+          },
+          {
+            to: 'https://docs.overturemaps.org/community/',
+            label: 'Community',
+          },
         ],
       },
       footer: {
