@@ -127,23 +127,6 @@ const sidebars = {
       ]
     }
   ],
-
-  gers: [
-    {
-      type: 'category',
-      label: 'Global Entity Reference System',
-      collapsed: true,
-      items: [
-        {
-          type: 'doc',
-          id:'gers/gers',
-          label: 'Overview'
-        },
-        'gers/scenarios',
-        'gers/terminology'
-      ]
-    },
-  ]
 };
 
 module.exports = sidebars;
