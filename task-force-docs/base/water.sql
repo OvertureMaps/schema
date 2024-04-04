@@ -218,9 +218,14 @@ FROM (
                 {daylight_table}
             WHERE
                 release = '{daylight_version}'
+
+                -- Some buildings are tagged as having running water
+                AND tags['building'] IS NULL
+
                 AND (
                     -- Consider anything with a water tag
                     tags['water'] IS NOT NULL
+
                     -- The OSM key/values for water features considered 'natural'
                     OR tags['natural'] IN (
                         'bay',
@@ -237,9 +242,6 @@ FROM (
                     OR tags['basin'] IS NOT NULL
                     OR tags['landuse'] IN ('basin', 'reservoir')
 
-                    -- Some buildings are tagged as having running water
-                    AND tags['building'] IS NULL
-    
                     -- Swimming pools are complicated:
                     OR (
                         -- swimming pools are cool
