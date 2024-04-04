@@ -47,8 +47,8 @@ SELECT
             'bare_rock',
             'rock',
             'scree',
-            'shingle'
-            'stone',
+            'shingle',
+            'stone'
         ) THEN 'rock'
 
         --Sand
