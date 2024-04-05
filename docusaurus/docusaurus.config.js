@@ -86,12 +86,12 @@ const config = {
           },
           {
             to: 'https://overturemaps.org/news-blogs/',
-            label: 'Blog',
-            target: '_self'
+            label: 'Blog'
           },
           {
             to: 'https://docs.overturemaps.org/community/',
             label: 'Community',
+            target: '_self'
           },
         ],
       },
