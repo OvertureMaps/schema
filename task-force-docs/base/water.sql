@@ -22,7 +22,6 @@ SELECT
         WHEN class IN (
             'drain',
             'fish_pass',
-            'fish_ladder',
             'reflecting_pool',
             'swimming_pool'
         ) THEN 'human_made'
@@ -103,7 +102,6 @@ FROM (
             WHEN tags['waterway'] IN (
                 'canal',
                 'ditch',
-                'dock',
                 'drain',
                 'fish_pass',
                 'river',
@@ -146,7 +144,7 @@ FROM (
             WHEN tags['place'] IN ('sea','ocean') THEN tags['place']
 
             -- Check size of still water to reclassify as pond:
-            WHEN tags['water'] IN ('lake', 'oxbow', 'reservoir', 'pond')
+            WHEN tags['water'] IN ('lake', 'reservoir', 'pond')
                 THEN IF(surface_area_sq_m < 4000, 'pond', tags['water'])
 
             -- Basins and Reservoirs are classified in landuse

@@ -247,7 +247,8 @@ WHERE
             wkt_geometry LIKE '%LINESTRING%'
             AND class IN (
                 'mountain_range',
-                'tree_row'
+                'tree_row',
+                'valley'
             )
         )
     )
