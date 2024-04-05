@@ -93,7 +93,6 @@ const sidebars = {
           label: 'base',
           collapsed: false,
           items: [
-              'reference/base/infrastructure',
               'reference/base/land',
               'reference/base/land-use',
               'reference/base/water',
@@ -105,7 +104,7 @@ const sidebars = {
           collapsed: false,
           items: [
             'reference/buildings/building',
-            'reference/buildings/building_part'
+            'reference/buildings/part'
           ]
         },
         {
@@ -137,7 +136,7 @@ const sidebars = {
         }
       ]
     }
-  ],
+  ]
 };
 
 module.exports = sidebars;
