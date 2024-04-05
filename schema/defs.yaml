@@ -273,7 +273,7 @@ description: Common schema definitions shared by all themes
       pattern: ^Q\d+
   propertyContainers:
     overtureFeaturePropertiesContainer:
-      title: Overture Properties
+      title: overture properties
       description: Top-level properties shared by all Overture features
       type: object
       required: [ theme, type, version, update_time ]
@@ -287,14 +287,14 @@ description: Common schema definitions shared by all themes
         update_time: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
         sources: { "$ref": "#/$defs/propertyDefinitions/sources" }
     namesContainer:
-      title: Names
+      title: names
       description: Properties defining the names of a feature.
       type: object
       properties:
         names:
           "$ref": "#/$defs/propertyDefinitions/allNames"
     levelContainer:
-      title: Level
+      title: level
       description: Properties defining feature Z-order, i.e., stacking order
       type: object
       properties:
