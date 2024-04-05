@@ -76,7 +76,7 @@ const config = {
           {
             to: 'https://docs.overturemaps.org/',
             label: 'Docs',
-            target: ''
+            target: '_self'
           },
           {
             type: 'docSidebar',
@@ -87,6 +87,7 @@ const config = {
           {
             to: 'https://overturemaps.org/news-blogs/',
             label: 'Blog',
+            target: '_self'
           },
           {
             to: 'https://docs.overturemaps.org/community/',
