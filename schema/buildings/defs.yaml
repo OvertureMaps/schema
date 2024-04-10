@@ -3,7 +3,7 @@
 title: Overture Maps Shared Building Properties
 description: Common schema definitions shared by building footprints and building parts
 shapeContainer:
-  title: Shape
+  title: shape
   description: Properties of the buildings shape, such as height or roof type.
   properties:
     height:
