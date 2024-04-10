@@ -16,10 +16,8 @@ function YAMLFileResolver(yamlPath) {
 
                     if (YAML_FILES.hasOwnProperty(relativeYamlPath)){
                         var res = yaml.load(YAML_FILES[relativeYamlPath].default)
-                        console.log("Found and returning " + relativeYamlPath)
                         return res
                     }else{
-                        console.warn("Didn't find: " + relativeYamlPath)
                         return {}
                     }
 
