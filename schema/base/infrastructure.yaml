@@ -28,6 +28,7 @@ properties:
         description: Further description of the type of infrastructure.
         type: string
         enum:
+          - aerialway
           - airport
           - bridge
           - communication
@@ -41,6 +42,8 @@ properties:
         description: Further classification of the infrastructure type
         type: string
         enum:
+          - aerialway_station
+          - airport
           - airstrip
           - aqueduct
           - bell_tower
@@ -50,9 +53,11 @@ properties:
           - bus_station
           - bus_stop
           - cable
+          - cable_car
           - cable_distribution
           - cantilever
           - catenary_mast
+          - chair_lift
           - communication_line
           - communication_pole
           - communication_tower
@@ -62,16 +67,20 @@ properties:
           - dam
           - defensive
           - diving
+          - drag_lift
           - drain
           - ferry_terminal
           - generator
+          - gondola
           - heliostat
           - helipad
           - hose
           - insulator
+          - international_airport
           - lighting
           - lightning_protection
           - manhole
+          - military_airport
           - minaret
           - minor_line
           - mobile_phone_tower
@@ -84,15 +93,18 @@ properties:
           - power_line
           - power_pole
           - power_tower
+          - private_airport
           - radar
           - railway_halt
           - railway_station
+          - regional_airport
           - runway
           - sewer
           - siren
           - sub_station
           - substation
           - switch
+          - t-bar
           - taxiway
           - terminal
           - transformer
