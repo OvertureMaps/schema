@@ -46,6 +46,7 @@ properties:
           - medical
           - military
           - park
+          - pedestrian
           - public
           - protected
           - recreation
@@ -67,6 +68,7 @@ properties:
           - aquaculture
           - barracks
           - base
+          - beach_resort
           - brownfield
           - bunker
           - camp_site
@@ -96,6 +98,7 @@ properties:
           - garden
           - golf_course
           - grass
+          - graveyard
           - green
           - greenfield
           - greenhouse_horticulture
@@ -121,10 +124,12 @@ properties:
           - orchard
           - park
           - peat_cutting
+          - pedestrian
           - pier
           - pitch
           - plant_nursery
           - playground
+          - plaza
           - protected_landscape_seascape
           - public
           - quarry
