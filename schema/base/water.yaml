@@ -37,6 +37,7 @@ properties:
           - pond
           - reservoir
           - river
+          - spring
           - stream
           - water
       class:
@@ -53,7 +54,7 @@ properties:
           - drain
           - fairway
           - fish_pass
-          - fish_pond
+          - fishpond
           - geyser
           - hot_spring
           - lagoon

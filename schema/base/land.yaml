@@ -58,6 +58,8 @@ properties:
           - grassland
           - heath
           - hill
+          - island
+          - islet
           - land
           - meadow
           - mountain_range
@@ -73,6 +75,7 @@ properties:
           - shingle
           - shrub
           - shrubbery
+          - stone
           - tree
           - tree_row
           - tundra
