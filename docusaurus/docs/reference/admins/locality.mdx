@@ -15,9 +15,10 @@ import AdminLocalityExample from '!!raw-loader!@site/docs/_examples/admins/local
 
 Localities are populated areas that are named.
 
-Area polygons of localities, if known, are given by [locality area](locality-area) features.
+Area polygons of localities, if known, are given by [locality area](locality_area) features.
 
 <table>
+  <tbody>
   <tr>
     <th>Geometry Type</th>
     <td><code>Point</code></td>
@@ -30,6 +31,7 @@ Area polygons of localities, if known, are given by [locality area](locality-are
     <th>Type</th>
     <td><code>locality</code></td>
   </tr>
+  </tbody>
 </table>
 
 ## Sub-types
@@ -39,10 +41,12 @@ A locality may have one of two possible sub-types.
 <Tabs>
   <TabItem value="administrative_locality" label="Administrative Locality" default>
     <table>
-      <tr>
-        <th><code>subtype</code></th>
-        <td><code>administrative_locality</code></td>
-      </tr>
+      <tbody>
+        <tr>
+          <th><code>subtype</code></th>
+          <td><code>administrative_locality</code></td>
+        </tr>
+      </tbody>
     </table>
 
 Administrative localities represent countries and hierarchical
@@ -58,10 +62,12 @@ The borders of administrative localities, if known, are given by
   </TabItem>
   <TabItem value="named_locality" label="Named Locality">
     <table>
-      <tr>
-        <th><code>subtype</code></th>
-        <td><code>named_locality</code></td>
-      </tr>
+      <tbody>
+        <tr>
+          <th><code>subtype</code></th>
+          <td><code>named_locality</code></td>
+        </tr>
+      </tbody>
     </table>
 
 Named localities represent named areas that are not formally part of
