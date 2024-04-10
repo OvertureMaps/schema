@@ -27,6 +27,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 Segments are paths which can be traveled by people or objects.
 
 <table>
+  <tbody>
   <tr>
     <th>Geometry Type</th>
     <td><code>LineString</code></td>
@@ -39,6 +40,7 @@ Segments are paths which can be traveled by people or objects.
     <th>Type</th>
     <td><code>segment</code></td>
   </tr>
+  </tbody>
 </table>
 
 Segment geometry represents the center-line of a path that a person or object may
@@ -62,37 +64,44 @@ A segment may have one of three possible sub-types.
 <Tabs>
   <TabItem value="road" label="Road" default>
     <table>
+      <tbody>
       <tr>
         <th><code>subtype</code></th>
         <td><code>road</code></td>
       </tr>
+      </tbody>
     </table>
 
 A `road` segment represents a section of any kind of road, street or
 path, including a dedicated path for walking or cycling, but excluding
 a railway.
 
-To learn the core concepts of roads, see the
+<!-- TODO: Determine where these pages land and update these links at that point.  -->
+<!-- To learn the core concepts of roads, see the
 [Roads](/themes/transportation/roads) section of the
-[transportation](/themes/transportation) theme concepts page.
+[transportation](/themes/transportation) theme concepts page. -->
 
   </TabItem>
   <TabItem value="rail" label="Railway">
     <table>
+      <tbody>
       <tr>
         <th><code>subtype</code></th>
         <td><code>rail</code></td>
       </tr>
+      </tbody>
     </table>
 
 The schema for `rail` segments is under development.
   </TabItem>
   <TabItem value="water" label="Waterway">
     <table>
+      <tbody>
       <tr>
         <th><code>subtype</code></th>
         <td><code>water</code></td>
       </tr>
+      </tbody>
     </table>
 
 The schema for `water` segments is under development.
