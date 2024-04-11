@@ -138,10 +138,8 @@ properties:     # JSON Schema: Top-level object properties.
           the default political perspective. If this property is
           present, then this division is seen from the political
           perspectives enumerated in the list.
-        type: array
-        items: { "$ref": "./defs.yaml#/$defs/typeDefinitions/perspective" }
-        minItems: 1
-        uniqueItems: true
+        allOf: 
+          - "$ref": "./defs.yaml#/$defs/typeDefinitions/perspectives"
       norms:
         description:
           Collects information about local norms and rules within the

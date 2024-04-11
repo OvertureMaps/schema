@@ -89,6 +89,26 @@ description: Common schema definitions for divisions theme
           type: string
           minLength: 1
           pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+    perspectives:
+      description: Collection of perspectives of single feature.
+      type: object
+      unevaluatedProperties: false
+      required: [holders, includes]
+      properties:
+        holders:
+          description: Array of perspective holders.
+          type: array
+          items: { "$ref": "#/$defs/typeDefinitions/perspective" }
+          minItems: 1
+          uniqueItems: true
+        includes:
+          description:
+            Indicates if all counteries from the collection
+            or all except those in collection acknowledge the feature as is.
+
+            If value is true, only holders within collection see entity as it is represented.
+            If value is false, everyone except those in collection see entity as it is represented.
+          type: boolean
     perspective:
       description:
         A political perspective from which the division is viewed

@@ -26,5 +26,7 @@ properties:
         subtype: country
         name: Kuzey Kıbrıs
   perspectives:
-    - type: country
-      holder: TR
+    holders:
+      - type: country
+        holder: TR
+    includes: true
