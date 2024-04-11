@@ -22,7 +22,7 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
-    required: [names, subtype, class, country, division_id]
+    required: [names, subtype, class, division_id]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer

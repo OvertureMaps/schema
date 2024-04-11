@@ -10,4 +10,4 @@ properties:
   update_time: "2024-02-26T18:19:56Z"
   version: 0
   ext_expected_errors:
-    - "missing properties: 'names', 'subtype', 'country', 'hierarchies'"
+    - "missing properties: 'names', 'subtype', 'hierarchies'"
