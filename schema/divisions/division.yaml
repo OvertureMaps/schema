@@ -22,6 +22,11 @@ properties:     # JSON Schema: Top-level object properties.
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      - if:
+          properties:
+            subtype: { enum: [country] }
+        then:
+          not: { required: [parent_division_id] }
     required: [names, subtype, hierarchies]
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/placetype" }
