@@ -2,21 +2,22 @@
 id: names-invalid-language
 type: Feature
 geometry:
-  type: Point
+  type: LineString
   coordinates: [[0, 0], [1, 1]]
 properties:
   theme: transportation
   type: segment
+  version: 1
+  update_time: "2024-04-15T16:22:07-08:00"
   subtype: road
   class: primary
   names:
+    primary: Foo
+    common:
+      ja_rm: Not allowed to have an underscore
+      zh_pinyin: Not allowed to have an underscore
+      en1: Not allowed to have a digit in the language part
     rules:
-      - language: ja_rm
-        value: Not allowed to have an underscore
-      - language: zh_pinyin
-        value: Not allowed to have an underscore
-      - language: en1
-        value: Not allowed to have a digit in the language part
       - language: etymology:wikidata
         value: Not allowed to have a colon
       - language: etymology
@@ -24,9 +25,7 @@ properties:
       - language: pronunciation
         value: Too long
   ext_expected_errors:
-    - foo
-    - bar
-    - baz
-    - qux
-    - biddley
-    - diddley
+    - "additionalProperties 'zh_pinyin', 'en1', 'ja_rm' not allowed"
+    - "[I#/properties/names/rules/0/language] [S#/$defs/propertyDefinitions/language/pattern] does not match pattern"
+    - "[I#/properties/names/rules/1/language] [S#/$defs/propertyDefinitions/language/pattern] does not match pattern"
+    - "[I#/properties/names/rules/2/language] [S#/$defs/propertyDefinitions/language/pattern] does not match pattern"

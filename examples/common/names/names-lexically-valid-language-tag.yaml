@@ -1,32 +1,26 @@
 ---
-id: names-invalid-language
+id: names-lexically-valid-language-tag
 type: Feature
 geometry:
-  type: Point
+  type: LineString
   coordinates: [[0, 0], [1, 1]]
 properties:
   theme: transportation
   type: segment
+  version: 1
+  update_time: "2024-04-15T16:47:56-08:00"
   subtype: road
   class: primary
   names:
+    primary: foo
+    common:
+      nan-POJ: Lexically valid, but should be corrected to nan-Latn
+      nan-Latn: This is fine.
+      ja-kana: Use this instead of ja_kana.
+      zh-Latn-pinyin: Use this instead of zh_pinyin.
+      zh-Bopo: Use this instead of zh_zhuyin.
     rules:
-      - language: ja_rm
-        value: Not allowed to have an underscore
-      - language: zh_pinyin
-        value: Not allowed to have an underscore
-      - language: en1
-        value: Not allowed to have a digit in the language part
-      - language: etymology:wikidata
-        value: Not allowed to have a colon
-      - language: etymology
-        value: Too long
-      - language: pronunciation
-        value: Too long
-  ext_expected_errors:
-    - foo
-    - bar
-    - baz
-    - qux
-    - biddley
-    - diddley
+      - language: be-Latn
+        value: Use this instead of be-tarask.
+      - language: ja-Latn
+        value: Use this instead of ja_rm.
