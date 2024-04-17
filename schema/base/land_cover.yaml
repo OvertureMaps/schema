@@ -41,12 +41,12 @@ properties:
         description: contains cartographic hints for optimal use of features
         type: object
         properties:
-          min_zoom:
+          min_zoom: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/min_zoom" }
             description: recommended minimum tile zoom per the google tiling specification
             type: integer
             minimum: 0
             maximum: 23
-          max_zoom:
+          max_zoom: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/max_zoom" }
             description: recommended maximum tile zoom per the google tiling specification
             type: integer
             minimum: 0
