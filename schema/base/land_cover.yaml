@@ -1,6 +1,6 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
-title: Land Cover Schema
+title: land_cover
 description: representation of the Earth's natural surfaces 
 type: object
 properties:
@@ -18,9 +18,11 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
     required:
-      - subType
+      - subtype
+      - min_zoom
+      - max_zoom
     properties:
-      subType:
+      subtype:
         description: type of surface represented
         type: string
         enum:
@@ -35,16 +37,16 @@ properties:
           - urban
           - wetland
       cartography:
-        suggested_min_zoom:
-          description: recommended minimum tile zoom
-          type: number
-          minimum: 1
-          maximum: 24
-        suggested_max_zoom:
-          description: recommended maximum tile zoom
-          type: number
-          minimum: 1
-          maximum: 24
-        suggest_hidden:
-          description: true/false if the feature is suggested to be hidden for cartographic display
-          type: boolean
+        description: contains cartographic hints for optimal use of features
+        type: object
+        properties:
+          min_zoom:
+            description: recommended minimum tile zoom per the google tiling specification
+            type: integer
+            minimum: 0
+            maximum: 23
+          max_zoom:
+            description: recommended maximum tile zoom per the google tiling specification
+            type: integer
+            minimum: 0
+            maximum: 23
