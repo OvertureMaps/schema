@@ -271,6 +271,16 @@ description: Common schema definitions shared by all themes
       description: A wikidata ID if available, as found on https://www.wikidata.org/.
       type: string
       pattern: ^Q\d+
+    min_zoom:
+      description: recommended minimum tile zoom per the google tiling specification
+            type: integer
+            minimum: 0
+            maximum: 23
+    max_zoom:
+      description: recommended maximum tile zoom per the google tiling specification
+            type: integer
+            minimum: 0
+            maximum: 23
   propertyContainers:
     overtureFeaturePropertiesContainer:
       title: overture properties
