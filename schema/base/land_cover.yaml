@@ -17,6 +17,7 @@ properties:
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/cartographyContainer
     required:
       - subtype
       - min_zoom
