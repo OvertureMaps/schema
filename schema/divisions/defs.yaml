@@ -93,7 +93,7 @@ description: Common schema definitions for divisions theme
       description: Collection of perspectives of single feature.
       type: object
       unevaluatedProperties: false
-      required: [holders, includes]
+      required: [holders, effect]
       properties:
         holders:
           description: Array of perspective holders.
@@ -101,14 +101,15 @@ description: Common schema definitions for divisions theme
           items: { "$ref": "#/$defs/typeDefinitions/perspective" }
           minItems: 1
           uniqueItems: true
-        includes:
+        effect:
           description:
-            Indicates if all counteries from the collection
+            Indicates if all perspective holders from the collection
             or all except those in collection acknowledge the feature as is.
 
-            If value is true, only holders within collection see entity as it is represented.
-            If value is false, everyone except those in collection see entity as it is represented.
-          type: boolean
+            If value is "include", only holders within collection see entity as it is represented.
+            If value is "exclude", everyone except those in collection see entity as it is represented.
+          type: string
+          enum: [include, exclude]
     perspective:
       description:
         A political perspective from which the division is viewed
