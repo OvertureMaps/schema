@@ -28,6 +28,7 @@ description: Common schema definitions shared by all themes
         - division_area
         - infrastructure
         - land
+        - land_cover
         - land_use
         - locality                # DEPRECATED
         - locality_area           # DEPRECATED
