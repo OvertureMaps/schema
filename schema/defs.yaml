@@ -318,13 +318,16 @@ description: Common schema definitions shared by all themes
       description: defines cartograhic hints for optimal use of Overture features in map making
       type: object
       properties:
-        min_zoom:
-          description: recommended minimum tile zoom per the google tiling specification
-          type: integer
-          minimum: 0
-          maximum: 23
-        max_zoom:
-          description: recommended maximum tile zoom per the google tiling specification
-          type: integer
-          minimum: 0
-          maximum: 23
+        cartography:
+          type: object
+          properties:
+            min_zoom:
+              description: recommended minimum tile zoom per the google tiling specification
+              type: integer
+              minimum: 0
+              maximum: 23
+            max_zoom:
+              description: recommended maximum tile zoom per the google tiling specification
+              type: integer
+              minimum: 0
+              maximum: 23
