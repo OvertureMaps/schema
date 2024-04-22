@@ -326,7 +326,7 @@ properties:
             type: string
           ref:
             description: Code or number referencing the route
-            type: ["string", "integer"]
+            type: string
           symbol:
             description: URL or description of route signage
             type: string
