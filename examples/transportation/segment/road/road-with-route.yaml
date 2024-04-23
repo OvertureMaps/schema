@@ -16,7 +16,7 @@ properties:
   routes:
     - name: I 95
       network: US:I
-      ref: 95
+      ref: "95"
       symbol: https://upload.wikimedia.org/wikipedia/commons/6/61/I-95.svg
       wikidata: Q94967
       between: [0, 0.5]
