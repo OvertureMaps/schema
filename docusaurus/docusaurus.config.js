@@ -85,8 +85,9 @@ const config = {
             label: 'Schema Reference',
           },
           {
-            to: 'https://overturemaps.org/news-blogs/',
-            label: 'Blog'
+            to: 'https://docs.overturemaps.org/blog/',
+            label: 'Blog',
+            target: '_self'
           },
           {
             to: 'https://docs.overturemaps.org/community/',
