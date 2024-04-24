@@ -5,6 +5,9 @@ geometry:
   type: LineString
   coordinates: [[0, 0], [1, 1]]
 properties:
+  ext_expected_errors:
+    - "[I#/properties/routes/0/name] [S#/$defs/propertyDefinitions/routes/items/properties/name/minLength] length must be >= 1"
+    - "[I#/properties/routes/0/name] [S#/$defs/propertyDefinitions/routes/items/properties/name/pattern] does not match pattern"
   theme: transportation
   type: segment
   update_time: "2024-04-23T00:00:00-05:00"
