@@ -162,7 +162,7 @@ function examples() {
       continue
     fi
     printf "%s..." "$instance_file"
-    if verify quiet "$instance_file"; then
+    if verify simple "$instance_file"; then
       echo OK
     else
       echo FAILED
@@ -185,17 +185,17 @@ function counterexamples() {
       continue
     fi
     printf "%s..." "$instance_file"
-    declare -a expected_errors
-    if verify quiet "$instance_file"; then
+    declare -a expected_errors_array
+    if verify simple "$instance_file"; then
       echo FAILED
       printf "\ncounterexample instance '%s' is EXPECTED to fail validation but ACTUALLY it passed.\n" "$instance_file"
       exit 1
-    elif [ -z "$yq_installed" ] || ! expected_errors "$instance_file" | mapfile -t expected_errors || [ ${#expected_errors} == 0 ]; then
+    elif [ -z "$yq_installed" ] || mapfile -t expected_errors_array < <(! expected_errors "$instance_file") || [ ${#expected_errors_array} == 0 ]; then
       echo OK
     else
       declare -a actual_errors
-      (verify simple "$instance_file" || true) 2>&1 | mapfile -t actual_errors
-      for expected_error in "${expected_errors[@]}"; do
+      mapfile -t actual_errors < <(verify simple "$instance_file" || true)
+      for expected_error in "${expected_errors_array[@]}"; do
         for actual_error in "${actual_errors[@]}"; do
           if [[ "$actual_error" == *"$expected_error"* ]]; then
             continue 2
