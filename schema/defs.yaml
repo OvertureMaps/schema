@@ -338,19 +338,19 @@ description: Common schema definitions shared by all themes
         side: { "$ref": "#/$defs/propertyDefinitions/side" }
     cartographyContainer:
       title: cartography
-      description: defines cartograhic hints for optimal use of Overture features in map making
+      description: Defines cartograhic hints for optimal use of Overture features in map making.
       type: object
       properties:
         cartography:
           type: object
           properties:
             min_zoom:
-              description: recommended minimum tile zoom per the google tiling specification
+              description: Recommended minimum tile zoom per the [Google Maps](https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection/#3/15.00/50.00) tiling specification.
               type: integer
               minimum: 0
               maximum: 23
             max_zoom:
-              description: recommended maximum tile zoom per the google tiling specification
+              description: Recommended maximum tile zoom per the [Google Maps](https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection/#3/15.00/50.00) tiling specification.
               type: integer
               minimum: 0
               maximum: 23
