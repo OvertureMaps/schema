@@ -10,6 +10,11 @@ const _default = {
     '/buildings/building_part.yaml': require('!!raw-loader!@site/docs/_schema/buildings/building_part.yaml'),
     '/buildings/defs.yaml': require('!!raw-loader!@site/docs/_schema/buildings/defs.yaml'),
 
+    '/divisions/boundary.yaml': require('!!raw-loader!@site/docs/_schema/divisions/boundary.yaml'),
+    '/divisions/defs.yaml': require('!!raw-loader!@site/docs/_schema/divisions/defs.yaml'),
+    '/divisions/division_area.yaml': require('!!raw-loader!@site/docs/_schema/divisions/division_area.yaml'),
+    '/divisions/division.yaml': require('!!raw-loader!@site/docs/_schema/divisions/division.yaml'),
+
     '/places/place.yaml': require('!!raw-loader!@site/docs/_schema/places/place.yaml'),
 
     '/transportation/connector.yaml': require('!!raw-loader!@site/docs/_schema/transportation/connector.yaml'),
