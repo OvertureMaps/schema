@@ -10,9 +10,6 @@
     "type": "connector",
     "version": 0,
     "update_time": "2023-04-24T09:19:00-07:00",
-    "foo": "bar",
-    "ext_expected_errors": [
-      "[I#/properties/foo] [S#/properties/properties/unevaluatedProperties] not allowed"
-    ]
+    "foo": "bar"
   }
 }
