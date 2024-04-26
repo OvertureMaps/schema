@@ -24,7 +24,7 @@ properties:
         - access_type: allowed
           when:
             heading: forward
-            mode: [car, hgv]
+            mode: [vehicle]
         - access_type: allowed
           when:
             heading: forward
