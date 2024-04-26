@@ -19,13 +19,19 @@ properties:
     unevaluatedProperties: false
     required: [subtype]
     allOf:
-      - title: "Conditional Properties"
+      - title: "Conditional Properties for subtype road"
         if: { properties: { subtype: { enum: [road] } } }
         then:
           required: [class]
           properties:
             class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
             road: { "$ref": "#/$defs/propertyDefinitions/road" }
+            destinations: { "$ref": "#/$defs/propertyDefinitions/destinations" }
+      - title: "Conditional Properties for subtype water"
+        if: { properties: { subtype: { enum: [water] } } }
+        then:
+          properties:
+            destinations: { "$ref": "#/$defs/propertyDefinitions/destinations" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
     properties:
@@ -51,6 +57,71 @@ properties:
         default: []
 "$defs":
   propertyDefinitions:
+    destinationLabelType:
+      description: >-
+        The type of object of the destination label.
+      type: string
+      enum: 
+      - place
+      - street
+      - country 
+      - route
+    destinations:
+      description: >-
+        Information about what destinations can be reached if following this segment. 
+        Includes references to the segments from which it is needed to transition 
+        onto this segment to reach the destinations.
+      type: array
+      items:
+        type: object
+        unevaluatedProperties: false
+        required: [labels, from, to_connector_id, final_heading]
+        properties:
+          labels:
+            description: >-
+              Describes the destination labels on the directions sign.
+            type: array
+            items:
+              type: object
+              unevaluatedProperties: false
+              required: [value, type]
+              properties:
+                value:
+                  description: >-
+                    Names the object that is reached
+                  type: string
+                  pattern: ^(\S.*)?\S$
+                type: { "$ref": "#/$defs/propertyDefinitions/destinationLabelType" }
+            minItems: 1
+            uniqueItems: true
+          symbols:
+            type: array
+            items:
+              description: >-
+                A symbol or icon present on the sign.
+              type: string
+              pattern: ^(\S.*)?\S$
+          from:
+            description: >-
+              List of segments-connector pairs from where we need to transition 
+              to this segment to reach the destination.
+            type: array
+            items:
+              description: Pair of segment and connector IDs along the sequence
+              "$ref": "#/$defs/propertyDefinitions/subSegmentReference"
+              when:
+              allOf:
+                - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
+          to_connector_id:
+            description: >-
+              Identifies the point of physical connection between the
+              previous segment in the sequence and the segment in this
+              sequence entry.
+            type: string                  
+          final_heading:
+            description: >-
+              Direction of travel on this segment needed to reach the destination.
+            "$ref": "#/$defs/propertyDefinitions/heading"    
     roadClass:
       description:
         Captures the kind of road and its position in the road network
@@ -270,12 +341,12 @@ properties:
                     type: array
                     items:
                       description: Pair of segment and connector IDs along the sequence
-                      "$ref": "#/$defs/propertyDefinitions/sequenceEntry"
+                      "$ref": "#/$defs/propertyDefinitions/subSegmentReference"
                     minItems: 1
                     uniqueItems: true
                   final_heading:
                     description: >-
-                      Direction of travel that is prohibited on the destination
+                      Direction of travel that is prohibited on the final
                       segment of the sequence.
                     "$ref": "#/$defs/propertyDefinitions/heading"
                   when:
@@ -455,23 +526,23 @@ properties:
           properties: { is_at_most: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/weightValueWithUnit" } ] } }
         - required: [is_less_than]
           properties: { is_less_than: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/weightValueWithUnit" } ] } }
-    sequenceEntry:
+    subSegmentReference:
       description: >-
-        A segment/connector pair in a prohibited transition sequence.
+        A segment/connector pair used to reference a part of a segment 
+        that can have connections to other segments. 
+        Used in describing prohibited transition sequences and source 
+        segments for destinations.
       type: object
       required: [connector_id, segment_id]
       properties:
         connector_id:
           description: >-
-            Identifies the point of physical connection between the
-            previous segment in the sequence and the segment in this
-            sequence entry.
+            Identifies the point of physical connection between this segment 
+            and other segments.
           type: string
         segment_id:
           description: >-
-            Identifies the segment that the previous segment in the
-            sequence is physically connected to via the sequence entry's
-            connector.
+            Identifies the segment.
           type: string
   propertyContainers:
     headingScopeContainer:

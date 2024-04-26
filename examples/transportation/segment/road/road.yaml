@@ -59,3 +59,16 @@ properties:
               connector_id: overture:transportation:connector:456
           final_heading: backward
           when: {heading: backward}
+  destinations:
+    - labels:
+      - value: Seattle
+        type: place
+      - value: I 90
+        type: route
+      from:
+      - segment_id: overture:transportation:segment:567
+        connector_id: overture:transportation:connector:567
+        when:
+          heading: forward
+      to_connector_id: overture:transportation:connector:123
+      final_heading: backward
