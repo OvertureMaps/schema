@@ -1,0 +1,63 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: address
+description:
+  Address points
+type: object
+properties:     # JSON Schema: Top-level object properties.
+  id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
+  geometry:
+    description:
+      Division geometry MUST be a Point as defined by GeoJSON schema.
+      It represents the approximate location of a position commonly
+      associated with the real-world entity modeled by the division
+      feature.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": https://geojson.org/schema/Point.json
+  properties:   # GeoJSON: top-level object 'properties' property.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+    properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
+      country:
+        description: The country code in the Open Addresses distribution
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode"
+      country_district:
+        description: The region folder name in the Open Addresses distribution
+        type: string
+        minLength: 1
+      region:
+        description: The state/province for the address
+        type: string
+        minLength: 1
+      district:
+        description: The county for the address
+        type: string
+        minLength: 1
+      city:
+        description: The city/locality for the address
+        type: string
+        minLength: 1
+      postcode:
+        description: The postcode for the address
+        type: string
+        minLength: 1
+      street:
+        description: >-
+          The street name associated with this address
+        type: string
+        minLength: 1
+      number:
+        description: >-
+          The house number for this address.  This field may not strictly be a
+          number. Values such as "74B", "189 1/2", "208.5" are common as the
+          number part of an address and they are not part of the "unit" of this
+          address.
+        type: string
+        minLength: 1
+      unit:
+        description: The suite/unit/apartment for the address row
+        type: string
+        minLength: 1

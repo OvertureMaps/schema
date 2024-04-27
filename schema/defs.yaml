@@ -21,6 +21,7 @@ description: Common schema definitions shared by all themes
       type: string
       enum:
         - administrative_boundary # DEPRECATED
+        - address
         - boundary
         - building
         - connector
@@ -103,6 +104,7 @@ description: Common schema definitions shared by all themes
       description: Top-level Overture theme this feature belongs to
       type: string
       enum:
+        - addresses
         - admins
         - base
         - buildings
