@@ -20,11 +20,13 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - division_boundary
+        - address
+        - boundary
         - building
         - connector
         - division
         - division_area
+        - division_boundary
         - infrastructure
         - land
         - land_cover
@@ -101,6 +103,7 @@ description: Common schema definitions shared by all themes
       description: Top-level Overture theme this feature belongs to
       type: string
       enum:
+        - addresses
         - base
         - buildings
         - divisions
