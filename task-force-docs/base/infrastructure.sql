@@ -137,7 +137,7 @@ SELECT
         ) THEN 'power'
 
         -- Pedestrian
-        WHEN class IN ('bench') THEN 'pedestrian'
+        WHEN class IN ('bench','information') THEN 'pedestrian'
 
         -- Manholes
         WHEN class IN ('manhole', 'drain', 'sewer') THEN 'manhole'
@@ -162,7 +162,8 @@ SELECT
             'parking',
             'ref',
             'route',
-            'tower'
+            'tower',
+            'tourism'
         )
     ) AS source_tags,
 
@@ -269,8 +270,9 @@ FROM (
             -- Parking
             WHEN tags['amenity'] IN ('parking','parking_space') THEN tags['amenity']
 
-            -- Bench
+            -- Pedestrian
             WHEN tags['amenity'] IN ('bench') THEN tags['amenity']
+            WHEN tags['tourism'] IN ('information') THEN tags['tourism']
 
             -- Rail
             WHEN tags['railway'] = 'station' THEN 'railway_station'
@@ -361,6 +363,7 @@ FROM (
                 'power',
                 'tower:type',
                 'tower',
+                'tourism',
                 'waterway',
                 -- Transit
                 'aerialway',
