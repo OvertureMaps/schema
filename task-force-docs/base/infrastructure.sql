@@ -23,8 +23,12 @@ SELECT
             'parking',
             'parking_space',
 
-            -- Public transport / bus
-            'stop_position'
+            -- Public transport / cycle
+            'stop_position',
+
+            -- cycle
+            'bicycle_parking'
+
         ) THEN 'transit'
 
         -- Aerialways
@@ -140,7 +144,7 @@ SELECT
         ) THEN 'power'
 
         -- Pedestrian
-        WHEN class IN ('bench','information') THEN 'pedestrian'
+        WHEN class IN ('bench','information','waste_basket') THEN 'pedestrian'
 
         -- Manholes
         WHEN class IN ('manhole', 'drain', 'sewer') THEN 'manhole'
@@ -278,7 +282,7 @@ FROM (
             WHEN tags['amenity'] IN ('parking','parking_space') THEN tags['amenity']
 
             -- Pedestrian
-            WHEN tags['amenity'] IN ('bench') THEN tags['amenity']
+            WHEN tags['amenity'] IN ('bench','bicycle_parking','waste_basket') THEN tags['amenity']
             WHEN tags['tourism'] IN ('information') THEN tags['tourism']
 
             -- Rail
