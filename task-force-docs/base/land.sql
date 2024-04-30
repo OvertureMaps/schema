@@ -29,6 +29,7 @@ SELECT
         -- Physical
         WHEN class IN (
             'cave_entrance',
+            'cliff',
             'hill',
             'mountain_range',
             'peak',
@@ -134,6 +135,7 @@ FROM (
                 'bare_rock',
                 'beach',
                 'cave_entrance',
+                'cliff',
                 'desert',
                 'dune',
                 'fell',
@@ -229,6 +231,7 @@ WHERE
             wkt_geometry LIKE '%POINT%'
             AND class IN (
                 'cave_entrance',
+                'cliff',
                 'hill',
                 'mountain_range',
                 'peak',
@@ -246,6 +249,7 @@ WHERE
         OR (
             wkt_geometry LIKE '%LINESTRING%'
             AND class IN (
+                'cliff',
                 'mountain_range',
                 'tree_row',
                 'valley'
