@@ -431,7 +431,7 @@ FROM (
 
                     -- Else use the landuse tag and assign it to a class above
                     -- (refer aginfo.osm.org/keys/landuse#values for top landuse values)
-                    WHEN tags['landuse'] NOT IN ('meadow','forest','grass') THEN tags['landuse']
+                    WHEN tags['landuse'] NOT IN ('forest','grass') THEN tags['landuse']
                 END,
                 -- Linestrings / Points
                 CASE
