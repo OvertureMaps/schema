@@ -145,7 +145,16 @@ SELECT
         ) THEN 'power'
 
         -- Pedestrian
-        WHEN class IN ('bench','information','recycling','waste_basket') THEN 'pedestrian'
+        WHEN class IN (
+            'atm',
+            'bench',
+            'information',
+            'post_box',
+            'recycling',
+            'toilets',
+            'vending_machine',
+            'waste_basket'
+        ) THEN 'pedestrian'
 
         -- Manholes
         WHEN class IN ('manhole', 'drain', 'sewer') THEN 'manhole'
@@ -283,7 +292,7 @@ FROM (
             WHEN tags['amenity'] IN ('parking','parking_space') THEN tags['amenity']
 
             -- Pedestrian
-            WHEN tags['amenity'] IN ('bench','bicycle_parking','recycling','waste_basket') THEN tags['amenity']
+            WHEN tags['amenity'] IN ('bench','bicycle_parking','recycling','toilets','post_box','atm','vending_machine','waste_basket') THEN tags['amenity']
             WHEN tags['tourism'] IN ('information') THEN tags['tourism']
 
             -- Rail

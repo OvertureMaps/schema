@@ -35,6 +35,7 @@ SELECT
             'peak',
             'peninsula',
             'plateau',
+            'ridge',
             'saddle',
             'valley',
             'volcano'
@@ -149,6 +150,7 @@ FROM (
                 'peninsula',
                 'plateau',
                 'reef',
+                'ridge',
                 'rock',
                 'sand',
                 'saddle',
@@ -252,6 +254,7 @@ WHERE
                 'cliff',
                 'mountain_range',
                 'tree_row',
+                'ridge',
                 'valley'
             )
         )
