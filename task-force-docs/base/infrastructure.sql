@@ -80,7 +80,8 @@ SELECT
             'stile',
             'swing_gate',
             'toll_booth',
-            'wall'
+            'wall',
+            'cutline'
         ) THEN 'barrier'
 
         -- Bridges
@@ -144,7 +145,7 @@ SELECT
         ) THEN 'power'
 
         -- Pedestrian
-        WHEN class IN ('bench','information','waste_basket') THEN 'pedestrian'
+        WHEN class IN ('bench','information','recycling','waste_basket') THEN 'pedestrian'
 
         -- Manholes
         WHEN class IN ('manhole', 'drain', 'sewer') THEN 'manhole'
@@ -282,7 +283,7 @@ FROM (
             WHEN tags['amenity'] IN ('parking','parking_space') THEN tags['amenity']
 
             -- Pedestrian
-            WHEN tags['amenity'] IN ('bench','bicycle_parking','waste_basket') THEN tags['amenity']
+            WHEN tags['amenity'] IN ('bench','bicycle_parking','recycling','waste_basket') THEN tags['amenity']
             WHEN tags['tourism'] IN ('information') THEN tags['tourism']
 
             -- Rail
@@ -340,7 +341,6 @@ FROM (
                 'watchtower'
             ) THEN tags['tower:type']
 
-            -- TODO: bridges, dams?
             WHEN tags['bridge'] = 'yes' THEN 'bridge'
             WHEN tags['bridge'] IN (
                 'aqueduct',
@@ -352,7 +352,7 @@ FROM (
                 'viaduct'
             ) THEN tags['bridge']
 
-            WHEN tags['man_made'] IN ('bridge', 'pier') THEN tags['man_made']
+            WHEN tags['man_made'] IN ('bridge', 'cutline', 'pier') THEN tags['man_made']
 
             WHEN tags['waterway'] IN ('dam') THEN 'dam'
 
