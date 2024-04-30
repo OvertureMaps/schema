@@ -149,8 +149,9 @@ FROM (
 
             -- There are 5.3M landuse=grass tags without other more descriptive tags
             WHEN class IN (
-                'grass'
-            ) THEN 'grass'
+                'grass',
+                'cutline'
+            ) THEN 'managed'
 
             -- Pedestrian Infrastructure
             WHEN class IN (
@@ -210,9 +211,6 @@ FROM (
                 'quarry',
                 'salt_pond'
             ) THEN 'resource_extraction'
-
-            -- Structure
-            WHEN class IN ('pier', 'dam', 'bridge') THEN 'structure'
 
             -- Transportation
             WHEN class IN ('depot', 'traffic_island', 'highway')
@@ -290,10 +288,6 @@ FROM (
                 --Polygons
                 wkt_geometry like '%POLYGON%',
                 CASE
-
-                    -- First, extract polygonal piers and dams.
-                    WHEN tags['man_made'] IN ('pier') AND tags['highway'] = NULL THEN tags['man_made']
-                    WHEN tags['waterway'] = 'dam' THEN 'dam'
 
                     -- Check for Military specific tags
                     WHEN tags['military'] <> 'no' THEN
