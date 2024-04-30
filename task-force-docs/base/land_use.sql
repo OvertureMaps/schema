@@ -70,7 +70,8 @@ FROM (
                 'retail',
                 'industrial',
                 'institutional',
-                'brownfield'
+                'brownfield',
+                'works'
             ) THEN 'developed'
 
             -- Education
@@ -401,6 +402,7 @@ FROM (
                     WHEN tags['leisure'] IN (
                         'beach_resort',
                         'common',
+                        'dog_park',
                         'garden',
                         'golf_course',
                         'marina',
@@ -426,6 +428,8 @@ FROM (
                     -- Else use the landuse tag and assign it to a class above
                     -- (refer aginfo.osm.org/keys/landuse#values for top landuse values)
                     WHEN tags['landuse'] NOT IN ('forest','grass') THEN tags['landuse']
+
+                    WHEN tags['man_made'] IN ('works') THEN 'works'
                 END,
                 -- Linestrings / Points
                 CASE
