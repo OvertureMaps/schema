@@ -11,7 +11,7 @@ SELECT
     -- Determine class from subclass or tags
     CASE
         -- Bus / Ferry / Railway Infrastructure (Transit)
-        WHEN subclass IN (
+        WHEN class IN (
             'bus_route',
             'bus_stop',
             'bus_station',
@@ -22,7 +22,7 @@ SELECT
         ) THEN 'transit'
 
         -- Aerialways
-        WHEN subclass IN (
+        WHEN class IN (
             'aerialway_station',
             'cable_car',
             'gondola',
@@ -32,7 +32,8 @@ SELECT
             't-bar'
         ) THEN 'aerialway'
 
-        WHEN subclass IN (
+        -- Airports
+        WHEN class IN (
             'airport',
             'airstrip',
             'helipad',
@@ -47,8 +48,33 @@ SELECT
             'taxiway'
         ) THEN 'airport'
 
+        -- Barriers / Fences
+        WHEN class IN (
+            'barrier',
+            'block',
+            'bollard',
+            'cattle_grid',
+            'chain',
+            'city_wall',
+            'cycle_barrier',
+            'ditch',
+            'entrance',
+            'guard_rail',
+            'hedge',
+            'height_restrictor',
+            'jersey_barrier',
+            'kerb',
+            'kissing_gate',
+            'lift_gate',
+            'retaining_wall',
+            'stile',
+            'swing_gate',
+            'toll_booth',
+            'wall'
+        ) THEN 'barrier'
+
         -- Bridges
-        WHEN subclass IN (
+        WHEN class IN (
             'bridge',
             'viaduct',
             'boardwalk',
@@ -60,7 +86,7 @@ SELECT
         ) THEN 'bridge'
 
         -- Communication
-        WHEN subclass IN (
+        WHEN class IN (
             'communication_line',
             'communication_pole',
             'communication_tower',
@@ -68,7 +94,7 @@ SELECT
         ) THEN 'communication'
 
         -- Generic Towers
-        WHEN subclass IN (
+        WHEN class IN (
             'bell_tower',
             'cooling',
             'defensive',
@@ -86,7 +112,7 @@ SELECT
         ) THEN 'tower'
 
         -- Power
-        WHEN subclass IN (
+        WHEN class IN (
             'cable_distribution',
             'cable',
             'catenary_mast',
@@ -108,13 +134,13 @@ SELECT
         ) THEN 'power'
 
         -- Manholes
-        WHEN subclass IN ('manhole', 'drain', 'sewer') THEN 'manhole'
+        WHEN class IN ('manhole', 'drain', 'sewer') THEN 'manhole'
 
-        -- Piers & Dams are their own class
-        WHEN subclass IN ('pier', 'dam') THEN subclass
+        -- Piers & Dams are their own subtypes
+        WHEN class IN ('pier', 'dam') THEN class
 
     END AS subtype,
-    subclass AS class,
+    class,
     '__OVERTURE_NAMES_QUERY' AS names,
 
     -- Relevant OSM tags for land type
@@ -196,6 +222,33 @@ FROM (
 
             WHEN tags['aerialway'] = 'station' THEN 'aerialway_station'
 
+            --Barriers
+            WHEN tags['barrier'] IS NOT NULL AND tags['barrier'] <> 'no' THEN
+                IF(tags['barrier'] IN (
+                    'block',
+                    'bollard',
+                    'cattle_grid',
+                    'chain',
+                    'city_wall',
+                    'cycle_barrier',
+                    'ditch',
+                    'entrance',
+                    'guard_rail',
+                    'hedge',
+                    'height_restrictor',
+                    'jersey_barrier',
+                    'kerb',
+                    'kissing_gate',
+                    'lift_gate',
+                    'retaining_wall',
+                    'stile',
+                    'swing_gate',
+                    'toll_booth',
+                    'wall'
+                ), tags['barrier'],
+                'barrier'
+            )
+
             -- Bus
             WHEN tags['highway'] = 'bus_stop' THEN 'bus_stop'
             WHEN tags['route'] = 'bus' THEN 'bus_route'
@@ -274,7 +327,7 @@ FROM (
 
             WHEN tags['waterway'] IN ('dam') THEN 'dam'
 
-        END AS subclass
+        END AS class
     FROM
         -- These two lines get injected.
         {daylight_table}
@@ -283,6 +336,7 @@ FROM (
         AND ARRAYS_OVERLAP(
             MAP_KEYS(tags),
             ARRAY[
+                'barrier',
                 'bridge',
                 'communication:mobile_phone',
                 'communication',
@@ -305,4 +359,4 @@ FROM (
         ) = TRUE
     )
 WHERE
-    subclass IS NOT NULL
+    class IS NOT NULL

@@ -30,6 +30,7 @@ properties:
         enum:
           - aerialway
           - airport
+          - barrier
           - bridge
           - communication
           - dam
@@ -46,8 +47,11 @@ properties:
           - airport
           - airstrip
           - aqueduct
+          - barrier
           - bell_tower
+          - block
           - boardwalk
+          - bollard
           - bridge
           - bus_route
           - bus_station
@@ -57,26 +61,39 @@ properties:
           - cable_distribution
           - cantilever
           - catenary_mast
+          - cattle_grid
+          - chain
           - chair_lift
+          - city_wall
           - communication_line
           - communication_pole
           - communication_tower
           - connection
           - cooling
           - covered
+          - cycle_barrier
           - dam
           - defensive
+          - ditch
           - diving
           - drag_lift
           - drain
+          - entrance
           - ferry_terminal
           - generator
           - gondola
+          - guard_rail
+          - hedge
+          - height_restrictor
           - heliostat
           - helipad
           - hose
           - insulator
           - international_airport
+          - jersey_barrier
+          - kerb
+          - kissing_gate
+          - lift_gate
           - lighting
           - lightning_protection
           - manhole
@@ -98,16 +115,21 @@ properties:
           - railway_halt
           - railway_station
           - regional_airport
+          - retaining_wall
           - runway
           - sewer
           - siren
+          - stile
           - sub_station
           - substation
+          - swing_gate
           - switch
           - t-bar
           - taxiway
           - terminal
+          - toll_booth
           - transformer
           - trestle
           - viaduct
+          - wall
           - watchtower
