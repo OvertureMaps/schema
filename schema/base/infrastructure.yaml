@@ -33,13 +33,16 @@ properties:
           - barrier
           - bridge
           - communication
-          - dam
           - manhole
           - pedestrian
           - pier
           - power
+          - recreation
           - tower
           - transit
+          - utility
+          - waste_management
+          - water
       class:
         description: Further classification of the infrastructure type
         type: string
@@ -48,9 +51,11 @@ properties:
           - airport
           - airstrip
           - aqueduct
+          - atm
           - barrier
           - bell_tower
           - bench
+          - bicycle_parking
           - block
           - boardwalk
           - bollard
@@ -61,6 +66,7 @@ properties:
           - cable
           - cable_car
           - cable_distribution
+          - camp_site
           - cantilever
           - catenary_mast
           - cattle_grid
@@ -73,6 +79,7 @@ properties:
           - connection
           - cooling
           - covered
+          - cutline
           - cycle_barrier
           - dam
           - defensive
@@ -89,7 +96,9 @@ properties:
           - height_restrictor
           - heliostat
           - helipad
+          - heliport
           - hose
+          - information
           - insulator
           - international_airport
           - jersey_barrier
@@ -102,28 +111,40 @@ properties:
           - military_airport
           - minaret
           - minor_line
+          - mixed_lift
           - mobile_phone_tower
           - monitoring
           - movable
+          - municipal_airport
           - observation
           - parking
           - parking_space
+          - picnic_table
           - pier
+          - pipeline
           - plant
+          - platform
           - portal
+          - post_box
           - power_line
           - power_pole
           - power_tower
           - private_airport
+          - pylon
           - radar
           - railway_halt
           - railway_station
+          - recycling
           - regional_airport
           - retaining_wall
           - runway
+          - seaplane_airport
           - sewer
+          - silo
           - siren
           - stile
+          - stop_position
+          - storage_tank
           - sub_station
           - substation
           - swing_gate
@@ -131,9 +152,17 @@ properties:
           - t-bar
           - taxiway
           - terminal
+          - toilets
           - toll_booth
           - transformer
           - trestle
+          - utility_pole
+          - vending_machine
           - viaduct
+          - viewpoint
           - wall
+          - waste_basket
+          - waste_disposal
           - watchtower
+          - water_tower
+          - weir

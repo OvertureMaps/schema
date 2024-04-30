@@ -25,6 +25,7 @@ SELECT
 
             -- Public transport / cycle
             'stop_position',
+            'platform',
 
             -- cycle
             'bicycle_parking'
@@ -35,10 +36,11 @@ SELECT
         WHEN class IN (
             'aerialway_station',
             'cable_car',
-            'gondola',
-            'mixed_lift',
             'chair_lift',
             'drag_lift',
+            'gondola',
+            'mixed_lift',
+            'pylon',
             't-bar'
         ) THEN 'aerialway'
 
@@ -149,18 +151,40 @@ SELECT
             'atm',
             'bench',
             'information',
+            'picnic_table',
             'post_box',
-            'recycling',
             'toilets',
             'vending_machine',
-            'waste_basket'
+            'viewpoint'
         ) THEN 'pedestrian'
 
         -- Manholes
         WHEN class IN ('manhole', 'drain', 'sewer') THEN 'manhole'
 
+        -- Generic Utility
+        WHEN class IN (
+            'silo',
+            'storage_tank',
+            'utility_pole',
+            'water_tower'
+        ) THEN 'utility'
+
+        WHEN class IN ('camp_site') THEN 'recreation'
+
+        -- Utility
+        WHEN class IN ('pipeline','storage_tank') THEN 'utility'
+
+        -- Waste Management
+        WHEN class IN (
+            'recycling',
+            'waste_basket',
+            'waste_disposal'
+        ) THEN 'waste_management'
+
         -- Piers & Dams are their own subtypes
-        WHEN class IN ('pier', 'dam') THEN class
+        WHEN class IN ('pier') THEN class
+
+        WHEN class IN ('dam','weir') THEN 'water'
 
     END AS subtype,
     class,
@@ -179,6 +203,7 @@ SELECT
             'parking',
             'ref',
             'route',
+            'surface',
             'tower',
             'tourism'
         )
@@ -244,7 +269,8 @@ FROM (
                 'mixed_lift',
                 'chair_lift',
                 'drag_lift',
-                't-bar'
+                't-bar',
+                'pylon'
             ) THEN tags['aerialway']
 
             WHEN tags['aerialway'] = 'station' THEN 'aerialway_station'
@@ -282,18 +308,29 @@ FROM (
             WHEN tags['amenity'] = 'bus_station' THEN 'bus_station'
 
             -- Public Transport
-            WHEN tags['public_transport'] = 'stop_position' THEN 'stop_position'
+            WHEN tags['public_transport'] IN ('stop_position','platform') THEN tags['public_transport']
 
             -- Ferry
             -- WHEN tags['route'] = 'ferry' THEN 'ferry_route'
             WHEN tags['amenity'] = 'ferry_terminal' THEN 'ferry_terminal'
 
             -- Parking
-            WHEN tags['amenity'] IN ('parking','parking_space') THEN tags['amenity']
+            WHEN tags['amenity'] IN ('parking','parking_space','bicycle_parking') THEN tags['amenity']
 
-            -- Pedestrian
-            WHEN tags['amenity'] IN ('bench','bicycle_parking','recycling','toilets','post_box','atm','vending_machine','waste_basket') THEN tags['amenity']
-            WHEN tags['tourism'] IN ('information') THEN tags['tourism']
+            -- Amenity Tags (pedestrian, waste_management, etc)
+            WHEN tags['amenity'] IN (
+                'atm',
+                'bench',
+                'picnic_table',
+                'post_box',
+                'recycling',
+                'toilets',
+                'vending_machine',
+                'waste_basket',
+                'waste_disposal'
+            ) THEN tags['amenity']
+
+            WHEN tags['tourism'] IN ('information','viewpoint') THEN tags['tourism']
 
             -- Rail
             WHEN tags['railway'] = 'station' THEN 'railway_station'
@@ -361,9 +398,20 @@ FROM (
                 'viaduct'
             ) THEN tags['bridge']
 
-            WHEN tags['man_made'] IN ('bridge', 'cutline', 'pier') THEN tags['man_made']
+            WHEN tags['man_made'] IN (
+                'bridge',
+                'cutline',
+                'pier',
+                'pipeline',
+                'storage_tank',
+                'silo',
+                'utility_pole',
+                'water_tower'
+            ) THEN tags['man_made']
 
-            WHEN tags['waterway'] IN ('dam') THEN 'dam'
+            WHEN tags['waterway'] IN ('dam','weir') THEN tags['waterway']
+
+            WHEN tags['tourism'] = 'camp_site' AND wkt LIKE 'POINT%' THEN 'camp_site'
 
         END AS class
     FROM
