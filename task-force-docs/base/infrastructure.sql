@@ -18,7 +18,9 @@ SELECT
             -- 'ferry_route',
             'ferry_terminal',
             'railway_halt',
-            'railway_station'
+            'railway_station',
+            -- Parking
+            'parking'
         ) THEN 'transit'
 
         -- Aerialways
@@ -148,9 +150,11 @@ SELECT
             'access',
             'aerodrome:type',
             'aerodrome',
+            'barrier',
             'icao',
             'landuse',
             'military',
+            'parking',
             'ref',
             'route',
             'tower'
@@ -256,6 +260,10 @@ FROM (
             -- Ferry
             -- WHEN tags['route'] = 'ferry' THEN 'ferry_route'
             WHEN tags['amenity'] = 'ferry_terminal' THEN 'ferry_terminal'
+
+            -- Parking
+            WHEN tags['amenity'] = 'parking' THEN 'parking'
+
             -- Rail
             WHEN tags['railway'] = 'station' THEN 'railway_station'
             WHEN tags['railway'] = 'halt' THEN 'railway_halt'
