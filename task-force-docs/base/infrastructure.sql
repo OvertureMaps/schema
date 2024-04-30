@@ -21,7 +21,10 @@ SELECT
             'railway_station',
             -- Parking
             'parking',
-            'parking_space'
+            'parking_space',
+
+            -- Public transport / bus
+            'stop_position'
         ) THEN 'transit'
 
         -- Aerialways
@@ -263,6 +266,10 @@ FROM (
             WHEN tags['highway'] = 'bus_stop' THEN 'bus_stop'
             WHEN tags['route'] = 'bus' THEN 'bus_route'
             WHEN tags['amenity'] = 'bus_station' THEN 'bus_station'
+
+            -- Public Transport
+            WHEN tags['public_transport'] = 'stop_position' THEN 'stop_position'
+
             -- Ferry
             -- WHEN tags['route'] = 'ferry' THEN 'ferry_route'
             WHEN tags['amenity'] = 'ferry_terminal' THEN 'ferry_terminal'
