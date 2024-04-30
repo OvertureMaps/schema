@@ -35,6 +35,7 @@ properties:
           - communication
           - dam
           - manhole
+          - pedestrian
           - pier
           - power
           - tower
@@ -49,6 +50,7 @@ properties:
           - aqueduct
           - barrier
           - bell_tower
+          - bench
           - block
           - boardwalk
           - bollard
@@ -104,6 +106,8 @@ properties:
           - monitoring
           - movable
           - observation
+          - parking
+          - parking_space
           - pier
           - plant
           - portal

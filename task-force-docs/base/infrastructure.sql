@@ -20,7 +20,8 @@ SELECT
             'railway_halt',
             'railway_station',
             -- Parking
-            'parking'
+            'parking',
+            'parking_space'
         ) THEN 'transit'
 
         -- Aerialways
@@ -135,6 +136,9 @@ SELECT
             'transformer'
         ) THEN 'power'
 
+        -- Pedestrian
+        WHEN class IN ('bench') THEN 'pedestrian'
+
         -- Manholes
         WHEN class IN ('manhole', 'drain', 'sewer') THEN 'manhole'
 
@@ -150,6 +154,7 @@ SELECT
             'access',
             'aerodrome:type',
             'aerodrome',
+            'amenity',
             'barrier',
             'icao',
             'landuse',
@@ -262,7 +267,10 @@ FROM (
             WHEN tags['amenity'] = 'ferry_terminal' THEN 'ferry_terminal'
 
             -- Parking
-            WHEN tags['amenity'] = 'parking' THEN 'parking'
+            WHEN tags['amenity'] IN ('parking','parking_space') THEN tags['amenity']
+
+            -- Bench
+            WHEN tags['amenity'] IN ('bench') THEN tags['amenity']
 
             -- Rail
             WHEN tags['railway'] = 'station' THEN 'railway_station'
