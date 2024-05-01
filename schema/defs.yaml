@@ -323,12 +323,12 @@ description: Common schema definitions shared by all themes
           type: object
           properties:
             min_zoom:
-              description: Recommended minimum tile zoom per the [Google Maps](https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection/#3/15.00/50.00) tiling specification.
+              description: Recommended minimum tile zoom per the Google Maps tiling specification.
               type: integer
               minimum: 0
               maximum: 23
             max_zoom:
-              description: Recommended maximum tile zoom per the [Google Maps](https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection/#3/15.00/50.00) tiling specification.
+              description: Recommended maximum tile zoom per the Google Maps tiling specification.
               type: integer
               minimum: 0
               maximum: 23
