@@ -29,26 +29,28 @@ properties:
         default: [land]
         type: string
         enum:
-           - desert
-           - forest
-           - glacier
-           - grass
-           - land
-           - physical
-           - reef
-           - rock
-           - sand
-           - shrub
-           - tree
-           - wetland
+          - desert
+          - forest
+          - glacier
+          - grass
+          - land
+          - physical
+          - reef
+          - rock
+          - sand
+          - shrub
+          - tree
+          - wetland
       class:
         description: Further classification of type of landcover
         default: [land]
         type: string
         enum:
+          - archipelago
           - bare_rock
           - beach
           - cave_entrance
+          - cliff
           - desert
           - dune
           - fell
@@ -61,12 +63,12 @@ properties:
           - island
           - islet
           - land
-          - meadow
           - mountain_range
           - peak
-          - plateau
           - peninsula
+          - plateau
           - reef
+          - ridge
           - rock
           - saddle
           - sand
@@ -83,4 +85,5 @@ properties:
           - volcano
           - wetland
           - wood
+
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
