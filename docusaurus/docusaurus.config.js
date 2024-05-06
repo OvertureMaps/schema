@@ -96,6 +96,22 @@ const config = {
           },
         ],
       },
+      algolia: {
+        appId: 'MK8X1051PQ',
+        //this is the public search API key; ok to commit
+        apiKey:'29fe3f5bc0dabfade01c016695919c8d',
+        indexName: 'overturemaps',
+        contextualSearch: true,
+
+        // Optional: Algolia search parameters
+        searchParameters: {},
+
+        // Optional: path for search page that enabled by default (`false` to disable it)
+        searchPagePath: 'search',
+
+        // Optional: whether the insights feature is enabled or not on Docsearch (`false` by default)
+        insights: false,
+      },  
       footer: {
         style: 'dark',
         copyright: `Copyright © ${new Date().getFullYear()} Overture Maps Foundation. Built with Docusaurus.`,
