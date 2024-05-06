@@ -1,201 +1,122 @@
 CASE
-    -- Agricultural
+    -- Certain building tags become the class value to further describe the building subtype
     WHEN tags['building'] IN (
-            'agricultural',
-            'barn',
-            'cowshed',
-            'farm',
-            'farm_auxiliary',
-            'glasshouse',
-            'greenhouse',
-            'silo',
-            'stable',
-            'sty'
-        ) THEN 'agricultural'
 
-    -- Civic
-    WHEN tags['building'] IN (
-            'civic',
-            'fire_station',
-            'government',
-            'government_office',
-            'public'
-    ) OR tags['amenity'] IN (
-            'animal_shelter',
-            'community_centre',
-            'courthouse',
-            'fire_station',
-            'library',
-            'police',
-            'post_office',
-            'public_bath',
-            'public_building',
-            'ranger_station',
-            'shelter',
-            'social_centre',
-            'townhall',
-            'veterinary'
-        ) THEN 'civic'
+        -- Agricultural
+        'agricultural',
+        'barn',
+        'cowshed',
+        'farm',
+        'farm_auxiliary',
+        'glasshouse',
+        'greenhouse',
+        'silo',
+        'stable',
+        'sty',
 
-    --Commercial
-    WHEN tags['building'] IN (
-            'commercial',
-            'hotel',
-            'kiosk',
-            'marketplace',
-            'office',
-            'restaurant',
-            'retail',
-            'shop',
-            'supermarket',
-            'warehouse'
-        ) OR tags['amenity'] IN (
-            'bar',
-            'cafe',
-            'fast_food',
-            'food_court',
-            'fuel',
-            'ice_cream',
-            'pub',
-            'restaurant'
-        ) THEN 'commercial'
+        -- Civic
+        'civic',
+        'fire_station',
+        'government',
+        'government_office',
+        'public',
 
-    --Education
-    WHEN tags['building'] IN (
-            'college',
-            'kindergarten',
-            'school',
-            'university'
-        ) OR tags['amenity'] IN (
-            'college',
-            'driving_school',
-            'kindergarten',
-            'music_school',
-            'school',
-            'university'
-        ) THEN 'education'
+        --Commercial
+        'commercial',
+        'hotel',
+        'kiosk',
+        'marketplace',
+        'office',
+        'restaurant',
+        'retail',
+        'shop',
+        'supermarket',
+        'warehouse',
 
-    --Entertainment
-    WHEN tags['building'] IN (
-            'grandstand',
-            'pavillion',
-            'sports_centre',
-            'sports_hall',
-            'stadium'
-        ) OR tags['amenity'] IN (
-            'casino',
-            'conference_centre',
-            'events_venue',
-            'cinema',
-            'theatre',
-            'arts_centre',
-            'nightclub'
-        ) OR tags['tourism'] IN (
-            'aquarium',
-            'attraction',
-            'gallery',
-            'museum'
-        ) THEN 'entertainment'
+        --Education
+        'college',
+        'kindergarten',
+        'school',
+        'university',
 
-    --Industrial
-    WHEN tags['building'] IN (
-            'factory',
-            'industrial',
-            'manufacture'
-        ) THEN 'industrial'
+        --Entertainment
+        'grandstand',
+        'pavillion',
+        'sports_centre',
+        'sports_hall',
+        'stadium',
 
-    --Medical
-    WHEN tags['building'] IN (
-            'clinic',
-            'hospital'
-        ) OR tags['amenity'] IN (
-            'clinic',
-            'dentist',
-            'doctors',
-            'hospital',
-            'pharmacy'
-        ) THEN 'medical'
+        --Industrial
+        'factory',
+        'industrial',
+        'manufacture',
 
-    --Military
-    WHEN tags['building'] IN (
-            'bunker',
-            'military'
-        ) THEN 'military'
+        --Medical
+        'clinic',
+        'hospital',
 
-    --Outbuilding
-    WHEN tags['building'] IN (
-            'allotment_house',
-            'carport',
-            'outbuilding',
-            'shed'
-        ) THEN 'outbuilding'
+        --Military
+        'bunker',
+        'military',
 
-    --Religious
-    WHEN tags['building'] IN (
-            'cathedral',
-            'chapel',
-            'church',
-            'monastary',
-            'mosque',
-            'presbytery',
-            'religious',
-            'shrine',
-            'synagogue',
-            'temple',
-            'wayside_shrine'
-        ) OR tags['amenity'] = 'place_of_worship'
-        THEN 'religious'
+        --Outbuilding
+        'allotment_house',
+        'carport',
+        'outbuilding',
+        'shed',
 
-    --Residential
-    WHEN tags['building'] IN (
-            'apartments',
-            'bungalow',
-            'cabin',
-            'detached',
-            'dormitory',
-            'duplex',
-            'dwelling_house',
-            'garage',
-            'garages',
-            'ger',
-            'house',
-            'houseboat',
-            'hut',
-            'residential',
-            'semi',
-            'semidetached_house',
-            'static_caravan',
-            'stilt_house',
-            'terrace',
-            'townhouse',
-            'trullo'
-        ) OR tags['amenity'] IN (
-            'nursing_home'
-        ) THEN 'residential'
+        --Religious
+        'cathedral',
+        'chapel',
+        'church',
+        'monastary',
+        'mosque',
+        'presbytery',
+        'religious',
+        'shrine',
+        'synagogue',
+        'temple',
+        'wayside_shrine',
 
-    --Service
-    WHEN tags['building'] IN (
-            'beach_hut',
-            'boathouse',
-            'digester',
-            'guardhouse',
-            'service',
-            'slurry_tank',
-            'storage_tank',
-            'toilets',
-            'transformer_tower'
-        ) THEN 'service'
+        --Residential
+        'apartments',
+        'bungalow',
+        'cabin',
+        'detached',
+        'dormitory',
+        'duplex',
+        'dwelling_house',
+        'garage',
+        'garages',
+        'ger',
+        'house',
+        'houseboat',
+        'hut',
+        'residential',
+        'semi',
+        'semidetached_house',
+        'static_caravan',
+        'stilt_house',
+        'terrace',
+        'townhouse',
+        'trullo',
 
-    --Transportation
-    WHEN tags['building'] IN (
-            'hangar',
-            'train_station',
-            'parking',
-            'transportation'
-        ) OR tags['amenity'] IN (
-            'bicycle_parking',
-            'bus_station',
-            'parking'
-        ) THEN 'transportation'
+        --Service
+        'beach_hut',
+        'boathouse',
+        'digester',
+        'guardhouse',
+        'service',
+        'slurry_tank',
+        'storage_tank',
+        'toilets',
+        'transformer_tower',
+
+        -- Transportation
+        'hangar',
+        'parking',
+        'train_station',
+        'transportation'
+    ) THEN tags['building']
     ELSE NULL
 END
