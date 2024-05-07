@@ -36,40 +36,103 @@ A division area is a polygon that represents the land or maritime area associate
   </tbody>
 </table>
 
-## Sub-types
+## Subtypes
 
-Like a division, a division area may have one of two possible sub-types: `country` or `region`.
+Like a division, a division area may have one of following subtypes: 
+
+- `country`
+- `region`
+- `county`
+- `locality`
+- `localadmin`
+- `neighborhood`
 
 <Tabs>
-  <TabItem value="country" label="Country" default>
+  <TabItem value="country" label="country" default>
     <table>
       <tbody>
-        <tr>
-          <th><code>subtype</code></th>
-          <td><code>country</code></td>
-        </tr>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>country</code></td>
+      </tr>
       </tbody>
     </table>
 
 
-The border of a country, if known, is given by
-[boundary](boundary) features.
+A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [boundary](boundary) features. Example: United States
   </TabItem>
 
-  <TabItem value="region" label="Region">
+  <TabItem value="region" label="region">
     <table>
       <tbody>
-        <tr>
-          <th><code>subtype</code></th>
-          <td><code>region</code></td>
-        </tr>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>region</code></td>
+      </tr>
       </tbody>
     </table>
 
-A region represents a named area that is not formally part of
-the hierarchical subdivision of a country.
+A region is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
+  </TabItem>
+  
+  <TabItem value="county" label="county" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>county</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A county is a second-level administrative subdivision. Example: Kings County, NY
+  </TabItem>
+
+  <TabItem value="localadmin" label="localadmin" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>localadmin</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+Localadmin is a level of government in some parts of the world that contains localities or populated places that themselves have no authority. Often but not exclusively found in Europe. Localadmin is a third-level administrative subdivision. Example: [Paris](https://spelunker.whosonfirst.org/id/1159322569/)
+  </TabItem>
+
+  <TabItem value="locality" label="locality" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>locality</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A locality is a populated place that may or may not have its own administrative authority. (It won't if it belongs to a localadmin.) Locality may be a third-level administrative subdivision. Example: Taipei
+  </TabItem>
+
+    <TabItem value="neighborhood" label="neighborhood" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>neighborhood</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A neighborhood is a geographically localized community within a city, town, suburb or rural area, sometimes consisting of a single street and the buildings lining it. Example: Cobble Hill
   </TabItem>
 </Tabs>
+
+
 
 
 ## Schema
@@ -86,13 +149,13 @@ the hierarchical subdivision of a country.
 ## Examples
 
 <Tabs>
-  <TabItem value="country_land" label="Country, land class" default>
+  <TabItem value="country_land" label="country, land class" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_land), null, 2) }</CodeBlock>
   </TabItem>
-  <TabItem value="country_maritime" label="Country, maritime class" default>
+  <TabItem value="country_maritime" label="country, maritime class" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_maritime), null, 2) }</CodeBlock>
   </TabItem>
-   <TabItem value="region_land" label="Region, land class" default>
+   <TabItem value="region_land" label="region, land class" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_region_land), null, 2) }</CodeBlock>
   </TabItem>
 </Tabs>
