@@ -22,10 +22,10 @@ shapeContainer:
       type: number
     min_floor:
       description: >-
-        The "start" floor of this building or part. Indicates that the building or part is "floating" and its bottom-most floor is above 
-        ground level, usually because it is part of a larger building in which some parts do reach down to ground level. An example is a 
-        building that has an entry road or driveway at ground level into an interior courtyard, where part of the building bridges above 
-        the entry road. This property may sometimes be populated when min_height is missing and in these cases can be used as a proxy 
+        The "start" floor of this building or part. Indicates that the building or part is "floating" and its bottom-most floor is above
+        ground level, usually because it is part of a larger building in which some parts do reach down to ground level. An example is a
+        building that has an entry road or driveway at ground level into an interior courtyard, where part of the building bridges above
+        the entry road. This property may sometimes be populated when min_height is missing and in these cases can be used as a proxy
         for min_height.
       type: integer
       exclusiveMinimum: 0
@@ -90,7 +90,7 @@ shapeContainer:
       description: >-
         Bearing of the roof ridge line in degrees.
       type: number
-      exclusiveMinimum: 0
+      inclusiveMinimum: 0
       exclusiveMaximum: 360
     roof_orientation:
       description: >-
