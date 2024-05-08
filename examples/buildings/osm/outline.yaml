@@ -25,6 +25,7 @@ properties:
   names:
     primary: Valentina by Alta
   num_floors: 8
+  subtype: commercial
   class: commercial
   sources:
   - property: ''
