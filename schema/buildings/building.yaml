@@ -105,7 +105,7 @@ properties:
           - office
           - outbuilding
           - parking
-          - pavillion
+          - pavilion
           - presbytery
           - public
           - religious
@@ -137,7 +137,7 @@ properties:
           - townhouse
           - train_station
           - transformer_tower
-          - transportatio
+          - transportation
           - trullo
           - university
           - warehouse
