@@ -22,7 +22,8 @@ properties:
   update_time: "2023-06-06T10:30:00-08:00"
   height: 21.34
   num_floors: 4
-  class: civic
+  subtype: transportation
+  class: parking
   sources:
   - property: ""
     dataset: microsoftMLBuildings,
