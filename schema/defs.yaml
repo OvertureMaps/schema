@@ -338,19 +338,29 @@ description: Common schema definitions shared by all themes
         side: { "$ref": "#/$defs/propertyDefinitions/side" }
     cartographyContainer:
       title: cartography
-      description: Defines cartograhic hints for optimal use of Overture features in map making.
+      description: Defines cartographic hints for optimal use of Overture features in map-making.
       type: object
       properties:
         cartography:
           type: object
           properties:
             min_zoom:
-              description: Recommended minimum tile zoom per the Google Maps tiling specification.
+              description: >-
+                Recommended minimum tile zoom per the Slippy Maps convention.
+                
+                The Slippy Maps zooms are explained in the following references: 
+                 - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+                 - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
               type: integer
               minimum: 0
               maximum: 23
             max_zoom:
-              description: Recommended maximum tile zoom per the Google Maps tiling specification.
+              description: >-
+                Recommended maximum tile zoom per the Slippy Maps convention.
+                
+                The Slippy Maps zooms are explained in the following references: 
+                 - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+                 - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
               type: integer
               minimum: 0
               maximum: 23
