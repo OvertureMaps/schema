@@ -78,7 +78,7 @@ CASE
     --Entertainment
     WHEN tags['building'] IN (
             'grandstand',
-            'pavillion',
+            'pavilion',
             'sports_centre',
             'sports_hall',
             'stadium'
@@ -135,7 +135,7 @@ CASE
             'cathedral',
             'chapel',
             'church',
-            'monastary',
+            'monastery',
             'mosque',
             'presbytery',
             'religious',
