@@ -93,53 +93,18 @@ description: Common schema definitions for divisions theme
       description: Collection of perspectives of single feature.
       type: object
       unevaluatedProperties: false
-      required: [holders, effect]
+      required: [mode, countries]
       properties:
-        holders:
-          description: Array of perspective holders.
+        mode:
+          description: Mode in which perspective should be used.
+          type: string
+          enum: [accepted_by, disputed_by]
+        countries:
+          description: Array of counteries with given perspective.
           type: array
-          items: { "$ref": "#/$defs/typeDefinitions/perspective" }
+          items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
           minItems: 1
           uniqueItems: true
-        effect:
-          description:
-            Indicates if all perspective holders from the collection
-            or all except those in collection acknowledge the feature as is.
-
-            If value is "include", only holders within collection see entity as it is represented.
-            If value is "exclude", everyone except those in collection see entity as it is represented.
-          type: string
-          enum: [include, exclude]
-    perspective:
-      description:
-        A political perspective from which the division is viewed
-      type: object
-      unevaluatedProperties: false
-      required: [type, holder]
-      oneOf:
-        - if:
-            properties:
-              type: { enum: [country] }
-          then:
-            properties:
-              holder: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
-          else:
-            false
-      properties:
-        type:
-          description:
-            Type of perspective
-
-            If the perspective is of type 'country', then the 'holder'
-            property must be an ISO 3166-1 alpha-2 country code
-            identifying the country that holds this perspective.
-          type: string
-          enum:
-            - country   # The perspective is held by the sovereign state
-                        # identified by the ISO-3166-1 alpha-2 country
-                        # code in the 'value' property.
-        holder:
-          type: string
     boundarySideDivision:
       description:
         Represents a division on one side or the other of a boundary
