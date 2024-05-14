@@ -13,7 +13,7 @@ properties:     # JSON Schema: Top-level object properties.
       GeoJSON schema.
     unevaluatedProperties: false
     oneOf:
-      - "$ref": https://geojson.org/schema/LineString.json,
+      - "$ref": https://geojson.org/schema/LineString.json
       - "$ref": https://geojson.org/schema/MultiLineString.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
