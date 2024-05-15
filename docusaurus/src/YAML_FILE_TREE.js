@@ -22,6 +22,7 @@ const _default = {
 
     '/base/defs.yaml': require('!!raw-loader!@site/docs/_schema/base/defs.yaml'),
     '/base/land.yaml': require('!!raw-loader!@site/docs/_schema/base/land.yaml'),
+    '/base/land_cover.yaml': require('!!raw-loader!@site/docs/_schema/base/land_cover.yaml'),
     '/base/land_use.yaml': require('!!raw-loader!@site/docs/_schema/base/land_use.yaml'),
     '/base/water.yaml': require('!!raw-loader!@site/docs/_schema/base/water.yaml'),
 
