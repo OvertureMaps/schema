@@ -65,14 +65,12 @@ properties:
           - chapel
           - church
           - civic
-          - clinic
           - college
           - commercial
           - cowshed
           - detached
           - digester
           - dormitory
-          - duplex
           - dwelling_house
           - factory
           - farm
@@ -83,7 +81,6 @@ properties:
           - ger
           - glasshouse
           - government
-          - government_office
           - grandstand
           - greenhouse
           - guardhouse
@@ -97,7 +94,6 @@ properties:
           - kindergarten
           - kiosk
           - manufacture
-          - marketplace
           - military
           - monastery
           - mosque
@@ -109,14 +105,12 @@ properties:
           - public
           - religious
           - residential
-          - restaurant
           - retail
           - school
           - semi
           - semidetached_house
           - service
           - shed
-          - shop
           - shrine
           - silo
           - slurry_tank
@@ -133,7 +127,6 @@ properties:
           - temple
           - terrace
           - toilets
-          - townhouse
           - train_station
           - transformer_tower
           - transportation
@@ -141,6 +134,7 @@ properties:
           - university
           - warehouse
           - wayside_shrine
+
       has_parts:
         description: Flag indicating whether the building has parts
         type: boolean
