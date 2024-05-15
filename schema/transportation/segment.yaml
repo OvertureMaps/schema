@@ -123,7 +123,7 @@ properties:
         Enumerates possible travel modes. Some modes represent groups
         of modes.
       type: string
-      enum: [ motor_vehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
+      enum: [ vehicle, motor_vehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
       "$comment": >-
         motor_vehicle includes car, truck and motorcycle
     road:
@@ -297,6 +297,7 @@ properties:
         - is_tunnel
         - is_under_construction
         - is_abandoned
+        - is_covered
     roadSurface:
       description: Physical surface of the road
       type: string

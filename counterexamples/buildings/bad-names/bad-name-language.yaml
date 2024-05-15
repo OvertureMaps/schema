@@ -16,5 +16,5 @@ properties:
       en: Empire State Building
     rules:
       - variant: common
-        language: local
+        language: ga:genitive
         value: Blah

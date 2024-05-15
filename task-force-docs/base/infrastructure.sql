@@ -11,28 +11,41 @@ SELECT
     -- Determine class from subclass or tags
     CASE
         -- Bus / Ferry / Railway Infrastructure (Transit)
-        WHEN subclass IN (
+        WHEN class IN (
             'bus_route',
             'bus_stop',
             'bus_station',
             -- 'ferry_route',
             'ferry_terminal',
             'railway_halt',
-            'railway_station'
+            'railway_station',
+            -- Parking
+            'parking',
+            'parking_space',
+
+            -- Public transport / cycle
+            'stop_position',
+            'platform',
+
+            -- cycle
+            'bicycle_parking'
+
         ) THEN 'transit'
 
         -- Aerialways
-        WHEN subclass IN (
+        WHEN class IN (
             'aerialway_station',
             'cable_car',
-            'gondola',
-            'mixed_lift',
             'chair_lift',
             'drag_lift',
+            'gondola',
+            'mixed_lift',
+            'pylon',
             't-bar'
         ) THEN 'aerialway'
 
-        WHEN subclass IN (
+        -- Airports
+        WHEN class IN (
             'airport',
             'airstrip',
             'helipad',
@@ -47,8 +60,34 @@ SELECT
             'taxiway'
         ) THEN 'airport'
 
+        -- Barriers / Fences
+        WHEN class IN (
+            'barrier',
+            'block',
+            'bollard',
+            'cattle_grid',
+            'chain',
+            'city_wall',
+            'cycle_barrier',
+            'ditch',
+            'entrance',
+            'guard_rail',
+            'hedge',
+            'height_restrictor',
+            'jersey_barrier',
+            'kerb',
+            'kissing_gate',
+            'lift_gate',
+            'retaining_wall',
+            'stile',
+            'swing_gate',
+            'toll_booth',
+            'wall',
+            'cutline'
+        ) THEN 'barrier'
+
         -- Bridges
-        WHEN subclass IN (
+        WHEN class IN (
             'bridge',
             'viaduct',
             'boardwalk',
@@ -60,7 +99,7 @@ SELECT
         ) THEN 'bridge'
 
         -- Communication
-        WHEN subclass IN (
+        WHEN class IN (
             'communication_line',
             'communication_pole',
             'communication_tower',
@@ -68,7 +107,7 @@ SELECT
         ) THEN 'communication'
 
         -- Generic Towers
-        WHEN subclass IN (
+        WHEN class IN (
             'bell_tower',
             'cooling',
             'defensive',
@@ -86,7 +125,7 @@ SELECT
         ) THEN 'tower'
 
         -- Power
-        WHEN subclass IN (
+        WHEN class IN (
             'cable_distribution',
             'cable',
             'catenary_mast',
@@ -107,14 +146,48 @@ SELECT
             'transformer'
         ) THEN 'power'
 
-        -- Manholes
-        WHEN subclass IN ('manhole', 'drain', 'sewer') THEN 'manhole'
+        -- Pedestrian
+        WHEN class IN (
+            'atm',
+            'bench',
+            'information',
+            'picnic_table',
+            'post_box',
+            'toilets',
+            'vending_machine',
+            'viewpoint'
+        ) THEN 'pedestrian'
 
-        -- Piers & Dams are their own class
-        WHEN subclass IN ('pier', 'dam') THEN subclass
+        -- Manholes
+        WHEN class IN ('manhole', 'drain', 'sewer') THEN 'manhole'
+
+        -- Generic Utility
+        WHEN class IN (
+            'silo',
+            'storage_tank',
+            'utility_pole',
+            'water_tower'
+        ) THEN 'utility'
+
+        WHEN class IN ('camp_site') THEN 'recreation'
+
+        -- Utility
+        WHEN class IN ('pipeline','storage_tank') THEN 'utility'
+
+        -- Waste Management
+        WHEN class IN (
+            'recycling',
+            'waste_basket',
+            'waste_disposal'
+        ) THEN 'waste_management'
+
+        -- Piers & Dams are their own subtypes
+        WHEN class IN ('pier') THEN class
+
+        WHEN class IN ('dam','weir') THEN 'water'
 
     END AS subtype,
-    subclass AS class,
+    class,
     '__OVERTURE_NAMES_QUERY' AS names,
 
     -- Relevant OSM tags for land type
@@ -122,12 +195,17 @@ SELECT
             'access',
             'aerodrome:type',
             'aerodrome',
+            'amenity',
+            'barrier',
             'icao',
             'landuse',
             'military',
+            'parking',
             'ref',
             'route',
-            'tower'
+            'surface',
+            'tower',
+            'tourism'
         )
     ) AS source_tags,
 
@@ -191,18 +269,69 @@ FROM (
                 'mixed_lift',
                 'chair_lift',
                 'drag_lift',
-                't-bar'
+                't-bar',
+                'pylon'
             ) THEN tags['aerialway']
 
             WHEN tags['aerialway'] = 'station' THEN 'aerialway_station'
+
+            --Barriers
+            WHEN tags['barrier'] IS NOT NULL AND tags['barrier'] <> 'no' THEN
+                IF(tags['barrier'] IN (
+                    'block',
+                    'bollard',
+                    'cattle_grid',
+                    'chain',
+                    'city_wall',
+                    'cycle_barrier',
+                    'ditch',
+                    'entrance',
+                    'guard_rail',
+                    'hedge',
+                    'height_restrictor',
+                    'jersey_barrier',
+                    'kerb',
+                    'kissing_gate',
+                    'lift_gate',
+                    'retaining_wall',
+                    'stile',
+                    'swing_gate',
+                    'toll_booth',
+                    'wall'
+                ), tags['barrier'],
+                'barrier'
+            )
 
             -- Bus
             WHEN tags['highway'] = 'bus_stop' THEN 'bus_stop'
             WHEN tags['route'] = 'bus' THEN 'bus_route'
             WHEN tags['amenity'] = 'bus_station' THEN 'bus_station'
+
+            -- Public Transport
+            WHEN tags['public_transport'] IN ('stop_position','platform') THEN tags['public_transport']
+
             -- Ferry
             -- WHEN tags['route'] = 'ferry' THEN 'ferry_route'
             WHEN tags['amenity'] = 'ferry_terminal' THEN 'ferry_terminal'
+
+            -- Parking
+            WHEN tags['amenity'] IN ('parking','parking_space','bicycle_parking') THEN tags['amenity']
+
+            -- Amenity Tags (pedestrian, waste_management, etc)
+            WHEN tags['amenity'] IN (
+                'atm',
+                'bench',
+                'picnic_table',
+                'post_box',
+                'recycling',
+                'toilets',
+                'vending_machine',
+                'waste_basket',
+                'waste_disposal'
+            ) THEN tags['amenity']
+
+            WHEN tags['tourism'] IN ('information','viewpoint') THEN tags['tourism']
+
             -- Rail
             WHEN tags['railway'] = 'station' THEN 'railway_station'
             WHEN tags['railway'] = 'halt' THEN 'railway_halt'
@@ -270,11 +399,22 @@ FROM (
                 'viaduct'
             ) THEN tags['bridge']
 
-            WHEN tags['man_made'] IN ('bridge', 'pier') THEN tags['man_made']
+            WHEN tags['man_made'] IN (
+                'bridge',
+                'cutline',
+                'pier',
+                'pipeline',
+                'storage_tank',
+                'silo',
+                'utility_pole',
+                'water_tower'
+            ) THEN tags['man_made']
 
-            WHEN tags['waterway'] IN ('dam') THEN 'dam'
+            WHEN tags['waterway'] IN ('dam','weir') THEN tags['waterway']
 
-        END AS subclass
+            WHEN tags['tourism'] = 'camp_site' AND wkt LIKE 'POINT%' THEN 'camp_site'
+
+        END AS class
     FROM
         -- These two lines get injected.
         {daylight_table}
@@ -283,6 +423,7 @@ FROM (
         AND ARRAYS_OVERLAP(
             MAP_KEYS(tags),
             ARRAY[
+                'barrier',
                 'bridge',
                 'communication:mobile_phone',
                 'communication',
@@ -291,6 +432,7 @@ FROM (
                 'power',
                 'tower:type',
                 'tower',
+                'tourism',
                 'waterway',
                 -- Transit
                 'aerialway',
@@ -305,4 +447,4 @@ FROM (
         ) = TRUE
     )
 WHERE
-    subclass IS NOT NULL
+    class IS NOT NULL

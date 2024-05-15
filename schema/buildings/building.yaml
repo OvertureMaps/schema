@@ -25,27 +25,122 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
       - "$ref": ./defs.yaml#/shapeContainer
     properties:
-      class:
+      subtype:
         description: >-
           A broad category of the building type/purpose. When the
           current use of the building does not match the built purpose,
-          the class should be set to represent the current use of the
+          the subtype should be set to represent the current use of the
           building.
         type: string
         enum:
-          - residential
-          - outbuilding
           - agricultural
-          - commercial
-          - industrial
-          - education
-          - service
-          - religious
           - civic
-          - transportation
-          - medical
+          - commercial
+          - education
           - entertainment
+          - industrial
+          - medical
           - military
+          - outbuilding
+          - religious
+          - residential
+          - service
+          - transportation
+      class:
+        description: >-
+          Further delineation of the building's built purpose.
+        type: string
+        enum:
+          - agricultural
+          - allotment_house
+          - apartments
+          - barn
+          - beach_hut
+          - boathouse
+          - bungalow
+          - bunker
+          - cabin
+          - carport
+          - cathedral
+          - chapel
+          - church
+          - civic
+          - clinic
+          - college
+          - commercial
+          - cowshed
+          - detached
+          - digester
+          - dormitory
+          - duplex
+          - dwelling_house
+          - factory
+          - farm
+          - farm_auxiliary
+          - fire_station
+          - garage
+          - garages
+          - ger
+          - glasshouse
+          - government
+          - government_office
+          - grandstand
+          - greenhouse
+          - guardhouse
+          - hangar
+          - hospital
+          - hotel
+          - house
+          - houseboat
+          - hut
+          - industrial
+          - kindergarten
+          - kiosk
+          - manufacture
+          - marketplace
+          - military
+          - monastery
+          - mosque
+          - office
+          - outbuilding
+          - parking
+          - pavilion
+          - presbytery
+          - public
+          - religious
+          - residential
+          - restaurant
+          - retail
+          - school
+          - semi
+          - semidetached_house
+          - service
+          - shed
+          - shop
+          - shrine
+          - silo
+          - slurry_tank
+          - sports_centre
+          - sports_hall
+          - stable
+          - stadium
+          - static_caravan
+          - stilt_house
+          - storage_tank
+          - sty
+          - supermarket
+          - synagogue
+          - temple
+          - terrace
+          - toilets
+          - townhouse
+          - train_station
+          - transformer_tower
+          - transportation
+          - trullo
+          - university
+          - warehouse
+          - wayside_shrine
       has_parts:
         description: Flag indicating whether the building has parts
         type: boolean

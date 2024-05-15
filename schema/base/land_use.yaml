@@ -43,17 +43,17 @@ properties:
           - grass
           - horticulture
           - landfill
+          - managed
           - medical
           - military
           - park
           - pedestrian
-          - public
           - protected
+          - public
           - recreation
           - religious
           - residential
           - resource_extraction
-          - structure
           - transportation
           - winter_sports
       class:
@@ -81,7 +81,6 @@ properties:
           - common
           - conservation
           - construction
-          - dam
           - danger_area
           - depot
           - doctors
@@ -98,7 +97,7 @@ properties:
           - garden
           - golf_course
           - grass
-          - graveyard
+          - grave_yard
           - green
           - greenfield
           - greenhouse_horticulture
@@ -125,7 +124,6 @@ properties:
           - park
           - peat_cutting
           - pedestrian
-          - pier
           - pitch
           - plant_nursery
           - playground
@@ -160,6 +158,7 @@ properties:
           - water_park
           - wilderness_area
           - winter_sports
+          - works
           - zoo
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
       surface:

@@ -70,7 +70,8 @@ FROM (
                 'retail',
                 'industrial',
                 'institutional',
-                'brownfield'
+                'brownfield',
+                'works'
             ) THEN 'developed'
 
             -- Education
@@ -149,8 +150,9 @@ FROM (
 
             -- There are 5.3M landuse=grass tags without other more descriptive tags
             WHEN class IN (
-                'grass'
-            ) THEN 'grass'
+                'grass',
+                'cutline'
+            ) THEN 'managed'
 
             -- Pedestrian Infrastructure
             WHEN class IN (
@@ -210,9 +212,6 @@ FROM (
                 'quarry',
                 'salt_pond'
             ) THEN 'resource_extraction'
-
-            -- Structure
-            WHEN class IN ('pier', 'dam', 'bridge') THEN 'structure'
 
             -- Transportation
             WHEN class IN ('depot', 'traffic_island', 'highway')
@@ -290,10 +289,6 @@ FROM (
                 --Polygons
                 wkt_geometry like '%POLYGON%',
                 CASE
-
-                    -- First, extract polygonal piers and dams.
-                    WHEN tags['man_made'] IN ('pier') AND tags['highway'] = NULL THEN tags['man_made']
-                    WHEN tags['waterway'] = 'dam' THEN 'dam'
 
                     -- Check for Military specific tags
                     WHEN tags['military'] <> 'no' THEN
@@ -407,6 +402,7 @@ FROM (
                     WHEN tags['leisure'] IN (
                         'beach_resort',
                         'common',
+                        'dog_park',
                         'garden',
                         'golf_course',
                         'marina',
@@ -431,7 +427,9 @@ FROM (
 
                     -- Else use the landuse tag and assign it to a class above
                     -- (refer aginfo.osm.org/keys/landuse#values for top landuse values)
-                    WHEN tags['landuse'] NOT IN ('meadow','forest','grass') THEN tags['landuse']
+                    WHEN tags['landuse'] NOT IN ('forest','grass') THEN tags['landuse']
+
+                    WHEN tags['man_made'] IN ('works') THEN 'works'
                 END,
                 -- Linestrings / Points
                 CASE

@@ -141,6 +141,12 @@ function expected_errors() {
   yq -r '(.properties.ext_expected_errors // []) | .[]' "$instance_file"
 }
 
+function contains() {
+  local haystack="$1"
+  local needle="$1"
+  grep -qF "$needle" <<<"$haystack"
+}
+
 function schema() {
   echo "---- VERIFYING schema ----"
   printf "%s..." "$schema_file"
@@ -197,7 +203,7 @@ function counterexamples() {
       (verify simple "$instance_file" || true) 2>&1 | mapfile -t actual_errors
       for expected_error in "${expected_errors[@]}"; do
         for actual_error in "${actual_errors[@]}"; do
-          if [[ "$actual_error" == *"$expected_error"* ]]; then
+          if contains "$actual_error" "$expected_error"; then
             continue 2
           fi
         done

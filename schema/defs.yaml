@@ -28,6 +28,7 @@ description: Common schema definitions shared by all themes
         - division_area
         - infrastructure
         - land
+        - land_cover
         - land_use
         - locality                # DEPRECATED
         - locality_area           # DEPRECATED
@@ -159,31 +160,30 @@ description: Common schema definitions shared by all themes
           https://github.com/OvertureMaps/schema-wg/pull/10
     language:
       description: >-
-        An IETF-BCP47 language tag, as defined in
-        https://www.rfc-editor.org/rfc/bcp/bcp47.txt.
+        A IETF-BCP47 language tag.
 
-        Although the BCP47 language tag definition is complex, a simplified
-        view defines a language as "language-script-region" where script and
-        region are optional. The specification lists allowed values for language,
-        script, and region. It further describes how to include variants,
-        extensions and other private custom extensions, which are allowed but
-        not described here.
-
-        For some languages, the "Suppress-Script" property in BCP47 defines a
-        script that can be omitted from the language tag. For example, the
-        "Latn" script can be omitted for the "en" language. By convention,
-        Overture will always omit the script when it matches the Suppress-Script
-        property for a language. In other words, "en-Latn" is forbidden in favor
-        of "en", and same for "ru-Cyrl" in favor of "ru".
-
-        The complete lists of allowed values can be found at:
-        https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
+        The validating regular expression for this property follows the pattern
+        described in https://www.rfc-editor.org/rfc/bcp/bcp47.txt with the
+        exception that private use subtags are omitted from the pattern.
       type: string
-      pattern: "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$"
+      pattern: "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$"
       "$comment": >-
-          The "pattern" is mostly a placeholder. It captures the
-          language[-script][-region] variation of BCP47 but not the
-          "grandfathered" values and other variants and extensions.
+          This pattern recognizes BCP-47 language tags at the lexical or
+          syntactic level. It verifies that candidate tags follow the grammar
+          described in the RFC, but not that they are validly registered tag in
+          IANA's language subtag registry.
+
+          In understanding the regular expression, remark that '(:?' indicates
+          a non-capturing group, and that all the top-level or non-nested
+          groups represent top-level components of `langtag` referenced in the
+          syntax section of https://www.rfc-editor.org/rfc/bcp/bcp47.txt. In
+          particular, the top-level groups in left-to-right order represent:
+
+            1. language
+            2. ["-" script]
+            3. ["-" region]
+            4. *("-" variant)
+            5. *("-" extension)
     nameRule:
       type: object
       required: [value]
@@ -230,9 +230,32 @@ description: Common schema definitions shared by all themes
       minProperties: 1
       additionalProperties: false
       patternProperties:
-        "^[a-zA-Z]{2,3}(-[a-zA-Z]{4})?(-[a-zA-Z]{2})?$":
+        "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$":
+          description: >-
+            Each entry consists of a key that is an IETF-BCP47 language tag; and
+            a value that reflects the common name in the language represented by
+            the key's language tag.
+
+            The validating regular expression for this property follows the
+            pattern described in https://www.rfc-editor.org/rfc/bcp/bcp47.txt
+            with the exception that private use tags are not supported.
           "$comment": >-
-            This is an incomplete pattern for BCP47 language tags.
+            This pattern recognizes BCP-47 language tags at the lexical or
+            syntactic level. It verifies that candidate tags follow the grammar
+            described in the RFC, but not that they are validly registered tag
+            in IANA's language subtag registry.
+  
+            In understanding the regular expression, remark that '(:?' indicates
+            a non-capturing group, and that all the top-level or non-nested
+            groups represent top-level components of `langtag` referenced in the
+            syntax section of https://www.rfc-editor.org/rfc/bcp/bcp47.txt. In
+            particular, the top-level groups in left-to-right order represent:
+  
+              1. language
+              2. ["-" script]
+              3. ["-" region]
+              4. *("-" variant)
+              5. *("-" extension)
           type: string
           minLength: 1
           pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
@@ -313,3 +336,21 @@ description: Common schema definitions shared by all themes
         moving along the line from beginning to end
       properties:
         side: { "$ref": "#/$defs/propertyDefinitions/side" }
+    cartographyContainer:
+      title: cartography
+      description: Defines cartograhic hints for optimal use of Overture features in map making.
+      type: object
+      properties:
+        cartography:
+          type: object
+          properties:
+            min_zoom:
+              description: Recommended minimum tile zoom per the Google Maps tiling specification.
+              type: integer
+              minimum: 0
+              maximum: 23
+            max_zoom:
+              description: Recommended maximum tile zoom per the Google Maps tiling specification.
+              type: integer
+              minimum: 0
+              maximum: 23
