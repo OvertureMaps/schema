@@ -318,7 +318,8 @@ properties:
         value:
           description: Speed value
           type: integer
-          minimum: 20
+          minimum: 1
+          maximum: 350
         unit:
           description: Speed unit
           type: string
