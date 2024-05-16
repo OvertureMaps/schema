@@ -90,17 +90,17 @@ description: Common schema definitions for divisions theme
           minLength: 1
           pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
     perspectives:
-      description: Collection of perspectives of single feature.
+      description: Political perspectives from which division is viewed.
       type: object
       unevaluatedProperties: false
       required: [mode, countries]
       properties:
         mode:
-          description: Mode in which perspective should be used.
+          description: Whether perspective holder accept or dispute this division.
           type: string
           enum: [accepted_by, disputed_by]
         countries:
-          description: Array of counteries with given perspective.
+          description: Countries holding the given mode of perspective.
           type: array
           items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
           minItems: 1
