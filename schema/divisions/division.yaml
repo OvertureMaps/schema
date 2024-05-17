@@ -168,11 +168,13 @@ properties:     # JSON Schema: Top-level object properties.
         description: Population of the division
         type: integer
         minimum: 0
-      capital_division_id:
+      capital_division_ids:
         description:
-          Division ID of this division's capital division. If present,
-          this property will refer to the division ID of the capital
-          city, county seat, etc. of a division.
-        allOf:
-          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
+          Division IDs of this division's capital divisions. If present,
+          this property will refer to the division IDs of the capital
+          cities, county seats, etc. of a division.
+        type: array
+        minItems: 0
+        uniqueItems: true
+        items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
       wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
