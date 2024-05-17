@@ -45,6 +45,24 @@ const config = {
 
   themes: ["docusaurus-json-schema-plugin"],
 
+  plugins: [
+    () => ({
+      name: 'custom-docusaurus-plugin',
+      configureWebpack() {
+        return {
+          module: {
+            rules: [
+              {
+                test: /\.yaml$/,
+                use: 'raw-loader'
+              },
+            ],
+          },
+        };
+      },
+    })
+  ],
+
   presets: [
     [
       'classic',
@@ -52,7 +70,8 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          routeBasePath: '/'
+          routeBasePath: '/',
+          sidebarCollapsible: false,
         },
         blog: false,
         theme: {

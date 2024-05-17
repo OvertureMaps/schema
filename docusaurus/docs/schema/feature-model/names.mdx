@@ -2,14 +2,18 @@
 title: Names
 ---
 
-<!-- import JSONSchemaViewer from "@theme/JSONSchemaViewer"; -->
-<!-- import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions" -->
-<!-- import yamlLoad from "@site/src/components/yamlLoad" -->
-<!-- import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml"; -->
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
 ## Common names schema
 
 Named entities in Overture Map share a common name schema.
+
+<JSONSchemaViewer
+  schema={ yamlLoad(MainDefs) }
+  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyDefinitions/allNames" })}/>
 
 ### Primary
 
