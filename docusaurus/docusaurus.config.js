@@ -71,7 +71,6 @@ const config = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           routeBasePath: '/',
-          sidebarCollapsible: false,
         },
         blog: false,
         theme: {
@@ -95,11 +94,11 @@ const config = {
         },
         items: [
           {
-            type: 'docSidebar',
+            to: 'schema',
+            label: 'Schema Reference',
             sidebarId: 'schema',
             position: 'left',
-            label: 'Schema Reference',
-          }
+          },
         ],
       },
       footer: {
