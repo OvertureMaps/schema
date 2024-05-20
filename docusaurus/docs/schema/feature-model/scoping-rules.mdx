@@ -18,15 +18,14 @@ import ExampleLanesAbsoluteForm from '!!raw-loader!@site/docs/_examples/transpor
 
 ## Scoped and rule-based properties
 
-In the real-world, many facts and rules affecting transportation have
+In the real-world, many facts and rules affecting entities have
 only a partial application, meaning they don't apply everywhere, or
-they don't apply at all times, or to all travellers, or to all sets of
+they don't apply at all times, or to everyone, or to all sets of
 external conditions. For example, access restrictions on a road segment
 might not apply to all people or all kinds of vehicles, or they might
-vary according to the day of the week.
+vary according to the day of the week. <!-- add another example that is not transportation focused -->
 
-The schema model for the Overture Maps transportation theme uses two related concepts to capture the partial application of
-facts and rules: scoped values, and rule-based properties.
+The Overture Maps schema uses two related concepts to capture the partial application of facts and rules: scoped values, and rule-based properties.
 
 ### Scoped values and scoping properties
 
@@ -34,7 +33,7 @@ A *scoped* value is a value which only applies within a limited scope.
 Most scoped values are rules in the rule lists of
 [rule-based properties](#rules-and-rule-based-properties). However,
 scoped values also exist outside of rule-based properties. For
-example a signpost property belonging to a road segment might be
+example, a signpost property belonging to a road segment might be
 geometrically scoped to its position along the road.
 
 The scope in which a scoped value applies is controlled by one or more
@@ -45,11 +44,7 @@ special child properties of the value known as *scoping* properties.
 <Tabs>
   <TabItem value="description" label="Description" default>
 
-The geometric scoping properties `at` and `between` limit the scope of their
-parent value to a position or range of positions, respectively, along a
-segment's geometry. When the parent value is a rule object, the rule only
-matches the position or range of positions specified in the `at` or
-`between` property.
+The geometric scoping properties `at` and `between` limit the scope of their parent value to a position or range of positions, respectively, along a segment's geometry. When the parent value is a rule object, the rule only matches the position or range of positions specified in the `at` or `between` property.
 
 The value of the `at` property is a single real number `a` where `0` &le; `a`
 &le; `1`. It represents a discrete position along the segment's geometry. The
@@ -58,7 +53,7 @@ value of the `between` property is a pair of numbers `[a, b]` where `0` &le;
 geometry. The numbers `a` and `b` are interpreted as percentage displacements
 along the parent segment's geometry starting from the start of the segment.
 (*The terms "start" and "end" are explained in
-[Shape and Connectivity](https://docs.overturemaps.org/guides/transportation/shape-connectivity).*)
+[Shape and Connectivity](https://docs.overturemaps.org/guides/transportation/shape-connectivity).*) <!-- move shape and connectivity examples back to docs in schema repo-->
 
 So, for example, the scoping property `"at": 0.15` scopes its parent value
 to the position on the segment that is displaced 15% of the segment length from

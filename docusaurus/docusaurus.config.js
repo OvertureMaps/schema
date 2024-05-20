@@ -104,7 +104,7 @@ const config = {
       },
       footer: {
         style: 'dark',
-        copyright: `Copyright © ${new Date().getFullYear()} Overture Maps Foundation. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Overture Maps Foundation.`,
       },
       prism: {
         theme: lightCodeTheme,
