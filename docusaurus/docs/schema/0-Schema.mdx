@@ -1,4 +1,32 @@
 ---
 title: Overture Schema
 slug: /schema
+
+# This page is available at docs.overturemaps.org/schema
 ---
+
+## Key concepts
+
+Overture Maps data is described using the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium. Each feature includes a geometric object with a unique ID and associated properties. For example, the Town Hall building in Seattle is represented in the Overture Maps buildings dataset as a [GeoJSON](https://geojson.org/) feature that looks like this:
+
+
+## Complex attributes
+
+Some feature properties are quite complex and require further explanation.
+
+- **[Names](/schema/attributes/names)**: where applicable, complex attributes such as names will always use the same schema across all themes.
+- **[Scoped and rule-based properties](/schema/attributes/scoping-rules)**: a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at least one scoping property.
+- **[Transportation](/schema/attributes/transportation)**:
+## Extensible attributes
+
+Any additional top-level property prefixed with `ext_` may be added to an Overture Maps feature, usually via the conflation of an external dataset and an Overture Maps dataset.
+
+## Measurements
+
+Measurements of real-world objects and features follow [The International System of Units (SI)](https://www.bipm.org/en/publications/si-brochure): heights, widths, lengths, etc. In the Overture Maps schema, these values are provided as scalar numeric value without units such as feet or meters. Overture does this to maximize consistency and predictability.
+
+Quantities specified in regulatory rules, norms and customs follow local specifications wherever possible. In the schema, these values are provided as two-element arrays where the first element is the scalar numeric value and the second value is the units. Overture uses local units of measurement -- feet in the United States and meters in the EU, for example.
+
+## Data formats
+
+Overture Maps describes data using a GeoJSON mental model and represents data as GeoJSON features. Overture Maps distributes data as [GeoParquet](https://geoparquet.org/). This documentation includes many examples of how to work with data stored in GeoParquet files.

@@ -32,24 +32,3 @@ Every feature in Overture Maps has a core set of properties.
 - `update_time`: the timestamp indicates when the feature was last updated.
 
 Additional properties in the schema come from different theme and type values. For example, in the building described above, the buildings `theme` with building `type` has `subtype` and `class` properties that defines what kind of building it is, in this case a civic building. It also has an optional `height` property. You can find more detail about the properties associated with each theme and type in the [schema reference](/schema/reference) section of this documentation.
-
-## Complex attributes
-
-Some feature properties are quite complex and require further explanation.
-
-- **[Names](/schema/feature-model/names)**: where applicable, complex attributes such as names will always use the same schema across all themes.
-- **[Scoped and rule-based properties](/schema/feature-model/scoping-rules)**: a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at least one scoping property.
-
-## Extensible attributes
-
-Any additional top-level property prefixed with `ext_` may be added to an Overture Maps feature, usually via the conflation of an external dataset and an Overture Maps dataset.
-
-## Measurements
-
-Measurements of real-world objects and features follow [The International System of Units (SI)](https://www.bipm.org/en/publications/si-brochure): heights, widths, lengths, etc. In the Overture Maps schema, these values are provided as scalar numeric value without units such as feet or meters. Overture does this to maximize consistency and predictability.
-
-Quantities specified in regulatory rules, norms and customs follow local specifications wherever possible. In the schema, these values are provided as two-element arrays where the first element is the scalar numeric value and the second value is the units. Overture uses local units of measurement -- feet in the United States and meters in the EU, for example.
-
-## Data formats
-
-Overture Maps describes data using a GeoJSON mental model and represents data as GeoJSON features. Overture Maps distributes data as [GeoParquet](https://geoparquet.org/). This documentation includes many examples of how to work with data stored in GeoParquet files.
