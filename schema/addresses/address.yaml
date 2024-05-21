@@ -2,7 +2,16 @@
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: address
 description:
-  Address points
+  Addresses are geographic points used for locating businesses and individuals.
+  The rules, fields, and fieldnames of an address can vary extensively between
+  locations. We use a simplified schema to capture worldwide address points.
+  This initial schema is largely based on the OpenAddresses
+  (www.openaddresses.io) project.
+
+  While every address has a country code, a street name, and number, the address
+  schema has 3 "admin levels". We refer to these as "region", "city", and "district".
+  Regions are not strictly region ISO3166 subdivision codes. The city field may not
+  be a city but can be a settlement or other locality.
 type: object
 properties:     # JSON Schema: Top-level object properties.
   id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
@@ -20,24 +29,13 @@ properties:     # JSON Schema: Top-level object properties.
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
-      country:
-        description: The country code in the Open Addresses distribution
-        allOf:
-          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode"
-      country_district:
-        description: The region folder name in the Open Addresses distribution
-        type: string
-        minLength: 1
+      country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
       region:
-        description: The state/province for the address
-        type: string
-        minLength: 1
-      district:
-        description: The county for the address
+        description: The region of the address
         type: string
         minLength: 1
       city:
-        description: The city/locality for the address
+        description: The city of the address
         type: string
         minLength: 1
       postcode:
@@ -46,7 +44,10 @@ properties:     # JSON Schema: Top-level object properties.
         minLength: 1
       street:
         description: >-
-          The street name associated with this address
+          The street name associated with this address. The street name can include the
+          street "type" or street suffix, e.g., Main Street. Ideally this is fully spelled
+          out and not abbreviated but we acknowledge that many address datasets abbreviate
+          the street name so it is acceptable.
         type: string
         minLength: 1
       number:
@@ -58,6 +59,6 @@ properties:     # JSON Schema: Top-level object properties.
         type: string
         minLength: 1
       unit:
-        description: The suite/unit/apartment for the address row
+        description: The suite/unit/apartment/floor number
         type: string
         minLength: 1
