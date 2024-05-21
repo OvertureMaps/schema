@@ -1,4 +1,11 @@
 CASE
+    -- Prioritize these amenity tags when present because they are also used to determine subtype:
+    WHEN tags['amenity'] IN (
+        'library',
+        'parking',
+        'post_office'
+    ) THEN tags['amenity']
+
     -- Certain building tags become the class value to further describe the building subtype
     WHEN tags['building'] IN (
 
@@ -111,5 +118,7 @@ CASE
         'train_station',
         'transportation'
     ) THEN tags['building']
+
+    -- No other allowed classes
     ELSE NULL
 END
