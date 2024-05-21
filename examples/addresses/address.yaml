@@ -10,7 +10,6 @@ properties:
   update_time: '2024-04-26T23:55:01-08:00'
   version: 0
   country: US
-  country_district: MA
   region: MA
   city: NEWTON CENTRE
   postcode: '02459'
