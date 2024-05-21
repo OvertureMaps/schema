@@ -82,6 +82,7 @@ SELECT
     -- Relevant OSM tags for land type
     MAP_FILTER(tags, (k,v) -> k IN (
             'building',
+            'genus',
             'golf',
             'highway',
             'landcover',
@@ -89,6 +90,7 @@ SELECT
             'leisure',
             'meadow',
             'natural',
+            'species',
             'sport',
             'surface',
             'type',
