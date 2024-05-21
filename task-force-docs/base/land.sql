@@ -122,6 +122,9 @@ SELECT
     -- Wikidata is a top-level property in the OSM Container
     tags['wikidata'] as wikidata,
 
+    -- Overture's concept of `layer` is called level
+    tags['layer'] AS level,
+
     -- Elevation as integer (meters above sea level)
     TRY_CAST(tags['ele'] AS integer) AS elevation,
 
