@@ -21,4 +21,4 @@ properties:
     driving_side: right
   capital_division_ids: ['    ']
   ext_expected_errors:
-    - "[I#/properties/street] [S#/properties/properties/properties/street/pattern] does not match pattern '^(\\S.*)?\\S$'"
+    - "[I#/properties/capital_division_id] [S#/$defs/propertyDefinitions/id/pattern] does not match pattern"
