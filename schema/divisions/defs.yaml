@@ -89,36 +89,22 @@ description: Common schema definitions for divisions theme
           type: string
           minLength: 1
           pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
-    perspective:
-      description:
-        A political perspective from which the division is viewed
+    perspectives:
+      description: Political perspectives from which division is viewed.
       type: object
       unevaluatedProperties: false
-      required: [type, holder]
-      oneOf:
-        - if:
-            properties:
-              type: { enum: [country] }
-          then:
-            properties:
-              holder: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
-          else:
-            false
+      required: [mode, countries]
       properties:
-        type:
-          description:
-            Type of perspective
-
-            If the perspective is of type 'country', then the 'holder'
-            property must be an ISO 3166-1 alpha-2 country code
-            identifying the country that holds this perspective.
+        mode:
+          description: Whether perspective holder accept or dispute this division.
           type: string
-          enum:
-            - country   # The perspective is held by the sovereign state
-                        # identified by the ISO-3166-1 alpha-2 country
-                        # code in the 'value' property.
-        holder:
-          type: string
+          enum: [accepted_by, disputed_by]
+        countries:
+          description: Countries holding the given mode of perspective.
+          type: array
+          items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+          minItems: 1
+          uniqueItems: true
     boundarySideDivision:
       description:
         Represents a division on one side or the other of a boundary
