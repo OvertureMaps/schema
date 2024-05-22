@@ -133,7 +133,7 @@ SELECT
     tags['wikidata'] as wikidata,
 
     -- Overture's concept of `layer` is called level
-    tags['layer'] AS level,
+    TRY_CAST(tags['layer'] AS int) AS level,
 
     -- Elevation as integer (meters above sea level)
     TRY_CAST(tags['ele'] AS integer) AS elevation,
@@ -308,6 +308,7 @@ SELECT
         )
     ) ] as sources,
     NULL AS wikidata,
+    NULL AS level,
     NULL AS elevation,
     wkt AS wkt_geometry
 FROM {daylight_earth_table}
