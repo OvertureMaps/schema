@@ -15,11 +15,6 @@ geometry:
 properties:
   theme: buildings
   type: building
-  bbox:
-    xmin: -73.98650360107422
-    xmax: -73.98480987548828
-    ymin: 40.7479248046875
-    ymax: 40.748958587646484
   subtype: commercial
   class: office
   height: 443.2
@@ -31,3 +26,5 @@ properties:
   - property: dataset
     dataset: OpenStreetMap
     record_id: w34633854@71
+  version: 0
+  update_time: "2023-06-06T10:30:00Z"
