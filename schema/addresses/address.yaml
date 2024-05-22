@@ -17,10 +17,7 @@ properties:     # JSON Schema: Top-level object properties.
   id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
   geometry:
     description:
-      Division geometry MUST be a Point as defined by GeoJSON schema.
-      It represents the approximate location of a position commonly
-      associated with the real-world entity modeled by the division
-      feature.
+      An address geometry MUST be a Point as defined by GeoJSON schema.
     unevaluatedProperties: false
     allOf:
       - "$ref": https://geojson.org/schema/Point.json
@@ -34,14 +31,22 @@ properties:     # JSON Schema: Top-level object properties.
         description: The region of the address
         type: string
         minLength: 1
+        pattern: ^(\S.*)?\S$
+      district:
+        description: The district of the address
+        type: string
+        minLength: 1
+        pattern: ^(\S.*)?\S$
       city:
         description: The city of the address
         type: string
         minLength: 1
+        pattern: ^(\S.*)?\S$
       postcode:
         description: The postcode for the address
         type: string
         minLength: 1
+        pattern: ^(\S.*)?\S$
       street:
         description: >-
           The street name associated with this address. The street name can include the
@@ -50,6 +55,7 @@ properties:     # JSON Schema: Top-level object properties.
           the street name so it is acceptable.
         type: string
         minLength: 1
+        pattern: ^(\S.*)?\S$
       number:
         description: >-
           The house number for this address.  This field may not strictly be a
@@ -58,7 +64,9 @@ properties:     # JSON Schema: Top-level object properties.
           address.
         type: string
         minLength: 1
+        pattern: ^(\S.*)?\S$
       unit:
         description: The suite/unit/apartment/floor number
         type: string
         minLength: 1
+        pattern: ^(\S.*)?\S$
