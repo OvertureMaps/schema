@@ -85,7 +85,7 @@ SELECT
     tags['wikidata'] as wikidata,
 
     -- Overture's concept of `layer` is called level
-    tags['layer'] AS level,
+    TRY_CAST(tags['layer'] AS int) AS level,
 
     -- Elevation is common on some ponds / lakes.
     TRY_CAST(tags['ele'] AS integer) AS elevation,
@@ -324,6 +324,7 @@ SELECT
     ) ] as sources,
     -- Wikidata is a top-level property in the OSM Container
     NULL as wikidata,
+    0 as level, -- it's the ocean, does it go lower?
     -- Other type=water top-level attributes
     0 AS elevation,
     TRUE AS is_salt,
