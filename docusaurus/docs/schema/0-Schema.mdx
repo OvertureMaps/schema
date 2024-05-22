@@ -9,8 +9,8 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
-import StringifyObject from "@site/src/components/shared-libs/stringifyObject" 
-import yamlLoad from "@site/src/components/yamlLoad" 
+import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
+import yamlLoad from "@site/src/components/yamlLoad"
 import BuildingFeature from "!!raw-loader!@site/docs/_examples/buildings/empire-state-building.yaml";
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
@@ -20,13 +20,13 @@ Overture Maps data is structured by three components: the schema, the data model
 
 ## GeoJSON mental model
 
- The Overture Maps schema is defined by the [JSON schema](https://json-schema.org/), and [GeoJSON](https://geojson.org/) is used as the canonical geospatial format. GeoJSON provides us with a mental model and language to express data constructions in the schema. 
+ The Overture Maps schema is defined by the [JSON schema](https://json-schema.org/), and [GeoJSON](https://geojson.org/) is used as the canonical geospatial format. GeoJSON provides us with a mental model and language to express data constructions in the schema.
 
 ## Features represent entities
-Overture Maps uses the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium to describe each feature. Features in Overture Maps represent entities in the real world. An entity is a physical thing or concept: a segment of road, a city boundary, a building, or a park. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity could be represented by multiple features in a geospatial dataset, and a feature in a dataset might be a representation of multiple entities. For example, a school building and its entrances and exits might be considered a single entity in the real world but could be represented as multiple features in a dataset, each feature with a unique ID. 
+Overture Maps uses the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium to describe each feature. Features in Overture Maps represent entities in the real world. An entity is a physical thing or concept: a segment of road, a city boundary, a building, or a park. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity could be represented by multiple features in a geospatial dataset, and a feature in a dataset might be a representation of multiple entities. For example, a school building and its entrances and exits might be considered a single entity in the real world but could be represented as multiple features in a dataset, each feature with a unique ID.
 
-## Geographic Entity Representation System (GERS)
-All features in Overture Maps have unique IDs. For some feature types, the unique ID is registered with the Global Entity Reference System (GERS) and is called a GERS ID. GERS is a framework for structuring, encoding, and matching map data to a shared universal reference. It provides a mechanism to conflate datasets, matching one or more features via those unique IDs. For example, two geospatial datasets each containing a polygon that represents the footprint of the Empire State Building in New York City can be easily matched because both polygons will contain the same GERS ID. The resulting dataset will have a single polygon feature, with one GERS ID, that represents the real-world entity known as "New York's Empire State Building."
+## Global Entity Reference System (GERS)
+All features in Overture Maps have unique IDs. For some feature types, the unique ID is registered with the Global Entity Reference System (GERS). GERS is a framework for structuring, encoding, and matching map data to a shared universal reference. It provides a mechanism to conflate datasets, matching one or more features via those unique IDs. For example, two geospatial datasets each containing a polygon that represents the footprint of the Empire State Building in New York City can be easily matched because both polygons will reference the same ID in GERS. A conflated dataset will then have a single polygon feature with one ID that represents the real-world entity known as "New York's Empire State Building."
 
 ## Schema characteristics
 
@@ -45,7 +45,7 @@ Every feature in Overture Maps has a core set of properties that are described i
    - boolean properties have a prefix verb "is" or "has" in a way that grammatically makes sense
       e.g.
 	     - `has_street_lights=true`
-		 - `is_accessible=false` 
+		 - `is_accessible=false`
 
 ### Measurements
 
@@ -54,7 +54,7 @@ Measurements of real-world objects and features follow [The International System
 Quantities specified in regulatory rules, norms and customs follow local specifications wherever possible. In the schema, these values are provided as two-element arrays where the first element is the scalar numeric value and the second value is the units. Overture uses local units of measurement -- feet in the United States and meters in the EU, for example. The exact unit is confirmed in the specification of the property but is not repeated in the data.
 
 ### Relations
-Low-cardinality directed relations are stored as ID references on the source feature. 
+Low-cardinality directed relations are stored as ID references on the source feature.
 
 ### Regulations and restrictions
 
@@ -71,4 +71,3 @@ Overture allows for add hoc extensions beyond what is described in the schema. A
 ## Data formats
 
 While Overture Maps describes data using a GeoJSON mental model it distributes data as [GeoParquet](https://geoparquet.org/), a column-oriented format that is ideally suited for large geospatial datasets. This documentation includes many examples of how to work with data stored in GeoParquet files.
-
