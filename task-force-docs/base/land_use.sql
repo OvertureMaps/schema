@@ -272,6 +272,9 @@ FROM (
             )
         ) ] AS sources,
 
+        -- Overture's concept of `layer` is called level
+        tags['layer'] AS level,
+
         -- Wikidata is a top-level property in the OSM Container
         tags['wikidata'] as wikidata,
 
