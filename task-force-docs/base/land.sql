@@ -82,21 +82,31 @@ SELECT
     -- Relevant OSM tags for land type
     MAP_FILTER(tags, (k,v) -> k IN (
             'building',
+            'denotation',
+            'diameter_crown',
+            'est_height',
             'genus',
             'golf',
+            'height',
             'highway',
             'landcover',
             'landuse',
+            'leaf_cycle',
+            'leaf_type',
             'leisure',
             'meadow',
+            'min_height',
             'natural',
+            'place',
             'species',
             'sport',
             'surface',
+            'taxon:cultivar',
+            'taxon:species',
+            'taxon',
             'type',
             'volcano:status',
-            'volcano:type',
-            'place'
+            'volcano:type'
         )
     ) AS source_tags,
 
