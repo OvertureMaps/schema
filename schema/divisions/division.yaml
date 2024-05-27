@@ -174,7 +174,7 @@ properties:     # JSON Schema: Top-level object properties.
           this property will refer to the division IDs of the capital
           cities, county seats, etc. of a division.
         type: array
-        minItems: 0
+        minItems: 1
         uniqueItems: true
         items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
       wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
