@@ -11,6 +11,4 @@ properties:
   version: 0
   subtype: country
   class: maritime
-  divisions:
-    - division_id: example:division:country:left
-    - division_id: example:division:country:right
+  divisions: ["example:division:region:left",  "example:division:region:right"]

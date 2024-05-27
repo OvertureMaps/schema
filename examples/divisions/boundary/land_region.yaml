@@ -11,6 +11,4 @@ properties:
   version: 0
   subtype: region
   class: land
-  divisions:
-    - division_id: example:division:region:left
-    - division_id: example:division:region:right
+  divisions: ["example:division:region:left",  "example:division:region:right"]
