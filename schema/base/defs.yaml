@@ -11,6 +11,34 @@ description: Common schema definitions the base theme (primarily from OSM)
       description: Elevation above sea level (in meters) of the feature.
       type: integer
       maximum: 9000
+    surface:
+      description: Surface material, mostly from the OSM tag, with some normalization.
+      type: string
+      enum:
+        - asphalt
+        - cobblestone
+        - compacted
+        - concrete
+        - concrete:plates
+        - dirt
+        - earth
+        - fine_gravel
+        - grass
+        - gravel
+        - ground
+        - paved
+        - paving_stones
+        - pebblestone
+        - recreation_grass
+        - recreation_paved
+        - recreation_sand
+        - rubber
+        - sand
+        - sett
+        - tartan
+        - unpaved
+        - wood
+        - woodchips
   propertyContainers:
     osmPropertiesContainer:
       title: "OSM Properties"

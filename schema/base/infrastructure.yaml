@@ -166,3 +166,4 @@ properties:
           - watchtower
           - water_tower
           - weir
+      surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }

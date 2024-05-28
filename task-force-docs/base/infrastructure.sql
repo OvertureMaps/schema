@@ -229,7 +229,35 @@ SELECT
         )
     ) ] AS sources,
 
-    tags['surface'] AS surface,
+    IF (tags['surface'] IN (
+            'asphalt',
+            'cobblestone',
+            'compacted',
+            'concrete',
+            'concrete:plates',
+            'dirt',
+            'earth',
+            'fine_gravel',
+            'grass',
+            'gravel',
+            'ground',
+            'paved',
+            'paving_stones',
+            'pebblestone',
+            'recreation_grass',
+            'recreation_paved',
+            'recreation_sand',
+            'rubber',
+            'sand',
+            'sett',
+            'tartan',
+            'unpaved',
+            'wood',
+            'woodchips'
+        ),
+        tags['surface'],
+        NULL)
+    AS surface,
 
     -- Overture's concept of `layer` is called level
     TRY_CAST(tags['layer'] AS int) AS level,
