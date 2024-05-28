@@ -47,6 +47,7 @@ SELECT
         -- Airports
         WHEN class IN (
             'airport',
+            'airport_gate',
             'airstrip',
             'helipad',
             'heliport',
@@ -245,6 +246,8 @@ FROM (
             -- Transit Infrastructure
             -- Air
             WHEN tags['aeroway'] IN ('runway', 'taxiway', 'airstrip', 'helipad') THEN tags['aeroway']
+
+            WHEN tags['aeroway'] = 'gate' THEN 'airport_gate'
 
             -- Specific airport classing
             WHEN tags['aeroway'] = 'aerodrome' THEN CASE
