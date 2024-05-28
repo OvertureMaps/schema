@@ -104,6 +104,6 @@ shapeContainer:
       type: string
     roof_height:
       description: >-
-        The height of the building roof in meters. This represents the distance from the beginning of the roof
-        line to the highest point of the roof.
+        The height of the building roof in meters. This represents the distance
+        from the base of the roof to the highest point of the roof.
       type: number
