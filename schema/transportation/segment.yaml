@@ -19,21 +19,23 @@ properties:
     unevaluatedProperties: false
     required: [subtype]
     allOf:
+      - title: "Segment Properties"
+        required: [class]
+        properties:
+          class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
+          access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
+          level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
+          level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
       - title: "Conditional Properties"
         if: { properties: { subtype: { enum: [road] } } }
         then:
-          required: [class]
           properties:
-            class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
-            speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
-            access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
+            lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
             prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
             road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
             road_flags: { "$ref": "#/$defs/propertyContainers/flagsContainer" }
+            speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
             width_rules: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
-            lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
-            level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
-            level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
             # The `road` property is deprecated and will be removed in the 2024-07 release
             road: { "$ref": "#/$defs/propertyDefinitions/road" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
