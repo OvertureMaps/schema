@@ -15,7 +15,7 @@ properties:
     - access_type: allowed
       when:
         using: [at_destination]
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       access:
         - access_type: allowed

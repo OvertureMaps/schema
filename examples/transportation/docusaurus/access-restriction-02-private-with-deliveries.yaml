@@ -21,7 +21,7 @@ properties:
       when:
         using: [to_deliver]
         during: Mo-Fr 08:30-16:30
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       access:
         - access_type: denied

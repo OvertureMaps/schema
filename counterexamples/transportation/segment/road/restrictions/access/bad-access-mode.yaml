@@ -23,7 +23,7 @@ properties:
   access_restrictions:
     - access_type: allowed
       when: {mode: [foo]}
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     surface: gravel
     flags:
       - [is_link, is_tunnel]

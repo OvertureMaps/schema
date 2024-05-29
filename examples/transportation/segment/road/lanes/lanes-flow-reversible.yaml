@@ -29,7 +29,7 @@ properties:
               when:
                 heading: backward
                 during: Mo-Su 12:00-24:00
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     surface:
       - value: paved
     lanes:

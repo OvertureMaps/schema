@@ -25,7 +25,6 @@ properties:
           required: [class]
           properties:
             class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
-            road: { "$ref": "#/$defs/propertyDefinitions/road" }
             speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
             access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
             prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
@@ -35,6 +34,8 @@ properties:
             lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
             level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
             level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
+            # The `road` property is deprecated and will be removed in the 2024-07 release
+            road: { "$ref": "#/$defs/propertyDefinitions/road" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
     properties:
@@ -137,6 +138,8 @@ properties:
         motor_vehicle includes car, truck and motorcycle
     road:
       description: >-
+        ** Note: this field is deprecated in favor of promoting its sub-properties into top-level properties and will be removed in the 2024-07 release **
+
         Properties for segments whose segment subtype is road. The road
         subtype includes any variety of road, street, or path, including
         dedicated paths for walking and cycling.

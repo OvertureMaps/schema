@@ -50,16 +50,16 @@ granularities. For example, a single road segment can represent a:
 
 ### Road class
 
-The `road.class` property of a road specifies its general purpose of use
+The `class` property of a road specifies its general purpose of use
 and its relative importance within the transportation network. The
-`road.class` property also helps establish reasonable default values.
+`class` property also helps establish reasonable default values.
 For example, the class `sidewalk` implies that the default
 [access restrictions](#access-restrictions) for the segment allow access for the [travel mode](/schema/attributes/transportation/travel-modes) `foot` and deny access to all other
-travel modes. Unlike many road segment properties, a road segment's `road.class`
+travel modes. Unlike many road segment properties, a road segment's `class`
 property does not support [geometric scoping](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently whenever a linear range of real-world road makes a class transition (for example, between secondary and residential), the Overture transportation
 [segmentation](/schema/attributes/transportation/shape-connectivity#segmentation) algorithm will generate a segment split.
 
-Every road segment has a class. If the `road.class` property is missing
+Every road segment has a class. If the `class` property is missing
 from a road segment, the default value `unknown` is assumed. The unknown
 road class is meant to be a temporary value until a more specific class
 is known.
@@ -75,25 +75,25 @@ case, it is similar to, but not the same as, OSM's `highway=*` tag.
 
 ### Surface
 
-The `road.surface` property of a road indicates its physical surface. If
+The `road_surface` property of a road indicates its physical surface. If
 omitted, a reasonable default value should be assumed based on the
-`road.class`.
+`class`.
 
-Like many road segment properties, the `road.surface` property supports[geometric scoping](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing)
+Like many road segment properties, the `road_surface` property supports[geometric scoping](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing)
 >>>>>>> ba43714b1e41da1e832b12aaa504a0527dd69d4a
 (linear referencing). Consequently, the effective road surface may vary
 along different sub-ranges of a road segment's geometry.
 
 ### Flags
 
-The `road.flags` property of a road is a set of named flag values
+The `road_flags` property of a road is a set of named flag values
 indicating the presence or absence of simple physical characteristics.
 
 For example, a road segment with
-`road.flags = [is_link, is_under_construction]` is a link segment that is
+`road_flags = [is_link, is_under_construction]` is a link segment that is
 physically under construction.
 
-Like many road segment properties, the `road.flags` property supports [geometric scoping](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing). Consequently, the applicable road flags may vary along different sub-ranges of a road segment's geometry.
+Like many road segment properties, the `road_flags` property supports [geometric scoping](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing). Consequently, the applicable road flags may vary along different sub-ranges of a road segment's geometry.
 
 ## Restrictions
 
@@ -110,7 +110,7 @@ resolve.)
 
 The implied access restrictions may be modified for the road segment as
 a whole by providing an explicit value for the property
-`road.restrictions.access`. (Access restrictions may also be specified
+`access_restrictions`. (Access restrictions may also be specified
 at the level of individual [lanes](#lanes), as explained elsewhere.)
 
 It is technically possible to specify a blanket access grant or refusal
@@ -161,7 +161,7 @@ to the specific application to resolve.)
 Overture Maps takes a permissive-by-default approach to transition
 restrictions. By default, all implied transitions are allowed. The
 set of allowed transitions may be reduced by adding explicit transition
-restrictions in the `road.restrictions.prohibited_transitions` property.
+restrictions in the `prohibited_transitions` property.
 
 Turn restrictions come in two flavors: simple and via: a simple turn
 restriction allows a simple regulation to be stated, such as "No right
@@ -330,7 +330,7 @@ limits.
 
 The implied speed limits may be configured for the whole road segment by
 providing an explicit value for the property
-`road.restrictions.speed_limits`. Note: granular speed limits can also be
+`speed_limits`. Note: granular speed limits can also be
 specified at the level of individual [lanes](#lanes), as explained
 elsewhere.
 
@@ -345,17 +345,6 @@ As with access restrictions and turn restrictions, speed limits can be specified
 
   <TabItem value="speedLimitDirectional" label="Different speed limit for northbound trucks" default>
 
-<!--
-
-TODO: Fix https://github.com/OvertureMaps/schema-wg/issues/155 and the
-      example text, then remove this comment and the below statement
-      about work in progress.
--->
-
-🐞 *There is an open issue with the schema that results in this example
-not being fully functional in the current release. We are working to
-correct it in an upcoming release.* 🐞
-
 <CodeBlock language="yaml">{ ExampleSpeedLimitsDirectional }</CodeBlock>
 
   </TabItem>
@@ -369,12 +358,12 @@ correct it in an upcoming release.* 🐞
 
 ## Lanes
 
-A road may optionally carry a `road.lanes` property which, if present, contains
+A road may optionally carry a `lanes` property which, if present, contains
 a list of rules that can be used to resolve the applicable traffic lane block
 for the road. A lane block is a list of lane objects. Each lane object in the
 block describes the physical structure and properties applicable to one the
 road's traffic lanes at a granularity sufficient to support the navigation use
-case. Note that the `road.lanes` property applies to traffic lanes, not to
+case. Note that the `lanes` property applies to traffic lanes, not to
 parking lanes.
 
 ### Use cases for lanes
@@ -387,8 +376,8 @@ granular turn-by-turn or maneuver-by-maneuver navigation applications.
 
 ### Default lane structure
 
-If the `road.lanes` property is omitted from a road segment, reasonable
-default values should be assumed based on `road.class` and the
+If the `lanes` property is omitted from a road segment, reasonable
+default values should be assumed based on `class` and the
 road-level [access restrictions](#access-restrictions). For example, for
 a stock two-way road segment of class `primary` with no heading-scoped
 access restrictions, a reasonable assumption is two lanes, one
@@ -556,7 +545,7 @@ to release soon.
 The traffic lane structure of a road segment can be different at different
 points along the segment, or at different times of the day, or both.
 Consequently, instead of having a static lane block, road segments carry a list of lane block [rules](/schema/attributes/scoping-rules#rules-and-rule-based-properties)
-in the optional `road.lanes`  property.
+in the optional `lanes`  property.
 
 - A rule may be scoped [geometrically](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing),
 which allows linear referencing to be used to specify the portion of the

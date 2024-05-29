@@ -58,7 +58,7 @@ properties:
           connector_id: overture:transportation:connector:456
       final_heading: backward
       when: {heading: backward}
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     surface:
       - value: gravel
     flags:

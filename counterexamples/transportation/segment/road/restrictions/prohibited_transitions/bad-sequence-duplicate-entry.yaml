@@ -20,7 +20,7 @@ properties:
         - segment_id: foo
           connector_id: bar
       final_heading: forward
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       prohibited_transitions:
         - sequence:

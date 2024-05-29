@@ -19,7 +19,7 @@ properties:
         mode: [hgv]
         heading: forward
       max_speed: {value: 65, unit: "mph"}
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       speed_limits:
         - max_speed: {value: 70, unit: "mph"}

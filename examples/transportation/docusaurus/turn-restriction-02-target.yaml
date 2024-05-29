@@ -24,6 +24,6 @@ properties:
     primary: Arborway
   road_surface:
     - value: paved
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     surface:
       - value: paved

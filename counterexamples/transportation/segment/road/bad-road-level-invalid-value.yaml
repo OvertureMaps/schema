@@ -14,7 +14,7 @@ properties:
   connector_ids: [fooConnector, barConnector]
   level_rules:
     - value: 1.5
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     level:
       - value: 1.5
   ext_expected_errors:

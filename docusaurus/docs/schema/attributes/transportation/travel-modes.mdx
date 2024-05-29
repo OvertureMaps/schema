@@ -75,7 +75,7 @@ Our criteria for recognizing a proposed new travel mode are:
    *intersects* with, other similar travel modes which are already
    recognized in the Overture schema.
 - the proposed new travel mode should preferably not be trivially
-   expressible using another existing [scoping property](/schema/attributes/scoping-rules#scoped-values-and-scoping-properties).(*An example of such a trivially-expressible concept might be a three-axle vehicle which is more appropriately phrased as `vehicle: { axle_count: { is_equal_to: 3 } }`.*)
+   expressible using another existing [scoping property](/schema/attributes/scoping-rules#scoped-values-and-scoping-properties).(*An example of such a trivially-expressible concept might be a three-axle vehicle which is more appropriately phrased as `vehicle: [{dimension: axle_count, comparison: equal_to, value: 3}]`.*)
 - the proposed new travel mode must be supported by existing data in at
    least one of Overture's upstream data sources.
 
