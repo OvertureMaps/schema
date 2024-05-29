@@ -241,7 +241,7 @@ properties:
         - required: [is_less_than]
           properties: { is_less_than: { type: integer } }
     vehicleScopeDimension:
-      description: TODO
+      description: Enumerates possible vehicle dimensions for use in restrictions
       type: string
       enum:
         - axle_count
@@ -250,7 +250,7 @@ properties:
         - weight
         - width
     vehicleScopeComparison:
-      description: TODO
+      description: Enumerates possible comparison operators for use in scoping
       type: string
       enum:
         - greater_than
@@ -259,7 +259,7 @@ properties:
         - less_than
         - less_than_equal
     vehicleScopeUnit:
-      description: TODO
+      description: Parent enum of both length and width for use in vehicle scoping
       anyOf:
         - {"$ref": "#/$defs/propertyDefinitions/lengthUnit"}
         - {"$ref": "#/$defs/propertyDefinitions/weightUnit"}
