@@ -12,6 +12,8 @@ properties:
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
+  level_rules:
+    - value: 1.5
   road:
     level:
       - value: 1.5

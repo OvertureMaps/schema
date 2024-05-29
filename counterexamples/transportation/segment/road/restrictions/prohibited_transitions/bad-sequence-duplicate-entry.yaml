@@ -13,6 +13,13 @@ properties:
   class: primary
   connector_ids:
     - overture:transportation:example:connector:1
+  prohibited_transitions:
+    - sequence:
+        - segment_id: foo
+          connector_id: bar
+        - segment_id: foo
+          connector_id: bar
+      final_heading: forward
   road:
     restrictions:
       prohibited_transitions:

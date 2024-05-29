@@ -12,9 +12,13 @@ properties:
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
+  # one way road in forward direction (lanes only in forward direction)
+  lanes:
+    - value:
+      - direction: forward
+      - direction: forward
   road:
     lanes:
-      # one way road in forward direction (lanes only in forward direction)
       - value:
         - direction: forward
         - direction: forward

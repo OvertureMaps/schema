@@ -17,6 +17,12 @@ properties:
   connector_ids:
     - overture:transportation:example:simple-turn-restriction-connector1
     - overture:transportation:example:simple-turn-restriction-connector2
+  prohibited_transitions:
+      - sequence:
+        - segment_id: overture:transportation:example:simple-turn-restriction-target
+          connector_id: overture:transportation:example:simple-turn-restriction-connector2
+        final_heading: forward
+        when: {heading: forward}
   road:
     restrictions:
       prohibited_transitions:

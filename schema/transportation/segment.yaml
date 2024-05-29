@@ -32,7 +32,6 @@ properties:
             road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
             road_flags: { "$ref": "#/$defs/propertyContainers/flagsContainer" }
             width_rules: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
-            width: { "$ref": "#/$defs/propertyDefinitions/width" }
             lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
             level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
             level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
@@ -145,7 +144,7 @@ properties:
       unevaluatedProperties: false
       default: {}
       properties:
-        # surface: { "$ref": "#/defs/propertyContainers/surfaceContainer" }
+        surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer" }
         flags: { "$ref": "#/$defs/propertyContainers/flagsContainer" }
         level: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
         width: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
@@ -417,9 +416,7 @@ properties:
       description: >-
         Properties defining vehicle attributes for which a rule is
         active.
-      type: array
-      uniqueItems: true
-      minLength: 1
+      type: object
       properties:
         vehicle:
           description: Vehicle attributes for which the rule applies
@@ -432,15 +429,12 @@ properties:
             unevaluatedProperties: false
             required: [dimension, comparison, value]
             properties:
-              dimension:
-                "$ref": "#/$defs/propertyDefinitions/vehicleScopeDimension"
-              comparison:
-                "$ref": "#/$defs/propertyDefinitions/vehicleScopeComparison"
+              dimension: { "$ref": "#/$defs/propertyDefinitions/vehicleScopeDimension" }
+              comparison: { "$ref": "#/$defs/propertyDefinitions/vehicleScopeComparison" }
               value:
                 type: number
                 minimum: 0
-              unit:
-                "$ref": "#/$defs/propertyDefinitions/vehicleScopeUnit"
+              unit: { "$ref": "#/$defs/propertyDefinitions/vehicleScopeUnit" }
     speedLimitsContainer:
       description: Rules governing speed on this road segment or lane
       type: array

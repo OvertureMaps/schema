@@ -14,6 +14,16 @@ properties:
   connector_ids: [lanes-resolution-example-connector]
   subtype: road
   class: motorway
+  lanes: # A list of two geometrically-scoped rules for resolving the lane block.
+    - between: [0, 0.67]
+      value:
+        - direction: backward
+        - direction: forward
+        - direction: forward
+    - between: [0.67, 1]
+      value:
+        - direction: backward
+        - direction: forward
   road:
     lanes: # A list of two geometrically-scoped rules for resolving the lane block.
       - between: [0, 0.67]

@@ -12,6 +12,10 @@ properties:
   version: 3
   subtype: road
   class: tertiary
+  road_surface:
+    - value: paved
+  road_flags:
+    - values: [is_covered]
   road:
     surface:
       - value: paved

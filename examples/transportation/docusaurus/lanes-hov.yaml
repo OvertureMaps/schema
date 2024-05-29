@@ -15,6 +15,31 @@ properties:
   update_time: "2024-03-13T16:35:53-08:00"
   version: 2
   class: secondary
+  lanes:
+      # one-way road with access and speed limit restrictions
+      # digitization: S->N
+      # |   |   |   |
+      # |   |   |   | => max speeds: 100 km/h for whole segment
+      # | h |   |   |    but on lane 2 is limited to 80 km/h for hgv vehicles
+      # | o |   |   |
+      # | v |   |   |
+      # |   |   |   |
+      # | 0 | 1 | 2 |
+      - value:
+        - direction: forward # lane 0 -> hov only
+          restrictions:
+           access:
+             - access_type: allowed
+               when:
+                 mode:
+                   - hov
+           min_occupancy: 3
+        - direction: forward # lane 1
+        - direction: forward # lane 2
+  speed_limits:
+    - max_speed:
+        value: 100
+        unit: km/h
   road:
     restrictions:
       speed_limits:

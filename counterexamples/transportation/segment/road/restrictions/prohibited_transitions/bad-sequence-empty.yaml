@@ -13,6 +13,9 @@ properties:
   class: primary
   connector_ids:
     - overture:transportation:example:connector:1
+  prohibited_transitions:
+    - sequence: []
+      final_heading: forward
   road:
     restrictions:
       prohibited_transitions:

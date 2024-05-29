@@ -13,6 +13,10 @@ properties:
   update_time: "2024-03-13T16:36:53-08:00"
   subtype: road
   class: residential
+  speed_limits:
+    - max_speed:
+        value: 30
+        unit: km/h
   road:
     restrictions:
       speed_limits:

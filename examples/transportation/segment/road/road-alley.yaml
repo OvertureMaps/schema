@@ -11,6 +11,10 @@ properties:
   version: 5
   subtype: road
   class: alley
+  access_restrictions:
+    - access_type: allowed
+      when:
+        using: [at_destination]
   road:
     restrictions:
       access:

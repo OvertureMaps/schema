@@ -15,6 +15,11 @@ properties:
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
+  width_rules:
+    - between: [0, 0.5]
+      value: 1.5
+    - between: [0.5, 1]
+      value: 2.0
   road:
     width:
     - between: [0, 0.5]

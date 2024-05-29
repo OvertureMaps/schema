@@ -12,6 +12,11 @@
     "update_time": "2024-03-14T08:08:49-08:00",
     "subtype": "road",
     "class": "primary",
+    "road_surface": [
+      {
+        "value": "hot mess"
+      }
+    ],
     "road": {
       "surface": [
         {

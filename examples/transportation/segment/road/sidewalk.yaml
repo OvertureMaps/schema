@@ -12,6 +12,8 @@ properties:
   subtype: road
   class: sidewalk
   connector_ids: [fooConnector, barConnector]
+  road_surface:
+    - value: paved
   road:
     surface:
       - value: paved

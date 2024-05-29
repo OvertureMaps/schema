@@ -13,10 +13,21 @@ properties:
   update_time: "2024-03-13T16:35:17-08:00"
   subtype: road
   class: motorway
+  access_restrictions:
+    - access_type: denied
+      when:
+        mode: [hgv]
+        vehicle:
+          - dimension: axle_count
+            comparison: greater_than_equal
+            value: 5
   road:
     restrictions:
       access:
         - access_type: denied
           when:
             mode: [hgv]
-            vehicle: { axle_count: { is_at_least: 5 } }
+            vehicle:
+              - dimension: axle_count
+                comparison: greater_than_equal
+                value: 5

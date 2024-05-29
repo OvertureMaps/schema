@@ -17,11 +17,51 @@ properties:
   connector_ids: [fooConnector, barConnector] # Topology: To discuss further.
   names:
     primary: Common Road Name
+  # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
+  road_surface:
+    - value: gravel
+  road_flags:
+    - values: [is_link, is_tunnel]
+  level: -1
+  level_rules:
+    - value: -1
+  width_rules:
+    - value: 10
+  speed_limits:
+    - min_speed:
+        value: 90
+        unit: km/h
+      max_speed:
+        value: 110
+        unit: mph
+      is_max_speed_variable: true
+    - max_speed:
+        value: 55
+        unit: mph
+      when: {mode: [ "truck" ]}
+    - max_speed:
+        value: 30
+        unit: km/h
+      between: [0.25, 0.50]
+      when:
+        during: Mo-Sa 09:00-12:00, We 15:00-18:00
+  prohibited_transitions:
+    - sequence:
+      - segment_id: overture:transportation:segment:234
+        connector_id: overture:transportation:connector:123
+      final_heading: forward
+      when: {heading: forward}
+    - sequence:
+        - segment_id: overture:transportation:segment:456
+          connector_id: overture:transportation:connector:345
+        - segment_id: overture:transportation:segment:567
+          connector_id: overture:transportation:connector:456
+      final_heading: backward
+      when: {heading: backward}
   road:
-    # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
     surface:
       - value: gravel
-    flags: 
+    flags:
       - values: [is_link, is_tunnel]
     level:
       - value: -1
