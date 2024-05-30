@@ -49,6 +49,7 @@ properties:
             Each entry in this array is the GERS ID of a transportation connector feature.
         uniqueItems: true
         default: []
+      routes: { "$ref": "#/$defs/propertyDefinitions/routes" }
 "$defs":
   propertyDefinitions:
     roadClass:
@@ -309,6 +310,36 @@ properties:
         - dirt
         - paving_stones
         - metal
+    routes:
+      description: Routes this segment belongs to
+      type: array
+      items:
+        type: object
+        unevaluatedProperties: false
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        properties:
+          name:
+            description: Full name of the route
+            type: string
+            minLength: 1
+            pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+          network:
+            description: Name of the highway system this route belongs to
+            type: string
+            minLength: 1
+            pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+          ref:
+            description: Code or number used to reference the route
+            type: string
+            minLength: 1
+            pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+          symbol:
+            description: URL or description of route signage
+            type: string
+            minLength: 1
+            pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+          wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
     speed:
       description: >-
         A speed value, i.e. a certain number of distance units
