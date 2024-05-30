@@ -29,11 +29,13 @@ SELECT
         -- Physical
         WHEN class IN (
             'cave_entrance',
+            'cliff',
             'hill',
             'mountain_range',
             'peak',
             'peninsula',
             'plateau',
+            'ridge',
             'saddle',
             'valley',
             'volcano'
@@ -80,19 +82,31 @@ SELECT
     -- Relevant OSM tags for land type
     MAP_FILTER(tags, (k,v) -> k IN (
             'building',
+            'denotation',
+            'diameter_crown',
+            'est_height',
+            'genus',
             'golf',
+            'height',
             'highway',
             'landcover',
             'landuse',
+            'leaf_cycle',
+            'leaf_type',
             'leisure',
             'meadow',
+            'min_height',
             'natural',
+            'place',
+            'species',
             'sport',
             'surface',
+            'taxon:cultivar',
+            'taxon:species',
+            'taxon',
             'type',
             'volcano:status',
-            'volcano:type',
-            'place'
+            'volcano:type'
         )
     ) AS source_tags,
 
@@ -118,6 +132,9 @@ SELECT
     -- Wikidata is a top-level property in the OSM Container
     tags['wikidata'] as wikidata,
 
+    -- Overture's concept of `layer` is called level
+    TRY_CAST(tags['layer'] AS int) AS level,
+
     -- Elevation as integer (meters above sea level)
     TRY_CAST(tags['ele'] AS integer) AS elevation,
 
@@ -134,6 +151,7 @@ FROM (
                 'bare_rock',
                 'beach',
                 'cave_entrance',
+                'cliff',
                 'desert',
                 'dune',
                 'fell',
@@ -147,6 +165,7 @@ FROM (
                 'peninsula',
                 'plateau',
                 'reef',
+                'ridge',
                 'rock',
                 'sand',
                 'saddle',
@@ -228,6 +247,7 @@ WHERE
             wkt_geometry LIKE '%POINT%'
             AND class IN (
                 'cave_entrance',
+                'cliff',
                 'hill',
                 'mountain_range',
                 'peak',
@@ -245,8 +265,10 @@ WHERE
         OR (
             wkt_geometry LIKE '%LINESTRING%'
             AND class IN (
+                'cliff',
                 'mountain_range',
                 'tree_row',
+                'ridge',
                 'valley'
             )
         )
@@ -285,6 +307,7 @@ SELECT
         )
     ) ] as sources,
     NULL AS wikidata,
+    NULL AS level,
     NULL AS elevation,
     wkt AS wkt_geometry
 FROM {daylight_earth_table}
