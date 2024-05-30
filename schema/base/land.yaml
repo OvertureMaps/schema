@@ -85,4 +85,5 @@ properties:
           - volcano
           - wetland
           - wood
+
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
