@@ -1,5 +1,6 @@
 ---
 name: Publish docs to staging website (for PR)
+run-name: Publish schema documentation to staging website
 
 on: [pull_request]
 
@@ -9,6 +10,9 @@ permissions:
 
 jobs:
   publish:
+    environment:
+      name: Schema Docs Staging
+      url: https://dfhx9f55j8eg5.cloudfront.net/pr/${{github.event.number}}/schema
     runs-on: ubuntu-latest
     steps:
       - name: Check out the schema repository
@@ -17,7 +21,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "19"
+          node-version: "20"
 
       - name: Install NPM dependencies
         run: cd docusaurus && npm install --prefer-dedupe
@@ -29,7 +33,7 @@ jobs:
         run: cd docusaurus && npm run build
 
       - name: Fetch AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::207370808101:role/Overture_GitHub_schema_Publish_Docs_Staging
           aws-region: us-east-2
@@ -41,3 +45,6 @@ jobs:
       - name: Purge CDN cache
         run: |
           aws cloudfront create-invalidation --distribution-id E3L106P8HVBE9L --paths "/pr/${{github.event.number}}/*"
+
+      - name: Publish URL
+        run: echo "View preview page at [https://dfhx9f55j8eg5.cloudfront.net/pr/${{github.event.number}}/](https://dfhx9f55j8eg5.cloudfront.net/pr/${{github.event.number}}/schema)" >> $GITHUB_STEP_SUMMARY
