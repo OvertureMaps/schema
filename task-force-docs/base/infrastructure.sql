@@ -258,7 +258,6 @@ FROM (
                 'watchtower'
             ) THEN tags['tower:type']
 
-            -- TODO: bridges, dams?
             WHEN tags['bridge'] = 'yes' THEN 'bridge'
             WHEN tags['bridge'] IN (
                 'aqueduct',
