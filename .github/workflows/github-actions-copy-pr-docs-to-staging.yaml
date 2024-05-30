@@ -41,3 +41,6 @@ jobs:
       - name: Purge CDN cache
         run: |
           aws cloudfront create-invalidation --distribution-id E3L106P8HVBE9L --paths "/pr/${{github.event.number}}/*"
+
+      - name: Publish URL
+        run: echo "View preview page at [https://dfhx9f55j8eg5.cloudfront.net/pr/${{github.event.number}}/](https://dfhx9f55j8eg5.cloudfront.net/pr/${{github.event.number}}/)" >> $GITHUB_STEP_SUMMARY
