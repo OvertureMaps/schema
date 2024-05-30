@@ -16,6 +16,7 @@ const _default = {
     '/transportation/segment.yaml': require('!!raw-loader!@site/docs/_schema/transportation/segment.yaml'),
 
     '/base/defs.yaml': require('!!raw-loader!@site/docs/_schema/base/defs.yaml'),
+    '/base/bathymetry.yaml': require('!!raw-loader!@site/docs/_schema/base/bathymetry.yaml'),
     '/base/land.yaml': require('!!raw-loader!@site/docs/_schema/base/land.yaml'),
     '/base/land_use.yaml': require('!!raw-loader!@site/docs/_schema/base/land_use.yaml'),
     '/base/water.yaml': require('!!raw-loader!@site/docs/_schema/base/water.yaml'),
