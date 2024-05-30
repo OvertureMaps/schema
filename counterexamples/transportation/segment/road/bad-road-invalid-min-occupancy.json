@@ -12,6 +12,27 @@
       "update_time": "2024-03-14T08:08:37-08:00",
       "subtype": "road",
       "class": "primary",
+      "road_flags": [
+        {
+          "values": ["is_tunnel"]
+        }
+      ],
+      "lanes": [
+        {
+          "value": [
+            {
+              "direction": "forward",
+              "restrictions": {
+                "min_occupancy": [
+                  {
+                    "is_at_least": 3
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
       "road": {
         "flags": [
           {
