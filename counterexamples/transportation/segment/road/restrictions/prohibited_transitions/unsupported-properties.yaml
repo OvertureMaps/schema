@@ -10,7 +10,15 @@ properties:
   class: residential
   version: 1
   update_time: "2024-03-14T08:12:00-08:00"
-  road:
+  prohibited_transitions:
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: backward
+      foo: bar
+      when:
+        baz: qux
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       prohibited_transitions:
         - sequence:
@@ -23,3 +31,5 @@ properties:
   ext_expected_errors:
     - "[I#/properties/road/restrictions/prohibited_transitions/0/foo] [S#/$defs/propertyDefinitions/road/properties/restrictions/properties/prohibited_transitions/items/unevaluatedProperties] not allowed"
     - "[I#/properties/road/restrictions/prohibited_transitions/0/when/baz] [S#/$defs/propertyDefinitions/road/properties/restrictions/properties/prohibited_transitions/items/properties/when/unevaluatedProperties] not allowed"
+    - "[I#/properties/prohibited_transitions/0/foo] [S#/$defs/propertyDefinitions/restrictions/properties/prohibited_transitions/items/unevaluatedProperties] not allowed"
+    - "[I#/properties/prohibited_transitions/0/when/baz] [S#/$defs/propertyDefinitions/restrictions/properties/prohibited_transitions/items/properties/when/unevaluatedProperties] not allowed"

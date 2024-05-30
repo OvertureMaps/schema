@@ -11,7 +11,11 @@ properties:
   version: 5
   subtype: road
   class: alley
-  road:
+  access_restrictions:
+    - access_type: allowed
+      when:
+        using: [at_destination]
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       access:
         - access_type: allowed

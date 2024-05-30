@@ -18,18 +18,14 @@ CASE
         'civic',
         'fire_station',
         'government',
-        'government_office',
         'public',
 
         --Commercial
         'commercial',
         'hotel',
         'kiosk',
-        'marketplace',
         'office',
-        'restaurant',
         'retail',
-        'shop',
         'supermarket',
         'warehouse',
 
@@ -41,7 +37,7 @@ CASE
 
         --Entertainment
         'grandstand',
-        'pavillion',
+        'pavilion',
         'sports_centre',
         'sports_hall',
         'stadium',
@@ -52,7 +48,6 @@ CASE
         'manufacture',
 
         --Medical
-        'clinic',
         'hospital',
 
         --Military
@@ -69,7 +64,7 @@ CASE
         'cathedral',
         'chapel',
         'church',
-        'monastary',
+        'monastery',
         'mosque',
         'presbytery',
         'religious',
@@ -84,7 +79,6 @@ CASE
         'cabin',
         'detached',
         'dormitory',
-        'duplex',
         'dwelling_house',
         'garage',
         'garages',
@@ -98,7 +92,6 @@ CASE
         'static_caravan',
         'stilt_house',
         'terrace',
-        'townhouse',
         'trullo',
 
         --Service

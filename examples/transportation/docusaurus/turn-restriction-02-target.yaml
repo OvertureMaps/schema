@@ -22,6 +22,8 @@ properties:
     - overture:transportation:example:via-turn-restriction-connector2
   names:
     primary: Arborway
-  road:
+  road_surface:
+    - value: paved
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     surface:
       - value: paved

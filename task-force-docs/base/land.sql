@@ -82,19 +82,31 @@ SELECT
     -- Relevant OSM tags for land type
     MAP_FILTER(tags, (k,v) -> k IN (
             'building',
+            'denotation',
+            'diameter_crown',
+            'est_height',
+            'genus',
             'golf',
+            'height',
             'highway',
             'landcover',
             'landuse',
+            'leaf_cycle',
+            'leaf_type',
             'leisure',
             'meadow',
+            'min_height',
             'natural',
+            'place',
+            'species',
             'sport',
             'surface',
+            'taxon:cultivar',
+            'taxon:species',
+            'taxon',
             'type',
             'volcano:status',
-            'volcano:type',
-            'place'
+            'volcano:type'
         )
     ) AS source_tags,
 
@@ -119,6 +131,9 @@ SELECT
 
     -- Wikidata is a top-level property in the OSM Container
     tags['wikidata'] as wikidata,
+
+    -- Overture's concept of `layer` is called level
+    TRY_CAST(tags['layer'] AS int) AS level,
 
     -- Elevation as integer (meters above sea level)
     TRY_CAST(tags['ele'] AS integer) AS elevation,
@@ -293,6 +308,7 @@ SELECT
         )
     ) ] as sources,
     NULL AS wikidata,
+    NULL AS level,
     NULL AS elevation,
     wkt AS wkt_geometry
 FROM {daylight_earth_table}

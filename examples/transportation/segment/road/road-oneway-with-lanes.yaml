@@ -12,9 +12,13 @@ properties:
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
-  road:
+  # one way road in forward direction (lanes only in forward direction)
+  lanes:
+    - value:
+      - direction: forward
+      - direction: forward
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     lanes:
-      # one way road in forward direction (lanes only in forward direction)
       - value:
         - direction: forward
         - direction: forward

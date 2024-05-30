@@ -1,0 +1,38 @@
+---
+title: Attributes
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
+
+## Common properties
+
+Overture Maps features are defined by three core properties:
+
+- `theme` is a mandatory property analogous to "layer". The term is deliberately chosen to avoid some of the baggage that goes along with the word "layer".
+    - Examples: `transportation`, `buildings`, `places`, `administrative`
+- `type` is a mandatory property representing a feature type within the theme:
+    - Example: `theme=transportation`, `type=segment`
+    - Example: `theme=buildings`, `type=building`
+- `subtype` is an optional property which can further refine the feature type within.
+    - Example: `theme=transportation`, `type=segment`, `subtype=road`
+
+Other common properties include:
+
+- `bbox` is the bounding box for the feature, defined by two longitudes and two latitudes: latitude is a decimal number between -90.0 and 90.0; longitude is a decimal number between -180.0 and 180.0.
+- `version` is the version number of the feature, incremented in each Overture Maps release where the geometry or attributes of this feature changed.
+- `update_time`is the timestamp when the feature was last updated
+- `sources` is the array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset that specific value came from. All features must have a root level source which is the default source if a specific property's source is not specified.
+- `ext_' is the prefix for any additional top-level properties. 
+
+## Complex attributes
+
+Some feature properties are quite complex and require further explanation.
+
+- **[Names](/schema/attributes/names)**: where applicable, complex attributes such as names will always use the same schema across all themes.
+- **[Scoped and rule-based properties](/schema/attributes/scoping-rules)**: a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at least one scoping property.
+- **[Transportation](/schema/attributes/transportation)**: the transportation schema is our most complex with many attributes that require additional documentation. 

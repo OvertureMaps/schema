@@ -1,0 +1,20 @@
+---
+id: overture:transportation:segment:123
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  ext_expected_errors:
+    - "[I#/properties/routes/0/name] [S#/$defs/propertyDefinitions/routes/items/properties/name/minLength] length must be >= 1"
+    - "[I#/properties/routes/0/name] [S#/$defs/propertyDefinitions/routes/items/properties/name/pattern] does not match pattern"
+  theme: transportation
+  type: segment
+  update_time: "2024-04-23T00:00:00-05:00"
+  version: 1
+  subtype: road
+  class: secondary
+  connector_ids: [fooConnector, barConnector]
+  routes:
+    - name: ""
+      ref: 1234

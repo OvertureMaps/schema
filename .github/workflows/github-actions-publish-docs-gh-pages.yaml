@@ -1,5 +1,5 @@
 ---
-name: Build docusaurus on push to main and publish to gh-pages branch
+name: Publish the `schema` folder to schema.overturemaps.org
 
 on:
   push:
@@ -19,18 +19,7 @@ jobs:
       - name: Check out the schema repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "19"
-
-      - name: Install NPM dependencies
-        run: cd docusaurus && npm install
-
-      - name: Build Docusaurus Pages 🔧
-        run: cd docusaurus && npm run build
-
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: docusaurus/build
+          folder: schema

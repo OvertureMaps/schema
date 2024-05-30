@@ -1,13 +1,12 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: land_cover
-description: representation of the Earth's natural surfaces 
+description: Representation of the Earth's natural surfaces
 type: object
 properties:
   id:
     "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
   geometry:
-    description: classification of surface, can correspond to the 'natural' tag from OpenStreetMap
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Polygon.json

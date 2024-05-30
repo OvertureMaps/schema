@@ -17,9 +17,15 @@ properties:
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
-  road:
+  road_surface: gravel
+  road_flags:
+    - [is_link, is_tunnel]
+  access_restrictions:
+    - access_type: allowed
+      when: {mode: [foo]}
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     surface: gravel
-    flags: 
+    flags:
       - [is_link, is_tunnel]
     restrictions:
       access:

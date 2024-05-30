@@ -10,7 +10,12 @@ properties:
   class: tertiary
   version: 1
   update_time: "2024-03-14T08:10:55-08:00"
-  road:
+  access_restrictions:
+    - foo: bar
+    - access_type: denied
+      when:
+        baz: qux
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       access:
         - foo: bar
@@ -21,3 +26,6 @@ properties:
     - "[I#/properties/road/restrictions/access/0] [S#/$defs/propertyContainers/accessContainer/items/required] missing properties: 'access_type'"
     - "[I#/properties/road/restrictions/access/0/foo] [S#/$defs/propertyContainers/accessContainer/items/unevaluatedProperties] not allowed"
     - "[I#/properties/road/restrictions/access/1/when/baz] [S#/$defs/propertyContainers/accessContainer/items/properties/when/unevaluatedProperties] not allowed"
+    - "[I#/properties/access/0] [S#/$defs/propertyContainers/accessContainer/items/required] missing properties: 'access_type'"
+    - "[I#/properties/access/0/foo] [S#/$defs/propertyContainers/accessContainer/items/unevaluatedProperties] not allowed"
+    - "[I#/properties/access/1/when/baz] [S#/$defs/propertyContainers/accessContainer/items/properties/when/unevaluatedProperties] not allowed"

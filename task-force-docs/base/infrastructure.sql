@@ -230,7 +230,8 @@ SELECT
 
     tags['surface'] AS surface,
 
-    tags['level'] AS level,
+    -- Overture's concept of `layer` is called level
+    TRY_CAST(tags['layer'] AS int) AS level,
 
     -- Wikidata is a top-level property in the OSM Container
     tags['wikidata'] as wikidata,

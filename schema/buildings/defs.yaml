@@ -102,6 +102,8 @@ shapeContainer:
     roof_color:
       description: The color (name or color triplet) of the roof of a building or building part in hexadecimal
       type: string
-    eave_height:
-      description: The height of the building eave in meters
+    roof_height:
+      description: >-
+        The height of the building roof in meters. This represents the distance
+        from the base of the roof to the highest point of the roof.
       type: number

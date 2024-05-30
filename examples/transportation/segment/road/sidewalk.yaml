@@ -12,6 +12,8 @@ properties:
   subtype: road
   class: sidewalk
   connector_ids: [fooConnector, barConnector]
-  road:
+  road_surface:
+    - value: paved
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     surface:
       - value: paved

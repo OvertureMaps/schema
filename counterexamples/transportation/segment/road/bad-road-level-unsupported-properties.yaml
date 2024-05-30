@@ -12,7 +12,10 @@ properties:
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
-  road:
+  level_rules:
+    - value: 1
+      foo: bar
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     level:
       - value: 1
         foo: bar

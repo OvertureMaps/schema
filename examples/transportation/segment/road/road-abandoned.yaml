@@ -12,7 +12,11 @@ properties:
   version: 3
   subtype: road
   class: tertiary
-  road:
+  road_surface:
+    - value: gravel
+  road_flags:
+    - values: [is_abandoned]
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     surface:
       - value: gravel
     flags:

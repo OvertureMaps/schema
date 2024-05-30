@@ -19,4 +19,4 @@ properties:
         name: United States
   norms:
     driving_side: right
-  capital_division_id: example:division:locality:washington_dc
+  capital_division_ids: [ example:division:locality:washington_dc ]

@@ -1,14 +1,20 @@
-# Overture Schema Documentation Webpage
+# Overture Schema Documentation
 
-This documentation page is build using [Docusaurus 2](https://docusaurus.io/) with the [JSON Schema Plugin](https://github.com/jy95/docusaurus-json-schema-plugin).
+Official Overture Maps documentation pages are maintained at github.com/overturemaps/docs and publishes to [docs.overturemaps.org](https://docs.overturemaps.org)
+
+This repo (schema/docusaurus) contains the contents of what gets published at docs.overturemaps.org/**schema**.
+
+This page is built using [Docusaurus 3](https://docusaurus.io/) with the [JSON Schema Plugin](https://github.com/jy95/docusaurus-json-schema-plugin).
+
+
+## Editing
+To update any of the documentation available at `docs.overturemaps.org/schema`, you can edit the files here in `docs/schema`.
 
 
 ## Local Development
 
 ### nvm, node.js, and npm
-Project uses Node.js which is prerequisite to run next instructions.
-
-The minimum required Node.js version is `15.0.0`.
+Project uses Node.js which is prerequisite to run the next instructions.
 
 For Windows and/or WSL users on Windows (Ubuntu) here is a [link](https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl) to working instructions set.
 
@@ -25,26 +31,4 @@ This command does 2 things: First, it copies the contents of `schema/` into `doc
 
 This command should also launch a browser window to `http://localhost:3000` where any changes to the source `.mdx` files are reflected live.
 
-### Editing
-All of the relevant editable `.mdx` files are here:
-```
-schema/
-  docusaurus/
-    docs/
-        gers/
-        reference/
-        themes/
-        index.mdx
-
-```
-These files may contain the headings, examples, etc. for each schema file, in markdown.
-
-Adding descriptions to the actual schema elements, however, should be done in the schema YAML files directly in the main (`schema/`) directory.
-
 _Note: each time you run `npm run start`, the official YAML schema files from `/schema` are copied to the `docusaurus/docs/_schema_` directory, where docusaurus parses them._
-
-## Publishing
-```
-$ npm run build
-```
-Docusaurus builds a static web page in the `docusaurus/build` directory. There is a Github hook that builds the website and publishes it to the gh-pages branch.

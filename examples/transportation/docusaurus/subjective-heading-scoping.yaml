@@ -17,7 +17,14 @@ properties:
   update_time: "2024-03-13T16:37:21-08:00"
   subtype: road
   class: primary
-  road:
+  access_restrictions:
+    - access_type: denied
+      when: { heading: backward }
+    - access_type: allowed
+      when:
+        heading: backward
+        mode: [bus]
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       access:
         - access_type: denied
