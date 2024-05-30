@@ -261,21 +261,13 @@ to privately-authorized individuals, such as condo unit owners:
 
 #### Vehicle attributes scoping
 
-<!--
-TODO: Once https://github.com/OvertureMaps/schema-wg/issues/147 is
-      fixed, remove the commenting around the tabs to enable the
-      example, and remove the comments around the access restrictions
-      in the example.
-
 <Tabs>
   <TabItem value="description" label="Description" default>
-
--->
 
 Vehicle attribute scoping limits the scope of a parent value to apply
 only when the vehicle in use meets certain criteria.
 
-The property construct `when: { vehicle: { ... } }` applies vehicle
+The property construct `when: { vehicle: [{ dimension: ..., comparison: ..., value: ... }] }` applies vehicle
 attributes scoping to a parent value.
 
 Note that vehicle attribute scoping can overlap to some degree with
@@ -284,7 +276,6 @@ rules may be scoped to the travel mode "heavy goods vehicle", while
 another equivalent access rule could be scoped to the vehicle attribute
 "gross vehicle weight".
 
-<!--
   </TabItem>
   <TabItem value="example" label="Example" default>
 
@@ -292,8 +283,6 @@ another equivalent access rule could be scoped to the vehicle attribute
 
   </TabItem>
 </Tabs>
-
--->
 
 
 <!--
@@ -384,7 +373,7 @@ properties:
   version: 0
   update_time: "2023-06-16T15:57:00-06:00"
   subtype: road
-  road:
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     lanes:
       - value:
           - direction: forward

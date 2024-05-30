@@ -14,8 +14,21 @@ properties:
   update_time: "2024-03-13T16:33:14-08:00"
   subtype: road
   class: residential
-  road:
+  access_restrictions:
+    - access_type: denied
+      when:
+        vehicle:
+          - dimension: weight
+            comparison: greater_than
+            value: 23
+            unit: 't'
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       access:
         - access_type: denied
-          when: { vehicle: { weight: { is_more_than: { value: 23, unit: 't' } } } }
+          when:
+            vehicle:
+              - dimension: weight
+                comparison: greater_than
+                value: 23
+                unit: 't'

@@ -12,6 +12,9 @@
     "update_time": "2024-03-14T08:25:53-08:00",
     "subtype": "road",
     "class": "primary",
+    "speed_limits": [
+      {}
+    ],
     "road": {
       "restrictions": {
         "speed_limits": [
