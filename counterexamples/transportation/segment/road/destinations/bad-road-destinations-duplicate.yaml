@@ -1,0 +1,31 @@
+---
+id: overture:transportation:segment:example:destinations:1
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: secondary
+  version: 0
+  update_time: "2024-04-24T00:00:00-00:00"
+  connector_ids: [overture:transportation:connector:123, overture:transportation:connector:678]
+  destinations:
+    - labels:
+      - value: Seattle
+        type: place
+      - value: Seattle
+        type: place
+      symbols:
+      - airport
+      from:
+      - segment_id: overture:transportation:segment:567
+        connector_id: overture:transportation:connector:567
+        when:
+          heading: forward
+      to_connector_id: overture:transportation:connector:123
+      final_heading: backward
+  ext_expected_errors:
+    - "[I#/properties/destinations/0/labels] items at index 0 and 1 are equal"
