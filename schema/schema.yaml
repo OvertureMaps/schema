@@ -39,6 +39,14 @@ oneOf:
         properties:
           properties:
             theme: { enum: [base] }
+            type: { enum: [bathymetry] }
+    then: { "$ref": base/bathymetry.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [base] }
             type: { enum: [infrastructure] }
     then: { "$ref": base/infrastructure.yaml }
     else: { propertyNames: false }
