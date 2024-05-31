@@ -254,6 +254,7 @@ WHERE
                 'peak',
                 'peninsula',
                 'plateau',
+                'reef',
                 'saddle',
                 'shrub',
                 'stone',
@@ -270,6 +271,7 @@ WHERE
                 'cliff',
                 'mountain_range',
                 'tree_row',
+                'reef',
                 'ridge',
                 'valley'
             )
