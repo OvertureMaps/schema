@@ -246,6 +246,7 @@ WHERE
         OR (
             wkt_geometry LIKE '%POINT%'
             AND class IN (
+                'beach',
                 'cave_entrance',
                 'cliff',
                 'hill',
@@ -255,16 +256,17 @@ WHERE
                 'plateau',
                 'saddle',
                 'shrub',
+                'stone',
                 'tree',
                 'valley',
-                'volcano',
-                'stone'
+                'volcano'
             )
         )
         -- Valid LineStrings
         OR (
             wkt_geometry LIKE '%LINESTRING%'
             AND class IN (
+                'beach',
                 'cliff',
                 'mountain_range',
                 'tree_row',
