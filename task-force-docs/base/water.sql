@@ -324,7 +324,7 @@ SELECT
     ) ] as sources,
     -- Wikidata is a top-level property in the OSM Container
     NULL as wikidata,
-    NULL AS level,
+    0 AS level,
     -- Other type=water top-level attributes
     0 AS elevation,
     TRUE AS is_salt,
