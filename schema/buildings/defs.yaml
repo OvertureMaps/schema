@@ -11,6 +11,11 @@ shapeContainer:
         Height of the building or part in meters. The height is the distance from the lowest point to the highest point.
       type: number
       exclusiveMinimum: 0
+    is_underground:
+      description: >-
+        Whether the entire building or part below ground-level. This is different than the level column which is used
+        to indicate z-ordering of elements and negative values may be above ground.
+      type: boolean
     num_floors:
       description: >-
         Number of above-ground floors of the building or part.
