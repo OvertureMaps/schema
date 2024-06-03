@@ -152,6 +152,7 @@ SELECT
             'atm',
             'bench',
             'information',
+            'pedestrian_crossing',
             'picnic_table',
             'post_box',
             'toilets',
@@ -275,9 +276,12 @@ FROM (
             -- Air
             WHEN tags['aeroway'] IN ('runway', 'taxiway', 'airstrip', 'helipad') THEN tags['aeroway']
 
-            WHEN tags['aeroway'] = 'gate' THEN 'airport_gate'
+            -- Pedestrian
+            WHEN tags['highway'] IS NULL AND tags['footway'] IN ('crossing') AND (wkt LIKE 'MULTIPOLYGON%' OR wkt LIKE 'POLYGON%') THEN 'pedestrian_crossing'
 
             -- Specific airport classing
+            WHEN tags['aeroway'] = 'gate' THEN 'airport_gate'
+
             WHEN tags['aeroway'] = 'aerodrome' THEN CASE
                 WHEN tags['aerodrome:type'] = 'military' OR tags['landuse'] = 'military' OR tags['military'] IN (
                     'airfield'
@@ -469,6 +473,7 @@ FROM (
                 'aerialway',
                 'aeroway',
                 'amenity',
+                'footway',
                 'highway',
                 'icao',
                 'public_transport',
