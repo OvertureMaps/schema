@@ -119,6 +119,7 @@ properties:
           - observation
           - parking
           - parking_space
+          - pedestrian_crossing
           - picnic_table
           - pier
           - pipeline
