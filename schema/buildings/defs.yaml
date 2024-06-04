@@ -13,8 +13,9 @@ shapeContainer:
       exclusiveMinimum: 0
     is_underground:
       description: >-
-        Whether the entire building or part is below ground-level. This is different than the level column which is used
-        to indicate z-ordering of elements and negative values may be above ground.
+        Whether the entire building or part is completely below ground. This is useful for rendering which typically omits these
+        buildings or styles them differently because they are not visible above ground. This is different than the level column
+        which is used to indicate z-ordering of elements and negative values may be above ground.
       type: boolean
     num_floors:
       description: >-
