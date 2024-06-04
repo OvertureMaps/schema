@@ -138,6 +138,9 @@ SELECT
     -- Elevation as integer (meters above sea level)
     TRY_CAST(tags['ele'] AS integer) AS elevation,
 
+    -- Surface
+    tags['surface'] AS surface,
+
     wkt_geometry
 
 FROM (
@@ -313,6 +316,7 @@ SELECT
     NULL AS wikidata,
     NULL AS level,
     NULL AS elevation,
+    NULL AS surface,
     wkt AS wkt_geometry
 FROM {daylight_earth_table}
 WHERE release = '{daylight_version}'
