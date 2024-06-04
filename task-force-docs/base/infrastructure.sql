@@ -89,14 +89,15 @@ SELECT
 
         -- Bridges
         WHEN class IN (
-            'bridge',
-            'viaduct',
-            'boardwalk',
             'aqueduct',
-            'movable',
-            'covered',
+            'boardwalk',
+            'bridge_support',
+            'bridge',
             'cantilever',
-            'trestle'
+            'covered',
+            'movable',
+            'trestle',
+            'viaduct'
         ) THEN 'bridge'
 
         -- Communication
@@ -197,6 +198,8 @@ SELECT
             'access',
             'aerodrome:type',
             'aerodrome',
+            'bridge:support',
+            'bridge:structure',
             'amenity',
             'barrier',
             'icao',
@@ -424,6 +427,8 @@ FROM (
             ) THEN tags['tower:type']
 
             WHEN tags['bridge'] = 'yes' THEN 'bridge'
+            WHEN tags['bridge:support'] IS NOT NULL THEN
+                'bridge_support'
             WHEN tags['bridge'] IN (
                 'aqueduct',
                 'boardwalk',
@@ -460,6 +465,8 @@ FROM (
             ARRAY[
                 'barrier',
                 'bridge',
+                'bridge:support',
+                'bridge:structure',
                 'communication:mobile_phone',
                 'communication',
                 'man_made',
