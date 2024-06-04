@@ -85,7 +85,7 @@ SELECT
     tags['wikidata'] as wikidata,
 
     -- Overture's concept of `layer` is called level
-    tags['layer'] AS level,
+    TRY_CAST(tags['layer'] AS integer) AS level,
 
     -- Elevation is common on some ponds / lakes.
     TRY_CAST(tags['ele'] AS integer) AS elevation,
