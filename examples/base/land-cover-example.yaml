@@ -11,6 +11,7 @@ properties:
   cartography:
     min_zoom: 11
     max_zoom: 23
+    sort_key: 2
   sources:
     - record_id: x123
       property: ""

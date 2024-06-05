@@ -364,3 +364,12 @@ description: Common schema definitions shared by all themes
               type: integer
               minimum: 0
               maximum: 23
+            sort_key:
+              description: >-
+                An ascending numeric that defines the recommended order features
+                should be drawn in. Features with lower number should be shown on top
+                of features with a higher number.
+              type: integer
+              default: 0
+              
+          
