@@ -93,6 +93,7 @@ properties:
           - industrial
           - kindergarten
           - kiosk
+          - library
           - manufacture
           - military
           - monastery
@@ -101,6 +102,7 @@ properties:
           - outbuilding
           - parking
           - pavilion
+          - post_office
           - presbytery
           - public
           - religious
