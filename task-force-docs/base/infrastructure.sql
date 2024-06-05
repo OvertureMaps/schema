@@ -232,8 +232,8 @@ SELECT
             confidence double
         )
     ) ] AS sources,
-
-    IF (tags['surface'] IN (
+    CASE
+        WHEN tags['surface'] IN (
             'asphalt',
             'cobblestone',
             'compacted',
@@ -258,10 +258,11 @@ SELECT
             'unpaved',
             'wood',
             'woodchips'
-        ),
-        tags['surface'],
-        NULL)
-    AS surface,
+        )   THEN tags['surface']
+        WHEN tags['surface'] = 'concrete:plates'
+            THEN 'concrete_plates'
+        ELSE NULL
+    END AS surface,
 
     -- Overture's concept of `layer` is called level
     TRY_CAST(tags['layer'] AS int) AS level,

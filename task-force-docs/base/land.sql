@@ -139,7 +139,37 @@ SELECT
     TRY_CAST(tags['ele'] AS integer) AS elevation,
 
     -- Surface
-    tags['surface'] AS surface,
+    CASE
+        WHEN tags['surface'] IN (
+            'asphalt',
+            'cobblestone',
+            'compacted',
+            'concrete',
+            'concrete:plates',
+            'dirt',
+            'earth',
+            'fine_gravel',
+            'grass',
+            'gravel',
+            'ground',
+            'paved',
+            'paving_stones',
+            'pebblestone',
+            'recreation_grass',
+            'recreation_paved',
+            'recreation_sand',
+            'rubber',
+            'sand',
+            'sett',
+            'tartan',
+            'unpaved',
+            'wood',
+            'woodchips'
+        )   THEN tags['surface']
+        WHEN tags['surface'] = 'concrete:plates'
+            THEN 'concrete_plates'
+        ELSE NULL
+    END AS surface,
 
     wkt_geometry
 

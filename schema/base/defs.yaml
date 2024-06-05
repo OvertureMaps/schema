@@ -19,7 +19,7 @@ description: Common schema definitions the base theme (primarily from OSM)
         - cobblestone
         - compacted
         - concrete
-        - concrete:plates
+        - concrete_plates
         - dirt
         - earth
         - fine_gravel
