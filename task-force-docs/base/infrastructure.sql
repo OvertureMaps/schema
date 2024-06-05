@@ -47,6 +47,7 @@ SELECT
         -- Airports
         WHEN class IN (
             'airport',
+            'airport_gate',
             'airstrip',
             'helipad',
             'heliport',
@@ -88,14 +89,15 @@ SELECT
 
         -- Bridges
         WHEN class IN (
-            'bridge',
-            'viaduct',
-            'boardwalk',
             'aqueduct',
-            'movable',
-            'covered',
+            'boardwalk',
+            'bridge_support',
+            'bridge',
             'cantilever',
-            'trestle'
+            'covered',
+            'movable',
+            'trestle',
+            'viaduct'
         ) THEN 'bridge'
 
         -- Communication
@@ -151,6 +153,7 @@ SELECT
             'atm',
             'bench',
             'information',
+            'pedestrian_crossing',
             'picnic_table',
             'post_box',
             'toilets',
@@ -195,6 +198,8 @@ SELECT
             'access',
             'aerodrome:type',
             'aerodrome',
+            'bridge:support',
+            'bridge:structure',
             'amenity',
             'barrier',
             'icao',
@@ -227,8 +232,37 @@ SELECT
             confidence double
         )
     ) ] AS sources,
-
-    tags['surface'] AS surface,
+    CASE
+        WHEN tags['surface'] IN (
+            'asphalt',
+            'cobblestone',
+            'compacted',
+            'concrete',
+            'concrete:plates',
+            'dirt',
+            'earth',
+            'fine_gravel',
+            'grass',
+            'gravel',
+            'ground',
+            'paved',
+            'paving_stones',
+            'pebblestone',
+            'recreation_grass',
+            'recreation_paved',
+            'recreation_sand',
+            'rubber',
+            'sand',
+            'sett',
+            'tartan',
+            'unpaved',
+            'wood',
+            'woodchips'
+        )   THEN tags['surface']
+        WHEN tags['surface'] = 'concrete:plates'
+            THEN 'concrete_plates'
+        ELSE NULL
+    END AS surface,
 
     -- Overture's concept of `layer` is called level
     TRY_CAST(tags['layer'] AS int) AS level,
@@ -246,7 +280,12 @@ FROM (
             -- Air
             WHEN tags['aeroway'] IN ('runway', 'taxiway', 'airstrip', 'helipad') THEN tags['aeroway']
 
+            -- Pedestrian
+            WHEN tags['highway'] IS NULL AND tags['footway'] IN ('crossing') AND (wkt LIKE 'MULTIPOLYGON%' OR wkt LIKE 'POLYGON%') THEN 'pedestrian_crossing'
+
             -- Specific airport classing
+            WHEN tags['aeroway'] = 'gate' THEN 'airport_gate'
+
             WHEN tags['aeroway'] = 'aerodrome' THEN CASE
                 WHEN tags['aerodrome:type'] = 'military' OR tags['landuse'] = 'military' OR tags['military'] IN (
                     'airfield'
@@ -389,6 +428,8 @@ FROM (
             ) THEN tags['tower:type']
 
             WHEN tags['bridge'] = 'yes' THEN 'bridge'
+            WHEN tags['bridge:support'] IS NOT NULL THEN
+                'bridge_support'
             WHEN tags['bridge'] IN (
                 'aqueduct',
                 'boardwalk',
@@ -425,6 +466,8 @@ FROM (
             ARRAY[
                 'barrier',
                 'bridge',
+                'bridge:support',
+                'bridge:structure',
                 'communication:mobile_phone',
                 'communication',
                 'man_made',
@@ -438,6 +481,7 @@ FROM (
                 'aerialway',
                 'aeroway',
                 'amenity',
+                'footway',
                 'highway',
                 'icao',
                 'public_transport',
