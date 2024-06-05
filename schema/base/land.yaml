@@ -86,3 +86,4 @@ properties:
           - wetland
           - wood
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
+      surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }

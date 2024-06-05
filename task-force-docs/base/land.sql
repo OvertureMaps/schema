@@ -138,6 +138,39 @@ SELECT
     -- Elevation as integer (meters above sea level)
     TRY_CAST(tags['ele'] AS integer) AS elevation,
 
+    -- Surface
+    CASE
+        WHEN tags['surface'] IN (
+            'asphalt',
+            'cobblestone',
+            'compacted',
+            'concrete',
+            'concrete:plates',
+            'dirt',
+            'earth',
+            'fine_gravel',
+            'grass',
+            'gravel',
+            'ground',
+            'paved',
+            'paving_stones',
+            'pebblestone',
+            'recreation_grass',
+            'recreation_paved',
+            'recreation_sand',
+            'rubber',
+            'sand',
+            'sett',
+            'tartan',
+            'unpaved',
+            'wood',
+            'woodchips'
+        )   THEN tags['surface']
+        WHEN tags['surface'] = 'concrete:plates'
+            THEN 'concrete_plates'
+        ELSE NULL
+    END AS surface,
+
     wkt_geometry
 
 FROM (
@@ -247,6 +280,7 @@ WHERE
         OR (
             wkt_geometry LIKE '%POINT%'
             AND class IN (
+                'beach',
                 'cave_entrance',
                 'cliff',
                 'hill',
@@ -254,21 +288,24 @@ WHERE
                 'peak',
                 'peninsula',
                 'plateau',
+                'reef',
                 'saddle',
                 'shrub',
+                'stone',
                 'tree',
                 'valley',
-                'volcano',
-                'stone'
+                'volcano'
             )
         )
         -- Valid LineStrings
         OR (
             wkt_geometry LIKE '%LINESTRING%'
             AND class IN (
+                'beach',
                 'cliff',
                 'mountain_range',
                 'tree_row',
+                'reef',
                 'ridge',
                 'valley'
             )
@@ -310,6 +347,7 @@ SELECT
     NULL AS wikidata,
     NULL AS level,
     NULL AS elevation,
+    NULL AS surface,
     wkt AS wkt_geometry
 FROM {daylight_earth_table}
 WHERE release = '{daylight_version}'
