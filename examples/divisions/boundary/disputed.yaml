@@ -15,4 +15,4 @@ properties:
   is_disputed: true
   perspectives:
     mode: disputed_by
-    countries: [XX, XY] # Random iso codes representing two countries disputing the actual boundary
+    countries: [XX] # Random country disputing the actual boundary
