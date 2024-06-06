@@ -24,7 +24,7 @@ properties:     # JSON Schema: Top-level object properties.
   id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
   geometry:
     description:
-      A postcode geometry can be a point or a polygon, as defined by GeoJSON schema. # We could maybe also do GeometryCollection if we want the postcodes to be able to have both point and polygon, as in MSFT prod.
+      A postcode geometry can be a point or a polygon, as defined by GeoJSON schema. # TODO: We could maybe also do GeometryCollection if we want the postcodes to be able to have both point and polygon, as in MSFT prod.
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
@@ -33,6 +33,13 @@ properties:     # JSON Schema: Top-level object properties.
     unevaluatedProperties: false
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
-      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer # See if this should be used for names
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer # TODO: See if this should be used for names
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/postcodetype" }
+      country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+      city:
+        description: The city of the postcode
+        type: string
+        minLength: 1
+        pattern: ^(\S.*)?\S$ # TODO: idea - what if we take these properties into addresses/defs.yaml, and just make some of them optional
+                             # Like in divisions/global defs - I just can't find how to do that (make property not required).
