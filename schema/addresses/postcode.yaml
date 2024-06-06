@@ -1,0 +1,38 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: postcode
+description:
+  A postcode,
+  also known as a ZIP code in the United States,
+  is a series of letters, numbers, or both,
+  assigned to a specific geographic area or address
+  to facilitate the sorting and delivery of mail. 
+
+  Postcodes are used by postal services to identify the destination of mail and packages.
+  They help to ensure that mail is delivered quickly, efficiently, and accurately.
+  In addition to aiding in mail delivery, postcodes are often used for various other purposes,
+  such as demographic analysis, planning delivery routes for local businesses,
+  and even in emergency services to locate incidents. 
+
+  Different countries have different formats for their postcodes.
+  For example, a UK postcode might look like "SW1A 1AA", while a US ZIP code might be "90210".
+  Despite these differences, the primary function of a postcode remains the same - 
+  to aid in the efficient and accurate delivery of mail.
+
+type: object
+properties:     # JSON Schema: Top-level object properties.
+  id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
+  geometry:
+    description:
+      A postcode geometry can be a point or a polygon, as defined by GeoJSON schema. # We could maybe also do GeometryCollection if we want the postcodes to be able to have both point and polygon, as in MSFT prod.
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+  properties:   # GeoJSON: top-level object 'properties' property.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer # See if this should be used for names
+    properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
+      subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/postcodetype" }

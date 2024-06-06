@@ -1,0 +1,31 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+description: Common schema definitions for addresses schema
+"$defs":
+  typeDefinitions:
+    postcodetype:
+      description:
+        Granularity of the postcode from a finite, hierarchical, ordered
+        list of granularities. The lower the number of the postcode subtype,
+        the more precise it is in describing the locations encapsulated
+        within it.
+        
+        Not every country has to have each granularity of the postcode. 
+        Some countries have only one layer of postcodes, and some don't even use postcodes, like Angola, Bahamas, Botswana etc.
+      type: string
+      enum:
+        - postcode1       # Most granular, most detailed set of postcodes in a country.
+                          # E.g. in the UK: KT 10 9RT
+                          # And in Germany: 30657
+
+        - postcode2       # Second-order postcodes in a country. Comprised of aggregating postcode1s.
+                          # E.g. in the UK: KT 10 9 (the last two letters of the postcode1s are omitted to create a postcode2)
+                          # And in Germany: 306
+
+        - postcode3       # Third-order postcodes in a country. Comprised of aggregating postcode2s.
+                          # E.g. in the UK: KT 10 (the last digits of the postcode2s are omitted to create a postcode3)
+                          # And in Germany: 30
+
+        - postcode4       # Fourth-order postcodes in a country. Comprised of aggregating postcode3s.
+                          # E.g. in the UK: KT (the last digits of the postcode3s are omitted to create a postcode4)
+                          # And in Germany: 3
