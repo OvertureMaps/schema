@@ -79,7 +79,7 @@ nan-POJ -> nan-Latn
 ### Overture Variants
 
 Overture only defines a few variants. At the time of this document's writing
-they are: `common`, `official`, `local`, and `short`.   The formal list is
+they are: `common`, `official`, `alternate`, and `short`.   The formal list is
 defined in the Overture schema.
 
 OSM has many variants which are mapped to one of the Overture variants:
@@ -88,7 +88,7 @@ OSM has many variants which are mapped to one of the Overture variants:
 | none | common |
 | official | official |
 | short | short |
-| loc | local |
+| loc | alternate |
 | int | alternate |
 | nat | alternate |
 | old | alternate |
@@ -173,14 +173,14 @@ Here is how this is converted into the corresponding Overture names.
         },
         {
             "value": "Big Apple",
-            "variant": "local",
+            "variant": "alternate",
             "language": null,
             "between": null,
             "side": null
         },
         {
             "value": "La Gran Manzana",
-            "variant": "local",
+            "variant": "alternate",
             "language": "es",
             "between": null,
             "side": null
