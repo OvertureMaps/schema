@@ -38,9 +38,7 @@ properties:     # JSON Schema: Top-level object properties.
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/postcodetype" }
       country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
-      city:
-        description: The city of the postcode
-        type: string
-        minLength: 1
-        pattern: ^(\S.*)?\S$ # TODO: idea - what if we take these properties into addresses/defs.yaml, and just make some of them optional
-                             # Like in divisions/global defs - I just can't find how to do that (make property not required).
+      city_division_id:
+        description: The city which this postcode is tied to. #TODO: come up with a clear description and example. From GeoNames source descriptions!
+        allOf:
+         - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
