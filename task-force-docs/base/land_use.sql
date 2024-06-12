@@ -15,6 +15,7 @@ SELECT
     sources,
     wikidata,
     surface,
+    level,
     elevation,
     wkt_geometry
 FROM (
@@ -272,6 +273,9 @@ FROM (
             )
         ) ] AS sources,
 
+        -- Overture's concept of `layer` is called level
+        TRY_CAST(tags['layer'] AS int) AS level,
+
         -- Wikidata is a top-level property in the OSM Container
         tags['wikidata'] as wikidata,
 
@@ -314,6 +318,9 @@ FROM (
                         'zoo',
                         'theme_park'
                     ) THEN tags['tourism']
+
+                    -- Give National Parks top priority since it might have other tags.
+                    WHEN tags['boundary'] = 'national_park' THEN 'national_park'
 
                     -- Aboriginal Lands & Reservations
                     WHEN tags['boundary'] IN ('aboriginal_lands') OR (

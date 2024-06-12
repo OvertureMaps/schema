@@ -17,7 +17,13 @@ properties:
   connector_ids:
     - overture:transportation:example:simple-turn-restriction-connector1
     - overture:transportation:example:simple-turn-restriction-connector2
-  road:
+  prohibited_transitions:
+      - sequence:
+        - segment_id: overture:transportation:example:simple-turn-restriction-target
+          connector_id: overture:transportation:example:simple-turn-restriction-connector2
+        final_heading: forward
+        when: {heading: forward}
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       prohibited_transitions:
          - sequence:

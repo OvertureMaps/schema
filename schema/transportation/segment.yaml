@@ -19,12 +19,24 @@ properties:
     unevaluatedProperties: false
     required: [subtype]
     allOf:
+      - title: "Segment Properties"
+        required: [class]
+        properties:
+          class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
+          access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
+          level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
+          level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
       - title: "Conditional Properties"
         if: { properties: { subtype: { enum: [road] } } }
         then:
-          required: [class]
           properties:
-            class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
+            lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
+            prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
+            road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
+            road_flags: { "$ref": "#/$defs/propertyContainers/flagsContainer" }
+            speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
+            width_rules: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
+            # The `road` property is deprecated and will be removed in the 2024-07 release
             road: { "$ref": "#/$defs/propertyDefinitions/road" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
@@ -49,6 +61,7 @@ properties:
             Each entry in this array is the GERS ID of a transportation connector feature.
         uniqueItems: true
         default: []
+      routes: { "$ref": "#/$defs/propertyDefinitions/routes" }
 "$defs":
   propertyDefinitions:
     roadClass:
@@ -128,6 +141,8 @@ properties:
         motor_vehicle includes car, truck and motorcycle
     road:
       description: >-
+        ** Note: this field is deprecated in favor of promoting its sub-properties into top-level properties and will be removed in the 2024-07 release **
+
         Properties for segments whose segment subtype is road. The road
         subtype includes any variety of road, street, or path, including
         dedicated paths for walking and cycling.
@@ -135,115 +150,11 @@ properties:
       unevaluatedProperties: false
       default: {}
       properties:
-        surface:
-          description: Physical surface of the road. May either be
-            specified as a single global value for the segment, or as
-            an array of surface rules.
-          type: array
-          items:
-            type: object
-            allOf:
-              - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
-            unevaluatedProperties: false
-            properties:
-              value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
-          minItems: 1
-          uniqueItems: true
-          "$comment":
-            We should likely restrict the available surface types to
-            the subset of the common OSM surface=* tag values that are
-            useful both for routing and for map tile rendering.
-        flags:
-          description:
-            Set of boolean attributes applicable to roads. May be
-            specified either as a single flag array of flag values, or
-            as an array of flag rules.
-          type: array
-          items:
-            type: object
-            allOf:
-              - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
-            unevaluatedProperties: false
-            properties:
-              values:
-                type: array
-                items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
-                uniqueItems: true
-                minLength: 1
-          uniqueItems: true
-          minLength: 1
-        level:
-          description:
-            Defines the Z-order, i.e. stacking order, of the road
-            segment.
-          type: array
-          items:
-            description:
-              A single level rule defining the Z-order, i.e. stacking
-              order, applicable within a given scope on the road
-              segment.
-            type: object
-            allOf:
-              - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
-            unevaluatedProperties: false
-            required: [value]
-            properties:
-              value: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
-        width:
-          description: >-
-            Edge-to-edge width of the road modeled by this segment, in
-            meters.
-
-            Examples: (1) If this segment models a carriageway without
-            sidewalk, this value represents the edge-to-edge width of the
-            carriageway, inclusive of any shoulder. (2) If this segment
-            models a sidewalk by itself, this value represents the
-            edge-to-edge width of the sidewalk. (3) If this segment models a
-            combined sidewalk and carriageway, this value represents the
-            edge-to-edge width inclusive of sidewalk.
-          type: array
-          items:
-            type: object
-            allOf:
-              - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
-            required: [value]
-            properties:
-              value:
-                type: number
-                exclusiveMinimum: 0
-            unevaluatedProperties: false
-          minItems: 1
-          uniqueItems: true
-        lanes:
-          description: >-
-            List of lane block rules describing the layout of lanes on
-            the road plus lane-related information. The standard rule
-            evaluation algorithm is used to determine which lane block
-            applies at a given place and time along the segment.
-
-            Each lane block contains the list of lanes that make up the
-            block. Lanes in the block are listed from left to right as
-            they would be seen by a person standing on the road segment
-            facing in the direction of the segment's orientation (toward
-            the end).
-          type: array
-          items:
-            type: object
-            unevaluatedProperties: false
-            allOf:
-              - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
-            properties:
-              value:
-                type: array
-                items:  { "$ref": "#/$defs/propertyDefinitions/lane" }
-                minItems: 1
-              when:
-                allOf:
-                  - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"
-                minProperties: 1
-                unevaluatedProperties: false
-          minItems: 1
-          uniqueItems: true
+        surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer" }
+        flags: { "$ref": "#/$defs/propertyContainers/flagsContainer" }
+        level: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
+        width: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
+        lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
         restrictions:
           description: Restrictions on how the road may be used
           type: object
@@ -251,43 +162,7 @@ properties:
           properties:
             speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
             access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
-            prohibited_transitions:
-              description: >-
-                Rules preventing transitions from this segment to
-                another segment.
-              type: array
-              items:
-                type: object
-                unevaluatedProperties: false
-                allOf:
-                  - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
-                required: [sequence, final_heading]
-                properties:
-                  sequence:
-                    description: >-
-                      Ordered sequence of connector/segment pairs that it is
-                      prohibited to follow from this segment.
-                    type: array
-                    items:
-                      description: Pair of segment and connector IDs along the sequence
-                      "$ref": "#/$defs/propertyDefinitions/sequenceEntry"
-                    minItems: 1
-                    uniqueItems: true
-                  final_heading:
-                    description: >-
-                      Direction of travel that is prohibited on the destination
-                      segment of the sequence.
-                    "$ref": "#/$defs/propertyDefinitions/heading"
-                  when:
-                    allOf:
-                      - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
-                      - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"
-                      - "$ref": "#/$defs/propertyContainers/purposeOfUseScopeContainer"
-                      - "$ref": "#/$defs/propertyContainers/recognizedStatusScopeContainer"
-                      - "$ref": "#/$defs/propertyContainers/travelModeScopeContainer"
-                      - "$ref": "#/$defs/propertyContainers/vehicleScopeContainer"
-                    minProperties: 1
-                    unevaluatedProperties: false
+            prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer"}
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
@@ -309,6 +184,36 @@ properties:
         - dirt
         - paving_stones
         - metal
+    routes:
+      description: Routes this segment belongs to
+      type: array
+      items:
+        type: object
+        unevaluatedProperties: false
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        properties:
+          name:
+            description: Full name of the route
+            type: string
+            minLength: 1
+            pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+          network:
+            description: Name of the highway system this route belongs to
+            type: string
+            minLength: 1
+            pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+          ref:
+            description: Code or number used to reference the route
+            type: string
+            minLength: 1
+            pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+          symbol:
+            description: URL or description of route signage
+            type: string
+            minLength: 1
+            pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+          wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
     speed:
       description: >-
         A speed value, i.e. a certain number of distance units
@@ -371,6 +276,29 @@ properties:
           properties: { is_at_most: { type: integer } }
         - required: [is_less_than]
           properties: { is_less_than: { type: integer } }
+    vehicleScopeDimension:
+      description: Enumerates possible vehicle dimensions for use in restrictions
+      type: string
+      enum:
+        - axle_count
+        - height
+        - length
+        - weight
+        - width
+    vehicleScopeComparison:
+      description: Enumerates possible comparison operators for use in scoping
+      type: string
+      enum:
+        - greater_than
+        - greater_than_equal
+        - equal
+        - less_than
+        - less_than_equal
+    vehicleScopeUnit:
+      description: Parent enum of both length and width for use in vehicle scoping
+      anyOf:
+        - {"$ref": "#/$defs/propertyDefinitions/lengthUnit"}
+        - {"$ref": "#/$defs/propertyDefinitions/weightUnit"}
     lengthUnit:
       description: Enumerates length units supported by the Overture schema.
       "$comment": Keep in sync with `combobulib/measure.py`.
@@ -457,6 +385,9 @@ properties:
           properties: { is_at_most: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/weightValueWithUnit" } ] } }
         - required: [is_less_than]
           properties: { is_less_than: { allOf: [ { "$ref": "#/$defs/propertyDefinitions/weightValueWithUnit" } ] } }
+    width:
+      type: number
+      exclusiveMinimum: 0
     sequenceEntry:
       description: >-
         A segment/connector pair in a prohibited transition sequence.
@@ -525,16 +456,22 @@ properties:
       properties:
         vehicle:
           description: Vehicle attributes for which the rule applies
-          type: object
-          unevaluatedProperties: false
-          minProperties: 1
-          properties:
-            axle_count: { "$ref": "#/$defs/propertyDefinitions/integerRelation" }
-            height: { "$ref": "#/$defs/propertyDefinitions/lengthRelation" }
-            length: { "$ref": "#/$defs/propertyDefinitions/lengthRelation" }
-            weight: { "$ref": "#/$defs/propertyDefinitions/weightRelation" }
-            width: { "$ref": "#/$defs/propertyDefinitions/lengthRelation" }
-    speedLimitsContainer:  # FIXME: Not a 'container', move up.
+          type: array
+          uniqueItems: true
+          minLength: 1
+          items:
+            description: An individual vehicle scope rule
+            type: object
+            unevaluatedProperties: false
+            required: [dimension, comparison, value]
+            properties:
+              dimension: { "$ref": "#/$defs/propertyDefinitions/vehicleScopeDimension" }
+              comparison: { "$ref": "#/$defs/propertyDefinitions/vehicleScopeComparison" }
+              value:
+                type: number
+                minimum: 0
+              unit: { "$ref": "#/$defs/propertyDefinitions/vehicleScopeUnit" }
+    speedLimitsContainer:
       description: Rules governing speed on this road segment or lane
       type: array
       items:
@@ -570,7 +507,7 @@ properties:
             unevaluatedProperties: false
       minLength: 1
       uniqueItems: true
-    accessContainer: # FIXME: Not a 'container', move up.
+    accessContainer:
       description: Rules governing access to this road segment or lane
       type: array
       items:
@@ -595,3 +532,147 @@ properties:
             unevaluatedProperties: false
         minLength: 1
         uniqueItems: true
+    lanesContainer:
+      description: >-
+        List of lane block rules describing the layout of lanes on
+        the road plus lane-related information. The standard rule
+        evaluation algorithm is used to determine which lane block
+        applies at a given place and time along the segment.
+
+        Each lane block contains the list of lanes that make up the
+        block. Lanes in the block are listed from left to right as
+        they would be seen by a person standing on the road segment
+        facing in the direction of the segment's orientation (toward
+        the end).
+      type: array
+      items:
+        type: object
+        unevaluatedProperties: false
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
+        properties:
+          value:
+            type: array
+            items:  { "$ref": "#/$defs/propertyDefinitions/lane" }
+            minItems: 1
+          when:
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"
+            minProperties: 1
+            unevaluatedProperties: false
+      minItems: 1
+      uniqueItems: true
+    prohibitedTransitionsContainer:
+      description: >-
+        Rules preventing transitions from this segment to
+        another segment.
+      type: array
+      items:
+        type: object
+        unevaluatedProperties: false
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
+        required: [sequence, final_heading]
+        properties:
+          sequence:
+            description: >-
+              Ordered sequence of connector/segment pairs that it is
+              prohibited to follow from this segment.
+            type: array
+            items:
+              description: Pair of segment and connector IDs along the sequence
+              "$ref": "#/$defs/propertyDefinitions/sequenceEntry"
+            minItems: 1
+            uniqueItems: true
+          final_heading:
+            description: >-
+              Direction of travel that is prohibited on the destination
+              segment of the sequence.
+            "$ref": "#/$defs/propertyDefinitions/heading"
+          when:
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/purposeOfUseScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/recognizedStatusScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/travelModeScopeContainer"
+              - "$ref": "#/$defs/propertyContainers/vehicleScopeContainer"
+            minProperties: 1
+            unevaluatedProperties: false
+    flagsContainer:
+      description:
+        Set of boolean attributes applicable to roads. May be
+        specified either as a single flag array of flag values, or
+        as an array of flag rules.
+      type: array
+      items:
+        type: object
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        unevaluatedProperties: false
+        properties:
+          values:
+            type: array
+            items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
+            uniqueItems: true
+            minLength: 1
+      uniqueItems: true
+      minLength: 1
+    levelRulesContainer:
+      description:
+        Defines the Z-order, i.e. stacking order, of the road
+        segment.
+      type: array
+      items:
+        description:
+          A single level rule defining the Z-order, i.e. stacking
+          order, applicable within a given scope on the road
+          segment.
+        type: object
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        unevaluatedProperties: false
+        required: [value]
+        properties:
+          value: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
+    surfaceContainer:
+      description: Physical surface of the road. May either be
+        specified as a single global value for the segment, or as
+        an array of surface rules.
+      type: array
+      items:
+        type: object
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        unevaluatedProperties: false
+        properties:
+          value: { "$ref": "#/$defs/propertyDefinitions/roadSurface" }
+      minItems: 1
+      uniqueItems: true
+      "$comment":
+        We should likely restrict the available surface types to
+        the subset of the common OSM surface=* tag values that are
+        useful both for routing and for map tile rendering.
+    widthRulesContainer:
+      description: >-
+        Edge-to-edge width of the road modeled by this segment, in
+        meters.
+
+        Examples: (1) If this segment models a carriageway without
+        sidewalk, this value represents the edge-to-edge width of the
+        carriageway, inclusive of any shoulder. (2) If this segment
+        models a sidewalk by itself, this value represents the
+        edge-to-edge width of the sidewalk. (3) If this segment models a
+        combined sidewalk and carriageway, this value represents the
+        edge-to-edge width inclusive of sidewalk.
+      type: array
+      items:
+        type: object
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        required: [value]
+        properties:
+          value: { "$ref": "#/$defs/propertyDefinitions/width" }
+        unevaluatedProperties: false
+      minItems: 1
+      uniqueItems: true

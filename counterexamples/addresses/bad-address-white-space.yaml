@@ -16,4 +16,4 @@ properties:
   street: ' COMMONWEALTH AVE'
   number: '1000'
   ext_expected_errors:
-    - "[I#/properties/capital_division_id] [S#/$defs/propertyDefinitions/id/pattern] does not match pattern"
+    - "[I#/properties/street] does not match pattern [S#/$defs/propertyDefinitions/id/pattern]"

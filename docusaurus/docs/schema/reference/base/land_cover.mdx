@@ -1,0 +1,56 @@
+---
+title: land_cover
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import LandCoverSchema from "!!raw-loader!@site/docs/_schema/base/land_cover.yaml";
+
+import LandCoverExample from "!!raw-loader!@site/docs/_examples/base/land-cover-example.yaml";
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Land Cover
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td>
+      <code>Polygon</code>
+    </td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>base</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>land_cover</code></td>
+  </tr>
+  </tbody>
+</table>
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(LandCoverSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/base'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{LandCoverSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="Forest land cover" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(LandCoverExample), null, 2) }</CodeBlock>
+  </TabItem>
+
+</Tabs>

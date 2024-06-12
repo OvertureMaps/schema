@@ -33,6 +33,8 @@ const config = {
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
 
+  trailingSlash: true,
+
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
   // to replace "en" with "zh-Hans".
@@ -43,6 +45,24 @@ const config = {
 
   themes: ["docusaurus-json-schema-plugin"],
 
+  plugins: [
+    () => ({
+      name: 'custom-docusaurus-plugin',
+      configureWebpack() {
+        return {
+          module: {
+            rules: [
+              {
+                test: /\.yaml$/,
+                use: 'raw-loader'
+              },
+            ],
+          },
+        };
+      },
+    })
+  ],
+
   presets: [
     [
       'classic',
@@ -50,7 +70,8 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          routeBasePath: '/'
+          routeBasePath: '/',
+          showLastUpdateTime: true,
         },
         blog: false,
         theme: {
@@ -74,47 +95,16 @@ const config = {
         },
         items: [
           {
-            to: 'https://docs.overturemaps.org/',
-            label: 'Docs',
-            target: '_self'
-          },
-          {
-            type: 'docSidebar',
-            sidebarId: 'docs',
-            position: 'left',
+            to: 'schema',
             label: 'Schema Reference',
-          },
-          {
-            to: 'https://docs.overturemaps.org/blog/',
-            label: 'Blog',
-            target: '_self'
-          },
-          {
-            to: 'https://docs.overturemaps.org/community/',
-            label: 'Community',
-            target: '_self'
+            sidebarId: 'schema',
+            position: 'left',
           },
         ],
       },
-      algolia: {
-        appId: 'MK8X1051PQ',
-        //this is the public search API key; ok to commit
-        apiKey:'29fe3f5bc0dabfade01c016695919c8d',
-        indexName: 'overturemaps',
-        contextualSearch: true,
-
-        // Optional: Algolia search parameters
-        searchParameters: {},
-
-        // Optional: path for search page that enabled by default (`false` to disable it)
-        searchPagePath: 'search',
-
-        // Optional: whether the insights feature is enabled or not on Docsearch (`false` by default)
-        insights: false,
-      },  
       footer: {
         style: 'dark',
-        copyright: `Copyright © ${new Date().getFullYear()} Overture Maps Foundation. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Overture Maps Foundation.`,
       },
       prism: {
         theme: lightCodeTheme,

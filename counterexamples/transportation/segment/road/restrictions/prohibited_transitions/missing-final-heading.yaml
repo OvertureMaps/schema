@@ -13,7 +13,11 @@ properties:
   class: primary
   connector_ids:
     - overture:transportation:example:connector:1
-  road:
+  prohibited_transitions:
+    - sequence:
+        - segment_id: foo
+          connector_id: bar
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       prohibited_transitions:
         - sequence:

@@ -24,6 +24,7 @@ properties:
   num_floors: 4
   subtype: transportation
   class: parking
+  is_underground: false
   sources:
   - property: ""
     dataset: microsoftMLBuildings,

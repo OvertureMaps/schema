@@ -16,8 +16,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the schema-wg repository
-        uses: actions/checkout@v3
+      - name: Check out the schema repository
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -25,7 +25,7 @@ jobs:
           node-version: "19"
 
       - name: Install NPM dependencies
-        run: cd docusaurus && npm install
+        run: cd docusaurus && npm install --prefer-dedupe
 
       - name: Build Docusaurus website
         env:
@@ -41,7 +41,7 @@ jobs:
 
       - name: Copy Docusaurus website to staging bucket /latest/
         run: |
-          cd docusaurus/build && aws --region us-east-2 s3 sync --delete --storage-class INTELLIGENT_TIERING . s3://overture-schema-docs-static-staging-us-east-2/latest
+          aws --region us-east-2 s3 sync --delete --storage-class INTELLIGENT_TIERING docusaurus/build s3://overture-schema-docs-static-staging-us-east-2/latest
 
       - name: Purge CDN cache
         run: |

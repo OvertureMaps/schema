@@ -27,21 +27,6 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
-      region:
-        description: The region of the address
-        type: string
-        minLength: 1
-        pattern: ^(\S.*)?\S$
-      district:
-        description: The district of the address
-        type: string
-        minLength: 1
-        pattern: ^(\S.*)?\S$
-      city:
-        description: The city of the address
-        type: string
-        minLength: 1
-        pattern: ^(\S.*)?\S$
       postcode:
         description: The postcode for the address
         type: string
@@ -70,3 +55,20 @@ properties:     # JSON Schema: Top-level object properties.
         type: string
         minLength: 1
         pattern: ^(\S.*)?\S$
+      address_level1: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
+      address_level2: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
+      address_level3: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
+      address_level4: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
+      address_level5: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
+"$defs":
+  propertyDefinitions:
+    addressLevel:
+      description:
+        An address "admin level". We want to avoid the phrase "admin level" and
+        have chosen "address level". These represent states, regions, districts,
+        cities, neighborhoods, etc. The address schema defines several numbered
+        levels with per-country rules indicating which parts of a country's
+        address goes to which numbered level.
+      type: string
+      minLength: 1
+      pattern: ^(\S.*)?\S$

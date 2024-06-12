@@ -160,6 +160,4 @@ properties:
           - works
           - zoo
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
-      surface:
-        description: Surface material, mostly form the OSM tag, with some normalization.
-        type: string
+      surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }

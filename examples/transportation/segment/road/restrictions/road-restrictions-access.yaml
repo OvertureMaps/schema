@@ -11,7 +11,62 @@ properties:
   class: primary
   version: 2
   update_time: "2024-03-16T16:23:20-08:00"
-  road:
+  access_restrictions:
+    - access_type: denied
+      between: [ 0, 0.5 ]
+    - access_type: denied
+      when:
+        during: PH
+    - access_type: denied
+      when: {heading: forward}
+    - access_type: allowed
+      when:
+        heading: forward
+        mode: [vehicle]
+    - access_type: allowed
+      when:
+        heading: forward
+        using: [at_destination]
+    - access_type: allowed
+      when:
+        heading: forward
+        recognized: [as_employee]
+    - access_type: allowed
+      when:
+        heading: forward
+        vehicle:
+          - dimension: axle_count
+            comparison: less_than
+            value: 3
+          - dimension: weight
+            comparison: less_than_equal
+            value: 600
+            unit: 'kg'
+          - dimension: height
+            comparison: less_than
+            value: 12
+            unit: 'ft'
+    - access_type: denied
+      between: [0.25, 0.5]
+      when:
+        heading: forward
+        during: PH
+        mode: [car, hgv]
+        using: [at_destination]
+        recognized: [as_employee]
+        vehicle:
+          - dimension: axle_count
+            comparison: less_than
+            value: 3
+          - dimension: weight
+            comparison: less_than_equal
+            value: 600
+            unit: 'kg'
+          - dimension: height
+            comparison: less_than
+            value: 12
+            unit: 'ft'
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
     restrictions:
       access:
         - access_type: denied
@@ -37,9 +92,17 @@ properties:
           when:
             heading: forward
             vehicle:
-              axle_count: {is_less_than: 3}
-              weight: {is_at_most: {value: 600, unit: 'kg'}}
-              height: {is_less_than: {value: 12, unit: 'ft'}}
+              - dimension: axle_count
+                comparison: less_than
+                value: 3
+              - dimension: weight
+                comparison: less_than_equal
+                value: 600
+                unit: 'kg'
+              - dimension: height
+                comparison: less_than
+                value: 12
+                unit: 'ft'
         - access_type: denied
           between: [0.25, 0.5]
           when:
@@ -49,6 +112,14 @@ properties:
             using: [at_destination]
             recognized: [as_employee]
             vehicle:
-              axle_count: { is_less_than: 3 }
-              weight: { is_at_most: { value: 600, unit: 'kg' } }
-              height: { is_less_than: { value: 12, unit: 'ft' } }
+              - dimension: axle_count
+                comparison: less_than
+                value: 3
+              - dimension: weight
+                comparison: less_than_equal
+                value: 600
+                unit: 'kg'
+              - dimension: height
+                comparison: less_than
+                value: 12
+                unit: 'ft'

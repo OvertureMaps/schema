@@ -113,7 +113,7 @@ function verify() {
   local mode="$1"
   local instance_file="${2:-}"
 
-  local -a jv_args=(-assertformat -assertcontent "$schema_file")
+  local -a jv_args=(--assert-format --assert-content "$schema_file")
   if [ -n "$instance_file" ]; then
     jv_args+=("$instance_file")
   fi
