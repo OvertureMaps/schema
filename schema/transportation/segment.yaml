@@ -23,7 +23,7 @@ properties:
         properties:
           class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
           subclass: { "$ref": "#/$defs/propertyDefinitions/subclass" }
-          subclass_rules: { "$ref": "#/$defs/propertyDefinitions/subclassRulesContainer" }
+          subclass_rules: { "$ref": "#/$defs/propertyContainers/subclassRulesContainer" }
           access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
           level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
           level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
