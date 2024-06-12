@@ -162,8 +162,9 @@ function schema() {
 function examples() {
   echo "---- VERIFYING examples ----"
   find examples -type f | sort | while read -r instance_file; do
-    if ! [[ "$instance_file" == *.yaml ]]; then
-      printf "%s...FAILED\nexample instance '%s' is EXPECTED to be a .yaml file but ACTUALLY it is not.\n" "$instance_file" "$instance_file"
+    if ! [[ "$instance_file" == *.yaml ]] && ! [[ "$instance_file" == *.json ]]; then
+      printf "%s...FAILED\nexample instance '%s' is EXPECTED to be a .yaml or .json file but ACTUALLY it is not.\n" "$instance_file" "$instance_file"
+      return 1
     elif ! match "$instance_file"; then
       continue
     fi
