@@ -6,7 +6,7 @@ geometry:
   coordinates: [0, 0]
 properties:
   categories:
-    primary: some_category
+    primary: the1_category_you_want_first
     alternate:
       - another_category
   confidence: 0.9
@@ -25,7 +25,7 @@ properties:
   addresses:
     - freeform: "770 Broadway, Floor 8"
       locality: "New York"
-    - freeform: "770 Brodway, #802"
+    - freeform: "770 Broadway, #802"
       locality: "New York"
       region: "US-NY"
       country: "US"
