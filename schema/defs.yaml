@@ -20,7 +20,7 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - boundary
+        - division_boundary
         - building
         - connector
         - division

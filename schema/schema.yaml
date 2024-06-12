@@ -71,8 +71,8 @@ oneOf:
         properties:
           properties:
             theme: { enum: [divisions] }
-            type: { enum: [boundary] }
-    then: { "$ref": divisions/boundary.yaml }
+            type: { enum: [division_boundary] }
+    then: { "$ref": divisions/division_boundary.yaml }
     else: { propertyNames: false }
   - if:
       properties:

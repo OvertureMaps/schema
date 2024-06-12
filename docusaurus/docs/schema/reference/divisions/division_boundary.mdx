@@ -1,21 +1,21 @@
 ---
-title: boundary
+title: division_boundary
 ---
 
 import CodeBlock from '@theme/CodeBlock';
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import yamlLoad from "@site/src/components/yamlLoad"
-import divisions_boundary_schema from '!!raw-loader!@site/docs/_schema/divisions/boundary.yaml';
-import divisions_boundary_example_land from '!!raw-loader!@site/docs/_examples/divisions/boundary/land_region.yaml';
-import divisions_boundary_example_maritime from '!!raw-loader!@site/docs/_examples/divisions/boundary/maritime_country.yaml';
-import divisions_disputed_boundary_example_both from '!!raw-loader!@site/docs/_examples/divisions/boundary/disputed_both.yaml';
+import divisions_boundary_schema from '!!raw-loader!@site/docs/_schema/divisions/division_boundary.yaml';
+import divisions_boundary_example_land from '!!raw-loader!@site/docs/_examples/divisions/division_boundary/land_region.yaml';
+import divisions_boundary_example_maritime from '!!raw-loader!@site/docs/_examples/divisions/division_boundary/maritime_country.yaml';
+import divisions_disputed_boundary_example_both from '!!raw-loader!@site/docs/_examples/divisions/division_boundary/disputed_both.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Boundary
+# Division Boundary
 
-A boundary is a border between [divisions](/schema/reference/divisions/division).
+A division boundary is a border between [divisions](/schema/reference/divisions/division).
 
 <table>
   <tbody>
@@ -29,12 +29,12 @@ A boundary is a border between [divisions](/schema/reference/divisions/division)
   </tr>
   <tr>
     <th>Type</th>
-    <td><code>boundary</code></td>
+    <td><code>division_boundary</code></td>
   </tr>
   </tbody>
 </table>
 
-A boundary is typically an officially-defined border
+A division boundary is typically an officially-defined border
 between two [divisions](/schema/reference/divisions/division). In light of
 geopolitical issues, some boundaries represent standalone
 disputed or treaty lines and therefore do not coincide with the border
