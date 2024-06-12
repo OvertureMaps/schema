@@ -1,0 +1,21 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: connector
+description: >-
+  Connectors create physical connections between segments. Connectors
+  are compatible with GeoJSON Point features.
+type: object
+properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
+  geometry:
+    description: >-
+      Connector's geometry which MUST be a Point as defined by GeoJSON
+      schema.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": https://geojson.org/schema/Point.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer

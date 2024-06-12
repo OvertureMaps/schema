@@ -1,0 +1,49 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Base layer properties
+description: Common schema definitions the base theme (primarily from OSM)
+"$defs":
+  propertyDefinitions:
+    sourceTags:
+      description: Any attributes/tags from the original source data that should be passed through.
+      type: object
+    elevation:
+      description: Elevation above sea level (in meters) of the feature.
+      type: integer
+      maximum: 9000
+    surface:
+      description: Surface material, mostly from the OSM tag, with some normalization.
+      type: string
+      enum:
+        - asphalt
+        - cobblestone
+        - compacted
+        - concrete
+        - concrete_plates
+        - dirt
+        - earth
+        - fine_gravel
+        - grass
+        - gravel
+        - ground
+        - paved
+        - paving_stones
+        - pebblestone
+        - recreation_grass
+        - recreation_paved
+        - recreation_sand
+        - rubber
+        - sand
+        - sett
+        - tartan
+        - unpaved
+        - wood
+        - woodchips
+  propertyContainers:
+    osmPropertiesContainer:
+      title: "OSM Properties"
+      description: OSM Properties
+      type: object
+      properties:
+        source_tags: { "$ref": "#/$defs/propertyDefinitions/sourceTags" }
+        wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
