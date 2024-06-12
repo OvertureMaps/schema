@@ -126,7 +126,7 @@ function verify() {
     jv "${jv_args[@]}"
     ;;
   *)
-    jv -output "$mode" "${jv_args[@]}"
+    jv --output "$mode" "${jv_args[@]}"
     ;;
   esac
 }
