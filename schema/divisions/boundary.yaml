@@ -9,8 +9,8 @@ properties:     # JSON Schema: Top-level object properties.
   id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
   geometry:
     description:
-      Boundary's geometry which MUST be a LineString as defined by the
-      GeoJSON schema.
+      Boundary's geometry which MUST be a LineString or MultiLineString
+      as defined by the GeoJSON schema.
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/LineString.json
