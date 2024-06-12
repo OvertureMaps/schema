@@ -7,10 +7,10 @@ geometry:
 properties:
   theme: divisions
   type: boundary
-  update_time: "2024-02-23T22:58:18Z"
-  version: 0
+  update_time: "2024-06-12T17:52:55Z"
+  version: 1
   subtype: county
   class: land
-  divisions: ["example:division:country:lonelylhsdivision"]
+  division_ids: ["example:division:country:lonelylhsdivision"]
   ext_expected_errors:
     - minimum 2 items required, but found 1 items

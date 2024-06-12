@@ -7,11 +7,11 @@ geometry:
 properties:
   theme: divisions
   type: boundary
-  update_time: "2024-02-23T22:47:06Z"
-  version: 0
+  update_time: "2024-06-12T17:52:42Z"
+  version: 1
   subtype: region
   class: land
-  divisions: ["example:division:country:left", "example:division:country:right", "example:division:country:right", 123]
+  division_ids: ["example:division:country:left", "example:division:country:right", "example:division:country:right", 123]
   is_disputed: "true"
   ext_expected_errors:
     - maximum 2 items required, but found 4 items
