@@ -120,7 +120,7 @@ function verify() {
 
   case "$mode" in
   quiet)
-    jv "${jv_args[@]}" 2>/dev/null
+    jv "${jv_args[@]}" >/dev/null 2>/dev/null
     ;;
   simple)
     jv "${jv_args[@]}"
