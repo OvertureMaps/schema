@@ -24,16 +24,17 @@ properties:     # JSON Schema: Top-level object properties.
   id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
   geometry:
     description:
-      A postcode geometry can be a point or a polygon, as defined by GeoJSON schema. # TODO: We could maybe also do GeometryCollection if we want the postcodes to be able to have both point and polygon, as in MSFT prod.
+      A postcode geometry can be a point or a polygon, as defined by GeoJSON schema.
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/Point.json
       - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
-      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer # TODO: See if this should be used for names
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/postcodetype" }
       country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
