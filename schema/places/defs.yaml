@@ -1,0 +1,10 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+description: Common schema definitions for places theme
+"$defs":
+  typeDefinitions:
+    category:
+      description: Category of a place.
+      type: string
+      minLength: 1
+      pattern: ^[a-z0-9]+(_[a-z0-9]+)*$
