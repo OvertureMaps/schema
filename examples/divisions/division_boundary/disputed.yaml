@@ -1,13 +1,13 @@
 ---
-id: example:boundary:disputed_both
+id: example:division_boundary:disputed_both
 type: Feature
 geometry:
   type: LineString
   coordinates: [[0, 1], [1, 2]]
 properties:
   theme: divisions
-  type: boundary
-  update_time: "2024-06-12T11:53:53Z"
+  type: division_boundary
+  update_time: "2024-06-12T17:53:33Z"
   version: 1
   subtype: country
   class: land
@@ -15,4 +15,4 @@ properties:
   is_disputed: true
   perspectives:
     mode: disputed_by
-    countries: [XX, XY] # Random iso codes representing two countries disputing the actual boundary
+    countries: [XX] # Random country disputing the actual boundary

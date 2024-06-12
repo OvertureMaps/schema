@@ -1,12 +1,12 @@
 ---
-id: counterexample:boundary:bad-class
+id: counterexample:division_boundary:bad-class
 type: Feature
 geometry:
   type: Point
   coordinates: [0, 1]
 properties:
   theme: divisions
-  type: boundary
+  type: division_boundary
   update_time: "2024-02-23T23:00:37Z"
   version: 0
   subtype: neighborhood
