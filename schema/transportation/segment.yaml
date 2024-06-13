@@ -28,7 +28,7 @@ properties:
       - title: "Conditional Properties"
         if: { properties: { subtype: { enum: [road] } } }
         then:
-          # required: [class]
+          required: [class]
           properties:
             lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
             prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
