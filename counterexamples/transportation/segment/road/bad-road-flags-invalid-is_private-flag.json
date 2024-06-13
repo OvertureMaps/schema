@@ -17,13 +17,6 @@
           "values": ["is_private"]
         }
       ],
-      "road": {
-        "flags": [
-          {
-            "values": ["is_private"]
-          }
-        ]
-      },
       "ext_expected_errors": [
         "value must be one of"
       ]

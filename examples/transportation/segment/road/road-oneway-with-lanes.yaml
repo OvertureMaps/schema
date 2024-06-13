@@ -17,8 +17,3 @@ properties:
     - value:
       - direction: forward
       - direction: forward
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    lanes:
-      - value:
-        - direction: forward
-        - direction: forward

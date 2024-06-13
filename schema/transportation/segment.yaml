@@ -20,7 +20,6 @@ properties:
     required: [subtype]
     allOf:
       - title: "Segment Properties"
-        required: [class]
         properties:
           class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
           access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
@@ -29,6 +28,7 @@ properties:
       - title: "Conditional Properties"
         if: { properties: { subtype: { enum: [road] } } }
         then:
+          # required: [class]
           properties:
             lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
             prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
@@ -36,8 +36,6 @@ properties:
             road_flags: { "$ref": "#/$defs/propertyContainers/flagsContainer" }
             speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
             width_rules: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
-            # The `road` property is deprecated and will be removed in the 2024-07 release
-            road: { "$ref": "#/$defs/propertyDefinitions/road" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
     properties:
@@ -139,30 +137,6 @@ properties:
       enum: [ vehicle, motor_vehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
       "$comment": >-
         motor_vehicle includes car, truck and motorcycle
-    road:
-      description: >-
-        ** Note: this field is deprecated in favor of promoting its sub-properties into top-level properties and will be removed in the 2024-07 release **
-
-        Properties for segments whose segment subtype is road. The road
-        subtype includes any variety of road, street, or path, including
-        dedicated paths for walking and cycling.
-      type: object
-      unevaluatedProperties: false
-      default: {}
-      properties:
-        surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer" }
-        flags: { "$ref": "#/$defs/propertyContainers/flagsContainer" }
-        level: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
-        width: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
-        lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
-        restrictions:
-          description: Restrictions on how the road may be used
-          type: object
-          unevaluatedProperties: false
-          properties:
-            speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
-            access: { "$ref": "#/$defs/propertyContainers/accessContainer" }
-            prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer"}
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string
