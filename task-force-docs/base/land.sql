@@ -266,6 +266,7 @@ FROM (
             AND tags [ 'highway' ] IS NULL
             AND tags [ 'building' ] IS NULL
             AND tags [ 'golf' ] IS NULL
+            AND tags [ 'sport' ] IS NULL
             AND tags [ 'leisure' ] IS NULL
     )
 )
