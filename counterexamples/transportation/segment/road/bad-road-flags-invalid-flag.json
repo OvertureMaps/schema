@@ -19,13 +19,6 @@
       {
         "values": ["foo"]
       }
-    ],
-    "road": {
-      "flags": [
-        {
-          "values": ["foo"]
-        }
-      ]
-    }
+    ]
   }
 }

@@ -21,13 +21,3 @@ properties:
       when:
         using: [to_deliver]
         during: Mo-Fr 08:30-16:30
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      access:
-        - access_type: denied
-        - access_type: allowed
-          when: { recognized: [as_private] }
-        - access_type: allowed
-          when:
-            using: [to_deliver]
-            during: Mo-Fr 08:30-16:30

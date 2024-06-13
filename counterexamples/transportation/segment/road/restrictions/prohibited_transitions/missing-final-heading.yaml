@@ -17,11 +17,5 @@ properties:
     - sequence:
         - segment_id: foo
           connector_id: bar
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      prohibited_transitions:
-        - sequence:
-            - segment_id: foo
-              connector_id: bar
   ext_expected_errors:
     - "missing properties: 'final_heading'"

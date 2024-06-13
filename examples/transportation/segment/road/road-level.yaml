@@ -16,9 +16,3 @@ properties:
       between: [0, 0.5]
     - value: 1
       between: [0.75, 1]
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    level:
-      - value: -1
-        between: [0, 0.5]
-      - value: 1
-        between: [0.75, 1]
