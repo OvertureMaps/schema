@@ -34,8 +34,37 @@ properties:     # JSON Schema: Top-level object properties.
     unevaluatedProperties: false
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
-      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      required: name
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
+      name:
+         pattern: |  
+            if country == 'AT' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'BE' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'BG' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'HR' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'CY' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'CZ' and subtype == 'postcode1' then ^\d{3}\s?\d{2}$
+            elif country == 'DK' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'EE' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'FI' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'FR' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'DE' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'GR' and subtype == 'postcode1' then ^\d{3}\s?\d{2}$
+            elif country == 'HU' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'IE' and subtype == 'postcode1' then ^[A-Za-z]\d{2}\s?[A-Za-z\d]{4}$
+            elif country == 'IT' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'LV' and subtype == 'postcode1' then ^LV-\d{4}$
+            elif country == 'LT' and subtype == 'postcode1' then ^LT-\d{5}$
+            elif country == 'LU' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'MT' and subtype == 'postcode1' then ^[A-Za-z]{3}\s?\d{2,4}$
+            elif country == 'NL' and subtype == 'postcode1' then ^\d{4}\s?[A-Za-z]{2}$
+            elif country == 'PL' and subtype == 'postcode1' then ^\d{2}-\d{3}$
+            elif country == 'PT' and subtype == 'postcode1' then ^\d{4}-\d{3}$
+            elif country == 'RO' and subtype == 'postcode1' then ^\d{6}$
+            elif country == 'SK' and subtype == 'postcode1' then ^\d{3}\s?\d{2}$
+            elif country == 'SI' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'ES' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'SE' and subtype == 'postcode1' then ^\d{3}\s?\d{2}$
       subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/postcodetype" }
       country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
       city_division_id:
