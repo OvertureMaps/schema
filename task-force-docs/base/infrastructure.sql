@@ -8,6 +8,134 @@ SELECT
     min_lat,
     max_lat,
     TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
+    '__OVERTURE_NAMES_QUERY' AS names,
+
+    -- Relevant OSM tags for land type
+    MAP_FILTER(tags,
+        (k,v) -> k IN (
+            'access',
+            'aerodrome:type',
+            'aerodrome',
+            'bridge:support',
+            'bridge:structure',
+            'amenity',
+            'barrier',
+            'icao',
+            'landuse',
+            'military',
+            'parking',
+            'ref',
+            'route',
+            'surface',
+            'tower',
+            'tourism'
+        )
+    ) AS source_tags,
+
+    -- Add all OSM Tags for debugging
+    tags AS osm_tags,
+
+    -- Sources are an array of structs.
+    ARRAY [ CAST(
+        ROW(
+            '',
+            'OpenStreetMap',
+            SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
+            NULL
+        )
+        AS ROW(
+            property varchar,
+            dataset varchar,
+            record_id varchar,
+            confidence double
+        )
+    ) ] AS sources,
+
+    CASE
+        WHEN tags['surface'] IN (
+            'asphalt',
+            'cobblestone',
+            'compacted',
+            'concrete',
+            'concrete:plates',
+            'dirt',
+            'earth',
+            'fine_gravel',
+            'grass',
+            'gravel',
+            'ground',
+            'paved',
+            'paving_stones',
+            'pebblestone',
+            'recreation_grass',
+            'recreation_paved',
+            'recreation_sand',
+            'rubber',
+            'sand',
+            'sett',
+            'tartan',
+            'unpaved',
+            'wood',
+            'woodchips'
+        )   THEN tags['surface']
+        WHEN tags['surface'] = 'concrete:plates'
+            THEN 'concrete_plates'
+        ELSE NULL
+    END AS surface,
+
+    -- Overture's concept of `layer` is called level
+    TRY_CAST(tags['layer'] AS int) AS level,
+
+    -- Wikidata is a top-level property in the OSM Container
+    tags['wikidata'] as wikidata,
+
+    -- Apparently there are corrupt geometries that are breaking Athena, so write WKT for now:
+    wkt AS wkt_geometry
+FROM (
+    SELECT
+        *,
+        -- Linear logic for
+        CAST(
+            CASE
+            -- Bus
+            WHEN tags['highway'] = 'bus_stop' THEN ROW('transit','bus_stop')
+            WHEN tags['route'] = 'bus' THEN ROW('transit','bus_route')
+            WHEN tags['amenity'] = 'bus_station' THEN ROW('transit','bus_station')
+
+            -- Public Transport
+            WHEN tags['public_transport'] IN ('stop_position','platform') THEN ('transit', tags['public_transport'])
+
+    ) AS ROW(subtype varchar, class varchar) AS overture
+    CASE
+        WHEN
+
+        THEN ('transit', )
+
+        THEN
+
+
+         WHEN class IN (
+            'bus_route',
+            'bus_stop',
+            'bus_station',
+            -- 'ferry_route',
+            'ferry_terminal',
+            'railway_halt',
+            'railway_station',
+            -- Parking
+            'parking',
+            'parking_space',
+
+            -- Public transport / cycle
+            'stop_position',
+            'platform',
+
+            -- cycle
+            'bicycle_parking'
+
+        ) THEN 'transit'
+
+
     -- Determine class from subclass or tags
     CASE
         -- Bus / Ferry / Railway Infrastructure (Transit)
@@ -191,90 +319,7 @@ SELECT
 
     END AS subtype,
     class,
-    '__OVERTURE_NAMES_QUERY' AS names,
 
-    -- Relevant OSM tags for land type
-    MAP_FILTER(tags, (k,v) -> k IN (
-            'access',
-            'aerodrome:type',
-            'aerodrome',
-            'bridge:support',
-            'bridge:structure',
-            'amenity',
-            'barrier',
-            'icao',
-            'landuse',
-            'military',
-            'parking',
-            'ref',
-            'route',
-            'surface',
-            'tower',
-            'tourism'
-        )
-    ) AS source_tags,
-
-    -- Add all OSM Tags for debugging
-    tags AS osm_tags,
-
-    -- Sources are an array of structs.
-    ARRAY [ CAST(
-        ROW(
-            '',
-            'OpenStreetMap',
-            SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
-            NULL
-        )
-        AS ROW(
-            property varchar,
-            dataset varchar,
-            record_id varchar,
-            confidence double
-        )
-    ) ] AS sources,
-    CASE
-        WHEN tags['surface'] IN (
-            'asphalt',
-            'cobblestone',
-            'compacted',
-            'concrete',
-            'concrete:plates',
-            'dirt',
-            'earth',
-            'fine_gravel',
-            'grass',
-            'gravel',
-            'ground',
-            'paved',
-            'paving_stones',
-            'pebblestone',
-            'recreation_grass',
-            'recreation_paved',
-            'recreation_sand',
-            'rubber',
-            'sand',
-            'sett',
-            'tartan',
-            'unpaved',
-            'wood',
-            'woodchips'
-        )   THEN tags['surface']
-        WHEN tags['surface'] = 'concrete:plates'
-            THEN 'concrete_plates'
-        ELSE NULL
-    END AS surface,
-
-    -- Overture's concept of `layer` is called level
-    TRY_CAST(tags['layer'] AS int) AS level,
-
-    -- Wikidata is a top-level property in the OSM Container
-    tags['wikidata'] as wikidata,
-
-    -- Apparently there are corrupt geometries that are breaking Athena, so write WKT for now:
-    wkt AS wkt_geometry
-FROM (
-    SELECT
-        *,
         CASE
             -- Transit Infrastructure
             -- Air
