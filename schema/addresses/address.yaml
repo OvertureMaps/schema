@@ -55,11 +55,18 @@ properties:     # JSON Schema: Top-level object properties.
         type: string
         minLength: 1
         pattern: ^(\S.*)?\S$
-      address_level1: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
-      address_level2: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
-      address_level3: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
-      address_level4: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
-      address_level5: { "$ref": "#/$defs/propertyDefinitions/addressLevel" }
+      address_levels:
+        description: >-
+          The administrative levels present in an address. The number
+          of values in this list and their meaning is country-dependent.
+          For example, in the United States we expect two values: the state
+          and the municipality. In other countries there might be only one.
+          Other countries could have three or more.
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 5
 "$defs":
   propertyDefinitions:
     addressLevel:

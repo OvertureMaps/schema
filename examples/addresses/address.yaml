@@ -10,8 +10,9 @@ properties:
   update_time: '2024-04-26T23:55:01-08:00'
   version: 0
   country: US
-  address_level1: MA
-  address_level3: NEWTON CENTRE
+  address_levels:
+    - MA
+    - NEWTON CENTRE
   postcode: '02459'
   street: COMMONWEALTH AVE
   number: '1000'
