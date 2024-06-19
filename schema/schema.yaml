@@ -14,6 +14,14 @@ oneOf:
       properties:
         properties:
           properties:
+            theme: { enum: [addresses] }
+            type: { enum: [address] }
+    then: { "$ref": addresses/address.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
             theme: { enum: [base] }
             type: { enum: [infrastructure] }
     then: { "$ref": base/infrastructure.yaml }
