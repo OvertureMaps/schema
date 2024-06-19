@@ -1,0 +1,17 @@
+---
+id: overture:postcode:postcode:1
+type: Feature
+geometry:
+  type: Point
+  coordinates: ["-25.7833", -64.5]
+properties:
+  theme: addresses
+  type: postcode
+  update_time: '2024-06-19T16:27:01-08:00'
+  version: 0
+  name: 67017
+  country: IT
+  subtype: postcode1
+  city_division_id: 085f16653fffffff01a0e5c4404ac944
+  ext_expected_errors:
+    - "[I#/geometry/coordinates/0] [S#/properties/coordinates/items/type] expected number, but got string"

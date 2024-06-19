@@ -1,0 +1,17 @@
+---
+id: overture:postcode:postcode:1
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-25.7833, -64.5]
+properties:
+  theme: addresses
+  type: postcode
+  update_time: '2024-06-19T16:27:01-08:00'
+  version: 0
+  name: 67017
+  country: IT
+  subtype: postcode1
+  city_division_id: " "
+  ext_expected_errors:
+    - "[I#/properties/city_division_id] [S#/$defs/propertyDefinitions/id/pattern] does not match pattern"

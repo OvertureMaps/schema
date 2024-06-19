@@ -68,6 +68,6 @@ properties:     # JSON Schema: Top-level object properties.
       subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/postcodetype" }
       country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
       city_division_id:
-        description: The city which this postcode is tied to. #TODO: come up with a clear description and example. From GeoNames source descriptions!
+        description: The city which this postcode is tied to.
         allOf:
          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
