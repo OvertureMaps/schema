@@ -34,7 +34,7 @@ properties:     # JSON Schema: Top-level object properties.
     unevaluatedProperties: false
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
-      required: name
+    required: [name]
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       name:
          pattern: |  
