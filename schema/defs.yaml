@@ -20,7 +20,6 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - administrative_boundary # DEPRECATED, TO BE REMOVED SEPT 2024 RELEASE
         - address
         - boundary
         - building
