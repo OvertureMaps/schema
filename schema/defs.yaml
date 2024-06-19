@@ -35,6 +35,7 @@ description: Common schema definitions shared by all themes
         - locality_area           # DEPRECATED, TO BE REMOVED SEPT 2024 RELEASE
         - building_part
         - place
+        - postcode
         - segment
         - water
     featureUpdateTime:
