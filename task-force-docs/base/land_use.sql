@@ -1,4 +1,308 @@
+-- This file contains the logic for transforming OpenStreetMap features into Overture features
+-- for the `land_use` type within the `base` theme.
+
+-- The order of the WHEN clauses in the following CASE statement is very specific. It is the same
+-- as saying "WHEN this tag is present AND ignore any of the other tags below this line"
+WITH classified_osm AS (
+    SELECT CAST(
+        CASE
+            -- Polygons
+            WHEN SUBSTR(wkt,1,7) = 'POLYGON' OR SUBSTR(wkt,1,12) = 'MULTIPOLYGON' THEN CASE
+                -- Military
+                WHEN tags['military'] IN (
+                    'airfield',
+                    'barracks',
+                    'base',
+                    'danger_area',
+                    'naval_base',
+                    'nuclear_explosion_site',
+                    'obstacle_course',
+                    'range',
+                    'training_area',
+                    'trench'
+                ) THEN ROW('military', tags['military'])
+
+                -- Other general military landuse
+                WHEN tags['military'] <> 'no' OR tags['landuse'] = 'military' THEN ROW('military', 'military')
+
+                -- Residential
+                WHEN tags['landuse'] IN ('residential', 'static_caravan', 'garages') THEN ROW('residential', tags['landuse'])
+
+                -- Entertainment
+                WHEN tags['tourism'] IN (
+                    'zoo',
+                    'theme_park'
+                ) THEN ROW('entertainment', tags['tourism'])
+                WHEN tags['leisure'] IN (
+                    'water_park'
+                ) THEN ROW('entertainment', tags['leisure'])
+
+                -- Give National Parks top priority since it might have other tags.
+                WHEN tags['boundary'] = 'national_park' THEN ROW('protected','national_park')
+
+                -- Aboriginal Lands & Reservations
+                WHEN tags['boundary'] IN ('aboriginal_lands') OR (
+                    tags['boundary'] = 'protected_area' AND tags['protect_class'] = '24'
+                ) THEN ROW('protected', 'aboriginal_land')
+
+                -- Pedestrian land use, such as plazas
+                WHEN tags['place'] = 'square' THEN ROW('pedestrian', 'plaza')
+                WHEN tags['highway'] = 'pedestrian' THEN ROW('pedestrian', 'pedestrian')
+
+                -- Is there is an official Protect Class Designation (wiki.openstreetmap.org/wiki/Key:protect_class)?
+                WHEN tags['protect_class'] IN ('1a', '1b', '1', '2', '3', '4', '5', '6') THEN CASE
+                    WHEN tags['protect_class'] = '1a' THEN ROW('protected', 'strict_nature_reserve')
+                    WHEN tags['protect_class'] IN ('1b', '1') THEN ROW('protected', 'wilderness_area')
+                    WHEN tags['protect_class'] = '2' THEN ROW('protected', 'national_park')
+                    WHEN tags['protect_class'] = '3' THEN ROW('protected', 'natural_monument')
+                    WHEN tags['protect_class'] = '4' THEN ROW('protected', 'species_management_area')
+                    WHEN tags['protect_class'] = '5' THEN ROW('protected', 'protected_landscape_seascape')
+                    WHEN tags['protect_class'] = '6' THEN ROW('protected', 'nature_reserve')
+                END
+
+                WHEN tags['boundary'] = 'protected_area' THEN CASE
+                    WHEN LOWER(tags['protection_title']) IN ('national forest', 'state forest')
+                        THEN ROW('protected', 'forest')
+                    WHEN LOWER(tags['protection_title']) IN ('national park', 'parque nacional', 'national_park')
+                        THEN ROW('protected', 'national_park')
+                    WHEN LOWER(tags['protection_title']) IN ('state park') THEN ROW('protected','state_park')
+                    WHEN LOWER(tags['protection_title']) IN (
+                        'wilderness area',
+                        'wilderness study area'
+                    ) THEN ROW('protected', 'wilderness_area')
+                    WHEN LOWER(tags['protection_title']) IN ('nature reserve', 'nature refuge', 'reserva nacional')
+                        THEN ROW('protected', 'nature_reserve')
+                    WHEN LOWER(tags['protection_title']) IN ('environmental use')
+                        THEN ROW('protected', 'environmental')
+                    WHEN tags['leisure'] IN ('nature_reserve')
+                        THEN ROW('protected', tags['leisure'])
+                    WHEN tags['landuse'] IS NOT NULL
+                        THEN ROW('protected', 'protected')
+                END
+
+                WHEN tags['leisure'] IN ('nature_reserve') THEN ROW('protected','nature_reserve')
+
+                -- National & State Parks (US)
+                WHEN STRPOS(LOWER(tags['name']), 'national park') > 0
+                    OR tags['boundary'] = 'national_park'
+                    OR LOWER(tags['protection_title']) = 'national park'
+                        THEN ROW('protected', 'national_park')
+
+                WHEN STRPOS(LOWER(tags['name']), 'state park') > 0
+                    OR LOWER(tags['protection_title']) = 'state park'
+                        THEN ROW('protected', 'state_park')
+
+                WHEN tags['protected_area'] = 'national_park' THEN ROW('protected', 'national_park')
+
+                -- Golf
+                WHEN tags['golf'] IN (
+                    'bunker',
+                    'driving_range',
+                    'fairway',
+                    'green',
+                    'lateral_water_hazard',
+                    'rough',
+                    'tee',
+                    'water_hazard'
+                )
+                    THEN ROW('golf', tags['golf'])
+                WHEN tags['leisure'] IN (
+                    'golf_course'
+                ) THEN ROW('golf','golf_course')
+
+                -- Winter Sports
+                WHEN tags['landuse'] IN ('winter_sports') THEN ROW('winter_sports','winter_sports')
+
+                -- Horticulture
+                WHEN tags['landuse'] IN (
+                    'allotments',
+                    'greenhouse_horticulture',
+                    'flowerbed',
+                    'plant_nursery',
+                    'orchard',
+                    'vineyard'
+                ) THEN ROW('horticulture', tags['landuse'])
+                WHEN tags['leisure'] IN (
+                    'garden'
+                ) THEN ROW('horticulture', tags['leisure'])
+
+                -- Aquaculture
+                WHEN tags['landuse'] IN ('aquaculture') THEN ROW('aquaculture', 'aquaculture')
+
+                -- Education / Schoolyards
+                WHEN tags['amenity'] IN (
+                    'college',
+                    'university',
+                    'school'
+                ) THEN ROW('education', tags['amenity'])
+                WHEN tags['landuse'] IN (
+                    'education'
+                ) THEN ROW('education', tags['landuse'])
+                WHEN tags['leisure'] IN ('schoolyard')
+                    THEN ROW('education', tags['leisure'])
+
+                -- Medical
+                WHEN tags['amenity'] IN (
+                    'clinic',
+                    'doctors',
+                    'hospital'
+                ) THEN ROW('medical', tags['amenity'])
+
+                -- Park
+                WHEN tags['leisure'] IN (
+                    'dog_park',
+                    'park'
+                ) THEN ROW('park', tags['leisure'])
+                WHEN tags['landuse'] IN ('village_green') THEN ROW('park', tags['landuse'])
+
+                -- Agriculture
+                WHEN tags['landuse'] IN ('animal_keeping', 'farmland', 'farmyard', 'meadow')
+                    THEN ROW('agriculture', tags['landuse'])
+                -- Meadows can also be tagged this way:
+                WHEN tags['meadow'] IN ('agricultural', 'agriculture', 'pasture')
+                    THEN ROW('agriculture', 'meadow')
+
+                -- Resource extraction
+                WHEN tags['landuse'] IN (
+                    'logging',
+                    'peat_cutting',
+                    'quarry',
+                    'salt_pond'
+                ) THEN ROW('resource_extraction', tags['landuse'])
+
+                -- Campgrounds
+                WHEN tags['tourism'] = 'camp_site' AND tags['refugee'] IS NULL
+                    THEN ROW('campground', 'camp_site')
+
+                -- Cemetery
+                WHEN tags['amenity'] IN ('grave_yard') THEN ROW('cemetery', 'grave_yard')
+                WHEN tags['landuse'] IN ('cemetery') THEN ROW('cemetery', 'cemetery')
+                WHEN tags['landuse'] IN ('grave_yard') THEN ROW('cemetery','grave_yard')
+
+                -- Religious
+                WHEN tags['landuse'] IN ('religious') THEN ROW('religious', tags['landuse'])
+
+                -- Recreation
+                WHEN tags['leisure'] IN (
+                    'beach_resort',
+                    'marina',
+                    'pitch',
+                    'playground',
+                    'recreation_ground',
+                    'stadium',
+                    'track'
+                ) THEN ROW('recreation', tags['leisure'])
+                WHEN tags['landuse'] IN ('recreation_ground') THEN ROW('recreation',tags['landuse'])
+                WHEN tags['leisure'] IN ('track', 'recreation_ground') THEN ROW('recreation', tags['leisure'])
+
+                -- Landfill
+                WHEN tags['landuse'] IN ('landfill') THEN ROW('landfill', 'landfill')
+
+                -- General "developed"
+                WHEN tags['landuse'] IN (
+                    'brownfield',
+                    'commercial',
+                    'industrial',
+                    'institutional',
+                    'retail'
+                ) THEN ROW('developed', tags['landuse'])
+                WHEN tags['man_made'] = 'works' THEN ROW('developed', 'works')
+
+                -- Construction
+                WHEN tags['landuse'] IN ('construction', 'greenfield') THEN ROW('construction',tags['landuse'])
+
+                -- Other managed / maintained
+                WHEN tags['natural'] IS NULL AND tags['landuse'] IN (
+                    'grass'
+                ) THEN ROW('managed', tags['landuse'])
+
+                -- Other Landuse
+                WHEN tags['landuse'] IN ('highway', 'traffic_island') THEN ROW('transportation',tags['landuse'])
+                ELSE ROW(NULL,NULL)
+            END
+            -- Linestrings
+            WHEN SUBSTR(wkt,1,10) = 'LINESTRING' THEN CASE
+                WHEN tags['leisure'] IN ('track') THEN ROW('recreation', tags['leisure'])
+                ELSE ROW(NULL,NULL)
+            END
+
+        -- No Points allowed in landuse
+        ELSE ROW(NULL,NULL)
+        END AS ROW(subtype varchar, class varchar)
+        ) AS overture,
+        -- Transform the surface tag
+        IF(
+            tags['leisure'] IN ('pitch', 'playground', 'track', 'stadium') OR tags['sport'] IS NOT NULL,
+            CASE
+                WHEN tags['natural'] = 'sand' OR tags['surface'] IN (
+                    'dirt',
+                    'earth',
+                    'fine_gravel',
+                    'gravel',
+                    'ground',
+                    'unpaved',
+                    'sand'
+                ) OR tags['golf'] IN ('bunker') THEN 'recreation_sand'
+                WHEN tags['surface'] IN ('artificial_turf', 'grass', 'grass_paver')
+                    THEN 'recreation_grass'
+                WHEN tags['surface'] IN (
+                    'acrylic',
+                    'asphalt',
+                    'clay',
+                    'compacted',
+                    'concrete',
+                    'hard',
+                    'paved'
+                ) THEN 'recreation_paved'
+                WHEN tags['surface'] IS NULL AND tags['sport'] IN ('basketball')
+                    THEN 'recreation_paved'
+                WHEN tags['surface'] IS NULL AND tags['sport'] IN ('soccer', 'football')
+                    THEN 'recreation_grass'
+                ELSE tags['surface']
+            END,
+            CASE
+                WHEN tags['golf'] IN ('bunker') THEN 'recreation_sand'
+                ELSE tags['surface']
+            END
+        ) AS surface,
+        *
+    FROM
+        -- These two lines get injected.
+        {daylight_table}
+    WHERE release = '{daylight_version}'
+        AND (
+            ARRAYS_OVERLAP(
+                MAP_KEYS(tags),
+                ARRAY[
+                    'aeroway',
+                    'amenity',
+                    'boundary',
+                    'golf',
+                    'highway',
+                    'landuse',
+                    'leisure',
+                    'man_made',
+                    'meadow',
+                    'military',
+                    'place',
+                    'protect_class',
+                    'protection_title',
+                    'tourism',
+                    'waterway'
+                ]
+            ) = TRUE
+            -- OR STRPOS(LOWER(tags['name']), 'national park') > 0
+            -- OR STRPOS(LOWER(tags['name']), 'state park') > 0
+        )
+
+        AND (
+            tags['building'] IS NULL
+            OR tags['building'] = 'no'
+        )
+)
+
 SELECT
+    -- Needed to compute ID and satisfy Overture requirements.
     type,
     id,
     version,
@@ -6,535 +310,77 @@ SELECT
     max_lon,
     min_lat,
     max_lat,
-    update_time,
-    subtype,
-    class,
-    names,
-    source_tags,
-    osm_tags,
-    sources,
-    wikidata,
-    surface,
-    level,
-    elevation,
-    wkt_geometry
-FROM (
-    SELECT
-        -- Needed to compute ID and satisfy Overture requirements.
-        type,
-        id,
-        version,
-        min_lon,
-        max_lon,
-        min_lat,
-        max_lat,
-        TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
+    TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
 
-        -- Determine subtype from class or tags
-        CASE
-            -- Agriculture
-            WHEN class IN (
-                'animal_keeping',
-                'farmland',
-                'farmyard',
-                'meadow'
-            ) THEN 'agriculture'
+    '__OVERTURE_NAMES_QUERY' AS names,
 
-            -- Airports
-            WHEN class IN (
-                'aerodrome',
-                'helipad',
-                'heliport'
-            ) THEN 'airport'
+    -- Subtype and class determined by logic below
+    overture.subtype AS subtype,
+    overture.class AS class,
 
-            -- Aquaculture
-            WHEN class IN ('aquaculture') THEN 'aquaculture'
-
-            -- Campground
-            WHEN class IN ('camp_site') THEN 'campground'
-
-            -- Cemetery
-            WHEN class IN ('cemetery','grave_yard') THEN 'cemetery'
-
-            -- Conservation
-            WHEN class IN ('conservation') THEN 'conservation'
-
-            -- Construction
-            WHEN class IN (
-                'construction',
-                'greenfield'
-            ) THEN 'construction'
-
-            -- Developed
-            WHEN class IN (
-                'commercial',
-                'retail',
-                'industrial',
-                'institutional',
-                'brownfield',
-                'works'
-            ) THEN 'developed'
-
-            -- Education
-            WHEN class IN (
-                'college',
-                'education',
-                'school',
-                'schoolyard',
-                'university'
-            ) THEN 'education'
-
-            -- Entertainment
-            WHEN class IN (
-                'theme_park',
-                'water_park',
-                'zoo'
-            ) THEN 'entertainment'
-
-            -- Golf
-            WHEN class IN (
-                'bunker',
-                'driving_range',
-                'fairway',
-                'golf_course',
-                'green',
-                'lateral_water_hazard',
-                'rough',
-                'tee',
-                'water_hazard'
-            ) THEN 'golf'
-
-            -- Horticulture
-            WHEN class IN (
-                'allotments',
-                'garden',
-                'greenhouse_horticulture',
-                'flowerbed',
-                'plant_nursery',
-                'orchard',
-                'vineyard'
-            ) THEN 'horticulture'
-
-            -- Landfill
-            WHEN class IN ('landfill') THEN 'landfill'
-
-            -- Medical
-            WHEN class IN (
-                'clinic',
-                'doctors',
-                'hospital'
-            ) THEN 'medical'
-
-            -- Military
-            WHEN class IN (
-                'airfield',
-                'barracks',
-                'base',
-                'danger_area',
-                'military',
-                'military_other',
-                'naval_base',
-                'nuclear_explosion_site',
-                'obstacle_course',
-                'range',
-                'training_area',
-                'trench'
-            ) THEN 'military'
-
-            -- Parks / Greenspace
-            WHEN class IN (
-                'common',
-                'dog_park',
-                'park',
-                'village_green'
-            ) THEN 'park'
-
-            -- There are 5.3M landuse=grass tags without other more descriptive tags
-            WHEN class IN (
-                'grass',
-                'cutline'
-            ) THEN 'managed'
-
-            -- Pedestrian Infrastructure
-            WHEN class IN (
-                'pedestrian',
-                'plaza'
-            ) THEN 'pedestrian'
-
-            -- Public
-            WHEN class IN (
-                'civic_admin',
-                'public'
-            ) THEN 'public'
-
-            -- Protected
-            WHEN class IN (
-                'aboriginal_land',
-                'environmental',
-                'forest',
-                'state_park',
-                'national_park',
-                'natural_monument',
-                'nature_reserve',
-                'protected_landscape_seascape',
-                'species_management_area',
-                'strict_nature_reserve',
-                'wilderness_area',
-                'wilderness'
-            ) THEN 'protected'
-
-            -- Recreation
-            WHEN class IN (
-                'beach_resort',
-                'recreation_grass',
-                'recreation_paved',
-                'pitch',
-                'playground',
-                'track',
-                'recreation_ground',
-                'recreation_sand',
-
-                -- Add more leisure= tags here if necessary
-                'marina',
-                'stadium'
-            ) THEN 'recreation'
-
-            -- Religious
-            WHEN class IN ('religious', 'churchyard') THEN 'religious'
-
-            -- Residential
-            WHEN class IN ('residential', 'static_caravan', 'garages')
-                THEN 'residential'
-
-            -- Resource
-            WHEN class IN (
-                'logging',
-                'peat_cutting',
-                'quarry',
-                'salt_pond'
-            ) THEN 'resource_extraction'
-
-            -- Transportation
-            WHEN class IN ('depot', 'traffic_island', 'highway')
-                THEN 'transportation'
-
-            -- Winter Sports
-            WHEN class IN ('winter_sports') THEN 'winter_sports'
-
-        END AS subtype,
-        class,
-
-        '__OVERTURE_NAMES_QUERY' AS names,
-
-        -- Relevant OSM tags for Landuse type
-        MAP_FILTER(tags, (k,v) -> k IN (
-                'access',
-                'aeroway',
-                'amenity',
-                'area',
-                'boundary',
-                'building',
-                'golf',
-                'highway',
-                'landuse',
-                'layer',
-                'leisure',
-                'level',
-                'man_made',
-                'meadow',
-                'military',
-                'natural',
-                'place',
-                'protect_class',
-                'protection_title',
-                'refugee',
-                'sport',
-                'surface',
-                'tourism',
-                'waterway'
-            )
-        ) as source_tags,
-
-        tags as osm_tags,
-
-        -- Sources are an array of structs.
-        ARRAY [ CAST(
-            ROW(
-                '',
-                'OpenStreetMap',
-                SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
-                NULL
-            )
-            AS ROW(
-                property varchar,
-                dataset varchar,
-                record_id varchar,
-                confidence double
-            )
-        ) ] AS sources,
-
-        -- Overture's concept of `layer` is called level
-        TRY_CAST(tags['layer'] AS int) AS level,
-
-        -- Wikidata is a top-level property in the OSM Container
-        tags['wikidata'] as wikidata,
-
-        -- Elevation as integer (meters above sea level)
-        TRY_CAST(tags['ele'] AS integer) AS elevation,
-
-        -- Other type=landuse top-level attributes
-        surface,
-
-        wkt_geometry
-    FROM (
-        SELECT
-            *,
-            IF(
-                --Polygons
-                wkt_geometry like '%POLYGON%',
-                CASE
-
-                    -- Check for Military specific tags
-                    WHEN tags['military'] <> 'no' THEN
-                        IF(tags['military'] IN (
-                                'airfield',
-                                'barracks',
-                                'base',
-                                'danger_area',
-                                'naval_base',
-                                'nuclear_explosion_site',
-                                'obstacle_course',
-                                'range',
-                                'training_area',
-                                'trench'
-                        ), tags['military'],
-                        'military_other')
-
-                    -- Other general military landuse
-                    WHEN tags['landuse'] = 'military' THEN 'military'
-
-                    -- Use these secondary more descriptive tags first:
-                    WHEN tags['tourism'] IN (
-                        'zoo',
-                        'theme_park'
-                    ) THEN tags['tourism']
-
-                    -- Give National Parks top priority since it might have other tags.
-                    WHEN tags['boundary'] = 'national_park' THEN 'national_park'
-
-                    -- Aboriginal Lands & Reservations
-                    WHEN tags['boundary'] IN ('aboriginal_lands') OR (
-                        tags['boundary'] = 'protected_area' AND tags['protect_class'] = '24'
-                    ) THEN 'aboriginal_land'
-
-                    -- Pedestrian land use, such as plazas
-                    WHEN tags['place'] = 'square' THEN 'plaza'
-                    WHEN tags['highway'] = 'pedestrian' THEN 'pedestrian'
-
-                    -- Is there is an official Protect Class Designation (wiki.openstreetmap.org/wiki/Key:protect_class)?
-                    WHEN tags['protect_class'] IN ('1a', '1b', '1', '2', '3', '4', '5', '6') THEN CASE
-                        WHEN tags['protect_class'] = '1a' THEN 'strict_nature_reserve'
-                        WHEN tags['protect_class'] IN ('1b', '1') THEN 'wilderness_area'
-                        WHEN tags['protect_class'] = '2' THEN 'national_park'
-                        WHEN tags['protect_class'] = '3' THEN 'natural_monument'
-                        WHEN tags['protect_class'] = '4' THEN 'species_management_area'
-                        WHEN tags['protect_class'] = '5' THEN 'protected_landscape_seascape'
-                        WHEN tags['protect_class'] = '6' THEN 'nature_reserve'
-                    END
-
-                    -- protect_class >= 6 or null:
-                    WHEN tags['boundary'] = 'protected_area' THEN CASE
-                        WHEN LOWER(tags['protection_title']) IN ('national forest', 'state forest')
-                            THEN 'forest'
-                        WHEN LOWER(tags['protection_title']) IN ('national park', 'parque nacional', 'national_park')
-                            THEN 'national_park'
-                        WHEN LOWER(tags['protection_title']) IN ('state park') THEN 'state_park'
-                        WHEN LOWER(tags['protection_title']) IN (
-                            'wilderness area',
-                            'wilderness study area'
-                        ) THEN 'wilderness_area'
-                        WHEN LOWER(tags['protection_title']) IN ('nature reserve', 'nature refuge', 'reserva nacional')
-                            THEN 'nature_reserve'
-                        WHEN LOWER(tags['protection_title']) IN ('environmental use')
-                            THEN 'environmental'
-                        -- Fall through to landuse if it's protected
-                        WHEN tags['landuse'] IS NOT NULL THEN tags['landuse']
-                        -- Last resort, a leisure= tag (such as nature_reserve):
-                        WHEN tags['leisure'] IS NOT NULL THEN tags['leisure']
-                    END
-
-                    -- National & State Parks (US)
-                    WHEN STRPOS(LOWER(tags['name']), 'national park') > 0 OR tags['boundary']
-                        = 'national_park' OR LOWER(tags['protection_title']) = 'national park'
-                        THEN 'national_park'
-
-                    WHEN STRPOS(LOWER(tags['name']), 'state park') > 0 OR LOWER(tags['protection_title'])
-                        = 'state park' THEN 'state_park'
-
-                    WHEN tags['protected_area'] = 'national_park' THEN 'national_park'
-
-                    -- Pull out golf before going into sport-specific logic
-                    WHEN tags['golf'] IN (
-                        'bunker',
-                        'driving_range',
-                        'fairway',
-                        'golf_course',
-                        'green',
-                        'lateral_water_hazard',
-                        'rough',
-                        'tee',
-                        'water_hazard'
-                    ) THEN tags['golf']
-
-                    -- Meadows can be tagged this way:
-                    WHEN tags['meadow'] IN ('agricultural', 'agriculture', 'pasture')
-                        THEN 'meadow'
-
-                    -- These amenity tags become classes
-                    WHEN tags['amenity'] IN (
-                        'college',
-                        'university',
-                        'school',
-                        'hospital',
-                        'clinic',
-                        'doctors',
-                        'grave_yard'
-                    ) THEN tags['amenity']
-
-                    -- Campgrounds
-                    WHEN tags['tourism'] = 'camp_site' AND tags['refugee'] IS NULL
-                        THEN 'camp_site'
-
-                    -- Leisure values that become classes:
-                    WHEN tags['leisure'] IN (
-                        'beach_resort',
-                        'common',
-                        'dog_park',
-                        'garden',
-                        'golf_course',
-                        'marina',
-                        'nature_reserve',
-                        'park',
-                        'pitch', -- specific sport surface
-                        'playground', -- specific sport surface
-                        'recreation_ground', -- tagging mistake, but there are 8k of them.
-                        'schoolyard',
-                        'stadium', -- specific sport surface
-                        'track', -- specific sport surface
-                        'water_park'
-                    ) THEN tags['leisure']
-
-                    -- Airport landuses that become classes
-                    WHEN tags['aeroway'] IN ('aerodrome', 'helipad', 'heliport') THEN tags['aeroway']
-
-                    -- Only let some landuse tags through when a more descriptive `natural` tag is not present:
-                    WHEN tags['natural'] IS NULL AND tags['landuse'] IN (
-                        'grass'
-                    ) THEN tags['landuse']
-
-                    -- Else use the landuse tag and assign it to a class above
-                    -- (refer aginfo.osm.org/keys/landuse#values for top landuse values)
-                    WHEN tags['landuse'] NOT IN ('forest','grass') THEN tags['landuse']
-
-                    WHEN tags['man_made'] IN ('works') THEN 'works'
-                END,
-                -- Linestrings / Points
-                CASE
-                    WHEN tags['man_made'] IN ('pier') THEN tags['man_made']
-
-                    -- Some tracks are linestrings and they are not included elsewhere
-                    WHEN tags['leisure'] IN ('track') THEN tags['leisure']
-                END
-            ) AS class,
-
-            -- Transform the surface tag
-            IF(
-                tags['leisure'] IN ('pitch', 'playground', 'track', 'stadium') OR tags['sport'] IS NOT NULL,
-                CASE
-                    WHEN tags['natural'] = 'sand' OR tags['surface'] IN (
-                        'dirt',
-                        'earth',
-                        'fine_gravel',
-                        'gravel',
-                        'ground',
-                        'unpaved',
-                        'sand'
-                    ) OR tags['golf'] IN ('bunker') THEN 'recreation_sand'
-                    WHEN tags['surface'] IN ('artificial_turf', 'grass', 'grass_paver')
-                        THEN 'recreation_grass'
-                    WHEN tags['surface'] IN (
-                        'acrylic',
-                        'asphalt',
-                        'clay',
-                        'compacted',
-                        'concrete',
-                        'hard',
-                        'paved'
-                    ) THEN 'recreation_paved'
-                    WHEN tags['surface'] IS NULL AND tags['sport'] IN ('basketball')
-                        THEN 'recreation_paved'
-                    WHEN tags['surface'] IS NULL AND tags['sport'] IN ('soccer', 'football')
-                        THEN 'recreation_grass'
-                    ELSE tags['surface']
-                END,
-                CASE
-                    WHEN tags['golf'] IN ('bunker') THEN 'recreation_sand'
-                    ELSE tags['surface']
-                END
-            ) AS surface
-        FROM (
-            SELECT
-                id,
-                type,
-                version,
-                created_at,
-                tags,
-                -- ST_GeometryFromText(wkt) AS geom,
-                wkt AS wkt_geometry,
-                min_lon, max_lon, min_lat, max_lat
-            FROM
-                 -- These two lines get injected.
-                {daylight_table}
-                WHERE release = '{daylight_version}'
-                --
-                AND (
-                    ARRAYS_OVERLAP(
-                        MAP_KEYS(tags),
-                        ARRAY[
-                            'aeroway',
-                            'amenity',
-                            'boundary',
-                            'golf',
-                            'highway',
-                            'landuse',
-                            'leisure',
-                            'man_made',
-                            'meadow',
-                            'military',
-                            'place',
-                            'protect_class',
-                            'protection_title',
-                            'tourism',
-                            'waterway'
-                        ]
-                    ) = TRUE
-                    OR (
-                        tags['name'] IS NOT NULL
-                        AND (
-                            STRPOS(LOWER(tags['name']), 'national park') > 0
-                            OR STRPOS(LOWER(tags['name']), 'state park') > 0
-                        )
-                    )
-                )
-
-                AND (
-                    tags['building'] IS NULL
-                    OR tags['building'] = 'no'
-                )
-            )
+    -- Relevant OSM tags for Landuse type
+    MAP_FILTER(tags, (k,v) -> k IN (
+            'access',
+            'aeroway',
+            'amenity',
+            'area',
+            'boundary',
+            'building',
+            'crop',
+            'golf',
+            'highway',
+            'landuse',
+            'layer',
+            'leisure',
+            'level',
+            'man_made',
+            'meadow',
+            'military',
+            'natural',
+            'place',
+            'produce',
+            'protect_class',
+            'protection_title',
+            'refugee',
+            'sport',
+            'surface',
+            'tourism',
+            'trees',
+            'waterway'
         )
-    WHERE
-        class IS NOT NULL
-    )
+    ) as source_tags,
+
+    tags as osm_tags,
+
+    -- Sources are an array of structs.
+    ARRAY [ CAST(
+        ROW(
+            '',
+            'OpenStreetMap',
+            SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
+            NULL
+        )
+        AS ROW(
+            property varchar,
+            dataset varchar,
+            record_id varchar,
+            confidence double
+        )
+    ) ] AS sources,
+
+    -- Overture's concept of `layer` is called level
+    TRY_CAST(tags['layer'] AS int) AS level,
+
+    -- Wikidata is a top-level property in the OSM Container
+    tags['wikidata'] as wikidata,
+
+    -- Elevation as integer (meters above sea level)
+    TRY_CAST(tags['ele'] AS integer) AS elevation,
+
+    -- Other type=land_use top-level attributes
+    surface,
+
+    wkt AS wkt_geometry
+FROM classified_osm
 WHERE
-    subtype IS NOT NULL
+    overture.subtype IS NOT NULL
