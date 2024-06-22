@@ -25,7 +25,7 @@ Overture features are defined by these properties:
 Other common properties include:
 
 - `bbox` is the bounding box for the feature, defined by two longitudes and two latitudes: latitude is a decimal number between -90.0 and 90.0; longitude is a decimal number between -180.0 and 180.0.
-- `version` is the version number of the feature, incremented in each Overture Maps release where the geometry or attributes of this feature changed.
+- `version` is the version number of the feature, incremented in each Overture release where the geometry or properties of this feature changed.
 - `update_time`is the timestamp when the feature was last updated
 - `sources` is the array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset that specific value came from. All features must have a root level source which is the default source if a specific property's source is not specified.
 - `ext_` is the prefix for any additional top-level properties. 
