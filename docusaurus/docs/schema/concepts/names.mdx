@@ -9,14 +9,14 @@ import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Named entities in Overture Maps share a common schema.
+Named entities in Overture share a common schema.
 
 <JSONSchemaViewer
   schema={ yamlLoad(MainDefs) }
   resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyDefinitions/allNames" })}/>
 
 ## `primary`
-If a feature has a name, expect the `names` attribute to have at least one property: `primary`. This will always be populated with the localized name of a feature.
+If a feature has a name, expect `names` to have at least one property: `primary`. This will always be populated with the localized name of a feature.
 
 ```yaml
 id: 08b2aa845a18afff02009f7c732067c5
