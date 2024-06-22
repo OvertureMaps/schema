@@ -1,28 +1,15 @@
 ---
 title: Transportation
 ---
-
-import DocCardList from '@theme/DocCardList';
-
-
+## Overview
 The Overture transportation theme is the collection of features and properties that describe the infrastructure and conventions of how people and objects travel around the world. Transportation data includes highways, footways, cycleways, railways, ferry routes, and public transportation.
 
+## Feature types
+The transportation theme has two feature types.
+- `segment` is a feature type that. It has a Point geometry
+- `connector` is a feature type that. It has a Point geometry
 
-## Use cases
-
-You might use Overture transportation data and schema for:
-
-- **mapping:** rendering a map of connected roads and paths.
-- **routing:** calculating optimal routes from place to place.
-- **navigation:** generating granular instructions on the maneuvers needed to
-  follow a route.
-- **analytics:** transportation-related analysis including traffic safety
-  analysis and disaster planning.
-- **geocoding:** getting the coordinates of street intersections (geocodes) or
-  the street intersection near specific coordinates (reverse geocodes).
-
-## Key concepts
-
+## Theme concepts
 - **Linear referencing:** this is where we'll describe the concept of linear referencing
 - **[Roads:](/schema/concepts/by-theme/transportation/roads)** the transportation theme schema models any kind of road, street or
 path, including dedicated walking and cycling paths, as `road` segments. Roads are currently the most developed part of the transportation schema. 
