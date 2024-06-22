@@ -29,7 +29,7 @@ import ExampleTurnRestriction2Via from '!!raw-loader!@site/docs/_examples/transp
 import ExampleTurnRestriction2Connector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector1.yaml';
 import ExampleTurnRestriction2Connector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector2.yaml';
 
-In the Overture Maps `transportation` theme, a road is any kind of road,
+In the Overture transportation theme, a road is any kind of road,
 street or path, including a dedicated path for walking or cycling, but excluding a railway. Road segments comprise the majority of ground-based transportation segments. Roads are modeled using [segment](/schema/reference/transportation/segment) features with the `subtype` property value set to the value `road`.
 
 ## Geometry and granularity
@@ -37,14 +37,14 @@ street or path, including a dedicated path for walking or cycling, but excluding
 A road segment's geometry is a representation of the road which,
 in many cases, approximates the physical centerline of the section of
 road being modeled. Road segments support modeling the road network at a range of
-granularities. For example, a single road segment can represent a:
+granularities. For example, a single road segment can represent:
 
-- bidirectional street including all of its lanes and sidewalks.
-- sidewalk by itself.
-- one-way street or one direction of a dual carriageway.
-- single lane or single section of a multi-lane highway.
-- dedicated cycleway.
-- hiking path.
+- bidirectional street including all of its lanes and sidewalks
+- sidewalk by itself
+- one-way street or one direction of a dual carriageway
+- single lane or single section of a multi-lane highway
+- dedicated cycleway
+- hiking path
 
 ## Basic properties
 
@@ -54,10 +54,10 @@ The `class` property of a road specifies its general purpose of use
 and its relative importance within the transportation network. The
 `class` property also helps establish reasonable default values.
 For example, the class `sidewalk` implies that the default
-[access restrictions](#access-restrictions) for the segment allow access for the [travel mode](/schema/attributes/transportation/travel-modes) `foot` and deny access to all other
+[access restrictions](#access-restrictions) for the segment allow access for the [travel mode](/schema/concepts/by-theme/transportation/travel-modes) `foot` and deny access to all other
 travel modes. Unlike many road segment properties, a road segment's `class`
-property does not support [geometric scoping](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently whenever a linear range of real-world road makes a class transition (for example, between secondary and residential), the Overture transportation
-[segmentation](/schema/attributes/transportation/shape-connectivity#segmentation) algorithm will generate a segment split.
+property does not support [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently whenever a linear range of real-world road makes a class transition (for example, between secondary and residential), the Overture transportation
+[segmentation](/schema/concepts/by-theme/transportation/shape-connectivity#segmentation) algorithm will generate a segment split.
 
 Every road segment has a class. If the `class` property is missing
 from a road segment, the default value `unknown` is assumed. The unknown
@@ -69,7 +69,7 @@ is known.
          https://github.com/OvertureMaps/schema-wg/issues/152
 -->
 
-Like many aspects of Overture Maps transportation schema,
+Like many aspects of Overture transportation schema,
 the `class` tag is heavily inspired by OpenStreetMap. In this
 case, it is similar to, but not the same as, OSM's `highway=*` tag.
 
@@ -79,7 +79,7 @@ The `road_surface` property of a road indicates its physical surface. If
 omitted, a reasonable default value should be assumed based on the
 `class`.
 
-Like many road segment properties, the `road_surface` property supports [geometric scoping](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently, the effective road surface may vary
+Like many road segment properties, the `road_surface` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently, the effective road surface may vary
 along different sub-ranges of a road segment's geometry.
 
 ### Flags
@@ -91,7 +91,7 @@ For example, a road segment with
 `road_flags = [is_link, is_under_construction]` is a link segment that is
 physically under construction.
 
-Like many road segment properties, the `road_flags` property supports [geometric scoping](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing). Consequently, the applicable road flags may vary along different sub-ranges of a road segment's geometry.
+Like many road segment properties, the `road_flags` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing). Consequently, the applicable road flags may vary along different sub-ranges of a road segment's geometry.
 
 ## Restrictions
 
@@ -113,7 +113,7 @@ at the level of individual [lanes](#lanes), as explained elsewhere.)
 
 It is technically possible to specify a blanket access grant or refusal
 of access applying to everyone and everything; but where, as is typical,
-a more precise outcome is needed, one or more [rules](/schema/attributes/scoping-rules#rules-and-rule-based-properties) will be used to specify access restrictions. As with all rule-based properties, if no rule matches the specific facts, then the default restrictions for the road class govern.
+a more precise outcome is needed, one or more [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties) will be used to specify access restrictions. As with all rule-based properties, if no rule matches the specific facts, then the default restrictions for the road class govern.
 
 <Tabs>
   <TabItem value="blanketDenial" label="Blanket denial of access." default>
@@ -144,19 +144,19 @@ a more precise outcome is needed, one or more [rules](/schema/attributes/scoping
 ### Turn restrictions
 
 Turn restrictions on a road segment limit the transitions which are
-allowed from that segment into other [physically connected](/schema/attributes/transportation/shape-connectivity#physical-connectivity) segments.
+allowed from that segment into other [physically connected](/schema/concepts/by-theme/transportation/shape-connectivity#physical-connectivity) segments.
 
 Every road segment has an implied set of allowed transitions
 defined by its [access restrictions](#access-restrictions) as well as
 local rules, norms, and customs. An example of a transition restriction
-implied by an access restriction, if the segment can only be used along the `forward` [heading](/schema/attributes/transportation/shape-connectivity#heading), then it is implied that no transitions are allowed to any connected segments if travelling
+implied by an access restriction, if the segment can only be used along the `forward` [heading](/schema/concepts/by-theme/transportation/shape-connectivity#heading), then it is implied that no transitions are allowed to any connected segments if travelling
 along the `backward` heading. An example of a transition restriction
 implied by a local rule or norm would be a blanket prohibition on
-U-turns in a given jurisdiction. (The Overture Maps transportation schema
+U-turns in a given jurisdiction. (The Overture transportation schema
 does not specify these local rules, norms, and customs, which are left
 to the specific application to resolve.)
 
-Overture Maps takes a permissive-by-default approach to transition
+Overture takes a permissive-by-default approach to transition
 restrictions. By default, all implied transitions are allowed. The
 set of allowed transitions may be reduced by adding explicit transition
 restrictions in the `prohibited_transitions` property.
@@ -332,7 +332,7 @@ providing an explicit value for the property
 specified at the level of individual [lanes](#lanes), as explained
 elsewhere.
 
-As with access restrictions and turn restrictions, speed limits can be specified using [rules](/schema/attributes/scoping-rules#rules-and-rule-based-properties).
+As with access restrictions and turn restrictions, speed limits can be specified using [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties).
 
 <Tabs>
   <TabItem value="speedLimitSimple" label="Simple speed limit" default>
@@ -366,7 +366,7 @@ parking lanes.
 
 ### Use cases for lanes
 
-Many transportation [use cases](/schema/attributes/transportation#use-cases) can be solved either entirely or in large part without examining the lane
+Many transportation [use cases](/schema/concepts/by-theme/transportation#use-cases) can be solved either entirely or in large part without examining the lane
 structure of the road network. For example, optimal route calculation
 can be entirely solved without lane-level information, as can most 2D
 map rendering problems. Lane information is most interesting for
@@ -388,7 +388,7 @@ the length of the lanes list within the resolved lane block.
 
 Each entry in the resolved lanes list represents one lane on the road.
 Order is important. The list captures the lanes in left-to-right order
-as they would be observed by a person standing on the physical road being modeled, facing in the [direction](/schema/attributes/transportation/shape-connectivity#directionality)
+as they would be observed by a person standing on the physical road being modeled, facing in the [direction](/schema/concepts/by-theme/transportation/shape-connectivity#directionality)
 of the segment geometry. The leftmost lane has index `0`; the rightmost
 lane, assuming there are N total lanes, has index N-1. The example
 below illustrates how lane numbering works with example two-lane
@@ -473,7 +473,7 @@ respectively.
 ### Lane directionality
 
 Each lane within a segment has a directionality, documenting which
-travel directions are allowed within the lane, with reference to the [orientation of the segment](/schema/attributes/transportation/shape-connectivity#start-end-and-orientation). Lane directionality is specified by the lane object's `directionality`
+travel directions are allowed within the lane, with reference to the [orientation of the segment](/schema/concepts/by-theme/transportation/shape-connectivity#start-end-and-orientation). Lane directionality is specified by the lane object's `directionality`
 property. The allowed values are:
 
 <figure>
@@ -506,7 +506,7 @@ the only mandatory property.
 
 When the allowed travel heading changes based on a regular schedule,
 the appropriate "definite" directionalities (`forward`, `backward`, and
-`both_ways`) should be used along with [temporal scoping](/schema/attributes/scoping-rules#temporal-scoping-opening-hours) at the lane block level.
+`both_ways`) should be used along with [temporal scoping](/schema/concepts/scoping-rules#temporal-scoping-opening-hours) at the lane block level.
 
 When the allowed travel heading changes based on unpredictable local
 factors, such that allowed heading at any given time can only be known
@@ -534,7 +534,7 @@ next lane block in the traveller's current travel direction. Lane
 connectivity is a necessary element for granular turn-by-turn
 navigation instructions.
 
-The Overture Maps transportation schema does not currently support lane
+The Overture transportation schema does not currently support lane
 connectivity, but it is something we are actively working on and hoping
 to release soon.
 
@@ -542,17 +542,17 @@ to release soon.
 
 The traffic lane structure of a road segment can be different at different
 points along the segment, or at different times of the day, or both.
-Consequently, instead of having a static lane block, road segments carry a list of lane block [rules](/schema/attributes/scoping-rules#rules-and-rule-based-properties)
+Consequently, instead of having a static lane block, road segments carry a list of lane block [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties)
 in the optional `lanes`  property.
 
-- A rule may be scoped [geometrically](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing),
+- A rule may be scoped [geometrically](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing),
 which allows linear referencing to be used to specify the portion of the
 segment geometry where the lane block exists.
-- A rule may also be scoped [temporally](/schema/attributes/scoping-rules#temporal-scoping-opening-hours), which allows the time of day that the lane block exists to be specified. Temporal scoping is useful for modeling cases like lanes which are used
+- A rule may also be scoped [temporally](/schema/concepts/scoping-rules#temporal-scoping-opening-hours), which allows the time of day that the lane block exists to be specified. Temporal scoping is useful for modeling cases like lanes which are used
 for parking at off hours and traffic during peak hours. In such a case,
 the lane block rule would be scoped to peak hours.
 
-As with all rule-based properties in the Overture schema, the [rule evaluation algorithm](/schema/attributes/scoping-rules#rule-evaluation-algorithm) must be applied to determine which lane block rule, if any, is
+As with all rule-based properties in the Overture schema, the [rule evaluation algorithm](/schema/concepts/scoping-rules#rule-evaluation-algorithm) must be applied to determine which lane block rule, if any, is
 applicable at a given place and time along the road segment. Once the
 determining rule for a certain scope is known, its rule block defines
 the lane structure within that scope.
@@ -560,7 +560,7 @@ the lane structure within that scope.
 The example below illustrates lane block resolution for two connected
 segments.
 
-- The blue shaded, or southwesterly, segment is [oriented](/schema/attributes/transportation/shape-connectivity#directionality) toward the north-east. It has two geometrically-scoped lane block rules:
+- The blue shaded, or southwesterly, segment is [oriented](/schema/concepts/by-theme/transportation/shape-connectivity#directionality) toward the north-east. It has two geometrically-scoped lane block rules:
     - The first rule, applying to the first two thirds of the
       segment's length, establishes three lanes: one going
       `backward` (SW), and two `forward` (NE).
@@ -587,7 +587,7 @@ segments.
 
 <figcaption>
 
-*A segment with two [geometrically-scoped](/schema/attributes/scoping-rules#geometric-scoping-linear-referencing) lane blocks connected to a segment oriented in the opposite direction.*
+*A segment with two [geometrically-scoped](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) lane blocks connected to a segment oriented in the opposite direction.*
 
 </figcaption>
 
