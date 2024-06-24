@@ -29,3 +29,4 @@ description: Common schema definitions for addresses schema
         - postcode4       # Fourth-order postcodes in a country. Comprised of aggregating postcode3s.
                           # E.g. in the UK: KT (the last digits of the postcode3s are omitted to create a postcode4)
                           # And in Germany: 3
+                          
