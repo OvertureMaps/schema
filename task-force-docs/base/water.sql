@@ -1,3 +1,8 @@
+-- This file contains the logic for transforming OpenStreetMap features into Overture features
+-- for the `water` type within the `base` theme.
+
+-- The order of the WHEN clauses in the following CASE statement is very specific. It is the same
+-- as saying "WHEN this tag is present AND ignore any of the other tags below this line"
 WITH classified_OSM AS (
     SELECT CAST(
         CASE
@@ -28,8 +33,8 @@ WITH classified_OSM AS (
             -- Springs
             WHEN tags['natural'] IN ('spring','hot_spring','geyser','blowhole') THEN ROW('spring', tags['natural'])
 
-            -- Tidal Channels
-            WHEN tags['waterway'] IN ('tidal_channel') THEN ROW('water', tags['waterway'])
+            -- Tidal Channels / Fairways
+            WHEN tags['waterway'] IN ('tidal_channel', 'fairway') THEN ROW('water', tags['waterway'])
 
             -- Wastewater
             WHEN tags['water'] IN ('wastewater') THEN ROW('water', 'wastewater')
@@ -52,11 +57,11 @@ WITH classified_OSM AS (
 
             -- Physical
             WHEN tags['natural'] IN ('bay','cape','shoal','strait') THEN ROW('physical', tags['natural'])
-            WHEN tags['waterway'] IN ('waterfall') AND wkt LIKE 'POINT%' THEN ROW('physical', 'waterfall')
+            WHEN tags['waterway'] IN ('waterfall') THEN ROW('physical', tags['waterway'])
 
             -- Swimming Pools
-            WHEN tags['leisure'] = 'swimming_pool'
-                    AND (COALESCE(tags['location'],'') IN ('','roof','outdoor','overground','surface'))
+            WHEN tags['leisure'] = 'swimming_pool' AND tags['location'] IS NULL
+                OR tags['location'] IN ('','roof','outdoor','overground','surface')
                     THEN ROW('human_made', 'swimming_pool')
 
             -- Reflecting Pools
@@ -69,7 +74,7 @@ WITH classified_OSM AS (
             WHEN tags['waterway'] IN ('fish_pass') THEN ROW('human_made', 'fish_pass')
 
             -- Dock
-            WHEN tags['waterway'] = 'dock' AND COALESCE(tags['dock'], '') <> 'drydock' THEN ROW('water', 'dock')
+            WHEN tags['waterway'] = 'dock' AND tags['dock'] <> 'drydock' THEN ROW('water', 'dock')
 
             -- Oceans / Seas
             WHEN tags['place'] IN ('ocean','sea') THEN ROW('physical', tags['place'])
@@ -79,7 +84,8 @@ WITH classified_OSM AS (
 
             ELSE ROW(NULL,NULL)
         END AS ROW(subtype varchar, class varchar)) AS overture,
-        ST_GeometryFromText(wkt) as geom
+        ST_GeometryFromText(wkt) as geom,
+        *
     FROM
         {daylight_table}
     WHERE

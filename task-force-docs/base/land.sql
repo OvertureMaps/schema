@@ -1,3 +1,8 @@
+-- This file contains the logic for transforming OpenStreetMap features into Overture features
+-- for the `land` type within the `base` theme.
+
+-- The order of the WHEN clauses in the following CASE statement is very specific. It is the same
+-- as saying "WHEN this tag is present AND ignore any of the other tags below this line"
 WITH classified_osm AS (
     SELECT CAST(CASE
             -- Desert

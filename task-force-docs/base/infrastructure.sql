@@ -1,7 +1,11 @@
+-- This file contains the logic for transforming OpenStreetMap features into Overture features
+-- for the `infrastructure` type within the `base` theme.
+
+-- The order of the WHEN clauses in the following CASE statement is very specific. It is the same
+-- as saying "WHEN this tag is present AND ignore any of the other tags below this line"
+
 WITH classified_osm AS (
     SELECT CAST(CASE
-            -- Ordered by priority since features may be tagged in multiple ways
-
             -- Transit
             WHEN tags['railway'] IN ('station','halt') THEN ROW('transit', 'railway_' || tags['railway'])
 
@@ -59,7 +63,6 @@ WITH classified_osm AS (
                 'trestle',
                 'viaduct'
             ) THEN ROW('bridge', tags['bridge'])
-            WHEN tags['bridge'] = 'yes' THEN ROW('bridge','bridge')
             WHEN tags['bridge:support'] IS NOT NULL THEN
                 ROW('bridge', 'bridge_support')
 
@@ -193,6 +196,14 @@ WITH classified_osm AS (
                 'toll_booth'
             ) THEN ROW('barrier', tags['barrier'])
             WHEN tags['man_made'] IN ('cutline') THEN ROW('barrier','cutline')
+
+            -- If there remains a barrier tag but it's not in the above list:
+            WHEN tags['barrier'] IS NOT NULL THEN ROW('barrier','barrier')
+
+            -- Lower priority generic `bridge` tags
+            WHEN tags['man_made'] = 'bridge' THEN ROW('bridge','bridge')
+            WHEN tags['bridge'] = 'yes' THEN ROW('bridge','bridge')
+
         END AS ROW(subtype varchar, class varchar)) AS overture,
         *
     FROM

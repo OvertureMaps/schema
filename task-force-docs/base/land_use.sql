@@ -1,9 +1,13 @@
+-- This file contains the logic for transforming OpenStreetMap features into Overture features
+-- for the `land_use` type within the `base` theme.
+
+-- The order of the WHEN clauses in the following CASE statement is very specific. It is the same
+-- as saying "WHEN this tag is present AND ignore any of the other tags below this line"
 WITH classified_osm AS (
     SELECT CAST(
-        IF(
-            -- Only Polygons
-            SUBSTR(wkt,1,7) = 'POLYGON' OR SUBSTR(wkt,1,12) = 'MULTIPOLYGON',
-            CASE
+        CASE
+            -- Polygons
+            WHEN SUBSTR(wkt,1,7) = 'POLYGON' OR SUBSTR(wkt,1,12) = 'MULTIPOLYGON' THEN CASE
                 -- Military
                 WHEN tags['military'] IN (
                     'airfield',
@@ -106,6 +110,9 @@ WITH classified_osm AS (
                     'golf_course'
                 ) THEN ROW('golf','colf_course')
 
+                -- Winter Sports
+                WHEN tags['landuse'] IN ('winter_sports') THEN ROW('winter_sports','winter_sports')
+
                 -- Horticulture
                 WHEN tags['landuse'] IN (
                     'allotments',
@@ -118,6 +125,9 @@ WITH classified_osm AS (
                 WHEN tags['leisure'] IN (
                     'garden'
                 ) THEN ROW('horticulture', tags['leisure'])
+
+                -- Aquaculture
+                WHEN tags['landuse'] IN ('aquaculture') THEN ROW('aquaculture', 'aquaculture')
 
                 -- Education / Schoolyards
                 WHEN tags['amenity'] IN (
@@ -167,7 +177,9 @@ WITH classified_osm AS (
                 -- Cemetery
                 WHEN tags['amenity'] IN ('grave_yard') THEN ROW('cemetery', 'grave_yard')
                 WHEN tags['landuse'] IN ('cemetery') THEN ROW('cemetery', 'cemetery')
+                WHEN tags['landuse'] IN ('grave_yard') THEN ROW('cemetery','grave_yard')
 
+                -- Religious
                 WHEN tags['landuse'] IN ('religious') THEN ROW('religious', tags['landuse'])
 
                 -- Recreation
@@ -181,7 +193,9 @@ WITH classified_osm AS (
                     'track'
                 ) THEN ROW('recreation', tags['leisure'])
                 WHEN tags['landuse'] IN ('recreation_ground') THEN ROW('recreation',tags['landuse'])
+                WHEN tags['leisure'] IN ('track', 'recreation_ground') THEN ROW('recreation', tags['leisure'])
 
+                -- Landfill
                 WHEN tags['landuse'] IN ('landfill') THEN ROW('landfill', 'landfill')
 
                 -- General "developed"
@@ -202,12 +216,19 @@ WITH classified_osm AS (
                     'grass'
                 ) THEN ROW('managed', tags['landuse'])
 
+                -- Other Landuse
+                WHEN tags['landuse'] IN ('highway', 'traffic_island') THEN ROW('transportation',tags['landuse'])
                 ELSE ROW(NULL,NULL)
-            END,
+            END
+            -- Linestrings
+            WHEN SUBSTR(wkt,1,10) = 'LINESTRING' THEN CASE
+                WHEN tags['leisure'] IN ('track') THEN ROW('recreation', tags['leisure'])
+                ELSE ROW(NULL,NULL)
+            END
 
-            -- Nothing for linestrings or points
-            ROW(NULL,NULL)
-            ) AS ROW(subtype varchar, class varchar)
+        -- No Points allowed in landuse
+        ELSE ROW(NULL,NULL)
+        END AS ROW(subtype varchar, class varchar)
         ) AS overture,
         -- Transform the surface tag
         IF(
@@ -270,13 +291,8 @@ WITH classified_osm AS (
                     'waterway'
                 ]
             ) = TRUE
-            OR (
-                tags['name'] IS NOT NULL
-                AND (
-                    STRPOS(LOWER(tags['name']), 'national park') > 0
-                    OR STRPOS(LOWER(tags['name']), 'state park') > 0
-                )
-            )
+            -- OR STRPOS(LOWER(tags['name']), 'national park') > 0
+            -- OR STRPOS(LOWER(tags['name']), 'state park') > 0
         )
 
         AND (
