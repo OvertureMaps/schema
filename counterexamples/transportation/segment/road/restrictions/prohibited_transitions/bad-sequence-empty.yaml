@@ -16,10 +16,5 @@ properties:
   prohibited_transitions:
     - sequence: []
       final_heading: forward
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      prohibited_transitions:
-        - sequence: []
-          final_heading: forward
   ext_expected_errors:
     - "sequence/minItems] minimum 1 items required, but found 0 items"

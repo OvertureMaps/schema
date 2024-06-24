@@ -15,13 +15,6 @@
     "speed_limits": [
       {}
     ],
-    "road": {
-      "restrictions": {
-        "speed_limits": [
-          {}
-        ]
-      }
-    },
     "ext_expected_errors": [
       "anyOf/0/required] missing properties: 'min_speed'",
       "anyOf/1/required] missing properties: 'max_speed'"

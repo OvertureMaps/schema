@@ -33,31 +33,8 @@
           ]
         }
       ],
-      "road": {
-        "flags": [
-          {
-            "values": ["is_tunnel"]
-          }
-        ],
-        "lanes": [
-          {
-            "value": [
-              {
-                "direction": "forward",
-                "restrictions": {
-                  "min_occupancy": [
-                    {
-                      "is_at_least": 3
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      },
       "ext_expected_errors": [
-        "[I#/properties/road/lanes/0/value/0/restrictions/min_occupancy] [S#/$defs/propertyDefinitions/lane/properties/restrictions/properties/min_occupancy/type] expected integer, but got array"
+        "[I#/properties/lanes/0/value/0/restrictions/min_occupancy] [S#/$defs/propertyDefinitions/lane/properties/restrictions/properties/min_occupancy/type] expected integer, but got array"
       ]
     }
   }

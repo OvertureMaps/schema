@@ -9,15 +9,15 @@ properties:     # JSON Schema: Top-level object properties.
   id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
   geometry:
     description:
-      Boundary's geometry which MUST be a LineString as defined by the
-      GeoJSON schema.
+      Boundary's geometry which MUST be a LineString or MultiLineString
+      as defined by the GeoJSON schema.
     unevaluatedProperties: false
     oneOf:
       - "$ref": https://geojson.org/schema/LineString.json
       - "$ref": https://geojson.org/schema/MultiLineString.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
-    required: [subtype, class, divisions]
+    required: [subtype, class, division_ids]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
@@ -30,16 +30,16 @@ properties:     # JSON Schema: Top-level object properties.
 
           - maritime    # All the boundary geometry extends beyond the
                         # coastline of both associated divisions.
-      divisions:
+      division_ids:
         description:
-          The two divisions to the left and right, respectively, of the
-          boundary line. The left- and right-hand sides of the boundary are
-          considered from the perspective of a person standing on the
-          line facing in the direction in which the geometry is oriented,
-          i.e. facing toward the end of the line.
+          Identifies the two divisions to the left and right, respectively, of
+          the boundary line. The left- and right-hand sides of the boundary are
+          considered from the perspective of a person standing on the line
+          facing in the direction in which the geometry is oriented, i.e. facing
+          toward the end of the line.
           
-          The first array element represents the left division. The second
-          element represents the right division.
+          The first array element is the Overture ID of the left division. The
+          second element is the Overture ID of the right division.
         type: array
         items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
         minItems: 2

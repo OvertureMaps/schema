@@ -17,9 +17,3 @@ properties:
     - max_speed:
         value: 30
         unit: km/h
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      speed_limits:
-        - max_speed:
-            value: 30
-            unit: km/h

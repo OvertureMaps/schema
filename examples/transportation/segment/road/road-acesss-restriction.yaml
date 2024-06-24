@@ -35,22 +35,3 @@ properties:
             comparison: greater_than
             value: 5
       between: [0.50, 0.70]
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      access:
-        - access_type: denied
-        - access_type: designated
-          when: {mode: [truck]}
-          between: [0.1, 0.25]
-        - access_type: allowed
-          when:
-            using: [as_customer, to_farm]
-            recognized: [as_permitted, as_employee]
-          between: [0.25, 0.50]
-        - access_type: allowed
-          when:
-            vehicle:
-              - dimension: axle_count
-                comparison: greater_than
-                value: 5
-          between: [0.50, 0.70]

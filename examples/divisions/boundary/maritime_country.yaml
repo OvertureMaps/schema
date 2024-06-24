@@ -7,8 +7,8 @@ geometry:
 properties:
   theme: divisions
   type: boundary
-  update_time: "2024-02-23T21:59:56Z"
-  version: 0
+  update_time: "2024-06-12T17:54:30Z"
+  version: 1
   subtype: country
   class: maritime
-  divisions: ["example:division:region:left",  "example:division:region:right"]
+  division_ids: ["example:division:region:left",  "example:division:region:right"]

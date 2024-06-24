@@ -12,19 +12,17 @@
     "update_time": "2024-03-14T08:01:56-08:00",
     "subtype": "road",
     "class": "primary",
-    "road": {
-      "width": [
-        {
-          "between" : [0, 0.5],
-          "value" : 1.5
-        },
-        {
-          "between" : [0.5, 1.0]
-        }
-      ]
-    },
+    "width_rules": [
+      {
+        "between" : [0, 0.5],
+        "value" : 1.5
+      },
+      {
+        "between" : [0.5, 1.0]
+      }
+    ],
     "ext_expected_errors": [
-      "[I#/properties/road/width/1] [S#/$defs/propertyDefinitions/road/properties/width/items/required] missing properties: 'value'"
+      "[I#/properties/width_rules/1] [S#/$defs/propertyDefinitions/width_rules/items/required] missing properties: 'value'"
     ]
   }
 }

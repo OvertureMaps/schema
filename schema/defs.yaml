@@ -20,7 +20,6 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - administrative_boundary # DEPRECATED, TO BE REMOVED SEPT 2024 RELEASE
         - address
         - boundary
         - building
@@ -31,8 +30,6 @@ description: Common schema definitions shared by all themes
         - land
         - land_cover
         - land_use
-        - locality                # DEPRECATED, TO BE REMOVED SEPT 2024 RELEASE
-        - locality_area           # DEPRECATED, TO BE REMOVED SEPT 2024 RELEASE
         - building_part
         - place
         - postcode
@@ -107,7 +104,6 @@ description: Common schema definitions shared by all themes
       type: string
       enum:
         - addresses
-        - admins
         - base
         - buildings
         - divisions

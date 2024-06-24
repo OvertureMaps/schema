@@ -22,13 +22,3 @@ properties:
             comparison: greater_than
             value: 23
             unit: 't'
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      access:
-        - access_type: denied
-          when:
-            vehicle:
-              - dimension: weight
-                comparison: greater_than
-                value: 23
-                unit: 't'
