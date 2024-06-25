@@ -67,7 +67,7 @@ properties:     # JSON Schema: Top-level object properties.
             elif country == 'SK' and subtype == 'postcode1' then ^\d{3}\s?\d{2}$
       subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/postcodetype" }
       country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
-      city_division_id:
-        description: The city which this postcode is tied to.
+      locality_division_id:
+        description: The populated place which this postcode is tied to. Populated place can be city, town, village etc.
         allOf:
          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
