@@ -12,7 +12,7 @@ properties:
   name: '670'
   country: IT
   subtype: postcode1
-  city_division_id: 085f16653fffffff01a0e5c4404ac944
+  locality_division_id: 085f16653fffffff01a0e5c4404ac944
   ext_expected_errors:
     - "[I#/properties/name] does not match pattern [S#/properties/name/pattern]"
     

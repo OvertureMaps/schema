@@ -12,7 +12,7 @@ properties:
   name: 67017
   country: IT
   subtype: postcode1
-  city_division_id: 085f16653fffffff01a0e5c4404ac944
+  locality_division_id: 085f16653fffffff01a0e5c4404ac944
   ext_expected_errors:
     - "[I#/geometry/coordinates/0] [S#/properties/coordinates/items/type] expected number, but got string"
     
