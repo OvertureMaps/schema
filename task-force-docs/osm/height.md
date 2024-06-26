@@ -1,4 +1,4 @@
-# Names
+# Height
 
 This document describes how to construct the Overture height fields from an
 OpenStreetMap height value.
