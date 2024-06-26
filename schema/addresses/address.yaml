@@ -8,10 +8,9 @@ description:
   This initial schema is largely based on the OpenAddresses
   (www.openaddresses.io) project.
 
-  While every address has a country code, a street name, and number, the address
-  schema has 3 "admin levels". We refer to these as "region", "city", and "district".
-  Regions are not strictly region ISO3166 subdivision codes. The city field may not
-  be a city but can be a settlement or other locality.
+  The address schema allows up to 5 "admin levels". Rather than have field names
+  that apply across all countries, we provide an array called "address_levels"
+  containing the necessary administrative levels for an address. 
 type: object
 properties:     # JSON Schema: Top-level object properties.
   id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
@@ -61,7 +60,8 @@ properties:     # JSON Schema: Top-level object properties.
           of values in this list and their meaning is country-dependent.
           For example, in the United States we expect two values: the state
           and the municipality. In other countries there might be only one.
-          Other countries could have three or more.
+          Other countries could have three or more. The array is ordered
+          with the highest levels first.
         type: array
         items:
           type: string
