@@ -22,6 +22,11 @@ shapeContainer:
         Number of above-ground floors of the building or part.
       type: integer
       exclusiveMinimum: 0
+    num_floors_underground:
+      description: >-
+        Number of below-ground floors of the building or part.
+      type: integer
+      exclusiveMinimum: 0
     min_height:
       description: >-
         The height of the bottom part of building in meters. Used if a building or part of building starts above the ground level.
