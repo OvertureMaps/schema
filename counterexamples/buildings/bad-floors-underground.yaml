@@ -7,5 +7,9 @@ geometry:
 properties:
   theme: buildings
   type: building
+  update_time: "2023-02-22T23:55:01-08:00"
   version: 1
   num_floors_underground: -1
+  # Expected errors:
+  ext_expected_errors:
+    - "[I#/properties/num_floors_underground] exclusiveMinimum: got -1, want 0"
