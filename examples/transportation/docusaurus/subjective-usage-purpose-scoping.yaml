@@ -17,9 +17,3 @@ properties:
     - access_type: denied
     - access_type: allowed
       when: { using: [as_customer, at_destination] }
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      access:
-        - access_type: denied
-        - access_type: allowed
-          when: { using: [as_customer, at_destination] }

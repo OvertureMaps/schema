@@ -113,20 +113,20 @@ function verify() {
   local mode="$1"
   local instance_file="${2:-}"
 
-  local -a jv_args=(-assertformat -assertcontent "$schema_file")
+  local -a jv_args=(--assert-format --assert-content "$schema_file")
   if [ -n "$instance_file" ]; then
     jv_args+=("$instance_file")
   fi
 
   case "$mode" in
   quiet)
-    jv "${jv_args[@]}" 2>/dev/null
+    jv "${jv_args[@]}" >/dev/null 2>/dev/null
     ;;
   simple)
     jv "${jv_args[@]}"
     ;;
   *)
-    jv -output "$mode" "${jv_args[@]}"
+    jv --output "$mode" "${jv_args[@]}"
     ;;
   esac
 }
@@ -162,8 +162,9 @@ function schema() {
 function examples() {
   echo "---- VERIFYING examples ----"
   find examples -type f | sort | while read -r instance_file; do
-    if ! [[ "$instance_file" == *.yaml ]]; then
-      printf "%s...FAILED\nexample instance '%s' is EXPECTED to be a .yaml file but ACTUALLY it is not.\n" "$instance_file" "$instance_file"
+    if ! [[ "$instance_file" == *.yaml ]] && ! [[ "$instance_file" == *.json ]]; then
+      printf "%s...FAILED\nexample instance '%s' is EXPECTED to be a .yaml or .json file but ACTUALLY it is not.\n" "$instance_file" "$instance_file"
+      return 1
     elif ! match "$instance_file"; then
       continue
     fi

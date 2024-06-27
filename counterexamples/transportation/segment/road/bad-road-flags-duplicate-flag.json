@@ -19,13 +19,6 @@
       {
         "values": ["is_tunnel", "is_tunnel"]
       }
-    ],
-    "road": {
-      "flags": [
-        {
-          "values": ["is_tunnel", "is_tunnel"]
-        }
-      ]
-    }
+    ]
   }
 }

@@ -319,6 +319,9 @@ FROM (
                         'theme_park'
                     ) THEN tags['tourism']
 
+                    -- Give National Parks top priority since it might have other tags.
+                    WHEN tags['boundary'] = 'national_park' THEN 'national_park'
+
                     -- Aboriginal Lands & Reservations
                     WHEN tags['boundary'] IN ('aboriginal_lands') OR (
                         tags['boundary'] = 'protected_area' AND tags['protect_class'] = '24'

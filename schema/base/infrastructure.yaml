@@ -119,6 +119,7 @@ properties:
           - observation
           - parking
           - parking_space
+          - pedestrian_crossing
           - picnic_table
           - pier
           - pipeline
@@ -166,3 +167,4 @@ properties:
           - watchtower
           - water_tower
           - weir
+      surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }

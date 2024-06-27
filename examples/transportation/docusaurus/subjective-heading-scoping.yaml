@@ -24,12 +24,3 @@ properties:
       when:
         heading: backward
         mode: [bus]
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      access:
-        - access_type: denied
-          when: { heading: backward }
-        - access_type: allowed
-          when:
-            heading: backward
-            mode: [bus]

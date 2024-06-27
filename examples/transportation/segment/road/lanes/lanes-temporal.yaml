@@ -17,10 +17,3 @@ properties:
         - direction: backward
       when:
         during: "Mo-Fr 08:00-18:00"
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    lanes:
-      - value:
-          - direction: forward
-          - direction: backward
-        when:
-          during: "Mo-Fr 08:00-18:00"

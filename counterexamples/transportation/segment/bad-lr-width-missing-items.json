@@ -12,11 +12,9 @@
     "update_time": "2024-03-14T08:02:59-08:00",
     "subtype": "road",
     "class": "primary",
-    "road": {
-      "width": []
-    },
+    "width_rules": [],
     "extExpectedErrors": [
-      "[I#/properties/road/width] [S#/$defs/propertyDefinitions/road/properties/width/minItems] minimum 1 items required, but found 0 items"
+      "[I#/properties/road/width] [S#/$defs/propertyDefinitions//width_rules/minItems] minimum 1 items required, but found 0 items"
     ]
   }
 }

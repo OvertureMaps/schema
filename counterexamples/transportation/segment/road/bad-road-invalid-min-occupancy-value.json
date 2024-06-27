@@ -29,27 +29,8 @@
           ]
         }
       ],
-      "road": {
-        "flags": [
-          {
-            "values": ["is_tunnel"]
-          }
-        ],
-        "lanes": [
-          {
-            "value": [
-              {
-                "direction": "backward",
-                "restrictions": {
-                  "min_occupancy": 0
-                }
-              }
-            ]
-          }
-        ]
-      },
       "ext_expected_errors": [
-        "[I#/properties/road/lanes/0/value/0/restrictions/min_occupancy] [S#/$defs/propertyDefinitions/lane/properties/restrictions/properties/min_occupancy/minimum] must be >= 1 but found 0"
+        "[I#/properties/lanes/0/value/0/restrictions/min_occupancy] [S#/$defs/propertyDefinitions/lane/properties/restrictions/properties/min_occupancy/minimum] must be >= 1 but found 0"
       ]
     }
   }

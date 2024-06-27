@@ -105,24 +105,3 @@ description: Common schema definitions for divisions theme
           items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
           minItems: 1
           uniqueItems: true
-    boundarySideDivision:
-      description:
-        Represents a division on one side or the other of a boundary
-        line, along with that division's stance on whether or not it
-        disputes the boundary.
-      type: object
-      unevaluatedProperties: false
-      required: [division_id]
-      properties:
-        division_id:
-          description:
-            Division ID of the division.
-          allOf:
-            - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
-        is_disputing:
-          description:
-            Whether the division disputes the boundary location. If this
-            property is omitted, the division's dispute status is
-            unknown, but for many applications it will be safe to assume
-            there is no dispute.
-          type: boolean

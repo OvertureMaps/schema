@@ -16,8 +16,3 @@ properties:
   access_restrictions:
     - access_type: denied
       when: {heading: forward}
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      access:
-        - access_type: denied
-          when: {heading: forward}

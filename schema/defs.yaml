@@ -20,20 +20,18 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - administrative_boundary # DEPRECATED, TO BE REMOVED SEPT 2024 RELEASE
         - bathymetry
         - boundary
         - building
+        - building_part
         - connector
         - division
         - division_area
+        - division_boundary
         - infrastructure
         - land
         - land_cover
         - land_use
-        - locality                # DEPRECATED, TO BE REMOVED SEPT 2024 RELEASE
-        - locality_area           # DEPRECATED, TO BE REMOVED SEPT 2024 RELEASE
-        - building_part
         - place
         - segment
         - water
@@ -105,7 +103,6 @@ description: Common schema definitions shared by all themes
       description: Top-level Overture theme this feature belongs to
       type: string
       enum:
-        - admins
         - base
         - buildings
         - divisions
@@ -365,3 +362,12 @@ description: Common schema definitions shared by all themes
               type: integer
               minimum: 0
               maximum: 23
+            sort_key:
+              description: >-
+                An ascending numeric that defines the recommended order features
+                should be drawn in. Features with lower number should be shown on top
+                of features with a higher number.
+              type: integer
+              default: 0
+              
+          

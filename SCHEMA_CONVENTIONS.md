@@ -30,7 +30,7 @@ Overture Features Types are strongly-typed. Feature Types are defined by three c
 
 -   `theme` is a mandatory property analogous to "layer".
     -   The term is deliberately chosen to avoid some of the baggage that goes along with the word "layer".
-    -   Examples: `transportation`, `buildings`, `places`, `administrative`
+    -   Examples: `transportation`, `buildings`, `places`, `divisions`
 -   `type` is a mandatory property representing a feature type within the theme:
     -   Example: `theme=transportation`, `type=segment`
     -   Example: `theme=buildings`, `type=building`
