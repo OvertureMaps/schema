@@ -20,12 +20,11 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - address
+        - division_boundary
         - building
         - connector
         - division
         - division_area
-        - division_boundary
         - infrastructure
         - land
         - land_cover
@@ -93,7 +92,6 @@ description: Common schema definitions shared by all themes
         record_id:
           type: string
           description: Refers to the specific record within the dataset that was used.
-        update_time: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
         confidence:
           description: Confidence value from the source dataset, particularly relevant for ML-derived data.
           type: number
@@ -103,7 +101,6 @@ description: Common schema definitions shared by all themes
       description: Top-level Overture theme this feature belongs to
       type: string
       enum:
-        - addresses
         - base
         - buildings
         - divisions
@@ -243,13 +240,13 @@ description: Common schema definitions shared by all themes
             syntactic level. It verifies that candidate tags follow the grammar
             described in the RFC, but not that they are validly registered tag
             in IANA's language subtag registry.
-
+  
             In understanding the regular expression, remark that '(:?' indicates
             a non-capturing group, and that all the top-level or non-nested
             groups represent top-level components of `langtag` referenced in the
             syntax section of https://www.rfc-editor.org/rfc/bcp/bcp47.txt. In
             particular, the top-level groups in left-to-right order represent:
-
+  
               1. language
               2. ["-" script]
               3. ["-" region]
@@ -298,7 +295,7 @@ description: Common schema definitions shared by all themes
       title: overture properties
       description: Top-level properties shared by all Overture features
       type: object
-      required: [ theme, type, version ]
+      required: [ theme, type, version, update_time ]
       patternProperties:
         ^ext_.*$:
           description: "Additional top-level properties must be prefixed with `ext_`."
@@ -306,6 +303,7 @@ description: Common schema definitions shared by all themes
         theme: { "$ref": "#/$defs/propertyDefinitions/theme" }
         type: { "$ref": "#/$defs/propertyDefinitions/featureType" }
         version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }
+        update_time: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
         sources: { "$ref": "#/$defs/propertyDefinitions/sources" }
     namesContainer:
       title: names
@@ -322,7 +320,6 @@ description: Common schema definitions shared by all themes
         level:
           "$ref": "#/$defs/propertyDefinitions/level"
     geometricRangeScopeContainer:
-      title: range
       description: >-
         Geometric scoping properties defining the range of positions on
         the segment where something is physically located or where a
@@ -330,24 +327,24 @@ description: Common schema definitions shared by all themes
       properties:
         between: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedRange" }
     sideScopeContainer:
-      title: side
       description: >-
         Geometric scoping properties defining the side of a road modeled when
         moving along the line from beginning to end
       properties:
         side: { "$ref": "#/$defs/propertyDefinitions/side" }
     cartographyContainer:
+      title: cartography
       description: Defines cartographic hints for optimal use of Overture features in map-making.
+      type: object
       properties:
         cartography:
-          title: cartography
           type: object
           properties:
             min_zoom:
               description: >-
                 Recommended minimum tile zoom per the Slippy Maps convention.
-
-                The Slippy Maps zooms are explained in the following references:
+                
+                The Slippy Maps zooms are explained in the following references: 
                  - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
                  - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
               type: integer
@@ -356,8 +353,8 @@ description: Common schema definitions shared by all themes
             max_zoom:
               description: >-
                 Recommended maximum tile zoom per the Slippy Maps convention.
-
-                The Slippy Maps zooms are explained in the following references:
+                
+                The Slippy Maps zooms are explained in the following references: 
                  - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
                  - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
               type: integer
@@ -370,3 +367,39 @@ description: Common schema definitions shared by all themes
                 of features with a higher number.
               type: integer
               default: 0
+            display_theme:
+              description: >-
+                An attribute that describes the top level theme a business can be classified under.
+                This is especially useful when displaying labels / icons for places or buildings in
+                a thematic manner. For example, blue for transit labels.
+              type: string
+              enum: 
+                - aquatic
+                - civic
+                - education
+                - entertainment
+                - food
+                - medical
+                - other
+                - recreation
+                - retail
+                - service
+                - transit
+            display_category:
+              description: >-
+                An attribute that describes the specific category a business can be classified under.
+                This is an extended classification under `display_theme`. When displaying labels / icons
+                for places or buildings in a thematic manner, this attribute can help when displaying
+                a specific icon. For example, a fork & knife for restaurants or a bus for bus stops.
+              type: string
+              enum: 
+                - beach
+                - office_public
+                - landmark
+                - stop_rail
+                - seafood
+                - casino
+                - park_dog
+                - and many more...
+              
+          
