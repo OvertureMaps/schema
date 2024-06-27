@@ -105,3 +105,14 @@ description: Common schema definitions for divisions theme
           items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
           minItems: 1
           uniqueItems: true
+    capitalOfDivisionItem:
+      description: One division that has capital
+      type: object
+      unevaluatedProperties: false
+      required: [division_id, subtype]
+      properties:
+        division_id:
+          description: ID of the division
+          allOf:
+            - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
+        subtype: { "$ref": "#/$defs/typeDefinitions/placetype" }
