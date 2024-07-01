@@ -119,6 +119,11 @@ CASE
         'transportation'
     ) THEN tags['building']
 
+    -- Certain building are part of bridge structures
+    WHEN  (tags['bridge:support'] IS NOT NULL AND tags['bridge:support'] <> 'no')
+       OR (tags['bridge:structure'] IS NOT NULL AND tags['bridge:structure'] <> 'no')
+    THEN 'bridge_structure'
+
     -- No other allowed classes
     ELSE NULL
 END
