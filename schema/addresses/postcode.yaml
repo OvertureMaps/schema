@@ -1,0 +1,73 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: postcode
+description:
+  A postcode,
+  also known as a ZIP code in the United States,
+  is a series of letters, numbers, or both,
+  assigned to a specific geographic area or address
+  to facilitate the sorting and delivery of mail. 
+
+  Postcodes are used by postal services to identify the destination of mail and packages.
+  They help to ensure that mail is delivered quickly, efficiently, and accurately.
+  In addition to aiding in mail delivery, postcodes are often used for various other purposes,
+  such as demographic analysis, planning delivery routes for local businesses,
+  and even in emergency services to locate incidents. 
+
+  Different countries have different formats for their postcodes.
+  For example, a UK postcode might look like "SW1A 1AA", while a US ZIP code might be "90210".
+  Despite these differences, the primary function of a postcode remains the same - 
+  to aid in the efficient and accurate delivery of mail.
+
+type: object
+properties:     # JSON Schema: Top-level object properties.
+  id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
+  geometry:
+    description:
+      A postcode geometry can be a point or a polygon, as defined by GeoJSON schema.
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:   # GeoJSON: top-level object 'properties' property.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+    required: [name]
+    properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
+      name:
+         pattern: |  
+            if country == 'AT' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'BE' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'BG' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'CY' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'CZ' and subtype == 'postcode1' then ^\d{3}\s?\d{2}$
+            elif country == 'DE' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'DK' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'EE' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'ES' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'FI' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'FR' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'GR' and subtype == 'postcode1' then ^\d{3}\s?\d{2}$
+            elif country == 'HR' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'HU' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'IE' and subtype == 'postcode1' then ^[A-Za-z]\d{2}\s?[A-Za-z\d]{4}$
+            elif country == 'IT' and subtype == 'postcode1' then ^\d{5}$
+            elif country == 'LT' and subtype == 'postcode1' then ^LT-\d{5}$
+            elif country == 'LU' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'LV' and subtype == 'postcode1' then ^LV-\d{4}$
+            elif country == 'MT' and subtype == 'postcode1' then ^[A-Za-z]{3}\s?\d{2,4}$
+            elif country == 'NL' and subtype == 'postcode1' then ^\d{4}\s?[A-Za-z]{2}$
+            elif country == 'PL' and subtype == 'postcode1' then ^\d{2}-\d{3}$
+            elif country == 'PT' and subtype == 'postcode1' then ^\d{4}-\d{3}$
+            elif country == 'RO' and subtype == 'postcode1' then ^\d{6}$
+            elif country == 'SE' and subtype == 'postcode1' then ^\d{3}\s?\d{2}$
+            elif country == 'SI' and subtype == 'postcode1' then ^\d{4}$
+            elif country == 'SK' and subtype == 'postcode1' then ^\d{3}\s?\d{2}$
+      subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/postcodetype" }
+      country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+      locality_division_id:
+        description: The populated place which this postcode is tied to. Populated place can be city, town, village etc.
+        allOf:
+         - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
