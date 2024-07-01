@@ -15,4 +15,3 @@ properties:
   locality_division_id: " "
   ext_expected_errors:
     - "[I#/properties/locality_division_id] [S#/$defs/propertyDefinitions/id/pattern] does not match pattern"
-    
