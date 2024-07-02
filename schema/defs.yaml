@@ -20,11 +20,11 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
-        - division_boundary
         - building
         - connector
         - division
         - division_area
+        - division_boundary
         - infrastructure
         - land
         - land_cover
@@ -333,34 +333,36 @@ description: Common schema definitions shared by all themes
       properties:
         side: { "$ref": "#/$defs/propertyDefinitions/side" }
     cartographyContainer:
-      title: cartography
       description: Defines cartographic hints for optimal use of Overture features in map-making.
-      type: object
       properties:
-        min_zoom:
-          description: >-
-            Recommended minimum tile zoom per the Slippy Maps convention.
+        cartography:
+          title: cartography
+          type: object
+          properties:
+            min_zoom:
+              description: >-
+                Recommended minimum tile zoom per the Slippy Maps convention.
 
-            The Slippy Maps zooms are explained in the following references:
-              - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
-              - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
-          type: integer
-          minimum: 0
-          maximum: 23
-        max_zoom:
-          description: >-
-            Recommended maximum tile zoom per the Slippy Maps convention.
+                The Slippy Maps zooms are explained in the following references:
+                 - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+                 - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
+              type: integer
+              minimum: 0
+              maximum: 23
+            max_zoom:
+              description: >-
+                Recommended maximum tile zoom per the Slippy Maps convention.
 
-            The Slippy Maps zooms are explained in the following references:
-              - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
-              - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
-          type: integer
-          minimum: 0
-          maximum: 23
-        sort_key:
-          description: >-
-            An ascending numeric that defines the recommended order features
-            should be drawn in. Features with lower number should be shown on top
-            of features with a higher number.
-          type: integer
-          default: 0
+                The Slippy Maps zooms are explained in the following references:
+                 - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+                 - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
+              type: integer
+              minimum: 0
+              maximum: 23
+            sort_key:
+              description: >-
+                An ascending numeric that defines the recommended order features
+                should be drawn in. Features with lower number should be shown on top
+                of features with a higher number.
+              type: integer
+              default: 0

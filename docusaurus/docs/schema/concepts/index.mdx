@@ -5,6 +5,7 @@ title: Concepts
 import CodeBlock from '@theme/CodeBlock';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import yamlLoad from "@site/src/components/yamlLoad"
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
 import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
@@ -28,7 +29,7 @@ Other common properties include:
 - `version` is the version number of the feature, incremented in each Overture release where the geometry or properties of this feature changed.
 - `update_time`is the timestamp when the feature was last updated
 - `sources` is the array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset that specific value came from. All features must have a root level source which is the default source if a specific property's source is not specified.
-- `ext_` is the prefix for any additional top-level properties. 
+- `ext_` is the prefix for any additional top-level properties.
 
 ## Complex properties across themes
 
@@ -37,3 +38,14 @@ Some feature properties are quite complex and require further explanation.
 - **[Names](/schema/concepts/names)**: where applicable, complex propertoes such as names will always use the same schema across all themes.
 - **[Scoped and rule-based properties](/schema/concepts/scoping-rules)**: a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at least one scoping property.
 
+
+## Common Properties Schema
+
+<JSONSchemaViewer
+  schema={ yamlLoad(MainDefs) }
+  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer" })}/>
+
+<!-- Below is an example of how you can reference just 1 property within the properties container -->
+<!-- <JSONSchemaViewer
+  schema={ yamlLoad(MainDefs) }
+  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer/properties/sources" })}/> -->
