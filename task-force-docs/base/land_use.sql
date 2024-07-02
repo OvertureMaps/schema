@@ -297,6 +297,7 @@ WITH classified_osm AS (
                 THEN 'concrete_plates'
             ELSE NULL
         END AS surface,
+        TRY_CAST(tags['ele'] AS integer) AS elevation,
         *
     FROM
         -- These two lines get injected.
@@ -406,8 +407,9 @@ SELECT
     -- Wikidata is a top-level property in the OSM Container
     tags['wikidata'] as wikidata,
 
-    -- Elevation as integer (meters above sea level)
-    TRY_CAST(tags['ele'] AS integer) AS elevation,
+    -- Elevation as meters above sea level
+    IF(elevation < 9000, elevation, NULL) as elevation,
+
 
     -- Other type=land_use top-level attributes
     surface,

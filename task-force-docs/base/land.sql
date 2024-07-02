@@ -122,6 +122,7 @@ WITH classified_osm AS (
                 THEN 'concrete_plates'
             ELSE NULL
         END AS surface,
+        TRY_CAST(tags['ele'] AS integer) AS elevation,
         *
     FROM
         {daylight_table}
@@ -216,8 +217,8 @@ SELECT
     -- Overture's concept of `layer` is called level
     TRY_CAST(tags['layer'] AS int) AS level,
 
-    -- Elevation as integer (meters above sea level)
-    TRY_CAST(tags['ele'] AS integer) AS elevation,
+    -- Elevation as meters above sea level
+    IF(elevation < 9000, elevation, NULL) as elevation,
 
     -- Surface
     surface,

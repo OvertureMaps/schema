@@ -85,6 +85,7 @@ WITH classified_OSM AS (
             ELSE ROW(NULL,NULL)
         END AS ROW(subtype varchar, class varchar)) AS overture,
         ST_GeometryFromText(wkt) as geom,
+        TRY_CAST(tags['ele'] AS integer) AS elevation,
         *
     FROM
         {daylight_table}
@@ -203,7 +204,7 @@ SELECT
     TRY_CAST(tags['layer'] AS integer) AS level,
 
     -- Elevation is common on some ponds / lakes.
-    TRY_CAST(tags['ele'] AS integer) AS elevation,
+    IF(elevation < 9000, elevation, NULL) as elevation,
 
     -- Other type=water top-level attributes
     (tags['salt'] = 'yes') AS is_salt,
