@@ -30,7 +30,9 @@ properties:
         properties:
           primary:
             description: The primary or main category of the place.
-            "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
+            oneOf:
+              - "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
+              - "type": "null"
           alternate:
             description:
               Alternate categories of the place. Some places might fit into two
