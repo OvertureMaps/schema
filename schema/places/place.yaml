@@ -17,6 +17,7 @@ properties:
       - "$ref": https://geojson.org/schema/Point.json
   properties:
     unevaluatedProperties: false
+    required: [categories]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
