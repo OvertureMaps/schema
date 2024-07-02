@@ -5,7 +5,8 @@
 -- as saying "WHEN this tag is present AND ignore any of the other tags below this line"
 
 WITH classified_osm AS (
-    SELECT CAST(CASE
+    SELECT CAST(
+        CASE
             -- Transit
             WHEN tags['railway'] IN ('station','halt') THEN ROW('transit', 'railway_' || tags['railway'])
 
