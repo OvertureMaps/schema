@@ -98,7 +98,6 @@ WITH classified_osm AS (
                 'cobblestone',
                 'compacted',
                 'concrete',
-                'concrete:plates',
                 'dirt',
                 'earth',
                 'fine_gravel',

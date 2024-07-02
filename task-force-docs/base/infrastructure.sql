@@ -311,7 +311,6 @@ SELECT
             'cobblestone',
             'compacted',
             'concrete',
-            'concrete:plates',
             'dirt',
             'earth',
             'fine_gravel',

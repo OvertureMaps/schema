@@ -230,10 +230,11 @@ WITH classified_osm AS (
         ELSE ROW(NULL,NULL)
         END AS ROW(subtype varchar, class varchar)
         ) AS overture,
+
         -- Transform the surface tag
-        IF(
-            tags['leisure'] IN ('pitch', 'playground', 'track', 'stadium') OR tags['sport'] IS NOT NULL,
-            CASE
+        CASE
+            --Sports related surface tags:
+            WHEN tags['leisure'] IN ('pitch', 'playground', 'track', 'stadium') OR tags['sport'] IS NOT NULL THEN CASE
                 WHEN tags['natural'] = 'sand' OR tags['surface'] IN (
                     'dirt',
                     'earth',
@@ -243,8 +244,10 @@ WITH classified_osm AS (
                     'unpaved',
                     'sand'
                 ) OR tags['golf'] IN ('bunker') THEN 'recreation_sand'
+
                 WHEN tags['surface'] IN ('artificial_turf', 'grass', 'grass_paver')
                     THEN 'recreation_grass'
+
                 WHEN tags['surface'] IN (
                     'acrylic',
                     'asphalt',
@@ -256,15 +259,44 @@ WITH classified_osm AS (
                 ) THEN 'recreation_paved'
                 WHEN tags['surface'] IS NULL AND tags['sport'] IN ('basketball')
                     THEN 'recreation_paved'
+
                 WHEN tags['surface'] IS NULL AND tags['sport'] IN ('soccer', 'football')
                     THEN 'recreation_grass'
-                ELSE tags['surface']
-            END,
-            CASE
-                WHEN tags['golf'] IN ('bunker') THEN 'recreation_sand'
-                ELSE tags['surface']
             END
-        ) AS surface,
+            -- Golf bunkers are recreation sand, even if not tagged as such
+            WHEN tags['golf'] = 'bunker' THEN 'recreation_sand'
+
+            -- Only these tags are allowed through:
+            WHEN tags['surface'] IN (
+                'asphalt',
+                'cobblestone',
+                'compacted',
+                'concrete',
+                'dirt',
+                'earth',
+                'fine_gravel',
+                'grass',
+                'gravel',
+                'ground',
+                'paved',
+                'paving_stones',
+                'pebblestone',
+                'recreation_grass',
+                'recreation_paved',
+                'recreation_sand',
+                'rubber',
+                'sand',
+                'sett',
+                'tartan',
+                'unpaved',
+                'wood',
+                'woodchips'
+            )   THEN tags['surface']
+            -- Turn concrete:plates into concrete_plates
+            WHEN tags['surface'] = 'concrete:plates'
+                THEN 'concrete_plates'
+            ELSE NULL
+        END AS surface,
         *
     FROM
         -- These two lines get injected.
