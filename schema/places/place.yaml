@@ -26,7 +26,6 @@ properties:
           The categories of the place. Complete list is available on
           GitHub: https://github.com/OvertureMaps/schema/blob/main/task-force-docs/places/overture_categories.csv
         type: object
-        required: [primary]
         properties:
           primary:
             description: The primary or main category of the place.
