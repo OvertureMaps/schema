@@ -11,7 +11,7 @@ permissions:
 jobs:
   publish:
     environment:
-      name: Schema Docs Staging
+      name: staging
       url: https://dfhx9f55j8eg5.cloudfront.net/pr/${{github.event.number}}/schema
     runs-on: ubuntu-latest
     steps:
