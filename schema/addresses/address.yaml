@@ -63,19 +63,22 @@ properties:     # JSON Schema: Top-level object properties.
           Other countries could have three or more. The array is ordered
           with the highest levels first.
         type: array
-        items:
-          type: string
+        items: { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
         minItems: 1
         maxItems: 5
 "$defs":
-  propertyDefinitions:
-    addressLevel:
+  propertyContainers:
+    addressLevelContainer:
       description:
         An address "admin level". We want to avoid the phrase "admin level" and
         have chosen "address level". These represent states, regions, districts,
         cities, neighborhoods, etc. The address schema defines several numbered
         levels with per-country rules indicating which parts of a country's
         address goes to which numbered level.
-      type: string
-      minLength: 1
-      pattern: ^(\S.*)?\S$
+      type: object
+      required: ["value"]
+      properties:
+        value:
+          type: string
+          minLength: 1
+          pattern: ^(\S.*)?\S$

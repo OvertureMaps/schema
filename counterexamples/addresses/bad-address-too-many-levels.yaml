@@ -14,11 +14,11 @@ properties:
   street: 'COMMONWEALTH AVE'
   number: '1000'
   address_levels:
-    - Level1
-    - Level2
-    - Level3
-    - Level4
-    - Level5
-    - Level6
+    - value: Level1
+    - value: Level2
+    - value: Level3
+    - value: Level4
+    - value: Level5
+    - value: Level6
   ext_expected_errors:
     - "maxItems: got 6, want 5"
