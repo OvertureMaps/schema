@@ -13,7 +13,7 @@ Named entities in Overture share a common schema.
 
 <JSONSchemaViewer
   schema={ yamlLoad(MainDefs) }
-  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyDefinitions/allNames" })}/>
+  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/namesContainer/properties/names" })}/>
 
 ## `primary`
 If a feature has a name, expect `names` to have at least one property: `primary`. This will always be populated with the localized name of a feature.

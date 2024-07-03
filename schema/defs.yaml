@@ -320,6 +320,7 @@ description: Common schema definitions shared by all themes
         level:
           "$ref": "#/$defs/propertyDefinitions/level"
     geometricRangeScopeContainer:
+      title: range
       description: >-
         Geometric scoping properties defining the range of positions on
         the segment where something is physically located or where a
@@ -327,6 +328,7 @@ description: Common schema definitions shared by all themes
       properties:
         between: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedRange" }
     sideScopeContainer:
+      title: side
       description: >-
         Geometric scoping properties defining the side of a road modeled when
         moving along the line from beginning to end
