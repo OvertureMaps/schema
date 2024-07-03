@@ -12,4 +12,4 @@ properties:
   num_floors_underground: -1
   # Expected errors:
   ext_expected_errors:
-    - "[I#/properties/num_floors_underground] exclusiveMinimum: got -1, want 0"
+    - "exclusiveMinimum: got -1, want 0"
