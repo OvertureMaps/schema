@@ -1,0 +1,24 @@
+---
+id: overture:addresses:addres:1
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-71.2086153, 42.3373725]
+properties:
+  theme: addresses
+  type: address
+  update_time: '2024-04-26T23:55:01-08:00'
+  version: 0
+  country: US
+  postcode: '02459'
+  street: 'COMMONWEALTH AVE'
+  number: '1000'
+  address_levels:
+    - value: Level1
+    - value: Level2
+    - value: Level3
+    - value: Level4
+    - value: Level5
+    - value: Level6
+  ext_expected_errors:
+    - "maxItems: got 6, want 5"

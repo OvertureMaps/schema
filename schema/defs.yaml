@@ -20,6 +20,7 @@ description: Common schema definitions shared by all themes
       description: Specific feature type within the theme
       type: string
       enum:
+        - address
         - building
         - connector
         - division
@@ -101,6 +102,7 @@ description: Common schema definitions shared by all themes
       description: Top-level Overture theme this feature belongs to
       type: string
       enum:
+        - addresses
         - base
         - buildings
         - divisions
