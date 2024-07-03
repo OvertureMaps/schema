@@ -1,3 +1,144 @@
+-- This file contains the logic for transforming OpenStreetMap features into Overture features
+-- for the `water` type within the `base` theme.
+
+-- The order of the WHEN clauses in the following CASE statement is very specific. It is the same
+-- as saying "WHEN this tag is present AND ignore any of the other tags below this line"
+WITH classified_OSM AS (
+    SELECT CAST(
+        CASE
+            -- Streams
+            WHEN tags['waterway'] IN ('stream') THEN ROW('stream', tags['waterway'])
+            WHEN tags['water'] IN ('stream') THEN ROW('stream', tags['water'])
+
+            -- Rivers
+            WHEN tags['waterway'] IN ('river') THEN ROW('river', tags['waterway'])
+            WHEN tags['water'] IN ('river') THEN ROW('river', tags['water'])
+
+            -- Canals
+            WHEN tags['water'] IN ('canal', 'ditch', 'moat') THEN ROW('canal', tags['water'])
+            WHEN tags['waterway'] IN ('canal', 'ditch', 'moat') THEN ROW('canal', tags['waterway'])
+            WHEN tags['water'] IN ('drain') THEN ROW('canal', 'drain')
+            WHEN tags['waterway'] IN ('drain') THEN ROW('canal', 'drain')
+
+            -- Ponds
+            WHEN tags['water'] IN ('fishpond', 'pond') THEN ROW('pond', tags['water'])
+            WHEN tags['water'] IN ('lake', 'reservoir', 'pond')
+                    AND ST_GeometryType(ST_GeometryFromText(wkt)) IN ('ST_Polygon', 'ST_MultiPolygon')
+                    AND ST_AREA(TO_SPHERICAL_GEOGRAPHY(ST_GeometryFromText(wkt))) < 4000
+                    THEN ROW('pond','pond')
+
+            -- Lakes
+            WHEN tags['water'] IN ('lake', 'oxbow','lagoon') THEN ROW('lake', tags['water'])
+
+            -- Springs
+            WHEN tags['natural'] IN ('spring','hot_spring','geyser','blowhole') THEN ROW('spring', tags['natural'])
+
+            -- Tidal Channels / Fairways
+            WHEN tags['waterway'] IN ('tidal_channel', 'fairway') THEN ROW('water', tags['waterway'])
+
+            -- Wastewater
+            WHEN tags['water'] IN ('wastewater') THEN ROW('water', 'wastewater')
+            WHEN tags['reservoir_type'] IN ('sewage') THEN ROW('wastewater', 'sewage')
+
+            -- Reservoirs
+            WHEN tags['water'] IN ('reservoir', 'basin') THEN ROW('reservoir', tags['water'])
+            WHEN tags['landuse'] IN ('reservoir', 'basin') THEN
+                CASE
+                    WHEN tags['basin'] IN (
+                        'evaporation',
+                        'detention',
+                        'retention',
+                        'infiltration',
+                        'cooling'
+                    ) THEN ROW('reservoir', 'basin')
+                    WHEN tags['reservoir_type'] IN ('water_storage') THEN ROW('reservoir', 'water_storage')
+                    ELSE ROW('reservoir', 'reservoir')
+                END
+
+            -- Physical
+            WHEN tags['natural'] IN ('bay','cape','shoal','strait') THEN ROW('physical', tags['natural'])
+            WHEN tags['waterway'] IN ('waterfall') THEN ROW('physical', tags['waterway'])
+
+            -- Swimming Pools
+            WHEN tags['leisure'] = 'swimming_pool' AND tags['location'] IS NULL
+                OR tags['location'] IN ('','roof','outdoor','overground','surface')
+                    THEN ROW('human_made', 'swimming_pool')
+
+            -- Reflecting Pools
+            WHEN tags['water'] IN ('reflecting_pool') THEN ROW('human_made', 'reflecting_pool')
+
+            -- Salt Ponds
+            WHEN tags['landuse'] IN ('salt_pond') THEN ROW('human_made', 'salt_pond')
+
+            -- Fish pass
+            WHEN tags['waterway'] IN ('fish_pass') THEN ROW('human_made', 'fish_pass')
+
+            -- Dock
+            WHEN tags['waterway'] = 'dock' AND tags['dock'] <> 'drydock' THEN ROW('water', 'dock')
+
+            -- Oceans / Seas
+            WHEN tags['place'] IN ('ocean','sea') THEN ROW('physical', tags['place'])
+
+            -- Default "water"
+            WHEN tags['natural'] = 'water' THEN ('water', 'water')
+
+            ELSE ROW(NULL,NULL)
+        END AS ROW(subtype varchar, class varchar)) AS overture,
+        ST_GeometryFromText(wkt) as geom,
+        TRY_CAST(tags['ele'] AS integer) AS elevation,
+        *
+    FROM
+        {daylight_table}
+    WHERE
+        release = '{daylight_version}'
+
+        -- Some buildings are tagged as having running water
+        AND tags['building'] IS NULL
+
+        AND (
+            -- Consider anything with a water tag
+            tags['water'] IS NOT NULL
+
+            -- The OSM key/values for water features considered 'natural'
+            OR tags['natural'] IN (
+                'bay',
+                'cape',
+                'geyser',
+                'hot_spring',
+                'shoal',
+                'spring',
+                'straight',
+                'water'
+            )
+
+            -- Reservoirs and basins are tagged this way
+            OR tags['basin'] IS NOT NULL
+            OR tags['landuse'] IN ('basin', 'reservoir', 'salt_pond')
+
+            OR tags['leisure'] = 'swimming_pool'
+
+            -- Mostly for labeling:
+            OR tags['seamark:type'] = 'fairway'
+            OR tags['place'] IN ('sea','ocean')
+
+            -- Filter IN for waterway features to avoid dams, locks, etc.
+            OR (
+                tags['waterway'] IN (
+                    'canal',
+                    'ditch',
+                    'dock',
+                    'drain',
+                    'fairway',
+                    'fish_pass',
+                    'river',
+                    'riverbank',
+                    'stream',
+                    'tidal_channel',
+                    'waterfall'
+                )
+            )
+        )
+)
 SELECT
     -- Needed to compute GERS ID and satisfy Overture requirements.
     type,
@@ -11,37 +152,12 @@ SELECT
     -- Use the OSM timestamp as update_time
     TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
 
-    -- Determine subtype from class
-    CASE
-        WHEN class IN ('stream') THEN 'stream'
-        WHEN class IN ('river') THEN 'river'
-        WHEN class IN ('pond', 'fishpond') THEN 'pond'
-        WHEN class IN ('lake', 'oxbow', 'lagoon') THEN 'lake'
-        WHEN class IN ('reservoir', 'basin', 'water_storage') THEN 'reservoir'
-        WHEN class IN ('canal', 'ditch', 'moat') THEN 'canal'
-        WHEN class IN (
-            'drain',
-            'fish_pass',
-            'reflecting_pool',
-            'swimming_pool'
-        ) THEN 'human_made'
-        WHEN class IN (
-            'bay',
-            'cape',
-            'fairway',
-            'ocean',
-            'sea',
-            'shoal',
-            'strait'
-        ) THEN 'physical'
-        WHEN class IN ('spring','hot_spring','geyser') THEN 'spring'
-        -- Default to just 'water'
-        ELSE 'water'
-    END AS subtype,
-    class,
-
     -- The complex logic that builds the Overture names object will be injected
     '__OVERTURE_NAMES_QUERY' AS names,
+
+    -- The overture struct is defined below
+    overture.subtype as subtype,
+    overture.class AS class,
 
     -- Relevant OSM tags for water type
     MAP_FILTER(tags, (k,v) -> k IN (
@@ -88,207 +204,24 @@ SELECT
     TRY_CAST(tags['layer'] AS integer) AS level,
 
     -- Elevation is common on some ponds / lakes.
-    TRY_CAST(tags['ele'] AS integer) AS elevation,
+    IF(elevation < 9000, elevation, NULL) as elevation,
 
     -- Other type=water top-level attributes
     (tags['salt'] = 'yes') AS is_salt,
     (tags['intermittent'] = 'yes') AS is_intermittent,
 
-    -- Cast geometry as WKB
-    ST_AsBinary(geom) AS geometry
-FROM (
-    SELECT
-        *,
-        -- Determine class
+    -- Cast geometry as WKB after cleaning up any improperly filled polygons
+    ST_AsBinary(
         CASE
-            -- Waterway values that become classes
-            WHEN tags['waterway'] IN (
-                'canal',
-                'ditch',
-                'drain',
-                'fish_pass',
-                'river',
-                'stream',
-                'tidal_channel',
-                'waterfall'
-            ) THEN tags['waterway']
-
-            WHEN tags['waterway'] = 'riverbank' THEN 'river'
-
-            -- Water tags that become classes, independent of surface area
-            WHEN tags['water'] IN (
-                'basin',
-                'canal',
-                'ditch',
-                'drain',
-                'fishpond',
-                'lagoon',
-                'lock',
-                'moat',
-                'oxbow',
-                'reflecting_pool',
-                'river',
-                'salt_pool',
-                'stream',
-                'wastewater'
-            ) THEN tags['water']
-
-            WHEN tags['natural'] IN (
-                'bay',
-                'cape',
-                'spring',
-                'hot_spring',
-                'geyser',
-                'blowhole',
-                'shoal',
-                'strait'
-            ) THEN tags['natural']
-
-            WHEN tags['place'] IN ('sea','ocean') THEN tags['place']
-
-            -- Check size of still water to reclassify as pond:
-            WHEN tags['water'] IN ('lake', 'reservoir', 'pond')
-                THEN IF(surface_area_sq_m < 4000, 'pond', tags['water'])
-
-            -- Basins and Reservoirs are classified in landuse
-            WHEN tags['landuse'] IN ('reservoir', 'basin') THEN
-                CASE
-                    WHEN tags['basin'] IN (
-                        'evaporation',
-                        'detention',
-                        'retention',
-                        'infiltration',
-                        'cooling'
-                    ) THEN 'basin'
-                    WHEN tags['reservoir_type'] IN ('sewage','water_storage') THEN tags['reservoir_type']
-                    ELSE 'reservoir'
-                END
-
-            WHEN tags['leisure'] = 'swimming_pool' THEN tags['leisure']
-
-            WHEN tags['waterway'] = 'dock' AND tags['dock'] <> 'drydock' THEN 'dock'
-
-            WHEN tags['natural'] = 'water' AND tags['man_made'] IN (
-                'basin',
-                'pond',
-                'reservoir',
-                'yes',
-                'waterway'
-            ) THEN IF(
-                surface_area_sq_m < 4000,
-                'pond',
-                IF(
-                    tags['man_made'] IN ('basin', 'reservoir', 'pond'),
-                    tags['man_made'],
-                    'water'
-                )
-            )
-
-            WHEN tags['place'] IN ('sea','ocean') THEN tags['place']
-            -- Default class is just 'water'
-            ELSE 'water'
-        END AS class
-    FROM (
-        SELECT
-            id,
-            type,
-            version,
-            tags,
-            geom,
-            -- Extra attrs for water-specific logic
-            IF(
-                ST_GEOMETRYTYPE(geom) IN ('ST_Polygon', 'ST_MultiPolygon'),
-                ROUND(ST_AREA(TO_SPHERICAL_GEOGRAPHY(geom)), 2),
-                NULL
-            ) AS surface_area_sq_m,
-            created_at, min_lon, max_lon, min_lat, max_lat
-        FROM (
-            SELECT
-                id,
-                version,
-                type,
-                tags,
-                IF(
-                    ST_GEOMETRYTYPE(ST_GeometryFromText(wkt)) = 'ST_Polygon'
-                        AND tags['waterway'] IN ('canal', 'drain', 'ditch'),
-                    ST_EXTERIORRING(ST_GeometryFromText(wkt)),
-                    ST_GeometryFromText(wkt)
-                ) AS geom,
-                created_at, min_lon, max_lon, min_lat, max_lat
-            FROM
-                {daylight_table}
-            WHERE
-                release = '{daylight_version}'
-
-                -- Some buildings are tagged as having running water
-                AND tags['building'] IS NULL
-
-                AND (
-                    -- Consider anything with a water tag
-                    tags['water'] IS NOT NULL
-
-                    -- The OSM key/values for water features considered 'natural'
-                    OR tags['natural'] IN (
-                        'bay',
-                        'cape',
-                        'geyser',
-                        'hot_spring',
-                        'shoal',
-                        'spring',
-                        'straight',
-                        'water'
-                    )
-
-                    -- Reservoirs and basins are tagged this way
-                    OR tags['basin'] IS NOT NULL
-                    OR tags['landuse'] IN ('basin', 'reservoir')
-
-                    -- Swimming pools are complicated:
-                    OR (
-                        -- swimming pools are cool
-                        -- but not if they are a building/indoor
-                        tags['leisure'] = 'swimming_pool'
-                        AND (
-                            tags['building'] = 'no'
-                            OR tags['building'] IS NULL
-                        )
-
-                        AND (
-                            tags['location'] IS NULL
-                            OR tags['location'] IN (
-                                'roof',
-                                'outdoor',
-                                'overground',
-                                'surface'
-                            )
-                        )
-                    )
-                    -- Mostly for labeling:
-                    OR tags['seamark:type'] = 'fairway'
-                    OR tags['place'] IN ('sea','ocean')
-
-                    -- Filter IN for waterway features to avoid dams, locks, etc.
-                    OR (
-                        tags['waterway'] IN (
-                            'canal',
-                            'ditch',
-                            'dock',
-                            'drain',
-                            'fairway',
-                            'fish_pass',
-                            'river',
-                            'riverbank',
-                            'stream',
-                            'tidal_channel',
-                            'waterfall'
-                        )
-                    )
-                )
-            )
-        )
-    )
+            WHEN ST_GeometryType(geom) = 'ST_Polygon' AND tags['waterway'] IN ('canal', 'drain', 'ditch')
+                THEN ST_ExteriorRing(geom)
+            ELSE
+                geom
+        END
+    ) AS geometry
+FROM classified_osm
 WHERE
-    class IS NOT NULL
+    overture.subtype IS NOT NULL
 
 UNION ALL
 -- Water derived from the OSM Coastline tool delivered via Daylight Earth Table
@@ -303,9 +236,9 @@ SELECT
     ST_YMAX(ST_GeometryFromText(wkt)) AS max_lat,
     -- Stub with today's date for now
     TO_ISO8601(cast(now() as timestamp) AT TIME ZONE 'UTC') AS update_time,
+    NULL AS names,
     class as subtype,
     subclass as class,
-    NULL AS names,
     MAP() AS source_tags,
     MAP() AS osm_tags,
     -- Source is OSM
