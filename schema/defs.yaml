@@ -32,6 +32,7 @@ description: Common schema definitions shared by all themes
         - land_use
         - building_part
         - place
+        - postcode
         - segment
         - water
     featureUpdateTime:
