@@ -197,8 +197,8 @@ properties:     # JSON Schema: Top-level object properties.
         items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
       capital_of_divisions:
         description:
-          Division IDs and subtypes of division's this division is capital of. If present,
-          this property will refer to the division IDs of the countries, regions, counties, etc.
+          Division IDs and subtypes of divisions this division is a
+          capital of.
         type: array
         minItems: 1
         uniqueItems: true
