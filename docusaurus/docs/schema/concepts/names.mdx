@@ -9,14 +9,14 @@ import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Named entities in Overture Maps share a common schema.
+Named entities in Overture share a common schema.
 
 <JSONSchemaViewer
   schema={ yamlLoad(MainDefs) }
-  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyDefinitions/allNames" })}/>
+  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/namesContainer/properties/names" })}/>
 
 ## `primary`
-If a feature has a name, expect the `names` attribute to have at least one property: `primary`. This will always be populated with the localized name of a feature.
+If a feature has a name, expect `names` to have at least one property: `primary`. This will always be populated with the localized name of a feature.
 
 ```yaml
 id: 08b2aa845a18afff02009f7c732067c5
@@ -63,7 +63,7 @@ names:
 ## `rules`
 Additional names variations such as _official_, _alternate_, or _short_ exist as `rules`.
 
-Rules can also have `side` and `geometric` range scoping. Read more about [scoping rules here](/schema/attributes/scoping-rules).
+Rules can also have `side` and `geometric` range scoping. Read more about [scoping rules here](/schema/concepts/scoping-rules).
 
 ```yaml
 id: 08b2aa845a18afff02009f7c732067c5

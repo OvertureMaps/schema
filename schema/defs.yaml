@@ -21,7 +21,6 @@ description: Common schema definitions shared by all themes
       type: string
       enum:
         - address
-        - boundary
         - building
         - connector
         - division
@@ -243,13 +242,13 @@ description: Common schema definitions shared by all themes
             syntactic level. It verifies that candidate tags follow the grammar
             described in the RFC, but not that they are validly registered tag
             in IANA's language subtag registry.
-  
+
             In understanding the regular expression, remark that '(:?' indicates
             a non-capturing group, and that all the top-level or non-nested
             groups represent top-level components of `langtag` referenced in the
             syntax section of https://www.rfc-editor.org/rfc/bcp/bcp47.txt. In
             particular, the top-level groups in left-to-right order represent:
-  
+
               1. language
               2. ["-" script]
               3. ["-" region]
@@ -323,6 +322,7 @@ description: Common schema definitions shared by all themes
         level:
           "$ref": "#/$defs/propertyDefinitions/level"
     geometricRangeScopeContainer:
+      title: range
       description: >-
         Geometric scoping properties defining the range of positions on
         the segment where something is physically located or where a
@@ -330,24 +330,24 @@ description: Common schema definitions shared by all themes
       properties:
         between: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedRange" }
     sideScopeContainer:
+      title: side
       description: >-
         Geometric scoping properties defining the side of a road modeled when
         moving along the line from beginning to end
       properties:
         side: { "$ref": "#/$defs/propertyDefinitions/side" }
     cartographyContainer:
-      title: cartography
       description: Defines cartographic hints for optimal use of Overture features in map-making.
-      type: object
       properties:
         cartography:
+          title: cartography
           type: object
           properties:
             min_zoom:
               description: >-
                 Recommended minimum tile zoom per the Slippy Maps convention.
-                
-                The Slippy Maps zooms are explained in the following references: 
+
+                The Slippy Maps zooms are explained in the following references:
                  - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
                  - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
               type: integer
@@ -356,8 +356,8 @@ description: Common schema definitions shared by all themes
             max_zoom:
               description: >-
                 Recommended maximum tile zoom per the Slippy Maps convention.
-                
-                The Slippy Maps zooms are explained in the following references: 
+
+                The Slippy Maps zooms are explained in the following references:
                  - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
                  - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
               type: integer
@@ -370,5 +370,3 @@ description: Common schema definitions shared by all themes
                 of features with a higher number.
               type: integer
               default: 0
-              
-          

@@ -7,7 +7,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 # Shape and connectivity
 
-The Overture Maps `transportation` theme captures the physical shape and connectivity
+The Overture transportation theme captures the physical shape and connectivity
 of the transportation network through the interaction of the theme's two feature
 types: segments and connectors.
 
@@ -76,7 +76,7 @@ Travel from a point on one segment to a point on another
 physically-connected segment is allowed, unless limited by an explicit
 restriction such as an access or turn restriction.
 
-All segments in official Overture Maps transportation data releases have a
+All segments in official Overture transportation data releases have a
 minimum of two connectors, one at each end of the geometry, even if
 those endpoint connectors are not attached to any other segment. This is
 not a mandatory minimum and is not enforced by the schema. It is done
@@ -204,7 +204,7 @@ back toward the start of the segment.
 -->
 
 
-🚧 We are developing a segment-level directionality concept similar to [lane directionality](/schema/attributes/transportation/roads#lane-directionality) to indicate what travel headings are allowed or prohibited along the segment. This effort is
+🚧 We are developing a segment-level directionality concept similar to [lane directionality](/schema/concepts/by-theme/transportation/roads#lane-directionality) to indicate what travel headings are allowed or prohibited along the segment. This effort is
 ongoing, so please check back soon.
 
 ### Sub-types
@@ -216,7 +216,7 @@ network.
 The `subtype` property may be one of `road`, `rail`, or `water` but
 only `road` is currently well defined. A `road` segment models any kind
 of road, street, or trail, including a dedicated path for walking,
-cycling and similar activities. For more information about `road` segments, see the page on [roads](/schema/attributes/transportation/roads).
+cycling and similar activities. For more information about `road` segments, see the page on [roads](/schema/concepts/by-theme/transportation/roads).
 
 ### Level (Z-order)
 
@@ -273,14 +273,14 @@ connectors.
 
 ### Shape stability
 
-A primary goal of Overture Maps' segmentation process is to promote stability of
-segment shape across Overture Maps data releases. For example, if a certain
+A primary goal of Overture's segmentation process is to promote stability of
+segment shape across Overture data releases. For example, if a certain
 real-world stretch of Main Street is represented by a single segment with
 particular geometry in release 1, we will strive to avoid slicing the exact same
 geometry up into two, three, or four segments in release 2.
 
 Note that aiming for segment shape stability categorically does not mean that
-Overture Maps aims for a stable transportation dataset. On the contrary, we aim to
+Overture aims for a stable transportation dataset. On the contrary, we aim to
 continuously improve data accuracy and coverage, and expect the transportation
 network dataset to constantly evolve and grow as a result. Our goal is simply
 to minimize unnecessary, semantically meaningless, changes in how the geometry
@@ -298,14 +298,14 @@ TODO: Once we have some usable comparative metrics for ID stability, we should
       add a sub-heading under segmentation, with a table of the data.
 --->
 
-### GERS ID stability
+### Overture ID stability
 
-The reason Overture Maps pursues shape stability is to improve the ability to assess whether two segments from different points in time (or from different upstream data
-sources) represent the same real-world entity. Overture Maps' success at this assessment directly feeds into the stability and precision of [Global Entity Reference System (GERS)](https://docs.overturemaps.org/guides/gers) IDs assigned to segments. In turn, higher GERS ID stability and precision makes transportation theme data more useful for conflation.
+Overture pursues shape stability to improve the ability to assess whether two segments from different points in time (or from different upstream data
+sources) represent the same real world entity. Overture's success at this assessment directly feeds into the stability and precision of [Overture IDs](https://docs.overturemaps.org/gers) assigned to segments. In turn, higher Overture ID stability and precision makes transportation theme data more useful for conflation.
 
 ### Interior connectors
 
-A key feature of the Overture Maps transportation schema which enables shape
+A key feature of the Overture transportation schema which enables shape
 stability is the ability of segments to support connectors at interior positions
 along their geometry, not only at their endpoints. The ability to add internal
 connectors prevents the segmentation process from having to blindly follow every
@@ -316,7 +316,7 @@ been mapped in the source data, but a back alley dividing the block along the
 east-west axis has not. If the back alley is subsequently mapped in the source
 data, the Overture segmentation process can connect to the transportation
 network without having to subdivide any existing segments by simply introducing
-internal connectors on the north-south road segments bordering the block to the east and west. As a result, the [GERS](https://docs.overturemaps.org/guides/gers) IDs of the north-south road segments remain as they were and no data needs to be re-conflated.
+internal connectors on the north-south road segments bordering the block to the east and west. As a result, the [Overture IDs](https://docs.overturemaps.org/gers) of the north-south road segments remain as they were and no data needs to be re-conflated.
 
 <figure>
 
@@ -358,9 +358,9 @@ internal connectors on the north-south road segments bordering the block to the 
 
 </figure>
 
-Note that in the above example, an official Overture Maps data release would insert
+Note that in the above example, an official Overture data release would insert
 coordinates in the middle of the north-south segments, if they did not already
-exist, because Overture Maps data releases will always ensure that every segment's
+exist, because Overture data releases will always ensure that every segment's
 geometry includes all of its connectors. From a computer's perspective, this is
 a very minor alteration of the segment's shape.
 
@@ -368,13 +368,13 @@ a very minor alteration of the segment's shape.
 
 Many segment properties may include a linear reference so that they apply only
 to a part of the segment geometry. We refer to these linearly-referenced
-property values as being geometrically scoped and discuss geometric scoping at greater length in the page on [scoped properties](/schema/attributes/scoping-rules).
+property values as being geometrically scoped and discuss geometric scoping at greater length in the page on [scoped properties](/schema/concepts/scoping-rules).
 
 Geometric scoping allows the segmentation algorithm to avoid introducing
 segment splits simply because a certain property has different values along
 different parts of the geometry. Like interior connectors, geometrically-scoped
 properties enable the segmentation process to make decisions that promote shape
-stability, ultimately resulting in more precise and stable [GERS](https://docs.overturemaps.org/guides/gers) IDs and less churn in conflated data.
+stability, ultimately resulting in more precise and stable [Overture IDs](https://docs.overturemaps.org/gers) and less churn in conflated data.
 
 <div style={{textAlign: 'center'}}>
 
@@ -399,7 +399,7 @@ stability, ultimately resulting in more precise and stable [GERS](https://docs.o
 
 ### Loops
 
-Although it is technically possible to use the Overture Maps schema to express a
+Although it is technically possible to use the Overture schema to express a
 segment forming a connected loop, such loops are considered invalid and will
 never be produced by the segmentation algorithm.
 
