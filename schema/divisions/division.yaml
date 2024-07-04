@@ -195,4 +195,12 @@ properties:     # JSON Schema: Top-level object properties.
         minItems: 1
         uniqueItems: true
         items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
+      capital_of_divisions:
+        description:
+          Division IDs and subtypes of divisions this division is a
+          capital of.
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items: { "$ref": "defs.yaml#/$defs/typeDefinitions/capitalOfDivisionItem" }
       wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
