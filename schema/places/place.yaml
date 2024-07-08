@@ -17,7 +17,6 @@ properties:
       - "$ref": https://geojson.org/schema/Point.json
   properties:
     unevaluatedProperties: false
-    required: [categories]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
@@ -31,9 +30,7 @@ properties:
         properties:
           primary:
             description: The primary or main category of the place.
-            oneOf:
-              - "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
-              - "type": "null"
+            "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
           alternate:
             description:
               Alternate categories of the place. Some places might fit into two
