@@ -15,8 +15,6 @@ properties:
   brand:
     name: Example
     wikidata: Q1000
-  categories: 
-    primary: NULL
   emails:
   - info@example.com
   phones:
