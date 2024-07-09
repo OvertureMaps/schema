@@ -2,10 +2,8 @@
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Overture Maps Shared Building Properties
 description: Common schema definitions shared by building footprints and building parts
-shapeContainer:
-  title: shape
-  description: Properties of the buildings shape, such as height or roof type.
-  properties:
+"$defs":
+  propertyDefinitions:
     height:
       description: >-
         Height of the building or part in meters. The height is the distance from the lowest point to the highest point.
@@ -118,3 +116,22 @@ shapeContainer:
         The height of the building roof in meters. This represents the distance
         from the base of the roof to the highest point of the roof.
       type: number
+  propertyContainers:
+    shapeContainer:
+      title: shape
+      description: Properties of the buildings shape, such as height or roof type.
+      properties:
+        height: {"$ref" : "#/$defs/propertyDefinitions/height"}
+        is_underground: {"$ref" : "#/$defs/propertyDefinitions/is_underground"}
+        num_floors: {"$ref" : "#/$defs/propertyDefinitions/num_floors"}
+        num_floors_underground: {"$ref" : "#/$defs/propertyDefinitions/num_floors_underground"}
+        min_height: {"$ref" : "#/$defs/propertyDefinitions/min_height"}
+        min_floor: {"$ref" : "#/$defs/propertyDefinitions/min_floor"}
+        facade_color: {"$ref" : "#/$defs/propertyDefinitions/facade_color"}
+        facade_material: {"$ref" : "#/$defs/propertyDefinitions/facade_material"}
+        roof_material: {"$ref" : "#/$defs/propertyDefinitions/roof_material"}
+        roof_shape: {"$ref" : "#/$defs/propertyDefinitions/roof_shape"}
+        roof_direction: {"$ref" : "#/$defs/propertyDefinitions/roof_direction"}
+        roof_orientation: {"$ref" : "#/$defs/propertyDefinitions/roof_orientation"}
+        roof_color: {"$ref" : "#/$defs/propertyDefinitions/roof_color"}
+        roof_height: {"$ref" : "#/$defs/propertyDefinitions/roof_height"}
