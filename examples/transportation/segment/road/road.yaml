@@ -62,13 +62,14 @@ properties:
   destinations:
     - labels:
       - value: Seattle
-        type: place
+        type: unknown
       - value: I 90
-        type: route
-      from:
-      - segment_id: overture:transportation:segment:567
-        connector_id: overture:transportation:connector:567
-        when:
-          heading: forward
+        type: route_ref
+      symbols:
+      - airport
+      when:
+        heading: forward
+      from_connector_id: overture:transportation:connector:123
       to_connector_id: overture:transportation:connector:123
+      to_segment_id: overture:transportation:segment:567
       final_heading: backward

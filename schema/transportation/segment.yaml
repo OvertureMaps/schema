@@ -93,19 +93,17 @@ properties:
                   type: string
                   pattern: ^(\S.*)?\S$
                 type: { "$ref": "#/$defs/propertyDefinitions/destinationLabelType" }
-                symbols:
-                  description: >-
-                    A collection of symbols or icons present on the sign next to current 
-                    destination label.
-                  type: array
-                  items:
-                  type: array
-                  items: { "$ref": "#/$defs/propertyDefinitions/destinationSignSymbol" }
-                  uniqueItems: true
-                  minLength: 1
             minItems: 1
             uniqueItems: true
-          from_connector_id:
+          symbols:
+            description: >-
+              A collection of symbols or icons present on the sign next to current 
+              destination label.
+            type: array
+            items: { "$ref": "#/$defs/propertyDefinitions/destinationSignSymbol" }
+            uniqueItems: true
+            minLength: 1            
+          from_connector_id:          
             description: >-
               Identifies the point of physical connection on this segment before which
               the destination sign or marking is visible.

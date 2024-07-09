@@ -18,12 +18,11 @@ properties:
         type: bad_type
       symbols:
       - airport
-      from:
-      - segment_id: overture:transportation:segment:567
-        connector_id: overture:transportation:connector:567
-        when:
-          heading: forward
+      when:
+        heading: forward
+      from_connector_id: overture:transportation:connector:123
       to_connector_id: overture:transportation:connector:123
+      to_segment_id: overture:transportation:segment:567
       final_heading: backward
   ext_expected_errors:
     - "[I#/properties/destinations/0/labels/0/type] [S#/$defs/propertyDefinitions/destinationLabelType/enum] value must be one of"

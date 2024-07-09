@@ -26,9 +26,9 @@ properties:
         type: street
       - value: I90
         type: route_ref
-        symbols:
-        - motorway
-        - airport  
+      symbols:
+      - motorway
+      - airport  
     - when:
         heading: backward
       from_connector_id: overture:transportation:connector:123

@@ -16,10 +16,8 @@ properties:
     - labels:
       - value: Seattle
         type: unknown
-      - value: Seattle
-        type: unknown
       symbols:
-      - airport
+      - bad_symbol
       when:
         heading: forward
       from_connector_id: overture:transportation:connector:123
@@ -27,4 +25,4 @@ properties:
       to_segment_id: overture:transportation:segment:567
       final_heading: backward
   ext_expected_errors:
-    - "[I#/properties/destinations/0/labels] items at index 0 and 1 are equal"
+    - "[I#/properties/destinations/0] [S#/$defs/propertyDefinitions/destinationSignSymbol/enum] value must be one of ..."
