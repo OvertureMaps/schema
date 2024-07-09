@@ -22,6 +22,5 @@ properties:
     - overture:transportation:example:via-turn-restriction-connector2
   names:
     primary: Arborway
-  road:
-    surface:
-      - value: paved
+  road_surface:
+    - value: paved

@@ -15,13 +15,7 @@ properties:
   update_time: "2024-03-13T16:35:53-08:00"
   version: 2
   class: secondary
-  road:
-    restrictions:
-      speed_limits:
-        - max_speed:
-            value: 100
-            unit: km/h
-    lanes:
+  lanes:
       # one-way road with access and speed limit restrictions
       # digitization: S->N
       # |   |   |   |
@@ -42,3 +36,7 @@ properties:
            min_occupancy: 3
         - direction: forward # lane 1
         - direction: forward # lane 2
+  speed_limits:
+    - max_speed:
+        value: 100
+        unit: km/h

@@ -39,6 +39,7 @@ properties:
           - river
           - spring
           - stream
+          - wastewater
           - water
       class:
         description: Further description of the type of water
@@ -46,7 +47,6 @@ properties:
         enum:
           - basin
           - bay
-          - blowhole
           - canal
           - cape
           - ditch
@@ -59,7 +59,6 @@ properties:
           - hot_spring
           - lagoon
           - lake
-          - lock
           - moat
           - ocean
           - oxbow
@@ -67,7 +66,7 @@ properties:
           - reflecting_pool
           - reservoir
           - river
-          - salt_pool
+          - salt_pond
           - sea
           - sewage
           - shoal

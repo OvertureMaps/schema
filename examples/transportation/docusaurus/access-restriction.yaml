@@ -22,10 +22,6 @@ properties:
     - overture:transportation:example:simple-road-connector-2
   names:
     primary: SR 520
-  road:
-    surface:
-      - value: paved
-    restrictions:
-      access:
-        - access_type: denied
-          when: {mode: [foot]}
+  access_restrictions:
+    - access_type: denied
+      when: {mode: [foot]}

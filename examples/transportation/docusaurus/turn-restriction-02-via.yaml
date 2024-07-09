@@ -20,6 +20,5 @@ properties:
     - overture:transportation:example:via-turn-restriction-connector2
   names:
     primary: Washington Street
-  road:
-    surface:
-      - value: paved
+  road_surface:
+    - value: paved

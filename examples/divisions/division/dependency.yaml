@@ -35,5 +35,5 @@ properties:
         name: United States
   norms:
     driving_side: right
-  capital_division_id: example:division:locality:san_juan
+  capital_division_ids: [ example:division:locality:san_juan ]
   parent_division_id: example:division:country:us

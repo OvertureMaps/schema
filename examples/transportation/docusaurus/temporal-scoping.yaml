@@ -14,10 +14,8 @@ properties:
   update_time: "2024-03-14T16:33:07-08:00"
   subtype: road
   class: unknown
-  road:
-    restrictions:
-      access:
-        - access_type: denied
-          when:
-            mode: [bus]
-            during: "Mo-Fr 15:00-18:00"
+  access_restrictions:
+    - access_type: denied
+      when:
+        mode: [bus]
+        during: "Mo-Fr 15:00-18:00"

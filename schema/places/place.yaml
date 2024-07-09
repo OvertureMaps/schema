@@ -24,18 +24,23 @@ properties:
     properties:
       categories:
         description: |
-          The categories of the place. Complete list is available on GitHub: https://github.com/OvertureMaps/schema/blob/main/task-force-docs/places/overture_categories.csv
+          The categories of the place. Complete list is available on
+          GitHub: https://github.com/OvertureMaps/schema/blob/main/task-force-docs/places/overture_categories.csv
         type: object
-        required: [main]
+        required: [primary]
         properties:
-          main:
-            description: The main category of the place.
-            type: string
+          primary:
+            description: The primary or main category of the place.
+            "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
           alternate:
-            description: Alternate categories of the place. Some places might fit into two categories, e.g. a book store and a coffee shop. In such a case, the main category can be augmented with additional applicable categories.
+            description:
+              Alternate categories of the place. Some places might fit into two
+              categories, e.g. a book store and a coffee shop. In such a case,
+              the primary category can be augmented with additional applicable
+              categories.
             type: array
             items:
-              type: string
+              "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
             uniqueItems: true
       confidence:
         description: The confidence of the existence of the place. It's a number between 0 and 1. 0 means that we're sure that the place doesn't exist (anymore). 1 means that we're sure that the place exists. If there's no value for the confidence, it means that we don't have any confidence information.

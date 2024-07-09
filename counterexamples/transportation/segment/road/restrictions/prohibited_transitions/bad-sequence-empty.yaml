@@ -13,10 +13,8 @@ properties:
   class: primary
   connector_ids:
     - overture:transportation:example:connector:1
-  road:
-    restrictions:
-      prohibited_transitions:
-        - sequence: []
-          final_heading: forward
+  prohibited_transitions:
+    - sequence: []
+      final_heading: forward
   ext_expected_errors:
     - "sequence/minItems] minimum 1 items required, but found 0 items"

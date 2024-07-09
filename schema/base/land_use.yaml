@@ -30,30 +30,26 @@ properties:
         type: string
         enum:
           - agriculture
-          - airport
           - aquaculture
           - campground
           - cemetery
-          - conservation
           - construction
           - developed
           - education
           - entertainment
           - golf
-          - grass
           - horticulture
           - landfill
+          - managed
           - medical
           - military
           - park
           - pedestrian
-          - public
           - protected
           - recreation
           - religious
           - residential
           - resource_extraction
-          - structure
           - transportation
           - winter_sports
       class:
@@ -61,7 +57,6 @@ properties:
         type: string
         enum:
           - aboriginal_land
-          - aerodrome
           - airfield
           - allotments
           - animal_keeping
@@ -73,17 +68,11 @@ properties:
           - bunker
           - camp_site
           - cemetery
-          - churchyard
-          - civic_admin
           - clinic
           - college
           - commercial
-          - common
-          - conservation
           - construction
-          - dam
           - danger_area
-          - depot
           - doctors
           - dog_park
           - driving_range
@@ -98,12 +87,10 @@ properties:
           - garden
           - golf_course
           - grass
-          - graveyard
+          - grave_yard
           - green
           - greenfield
           - greenhouse_horticulture
-          - helipad
-          - heliport
           - highway
           - hospital
           - industrial
@@ -114,7 +101,6 @@ properties:
           - marina
           - meadow
           - military
-          - military_other
           - national_park
           - natural_monument
           - nature_reserve
@@ -125,13 +111,12 @@ properties:
           - park
           - peat_cutting
           - pedestrian
-          - pier
           - pitch
           - plant_nursery
           - playground
           - plaza
+          - protected
           - protected_landscape_seascape
-          - public
           - quarry
           - range
           - recreation_ground
@@ -160,8 +145,8 @@ properties:
           - water_park
           - wilderness_area
           - winter_sports
+          - works
           - zoo
+
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
-      surface:
-        description: Surface material, mostly form the OSM tag, with some normalization.
-        type: string
+      surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }

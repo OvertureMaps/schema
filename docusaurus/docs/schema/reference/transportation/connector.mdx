@@ -1,0 +1,56 @@
+---
+title: connector
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import ConnectorSchema from '!!raw-loader!@site/docs/_schema/transportation/connector.yaml';
+import ConnectorExample from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/connector.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Connector
+
+Connectors create physical connections between [segments](/schema/reference/transportation/segment).
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Point</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>transportation</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>connector</code></td>
+  </tr>
+  </tbody>
+</table>
+
+Connectors help define the topology of the transportation network by
+defining points of physical connection between two or more
+[segments](/schema/reference/transportation/segment).
+
+Apart from their point geometry and the core properties required for all
+Overture features, connectors do not have any other
+properties.
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(ConnectorSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/transportation'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{ConnectorSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Example
+
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ConnectorExample), null, 2) }</CodeBlock>

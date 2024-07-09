@@ -12,9 +12,7 @@ properties:
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
-  road:
-    # one way road in backward direction (forward access is denied)
-    restrictions:
-      access:
-        - access_type: denied
-          when: {heading: forward}
+  # one way road in backward direction (forward access is denied)
+  access_restrictions:
+    - access_type: denied
+      when: {heading: forward}

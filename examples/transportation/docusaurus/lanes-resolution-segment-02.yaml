@@ -14,8 +14,7 @@ properties:
   connector_ids: [lanes-resolution-example-connector]
   subtype: road
   class: motorway
-  road:
-    lanes:
-      - value:  # A lane block rule containing one globally-applicable lane block.
-        - direction: forward
-        - direction: backward
+  lanes:
+    - value:  # A lane block rule containing one globally-applicable lane block.
+      - direction: forward
+      - direction: backward

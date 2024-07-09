@@ -1,0 +1,178 @@
+---
+title: segment
+---
+
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import SegmentSchema from '!!raw-loader!@site/docs/_schema/transportation/segment.yaml';
+import ExampleSimpleRoad from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/simple-road.yaml';
+import ExampleLanes from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-hov.yaml';
+import ExampleAccessRestriction from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction.yaml';
+import ExampleTurnRestrictionSource from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-source.yaml';
+import ExampleTurnRestrictionTarget from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-target.yaml';
+import ExampleTurnRestrictionVia from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-via.yaml';
+import ExampleTurnRestrictionConnector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector1.yaml';
+import ExampleTurnRestrictionConnector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector2.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
+
+# Segment
+
+Segments are paths which can be traveled by people or objects.
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>LineString</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>transportation</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>segment</code></td>
+  </tr>
+  </tbody>
+</table>
+
+Segment geometry represents the center-line of a path that a person or object may
+travel. Segment properties describe both the physical attributes
+(*e.g.* road surface and width) and non-physical attributes (*e.g.*
+access restriction rules) of that path.
+
+Two segments are physically connected if a common [connector](/schema/reference/transportation/connector)
+is referenced from the `connector` property of both segments. Where
+this occurs, both segment geometries must contain the common connector's
+coordinates. A physical connection between segments indicates that it
+*may be* possible to travel from one segment to the next at the
+connected location provided the segment properties do not indicate a
+restriction, such as a turn restriction, which would prevent the
+transition. Conversely, two segments are not physically connected -— even if their geometries intersect —- if they do not share a common connector.
+
+## Subtypes
+
+A segment may have one of three possible subtypes.
+
+<Tabs>
+  <TabItem value="road" label="Road" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>road</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+A `road` segment represents a section of any kind of road, street or
+path, including a dedicated path for walking or cycling, but excluding
+a railway.
+
+<!-- TODO: Determine where these pages land and update these links at that point.  -->
+<!-- To learn the core concepts of roads, see the
+[Roads](/themes/transportation/roads) section of the
+[transportation](/themes/transportation) theme concepts page. -->
+
+  </TabItem>
+  <TabItem value="rail" label="Railway">
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>rail</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+The schema for `rail` segments is under development.
+  </TabItem>
+  <TabItem value="water" label="Waterway">
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>water</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+The schema for `water` segments is under development.
+  </TabItem>
+</Tabs>
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(SegmentSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/transportation'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{SegmentSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="simple-road" label="Simple Road" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleSimpleRoad), null, 2) }</CodeBlock>
+  </TabItem>
+
+  <TabItem value="lanes" label="Lanes" default>
+      <CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleLanes), null, 2) }</CodeBlock>
+  </TabItem>
+
+  <TabItem value="accessRestrictions" label="Access Restrictions" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleAccessRestriction), null, 2) }</CodeBlock>
+  </TabItem>
+
+  <TabItem value="turnRestrictions" label="Turn Restrictions" default>
+    This example illustrates a complex `via` type turn restriction across three
+    connected segments. When traveling forward along the `source` segment, the transition to the `target` segment is not allowed to go through the `via` segment.
+
+<div style={{textAlign: 'center'}}>
+
+<ThemedImage
+  alt='Diagram of the `via` transition from source to destination segment'
+  sources={{
+    light: useBaseUrl('/img/transportation/turn-restriction-02-light.png'),
+    dark: useBaseUrl('/img/transportation/turn-restriction-02-dark.png'),
+  }}
+/>
+
+</div>
+
+<details open>
+<summary>Source segment</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionSource), null, 2) }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 1</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionConnector1), null, 2) }</CodeBlock>
+</details>
+
+<details>
+<summary>Via segment</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionVia), null, 2) }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 2</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionConnector2), null, 2) }</CodeBlock>
+</details>
+
+<details>
+<summary>Target segment</summary>
+<CodeBlock language="json">{ JSON.stringify(yamlLoad(ExampleTurnRestrictionTarget), null, 2) }</CodeBlock>
+</details>
+  </TabItem>
+</Tabs>

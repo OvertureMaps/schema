@@ -1,0 +1,19 @@
+---
+id: overture:addresses:addres:1
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-71.2086153, 42.3373725]
+properties:
+  theme: addresses
+  type: address
+  update_time: '2024-04-26T23:55:01-08:00'
+  version: 0
+  country: US
+  region: MA
+  city: NEWTON CENTRE
+  postcode: '02459'
+  street: ' COMMONWEALTH AVE'
+  number: '1000'
+  ext_expected_errors:
+    - "[I#/properties/street] does not match pattern [S#/$defs/propertyDefinitions/id/pattern]"

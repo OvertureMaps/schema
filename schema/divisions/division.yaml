@@ -130,18 +130,36 @@ properties:     # JSON Schema: Top-level object properties.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
       perspectives:
-        description:
+        description: >-
           Political perspectives from which this division is considered
           to be an accurate representation.
-
-          If this property is absent, then this division is seen from
-          the default political perspective. If this property is
-          present, then this division is seen from the political
-          perspectives enumerated in the list.
-        type: array
-        items: { "$ref": "./defs.yaml#/$defs/typeDefinitions/perspective" }
-        minItems: 1
-        uniqueItems: true
+      
+          If this property is absent, then this division is not known to
+          be disputed from any political perspective. Consequently,
+          there is only one division feature representing the entire
+          real world entity.
+      
+          If this property is present, it means the division represents
+          one of several alternative perspectives on the same real-world
+          entity.
+      
+          There are two modes of perspective:
+          
+            1. `accepted_by` means the representation of the division is
+               accepted by the listed entities and would be included on
+               a map drawn from their perspective.
+      
+            2. `disputed_by` means the representation of the division is
+               disputed by the listed entities and would be excluded
+               from a map drawn from their perspective.
+              
+          When drawing a map from the perspective of a given country,
+          one would start by gathering all the undisputed divisions
+          (with no `perspectives` property), and then adding to that
+          first all divisions explicitly accepted by the country, and
+          second all divisions not explicitly disputed by the country.
+        allOf: 
+          - "$ref": "./defs.yaml#/$defs/typeDefinitions/perspectives"
       norms:
         description:
           Collects information about local norms and rules within the
@@ -168,11 +186,21 @@ properties:     # JSON Schema: Top-level object properties.
         description: Population of the division
         type: integer
         minimum: 0
-      capital_division_id:
+      capital_division_ids:
         description:
-          Division ID of this division's capital division. If present,
-          this property will refer to the division ID of the capital
-          city, county seat, etc. of a division.
-        allOf:
-          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
+          Division IDs of this division's capital divisions. If present,
+          this property will refer to the division IDs of the capital
+          cities, county seats, etc. of a division.
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
+      capital_of_divisions:
+        description:
+          Division IDs and subtypes of divisions this division is a
+          capital of.
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items: { "$ref": "defs.yaml#/$defs/typeDefinitions/capitalOfDivisionItem" }
       wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }

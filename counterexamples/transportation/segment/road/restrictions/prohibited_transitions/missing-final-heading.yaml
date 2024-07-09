@@ -13,11 +13,9 @@ properties:
   class: primary
   connector_ids:
     - overture:transportation:example:connector:1
-  road:
-    restrictions:
-      prohibited_transitions:
-        - sequence:
-            - segment_id: foo
-              connector_id: bar
+  prohibited_transitions:
+    - sequence:
+        - segment_id: foo
+          connector_id: bar
   ext_expected_errors:
     - "missing properties: 'final_heading'"

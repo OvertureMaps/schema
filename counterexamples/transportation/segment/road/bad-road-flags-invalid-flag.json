@@ -15,12 +15,10 @@
     "update_time": "2024-03-14T08:08:07-08:00",
     "subtype": "road",
     "class": "primary",
-    "road": {
-      "flags": [
-        {
-          "values": ["foo"]
-        }
-      ]
-    }
+    "road_flags": [
+      {
+        "values": ["foo"]
+      }
+    ]
   }
 }

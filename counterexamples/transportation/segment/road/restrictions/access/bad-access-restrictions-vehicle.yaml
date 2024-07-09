@@ -15,11 +15,9 @@ properties:
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
-  road:
-    restrictions:
-      access:
-        - access_type: allowed
-          when: {vehicle: {axle_count: {is_foo: 5}}}
+  access_restrictions:
+    - access_type: allowed
+      when: {vehicle: {axle_count: {is_foo: 5}}}
   ext_expected_errors:
-    - "[I#/properties/road/restrictions/access/0/when/vehicle/axle_count] [S#/$defs/propertyDefinitions/integerRelation/oneOf] oneOf failed"
-    - "[I#/properties/road/restrictions/access/0/when/vehicle/axle_count/is_foo] [S#/$defs/propertyDefinitions/integerRelation/unevaluatedProperties] not allowed"
+    - "[I#/properties/road/access_restrictions/0/when/vehicle/axle_count] [S#/$defs/propertyDefinitions/integerRelation/oneOf] oneOf failed"
+    - "[I#/properties/road/access_restrictions/0/when/vehicle/axle_count/is_foo] [S#/$defs/propertyDefinitions/integerRelation/unevaluatedProperties] not allowed"

@@ -18,18 +18,20 @@ properties:
   version: 5
   subtype: road
   class: primary
-  road:
-    restrictions:
-      access:
-        - access_type: denied
-        - access_type: designated
-          when: {mode: [truck]}
-          between: [0.1, 0.25]
-        - access_type: allowed
-          when:
-            using: [as_customer, to_farm]
-            recognized: [as_permitted, as_employee]
-          between: [0.25, 0.50]
-        - access_type: allowed
-          when: {vehicle: {axle_count: {is_more_than: 5}}}
-          between: [0.50, 0.70]
+  access_restrictions:
+    - access_type: denied
+    - access_type: designated
+      when: {mode: [truck]}
+      between: [0.1, 0.25]
+    - access_type: allowed
+      when:
+        using: [as_customer, to_farm]
+        recognized: [as_permitted, as_employee]
+      between: [0.25, 0.50]
+    - access_type: allowed
+      when:
+        vehicle:
+          - dimension: axle_count
+            comparison: greater_than
+            value: 5
+      between: [0.50, 0.70]
