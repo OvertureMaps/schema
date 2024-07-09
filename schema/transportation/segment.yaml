@@ -69,9 +69,10 @@ properties:
       - unknown
     destinations:
       description: >-
-        Information about what destinations can be reached if following this segment. 
-        Includes references to the segments from which it is needed to transition 
-        onto this segment to reach the destinations.
+        Describes objects that can be reached by following a transportation segment in the
+        same way those objects are described on signposts or ground writing that a traveller
+        following the segment in would observe in the real world. This allows navigation systems
+        to refer to signs and observable writing that a traveller actually sees.
       type: array
       items:
         type: object
@@ -80,7 +81,7 @@ properties:
         properties:
           labels:
             description: >-
-              Describes the destination labels on the directions sign.
+              Labeled destinations that can be reached by following the segment.
             type: array
             items:
               type: object
