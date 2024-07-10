@@ -141,6 +141,7 @@ properties:
       type: string
       enum:
         - is_bridge
+        - is_link # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
         - is_tunnel
         - is_under_construction
         - is_abandoned
