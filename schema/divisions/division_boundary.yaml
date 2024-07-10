@@ -21,7 +21,7 @@ properties:     # JSON Schema: Top-level object properties.
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
-      subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/placetype" }
+      subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
       class:
         type: string
         enum:
@@ -85,4 +85,4 @@ properties:     # JSON Schema: Top-level object properties.
           first all boundary explicitly accepted by the country, and
           second all boundary not explicitly disputed by the country.
         allOf: 
-          - "$ref": "./defs.yaml#/$defs/typeDefinitions/perspectives"
+          - "$ref": "./defs.yaml#/$defs/propertyDefinitions/perspectives"

@@ -2,7 +2,7 @@
 "$schema": https://json-schema.org/draft/2020-12/schema
 description: Common schema definitions for divisions theme
 "$defs":
-  typeDefinitions:
+  propertyDefinitions:
     placetype:
       description:
         Category of the division from a finite, hierarchical, ordered
@@ -70,7 +70,7 @@ description: Common schema definitions for divisions theme
         city of Concord, NH would be [United States, New Hampshire,
         Merrimack County, Concord].
       type: array
-      items: { "$ref": "#/$defs/typeDefinitions/hierarchyItem" }
+      items: { "$ref": "#/$defs/propertyDefinitions/hierarchyItem" }
       minItems: 1
       uniqueItems: true
     hierarchyItem:
@@ -83,7 +83,7 @@ description: Common schema definitions for divisions theme
           description: ID of the division
           allOf:
             - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
-        subtype: { "$ref": "#/$defs/typeDefinitions/placetype" }
+        subtype: { "$ref": "#/$defs/propertyDefinitions/placetype" }
         name:
           description: Primary name of the division
           type: string
@@ -115,4 +115,4 @@ description: Common schema definitions for divisions theme
           description: ID of the division
           allOf:
             - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
-        subtype: { "$ref": "#/$defs/typeDefinitions/placetype" }
+        subtype: { "$ref": "#/$defs/propertyDefinitions/placetype" }
