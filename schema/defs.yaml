@@ -297,7 +297,7 @@ description: Common schema definitions shared by all themes
       title: overture properties
       description: Top-level properties shared by all Overture features
       type: object
-      required: [ theme, type, version, update_time ]
+      required: [ theme, type, version ]
       patternProperties:
         ^ext_.*$:
           description: "Additional top-level properties must be prefixed with `ext_`."
