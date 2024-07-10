@@ -10,7 +10,6 @@ properties:
   subtype: road
   class: secondary
   version: 2
-  update_time: "2024-03-16T16:23:28-08:00"
   prohibited_transitions:
     - sequence:
         - connector_id: connector1

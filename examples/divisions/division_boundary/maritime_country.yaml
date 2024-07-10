@@ -7,7 +7,6 @@ geometry:
 properties:
   theme: divisions
   type: division_boundary
-  update_time: "2024-06-12T17:54:30Z"
   version: 1
   subtype: country
   class: maritime

@@ -10,7 +10,6 @@ properties:
   subtype: road
   class: primary
   version: 2
-  update_time: "2024-03-16T16:23:20-08:00"
   access_restrictions:
     - access_type: denied
       between: [ 0, 0.5 ]

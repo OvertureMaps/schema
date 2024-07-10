@@ -7,7 +7,6 @@ geometry:
 properties:
   theme: divisions
   type: division_boundary
-  update_time: "2024-06-12T17:52:55Z"
   version: 1
   subtype: county
   class: land

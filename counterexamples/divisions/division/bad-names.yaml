@@ -7,7 +7,6 @@ geometry:
 properties:
   theme: divisions
   type: division
-  update_time: "2024-02-26T17:59:35Z"
   version: 0
   subtype: country
   names:
