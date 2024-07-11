@@ -19,7 +19,6 @@ properties:
   type: building
   version: 1
   level: 1
-  update_time: "2023-06-06T10:30:00-08:00"
   height: 21.34
   num_floors: 4
   num_floors_underground: 1

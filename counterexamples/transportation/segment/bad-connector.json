@@ -13,7 +13,6 @@
     "theme": "transportation",
     "type": "segment",
     "version": 3,
-    "update_time": "2023-02-23T00:04:00-08:00",
     "subtype": "rail",
     "connector_ids": ["bazConnector", "qux", 1, false]
   }

@@ -10,6 +10,5 @@ properties:
   theme: places
   type: place
   version: 0
-  update_time: "2024-01-12T14:60:22-08:00"
   ext_expected_errors:
     - "does not match pattern"

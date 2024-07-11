@@ -9,7 +9,6 @@ properties:
   theme: places
   type: place
   version: 1
-  update_time: "2024-06-12T12:41:30-06:00"
   names:
     primary: Fancy POI missing primary category property
   categories:

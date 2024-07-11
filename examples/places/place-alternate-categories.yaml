@@ -33,7 +33,6 @@ properties:
   theme: places
   type: place
   version: 1
-  update_time: "2024-06-12T12:20:26-06:00"
   names:
     primary: My Sweet POI
     common:

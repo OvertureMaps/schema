@@ -7,7 +7,6 @@ geometry:
 properties:
   theme: divisions
   type: division_boundary
-  update_time: "2024-02-23T23:00:37Z"
   version: 0
   subtype: neighborhood
   class: land

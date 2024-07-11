@@ -10,7 +10,6 @@ properties:
   type: segment
   subtype: road
   class: primary
-  update_time: "2024-03-13T16:19:03-08:00"
   version: 1
   lanes:
     # Example shows modelling of new lane being introduced on a straight road which is a single segment

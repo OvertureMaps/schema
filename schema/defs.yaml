@@ -93,6 +93,7 @@ description: Common schema definitions shared by all themes
         record_id:
           type: string
           description: Refers to the specific record within the dataset that was used.
+        update_time: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
         confidence:
           description: Confidence value from the source dataset, particularly relevant for ML-derived data.
           type: number
@@ -297,7 +298,7 @@ description: Common schema definitions shared by all themes
       title: overture properties
       description: Top-level properties shared by all Overture features
       type: object
-      required: [ theme, type, version, update_time ]
+      required: [ theme, type, version ]
       patternProperties:
         ^ext_.*$:
           description: "Additional top-level properties must be prefixed with `ext_`."
@@ -305,7 +306,6 @@ description: Common schema definitions shared by all themes
         theme: { "$ref": "#/$defs/propertyDefinitions/theme" }
         type: { "$ref": "#/$defs/propertyDefinitions/featureType" }
         version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }
-        update_time: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
         sources: { "$ref": "#/$defs/propertyDefinitions/sources" }
     namesContainer:
       title: names

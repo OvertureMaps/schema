@@ -9,7 +9,6 @@ properties:
   subtype: road
   class: residential
   version: 1
-  update_time: "2024-03-14T08:12:00-08:00"
   prohibited_transitions:
     - sequence:
         - connector_id: connector1

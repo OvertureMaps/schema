@@ -9,7 +9,6 @@ properties:
   type: segment
   subtype: road
   version: 2
-  update_time: "2024-03-15T09:24:29-08:00"
   class: residential
   level_rules:
     - value: -1
