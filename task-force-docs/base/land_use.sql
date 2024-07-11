@@ -390,15 +390,15 @@ SELECT
             '',
             'OpenStreetMap',
             SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
-            NULL,
-            TO_ISO8601(created_at AT TIME ZONE 'UTC')
+            TO_ISO8601(created_at AT TIME ZONE 'UTC'),
+            NULL
         )
         AS ROW(
             property varchar,
             dataset varchar,
             record_id varchar,
-            confidence double,
-            update_time varchar
+            update_time varchar,
+            confidence double
         )
     ) ] AS sources,
 
