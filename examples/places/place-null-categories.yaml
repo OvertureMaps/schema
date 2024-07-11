@@ -23,7 +23,6 @@ properties:
   - https://www.twitter.com/example
   theme: places
   type: place
-  update_time: '2024-06-12T12:20:08-06:00'
   version: 1
   websites:
   - https://www.example.com
