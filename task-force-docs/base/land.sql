@@ -153,7 +153,6 @@ SELECT
     max_lon,
     min_lat,
     max_lat,
-    TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
 
     -- Complex name logic gets injected here
     '__OVERTURE_NAMES_QUERY' AS names,
@@ -202,15 +201,15 @@ SELECT
             '',
             'OpenStreetMap',
             SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
-            NULL,
-            TO_ISO8601(created_at AT TIME ZONE 'UTC')
+            TO_ISO8601(created_at AT TIME ZONE 'UTC'),
+            NULL
         )
         AS ROW(
             property varchar,
             dataset varchar,
             record_id varchar,
-            confidence double,
-            update_time varchar
+            update_time varchar,
+            confidence double
         )
     ) ] AS sources,
 
@@ -244,8 +243,6 @@ SELECT
     ST_XMAX(ST_GeometryFromText(wkt)) as max_lon,
     ST_YMIN(ST_GeometryFromText(wkt)) AS min_lat,
     ST_YMAX(ST_GeometryFromText(wkt)) AS max_lat,
-    -- Stub with today's date for now
-    TO_ISO8601(cast(now() as timestamp) AT TIME ZONE 'UTC') AS update_time,
     NULL AS names,
     class as subtype,
     subclass as class,
@@ -263,8 +260,8 @@ SELECT
             property varchar,
             dataset varchar,
             record_id varchar,
-            confidence double,
-            update_time varchar
+            update_time varchar,
+            confidence double
         )
     ) ] as sources,
     NULL AS wikidata,
