@@ -19,6 +19,7 @@ description: Common schema definitions shared by building footprints and buildin
             buildings or styles them differently because they are not visible above ground. This is different than the level column
             which is used to indicate z-ordering of elements and negative values may be above ground.
           type: boolean
+          default: false
         num_floors:
           description: >-
             Number of above-ground floors of the building or part.
