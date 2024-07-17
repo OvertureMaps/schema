@@ -1,0 +1,69 @@
+---
+title: address
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import AddressSchema from "!!raw-loader!@site/docs/_schema/addresses/address.yaml";
+
+import AddressExample from "!!raw-loader!@site/docs/_examples/addresses/address.yaml";
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Address
+
+The Overture Address type is a compilation of open address datasets usually
+published by local authorized sources. In our initial release, we use the datasets
+that are collected and distributed by [OpenAdddresses](https://openaddresses.io).
+
+The initial schema for addresses is fairly simple and is expected to expand into
+more complex addressing schemes.
+
+## Feature types
+The address theme has a single feature type.
+- `address` is a point feature type representing a single address point.
+
+## Theme concepts
+
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td>
+      <code>Point</code>
+    </td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>addresses</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>address</code></td>
+  </tr>
+  </tbody>
+</table>
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(AddressSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/addresses'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{AddressSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="Address Example" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(AddressExample), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>
