@@ -13,7 +13,7 @@ import divisions_disputed_boundary_example_both from '!!raw-loader!@site/docs/_e
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Division Boundary
+# Division boundary
 
 A division boundary is a border between [divisions](/schema/reference/divisions/division).
 
@@ -39,6 +39,60 @@ between two [divisions](/schema/reference/divisions/division). In light of
 geopolitical issues, some boundaries represent standalone
 disputed or treaty lines and therefore do not coincide with the border
 of a division.
+
+## Subtypes
+
+The schema for the divisions theme contains an expanded list of subtypes, called placetypes, only a subset of which are available in the data. The subtypes currently available in the `division_boundary` feature type are: 
+
+- `country`
+- `region`
+- `county`
+
+<Tabs>
+  <TabItem value="country" label="country" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>country</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [divsion boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+
+  </TabItem>
+
+  <TabItem value="region" label="region">
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>region</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+A region is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
+  </TabItem>
+
+  <TabItem value="county" label="county" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>county</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A county is a second-level administrative subdivision. Example: Kings County, NY
+  </TabItem>
+
+</Tabs>
+
 
 ## Schema
 
