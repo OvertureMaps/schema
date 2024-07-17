@@ -63,10 +63,10 @@ properties:
           - island
           - islet
           - land
+          - meadow
           - mountain_range
           - peak
           - peninsula
-          - plateau
           - reef
           - ridge
           - rock

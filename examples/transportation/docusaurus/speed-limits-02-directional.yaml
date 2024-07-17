@@ -10,7 +10,6 @@ properties:
   theme: transportation
   type: segment
   version: 2
-  update_time: "2024-03-13T16:36:56-08:00"
   subtype: road
   class: secondary
   speed_limits:
@@ -19,11 +18,3 @@ properties:
         mode: [hgv]
         heading: forward
       max_speed: {value: 65, unit: "mph"}
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      speed_limits:
-        - max_speed: {value: 70, unit: "mph"}
-        - when:
-            mode: [hgv]
-            heading: forward
-          max_speed: {value: 65, unit: "mph"}

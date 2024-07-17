@@ -30,11 +30,9 @@ properties:
         type: string
         enum:
           - agriculture
-          - airport
           - aquaculture
           - campground
           - cemetery
-          - conservation
           - construction
           - developed
           - education
@@ -49,7 +47,6 @@ properties:
           - park
           - pedestrian
           - protected
-          - public
           - recreation
           - religious
           - residential
@@ -61,7 +58,6 @@ properties:
         type: string
         enum:
           - aboriginal_land
-          - aerodrome
           - airfield
           - allotments
           - animal_keeping
@@ -73,16 +69,11 @@ properties:
           - bunker
           - camp_site
           - cemetery
-          - churchyard
-          - civic_admin
           - clinic
           - college
           - commercial
-          - common
-          - conservation
           - construction
           - danger_area
-          - depot
           - doctors
           - dog_park
           - driving_range
@@ -101,8 +92,6 @@ properties:
           - green
           - greenfield
           - greenhouse_horticulture
-          - helipad
-          - heliport
           - highway
           - hospital
           - industrial
@@ -113,7 +102,6 @@ properties:
           - marina
           - meadow
           - military
-          - military_other
           - national_park
           - natural_monument
           - nature_reserve
@@ -128,8 +116,8 @@ properties:
           - plant_nursery
           - playground
           - plaza
+          - protected
           - protected_landscape_seascape
-          - public
           - quarry
           - range
           - recreation_ground
@@ -160,5 +148,6 @@ properties:
           - winter_sports
           - works
           - zoo
+
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
       surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }

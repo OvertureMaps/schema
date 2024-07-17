@@ -8,7 +8,6 @@ properties:
   theme: transportation
   type: segment
   version: 2
-  update_time: "2024-03-14T08:11:57-08:00"
   subtype: road
   class: primary
   connector_ids:
@@ -20,14 +19,5 @@ properties:
         - segment_id: foo
           connector_id: bar
       final_heading: forward
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      prohibited_transitions:
-        - sequence:
-            - segment_id: foo
-              connector_id: bar
-            - segment_id: foo
-              connector_id: bar
-          final_heading: forward
   ext_expected_errors:
     - items at index 0 and 1 are equal

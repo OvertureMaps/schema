@@ -17,7 +17,6 @@ properties:
   theme: transportation
   type: segment
   version: 5
-  update_time: "2024-03-14T16:33:21-08:00"
   subtype: road
   class: primary
   connector_ids:
@@ -36,17 +35,3 @@ properties:
         during: Mo-Fr 06:00-09:00, 15:00-19:00
   road_surface:
     - value: paved
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    surface:
-      - value: paved
-    restrictions:
-      prohibited_transitions:
-        - sequence:
-            - segment_id: overture:transportation:example:via-turn-restriction-target
-              connector_id: overture:transportation:example:via-turn-restriction-connector2
-            - segment_id: overture:transportation:example:via-turn-restriction-via
-              connector_id: overture:transportation:example:via-turn-restriction-connector1
-          final_heading: forward
-          when:
-            heading: forward
-            during: Mo-Fr 06:00-09:00, 15:00-19:00

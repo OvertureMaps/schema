@@ -1,0 +1,197 @@
+---
+title: Travel modes
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
+In the real world, a travel mode can be thought of intuitively as a way
+of getting from point A to point B. Travel modes can include non-vehicle
+modes (foot), vehicle modes (a bicycle or motor vehicle), and
+occasionally more granular details, e.g. a motor vehicle classified as a high occupancy vehicle or a heavy goods vehicle.
+
+Within the Overture transportation theme schema model, this real world
+intuition translates to the following definition: a travel mode is a
+recognized mode by which a person or thing may use a [segment](/schema/reference/transportation/segment) feature.
+
+## Understanding travel modes
+
+### Implied travel modes
+
+Every segment has an *implied* set of travel modes that are allowed to use the segment. For [road](/schema/concepts/by-theme/transportation/roads) segments, this implied set derives
+from the [road class](/schema/concepts/by-theme/transportation/roads#road-class), as well as local rules, norms, and customs operative where the road segment is situated.
+
+Since this implied set depends on locality or jurisdiction, and is
+susceptible of varying over time, the Overture transportation schema
+does not try to specify the implied set. Resolution of the implied set
+is done by the specific application in the case where this level of
+detail is important for its proper functioning. Note: an accurate routing
+engine may need this information, whereas a 2D map render or a geocoder
+likely do not.
+
+### General definitions
+
+Overture's recognized travel modes are defined in general terms that are
+broadly applicable, for example `hov` is a high-occupancy vehicle and
+`hgv` is a heavy goods vehicle. In most jurisdictions, these general
+terms map to a concept that is in use within the jurisdiction, even
+though the local name for the concept may vary, for example one
+jurisdiction may say heavy goods vehicle and another may say
+large goods vehicle.
+
+Despite being broadly applicable, travel modes may have different
+definitions in different places and at different times.
+
+- in one jurisdiction, an `hgv` might mean any vehicle with a gross
+  vehicle weight in excess of 3.5 tonnes (3,500 kg). In another place,
+  an `hgv` might have a gross vehicle weight of at least 10,001 lbs.
+- in one jurisdiction, an `hov` might require a minimum of 2 passengers
+  while in another place it might have a higher minimum passenger count,
+  or include battery-electric vehicles, or exclude certain classes of
+  vehicle or usage.
+
+As a consequence of the variance in definition across place and time,
+Overture gives only general definitions for travel modes, leaving
+precise definition to those applications that require them.
+
+### When is a travel mode recognized?
+
+A travel mode is recognized by the Overture transportation schema when
+it becomes part of the [`mode`](https://github.com/OvertureMaps/schema/blob/5f82f1d6a916031cb32730e1fac7e1a353f10c60/schema/transportation/segment.yaml#L103)
+enumeration. This enumeration in early versions of the schema was relatively small and contained only travel modes that are generally-applicable both across jurisdictions and over time. As development of the schema has progressed, this list has grown and will to continue to expand as the world changes and new information arises.
+
+Our criteria for recognizing a proposed new travel mode are:
+
+- the proposed new travel mode should represent a generally-accepted
+   concept meaning that the concept exists in many places with roughly
+   the same definition.
+- the proposed new travel mode should be referred to with well-known
+   sign iconography or sign text in those jurisdictions where the
+   concept exists; and this iconography or sign text is preferably
+   somewhat consistent across many jurisdictions and over time.
+- it must be possible to give a relatively precise definition to the
+   proposed new travel mode and explain how it differs from, or
+   *intersects* with, other similar travel modes which are already
+   recognized in the Overture schema.
+- the proposed new travel mode should preferably not be trivially
+   expressible using another existing [scoping property](/schema/concepts/scoping-rules#scoped-values-and-scoping-properties).(*An example of such a trivially-expressible concept might be a three-axle vehicle which is more appropriately phrased as `vehicle: [{dimension: axle_count, comparison: equal_to, value: 3}]`.*)
+- the proposed new travel mode must be supported by existing data in at
+   least one of Overture's upstream data sources.
+
+There is a risk that the above-described approach will be too slow to
+adapt to our users' needs in a vast, ever-changing world. One possible
+avenue to mitigate this risk is supporting [custom extensions](#should-we-support-extension-travel-modes) to the built-in list of recognized travel modes.
+
+## Travel mode schema
+
+### Scoping to travel modes
+
+Travel modes can be used to change the scope of scoped and rule-based
+properties within the schema. For example, they can affect the scope of access restrictions, turn restrictions, or speed limits on [road](/schema/concepts/by-theme/transportation/roads) segments. Since travel modes are expressed via scoping properties, we recommend you read the section on [scoped and rule-based properties](/schema/concepts/scoping-rules) before proceeding further.
+
+#### Travel mode scoping: `mode`
+
+The scoping property `mode` controls whether a given scoped property
+applies when a given travel mode is being used for traveling along a
+road segment.
+
+If `mode` is provided, it must be a non-empty array of string values
+identifying travel modes, and is interpreted as a set. Values must be
+unique, but order is not important.
+
+#### Vehicle attribute scoping: `vehicle`
+
+Because travel modes are an fuzzy concept, there are inevitably areas
+of overlap between with the more precise, but more limited, `vehicle`
+scoping property which is used for [vehicle attributes scoping](/schema/concepts/scoping-rules#vehicle-attributes-scoping). Where there is potential overlap, the method of scoping used in Overture data releases will depend on how the upstream data source has expressed the equivalent concept. Where there is choice, it is preferable to select the scoping method that most accurately reflects the intention expressed on local signage.
+
+#### Similar scoping properties: `using` and `recognized`
+
+The scoping properties `using` and `recognized` express concepts that
+are meant to be orthogonal to (completely separate from) travel modes.
+
+- The `using` property indicates [purpose of use](/schema/concepts/scoping-rules#purpose-of-use-scoping) scoping, which relates to the purpose for which the person or thing travelling is using a given segment of the transportation network. Travel modes should ideally not embed a purpose of use.
+- The `recognized` property indicates [status scoping](/schema/concepts/scoping-rules#status-scoping-membership-in-a-recognized-group), which relates to a recognized status given to the person or thing traveling, where the recognized status is distinct from the mode of travel itself. Travel modes should ideally not embed a status.
+
+### The travel modes taxonomy
+
+Travel modes in Overture form a shallow taxonomy. Some travel modes are
+more general, while others are more specific, and a more general travel
+mode may contain a more specific one. For example, the general travel
+mode `vehicle` contains the more specific mode `motor_vehicle`. The
+taxonomy supported in our draft schema `v0.8.0` can be visualized in the
+diagram below.
+
+<figure>
+
+<div style={{textAlign: 'center'}}>
+
+<ThemedImage
+  alt="Overture travel modes taxonomy"
+  sources={{
+    light: useBaseUrl('/img/transportation/travel-modes-light.png'),
+    dark: useBaseUrl('/img/transportation/travel-modes-dark.png'),
+  }}
+/>
+
+</div>
+
+<figcaption>
+
+<div style={{ textAlign: "center" }}>
+
+*The Overture travel modes taxonomy.*
+
+</div>
+
+</figcaption>
+
+</figure>
+
+As many of the above travel modes draw on the body of knowledge
+accumulated in relation to OpenStreetMap
+[transport mode access restrictions](https://wiki.openstreetmap.org/wiki/Key:access#Transport_mode_restrictions),
+Overture Maps would like acknowledge a intellectual debt to the OSM community in
+relation to travel modes as well as to other aspects of the transportation schema.
+
+## Open questions
+
+This section discusses some open questions we are debating internally with
+regard to travel modes. We would love [your feedback](https://github.com/OvertureMaps/schema/discussions) on these questions and any others you may have.
+
+### Minimum required travel modes
+
+We're not yet certain on the minimum set of recognized travel modes is
+that will make the Overture transportation schema as usable as possible
+to as broad an audience as possible. What do you think we are missing?
+
+### Should we support extension travel modes?
+
+<!--
+TODO: This open question relates to the feature request
+      https://github.com/OvertureMaps/schema-wg/issues/157.
+
+      We should update or delete the content of this documentation based
+      on what happens with that feature request.
+-->
+
+We live in a time of rapid technological and regulatory change in
+the transportation space. No matter how quickly we extend the travel modes in the Overture Maps schema it will always be behind the real world with regard to some technologies, customs, or local rules.
+
+One way to support users working at the cutting edge is to allow custom extensions to
+the list of travel modes. If we did this consistently with how extension
+properties <!-- TODO: This should be a link to a heading in the main
+schema documentation, but that heading needs to be written first. -->
+work for features, we could, for example, allow travel mode names with
+the `ext_*` to be ignored by the schema validation rules.
+
+### Internal consistency
+
+In [another section of this documentation](#vehicle-attribute-scoping-vehicle), we alluded to an overlap between the fuzzy concept of travel modes and vehicle attribute
+scoping. We're aware of this overlap and view it as limited but inevitable.
+
+Our intention is to reduce or eliminate the overlap between travel modes and the other [similar scoping properties](#similar-scoping-properties-using-and-recognized)
+(`using` and `recognized`). One area where we may have been unsuccessful
+is the `emergency` travel mode in the [current taxonomy](#the-travel-modes-taxonomy).
+Arguably, `emergency` should be removed from the taxonomy, and an
+`as_emergency_responder` should be included in the status values enumeration for the `recognized` property.

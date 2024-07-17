@@ -1,0 +1,17 @@
+---
+id: overture:addresses:addres:1
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-71.2086153, 42.3373725]
+properties:
+  theme: addresses
+  type: address
+  version: 0
+  country: US
+  address_levels:
+    - value: MA
+    - value: NEWTON CENTRE
+  postcode: '02459'
+  street: COMMONWEALTH AVE
+  number: '1000'
