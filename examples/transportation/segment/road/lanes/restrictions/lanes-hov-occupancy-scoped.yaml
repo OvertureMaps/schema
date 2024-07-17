@@ -9,7 +9,6 @@ properties:
   type: segment
   subtype: road
   class: secondary
-  update_time: "2024-03-13T16:21:56-08:00"
   version: 2
   speed_limits:
     - max_speed:
@@ -37,31 +36,3 @@ properties:
           min_occupancy: 3
       - direction: forward # lane 1
       - direction: forward # lane 2
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      speed_limits:
-        - max_speed:
-            value: 100
-            unit: km/h
-    lanes:
-      - value:
-        # one-way road with access and speed limit restrictions
-        # digitization: S->N
-        # |   |   |   |
-        # |   |   |   | => max speeds: 100 km/h for whole segment
-        # | h |   |   |    but on lane 2 is limited to 80 km/h for hgv vehicles
-        # | o |   |   |
-        # | v |   |   |
-        # |   |   |   |
-        # | 0 | 1 | 2 |
-        - direction: forward # lane 0 -> hov only that allows also bicycles
-          restrictions:
-            access:
-              - access_type: allowed
-                when:
-                  mode:
-                    - hov
-                    - bicycle
-            min_occupancy: 3
-        - direction: forward # lane 1
-        - direction: forward # lane 2

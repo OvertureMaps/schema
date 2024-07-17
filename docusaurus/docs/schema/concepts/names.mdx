@@ -1,0 +1,93 @@
+---
+title: Names
+---
+
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Named entities in Overture share a common schema.
+
+<JSONSchemaViewer
+  schema={ yamlLoad(MainDefs) }
+  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/namesContainer/properties/names" })}/>
+
+## `primary`
+If a feature has a name, expect `names` to have at least one property: `primary`. This will always be populated with the localized name of a feature.
+
+```yaml
+id: 08b2aa845a18afff02009f7c732067c5
+names:
+  primary: The White House
+```
+
+## `common`
+
+Common name variations are translations of a name.
+
+```yaml
+id: 08b2aa845a18afff02009f7c732067c5
+names:
+  common:
+    de: Weißes Haus
+    hi: व्हाइट हाउस
+    fi: Valkoinen talo
+    ru: Белый дом
+    pt: Casa Branca
+    lt: Baltieji Rūmai
+    hr: Bijela kuća
+    fr: Maison Blanche
+    hu: Fehér Ház
+    br: Ti Gwenn
+    si: ධවල මන්දිරය
+    uk: Білий дім
+    sk: Biely dom
+    sv: Vita huset
+    ko: 백악관
+    en: White House
+    ku: Qesra Spî
+    it: Casa Bianca
+    es: Casa Blanca
+    zh: 白宫
+    cs: Bílý dům
+    ja: ホワイトハウス
+    fa: کاخ سفید
+    ro: Casa Albă
+    nl: Witte Huis
+    tr: Beyaz Saray
+```
+
+## `rules`
+Additional names variations such as _official_, _alternate_, or _short_ exist as `rules`.
+
+Rules can also have `side` and `geometric` range scoping. Read more about [scoping rules here](/schema/concepts/scoping-rules).
+
+```yaml
+id: 08b2aa845a18afff02009f7c732067c5
+names:
+  rules:
+    - variant: alternate
+      language: hr
+      value: Bila kuća
+      between: null
+      side: null
+```
+
+## Languages
+
+Languages in the Overture Maps schema are identified by [IETF BCP-47 language tags](https://en.wikipedia.org/wiki/IETF_language_tag); the same tag scheme is used for `common` map entries and `language` values in rules.
+
+This pattern recognizes BCP-47 language tags at the lexical or syntactic level. It verifies that candidate tags follow the grammar described in the [RFC](https://datatracker.ietf.org/doc/html/rfc5646), but not that they are validly registered tag in [IANA's language subtag registry](https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry).
+
+In the regular expression, `'(:?'` indicates a non-capturing group, and all the top-level or non-nested groups represent top-level components of `langtag` referenced in the syntax section of [https://www.rfc-editor.org/rfc/bcp/bcp47.txt](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). In particular, the top-level groups in left-to-right order represent:
+
+```
+1. language
+2. ["-" script]
+3. ["-" region]
+4. *("-" variant)
+5. *("-" extension)
+```

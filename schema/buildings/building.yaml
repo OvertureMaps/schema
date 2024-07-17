@@ -23,7 +23,7 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
-      - "$ref": ./defs.yaml#/shapeContainer
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/shapeContainer
     properties:
       subtype:
         description: >-
@@ -57,6 +57,7 @@ properties:
           - barn
           - beach_hut
           - boathouse
+          - bridge_structure
           - bungalow
           - bunker
           - cabin

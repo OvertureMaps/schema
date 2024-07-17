@@ -1,0 +1,29 @@
+geometry:
+  coordinates:
+  - 0
+  - 0
+  type: Point
+id: overture:places:place:1
+properties:
+  addresses:
+  - freeform: 770 Broadway, Floor 8
+    locality: New York
+  - country: US
+    freeform: '770 Broadway #802'
+    locality: New York
+    region: US-NY
+  brand:
+    name: Example
+    wikidata: Q1000
+  emails:
+  - info@example.com
+  phones:
+  - +32 1207
+  socials:
+  - https://www.twitter.com/example
+  theme: places
+  type: place
+  version: 1
+  websites:
+  - https://www.example.com
+type: Feature

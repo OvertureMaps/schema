@@ -1,0 +1,619 @@
+---
+title: Roads
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import ExampleAccessRestrictionsBlanketDeny from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-01-blanket.yaml';
+import ExampleAccessRestrictionPrivateAccessWithDeliveries from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-02-private-with-deliveries.yaml';
+import ExampleAccessRestrictionMotorVehiclesDestinationOnly from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-03-motor-vehicles-destination-only.yaml';
+import ExampleAccessRestrictionAxleLimit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-04-axle-limit.yaml';
+import ExampleSpeedLimitsSimple from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-01-simple.yaml';
+import ExampleSpeedLimitsDirectional from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-02-directional.yaml';
+import ExampleSpeedLimitsVariableMax from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-03-variable-max.yaml';
+import ExampleLanesResolutionConnector from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-resolution-connector.yaml';
+import ExampleLanesResolutionSegment01 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-resolution-segment-01.yaml';
+import ExampleLanesResolutionSegment02 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-resolution-segment-02.yaml';
+import ExampleTurnRestriction1Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-source.yaml';
+import ExampleTurnRestriction1Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-target.yaml';
+import ExampleTurnRestriction1Exit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-exit.yaml';
+import ExampleTurnRestriction1Connector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector1.yaml';
+import ExampleTurnRestriction1Connector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector2.yaml';
+import ExampleTurnRestriction1Connector3 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector3.yaml';
+import ExampleTurnRestriction2Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-source.yaml';
+import ExampleTurnRestriction2Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-target.yaml';
+import ExampleTurnRestriction2Via from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-via.yaml';
+import ExampleTurnRestriction2Connector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector1.yaml';
+import ExampleTurnRestriction2Connector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector2.yaml';
+
+In the Overture transportation theme, a road is any kind of road,
+street or path, including a dedicated path for walking or cycling, but excluding a railway. Road segments comprise the majority of ground-based transportation segments. Roads are modeled using [segment](/schema/reference/transportation/segment) features with the `subtype` property value set to the value `road`.
+
+## Geometry and granularity
+
+A road segment's geometry is a representation of the road which,
+in many cases, approximates the physical centerline of the section of
+road being modeled. Road segments support modeling the road network at a range of
+granularities. For example, a single road segment can represent:
+
+- bidirectional street including all of its lanes and sidewalks
+- sidewalk by itself
+- one-way street or one direction of a dual carriageway
+- single lane or single section of a multi-lane highway
+- dedicated cycleway
+- hiking path
+
+## Basic properties
+
+### Road class
+
+The `class` property of a road specifies its general purpose of use
+and its relative importance within the transportation network. The
+`class` property also helps establish reasonable default values.
+For example, the class `sidewalk` implies that the default
+[access restrictions](#access-restrictions) for the segment allow access for the [travel mode](/schema/concepts/by-theme/transportation/travel-modes) `foot` and deny access to all other
+travel modes. Unlike many road segment properties, a road segment's `class`
+property does not support [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently whenever a linear range of real-world road makes a class transition (for example, between secondary and residential), the Overture transportation
+[segmentation](/schema/concepts/by-theme/transportation/shape-connectivity#segmentation) algorithm will generate a segment split.
+
+Every road segment has a class. If the `class` property is missing
+from a road segment, the default value `unknown` is assumed. The unknown
+road class is meant to be a temporary value until a more specific class
+is known.
+
+<!--
+ TODO: What's the difference between "unknown" and "unclassified"?
+         https://github.com/OvertureMaps/schema-wg/issues/152
+-->
+
+Like many aspects of Overture transportation schema,
+the `class` tag is heavily inspired by OpenStreetMap. In this
+case, it is similar to, but not the same as, OSM's `highway=*` tag.
+
+### Surface
+
+The `road_surface` property of a road indicates its physical surface. If
+omitted, a reasonable default value should be assumed based on the
+`class`.
+
+Like many road segment properties, the `road_surface` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently, the effective road surface may vary
+along different sub-ranges of a road segment's geometry.
+
+### Flags
+
+The `road_flags` property of a segment is a set of named flag values
+indicating the presence or absence of simple physical characteristics.
+
+For example, a road segment with
+`road_flags = [is_link, is_under_construction]` is a link segment that is
+physically under construction.
+
+Like many road segment properties, the `road_flags` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing). Consequently, the applicable road flags may vary along different sub-ranges of a road segment's geometry.
+
+## Restrictions
+
+### Access restrictions
+
+Access restrictions on a road segment specify who is allowed to use the
+road, and under what circumstances.
+
+Every road segment has an *implied* set of access restrictions defined
+by its [road class](#road-class) and local rules, norms, and customs.
+(The Overture transportation schema does not specify these implied
+access restrictions, which are left to the specific application to
+resolve.)
+
+The implied access restrictions may be modified for the road segment as
+a whole by providing an explicit value for the property
+`access_restrictions`. (Access restrictions may also be specified
+at the level of individual [lanes](#lanes), as explained elsewhere.)
+
+It is technically possible to specify a blanket access grant or refusal
+of access applying to everyone and everything; but where, as is typical,
+a more precise outcome is needed, one or more [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties) will be used to specify access restrictions. As with all rule-based properties, if no rule matches the specific facts, then the default restrictions for the road class govern.
+
+<Tabs>
+  <TabItem value="blanketDenial" label="Blanket denial of access." default>
+
+<CodeBlock language="yaml">{ ExampleAccessRestrictionsBlanketDeny }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="businessHoursDelivery" label="Private access, deliveries OK during business hours." default>
+
+<CodeBlock language="yaml">{ ExampleAccessRestrictionPrivateAccessWithDeliveries }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="noMotorVehiclesExceptDestination" label="No motor vehicles except to destination." default>
+
+<CodeBlock language="yaml">{ ExampleAccessRestrictionMotorVehiclesDestinationOnly }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="noNorthboundTrucks" label="No trucks with &ge; 5 axles." default>
+
+<CodeBlock language="yaml">{ ExampleAccessRestrictionAxleLimit }</CodeBlock>
+
+  </TabItem>
+</Tabs>
+
+### Turn restrictions
+
+Turn restrictions on a road segment limit the transitions which are
+allowed from that segment into other [physically connected](/schema/concepts/by-theme/transportation/shape-connectivity#physical-connectivity) segments.
+
+Every road segment has an implied set of allowed transitions
+defined by its [access restrictions](#access-restrictions) as well as
+local rules, norms, and customs. An example of a transition restriction
+implied by an access restriction, if the segment can only be used along the `forward` [heading](/schema/concepts/by-theme/transportation/shape-connectivity#heading), then it is implied that no transitions are allowed to any connected segments if travelling
+along the `backward` heading. An example of a transition restriction
+implied by a local rule or norm would be a blanket prohibition on
+U-turns in a given jurisdiction. (The Overture transportation schema
+does not specify these local rules, norms, and customs, which are left
+to the specific application to resolve.)
+
+Overture takes a permissive-by-default approach to transition
+restrictions. By default, all implied transitions are allowed. The
+set of allowed transitions may be reduced by adding explicit transition
+restrictions in the `prohibited_transitions` property.
+
+Turn restrictions come in two flavors: simple and via: a simple turn
+restriction allows a simple regulation to be stated, such as "No right
+turn onto Elm Street"; a via restriction covers more elaborate cases
+where the sequence of maneuvers is important.
+
+<Tabs>
+  <TabItem value="simple" label="Simple restriction." default>
+
+<div style={{ width: "40.5%", float: "left" }}>
+
+<figure>
+
+<ThemedImage
+  alt="A simple transition restriction prohibiting a right turn."
+  sources={{
+    light: useBaseUrl('/img/transportation/turn-restriction-01-light.png'),
+    dark: useBaseUrl('/img/transportation/turn-restriction-01-dark.png'),
+  }}
+/>
+
+<figcaption>
+
+*Prohibited right turn from "source" to "target" segment at connector 2.*
+
+</figcaption>
+
+</figure>
+
+</div>
+
+<div style={{ width: "59.5%", float: "right" }}>
+
+<details>
+<summary>Source segment</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Source }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 1</summary>
+
+*This connector is not an important part of the example, since it does
+not participate in the turn restriction, but it is included to bring
+real-world context to the example.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Connector1 }</CodeBlock>
+</details>
+
+<details>
+<summary>Exit segment</summary>
+
+*This segment is not an important part of the example, since all implied
+transitions are allowed on it. We include it to bring real-world context
+to the example.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Exit }</CodeBlock>
+
+</details>
+
+<details>
+<summary>Connector 2</summary>
+
+*The right turn from the source segment (`forward` heading) to the
+target segment (`forward` heading) is prohibited at this connector.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Connector2 }</CodeBlock>
+</details>
+
+<details>
+<summary>Target segment</summary>
+
+*Traffic heading `forward` on the source segment may not enter this
+segment heading `forward`, i.e. the right turn from the source segment
+to this segment is prohibited.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Target }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 3</summary>
+
+*This connector is not an important part of the example, since it does
+not participate in the turn restriction, but it is included to bring
+real-world context to the example.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Connector3 }</CodeBlock>
+</details>
+
+
+</div>
+
+<div style={{ clear: "both" }}/>
+
+  </TabItem>
+
+  <TabItem value="via" label="Via restriction" default>
+
+<div style={{ width: "40.5%", float: "left" }}>
+
+<figure>
+
+<ThemedImage
+  alt="A via restriction."
+  sources={{
+    light: useBaseUrl('/img/transportation/turn-restriction-02-light.png'),
+    dark: useBaseUrl('/img/transportation/turn-restriction-02-dark.png'),
+  }}
+/>
+
+<figcaption>
+
+*Prohibited transition from "source" to "target" through `via` segment.*
+
+</figcaption>
+
+</figure>
+
+</div>
+
+<div style={{ width: "59.5%", float: "right" }}>
+
+<details>
+<summary>Source segment</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Source }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 1</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Connector1 }</CodeBlock>
+</details>
+
+<details>
+<summary>Via segment</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Via }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 2</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Connector2 }</CodeBlock>
+</details>
+
+<details>
+<summary>Target segment</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Target }</CodeBlock>
+</details>
+
+</div>
+
+<div style={{ clear: "both" }}/>
+
+  </TabItem>
+</Tabs>
+
+### Speed limits
+
+Speed limits restrict the speed at which travel is permitted on a road.
+Typically speed limits specify maximum allowed speeds, but the
+Overture also allows minimum speed limits to be set and variable speed
+corridors to be indicated.
+
+Every road segment has an implied speed limit or set of speed limits
+defined by its [road class](#road-class) and local rules, norms, and
+customs. Note: as with access and turn restrictions, the Overture
+transportation schema does not attempt to specify these implied speed
+limits.
+
+The implied speed limits may be configured for the whole road segment by
+providing an explicit value for the property
+`speed_limits`. Note: granular speed limits can also be
+specified at the level of individual [lanes](#lanes), as explained
+elsewhere.
+
+As with access restrictions and turn restrictions, speed limits can be specified using [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties).
+
+<Tabs>
+  <TabItem value="speedLimitSimple" label="Simple speed limit" default>
+
+<CodeBlock language="yaml">{ ExampleSpeedLimitsSimple }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="speedLimitDirectional" label="Different speed limit for northbound trucks" default>
+
+<CodeBlock language="yaml">{ ExampleSpeedLimitsDirectional }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="speedLimitVariable" label="Variable speed corridor" default>
+
+<CodeBlock language="yaml">{ ExampleSpeedLimitsVariableMax }</CodeBlock>
+
+  </TabItem>
+</Tabs>
+
+## Lanes
+
+A road may optionally carry a `lanes` property which, if present, contains
+a list of rules that can be used to resolve the applicable traffic lane block
+for the road. A lane block is a list of lane objects. Each lane object in the
+block describes the physical structure and properties applicable to one the
+road's traffic lanes at a granularity sufficient to support the navigation use
+case. Note that the `lanes` property applies to traffic lanes, not to
+parking lanes.
+
+### Use cases for lanes
+
+Many transportation use cases can be solved either entirely or in large part without examining the lane
+structure of the road network. For example, optimal route calculation
+can be entirely solved without lane-level information, as can most 2D
+map rendering problems. Lane information is most interesting for
+granular turn-by-turn or maneuver-by-maneuver navigation applications.
+
+### Default lane structure
+
+If the `lanes` property is omitted from a road segment, reasonable
+default values should be assumed based on `class` and the
+road-level [access restrictions](#access-restrictions). For example, for
+a stock two-way road segment of class `primary` with no heading-scoped
+access restrictions, a reasonable assumption is two lanes, one
+`forward` and one `backward`.
+
+### Lane numbering
+
+The number of lanes at a given place and time on a road segment is equal to
+the length of the lanes list within the resolved lane block.
+
+Each entry in the resolved lanes list represents one lane on the road.
+Order is important. The list captures the lanes in left-to-right order
+as they would be observed by a person standing on the physical road being modeled, facing in the [direction](/schema/concepts/by-theme/transportation/shape-connectivity#directionality)
+of the segment geometry. The leftmost lane has index `0`; the rightmost
+lane, assuming there are N total lanes, has index N-1. The example
+below illustrates how lane numbering works with example two-lane
+segments oriented in the north, west, east, and south directions,
+respectively.
+
+<figure>
+
+<div style={{ display: "flex", alignItems: "center" }}>
+
+<div style={{ width: "27%", float: "left", textAlign: "center" }}>
+
+<ThemedImage
+  alt='West-oriented road segment with two lanes.'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-number-01-west-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-number-01-west-dark.png'),
+  }}
+/>
+
+</div>
+
+<div style={{ width: "10px", float: "left" }}/>
+
+<div style={{ width: "23%", float: "left", textAlign: "center" }}>
+
+<ThemedImage
+  alt='North-oriented road segment with two lanes.'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-number-02-north-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-number-02-north-dark.png'),
+  }}
+/>
+
+</div>
+
+<div style={{ width: "10px", float: "left" }}/>
+
+<div style={{ width: "27%", float: "left", textAlign: "center" }}>
+
+<ThemedImage
+  alt='East-oriented road segment with two lanes.'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-number-03-east-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-number-03-east-dark.png'),
+  }}
+/>
+
+</div>
+
+<div style={{ width: "10px", float: "left" }}/>
+
+<div style={{ width: "23%", float: "left", textAlign: "center" }}>
+
+<ThemedImage
+  alt='South-oriented road segment with two lanes.'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-number-04-south-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-number-04-south-dark.png'),
+  }}
+/>
+
+</div>
+
+<div style={{ clear: "both" }}/>
+
+</div>
+
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*How lanes are numbered for examples segments with geometry directions due west, north, east, and south.*
+
+</div>
+
+</figcaption>
+
+</figure>
+
+### Lane directionality
+
+Each lane within a segment has a directionality, documenting which
+travel directions are allowed within the lane, with reference to the [orientation of the segment](/schema/concepts/by-theme/transportation/shape-connectivity#start-end-and-orientation). Lane directionality is specified by the lane object's `directionality`
+property. The allowed values are:
+
+<figure>
+
+<div style={{width: '100%', display: 'flex', justifyContent: 'center'}}>
+
+| Directionality | Meaning |
+|-|-|
+| `forward` | Travel is only allowed along the `forward` heading. |
+| `backward` | Travel is only allowed along the `backward` heading. |
+| `both_ways` | Travel is allowed both `forward` and `backward` at the same time. |
+| `alternating` | Travel is one-way and changes between `forward` and `backward` constantly. |
+| `reversible` | Travel is one-way and changes between `forward` and `backward` infrequently. |
+
+</div>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*Allowed values for lane `directionality`.*
+
+</div>
+
+</figcaption>
+</figure>
+
+The `directionality` property is a mandatory property for lanes, and is
+the only mandatory property.
+
+When the allowed travel heading changes based on a regular schedule,
+the appropriate "definite" directionalities (`forward`, `backward`, and
+`both_ways`) should be used along with [temporal scoping](/schema/concepts/scoping-rules#temporal-scoping-opening-hours) at the lane block level.
+
+When the allowed travel heading changes based on unpredictable local
+factors, such that allowed heading at any given time can only be known
+by an observer actually present at the real-world location, the
+appropriate indefinite directionality (`alternating` or `reversible`)
+should be used.
+
+### Lane restrictions
+
+Like the segment a whole, each lane within a lane block can have its own
+restrictions, for example [access restrictions](#access-restrictions),
+[turn restrictions](#turn-restrictions) and
+[speed limits](#speed-limits).
+
+Lane-level restrictions reuse the same concepts as segment-level
+restrictions and are typically phrased in the same way, except that the
+restriction is stipulated on an individual lane object rather than for
+the segment's `road` property as a whole.
+
+### Lane connectivity
+
+Lane connectivity refers to the maneuvers available to navigate from the
+lane the traveller is currently occupying to a connected lane within the
+next lane block in the traveller's current travel direction. Lane
+connectivity is a necessary element for granular turn-by-turn
+navigation instructions.
+
+The Overture transportation schema does not currently support lane
+connectivity, but it is something we are actively working on and hoping
+to release soon.
+
+### Resolving the applicable lane block
+
+The traffic lane structure of a road segment can be different at different
+points along the segment, or at different times of the day, or both.
+Consequently, instead of having a static lane block, road segments carry a list of lane block [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties)
+in the optional `lanes`  property.
+
+- A rule may be scoped [geometrically](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing),
+which allows linear referencing to be used to specify the portion of the
+segment geometry where the lane block exists.
+- A rule may also be scoped [temporally](/schema/concepts/scoping-rules#temporal-scoping-opening-hours), which allows the time of day that the lane block exists to be specified. Temporal scoping is useful for modeling cases like lanes which are used
+for parking at off hours and traffic during peak hours. In such a case,
+the lane block rule would be scoped to peak hours.
+
+As with all rule-based properties in the Overture schema, the [rule evaluation algorithm](/schema/concepts/scoping-rules#rule-evaluation-algorithm) must be applied to determine which lane block rule, if any, is
+applicable at a given place and time along the road segment. Once the
+determining rule for a certain scope is known, its rule block defines
+the lane structure within that scope.
+
+The example below illustrates lane block resolution for two connected
+segments.
+
+- The blue shaded, or southwesterly, segment is [oriented](/schema/concepts/by-theme/transportation/shape-connectivity#directionality) toward the north-east. It has two geometrically-scoped lane block rules:
+    - The first rule, applying to the first two thirds of the
+      segment's length, establishes three lanes: one going
+      `backward` (SW), and two `forward` (NE).
+    - The second rule, applying to the last third of the segment,
+      establishes two lanes, one in either direction.
+- The green shaded, or northeasterly, segment is oriented due west. It
+  has a single static lane block that applies to the whole segment
+  geometry at all times.
+
+<Tabs>
+  <TabItem value="diagram" label="Diagram" default>
+
+<div style={{ textAlign: "center" }}>
+
+<figure>
+
+<ThemedImage
+  alt='A segment with two geometrically-scoped lane blocks connected to a segment oriented in the opposite direction.'
+  sources={{
+    light: useBaseUrl('/img/transportation/lane-blocks-light.png'),
+    dark: useBaseUrl('/img/transportation/lane-blocks-dark.png'),
+  }}
+/>
+
+<figcaption>
+
+*A segment with two [geometrically-scoped](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) lane blocks connected to a segment oriented in the opposite direction.*
+
+</figcaption>
+
+</figure>
+
+</div>
+
+  </TabItem>
+
+  <TabItem value="segment1" label="Segment 1 Data">
+
+<CodeBlock language="yaml">{ ExampleLanesResolutionSegment01 }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="connector" label="Connector Data">
+
+<CodeBlock language="yaml">{ ExampleLanesResolutionConnector }</CodeBlock>
+
+  </TabItem>
+
+
+  <TabItem value="segment2" label="Segment 2 Data">
+
+<CodeBlock language="yaml">{ ExampleLanesResolutionSegment02 }</CodeBlock>
+
+  </TabItem>
+
+</Tabs>

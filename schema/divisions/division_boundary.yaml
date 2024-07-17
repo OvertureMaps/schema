@@ -1,0 +1,88 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: boundary
+description:
+  Boundaries represent borders between divisions of the same subtype.
+  Some boundaries may be disputed by the divisions on one or both sides.
+type: object
+properties:     # JSON Schema: Top-level object properties.
+  id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
+  geometry:
+    description:
+      Boundary's geometry which MUST be a LineString or MultiLineString
+      as defined by the GeoJSON schema.
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/LineString.json
+      - "$ref": https://geojson.org/schema/MultiLineString.json
+  properties:   # GeoJSON: top-level object 'properties' property.
+    unevaluatedProperties: false
+    required: [subtype, class, division_ids]
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+    properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
+      subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
+      class:
+        type: string
+        enum:
+          - land        # None of the boundary geometry extends beyond the
+                        # coastline of either associated division.
+
+          - maritime    # All the boundary geometry extends beyond the
+                        # coastline of both associated divisions.
+      division_ids:
+        description:
+          Identifies the two divisions to the left and right, respectively, of
+          the boundary line. The left- and right-hand sides of the boundary are
+          considered from the perspective of a person standing on the line
+          facing in the direction in which the geometry is oriented, i.e. facing
+          toward the end of the line.
+          
+          The first array element is the Overture ID of the left division. The
+          second element is the Overture ID of the right division.
+        type: array
+        items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
+        minItems: 2
+        maxItems: 2
+        uniqueItems: true
+      is_disputed:
+        description: >-
+          Indicator if there are entities disputing this division boundary.
+          Information about entities disputing this boundary should be included in perspectives
+          property.
+
+          This property should also be true if boundary between two entities is unclear
+          and this is "best guess". So having it true and no perspectives gives map creators
+          reason not to fully trust the boundary, but use it if they have no other.
+        type: boolean
+      perspectives:
+        description: >-
+          Political perspectives from which this division boundary is considered
+          to be an accurate representation.
+      
+          If this property is absent, then this boundary is not known to
+          be disputed from any political perspective. Consequently,
+          there is only one boundary feature representing the entire
+          real world entity.
+      
+          If this property is present, it means the boundary represents
+          one of several alternative perspectives on the same real-world
+          entity.
+      
+          There are two modes of perspective:
+          
+            1. `accepted_by` means the representation of the boundary is
+               accepted by the listed entities and would be included on
+               a map drawn from their perspective.
+      
+            2. `disputed_by` means the representation of the boundary is
+               disputed by the listed entities and would be excluded
+               from a map drawn from their perspective.
+              
+          When drawing a map from the perspective of a given country,
+          one would start by gathering all the undisputed boundary
+          (with no `perspectives` property), and then adding to that
+          first all boundary explicitly accepted by the country, and
+          second all boundary not explicitly disputed by the country.
+        allOf: 
+          - "$ref": "./defs.yaml#/$defs/propertyDefinitions/perspectives"

@@ -23,7 +23,6 @@ properties:
   type: building_part
   version: 1
   level: 1
-  update_time: '2023-06-06T10:30:00-08:00'
   num_floors: 3
   sources:
   - property: ''

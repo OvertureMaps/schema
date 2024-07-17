@@ -9,16 +9,9 @@ properties:
   type: segment
   subtype: road
   version: 2
-  update_time: "2024-03-15T09:24:29-08:00"
   class: residential
   level_rules:
     - value: -1
       between: [0, 0.5]
     - value: 1
       between: [0.75, 1]
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    level:
-      - value: -1
-        between: [0, 0.5]
-      - value: 1
-        between: [0.75, 1]
