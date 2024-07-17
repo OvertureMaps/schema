@@ -8,7 +8,6 @@ properties:
   theme: transportation
   type: segment
   version: 1
-  update_time: "2024-04-15T16:22:07-08:00"
   subtype: road
   class: primary
   names:

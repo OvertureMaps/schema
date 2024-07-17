@@ -12,7 +12,6 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  update_time: "2024-03-14T08:10:44-08:00"
   version: 1
   subtype: road
   class: secondary
@@ -23,11 +22,3 @@ properties:
   access_restrictions:
     - access_type: allowed
       when: {mode: [foo]}
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    surface: gravel
-    flags:
-      - [is_link, is_tunnel]
-    restrictions:
-      access:
-        - access_type: allowed
-          when: {mode: [foo]}

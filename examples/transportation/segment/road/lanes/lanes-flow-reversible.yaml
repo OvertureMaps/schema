@@ -7,7 +7,6 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2024-03-14T16:33:50-08:00"
   version: 5
   subtype: road
   class: primary
@@ -29,21 +28,3 @@ properties:
               when:
                 heading: backward
                 during: Mo-Su 12:00-24:00
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    surface:
-      - value: paved
-    lanes:
-      - value:
-          # This models a single-lane road whose direction is
-          # completely reversible at arbitrary times.
-        - direction: reversible
-          restrictions:
-            access:
-              - access_type: allowed
-                when:
-                  heading: forward
-                  during: Mo-Su 00:00-12:00
-              - access_type: allowed
-                when:
-                  heading: backward
-                  during: Mo-Su 12:00-24:00

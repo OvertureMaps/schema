@@ -9,7 +9,6 @@
     "theme": "transportation",
     "type": "segment",
     "version": 23,
-    "update_time": "2024-03-14T08:08:49-08:00",
     "subtype": "road",
     "class": "primary",
     "road_surface": [
@@ -17,15 +16,8 @@
         "value": "hot mess"
       }
     ],
-    "road": {
-      "surface": [
-        {
-          "value": "hot mess"
-        }
-      ]
-    },
     "ext_expected_errors": [
-      "[I#/properties/road/surface/0/value] [S#/$defs/propertyDefinitions/roadSurface/enum] value must be one of"
+      "[I#/properties/surface/0/value] [S#/$defs/propertyDefinitions/roadSurface/enum] value must be one of"
     ]
   }
 }

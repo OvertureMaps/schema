@@ -1,0 +1,29 @@
+---
+title: Transportation
+---
+## Overview
+The Overture transportation theme is the collection of features and properties that describe the infrastructure and conventions of how people and objects travel around the world. Transportation data includes highways, footways, cycleways, railways, ferry routes, and public transportation.
+
+## Feature types
+The transportation theme has two feature types.
+- `segment` is a feature type with LineString geometry that represents the center-line of a path that a person or object may travel. Segment properties describe both the physical attributes (e.g. road surface and width) and non-physical attributes (e.g. access restriction rules) of that path
+- `connector` is a feature type with Point geometry that defines the topology of the transportation network by representing the physical connection between two or more segments. Apart from their Point geometry and the core properties required for all Overture features, connectors do not have any other properties
+
+## Theme concepts
+- **[Roads:](/schema/concepts/by-theme/transportation/roads)** the transportation theme schema models any kind of road, street or
+path, including dedicated walking and cycling paths, as `road` segments Roads are currently the most developed part of the transportation schema. 
+- **[Scoped and rule-based properties:](/schema/concepts/scoping-rules)** the transportation theme schema allows property values to be specified for granular scopes at the sub-feature level. For example:
+  - a speed limit on a road segment might be scoped to apply only to part of the road geometry using _geometric scoping_
+  - the directionality of a segment, controlling the direction or directions in which traffic can flow along the segment geometry, may be specified to change at different times of day using _temporal scoping_.
+  - the categories of people and vehicles who are allowed to travel on a segment can be controlled using _subjective scoping_
+  - a real world property that varies under changing environmental conditions can be modeled using _environmental scoping_
+- **[Shape and connectivity:](/schema/concepts/by-theme/transportation/shape-connectivity)** the transportation theme schema captures the shape
+and connectivity of the transportation network using `segment` and `connector` features. The schema design allows the segmentation process to promote shape stability and ultimately feature ID stability 
+- **[Travel modes:](/schema/concepts/by-theme/transportation/travel-modes)** the transportation theme supports a fuzzy concept called
+travel mode which can be used as a way of controlling scoped
+and rule-based properties 
+
+
+## Schema reference
+- [Connector feature type](/schema/reference/transportation/connector)
+- [Segment feature type](/schema/reference/transportation/segment)

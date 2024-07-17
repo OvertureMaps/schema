@@ -10,7 +10,6 @@ properties:
     - "[I#/properties/routes/0/name] [S#/$defs/propertyDefinitions/routes/items/properties/name/pattern] does not match pattern"
   theme: transportation
   type: segment
-  update_time: "2024-04-23T00:00:00-05:00"
   version: 1
   subtype: road
   class: secondary
