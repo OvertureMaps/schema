@@ -38,9 +38,12 @@ A division area is a polygon that represents the land or maritime area associate
 
 ## Subtypes
 
-The schema for the divisions theme contains an expanded list of subtypes, called placetypes, only a subset of which are available in the data. The subtypes currently available in the `division_area` feature type are: 
+While the schema for the divisions theme contains an comprehensive list of subtypes, only a subset are available in the data today.
+
+Currently, the following subtypes are available in the `division_area` feature type:
 
 - `country`
+- `dependency`
 - `region`
 - `county`
 - `localadmin`
@@ -60,6 +63,21 @@ The schema for the divisions theme contains an expanded list of subtypes, called
 
 
 A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [divsion boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+
+  </TabItem>
+
+  <TabItem value="dependency" label="dependency" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>dependency</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+ A dependency is a place that is not exactly a sub-region of a country but is dependent on a parent country for defense, passport control, etc. Example: Puerto Rico
 
   </TabItem>
 
