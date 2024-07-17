@@ -1,0 +1,84 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: address
+description:
+  Addresses are geographic points used for locating businesses and individuals.
+  The rules, fields, and fieldnames of an address can vary extensively between
+  locations. We use a simplified schema to capture worldwide address points.
+  This initial schema is largely based on the OpenAddresses
+  (www.openaddresses.io) project.
+
+  The address schema allows up to 5 "admin levels". Rather than have field names
+  that apply across all countries, we provide an array called "address_levels"
+  containing the necessary administrative levels for an address. 
+type: object
+properties:     # JSON Schema: Top-level object properties.
+  id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
+  geometry:
+    description:
+      An address geometry MUST be a Point as defined by GeoJSON schema.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": https://geojson.org/schema/Point.json
+  properties:   # GeoJSON: top-level object 'properties' property.
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+    properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
+      country: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+      postcode:
+        description: The postcode for the address
+        type: string
+        minLength: 1
+        pattern: ^(\S.*)?\S$
+      street:
+        description: >-
+          The street name associated with this address. The street name can include the
+          street "type" or street suffix, e.g., Main Street. Ideally this is fully spelled
+          out and not abbreviated but we acknowledge that many address datasets abbreviate
+          the street name so it is acceptable.
+        type: string
+        minLength: 1
+        pattern: ^(\S.*)?\S$
+      number:
+        description: >-
+          The house number for this address.  This field may not strictly be a
+          number. Values such as "74B", "189 1/2", "208.5" are common as the
+          number part of an address and they are not part of the "unit" of this
+          address.
+        type: string
+        minLength: 1
+        pattern: ^(\S.*)?\S$
+      unit:
+        description: The suite/unit/apartment/floor number
+        type: string
+        minLength: 1
+        pattern: ^(\S.*)?\S$
+      address_levels:
+        description: >-
+          The administrative levels present in an address. The number
+          of values in this list and their meaning is country-dependent.
+          For example, in the United States we expect two values: the state
+          and the municipality. In other countries there might be only one.
+          Other countries could have three or more. The array is ordered
+          with the highest levels first.
+        type: array
+        items: { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
+        minItems: 1
+        maxItems: 5
+"$defs":
+  propertyContainers:
+    addressLevelContainer:
+      description:
+        An address "admin level". We want to avoid the phrase "admin level" and
+        have chosen "address level". These represent states, regions, districts,
+        cities, neighborhoods, etc. The address schema defines several numbered
+        levels with per-country rules indicating which parts of a country's
+        address goes to which numbered level.
+      type: object
+      required: ["value"]
+      properties:
+        value:
+          type: string
+          minLength: 1
+          pattern: ^(\S.*)?\S$

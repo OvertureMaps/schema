@@ -31,7 +31,7 @@ properties:     # JSON Schema: Top-level object properties.
         else:
           required: [names, subtype, country, hierarchies, parent_division_id]
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
-      subtype: { "$ref": "./defs.yaml#/$defs/typeDefinitions/placetype" }
+      subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
       local_type:
         description:
           Local name for the subtype property, optionally localized.
@@ -112,7 +112,7 @@ properties:     # JSON Schema: Top-level object properties.
           property. The ordering of hierarchies after the first one is
           arbitrary.
         type: array
-        items: { "$ref": "./defs.yaml#/$defs/typeDefinitions/hierarchy" }
+        items: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/hierarchy" }
         minItems: 1
         uniqueItems: true
       parent_division_id:
@@ -159,7 +159,7 @@ properties:     # JSON Schema: Top-level object properties.
           first all divisions explicitly accepted by the country, and
           second all divisions not explicitly disputed by the country.
         allOf: 
-          - "$ref": "./defs.yaml#/$defs/typeDefinitions/perspectives"
+          - "$ref": "./defs.yaml#/$defs/propertyDefinitions/perspectives"
       norms:
         description:
           Collects information about local norms and rules within the
@@ -195,4 +195,12 @@ properties:     # JSON Schema: Top-level object properties.
         minItems: 1
         uniqueItems: true
         items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
+      capital_of_divisions:
+        description:
+          Division IDs and subtypes of divisions this division is a
+          capital of.
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items: { "$ref": "defs.yaml#/$defs/propertyDefinitions/capitalOfDivisionItem" }
       wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
