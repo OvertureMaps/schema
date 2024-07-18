@@ -2,7 +2,7 @@
 title: Cartography
 ---
 
-Cartographic Suggestions
+Cartographic suggestions
 ===
 
 import JSONSchemaViewer from "@theme/JSONSchemaViewer";
@@ -11,9 +11,7 @@ import yamlLoad from "@site/src/components/yamlLoad"
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
 
-
-
-When present, the cartography property offers cartographic suggestions to the map maker around zoom levels and sort order for features.
+Cartographic properties offer suggestions for displaying Overture features at specific zoom levels and using sort order to properly layer features in a map.. For example, the **land_cover** feature type is offered at two levels of detail for display, designated by `min_zoom` and `max_zoom` in the schema.
 
 
 <JSONSchemaViewer
@@ -21,8 +19,4 @@ When present, the cartography property offers cartographic suggestions to the ma
   resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/cartographyContainer/properties/cartography" })}/>
 
 
-## Cartographic Suggestions by Theme
 
-### base
-
-- **land_cover** is offered at 2 levels of detail with the intention of only being present at different zoom levels. The `min_zoom` and `max_zoom` properties offer suggestions for the specific zoom levels for each feature.

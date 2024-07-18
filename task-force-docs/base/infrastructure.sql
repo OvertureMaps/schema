@@ -250,9 +250,6 @@ SELECT
     min_lat,
     max_lat,
 
-    -- Convert to Overture format
-    TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
-
     -- Names query gets injected
     '__OVERTURE_NAMES_QUERY' AS names,
 
@@ -295,12 +292,14 @@ SELECT
             '',
             'OpenStreetMap',
             SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
+            TO_ISO8601(created_at AT TIME ZONE 'UTC'),
             NULL
         )
         AS ROW(
             property varchar,
             dataset varchar,
             record_id varchar,
+            update_time varchar,
             confidence double
         )
     ) ] AS sources,

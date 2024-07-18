@@ -7,7 +7,6 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2024-03-14T16:33:50-08:00"
   version: 5
   subtype: road
   class: primary

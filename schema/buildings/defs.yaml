@@ -2,119 +2,121 @@
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Overture Maps Shared Building Properties
 description: Common schema definitions shared by building footprints and building parts
-shapeContainer:
-  title: shape
-  description: Properties of the buildings shape, such as height or roof type.
-  properties:
-    height:
-      description: >-
-        Height of the building or part in meters. The height is the distance from the lowest point to the highest point.
-      type: number
-      exclusiveMinimum: 0
-    is_underground:
-      description: >-
-        Whether the entire building or part is completely below ground. This is useful for rendering which typically omits these
-        buildings or styles them differently because they are not visible above ground. This is different than the level column
-        which is used to indicate z-ordering of elements and negative values may be above ground.
-      type: boolean
-    num_floors:
-      description: >-
-        Number of above-ground floors of the building or part.
-      type: integer
-      exclusiveMinimum: 0
-    num_floors_underground:
-      description: >-
-        Number of below-ground floors of the building or part.
-      type: integer
-      exclusiveMinimum: 0
-    min_height:
-      description: >-
-        The height of the bottom part of building in meters. Used if a building or part of building starts above the ground level.
-      type: number
-    min_floor:
-      description: >-
-        The "start" floor of this building or part. Indicates that the building or part is "floating" and its bottom-most floor is above
-        ground level, usually because it is part of a larger building in which some parts do reach down to ground level. An example is a
-        building that has an entry road or driveway at ground level into an interior courtyard, where part of the building bridges above
-        the entry road. This property may sometimes be populated when min_height is missing and in these cases can be used as a proxy
-        for min_height.
-      type: integer
-      exclusiveMinimum: 0
-    facade_color:
-      description: >-
-        The color (name or color triplet) of the facade of a building or building part in hexadecimal
-      type: string
-    facade_material:
-      description: >-
-        The outer surface material of building facade.
-      type: string
-      enum:
-        - brick
-        - cement_block
-        - clay
-        - concrete
-        - glass
-        - metal
-        - plaster
-        - plastic
-        - stone
-        - timber_framing
-        - wood
-    roof_material:
-      description: >-
-        The outermost material of the roof.
-      type: string
-      enum:
-        - concrete
-        - copper
-        - eternit
-        - glass
-        - grass
-        - gravel
-        - metal
-        - plastic
-        - roof_tiles
-        - slate
-        - solar_panels
-        - thatch
-        - tar_paper
-        - wood
-    roof_shape:
-      description: The shape of the roof
-      type: string
-      enum:
-        - dome
-        - flat
-        - gabled
-        - gambrel
-        - half_hipped
-        - hipped
-        - mansard
-        - onion
-        - pyramidal
-        - round
-        - saltbox
-        - sawtooth
-        - skillion
-        - spherical
-    roof_direction:
-      description: >-
-        Bearing of the roof ridge line in degrees.
-      type: number
-      inclusiveMinimum: 0
-      exclusiveMaximum: 360
-    roof_orientation:
-      description: >-
-        Orientation of the roof shape relative to the footprint shape. Either "along" or "across".
-      type: string
-      enum:
-        - across
-        - along
-    roof_color:
-      description: The color (name or color triplet) of the roof of a building or building part in hexadecimal
-      type: string
-    roof_height:
-      description: >-
-        The height of the building roof in meters. This represents the distance
-        from the base of the roof to the highest point of the roof.
-      type: number
+"$defs":
+  propertyContainers:
+    shapeContainer:
+      title: shape
+      description: Properties of the buildings shape, such as height or roof type.
+      properties:
+        height:
+          description: >-
+            Height of the building or part in meters. The height is the distance from the lowest point to the highest point.
+          type: number
+          exclusiveMinimum: 0
+        is_underground:
+          description: >-
+            Whether the entire building or part is completely below ground. This is useful for rendering which typically omits these
+            buildings or styles them differently because they are not visible above ground. This is different than the level column
+            which is used to indicate z-ordering of elements and negative values may be above ground.
+          type: boolean
+        num_floors:
+          description: >-
+            Number of above-ground floors of the building or part.
+          type: integer
+          exclusiveMinimum: 0
+        num_floors_underground:
+          description: >-
+            Number of below-ground floors of the building or part.
+          type: integer
+          exclusiveMinimum: 0
+        min_height:
+          description: >-
+            The height of the bottom part of building in meters. Used if a building or part of building starts above the ground level.
+          type: number
+        min_floor:
+          description: >-
+            The "start" floor of this building or part. Indicates that the building or part is "floating" and its bottom-most floor is above
+            ground level, usually because it is part of a larger building in which some parts do reach down to ground level. An example is a
+            building that has an entry road or driveway at ground level into an interior courtyard, where part of the building bridges above
+            the entry road. This property may sometimes be populated when min_height is missing and in these cases can be used as a proxy
+            for min_height.
+          type: integer
+          exclusiveMinimum: 0
+        facade_color:
+          description: >-
+            The color (name or color triplet) of the facade of a building or building part in hexadecimal
+          type: string
+        facade_material:
+          description: >-
+            The outer surface material of building facade.
+          type: string
+          enum:
+            - brick
+            - cement_block
+            - clay
+            - concrete
+            - glass
+            - metal
+            - plaster
+            - plastic
+            - stone
+            - timber_framing
+            - wood
+        roof_material:
+          description: >-
+            The outermost material of the roof.
+          type: string
+          enum:
+            - concrete
+            - copper
+            - eternit
+            - glass
+            - grass
+            - gravel
+            - metal
+            - plastic
+            - roof_tiles
+            - slate
+            - solar_panels
+            - thatch
+            - tar_paper
+            - wood
+        roof_shape:
+          description: The shape of the roof
+          type: string
+          enum:
+            - dome
+            - flat
+            - gabled
+            - gambrel
+            - half_hipped
+            - hipped
+            - mansard
+            - onion
+            - pyramidal
+            - round
+            - saltbox
+            - sawtooth
+            - skillion
+            - spherical
+        roof_direction:
+          description: >-
+            Bearing of the roof ridge line in degrees.
+          type: number
+          inclusiveMinimum: 0
+          exclusiveMaximum: 360
+        roof_orientation:
+          description: >-
+            Orientation of the roof shape relative to the footprint shape. Either "along" or "across".
+          type: string
+          enum:
+            - across
+            - along
+        roof_color:
+          description: The color (name or color triplet) of the roof of a building or building part in hexadecimal
+          type: string
+        roof_height:
+          description: >-
+            The height of the building roof in meters. This represents the distance
+            from the base of the roof to the highest point of the roof.
+          type: number

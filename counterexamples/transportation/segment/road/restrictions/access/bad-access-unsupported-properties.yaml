@@ -9,7 +9,6 @@ properties:
   subtype: road
   class: tertiary
   version: 1
-  update_time: "2024-03-14T08:10:55-08:00"
   access_restrictions:
     - foo: bar
     - access_type: denied

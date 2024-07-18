@@ -10,7 +10,6 @@ properties:
   subtype: road
   class: tertiary
   version: 3
-  update_time: "2024-03-16T16:23:31-08:00"
   speed_limits:
     - max_speed: {value: 20, unit: 'km/h'}
       between: [ 0, 0.5 ]

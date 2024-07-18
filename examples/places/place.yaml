@@ -31,7 +31,6 @@ properties:
   theme: places
   type: place
   version: 1
-  update_time: "2024-06-12T12:19:52-06:00"
   sources:
     - property: ""
       dataset: metaPlaces
