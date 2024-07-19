@@ -83,7 +83,10 @@ properties:
       items:
         type: object
         unevaluatedProperties: false
-        required: [labels, from_connector_id, to_connector_id, to_segment_id, final_heading]
+        required: [from_connector_id, to_connector_id, to_segment_id, final_heading]
+        oneOf:
+          - required: [labels]
+          - required: [symbols]
         properties:
           labels:
             description: >-
@@ -218,7 +221,7 @@ properties:
       - motorway
       - airport
       - hospital
-      - center           # center of a locality, city center or downtown, from centre in raw OSM value
+      - center             # center of a locality, city center or downtown, from centre in raw OSM value
       - industrial
       - parking
       - bus
@@ -229,7 +232,7 @@ properties:
       - fuel
       - viewpoint
       - fuel_diesel
-      - food
+      - food               # 'food', 'restaurant' in OSM
       - lodging
       - info
       - camp_site
