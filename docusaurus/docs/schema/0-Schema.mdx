@@ -14,7 +14,7 @@ import yamlLoad from "@site/src/components/yamlLoad"
 import EmpireStateBuilding from "!!raw-loader!@site/docs/_examples/buildings/empire-state-building.json";
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
-Overture data is structured by three components: the schema, the data model, and the Global Entity Reference System ([GERS](https://docs.overturemaps.org/gers/)). The schema describes the shape of the data and devises the constraints applied to that data. The data model specifies what types of features exist, their geometries, how the features relate to each other, and what kind of properties they have. GERS is a framework for structuring, encoding, and matching Overture data to a shared universal reference. 
+Overture data is structured by three components: the schema, the data model, and the Global Entity Reference System ([GERS](https://docs.overturemaps.org/gers/)). The schema describes the shape of the data and devises the constraints applied to that data. The data model specifies what types of features exist, their geometries, how the features relate to each other, and what kind of properties they have. GERS is a framework for structuring, encoding, and matching Overture data to a shared universal reference.
 
 
 <!-- You can see all three components in this description of one feature, the Empire State Building:
@@ -23,7 +23,7 @@ Overture data is structured by three components: the schema, the data model, and
 
 ## GeoJSON mental model
 
- The Overture schema is defined by the [JSON schema](https://json-schema.org/), and [GeoJSON](https://geojson.org/) is used as the canonical geospatial format. GeoJSON provides us with a mental model and language to express data constructions in the schema. The Overture schema supports the following geometry types: Point, LineString, Polygon, MultiPoint, MultiLineString, and MultiPolygon. Together geometric objects and their properties are called features. 
+ The Overture schema is defined by the [JSON schema](https://json-schema.org/), and [GeoJSON](https://geojson.org/) is used as the canonical geospatial format. GeoJSON provides us with a mental model and language to express data constructions in the schema. The Overture schema supports the following geometry types: Point, LineString, Polygon, MultiPoint, MultiLineString, and MultiPolygon. Together geometric objects and their properties are called features.
 
 ## Features represent entities
 
@@ -31,9 +31,9 @@ Overture uses the [simple feature model](https://www.ogc.org/standard/sfa/) spec
 
 ## Global Entity Reference System (GERS)
 
-All features in Overture have unique IDs called Overture IDs. For some feature types, the Overture ID is registered to GERS. This means a feature can be tracked from one Overture data release to another, and any changes to that feature can be encoded in a GERS changelog. 
+All features in Overture have unique IDs called Overture IDs. For some feature types, the Overture ID is registered to GERS. This means a feature can be tracked from one Overture data release to another, and any changes to that feature can be encoded in a GERS changelog.
 
-GERS also provides a mechanism to conflate datasets, matching one or more features via Overture IDs. For example, two polygon features from two different datasets, each polygon representing the footprint of the Empire State Building in New York City, can be easily matched if both features reference the same Overture ID in GERS. 
+GERS also provides a mechanism to conflate datasets, matching one or more features via Overture IDs. For example, two polygon features from two different datasets, each polygon representing the footprint of the Empire State Building in New York City, can be easily matched if both features reference the same Overture ID in GERS.
 
 ## Schema characteristics
 
@@ -76,7 +76,7 @@ Opening hours and the time frame during which time dependent properties are appl
 
 ### Extensions
 
-Overture allows for add hoc extensions beyond what is described in the schema. All extensions are prefixed with `ext`. Extensions can be provided at the theme level, the type level, or the property level.
+Overture allows for add hoc extensions beyond what is described in the schema. All extensions are prefixed with `ext_`. Extensions can be provided at the theme level, the type level, or the property level.
 
 ## Data formats
 
