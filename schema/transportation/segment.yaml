@@ -84,7 +84,7 @@ properties:
         type: object
         unevaluatedProperties: false
         required: [from_connector_id, to_connector_id, to_segment_id, final_heading]
-        oneOf:
+        anyOf:
           - required: [labels]
           - required: [symbols]
         properties:
