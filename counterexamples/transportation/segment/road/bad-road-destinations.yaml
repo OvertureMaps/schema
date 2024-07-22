@@ -15,13 +15,13 @@ properties:
   destinations:
     - labels:
       - value: Seattle
-        type: place
+        type: unknown
       - value: Seattle
-        type: place
+        type: unknown
       - value: Redmond
       - value: 
         foo: bar
-        type: place
+        type: unknown
       - value: Bellevue
         type: other
       - value: Main Street
@@ -41,7 +41,7 @@ properties:
       final_heading: backward
     - labels:
       - value: Kirkland
-        type: place
+        type: unknown
       from:
       - segment_id: overture:transportation:segment:567
         connector_id: overture:transportation:connector:567

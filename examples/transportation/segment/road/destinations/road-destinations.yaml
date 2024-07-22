@@ -10,7 +10,6 @@ properties:
   subtype: road
   class: secondary
   version: 0
-  update_time: "2024-04-24T00:00:00-00:00"
   connector_ids: [overture:transportation:connector:123, overture:transportation:connector:678]
   destinations:
     - when:
