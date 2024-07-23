@@ -12,7 +12,6 @@ description: Common schema definitions shared by all themes
         represents an entity that is part of GERS.
       minLength: 1
       pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
-      isIdentifierReference: true
     level:
       description: Z-order of the feature where 0 is visual level
       type: integer
