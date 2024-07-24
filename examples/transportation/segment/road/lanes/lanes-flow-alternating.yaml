@@ -11,6 +11,11 @@ properties:
   subtype: road
   class: primary
   connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   road_surface:
     - value: paved
   lanes:

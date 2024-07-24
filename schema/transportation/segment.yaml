@@ -62,6 +62,24 @@ properties:
             Each entry in this array is the GERS ID of a transportation connector feature.
         uniqueItems: true
         default: []
+      connectors:
+        description: >-
+          List of connectors which this segment is physically connected to and their
+          relative location. Each connector is a possible routing decision point, meaning
+          it defines a place along the segment in which there is possibility to
+          transition to other segments which share the same connector.
+        type: array
+        items:
+          type: object
+          "$comment": >-
+            Each entry in this array is the GERS ID and LR of a transportation connector feature.
+          unevaluatedProperties: false
+          required: [connector_id, at]
+          properties:
+            connector_id: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
+            at: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition" }
+        uniqueItems: true
+        default: []
       routes: { "$ref": "#/$defs/propertyDefinitions/routes" }
 "$defs":
   propertyDefinitions:

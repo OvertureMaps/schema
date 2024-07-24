@@ -14,6 +14,11 @@ properties:
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   width_rules:
     - between: [0, 0.5]
       value: 1.5
