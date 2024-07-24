@@ -1,0 +1,22 @@
+---
+id: overture:transportation:segment:0841f2c7ffffffff0477f88f6824635d
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[14.5161902, 56.6452609], [14.5151903, 56.6465165], [14.5128482, 56.6494576]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: secondary
+  connector_ids: [08f1f2c6a5d612f20473f1d0ae2f3b9b, 08f1f2c78b6cd7480477fda99ff112b1, 08f1f2c78b6740300477f04e2259ca78]
+  road_surface:
+    - value: paved
+  connectors:
+    - connector_id: 08f1f2c6a5d612f20473f1d0ae2f3b9b
+      at: 0
+    - connector_id: 08f1f2c78b6cd7480477fda99ff112b1
+      at: 0.3
+    - connector_id: 08f1f2c78b6740300477f04e2259ca78
+      at: 1
