@@ -15,7 +15,13 @@ properties:
   version: 2
   subtype: road
   class: secondary
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
   connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   speed_limits:
     - max_speed:
         value: 110

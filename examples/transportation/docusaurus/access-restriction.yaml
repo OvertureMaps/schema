@@ -16,9 +16,13 @@ properties:
   version: 4
   subtype: road
   class: motorway
-  connector_ids:
-    - overture:transportation:example:simple-road-connector-1
-    - overture:transportation:example:simple-road-connector-2
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
+  connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   names:
     primary: SR 520
   access_restrictions:

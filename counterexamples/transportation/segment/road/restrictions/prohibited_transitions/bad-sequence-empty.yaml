@@ -10,8 +10,13 @@ properties:
   version: 2
   subtype: road
   class: primary
-  connector_ids:
-    - overture:transportation:example:connector:1
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
+  connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   prohibited_transitions:
     - sequence: []
       final_heading: forward
