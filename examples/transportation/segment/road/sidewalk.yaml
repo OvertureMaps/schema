@@ -9,7 +9,10 @@ properties:
   type: segment
   version: 1
   subtype: road
-  class: sidewalk
+  class: footway
+  subclass: sidewalk
+  subclass_rules:
+    - value: sidewalk
   connector_ids: [fooConnector, barConnector]
   road_surface:
     - value: paved

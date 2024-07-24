@@ -15,10 +15,13 @@ properties:
   version: 1
   subtype: road
   class: secondary
+  subclass: link
+  subclass_rules:
+    - value: link
   connector_ids: [fooConnector, barConnector]
   road_surface: gravel
   road_flags:
-    - [is_link, is_tunnel]
+    - [is_link, is_tunnel] # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
   access_restrictions:
     - access_type: allowed
       when: {mode: [foo]}
