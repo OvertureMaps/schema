@@ -8,20 +8,20 @@ WITH classified_osm AS (
     SELECT CAST(
         CASE
             -- Transit
-            WHEN tags['railway'] IN ('station','halt') THEN ROW('transit', 'railway_' || tags['railway'])
+            WHEN element_at(tags,'railway') IN ('station','halt') THEN ROW('transit', 'railway_' || element_at(tags,'railway'))
 
-            WHEN tags['highway'] = 'bus_stop' THEN ROW('transit', 'bus_stop')
-            WHEN tags['route'] = 'bus' THEN ROW('transit', 'bus_route')
-            WHEN tags['amenity'] = 'bus_station' THEN ROW('transit', 'bus_station')
+            WHEN element_at(tags,'highway') = 'bus_stop' THEN ROW('transit', 'bus_stop')
+            WHEN element_at(tags,'route') = 'bus' THEN ROW('transit', 'bus_route')
+            WHEN element_at(tags,'amenity') = 'bus_station' THEN ROW('transit', 'bus_station')
 
-            WHEN tags['amenity'] = 'ferry_terminal' THEN ROW('transit','ferry_terminal')
+            WHEN element_at(tags,'amenity') = 'ferry_terminal' THEN ROW('transit','ferry_terminal')
 
-            WHEN tags['amenity'] IN ('parking','parking_space','bicycle_parking') THEN ROW('transit', tags['amenity'])
+            WHEN element_at(tags,'amenity') IN ('parking','parking_space','bicycle_parking') THEN ROW('transit', element_at(tags,'amenity'))
 
-            WHEN tags['public_transport'] IN ('stop_position', 'platform') THEN ROW('transit', tags['public_transport'])
+            WHEN element_at(tags,'public_transport') IN ('stop_position', 'platform') THEN ROW('transit', element_at(tags,'public_transport'))
 
             -- Aerialways
-            WHEN tags['aerialway'] IN (
+            WHEN element_at(tags,'aerialway') IN (
                 'cable_car',
                 'gondola',
                 'mixed_lift',
@@ -29,33 +29,33 @@ WITH classified_osm AS (
                 'drag_lift',
                 't-bar',
                 'pylon'
-            ) THEN ROW('aerialway', tags['aerialway'])
+            ) THEN ROW('aerialway', element_at(tags,'aerialway'))
 
-            WHEN tags['aerialway'] = 'station' THEN ROW('aerialway', 'aerialway_station')
+            WHEN element_at(tags,'aerialway') = 'station' THEN ROW('aerialway', 'aerialway_station')
 
             -- Airports
-            WHEN tags['aeroway'] IN ('runway', 'taxiway', 'airstrip', 'helipad') THEN ROW('airport', tags['aeroway'])
+            WHEN element_at(tags,'aeroway') IN ('runway', 'taxiway', 'airstrip', 'helipad') THEN ROW('airport', element_at(tags,'aeroway'))
 
-            WHEN tags['aeroway'] = 'gate' THEN ROW('airport', 'airport_gate')
+            WHEN element_at(tags,'aeroway') = 'gate' THEN ROW('airport', 'airport_gate')
 
-            WHEN tags['aeroway'] = 'aerodrome' THEN CASE
-                WHEN tags['aerodrome:type'] = 'military' OR tags['landuse'] = 'military' OR tags['military'] IN (
+            WHEN element_at(tags,'aeroway') = 'aerodrome' THEN CASE
+                WHEN element_at(tags,'aerodrome:type') = 'military' OR element_at(tags,'landuse') = 'military' OR element_at(tags,'military') IN (
                     'airfield'
                 ) THEN ROW('airport','military_airport')
-                WHEN tags['access'] IN ('emergency', 'no', 'permissive', 'private')
-                    OR tags['aerodrome:type'] = 'private' THEN ROW('airport','private_airport')
-                WHEN lower(tags['name']) LIKE '%international%' OR tags['aerodrome:type'] = 'international'
-                    OR tags['aerodrome'] = 'international' THEN ROW('airport','international_airport')
-                WHEN lower(tags['name']) LIKE '%regional%' OR tags['aerodrome:type'] = 'regional'
+                WHEN element_at(tags,'access') IN ('emergency', 'no', 'permissive', 'private')
+                    OR element_at(tags,'aerodrome:type') = 'private' THEN ROW('airport','private_airport')
+                WHEN lower(element_at(tags,'name')) LIKE '%international%' OR element_at(tags,'aerodrome:type') = 'international'
+                    OR element_at(tags,'aerodrome') = 'international' THEN ROW('airport','international_airport')
+                WHEN lower(element_at(tags,'name')) LIKE '%regional%' OR element_at(tags,'aerodrome:type') = 'regional'
                     THEN ROW('airport','regional_airport')
-                WHEN lower(tags['name']) LIKE '%municipal%' THEN ROW('airport','municipal_airport')
-                WHEN lower(tags['name']) LIKE '%seaplane%' THEN ROW('airport','seaplane_airport')
-                WHEN lower(tags['name']) LIKE '%heli%' THEN ROW('airport','heliport')
+                WHEN lower(element_at(tags,'name')) LIKE '%municipal%' THEN ROW('airport','municipal_airport')
+                WHEN lower(element_at(tags,'name')) LIKE '%seaplane%' THEN ROW('airport','seaplane_airport')
+                WHEN lower(element_at(tags,'name')) LIKE '%heli%' THEN ROW('airport','heliport')
                 ELSE ROW('airport','airport')
             END
 
             -- Bridges
-            WHEN tags['bridge'] IN (
+            WHEN element_at(tags,'bridge') IN (
                 'aqueduct',
                 'boardwalk',
                 'cantilever',
@@ -63,33 +63,33 @@ WITH classified_osm AS (
                 'movable',
                 'trestle',
                 'viaduct'
-            ) THEN ROW('bridge', tags['bridge'])
-            WHEN tags['bridge:support'] IS NOT NULL THEN
+            ) THEN ROW('bridge', element_at(tags,'bridge'))
+            WHEN element_at(tags,'bridge:support') IS NOT NULL THEN
                 ROW('bridge', 'bridge_support')
 
             -- Communication
-            WHEN tags['communication:mobile_phone'] <> 'no' THEN ROW('communication','mobile_phone_tower')
-            WHEN tags['communication'] IN ('line','pole') THEN ROW('communication','communication_' || tags['communication'])
-            WHEN tags['tower:type'] = 'communication' THEN ROW('communication','communication_tower')
+            WHEN element_at(tags,'communication:mobile_phone') <> 'no' THEN ROW('communication','mobile_phone_tower')
+            WHEN element_at(tags,'communication') IN ('line','pole') THEN ROW('communication','communication_' || element_at(tags,'communication'))
+            WHEN element_at(tags,'tower:type') = 'communication' THEN ROW('communication','communication_tower')
 
             -- Pedestrian
-            WHEN tags['highway'] IS NULL AND tags['footway'] IN ('crossing') AND (wkt LIKE 'MULTIPOLYGON%' OR wkt LIKE 'POLYGON%') THEN ROW('pedestrian','pedestrian_crossing')
-            WHEN tags['tourism'] IN ('information', 'viewpoint') THEN ROW('pedestrian', tags['tourism'])
-            WHEN tags['amenity'] IN (
+            WHEN element_at(tags,'highway') IS NULL AND element_at(tags,'footway') IN ('crossing') AND (wkt LIKE 'MULTIPOLYGON%' OR wkt LIKE 'POLYGON%') THEN ROW('pedestrian','pedestrian_crossing')
+            WHEN element_at(tags,'tourism') IN ('information', 'viewpoint') THEN ROW('pedestrian', element_at(tags,'tourism'))
+            WHEN element_at(tags,'amenity') IN (
                 'atm',
                 'bench',
                 'picnic_table',
                 'post_box',
                 'toilets',
                 'vending_machine'
-            ) THEN ROW('pedestrian', tags['amenity'])
+            ) THEN ROW('pedestrian', element_at(tags,'amenity'))
 
             -- Manholes
-            WHEN tags['manhole'] IN ('drain', 'sewer') THEN ROW('manhole', tags['manhole'])
-            WHEN tags['manhole'] IS NOT NULL THEN ROW('manhole','manhole')
+            WHEN element_at(tags,'manhole') IN ('drain', 'sewer') THEN ROW('manhole', element_at(tags,'manhole'))
+            WHEN element_at(tags,'manhole') IS NOT NULL THEN ROW('manhole','manhole')
 
             -- Power
-            WHEN tags['power'] IN (
+            WHEN element_at(tags,'power') IN (
                 'cable_distribution',
                 'cable',
                 'catenary_mast',
@@ -105,15 +105,15 @@ WITH classified_osm AS (
                 'switch',
                 'terminal',
                 'transformer'
-            ) THEN ROW('power', tags['power'])
+            ) THEN ROW('power', element_at(tags,'power'))
 
-            WHEN tags['power'] IN ('line', 'pole', 'tower') THEN ROW('power','power_' || tags['power'])
+            WHEN element_at(tags,'power') IN ('line', 'pole', 'tower') THEN ROW('power','power_' || element_at(tags,'power'))
 
             -- Recreation
-            WHEN tags['tourism'] = ('camp_site') AND wkt LIKE 'POINT%' THEN ROW('recreation','camp_site')
+            WHEN element_at(tags,'tourism') = ('camp_site') AND wkt LIKE 'POINT%' THEN ROW('recreation','camp_site')
 
             -- Towers
-            WHEN tags['tower:type'] IN (
+            WHEN element_at(tags,'tower:type') IN (
                 'bell_tower',
                 'cooling',
                 'defensive',
@@ -127,34 +127,34 @@ WITH classified_osm AS (
                 'radar',
                 'siren',
                 'watchtower'
-            ) THEN ROW('tower', tags['tower:type'])
+            ) THEN ROW('tower', element_at(tags,'tower:type'))
 
             -- Utility
-            WHEN tags['man_made'] IN ('silo','utility_pole','storage_tank', 'pipeline', 'water_tower') THEN ROW('utility',tags['man_made'])
+            WHEN element_at(tags,'man_made') IN ('silo','utility_pole','storage_tank', 'pipeline', 'water_tower') THEN ROW('utility',element_at(tags,'man_made'))
 
             -- Waste Management
-            WHEN tags['amenity'] IN(
+            WHEN element_at(tags,'amenity') IN(
                 'recycling',
                 'waste_basket',
                 'waste_disposal'
-            ) THEN ROW('waste_management',tags['amenity'])
+            ) THEN ROW('waste_management',element_at(tags,'amenity'))
 
             --Water
-            WHEN tags['man_made'] IN ('dam') THEN ROW('water',tags['man_made'])
-            WHEN tags['waterway'] IN ('dam','weir') THEN ROW('water', tags['waterway'])
-            WHEN tags['amenity'] = ('drinking_water') AND
-                (tags['drinking_water'] IS NULL OR tags['drinking_water'] <> 'no') AND
-                (tags['access'] IS NULL OR tags['access'] <> 'private')
+            WHEN element_at(tags,'man_made') IN ('dam') THEN ROW('water',element_at(tags,'man_made'))
+            WHEN element_at(tags,'waterway') IN ('dam','weir') THEN ROW('water', element_at(tags,'waterway'))
+            WHEN element_at(tags,'amenity') = ('drinking_water') AND
+                (element_at(tags,'drinking_water') IS NULL OR element_at(tags,'drinking_water') <> 'no') AND
+                (element_at(tags,'access') IS NULL OR element_at(tags,'access') <> 'private')
                 THEN ROW('water', 'drinking_water')
 
 
             -- Standalone piers
-            WHEN tags['man_made'] IN ('pier') THEN ROW('pier','pier')
+            WHEN element_at(tags,'man_made') IN ('pier') THEN ROW('pier','pier')
 
 
             -- Barrier tags are often secondary on other features, so put them last.
             -- Barrier tags that are not allowed on points:
-            WHEN wkt NOT LIKE 'POINT%' AND tags['barrier'] IN (
+            WHEN wkt NOT LIKE 'POINT%' AND element_at(tags,'barrier') IN (
                 'cable_barrier',
                 'city_wall',
                 'chain',
@@ -167,10 +167,10 @@ WITH classified_osm AS (
                 'kerb',
                 'retaining_wall',
                 'wall'
-            ) THEN ROW('barrier', tags['barrier'])
+            ) THEN ROW('barrier', element_at(tags,'barrier'))
 
             -- Points allowed on these types of barriers:
-            WHEN tags['barrier'] IN (
+            WHEN element_at(tags,'barrier') IN (
                 'block',
                 'bollard',
                 'border_control',
@@ -193,15 +193,15 @@ WITH classified_osm AS (
                 'stile',
                 'swing_gate',
                 'toll_booth'
-            ) THEN ROW('barrier', tags['barrier'])
-            WHEN tags['man_made'] IN ('cutline') THEN ROW('barrier','cutline')
+            ) THEN ROW('barrier', element_at(tags,'barrier'))
+            WHEN element_at(tags,'man_made') IN ('cutline') THEN ROW('barrier','cutline')
 
             -- If there remains a barrier tag but it's not in the above list:
-            WHEN tags['barrier'] IS NOT NULL THEN ROW('barrier','barrier')
+            WHEN element_at(tags,'barrier') IS NOT NULL THEN ROW('barrier','barrier')
 
             -- Lower priority generic `bridge` tags
-            WHEN tags['man_made'] = 'bridge' THEN ROW('bridge','bridge')
-            WHEN tags['bridge'] = 'yes' THEN ROW('bridge','bridge')
+            WHEN element_at(tags,'man_made') = 'bridge' THEN ROW('bridge','bridge')
+            WHEN element_at(tags,'bridge') = 'yes' THEN ROW('bridge','bridge')
 
         END AS ROW(subtype varchar, class varchar)) AS overture,
         *
@@ -306,7 +306,7 @@ SELECT
 
     -- Values of surface are restricted
     CASE
-        WHEN tags['surface'] IN (
+        WHEN element_at(tags,'surface') IN (
             'asphalt',
             'cobblestone',
             'compacted',
@@ -330,17 +330,17 @@ SELECT
             'unpaved',
             'wood',
             'woodchips'
-        )   THEN tags['surface']
-        WHEN tags['surface'] = 'concrete:plates'
+        )   THEN element_at(tags,'surface')
+        WHEN element_at(tags,'surface') = 'concrete:plates'
             THEN 'concrete_plates'
         ELSE NULL
     END AS surface,
 
     -- Overture's concept of `layer` is called level
-    TRY_CAST(tags['layer'] AS int) AS level,
+    TRY_CAST(element_at(tags,'layer') AS int) AS level,
 
     -- Wikidata is a top-level property in the OSM Container
-    tags['wikidata'] as wikidata,
+    element_at(tags,'wikidata') as wikidata,
 
     -- Store geometries as WKT
     wkt AS wkt_geometry
