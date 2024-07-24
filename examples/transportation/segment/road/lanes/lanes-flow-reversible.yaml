@@ -10,6 +10,7 @@ properties:
   version: 5
   subtype: road
   class: primary
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
   connector_ids: [fooConnector, barConnector]
   connectors:
     - connector_id: fooConnector

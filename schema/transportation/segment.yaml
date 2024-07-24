@@ -61,6 +61,7 @@ properties:
           "$comment": >-
             Each entry in this array is the GERS ID of a transportation connector feature.
         uniqueItems: true
+        minItems: 2
         default: []
       connectors:
         description: >-
@@ -72,13 +73,14 @@ properties:
         items:
           type: object
           "$comment": >-
-            Each entry in this array is the GERS ID and LR of a transportation connector feature.
+            Contains the GERS ID and relative position between 0 and 1 of a connector feature along the segment.
           unevaluatedProperties: false
           required: [connector_id, at]
           properties:
             connector_id: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
             at: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition" }
         uniqueItems: true
+        minItems: 2
         default: []
       routes: { "$ref": "#/$defs/propertyDefinitions/routes" }
 "$defs":

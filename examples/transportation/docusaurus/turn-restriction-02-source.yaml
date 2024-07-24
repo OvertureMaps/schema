@@ -19,8 +19,15 @@ properties:
   version: 5
   subtype: road
   class: primary
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
   connector_ids:
     - overture:transportation:example:via-turn-restriction-connector1
+    - overture:transportation:example:via-turn-restriction-connector2
+  connectors:
+    - connector_id: overture:transportation:example:via-turn-restriction-connector1
+      at: 0
+    - connector_id: overture:transportation:example:via-turn-restriction-connector2
+      at: 1
   names:
     primary: Arborway
   prohibited_transitions:

@@ -1,5 +1,5 @@
 {
-  "id": "segment with an invalid entry in the connector_ids array",
+  "id": "segment with an invalid entry in the connectors array",
   "type": "Feature",
   "geometry": {
     "type": "LineString",
