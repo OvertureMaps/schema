@@ -30,6 +30,7 @@ properties:
         then:
           required: [class]
           properties:
+            destinations: { "$ref": "#/$defs/propertyDefinitions/destinations" }
             lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
             prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
             road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
@@ -62,6 +63,81 @@ properties:
       routes: { "$ref": "#/$defs/propertyDefinitions/routes" }
 "$defs":
   propertyDefinitions:
+    destinationLabelType:
+      description: >-
+        The type of object of the destination label.
+      type: string
+      enum: 
+      - street
+      - country 
+      - route_ref
+      - toward_route_ref
+      - unknown
+    destinations:
+      description: >-
+        Describes objects that can be reached by following a transportation segment in the
+        same way those objects are described on signposts or ground writing that a traveller
+        following the segment would observe in the real world. This allows navigation systems
+        to refer to signs and observable writing that a traveller actually sees.
+      type: array
+      items:
+        type: object
+        unevaluatedProperties: false
+        required: [from_connector_id, to_connector_id, to_segment_id, final_heading]
+        anyOf:
+          - required: [labels]
+          - required: [symbols]
+        properties:
+          labels:
+            description: >-
+              Labeled destinations that can be reached by following the segment.
+            type: array
+            items:
+              type: object
+              unevaluatedProperties: false
+              required: [value, type]
+              properties:
+                value:
+                  description: >-
+                    Names the object that is reached
+                  type: string
+                  pattern: ^(\S.*)?\S$
+                type: { "$ref": "#/$defs/propertyDefinitions/destinationLabelType" }
+            minItems: 1
+            uniqueItems: true
+          symbols:
+            description: >-
+              A collection of symbols or icons present on the sign next to current 
+              destination label.
+            type: array
+            items: { "$ref": "#/$defs/propertyDefinitions/destinationSignSymbol" }
+            uniqueItems: true
+            minLength: 1            
+          from_connector_id:          
+            description: >-
+              Identifies the point of physical connection on this segment before which
+              the destination sign or marking is visible.
+            type: string
+          to_segment_id:
+            description: >-
+              Identifies the segment to transition to reach the destination(s) labeled 
+              on the sign or marking.
+            type: string
+          to_connector_id:
+            description: >-
+              Identifies the point of physical connection on the segment identified by 
+              'to_segment_id' to transition to for reaching the destination(s).
+            type: string
+          when:
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
+            minProperties: 1
+            unevaluatedProperties: false
+          final_heading:
+            description: >-
+              Direction of travel on the segment identified by 'to_segment_id' that leads 
+              to the destination.
+            "$ref": "#/$defs/propertyDefinitions/heading"    
     roadClass:
       description:
         Captures the kind of road and its position in the road network
@@ -137,6 +213,31 @@ properties:
       enum: [ vehicle, motor_vehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
       "$comment": >-
         motor_vehicle includes car, truck and motorcycle
+    destinationSignSymbol:
+      description: >-
+        Indicates what special symbol/icon is present on a signpost, visible as road marking or similar.
+      type: string
+      enum: 
+      - motorway
+      - airport
+      - hospital
+      - center             # center of a locality, city center or downtown, from centre in raw OSM value
+      - industrial
+      - parking
+      - bus
+      - train_station
+      - rest_area
+      - ferry
+      - motorroad
+      - fuel
+      - viewpoint
+      - fuel_diesel
+      - food               # 'food', 'restaurant' in OSM
+      - lodging
+      - info
+      - camp_site
+      - interchange
+      - restrooms          # 'toilets' in OSM
     roadFlag:
       description: Simple flags that can be on or off for a road segment
       type: string

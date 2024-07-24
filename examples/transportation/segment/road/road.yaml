@@ -57,3 +57,17 @@ properties:
           connector_id: overture:transportation:connector:456
       final_heading: backward
       when: {heading: backward}
+  destinations:
+    - labels:
+      - value: Seattle
+        type: unknown
+      - value: I 90
+        type: route_ref
+      symbols:
+      - airport
+      when:
+        heading: forward
+      from_connector_id: overture:transportation:connector:123
+      to_connector_id: overture:transportation:connector:123
+      to_segment_id: overture:transportation:segment:567
+      final_heading: backward
