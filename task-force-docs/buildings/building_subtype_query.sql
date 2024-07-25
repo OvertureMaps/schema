@@ -1,7 +1,7 @@
 CASE
     -- Prioritize the `building` tag to determine the subtype
     -- Agricultural
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'agricultural',
             'barn',
             'cowshed',
@@ -15,7 +15,7 @@ CASE
         ) THEN 'agricultural'
 
     -- Civic
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'civic',
             'fire_station',
             'government',
@@ -24,7 +24,7 @@ CASE
     ) THEN 'civic'
 
     -- Commercial
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'commercial',
             'hotel',
             'kiosk',
@@ -38,7 +38,7 @@ CASE
         ) THEN 'commercial'
 
     -- Education
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'college',
             'kindergarten',
             'school',
@@ -46,7 +46,7 @@ CASE
         ) THEN 'education'
 
     -- Entertainment
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'grandstand',
             'pavilion',
             'sports_centre',
@@ -55,26 +55,26 @@ CASE
         ) THEN 'entertainment'
 
     -- Industrial
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'factory',
             'industrial',
             'manufacture'
         ) THEN 'industrial'
 
     -- Medical
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'clinic',
             'hospital'
         ) THEN 'medical'
 
     -- Military
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'bunker',
             'military'
         ) THEN 'military'
 
     -- Outbuilding
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'allotment_house',
             'carport',
             'outbuilding',
@@ -82,7 +82,7 @@ CASE
         ) THEN 'outbuilding'
 
     -- Religious
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'cathedral',
             'chapel',
             'church',
@@ -97,7 +97,7 @@ CASE
         ) THEN 'religious'
 
     -- Residential
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'apartments',
             'bungalow',
             'cabin',
@@ -122,7 +122,7 @@ CASE
         ) THEN 'residential'
 
     -- Service
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'beach_hut',
             'boathouse',
             'digester',
@@ -135,7 +135,7 @@ CASE
         ) THEN 'service'
 
     -- Transportation
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
             'hangar',
             'parking',
             'train_station',
@@ -143,16 +143,16 @@ CASE
         ) THEN 'transportation'
 
     -- Consider any amenity / tourism tags if no other building tag was present
-    WHEN tags['amenity'] IN ('nursing_home') THEN 'residential'
+    WHEN lower(trim(element_at(tags, 'amenity'))) IN ('nursing_home') THEN 'residential'
 
-    WHEN  tags['amenity'] IN (
+    WHEN  lower(trim(element_at(tags, 'amenity'))) IN (
             'bus_station',
             'parking'
         ) THEN 'transportation'
 
-    WHEN tags['amenity'] IN ('place_of_worship') THEN 'religious'
+    WHEN lower(trim(element_at(tags, 'amenity'))) IN ('place_of_worship') THEN 'religious'
 
-    WHEN tags['amenity'] IN (
+    WHEN lower(trim(element_at(tags, 'amenity'))) IN (
             'clinic',
             'dentist',
             'doctors',
@@ -160,7 +160,7 @@ CASE
             'pharmacy'
         ) THEN 'medical'
 
-    WHEN tags['amenity'] IN (
+    WHEN lower(trim(element_at(tags, 'amenity'))) IN (
             'casino',
             'conference_centre',
             'events_venue',
@@ -168,14 +168,14 @@ CASE
             'theatre',
             'arts_centre',
             'nightclub'
-        ) OR tags['tourism'] IN (
+        ) OR lower(trim(element_at(tags, 'tourism'))) IN (
             'aquarium',
             'attraction',
             'gallery',
             'museum'
         ) THEN 'entertainment'
 
-    WHEN tags['amenity'] IN (
+    WHEN lower(trim(element_at(tags, 'amenity'))) IN (
             'bar',
             'cafe',
             'fast_food',
@@ -186,7 +186,7 @@ CASE
             'restaurant'
         ) THEN 'commercial'
 
-    WHEN tags['amenity'] IN (
+    WHEN lower(trim(element_at(tags, 'amenity'))) IN (
             'animal_shelter',
             'community_centre',
             'courthouse',
@@ -203,7 +203,7 @@ CASE
             'veterinary'
         ) THEN 'civic'
 
-     WHEN tags['amenity'] IN (
+     WHEN lower(trim(element_at(tags, 'amenity'))) IN (
             'college',
             'driving_school',
             'kindergarten',
