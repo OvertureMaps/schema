@@ -120,7 +120,10 @@ CASE
     ) THEN lower(trim(element_at(tags, 'building')))
 
     -- Certain building are part of bridge structures
-    WHEN  tags['bridge:support'] <> 'no' OR tags['bridge:structure'] <> 'no'
+    WHEN lower(trim(element_at(tags, 'bridge:support'))) <> 'no'
+    THEN 'bridge_structure'
+
+    WHEN lower(trim(element_at(tags, 'bridge:structure'))) <> 'no'
     THEN 'bridge_structure'
 
     -- No other allowed classes
