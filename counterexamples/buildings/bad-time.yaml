@@ -6,9 +6,12 @@ geometry:
   coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
 properties:
   ext_expected_errors:
-    - "[I#/properties/update_time] [S#/$defs/propertyDefinitions/featureUpdateTime/format] 'abc2023-02-22T23:55:01-08:00' is not valid 'date-time'"
-    - "[I#/properties/update_time] [S#/$defs/propertyDefinitions/featureUpdateTime/pattern] does not match pattern"
+    - "[I#/properties/sources/0/update_time] [S#/$defs/propertyDefinitions/featureUpdateTime/format] 'abc2023-02-22T23:55:01-08:00' is not valid 'date-time'"
+    - "[I#/properties/sources/0/update_time] [S#/$defs/propertyDefinitions/featureUpdateTime/pattern] does not match pattern"
   theme: buildings
   type: building
   version: 1
-  update_time: abc2023-02-22T23:55:01-08:00
+  sources:
+    - dataset: OpenStreetMap
+      property: "/blah"
+      update_time: abc2023-02-22T23:55:01-08:00

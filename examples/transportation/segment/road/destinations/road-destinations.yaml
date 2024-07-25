@@ -1,0 +1,41 @@
+---
+id: overture:transportation:segment:example:destinations:1
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: secondary
+  version: 0
+  connector_ids: [overture:transportation:connector:123, overture:transportation:connector:678]
+  destinations:
+    - when:
+        heading: forward
+      from_connector_id: overture:transportation:connector:123
+      to_connector_id: overture:transportation:connector:123
+      to_segment_id: overture:transportation:segment:567
+      final_heading: backward
+      labels:
+      - value: Seattle
+        type: unknown
+      - value: Main Street
+        type: street
+      - value: I90
+        type: route_ref
+      symbols:
+      - motorway
+      - airport  
+    - when:
+        heading: backward
+      from_connector_id: overture:transportation:connector:123
+      to_connector_id: overture:transportation:connector:123
+      to_segment_id: overture:transportation:segment:567
+      final_heading: backward
+      labels:
+      - value: Redmond
+        type: unknown
+      - value: I5
+        type: toward_route_ref

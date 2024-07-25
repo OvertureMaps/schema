@@ -1,0 +1,13 @@
+---
+id: example:division_boundary:land
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 1], [1, 2]]
+properties:
+  theme: divisions
+  type: division_boundary
+  version: 1
+  subtype: region
+  class: land
+  division_ids: ["example:division:region:left",  "example:division:region:right"]

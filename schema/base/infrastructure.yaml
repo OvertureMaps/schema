@@ -49,6 +49,7 @@ properties:
         enum:
           - aerialway_station
           - airport
+          - airport_gate
           - airstrip
           - aqueduct
           - atm
@@ -59,11 +60,16 @@ properties:
           - block
           - boardwalk
           - bollard
+          - border_control
           - bridge
+          - bridge_support
+          - bump_gate
           - bus_route
           - bus_station
           - bus_stop
+          - bus_trap
           - cable
+          - cable_barrier
           - cable_car
           - cable_distribution
           - camp_site
@@ -87,11 +93,17 @@ properties:
           - diving
           - drag_lift
           - drain
+          - drinking_water
           - entrance
+          - fence
           - ferry_terminal
+          - full-height_turnstile
+          - gate
           - generator
           - gondola
           - guard_rail
+          - hampshire_gate
+          - handrail
           - hedge
           - height_restrictor
           - heliostat
@@ -124,6 +136,7 @@ properties:
           - pier
           - pipeline
           - plant
+          - planter
           - platform
           - portal
           - post_box
@@ -139,6 +152,7 @@ properties:
           - regional_airport
           - retaining_wall
           - runway
+          - sally_port
           - seaplane_airport
           - sewer
           - silo

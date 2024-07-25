@@ -10,10 +10,12 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  update_time: "2024-03-14T16:35:09-08:00"
   version: 3
   subtype: road
   class: secondary
+  subclass: link
+  subclass_rules:
+    - value: link
   connector_ids: [fooConnector, barConnector] # Topology: To discuss further.
   names:
     primary: Common Road Name
@@ -21,7 +23,7 @@ properties:
   road_surface:
     - value: gravel
   road_flags:
-    - values: [is_link, is_tunnel]
+    - values: [is_link, is_tunnel] # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
   level: -1
   level_rules:
     - value: -1
@@ -58,44 +60,17 @@ properties:
           connector_id: overture:transportation:connector:456
       final_heading: backward
       when: {heading: backward}
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    surface:
-      - value: gravel
-    flags:
-      - values: [is_link, is_tunnel]
-    level:
-      - value: -1
-    width:
-      - value: 10
-    restrictions:
-      speed_limits:
-        - min_speed:
-            value: 90
-            unit: km/h
-          max_speed:
-            value: 110
-            unit: mph
-          is_max_speed_variable: true
-        - max_speed:
-            value: 55
-            unit: mph
-          when: {mode: [ "truck" ]}
-        - max_speed:
-            value: 30
-            unit: km/h
-          between: [0.25, 0.50]
-          when:
-            during: Mo-Sa 09:00-12:00, We 15:00-18:00
-      prohibited_transitions:
-        - sequence:
-          - segment_id: overture:transportation:segment:234
-            connector_id: overture:transportation:connector:123
-          final_heading: forward
-          when: {heading: forward}
-        - sequence:
-            - segment_id: overture:transportation:segment:456
-              connector_id: overture:transportation:connector:345
-            - segment_id: overture:transportation:segment:567
-              connector_id: overture:transportation:connector:456
-          final_heading: backward
-          when: {heading: backward}
+  destinations:
+    - labels:
+      - value: Seattle
+        type: unknown
+      - value: I 90
+        type: route_ref
+      symbols:
+      - airport
+      when:
+        heading: forward
+      from_connector_id: overture:transportation:connector:123
+      to_connector_id: overture:transportation:connector:123
+      to_segment_id: overture:transportation:segment:567
+      final_heading: backward

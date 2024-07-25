@@ -14,7 +14,6 @@ properties:
   theme: transportation
   type: segment
   version: 4
-  update_time: "2024-03-13T16:34:41-08:00"
   subtype: road
   class: motorway
   connector_ids:
@@ -25,10 +24,3 @@ properties:
   access_restrictions:
     - access_type: denied
       when: {mode: [foot]}
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    surface:
-      - value: paved
-    restrictions:
-      access:
-        - access_type: denied
-          when: {mode: [foot]}

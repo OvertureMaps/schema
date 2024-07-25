@@ -7,17 +7,13 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2024-03-13T16:14:01-08:00"
   version: 5
   subtype: road
-  class: alley
+  class: service
+  subclass_rules:
+    - value: alley
+      between: [0, 0.5]
   access_restrictions:
     - access_type: allowed
       when:
         using: [at_destination]
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    restrictions:
-      access:
-        - access_type: allowed
-          when:
-            using: [at_destination]

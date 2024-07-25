@@ -1,0 +1,29 @@
+---
+id: example:division:locality:lj
+type: Feature
+geometry:
+  type: Point
+  coordinates: [14.5845, 46.0570]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: locality
+  local_type:
+    en: city
+  names:
+    primary: Ljubljana
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: N6968827.V76
+  country: SI
+  hierarchies:
+    - - division_id: example:division:country:si
+        subtype: country
+        name: Slovenia
+  capital_of_divisions:
+    - division_id: example:division:country:si
+      subtype: country
+  parent_division_id: example:division:country:si
+  population: 335509

@@ -1,0 +1,15 @@
+---
+id: counterexample:division_boundary:bad-class
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division_boundary
+  version: 0
+  subtype: neighborhood
+  class: land
+  divisions: ["example:division:country:left", "example:division:country:right"]
+  ext_expected_errors:
+    - value must be "LineString"

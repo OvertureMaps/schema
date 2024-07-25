@@ -7,15 +7,11 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2024-03-14T08:08:47-08:00"
   version: 1
   subtype: road
   class: secondary
   connector_ids: [fooConnector, barConnector]
   level_rules:
     - value: 1.5
-  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
-    level:
-      - value: 1.5
   ext_expected_errors:
-    - "[I#/properties/road/level/0/value] [S#/$defs/propertyDefinitions/level/type] expected integer, but got number"
+    - "[I#/properties/level_rules/0/value] [S#/$defs/propertyDefinitions/level/type] expected integer, but got number"

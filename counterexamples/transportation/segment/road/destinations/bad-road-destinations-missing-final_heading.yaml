@@ -1,0 +1,26 @@
+---
+id: overture:transportation:segment:example:destinations:1
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: secondary
+  version: 0
+  connector_ids: [overture:transportation:connector:123, overture:transportation:connector:678]
+  destinations:
+    - labels:
+      - value: Seattle
+        type: unknown
+      symbols:
+      - airport
+      when:
+        heading: forward
+      from_connector_id: overture:transportation:connector:123
+      to_connector_id: overture:transportation:connector:123
+      to_segment_id: overture:transportation:segment:567
+  ext_expected_errors:
+    - "[I#/properties/destinations/0] [S#/$defs/propertyDefinitions/destinations/items/required] missing properties: 'final_heading'"

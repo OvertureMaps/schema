@@ -14,7 +14,7 @@ import division_area_example_region_land from '!!raw-loader!@site/docs/_examples
 import division_area_example_country_maritime from '!!raw-loader!@site/docs/_examples/divisions/division_area/country_maritime.yaml';
 
 
-# Division Area
+# Division area
 
 A division area is a polygon that represents the land or maritime area associated with a [division](/schema/reference/divisions/division).
 
@@ -38,13 +38,16 @@ A division area is a polygon that represents the land or maritime area associate
 
 ## Subtypes
 
-Like a division, a division area may have one of following subtypes:
+While the schema for the divisions theme contains an comprehensive list of subtypes, only a subset are available in the data today.
+
+Currently, the following subtypes are available in the `division_area` feature type:
 
 - `country`
+- `dependency`
 - `region`
 - `county`
-- `locality`
 - `localadmin`
+- `locality`
 - `neighborhood`
 
 <Tabs>
@@ -59,7 +62,23 @@ Like a division, a division area may have one of following subtypes:
     </table>
 
 
-A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [boundary](/schema/reference/divisions/boundary) features. Example: United States
+A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [divsion boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+
+  </TabItem>
+
+  <TabItem value="dependency" label="dependency" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>dependency</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+ A dependency is a place that is not exactly a sub-region of a country but is dependent on a parent country for defense, passport control, etc. Example: Puerto Rico
+
   </TabItem>
 
   <TabItem value="region" label="region">

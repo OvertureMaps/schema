@@ -9,11 +9,10 @@ properties:
   theme: places
   type: place
   version: 0
-  update_time: "2023-02-22T23:55:01-08:00"
   names:
     primary: Fancy POI with invalid address property (region2)
   categories:
-    main: some_category
+    primary: some_category
   addresses:
     - freeform: "770 Broadway, Floor 8"
       locality: "New York"

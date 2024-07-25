@@ -40,14 +40,18 @@ A division is a recognized official or non-official organization of people as se
 
 ## Subtypes
 
-A division may include one of the following subtypes:
+While the schema for the divisions theme contains an comprehensive list of subtypes, only a subset are available in the data today.
+
+Currently, the following subtypes are available in the `division` feature type:
 
 - `country`
+- `dependency`
 - `region`
 - `county`
 - `localadmin`
 - `locality`
 - `neighborhood`
+- `microhood`
 
 <Tabs>
   <TabItem value="country" label="country" default>
@@ -61,8 +65,24 @@ A division may include one of the following subtypes:
     </table>
 
 
-A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [boundary](/schema/reference/divisions/boundary) features. Example: United States
+A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [division boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+
   </TabItem>
+<TabItem value="dependency" label="dependency" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>dependency</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+ A dependency is a place that is not exactly a sub-region of a country but is dependent on a parent country for defense, passport control, etc. Example: Puerto Rico
+
+  </TabItem>
+
 
   <TabItem value="region" label="region">
     <table>
@@ -132,6 +152,20 @@ A locality is a populated place that may or may not have its own administrative 
 
 A neighborhood is a geographically localized community within a city, town, suburb or rural area, sometimes consisting of a single street and the buildings lining it. Example: Cobble Hill
   </TabItem>
+
+<TabItem value="microhood" label="microhood" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>microhood</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A microhood is a mini-neighborhood that is contained within a neighborhood. Example: Gätjensort in Hamburg
+  </TabItem>  
 </Tabs>
 
 

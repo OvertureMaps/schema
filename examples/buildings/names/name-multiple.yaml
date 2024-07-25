@@ -9,7 +9,6 @@ properties:
   theme: buildings
   type: building
   version: 1
-  update_time: "2023-02-22T23:55:01-08:00"
   names:
     primary: The White house
     common:

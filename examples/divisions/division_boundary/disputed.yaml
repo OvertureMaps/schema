@@ -1,0 +1,17 @@
+---
+id: example:division_boundary:disputed_both
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 1], [1, 2]]
+properties:
+  theme: divisions
+  type: division_boundary
+  version: 1
+  subtype: country
+  class: land
+  division_ids: ["example:division:country:left", "example:division:country:right"]
+  is_disputed: true
+  perspectives:
+    mode: disputed_by
+    countries: [XX] # Random country disputing the actual boundary
