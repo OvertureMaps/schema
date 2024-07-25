@@ -12,11 +12,11 @@ CASE
         'muddy_brick'
     ) THEN 'brick'
     WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
-      'cement_block',
-      'block',
-      'cement block',
-      'cement_blocks',
-      'cement blocks'
+        'cement_block',
+        'block',
+        'cement block',
+        'cement_blocks',
+        'cement blocks'
     ) THEN 'cement_block'
     WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
         'clay',
