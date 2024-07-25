@@ -1,5 +1,5 @@
 CASE
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'brick',
         'slate',
         'ladrillos',
@@ -11,14 +11,14 @@ CASE
         'brick_block',
         'muddy_brick'
     ) THEN 'brick'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'cement_block',
         'block',
         'cement block',
         'cement_blocks',
         'cement blocks'
     ) THEN 'cement_block'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'clay',
         'mud',
         'rammed_earth',
@@ -27,18 +27,18 @@ CASE
         'grass',
         'pressed_soil_blocks'
     ) THEN 'clay'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'concrete',
         'concrete masonry unit',
         'cement',
         'concrete_reinforced',
         'reinforced_concrete'
     ) THEN 'concrete'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'glass',
         'mirror'
     ) THEN 'glass'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'metal',
         'steel',
         'metal_plates',
@@ -50,19 +50,19 @@ CASE
         'panel',
         'aluminium'
     ) THEN 'metal'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'plaster',
         'plastered',
         'hard'
     ) THEN 'plaster'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'plastic',
         'vinyl',
         'plastic_sheeting',
         'composite',
         'vinyl_siding'
     ) THEN 'plastic'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'stone',
         'limestone',
         'sandstone',
@@ -70,11 +70,11 @@ CASE
         'marble',
         'tiles'
     ) THEN 'stone'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'timber_framing',
         'traditional'
     ) THEN 'timber_framing'
-    WHEN lower(trim(element_at(tags, 'building:facade'))) IN (
+    WHEN lower(trim(element_at(tags, 'building:material'))) IN (
         'wood',
         'reed',
         'wattle_and_daub',
@@ -84,7 +84,7 @@ CASE
         'bamboo'
     ) THEN 'wood'
 
-    -- when building:facade isn't usable then try building:facade:material
+    -- when building:material isn't usable then try building:facade:material
 
     WHEN lower(trim(element_at(tags, 'building:facade:material'))) IN (
         'brick',
