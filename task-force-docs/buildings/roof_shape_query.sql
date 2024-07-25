@@ -1,4 +1,4 @@
-
+CASE
     WHEN lower(trim(element_at(tags, 'roof:shape'))) IN (
         'dome'
     ) THEN 'dome'
