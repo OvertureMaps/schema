@@ -220,10 +220,10 @@ CASE
 
     -- buildings that are part of bridge structures
     WHEN  lower(trim(element_at(tags, 'bridge:support'))) <> 'no'
-    THEN 'bridge_structure'
+    THEN 'transportation'
 
     WHEN lower(trim(element_at(tags, 'bridge:structure'))) <> 'no'
-    THEN 'bridge_structure'
+    THEN 'transportation'
 
     ELSE NULL
 END
