@@ -1,3 +1,5 @@
+# View the Schema Documentation at [docs.overturemaps.org/schema](https://docs.overturemaps.org/schema/)
+
 # Editing the Overture Schema Documentation
 
 [docs.overturemaps.org](https://docs.overturemaps.org) is a docusaurus website that builds from the [github.com/overturemaps/docs](github.com/overturemaps/docs) repo
