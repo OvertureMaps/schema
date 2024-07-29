@@ -23,14 +23,25 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install NPM dependencies
-        run: cd docusaurus && npm install --prefer-dedupe
+      - name: Clone documentation repo
+        run: git clone --depth=1 https://github.com/OvertureMaps/docs docusaurus
+
+      - name: Copy Examples, Schema, & Docs
+        run: |
+          mkdir -p docusaurus/docs/_examples
+          cp -R examples/* docusaurus/docs/_examples/
+          mkdir -p docusaurus/docs/_schema
+          cp -R schema/* docusaurus/docs/_schema/
+          cp -R docs/schema docusaurus/docs/
 
       - name: Build Docusaurus website
         env:
           DOCUSAURUS_URL: https://dfhx9f55j8eg5.cloudfront.net/
           DOCUSAURUS_BASE_URL: /pr/${{github.event.number}}/
-        run: cd docusaurus && npm run build
+        run: |
+          cd docusaurus
+          npm install
+          npm run build
 
       - name: Fetch AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
