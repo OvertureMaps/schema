@@ -22,6 +22,7 @@ description: Common schema definitions shared by all themes
       enum:
         - address
         - building
+        - bathymetry
         - connector
         - division
         - division_area
