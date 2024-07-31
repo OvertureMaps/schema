@@ -22,16 +22,31 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "19"
+          node-version: "20"
 
-      - name: Install NPM dependencies
-        run: cd docusaurus && npm install --prefer-dedupe
+      - name: Checkout Documentation
+        uses: actions/checkout@v4
+        with:
+          repository: OvertureMaps/docs
+          ref: main
+          path: docusaurus
+
+      - name: Copy Examples, Schema, & Docs
+        run: |
+          mkdir -p docusaurus/docs/_examples
+          cp -R examples/* docusaurus/docs/_examples/
+          mkdir -p docusaurus/docs/_schema
+          cp -R schema/* docusaurus/docs/_schema/
+          cp -R docs/schema docusaurus/docs/
 
       - name: Build Docusaurus website
         env:
           DOCUSAURUS_URL: https://dfhx9f55j8eg5.cloudfront.net/
           DOCUSAURUS_BASE_URL: /latest/
-        run: cd docusaurus && npm run build
+        run: |
+          cd docusaurus
+          npm install --prefer-dedupe
+          npm run docusaurus build
 
       - name: Fetch AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -48,4 +63,4 @@ jobs:
           aws cloudfront create-invalidation --distribution-id E3L106P8HVBE9L --paths "/latest/*"
 
       - name: Publish URL
-        run: echo "### [https://dfhx9f55j8eg5.cloudfront.net/latest/](https://dfhx9f55j8eg5.cloudfront.net/latest/)" >> $GITHUB_STEP_SUMMARY
+        run: echo "### [https://dfhx9f55j8eg5.cloudfront.net/latest/schema/](https://dfhx9f55j8eg5.cloudfront.net/latest/schema/)" >> $GITHUB_STEP_SUMMARY
