@@ -24,6 +24,7 @@ description: Common schema definitions shared by all themes
         - bathymetry
         - boundary
         - building
+        - bathymetry
         - connector
         - division
         - division_area
