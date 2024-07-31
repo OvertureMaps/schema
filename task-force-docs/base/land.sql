@@ -1,3 +1,149 @@
+-- This file contains the logic for transforming OpenStreetMap features into Overture features
+-- for the `land` type within the `base` theme.
+
+-- The order of the WHEN clauses in the following CASE statement is very specific. It is the same
+-- as saying "WHEN this tag is present AND ignore any of the other tags below this line"
+WITH classified_osm AS (
+    SELECT CAST(
+        CASE
+            -- Desert
+            WHEN tags['natural'] IN ('desert') THEN ROW('desert', tags['natural'])
+
+            -- Wetland
+            WHEN tags['natural'] IN ('wetland') THEN ROW('wetland', 'wetland')
+
+            -- Glacier
+            WHEN tags['natural'] IN ('glacier') THEN ROW('glacier', tags['natural'])
+
+            -- Rock
+            WHEN tags['natural'] IN (
+                'bare_rock',
+                'rock',
+                'scree',
+                'shingle',
+                'stone'
+            ) THEN ROW('rock', tags['natural'])
+
+            -- Sand
+            WHEN tags['natural'] IN ('beach', 'dune', 'sand') THEN ROW('sand', tags['natural'])
+
+            -- Grass
+            WHEN tags['natural'] IN (
+                'fell',
+                'grass',
+                'grassland',
+                'meadow',
+                'tundra'
+            ) THEN ROW('grass', tags['natural'])
+            WHEN tags['landcover'] IN ('grass') THEN ROW ('grass', tags['landcover'])
+
+            -- Shrub / Scrub
+            WHEN tags['natural'] IN (
+                'heath',
+                'shrub',
+                'shrubbery',
+                'scrub'
+            ) THEN ROW('shrub',tags['natural'])
+            WHEN tags['landcover'] IN ('scrub') THEN ROW('shrub', tags['landcover'])
+
+            -- Reefs
+            WHEN tags['natural'] IN ('reef') THEN ROW('reef', tags['natural'])
+
+            -- Forest
+            WHEN tags['natural'] IN ('forest', 'wood') THEN ROW('forest', tags['natural'])
+            WHEN tags['landcover'] IN ('trees') THEN ROW('forest', 'forest')
+            WHEN tags['landuse'] IN ('forest') THEN ROW('forest','forest')
+
+            -- Single trees tree rows
+            WHEN tags['natural'] IN ('tree') THEN ROW('tree','tree')
+            WHEN tags['natural'] IN ('tree_row') THEN ROW('tree','tree_row')
+
+            -- Physical Subtype
+            WHEN tags['natural'] IN(
+                'cave_entrance',
+                'cliff',
+                'hill',
+                'mountain_range',
+                'peak',
+                'peninsula',
+                'ridge',
+                'saddle',
+                'valley'
+            ) THEN ROW('physical', tags['natural'])
+
+            -- Volcanoes
+            WHEN tags['natural'] = 'volcano' THEN IF(
+                tags['type'] = 'extinct' OR tags['volcano:status'] = 'extinct',
+                ROW ('physical','peak'),
+                ROW('physical','volcano')
+            )
+
+            -- Archipelagos, Islands & Islets
+            WHEN tags['place'] IN (
+                'archipelago',
+                'island',
+                'islet'
+            ) THEN ROW('land',tags['place'])
+
+            -- Look at surface tag now
+            WHEN tags['surface'] IN ('grass') THEN ROW('grass','grass')
+
+            ELSE ROW(NULL, NULL)
+        END AS ROW(subtype varchar, class varchar)
+        ) AS overture,
+
+        -- Allowed surface tags
+        CASE
+            WHEN tags['surface'] IN (
+                'asphalt',
+                'cobblestone',
+                'compacted',
+                'concrete',
+                'dirt',
+                'earth',
+                'fine_gravel',
+                'grass',
+                'gravel',
+                'ground',
+                'paved',
+                'paving_stones',
+                'pebblestone',
+                'recreation_grass',
+                'recreation_paved',
+                'recreation_sand',
+                'rubber',
+                'sand',
+                'sett',
+                'tartan',
+                'unpaved',
+                'wood',
+                'woodchips'
+            )   THEN tags['surface']
+            WHEN tags['surface'] = 'concrete:plates'
+                THEN 'concrete_plates'
+            ELSE NULL
+        END AS surface,
+        TRY_CAST(tags['ele'] AS integer) AS elevation,
+        *
+    FROM
+        {daylight_table}
+    WHERE
+        release = '{daylight_version}'
+        -- These tags are considered for the land type:
+        AND
+        (
+            tags [ 'natural' ] IS NOT NULL
+            OR tags [ 'surface' ] IS NOT NULL
+            OR tags [ 'landcover' ] IS NOT NULL
+            OR tags [ 'landuse' ] IN ('forest', 'meadow')
+            OR tags [ 'place' ] IN ('archipelago','island','islet')
+        )
+        -- None of the below tags can be present; they go in other theme/types
+        AND tags [ 'highway' ] IS NULL
+        AND tags [ 'building' ] IS NULL
+        AND tags [ 'golf' ] IS NULL
+        AND tags [ 'leisure' ] IS NULL
+)
 SELECT
     -- Needed to compute ID and satisfy Overture requirements:
     type,
@@ -7,77 +153,12 @@ SELECT
     max_lon,
     min_lat,
     max_lat,
-    TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
-
-    -- Determine subtype from class:
-    CASE
-        -- Desert
-        WHEN class IN ('desert') THEN 'desert'
-
-        -- Forest
-        WHEN class IN ('forest', 'wood') THEN 'forest'
-
-        -- Glacier
-        WHEN class IN ('glacier') THEN 'glacier'
-
-        -- Grass
-        WHEN class IN ('fell', 'grass', 'grassland', 'meadow', 'tundra') THEN 'grass'
-
-        -- General land (including islands)
-        WHEN class IN ('archipelago','islet','island') THEN 'land'
-
-        -- Physical
-        WHEN class IN (
-            'cave_entrance',
-            'cliff',
-            'hill',
-            'mountain_range',
-            'peak',
-            'peninsula',
-            'plateau',
-            'ridge',
-            'saddle',
-            'valley',
-            'volcano'
-        ) THEN 'physical'
-
-        -- Reef
-        WHEN class IN ('reef') THEN 'reef'
-
-        -- Rock
-        WHEN class IN (
-            'bare_rock',
-            'rock',
-            'scree',
-            'shingle',
-            'stone'
-        ) THEN 'rock'
-
-        --Sand
-        WHEN class IN (
-            'sand',
-            'beach',
-            'dune'
-        ) THEN 'sand'
-
-        --Shrub
-        WHEN class IN (
-            'heath',
-            'scrub',
-            'shrub',
-            'shrubbery'
-        ) THEN 'shrub'
-
-        -- Tree
-        WHEN class IN ('tree', 'tree_row') THEN 'tree'
-
-        -- Wetland
-        WHEN tags [ 'natural' ] IN ('wetland') THEN 'wetland'
-    END AS subtype,
-    class,
 
     -- Complex name logic gets injected here
     '__OVERTURE_NAMES_QUERY' AS names,
+
+    overture.subtype AS subtype,
+    overture.class AS class,
 
     -- Relevant OSM tags for land type
     MAP_FILTER(tags, (k,v) -> k IN (
@@ -98,6 +179,7 @@ SELECT
             'min_height',
             'natural',
             'place',
+            'reef',
             'species',
             'sport',
             'surface',
@@ -119,12 +201,14 @@ SELECT
             '',
             'OpenStreetMap',
             SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
+            TO_ISO8601(created_at AT TIME ZONE 'UTC'),
             NULL
         )
         AS ROW(
             property varchar,
             dataset varchar,
             record_id varchar,
+            update_time varchar,
             confidence double
         )
     ) ] AS sources,
@@ -135,144 +219,18 @@ SELECT
     -- Overture's concept of `layer` is called level
     TRY_CAST(tags['layer'] AS int) AS level,
 
-    -- Elevation as integer (meters above sea level)
-    TRY_CAST(tags['ele'] AS integer) AS elevation,
+    -- Elevation as meters above sea level
+    IF(elevation < 9000, elevation, NULL) as elevation,
 
-    wkt_geometry
+    -- Surface
+    surface,
 
-FROM (
-    SELECT
-        *,
-        -- Determine classes from OSM tags
-        CASE
+    wkt AS wkt_geometry
 
-            -- Natural tags that map to specific classes:
-            WHEN tags [ 'natural' ] IN (
-                'bare_rock',
-                'beach',
-                'cave_entrance',
-                'cliff',
-                'desert',
-                'dune',
-                'fell',
-                'forest',
-                'glacier',
-                'grassland',
-                'heath',
-                'hill',
-                'mountain_range',
-                'peak',
-                'peninsula',
-                'plateau',
-                'reef',
-                'ridge',
-                'rock',
-                'sand',
-                'saddle',
-                'scree',
-                'scrub',
-                'shingle',
-                'shrub',
-                'shrubbery',
-                'stone',
-                'tree_row',
-                'tree',
-                'tundra',
-                'valley',
-                'wetland',
-                'wood'
-            ) THEN tags ['natural']
-
-            -- More complicated logic for turning volcanoes into peaks.
-            WHEN tags['natural'] = 'volcano' THEN CASE
-                WHEN tags['type'] = 'extinct' OR tags['volcano:status'] = 'extinct' THEN 'peak'
-                WHEN (tags['type'] <> 'extinct' OR tags['type'] IS NULL) AND (tags['volcano:status'] <> 'extinct' OR tags['volcano:status'] IS NULL) THEN 'volcano'
-            END
-
-            -- Surface tags that become classes
-            WHEN tags [ 'surface' ] IN ('grass') THEN tags [ 'surface' ]
-            WHEN tags [ 'landcover' ] = 'trees' THEN 'forest'
-            WHEN tags [ 'landcover' ] IN ('grass', 'scrub', 'tree') THEN tags [ 'landcover' ]
-
-            WHEN tags [ 'meadow' ] IS NULL AND tags [ 'landuse' ] = 'forest' THEN 'forest'
-
-            -- If there was no other land tag, we can send these up to `land`
-            WHEN tags ['place'] IN ('archipelago','island','islet') THEN tags['place']
-
-            ELSE NULL
-        END AS class
-    FROM (
-        SELECT
-            id,
-            type,
-            version,
-            tags,
-            created_at,
-            -- ST_GeometryFromText(wkt) AS geom,
-            wkt AS wkt_geometry,
-            min_lon,
-            max_lon,
-            min_lat,
-            max_lat
-            -- These two lines get injected.
-            FROM
-                {daylight_table}
-            WHERE
-                release = '{daylight_version}'
-
-            -- These tags are considered for the land type:
-            AND
-            (
-                tags [ 'natural' ] IS NOT NULL
-                OR tags [ 'surface' ] IS NOT NULL
-                OR tags [ 'landcover' ] IS NOT NULL
-                OR tags [ 'landuse' ] IN ('forest', 'meadow')
-                OR tags [ 'place' ] IN ('archipelago','island','islet')
-            )
-            -- None of the below tags can be present; they go in other theme/types
-            AND tags [ 'highway' ] IS NULL
-            AND tags [ 'building' ] IS NULL
-            AND tags [ 'golf' ] IS NULL
-            AND tags [ 'leisure' ] IS NULL
-    )
-)
+FROM
+    classified_osm
 WHERE
-    class IS NOT NULL -- Ignore anything that didn't get assigned a class
-    AND (
-        -- Polygons are always allowed
-        wkt_geometry LIKE '%POLYGON%'
-
-        -- Valid Point classes:
-        OR (
-            wkt_geometry LIKE '%POINT%'
-            AND class IN (
-                'cave_entrance',
-                'cliff',
-                'hill',
-                'mountain_range',
-                'peak',
-                'peninsula',
-                'plateau',
-                'saddle',
-                'shrub',
-                'tree',
-                'valley',
-                'volcano',
-                'stone'
-            )
-        )
-        -- Valid LineStrings
-        OR (
-            wkt_geometry LIKE '%LINESTRING%'
-            AND class IN (
-                'cliff',
-                'mountain_range',
-                'tree_row',
-                'ridge',
-                'valley'
-            )
-        )
-    )
+    overture.subtype IS NOT NULL
 
 UNION ALL
 -- Land derived from the OSM Coastline tool
@@ -285,11 +243,9 @@ SELECT
     ST_XMAX(ST_GeometryFromText(wkt)) as max_lon,
     ST_YMIN(ST_GeometryFromText(wkt)) AS min_lat,
     ST_YMAX(ST_GeometryFromText(wkt)) AS max_lat,
-    -- Stub with today's date for now
-    TO_ISO8601(cast(now() as timestamp) AT TIME ZONE 'UTC') AS update_time,
-    class as subType,
-    subclass as class,
     NULL AS names,
+    class as subtype,
+    subclass as class,
     MAP() AS source_tags,
     MAP() AS osm_tags,
     -- Source is OSM
@@ -298,17 +254,20 @@ SELECT
             '',
             'OpenStreetMap',
             NULL,
+            NULL,
             NULL
         ) AS ROW(
             property varchar,
             dataset varchar,
             record_id varchar,
+            update_time varchar,
             confidence double
         )
     ) ] as sources,
     NULL AS wikidata,
     NULL AS level,
     NULL AS elevation,
+    NULL AS surface,
     wkt AS wkt_geometry
 FROM {daylight_earth_table}
 WHERE release = '{daylight_version}'

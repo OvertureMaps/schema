@@ -1,270 +1,27 @@
-SELECT
-    -- Needed to compute ID and satisfy Overture requirements:
-    type,
-    id,
-    version,
-    min_lon,
-    max_lon,
-    min_lat,
-    max_lat,
-    TO_ISO8601(created_at AT TIME ZONE 'UTC') AS update_time,
-    -- Determine class from subclass or tags
-    CASE
-        -- Bus / Ferry / Railway Infrastructure (Transit)
-        WHEN class IN (
-            'bus_route',
-            'bus_stop',
-            'bus_station',
-            -- 'ferry_route',
-            'ferry_terminal',
-            'railway_halt',
-            'railway_station',
-            -- Parking
-            'parking',
-            'parking_space',
+-- This file contains the logic for transforming OpenStreetMap features into Overture features
+-- for the `infrastructure` type within the `base` theme.
 
-            -- Public transport / cycle
-            'stop_position',
-            'platform',
+-- The order of the WHEN clauses in the following CASE statement is very specific. It is the same
+-- as saying "WHEN this tag is present AND ignore any of the other tags below this line"
 
-            -- cycle
-            'bicycle_parking'
-
-        ) THEN 'transit'
-
-        -- Aerialways
-        WHEN class IN (
-            'aerialway_station',
-            'cable_car',
-            'chair_lift',
-            'drag_lift',
-            'gondola',
-            'mixed_lift',
-            'pylon',
-            't-bar'
-        ) THEN 'aerialway'
-
-        -- Airports
-        WHEN class IN (
-            'airport',
-            'airstrip',
-            'helipad',
-            'heliport',
-            'international_airport',
-            'military_airport',
-            'municipal_airport',
-            'private_airport',
-            'regional_airport',
-            'runway',
-            'seaplane_airport',
-            'taxiway'
-        ) THEN 'airport'
-
-        -- Barriers / Fences
-        WHEN class IN (
-            'barrier',
-            'block',
-            'bollard',
-            'cattle_grid',
-            'chain',
-            'city_wall',
-            'cycle_barrier',
-            'ditch',
-            'entrance',
-            'guard_rail',
-            'hedge',
-            'height_restrictor',
-            'jersey_barrier',
-            'kerb',
-            'kissing_gate',
-            'lift_gate',
-            'retaining_wall',
-            'stile',
-            'swing_gate',
-            'toll_booth',
-            'wall',
-            'cutline'
-        ) THEN 'barrier'
-
-        -- Bridges
-        WHEN class IN (
-            'bridge',
-            'viaduct',
-            'boardwalk',
-            'aqueduct',
-            'movable',
-            'covered',
-            'cantilever',
-            'trestle'
-        ) THEN 'bridge'
-
-        -- Communication
-        WHEN class IN (
-            'communication_line',
-            'communication_pole',
-            'communication_tower',
-            'mobile_phone_tower'
-        ) THEN 'communication'
-
-        -- Generic Towers
-        WHEN class IN (
-            'bell_tower',
-            'cooling',
-            'defensive',
-            'diving',
-            'hose',
-            'lighting',
-            'lightning_protection',
-            'minaret',
-            'monitoring',
-            'observation',
-            'radar',
-            'siren',
-            'suspension',
-            'watchtower'
-        ) THEN 'tower'
-
-        -- Power
-        WHEN class IN (
-            'cable_distribution',
-            'cable',
-            'catenary_mast',
-            'connection',
-            'generator',
-            'heliostat',
-            'insulator',
-            'minor_line',
-            'plant',
-            'power_pole',
-            'portal',
-            'power_line',
-            'power_tower',
-            'sub_station',
-            'substation',
-            'switch',
-            'terminal',
-            'transformer'
-        ) THEN 'power'
-
-        -- Pedestrian
-        WHEN class IN (
-            'atm',
-            'bench',
-            'information',
-            'picnic_table',
-            'post_box',
-            'toilets',
-            'vending_machine',
-            'viewpoint'
-        ) THEN 'pedestrian'
-
-        -- Manholes
-        WHEN class IN ('manhole', 'drain', 'sewer') THEN 'manhole'
-
-        -- Generic Utility
-        WHEN class IN (
-            'silo',
-            'storage_tank',
-            'utility_pole',
-            'water_tower'
-        ) THEN 'utility'
-
-        WHEN class IN ('camp_site') THEN 'recreation'
-
-        -- Utility
-        WHEN class IN ('pipeline','storage_tank') THEN 'utility'
-
-        -- Waste Management
-        WHEN class IN (
-            'recycling',
-            'waste_basket',
-            'waste_disposal'
-        ) THEN 'waste_management'
-
-        -- Piers & Dams are their own subtypes
-        WHEN class IN ('pier') THEN class
-
-        WHEN class IN ('dam','weir') THEN 'water'
-
-    END AS subtype,
-    class,
-    '__OVERTURE_NAMES_QUERY' AS names,
-
-    -- Relevant OSM tags for land type
-    MAP_FILTER(tags, (k,v) -> k IN (
-            'access',
-            'aerodrome:type',
-            'aerodrome',
-            'amenity',
-            'barrier',
-            'icao',
-            'landuse',
-            'military',
-            'parking',
-            'ref',
-            'route',
-            'surface',
-            'tower',
-            'tourism'
-        )
-    ) AS source_tags,
-
-    -- Add all OSM Tags for debugging
-    tags AS osm_tags,
-
-    -- Sources are an array of structs.
-    ARRAY [ CAST(
-        ROW(
-            '',
-            'OpenStreetMap',
-            SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
-            NULL
-        )
-        AS ROW(
-            property varchar,
-            dataset varchar,
-            record_id varchar,
-            confidence double
-        )
-    ) ] AS sources,
-
-    tags['surface'] AS surface,
-
-    -- Overture's concept of `layer` is called level
-    TRY_CAST(tags['layer'] AS int) AS level,
-
-    -- Wikidata is a top-level property in the OSM Container
-    tags['wikidata'] as wikidata,
-
-    -- Apparently there are corrupt geometries that are breaking Athena, so write WKT for now:
-    wkt AS wkt_geometry
-FROM (
-    SELECT
-        *,
+WITH classified_osm AS (
+    SELECT CAST(
         CASE
-            -- Transit Infrastructure
-            -- Air
-            WHEN tags['aeroway'] IN ('runway', 'taxiway', 'airstrip', 'helipad') THEN tags['aeroway']
+            -- Transit
+            WHEN element_at(tags,'railway') IN ('station','halt') THEN ROW('transit', 'railway_' || element_at(tags,'railway'))
 
-            -- Specific airport classing
-            WHEN tags['aeroway'] = 'aerodrome' THEN CASE
-                WHEN tags['aerodrome:type'] = 'military' OR tags['landuse'] = 'military' OR tags['military'] IN (
-                    'airfield'
-                ) THEN 'military_airport'
-                WHEN tags['access'] IN ('emergency', 'no', 'permissive', 'private')
-                    OR tags['aerodrome:type'] = 'private' THEN 'private_airport'
-                WHEN tags['name'] LIKE '%international%' OR tags['aerodrome:type'] = 'international'
-                    OR tags['aerodrome'] = 'international' THEN 'international_airport'
-                WHEN tags['name'] LIKE '%regional%' OR tags['aerodrome:type'] = 'regional'
-                    THEN 'regional_airport'
-                WHEN tags['name'] LIKE '%municipal%' THEN 'municipal_airport'
-                WHEN tags['name'] LIKE '%seaplane%' THEN 'seaplane_airport'
-                WHEN tags['name'] LIKE '%heli%' THEN 'heliport'
-                ELSE 'airport'
-            END
+            WHEN element_at(tags,'highway') = 'bus_stop' THEN ROW('transit', 'bus_stop')
+            WHEN element_at(tags,'route') = 'bus' THEN ROW('transit', 'bus_route')
+            WHEN element_at(tags,'amenity') = 'bus_station' THEN ROW('transit', 'bus_station')
 
-            --Aerialways
-            WHEN tags['aerialway'] IN (
+            WHEN element_at(tags,'amenity') = 'ferry_terminal' THEN ROW('transit','ferry_terminal')
+
+            WHEN element_at(tags,'amenity') IN ('parking','parking_space','bicycle_parking') THEN ROW('transit', element_at(tags,'amenity'))
+
+            WHEN element_at(tags,'public_transport') IN ('stop_position', 'platform') THEN ROW('transit', element_at(tags,'public_transport'))
+
+            -- Aerialways
+            WHEN element_at(tags,'aerialway') IN (
                 'cable_car',
                 'gondola',
                 'mixed_lift',
@@ -272,84 +29,67 @@ FROM (
                 'drag_lift',
                 't-bar',
                 'pylon'
-            ) THEN tags['aerialway']
+            ) THEN ROW('aerialway', element_at(tags,'aerialway'))
 
-            WHEN tags['aerialway'] = 'station' THEN 'aerialway_station'
+            WHEN element_at(tags,'aerialway') = 'station' THEN ROW('aerialway', 'aerialway_station')
 
-            --Barriers
-            WHEN tags['barrier'] IS NOT NULL AND tags['barrier'] <> 'no' THEN
-                IF(tags['barrier'] IN (
-                    'block',
-                    'bollard',
-                    'cattle_grid',
-                    'chain',
-                    'city_wall',
-                    'cycle_barrier',
-                    'ditch',
-                    'entrance',
-                    'guard_rail',
-                    'hedge',
-                    'height_restrictor',
-                    'jersey_barrier',
-                    'kerb',
-                    'kissing_gate',
-                    'lift_gate',
-                    'retaining_wall',
-                    'stile',
-                    'swing_gate',
-                    'toll_booth',
-                    'wall'
-                ), tags['barrier'],
-                'barrier'
-            )
+            -- Airports
+            WHEN element_at(tags,'aeroway') IN ('runway', 'taxiway', 'airstrip', 'helipad') THEN ROW('airport', element_at(tags,'aeroway'))
 
-            -- Bus
-            WHEN tags['highway'] = 'bus_stop' THEN 'bus_stop'
-            WHEN tags['route'] = 'bus' THEN 'bus_route'
-            WHEN tags['amenity'] = 'bus_station' THEN 'bus_station'
+            WHEN element_at(tags,'aeroway') = 'gate' THEN ROW('airport', 'airport_gate')
 
-            -- Public Transport
-            WHEN tags['public_transport'] IN ('stop_position','platform') THEN tags['public_transport']
+            WHEN element_at(tags,'aeroway') = 'aerodrome' THEN CASE
+                WHEN element_at(tags,'aerodrome:type') = 'military' OR element_at(tags,'landuse') = 'military' OR element_at(tags,'military') IN (
+                    'airfield'
+                ) THEN ROW('airport','military_airport')
+                WHEN element_at(tags,'access') IN ('emergency', 'no', 'permissive', 'private')
+                    OR element_at(tags,'aerodrome:type') = 'private' THEN ROW('airport','private_airport')
+                WHEN lower(element_at(tags,'name')) LIKE '%international%' OR element_at(tags,'aerodrome:type') = 'international'
+                    OR element_at(tags,'aerodrome') = 'international' THEN ROW('airport','international_airport')
+                WHEN lower(element_at(tags,'name')) LIKE '%regional%' OR element_at(tags,'aerodrome:type') = 'regional'
+                    THEN ROW('airport','regional_airport')
+                WHEN lower(element_at(tags,'name')) LIKE '%municipal%' THEN ROW('airport','municipal_airport')
+                WHEN lower(element_at(tags,'name')) LIKE '%seaplane%' THEN ROW('airport','seaplane_airport')
+                WHEN lower(element_at(tags,'name')) LIKE '%heli%' THEN ROW('airport','heliport')
+                ELSE ROW('airport','airport')
+            END
 
-            -- Ferry
-            -- WHEN tags['route'] = 'ferry' THEN 'ferry_route'
-            WHEN tags['amenity'] = 'ferry_terminal' THEN 'ferry_terminal'
+            -- Bridges
+            WHEN element_at(tags,'bridge') IN (
+                'aqueduct',
+                'boardwalk',
+                'cantilever',
+                'covered',
+                'movable',
+                'trestle',
+                'viaduct'
+            ) THEN ROW('bridge', element_at(tags,'bridge'))
+            WHEN element_at(tags,'bridge:support') IS NOT NULL THEN
+                ROW('bridge', 'bridge_support')
 
-            -- Parking
-            WHEN tags['amenity'] IN ('parking','parking_space','bicycle_parking') THEN tags['amenity']
+            -- Communication
+            WHEN element_at(tags,'communication:mobile_phone') <> 'no' THEN ROW('communication','mobile_phone_tower')
+            WHEN element_at(tags,'communication') IN ('line','pole') THEN ROW('communication','communication_' || element_at(tags,'communication'))
+            WHEN element_at(tags,'tower:type') = 'communication' THEN ROW('communication','communication_tower')
 
-            -- Amenity Tags (pedestrian, waste_management, etc)
-            WHEN tags['amenity'] IN (
+            -- Pedestrian
+            WHEN element_at(tags,'highway') IS NULL AND element_at(tags,'footway') IN ('crossing') AND (wkt LIKE 'MULTIPOLYGON%' OR wkt LIKE 'POLYGON%') THEN ROW('pedestrian','pedestrian_crossing')
+            WHEN element_at(tags,'tourism') IN ('information', 'viewpoint') THEN ROW('pedestrian', element_at(tags,'tourism'))
+            WHEN element_at(tags,'amenity') IN (
                 'atm',
                 'bench',
                 'picnic_table',
                 'post_box',
-                'recycling',
                 'toilets',
-                'vending_machine',
-                'waste_basket',
-                'waste_disposal'
-            ) THEN tags['amenity']
+                'vending_machine'
+            ) THEN ROW('pedestrian', element_at(tags,'amenity'))
 
-            WHEN tags['tourism'] IN ('information','viewpoint') THEN tags['tourism']
-
-            -- Rail
-            WHEN tags['railway'] = 'station' THEN 'railway_station'
-            WHEN tags['railway'] = 'halt' THEN 'railway_halt'
-
-
-            -- Communication
-            WHEN tags['communication:mobile_phone'] <> 'no' THEN 'mobile_phone_tower'
-            WHEN tags['communication'] = 'line' THEN 'communication_line'
-            WHEN tags['communication'] = 'pole' THEN 'communication_pole'
-            WHEN tags['tower:type'] = 'communication' THEN 'communication_tower'
-
-            -- Manhole
-            WHEN tags['manhole'] IN ('drain', 'sewer') THEN tags['manhole']
-            WHEN tags['manhole'] IS NOT NULL THEN 'manhole'
+            -- Manholes
+            WHEN element_at(tags,'manhole') IN ('drain', 'sewer') THEN ROW('manhole', element_at(tags,'manhole'))
+            WHEN element_at(tags,'manhole') IS NOT NULL THEN ROW('manhole','manhole')
 
             -- Power
-            WHEN tags['power'] IN (
+            WHEN element_at(tags,'power') IN (
                 'cable_distribution',
                 'cable',
                 'catenary_mast',
@@ -365,14 +105,15 @@ FROM (
                 'switch',
                 'terminal',
                 'transformer'
-            ) THEN tags['power']
+            ) THEN ROW('power', element_at(tags,'power'))
 
-            WHEN tags['power'] = 'line' THEN 'power_line'
-            WHEN tags['power'] = 'pole' THEN 'power_pole'
-            WHEN tags['power'] = 'tower' THEN 'power_tower'
+            WHEN element_at(tags,'power') IN ('line', 'pole', 'tower') THEN ROW('power','power_' || element_at(tags,'power'))
 
-            -- Other towers
-            WHEN tags['tower:type'] IN (
+            -- Recreation
+            WHEN element_at(tags,'tourism') = ('camp_site') AND wkt LIKE 'POINT%' THEN ROW('recreation','camp_site')
+
+            -- Towers
+            WHEN element_at(tags,'tower:type') IN (
                 'bell_tower',
                 'cooling',
                 'defensive',
@@ -386,35 +127,84 @@ FROM (
                 'radar',
                 'siren',
                 'watchtower'
-            ) THEN tags['tower:type']
+            ) THEN ROW('tower', element_at(tags,'tower:type'))
 
-            WHEN tags['bridge'] = 'yes' THEN 'bridge'
-            WHEN tags['bridge'] IN (
-                'aqueduct',
-                'boardwalk',
-                'cantilever',
-                'covered',
-                'movable',
-                'trestle',
-                'viaduct'
-            ) THEN tags['bridge']
+            -- Utility
+            WHEN element_at(tags,'man_made') IN ('silo','utility_pole','storage_tank', 'pipeline', 'water_tower') THEN ROW('utility',element_at(tags,'man_made'))
 
-            WHEN tags['man_made'] IN (
-                'bridge',
-                'cutline',
-                'pier',
-                'pipeline',
-                'storage_tank',
-                'silo',
-                'utility_pole',
-                'water_tower'
-            ) THEN tags['man_made']
+            -- Waste Management
+            WHEN element_at(tags,'amenity') IN(
+                'recycling',
+                'waste_basket',
+                'waste_disposal'
+            ) THEN ROW('waste_management',element_at(tags,'amenity'))
 
-            WHEN tags['waterway'] IN ('dam','weir') THEN tags['waterway']
+            --Water
+            WHEN element_at(tags,'man_made') IN ('dam') THEN ROW('water',element_at(tags,'man_made'))
+            WHEN element_at(tags,'waterway') IN ('dam','weir') THEN ROW('water', element_at(tags,'waterway'))
+            WHEN element_at(tags,'amenity') = ('drinking_water') AND
+                (element_at(tags,'drinking_water') IS NULL OR element_at(tags,'drinking_water') <> 'no') AND
+                (element_at(tags,'access') IS NULL OR element_at(tags,'access') <> 'private')
+                THEN ROW('water', 'drinking_water')
 
-            WHEN tags['tourism'] = 'camp_site' AND wkt LIKE 'POINT%' THEN 'camp_site'
 
-        END AS class
+            -- Standalone piers
+            WHEN element_at(tags,'man_made') IN ('pier') THEN ROW('pier','pier')
+
+
+            -- Barrier tags are often secondary on other features, so put them last.
+            -- Barrier tags that are not allowed on points:
+            WHEN wkt NOT LIKE 'POINT%' AND element_at(tags,'barrier') IN (
+                'cable_barrier',
+                'city_wall',
+                'chain',
+                'ditch',
+                'fence',
+                'guard_rail',
+                'handrail',
+                'hedge',
+                'jersey_barrier',
+                'kerb',
+                'retaining_wall',
+                'wall'
+            ) THEN ROW('barrier', element_at(tags,'barrier'))
+
+            -- Points allowed on these types of barriers:
+            WHEN element_at(tags,'barrier') IN (
+                'block',
+                'bollard',
+                'border_control',
+                'bump_gate',
+                'bus_trap',
+                'cattle_grid',
+                'cycle_barrier',
+                'chain',
+                'entrance',
+                'full-height_turnstile',
+                'gate',
+                'hampshire_gate',
+                'height_restrictor',
+                'jersey_barrier',
+                'kerb',
+                'kissing_gate',
+                'lift_gate',
+                'planter',
+                'sally_port',
+                'stile',
+                'swing_gate',
+                'toll_booth'
+            ) THEN ROW('barrier', element_at(tags,'barrier'))
+            WHEN element_at(tags,'man_made') IN ('cutline') THEN ROW('barrier','cutline')
+
+            -- If there remains a barrier tag but it's not in the above list:
+            WHEN element_at(tags,'barrier') IS NOT NULL THEN ROW('barrier','barrier')
+
+            -- Lower priority generic `bridge` tags
+            WHEN element_at(tags,'man_made') = 'bridge' THEN ROW('bridge','bridge')
+            WHEN element_at(tags,'bridge') = 'yes' THEN ROW('bridge','bridge')
+
+        END AS ROW(subtype varchar, class varchar)) AS overture,
+        *
     FROM
         -- These two lines get injected.
         {daylight_table}
@@ -425,6 +215,8 @@ FROM (
             ARRAY[
                 'barrier',
                 'bridge',
+                'bridge:support',
+                'bridge:structure',
                 'communication:mobile_phone',
                 'communication',
                 'man_made',
@@ -438,13 +230,121 @@ FROM (
                 'aerialway',
                 'aeroway',
                 'amenity',
+                'footway',
                 'highway',
                 'icao',
                 'public_transport',
                 'railway',
                 'route'
             ]
-        ) = TRUE
-    )
+        )
+)
+
+SELECT
+    -- Needed to compute pseudo-stable ID:
+    type,
+    id,
+    version,
+    min_lon,
+    max_lon,
+    min_lat,
+    max_lat,
+
+    -- Names query gets injected
+    '__OVERTURE_NAMES_QUERY' AS names,
+
+    -- The overture struct is defined below
+    overture.subtype as subtype,
+    overture.class AS class,
+
+    -- Relevant OSM tags for infrastructure
+    MAP_FILTER(tags,
+        (k,v) -> k IN (
+            'access',
+            'aerodrome:type',
+            'aerodrome',
+            'amenity',
+            'barrier',
+            'bridge:structure',
+            'bridge:support',
+            'frequency',
+            'icao',
+            'landuse',
+            'location',
+            'military',
+            'parking',
+            'ref',
+            'route',
+            'substation',
+            'surface',
+            'tourism',
+            'tower',
+            'voltage'
+        )
+    ) AS source_tags,
+
+    -- Add all OSM Tags for debugging
+    tags AS osm_tags,
+
+    -- Sources are an array of structs.
+    ARRAY [ CAST(
+        ROW(
+            '',
+            'OpenStreetMap',
+            SUBSTR(type, 1, 1) || CAST(id AS varchar) || '@' || CAST(version AS varchar),
+            TO_ISO8601(created_at AT TIME ZONE 'UTC'),
+            NULL
+        )
+        AS ROW(
+            property varchar,
+            dataset varchar,
+            record_id varchar,
+            update_time varchar,
+            confidence double
+        )
+    ) ] AS sources,
+
+    -- Values of surface are restricted
+    CASE
+        WHEN element_at(tags,'surface') IN (
+            'asphalt',
+            'cobblestone',
+            'compacted',
+            'concrete',
+            'dirt',
+            'earth',
+            'fine_gravel',
+            'grass',
+            'gravel',
+            'ground',
+            'paved',
+            'paving_stones',
+            'pebblestone',
+            'recreation_grass',
+            'recreation_paved',
+            'recreation_sand',
+            'rubber',
+            'sand',
+            'sett',
+            'tartan',
+            'unpaved',
+            'wood',
+            'woodchips'
+        )   THEN element_at(tags,'surface')
+        WHEN element_at(tags,'surface') = 'concrete:plates'
+            THEN 'concrete_plates'
+        ELSE NULL
+    END AS surface,
+
+    -- Overture's concept of `layer` is called level
+    TRY_CAST(element_at(tags,'layer') AS int) AS level,
+
+    -- Wikidata is a top-level property in the OSM Container
+    element_at(tags,'wikidata') as wikidata,
+
+    -- Store geometries as WKT
+    wkt AS wkt_geometry
+FROM
+    classified_osm
 WHERE
-    class IS NOT NULL
+    overture.subtype IS NOT NULL
