@@ -16,5 +16,5 @@ properties:
     - record_id: x123
       property: ""
       dataset: some source
+      update_time: "2023-05-30T00:00:00Z"
   version: 0
-  update_time: "2023-05-30T00:00:00Z"
