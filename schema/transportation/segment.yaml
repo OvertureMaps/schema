@@ -51,6 +51,9 @@ properties:
           kind has an (implied) set of default transport modes.
       connector_ids:
         description: >-
+          ** Deprecated** `connector_ids` is deprecated in favor of `connectors` and
+          is planned to be removed for the October release.
+
           List of connector IDs identifying the connectors this segment is physically
           connected to. Each connector is a possible routing decision point, meaning
           it defines a place along the segment in which there is possibility to
@@ -61,6 +64,26 @@ properties:
           "$comment": >-
             Each entry in this array is the GERS ID of a transportation connector feature.
         uniqueItems: true
+        minItems: 2
+        default: []
+      connectors:
+        description: >-
+          List of connectors which this segment is physically connected to and their
+          relative location. Each connector is a possible routing decision point, meaning
+          it defines a place along the segment in which there is possibility to
+          transition to other segments which share the same connector.
+        type: array
+        items:
+          type: object
+          "$comment": >-
+            Contains the GERS ID and relative position between 0 and 1 of a connector feature along the segment.
+          unevaluatedProperties: false
+          required: [connector_id, at]
+          properties:
+            connector_id: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
+            at: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition" }
+        uniqueItems: true
+        minItems: 2
         default: []
       routes: { "$ref": "#/$defs/propertyDefinitions/routes" }
 "$defs":
@@ -69,9 +92,9 @@ properties:
       description: >-
         The type of object of the destination label.
       type: string
-      enum: 
+      enum:
       - street
-      - country 
+      - country
       - route_ref
       - toward_route_ref
       - unknown
@@ -109,25 +132,25 @@ properties:
             uniqueItems: true
           symbols:
             description: >-
-              A collection of symbols or icons present on the sign next to current 
+              A collection of symbols or icons present on the sign next to current
               destination label.
             type: array
             items: { "$ref": "#/$defs/propertyDefinitions/destinationSignSymbol" }
             uniqueItems: true
-            minLength: 1            
-          from_connector_id:          
+            minLength: 1
+          from_connector_id:
             description: >-
               Identifies the point of physical connection on this segment before which
               the destination sign or marking is visible.
             type: string
           to_segment_id:
             description: >-
-              Identifies the segment to transition to reach the destination(s) labeled 
+              Identifies the segment to transition to reach the destination(s) labeled
               on the sign or marking.
             type: string
           to_connector_id:
             description: >-
-              Identifies the point of physical connection on the segment identified by 
+              Identifies the point of physical connection on the segment identified by
               'to_segment_id' to transition to for reaching the destination(s).
             type: string
           when:
@@ -137,9 +160,9 @@ properties:
             unevaluatedProperties: false
           final_heading:
             description: >-
-              Direction of travel on the segment identified by 'to_segment_id' that leads 
+              Direction of travel on the segment identified by 'to_segment_id' that leads
               to the destination.
-            "$ref": "#/$defs/propertyDefinitions/heading"    
+            "$ref": "#/$defs/propertyDefinitions/heading"
     roadClass:
       description:
         Captures the kind of road and its position in the road network
@@ -215,7 +238,7 @@ properties:
       description: >-
         Indicates what special symbol/icon is present on a signpost, visible as road marking or similar.
       type: string
-      enum: 
+      enum:
       - motorway
       - airport
       - hospital

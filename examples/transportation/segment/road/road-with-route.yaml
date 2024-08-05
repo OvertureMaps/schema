@@ -11,7 +11,13 @@ properties:
   version: 1
   subtype: road
   class: motorway
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
   connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   routes:
     - name: I 95
       network: US:I
