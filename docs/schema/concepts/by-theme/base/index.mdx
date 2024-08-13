@@ -13,7 +13,6 @@ import OSMtoOvertureLandUse from '!!raw-loader!@site/src/queries/partials/osm_co
 import OSMtoOvertureWater from '!!raw-loader!@site/src/queries/partials/osm_conversion_logic/water.sql';
 
 
-
 ## Overview
 The Overture base theme
 
@@ -28,10 +27,13 @@ The base theme has five feature types.
 ## Theme concepts
 
 ### OpenStreetMap Tags to Overture Properties
-The **subtype** and **class** of an `infrastructure`, `land`, `land_use`, or `water` feature in the base theme is the tags that are present on the feature in OpenStreetMap.
+The **subtype** and **class** of an `infrastructure`, `land`, `land_use`, or `water` feature in the base theme is determined by the feature's tags from OpenStreetMap.
 
 Below is the logic that is currently used to convert from OSM tags into Overture schema.
 
+:::tip
+Have a suggestion or improvement to the logic? Please start a discussion on [Github](https://github.com/OvertureMaps/data/discussions/categories/base)
+:::
 
 <details>
     <summary>How do I interpret this query?</summary>
