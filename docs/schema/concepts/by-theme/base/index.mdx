@@ -14,20 +14,21 @@ import OSMtoOvertureWater from '!!raw-loader!@site/src/queries/partials/osm_conv
 
 
 ## Overview
-The Overture base theme
+The Overture base theme includes additional features desired for rendering a complete basemap that are not yet associated with the global entity reference system (GERS), nor have they been through a rigorous schema definition process. Instead, we assign just a subtype and class to the feature and pass relevant attributes through in the `source_tags` attribute. Most of the features in the `base` theme come from OpenStreetMap via the [Daylight Map Distribution](https://daylightmap.org/).
 
 ## Feature types
 The base theme has five feature types.
-- `infrastructure` is a feature type that... It has a geometry
-- `land` is a feature type that... It has a Polygon or MultiPolygon geometry.
-- `land_cover` is a feature type that... It has a Polygon or MultiPolygon geometry.
-- `land_use` is a feature type that... It has a Polygon or MultiPolygon geometry.
-- `water` is a feature type that... It has a LineString, MultiLineString, Polygon or MultiPolygon geometry.
+
+- `infrastructure` - Human-made structures (bridges, towers, airports, etc.) from OpenStreetMap
+- `land` - Natural land features from OpenStreetMap
+- `land_cover` Derived from ESA imagery
+- `land_use` - Human-determined land use features from OpenStreetMap (residential, education, etc).
+- `water` - Water features (both natural and human-made) from OpenStreetMap. Includes the ocean as derived from the [OSM Coastline Tool](https://osmcode.org/osmcoastline/).
 
 ## Theme concepts
 
 ### OpenStreetMap Tags to Overture Properties
-The **subtype** and **class** of an `infrastructure`, `land`, `land_use`, or `water` feature in the base theme is determined by the feature's tags from OpenStreetMap.
+The **subtype** and **class** of an `infrastructure`, `land`, `land_use`, or `water` type feature in the base theme is determined by the original feature's tags on OpenStreetMap.
 
 Below is the logic that is currently used to convert from OSM tags into Overture schema.
 
