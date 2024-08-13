@@ -2,6 +2,18 @@
 title: Base
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+import QueryBuilder from '@site/src/components/queryBuilder';
+
+import OSMtoOvertureInfrastructure from '!!raw-loader!@site/src/queries/partials/osm_conversion_logic/infrastructure.sql';
+import OSMtoOvertureLand from '!!raw-loader!@site/src/queries/partials/osm_conversion_logic/land.sql';
+import OSMtoOvertureLandUse from '!!raw-loader!@site/src/queries/partials/osm_conversion_logic/land_use.sql';
+import OSMtoOvertureWater from '!!raw-loader!@site/src/queries/partials/osm_conversion_logic/water.sql';
+
+
+
 ## Overview
 The Overture base theme
 
@@ -14,6 +26,41 @@ The base theme has five feature types.
 - `water` is a feature type that... It has a LineString, MultiLineString, Polygon or MultiPolygon geometry.
 
 ## Theme concepts
+
+### OpenStreetMap Tags to Overture Properties
+The **subtype** and **class** of an `infrastructure`, `land`, `land_use`, or `water` feature in the base theme is the tags that are present on the feature in OpenStreetMap.
+
+Below is the logic that is currently used to convert from OSM tags into Overture schema.
+
+
+<details>
+    <summary>How do I interpret this query?</summary>
+
+    Each `WHEN` line in the `CASE` statement is a condition that defines both the **subtype** and the **class** of a feature. For example:
+    ```sql
+    WHEN element_at(tags,'highway') = 'bus_stop' THEN ROW('transit', 'bus_stop')
+    ```
+
+    Here, `element_at(tags, 'highway')` is accessing the value of the `highway` tag in OSM. So, when `highway=bus_stop` is present, then the statement returns `ROW(subtype, class)`, in this case, **subtype**=`transit` and **class**=`bus_stop`.
+
+    Since this particular statement is at the top of the list, it will take priority over other tags on the feature. If the same feature was also tagged as an airport gate, those tags would be ignored.
+</details>
+
+<Tabs>
+    <TabItem value="Infrastructure">
+        <QueryBuilder query={OSMtoOvertureInfrastructure}></QueryBuilder>
+    </TabItem>
+    <TabItem value="Land">
+        <QueryBuilder query={OSMtoOvertureLand}></QueryBuilder>
+    </TabItem>
+    <TabItem value="Land Use">
+        <QueryBuilder query={OSMtoOvertureLandUse}></QueryBuilder>
+    </TabItem>
+    <TabItem value="Water">
+        <QueryBuilder query={OSMtoOvertureWater}></QueryBuilder>
+    </TabItem>
+</Tabs>
+
 
 ## Schema reference
 - [Explore the schema for the infrastructure feature type](/schema/reference/base/infrastructure)

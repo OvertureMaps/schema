@@ -12,81 +12,55 @@ import OSMtoOvertureBuildingRoofMaterial from '!!raw-loader!@site/src/queries/pa
 import OSMtoOvertureBuildingRoofShape from '!!raw-loader!@site/src/queries/partials/osm_conversion_logic/building_roof_shape.sql';
 
 ## Overview
-The Overture buildings theme
+
+The Overture buildings theme captures the compilation of many building attributes from a variety of open data sources including OpenStreetMap, Esri Community Maps, Microsoft, and Google.
 
 ## Feature types
-The buildings theme has two feature types.
-- `building` is a feature type that... It has a Polygon or Multipolygon geometry
-- `building_part` is a feature type that... It has a Polygon geometry.
+
+The buildings theme has two feature types:
+
+- `building` is a polygon or multipolygon geometry that represents the building's footprint (or roofprint, if traced from imagery).
+- `building_part` is a polygon that describes part of a building. These come from the OSM features with the tag `building:part=yes`.
 
 ## Theme concepts
 
-Overture conflates buildings from many open data sources to a consistent schema.
+Both building and building_part types may have many **shape** related properties. These are useful for expressing the physical shape characteristics of the buidling including `roof_height`, `roof_shape`, `roof_material`, `facade_material`, etc.
 
-### OSM Tags to Overture Properties
+### OpenStreetMap Tags to Overture Properties
+
+In OpenStreetMap, an object is defined as a building by the presence of `building` tag. Most commonly, the value is simply, `building=yes`. However, in cases where there is a more descriptive value, we capture that information along with other building attributes such as height, roof shape, material, etc. and map them to a finite list of values defined in the building schema.
+
+You can see the SQL query logic that transforms OSM tags into Overture properties for each of these attributes below:
 
 <details>
     <summary>How do I interpret these queries?</summary>
 
-    Each `WHEN` line in the `CASE` statement is a condition that defines both the **subtype** and the **class** of a feature. For example:
+    Each `WHEN` line in the `CASE` statement is a condition that defines the value of the Overture property. For example:
     ```sql
-    WHEN element_at(tags,'natural') IN ('desert') THEN ROW('desert', element_at(tags,'natural'))
+    WHEN lower(trim(element_at(tags, 'building'))) IN ('clinic','hospital') THEN 'medical'
     ```
-    Here, `element_at(tags, 'natural')` is accessing the value of the `natural` tag in OSM. So, when `natural=desert` is present, then the statement returns `ROW(subtype, class)`, in this case, **subtype**=`desert` and **class**=`desert`.
-
-    Since this particular statement is at the top of the list, it will take priority over other tags on the feature. If the same feature was also tagged as an airport gate, those tags would be ignored.
+    Here, `lower(trim(element_at(tags, 'building')))` is accessing the value of the `building` tag in OSM (and ensuring it is lowercase). Therefore, when either the `building=clinic` or `building=hospital` tag is present, the statement returns `medical`. In this case, this defines the **subtype** for a medical building.
 </details>
-
 
 <Tabs>
-<TabItem value="Subtype">
-Subtypes
-
-
-<QueryBuilder query={OSMtoOvertureBuildingSubtype}></QueryBuilder>
-</TabItem>
-
-<TabItem value="Class">
-Classes
-<details>
-    <summary>How do I interpret this query?</summary>
-</details>
-
-<QueryBuilder query={OSMtoOvertureBuildingClass}></QueryBuilder>
-</TabItem>
-
-<TabItem value="Facade">
-Facade
-<details>
-    <summary>How do I interpret this query?</summary>
-</details>
-
-<QueryBuilder query={OSMtoOvertureBuildingFacade}></QueryBuilder>
-</TabItem>
-
-<TabItem value="Roof Shape">
-Roof Shape
-<details>
-    <summary>How do I interpret this query?</summary>
-</details>
-
-<QueryBuilder query={OSMtoOvertureBuildingRoofShape}></QueryBuilder>
-</TabItem>
-
-<TabItem value="Roof Material">
-Roof Material
-<details>
-    <summary>How do I interpret this query?</summary>
-</details>
-
-<QueryBuilder query={OSMtoOvertureBuildingRoofMaterial}></QueryBuilder>
-</TabItem>
-
-
+    <TabItem value="Subtype">
+        <QueryBuilder query={OSMtoOvertureBuildingSubtype}></QueryBuilder>
+    </TabItem>
+    <TabItem value="Class">
+        <QueryBuilder query={OSMtoOvertureBuildingClass}></QueryBuilder>
+    </TabItem>
+    <TabItem value="Facade">
+        <QueryBuilder query={OSMtoOvertureBuildingFacade}></QueryBuilder>
+    </TabItem>
+    <TabItem value="Roof Shape">
+        <QueryBuilder query={OSMtoOvertureBuildingRoofShape}></QueryBuilder>
+    </TabItem>
+    <TabItem value="Roof Material">
+        <QueryBuilder query={OSMtoOvertureBuildingRoofMaterial}></QueryBuilder>
+    </TabItem>
 </Tabs>
 
-
-
 ## Schema reference
+
 - [Explore the schema for the building feature type](/schema/reference/buildings/building)
 - [Explore the schema for the building_part feature type](/schema/reference/buildings/building_part)
