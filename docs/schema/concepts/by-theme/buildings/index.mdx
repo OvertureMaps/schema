@@ -1,5 +1,6 @@
 ---
 title: Buildings
+draft: true
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -12,141 +13,81 @@ import OSMtoOvertureBuildingRoofMaterial from '!!raw-loader!@site/src/queries/pa
 import OSMtoOvertureBuildingRoofShape from '!!raw-loader!@site/src/queries/partials/osm_conversion_logic/building_roof_shape.sql';
 
 ## Overview
-
-The Overture buildings theme captures the compilation of many building attributes from a variety of open data sources including OpenStreetMap, Esri Community Maps, Microsoft, and Google.
+The Overture buildings theme
 
 ## Feature types
-
-The buildings theme has two feature types:
-
-- `building` is a polygon or multipolygon geometry that represents the building's footprint (or roofprint, if traced from imagery).
-- `building_part` is a polygon that describes part of a building. These come from the OSM features with the tag `building:part=yes`.
+The buildings theme has two feature types.
+- `building` is a feature type that... It has a Polygon or Multipolygon geometry
+- `building_part` is a feature type that... It has a Polygon geometry.
 
 ## Theme concepts
 
-Both building and building_part types may have many **shape** related properties. These are useful for expressing the physical shape characteristics of the buidling including `roof_height`, `roof_shape`, `roof_material`, `facade_material`, etc.
+Overture conflates buildings from many open data sources to a consistent schema.
 
-### Properties Derived from OpenStreetMap Tags
-
-In OpenStreetMap, an object is defined as a building by the presence of `building` tag. Most commonly, the value is simply, `building=yes`. However, in cases where there is a more descriptive value, we capture that information along with other building attributes such as height, roof shape, material, etc. and map them to a finite list of values defined in the building schema.
-
-You can see the SQL query logic that transforms OSM tags into Overture properties for each of these attributes below:
+### OSM Tags to Overture Properties
 
 <details>
     <summary>How do I interpret these queries?</summary>
 
-    Each `WHEN` line in the `CASE` statement is a condition that defines the value of the Overture property. For example:
+    Each `WHEN` line in the `CASE` statement is a condition that defines both the **subtype** and the **class** of a feature. For example:
     ```sql
-    WHEN lower(trim(element_at(tags, 'building'))) IN ('clinic','hospital') THEN 'medical'
+    WHEN element_at(tags,'natural') IN ('desert') THEN ROW('desert', element_at(tags,'natural'))
     ```
-    Here, `lower(trim(element_at(tags, 'building')))` is accessing the value of the `building` tag in OSM (and ensuring it is lowercase). Therefore, when either the `building=clinic` or `building=hospital` tag is present, the statement returns `medical`. In this case, this defines the **subtype** for a medical building.
+    Here, `element_at(tags, 'natural')` is accessing the value of the `natural` tag in OSM. So, when `natural=desert` is present, then the statement returns `ROW(subtype, class)`, in this case, **subtype**=`desert` and **class**=`desert`.
+
+    Since this particular statement is at the top of the list, it will take priority over other tags on the feature. If the same feature was also tagged as an airport gate, those tags would be ignored.
 </details>
 
+
 <Tabs>
-    <TabItem value="Subtype">
-        <QueryBuilder query={OSMtoOvertureBuildingSubtype}></QueryBuilder>
-    </TabItem>
-    <TabItem value="Class">
-        <QueryBuilder query={OSMtoOvertureBuildingClass}></QueryBuilder>
-    </TabItem>
-    <TabItem value="Facade">
-        <QueryBuilder query={OSMtoOvertureBuildingFacade}></QueryBuilder>
-    </TabItem>
-    <TabItem value="Roof Shape">
-        <QueryBuilder query={OSMtoOvertureBuildingRoofShape}></QueryBuilder>
-    </TabItem>
-    <TabItem value="Roof Material">
-        <QueryBuilder query={OSMtoOvertureBuildingRoofMaterial}></QueryBuilder>
-    </TabItem>
-</Tabs>
+<TabItem value="Subtype">
+Subtypes
 
-### Building Heights from OpenStreetMap
 
-There are multiple ways to describe the height of an object in OSM. Overture, however, defines height as the number of meters from the ground to the tallest point of the feature. Therefore, we must parse and convert from the OSM string value.
+<QueryBuilder query={OSMtoOvertureBuildingSubtype}></QueryBuilder>
+</TabItem>
 
-We look for height values in the following OSM tags:
-
-- `height` - The overall height of a building or building part.
-- `est_height` - The estimated height of a building or building part.
-- `min_height` - The minimum height of a building part.
-- `roof_height` - The height of the roof of a building or building part.
-
-The OSM wiki specifically lists the following height values as valid: `4`, `4 m`, `1.35`, `7'4"`.  However, there are many other formats present in the data that should be considered.
-
+<TabItem value="Class">
+Classes
 <details>
-    <summary>Comprehensive list of different height tag formats in OSM</summary>
-
-As of June 2024:
-| Format | Count |
-|--------|-------|
-| `X`| 16,222,092|
-| `X m`| 615,927|
-| `X meter`| 212|
-| `X metre`| 2|
-| `X'`| 142,366|
-| `X ft`| 721|
-| `X feet`| 7|
-| `X'Y"`| 2,432|
-| `X"` | 6|
-
+    <summary>How do I interpret this query?</summary>
 </details>
 
-#### Parsing & Conversion
+<QueryBuilder query={OSMtoOvertureBuildingClass}></QueryBuilder>
+</TabItem>
 
-There are a handful of common formatting issues that we generally allow when parsing height values including leading / trailing white space and incorrectly placed decimal points. We apply the following regular expressions to determine the unit of measurement and then perform the appropriate conversion:
+<TabItem value="Facade">
+Facade
+<details>
+    <summary>How do I interpret this query?</summary>
+</details>
 
-<Tabs>
-    <TabItem value="No Units">
-        ```sql
-        ^\s*\d+(\.\d*)?\s*$
-        ```
-        Height strings that contain only a number value with no indicated units are
-        assumed to be meters. These values are not rounded.
-        Examples:
-        - `10` => 10
-        - `   10  ` => 10
-        - `10.0` => 10
-        - `10.` => 10
-        - `10.6543` => 10.6543
-    </TabItem>
-    <TabItem value="Metric">
-        ```sql
-        ^\s*\d+(\.\d*)?\s*(m|meter|metre)s?\s*$
-        ```
-        Height strings with a number follwed by a metric unit that matches the singular
-        or plural version form of `m`, `meter`, and `metre` strings after the number are
-        also treated as meters and the units are stripped. These values are not rounded.
-        Examples:
-        - `10m` => 10
-        - ` 10 meters` => 10
-        - `10.0 metre ` => 10
-        - `10. meter` => 10
-        - `10.6543meter` => 10.6543
-    </TabItem>
-    <TabItem value="Imperial">
-        ```
-        ^\s*\d+(\.\d*)?\s*(''|ft|feet)\s*$
-        ^\s*\d+(\.\d*)?\s*''\s*\d+(\.\d*)?\s*"\s*$
-        ^\s*\d+(\.\d*)?"\s*$
-        ```
-        Height strings with a number followed by an imperial unit are matched and converted to meters. Strings that are recognized as indicating units of feet are `'`, `ft`, and `feet`. Strings that are recognized as indicating units of inches are `"`. Inches and feet are matched in combination with each other or alone. When both feet and inches are indicated the `'` string must be used to indicate feet and the inches value and `"` string must be after the feet value. These values are then converted into meters by multiplying feet by `0.3048`. Inches are multiplied by `0.0254`. The final meters value is then rounded to two decimal places.
+<QueryBuilder query={OSMtoOvertureBuildingFacade}></QueryBuilder>
+</TabItem>
 
-        Examples:
-        - `10'` => 3.05
-        - `10.65 ft` => 3.25
-        - `10.65 feet ` => 3.25
-        - `10. '` => 3.05
-        - ` 10.65feet ` => 3.05
-        - `10' 13"` => 3.38
-        - `10'  13" ` => 3.38
-        - `10'13"` => 3.38
-        - `10' 13"` => 3.38
-        - `10'  13" ` => 3.38
-        - `10'13"` => 3.38
-    </TabItem>
+<TabItem value="Roof Shape">
+Roof Shape
+<details>
+    <summary>How do I interpret this query?</summary>
+</details>
+
+<QueryBuilder query={OSMtoOvertureBuildingRoofShape}></QueryBuilder>
+</TabItem>
+
+<TabItem value="Roof Material">
+Roof Material
+<details>
+    <summary>How do I interpret this query?</summary>
+</details>
+
+<QueryBuilder query={OSMtoOvertureBuildingRoofMaterial}></QueryBuilder>
+</TabItem>
+
+
 </Tabs>
+
+
 
 ## Schema reference
-
 - [Explore the schema for the building feature type](/schema/reference/buildings/building)
 - [Explore the schema for the building_part feature type](/schema/reference/buildings/building_part)
