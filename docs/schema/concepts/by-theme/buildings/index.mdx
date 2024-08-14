@@ -26,7 +26,7 @@ The buildings theme has two feature types:
 
 Both building and building_part types may have many **shape** related properties. These are useful for expressing the physical shape characteristics of the buidling including `roof_height`, `roof_shape`, `roof_material`, `facade_material`, etc.
 
-### OpenStreetMap Tags to Overture Properties
+### Properties Derived from OpenStreetMap Tags
 
 In OpenStreetMap, an object is defined as a building by the presence of `building` tag. Most commonly, the value is simply, `building=yes`. However, in cases where there is a more descriptive value, we capture that information along with other building attributes such as height, roof shape, material, etc. and map them to a finite list of values defined in the building schema.
 
@@ -57,6 +57,92 @@ You can see the SQL query logic that transforms OSM tags into Overture propertie
     </TabItem>
     <TabItem value="Roof Material">
         <QueryBuilder query={OSMtoOvertureBuildingRoofMaterial}></QueryBuilder>
+    </TabItem>
+</Tabs>
+
+### Building Heights from OpenStreetMap
+
+There are multiple ways to describe the height of an object in OSM. Overture, however, defines height as the number of meters from the ground to the tallest point of the feature. Therefore, we must parse and convert from the OSM string value.
+
+We look for height values in the following OSM tags:
+
+- `height` - The overall height of a building or building part.
+- `est_height` - The estimated height of a building or building part.
+- `min_height` - The minimum height of a building part.
+- `roof_height` - The height of the roof of a building or building part.
+
+The OSM wiki specifically lists the following height values as valid: `4`, `4 m`, `1.35`, `7'4"`.  However, there are many other formats present in the data that should be considered.
+
+<details>
+    <summary>Comprehensive list of different height tag formats in OSM</summary>
+
+As of June 2024:
+| Format | Count |
+|--------|-------|
+| `X`| 16,222,092|
+| `X m`| 615,927|
+| `X meter`| 212|
+| `X metre`| 2|
+| `X'`| 142,366|
+| `X ft`| 721|
+| `X feet`| 7|
+| `X'Y"`| 2,432|
+| `X"` | 6|
+
+</details>
+
+#### Parsing & Conversion
+
+There are a handful of common formatting issues that we generally allow when parsing height values including leading / trailing white space and incorrectly placed decimal points. We apply the following regular expressions to determine the unit of measurement and then perform the appropriate conversion:
+
+<Tabs>
+    <TabItem value="No Units">
+        ```sql
+        ^\s*\d+(\.\d*)?\s*$
+        ```
+        Height strings that contain only a number value with no indicated units are
+        assumed to be meters. These values are not rounded.
+        Examples:
+        - `10` => 10
+        - `   10  ` => 10
+        - `10.0` => 10
+        - `10.` => 10
+        - `10.6543` => 10.6543
+    </TabItem>
+    <TabItem value="Metric">
+        ```sql
+        ^\s*\d+(\.\d*)?\s*(m|meter|metre)s?\s*$
+        ```
+        Height strings with a number follwed by a metric unit that matches the singular
+        or plural version form of `m`, `meter`, and `metre` strings after the number are
+        also treated as meters and the units are stripped. These values are not rounded.
+        Examples:
+        - `10m` => 10
+        - ` 10 meters` => 10
+        - `10.0 metre ` => 10
+        - `10. meter` => 10
+        - `10.6543meter` => 10.6543
+    </TabItem>
+    <TabItem value="Imperial">
+        ```
+        ^\s*\d+(\.\d*)?\s*(''|ft|feet)\s*$
+        ^\s*\d+(\.\d*)?\s*''\s*\d+(\.\d*)?\s*"\s*$
+        ^\s*\d+(\.\d*)?"\s*$
+        ```
+        Height strings with a number followed by an imperial unit are matched and converted to meters. Strings that are recognized as indicating units of feet are `'`, `ft`, and `feet`. Strings that are recognized as indicating units of inches are `"`. Inches and feet are matched in combination with each other or alone. When both feet and inches are indicated the `'` string must be used to indicate feet and the inches value and `"` string must be after the feet value. These values are then converted into meters by multiplying feet by `0.3048`. Inches are multiplied by `0.0254`. The final meters value is then rounded to two decimal places.
+
+        Examples:
+        - `10'` => 3.05
+        - `10.65 ft` => 3.25
+        - `10.65 feet ` => 3.25
+        - `10. '` => 3.05
+        - ` 10.65feet ` => 3.05
+        - `10' 13"` => 3.38
+        - `10'  13" ` => 3.38
+        - `10'13"` => 3.38
+        - `10' 13"` => 3.38
+        - `10'  13" ` => 3.38
+        - `10'13"` => 3.38
     </TabItem>
 </Tabs>
 
