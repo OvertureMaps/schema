@@ -3,7 +3,12 @@
 
 name: Validate schema, examples, and counterexamples
 
-on: push
+on:
+  push:
+    paths:
+      - 'schema/**'
+      - 'examples/**'
+      - 'counterexamples/**'
 
 jobs:
   build:
