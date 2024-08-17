@@ -17,6 +17,7 @@ Although OpenStreetMap (OSM) offers a building relation (relations with `type=bu
     1. Identify OSM relations with `type=building` that contain exactly one member with `role=outline` and at least one member with `role=part`.
     2. Ensure the outline is either a way or a multipolygon relation with valid geometry. This is becomes a **building** type with `has_parts=True`.
     3. Assign the `building_id` of the outline to each `role=part` feature, these are of **building_part** type features.
+    4. Identify any other **building_part** features that are spatially contained by the building outline and assign the `building_id` to them, even if they are not listed explicitly in the relation's members list.
 </TabItem>
 
 <TabItem value="2. Implicit Assignment (spatial containment)">
