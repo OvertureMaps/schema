@@ -9,7 +9,16 @@ properties:
   type: segment
   version: 1
   subtype: road
-  class: sidewalk
+  class: footway
+  subclass: sidewalk
+  subclass_rules:
+    - value: sidewalk
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
   connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   road_surface:
     - value: paved

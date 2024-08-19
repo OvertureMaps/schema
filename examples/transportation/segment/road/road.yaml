@@ -13,14 +13,23 @@ properties:
   version: 3
   subtype: road
   class: secondary
-  connector_ids: [fooConnector, barConnector] # Topology: To discuss further.
+  subclass: link
+  subclass_rules:
+    - value: link
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
+  connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   names:
     primary: Common Road Name
   # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
   road_surface:
     - value: gravel
   road_flags:
-    - values: [is_link, is_tunnel]
+    - values: [is_link, is_tunnel] # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
   level: -1
   level_rules:
     - value: -1
@@ -57,3 +66,17 @@ properties:
           connector_id: overture:transportation:connector:456
       final_heading: backward
       when: {heading: backward}
+  destinations:
+    - labels:
+      - value: Seattle
+        type: unknown
+      - value: I 90
+        type: route_ref
+      symbols:
+      - airport
+      when:
+        heading: forward
+      from_connector_id: overture:transportation:connector:123
+      to_connector_id: overture:transportation:connector:123
+      to_segment_id: overture:transportation:segment:567
+      final_heading: backward

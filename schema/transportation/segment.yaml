@@ -22,6 +22,8 @@ properties:
       - title: "Segment Properties"
         properties:
           class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
+          subclass: { "$ref": "#/$defs/propertyDefinitions/subclass" }
+          subclass_rules: { "$ref": "#/$defs/propertyContainers/subclassRulesContainer" }
           access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
           level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
           level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
@@ -30,6 +32,7 @@ properties:
         then:
           required: [class]
           properties:
+            destinations: { "$ref": "#/$defs/propertyDefinitions/destinations" }
             lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
             prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
             road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
@@ -48,6 +51,9 @@ properties:
           kind has an (implied) set of default transport modes.
       connector_ids:
         description: >-
+          ** Deprecated** `connector_ids` is deprecated in favor of `connectors` and
+          is planned to be removed for the October release.
+
           List of connector IDs identifying the connectors this segment is physically
           connected to. Each connector is a possible routing decision point, meaning
           it defines a place along the segment in which there is possibility to
@@ -58,10 +64,105 @@ properties:
           "$comment": >-
             Each entry in this array is the GERS ID of a transportation connector feature.
         uniqueItems: true
+        minItems: 2
+        default: []
+      connectors:
+        description: >-
+          List of connectors which this segment is physically connected to and their
+          relative location. Each connector is a possible routing decision point, meaning
+          it defines a place along the segment in which there is possibility to
+          transition to other segments which share the same connector.
+        type: array
+        items:
+          type: object
+          "$comment": >-
+            Contains the GERS ID and relative position between 0 and 1 of a connector feature along the segment.
+          unevaluatedProperties: false
+          required: [connector_id, at]
+          properties:
+            connector_id: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
+            at: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition" }
+        uniqueItems: true
+        minItems: 2
         default: []
       routes: { "$ref": "#/$defs/propertyDefinitions/routes" }
 "$defs":
   propertyDefinitions:
+    destinationLabelType:
+      description: >-
+        The type of object of the destination label.
+      type: string
+      enum:
+      - street
+      - country
+      - route_ref
+      - toward_route_ref
+      - unknown
+    destinations:
+      description: >-
+        Describes objects that can be reached by following a transportation segment in the
+        same way those objects are described on signposts or ground writing that a traveller
+        following the segment would observe in the real world. This allows navigation systems
+        to refer to signs and observable writing that a traveller actually sees.
+      type: array
+      items:
+        type: object
+        unevaluatedProperties: false
+        required: [from_connector_id, to_connector_id, to_segment_id, final_heading]
+        anyOf:
+          - required: [labels]
+          - required: [symbols]
+        properties:
+          labels:
+            description: >-
+              Labeled destinations that can be reached by following the segment.
+            type: array
+            items:
+              type: object
+              unevaluatedProperties: false
+              required: [value, type]
+              properties:
+                value:
+                  description: >-
+                    Names the object that is reached
+                  type: string
+                  pattern: ^(\S.*)?\S$
+                type: { "$ref": "#/$defs/propertyDefinitions/destinationLabelType" }
+            minItems: 1
+            uniqueItems: true
+          symbols:
+            description: >-
+              A collection of symbols or icons present on the sign next to current
+              destination label.
+            type: array
+            items: { "$ref": "#/$defs/propertyDefinitions/destinationSignSymbol" }
+            uniqueItems: true
+            minLength: 1
+          from_connector_id:
+            description: >-
+              Identifies the point of physical connection on this segment before which
+              the destination sign or marking is visible.
+            type: string
+          to_segment_id:
+            description: >-
+              Identifies the segment to transition to reach the destination(s) labeled
+              on the sign or marking.
+            type: string
+          to_connector_id:
+            description: >-
+              Identifies the point of physical connection on the segment identified by
+              'to_segment_id' to transition to for reaching the destination(s).
+            type: string
+          when:
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/headingScopeContainer"
+            minProperties: 1
+            unevaluatedProperties: false
+          final_heading:
+            description: >-
+              Direction of travel on the segment identified by 'to_segment_id' that leads
+              to the destination.
+            "$ref": "#/$defs/propertyDefinitions/heading"
     roadClass:
       description:
         Captures the kind of road and its position in the road network
@@ -76,13 +177,9 @@ properties:
         - living_street   # Similar to residential but has implied legal restriction for motor vehicles (which can vary country by country)
         - trunk
         - unclassified    # Known roads, paved, but subordinate to all of: motorway, trunk, primary, secondary, tertiary
-        - parking_aisle   # Service road intended for parking
-        - driveway        # Service road intended for deliveries
-        - alley           # Service road intended for rear entrances, fire exits
+        - service         # Provides vehicle access to a feature (such as a building), typically not part of the public street network
         - pedestrian
-        - footway
-        - sidewalk
-        - crosswalk
+        - footway         # Minor segments mainly used by pedestrians
         - steps
         - path
         - track
@@ -137,12 +234,38 @@ properties:
       enum: [ vehicle, motor_vehicle, car, truck, motorcycle, foot, bicycle, bus, hgv, hov, emergency ]
       "$comment": >-
         motor_vehicle includes car, truck and motorcycle
+    destinationSignSymbol:
+      description: >-
+        Indicates what special symbol/icon is present on a signpost, visible as road marking or similar.
+      type: string
+      enum:
+      - motorway
+      - airport
+      - hospital
+      - center             # center of a locality, city center or downtown, from centre in raw OSM value
+      - industrial
+      - parking
+      - bus
+      - train_station
+      - rest_area
+      - ferry
+      - motorroad
+      - fuel
+      - viewpoint
+      - fuel_diesel
+      - food               # 'food', 'restaurant' in OSM
+      - lodging
+      - info
+      - camp_site
+      - interchange
+      - restrooms          # 'toilets' in OSM
     roadFlag:
-      description: Simple flags that can be on or off for a road segment
+      description: >-
+        Simple flags that can be on or off for a road segment. Specifies physical characteristics and can overlap.
       type: string
       enum:
         - is_bridge
-        - is_link
+        - is_link # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
         - is_tunnel
         - is_under_construction
         - is_abandoned
@@ -188,6 +311,18 @@ properties:
             minLength: 1
             pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
           wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
+    subclass:
+      description: >-
+        Refines expected usage of the segment, must not overlap.
+      type: string
+      enum:
+        - link             # Connecting stretch (sliproad or ramp) between two road types
+        - sidewalk         # Footway that lies along a road
+        - crosswalk        # Footway that intersects other roads
+        - parking_aisle    # Service road intended for parking
+        - driveway         # Service road intended for deliveries
+        - alley            # Service road intended for rear entrances, fire exits
+        - cycle_crossing   # Cycleway that intersects with other roads
     speed:
       description: >-
         A speed value, i.e. a certain number of distance units
@@ -609,6 +744,16 @@ properties:
         required: [value]
         properties:
           value: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
+    subclassRulesContainer:
+      description: Set of subclasses scoped along segment
+      type: array
+      items:
+        type: object
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        unevaluatedProperties: false
+        properties:
+          value: { "$ref": "#/$defs/propertyDefinitions/subclass" }
     surfaceContainer:
       description: Physical surface of the road. May either be
         specified as a single global value for the segment, or as

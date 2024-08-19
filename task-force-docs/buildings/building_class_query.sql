@@ -1,13 +1,13 @@
 CASE
     -- Prioritize these amenity tags when present because they are also used to determine subtype:
-    WHEN tags['amenity'] IN (
+    WHEN lower(trim(element_at(tags, 'amenity'))) IN (
         'library',
         'parking',
         'post_office'
-    ) THEN tags['amenity']
+    ) THEN lower(trim(element_at(tags, 'amenity')))
 
     -- Certain building tags become the class value to further describe the building subtype
-    WHEN tags['building'] IN (
+    WHEN lower(trim(element_at(tags, 'building'))) IN (
 
         -- Agricultural
         'agricultural',
@@ -117,10 +117,13 @@ CASE
         'parking',
         'train_station',
         'transportation'
-    ) THEN tags['building']
+    ) THEN lower(trim(element_at(tags, 'building')))
 
     -- Certain building are part of bridge structures
-    WHEN  tags['bridge:support'] <> 'no' OR tags['bridge:structure'] <> 'no'
+    WHEN lower(trim(element_at(tags, 'bridge:support'))) <> 'no'
+    THEN 'bridge_structure'
+
+    WHEN lower(trim(element_at(tags, 'bridge:structure'))) <> 'no'
     THEN 'bridge_structure'
 
     -- No other allowed classes

@@ -1,23 +1,23 @@
 ---
-id: overture:transportation:segment:1213
+id: overture:transportation:segment:123
 type: Feature
 geometry:
   type: LineString
-  coordinates: [[0, 0], [1, 1]]
+  coordinates: [[0, 0], [0.03, 0], [0.10, 0]]
 properties:
   theme: transportation
   type: segment
-  version: 6
+  version: 1
   subtype: road
   class: secondary
   # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
-  connector_ids: [fooConnector, barConnector]
+  connector_ids: [fooConnector, barConnector, bazConnector]
   connectors:
     - connector_id: fooConnector
       at: 0
     - connector_id: barConnector
+      at: 0.3
+    - connector_id: bazConnector
       at: 1
-  # one way road in backward direction (forward access is denied)
-  access_restrictions:
-    - access_type: denied
-      when: {heading: forward}
+  road_surface:
+    - value: paved

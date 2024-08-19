@@ -2,3 +2,4 @@
 .vscode
 .watchman*
 .DS_Store
+docs/docusaurus
