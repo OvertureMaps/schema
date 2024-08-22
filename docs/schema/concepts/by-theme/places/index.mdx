@@ -10,24 +10,36 @@ export const PlacesCategories = (args) => {
     var lines = args.places.split('\n');
     lines.shift(); // Remove the first line (the header)
 
-    var pretty_print = []
+    var categories = {}
 
     for (const line of lines) {
         const parts = line.split(';');
         const category = parts[0].trim();
         if (parts[1] != undefined) {
             var hierarchy = parts[1].trim().slice(1, (parts[1].trim().length - 1)).split(',');
-            if (hierarchy.length > 0) {
-                pretty_print.push(category.padEnd(45, '.') + hierarchy.join(" > "));
-                // html += "<tr><td><b>" + category + "</b></td><td>" + hierarchy.join(" > ") + "</td></tr>";
+            if (categories[hierarchy[0]] == undefined){
+                categories[hierarchy[0]] = []
+            }
+            if (hierarchy.length>1){
+                categories[hierarchy[0]].push(category.padEnd(45, '.') + hierarchy.join(" > "));
             }
         }
     };
 
+    var keys = Object.keys(categories).sort()
+
     return (
-        <CodeBlock title="Overture Places Categories" style={"max-height:500;"}>
-            {pretty_print.join("\n")}
-        </CodeBlock>
+        <div>
+        {keys.map(cat => {
+            return(
+                <details><summary><strong>{cat}</strong></summary>
+                    <CodeBlock>
+                        {categories[cat].join("\n")}
+                    </CodeBlock>
+                </details>
+            )
+        })}
+        </div>
       );
 }
 
@@ -46,15 +58,9 @@ The places theme has one feature type:
 
 ### Categories
 
-There are more than 2,000 possible category values for Overture Places including `accommodation`, `active_life`, `arts_and_entertainment`, `automotive`, `eat_and_drink`, `education`,
-`eat_and_drink`, etc.
+There are more than 2,000 possible category values for Overture Places:
 
-<details>
-    <summary>View the complete list of Categories with their hierarchy</summary>
-    <PlacesCategories places={overture_categories}></PlacesCategories>
-</details>
-
-
+<PlacesCategories places={overture_categories}></PlacesCategories>
 
 ## Schema reference
 
