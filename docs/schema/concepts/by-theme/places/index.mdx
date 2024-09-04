@@ -1,16 +1,67 @@
 ---
 title: Places
-draft: true
 ---
 
+import overture_categories from '!!raw-loader!./overture_categories.csv';
+import CodeBlock from '@theme/CodeBlock';
+
+export const PlacesCategories = (args) => {
+
+    var lines = args.places.split('\n');
+    lines.shift(); // Remove the first line (the header)
+
+    var categories = {}
+
+    for (const line of lines) {
+        const parts = line.split(';');
+        const category = parts[0].trim();
+        if (parts[1] != undefined) {
+            var hierarchy = parts[1].trim().slice(1, (parts[1].trim().length - 1)).split(',');
+            if (categories[hierarchy[0]] == undefined){
+                categories[hierarchy[0]] = []
+            }
+            if (hierarchy.length>1){
+                categories[hierarchy[0]].push(category.padEnd(45, '.') + hierarchy.join(" > "));
+            }
+        }
+    };
+
+    var keys = Object.keys(categories).sort()
+
+    return (
+        <div>
+        {keys.map(cat => {
+            return(
+                <details><summary><strong>{cat}</strong></summary>
+                    <CodeBlock>
+                        {categories[cat].join("\n")}
+                    </CodeBlock>
+                </details>
+            )
+        })}
+        </div>
+      );
+}
+
+
 ## Overview
-The Overture places theme
+
+The Overture places theme includes more than 50M places and points of interest around the world. The data is sourced from Meta and Microsoft.
 
 ## Feature types
-The places theme has one feature types.
-- `place` is a feature type that... It has a Point geometry
+
+The places theme has one feature type:
+
+- `place` is a feature with a Point geometry.
 
 ## Theme concepts
 
+### Categories
+
+There are more than 2,000 possible category values for Overture Places. Below are the top-level categories, expand each one to see all possible categories and their hierarchies.
+
+<PlacesCategories places={overture_categories}></PlacesCategories>
+
 ## Schema reference
+
 - [Explore the schema for the place feature type](/schema/reference/places/place)
