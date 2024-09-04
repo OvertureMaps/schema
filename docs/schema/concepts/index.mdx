@@ -11,10 +11,10 @@ import generateResolverOptions from "@site/src/components/shared-libs/generateRe
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
 
-All Overture features share a set of common top-level properties. Each Overture data theme has its own core properties that define the feature types within that theme. For example, the `place` feature type must include a name property and a category property, in addition to the common set of Overture properties listed below. 
+All Overture features share a set of common top-level properties. Each Overture data theme has its own core properties that define the feature types within that theme. For example, the `place` feature type must include a name property and a category property, in addition to the common set of Overture properties listed below.
 
 
-## Common properties 
+## Common properties
 <JSONSchemaViewer
   schema={ yamlLoad(MainDefs) }
   resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer" })}/>
