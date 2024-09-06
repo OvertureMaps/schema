@@ -181,4 +181,5 @@ properties:
           - watchtower
           - water_tower
           - weir
+      height: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/height }
       surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }
