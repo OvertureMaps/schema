@@ -11,11 +11,6 @@ description: Common schema definitions the base theme (primarily from OSM)
       description: Elevation above sea level (in meters) of the feature.
       type: integer
       maximum: 9000
-    height:
-      description: >-
-        Height of the feature in meters.
-      type: number
-      exclusiveMinimum: 0
     surface:
       description: Surface material, mostly from the OSM tag, with some normalization.
       type: string
