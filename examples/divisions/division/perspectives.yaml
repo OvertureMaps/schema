@@ -7,7 +7,6 @@ geometry:
 properties:
   theme: divisions
   type: division
-  update_time: "2024-02-23T15:08:01Z"
   version: 0
   subtype: country
   names:
@@ -26,5 +25,5 @@ properties:
         subtype: country
         name: Kuzey Kıbrıs
   perspectives:
-    - type: country
-      holder: TR
+    mode: accepted_by
+    countries: [TR]

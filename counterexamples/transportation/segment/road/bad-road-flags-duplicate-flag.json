@@ -12,15 +12,12 @@
     "theme": "transportation",
     "type": "segment",
     "version": 19,
-    "update_time": "2024-03-14T08:05:36-08:00",
     "subtype": "road",
     "class": "primary",
-    "road": {
-      "flags": [
-        {
-          "values": ["is_tunnel", "is_tunnel"]
-        }
-      ]
-    }
+    "road_flags": [
+      {
+        "values": ["is_tunnel", "is_tunnel"]
+      }
+    ]
   }
 }

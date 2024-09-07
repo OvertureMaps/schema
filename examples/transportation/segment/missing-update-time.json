@@ -7,7 +7,6 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "missing properties: 'update_time'"
     ],
     "theme": "transportation",
     "type": "segment",

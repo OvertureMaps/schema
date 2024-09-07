@@ -6,4 +6,4 @@ geometry:
   coordinates: [[[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]]
 properties:
   categories:
-    main: a_category
+    primary: a_category

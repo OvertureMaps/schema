@@ -10,11 +10,9 @@ properties:
   subtype: road
   class: living_street
   version: 1
-  update_time: "2024-03-14T16:34:01-08:00"
-  road:
-    lanes:
-      - value:
-          - direction: forward
-          - direction: backward
-        when:
-          during: "Mo-Fr 08:00-18:00"
+  lanes:
+    - value:
+        - direction: forward
+        - direction: backward
+      when:
+        during: "Mo-Fr 08:00-18:00"

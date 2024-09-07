@@ -7,7 +7,6 @@ geometry:
 properties:
   theme: divisions
   type: division
-  update_time: "2024-02-26T18:25:13Z"
   version: 0
   subtype: region
   names:

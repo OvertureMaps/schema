@@ -113,20 +113,20 @@ function verify() {
   local mode="$1"
   local instance_file="${2:-}"
 
-  local -a jv_args=(-assertformat -assertcontent "$schema_file")
+  local -a jv_args=(--assert-format --assert-content "$schema_file")
   if [ -n "$instance_file" ]; then
     jv_args+=("$instance_file")
   fi
 
   case "$mode" in
   quiet)
-    jv "${jv_args[@]}" 2>/dev/null
+    jv "${jv_args[@]}" >/dev/null 2>/dev/null
     ;;
   simple)
     jv "${jv_args[@]}"
     ;;
   *)
-    jv -output "$mode" "${jv_args[@]}"
+    jv --output "$mode" "${jv_args[@]}"
     ;;
   esac
 }
@@ -139,6 +139,12 @@ function expected_errors() {
     return 1
   fi
   yq -r '(.properties.ext_expected_errors // []) | .[]' "$instance_file"
+}
+
+function contains() {
+  local haystack="$1"
+  local needle="$1"
+  grep -qF "$needle" <<<"$haystack"
 }
 
 function schema() {
@@ -156,8 +162,9 @@ function schema() {
 function examples() {
   echo "---- VERIFYING examples ----"
   find examples -type f | sort | while read -r instance_file; do
-    if ! [[ "$instance_file" == *.yaml ]]; then
-      printf "%s...FAILED\nexample instance '%s' is EXPECTED to be a .yaml file but ACTUALLY it is not.\n" "$instance_file" "$instance_file"
+    if ! [[ "$instance_file" == *.yaml ]] && ! [[ "$instance_file" == *.json ]]; then
+      printf "%s...FAILED\nexample instance '%s' is EXPECTED to be a .yaml or .json file but ACTUALLY it is not.\n" "$instance_file" "$instance_file"
+      return 1
     elif ! match "$instance_file"; then
       continue
     fi
@@ -197,7 +204,7 @@ function counterexamples() {
       (verify simple "$instance_file" || true) 2>&1 | mapfile -t actual_errors
       for expected_error in "${expected_errors[@]}"; do
         for actual_error in "${actual_errors[@]}"; do
-          if [[ "$actual_error" == *"$expected_error"* ]]; then
+          if contains "$actual_error" "$expected_error"; then
             continue 2
           fi
         done

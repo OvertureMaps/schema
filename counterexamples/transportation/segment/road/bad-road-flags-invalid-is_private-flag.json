@@ -9,16 +9,13 @@
       "theme": "transportation",
       "type": "segment",
       "version": 20,
-      "update_time": "2024-03-14T08:08:17-08:00",
       "subtype": "road",
       "class": "primary",
-      "road": {
-        "flags": [
-          {
-            "values": ["is_private"]
-          }
-        ]
-      },
+      "road_flags": [
+        {
+          "values": ["is_private"]
+        }
+      ],
       "ext_expected_errors": [
         "value must be one of"
       ]

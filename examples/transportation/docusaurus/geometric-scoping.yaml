@@ -8,17 +8,14 @@ properties:
   theme: transportation
   type: segment
   version: 1
-  update_time: "2024-03-13T16:35:37-08:00"
   subtype: road
   class: primary
-  road:
-    restrictions:
-      speed_limits:
-        - between: [0, 0.15]
-          max_speed:
-            value: 100
-            unit: km/h
-        - between: [0.15, 1]
-          max_speed:
-            value: 60
-            unit: km/h
+  speed_limits:
+    - between: [0, 0.15]
+      max_speed:
+        value: 100
+        unit: km/h
+    - between: [0.15, 1]
+      max_speed:
+        value: 60
+        unit: km/h

@@ -19,7 +19,6 @@ properties:
   type: building_part
   version: 1
   level: 1
-  update_time: "2023-06-06T10:30:00-08:00"
   building_id: abc123
   height: 21.34
   num_floors: 4
@@ -28,6 +27,7 @@ properties:
   roof_shape: dome
   roof_orientation: across
   roof_direction: 23.4
+  roof_height: 3.4
   sources:
   - property: ""
     dataset: microsoftMLBuildings

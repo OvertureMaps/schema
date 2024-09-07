@@ -15,9 +15,5 @@ properties:
       en: Empire State Building
     rules:
       - variant: common
-<<<<<<<< HEAD:counterexamples/buildings/bad-names/bad-name-language.yaml
         language: ga:genitive
-========
-        language: local
->>>>>>>> 444399f (Remove "local" as a language. Fix counterexamples):counterexamples/buildings/bad-names/bad-name-local-not-allowed.yaml
         value: Blah
