@@ -12,16 +12,22 @@ properties:
   # Overture properties
   theme: transportation
   type: segment
-  update_time: "2024-03-14T08:10:44-08:00"
   version: 1
   subtype: road
   class: secondary
+  subclass: link
+  subclass_rules:
+    - value: link
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
   connector_ids: [fooConnector, barConnector]
-  road:
-    surface: gravel
-    flags: 
-      - [is_link, is_tunnel]
-    restrictions:
-      access:
-        - access_type: allowed
-          when: {mode: [foo]}
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
+  road_surface: gravel
+  road_flags:
+    - [is_link, is_tunnel] # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
+  access_restrictions:
+    - access_type: allowed
+      when: {mode: [foo]}

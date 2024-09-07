@@ -7,7 +7,6 @@ geometry:
 properties:
   theme: divisions
   type: division
-  update_time: "2024-02-23T15:44:20Z"
   version: 0
   subtype: borough
   local_type:

@@ -6,8 +6,7 @@ geometry:
   coordinates: [0, 0]
 properties:
   categories:
-    main: some_category
+    primary: some_category
   theme: places
   type: place
-  version: 0
-  update_time: "2024-01-22T12:00:00Z"
+  version: 1

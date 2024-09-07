@@ -6,7 +6,7 @@ geometry:
   coordinates: [0, 0]
 properties:
   categories:
-    main: some_category
+    primary: some_category
   confidence: 0.9
   websites:
     - https://www.example.com
@@ -30,8 +30,7 @@ properties:
   # Overture properties
   theme: places
   type: place
-  version: 0
-  update_time: "2023-02-22T23:55:01-08:00"
+  version: 1
   sources:
     - property: ""
       dataset: metaPlaces

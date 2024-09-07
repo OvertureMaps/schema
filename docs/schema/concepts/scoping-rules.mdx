@@ -1,0 +1,425 @@
+---
+title: Scoping rules
+---
+
+
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import ExampleGeometricScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/geometric-scoping.yaml';
+import ExampleTemporalScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/temporal-scoping.yaml';
+import ExampleSubjectiveHeadingScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-heading-scoping.yaml'
+import ExampleSubjectiveUsagePurposeScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-usage-purpose-scoping.yaml';
+import ExampleSubjectiveStatusScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-status-scoping.yaml';
+import ExampleSubjectiveVehicleAttributesScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-vehicle-attributes-scoping.yaml';
+import ExampleLanesAbsoluteForm from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-absolute-form.yaml';
+
+## Scoped and rule-based properties
+
+In the real world, many facts and rules affecting entities have
+only a partial application, meaning they don't apply everywhere, or
+they don't apply at all times, or to everyone, or to all sets of
+external conditions. For example, access restrictions on a road segment
+might not apply to all people or all kinds of vehicles, or they might
+vary according to the day of the week. <!-- add another example that is not transportation focused -->
+
+The Overture schema uses two related concepts to capture the partial application of facts and rules: scoped values and rule-based properties.
+
+### Scoped values and scoping properties
+
+A *scoped* value is a value which only applies within a limited scope.
+Most scoped values are rules in the rule lists of
+[rule-based properties](#rules-and-rule-based-properties). However,
+scoped values also exist outside of rule-based properties. For
+example, a signpost property belonging to a road segment might be
+geometrically scoped to its position along the road.
+
+The scope in which a scoped value applies is controlled by one or more
+special child properties of the value known as *scoping* properties.
+
+#### Geometric scoping (linear referencing)
+
+<Tabs>
+  <TabItem value="description" label="Description" default>
+
+The geometric scoping properties `at` and `between` limit the scope of their parent value to a position or range of positions, respectively, along a segment's geometry. When the parent value is a rule object, the rule only matches the position or range of positions specified in the `at` or `between` property.
+
+The value of the `at` property is a single real number `a` where `0` &le; `a`
+&le; `1`. It represents a discrete position along the segment's geometry. The
+value of the `between` property is a pair of numbers `[a, b]` where `0` &le;
+`a` &lt; `b` &le; `1`. It represents a range of positions along the segment's
+geometry. The numbers `a` and `b` are interpreted as percentage displacements
+along the parent segment's geometry starting from the start of the segment.
+(*The terms "start" and "end" are explained in
+[Shape and connectivity](https://docs.overturemaps.org/guides/transportation/shape-connectivity).*) 
+
+So, for example, the scoping property `"at": 0.15` scopes its parent value
+to the position on the segment that is displaced 15% of the segment length from
+the start.
+
+<div style={{textAlign: 'center'}}>
+
+<figure>
+
+<ThemedImage
+  alt="Diagram showing a single geometrically-scoped position"
+  sources={{
+    light: useBaseUrl('/img/transportation/geometric-scoping-position-light.svg'),
+    dark: useBaseUrl('/img/transportation/geometric-scoping-position-dark.svg'),
+  }}
+/>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*The position along the segment geometry described by `"at": 0.15`.*
+
+</div>
+
+</figcaption>
+</figure>
+
+</div>
+
+The scoping property `"between": [0.35, 0.75]` scopes its parent value to the
+range of positions on the segment beginning at 35% and extending to 75% of the
+segment length from the start.
+
+<div style={{textAlign: 'center'}}>
+
+<figure>
+
+<ThemedImage
+  alt="Diagram showing a geometrically-scoped range"
+  sources={{
+    light: useBaseUrl('/img/transportation/geometric-scoping-range-light.svg'),
+    dark: useBaseUrl('/img/transportation/geometric-scoping-range-dark.svg'),
+  }}
+/>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*The range on the segment geometry described by `"between": [0.35, 0.75]`.*
+
+</div>
+
+</figcaption>
+</figure>
+
+</div>
+
+  </TabItem>
+  <TabItem value="example" label="Example" default>
+
+The example below shows a road segment whose speed limit is defined by
+two geometrically-scoped speed limit rules:
+
+<CodeBlock language="yaml">{ ExampleGeometricScoping }</CodeBlock>
+
+  </TabItem>
+</Tabs>
+
+#### Temporal scoping (opening hours)
+
+<Tabs>
+  <TabItem value="description" label="Description" default>
+
+The temporal, or time-based, scoping construct `when: { during: "..." }` limits
+the scope of its parent value to one or more recurring time ranges. When the
+parent value is a rule object, the rule only matches the time range or time
+ranges specified in the `during` property.
+
+The `during` property must contain a string expressed in the OpenStreetMap
+[opening hours specification](https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification).
+
+  </TabItem>
+  <TabItem value="example" label="Example" default>
+
+The example below shows a road segment with a temporally-scoped access
+restriction rule. The rule states that non-bus travellers are prohibited
+from access to the segment on weekdays between 3PM and 6PM.
+
+<CodeBlock language="yaml">{ ExampleTemporalScoping }</CodeBlock>
+
+  </TabItem>
+</Tabs>
+
+<!-- TODO: Document side scoping here. -->
+
+#### Subjective scoping
+
+Subjective scoping means that the scope of a property can be constrained based
+on subjective factors like *who* or *what* is travelling on the transportation
+network, or *how* they are doing it.
+
+The Overture transportation schema supports the following subjective factors:
+
+1. [Travel mode](#travel-mode-scoping)
+1. [Heading](#heading)
+1. [Purpose of use](#purpose-of-use-scoping)
+1. [Status or membership in a recognized group](#status-scoping-membership-in-a-recognized-group)
+1. [Vehicle attributes](#vehicle-attributes-scoping)
+
+The sub-headings below explain each of these subjective factors in greater
+detail.
+
+#### Travel-mode scoping
+
+A travel mode is a way of moving about the transportation network, for
+example driving in a motor vehicle, or, more specifically, driving in a
+high-occupancy vehicle.
+
+The property construct `when: { mode: [...] }` limits the scope its
+parent value to apply only to people or things travelling using the
+listed travel modes.
+
+To dive deeper into this topic, see the page on [travel modes](https://docs.overturemaps.org/guides/transportation/travel-modes).
+
+#### Heading
+
+<Tabs>
+  <TabItem value="description" label="Description" default>
+
+Heading scoping limits the the scope of a parent value to apply only
+when the traveller is proceeding along the segment geometry in the named
+direction, either `forward` or `backward`. (*The directions `forward`
+and `backward` are defined on the [shape and connectivity](https://docs.overturemaps.org/guides/transportation/shape-connectivity) page.*)
+
+The property construct `when: { heading: forward|backward }` applies
+heading scoping to a parent value.
+
+
+  </TabItem>
+  <TabItem value="example" label="Example" default>
+
+The example below shows a road segment with multiple heading-scoped
+access restriction rules. The rules allow all standard travel modes for
+the segment class to travel in the forward direction, but only allow
+buses to travel in the backward direction.
+
+<CodeBlock language="yaml">{ ExampleSubjectiveHeadingScoping }</CodeBlock>
+  </TabItem>
+</Tabs>
+
+
+#### Purpose of use scoping
+
+<Tabs>
+  <TabItem value="description" label="Description" default>
+
+Usage purpose scoping limits the scope of a parent value to apply only
+when the user is using the feature for one of the listed purposes. This
+type of scoping is common when it matters that a person is in the
+process of doing something like making a delivery or acting as the
+customer of a business.
+
+The property construct `when: { using: [...] }` applies usage purpose
+scoping to a parent value.
+
+  </TabItem>
+  <TabItem value="example" label="Example" default>
+
+The example below shows a road segment representing a hotel driveway
+where through traffic is not permitted (only usage by hotel customers
+or as a final destination is allowed):
+
+<CodeBlock language="yaml">{ ExampleSubjectiveUsagePurposeScoping }</CodeBlock>
+
+  </TabItem>
+</Tabs>
+
+#### Status scoping (membership in a recognized group)
+
+<Tabs>
+  <TabItem value="description" label="Description" default>
+
+Status scoping limits the scope of a parent value to apply only when the
+user has a certain recognized status or is a member of a recognized
+group. This type of scoping is useful when it matters whether a person
+or thing has a recognized characteristic, such as holding a permit or
+being an employee of a business or student at an academic institution.
+
+The property construct `when: { recognized: [...] }` applies status
+scoping to a parent value.
+
+  </TabItem>
+  <TabItem value="example" label="Example" default>
+
+The example below shows a road segment modeling a private condominium
+tower driveway where access is denied to the general public, but allowed
+to privately-authorized individuals, such as condo unit owners:
+
+<CodeBlock language="yaml">{ ExampleSubjectiveStatusScoping }</CodeBlock>
+
+  </TabItem>
+</Tabs>
+
+#### Vehicle attributes scoping
+
+<Tabs>
+  <TabItem value="description" label="Description" default>
+
+Vehicle attribute scoping limits the scope of a parent value to apply
+only when the vehicle in use meets certain criteria.
+
+The property construct `when: { vehicle: [{ dimension: ..., comparison: ..., value: ... }] }` applies vehicle
+attributes scoping to a parent value.
+
+Note that vehicle attribute scoping can overlap to some degree with
+[travel mode scoping](#travel-mode-scoping). For example, some access
+rules may be scoped to the travel mode "heavy goods vehicle", while
+another equivalent access rule could be scoped to the vehicle attribute
+"gross vehicle weight".
+
+  </TabItem>
+  <TabItem value="example" label="Example" default>
+
+<CodeBlock language="yaml">{ ExampleSubjectiveVehicleAttributesScoping }</CodeBlock>
+
+  </TabItem>
+</Tabs>
+
+
+<!--
+
+TODO: Environmental scoping is omitted from the documentation for the
+      time being, since we have not yet implemented the `conditions`
+      property documented in: https://wiki.overturemaps.org/x/PAcG.
+      See also: https://github.com/OvertureMaps/schema-wg/issues/146.
+
+### Environmental scoping
+
+-->
+
+## Rules and rule-based properties
+
+A *rule-based* property is a property whose value in a given situation is
+determined by evaluating a list of rules against the facts applicable to that
+situation. Each individual rule in the list of rules is itself a scoped value,
+a scoped value, and the assessment of which rule applies to a given set of facts
+is done by the rule evaluation algorithm.
+
+### Absolute form
+
+There are cases when specifying a property value using rules makes sense, and
+cases where doing so is unnecessarily complicated because the real-world entity
+being modeled has a single unchanging state which is the same in all fact
+situations. In these cases, most rule-based properties support a simpler
+absolute form without a list of rules.
+
+Consider the following two examples of road segments. On the left is a section
+from a simple two-lane bidirectional city street in which there is always one
+lane of traffic flowing in each direction. On the right is a section from a
+one-way city street in which two of the lanes are only available for driving at
+certain times of the day, being reserved for parking at other times. In the
+example on the left, the lane list is specified absolutely; while in the example
+on the right, it is given as a list of [temporally-scoped](#temporal-scoping-opening-hours)
+lane rules.
+
+<div style={{ width: "49.5%", float: "left" }}>
+
+<figure>
+
+<CodeBlock language="yaml">{ ExampleLanesAbsoluteForm }</CodeBlock>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*An absolute list of lanes.*
+
+</div>
+
+</figcaption>
+
+</figure>
+
+</div>
+
+<div style={{ width: "49.5%", float: "right" }}>
+
+<figure>
+
+<!--
+
+TODO: The below inline example is INVALID according to our schema model
+      because lanes don't support temporal scoping: https://github.com/OvertureMaps/schema-wg/issues/148.
+
+      The above issue should be fixed, the inline example should be
+      removed and replaced by the `examples/transportation/docusaurus/lanes-rule-form.yaml`,
+      and the example should be fixed to uncomment the during property.
+
+-->
+
+```yaml
+---
+id: overture:transportation:example:lanes-rule
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - - -123.12244656918179
+      - 49.280940587393815
+    - - -123.12562968007902
+      - 49.27884862879665
+properties:
+  theme: transportation
+  type: segment
+  version: 0
+  update_time: "2023-06-16T15:57:00-06:00"
+  subtype: road
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
+    lanes:
+      - value:
+          - direction: forward
+          - direction: forward
+      - during: Mo-Fr 15:00-18:00
+        value:
+          - direction: forward
+          - direction: forward
+          - direction: forward
+          - direction: forward
+```
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*A list of lane rules.*
+
+</div>
+
+</figcaption>
+
+</figure>
+
+</div>
+
+<div style={{ clear: "both" }}/>
+
+### Rule evaluation algorithm
+
+Given a rule-based property, the actual value of the property in a given fact
+pattern is determined by a three-step process: first, all matching rules are
+identified; second, the single determining rule is chosen if possible; lastly,
+if there is no applicable rule, an appropriate default value may be assumed.
+
+1. **Matching rules.** For a given rule and a given set of facts, the rule
+   *matches* the facts if the scope of the rule contains all the facts, *i.e.*
+   the facts fit within all of the scoping properties expressed in the rule. The
+   matching criteria for a rule can be thought of as the logical AND of all the
+   scoping properties expressed in the rule.
+2. **Determining rule.** For a given rule-based property and a given set of
+   facts, *at most* one rule can *determine* the property value. If only one
+   rule matches, that rules determines the property value. If more than one rule
+   matches, the last matching rule in the list determines the value. (This is
+   similar to how OpenStreetMap [conditional restrictions](https://wiki.openstreetmap.org/wiki/Conditional_restrictions)
+   evaluated.) Therefore it is important to write more general rules before more
+   specific ones in a rule list.
+3. **Fallback to default.** If there are no matching rules, an appropriate
+   default value may apply, depending on the property being evaluated.

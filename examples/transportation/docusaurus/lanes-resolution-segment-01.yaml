@@ -10,18 +10,22 @@ properties:
   theme: transportation
   type: segment
   version: 1
-  update_time: "2024-03-13T16:35:58-08:00"
-  connector_ids: [lanes-resolution-example-connector]
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
+  connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   subtype: road
   class: motorway
-  road:
-    lanes: # A list of two geometrically-scoped rules for resolving the lane block.
-      - between: [0, 0.67]
-        value:
-          - direction: backward
-          - direction: forward
-          - direction: forward
-      - between: [0.67, 1]
-        value:
-          - direction: backward
-          - direction: forward
+  lanes: # A list of two geometrically-scoped rules for resolving the lane block.
+    - between: [0, 0.67]
+      value:
+        - direction: backward
+        - direction: forward
+        - direction: forward
+    - between: [0.67, 1]
+      value:
+        - direction: backward
+        - direction: forward

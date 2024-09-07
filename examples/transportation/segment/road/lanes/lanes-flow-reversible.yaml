@@ -7,26 +7,30 @@ geometry:
 properties:
   theme: transportation
   type: segment
-  update_time: "2024-03-14T16:33:50-08:00"
   version: 5
   subtype: road
   class: primary
+  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
   connector_ids: [fooConnector, barConnector]
-  road:
-    surface:
-      - value: paved
-    lanes:
-      - value:
-          # This models a single-lane road whose direction is
-          # completely reversible at arbitrary times.
-        - direction: reversible
-          restrictions:
-            access:
-              - access_type: allowed
-                when:
-                  heading: forward
-                  during: Mo-Su 00:00-12:00
-              - access_type: allowed
-                when:
-                  heading: backward
-                  during: Mo-Su 12:00-24:00
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
+  road_surface:
+    - value: paved
+  lanes:
+    - value:
+        # This models a single-lane road whose direction is
+        # completely reversible at arbitrary times.
+      - direction: reversible
+        restrictions:
+          access:
+            - access_type: allowed
+              when:
+                heading: forward
+                during: Mo-Su 00:00-12:00
+            - access_type: allowed
+              when:
+                heading: backward
+                during: Mo-Su 12:00-24:00

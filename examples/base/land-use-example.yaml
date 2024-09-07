@@ -3,22 +3,20 @@ id: "overture:land_use:example:1"
 type: Feature
 geometry:
   type: Polygon
-  coordinates: [[[-73.1902319,41.6678018],[-73.1896302,41.667817],[-73.1890448,41.6667723],[-73.1899188,41.6666994],[-73.1902319,41.6678018]]]
+  coordinates: [[[-83.8710175, 10.3469578], [-83.8700924, 10.3470179], [-83.870043, 10.3462819], [-83.8709681, 10.3462218], [-83.8710175, 10.3469578]]]
 properties:
   theme: base
   type: land_use
-  subtype: airport
-  class: aerodrome
-  surface: grass
+  subtype: recreation
+  class: pitch
+  surface: recreation_grass
   source_tags:
-    surface: grass
-    aeroway: aerodrome
+    leisure: pitch
+    sport: soccer
   names:
-    primary: Murphy's Landing Balloonport
-  wikidata: Q61723671
+    primary: Plaza Deportes Finca Tres
   sources:
-    - record_id: w839506975@2
+    - record_id: w509487233@1
       property: ""
       dataset: OpenStreetMap
   version: 0
-  update_time: "2023-09-27T00:00:00Z"
