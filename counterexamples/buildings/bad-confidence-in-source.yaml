@@ -6,8 +6,8 @@ geometry:
   coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
 properties:
   ext_expected_errors:
-    - "[I#/properties/sources/0/confidence] [S#/$defs/propertyDefinitions/property/properties/confidence/maximum] must be <= 1 but found 100"
-    - "[I#/properties/sources/1/confidence] [S#/$defs/propertyDefinitions/property/properties/confidence/minimum] must be >= 0 but found -1"
+    - "/property/properties/confidence/maximum]: maximum: got 100, want 1"
+    - "/property/properties/confidence/minimum]: minimum: got -1, want 0"
   theme: buildings
   type: building
   version: 1

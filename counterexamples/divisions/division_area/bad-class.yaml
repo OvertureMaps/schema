@@ -15,4 +15,4 @@ properties:
     primary: A division area with an invalid class property.
   country: ZZ
   ext_expected_errors:
-    - 'value must be one of "land", "maritime"'
+    - "value must be one of 'land', 'maritime'"

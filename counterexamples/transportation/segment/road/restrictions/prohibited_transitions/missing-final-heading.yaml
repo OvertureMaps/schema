@@ -22,4 +22,4 @@ properties:
         - segment_id: foo
           connector_id: bar
   ext_expected_errors:
-    - "missing properties: 'final_heading'"
+    - "missing property 'final_heading'"

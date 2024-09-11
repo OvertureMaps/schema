@@ -15,8 +15,8 @@
       {}
     ],
     "ext_expected_errors": [
-      "anyOf/0/required] missing properties: 'min_speed'",
-      "anyOf/1/required] missing properties: 'max_speed'"
+      "anyOf/0/required]: missing property 'min_speed'",
+      "anyOf/1/required]: missing property 'max_speed'"
     ]
   }
 }

@@ -21,7 +21,7 @@
       }
     ],
     "ext_expected_errors": [
-      "[I#/properties/width_rules/1] [S#/$defs/propertyDefinitions/width_rules/items/required] missing properties: 'value'"
+      "propertyContainers/widthRulesContainer/items/required]: missing property 'value'"
     ]
   }
 }

@@ -19,4 +19,4 @@ properties:
   norms:
     driving_side: left
   ext_expected_errors:
-    - value must be "Point"
+    - "value must be 'Point'"

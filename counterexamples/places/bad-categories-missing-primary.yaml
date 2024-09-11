@@ -5,7 +5,7 @@ geometry:
   type: Point
   coordinates: [0, 0]
 properties:
-  ext_expected_errors: ["missing properties: 'primary'"]
+  ext_expected_errors: ["missing property 'primary'"]
   theme: places
   type: place
   version: 1

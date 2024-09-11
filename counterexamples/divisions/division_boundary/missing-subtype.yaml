@@ -9,6 +9,6 @@ properties:
   type: division_boundary
   version: 0
   class: land
-  divisions: ["example:division:country:left", "example:division:country:right"]
+  division_ids: ["example:division:country:left", "example:division:country:right"]
   ext_expected_errors:
-    - "missing properties: 'subtype'"
+    - "missing property 'subtype'"

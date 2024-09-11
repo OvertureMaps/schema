@@ -12,4 +12,4 @@ properties:
   class: land
   divisions: ["example:division:country:left", "example:division:country:right"]
   ext_expected_errors:
-    - value must be "LineString"
+    - "value must be 'LineString'"

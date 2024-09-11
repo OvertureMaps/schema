@@ -21,4 +21,4 @@ properties:
     - sequence: []
       final_heading: forward
   ext_expected_errors:
-    - "sequence/minItems] minimum 1 items required, but found 0 items"
+    - "sequence/minItems]: minItems: got 0, want 1"

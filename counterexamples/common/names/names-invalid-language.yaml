@@ -27,7 +27,7 @@ properties:
         value: Too long
         variant: official
   ext_expected_errors:
-    - "additionalProperties 'zh_pinyin', 'en1', 'ja_rm' not allowed"
-    - "[I#/properties/names/rules/0/language] [S#/$defs/propertyDefinitions/language/pattern] does not match pattern"
-    - "[I#/properties/names/rules/1/language] [S#/$defs/propertyDefinitions/language/pattern] does not match pattern"
-    - "[I#/properties/names/rules/2/language] [S#/$defs/propertyDefinitions/language/pattern] does not match pattern"
+    - "additionalProperties]: additional properties"
+    - "'etymology:wikidata' does not match pattern"
+    - "'etymology' does not match pattern"
+    - "'pronunciation' does not match pattern"

@@ -23,4 +23,4 @@ properties:
       to_connector_id: overture:transportation:connector:123
       to_segment_id: overture:transportation:segment:567
   ext_expected_errors:
-    - "[I#/properties/destinations/0] [S#/$defs/propertyDefinitions/destinations/items/required] missing properties: 'final_heading'"
+    - "missing property 'final_heading'"

@@ -23,7 +23,7 @@ properties:
   norms:
     driving_side: left
   ext_expected_errors:
-    - "[I#/properties/hierarchies/0/0] [S#/$defs/typeDefinitions/hierarchyItem/required] missing properties: 'name'"
-    - "[I#/properties/hierarchies/0/1] [S#/$defs/typeDefinitions/hierarchyItem/required] missing properties: 'division_id'"
-    - "[I#/properties/hierarchies/0/2] [S#/$defs/typeDefinitions/hierarchyItem/required] missing properties: 'subtype'"
-    - "[I#/properties/hierarchies/1] [S#/$defs/typeDefinitions/hierarchy/minItems] minimum 1 items required, but found 0 items"
+    - "/propertyDefinitions/hierarchyItem/required]: missing property 'name'"
+    - "/propertyDefinitions/hierarchyItem/required]: missing property 'division_id'"
+    - "/propertyDefinitions/hierarchyItem/required]: missing property 'subtype'"
+    - "/propertyDefinitions/hierarchy/minItems]: minItems: got 0, want 1"

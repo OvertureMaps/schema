@@ -7,7 +7,7 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "[I#/properties/height] [S#/shapeContainer/properties/height/exclusiveMinimum] must be > 0 but found -1.23"
+      "properties/height/exclusiveMinimum]: exclusiveMinimum: got -1.23, want 0"
     ],
     "theme": "buildings",
     "type": "building",

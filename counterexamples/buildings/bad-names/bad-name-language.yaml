@@ -5,7 +5,7 @@ geometry:
   type: Polygon
   coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
 properties:
-  ext_expected_errors: ["[I#/properties/names/rules/0/language] [S#/$defs/propertyDefinitions/language/pattern] does not match pattern"]
+  ext_expected_errors: ["'ga:genitive' does not match pattern"]
   theme: buildings
   type: building
   version: 1

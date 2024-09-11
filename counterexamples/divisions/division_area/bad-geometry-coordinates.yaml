@@ -15,4 +15,4 @@ properties:
     primary: A division area with invalid geometry coordinates.
   country: ZZ
   ext_expected_errors:
-    - expected array, but got number
+    - got number, want array
