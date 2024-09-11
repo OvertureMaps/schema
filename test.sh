@@ -143,7 +143,7 @@ function expected_errors() {
 
 function contains() {
   local haystack="$1"
-  local needle="$1"
+  local needle="$2"
   grep -qF "$needle" <<<"$haystack"
 }
 
