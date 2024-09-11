@@ -185,7 +185,7 @@ description: Common schema definitions shared by all themes
             5. *("-" extension)
     nameRule:
       type: object
-      required: [value]
+      required: [variant, value]
       allOf:
         - { "$ref": "#/$defs/propertyContainers/geometricRangeScopeContainer" }
         - { "$ref": "#/$defs/propertyContainers/sideScopeContainer" }

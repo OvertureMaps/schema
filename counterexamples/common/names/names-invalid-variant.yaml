@@ -1,0 +1,22 @@
+---
+id: names-invalid-variant
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: primary
+  names:
+    primary: Bar
+    rules:
+      - value: I am missing the variant
+      - language: en-us
+        value: I have a fake/unsupported variant
+        variant: fake-variant
+  ext_expected_errors:
+    - "'/properties/names/rules/0': missing property 'variant'"
+    - "'/properties/names/rules/1/variant': value must be one of 'common', 'official', 'alternate', 'short'"
