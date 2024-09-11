@@ -1,3 +1,14 @@
+# Category
+
+What kind of change is this?
+Please select *one* of the following four options.
+Consult [Pull request merging criteria](https://github.com/OvertureMaps/schema-wg#Pull-request-merging-criteria) for a description of each category.
+
+1. [ ] Cosmetic change.
+2. [ ] Documentation change by member.
+3. [ ] Documentation change by Overture tech writer.
+4. [ ] Material change.
+
 # Description
 
 *Brief description of the business purpose and effect of the pull request.*
