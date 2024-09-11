@@ -24,4 +24,4 @@ properties:
       to_segment_id: overture:transportation:segment:567
       final_heading: backward
   ext_expected_errors:
-    - "[I#/properties/destinations/0/labels/0/type] [S#/$defs/propertyDefinitions/destinationLabelType/enum] value must be one of"
+    - "propertyDefinitions/destinationLabelType/enum]: value must be one of 'street',"

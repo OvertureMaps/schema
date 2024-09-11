@@ -7,7 +7,7 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "[I#/properties/num_floors] [S#/shapeContainer/properties/num_floors/exclusiveMinimum] must be > 0 but found -3"
+      "shapeContainer/properties/num_floors/exclusiveMinimum]: exclusiveMinimum: got -3, want 0"
     ],
     "theme": "buildings",
     "type": "building",

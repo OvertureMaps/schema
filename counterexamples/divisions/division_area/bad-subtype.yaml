@@ -16,4 +16,4 @@ properties:
   country: ZZ
   region: ZZ-AB
   ext_expected_errors:
-    - '[I#/properties/subtype] [S#/$defs/typeDefinitions/placetype/enum] value must be one of "country",'
+    - "/propertyDefinitions/placetype/enum]: value must be one of 'country',"

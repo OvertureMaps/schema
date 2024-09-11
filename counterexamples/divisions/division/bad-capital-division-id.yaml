@@ -20,4 +20,4 @@ properties:
     driving_side: right
   capital_division_ids: ['    ']
   ext_expected_errors:
-    - "[I#/properties/capital_division_ids] [S#/$defs/propertyDefinitions/id/pattern] does not match pattern"
+    - "'    ' does not match pattern"

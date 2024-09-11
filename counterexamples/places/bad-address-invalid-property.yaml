@@ -5,7 +5,7 @@ geometry:
   type: Point
   coordinates: [0, 0]
 properties:
-  ext_expected_errors: ["[I#/properties/addresses/1/region2] [S#/$defs/propertyDefinitions/address/unevaluatedProperties] not allowed"]
+  ext_expected_errors: ["/$defs/propertyDefinitions/address/unevaluatedProperties]: false schema"]
   theme: places
   type: place
   version: 0

@@ -123,7 +123,7 @@ function verify() {
     jv "${jv_args[@]}" >/dev/null 2>/dev/null
     ;;
   simple)
-    jv "${jv_args[@]}"
+    jv --output alt "${jv_args[@]}"
     ;;
   *)
     jv --output "$mode" "${jv_args[@]}"

@@ -15,5 +15,5 @@ properties:
     primary: A division area with an invalid country property.
   country: ZZZ
   ext_expected_errors:
-    - length must be <= 2, but got 3
-    - does not match pattern
+    - "maxLength: got 3, want 2"
+    - "'ZZZ' does not match pattern"
