@@ -80,6 +80,12 @@ names:
 
 Languages in the Overture Maps schema are identified by [IETF BCP-47 language tags](https://en.wikipedia.org/wiki/IETF_language_tag); the same tag scheme is used for `common` map entries and `language` values in rules.
 
+We use the following regular expression validate a BCP-47 language tag:
+
+```sql
+(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$`
+```
+
 This pattern recognizes BCP-47 language tags at the lexical or syntactic level. It verifies that candidate tags follow the grammar described in the [RFC](https://datatracker.ietf.org/doc/html/rfc5646), but not that they are validly registered tag in [IANA's language subtag registry](https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry).
 
 In the regular expression, `'(:?'` indicates a non-capturing group, and all the top-level or non-nested groups represent top-level components of `langtag` referenced in the syntax section of [https://www.rfc-editor.org/rfc/bcp/bcp47.txt](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). In particular, the top-level groups in left-to-right order represent:
@@ -91,3 +97,124 @@ In the regular expression, `'(:?'` indicates a non-capturing group, and all the 
 4. *("-" variant)
 5. *("-" extension)
 ```
+
+## Conversion from OSM
+
+In general, OpenStreetMap features with multiple names include tags with keys of the form: `(variant_)name(:language-tag)`, for example:
+
+| Key | Variant | Language Tag |
+| --- | ------- | ------------ |
+| name | none | none |
+| name:el | none | el |
+| loc_name | locally recognized | none |
+| loc_name:es | locally recognized | es |
+| official_name | official | none |
+
+Many, but not all OSM language tags are valid BCP-47 tags. In a few cases, we convert the tag to the proper BCP-47 tag.
+
+<details>
+<summary> Possible BCP-47 Conversions</summary>
+- `ja_kana' -> 'ja-Kana`
+- `ja_hira' -> 'ja-Hira`
+- `zh_pinyin' -> 'zh-Latn-pinyin`
+- `zh_zhuyin' -> 'zh-Bopo`
+- `be-tarask' -> 'be-Latn-tarask`
+- `nan-POJ' -> 'nan-Latn`
+</details>
+
+### Overture Variants
+
+Overture allows only `common`, `official`, `alternate`, and `short` variants. OSM variants are mapped to these.
+
+<details>
+  <summary>Mapping of OSM Variant to Overture Variant</summary>
+
+| OSM Variant | Overture Variant |
+| ----------- | ---------------- |
+| none | common |
+| official | official |
+| short | short |
+| loc | alternate |
+| int | alternate |
+| nat | alternate |
+| old | alternate |
+| ref | alternate |
+| reg | alternate |
+| alt | alternate |
+| nick | alternate |
+
+All other variants are ignored.
+</details>
+
+Once all valid variants and language tags have been derived from OSM tags, populating
+the Overture names field is as follows:
+
+* `primary` is always the "common" variant with no language tag. (`name=` in OSM).
+
+* `common` is a map of the common variants where the keys are the BCP47 language tags and the values are their corresponding tag values. There can only be one entry for each language.
+
+* `rules` is an array of objects that captures all other variants. Each rule structure has the following fields:
+
+  - `language` - a valid BCP-47 language tag
+  - `variant` - `common`, `official`, `alternate`, or `short`
+  - `value` - the name
+  - `between` - Used for linear-referencing of transportation segments. This is always null for non-transportation features.
+  - `side` - Used when one side of a transportation segment has a name. This is always null for non-transportation features.
+
+Because `rules` is a list there are no restrictions on the number of variants or
+languages. It is possible to have multiple instances of the same variant and
+language combination.
+
+### Example
+The [New York City label node](https://www.openstreetmap.org/node/61785451) includes the following name tags:
+name tags:
+```
+name=New York
+name:br=Evrog Nevez
+name:el=Νέα Υόρκη
+name:es=Nueva York
+name:be-tarask=Нью-Ёрк
+old_name:es=Nueva Ámsterdam
+loc_name=Big Apple
+loc_name:es=La Gran Manzana
+official_name=City of New York
+...
+```
+
+The `names` property in Overture includes:
+
+```json
+{
+    primary: "New York",
+    common: {
+        "br": "Evrog Nevez",
+        "el": "Νέα Υόρκη",
+        "es": "Nueva York",
+        "be-Latn-tarask": "Нью-Ёрк"
+    },
+    rules: [
+        {
+            "value": "City of New York",
+            "variant": "official",
+            "language": null,
+        },
+        {
+            "value": "Nueva Ámsterdam",
+            "variant": "alternate",
+            "language": "es",
+        },
+        {
+            "value": "Big Apple",
+            "variant": "alternate",
+            "language": null,
+        },
+        {
+            "value": "La Gran Manzana",
+            "variant": "alternate",
+            "language": "es",
+        },
+    ]
+}
+```
+
+Note that `between` and `side` are always null in this example because it does not apply to a transportation feature.
