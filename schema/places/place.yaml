@@ -24,7 +24,7 @@ properties:
       categories:
         description: |
           The categories of the place. Complete list is available on
-          GitHub: https://github.com/OvertureMaps/schema/blob/main/task-force-docs/places/overture_categories.csv
+          GitHub: https://github.com/OvertureMaps/schema/blob/main/docs/schema/concepts/by-theme/places/overture_categories.csv
         type: object
         required: [primary]
         properties:
