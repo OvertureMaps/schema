@@ -370,3 +370,37 @@ description: Common schema definitions shared by all themes
                 of features with a higher number.
               type: integer
               default: 0
+             display_theme:
+              description: >-
+                An attribute that describes the top level theme a business can be classified under.
+                This is especially useful when displaying labels / icons for places or buildings in
+                a thematic manner. For example, blue for transit labels.
+              type: string
+              enum:
+                - arts_and_culture
+                - cultural_and_historical_landmarks
+                - education
+                - entertainment
+                - food_and_drink
+                - geographic_entity
+                - health_and_safety
+                - parks_and_recreation
+                - personal_services
+                - shopping
+                - transportation
+                - unclassified
+            display_category:
+              description: >-
+                An attribute that describes the specific category a business can be classified under.
+                This is an extended classification under `display_theme`. When displaying labels / icons
+                for places or buildings in a thematic manner, this attribute can help when displaying
+                a specific icon. For example, a fork & knife for restaurants or a bus for bus stops.
+              type: string
+              enum:
+                - school
+                - local_park
+                - cemetery
+                - hospital
+                - playground
+                - gas_station
+                - and many more...
