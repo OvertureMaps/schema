@@ -72,11 +72,14 @@ properties:
           - clinic
           - college
           - commercial
+          - connection
           - construction
           - danger_area
           - doctors
           - dog_park
+          - downhill
           - driving_range
+          - driving_school
           - education
           - environmental
           - fairway
@@ -94,6 +97,7 @@ properties:
           - greenhouse_horticulture
           - highway
           - hospital
+          - ice_skate
           - industrial
           - institutional
           - landfill
@@ -102,6 +106,9 @@ properties:
           - marina
           - meadow
           - military
+          - military_hospital
+          - military_school
+          - music_school
           - national_park
           - natural_monument
           - nature_reserve
@@ -123,11 +130,17 @@ properties:
           - recreation_ground
           - religious
           - residential
+          - resort
           - retail
           - rough
           - salt_pond
           - school
           - schoolyard
+          - ski_jump
+          - skitour
+          - sled
+          - sleigh
+          - snow_park
           - species_management_area
           - stadium
           - state_park
@@ -148,6 +161,5 @@ properties:
           - winter_sports
           - works
           - zoo
-
       elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
       surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }
