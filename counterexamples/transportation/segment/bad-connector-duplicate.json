@@ -13,7 +13,6 @@
     "type": "segment",
     "version": 4,
     "subtype": "rail",
-    "connector_ids": ["fooConnector", "bazConnector", "fooConnector"],
     "connectors": [
       {
         "connector_id": "fooConnector",

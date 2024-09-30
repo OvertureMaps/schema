@@ -10,7 +10,11 @@ properties:
   subtype: road
   class: secondary
   version: 0
-  connector_ids: [overture:transportation:connector:123, overture:transportation:connector:678]
+  connectors:
+    - connector_id: overture:transportation:connector:123
+      at: 0
+    - connector_id: overture:transportation:connector:678
+      at: 1
   destinations:
     - labels:
       - value:

@@ -13,10 +13,6 @@ properties:
   version: 5
   subtype: road
   class: secondary
-  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
-  connector_ids:
-    - overture:transportation:example:via-turn-restriction-connector1
-    - overture:transportation:example:via-turn-restriction-connector2
   connectors:
     - connector_id: overture:transportation:example:via-turn-restriction-connector1
       at: 0

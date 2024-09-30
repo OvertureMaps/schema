@@ -17,7 +17,6 @@
     "type": "segment",
     "version": 3,
     "subtype": "rail",
-    "connector_ids": ["bazConnector", "qux", 1, false],
     "connectors": [{"connector_id": "foo", "at": 0.0}, {"connector_id": "bar", "at": 1.0}, "bazConnector", "qux", 1, false]
   }
 }
