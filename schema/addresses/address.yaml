@@ -65,7 +65,8 @@ properties:     # JSON Schema: Top-level object properties.
 
           Note: when a level is not known - most likely because the data provider
           has not supplied it and we have not derived it from another source,
-          the array element can be null.
+          the array element container must be present, but the "value" field
+          should be omitted
         type: array
         items: { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
         minItems: 1
