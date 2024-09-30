@@ -62,6 +62,10 @@ properties:     # JSON Schema: Top-level object properties.
           and the municipality. In other countries there might be only one.
           Other countries could have three or more. The array is ordered
           with the highest levels first.
+
+          Note: when a level is not known - most likely because the data provider
+          has not supplied it and we have not derived it from another source,
+          the array element can be null.
         type: array
         items:
           oneOf:
