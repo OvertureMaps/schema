@@ -63,7 +63,10 @@ properties:     # JSON Schema: Top-level object properties.
           Other countries could have three or more. The array is ordered
           with the highest levels first.
         type: array
-        items: { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
+        items:
+          oneOf:
+            - { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
+            - type: "null"
         minItems: 1
         maxItems: 5
 "$defs":
