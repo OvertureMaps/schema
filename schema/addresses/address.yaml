@@ -67,10 +67,7 @@ properties:     # JSON Schema: Top-level object properties.
           has not supplied it and we have not derived it from another source,
           the array element can be null.
         type: array
-        items:
-          oneOf:
-            - { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
-            - type: "null"
+        items: { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
         minItems: 1
         maxItems: 5
 "$defs":
@@ -83,7 +80,6 @@ properties:     # JSON Schema: Top-level object properties.
         levels with per-country rules indicating which parts of a country's
         address goes to which numbered level.
       type: object
-      required: ["value"]
       properties:
         value:
           type: string

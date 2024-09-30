@@ -10,8 +10,8 @@ properties:
   version: 0
   country: US
   address_levels:
-    - null
     - value: NEWTON CENTRE
+    - {}
   postcode: '02459'
   street: COMMONWEALTH AVE
   number: '1000'
