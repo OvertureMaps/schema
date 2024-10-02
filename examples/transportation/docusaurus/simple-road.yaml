@@ -24,9 +24,5 @@ properties:
       at: 1
   names:
     primary: Nicola Street
-  lanes:
-    - value:
-      - direction: backward
-      - direction: forward
   road_surface:
     - value: paved
