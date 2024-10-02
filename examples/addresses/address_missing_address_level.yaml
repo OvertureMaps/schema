@@ -10,7 +10,7 @@ properties:
   version: 0
   country: US
   address_levels:
-    - value: NEWTON CENTRE
+    - value: MA
     - {}
   postcode: '02459'
   street: COMMONWEALTH AVE
