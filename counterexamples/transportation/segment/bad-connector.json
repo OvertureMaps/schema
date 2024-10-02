@@ -7,8 +7,6 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "got number, want string",
-      "got boolean, want string",
       "got string, want object",
       "got number, want object",
       "got boolean, want object"
