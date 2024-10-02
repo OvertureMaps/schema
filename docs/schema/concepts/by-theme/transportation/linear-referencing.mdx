@@ -2,3 +2,99 @@
 title: Linear referencing
 draft: true
 ---
+
+
+Linear referencing, also known as [geometric scoping](https://docs.overturemaps.org/schema/concepts/scoping-rules), is a key concept in the transportation schema. 
+
+<Tabs>
+  <TabItem value="description" label="Description" default>
+
+The geometric scoping properties `at` and `between` limit the scope of their parent value to a position or range of positions, respectively, along a segment's geometry. When the parent value is a rule object, the rule only matches the position or range of positions specified in the `at` or `between` property.
+
+The value of the `at` property is a single real number `a` where `0` &le; `a`
+&le; `1`. It represents a discrete position along the segment's geometry. The
+value of the `between` property is a pair of numbers `[a, b]` where `0` &le;
+`a` &lt; `b` &le; `1`. It represents a range of positions along the segment's
+geometry. The numbers `a` and `b` are interpreted as percentage displacements
+along the parent segment's geometry starting from the start of the segment.
+(*The terms "start" and "end" are explained in
+[Shape and connectivity](https://docs.overturemaps.org/schema/concepts/by-theme/transportation/shape-connectivity).*) 
+
+So, for example, the scoping property `"at": 0.15` scopes its parent value
+to the position on the segment that is displaced 15% of the segment length from
+the start.
+
+<div style={{textAlign: 'center'}}>
+
+<figure>
+
+<ThemedImage
+  alt="Diagram showing a single geometrically-scoped position"
+  sources={{
+    light: useBaseUrl('/img/transportation/geometric-scoping-position-light.svg'),
+    dark: useBaseUrl('/img/transportation/geometric-scoping-position-dark.svg'),
+  }}
+/>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*The position along the segment geometry described by `"at": 0.15`.*
+
+</div>
+
+</figcaption>
+</figure>
+
+</div>
+
+The scoping property `"between": [0.35, 0.75]` scopes its parent value to the
+range of positions on the segment beginning at 35% and extending to 75% of the
+segment length from the start.
+
+<div style={{textAlign: 'center'}}>
+
+<figure>
+
+<ThemedImage
+  alt="Diagram showing a geometrically-scoped range"
+  sources={{
+    light: useBaseUrl('/img/transportation/geometric-scoping-range-light.svg'),
+    dark: useBaseUrl('/img/transportation/geometric-scoping-range-dark.svg'),
+  }}
+/>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*The range on the segment geometry described by `"between": [0.35, 0.75]`.*
+
+</div>
+
+</figcaption>
+</figure>
+
+</div>
+
+  </TabItem>
+  <TabItem value="example" label="Example" default>
+
+The example below shows a road segment whose speed limit is defined by
+two geometrically-scoped speed limit rules:
+
+<CodeBlock language="yaml">{ ExampleGeometricScoping }</CodeBlock>
+
+  </TabItem>
+</Tabs>
+
+## Linear referencing
+https://docs.overturemaps.org/schema/attributes/transportation/shape-connectivity/#geometric-scoping
+https://docs.overturemaps.org/schema/attributes/scoping-rules/ 
+
+
+## Segment subclasses
+Flexible, linearly-referenceable attributes which refine the class value
+Patterned after OSM’s subtags, including service, footway and cycleway
+Critical to resolve merged details of pedestrian networks, particularly for adjacent sidewalk and crosswalks
