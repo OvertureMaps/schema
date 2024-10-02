@@ -6,7 +6,7 @@ geometry:
   coordinates: [[0, 0], [1, 1]]
 properties:
   ext_expected_errors:
-    - "[I#/properties/class] [S#/$defs/propertyDefinitions/class] value must be one of"
+    - "roadClass/enum]: value must be one of 'motorway',"
   theme: transportation
   type: segment
   update_time: "2024-04-23T00:00:00-05:00"

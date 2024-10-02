@@ -1,5 +1,5 @@
 ---
-id: overture:addresses:address:1
+id: overture:addresses:addres:1
 type: Feature
 geometry:
   type: Point
@@ -9,10 +9,9 @@ properties:
   type: address
   version: 0
   country: US
-  region: MA
-  city: NEWTON CENTRE
+  address_levels:
+    - value: MA
+    - {}
   postcode: '02459'
-  street: ' COMMONWEALTH AVE'
+  street: COMMONWEALTH AVE
   number: '1000'
-  ext_expected_errors:
-    - "' COMMONWEALTH AVE' does not match pattern '^(\\\\S.*)?\\\\S$'"

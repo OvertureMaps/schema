@@ -7,7 +7,7 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "items at index 0 and 2 are equal"
+      "items at 0 and 2 are equal"
     ],
     "theme": "transportation",
     "type": "segment",

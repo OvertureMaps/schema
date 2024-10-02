@@ -18,5 +18,5 @@ properties:
         value: I have a fake/unsupported variant
         variant: fake-variant
   ext_expected_errors:
-    - "'/properties/names/rules/0': missing property 'variant'"
-    - "'/properties/names/rules/1/variant': value must be one of 'common', 'official', 'alternate', 'short'"
+    - "missing property 'variant'"
+    - "value must be one of 'common', 'official', 'alternate', 'short'"

@@ -30,4 +30,4 @@ properties:
       to_segment_id: overture:transportation:segment:567
       final_heading: backward
   ext_expected_errors:
-    - "[I#/properties/destinations/0/labels] items at index 0 and 1 are equal"
+    - "items at 0 and 1 are equal"

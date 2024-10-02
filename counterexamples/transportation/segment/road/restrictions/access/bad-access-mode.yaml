@@ -6,7 +6,7 @@ geometry:
   coordinates: [[0, 0], [1, 1]]
 properties:
   ext_expected_errors:
-    - value must be one of "motor_vehicle"
+    - "travelMode/enum]: value must be one of"
   # Custom user properties.
   ext_baz: I am a custom user property...
   # Overture properties

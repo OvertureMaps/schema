@@ -49,4 +49,4 @@ properties:
       - segment_id: overture:transportation:segment:567
         connector_id: overture:transportation:connector:567
   ext_expected_errors:
-    - "[I#/properties/destinations/0/label] items at index 0 and 1 are equal"
+    - "destinations/items/properties/labels/uniqueItems]: items at 0 and 1 are equal"

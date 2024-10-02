@@ -7,11 +7,11 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "expected string, but got number",
-      "expected string, but got boolean",
-      "expected object, but got string",
-      "expected object, but got number",
-      "expected object, but got boolean"
+      "got number, want string",
+      "got boolean, want string",
+      "got string, want object",
+      "got number, want object",
+      "got boolean, want object"
     ],
     "theme": "transportation",
     "type": "segment",

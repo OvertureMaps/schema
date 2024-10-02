@@ -7,10 +7,10 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "missing properties: 'subtype'"
+      "missing property 'subtype'"
     ],
     "theme": "transportation",
     "type": "segment",
-    "version": 26,
+    "version": 26
   }
 }

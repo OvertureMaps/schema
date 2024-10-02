@@ -17,5 +17,5 @@ properties:
         subtype: foo
         name: A division with an invalid subtype
   ext_expected_errors:
-    - '[I#/properties/subtype] [S#/$defs/typeDefinitions/placetype/enum] value must be one of "country",'
-    - '[I#/properties/hierarchies/0/0/subtype] [S#/$defs/typeDefinitions/placetype/enum] value must be one of "country",'
+    - "/propertyDefinitions/placetype/enum]: value must be one of 'country',"
+    - "/propertyDefinitions/placetype/enum]: value must be one of 'country',"

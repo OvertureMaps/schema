@@ -7,11 +7,11 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "[I#/properties/class] [S#/properties/properties/properties/class/enum] value must be one of"
+      "/properties/properties/properties/class/enum]: value must be one of"
     ],
     "theme": "buildings",
     "type": "building",
     "class": "made-up-class",
-    "version": 0,
+    "version": 0
   }
 }

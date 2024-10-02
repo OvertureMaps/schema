@@ -18,4 +18,4 @@ properties:
         name: A country division that has a parent ID, which is not allowed
   parent_division_id: counterexample:division:some-parent-division
   ext_expected_errors:
-    - "[I#/properties] [S#/properties/properties/allOf/2/then/not] not failed"
+    - "[S#/properties/properties/allOf/2/then]: not failed"
