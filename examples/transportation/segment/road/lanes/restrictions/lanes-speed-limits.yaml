@@ -1,0 +1,51 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: secondary
+  version: 2
+  speed_limits:
+    - max_speed:
+        value: 100
+        unit: km/h
+  lanes:
+    - value:
+      # two-way road with access and speed limit restrictions
+      # digitization: S->N
+      # |   ||   |   |
+      # |   ||   |   | => max speeds: 100 km/h for whole segment
+      # |   ||   |   |    but on lane 2 is limited to 80 km/h for hgv vehicles
+      # |   ||   |   |
+      # |   ||   |   |
+      # | 0 || 1 | 2 |
+      - direction: backward # no restriction -> lane available for all vehicles and all can drive with maximum speed 100 km/h
+      - direction: forward # lane 1  -> hgv vehicles cannot use that lane
+        restrictions:
+          access:
+            - access_type: denied
+              when:
+                mode: [hgv]
+      - direction: forward # lane 2 - available for all vehicles except hgv vehicles if their weight is more than 3 tons, and they must limit their speed to 80 km/h
+        # for all other vehicles segment speed limit (100 km/h) applies
+        restrictions:
+          access:
+            - access_type: denied
+              when:
+                mode: [hgv]
+                vehicle:
+                  - dimension: weight
+                    comparison: greater_than
+                    value: 3
+                    unit: 't'
+          speed_limits:
+            - max_speed:
+                value: 80
+                unit: km/h
+              when:
+                mode: [hgv]

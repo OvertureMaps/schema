@@ -1,0 +1,32 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: secondary
+  version: 2
+  lanes:
+    - value:
+      # two-way road with access restrictions for specific travel modes
+      # digitization: S->N
+      # |   ||   |   |
+      # |   ||   |   |
+      # |   ||   |   | <- from that moment lane 2 starts to be a bus only lane
+      # |   ||   |   |
+      # |   ||   |   |
+      # | 0 || 1 | 2 |
+      - direction: backward # lane 0
+      - direction: forward # lane 1
+      - direction: forward # lane 2 from its 60% of length (till the end) it is allowed only for buses (before 60% mark it is available for all vehicles)
+        restrictions:
+          access:
+            - access_type: allowed
+              when:
+                mode:
+                  - bus
+              between: [0.6, 1]

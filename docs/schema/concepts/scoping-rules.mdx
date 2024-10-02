@@ -14,6 +14,7 @@ import ExampleSubjectiveHeadingScoping from '!!raw-loader!@site/docs/_examples/t
 import ExampleSubjectiveUsagePurposeScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-usage-purpose-scoping.yaml';
 import ExampleSubjectiveStatusScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-status-scoping.yaml';
 import ExampleSubjectiveVehicleAttributesScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-vehicle-attributes-scoping.yaml';
+import ExampleLanesAbsoluteForm from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-absolute-form.yaml';
 
 ## Scoped and rule-based properties
 
@@ -52,7 +53,7 @@ value of the `between` property is a pair of numbers `[a, b]` where `0` &le;
 geometry. The numbers `a` and `b` are interpreted as percentage displacements
 along the parent segment's geometry starting from the start of the segment.
 (*The terms "start" and "end" are explained in
-[Shape and connectivity](https://docs.overturemaps.org/guides/transportation/shape-connectivity).*)
+[Shape and connectivity](https://docs.overturemaps.org/guides/transportation/shape-connectivity).*) 
 
 So, for example, the scoping property `"at": 0.15` scopes its parent value
 to the position on the segment that is displaced 15% of the segment length from
@@ -311,6 +312,93 @@ being modeled has a single unchanging state which is the same in all fact
 situations. In these cases, most rule-based properties support a simpler
 absolute form without a list of rules.
 
+Consider the following two examples of road segments. On the left is a section
+from a simple two-lane bidirectional city street in which there is always one
+lane of traffic flowing in each direction. On the right is a section from a
+one-way city street in which two of the lanes are only available for driving at
+certain times of the day, being reserved for parking at other times. In the
+example on the left, the lane list is specified absolutely; while in the example
+on the right, it is given as a list of [temporally-scoped](#temporal-scoping-opening-hours)
+lane rules.
+
+<div style={{ width: "49.5%", float: "left" }}>
+
+<figure>
+
+<CodeBlock language="yaml">{ ExampleLanesAbsoluteForm }</CodeBlock>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*An absolute list of lanes.*
+
+</div>
+
+</figcaption>
+
+</figure>
+
+</div>
+
+<div style={{ width: "49.5%", float: "right" }}>
+
+<figure>
+
+<!--
+
+TODO: The below inline example is INVALID according to our schema model
+      because lanes don't support temporal scoping: https://github.com/OvertureMaps/schema-wg/issues/148.
+
+      The above issue should be fixed, the inline example should be
+      removed and replaced by the `examples/transportation/docusaurus/lanes-rule-form.yaml`,
+      and the example should be fixed to uncomment the during property.
+
+-->
+
+```yaml
+---
+id: overture:transportation:example:lanes-rule
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - - -123.12244656918179
+      - 49.280940587393815
+    - - -123.12562968007902
+      - 49.27884862879665
+properties:
+  theme: transportation
+  type: segment
+  version: 0
+  update_time: "2023-06-16T15:57:00-06:00"
+  subtype: road
+  road:  # The `road` property is deprecated and will be removed in the 2024-07 release
+    lanes:
+      - value:
+          - direction: forward
+          - direction: forward
+      - during: Mo-Fr 15:00-18:00
+        value:
+          - direction: forward
+          - direction: forward
+          - direction: forward
+          - direction: forward
+```
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*A list of lane rules.*
+
+</div>
+
+</figcaption>
+
+</figure>
+
+</div>
 
 <div style={{ clear: "both" }}/>
 

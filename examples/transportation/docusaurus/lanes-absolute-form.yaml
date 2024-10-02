@@ -1,0 +1,18 @@
+---
+id: overture:transportation:example:lanes-absolute
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-123.13174398677468, 49.28492173297815]
+    - [-123.13015725772073, 49.283923094445726]
+properties:
+  theme: transportation
+  type: segment
+  version: 2
+  subtype: road
+  class: secondary
+  lanes:
+    - value:
+      - direction: backward
+      - direction: forward

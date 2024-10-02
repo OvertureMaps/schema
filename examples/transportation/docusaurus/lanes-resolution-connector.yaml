@@ -1,0 +1,10 @@
+---
+id: lanes-resolution-example-connector
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-21.852776852103545, 22.079931368]
+properties:
+  theme: transportation
+  type: connector
+  version: 0

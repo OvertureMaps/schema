@@ -1,0 +1,26 @@
+---
+id: overture:transportation:example:lanes-rule
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - - -123.12244656918179
+      - 49.280940587393815
+    - - -123.12562968007902
+      - 49.27884862879665
+properties:
+  theme: transportation
+  type: segment
+  version: 2
+  subtype: road
+  class: primary
+  lanes:
+    - value:
+        - direction: forward
+        - direction: forward
+    - when: {during: Mo-Fr 15:00-18:00}
+      value:
+        - direction: forward
+        - direction: forward
+        - direction: forward
+        - direction: forward
