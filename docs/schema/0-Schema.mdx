@@ -28,13 +28,13 @@ Overture assigns a unique ID to each feature in an Overture dataset. For most fe
 ## Schema characteristics
 The Overture schema is defined by the [JSON schema](https://json-schema.org/), and [GeoJSON](https://geojson.org/) is used as the canonical geospatial format. GeoJSON provides us with a mental model and language to express data constructions in the schema. The Overture schema supports the following geometry types: Point, LineString, Polygon, MultiPoint, MultiLineString, and MultiPolygon. Together geometric objects and their properties are called features.
 
-In this section of the documentation, we are focusing on the Overture schema. You can jump right to the reference section if you're looking up specific properties in a dataset. Below we describe the core schema properties, complex schema properties, concepts, and concepts by theme. We also describe a set of notation and style conventions that we follow. 
+In this section of the documentation, we are focusing on the Overture schema. You can jump right to the reference section if you're looking up specific properties in a dataset. Below we describe the core schema properties, complex schema properties, schema concepts, and schema concepts by theme. We also describe a set of notation and style conventions that we follow. 
 
-### One schema with required, shared, and theme-specific properties
+### One schema with shared and theme-specific properties
 
-Overture releases one schema that describes and structures all of Overture's datasets. The schema includes properties that are required for all Overture features, properties that are shared across themes but are not required, and properties that are specific to a theme. 
+Overture releases one schema that describes and structures all of Overture's datasets. The schema includes properties that are shared across themes and properties that are specific to a theme. 
 
-All Overture features are required to have these properties:
+All Overture features have these properties:
 
 - type
 - geometry, where the type of geometry is constrained by the feature type
@@ -46,6 +46,8 @@ The schema contains a few properties that are shared across themes but not requi
 - names
 - version
 
+<!-- what about subtype, type, class, subclass structures? -->
+
 <JSONSchemaViewer
   schema={ yamlLoad(MainDefs) }
   resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer" })}/>
@@ -55,10 +57,9 @@ The schema contains a few properties that are shared across themes but not requi
   schema={ yamlLoad(MainDefs) }
   resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer/properties/sources" })}/> -->
 
- common structures across themes, although they are not a "required" Overture property. This includes names and cartography. 
-
+ 
 ### Schema concepts
-This is where I'll briefly mention the concepts that are important to understand, such as linear referencing, topology, cross-theme releationships, contested borders, internationalization, mapping OpenStreetMap tags to Overture properties, and more. 
+This is where I'll briefly mention the concepts that are important to understand, such as linear referencing, topology, cross-theme releationships, contested borders, internationalization, mapping OpenStreetMap tags to Overture properties, and more. This will link to the concepts section of this documentation. 
 
 ### Schema conventions
 These are the styles, notations, nomenclatures, specifications, and standards we have adopted for the Overture schema. 
@@ -89,9 +90,11 @@ All quantities that relate to posted or ordnance regulations and restrictions ar
 
 Opening hours and the time frame during which time dependent properties are applicable are indicated following the [OSM Opening Hours specification](https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification).
 
+<!-- This is not yet true 
 #### Extensions
 
 Overture allows for add hoc extensions beyond what is described in the schema. All extensions are prefixed with `ext_`. Extensions can be provided at the theme level, the type level, or the property level.
+-->
 
 ## A word about data formats
 

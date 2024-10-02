@@ -3,13 +3,13 @@ title: Transportation schema concepts
 ---
 
 ## Overview
-The Overture transportation theme describes the infrastructure and conventions of how people and objects travel around the world. The schema defines a hierarchy of structures that attempt to make it easier to manage this complex dataset and reflect the operational reality of transportation networks. 
+The Overture transportation theme describes the infrastructure and conventions of how people and objects travel around the world. The schema defines a hierarchy of structures that attempt to: 1. make it easier to manage this complex dataset and 2. reflect the operational reality of transportation networks. 
 
 :::tip
-For tips on accessing and working with our transportation data, please see our [Transportation Data Guide](/docs/guides/transportation). 
+For tips on accessing and working with our transportation data, please see our Transportation Data Guide. 
 :::
 
-The three subtypes under `segment` -- `road`, `rail`, and `water` -- contain most of the transportation data with which users are familiar: highways, footways, cycleways, railways, ferry routes, and public transportation. 
+The three subtypes under `segment` &mdash; `road`, `rail`, and `water` &mdash; contain most of the transportation data with which users are familiar: highways, footways, cycleways, railways, ferry routes, and public transportation. 
 
 This guide is about the transportation schema. The transportation schema structures the segment and connector feature data and defines concepts like routes, trips, vehicles, speed limits, directionality, and network topology.
 
@@ -66,7 +66,7 @@ The transportation theme supports a fuzzy concept called
 travel mode which can be used as a way of controlling scoped
 and rule-based properties
 
-### [Routes and destinations](/schema/concepts/by-theme/transportation/routes-destinations) 
+### Routes and destinations
 Also in support of routing use cases, we [added a `destinations` property](https://github.com/OvertureMaps/schema/pull/176) to the segment feature type.
 This property describes the transitions from one segment to another on the way to a specified location.
 In turn-by-turn routing applications, this is what is known as “follow signs for” &mdash; the human-readable
@@ -74,7 +74,8 @@ directions and signposts along a road, highway, or interstate that get us from p
 of any number of paths in between. We designed `destinations` with a flexible schema that will allow us to
 capture and model navigation data from many different sources.
 
-MOVE THESE UP TO CROSS-THEME CONCEPTS
+<!---
+Some of this might be bumped up to cross-theme concepts -->
 ### [Scoped and rule-based properties](/schema/concepts/scoping-rules)
 The schema allows property values to be specified for granular scopes at the sub-feature level. For example:
   - a speed limit on a road segment might be scoped to apply only to part of the road geometry using _geometric scoping_
