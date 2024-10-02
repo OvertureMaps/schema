@@ -1,0 +1,41 @@
+---
+id: overture:transportation:example:simple-road2
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-122.2421117, 47.6382849]
+    - [-122.2429835, 47.6384385]
+    - [-122.2442307, 47.6386337]
+    - [-122.2445016, 47.6386753]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  version: 2
+  class: secondary
+  lanes:
+      # one-way road with access and speed limit restrictions
+      # digitization: S->N
+      # |   |   |   |
+      # |   |   |   | => max speeds: 100 km/h for whole segment
+      # | h |   |   |    but on lane 2 is limited to 80 km/h for hgv vehicles
+      # | o |   |   |
+      # | v |   |   |
+      # |   |   |   |
+      # | 0 | 1 | 2 |
+      - value:
+        - direction: forward # lane 0 -> hov only
+          restrictions:
+           access:
+             - access_type: allowed
+               when:
+                 mode:
+                   - hov
+           min_occupancy: 3
+        - direction: forward # lane 1
+        - direction: forward # lane 2
+  speed_limits:
+    - max_speed:
+        value: 100
+        unit: km/h

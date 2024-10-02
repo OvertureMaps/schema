@@ -1,0 +1,44 @@
+---
+id: "234"
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  subtype: road
+  class: primary
+  version: 1
+  lanes:
+    # Example shows modelling of new lane being introduced on a straight road which is a single segment
+    # whole lanes attribute is represented in LR way to keep LR referencing in root level of modeled attribute.
+    #
+    #    |0|1|
+    #    | |  \
+    #    | | | |
+    #    |0|1|2|
+    #    | | | |
+    #    | |  /
+    #    |0|1|
+    # digitization: S -> N
+    - between: # two lanes between <0% and 10%) of segment
+        - 0
+        - 0.1
+      value:
+        - direction: forward # lane 0
+        - direction: forward # lane 1
+    - between: # three lanes between <10% and 70%) of segment
+        - 0.1
+        - 0.7
+      value:
+        - direction: forward
+        - direction: forward
+        - direction: forward
+    - between: # two lanes again between <70% and 100%> of segment
+        - 0.7
+        - 1
+      value:
+        - direction: forward
+        - direction: forward

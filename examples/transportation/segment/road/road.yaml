@@ -25,7 +25,7 @@ properties:
       at: 1
   names:
     primary: Common Road Name
-  # no access information -> means by default road is accessible in both directions
+  # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
   road_surface:
     - value: gravel
   road_flags:

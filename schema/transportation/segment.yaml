@@ -33,6 +33,7 @@ properties:
           required: [class]
           properties:
             destinations: { "$ref": "#/$defs/propertyDefinitions/destinations" }
+            lanes: { "$ref": "#/$defs/propertyContainers/lanesContainer" }
             prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
             road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
             road_flags: { "$ref": "#/$defs/propertyContainers/flagsContainer" }
@@ -185,6 +186,41 @@ properties:
         - cycleway
         - bridleway       # Similar to track but has implied access only for horses
         - unknown
+    lane:
+      description: Properties for a single lane of traffic.
+      type: object
+      unevaluatedProperties: false
+      required: [direction]
+      properties:
+        direction: { "$ref": "#/$defs/propertyDefinitions/laneDirection" }
+        restrictions:
+          description: Restrictions on how the lane may be used
+          "$comment": >-
+            Lane restrictions may be defined in the same way as for whole roads with the exception
+            of turns; there are no turn restrictions for lanes.
+          type: object
+          unevaluatedProperties: false
+          properties:
+            speed_limits:
+              "$ref": "#/$defs/propertyContainers/speedLimitsContainer"
+            access:
+              "$ref": "#/$defs/propertyContainers/accessContainer"
+            min_occupancy:
+              description: >-
+                Minimal occupancy restrictions relate to HOV (high occupancy vehicles) travel modes.
+                If a lane is restricted for use only by HOVs, then the default minimum vehicle
+                occupancy qualifying as HOV is 2+ passengers (including the driver).  This
+                restriction can be provided to override the default definition of HOV.
+              type: integer
+              minimum: 1
+    laneDirection:
+      type: string
+      enum:
+        - forward       # Traffic flows in the segment direction.
+        - backward      # Traffic flows against the segment direction.
+        - both_ways     # Traffic flows simultaneously in both directions as, e.g., on a sidewalk.
+        - alternating   # Traffic flows alternately forward and backward following a predictable rhythm.
+        - reversible    # Traffic flows forward, but may be arbitrarily reversed by traffic authorities at any time.
     heading:
       description: >-
         Enumerates possible travel headings along segment geometry.
@@ -545,7 +581,7 @@ properties:
                 minimum: 0
               unit: { "$ref": "#/$defs/propertyDefinitions/vehicleScopeUnit" }
     speedLimitsContainer:
-      description: Rules governing speed on this road segment
+      description: Rules governing speed on this road segment or lane
       type: array
       items:
         description: An individual speed limit rule
@@ -581,7 +617,7 @@ properties:
       minLength: 1
       uniqueItems: true
     accessContainer:
-      description: Rules governing access to this road segment
+      description: Rules governing access to this road segment or lane
       type: array
       items:
         type: object
@@ -605,6 +641,36 @@ properties:
             unevaluatedProperties: false
         minLength: 1
         uniqueItems: true
+    lanesContainer:
+      description: >-
+        List of lane block rules describing the layout of lanes on
+        the road plus lane-related information. The standard rule
+        evaluation algorithm is used to determine which lane block
+        applies at a given place and time along the segment.
+
+        Each lane block contains the list of lanes that make up the
+        block. Lanes in the block are listed from left to right as
+        they would be seen by a person standing on the road segment
+        facing in the direction of the segment's orientation (toward
+        the end).
+      type: array
+      items:
+        type: object
+        unevaluatedProperties: false
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
+        properties:
+          value:
+            type: array
+            items:  { "$ref": "#/$defs/propertyDefinitions/lane" }
+            minItems: 1
+          when:
+            allOf:
+              - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"
+            minProperties: 1
+            unevaluatedProperties: false
+      minItems: 1
+      uniqueItems: true
     prohibitedTransitionsContainer:
       description: >-
         Rules preventing transitions from this segment to
