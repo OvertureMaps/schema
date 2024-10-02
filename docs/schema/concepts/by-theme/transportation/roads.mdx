@@ -14,9 +14,6 @@ import ExampleAccessRestrictionAxleLimit from '!!raw-loader!@site/docs/_examples
 import ExampleSpeedLimitsSimple from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-01-simple.yaml';
 import ExampleSpeedLimitsDirectional from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-02-directional.yaml';
 import ExampleSpeedLimitsVariableMax from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-03-variable-max.yaml';
-import ExampleLanesResolutionConnector from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-resolution-connector.yaml';
-import ExampleLanesResolutionSegment01 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-resolution-segment-01.yaml';
-import ExampleLanesResolutionSegment02 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-resolution-segment-02.yaml';
 import ExampleTurnRestriction1Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-source.yaml';
 import ExampleTurnRestriction1Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-target.yaml';
 import ExampleTurnRestriction1Exit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-exit.yaml';
@@ -39,10 +36,9 @@ in many cases, approximates the physical centerline of the section of
 road being modeled. Road segments support modeling the road network at a range of
 granularities. For example, a single road segment can represent:
 
-- bidirectional street including all of its lanes and sidewalks
+- bidirectional street including all of its sidewalks
 - sidewalk by itself
 - one-way street or one direction of a dual carriageway
-- single lane or single section of a multi-lane highway
 - dedicated cycleway
 - hiking path
 
@@ -108,8 +104,7 @@ resolve.)
 
 The implied access restrictions may be modified for the road segment as
 a whole by providing an explicit value for the property
-`access_restrictions`. (Access restrictions may also be specified
-at the level of individual [lanes](#lanes), as explained elsewhere.)
+`access_restrictions`.
 
 It is technically possible to specify a blanket access grant or refusal
 of access applying to everyone and everything; but where, as is typical,
@@ -328,9 +323,7 @@ limits.
 
 The implied speed limits may be configured for the whole road segment by
 providing an explicit value for the property
-`speed_limits`. Note: granular speed limits can also be
-specified at the level of individual [lanes](#lanes), as explained
-elsewhere.
+`speed_limits`.
 
 As with access restrictions and turn restrictions, speed limits can be specified using [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties).
 
@@ -352,268 +345,4 @@ As with access restrictions and turn restrictions, speed limits can be specified
 <CodeBlock language="yaml">{ ExampleSpeedLimitsVariableMax }</CodeBlock>
 
   </TabItem>
-</Tabs>
-
-## Lanes
-
-A road may optionally carry a `lanes` property which, if present, contains
-a list of rules that can be used to resolve the applicable traffic lane block
-for the road. A lane block is a list of lane objects. Each lane object in the
-block describes the physical structure and properties applicable to one the
-road's traffic lanes at a granularity sufficient to support the navigation use
-case. Note that the `lanes` property applies to traffic lanes, not to
-parking lanes.
-
-### Use cases for lanes
-
-Many transportation use cases can be solved either entirely or in large part without examining the lane
-structure of the road network. For example, optimal route calculation
-can be entirely solved without lane-level information, as can most 2D
-map rendering problems. Lane information is most interesting for
-granular turn-by-turn or maneuver-by-maneuver navigation applications.
-
-### Default lane structure
-
-If the `lanes` property is omitted from a road segment, reasonable
-default values should be assumed based on `class` and the
-road-level [access restrictions](#access-restrictions). For example, for
-a stock two-way road segment of class `primary` with no heading-scoped
-access restrictions, a reasonable assumption is two lanes, one
-`forward` and one `backward`.
-
-### Lane numbering
-
-The number of lanes at a given place and time on a road segment is equal to
-the length of the lanes list within the resolved lane block.
-
-Each entry in the resolved lanes list represents one lane on the road.
-Order is important. The list captures the lanes in left-to-right order
-as they would be observed by a person standing on the physical road being modeled, facing in the [direction](/schema/concepts/by-theme/transportation/shape-connectivity#directionality)
-of the segment geometry. The leftmost lane has index `0`; the rightmost
-lane, assuming there are N total lanes, has index N-1. The example
-below illustrates how lane numbering works with example two-lane
-segments oriented in the north, west, east, and south directions,
-respectively.
-
-<figure>
-
-<div style={{ display: "flex", alignItems: "center" }}>
-
-<div style={{ width: "27%", float: "left", textAlign: "center" }}>
-
-<ThemedImage
-  alt='West-oriented road segment with two lanes.'
-  sources={{
-    light: useBaseUrl('/img/transportation/lane-number-01-west-light.png'),
-    dark: useBaseUrl('/img/transportation/lane-number-01-west-dark.png'),
-  }}
-/>
-
-</div>
-
-<div style={{ width: "10px", float: "left" }}/>
-
-<div style={{ width: "23%", float: "left", textAlign: "center" }}>
-
-<ThemedImage
-  alt='North-oriented road segment with two lanes.'
-  sources={{
-    light: useBaseUrl('/img/transportation/lane-number-02-north-light.png'),
-    dark: useBaseUrl('/img/transportation/lane-number-02-north-dark.png'),
-  }}
-/>
-
-</div>
-
-<div style={{ width: "10px", float: "left" }}/>
-
-<div style={{ width: "27%", float: "left", textAlign: "center" }}>
-
-<ThemedImage
-  alt='East-oriented road segment with two lanes.'
-  sources={{
-    light: useBaseUrl('/img/transportation/lane-number-03-east-light.png'),
-    dark: useBaseUrl('/img/transportation/lane-number-03-east-dark.png'),
-  }}
-/>
-
-</div>
-
-<div style={{ width: "10px", float: "left" }}/>
-
-<div style={{ width: "23%", float: "left", textAlign: "center" }}>
-
-<ThemedImage
-  alt='South-oriented road segment with two lanes.'
-  sources={{
-    light: useBaseUrl('/img/transportation/lane-number-04-south-light.png'),
-    dark: useBaseUrl('/img/transportation/lane-number-04-south-dark.png'),
-  }}
-/>
-
-</div>
-
-<div style={{ clear: "both" }}/>
-
-</div>
-
-
-<figcaption>
-
-<div style={{textAlign: 'center'}}>
-
-*How lanes are numbered for examples segments with geometry directions due west, north, east, and south.*
-
-</div>
-
-</figcaption>
-
-</figure>
-
-### Lane directionality
-
-Each lane within a segment has a directionality, documenting which
-travel directions are allowed within the lane, with reference to the [orientation of the segment](/schema/concepts/by-theme/transportation/shape-connectivity#start-end-and-orientation). Lane directionality is specified by the lane object's `directionality`
-property. The allowed values are:
-
-<figure>
-
-<div style={{width: '100%', display: 'flex', justifyContent: 'center'}}>
-
-| Directionality | Meaning |
-|-|-|
-| `forward` | Travel is only allowed along the `forward` heading. |
-| `backward` | Travel is only allowed along the `backward` heading. |
-| `both_ways` | Travel is allowed both `forward` and `backward` at the same time. |
-| `alternating` | Travel is one-way and changes between `forward` and `backward` constantly. |
-| `reversible` | Travel is one-way and changes between `forward` and `backward` infrequently. |
-
-</div>
-
-<figcaption>
-
-<div style={{textAlign: 'center'}}>
-
-*Allowed values for lane `directionality`.*
-
-</div>
-
-</figcaption>
-</figure>
-
-The `directionality` property is a mandatory property for lanes, and is
-the only mandatory property.
-
-When the allowed travel heading changes based on a regular schedule,
-the appropriate "definite" directionalities (`forward`, `backward`, and
-`both_ways`) should be used along with [temporal scoping](/schema/concepts/scoping-rules#temporal-scoping-opening-hours) at the lane block level.
-
-When the allowed travel heading changes based on unpredictable local
-factors, such that allowed heading at any given time can only be known
-by an observer actually present at the real-world location, the
-appropriate indefinite directionality (`alternating` or `reversible`)
-should be used.
-
-### Lane restrictions
-
-Like the segment a whole, each lane within a lane block can have its own
-restrictions, for example [access restrictions](#access-restrictions),
-[turn restrictions](#turn-restrictions) and
-[speed limits](#speed-limits).
-
-Lane-level restrictions reuse the same concepts as segment-level
-restrictions and are typically phrased in the same way, except that the
-restriction is stipulated on an individual lane object rather than for
-the segment's `road` property as a whole.
-
-### Lane connectivity
-
-Lane connectivity refers to the maneuvers available to navigate from the
-lane the traveller is currently occupying to a connected lane within the
-next lane block in the traveller's current travel direction. Lane
-connectivity is a necessary element for granular turn-by-turn
-navigation instructions.
-
-The Overture transportation schema does not currently support lane
-connectivity, but it is something we are actively working on and hoping
-to release soon.
-
-### Resolving the applicable lane block
-
-The traffic lane structure of a road segment can be different at different
-points along the segment, or at different times of the day, or both.
-Consequently, instead of having a static lane block, road segments carry a list of lane block [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties)
-in the optional `lanes`  property.
-
-- A rule may be scoped [geometrically](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing),
-which allows linear referencing to be used to specify the portion of the
-segment geometry where the lane block exists.
-- A rule may also be scoped [temporally](/schema/concepts/scoping-rules#temporal-scoping-opening-hours), which allows the time of day that the lane block exists to be specified. Temporal scoping is useful for modeling cases like lanes which are used
-for parking at off hours and traffic during peak hours. In such a case,
-the lane block rule would be scoped to peak hours.
-
-As with all rule-based properties in the Overture schema, the [rule evaluation algorithm](/schema/concepts/scoping-rules#rule-evaluation-algorithm) must be applied to determine which lane block rule, if any, is
-applicable at a given place and time along the road segment. Once the
-determining rule for a certain scope is known, its rule block defines
-the lane structure within that scope.
-
-The example below illustrates lane block resolution for two connected
-segments.
-
-- The blue shaded, or southwesterly, segment is [oriented](/schema/concepts/by-theme/transportation/shape-connectivity#directionality) toward the north-east. It has two geometrically-scoped lane block rules:
-    - The first rule, applying to the first two thirds of the
-      segment's length, establishes three lanes: one going
-      `backward` (SW), and two `forward` (NE).
-    - The second rule, applying to the last third of the segment,
-      establishes two lanes, one in either direction.
-- The green shaded, or northeasterly, segment is oriented due west. It
-  has a single static lane block that applies to the whole segment
-  geometry at all times.
-
-<Tabs>
-  <TabItem value="diagram" label="Diagram" default>
-
-<div style={{ textAlign: "center" }}>
-
-<figure>
-
-<ThemedImage
-  alt='A segment with two geometrically-scoped lane blocks connected to a segment oriented in the opposite direction.'
-  sources={{
-    light: useBaseUrl('/img/transportation/lane-blocks-light.png'),
-    dark: useBaseUrl('/img/transportation/lane-blocks-dark.png'),
-  }}
-/>
-
-<figcaption>
-
-*A segment with two [geometrically-scoped](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) lane blocks connected to a segment oriented in the opposite direction.*
-
-</figcaption>
-
-</figure>
-
-</div>
-
-  </TabItem>
-
-  <TabItem value="segment1" label="Segment 1 Data">
-
-<CodeBlock language="yaml">{ ExampleLanesResolutionSegment01 }</CodeBlock>
-
-  </TabItem>
-
-  <TabItem value="connector" label="Connector Data">
-
-<CodeBlock language="yaml">{ ExampleLanesResolutionConnector }</CodeBlock>
-
-  </TabItem>
-
-
-  <TabItem value="segment2" label="Segment 2 Data">
-
-<CodeBlock language="yaml">{ ExampleLanesResolutionSegment02 }</CodeBlock>
-
-  </TabItem>
-
 </Tabs>
