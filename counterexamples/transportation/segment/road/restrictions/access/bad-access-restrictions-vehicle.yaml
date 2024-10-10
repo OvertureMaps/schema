@@ -13,7 +13,11 @@ properties:
   version: 1
   subtype: road
   class: secondary
-  connector_ids: [fooConnector, barConnector]
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   access_restrictions:
     - access_type: allowed
       when: {vehicle: [{dimension: axle_count, comparison: greater_than, value: {is_foo: 5}}]}

@@ -49,23 +49,6 @@ properties:
         "$comment": >-
           Should not be confused with a transport mode. A segment
           kind has an (implied) set of default transport modes.
-      connector_ids:
-        description: >-
-          ** Deprecated** `connector_ids` is deprecated in favor of `connectors` and
-          is planned to be removed for the October release.
-
-          List of connector IDs identifying the connectors this segment is physically
-          connected to. Each connector is a possible routing decision point, meaning
-          it defines a place along the segment in which there is possibility to
-          transition to other segments which share the same connector.
-        type: array
-        items:
-          type: string
-          "$comment": >-
-            Each entry in this array is the GERS ID of a transportation connector feature.
-        uniqueItems: true
-        minItems: 2
-        default: []
       connectors:
         description: >-
           List of connectors which this segment is physically connected to and their

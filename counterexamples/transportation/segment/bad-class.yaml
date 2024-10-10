@@ -13,4 +13,8 @@ properties:
   version: 1
   subtype: road
   class: sidewalk
-  connector_ids: [fooConnector, barConnector]
+  connectors: 
+  - connector_id: fooConnector
+    at: 0
+  - connector_id: barConnector
+    at: 1
