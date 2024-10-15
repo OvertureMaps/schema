@@ -62,6 +62,11 @@ properties:     # JSON Schema: Top-level object properties.
           and the municipality. In other countries there might be only one.
           Other countries could have three or more. The array is ordered
           with the highest levels first.
+
+          Note: when a level is not known - most likely because the data provider
+          has not supplied it and we have not derived it from another source,
+          the array element container must be present, but the "value" field
+          should be omitted
         type: array
         items: { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
         minItems: 1
@@ -76,7 +81,6 @@ properties:     # JSON Schema: Top-level object properties.
         levels with per-country rules indicating which parts of a country's
         address goes to which numbered level.
       type: object
-      required: ["value"]
       properties:
         value:
           type: string
