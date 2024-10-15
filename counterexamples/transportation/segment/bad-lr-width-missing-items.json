@@ -12,8 +12,8 @@
     "subtype": "road",
     "class": "primary",
     "width_rules": [],
-    "extExpectedErrors": [
-      "[I#/properties/road/width] [S#/$defs/propertyDefinitions//width_rules/minItems] minimum 1 items required, but found 0 items"
+    "ext_expected_errors": [
+      "minItems: got 0, want 1"
     ]
   }
 }

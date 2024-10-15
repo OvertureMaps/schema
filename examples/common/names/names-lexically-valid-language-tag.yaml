@@ -21,5 +21,7 @@ properties:
     rules:
       - language: be-Latn
         value: Use this instead of be-tarask.
+        variant: common
       - language: ja-Latn
         value: Use this instead of ja_rm.
+        variant: alternate

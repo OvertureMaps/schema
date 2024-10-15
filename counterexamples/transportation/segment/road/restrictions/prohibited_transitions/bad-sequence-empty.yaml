@@ -10,8 +10,6 @@ properties:
   version: 2
   subtype: road
   class: primary
-  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
-  connector_ids: [fooConnector, barConnector]
   connectors:
     - connector_id: fooConnector
       at: 0
@@ -21,4 +19,4 @@ properties:
     - sequence: []
       final_heading: forward
   ext_expected_errors:
-    - "sequence/minItems] minimum 1 items required, but found 0 items"
+    - "sequence/minItems]: minItems: got 0, want 1"

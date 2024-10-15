@@ -16,5 +16,5 @@ properties:
   country: ZZ
   region: this just seems wrong
   ext_expected_errors:
-    - length must be <= 6, but got 21
-    - does not match pattern
+    - "/propertyDefinitions/iso3166_2SubdivisionCode/maxLength]: maxLength: got 21, want 6"
+    - "'this just seems wrong' does not match pattern"

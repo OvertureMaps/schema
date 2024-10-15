@@ -23,4 +23,4 @@ properties:
     driving_side: right
   parent_division_id: " "
   ext_expected_errors:
-    - "[I#/properties/parent_division_id] [S#/$defs/propertyDefinitions/id/pattern] does not match pattern"
+    - "' ' does not match pattern"

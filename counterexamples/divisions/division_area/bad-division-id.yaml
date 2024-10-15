@@ -15,4 +15,4 @@ properties:
     primary: A division area with an invalid division ID property.
   country: ZZ
   ext_expected_errors:
-    - "[I#/properties/division_id] [S#/$defs/propertyDefinitions/id/pattern] does not match pattern"
+    - "'abc ' does not match pattern"

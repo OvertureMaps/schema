@@ -7,7 +7,7 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "missing properties: 'version'"
+      "missing property 'version'"
     ],
     "theme": "transportation",
     "type": "segment",

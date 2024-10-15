@@ -15,5 +15,5 @@ properties:
     primary: A division area with an invalid geometry type.
   country: ZZ
   ext_expected_errors:
-    - '[I#/geometry/type] [S#/properties/type/enum] value must be "Polygon"'
-    - '[I#/geometry/type] [S#/properties/type/enum] value must be "MultiPolygon"'
+    - "/properties/type/enum]: value must be 'Polygon'"
+    - "/properties/type/enum]: value must be 'MultiPolygon'"

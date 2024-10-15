@@ -6,7 +6,7 @@ geometry:
   coordinates: [[0, 0], [1, 1]]
 properties:
   ext_expected_errors:
-    - value must be one of "motor_vehicle"
+    - "travelMode/enum]: value must be one of"
   # Custom user properties.
   ext_baz: I am a custom user property...
   # Overture properties
@@ -18,8 +18,6 @@ properties:
   subclass: link
   subclass_rules:
     - value: link
-  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
-  connector_ids: [fooConnector, barConnector]
   connectors:
     - connector_id: fooConnector
       at: 0

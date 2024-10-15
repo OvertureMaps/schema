@@ -5,7 +5,7 @@ geometry:
   type: Polygon
   coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
 properties:
-  ext_expected_errors: ["missing properties: 'primary'"]
+  ext_expected_errors: ["missing property 'primary'"]
   theme: buildings
   type: building
   version: 1

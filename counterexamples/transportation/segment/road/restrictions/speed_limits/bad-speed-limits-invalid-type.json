@@ -13,7 +13,7 @@
     "class": "primary",
     "speed_limits": {},
     "ext_expected_errors": [
-      "[I#/properties/speed_limits] [S#/$defs/propertyContainers/speedLimitsContainer/type] expected array, but got object"
+      "'/properties/speed_limits' [S#/$defs/propertyContainers/speedLimitsContainer/type]: got object, want array"
     ]
   }
 }

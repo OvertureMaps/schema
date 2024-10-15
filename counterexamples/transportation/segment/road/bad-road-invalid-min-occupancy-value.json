@@ -29,7 +29,7 @@
         }
       ],
       "ext_expected_errors": [
-        "[I#/properties/lanes/0/value/0/restrictions/min_occupancy] [S#/$defs/propertyDefinitions/lane/properties/restrictions/properties/min_occupancy/minimum] must be >= 1 but found 0"
+        "[S#/$defs/propertyDefinitions/lane/properties/restrictions/properties/min_occupancy/minimum]: minimum: got 0, want 1"
       ]
     }
   }

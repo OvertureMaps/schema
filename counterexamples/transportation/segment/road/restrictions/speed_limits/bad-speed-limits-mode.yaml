@@ -8,15 +8,13 @@ properties:
   # Custom user properties.
   ext_baz: I am a custom user property...
   ext_expected_errors:
-    - "[I#/properties/speed_limits/0/when/mode/0] [S#/$defs/propertyDefinitions/travelMode/enum] value must be one of"
+    - "'/properties/speed_limits/0/when/mode/0' [S#/$defs/propertyDefinitions/travelMode/enum]: value must be one of"
   # Overture properties
   theme: transportation
   type: segment
   version: 2
   subtype: road
   class: secondary
-  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
-  connector_ids: [fooConnector, barConnector]
   connectors:
     - connector_id: fooConnector
       at: 0

@@ -12,4 +12,4 @@ properties:
   class: land
   division_ids: ["example:division:country:lonelylhsdivision"]
   ext_expected_errors:
-    - minimum 2 items required, but found 1 items
+    - "minItems: got 1, want 2"

@@ -10,7 +10,11 @@ properties:
   subtype: road
   class: secondary
   version: 0
-  connector_ids: [overture:transportation:connector:123, overture:transportation:connector:678]
+  connectors:
+    - connector_id: overture:transportation:connector:123
+      at: 0
+    - connector_id: overture:transportation:connector:678
+      at: 1
   destinations:
     - labels:
       - value: Seattle
@@ -24,4 +28,4 @@ properties:
       to_segment_id: overture:transportation:segment:567
       final_heading: backward
   ext_expected_errors:
-    - "[I#/properties/destinations/0] [S#/$defs/propertyDefinitions/destinationSignSymbol/enum] value must be one of ..."
+    - "propertyDefinitions/destinationSignSymbol/enum]: value must be one of 'motorway',"
