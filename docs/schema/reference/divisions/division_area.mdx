@@ -48,6 +48,7 @@ Currently, the following subtypes are available in the `division_area` feature t
 - `county`
 - `localadmin`
 - `locality`
+- `macrohood`
 - `neighborhood`
 
 <Tabs>
@@ -92,6 +93,7 @@ A country is the largest unit of independent sovereignty. The border of a countr
     </table>
 
 A region is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
+
   </TabItem>
 
   <TabItem value="county" label="county" default>
@@ -106,6 +108,7 @@ A region is the largest administrative unit within most countries and a first-le
 
 
 A county is a second-level administrative subdivision. Example: Kings County, NY
+
   </TabItem>
 
   <TabItem value="localadmin" label="localadmin" default>
@@ -120,6 +123,7 @@ A county is a second-level administrative subdivision. Example: Kings County, NY
 
 
 Localadmin is a level of government in some parts of the world that contains localities or populated places that themselves have no authority. Often but not exclusively found in Europe. Localadmin is a third-level administrative subdivision. Example: [Paris](https://spelunker.whosonfirst.org/id/1159322569/)
+
   </TabItem>
 
   <TabItem value="locality" label="locality" default>
@@ -134,6 +138,22 @@ Localadmin is a level of government in some parts of the world that contains loc
 
 
 A locality is a populated place that may or may not have its own administrative authority. (It won't if it belongs to a localadmin.) Locality may be a third-level administrative subdivision. Example: Taipei
+
+  </TabItem>
+
+    <TabItem value="macrohood" label="macrohood" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>macrohood</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A macrohood is a super-neighborhood that contains smaller divisions of type neighborhood. Example: BoCoCa (Boerum Hill, Cobble Hill, and Carroll Gardens)
+
   </TabItem>
 
     <TabItem value="neighborhood" label="neighborhood" default>
@@ -148,6 +168,7 @@ A locality is a populated place that may or may not have its own administrative 
 
 
 A neighborhood is a geographically localized community within a city, town, suburb or rural area, sometimes consisting of a single street and the buildings lining it. Example: Cobble Hill
+
   </TabItem>
 </Tabs>
 
