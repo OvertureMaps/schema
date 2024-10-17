@@ -51,6 +51,26 @@ properties:     # JSON Schema: Top-level object properties.
           Romansh.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/commonNames"
+      locality_type:
+        description:
+          Local name for the subtype property, in English.
+
+          For example, the Danish city of Roskilde has the subtype
+          'locality', but in the local administrative hierarchy it is
+          referred to as a 'city'.
+
+          This property relies on existing local_type values, as well
+          as constructed values like 'megacity', for example.
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/commonNames"
+      locality_rank:
+        description:
+          An integer value, 1 to 5, representing Overture's view of
+          the locality's significance. This value can be used to help
+          drive cartographic display of localities and is derived
+          from various factors including but not limited to
+          population, capital status, and type. A lower value
+          indicates a high significance or importance.
       country:
         description: >-
           ISO 3166-1 alpha-2 country code of the country or country-like
