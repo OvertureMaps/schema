@@ -71,6 +71,14 @@ properties:     # JSON Schema: Top-level object properties.
         items: { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
         minItems: 1
         maxItems: 5
+      postal_city:
+        description: >-
+          In some countries or regions, a mailing address may need to specify a
+          different city name than the city that actually contains the address
+          coordinates. This optional field can be used to specify the alternate
+          city name to use.
+        type: string
+        pattern: ^(\S.*)?\S$
 "$defs":
   propertyContainers:
     addressLevelContainer:
