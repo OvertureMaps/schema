@@ -77,6 +77,12 @@ properties:     # JSON Schema: Top-level object properties.
           different city name than the city that actually contains the address
           coordinates. This optional field can be used to specify the alternate
           city name to use.
+
+          Example from US National Address Database:
+          716 East County Road, Winchester, Indiana has "Ridgeville" as its postal city
+
+          Another example in Slovenia:
+          Tomaj 71, 6221 Dutovlje, Slovenia
         type: string
         pattern: ^(\S.*)?\S$
 "$defs":
