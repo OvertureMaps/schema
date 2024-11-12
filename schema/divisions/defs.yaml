@@ -117,7 +117,8 @@ description: Common schema definitions for divisions theme
     locality_rank:
       description:
         An integer value, 1 to 5, representing a locality's significance.
-      type: integer    capitalOfDivisionItem:
+      type: integer
+    capitalOfDivisionItem:
       description: One division that has capital
       type: object
       unevaluatedProperties: false
