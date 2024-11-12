@@ -105,7 +105,19 @@ description: Common schema definitions for divisions theme
           items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
           minItems: 1
           uniqueItems: true
-    capitalOfDivisionItem:
+    locality_type:
+      description: Local name for the locality subtype property, in English.
+      type: string
+      enum:
+        - megacity
+        - city
+        - town
+        - village
+        - hamlet
+    locality_rank:
+      description:
+        An integer value, 1 to 5, representing a locality's significance.
+      type: integer    capitalOfDivisionItem:
       description: One division that has capital
       type: object
       unevaluatedProperties: false
