@@ -47,6 +47,7 @@ properties:
         enum:
           - basin
           - bay
+          - blowhole
           - canal
           - cape
           - ditch
