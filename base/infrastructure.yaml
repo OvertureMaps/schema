@@ -1,0 +1,200 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Infrastructure Schema
+description: Various features from OpenStreetMap such as bridges, airport runways, aerialways, or communication towers and lines.
+type: object
+properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
+      - "$ref": https://geojson.org/schema/LineString.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
+    required:
+      - subtype
+      - class
+    properties:
+      subtype:
+        description: Further description of the type of infrastructure.
+        type: string
+        enum:
+          - aerialway
+          - airport
+          - barrier
+          - bridge
+          - communication
+          - manhole
+          - pedestrian
+          - pier
+          - power
+          - recreation
+          - tower
+          - transit
+          - utility
+          - waste_management
+          - water
+      class:
+        description: Further classification of the infrastructure type
+        type: string
+        enum:
+          - aerialway_station
+          - airport
+          - airport_gate
+          - airstrip
+          - apron
+          - aqueduct
+          - atm
+          - barrier
+          - bell_tower
+          - bench
+          - bicycle_parking
+          - block
+          - boardwalk
+          - bollard
+          - border_control
+          - bridge
+          - bridge_support
+          - bump_gate
+          - bus_route
+          - bus_station
+          - bus_stop
+          - bus_trap
+          - cable
+          - cable_barrier
+          - cable_car
+          - cable_distribution
+          - camp_site
+          - cantilever
+          - catenary_mast
+          - cattle_grid
+          - chain
+          - chair_lift
+          - city_wall
+          - communication_line
+          - communication_pole
+          - communication_tower
+          - connection
+          - cooling
+          - covered
+          - cutline
+          - cycle_barrier
+          - dam
+          - defensive
+          - ditch
+          - diving
+          - drag_lift
+          - drain
+          - drinking_water
+          - entrance
+          - fence
+          - ferry_terminal
+          - fountain
+          - full-height_turnstile
+          - gasometer
+          - gate
+          - generator
+          - gondola
+          - goods
+          - guard_rail
+          - hampshire_gate
+          - handrail
+          - hedge
+          - height_restrictor
+          - heliostat
+          - helipad
+          - heliport
+          - hose
+          - information
+          - insulator
+          - international_airport
+          - j-bar
+          - jersey_barrier
+          - kerb
+          - kissing_gate
+          - launchpad
+          - lift_gate
+          - lighting
+          - lightning_protection
+          - magic_carpet
+          - manhole
+          - military_airport
+          - minaret
+          - minor_line
+          - mixed_lift
+          - mobile_phone_tower
+          - monitoring
+          - motorcycle_parking
+          - movable
+          - municipal_airport
+          - observation
+          - parking
+          - parking_space
+          - pedestrian_crossing
+          - picnic_table
+          - pier
+          - pipeline
+          - plant
+          - planter
+          - platform
+          - platter
+          - portal
+          - post_box
+          - power_line
+          - power_pole
+          - power_tower
+          - private_airport
+          - pylon
+          - radar
+          - railway_halt
+          - railway_station
+          - recycling
+          - regional_airport
+          - reservoir_covered
+          - retaining_wall
+          - rope_tow
+          - runway
+          - sally_port
+          - seaplane_airport
+          - sewer
+          - silo
+          - siren
+          - stile
+          - stop_position
+          - stopway
+          - storage_tank
+          - sub_station
+          - substation
+          - subway_station
+          - swing_gate
+          - switch
+          - t-bar
+          - taxilane
+          - taxiway
+          - terminal
+          - toilets
+          - toll_booth
+          - transformer
+          - trestle
+          - utility_pole
+          - vending_machine
+          - viaduct
+          - viewpoint
+          - wall
+          - waste_basket
+          - waste_disposal
+          - watchtower
+          - water_tower
+          - weir
+          - zip_line
+      height: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/height }
+      surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }

@@ -1,0 +1,93 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: land
+description: Physical representations of land surfaces. Global land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap.
+type: object
+properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Point.json
+      - "$ref": https://geojson.org/schema/LineString.json
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+      - "$ref": ./defs.yaml#/$defs/propertyContainers/osmPropertiesContainer
+    required:
+      - subtype
+      - class
+    properties:
+      subtype:
+        description: Further description of the type of land cover, such as forest, glacier, grass, or a physical feature, such as a mountain peak.
+        default: [land]
+        type: string
+        enum:
+          - crater
+          - desert
+          - forest
+          - glacier
+          - grass
+          - land
+          - physical
+          - reef
+          - rock
+          - sand
+          - shrub
+          - tree
+          - wetland
+      class:
+        description: Further classification of type of landcover
+        default: [land]
+        type: string
+        enum:
+          - archipelago
+          - bare_rock
+          - beach
+          - cave_entrance
+          - cliff
+          - desert
+          - dune
+          - fell
+          - forest
+          - glacier
+          - grass
+          - grassland
+          - heath
+          - hill
+          - island
+          - islet
+          - land
+          - meadow
+          - meteor_crater
+          - mountain_range
+          - peak
+          - peninsula
+          - plateau
+          - reef
+          - ridge
+          - rock
+          - saddle
+          - sand
+          - scree
+          - scrub
+          - shingle
+          - shrub
+          - shrubbery
+          - stone
+          - tree
+          - tree_row
+          - tundra
+          - valley
+          - volcanic_caldera_rim
+          - volcano
+          - wetland
+          - wood
+      elevation: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/elevation }
+      surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }

@@ -1,0 +1,124 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Overture Maps Schema
+description: >-
+  A JSON Schema for the canonical GeoJSON form of Overture Maps
+  Features.
+type: object
+unevaluatedProperties: false
+allOf:
+  - "$ref": https://geojson.org/schema/Feature.json
+    "$comment": Every Overture feature IS A GeoJSON feature
+oneOf:
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [addresses] }
+            type: { enum: [address] }
+    then: { "$ref": addresses/address.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [base] }
+            type: { enum: [infrastructure] }
+    then: { "$ref": base/infrastructure.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [base] }
+            type: { enum: [land] }
+    then: { "$ref": base/land.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [base] }
+            type: { enum: [land_cover] }
+    then: { "$ref": base/land_cover.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [base] }
+            type: { enum: [land_use] }
+    then: { "$ref": base/land_use.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [base] }
+            type: { enum: [water] }
+    then: { "$ref": base/water.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [buildings] }
+            type: { enum: [building] }
+    then: { "$ref": buildings/building.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [buildings] }
+            type: { enum: [building_part] }
+    then: { "$ref": buildings/building_part.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [divisions] }
+            type: { enum: [division_boundary] }
+    then: { "$ref": divisions/division_boundary.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [divisions] }
+            type: { enum: [division] }
+    then: { "$ref": divisions/division.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [divisions] }
+            type: { enum: [division_area] }
+    then: { "$ref": divisions/division_area.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [places] }
+            type: { enum: [place] }
+    then: { "$ref": places/place.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [transportation] }
+            type: { enum: [connector] }
+    then: { "$ref": transportation/connector.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            theme: { enum: [transportation] }
+            type: { enum: [segment] }
+    then: { "$ref": transportation/segment.yaml }
+    else: { propertyNames: false }
