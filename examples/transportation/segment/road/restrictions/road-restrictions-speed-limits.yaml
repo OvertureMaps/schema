@@ -1,0 +1,71 @@
+---
+id: overture:transportation:segment:example:speed-limits
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 0]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: tertiary
+  version: 3
+  speed_limits:
+    - max_speed: {value: 20, unit: 'km/h'}
+      between: [ 0, 0.5 ]
+    - min_speed: {value: 25, unit: 'mph'}
+      when:
+        during: PH
+    - max_speed: {value: 100, unit: 'km/h'}
+      min_speed: {value: 75, unit: 'km/h'}
+      when: {heading: forward}
+    - min_speed: {value: 25, unit: 'mph'}
+      when:
+        heading: forward
+        mode: [car, hgv]
+    - max_speed: {value: 60, unit: 'mph'}
+      is_max_speed_variable: true
+      when:
+        heading: forward
+        using: [at_destination]
+    - min_speed: {value: 25, unit: 'mph'}
+      when:
+        heading: forward
+        recognized: [as_employee]
+    - min_speed: {value: 40, unit: 'mph'}
+      when:
+        heading: forward
+        vehicle:
+          - dimension: axle_count
+            comparison: less_than
+            value: 3
+          - dimension: weight
+            comparison: less_than_equal
+            value: 600
+            unit: 'kg'
+          - dimension: height
+            comparison: less_than
+            value: 12
+            unit: 'ft'
+    - max_speed: {value: 30, unit: 'km/h'}
+      min_speed: {value: 20, unit: 'mph'}
+      is_max_speed_variable: true
+      between: [0.25, 0.5]
+      when:
+        heading: forward
+        during: PH
+        mode: [car, hgv]
+        using: [at_destination]
+        recognized: [as_employee]
+        vehicle:
+          - dimension: axle_count
+            comparison: less_than
+            value: 3
+          - dimension: weight
+            comparison: less_than_equal
+            value: 600
+            unit: 'kg'
+          - dimension: height
+            comparison: less_than
+            value: 12
+            unit: 'ft'

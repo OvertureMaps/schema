@@ -1,0 +1,57 @@
+---
+title: infrastructure
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import InfrastructureSchema from "!!raw-loader!@site/docs/_schema/base/infrastructure.yaml";
+
+import InfrastructureExample from "!!raw-loader!@site/docs/_examples/base/infrastructure-example.yaml";
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Infrastructure
+
+Features in the infrastructure type come from OpenStreetMap features with tags like `aeroway`, `communication`, `bridge`, `man_made`, or `tower`. These features include bridges, aerialways, and airports.
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td>
+      <code>Point</code>, <code>LineString</code>, <code>Polygon</code>, or <code>MultiPolygon</code>
+    </td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>base</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>infrastructure</code></td>
+  </tr>
+  </tbody>
+</table>
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(InfrastructureSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/base'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{InfrastructureSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="Infrastructure Example" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(InfrastructureExample), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>

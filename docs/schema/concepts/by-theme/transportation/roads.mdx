@@ -1,0 +1,348 @@
+---
+title: Roads
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import ExampleAccessRestrictionsBlanketDeny from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-01-blanket.yaml';
+import ExampleAccessRestrictionPrivateAccessWithDeliveries from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-02-private-with-deliveries.yaml';
+import ExampleAccessRestrictionMotorVehiclesDestinationOnly from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-03-motor-vehicles-destination-only.yaml';
+import ExampleAccessRestrictionAxleLimit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-04-axle-limit.yaml';
+import ExampleSpeedLimitsSimple from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-01-simple.yaml';
+import ExampleSpeedLimitsDirectional from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-02-directional.yaml';
+import ExampleSpeedLimitsVariableMax from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-03-variable-max.yaml';
+import ExampleTurnRestriction1Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-source.yaml';
+import ExampleTurnRestriction1Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-target.yaml';
+import ExampleTurnRestriction1Exit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-exit.yaml';
+import ExampleTurnRestriction1Connector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector1.yaml';
+import ExampleTurnRestriction1Connector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector2.yaml';
+import ExampleTurnRestriction1Connector3 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector3.yaml';
+import ExampleTurnRestriction2Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-source.yaml';
+import ExampleTurnRestriction2Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-target.yaml';
+import ExampleTurnRestriction2Via from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-via.yaml';
+import ExampleTurnRestriction2Connector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector1.yaml';
+import ExampleTurnRestriction2Connector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector2.yaml';
+
+In the Overture transportation theme, a road is any kind of road,
+street or path, including a dedicated path for walking or cycling, but excluding a railway. Road segments comprise the majority of ground-based transportation segments. Roads are modeled using [segment](/schema/reference/transportation/segment) features with the `subtype` property value set to the value `road`.
+
+## Geometry and granularity
+
+A road segment's geometry is a representation of the road which,
+in many cases, approximates the physical centerline of the section of
+road being modeled. Road segments support modeling the road network at a range of
+granularities. For example, a single road segment can represent:
+
+- bidirectional street including all of its sidewalks
+- sidewalk by itself
+- one-way street or one direction of a dual carriageway
+- dedicated cycleway
+- hiking path
+
+## Basic properties
+
+### Road class
+
+The `class` property of a road specifies its general purpose of use
+and its relative importance within the transportation network. The
+`class` property also helps establish reasonable default values.
+For example, the class `sidewalk` implies that the default
+[access restrictions](#access-restrictions) for the segment allow access for the [travel mode](/schema/concepts/by-theme/transportation/travel-modes) `foot` and deny access to all other
+travel modes. Unlike many road segment properties, a road segment's `class`
+property does not support [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently whenever a linear range of real-world road makes a class transition (for example, between secondary and residential), the Overture transportation
+[segmentation](/schema/concepts/by-theme/transportation/shape-connectivity#segmentation) algorithm will generate a segment split.
+
+Every road segment has a class. If the `class` property is missing
+from a road segment, the default value `unknown` is assumed. The unknown
+road class is meant to be a temporary value until a more specific class
+is known.
+
+<!--
+ TODO: What's the difference between "unknown" and "unclassified"?
+         https://github.com/OvertureMaps/schema-wg/issues/152
+-->
+
+Like many aspects of Overture transportation schema,
+the `class` tag is heavily inspired by OpenStreetMap. In this
+case, it is similar to, but not the same as, OSM's `highway=*` tag.
+
+### Surface
+
+The `road_surface` property of a road indicates its physical surface. If
+omitted, a reasonable default value should be assumed based on the
+`class`.
+
+Like many road segment properties, the `road_surface` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently, the effective road surface may vary
+along different sub-ranges of a road segment's geometry.
+
+### Flags
+
+The `road_flags` property of a segment is a set of named flag values
+indicating the presence or absence of simple physical characteristics.
+
+For example, a road segment with
+`road_flags = [is_link, is_under_construction]` is a link segment that is
+physically under construction.
+
+Like many road segment properties, the `road_flags` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing). Consequently, the applicable road flags may vary along different sub-ranges of a road segment's geometry.
+
+## Restrictions
+
+### Access restrictions
+
+Access restrictions on a road segment specify who is allowed to use the
+road, and under what circumstances.
+
+Every road segment has an *implied* set of access restrictions defined
+by its [road class](#road-class) and local rules, norms, and customs.
+(The Overture transportation schema does not specify these implied
+access restrictions, which are left to the specific application to
+resolve.)
+
+The implied access restrictions may be modified for the road segment as
+a whole by providing an explicit value for the property
+`access_restrictions`.
+
+It is technically possible to specify a blanket access grant or refusal
+of access applying to everyone and everything; but where, as is typical,
+a more precise outcome is needed, one or more [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties) will be used to specify access restrictions. As with all rule-based properties, if no rule matches the specific facts, then the default restrictions for the road class govern.
+
+<Tabs>
+  <TabItem value="blanketDenial" label="Blanket denial of access." default>
+
+<CodeBlock language="yaml">{ ExampleAccessRestrictionsBlanketDeny }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="businessHoursDelivery" label="Private access, deliveries OK during business hours." default>
+
+<CodeBlock language="yaml">{ ExampleAccessRestrictionPrivateAccessWithDeliveries }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="noMotorVehiclesExceptDestination" label="No motor vehicles except to destination." default>
+
+<CodeBlock language="yaml">{ ExampleAccessRestrictionMotorVehiclesDestinationOnly }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="noNorthboundTrucks" label="No trucks with &ge; 5 axles." default>
+
+<CodeBlock language="yaml">{ ExampleAccessRestrictionAxleLimit }</CodeBlock>
+
+  </TabItem>
+</Tabs>
+
+### Turn restrictions
+
+Turn restrictions on a road segment limit the transitions which are
+allowed from that segment into other [physically connected](/schema/concepts/by-theme/transportation/shape-connectivity#physical-connectivity) segments.
+
+Every road segment has an implied set of allowed transitions
+defined by its [access restrictions](#access-restrictions) as well as
+local rules, norms, and customs. An example of a transition restriction
+implied by an access restriction, if the segment can only be used along the `forward` [heading](/schema/concepts/by-theme/transportation/shape-connectivity#heading), then it is implied that no transitions are allowed to any connected segments if travelling
+along the `backward` heading. An example of a transition restriction
+implied by a local rule or norm would be a blanket prohibition on
+U-turns in a given jurisdiction. (The Overture transportation schema
+does not specify these local rules, norms, and customs, which are left
+to the specific application to resolve.)
+
+Overture takes a permissive-by-default approach to transition
+restrictions. By default, all implied transitions are allowed. The
+set of allowed transitions may be reduced by adding explicit transition
+restrictions in the `prohibited_transitions` property.
+
+Turn restrictions come in two flavors: simple and via: a simple turn
+restriction allows a simple regulation to be stated, such as "No right
+turn onto Elm Street"; a via restriction covers more elaborate cases
+where the sequence of maneuvers is important.
+
+<Tabs>
+  <TabItem value="simple" label="Simple restriction." default>
+
+<div style={{ width: "40.5%", float: "left" }}>
+
+<figure>
+
+<ThemedImage
+  alt="A simple transition restriction prohibiting a right turn."
+  sources={{
+    light: useBaseUrl('/img/transportation/turn-restriction-01-light.png'),
+    dark: useBaseUrl('/img/transportation/turn-restriction-01-dark.png'),
+  }}
+/>
+
+<figcaption>
+
+*Prohibited right turn from "source" to "target" segment at connector 2.*
+
+</figcaption>
+
+</figure>
+
+</div>
+
+<div style={{ width: "59.5%", float: "right" }}>
+
+<details>
+<summary>Source segment</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Source }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 1</summary>
+
+*This connector is not an important part of the example, since it does
+not participate in the turn restriction, but it is included to bring
+real-world context to the example.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Connector1 }</CodeBlock>
+</details>
+
+<details>
+<summary>Exit segment</summary>
+
+*This segment is not an important part of the example, since all implied
+transitions are allowed on it. We include it to bring real-world context
+to the example.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Exit }</CodeBlock>
+
+</details>
+
+<details>
+<summary>Connector 2</summary>
+
+*The right turn from the source segment (`forward` heading) to the
+target segment (`forward` heading) is prohibited at this connector.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Connector2 }</CodeBlock>
+</details>
+
+<details>
+<summary>Target segment</summary>
+
+*Traffic heading `forward` on the source segment may not enter this
+segment heading `forward`, i.e. the right turn from the source segment
+to this segment is prohibited.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Target }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 3</summary>
+
+*This connector is not an important part of the example, since it does
+not participate in the turn restriction, but it is included to bring
+real-world context to the example.*
+
+<CodeBlock language="yaml">{ ExampleTurnRestriction1Connector3 }</CodeBlock>
+</details>
+
+
+</div>
+
+<div style={{ clear: "both" }}/>
+
+  </TabItem>
+
+  <TabItem value="via" label="Via restriction" default>
+
+<div style={{ width: "40.5%", float: "left" }}>
+
+<figure>
+
+<ThemedImage
+  alt="A via restriction."
+  sources={{
+    light: useBaseUrl('/img/transportation/turn-restriction-02-light.png'),
+    dark: useBaseUrl('/img/transportation/turn-restriction-02-dark.png'),
+  }}
+/>
+
+<figcaption>
+
+*Prohibited transition from "source" to "target" through `via` segment.*
+
+</figcaption>
+
+</figure>
+
+</div>
+
+<div style={{ width: "59.5%", float: "right" }}>
+
+<details>
+<summary>Source segment</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Source }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 1</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Connector1 }</CodeBlock>
+</details>
+
+<details>
+<summary>Via segment</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Via }</CodeBlock>
+</details>
+
+<details>
+<summary>Connector 2</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Connector2 }</CodeBlock>
+</details>
+
+<details>
+<summary>Target segment</summary>
+<CodeBlock language="yaml">{ ExampleTurnRestriction2Target }</CodeBlock>
+</details>
+
+</div>
+
+<div style={{ clear: "both" }}/>
+
+  </TabItem>
+</Tabs>
+
+### Speed limits
+
+Speed limits restrict the speed at which travel is permitted on a road.
+Typically speed limits specify maximum allowed speeds, but the
+Overture also allows minimum speed limits to be set and variable speed
+corridors to be indicated.
+
+Every road segment has an implied speed limit or set of speed limits
+defined by its [road class](#road-class) and local rules, norms, and
+customs. Note: as with access and turn restrictions, the Overture
+transportation schema does not attempt to specify these implied speed
+limits.
+
+The implied speed limits may be configured for the whole road segment by
+providing an explicit value for the property
+`speed_limits`.
+
+As with access restrictions and turn restrictions, speed limits can be specified using [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties).
+
+<Tabs>
+  <TabItem value="speedLimitSimple" label="Simple speed limit" default>
+
+<CodeBlock language="yaml">{ ExampleSpeedLimitsSimple }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="speedLimitDirectional" label="Different speed limit for northbound trucks" default>
+
+<CodeBlock language="yaml">{ ExampleSpeedLimitsDirectional }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="speedLimitVariable" label="Variable speed corridor" default>
+
+<CodeBlock language="yaml">{ ExampleSpeedLimitsVariableMax }</CodeBlock>
+
+  </TabItem>
+</Tabs>

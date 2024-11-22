@@ -1,0 +1,15 @@
+---
+id: counterexample:division_boundary:bad-class
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 1], [1, 2]]
+properties:
+  theme: divisions
+  type: division_boundary
+  version: 1
+  subtype: county
+  class: land
+  division_ids: ["example:division:country:lonelylhsdivision"]
+  ext_expected_errors:
+    - "minItems: got 1, want 2"

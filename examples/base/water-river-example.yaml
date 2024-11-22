@@ -1,0 +1,21 @@
+---
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[-91.8307764, 43.7899936], [-91.8309309, 43.7901326], [-91.8315202, 43.7906232], [-91.8320790, 43.7911798], [-91.8325770, 43.7917638], [-91.8328390, 43.7921615]  ]
+properties:
+  theme: base
+  type: water
+  subtype: river
+  class: river
+  names:
+    primary: Root River
+  source_tags:
+    waterway: river
+  sources:
+    - record_id: w54320702@1
+      property: ""
+      dataset: OpenStreetMap
+  is_salt: false
+  is_intermittent: false
+  version: 0

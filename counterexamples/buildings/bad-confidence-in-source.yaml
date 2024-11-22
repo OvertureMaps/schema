@@ -1,0 +1,21 @@
+---
+id: overture:buildings:footprint:1234
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  ext_expected_errors:
+    - "/property/properties/confidence/maximum]: maximum: got 100, want 1"
+    - "/property/properties/confidence/minimum]: minimum: got -1, want 0"
+  theme: buildings
+  type: building
+  version: 1
+  height: 21.34
+  sources:
+  - property: ""
+    dataset: microsoftMLBuildings,
+    confidence: 100
+  - property: /properties/height
+    dataset:  metaLidarExtractions,
+    confidence: -1

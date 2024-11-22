@@ -1,0 +1,64 @@
+---
+title: water
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import WaterSchema from "!!raw-loader!@site/docs/_schema/base/water.yaml";
+
+import RiverExample from "!!raw-loader!@site/docs/_examples/base/water-river-example.yaml";
+import RiverExampleWikidata from "!!raw-loader!@site/docs/_examples/base/water-river-with-wikidata.yaml";
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Water
+
+Features in the water theme are from OpenStreetMap features with the `natural=water` tag.
+
+<table>
+  <tbody>
+    <tr>
+      <th>Geometry Type</th>
+      <td>
+        <code>Point</code>, <code>LineString</code>, <code>Polygon</code>, or <code>MultiPolygon</code>
+      </td>
+    </tr>
+    <tr>
+      <th>Theme</th>
+      <td><code>base</code></td>
+    </tr>
+    <tr>
+      <th>Type</th>
+      <td><code>water</code></td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(WaterSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/base'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{WaterSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="River Example" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(RiverExample), null, 2) }</CodeBlock>
+  </TabItem>
+
+  <TabItem value="2" label="Prominent River Example" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(RiverExampleWikidata), null, 2) }</CodeBlock>
+  </TabItem>
+
+</Tabs>

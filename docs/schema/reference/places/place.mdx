@@ -1,0 +1,59 @@
+---
+title: place
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
+import yamlLoad from "@site/src/components/yamlLoad"
+import PlaceSchema from "!!raw-loader!@site/docs/_schema/places/place.yaml";
+import PlaceExample from "!!raw-loader!@site/docs/_examples/places/place.yaml";
+import PlaceExampleAlternateCategories from "!!raw-loader!@site/docs/_examples/places/place-alternate-categories.yaml";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Place
+
+A place is point of interest in the real world.
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Point</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>places</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>place</code></td>
+  </tr>
+  </tbody>
+</table>
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(PlaceSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/places'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{PlaceSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="Place" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(PlaceExample), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="2" label="Alternate Categories" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(PlaceExampleAlternateCategories), null, 2) }</CodeBlock>
+  </TabItem>
+
+</Tabs>

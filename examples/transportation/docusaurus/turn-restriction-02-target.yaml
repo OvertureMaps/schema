@@ -1,0 +1,28 @@
+---
+id: overture:transportation:example:turn-restriction-target
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-71.11325364601365, 42.301374477956756]
+    - [-71.11278137213321, 42.3013264259736]
+    - [-71.11248901211202, 42.3013264259736]
+    - [-71.11157195119078, 42.30139295947919]
+    - [-71.1109997251666, 42.301428074356636]
+    - [-71.11058492376937, 42.30143177065813]
+    - [-71.11002519176327, 42.301415137298676]
+properties:
+  theme: transportation
+  type: segment
+  version: 5
+  subtype: road
+  class: primary
+  connectors:
+    - connector_id: overture:transportation:example:via-turn-restriction-connector1
+      at: 0
+    - connector_id: overture:transportation:example:via-turn-restriction-connector2
+      at: 1
+  names:
+    primary: Arborway
+  road_surface:
+    - value: paved

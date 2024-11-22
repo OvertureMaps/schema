@@ -1,0 +1,34 @@
+---
+title: Concepts
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import yamlLoad from "@site/src/components/yamlLoad"
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
+
+
+All Overture features share a set of common top-level properties. Each Overture data theme has its own core properties that define the feature types within that theme. For example, the `place` feature type must include a name property and a category property, in addition to the common set of Overture properties listed below. 
+
+
+## Common properties 
+<JSONSchemaViewer
+  schema={ yamlLoad(MainDefs) }
+  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer" })}/>
+
+<!-- Below is an example of how you can reference just 1 property within the properties container -->
+<!-- <JSONSchemaViewer
+  schema={ yamlLoad(MainDefs) }
+  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer/properties/sources" })}/> -->
+
+
+## Complex properties across themes
+
+Some feature properties used across themes are complex and require further explanation.
+
+- **[Names](/schema/concepts/names)**: where applicable, complex properties such as names will always use the same schema across all themes
+- **[Scoped and rule-based properties](/schema/concepts/scoping-rules)**: a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at least one scoping property
+- **[Cartography](/schema/concepts/cartography)**: cartographic properties are an optional set of "hints" for how to display Overture data in a map

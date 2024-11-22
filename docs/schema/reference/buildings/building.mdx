@@ -1,0 +1,68 @@
+---
+title: building
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import FootprintSchema from "!!raw-loader!@site/docs/_schema/buildings/building.yaml";
+
+import PolygonExample from "!!raw-loader!@site/docs/_examples/buildings/building-polygon.yaml";
+import MultiPolygonExample from "!!raw-loader!@site/docs/_examples/buildings/building-multipolygon.yaml";
+import MultipleNamesExample from "!!raw-loader!@site/docs/_examples/buildings/names/name-multiple.yaml";
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Building
+
+Buildings are human-made structures with roofs or interior spaces that are permanently or semi-permanently in one place ([OSM building definition](https://wiki.openstreetmap.org/wiki/Key:building)).
+
+<table>
+  <tbody>
+    <tr>
+      <th>Geometry Type</th>
+      <td><code>Polygon</code> or <code>MultiPolygon</code></td>
+    </tr>
+    <tr>
+      <th>Theme</th>
+      <td><code>buildings</code></td>
+    </tr>
+    <tr>
+      <th>Type</th>
+      <td><code>building</code></td>
+    </tr>
+  </tbody>
+</table>
+
+The most basic form of a _building_ feature in the Overture Schema. The geometry is expected to be the most outer footprint (or roofprint if traced from satellite/aerial imagery) of a building.
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(FootprintSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/buildings'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{FootprintSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="Polygon Building" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(PolygonExample), null, 2) }</CodeBlock>
+  </TabItem>
+
+  <TabItem value="2" label="MultiPolygon Building" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(MultiPolygonExample), null, 2) }</CodeBlock>
+  </TabItem>
+
+  <TabItem value="3" label="Building with Multiple Names" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(MultipleNamesExample), null, 2) }</CodeBlock>
+  </TabItem>
+
+</Tabs>

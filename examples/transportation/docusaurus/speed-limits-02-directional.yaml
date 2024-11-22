@@ -1,0 +1,20 @@
+---
+id: speed-limits-variable-max
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [0, 0]
+    - [0, 1]
+properties:
+  theme: transportation
+  type: segment
+  version: 2
+  subtype: road
+  class: secondary
+  speed_limits:
+    - max_speed: {value: 70, unit: "mph"}
+    - when:
+        mode: [hgv]
+        heading: forward
+      max_speed: {value: 65, unit: "mph"}

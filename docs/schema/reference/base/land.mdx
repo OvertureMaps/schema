@@ -1,0 +1,58 @@
+---
+title: land
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import LandSchema from "!!raw-loader!@site/docs/_schema/base/land.yaml";
+
+import SandDuneExample from "!!raw-loader!@site/docs/_examples/base/land-sand-example.yaml";
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Land
+
+Features in the land theme come from OpenStreetMap features with the `natural` tag.
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td>
+      <code>Point</code>, <code>LineString</code>, <code>Polygon</code>, or <code>MultiPolygon</code>
+    </td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>base</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>land</code></td>
+  </tr>
+  </tbody>
+</table>
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(LandSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/base'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{LandSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="Sand Dune (Polygon)" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(SandDuneExample), null, 2) }</CodeBlock>
+  </TabItem>
+
+</Tabs>

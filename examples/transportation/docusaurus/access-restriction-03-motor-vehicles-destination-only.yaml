@@ -1,0 +1,19 @@
+---
+id: access-restrictions-segment-motor-vehicles-destination-only
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [0, 0]
+    - [0, 1]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: residential
+  access_restrictions:
+    - access_type: denied
+      when: { mode: [motor_vehicle] }
+    - access_type: allowed
+      when: { using: [at_destination] }

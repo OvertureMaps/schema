@@ -1,0 +1,220 @@
+---
+title: division
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import divisions_division_schema from '!!raw-loader!@site/docs/_schema/divisions/division.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import division_example_country from '!!raw-loader!@site/docs/_examples/divisions/division/country.yaml';
+import division_example_region from '!!raw-loader!@site/docs/_examples/divisions/division/region.yaml';
+import division_example_hierarchies_multiple from '!!raw-loader!@site/docs/_examples/divisions/division/hierarchies-multiple.yaml';
+import division_example_dependency from '!!raw-loader!@site/docs/_examples/divisions/division/dependency.yaml';
+import division_example_population from '!!raw-loader!@site/docs/_examples/divisions/division/population.yaml';
+import division_example_perspectives from '!!raw-loader!@site/docs/_examples/divisions/division/perspectives.yaml';
+
+# Division
+
+A division is a recognized official or non-official organization of people as seen from a given political perspective.
+
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Point</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>divisions</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>division</code></td>
+  </tr>
+  </tbody>
+</table>
+
+## Subtypes
+
+While the schema for the divisions theme contains an comprehensive list of subtypes, only a subset are available in the data today.
+
+Currently, the following subtypes are available in the `division` feature type:
+
+- `country`
+- `dependency`
+- `region`
+- `county`
+- `localadmin`
+- `locality`
+- `macrohood`
+- `neighborhood`
+- `microhood`
+
+<Tabs>
+  <TabItem value="country" label="country" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>country</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [division boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+
+  </TabItem>
+<TabItem value="dependency" label="dependency" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>dependency</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+ A dependency is a place that is not exactly a sub-region of a country but is dependent on a parent country for defense, passport control, etc. Example: Puerto Rico
+
+  </TabItem>
+
+
+  <TabItem value="region" label="region">
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>region</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+A region is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
+
+  </TabItem>
+
+  <TabItem value="county" label="county" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>county</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A county is a second-level administrative subdivision. Example: Kings County, NY
+
+  </TabItem>
+
+  <TabItem value="localadmin" label="localadmin" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>localadmin</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+Localadmin is a level of government in some parts of the world that contains localities or populated places that themselves have no authority. Often but not exclusively found in Europe. Localadmin is a third-level administrative subdivision. Example: [Paris](https://spelunker.whosonfirst.org/id/1159322569/)
+
+  </TabItem>
+
+  <TabItem value="locality" label="locality" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>locality</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A locality is a populated place that may or may not have its own administrative authority. (It won't if it belongs to a localadmin.) Locality may be a third-level administrative subdivision. Example: Taipei
+
+  </TabItem>
+
+    <TabItem value="macrohood" label="macrohood" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>macrohood</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A macrohood is a super-neighborhood that contains smaller divisions of type neighborhood. Example: BoCoCa (Boerum Hill, Cobble Hill, and Carroll Gardens)
+
+  </TabItem>
+
+    <TabItem value="neighborhood" label="neighborhood" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>neighborhood</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A neighborhood is a geographically localized community within a city, town, suburb or rural area, sometimes consisting of a single street and the buildings lining it. Example: Cobble Hill
+
+  </TabItem>
+
+<TabItem value="microhood" label="microhood" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>microhood</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A microhood is a mini-neighborhood that is contained within a neighborhood. Example: Gätjensort in Hamburg
+
+  </TabItem>  
+</Tabs>
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(divisions_division_schema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/divisions'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{divisions_division_schema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="country" label="country" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_example_country), null, 2) }</CodeBlock>
+     </TabItem>
+    <TabItem value="region" label="region" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_example_region), null, 2) }</CodeBlock>
+    </TabItem>
+    <TabItem value="population" label="population" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_example_population), null, 2) }</CodeBlock>
+    </TabItem>
+     <TabItem value="perspectives" label="perspectives" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_example_perspectives), null, 2) }</CodeBlock>
+    </TabItem>
+</Tabs>

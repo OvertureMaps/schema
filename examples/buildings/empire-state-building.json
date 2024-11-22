@@ -1,0 +1,28 @@
+{
+  "id": "08b2a100d2d4bfff02006354283c153f",
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[[-73.9865012, 40.748491],[-73.9851602, 40.7479255],[-73.9848166, 40.7483931],[-73.9861574, 40.7489585],[-73.9863252, 40.7487301],[-73.9863554, 40.748689],[-73.9864839, 40.7485145],[-73.9865012, 40.748491]]]
+  },
+  "properties": {
+    "theme": "buildings",
+    "type": "building",
+    "subtype": "commercial",
+    "class": "office",
+    "height": 443.2,
+    "num_floors": 102,
+    "has_parts": true,
+    "names": {
+      "primary": "Empire State Building"
+    },
+    "sources": [
+      {
+        "property": "dataset",
+        "dataset": "OpenStreetMap",
+        "record_id": "w34633854@71"
+      }
+    ],
+    "version": 0
+  }
+}

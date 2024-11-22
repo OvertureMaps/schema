@@ -1,0 +1,120 @@
+---
+title: division_boundary
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import divisions_boundary_schema from '!!raw-loader!@site/docs/_schema/divisions/division_boundary.yaml';
+import divisions_boundary_example_land from '!!raw-loader!@site/docs/_examples/divisions/division_boundary/land_region.yaml';
+import divisions_boundary_example_maritime from '!!raw-loader!@site/docs/_examples/divisions/division_boundary/maritime_country.yaml';
+import divisions_disputed_boundary_example_both from '!!raw-loader!@site/docs/_examples/divisions/division_boundary/disputed_both.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Division boundary
+
+A division boundary is a border between [divisions](/schema/reference/divisions/division).
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>LineString</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>divisions</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>division_boundary</code></td>
+  </tr>
+  </tbody>
+</table>
+
+
+A division boundary is typically an officially-defined border
+between two [divisions](/schema/reference/divisions/division). In light of
+geopolitical issues, some boundaries represent standalone
+disputed or treaty lines and therefore do not coincide with the border
+of a division.
+
+## Subtypes
+
+While the schema for the divisions theme contains an comprehensive list of subtypes, only a subset are available in the data today.
+
+Currently, the following subtypes are available in the `division_boundary` feature type:
+
+- `country`
+- `region`
+- `county`
+
+<Tabs>
+  <TabItem value="country" label="country" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>country</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [divsion boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+
+  </TabItem>
+
+  <TabItem value="region" label="region">
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>region</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+A region is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
+  </TabItem>
+
+  <TabItem value="county" label="county" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>county</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A county is a second-level administrative subdivision. Example: Kings County, NY
+  </TabItem>
+
+</Tabs>
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(divisions_boundary_schema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/divisions'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{divisions_boundary_schema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="boundary" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(divisions_boundary_example_land), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="2" label="disputed boundary" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(divisions_disputed_boundary_example_both), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>

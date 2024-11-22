@@ -1,0 +1,201 @@
+---
+title: division_area
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import divisions_division_area_schema from '!!raw-loader!@site/docs/_schema/divisions/division_area.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import division_area_example_country_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/country_land.yaml';
+import division_area_example_region_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/region_land.yaml';
+import division_area_example_country_maritime from '!!raw-loader!@site/docs/_examples/divisions/division_area/country_maritime.yaml';
+
+
+# Division area
+
+A division area is a polygon that represents the land or maritime area associated with a [division](/schema/reference/divisions/division).
+
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Polygon</code> or <code>MultiPolygon</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>divisions</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>division_area</code></td>
+  </tr>
+  </tbody>
+</table>
+
+## Subtypes
+
+While the schema for the divisions theme contains an comprehensive list of subtypes, only a subset are available in the data today.
+
+Currently, the following subtypes are available in the `division_area` feature type:
+
+- `country`
+- `dependency`
+- `region`
+- `county`
+- `localadmin`
+- `locality`
+- `macrohood`
+- `neighborhood`
+
+<Tabs>
+  <TabItem value="country" label="country" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>country</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [divsion boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+
+  </TabItem>
+
+  <TabItem value="dependency" label="dependency" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>dependency</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+ A dependency is a place that is not exactly a sub-region of a country but is dependent on a parent country for defense, passport control, etc. Example: Puerto Rico
+
+  </TabItem>
+
+  <TabItem value="region" label="region">
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>region</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+A region is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
+
+  </TabItem>
+
+  <TabItem value="county" label="county" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>county</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A county is a second-level administrative subdivision. Example: Kings County, NY
+
+  </TabItem>
+
+  <TabItem value="localadmin" label="localadmin" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>localadmin</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+Localadmin is a level of government in some parts of the world that contains localities or populated places that themselves have no authority. Often but not exclusively found in Europe. Localadmin is a third-level administrative subdivision. Example: [Paris](https://spelunker.whosonfirst.org/id/1159322569/)
+
+  </TabItem>
+
+  <TabItem value="locality" label="locality" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>locality</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A locality is a populated place that may or may not have its own administrative authority. (It won't if it belongs to a localadmin.) Locality may be a third-level administrative subdivision. Example: Taipei
+
+  </TabItem>
+
+    <TabItem value="macrohood" label="macrohood" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>macrohood</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A macrohood is a super-neighborhood that contains smaller divisions of type neighborhood. Example: BoCoCa (Boerum Hill, Cobble Hill, and Carroll Gardens)
+
+  </TabItem>
+
+    <TabItem value="neighborhood" label="neighborhood" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>neighborhood</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+
+A neighborhood is a geographically localized community within a city, town, suburb or rural area, sometimes consisting of a single street and the buildings lining it. Example: Cobble Hill
+
+  </TabItem>
+</Tabs>
+
+
+
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(divisions_division_area_schema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/divisions'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{divisions_division_area_schema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="country_land" label="country, land class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_land), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="country_maritime" label="country, maritime class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_maritime), null, 2) }</CodeBlock>
+  </TabItem>
+   <TabItem value="region_land" label="region, land class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_region_land), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>
