@@ -105,7 +105,7 @@ description: Common schema definitions for divisions theme
           items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
           minItems: 1
           uniqueItems: true
-    locality_type:
+    class:
       description: Local name for the locality subtype property, in English.
       type: string
       enum:
@@ -114,7 +114,19 @@ description: Common schema definitions for divisions theme
         - town
         - village
         - hamlet
-    locality_rank:
+    prominence:
+      description:
+        An integer value, 1 to 5, representing a locality's significance.
+      type: integer
+    is_land:
+      description:
+        A boolean to indicate whether or not a land feature or boundary is being represented.
+      type: boolean
+    is_maritime:
+      description:
+        A boolean to indicate whether or not a maritime feature or boundary is being represented.
+      type: boolean
+    prominence:
       description:
         An integer value, 1 to 5, representing a locality's significance.
       type: integer

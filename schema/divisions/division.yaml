@@ -51,7 +51,7 @@ properties:     # JSON Schema: Top-level object properties.
           Romansh.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/commonNames"
-      locality_type:
+      class:
         description:
           Local name for the subtype property, in English.
 
@@ -61,9 +61,7 @@ properties:     # JSON Schema: Top-level object properties.
 
           This property relies on existing local_type values, as well
           as constructed values like 'megacity', for example.
-        allOf:
-          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/commonNames"
-      locality_rank:
+      prominence:
         description:
           An integer value, 1 to 5, representing Overture's view of
           the locality's significance. This value can be used to help
@@ -71,6 +69,19 @@ properties:     # JSON Schema: Top-level object properties.
           from various factors including but not limited to
           population, capital status, and type. A lower value
           indicates a high significance or importance.
+      is_land:
+        description:
+          A boolean, 0 or 1, to indicate whether or not a land
+          feature or boundary is being represented. This value can
+          be used to help determine cartographic display; it flags
+          features that are land-based, or boundaries that are
+          clipped to land.
+      is_maritime:
+        description:
+          A boolean, 0 or 1, to indicate whether or not a maritime
+          feature or boundary is being represented. This value can
+          be used to help determine cartographic display; it flags
+          features that fall in or overlap bodies of water.
       country:
         description: >-
           ISO 3166-1 alpha-2 country code of the country or country-like
