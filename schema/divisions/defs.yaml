@@ -106,7 +106,18 @@ description: Common schema definitions for divisions theme
           minItems: 1
           uniqueItems: true
     class:
-      description: Local name for the locality subtype property, in English.
+      description: >-
+            Local name for the locality subtype property, in English.
+            Megacity: A extensive, large human settlement with a population over 10M.
+                Example: Tokyo, Japan.
+            City: A relatively large, permanent human settlement.
+                Example: Guadalajara, Mexico.
+            Town: A medium-sized human settlement that is smaller than a city, but larger than a village.
+                Example: Walldürn, Germany.
+            Village: A smaller human settlement that is smaller than a town, but larger than a hamlet with typically less than 1,000 permanent residents.
+                Example: Wadi El Karm, Lebanon.
+            Hamlet: A small, isolated human settlement in a rural area that typically has less than 100 permanent residents.
+                Example: Tjarnabyggð, Iceland.
       type: string
       enum:
         - megacity
@@ -118,13 +129,13 @@ description: Common schema definitions for divisions theme
       description:
         An integer value representing an administrative place's significance.
       type: integer
-    is_land:
+    is_rendering:
       description:
-        A boolean to indicate whether or not a land feature or boundary is being represented.
+        A boolean to indicate whether or not the feature geometry is intended for map rendering and cartographic display purposes.
       type: boolean
-    is_maritime:
+    is_processing:
       description:
-        A boolean to indicate whether or not a maritime feature or boundary is being represented.
+        A boolean to indicate whether or not the feature geometry is intended for data processing purposes.
       type: boolean
     capitalOfDivisionItem:
       description: One division that has capital

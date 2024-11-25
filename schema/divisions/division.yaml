@@ -63,25 +63,25 @@ properties:     # JSON Schema: Top-level object properties.
           as constructed values like 'megacity', for example.
       prominence:
         description:
-          An integer value, 1 to 5, representing Overture's view of
+          An integer value, representing Overture's view of
           the locality's significance. This value can be used to help
           drive cartographic display of localities and is derived
           from various factors including but not limited to
           population, capital status, and type. A lower value
           indicates a high significance or importance.
-      is_land:
+      is_rendering:
         description:
-          A boolean, 0 or 1, to indicate whether or not a land
-          feature or boundary is being represented. This value can
-          be used to help determine cartographic display; it flags
-          features that are land-based, or boundaries that are
-          clipped to land.
-      is_maritime:
+          A boolean, 0 or 1, to indicate whether or not the feature
+          geometry is intended for map rendering and cartographic
+          display purposes. This flag is typically set to 1 on
+          land-based features and boundaries that are clipped to land.
+      is_processing:
         description:
-          A boolean, 0 or 1, to indicate whether or not a maritime
-          feature or boundary is being represented. This value can
-          be used to help determine cartographic display; it flags
-          features that fall in or overlap bodies of water.
+          A boolean, 0 or 1, to indicate whether or not the feature
+          geometry is intended for data processing purposes. This flag
+          is typically set to 1 on martime features, buffered geometries
+          that extend past an official boundary, and boundaries that
+          are not clipped to land.
       country:
         description: >-
           ISO 3166-1 alpha-2 country code of the country or country-like
