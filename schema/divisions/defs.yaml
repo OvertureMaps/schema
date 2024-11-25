@@ -116,7 +116,7 @@ description: Common schema definitions for divisions theme
         - hamlet
     prominence:
       description:
-        An integer value, 1 to 5, representing a locality's significance.
+        An integer value representing an administrative place's significance.
       type: integer
     is_land:
       description:
@@ -126,10 +126,6 @@ description: Common schema definitions for divisions theme
       description:
         A boolean to indicate whether or not a maritime feature or boundary is being represented.
       type: boolean
-    prominence:
-      description:
-        An integer value, 1 to 5, representing a locality's significance.
-      type: integer
     capitalOfDivisionItem:
       description: One division that has capital
       type: object
