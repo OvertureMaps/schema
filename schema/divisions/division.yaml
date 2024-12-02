@@ -22,6 +22,7 @@ properties:     # JSON Schema: Top-level object properties.
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/cartographyContainer
       - if:
           properties:
             subtype: { enum: [country] }

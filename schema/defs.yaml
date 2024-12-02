@@ -343,6 +343,16 @@ description: Common schema definitions shared by all themes
           title: cartography
           type: object
           properties:
+            prominence:
+              description: >-
+                Represents Overture's view of a place's significance or importance.
+                This value can be used to help drive cartographic display of an
+                administrative place and is derived from various factors including:
+                population, capital status, place tags, and type. A lower value
+                indicates a high significance or importance.
+              type: integer
+              minimum: 0
+              maximum: 100
             min_zoom:
               description: >-
                 Recommended minimum tile zoom per the Slippy Maps convention.
