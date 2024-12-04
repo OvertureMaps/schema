@@ -9,7 +9,7 @@ description: Common schema definitions the base theme (primarily from OSM)
       type: integer
       maximum: 9000
     depth:
-      description: Depth below sea level (in meters) of the feature.
+      description: Depth below surface level (in meters) of the feature.
       type: integer
       maximum: 0
     height:
