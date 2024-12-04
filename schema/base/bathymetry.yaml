@@ -1,0 +1,22 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: bathymetry
+description: Topographic representation of an underwater area, such as a part of the ocean floor.
+type: object
+properties:
+  id:
+    "$ref": ../defs.yaml#/$defs/propertyDefinitions/id
+  geometry:
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/cartographyContainer
+    required: [depth]
+    properties:
+      depth: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/depth" }
