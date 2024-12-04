@@ -26,7 +26,6 @@ properties:
     properties:
       subtype:
         description: Further description of the type of land cover, such as forest, glacier, grass, or a physical feature, such as a mountain peak.
-        default: [land]
         type: string
         enum:
           - crater
@@ -44,7 +43,6 @@ properties:
           - wetland
       class:
         description: Further classification of type of landcover
-        default: [land]
         type: string
         enum:
           - archipelago

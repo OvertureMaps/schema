@@ -26,7 +26,6 @@ properties:
     properties:
       subtype:
         description: The type of water body such as an river, ocean or lake.
-        default: [water]
         type: string
         enum:
           - canal
@@ -43,7 +42,6 @@ properties:
           - water
       class:
         description: Further description of the type of water
-        default: [water]
         enum:
           - basin
           - bay
