@@ -20,4 +20,7 @@ properties:
     required:
       - depth
     properties:
-      depth: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/depth }
+      depth:
+        description: Depth below sea level (in meters) of the feature.
+        type: integer
+    depth: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/depth }
