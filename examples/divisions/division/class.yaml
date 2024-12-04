@@ -1,0 +1,30 @@
+---
+id: example:division:locality:dk
+type: Feature
+geometry:
+  type: Point
+  coordinates: [12.0819247 55.6433478]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: locality
+  local_type:
+    en: city
+  names:
+    primary: Roskilde
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: N21040334
+  country: DK
+  hierarchies:
+    - - division_id: example:division:country:dk
+        subtype: country
+        name: Denmark
+  capital_of_divisions:
+    - division_id: example:division:country:dk
+      subtype: country
+  parent_division_id: example:division:country:dk
+  population: 50781
+  class: city

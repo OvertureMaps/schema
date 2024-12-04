@@ -1,0 +1,18 @@
+---
+id: counterexample:division:bad-class
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: country
+  class: mammalia
+  division_id: counterexample:division:some-class
+  names:
+    primary: A division area with an invalid class property.
+  country: ZZ
+  ext_expected_errors:
+    - "value must be one of 'megacity', 'city', 'town', 'village', 'hamlet'"
