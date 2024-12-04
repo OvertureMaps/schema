@@ -17,10 +17,6 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/cartographyContainer
-    required:
-      - depth
+    required: [depth]
     properties:
-      depth:
-        description: Depth below sea level (in meters) of the feature.
-        type: integer
-    depth: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/depth }
+      depth: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/depth" }
