@@ -1,7 +1,7 @@
 ---
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: bathymetry
-description: topographic representation of the ocean floor
+description: Topographic representation of an underwater area, such as a part of the ocean floor.
 type: object
 properties:
   id:
