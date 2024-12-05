@@ -221,5 +221,5 @@ properties:     # JSON Schema: Top-level object properties.
         type: array
         minItems: 1
         uniqueItems: true
-        items: { "$ref": "defs.yaml#/$defs/propertyDefinitions/capitalOfDivisionItem" }
+        items: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/capitalOfDivisionItem" }
       wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }
