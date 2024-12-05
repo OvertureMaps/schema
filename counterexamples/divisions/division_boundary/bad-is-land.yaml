@@ -1,0 +1,16 @@
+---
+id: counterexample:division_boundary:bad-is-land
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 1], [1, 2]]
+properties:
+  theme: divisions
+  type: division_boundary
+  version: 0
+  subtype: country
+  division_id: counterexample:division_boundary:some-division
+  is_land: yes
+  country: ZZ
+  ext_expected_errors:
+    - "value must be one of 'true', 'false'"
