@@ -27,4 +27,5 @@ properties:
       subtype: country
   parent_division_id: example:division:country:dk
   population: 50781
-  prominence: 5
+  cartography:
+    prominence: 5
