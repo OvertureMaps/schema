@@ -3,7 +3,7 @@ id: example:division:locality:dk
 type: Feature
 geometry:
   type: Point
-  coordinates: [12.0819247 55.6433478]
+  coordinates: [12.0819247, 55.6433478]
 properties:
   theme: divisions
   type: division
