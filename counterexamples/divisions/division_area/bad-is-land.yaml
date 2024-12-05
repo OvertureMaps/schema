@@ -13,4 +13,4 @@ properties:
   is_land: yes
   country: ZZ
   ext_expected_errors:
-    - "value must be one of 'true', 'false'"
+    - "is_land/type]: got string, want boolean"

@@ -9,8 +9,9 @@ properties:
   type: division_boundary
   version: 0
   subtype: country
-  division_id: counterexample:division_boundary:some-division
+  division_ids: ["example:division:country:left", "example:division:country:right"]
   is_land: yes
+  class: land
   country: ZZ
   ext_expected_errors:
-    - "value must be one of 'true', 'false'"
+    - "is_land/const]: value must be true"

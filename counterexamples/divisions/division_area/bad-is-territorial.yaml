@@ -13,4 +13,4 @@ properties:
   is_territorial: no
   country: ZZ
   ext_expected_errors:
-    - "value must be one of 'true', 'false'"
+    - "is_territorial/const]: value must be true"

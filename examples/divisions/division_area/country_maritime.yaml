@@ -78,6 +78,7 @@ properties:
   version: 0
   subtype: country
   class: maritime
+  is_territorial: true
   division_id: example:division:country:fi
   names:
     primary: Suomi

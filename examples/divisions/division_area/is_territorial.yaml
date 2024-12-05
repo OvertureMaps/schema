@@ -76,5 +76,10 @@ properties:
   theme: divisions
   type: division_area
   subtype: country
-  is_territorial: 1
+  is_territorial: true
   country: FI
+  version: 0
+  class: land
+  division_id: example:division:country:fi
+  names:
+    primary: Finland

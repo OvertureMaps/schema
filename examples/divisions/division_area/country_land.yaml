@@ -304,6 +304,7 @@ properties:
   version: 0
   subtype: country
   class: land
+  is_land: true
   division_id: example:division:country:us
   names:
     primary: United States

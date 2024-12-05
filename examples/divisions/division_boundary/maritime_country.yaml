@@ -10,4 +10,6 @@ properties:
   version: 1
   subtype: country
   class: maritime
+  is_territorial: true
+  is_land: false
   division_ids: ["example:division:region:left",  "example:division:region:right"]
