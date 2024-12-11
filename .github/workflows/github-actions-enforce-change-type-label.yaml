@@ -22,7 +22,7 @@ jobs:
             const prLabels = context.payload.pull_request.labels.map(label => label.name);
             const appliedChangeTypeLabels = prLabels.filter(prLabel => allChangeTypeLabels.has(prLabel));
             if (appliedChangeTypeLabels.length !== 1) {
-              const baseMessage = `The PR must have EXACTLY one of the following CHANGE TYPE labels: ${Array.from(changeTypeLabels).sort().join(', ')}. `
+              const baseMessage = `The PR must have EXACTLY one of the following CHANGE TYPE labels: ${Array.from(appliedChangeTypeLabels).sort().join(', ')}. `
               let contextualMessage;
               if (appliedChangeTypeLabels.length === 0) {
                 contextualMessage = 'It currently has no change type label. Add one.'
