@@ -4,10 +4,31 @@ What kind of change is this?
 Please select *one* of the following four options.
 Consult [Pull request merging criteria](https://github.com/OvertureMaps/schema-wg#Pull-request-merging-criteria) for a description of each category.
 
-1. [ ] Cosmetic change.
-2. [ ] Documentation change by member.
-3. [ ] Documentation change by Overture tech writer.
-4. [ ] Material change.
+1. [ ] MAJOR schema change as defined in [Schema versioning and stability](https://lf-overturemaps.atlassian.net/wiki/x/GgDa).
+2. [ ] MINOR schema change as defined in [Schema versioning and stability](https://lf-overturemaps.atlassian.net/wiki/x/GgDa).
+3. [ ] Cosmetic change.
+4. [ ] Documentation change by member.
+5. [ ] Documentation change by Overture tech writer.
+
+# Major change release plan
+
+TODO: For any non-MAJOR change, delete this whole section.
+
+*For a MAJOR change as defined in [Schema versioning and stability](https://lf-overturemaps.atlassian.net/wiki/x/GgDa),
+indicate the expected release date, related minor change steps, and your
+public documentation and messaging plan.*
+
+## A. Expected release date for this MAJOR change
+
+TODO.
+
+## B. Related MINOR change steps
+
+- TODO. List each related MINOR change as a bullet.
+
+## C. Public documentation and messaging lan
+
+TODO.
 
 # Description
 
