@@ -1,7 +1,9 @@
 # Category
 
 What kind of change is this?
-Please select *one* of the following four options.
+
+Please select *one* of the following five options.
+
 Consult [Pull request merging criteria](https://github.com/OvertureMaps/schema-wg#Pull-request-merging-criteria) for a description of each category.
 
 1. [ ] MAJOR schema change as defined in [Schema versioning and stability](https://lf-overturemaps.atlassian.net/wiki/x/GgDa).
