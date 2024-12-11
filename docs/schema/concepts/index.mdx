@@ -1,23 +1,6 @@
 ---
-title: Overture schema concepts
+title: Concepts
 ---
+import DocCardList from '@theme/DocCardList';
 
-import CodeBlock from '@theme/CodeBlock';
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import yamlLoad from "@site/src/components/yamlLoad"
-import JSONSchemaViewer from "@theme/JSONSchemaViewer";
-import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
-import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
-
-
-## Cross-theme concepts
-
-Some feature properties used across themes are complex and require further explanation.
-
-- **[Names](/schema/concepts/names)**: where applicable, complex properties such as names will always use the same schema across all themes
-- **[Scoped and rule-based properties](/schema/concepts/scoping-rules)**: a scoping property narrows the scope of its parent property and may only apply to a particular instance of the parent property; rule-based property is an array of rules, which are objects containing at least one scoping property
-- **[Cartography](/schema/concepts/cartography)**: cartographic properties are an optional set of "hints" for how to display Overture data in a map
-
-## Theme-specific concepts
-The transportation theme is the most complex and mature of our schemas and we offer extensive details on how we planned and constructed that schema. 
+<DocCardList />
