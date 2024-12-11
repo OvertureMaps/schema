@@ -27,7 +27,7 @@ jobs:
               if (appliedChangeTypeLabels.length === 0) {
                 contextualMessage = 'It currently has no change type label. Add one.'
               } else {
-                contextualMessage = `It currently has ${appliedChangeTypeLabels.length} change type labels (${JSON.stringify(appliedChangeTypeLabels)}). Remove one.
+                contextualMessage = `It currently has ${appliedChangeTypeLabels.length} change type labels (${JSON.stringify(appliedChangeTypeLabels)}). Remove one.`
               }
               core.setFailed(baseMessage + contextualMessage);
             }
