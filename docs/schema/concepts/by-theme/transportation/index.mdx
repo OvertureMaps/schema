@@ -9,11 +9,7 @@ The Overture transportation theme describes the infrastructure and conventions o
 For tips on accessing and working with our transportation data, please see our Transportation Data Guide. 
 :::
 
-The three subtypes under `segment` &mdash; `road`, `rail`, and `water` &mdash; contain most of the transportation data with which users are familiar: highways, footways, cycleways, railways, ferry routes, and public transportation. 
-
-This guide is about the transportation schema. The transportation schema structures the segment and connector feature data and defines concepts like routes, trips, vehicles, speed limits, directionality, and network topology.
-
- The Overture transportation schema does the following:
+The Overture transportation schema does the following:
 - captures a hierarchy of features it proposes
 - envisions inclusion of other datasets such as places, buildings, and divisions
 - uses GeoJson reatures as a base
@@ -24,7 +20,7 @@ This guide is about the transportation schema. The transportation schema structu
 
 ## Feature types
 
-The transportation theme has two feature types: 
+The transportation schema defines two feature types: 
 
 - The `segment` type has a LineString geometry that represents the center-line of a path that a person or object may travel. Segment properties describe both the physical proprerties (e.g. road surface and width) and non-physical properties (e.g. access restriction rules) of that path. 
 - The `connector` type has a Point geometry that defines the topology of the transportation network by representing the physical connection between two or more segments. Connectors do not have properties beyond geometry and the common properties required for all Overture features.
@@ -37,27 +33,53 @@ To better support routing use cases, we added to the segment feature type [a new
 
 ## Subtypes
 
-### [Roads](/schema/concepts/by-theme/transportation/roads)
+### [Road](/schema/concepts/by-theme/transportation/roads)
 The Overture schema models any kind of road, street or path, including dedicated walking and cycling paths, as `road` segments. Roads are currently the most developed part of the transportation schema.
+
+### Rail
+
+### Water
 
 ## Classes
 
-What are classes?
+Captures the type of road, railway, or waterway and its position in the transportation network hierarchy. For example, road classes include motorways, primary roads, secondary roads, residential streets, pedestrian pathways, and cycleways. 
 
 
 ## Subclasses
 
-We [added a new `subclass` property](https://github.com/OvertureMaps/schema/pull/180) that refines the descriptions of segments by:
+The subclass property refines the descriptions of segments by:
 
 - clearly specifying the usage of a length of road, and using linear referencing instead of further segmentation to pinpoint a change in how the road is used
 - properly classifying detailed information from OpenStreetMap
 
-Subclasses require non-overlapping geometries, which will make it easier for routing engines to consume our
-road data and generate turn-by-turn directions. The new class and subclass structures allow us to capture more
-information about roads from our data sources. For example, we’ve been able
-to move more than 30 million “unknown” road segments from OSM into the new subclasses, laying the groundwork
-for richer and more detailed map displays with Overture data.
+Subclasses require non-overlapping geometries, which will make it easier for routing engines to consume our road data and generate turn-by-turn directions. The class and subclass structures allow us to capture more information about roads from our data sources. For example, we’ve been able to move more than 30 million “unknown” road segments from OSM into subclasses, laying the groundwork for richer and more detailed map displays with Overture data.
 
+
+Here's how classes, subclasses, and flags are modeled in the Overture schema:
+
+```
+class: footway
+subclass_rules:
+  - value: sidewalk
+    between: [0, 0.6]
+  - value: crosswalk
+    between: [0.6, 1.0]
+road_flags:
+  - values: [is_bridge]
+    between: [0.2, 0.3]
+  - values: [is_under_construction]
+    between: [0.3, 0.5]
+
+class: service
+subclass_rules:
+  - value: driveway
+    between: [0, 0.5]
+
+class: primary
+subclass: link
+subclass_rules:
+  - value: link
+```
 
 ## Other concepts
 
@@ -67,12 +89,36 @@ travel mode which can be used as a way of controlling scoped
 and rule-based properties
 
 ### Routes and destinations
-Also in support of routing use cases, we [added a `destinations` property](https://github.com/OvertureMaps/schema/pull/176) to the segment feature type.
-This property describes the transitions from one segment to another on the way to a specified location.
-In turn-by-turn routing applications, this is what is known as “follow signs for” &mdash; the human-readable
-directions and signposts along a road, highway, or interstate that get us from point A to point Z, by way
-of any number of paths in between. We designed `destinations` with a flexible schema that will allow us to
-capture and model navigation data from many different sources.
+The destination property in the segment feature type supports rouuting use cases. It describes the transitions from one segment to another on the way to a specified location. In turn-by-turn routing applications, this is what is known as “follow signs for” &mdash; the human-readable directions and signposts along a road, highway, or interstate that get us from point A to point Z, by way of any number of paths in between. We designed `destinations` with a flexible schema that will allow us to capture and model navigation data from many different sources.
+
+### Connectors
+To better support routing use cases, we added to the segment feature type a property called connectors: an array of IDs with pre-computed linear reference values that explicitly link segments and connector features via coordinates. The connectors property contains a list of connector features to which a segment feature is physically connected and the relative location of those connector features along the segment. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments that share the same connector.
+
+
+Here's an example of how the connectors property is modeled in the schema:
+
+```
+id: overture:transportation:segment:123
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [0.03, 0], [0.10, 0]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: secondary
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 0.3
+    - connector_id: bazConnector
+      at: 1
+  road_surface:
+    - value: paved
+```
 
 <!---
 Some of this might be bumped up to cross-theme concepts -->
