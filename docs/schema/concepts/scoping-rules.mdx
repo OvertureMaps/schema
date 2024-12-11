@@ -13,14 +13,10 @@ import ExampleSubjectiveHeadingScoping from '!!raw-loader!@site/docs/_examples/t
 import ExampleSubjectiveUsagePurposeScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-usage-purpose-scoping.yaml';
 import ExampleSubjectiveStatusScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-status-scoping.yaml';
 import ExampleSubjectiveVehicleAttributesScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-vehicle-attributes-scoping.yaml';
-import ExampleLanesAbsoluteForm from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-absolute-form.yaml';
-import ExampleLanesRuleForm from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-rule-form.yaml';
-
 
 ## Scoped and rule-based properties
 
-In the real world, many facts and rules affecting entities have only a partial application, meaning they don't apply everywhere, or they don't apply at all times, or to everyone, or to all sets of external conditions.
-For example, access restrictions on a road segment might not apply to all people or all kinds of vehicles, or they might vary according to the day of the week.
+In the real world, many facts and rules affecting entities have only a partial application, meaning they don't apply everywhere, or they don't apply at all times, or to everyone, or to all sets of external conditions. For example, access restrictions on a road segment might not apply to all people or all kinds of vehicles, or they might vary according to the day of the week.
 <!-- add another example that is not transportation focused -->
 
 The Overture schema uses two related concepts to capture the partial application of facts and rules: scoped values and rule-based properties.
@@ -38,26 +34,40 @@ The scope in which a scoped value applies is controlled by one or more special c
 
 The geometric scoping properties `at` and `between` limit the scope of their parent value to a position or range of positions, respectively, along a segment's geometry. When the parent value is a rule object, the rule only matches the position or range of positions specified in the `at` or `between` property.
 
-The value of the `at` property is a single real number `a` where `0` &le; `a` &le; `1`.
-It represents a discrete position along the segment's geometry.
-The value of the `between` property is a pair of numbers `[a, b]` where `0` &le; `a` &lt; `b` &le; `1`.
-It represents a range of positions along the segment's geometry.
-The numbers `a` and `b` are interpreted as percentage displacements along the parent segment's geometry starting from the start of the segment.
-(*The terms "start" and "end" are explained in [Shape and connectivity](https://docs.overturemaps.org/schema/concepts/by-theme/transportation/shape-connectivity).*)
+The value of the `at` property is a single real number `a` where `0` &le; `a`
+&le; `1`. It represents a discrete position along the segment's geometry. The
+value of the `between` property is a pair of numbers `[a, b]` where `0` &le;
+`a` &lt; `b` &le; `1`. It represents a range of positions along the segment's
+geometry. The numbers `a` and `b` are interpreted as percentage displacements
+along the parent segment's geometry starting from the start of the segment.
+(*The terms "start" and "end" are explained in
+[Shape and connectivity](https://docs.overturemaps.org/guides/transportation/shape-connectivity).*)
 
-So, for example, the scoping property `"at": 0.15` scopes its parent value to the position on the segment that is displaced 15% of the segment length from the start.
+So, for example, the scoping property `"at": 0.15` scopes its parent value
+to the position on the segment that is displaced 15% of the segment length from
+the start.
 
-<figure style={{textAlign: 'center'}}>
-  <ThemedImage
-    alt="Diagram showing a single geometrically-scoped position"
-    sources={{
-      light: useBaseUrl('/img/transportation/geometric-scoping-position-light.svg'),
-      dark: useBaseUrl('/img/transportation/geometric-scoping-position-dark.svg'),
-    }}
-  />
-  <figcaption style={{textAlign: 'center'}}>
-    <em>The position along the segment geometry described by `"at": 0.15`.</em>
-  </figcaption>
+<div style={{textAlign: 'center'}}>
+
+<figure>
+
+<ThemedImage
+  alt="Diagram showing a single geometrically-scoped position"
+  sources={{
+    light: useBaseUrl('/img/transportation/geometric-scoping-position-light.svg'),
+    dark: useBaseUrl('/img/transportation/geometric-scoping-position-dark.svg'),
+  }}
+/>
+
+<figcaption>
+
+<div style={{textAlign: 'center'}}>
+
+*The position along the segment geometry described by `"at": 0.15`.*
+
+</div>
+
+</figcaption>
 </figure>
 
 The scoping property `"between": [0.35, 0.75]` scopes its parent value to the range of positions on the segment beginning at 35% and extending to 75% of the segment length from the start.
@@ -228,51 +238,34 @@ Each individual rule in the list of rules is itself a scoped value, a scoped val
 
 ### Absolute form
 
-There are cases when specifying a property value using rules makes sense, and cases where doing so is unnecessarily complicated because the real-world entity being modeled has a single unchanging state which is the same in all fact situations.
-In these cases, most rule-based properties support a simpler absolute form without a list of rules.
+There are cases when specifying a property value using rules makes sense, and
+cases where doing so is unnecessarily complicated because the real-world entity
+being modeled has a single unchanging state which is the same in all fact
+situations. In these cases, most rule-based properties support a simpler
+absolute form without a list of rules.
 
-Consider the following two examples of road segments.
-On the left is a section from a simple two-lane bidirectional city street in which there is always one lane of traffic flowing in each direction.
-On the right is a section from a one-way city street in which two of the lanes are only available for driving at certain times of the day, being reserved for parking at other times.
-In the example on the left, the lane list is specified absolutely; while in the example on the right, it is given as a list of [temporally-scoped](#temporal-scoping-opening-hours) lane rules.
 
-<div style={{ width: "49.5%", float: "left" }}>
-<figure>
-
-  <CodeBlock language="yaml">{ ExampleLanesAbsoluteForm }</CodeBlock>
-
-  <figcaption style={{textAlign: 'center'}}>
-    <em>An absolute list of lanes.</em>
-  </figcaption>
-
-</figure>
-</div>
-
-<div style={{ width: "49.5%", float: "right" }}>
-<figure>
-  <CodeBlock language="yaml">{ ExampleLanesRuleForm }</CodeBlock>
-
-  <figcaption style={{textAlign: 'center'}}><em>A list of lane rules.</em></figcaption>
-
-</figure>
-</div>
-
-<div style={{clear: "both"}}>
+<div style={{ clear: "both" }}/>
 
 ### Rule evaluation algorithm
 
-Given a rule-based property, the actual value of the property in a given fact pattern is determined by a three-step process: first, all matching rules are identified; second, the single determining rule is chosen if possible; lastly, if there is no applicable rule, an appropriate default value may be assumed.
+Given a rule-based property, the actual value of the property in a given fact
+pattern is determined by a three-step process: first, all matching rules are
+identified; second, the single determining rule is chosen if possible; lastly,
+if there is no applicable rule, an appropriate default value may be assumed.
 
-1. **Matching rules.** For a given rule and a given set of facts, the rule *matches* the facts if the scope of the rule contains all the facts, *i.e.* the facts fit within all of the scoping properties expressed in the rule.
-   The matching criteria for a rule can be thought of as the logical AND of all the scoping properties expressed in the rule.
+1. **Matching rules.** For a given rule and a given set of facts, the rule
+   *matches* the facts if the scope of the rule contains all the facts, *i.e.*
+   the facts fit within all of the scoping properties expressed in the rule. The
+   matching criteria for a rule can be thought of as the logical AND of all the
+   scoping properties expressed in the rule.
+2. **Determining rule.** For a given rule-based property and a given set of
+   facts, *at most* one rule can *determine* the property value. If only one
+   rule matches, that rules determines the property value. If more than one rule
+   matches, the last matching rule in the list determines the value. (This is
+   similar to how OpenStreetMap [conditional restrictions](https://wiki.openstreetmap.org/wiki/Conditional_restrictions)
+   evaluated.) Therefore it is important to write more general rules before more
+   specific ones in a rule list.
+3. **Fallback to default.** If there are no matching rules, an appropriate
+   default value may apply, depending on the property being evaluated.
 
-1. **Determining rule.** For a given rule-based property and a given set of facts, *at most* one rule can *determine* the property value.
-   If only one rule matches, that rules determines the property value. If more than one rule
-   matches, the last matching rule in the list determines the value.
-   (This is similar to how OpenStreetMap [conditional restrictions](https://wiki.openstreetmap.org/wiki/Conditional_restrictions)
-   evaluated.)
-   Therefore it is important to write more general rules before more specific ones in a rule list.
-
-1. **Fallback to default.** If there are no matching rules, an appropriate default value may apply, depending on the property being evaluated.
-
-</div>
