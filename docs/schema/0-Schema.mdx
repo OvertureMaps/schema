@@ -13,58 +13,68 @@ import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
 import yamlLoad from "@site/src/components/yamlLoad"
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
-Overture data is structured by three components: the Overture schema, the data model, and the Global Entity Reference System ([GERS](https://docs.overturemaps.org/gers/)). The schema describes the shape of the data and devises the constraints applied to that data. The data model specifies what types of features exist, their geometries, how the features relate to each other, and what kind of properties they have. GERS is a framework for structuring, encoding, and matching data to a shared universal reference in Overture. This section of the documentation is devoted to the detailed characteristics of the Overture schema. But first we'll briefly describe the data model and GERS. 
+## A unified schema
+Overture is developing one schema to structure our many datasets. We use the [JSON schema standard](https://json-schema.org/) as the basis for the Overture schema and [GeoJSON](https://geojson.org/) to encode the feature geometries and properties in our datasets. [The schema itself is written in YAML](https://github.com/OvertureMaps/schema/blob/dev/schema/schema.yaml) for readability and ease of use.
 
+## GeoJSON vs GeoParquet 
+Although GeoJSON serves as our mental model for defining and structuring Overture data, we distribute the datasets as [GeoParquet](https://geoparquet.org/) files, a column-oriented format optimized for large-scale geospatial datasets. 
 
-## Simple feature model
+There are key differences between GeoJSON and GeoParquet in how geometries and data types are represented. GeoJSON [encodes geometries](https://datatracker.ietf.org/doc/html/rfc7946#section-1.4) as human-readable text, while GeoParquet represents them in [Well-Known Binary (WKB)](https://libgeos.org/specifications/wkb/) format, which is computationally efficient. Similarly, data types in GeoParquet may differ from those in GeoJSON to better align with the constraints and features of the columnar format.
 
-Overture uses the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium to describe the map features in Overture's corpus. Features in Overture represent entities in the real world. An entity is a physical thing or concept: a segment of a highway, a city boundary, an elementary school, or a dog park. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. For example, you might consider a train station to be a single thing in the world, but Overture might represent it as multiple features &mdash; a building, a stop on a rail line, a place, an address &mdash; each feature with a unique ID in the Overture corpus.
+These differences reflect the distinct roles each format plays in our workflow. GeoJSON serves as a conceptual framework for defining the schema and validating logical consistency, while GeoParquet facilitates high-performance storage and querying, ensuring the data is accessible and usable at scale.
 
-## Global Entity Reference System (GERS)
-
-Overture assigns a unique ID to each feature in an Overture dataset. For most feature types, that ID is meant to be stable from release to release. These stable, unique IDs form the basis of the Global Entity Reference System (GERS), a framework that structures, encodes, and matches map data to a shared universal reference within Overture. GERS, coupled with Overture datasets, is a potential standard for identifying and referencing the physical and conceptual entities we've defined in our world. 
-
-
-## Schema characteristics
-The Overture schema is defined by the [JSON schema](https://json-schema.org/), and [GeoJSON](https://geojson.org/) is used as the canonical geospatial format. GeoJSON provides us with a mental model and language to express data constructions in the schema. The Overture schema supports the following geometry types: Point, LineString, Polygon, MultiPoint, MultiLineString, and MultiPolygon. Together geometric objects and their properties are called features.
-
-In this section of the documentation, we are focusing on the Overture schema. You can jump right to the reference section if you're looking up specific properties in a dataset. Below we describe the core schema properties, complex schema properties, schema concepts, and schema concepts by theme. We also describe a set of notation and style conventions that we follow. 
-
-### One schema with shared and theme-specific properties
-
-Overture releases one schema that describes and structures all of Overture's datasets. The schema includes properties that are shared across themes and properties that are specific to a theme. 
-
-All Overture features have these properties:
-
-- type
-- geometry, where the type of geometry is constrained by the feature type
-- ID that is globally unique within the ID-space of the entire Overture data distribution version
-
-
-The schema contains a few properties that are shared across themes but not required. Examples are:
-- sources
-- names
-- version
-
-<!-- what about subtype, type, class, subclass structures? -->
+## Top-level properties
+All Overture features have a unique `id` called a [GERS ID](https://docs.overturemaps.org/gers/), a `geometry` object, and the following top-level properties:
 
 <JSONSchemaViewer
   schema={ yamlLoad(MainDefs) }
   resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer" })}/>
 
-<!-- Below is an example of how you can reference just 1 property within the properties container -->
-<!-- <JSONSchemaViewer
+<!-- Below is an example of how you can reference just 1 property within the properties container 
+<JSONSchemaViewer
   schema={ yamlLoad(MainDefs) }
-  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer/properties/sources" })}/> -->
+  resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer/properties/sources" })}/> 
+  -->
+
+  The GeoParquet representation of these properties looks like this:
+
+| column_name | column_type | description |
+|---|---|---|
+| id | string | an Overture feature's unique id, part of the Global Entity Reference System (GERS) |
+| geometry | binary | well-known binary (WKB) representation of the feature geometry |
+| bbox | struct(xmin: float, xmax: float, ymin: float, ymax: float) | area defined by two longitudes and two latitudes: latitude is a decimal number between -90.0 and 90.0; longitude is a decimal number between -180.0 and 180.0. |
+| theme | string | |
+| type | string | | 
+| version | int32 | version number of the feature, incremented in each Overture release where the geometry or attributes of this feature changed |
+| sources | list | array of source information for the properties of a given feature |
+
+
+## Shared properties
+Most but not all of the feature types in the Overture corpus require these properties:
+- `names`: properties defining the names of a feature.
+- `subtype`: further description of the feature type
+- `class`: further classification of the feature
+
+The `names` property has its own schema, which we describe in detail [here](/schema/concepts/names). 
+
+The GeoParquet representation of these properties looks like this:
+
+| column_name | column_type | description |
+|---|---|---|
+| names | struct | | 
+| subtype | string | | 
+| class | string | | 
+
+## Type-specific properties
+For example, the place feature type has a categories property. The land_cover feature type includes cartographic properties. Many of these nested properties in geojson and described as in the Geoparqet scehma. Please see the theme guides for more information about how additional properties are represented in the GeoParquet files. 
+
+
 
  
-### Schema concepts
-This is where I'll briefly mention the concepts that are important to understand, such as linear referencing, topology, cross-theme releationships, contested borders, internationalization, mapping OpenStreetMap tags to Overture properties, and more. This will link to the concepts section of this documentation. 
-
-### Schema conventions
+## Schema conventions
 These are the styles, notations, nomenclatures, specifications, and standards we have adopted for the Overture schema. 
 
-#### Notations
+### Notations
 
 - snake case is used for all property names, string enumeration members, and string-valued enumeration equivalents
 - boolean properties have a prefix verb "is" or "has" in a way that grammatically makes sense
@@ -72,30 +82,25 @@ These are the styles, notations, nomenclatures, specifications, and standards we
   - `has_street_lights=true`
   - `is_accessible=false`
 
-#### Measurements
+### Measurements
 
 Measurements of real-world objects and features follow [The International System of Units (SI)](https://www.bipm.org/en/publications/si-brochure): heights, widths, lengths, etc. In the Overture schema, these values are provided as scalar numeric value without units such as feet or meters. Overture does this to maximize consistency and predictability.
 
 Quantities specified in regulatory rules, norms and customs follow local specifications wherever possible. In the schema, these values are provided as two-element arrays where the first element is the scalar numeric value and the second value is the units. Overture uses local units of measurement -- feet in the United States and meters in the EU, for example. The exact unit is confirmed in the specification of the property but is not repeated in the data.
 
-#### Relations
-
-Low-cardinality directed relations are stored as ID references on the source feature.
-
-#### Regulations and restrictions
+### Regulations and restrictions
 
 All quantities that relate to posted or ordnance regulations and restrictions are expressed in the same units as used in the regulation. The unit is explicitly included with the property in the data.
 
-#### Opening hours and validity periods
+### Opening hours and validity periods
 
 Opening hours and the time frame during which time dependent properties are applicable are indicated following the [OSM Opening Hours specification](https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification).
 
 <!-- This is not yet true 
-#### Extensions
+### Extensions
 
 Overture allows for add hoc extensions beyond what is described in the schema. All extensions are prefixed with `ext_`. Extensions can be provided at the theme level, the type level, or the property level.
 -->
 
-## A word about data formats
+The next several pages dig deeper into schema concepts that are shared across themes and specific to features types within each theme. 
 
-We build the Overture schema using JSON and GeoJSON. In our reference documentation, we express our properties using JSON and YAML. However, we distribute our data as [GeoParquet](https://geoparquet.org/), a column-oriented format that is ideally suited for large geospatial datasets. This documentation includes many examples of how to work with data stored in GeoParquet files.
