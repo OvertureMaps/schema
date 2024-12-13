@@ -1,0 +1,34 @@
+name: Change Type label verification
+
+on:
+  pull_request:
+    types: [opened, edited, labeled, unlabeled, synchronize]
+
+jobs:
+  check-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require exactly one change type label
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const allChangeTypeLabels = new Set([
+              'change type - cosmetic 🌹',
+              'change type - documentation - docs team 📝',
+              'change type - documentation - member 📝',
+              'change type - major 🚨',
+              'change type - minor 🤏',
+            ]);
+            const prLabels = context.payload.pull_request.labels.map(label => label.name);
+            const appliedChangeTypeLabels = prLabels.filter(prLabel => allChangeTypeLabels.has(prLabel));
+            if (appliedChangeTypeLabels.length !== 1) {
+              const baseMessage = `The PR must have EXACTLY one of the following CHANGE TYPE labels: ${Array.from(allChangeTypeLabels).sort().join(', ')}. `
+              const n = appliedChangeTypeLabels.length; 
+              let contextualMessage;
+              if (n === 0) {
+                contextualMessage = 'It currently has no change type label. Please ➕ add one label. 🙏'
+              } else {
+                contextualMessage = `It currently has ${n} change type labels (${JSON.stringify(appliedChangeTypeLabels)}). 🙏 Please ❌ remove ${n-1} label(s).`
+              }
+              core.setFailed(baseMessage + contextualMessage);
+            }
