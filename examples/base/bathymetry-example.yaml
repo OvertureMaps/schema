@@ -7,7 +7,7 @@ geometry:
 properties:
   theme: base
   type: bathymetry
-  depth: -2500
+  depth: 2500
   cartography:
     min_zoom: 0
     max_zoom: 23
