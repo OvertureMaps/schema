@@ -41,12 +41,6 @@ Connectors have no properties apart from geometry and standard Overture
 feature properties. All other aspects of the transportation theme are
 modeled on segments.
 
-<!--
- The statement that connectors have no other properties is technically
- false since as of 2023-06-15, they have a `level` property which should
- probably be removed: https://github.com/OvertureMaps/schema-wg/issues/138
--->
-
 ## Segments
 
 The [segment](/schema/reference/transportation/segment) feature type carries `LineString` geometry which describes the physical shape of a section of the transportation network. A segment may represent an entity with a
@@ -195,18 +189,8 @@ back toward the start of the segment.
 
 </div>
 
-### Directionality
 
-<!-- TODO: Update this section to align with:
-
-          https://github.com/OvertureMaps/schema-wg/issues/134
--->
-
-
-🚧 We are developing a segment-level directionality concept similar to [lane directionality](/schema/concepts/by-theme/transportation/roads#lane-directionality) to indicate what travel headings are allowed or prohibited along the segment. This effort is
-ongoing, so please check back soon.
-
-### Sub-types
+### Subtypes
 
 Segment features have a `subtype` property whose value gives more
 specific information about the segment's role within the transportation
@@ -297,10 +281,10 @@ TODO: Once we have some usable comparative metrics for ID stability, we should
       add a sub-heading under segmentation, with a table of the data.
 --->
 
-### Overture ID stability
+### ID stability
 
 Overture pursues shape stability to improve the ability to assess whether two segments from different points in time (or from different upstream data
-sources) represent the same real world entity. Overture's success at this assessment directly feeds into the stability and precision of [Overture IDs](https://docs.overturemaps.org/gers) assigned to segments. In turn, higher Overture ID stability and precision makes transportation theme data more useful for conflation.
+sources) represent the same real world entity. Overture's success at this assessment directly feeds into the stability and precision of [GERS IDs](https://docs.overturemaps.org/gers) assigned to segments. In turn, higher GERS ID stability and precision makes transportation theme data more useful for conflation.
 
 ### Interior connectors
 
