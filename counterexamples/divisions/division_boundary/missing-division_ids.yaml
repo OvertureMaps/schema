@@ -11,4 +11,4 @@ properties:
   class: land
   subtype: macrocounty
   ext_expected_errors:
-    - "missing properties: 'divisions'"
+    - "missing property 'division_ids'"

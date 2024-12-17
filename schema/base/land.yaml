@@ -29,6 +29,7 @@ properties:
         default: [land]
         type: string
         enum:
+          - crater
           - desert
           - forest
           - glacier
@@ -64,9 +65,11 @@ properties:
           - islet
           - land
           - meadow
+          - meteor_crater
           - mountain_range
           - peak
           - peninsula
+          - plateau
           - reef
           - ridge
           - rock
@@ -82,6 +85,7 @@ properties:
           - tree_row
           - tundra
           - valley
+          - volcanic_caldera_rim
           - volcano
           - wetland
           - wood

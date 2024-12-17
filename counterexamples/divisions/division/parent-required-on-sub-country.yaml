@@ -21,4 +21,4 @@ properties:
         subtype: region
         name: A sub-country division that lacks a parent ID
   ext_expected_errors:
-    - "missing properties: 'parent_division_id'"
+    - "missing property 'parent_division_id'"

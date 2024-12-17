@@ -16,8 +16,6 @@ properties:
   subclass: link
   subclass_rules:
     - value: link
-  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
-  connector_ids: [fooConnector, barConnector]
   connectors:
     - connector_id: fooConnector
       at: 0
@@ -25,7 +23,7 @@ properties:
       at: 1
   names:
     primary: Common Road Name
-  # no access nor lanes information -> means by default road is accessible in both directions with at least one lane in each direction
+  # no access information -> means by default road is accessible in both directions
   road_surface:
     - value: gravel
   road_flags:

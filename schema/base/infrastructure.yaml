@@ -51,6 +51,7 @@ properties:
           - airport
           - airport_gate
           - airstrip
+          - apron
           - aqueduct
           - atm
           - barrier
@@ -97,10 +98,13 @@ properties:
           - entrance
           - fence
           - ferry_terminal
+          - fountain
           - full-height_turnstile
+          - gasometer
           - gate
           - generator
           - gondola
+          - goods
           - guard_rail
           - hampshire_gate
           - handrail
@@ -113,12 +117,15 @@ properties:
           - information
           - insulator
           - international_airport
+          - j-bar
           - jersey_barrier
           - kerb
           - kissing_gate
+          - launchpad
           - lift_gate
           - lighting
           - lightning_protection
+          - magic_carpet
           - manhole
           - military_airport
           - minaret
@@ -126,6 +133,7 @@ properties:
           - mixed_lift
           - mobile_phone_tower
           - monitoring
+          - motorcycle_parking
           - movable
           - municipal_airport
           - observation
@@ -138,6 +146,7 @@ properties:
           - plant
           - planter
           - platform
+          - platter
           - portal
           - post_box
           - power_line
@@ -150,7 +159,9 @@ properties:
           - railway_station
           - recycling
           - regional_airport
+          - reservoir_covered
           - retaining_wall
+          - rope_tow
           - runway
           - sally_port
           - seaplane_airport
@@ -159,12 +170,15 @@ properties:
           - siren
           - stile
           - stop_position
+          - stopway
           - storage_tank
           - sub_station
           - substation
+          - subway_station
           - swing_gate
           - switch
           - t-bar
+          - taxilane
           - taxiway
           - terminal
           - toilets
@@ -181,4 +195,6 @@ properties:
           - watchtower
           - water_tower
           - weir
+          - zip_line
+      height: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/height }
       surface: { "$ref": ./defs.yaml#/$defs/propertyDefinitions/surface }

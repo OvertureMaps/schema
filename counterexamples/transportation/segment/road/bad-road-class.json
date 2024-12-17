@@ -7,7 +7,7 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "[I#/properties/class] [S#/$defs/propertyDefinitions/roadClass/enum] value must be one of"
+      "[S#/$defs/propertyDefinitions/roadClass/enum]: value must be one of"
     ],
     "theme": "transportation",
     "type": "segment",

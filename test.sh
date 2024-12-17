@@ -123,7 +123,7 @@ function verify() {
     jv "${jv_args[@]}" >/dev/null 2>/dev/null
     ;;
   simple)
-    jv "${jv_args[@]}"
+    jv --output alt "${jv_args[@]}"
     ;;
   *)
     jv --output "$mode" "${jv_args[@]}"
@@ -143,7 +143,7 @@ function expected_errors() {
 
 function contains() {
   local haystack="$1"
-  local needle="$1"
+  local needle="$2"
   grep -qF "$needle" <<<"$haystack"
 }
 

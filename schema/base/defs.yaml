@@ -4,13 +4,22 @@ title: Base layer properties
 description: Common schema definitions the base theme (primarily from OSM)
 "$defs":
   propertyDefinitions:
-    sourceTags:
-      description: Any attributes/tags from the original source data that should be passed through.
-      type: object
     elevation:
       description: Elevation above sea level (in meters) of the feature.
       type: integer
       maximum: 9000
+    depth:
+      description: Depth below surface level (in meters) of the feature.
+      type: integer
+      maximum: 0
+    height:
+      description: >-
+        Height of the feature in meters.
+      type: number
+      exclusiveMinimum: 0
+    sourceTags:
+      description: Any attributes/tags from the original source data that should be passed through.
+      type: object
     surface:
       description: Surface material, mostly from the OSM tag, with some normalization.
       type: string

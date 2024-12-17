@@ -1,0 +1,17 @@
+---
+id: "overture:bathymetry:counterexample:bad-depth"
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[-73.1902319,41.6678018],[-73.1896302,41.667817],[-73.1890448,41.6667723],[-73.1899188,41.6666994],[-73.1902319,41.6678018]]]
+properties:
+  theme: base
+  type: bathymetry
+  version: 0
+  depth: 1
+  sources:
+    - record_id: x123
+      property: ""
+      dataset: some source
+  ext_expected_errors:
+    - "depth/maximum]: maximum: got 1, want 0"

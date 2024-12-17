@@ -62,10 +62,29 @@ properties:     # JSON Schema: Top-level object properties.
           and the municipality. In other countries there might be only one.
           Other countries could have three or more. The array is ordered
           with the highest levels first.
+
+          Note: when a level is not known - most likely because the data provider
+          has not supplied it and we have not derived it from another source,
+          the array element container must be present, but the "value" field
+          should be omitted
         type: array
         items: { "$ref": "#/$defs/propertyContainers/addressLevelContainer" }
         minItems: 1
         maxItems: 5
+      postal_city:
+        description: >-
+          In some countries or regions, a mailing address may need to specify a
+          different city name than the city that actually contains the address
+          coordinates. This optional field can be used to specify the alternate
+          city name to use.
+
+          Example from US National Address Database:
+          716 East County Road, Winchester, Indiana has "Ridgeville" as its postal city
+
+          Another example in Slovenia:
+          Tomaj 71, 6221 Dutovlje, Slovenia
+        type: string
+        pattern: ^(\S.*)?\S$
 "$defs":
   propertyContainers:
     addressLevelContainer:
@@ -76,7 +95,6 @@ properties:     # JSON Schema: Top-level object properties.
         levels with per-country rules indicating which parts of a country's
         address goes to which numbered level.
       type: object
-      required: ["value"]
       properties:
         value:
           type: string

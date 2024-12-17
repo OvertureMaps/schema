@@ -19,4 +19,4 @@ properties:
   norms:
     driving_side: left
   ext_expected_errors:
-    - "[I#/geometry/coordinates/0] [S#/properties/coordinates/items/type] expected number, but got string"
+    - "properties/coordinates/items/type]: got string, want number"

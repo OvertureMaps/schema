@@ -14,9 +14,6 @@ import ExampleAccessRestrictionAxleLimit from '!!raw-loader!@site/docs/_examples
 import ExampleSpeedLimitsSimple from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-01-simple.yaml';
 import ExampleSpeedLimitsDirectional from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-02-directional.yaml';
 import ExampleSpeedLimitsVariableMax from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-03-variable-max.yaml';
-import ExampleLanesResolutionConnector from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-resolution-connector.yaml';
-import ExampleLanesResolutionSegment01 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-resolution-segment-01.yaml';
-import ExampleLanesResolutionSegment02 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/lanes-resolution-segment-02.yaml';
 import ExampleTurnRestriction1Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-source.yaml';
 import ExampleTurnRestriction1Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-target.yaml';
 import ExampleTurnRestriction1Exit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-exit.yaml';
@@ -39,10 +36,9 @@ in many cases, approximates the physical centerline of the section of
 road being modeled. Road segments support modeling the road network at a range of
 granularities. For example, a single road segment can represent:
 
-- bidirectional street including all of its lanes and sidewalks
+- bidirectional street including all of its sidewalks
 - sidewalk by itself
 - one-way street or one direction of a dual carriageway
-- single lane or single section of a multi-lane highway
 - dedicated cycleway
 - hiking path
 
@@ -139,8 +135,7 @@ resolve.)
 
 The implied access restrictions may be modified for the road segment as
 a whole by providing an explicit value for the property
-`access_restrictions`. (Access restrictions may also be specified
-at the level of individual [lanes](#lanes), as explained elsewhere.)
+`access_restrictions`.
 
 It is technically possible to specify a blanket access grant or refusal
 of access applying to everyone and everything; but where, as is typical,
@@ -359,9 +354,7 @@ limits.
 
 The implied speed limits may be configured for the whole road segment by
 providing an explicit value for the property
-`speed_limits`. Note: granular speed limits can also be
-specified at the level of individual [lanes](#lanes), as explained
-elsewhere.
+`speed_limits`.
 
 As with access restrictions and turn restrictions, speed limits can be specified using [rules](/schema/concepts/scoping-rules#rules-and-rule-based-properties).
 
@@ -384,5 +377,3 @@ As with access restrictions and turn restrictions, speed limits can be specified
 
   </TabItem>
 </Tabs>
-
-

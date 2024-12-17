@@ -13,7 +13,7 @@ properties:
   division_ids: ["example:division:country:left", "example:division:country:right", "example:division:country:right", 123]
   is_disputed: "true"
   ext_expected_errors:
-    - maximum 2 items required, but found 4 items
-    - items at index 2 and 3 are equal
-    - "[I#/properties/divisions/0/division_id] [S#/$defs/propertyDefinitions/id/pattern] does not match pattern"
-    - expected boolean, but got string
+    - "maxItems: got 4, want 2"
+    - "items at 1 and 2 are equal"
+    - "propertyDefinitions/id/type]: got number, want string"
+    - got string, want boolean

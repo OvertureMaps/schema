@@ -22,5 +22,5 @@ properties:
         name: A division with an invalid ISO 3166-2 primary subdivision code ('region')
   parent_division_id: counterexample:division:some-parent-division
   ext_expected_errors:
-    - length must be >= 4, but got 3
-    - does not match pattern
+    - "minLength: got 3, want 4"
+    - "'foo' does not match pattern"

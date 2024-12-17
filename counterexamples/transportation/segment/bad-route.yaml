@@ -6,15 +6,13 @@ geometry:
   coordinates: [[0, 0], [1, 1]]
 properties:
   ext_expected_errors:
-    - "[I#/properties/routes/0/name] [S#/$defs/propertyDefinitions/routes/items/properties/name/minLength] length must be >= 1"
-    - "[I#/properties/routes/0/name] [S#/$defs/propertyDefinitions/routes/items/properties/name/pattern] does not match pattern"
+    - "routes/items/properties/name/minLength]: minLength: got 0, want 1"
+    - "routes/items/properties/name/pattern]: '' does not match pattern"
   theme: transportation
   type: segment
   version: 1
   subtype: road
   class: secondary
-  # `connector_ids` is deprecated in favor of `connectors`, planned to be removed for the October release
-  connector_ids: [fooConnector, barConnector]
   connectors:
     - connector_id: fooConnector
       at: 0
