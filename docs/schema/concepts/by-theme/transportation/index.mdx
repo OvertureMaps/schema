@@ -1,27 +1,81 @@
 ---
-title: Transportation
+title: Transportation schema concepts
 ---
+:::tip
+For step-by-step examples of accessing and working with our transportation data, please see our [Transportation Data Guide](https://docs.overturemaps.org/guides/transportation/). 
+:::
+
 ## Overview
-The Overture transportation theme is the collection of features and properties that describe the infrastructure and conventions of how people and objects travel around the world. Transportation data includes highways, footways, cycleways, railways, ferry routes, and public transportation.
+The Overture transportation theme describes the infrastructure and conventions of how people and objects travel around the world. The schema defines a hierarchy of structures that attempt to: 1. make it easier to manage this complex dataset and 2. reflect the operational reality of transportation networks. 
 
-## Feature types
-The transportation theme has two feature types.
-- `segment` is a feature type with LineString geometry that represents the center-line of a path that a person or object may travel. Segment properties describe both the physical attributes (e.g. road surface and width) and non-physical attributes (e.g. access restriction rules) of that path
-- `connector` is a feature type with Point geometry that defines the topology of the transportation network by representing the physical connection between two or more segments. Apart from their Point geometry and the core properties required for all Overture features, connectors do not have any other properties
+The Overture transportation schema aims to do the following:
+- capture the hierarchy of features it proposes
+- envision inclusion of other datasets such as places, buildings, and divisions
+- use GeoJSON features as a base
+- model every feature as a spatial object with a well-defined geometry
+- model topology
+- model shared properties that describe the behavior of other properties: e.g. a value constrained by its location along a segment, a value contrained by both its location along a segment and certain hours, transportation modes or direction 
+- model relationships as properties belonging to source segment
 
-## Theme concepts
-- **[Roads:](/schema/concepts/by-theme/transportation/roads)** the transportation theme schema models any kind of road, street or
-path, including dedicated walking and cycling paths, as `road` segments Roads are currently the most developed part of the transportation schema. 
-- **[Scoped and rule-based properties:](/schema/concepts/scoping-rules)** the transportation theme schema allows property values to be specified for granular scopes at the sub-feature level. For example:
+## Feature types and subtypes
+
+The Overture transportation schema defines two feature types: 
+
+- The `segment` type has a LineString geometry that represents the center-line of a path that a person or object may travel. Segment properties describe both the physical proprerties (e.g. road surface and width) and non-physical properties (e.g. access restriction rules) of that path. 
+- The `connector` type has a Point geometry that defines the topology of the transportation network by representing the physical connection between two or more segments. Connectors do not have properties beyond geometry and the common properties required for all Overture features.
+
+The `segment` feature type is further divided into three subtypes: `road`, `rail`, and `water`. Of these, the `road` subtype is the most developed. [Here](roads) we describe in detail how we model roads in the Overture schema. 
+
+
+## Key concepts
+
+### Connectors
+To better support routing use cases, we added to the `segment` feature type a property called `connectors`: an array of IDs with pre-computed linear reference values that explicitly link segments and connector features via coordinates. The `connectors` property contains a list of connector features to which a segment feature is physically linked **and** the relative location of those connector features along the segment. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments that share the same connector. 
+
+Here's an example of how the connectors property is modeled in the schema:
+
+```
+id: overture:transportation:segment:123
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [0.03, 0], [0.10, 0]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: secondary
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 0.3
+    - connector_id: bazConnector
+      at: 1
+  road_surface:
+    - value: paved
+```
+
+### Destinations
+The destination property in the `segment` feature type supports routing use cases. It describes the transitions from one segment to another on the way to a specified location. In turn-by-turn routing applications, this is what is known as “follow signs for” &mdash; the human-readable directions and signposts along a road, highway, or interstate that get us from point A to point Z, by way of any number of paths in between. We designed the `destinations` property with a flexible schema that will allow us to capture and model navigation data from many different sources.
+
+### Linear referencing
+The `segment` feature type uses linear referencing to describe the properties of specific sections of a road along a road segment. To avoid splitting road segments at any and every property change, we added linear referencing, which defines how some properties apply to portions of a segment can change along a segment that is generally understood to be the same 'road'. Segment splits are then reserved for more significant intersections so that we don't have to version the entire road any time any piece of the road changes. Other than some expected challenges learning how Linear Referencing worked, we noticed that the main difficulty really arises is when people want to convert the transportation data into a routing graph. Many routing engines want the data to be split at every 'decision point'  where each decision is what amounts to a connector between segments the routing engine would consider routing on (e.g. vehicle routing would eliminate sidewalks). However that decision of what segments would be considered for routing someone varies significantly by application, even within similar 'types' of routing, so we could not identify a common subset of splitting rules that would meet all or even most of the various use cases of the members, much less the community at large.
+
+### [Scoped and rule-based properties](/schema/concepts/scoping-rules)
+The schema allows the values of properties to be specified at the sub-feature level. For example:
   - a speed limit on a road segment might be scoped to apply only to part of the road geometry using _geometric scoping_
   - the directionality of a segment, controlling the direction or directions in which traffic can flow along the segment geometry, may be specified to change at different times of day using _temporal scoping_.
   - the categories of people and vehicles who are allowed to travel on a segment can be controlled using _subjective scoping_
   - a real world property that varies under changing environmental conditions can be modeled using _environmental scoping_
-- **[Shape and connectivity:](/schema/concepts/by-theme/transportation/shape-connectivity)** the transportation theme schema captures the shape
-and connectivity of the transportation network using `segment` and `connector` features. The schema design allows the segmentation process to promote shape stability and ultimately feature ID stability 
-- **[Travel modes:](/schema/concepts/by-theme/transportation/travel-modes)** the transportation theme supports a fuzzy concept called
-travel mode which can be used as a way of controlling scoped
-and rule-based properties 
+
+### [Shape and connectivity](/schema/concepts/by-theme/transportation/shape-connectivity)
+The schema captures the shape and connectivity of the transportation network using `segment` and `connector` features. The schema design allows the segmentation process to promote shape stability and ultimately [GERS ID](https://docs.overturemaps.org/gers/) stability.
+
+
+### [Travel modes](/schema/concepts/by-theme/transportation/travel-modes)
+The transportation theme supports a fuzzy concept called travel mode which can be used as a way of controlling scoped and rule-based properties.
 
 
 ## Schema reference
