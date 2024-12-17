@@ -11,7 +11,7 @@ description: Common schema definitions the base theme (primarily from OSM)
     depth:
       description: Depth below surface level (in meters) of the feature.
       type: integer
-      maximum: 0
+      minimum: 0
     height:
       description: >-
         Height of the feature in meters.

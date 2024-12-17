@@ -8,10 +8,10 @@ properties:
   theme: base
   type: bathymetry
   version: 0
-  depth: 1
+  depth: -1
   sources:
     - record_id: x123
       property: ""
       dataset: some source
   ext_expected_errors:
-    - "depth/maximum]: maximum: got 1, want 0"
+    - "depth/minimum]: minimum: got -1, want 0"
