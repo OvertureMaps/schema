@@ -1,5 +1,5 @@
 ---
-title: Base
+title: Base schema concepts
 ---
 
 import Tabs from '@theme/Tabs';
@@ -14,7 +14,7 @@ import OSMtoOvertureWater from '!!raw-loader!@site/src/queries/partials/osm_conv
 
 
 ## Overview
-The Overture base theme includes additional features desired for rendering a complete basemap that are not yet associated with the global entity reference system (GERS), nor have they been through a rigorous schema definition process. Instead, we assign just a subtype and class to the feature and pass relevant attributes through in the `source_tags` attribute. Most of the features in the `base` theme come from OpenStreetMap via the [Daylight Map Distribution](https://daylightmap.org/).
+The Overture base theme includes features desired for rendering a complete basemap: bathymetry, infrastructure, land, land cover, land use, and water. that are not yet associated with the Global Entity Reference System (GERS), nor have they been through a rigorous schema definition process. We assign a subtype and class to each feature and pass relevant properties through in the `source_tags` property. Most of the features in the `base` theme come from OpenStreetMap via the [Daylight Map Distribution](https://daylightmap.org/).
 
 ## Feature types
 The base theme has five feature types.

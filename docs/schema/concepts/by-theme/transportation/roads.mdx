@@ -27,7 +27,7 @@ import ExampleTurnRestriction2Connector1 from '!!raw-loader!@site/docs/_examples
 import ExampleTurnRestriction2Connector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector2.yaml';
 
 In the Overture transportation theme, a road is any kind of road,
-street or path, including a dedicated path for walking or cycling, but excluding a railway. Road segments comprise the majority of ground-based transportation segments. Roads are modeled using [segment](/schema/reference/transportation/segment) features with the `subtype` property value set to the value `road`.
+street, or path, including a dedicated paths for walking or cycling. (Railways and waterways are separate subtypes in the transportation schema.) Road segments comprise the majority of ground-based transportation segments. Roads are modeled using [segment](/schema/reference/transportation/segment) features with the `subtype` property value set to the value `road`.
 
 ## Geometry and granularity
 
@@ -42,9 +42,8 @@ granularities. For example, a single road segment can represent:
 - dedicated cycleway
 - hiking path
 
-## Basic properties
 
-### Road class
+## Class
 
 The `class` property of a road specifies its general purpose of use
 and its relative importance within the transportation network. The
@@ -60,25 +59,20 @@ from a road segment, the default value `unknown` is assumed. The unknown
 road class is meant to be a temporary value until a more specific class
 is known.
 
-<!--
- TODO: What's the difference between "unknown" and "unclassified"?
-         https://github.com/OvertureMaps/schema-wg/issues/152
--->
-
-Like many aspects of Overture transportation schema,
-the `class` tag is heavily inspired by OpenStreetMap. In this
+Like many aspects of Overture transportation schema, `class` is heavily inspired by OpenStreetMap. In this
 case, it is similar to, but not the same as, OSM's `highway=*` tag.
 
-### Surface
 
-The `road_surface` property of a road indicates its physical surface. If
-omitted, a reasonable default value should be assumed based on the
-`class`.
+## Subclass
 
-Like many road segment properties, the `road_surface` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently, the effective road surface may vary
-along different sub-ranges of a road segment's geometry.
+The subclass property refines the descriptions of segments by:
 
-### Flags
+- clearly specifying the usage of a length of road, and using linear referencing instead of further segmentation to pinpoint a change in how the road is used
+- properly classifying detailed information from OpenStreetMap
+
+Subclasses require non-overlapping geometries, which will make it easier for routing engines to consume our road data and generate turn-by-turn directions. The class and subclass structures allow us to capture more information about roads from our data sources. For example, we’ve been able to move more than 30 million “unknown” road segments from OSM into subclasses, laying the groundwork for richer and more detailed map displays with Overture data.
+
+## Flags
 
 The `road_flags` property of a segment is a set of named flag values
 indicating the presence or absence of simple physical characteristics.
@@ -89,6 +83,43 @@ physically under construction.
 
 Like many road segment properties, the `road_flags` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing). Consequently, the applicable road flags may vary along different sub-ranges of a road segment's geometry.
 
+
+**Here's how classes, subclasses, and flags are modeled in the Overture schema:**
+
+```
+class: footway
+subclass_rules:
+  - value: sidewalk
+    between: [0, 0.6]
+  - value: crosswalk
+    between: [0.6, 1.0]
+road_flags:
+  - values: [is_bridge]
+    between: [0.2, 0.3]
+  - values: [is_under_construction]
+    between: [0.3, 0.5]
+
+class: service
+subclass_rules:
+  - value: driveway
+    between: [0, 0.5]
+
+class: primary
+subclass: link
+subclass_rules:
+  - value: link
+```
+
+## Surface
+
+The `road_surface` property of a road indicates its physical surface. If
+omitted, a reasonable default value should be assumed based on the
+`class` and `subclass`.
+
+Like many road segment properties, the `road_surface` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently, the effective road surface may vary
+along different sub-ranges of a road segment's geometry.
+
+
 ## Restrictions
 
 ### Access restrictions
@@ -97,7 +128,7 @@ Access restrictions on a road segment specify who is allowed to use the
 road, and under what circumstances.
 
 Every road segment has an *implied* set of access restrictions defined
-by its [road class](#road-class) and local rules, norms, and customs.
+by its [road class](#class) and local rules, norms, and customs.
 (The Overture transportation schema does not specify these implied
 access restrictions, which are left to the specific application to
 resolve.)
