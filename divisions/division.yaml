@@ -32,6 +32,25 @@ properties:     # JSON Schema: Top-level object properties.
           required: [names, subtype, country, hierarchies, parent_division_id]
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
+      class:
+        type: string
+        enum:
+          - megacity      #A extensive, large human settlement.
+                          #Example: Tokyo, Japan.
+
+          - city          #A relatively large, permanent human settlement.
+                          #Example: Guadalajara, Mexico.
+
+          - town          #A medium-sized human settlement that is smaller than a city,
+                          #but larger than a village.
+                          #Example: Walldürn, Germany.
+
+          - village       #A smaller human settlement that is smaller than a town,
+                          #but larger than a hamlet.
+                          #Example: Wadi El Karm, Lebanon.
+
+          - hamlet        #A small, isolated human settlement in a rural area
+                          #Example: Tjarnabyggð, Iceland.
       local_type:
         description:
           Local name for the subtype property, optionally localized.
@@ -202,5 +221,5 @@ properties:     # JSON Schema: Top-level object properties.
         type: array
         minItems: 1
         uniqueItems: true
-        items: { "$ref": "defs.yaml#/$defs/propertyDefinitions/capitalOfDivisionItem" }
+        items: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/capitalOfDivisionItem" }
       wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }

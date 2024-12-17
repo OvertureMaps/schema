@@ -85,6 +85,7 @@ properties:
           - fairway
           - farmland
           - farmyard
+          - fatbike
           - flowerbed
           - forest
           - garages
@@ -96,6 +97,7 @@ properties:
           - greenfield
           - greenhouse_horticulture
           - highway
+          - hike
           - hospital
           - ice_skate
           - industrial
@@ -114,6 +116,7 @@ properties:
           - natural_monument
           - nature_reserve
           - naval_base
+          - nordic
           - nuclear_explosion_site
           - obstacle_course
           - orchard
