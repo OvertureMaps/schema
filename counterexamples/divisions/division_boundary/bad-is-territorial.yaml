@@ -12,6 +12,7 @@ properties:
   division_ids: ["example:division:country:left", "example:division:country:right"]
   class: land
   is_territorial: no
+  is_land: true
   country: ZZ
   ext_expected_errors:
-    - "is_territorial/const]: value must be true"
+    - "is_territorial/type]: got string, want boolean"

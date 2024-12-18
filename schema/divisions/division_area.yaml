@@ -22,7 +22,7 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
-    required: [names, subtype, class, country, division_id]
+    required: [names, subtype, class, country, division_id, is_land, is_territorial]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
@@ -30,11 +30,9 @@ properties:     # JSON Schema: Top-level object properties.
       - properties:
           is_land:
             const: true
-        required: [is_land]
       - properties:
           is_territorial:
             const: true
-        required: [is_territorial]
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
       class:

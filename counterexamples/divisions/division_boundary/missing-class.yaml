@@ -9,6 +9,8 @@ properties:
   type: division_boundary
   version: 0
   subtype: macroregion
+  is_territorial: true
+  is_land: false
   division_ids: ["example:division:country:left", "example:division:country:right"]
   ext_expected_errors:
     - "missing property 'class'"

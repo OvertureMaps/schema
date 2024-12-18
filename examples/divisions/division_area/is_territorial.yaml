@@ -77,6 +77,7 @@ properties:
   type: division_area
   subtype: country
   is_territorial: true
+  is_land: false
   country: FI
   version: 0
   class: land

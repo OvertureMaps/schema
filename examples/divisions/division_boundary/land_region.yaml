@@ -11,4 +11,5 @@ properties:
   subtype: region
   class: land
   is_land: true
+  is_territorial: false
   division_ids: ["example:division:region:left",  "example:division:region:right"]

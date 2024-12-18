@@ -303,6 +303,7 @@ properties:
   type: division_area
   subtype: country
   is_land: true
+  is_territorial: false
   country: US
   version: 0
   class: land

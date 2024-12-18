@@ -17,18 +17,16 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": https://geojson.org/schema/MultiLineString.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
-    required: [subtype, class, division_ids]
+    required: [subtype, class, division_ids, is_land, is_territorial]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
     oneOf:
       - properties:
           is_land:
             const: true
-        required: [is_land]
       - properties:
           is_territorial:
             const: true
-        required: [is_territorial]
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
       class:
