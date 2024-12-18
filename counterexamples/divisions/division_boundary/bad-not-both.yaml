@@ -1,5 +1,5 @@
 ---
-id: example:division_boundary:disputed_both
+id: example:division_boundary:is_land:country:us
 type: Feature
 geometry:
   type: LineString
@@ -9,11 +9,9 @@ properties:
   type: division_boundary
   version: 1
   subtype: country
-  class: land
   is_land: true
-  is_territorial: false
+  is_territorial: true
+  class: land
   division_ids: ["example:division:country:left", "example:division:country:right"]
-  is_disputed: true
-  perspectives:
-    mode: disputed_by
-    countries: [XX] # Random country disputing the actual boundary
+  ext_expected_errors:
+    - "division_boundary.yaml#/properties/properties/oneOf]: oneOf failed, subschemas 0, 1 matched"

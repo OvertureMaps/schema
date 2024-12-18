@@ -1,5 +1,5 @@
 ---
-id: example:division_area:maritime:country:fi
+id: example:division_area:is_territorial:country:fi
 type: Feature
 geometry:
   type: Polygon
@@ -75,14 +75,12 @@ geometry:
 properties:
   theme: divisions
   type: division_area
-  version: 0
   subtype: country
-  class: maritime
   is_territorial: true
   is_land: false
+  country: FI
+  version: 0
+  class: land
   division_id: example:division:country:fi
   names:
-    primary: Suomi
-    common:
-      en: Finland
-  country: FI
+    primary: Finland

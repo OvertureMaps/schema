@@ -9,6 +9,8 @@ properties:
   type: division_boundary
   version: 0
   class: land
+  is_territorial: false
+  is_land: true
   subtype: macrocounty
   ext_expected_errors:
     - "missing property 'division_ids'"

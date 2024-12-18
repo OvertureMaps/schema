@@ -1,5 +1,5 @@
 ---
-id: example:division_boundary:land
+id: example:division_boundary:is_land:country:us
 type: Feature
 geometry:
   type: LineString
@@ -8,8 +8,8 @@ properties:
   theme: divisions
   type: division_boundary
   version: 1
-  subtype: region
-  class: land
+  subtype: country
   is_land: true
   is_territorial: false
-  division_ids: ["example:division:region:left",  "example:division:region:right"]
+  class: land
+  division_ids: ["example:division:country:left", "example:division:country:right"]
