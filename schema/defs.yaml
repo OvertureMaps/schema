@@ -372,6 +372,7 @@ description: Common schema definitions shared by all themes
               type: integer
               default: 0
     spatialIndexingContainer:
+      title: spatial indexing
       description: Various spatial indexing systems
       properties:
         bbox:
@@ -380,12 +381,20 @@ description: Common schema definitions shared by all themes
           properties:
             xmin:
               type: number
+              minimum: -180
+              maximum: 180
             xmax:
               type: number
+              minimum: -180
+              maximum: 180
             ymin:
               type: number
+              minimum: -90
+              maximum: 90
             ymax:
               type: number
+              minimum: -90
+              maximum: 90
         h3:
           title: H3 Index
           description: h3 hexagonal indexing system
