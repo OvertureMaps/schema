@@ -32,3 +32,4 @@ properties:
   - property: /properties/height
     dataset:  metaLidarExtractions,
     confidence: 0.95
+  h3: 08b2aa845a199fff

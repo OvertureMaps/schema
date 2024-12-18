@@ -371,3 +371,25 @@ description: Common schema definitions shared by all themes
                 of features with a higher number.
               type: integer
               default: 0
+    spatialIndexingContainer:
+      description: Various spatial indexing systems
+      properties:
+        bbox:
+          title: Bounding box that fully contains the feature.
+          type: object
+          properties:
+            xmin:
+              type: number
+            xmax:
+              type: number
+            ymin:
+              type: number
+            ymax:
+              type: number
+        h3:
+          title: H3 Index
+          description: h3 hexagonal indexing system
+          type: string
+          minLength: 15
+          maxLength: 16
+          pattern: ^[0-9A-Fa-f]{15,16}?$
