@@ -351,7 +351,7 @@ description: Common schema definitions shared by all themes
                 place and is derived from various factors including, but not
                 limited to: population, capital status, place tags, and type.
               type: integer
-              minimum: 0
+              minimum: 1
               maximum: 100
             min_zoom:
               description: >-
