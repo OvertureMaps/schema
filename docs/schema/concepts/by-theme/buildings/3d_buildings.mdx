@@ -5,14 +5,14 @@ title: 3D Parts
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Creating Building Parts from OpenStreetMap Data
+# Creating building parts from OpenStreetMap data
 
 In Overture, 3D building parts must be associated with specific buildings. This relationship is captured in the schema where the **building**'s attribute `has_parts` is True and each of the **building_part** features has a `building_id` pointing to the `id` of the `building` it belongs to.
 
 Although OpenStreetMap (OSM) offers a building relation (relations with `type=building`) to help facilitate this association, it is seldom utilized. We therefore perform 2 steps to associate a building_part to a building:
 
 <Tabs>
-    <TabItem value="1. Explicit Assignment (relations)">
+    <TabItem value="1. Explicit assignment (relations)">
 
     1. Identify OSM relations with `type=building` that contain exactly one member with `role=outline` and at least one member with `role=part`.
     2. Ensure the outline is either a way or a multipolygon relation with valid geometry. This is becomes a **building** type with `has_parts=True`.
@@ -20,7 +20,7 @@ Although OpenStreetMap (OSM) offers a building relation (relations with `type=bu
     4. Identify any other **building_part** features that are spatially contained by the building outline and assign the `building_id` to them, even if they are not listed explicitly in the relation's members list.
 </TabItem>
 
-<TabItem value="2. Implicit Assignment (spatial containment)">
+<TabItem value="2. Implicit assignment (spatial containment)">
 
     1. Ignore any outlines/parts ways/relations that were assigned in the explicit method.
     2. Identify all ways or `type=multipolygon` relations with a `building` tag not equal to "no" as a **building**.
@@ -37,11 +37,19 @@ Finally, we eliminate all parts that are the only part associated with a buildin
 
 ### Considerations
 
-- Geometric Accuracy: Due to discrepancies in how spatial functions interpret containment across different query engines, a small buffer might be applied to the building geometry to ensure parts are appropriately included.
-- Data Integrity: Ensure that all data manipulations preserve the integrity and accuracy of the original OSM data, adhering to both Overture and OSM standards.
+#### Geometric accuracy
+We sometimes apply a small buffer to building geometries to handle discrepancies in how spatial functions interpret containment across different query engines.
 
-### Known Issues
+#### Data integrity
+We adhere to both Overture and OSM standards to ensure that all our data manipulations and transformations preserve the integrity and accuracy of the original OSM data.
 
-- Dual Representation: OSM features with both `building` and `building:part` tags are considered both an outline and a part, resulting in two separate Overture features (a `type=building` and a `type=building_part`) referring to the same OSM object. Although they are the same OSM object, they will be represented in Overture as two separate objects with different IDs.
-- Ambiguous Height Tags: When `type=multipolygon` and `building:part=yes`, it is impossible to determine what the `height` tag refers to. It may refer to the height of the entire building (the highest point of all parts) as stated in the OSM wiki, or in some cases, it refers to the height of the part. It is recommended to either remove the `height` from such features or split the features into a building and a separate part feature and assign the proper height to each. In these cases, Overture will assume the height is the height of the building as stated in the wiki.
-- Tag Ambiguity: When `type=multipolygon` and `building:part=yes`, it is impossible to know whether the characteristic tags refer to the building or the building part. It is recommended to either remove the tags from such features or split the features into a building and a separate part feature and assign the proper tags to each. In these cases, Overture will assume that each tag refers to both.
+### Known issues
+
+#### Dual representation
+We interpret a single OSM feature with both a `building` and a `building:part` tag as two separate features in Overture, each with its own unique GERS ID.
+
+#### Ambiguous height tags
+When `type=multipolygon` and `building:part=yes`, it is impossible to determine what the `height` tag refers to. It may refer to the height of the entire building (the highest point of all parts) as stated in the OSM wiki, or in some cases, it refers to the height of the part. It is recommended to either remove the `height` from such features or split the features into a building and a separate part feature and assign the proper height to each. In these cases, Overture will assume the height is the height of the building as stated in the wiki.
+
+#### Tag ambiguity
+When `type=multipolygon` and `building:part=yes`, it is impossible to know whether the characteristic tags refer to the building or the building part. It is recommended to either remove the tags from such features or split the features into a `building` and a separate `building_part` feature and assign the proper tags to each. In these cases, Overture will assume that each tag refers to both.

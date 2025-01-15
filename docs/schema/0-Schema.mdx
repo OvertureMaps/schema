@@ -14,18 +14,18 @@ import yamlLoad from "@site/src/components/yamlLoad"
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
 ## A unified schema
-Overture is developing one schema to structure all of our datasets. We follow the [JSON schema standard](https://json-schema.org/) in our schema design and we use [GeoJSON](https://geojson.org/) as a model for encoding feature geometries in our datasets. [The schema itself is written in YAML](https://github.com/OvertureMaps/schema/blob/dev/schema/schema.yaml) for readability and ease of use.
+Overture is developing one schema to structure all of our datasets. We follow the [JSON schema standard](https://json-schema.org/) in our schema design and we use [OGC geometries](https://postgis.net/docs/using_postgis_dmanagement.html#OGC_Geometry) to map the features in our datasets. [The schema itself is written in YAML](https://github.com/OvertureMaps/schema/blob/dev/schema/schema.yaml) for readability and ease of use.
 
-### GeoJSON and GeoParquet 
-Although JSON and GeoJSON serve as our mental models for defining the Overture schema, we distribute our datasets in [GeoParquet](https://geoparquet.org/), a column-oriented format optimized for handling large-scale geospatial datasets. 
+### GeoParquet 
+Although JSON serves as our mental models for defining the Overture schema, we distribute our datasets in [GeoParquet](https://geoparquet.org/), a column-oriented format optimized for handling large-scale geospatial datasets. 
 
-There are key differences in how geometries and other feature properties are represented in GeoJSON and GeoParquet. In Overture's schema design, we follow the GeoJSON specification and encode geometry objects as human-readable Point, LineString, Polygon, and MultiPolygon types. A feature in GeoJSON consists of a single geometry object accompanied by a set of properties represented as key-value pairs. 
+There are key differences in how geometries and other feature properties are represented in our schema design and how they are represented in the GeoParquet files we deliver to our users. In Overture's schema design, we encode geometry objects as human-readable Point, LineString, Polygon, and MultiPolygon types. A feature consists of a single geometry object accompanied by a set of properties represented as key-value pairs. 
 
 This same feature can be represented as a single row in a GeoParquet file, with the geometry in one column &mdash; encoded as [Well-Known Binary (WKB)](https://libgeos.org/specifications/wkb/) or [native arrow-encoded coordinate columns](https://geoarrow.org/format.html) format &mdash; and other feature properties filling out additional columns in the file. 
 
 
 ### Top-level properties
-In the Overture schema, all features have a unique `id` called a [GERS ID](https://docs.overturemaps.org/gers/), a `geometry` object that follows the GeoJSON schema specification, and the following top-level properties:
+In the Overture schema, all features have a unique `id` called a [GERS ID](https://docs.overturemaps.org/gers/), a `geometry` object that follows the OGC geometry specification, and the following top-level properties:
 
 <JSONSchemaViewer
   schema={ yamlLoad(MainDefs) }
@@ -37,7 +37,7 @@ In the Overture schema, all features have a unique `id` called a [GERS ID](https
   resolverOptions={ generateResolverOptions( {yamlBasePath: '/', jsonPointer:"#/$defs/propertyContainers/overtureFeaturePropertiesContainer/properties/geometry" })}/> 
   -->
 
- The data types for each property in the Overture schema design do not map exactly to the permitted [data types in Parquet](https://parquet.apache.org/docs/file-format/types/) and [GeoParquet](https://geoparquet.org/releases/v1.1.0/). We release our datasets with the top-level properties encoded in this way:
+ The data types for each property in the Overture schema design do not translate exactly to the permitted [data types in Parquet](https://parquet.apache.org/docs/file-format/types/) and [GeoParquet](https://geoparquet.org/releases/v1.1.0/). We release our datasets with the top-level properties encoded in this way:
 
 <details>
 <summary>**GeoParquet columns for top-level Overture properties**</summary>
@@ -55,8 +55,8 @@ In the Overture schema, all features have a unique `id` called a [GERS ID](https
 ### Other key schema properties
 Most but not all of the feature types in the Overture schema require data for the `names`, `subtype`, and `class` properties. The `names` property is complex enough to have its own schema, which we describe in detail [here](/schema/concepts/names). 
 
-### Properties that may be specific to a feature type
-Some properties in the Overture schema are only populated with data for specific feature types. For example, the `place` feature type must include data for the `categories` property, as required by the schema. The `division_area` and `address` feature types require the `country` property to be populated with ISO 3166-1 alpha-2 country codes. The `segment` feature type in the transportation theme is the only feature type that includes data for a complex set of properties that describe roads. The [schema concepts](concepts) section of this documentation describes these schema complexities in detail.
+### Properties may be specific to a feature type
+Some properties in the Overture schema are only populated with data for specific feature types. For example, the `place` feature type must include data for the `categories` property, as required by the schema. The `division_area` and `address` feature types require the `country` property to be populated with ISO 3166-1 alpha-2 country codes. The `segment` feature type in the transportation theme is the only feature type that includes data for a complex set of properties that describe roads. The [schema concepts](concepts) section of this documentation describes these complexities in detail.
 
 
 ## Schema conventions
@@ -64,21 +64,24 @@ In addition to following the JSON and GeoJSON specifications, the Overture schem
 
 ### Notations
 
-- snake case is used for all property names, string enumeration members, and string-valued enumeration equivalents
-- boolean properties have a prefix verb "is" or "has" in a way that grammatically makes sense
-      e.g.
-  - `has_street_lights=true`
-  - `is_accessible=false`
+#### Snake case
+We use snake case instead of camel case for all property names, string enumeration members, and string-valued enumeration equivalents. We do this because of case sensitivity and transformation issues in different databases and query engines. For example, Athena/Trino downcases everything, so text string splits in camel case property names get lost; in contrast, snake case passes through without issues. 
+
+#### Booleans
+Boolean properties have a prefix verb "is" or "has" in a way that grammatically makes sense, e.g. `has_street_lights=true` and `is_accessible=false`.
 
 ### Measurements
 
+<!-- add to the docs: if we're using both feet and meters in measurements, what's the best way to determine the unit of measure? the schema, presumably, but also the bounding box of the data?
+-->
+
 Measurements of real-world objects and features follow [The International System of Units (SI)](https://www.bipm.org/en/publications/si-brochure): heights, widths, lengths, etc. In the Overture schema, these values are provided as scalar numeric value without units such as feet or meters. Overture does this to maximize consistency and predictability.
 
-Quantities specified in regulatory rules, norms and customs follow local specifications wherever possible. In the schema, these values are provided as two-element arrays where the first element is the scalar numeric value and the second value is the units. Overture uses local units of measurement -- feet in the United States and meters in the EU, for example. The exact unit is confirmed in the specification of the property but is not repeated in the data.
+Quantities specified in regulatory rules, norms and customs follow local specifications wherever possible. In the schema, these values are provided as two-element arrays where the first element is the scalar numeric value and the second value is the units. Overture uses local units of measurement: feet in the United States and meters in the EU, for example. The exact unit is confirmed in the specification of the property but is not repeated in the data.
 
 ### Regulations and restrictions
 
-All quantities that relate to posted or ordnance regulations and restrictions are expressed in the same units as used in the regulation. The unit is explicitly included with the property in the data.
+All quantities that relate to posted or ordinance regulations and restrictions are expressed in the same units as used in the regulation. The unit is explicitly included with the property in the data.
 
 ### Opening hours and validity periods
 
