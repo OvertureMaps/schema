@@ -1,5 +1,6 @@
 ---
 title: Base schema concepts
+description: everything you need to make a real map of the world
 ---
 
 import Tabs from '@theme/Tabs';
@@ -14,21 +15,22 @@ import OSMtoOvertureWater from '!!raw-loader!@site/src/queries/partials/osm_conv
 
 
 ## Overview
-The Overture base theme includes features desired for rendering a complete basemap: bathymetry, infrastructure, land, land cover, land use, and water. that are not yet associated with the Global Entity Reference System (GERS), nor have they been through a rigorous schema definition process. We assign a subtype and class to each feature and pass relevant properties through in the `source_tags` property. Most of the features in the `base` theme come from OpenStreetMap via the [Daylight Map Distribution](https://daylightmap.org/).
+The Overture base theme includes features desired for rendering a complete basemap. We assign a `subtype` and `class` to each feature and pass relevant properties through in the `source_tags` property. Most of the features in the base theme come from OpenStreetMap via the [Daylight Map Distribution](https://daylightmap.org/).
 
 ## Feature types
-The base theme has five feature types.
+The base theme has six feature types.
 
-- `infrastructure` - Human-made structures (bridges, towers, airports, etc.) from OpenStreetMap
-- `land` - Natural land features from OpenStreetMap
-- `land_cover` - Derived from European Space Agency (ESA) satellite imagery
-- `land_use` - Human-determined land use features from OpenStreetMap (residential, education, etc).
-- `water` - Water features (both natural and human-made) from OpenStreetMap. Includes the ocean as derived from the [OSM Coastline Tool](https://osmcode.org/osmcoastline/).
+- `bathymetry`: topographic representation of underwater areas, e.g. an elevation map of the ocean floor 
+- `infrastructure`: human-made structures such as bridges, towers, pipelines, and airports
+- `land`: natural land features
+- `land_cover`: land features derived from satellite imagery, e.g. forest, crop, barren, urban
+- `land_use`: human-determined land use categories, e.g. residential, agriculture, protected
+- `water`: natural and human-made water features, includes ocean data derived from the [OSM Coastline Tool](https://osmcode.org/osmcoastline/)
 
 ## Theme concepts
 
-### OpenStreetMap Tags to Overture Properties
-The **subtype** and **class** of an `infrastructure`, `land`, `land_use`, or `water` type feature in the base theme is determined by the original feature's tags on OpenStreetMap.
+### OpenStreetMap tags to Overture properties
+The subtype and class properties of an `infrastructure`, `land`, `land_use`, and `water` feature types in the base theme is determined by the original feature's tags on OpenStreetMap.
 
 Below is the logic that is currently used to convert from OSM tags into Overture schema.
 

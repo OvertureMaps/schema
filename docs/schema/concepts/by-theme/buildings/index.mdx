@@ -1,5 +1,6 @@
 ---
 title: Buildings schema concepts
+description: buildings! buildings! buildings!
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -13,7 +14,7 @@ import OSMtoOvertureBuildingRoofShape from '!!raw-loader!@site/src/queries/parti
 
 ## Overview
 
-The Overture buildings theme captures the compilation of many building attributes from a variety of open data sources including OpenStreetMap, Esri Community Maps, Microsoft, and Google.
+The Overture buildings theme captures the compilation of many building attributes from a variety of open data sources including OpenStreetMap, Esri Community Maps, Microsoft, Google, and Zenodo.
 
 ## Feature types
 
@@ -26,7 +27,7 @@ The buildings theme has two feature types:
 
 Both building and building_part types may have many **shape** related properties. These are useful for expressing the physical shape characteristics of the buidling including `roof_height`, `roof_shape`, `roof_material`, `facade_material`, etc.
 
-### Properties Derived from OpenStreetMap Tags
+### Properties derived from OpenStreetMap tags
 
 In OpenStreetMap, an object is defined as a building by the presence of `building` tag. Most commonly, the value is simply, `building=yes`. However, in cases where there is a more descriptive value, we capture that information along with other building attributes such as height, roof shape, material, etc. and map them to a finite list of values defined in the building schema.
 
@@ -60,7 +61,7 @@ You can see the SQL query logic that transforms OSM tags into Overture propertie
     </TabItem>
 </Tabs>
 
-### Building Heights from OpenStreetMap
+### Building heights from OpenStreetMap
 
 There are multiple ways to describe the height of an object in OSM. Overture, however, defines height as the number of meters from the ground to the tallest point of the feature. Therefore, we must parse and convert from the OSM string value.
 
@@ -91,7 +92,7 @@ As of June 2024:
 
 </details>
 
-#### Parsing & Conversion
+#### Parsing and conversion
 
 There are a handful of common formatting issues that we generally allow when parsing height values including leading / trailing white space and incorrectly placed decimal points. We apply the following regular expressions to determine the unit of measurement and then perform the appropriate conversion:
 
