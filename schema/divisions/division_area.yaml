@@ -22,10 +22,17 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
-    required: [names, subtype, class, country, division_id]
+    required: [names, subtype, class, country, division_id, is_land, is_territorial]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+    anyOf:
+      - properties:
+          is_land:
+            const: true
+      - properties:
+          is_territorial:
+            const: true
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
       class:
@@ -36,6 +43,19 @@ properties:     # JSON Schema: Top-level object properties.
           - maritime    # The area extends beyond the coastline, in most
                         # cases to the extent of the division's
                         # territorial sea, if it has one.
+      is_land:
+        description:
+          A boolean to indicate whether or not the feature geometry represents the
+          land-clipped, non-maritime boundary. The geometry can be used for map
+          rendering, cartographic display, and similar purposes.
+        type: boolean
+      is_territorial:
+        description:
+          A boolean to indicate whether or not the feature geometry represents
+          Overture's best approximation of this place's maritime boundary. For
+          coastal places, this would tend to include the water area. The geometry
+          can be used for data processing, reverse-geocoding, and similar purposes.
+        type: boolean
       division_id:
         description:
           Division ID of the division this area belongs to.

@@ -73,6 +73,8 @@ properties:
   version: 0
   subtype: region
   class: land
+  is_land: true
+  is_territorial: false
   division_id: example:division:country:it
   names:
     primary: Umbria
