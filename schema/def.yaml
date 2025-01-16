@@ -1,0 +1,382 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Overture Maps Feature Schema Common Definitions
+description: Common schema definitions shared by all themes
+"$defs":
+  propertyDefinitions:
+    id:
+      type: string
+      description: >-
+        A feature ID. This may be an ID associated with the Global
+        Entity Reference System (GERS) if—and-only-if the feature
+        represents an entity that is part of GERS.
+      minLength: 1
+      pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+    level:
+      description: Z-order of the feature where 0 is visual level
+      type: integer
+      default: 0
+    featureType:
+      description: Specific feature type within the theme
+      type: string
+      enum:
+        - address
+        - bathymetry
+        - building
+        - connector
+        - division
+        - division_area
+        - division_boundary
+        - infrastructure
+        - land
+        - land_cover
+        - land_use
+        - building_part
+        - place
+        - segment
+        - water
+    featureUpdateTime:
+      description: Timestamp when the feature was last updated
+      type: string
+      format: date-time
+      pattern: ^([1-9]\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(\.\d{1,3})?(Z|[-+]([01]\d|2[0-3]):[0-5]\d)$
+      "$comment": >-
+        Pattern is used as a fallback because not all JSON schema
+        implementations treat "format" as an assertion, for some it is
+        only an annotation.
+
+        A somewhat more compact approach would be to reference the
+        Overture version where the feature last changed instead of the
+        update time, and expect clients to do a lookup if they really
+        care about the time.
+    featureVersion:
+      description: >-
+        Version number of the feature, incremented in each Overture
+        release where the geometry or attributes of this feature
+        changed.
+      type: integer
+      minimum: 0
+      "$comment": >-
+        It might be reasonable to combine "update_time" and "version"
+        in a single "updateVersion" field which gives the last Overture
+        version number in which the feature changed. The downside to
+        doing this is that the number would cease to be indicative of
+        the "rate of change" of the feature.
+    sources:
+      description: >-
+        The array of source information for the properties of a
+        given feature, with each entry being a source object which
+        lists the property in JSON Pointer notation and the dataset
+        that specific value came from. All features must have a root
+        level source which is the default source if a specific
+        property's source is not specified.
+      type: array
+      items: { "$ref": "#/$defs/propertyDefinitions/property" }
+      minItems: 1
+      uniqueItems: true
+    property:
+      description: >-
+        An object storing the source for a specificed property. The property
+        is a reference to the property element within this Feature, and will be
+        referenced using JSON Pointer Notation RFC 6901
+        (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for
+        that referenced property will be specified in the overture list of
+        approved sources from the Overture Data Working Group that contains
+        the relevant metadata for that dataset including license source organization.
+      type: object
+      required: [property, dataset]
+      unevaluatedProperties: false
+      properties:
+        property:
+          type: string
+        dataset:
+          type: string
+        record_id:
+          type: string
+          description: Refers to the specific record within the dataset that was used.
+        update_time: { "$ref": "#/$defs/propertyDefinitions/featureUpdateTime" }
+        confidence:
+          description: Confidence value from the source dataset, particularly relevant for ML-derived data.
+          type: number
+          minimum: 0
+          maximum: 1
+    theme:
+      description: Top-level Overture theme this feature belongs to
+      type: string
+      enum:
+        - addresses
+        - base
+        - buildings
+        - divisions
+        - places
+        - transportation
+    linearlyReferencedPosition:
+      description: >-
+        Represents a linearly-referenced position between 0% and 100% of
+        the distance along a path such as a road segment or a river
+        center-line segment.
+      type: number
+      minimum: 0
+      maximum: 1
+      "$comment": >-
+        One possible advantage to using percentages over absolute
+        distances is being able to trivially validate that the position
+        lies "on" its segment (i.e. is between zero and one). Of course,
+        this level of validity doesn't mean the number isn't nonsense.
+    linearlyReferencedRange:
+      description:
+        Represents a non-empty range of positions along a path as a pair
+        linearly-referenced positions. For example, the pair [0.25, 0.5]
+        represents the range beginning 25% of the distance from the
+        start of the path and ending 50% oof the distance from the path
+        start.
+      type: array
+      items: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedPosition" }
+      minItems: 2
+      maxItems: 2
+      uniqueItems: true
+      "$comment":
+        Ideally we would enforce sorted order of this pair, but sorting
+        assertions aren't (yet?) supported by JSON schema.
+    side:
+      description:
+        Represents the side on which something appears relative to a
+        facing or heading direction, e.g. the side of a road relative
+        to the road orientation, or relative to the direction of travel
+        of a person or vehicle.
+      type: string
+      enum: [left, right]
+    openingHours:
+      description: >-
+        Time span or time spans during which something is open or
+        active, specified in the OSM opening hours specification:
+          https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification
+      type: string
+      "$comment": >-
+          Validating the opening hours value is going to have to happen outside of JSON Schema.
+
+          Reasons for using the OSM opening hours specification for
+          transportation rule time restrictions are documented in
+          https://github.com/OvertureMaps/schema-wg/pull/10
+    language:
+      description: >-
+        A IETF-BCP47 language tag.
+
+        The validating regular expression for this property follows the pattern
+        described in https://www.rfc-editor.org/rfc/bcp/bcp47.txt with the
+        exception that private use subtags are omitted from the pattern.
+      type: string
+      pattern: "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$"
+      "$comment": >-
+          This pattern recognizes BCP-47 language tags at the lexical or
+          syntactic level. It verifies that candidate tags follow the grammar
+          described in the RFC, but not that they are validly registered tag in
+          IANA's language subtag registry.
+
+          In understanding the regular expression, remark that '(:?' indicates
+          a non-capturing group, and that all the top-level or non-nested
+          groups represent top-level components of `langtag` referenced in the
+          syntax section of https://www.rfc-editor.org/rfc/bcp/bcp47.txt. In
+          particular, the top-level groups in left-to-right order represent:
+
+            1. language
+            2. ["-" script]
+            3. ["-" region]
+            4. *("-" variant)
+            5. *("-" extension)
+    nameRule:
+      type: object
+      required: [variant, value]
+      allOf:
+        - { "$ref": "#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        - { "$ref": "#/$defs/propertyContainers/sideScopeContainer" }
+      properties:
+        variant:
+          type: string
+          enum:
+            - common
+            - official
+            - alternate
+            - short
+        language: { "$ref": "#/$defs/propertyDefinitions/language" }
+        value:
+          type: string
+          minLength: 1
+          pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+    allNames:
+      type: object
+      required: [primary]
+      unevaluatedProperties: false
+      properties:
+        primary:
+          description: The most commonly used name.
+          type: string
+          minLength: 1
+          pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+        common: { "$ref": "#/$defs/propertyDefinitions/commonNames" }
+        rules:
+          description: >-
+            Rules for names that cannot be specified in the simple
+            common names property. These rules can cover other name
+            variants such as official, alternate, and short; and they
+            can optionally include geometric scoping (linear
+            referencing) and side-of-road scoping for complex cases.
+          type: array
+          items: { "$ref": "#/$defs/propertyDefinitions/nameRule" }
+          minItems: 1
+    commonNames:
+      description: The common translations of the name.
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      patternProperties:
+        "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$":
+          description: >-
+            Each entry consists of a key that is an IETF-BCP47 language tag; and
+            a value that reflects the common name in the language represented by
+            the key's language tag.
+
+            The validating regular expression for this property follows the
+            pattern described in https://www.rfc-editor.org/rfc/bcp/bcp47.txt
+            with the exception that private use tags are not supported.
+          "$comment": >-
+            This pattern recognizes BCP-47 language tags at the lexical or
+            syntactic level. It verifies that candidate tags follow the grammar
+            described in the RFC, but not that they are validly registered tag
+            in IANA's language subtag registry.
+
+            In understanding the regular expression, remark that '(:?' indicates
+            a non-capturing group, and that all the top-level or non-nested
+            groups represent top-level components of `langtag` referenced in the
+            syntax section of https://www.rfc-editor.org/rfc/bcp/bcp47.txt. In
+            particular, the top-level groups in left-to-right order represent:
+
+              1. language
+              2. ["-" script]
+              3. ["-" region]
+              4. *("-" variant)
+              5. *("-" extension)
+          type: string
+          minLength: 1
+          pattern: ^(\S.*)?\S$    # Leading and trailing whitespace are not allowed.
+    iso3166_1Alpha2CountryCode:
+      description: ISO 3166-1 alpha-2 country code.
+      type: string
+      minLength: 2
+      maxLength: 2
+      pattern: ^[A-Z]{2}$
+    iso3166_2SubdivisionCode:
+      description: ISO 3166-2 principal subdivision code.
+      type: string
+      minLength: 4
+      maxLength: 6
+      pattern: ^[A-Z]{2}-[A-Z0-9]{1,3}$
+    address:
+      type: object
+      unevaluatedProperties: false
+      properties:
+        freeform:
+          description: >-
+            Free-form address that contains street name, house number
+            and other address info
+          type: string
+        locality:
+          description: >-
+            Name of the city or neighborhood where the address is
+            located
+          type: string
+        postcode:
+          description: Postal code where the address is located
+          type: string
+        region: { "$ref": "#/$defs/propertyDefinitions/iso3166_2SubdivisionCode" }
+        country: { "$ref": "#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+    wikidata:
+      description: A wikidata ID if available, as found on https://www.wikidata.org/.
+      type: string
+      pattern: ^Q\d+
+  propertyContainers:
+    overtureFeaturePropertiesContainer:
+      title: overture properties
+      description: Top-level properties shared by all Overture features
+      type: object
+      required: [ theme, type, version ]
+      patternProperties:
+        ^ext_.*$:
+          description: "Additional top-level properties must be prefixed with `ext_`."
+      properties:
+        theme: { "$ref": "#/$defs/propertyDefinitions/theme" }
+        type: { "$ref": "#/$defs/propertyDefinitions/featureType" }
+        version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }
+        sources: { "$ref": "#/$defs/propertyDefinitions/sources" }
+    namesContainer:
+      title: names
+      description: Properties defining the names of a feature.
+      type: object
+      properties:
+        names:
+          "$ref": "#/$defs/propertyDefinitions/allNames"
+    levelContainer:
+      title: level
+      description: Properties defining feature Z-order, i.e., stacking order
+      type: object
+      properties:
+        level:
+          "$ref": "#/$defs/propertyDefinitions/level"
+    geometricRangeScopeContainer:
+      title: range
+      description: >-
+        Geometric scoping properties defining the range of positions on
+        the segment where something is physically located or where a
+        rule is active.
+      properties:
+        between: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedRange" }
+    sideScopeContainer:
+      title: side
+      description: >-
+        Geometric scoping properties defining the side of a road modeled when
+        moving along the line from beginning to end
+      properties:
+        side: { "$ref": "#/$defs/propertyDefinitions/side" }
+    cartographyContainer:
+      description: Defines cartographic hints for optimal use of Overture features in map-making.
+      properties:
+        cartography:
+          title: cartography
+          type: object
+          properties:
+            prominence:
+              description: >-
+                Represents Overture's view of a place's significance or importance.
+                This value can be used to help drive cartographic display of a
+                place and is derived from various factors including, but not
+                limited to: population, capital status, place tags, and type.
+              type: integer
+              minimum: 1
+              maximum: 100
+            min_zoom:
+              description: >-
+                Recommended minimum tile zoom per the Slippy Maps convention.
+
+                The Slippy Maps zooms are explained in the following references:
+                 - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+                 - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
+              type: integer
+              minimum: 0
+              maximum: 23
+            max_zoom:
+              description: >-
+                Recommended maximum tile zoom per the Slippy Maps convention.
+
+                The Slippy Maps zooms are explained in the following references:
+                 - https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+                 - https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection
+              type: integer
+              minimum: 0
+              maximum: 23
+            sort_key:
+              description: >-
+                An ascending numeric that defines the recommended order features
+                should be drawn in. Features with lower number should be shown on top
+                of features with a higher number.
+              type: integer
+              default: 0
