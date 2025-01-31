@@ -62,6 +62,7 @@ properties:
           - boardwalk
           - bollard
           - border_control
+          - breakwaters
           - bridge
           - bridge_support
           - bump_gate
