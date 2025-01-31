@@ -48,6 +48,22 @@ description: Common schema definitions the base theme (primarily from OSM)
         - unpaved
         - wood
         - woodchips
+    perspectives:
+      description: Political perspectives from which division is viewed.
+      type: object
+      unevaluatedProperties: false
+      required: [mode, countries]
+      properties:
+        mode:
+          description: Whether perspective holder accept or dispute this division.
+          type: string
+          enum: [accepted_by, disputed_by]
+        countries:
+          description: Countries holding the given mode of perspective.
+          type: array
+          items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+          minItems: 1
+          uniqueItems: true
   propertyContainers:
     osmPropertiesContainer:
       title: "OSM Properties"
