@@ -198,6 +198,7 @@ description: Common schema definitions shared by all themes
             - official
             - alternate
             - short
+            - disputed
         language: { "$ref": "#/$defs/propertyDefinitions/language" }
         value:
           type: string
