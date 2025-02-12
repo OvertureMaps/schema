@@ -24,7 +24,6 @@ properties:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/levelContainer
       - "$ref": ./defs.yaml#/$defs/propertyContainers/shapeContainer
-      - "$ref": ../defs.yaml#/$defs/propertyContainers/spatialIndexingContainer
     properties:
       subtype:
         description: >-
