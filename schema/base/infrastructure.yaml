@@ -33,6 +33,7 @@ properties:
           - barrier
           - bridge
           - communication
+          - emergency
           - manhole
           - pedestrian
           - pier
@@ -40,6 +41,7 @@ properties:
           - recreation
           - tower
           - transit
+          - transportation
           - utility
           - waste_management
           - water
@@ -58,6 +60,7 @@ properties:
           - bell_tower
           - bench
           - bicycle_parking
+          - bicycle_rental
           - block
           - boardwalk
           - bollard
@@ -80,6 +83,7 @@ properties:
           - cattle_grid
           - chain
           - chair_lift
+          - charging_station
           - city_wall
           - communication_line
           - communication_pole
@@ -87,6 +91,7 @@ properties:
           - connection
           - cooling
           - covered
+          - crossing
           - cutline
           - cycle_barrier
           - dam
@@ -99,11 +104,13 @@ properties:
           - entrance
           - fence
           - ferry_terminal
+          - fire_hydrant
           - fountain
           - full-height_turnstile
           - gasometer
           - gate
           - generator
+          - give_way
           - gondola
           - goods
           - guard_rail
@@ -128,6 +135,7 @@ properties:
           - lightning_protection
           - magic_carpet
           - manhole
+          - milestone
           - military_airport
           - minaret
           - minor_line
@@ -135,10 +143,12 @@ properties:
           - mobile_phone_tower
           - monitoring
           - motorcycle_parking
+          - motorway_junction
           - movable
           - municipal_airport
           - observation
           - parking
+          - parking_entrance
           - parking_space
           - pedestrian_crossing
           - picnic_table
@@ -170,9 +180,12 @@ properties:
           - silo
           - siren
           - stile
+          - stop
           - stop_position
           - stopway
           - storage_tank
+          - street_cabinet
+          - street_lamp
           - sub_station
           - substation
           - subway_station
@@ -184,6 +197,7 @@ properties:
           - terminal
           - toilets
           - toll_booth
+          - traffic_signals
           - transformer
           - trestle
           - utility_pole
