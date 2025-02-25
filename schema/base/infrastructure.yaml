@@ -186,7 +186,6 @@ properties:
           - storage_tank
           - street_cabinet
           - street_lamp
-          - sub_station
           - substation
           - subway_station
           - swing_gate
