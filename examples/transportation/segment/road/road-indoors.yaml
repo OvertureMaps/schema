@@ -1,0 +1,17 @@
+---
+id: overture:transportation:segment:example:indoors
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: tertiary
+  road_surface:
+    - value: unknown
+  road_flags:
+    - values: [is_indoors]

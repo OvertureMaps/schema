@@ -217,6 +217,7 @@ properties:
         - is_under_construction
         - is_abandoned
         - is_covered
+        - is_indoors
     roadSurface:
       description: Physical surface of the road
       type: string
