@@ -1,5 +1,5 @@
 ---
-id: overture:transportation:segment:example:indoors
+id: overture:transportation:segment:example:indoor
 type: Feature
 geometry:
   type: LineString
@@ -14,4 +14,4 @@ properties:
   road_surface:
     - value: unknown
   road_flags:
-    - values: [is_indoors]
+    - values: [is_indoor]
