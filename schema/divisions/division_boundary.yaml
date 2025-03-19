@@ -17,9 +17,16 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": https://geojson.org/schema/MultiLineString.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
-    required: [subtype, class, division_ids, is_land, is_territorial]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - if:
+          properties:
+            subtype: { enum: [country] }
+        then:
+          required: [subtype, class, division_ids, is_land, is_territorial]
+          not: { required: [country] }
+        else:
+          required: [subtype, class, division_ids, is_land, is_territorial, country]
     oneOf:
       - properties:
           is_land:
@@ -65,6 +72,30 @@ properties:     # JSON Schema: Top-level object properties.
         minItems: 2
         maxItems: 2
         uniqueItems: true
+      country:
+        description: >-
+          ISO 3166-1 alpha-2 country code of the country or country-like
+          entity that both sides of the boundary share.
+
+          This property will be present on boundaries between two regions, counties,
+          or similar entities within the same country.
+
+          This is useful for map creators to quickly filter boundaries
+          or render them differently depending on the country.
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode"
+      region:
+        description: >-
+          ISO 3166-2 principal subdivision code of the subdivision-like
+          entity that both sides of the boundary share.
+          
+          This property will be present on boundaries between two counties, localadmin
+          or similar entities within the same region.
+
+          This is useful for map creators to quickly filter boundaries
+          or render them differently depending on the region.
+        allOf:
+          - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_2SubdivisionCode"
       is_disputed:
         description: >-
           Indicator if there are entities disputing this division boundary.
