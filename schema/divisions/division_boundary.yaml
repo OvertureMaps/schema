@@ -78,10 +78,8 @@ properties:     # JSON Schema: Top-level object properties.
           entity that both sides of the boundary share.
 
           This property will be present on boundaries between two regions, counties,
-          or similar entities within the same country.
-
-          This is useful for map creators to quickly filter boundaries
-          or render them differently depending on the country.
+          or similar entities within the same country, but will not be present on boundaries
+          between two countries or country-like entities.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode"
       region:
@@ -89,11 +87,9 @@ properties:     # JSON Schema: Top-level object properties.
           ISO 3166-2 principal subdivision code of the subdivision-like
           entity that both sides of the boundary share.
           
-          This property will be present on boundaries between two counties, localadmin
-          or similar entities within the same region.
-
-          This is useful for map creators to quickly filter boundaries
-          or render them differently depending on the region.
+          This property will be present on boundaries between two counties, localadmins
+          or similar entities within the same principal subdivision, but will not be
+          present on boundaries between different principal subdivisions or countries.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_2SubdivisionCode"
       is_disputed:
