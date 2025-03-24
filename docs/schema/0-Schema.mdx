@@ -14,7 +14,7 @@ import yamlLoad from "@site/src/components/yamlLoad"
 import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
 
 ## A unified schema
-Overture is developing one schema to structure all of our datasets. We follow the [JSON schema standard](https://json-schema.org/) in our schema design and we use [OGC geometries](https://postgis.net/docs/using_postgis_dmanagement.html#OGC_Geometry) to map the features in our datasets. [The schema itself is written in YAML](https://github.com/OvertureMaps/schema/blob/dev/schema/schema.yaml) for readability and ease of use.
+Overture is developing one schema to structure all of our datasets. We follow the [JSON schema standard](https://json-schema.org/) in our schema design and we use [OGC geometries](https://www.ogc.org/publications/standard/sfa/) to map the features in our datasets. [The schema itself is written in YAML](https://github.com/OvertureMaps/schema/blob/dev/schema/schema.yaml) for readability and ease of use.
 
 ### GeoParquet 
 Although JSON serves as our mental models for defining the Overture schema, we distribute our datasets in [GeoParquet](https://geoparquet.org/), a column-oriented format optimized for handling large-scale geospatial datasets. 
