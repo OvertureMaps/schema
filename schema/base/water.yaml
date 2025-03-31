@@ -44,6 +44,7 @@ properties:
       class:
         description: Further description of the type of water
         default: [water]
+        type: string
         enum:
           - basin
           - bay
