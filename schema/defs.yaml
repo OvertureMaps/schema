@@ -44,29 +44,6 @@ description: Common schema definitions shared by all themes
           type: array
           items: { "$ref": "#/$defs/propertyDefinitions/nameRule" }
           minItems: 1
-    bbox:
-      title: Bounding box that fully contains the feature.
-      type: object
-      description: >-
-        A bounding box object explicitly defining the 2d bounds of the feature.
-        Can be converted to an official GeoJSON bbox array as `[bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax]`
-      properties:
-        xmin:
-          type: number
-          minimum: -180
-          maximum: 180
-        xmax:
-          type: number
-          minimum: -180
-          maximum: 180
-        ymin:
-          type: number
-          minimum: -90
-          maximum: 90
-        ymax:
-          type: number
-          minimum: -90
-          maximum: 90
     commonNames:
       description: The common translations of the name.
       type: object
@@ -404,4 +381,3 @@ description: Common schema definitions shared by all themes
         type: { "$ref": "#/$defs/propertyDefinitions/featureType" }
         version: { "$ref": "#/$defs/propertyDefinitions/featureVersion" }
         sources: { "$ref": "#/$defs/propertyDefinitions/sources" }
-        bbox: { "$ref" : "#/$defs/propertyDefinitions/bbox"}
