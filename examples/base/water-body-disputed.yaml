@@ -12,7 +12,7 @@ properties:
     primary: Gulf of Gerdaus Mercator
     rules:
       - variant: disputed
-        language: en
+        country: US
         value: Gulf of Cartographer's Tears
   source_tags:
     water: ocean
@@ -22,8 +22,4 @@ properties:
       dataset: OpenStreetMap
   is_salt: false
   is_intermittent: false
-  is_disputed: true
-  perspectives:
-    mode: disputed_by
-    countries: [XX] # Random country disputing the actual feature
   version: 0
