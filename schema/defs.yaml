@@ -217,7 +217,9 @@ description: Common schema definitions shared by all themes
             - official
             - alternate
             - short
+            - disputed
         language: { "$ref": "#/$defs/propertyDefinitions/language" }
+        country: { "$ref": "#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
         value:
           type: string
           minLength: 1
