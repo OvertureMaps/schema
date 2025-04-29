@@ -1,0 +1,23 @@
+{
+  "id": "bad-class",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[2, 2], [3, 3]]
+  },
+  "properties": {
+    "ext_expected_errors": [
+      "value must be one of"
+    ],
+    "theme": "transportation",
+    "type": "segment",
+    "version": 20,
+    "subtype": "rail",
+    "class": "primary",
+    "rail_flags": [
+      {
+        "values": ["foo"]
+      }
+    ]
+  }
+}
