@@ -14,23 +14,23 @@ The Overture transportation schema aims to do the following:
 - use GeoJSON features as a base
 - model every feature as a spatial object with a well-defined geometry
 - model topology
-- model shared properties that describe the behavior of other properties: e.g. a value constrained by its location along a segment, a value contrained by both its location along a segment and certain hours, transportation modes or direction 
+- model shared properties that describe the behavior of other properties: e.g. a value constrained by its location along a segment, a value constrained by both its location along a segment and certain hours, transportation modes, or direction 
 - model relationships as properties belonging to source segment
 
 ## Feature types and subtypes
 
 The Overture transportation schema defines two feature types: 
 
-- The `segment` type has a LineString geometry that represents the center-line of a path that a person or object may travel. Segment properties describe both the physical proprerties (e.g. road surface and width) and non-physical properties (e.g. access restriction rules) of that path. 
+- The `segment` type has a LineString geometry that represents the center-line of a path repeatedly traversed by people or objects. Segment properties describe both the physical properties (e.g. road surface and width) and non-physical properties (e.g. access restriction rules) of that path. 
 - The `connector` type has a Point geometry that defines the topology of the transportation network by representing the physical connection between two or more segments. Connectors do not have properties beyond geometry and the common properties required for all Overture features.
 
-The `segment` feature type is further divided into three subtypes: `road`, `rail`, and `water`. Of these, the `road` subtype is the most developed. [Here](roads) we describe in detail how we model roads in the Overture schema. 
+The `segment` feature type is further divided into three subtypes: `road`, `rail`, and `water`. Of these, the `road` subtype is the most developed. [Here](roads) we describe in detail how we model road-specific properties in the Overture schema. A more general overview of segments can be found [here](segments).
 
 
 ## Key concepts
 
 ### Connectors
-To better support routing use cases, we added to the `segment` feature type a property called `connectors`: an array of IDs with pre-computed linear reference values that explicitly link segments and connector features via coordinates. The `connectors` property contains a list of connector features to which a segment feature is physically linked **and** the relative location of those connector features along the segment. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments that share the same connector. 
+To better support routing use cases, we added a property called `connectors` to the `segment` feature type. The `connectors` property is an array of IDs with pre-computed linear reference values that explicitly link segments and connector features via coordinates. The `connectors` property contains a list of connector features to which a segment feature is physically linked **and** the relative location of those connector features along the segment. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments that share the same connector. 
 
 Here's an example of how the connectors property is modeled in the schema:
 
