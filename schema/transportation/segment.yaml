@@ -22,36 +22,34 @@ properties:
       - title: "Common Segment Properties"
         properties:
           # Classes are per-subtype following the addition of rail classes
-          subclass: { "$ref": "#/$defs/propertyDefinitions/subclass" }
           subclass_rules: { "$ref": "#/$defs/propertyContainers/subclassRulesContainer" }
           access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
           level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
           level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
-      - title: "Road Specific Properties"
-        if: { properties: { subtype: { enum: [road] } } }
-        then:
-          required: [class]
-          properties:
-            class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
-            destinations: { "$ref": "#/$defs/propertyDefinitions/destinations" }
-            prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
-            road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
-            road_flags: { "$ref": "#/$defs/propertyContainers/roadFlagsContainer" }
-            speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
-            width_rules: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
-      - title: "Rail Specific Properties"
-        if: { properties: { subtype: { enum: [rail] } } }
-        then:
-          required: [class]
-          properties:
-            class: { "$ref": "#/$defs/propertyDefinitions/railClass" }
-            rail_flags: { "$ref": "#/$defs/propertyContainers/railFlagsContainer" }
-      - title: "Water Specific Properties" # Placeholder for future water properties
-        if: { properties: { subtype: { enum: [water] } } }
-        then:
-          properties: {}
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+    oneOf:
+      - title: "Road-Specific Properties"
+        required: [class]
+        properties:
+          subtype: { const: road }
+          class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
+          destinations: { "$ref": "#/$defs/propertyDefinitions/destinations" }
+          prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
+          road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
+          road_flags: { "$ref": "#/$defs/propertyContainers/roadFlagsContainer" }
+          speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
+          width_rules: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
+          subclass: { "$ref": "#/$defs/propertyDefinitions/subclass" }
+      - title: "Rail-Specific Properties"
+        required: [class]
+        properties:
+          subtype: { const: rail }
+          class: { "$ref": "#/$defs/propertyDefinitions/railClass" }
+          rail_flags: { "$ref": "#/$defs/propertyContainers/railFlagsContainer" }
+      - title: "Water-Specific Properties" # Placeholder for future water properties
+        properties:
+          subtype: { const: water }
     properties:
       subtype:
         description: Broad category of transportation segment.
