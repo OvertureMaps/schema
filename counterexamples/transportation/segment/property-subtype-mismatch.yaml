@@ -12,3 +12,5 @@ properties:
   subtype: rail
   road_flags:
     - values: [is_indoor]
+  ext_expected_errors:
+    - "oneOf failed, none matched"
