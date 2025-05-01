@@ -217,9 +217,23 @@ description: Common schema definitions shared by all themes
             - official
             - alternate
             - short
-            - disputed
         language: { "$ref": "#/$defs/propertyDefinitions/language" }
-        country: { "$ref": "#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+        perspectives:
+          description: Political perspectives from which a named feature is viewed.
+          type: object
+          unevaluatedProperties: false
+          required: [mode, countries]
+          properties:
+            mode:
+              description: Whether the perspective holder accepts or disputes this name.
+              type: string
+              enum: [accepted_by, disputed_by]
+            countries:
+              description: Countries holding the given mode of perspective.
+              type: array
+              items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+              minItems: 1
+              uniqueItems: true
         value:
           type: string
           minLength: 1

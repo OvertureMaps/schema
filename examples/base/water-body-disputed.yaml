@@ -20,9 +20,11 @@ properties:
   names:
     primary: Gulf of Gerdaus Mercator
     rules:
-      - variant: disputed
-        country: US
-        value: Gulf of Cartographer's Tears
+      - variant: official
+      perspectives:
+      - mode: accepted_by
+        countries: [US]
+      value: Gulf of Cartographer's Tears
   source_tags:
     water: ocean
   sources:
