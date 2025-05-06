@@ -78,7 +78,7 @@ Segments support modeling the transportation network at a range of granularities
 
 ## Class
 
-The `class` property of a segment specifies its general purpose of use within its subtype. Unlike many segment properties, a segment's `class` property does not support [geometric scoping](/schema/conceptsscoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently, whenever a linear range of real-world road or rail makes a class transition (for example, between secondary and residential roads), the Overture transportation [segmentation](/schema/concepts/by-theme/transportation/shape-connectivity#segmentation) algorithm will generate a segment split.
+The `class` property of a segment specifies its general purpose of use within its subtype. Unlike many segment properties, a segment's `class` property does not support [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently, whenever a linear range of real-world road or rail makes a class transition (for example, between secondary and residential roads), the Overture transportation [segmentation](/schema/concepts/by-theme/transportation/shape-connectivity#segmentation) algorithm will generate a segment split.
 
 Currently, **only roads and railways have the `class` property**. Within these subtypes, every segment has a class. If the `class` property is missing from a segment's source dataset, the `class` for that segment will be given default value `unknown`, indicating the class is undetermined and may be updated in a later release.
 
