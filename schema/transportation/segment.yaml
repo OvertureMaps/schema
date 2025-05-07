@@ -178,7 +178,7 @@ properties:
         - cycleway
         - bridleway       # Similar to track but has implied access only for horses
         - unknown
-    railClass: # Added railClass definition
+    railClass:
       description: Captures the kind of rail segment.
       type: string
       enum:
