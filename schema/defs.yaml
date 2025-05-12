@@ -231,7 +231,7 @@ description: Common schema definitions shared by all themes
             countries:
               description: Countries holding the given mode of perspective.
               type: array
-              items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+              items: { "$ref": "#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
               minItems: 1
               uniqueItems: true
         value:
