@@ -193,7 +193,7 @@ description: Common schema definitions shared by all themes
         Represents a non-empty range of positions along a path as a pair
         linearly-referenced positions. For example, the pair [0.25, 0.5]
         represents the range beginning 25% of the distance from the
-        start of the path and ending 50% oof the distance from the path
+        start of the path and ending 50% of the distance from the path
         start.
       type: array
       items: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedPosition" }
