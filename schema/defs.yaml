@@ -253,6 +253,8 @@ description: Common schema definitions shared by all themes
         the relevant metadata for that dataset including license source organization.
       type: object
       required: [property, dataset]
+      allOf:
+        - { "$ref": "#/$defs/propertyContainers/geometricRangeScopeContainer" }
       unevaluatedProperties: false
       properties:
         property:
