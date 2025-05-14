@@ -30,7 +30,7 @@ The `segment` feature type is further divided into three subtypes: `road`, `rail
 ## Key concepts
 
 ### Connectors
-To better support routing use cases, we added a property called `connectors` to the `segment` feature type. The `connectors` property is an array of IDs with pre-computed linear reference values that explicitly link segments and connector features via coordinates. The `connectors` property contains a list of connector features to which a segment feature is physically linked **and** the relative location of those connector features along the segment. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments that share the same connector. 
+To better support routing use cases, the `segment` feature type has a property called `connectors`: array of IDs with pre-computed linear reference values that explicitly link segments and connector features via coordinates. The `connectors` property contains a list of connector features to which a segment feature is physically linked **and** the relative location of those connector features along the segment. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments that share the same connector. 
 
 Here's an example of how the connectors property is modeled in the schema:
 
