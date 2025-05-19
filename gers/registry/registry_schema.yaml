@@ -1,0 +1,42 @@
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Global Entity Reference System Registry Schema
+description: >-
+  GERS Registry Schema
+type: object
+unevaluatedProperties: false
+required:
+  - id
+  - first_seen
+  - last_seen
+properties:
+  id:
+    "$ref": ../../schema/defs.yaml#/$defs/propertyDefinitions/id
+  bbox:
+    type: object
+    properties:
+      xmin:
+        type: number
+        description: Minimum longitude of the entity's envolope.
+        minimum: -180
+        maximum: 180
+      xmax:
+        type: number
+        description: Maximum longitude of the entity's envelope.
+        minimum: -180
+        maximum: 180
+      ymin:
+        type: number
+        description: Minimum latitude of the entity's envelope.
+        minimum: -90
+        maximum: 90
+      ymax:
+        type: number
+        description: Maximum latitude of the entity's envelope.
+        minimum: -90
+        maximum: 90
+  first_seen:
+    type: string
+  last_seen:
+    type: string
+  path:
+    type: string

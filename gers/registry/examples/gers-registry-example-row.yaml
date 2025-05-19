@@ -1,0 +1,10 @@
+# GERS REGISTRY EXAMPLE FEATURE
+id: 39b8e722-7c87-44e8-9cde-da3d95aea7e4
+bbox:
+  xmin: -122.34931
+  xmax: -122.34930
+  ymin: 47.62050
+  ymax: 47.62051
+first_seen: '2025-05-23.0'
+last_seen: '2025-05-23.0'
+path: 'theme=buildings/type=building/part-0000.parquet'
