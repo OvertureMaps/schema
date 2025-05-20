@@ -12,6 +12,11 @@ properties:
   id:
     "$ref": ../../schema/defs.yaml#/$defs/propertyDefinitions/id
   bbox:
+    title: Bounding Box
+    desdcription: |
+      The envelope of the entity's spatial extent.
+      These bounds are randomly expanded when a feature has been removed to communicate the
+      general region of the feature, but not the exact envelope.
     type: object
     properties:
       xmin:
@@ -35,8 +40,14 @@ properties:
         minimum: -90
         maximum: 90
   first_seen:
+    title: First Seen
+    description: The Overture release in which the entity was first published.
     type: string
   last_seen:
+    title: Last Seen
+    description: The latest release in which the entity was published.
     type: string
   path:
+    title: Path
+    description: The relative path to the feature representing this entity in the latest Overture release.
     type: string

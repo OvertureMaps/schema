@@ -1,0 +1,11 @@
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: Global Entity Reference System Bridge Files
+description: >-
+  GERS Bridge File Schema
+type: object
+unevaluatedProperties: false
+required:
+  - id
+properties:
+  id:
+    "$ref": ../../schema/defs.yaml#/$defs/propertyDefinitions/id
