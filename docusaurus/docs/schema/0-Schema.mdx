@@ -1,0 +1,83 @@
+---
+title: Overture Schema
+slug: /schema
+
+# This page is available at docs.overturemaps.org/schema
+---
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
+import yamlLoad from "@site/src/components/yamlLoad"
+import EmpireStateBuilding from "!!raw-loader!@site/docs/_examples/buildings/empire-state-building.json";
+import MainDefs from "!!raw-loader!@site/docs/_schema/defs.yaml";
+
+Overture data is structured by three components: the schema, the data model, and the Global Entity Reference System ([GERS](https://docs.overturemaps.org/gers/)). The schema describes the shape of the data and devises the constraints applied to that data. The data model specifies what types of features exist, their geometries, how the features relate to each other, and what kind of properties they have. GERS is a framework for structuring, encoding, and matching Overture data to a shared universal reference.
+
+
+<!-- You can see all three components in this description of one feature, the Empire State Building:
+
+ <CodeBlock language="json">{ EmpireStateBuilding }</CodeBlock> -->
+
+## GeoJSON mental model
+
+ The Overture schema is defined by the [JSON schema](https://json-schema.org/), and [GeoJSON](https://geojson.org/) is used as the canonical geospatial format. GeoJSON provides us with a mental model and language to express data constructions in the schema. The Overture schema supports the following geometry types: Point, LineString, Polygon, MultiPoint, MultiLineString, and MultiPolygon. Together geometric objects and their properties are called features.
+
+## Features represent entities
+
+Overture uses the [simple feature model](https://www.ogc.org/standard/sfa/) specified by the Open Geospatial Consortium to describe each feature. Features in Overture represent entities in the real world. An entity is a physical thing or concept: a segment of road, a city boundary, a building, or a park. In most cases it's helpful to think of an entity and a feature as the same thing, but in practice it can be more complicated. An entity could be represented by multiple features in a geospatial dataset, and a feature in a dataset might be a representation of multiple entities. For example, a school building and its entrances and exits might be considered a single entity in the real world but could be represented as multiple features in an Overture dataset, each feature with a unique ID.
+
+## Global Entity Reference System (GERS)
+
+All features in Overture have unique IDs called Overture IDs. For some feature types, the Overture ID is registered to GERS. This means a feature can be tracked from one Overture data release to another, and any changes to that feature can be encoded in a GERS changelog.
+
+GERS also provides a mechanism to conflate datasets, matching one or more features via Overture IDs. For example, two polygon features from two different datasets, each polygon representing the footprint of the Empire State Building in New York City, can be easily matched if both features reference the same Overture ID in GERS.
+
+## Schema characteristics
+
+### Core schema properties
+
+Every feature in Overture has a core set of properties that are described in the schema. Overture features:
+
+- have a type
+- have a geometry, where the type of geometry is constrained by the feature type
+- are strongly-typed, _i.e._ the feature type constrains the geometry and properties
+- have properties, which may include a core set of "flat" properties and additional properties with a nested structure
+- have an ID property which is globally unique within the ID-space of the entire Overture data distribution version. For some feature types, the ID is registered with GERS
+- may have custom user extension properties
+
+### Schema notation conventions
+
+- snake case is used for all property names, string enumeration members, and string-valued enumeration equivalents
+- boolean properties have a prefix verb "is" or "has" in a way that grammatically makes sense
+      e.g.
+  - `has_street_lights=true`
+  - `is_accessible=false`
+
+### Measurements
+
+Measurements of real-world objects and features follow [The International System of Units (SI)](https://www.bipm.org/en/publications/si-brochure): heights, widths, lengths, etc. In the Overture schema, these values are provided as scalar numeric value without units such as feet or meters. Overture does this to maximize consistency and predictability.
+
+Quantities specified in regulatory rules, norms and customs follow local specifications wherever possible. In the schema, these values are provided as two-element arrays where the first element is the scalar numeric value and the second value is the units. Overture uses local units of measurement -- feet in the United States and meters in the EU, for example. The exact unit is confirmed in the specification of the property but is not repeated in the data.
+
+### Relations
+
+Low-cardinality directed relations are stored as ID references on the source feature.
+
+### Regulations and restrictions
+
+All quantities that relate to posted or ordnance regulations and restrictions are expressed in the same units as used in the regulation. The unit is explicitly included with the property in the data.
+
+### Opening hours and validity periods
+
+Opening hours and the time frame during which time dependent properties are applicable are indicated following the [OSM Opening Hours specification](https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification).
+
+### Extensions
+
+Overture allows for add hoc extensions beyond what is described in the schema. All extensions are prefixed with `ext_`. Extensions can be provided at the theme level, the type level, or the property level.
+
+## Data formats
+
+While Overture describes data using a GeoJSON mental model, it distributes data as [GeoParquet](https://geoparquet.org/), a column-oriented format that is ideally suited for large geospatial datasets. This documentation includes many examples of how to work with data stored in GeoParquet files.
