@@ -7,16 +7,16 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "roadFlagsContainer/items/properties/values/uniqueItems]: items at 0 and 1 are equal"
+      "value must be one of"
     ],
     "theme": "transportation",
     "type": "segment",
-    "version": 19,
-    "subtype": "road",
+    "version": 20,
+    "subtype": "rail",
     "class": "primary",
-    "road_flags": [
+    "rail_flags": [
       {
-        "values": ["is_tunnel", "is_tunnel"]
+        "values": ["foo"]
       }
     ]
   }

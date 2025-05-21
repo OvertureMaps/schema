@@ -1,0 +1,120 @@
+---
+title: Segments
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import ExampleAccessRestrictionsBlanketDeny from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-01-blanket.yaml';
+import ExampleAccessRestrictionPrivateAccessWithDeliveries from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-02-private-with-deliveries.yaml';
+import ExampleAccessRestrictionMotorVehiclesDestinationOnly from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-03-motor-vehicles-destination-only.yaml';
+import ExampleAccessRestrictionAxleLimit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/access-restriction-04-axle-limit.yaml';
+import ExampleSpeedLimitsSimple from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-01-simple.yaml';
+import ExampleSpeedLimitsDirectional from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-02-directional.yaml';
+import ExampleSpeedLimitsVariableMax from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-03-variable-max.yaml';
+import ExampleTurnRestriction1Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-source.yaml';
+import ExampleTurnRestriction1Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-target.yaml';
+import ExampleTurnRestriction1Exit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-exit.yaml';
+import ExampleTurnRestriction1Connector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector1.yaml';
+import ExampleTurnRestriction1Connector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector2.yaml';
+import ExampleTurnRestriction1Connector3 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-connector3.yaml';
+import ExampleTurnRestriction2Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-source.yaml';
+import ExampleTurnRestriction2Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-target.yaml';
+import ExampleTurnRestriction2Via from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-via.yaml';
+import ExampleTurnRestriction2Connector1 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector1.yaml';
+import ExampleTurnRestriction2Connector2 from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-02-connector2.yaml';
+
+In the Overture transportation theme, features with their `type` property set to `segment` represent **paths repeatedly traversed by people or objects**. For example, a segment may represent a major highway, an abandoned subway line, or a ferry route.
+
+Because of their many possible uses, the segment `type` is further organized by its `subtype`, `class`, and `subclass` properties. Currently, the Overture transportation theme supports three **segment subtypes**:
+
+<!-- If you need to update the numbers in here (though I doubt they'll change much), please refer to the Release Summaries in TF-Transportation/Data Releases on the wiki -->
+<table>
+  <tbody>
+  <tr>
+    <th>Subtype</th>
+    <th>Description</th>
+    <th>% Of Total Segment Length in Overture</th>
+  </tr>
+  <tr>
+    <td><code>[road](/schema/concepts/by-theme/transportation/roads)</code></td>
+    <td>Roads and footpaths</td>
+    <td>~97%</td>
+  </tr>
+  <tr>
+    <td><code>rail</code></td>
+    <td>Any transit system in which vehicles ride on metal rails</td>
+    <td>~3%</td>
+  </tr>
+  <tr>
+    <td><code>water</code></td>
+    <td>Shipping lanes and ferry routes</td>
+    <td>&lt;1%</td>
+  </tr>
+  </tbody>
+</table>
+
+Although allowed segment classes and their interpretations differ across subtypes, segments share a number of common properties (for road subtype-specific property concepts, please refer to the [road](/schema/concepts/by-theme/transportation/roads) document):
+
+## Geometry
+
+A segment's geometry approximates the physical centerline of the section of path it models. For roads, information regarding the width of this path is captured in the `width_rules` road-specific property.
+
+## Granularity
+
+Occasionally, a real-world feature admits different representations at different granularities. For example, a dual carriageway may be modeled as one segment, or two parallel segments.
+
+Segments support modeling the transportation network at a range of granularities. For example, a single segment can represent:
+
+- A bidirectional street including all of its sidewalks
+- A Single sidewalk
+- Two parallel subway tracks
+- A one-way street
+- One direction of a dual carriageway
+
+
+## Class
+
+The `class` property of a segment specifies its general purpose of use within its subtype. Unlike many segment properties, a segment's `class` property does not support [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently, whenever a linear range of real-world road or rail makes a class transition (for example, between secondary and residential roads), the Overture transportation [segmentation](/schema/concepts/by-theme/transportation/shape-connectivity#segmentation) algorithm will generate a segment split.
+
+Currently, **only roads and railways have the `class` property**. Within these subtypes, every segment has a class. If the `class` property is missing from a segment's source dataset, the `class` for that segment will be given default value `unknown`, indicating the class is undetermined and may be updated in a later release.
+
+Like many aspects of Overture transportation schema, `class` is heavily inspired by OpenStreetMap. In this
+case, it is similar to, but not the same as, OSM's `highway=*` and `railway=*` tags.
+
+## Flags
+
+A segment's flags (`road_flags` for roads, `rail_flags` for rails) are a set of named flag values indicating the presence or absence of simple physical characteristics.
+
+For example, a road segment with `road_flags = [is_link, is_under_construction]` is a link segment that is physically under construction.
+
+Like many segment properties, the `road_flags`/`rail_flags` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing). Consequently, the applicable flags may vary along different sub-ranges of a road segment's geometry.
+
+
+**Here's an example of how classes, subclasses, and flags are modeled in the Overture schema:**
+
+```
+class: footway
+subclass_rules:
+  - value: sidewalk
+    between: [0, 0.6]
+  - value: crosswalk
+    between: [0.6, 1.0]
+road_flags:
+  - values: [is_bridge]
+    between: [0.2, 0.3]
+  - values: [is_under_construction]
+    between: [0.3, 0.5]
+
+class: service
+subclass_rules:
+  - value: driveway
+    between: [0, 0.5]
+
+class: primary
+subclass: link
+subclass_rules:
+  - value: link
+```

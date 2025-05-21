@@ -19,27 +19,37 @@ properties:
     unevaluatedProperties: false
     required: [subtype]
     allOf:
-      - title: "Segment Properties"
+      - title: "Common Segment Properties"
         properties:
-          class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
-          subclass: { "$ref": "#/$defs/propertyDefinitions/subclass" }
+          # Classes are per-subtype following the addition of rail classes
           subclass_rules: { "$ref": "#/$defs/propertyContainers/subclassRulesContainer" }
           access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
           level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
           level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
-      - title: "Conditional Properties"
-        if: { properties: { subtype: { enum: [road] } } }
-        then:
-          required: [class]
-          properties:
-            destinations: { "$ref": "#/$defs/propertyDefinitions/destinations" }
-            prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
-            road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
-            road_flags: { "$ref": "#/$defs/propertyContainers/flagsContainer" }
-            speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
-            width_rules: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+    oneOf:
+      - title: "Road-Specific Properties"
+        required: [class]
+        properties:
+          subtype: { const: road }
+          class: { "$ref": "#/$defs/propertyDefinitions/roadClass" }
+          destinations: { "$ref": "#/$defs/propertyDefinitions/destinations" }
+          prohibited_transitions: { "$ref": "#/$defs/propertyContainers/prohibitedTransitionsContainer" }
+          road_surface: { "$ref": "#/$defs/propertyContainers/surfaceContainer"}
+          road_flags: { "$ref": "#/$defs/propertyContainers/roadFlagsContainer" }
+          speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
+          width_rules: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
+          subclass: { "$ref": "#/$defs/propertyDefinitions/subclass" }
+      - title: "Rail-Specific Properties"
+        required: [class]
+        properties:
+          subtype: { const: rail }
+          class: { "$ref": "#/$defs/propertyDefinitions/railClass" }
+          rail_flags: { "$ref": "#/$defs/propertyContainers/railFlagsContainer" }
+      - title: "Water-Specific Properties" # Placeholder for future water properties
+        properties:
+          subtype: { const: water }
     properties:
       subtype:
         description: Broad category of transportation segment.
@@ -168,6 +178,18 @@ properties:
         - cycleway
         - bridleway       # Similar to track but has implied access only for horses
         - unknown
+    railClass:
+      description: Captures the kind of rail segment.
+      type: string
+      enum:
+        - funicular       # Inclined plane / cliff railway
+        - light_rail      # Higher-standard tram system, falls between 'tram' and 'rail'
+        - monorail
+        - narrow_gauge
+        - standard_gauge  # Standard-gauge rail, equivalent to OSM's railway=rail tag
+        - subway          # City passenger rail, often underground
+        - tram            # 1-2 carriage rail vehicle tracks, often sharing road with vehicles
+        - unknown
     heading:
       description: >-
         Enumerates possible travel headings along segment geometry.
@@ -218,6 +240,19 @@ properties:
         - is_abandoned
         - is_covered
         - is_indoor
+    railFlag:
+      description: >-
+        Simple flags that can be on or off for a railway segment. Specifies physical characteristics and can overlap.
+      type: string
+      enum:
+        - is_bridge
+        - is_tunnel # You may also be looking for the 'subway' class (though subways are occasionally above-ground)
+        - is_under_construction
+        - is_abandoned
+        - is_covered
+        - is_passenger
+        - is_freight
+        - is_disused
     roadSurface:
       description: Physical surface of the road
       type: string
@@ -626,7 +661,7 @@ properties:
               - "$ref": "#/$defs/propertyContainers/vehicleScopeContainer"
             minProperties: 1
             unevaluatedProperties: false
-    flagsContainer:
+    roadFlagsContainer:
       description:
         Set of boolean attributes applicable to roads. May be
         specified either as a single flag array of flag values, or
@@ -641,6 +676,25 @@ properties:
           values:
             type: array
             items: { "$ref": "#/$defs/propertyDefinitions/roadFlag" }
+            uniqueItems: true
+            minLength: 1
+      uniqueItems: true
+      minLength: 1
+    railFlagsContainer:
+      description:
+        Set of boolean attributes applicable to railways. May be
+        specified either as a single flag array of flag values, or
+        as an array of flag rules.
+      type: array
+      items:
+        type: object
+        allOf:
+          - { "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer" }
+        unevaluatedProperties: false
+        properties:
+          values:
+            type: array
+            items: { "$ref": "#/$defs/propertyDefinitions/railFlag" }
             uniqueItems: true
             minLength: 1
       uniqueItems: true
