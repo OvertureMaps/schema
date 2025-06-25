@@ -53,6 +53,7 @@ properties:
           type: string
           format: uri
         uniqueItems: true
+        minItems: 1
       socials:
         description: The social media URLs of the place.
         type: array
@@ -60,6 +61,7 @@ properties:
           type: string
           format: uri
         uniqueItems: true
+        minItems: 1
       emails:
         description: The email addresses of the place.
         type: array
@@ -67,12 +69,14 @@ properties:
           type: string
           format: email
         uniqueItems: true
+        minItems: 1
       phones:
         description: The phone numbers of the place.
         type: array
         items:
           type: string
         uniqueItems: true
+        minItems: 1
       brand:
         description: >-
           The brand of the place. A location with multiple brands is
@@ -88,3 +92,4 @@ properties:
         items:
           "$ref": "../defs.yaml#/$defs/propertyDefinitions/address"
         uniqueItems: true
+        minItems: 1

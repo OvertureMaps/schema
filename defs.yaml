@@ -193,7 +193,7 @@ description: Common schema definitions shared by all themes
         Represents a non-empty range of positions along a path as a pair
         linearly-referenced positions. For example, the pair [0.25, 0.5]
         represents the range beginning 25% of the distance from the
-        start of the path and ending 50% oof the distance from the path
+        start of the path and ending 50% of the distance from the path
         start.
       type: array
       items: { "$ref": "#/$defs/propertyDefinitions/linearlyReferencedPosition" }
@@ -218,6 +218,22 @@ description: Common schema definitions shared by all themes
             - alternate
             - short
         language: { "$ref": "#/$defs/propertyDefinitions/language" }
+        perspectives:
+          description: Political perspectives from which a named feature is viewed.
+          type: object
+          unevaluatedProperties: false
+          required: [mode, countries]
+          properties:
+            mode:
+              description: Whether the perspective holder accepts or disputes this name.
+              type: string
+              enum: [accepted_by, disputed_by]
+            countries:
+              description: Countries holding the given mode of perspective.
+              type: array
+              items: { "$ref": "#/$defs/propertyDefinitions/iso3166_1Alpha2CountryCode" }
+              minItems: 1
+              uniqueItems: true
         value:
           type: string
           minLength: 1
@@ -253,6 +269,8 @@ description: Common schema definitions shared by all themes
         the relevant metadata for that dataset including license source organization.
       type: object
       required: [property, dataset]
+      allOf:
+        - { "$ref": "#/$defs/propertyContainers/geometricRangeScopeContainer" }
       unevaluatedProperties: false
       properties:
         property:
