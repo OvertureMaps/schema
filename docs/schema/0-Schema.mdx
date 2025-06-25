@@ -49,7 +49,7 @@ In the Overture schema, all features have a unique `id` called a [GERS ID](https
 | **theme** | *string* | one of six Overture data themes |
 | **type** | *string* | one of 14 Overture feature types | 
 | **version** | *int32* | version number of the feature, incremented in each Overture release where the geometry or attributes of this feature changed |
-| **sources** | *list\<element: struct\<property: string, dataset: string, record_id: string, update_time: string, confidence: double\>\>* | array of source information for the properties of a given feature |
+| **sources** | *list\<element: struct\<property: string, dataset: string, record_id: string, update_time: string, confidence: double, between: list\<double\>\>\>* | array of source information for the properties of a given feature |
 </details>
 
 ### Other key schema properties

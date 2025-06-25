@@ -1,0 +1,32 @@
+---
+id: overture:transportation:segment:456
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1], [2, 2]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: secondary
+  connectors:
+    - connector_id: startConnector
+      at: 0
+    - connector_id: endConnector
+      at: 1
+  names:
+    primary: Main Street
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: w12345@1
+      between:
+        - 0
+        - 0.5
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: w67890@1
+      between:
+        - 0.5
+        - 1

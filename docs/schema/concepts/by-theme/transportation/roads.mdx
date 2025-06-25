@@ -29,39 +29,7 @@ import ExampleTurnRestriction2Connector2 from '!!raw-loader!@site/docs/_examples
 In the Overture transportation theme, a road is any kind of road,
 street, or path, including a dedicated paths for walking or cycling. (Railways and waterways are separate subtypes in the transportation schema.) Road segments comprise the majority of ground-based transportation segments. Roads are modeled using [segment](/schema/reference/transportation/segment) features with the `subtype` property value set to the value `road`.
 
-## Geometry and granularity
-
-A road segment's geometry is a representation of the road which,
-in many cases, approximates the physical centerline of the section of
-road being modeled. Road segments support modeling the road network at a range of
-granularities. For example, a single road segment can represent:
-
-- bidirectional street including all of its sidewalks
-- sidewalk by itself
-- one-way street or one direction of a dual carriageway
-- dedicated cycleway
-- hiking path
-
-
-## Class
-
-The `class` property of a road specifies its general purpose of use
-and its relative importance within the transportation network. The
-`class` property also helps establish reasonable default values.
-For example, the class `sidewalk` implies that the default
-[access restrictions](#access-restrictions) for the segment allow access for the [travel mode](/schema/concepts/by-theme/transportation/travel-modes) `foot` and deny access to all other
-travel modes. Unlike many road segment properties, a road segment's `class`
-property does not support [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing) (linear referencing). Consequently whenever a linear range of real-world road makes a class transition (for example, between secondary and residential), the Overture transportation
-[segmentation](/schema/concepts/by-theme/transportation/shape-connectivity#segmentation) algorithm will generate a segment split.
-
-Every road segment has a class. If the `class` property is missing
-from a road segment, the default value `unknown` is assumed. The unknown
-road class is meant to be a temporary value until a more specific class
-is known.
-
-Like many aspects of Overture transportation schema, `class` is heavily inspired by OpenStreetMap. In this
-case, it is similar to, but not the same as, OSM's `highway=*` tag.
-
+This document describes properties specific to the `road` subtype. For more general information regarding segments, please refer to the [segments concept overview](/schema/concepts/by-theme/transportation/segments).
 
 ## Subclass
 
@@ -71,44 +39,6 @@ The subclass property refines the descriptions of segments by:
 - properly classifying detailed information from OpenStreetMap
 
 Subclasses require non-overlapping geometries, which will make it easier for routing engines to consume our road data and generate turn-by-turn directions. The class and subclass structures allow us to capture more information about roads from our data sources. For example, we’ve been able to move more than 30 million “unknown” road segments from OSM into subclasses, laying the groundwork for richer and more detailed map displays with Overture data.
-
-## Flags
-
-The `road_flags` property of a segment is a set of named flag values
-indicating the presence or absence of simple physical characteristics.
-
-For example, a road segment with
-`road_flags = [is_link, is_under_construction]` is a link segment that is
-physically under construction.
-
-Like many road segment properties, the `road_flags` property supports [geometric scoping](/schema/concepts/scoping-rules#geometric-scoping-linear-referencing). Consequently, the applicable road flags may vary along different sub-ranges of a road segment's geometry.
-
-
-**Here's how classes, subclasses, and flags are modeled in the Overture schema:**
-
-```
-class: footway
-subclass_rules:
-  - value: sidewalk
-    between: [0, 0.6]
-  - value: crosswalk
-    between: [0.6, 1.0]
-road_flags:
-  - values: [is_bridge]
-    between: [0.2, 0.3]
-  - values: [is_under_construction]
-    between: [0.3, 0.5]
-
-class: service
-subclass_rules:
-  - value: driveway
-    between: [0, 0.5]
-
-class: primary
-subclass: link
-subclass_rules:
-  - value: link
-```
 
 ## Surface
 
