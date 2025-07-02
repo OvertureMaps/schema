@@ -94,6 +94,8 @@ properties:
         uniqueItems: true
         minItems: 1
       operating_status:
-        description: Indicates if the place is no longer open. Intended to expand to "temporary closed" or others.
+        description: >-
+          Indicates if the place is no longer open. Intended to expand to "temporary closed" or others.
+          When operating_status is missing, the place is assumed to be open.
         type: string
         enum: ["closed"]
