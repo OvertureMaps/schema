@@ -93,3 +93,7 @@ properties:
           "$ref": "../defs.yaml#/$defs/propertyDefinitions/address"
         uniqueItems: true
         minItems: 1
+      operating_status:
+        description: Indicates if the place is no longer open. Intended to expand to "temporary closed" or others.
+        type: string
+        enum: ["closed"]
