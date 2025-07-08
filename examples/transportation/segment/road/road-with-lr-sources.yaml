@@ -18,7 +18,7 @@ properties:
   names:
     primary: Main Street
   sources:
-    - property: ""
+    - property: "/names/primary"
       dataset: OpenStreetMap
       record_id: w12345@1
       between:
