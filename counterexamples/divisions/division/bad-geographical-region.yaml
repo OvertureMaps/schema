@@ -1,0 +1,20 @@
+---
+id: counterexample:division:bad-geographical-region
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: geographical_region
+  class: invalid_class
+  names:
+    primary: A division with an invalid class.
+  hierarchies:
+    - - division_id: counterexample:bad-geographical-region
+        subtype: geographical_region
+        name: A division with an invalid class.
+  ext_expected_errors:
+    - value must be one of 'megacity', 'city', 'town', 'village', 'hamlet', 'disputed', 'region', 'former_administrative_division'

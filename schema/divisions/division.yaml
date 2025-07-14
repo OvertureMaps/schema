@@ -30,7 +30,14 @@ properties:     # JSON Schema: Top-level object properties.
           required: [names, subtype, country, hierarchies]
           not: { required: [parent_division_id] }
         else:
-          required: [names, subtype, country, hierarchies, parent_division_id]
+          if:
+            properties:
+              subtype: { enum: [geographical_region] }
+          then:
+            required: [names, subtype, hierarchies]
+            not: { required: [country, parent_division_id] }
+          else:
+            required: [names, subtype, country, hierarchies, parent_division_id]
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
       class:
@@ -52,6 +59,16 @@ properties:     # JSON Schema: Top-level object properties.
 
           - hamlet        #A small, isolated human settlement in a rural area
                           #Example: Tjarnabyggð, Iceland.
+
+          - disputed      #A geographical region that is claimed by multiple countries or entities,
+                          #and is not universally recognized as belonging to any one of them.
+                          #Example: Bir Tawil.
+
+          - region        #A general geographical region.
+                          #Example: Middle east.
+          - former_administrative_division # A division that no longer exists, but is still relevant as people
+                                           # often search for it.
+                                           # Example: Sogn og Fjordane, Norway.
       local_type:
         description:
           Local name for the subtype property, optionally localized.

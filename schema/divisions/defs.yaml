@@ -57,6 +57,12 @@ description: Common schema definitions for divisions theme
 
         - microhood     # A mini-neighborhood that is contained within a
                         # division of type neighborhood.
+
+        - geographical_region # A geographical region that is not administrative.
+                              # e.g. Middle east, Appalachia, Baltics,
+                              # Intermediate and Immediate geographic regions in Brazil,
+                              # Snowbelt, Caribbean, etc.
+
     hierarchy:
       description:
         A hierarchy of divisions, with the first entry being a country;

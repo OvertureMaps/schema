@@ -1,0 +1,17 @@
+---
+id: example:division:middle_east
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-100.4458820, 39.7837304]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: geographical_region
+  names:
+    primary: Middle East
+  hierarchies:
+    - - division_id: example:division:middle_east
+        subtype: geographical_region
+        name: Middle East
