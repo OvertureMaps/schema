@@ -1,0 +1,625 @@
+{
+  "$defs": {
+    "BuildingClass": {
+      "description": "Further delineation of the building's built purpose.",
+      "enum": [
+        "agricultural",
+        "allotment_house",
+        "apartments",
+        "barn",
+        "beach_hut",
+        "boathouse",
+        "bridge_structure",
+        "bungalow",
+        "bunker",
+        "cabin",
+        "carport",
+        "cathedral",
+        "chapel",
+        "church",
+        "civic",
+        "college",
+        "commercial",
+        "cowshed",
+        "detached",
+        "digester",
+        "dormitory",
+        "dwelling_house",
+        "factory",
+        "farm",
+        "farm_auxiliary",
+        "fire_station",
+        "garage",
+        "garages",
+        "ger",
+        "glasshouse",
+        "government",
+        "grandstand",
+        "greenhouse",
+        "guardhouse",
+        "hangar",
+        "hospital",
+        "hotel",
+        "house",
+        "houseboat",
+        "hut",
+        "industrial",
+        "kindergarten",
+        "kiosk",
+        "library",
+        "manufacture",
+        "military",
+        "monastery",
+        "mosque",
+        "office",
+        "outbuilding",
+        "parking",
+        "pavilion",
+        "post_office",
+        "presbytery",
+        "public",
+        "religious",
+        "residential",
+        "retail",
+        "roof",
+        "school",
+        "semi",
+        "semidetached_house",
+        "service",
+        "shed",
+        "shrine",
+        "silo",
+        "slurry_tank",
+        "sports_centre",
+        "sports_hall",
+        "stable",
+        "stadium",
+        "static_caravan",
+        "stilt_house",
+        "storage_tank",
+        "sty",
+        "supermarket",
+        "synagogue",
+        "temple",
+        "terrace",
+        "toilets",
+        "train_station",
+        "transformer_tower",
+        "transportation",
+        "trullo",
+        "university",
+        "warehouse",
+        "wayside_shrine"
+      ],
+      "title": "BuildingClass",
+      "type": "string"
+    },
+    "FacadeMaterial": {
+      "description": "The outer surface material of building facade.",
+      "enum": [
+        "brick",
+        "cement_block",
+        "clay",
+        "concrete",
+        "glass",
+        "metal",
+        "plaster",
+        "plastic",
+        "stone",
+        "timber_framing",
+        "wood"
+      ],
+      "title": "FacadeMaterial",
+      "type": "string"
+    },
+    "NameRule": {
+      "additionalProperties": false,
+      "description": "Name rule with variant and language specification.",
+      "properties": {
+        "between": {
+          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "language": {
+          "description": "IETF BCP-47 language tag",
+          "pattern": "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$",
+          "title": "Language",
+          "type": "string"
+        },
+        "perspectives": {
+          "$ref": "#/$defs/Perspectives",
+          "description": "Political perspectives from which a named feature is viewed."
+        },
+        "side": {
+          "$ref": "#/$defs/Side"
+        },
+        "value": {
+          "description": "String with no leading/trailing whitespace",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Value",
+          "type": "string"
+        },
+        "variant": {
+          "$ref": "#/$defs/NameVariant"
+        }
+      },
+      "required": [
+        "value",
+        "variant"
+      ],
+      "title": "NameRule",
+      "type": "object"
+    },
+    "NameVariant": {
+      "enum": [
+        "common",
+        "official",
+        "alternate",
+        "short"
+      ],
+      "title": "NameVariant",
+      "type": "string"
+    },
+    "Names": {
+      "additionalProperties": false,
+      "description": "Multilingual names container.",
+      "properties": {
+        "common": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$": {
+              "description": "String with no leading/trailing whitespace",
+              "pattern": "^(\\S.*)?\\S$",
+              "type": "string"
+            }
+          },
+          "propertyNames": {
+            "description": "IETF BCP-47 language tag"
+          },
+          "title": "Common",
+          "type": "object"
+        },
+        "primary": {
+          "description": "The most commonly used name.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Primary",
+          "type": "string"
+        },
+        "rules": {
+          "description": "Rules for names that cannot be specified in the simple common names property. These rules can cover other name variants such as official, alternate, and short; and they can optionally include geometric scoping (linear referencing) and side-of-road scoping for complex cases.",
+          "items": {
+            "$ref": "#/$defs/NameRule"
+          },
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "primary"
+      ],
+      "title": "Names",
+      "type": "object"
+    },
+    "PerspectiveMode": {
+      "description": "Perspective mode for disputed names.",
+      "enum": [
+        "accepted_by",
+        "disputed_by"
+      ],
+      "title": "PerspectiveMode",
+      "type": "string"
+    },
+    "Perspectives": {
+      "additionalProperties": false,
+      "description": "Political perspectives container.",
+      "properties": {
+        "countries": {
+          "description": "Countries holding the given mode of perspective.",
+          "items": {
+            "description": "ISO 3166-1 alpha-2 country code",
+            "maxLength": 2,
+            "minLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Countries",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "mode": {
+          "$ref": "#/$defs/PerspectiveMode",
+          "description": "Whether the perspective holder accepts or disputes this name."
+        }
+      },
+      "required": [
+        "mode",
+        "countries"
+      ],
+      "title": "Perspectives",
+      "type": "object"
+    },
+    "RoofMaterial": {
+      "description": "The outermost material of the roof.",
+      "enum": [
+        "concrete",
+        "copper",
+        "eternit",
+        "glass",
+        "grass",
+        "gravel",
+        "metal",
+        "plastic",
+        "roof_tiles",
+        "slate",
+        "solar_panels",
+        "thatch",
+        "tar_paper",
+        "wood"
+      ],
+      "title": "RoofMaterial",
+      "type": "string"
+    },
+    "RoofOrientation": {
+      "description": "Orientation of the roof shape relative to the footprint shape. Either \"along\" or \"across\".",
+      "enum": [
+        "across",
+        "along"
+      ],
+      "title": "RoofOrientation",
+      "type": "string"
+    },
+    "RoofShape": {
+      "description": "The shape of the roof",
+      "enum": [
+        "dome",
+        "flat",
+        "gabled",
+        "gambrel",
+        "half_hipped",
+        "hipped",
+        "mansard",
+        "onion",
+        "pyramidal",
+        "round",
+        "saltbox",
+        "sawtooth",
+        "skillion",
+        "spherical"
+      ],
+      "title": "RoofShape",
+      "type": "string"
+    },
+    "Side": {
+      "description": "Represents the side on which something appears relative to a facing or heading direction, e.g. the side of a road relative to the road orientation, or relative to the direction of travel of a person or vehicle.",
+      "enum": [
+        "left",
+        "right"
+      ],
+      "title": "Side",
+      "type": "string"
+    },
+    "SourcePropertyItem": {
+      "additionalProperties": false,
+      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "properties": {
+        "between": {
+          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence score between 0.0 and 1.0",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "title": "Dataset",
+          "type": "string"
+        },
+        "property": {
+          "description": "JSON Pointer (RFC 6901)",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Refers to the specific record within the dataset that was used.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "ISO 8601 datetime",
+          "format": "date-time",
+          "pattern": "^([1-9]\\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d|60)(\\.\\d{1,3})?(Z|[-+]([01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourcePropertyItem",
+      "type": "object"
+    },
+    "Subtype": {
+      "description": "A broad category of the building type/purpose. When the current use of the building does not match the built purpose, the subtype should be set to represent the current use of the building.",
+      "enum": [
+        "agricultural",
+        "civic",
+        "commercial",
+        "education",
+        "entertainment",
+        "industrial",
+        "medical",
+        "military",
+        "outbuilding",
+        "religious",
+        "residential",
+        "service",
+        "transportation"
+      ],
+      "title": "Subtype",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A building is a man-made structure with a roof that exists permanently in one place. Buildings are compatible with GeoJSON Polygon features.",
+  "patternProperties": {
+    "^ext_.*$": {
+      "description": "Additional top-level properties must be prefixed with `ext_`."
+    }
+  },
+  "properties": {
+    "geometry": {
+      "description": "A regular building's geometry is defined as its footprint or roofprint (if traced from aerial/satellite imagery). It MUST be a Polygon or MultiPolygon as defined by the GeoJSON schema.",
+      "oneOf": [
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "items": {
+                  "items": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 2,
+                    "type": "array"
+                  },
+                  "minItems": 4,
+                  "type": "array"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "type": {
+              "const": "MultiPolygon",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "type": "array"
+                },
+                "minItems": 4,
+                "type": "array"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "type": {
+              "const": "Polygon",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        }
+      ],
+      "title": "Geometry"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties must be prefixed with `ext_`."
+        }
+      },
+      "properties": {
+        "class": {
+          "$ref": "#/$defs/BuildingClass"
+        },
+        "facade_color": {
+          "description": "The color (name or color triplet) of the facade of a building or building part in hexadecimal",
+          "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$",
+          "title": "Facade Color",
+          "type": "string"
+        },
+        "facade_material": {
+          "$ref": "#/$defs/FacadeMaterial"
+        },
+        "has_parts": {
+          "description": "Flag indicating whether the building has parts",
+          "title": "Has Parts",
+          "type": "boolean"
+        },
+        "height": {
+          "description": "Height of the building or part in meters. The height is the distance from the lowest point to the highest point.",
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "number"
+        },
+        "is_underground": {
+          "description": "Whether the entire building or part is completely below ground. This is useful for rendering which typically omits these buildings or styles them differently because they are not visible above ground. This is different than the level column which is used to indicate z-ordering of elements and negative values may be above ground.",
+          "title": "Is Underground",
+          "type": "boolean"
+        },
+        "level": {
+          "description": "Z-order of the feature where 0 is visual level",
+          "title": "Level",
+          "type": "integer"
+        },
+        "min_floor": {
+          "description": "The \"start\" floor of this building or part. Indicates that the building or part is \"floating\" and its bottom-most floor is above ground level, usually because it is part of a larger building in which some parts do reach down to ground level. An example is a building that has an entry road or driveway at ground level into an interior courtyard, where part of the building bridges above the entry road. This property may sometimes be populated when min_height is missing and in these cases can be used as a proxy for min_height.",
+          "exclusiveMinimum": 0,
+          "title": "Min Floor",
+          "type": "integer"
+        },
+        "min_height": {
+          "description": "The height of the bottom part of building in meters. Used if a building or part of building starts above the ground level.",
+          "title": "Min Height",
+          "type": "number"
+        },
+        "names": {
+          "$ref": "#/$defs/Names"
+        },
+        "num_floors": {
+          "description": "Number of above-ground floors of the building or part.",
+          "exclusiveMinimum": 0,
+          "title": "Num Floors",
+          "type": "integer"
+        },
+        "num_floors_underground": {
+          "description": "Number of below-ground floors of the building or part.",
+          "exclusiveMinimum": 0,
+          "title": "Num Floors Underground",
+          "type": "integer"
+        },
+        "roof_color": {
+          "description": "The color (name or color triplet) of the roof of a building or building part in hexadecimal",
+          "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$",
+          "title": "Roof Color",
+          "type": "string"
+        },
+        "roof_direction": {
+          "description": "Bearing of the roof ridge line in degrees.",
+          "exclusiveMaximum": 360,
+          "minimum": 0,
+          "title": "Roof Direction",
+          "type": "number"
+        },
+        "roof_height": {
+          "description": "The height of the building roof in meters. This represents the distance from the base of the roof to the highest point of the roof.",
+          "title": "Roof Height",
+          "type": "number"
+        },
+        "roof_material": {
+          "$ref": "#/$defs/RoofMaterial"
+        },
+        "roof_orientation": {
+          "$ref": "#/$defs/RoofOrientation"
+        },
+        "roof_shape": {
+          "$ref": "#/$defs/RoofShape"
+        },
+        "sources": {
+          "description": "The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+          "items": {
+            "$ref": "#/$defs/SourcePropertyItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "subtype": {
+          "$ref": "#/$defs/Subtype"
+        },
+        "theme": {
+          "const": "buildings",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "building",
+          "title": "Type",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "theme",
+        "type",
+        "version"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "geometry",
+    "properties",
+    "type"
+  ],
+  "title": "building",
+  "type": "object"
+}
