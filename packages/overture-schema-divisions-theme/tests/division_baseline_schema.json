@@ -1,0 +1,569 @@
+{
+  "$defs": {
+    "CapitalOfDivisionItem": {
+      "additionalProperties": false,
+      "description": "One division that has capital",
+      "properties": {
+        "division_id": {
+          "description": "ID of the division",
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Division Id",
+          "type": "string"
+        },
+        "subtype": {
+          "$ref": "#/$defs/PlaceType"
+        }
+      },
+      "required": [
+        "division_id",
+        "subtype"
+      ],
+      "title": "CapitalOfDivisionItem",
+      "type": "object"
+    },
+    "CartographicHints": {
+      "additionalProperties": false,
+      "description": "Defines cartographic hints for optimal use of Overture features in map-making.",
+      "properties": {
+        "max_zoom": {
+          "description": "Recommended maximum tile zoom per the Slippy Maps convention.\n\nThe Slippy Maps zooms are explained in the following references:\n- https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames\n- https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection",
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Max Zoom",
+          "type": "integer"
+        },
+        "min_zoom": {
+          "description": "Recommended minimum tile zoom per the Slippy Maps convention.\n\nThe Slippy Maps zooms are explained in the following references:\n- https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames\n- https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection",
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Min Zoom",
+          "type": "integer"
+        },
+        "prominence": {
+          "description": "Represents Overture's view of a place's significance or importance.  This value can be used to help drive cartographic display of a place and is derived from various factors including, but not limited to: population, capital status, place tags, and type.",
+          "exclusiveMaximum": 100,
+          "minimum": 1,
+          "title": "Prominence",
+          "type": "integer"
+        },
+        "sort_key": {
+          "description": "An ascending numeric that defines the recommended order features should be drawn in. Features with lower number should be shown on top of features with a higher number.",
+          "title": "Sort Key",
+          "type": "integer"
+        }
+      },
+      "title": "CartographicHints",
+      "type": "object"
+    },
+    "DivisionClass": {
+      "description": "Division-specific class designations.",
+      "enum": [
+        "megacity",
+        "city",
+        "town",
+        "village",
+        "hamlet"
+      ],
+      "title": "DivisionClass",
+      "type": "string"
+    },
+    "HierarchyItem": {
+      "additionalProperties": false,
+      "description": "One division in a hierarchy",
+      "properties": {
+        "division_id": {
+          "description": "ID of the division",
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Division Id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Primary name of the division",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Name",
+          "type": "string"
+        },
+        "subtype": {
+          "$ref": "#/$defs/PlaceType"
+        }
+      },
+      "required": [
+        "division_id",
+        "subtype",
+        "name"
+      ],
+      "title": "HierarchyItem",
+      "type": "object"
+    },
+    "NameRule": {
+      "additionalProperties": false,
+      "description": "Name rule with variant and language specification.",
+      "properties": {
+        "between": {
+          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "language": {
+          "description": "IETF BCP-47 language tag",
+          "pattern": "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$",
+          "title": "Language",
+          "type": "string"
+        },
+        "perspectives": {
+          "$ref": "#/$defs/Perspectives",
+          "description": "Political perspectives from which a named feature is viewed."
+        },
+        "side": {
+          "$ref": "#/$defs/Side"
+        },
+        "value": {
+          "description": "String with no leading/trailing whitespace",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Value",
+          "type": "string"
+        },
+        "variant": {
+          "$ref": "#/$defs/NameVariant"
+        }
+      },
+      "required": [
+        "value",
+        "variant"
+      ],
+      "title": "NameRule",
+      "type": "object"
+    },
+    "NameVariant": {
+      "enum": [
+        "common",
+        "official",
+        "alternate",
+        "short"
+      ],
+      "title": "NameVariant",
+      "type": "string"
+    },
+    "Names": {
+      "additionalProperties": false,
+      "description": "Multilingual names container.",
+      "properties": {
+        "common": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$": {
+              "description": "String with no leading/trailing whitespace",
+              "pattern": "^(\\S.*)?\\S$",
+              "type": "string"
+            }
+          },
+          "propertyNames": {
+            "description": "IETF BCP-47 language tag"
+          },
+          "title": "Common",
+          "type": "object"
+        },
+        "primary": {
+          "description": "The most commonly used name.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Primary",
+          "type": "string"
+        },
+        "rules": {
+          "description": "Rules for names that cannot be specified in the simple common names property. These rules can cover other name variants such as official, alternate, and short; and they can optionally include geometric scoping (linear referencing) and side-of-road scoping for complex cases.",
+          "items": {
+            "$ref": "#/$defs/NameRule"
+          },
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "primary"
+      ],
+      "title": "Names",
+      "type": "object"
+    },
+    "Norms": {
+      "additionalProperties": false,
+      "description": "Local norms and standards.",
+      "properties": {
+        "driving_side": {
+          "$ref": "#/$defs/Side",
+          "description": "Side of the road on which vehicles drive in the division."
+        }
+      },
+      "title": "Norms",
+      "type": "object"
+    },
+    "PerspectiveMode": {
+      "description": "Perspective mode for disputed names.",
+      "enum": [
+        "accepted_by",
+        "disputed_by"
+      ],
+      "title": "PerspectiveMode",
+      "type": "string"
+    },
+    "Perspectives": {
+      "additionalProperties": false,
+      "description": "Political perspectives container.",
+      "properties": {
+        "countries": {
+          "description": "Countries holding the given mode of perspective.",
+          "items": {
+            "description": "ISO 3166-1 alpha-2 country code",
+            "maxLength": 2,
+            "minLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Countries",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "mode": {
+          "$ref": "#/$defs/PerspectiveMode",
+          "description": "Whether the perspective holder accepts or disputes this name."
+        }
+      },
+      "required": [
+        "mode",
+        "countries"
+      ],
+      "title": "Perspectives",
+      "type": "object"
+    },
+    "PlaceType": {
+      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g. country, region, locality, etc.) similar to a Who's on First placetype.",
+      "enum": [
+        "country",
+        "dependency",
+        "macroregion",
+        "region",
+        "macrocounty",
+        "county",
+        "localadmin",
+        "locality",
+        "borough",
+        "macrohood",
+        "neighborhood",
+        "microhood"
+      ],
+      "title": "PlaceType",
+      "type": "string"
+    },
+    "Side": {
+      "description": "Represents the side on which something appears relative to a facing or heading direction, e.g. the side of a road relative to the road orientation, or relative to the direction of travel of a person or vehicle.",
+      "enum": [
+        "left",
+        "right"
+      ],
+      "title": "Side",
+      "type": "string"
+    },
+    "SourcePropertyItem": {
+      "additionalProperties": false,
+      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "properties": {
+        "between": {
+          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence score between 0.0 and 1.0",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "title": "Dataset",
+          "type": "string"
+        },
+        "property": {
+          "description": "JSON Pointer (RFC 6901)",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Refers to the specific record within the dataset that was used.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "ISO 8601 datetime",
+          "format": "date-time",
+          "pattern": "^([1-9]\\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d|60)(\\.\\d{1,3})?(Z|[-+]([01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourcePropertyItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Divisions are recognized official or non-official organizations of people as seen from a given political perspective. Examples include countries, provinces, cities, towns, neighborhoods, etc.",
+  "patternProperties": {
+    "^ext_.*$": {
+      "description": "Additional top-level properties must be prefixed with `ext_`."
+    }
+  },
+  "properties": {
+    "geometry": {
+      "description": "Division geometry MUST be a Point as defined by GeoJSON schema. It represents the approximate location of a position commonly associated with the real-world entity modeled by the division feature.",
+      "properties": {
+        "bbox": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "type": "array"
+        },
+        "coordinates": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "type": "array"
+        },
+        "type": {
+          "const": "Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "title": "Geometry",
+      "type": "object"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "required": [
+              "parent_division_id"
+            ]
+          },
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "country"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "parent_division_id"
+              ]
+            }
+          }
+        }
+      ],
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties must be prefixed with `ext_`."
+        }
+      },
+      "properties": {
+        "capital_division_ids": {
+          "description": "Division IDs of this division's capital divisions. If present, this property will refer to the division IDs of the capital cities, county seats, etc. of a division.",
+          "items": {
+            "description": "String without whitespace characters",
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Capital Division Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "capital_of_divisions": {
+          "description": "Division IDs and subtypes of divisions this division is a capital of.",
+          "items": {
+            "$ref": "#/$defs/CapitalOfDivisionItem"
+          },
+          "minItems": 1,
+          "title": "Capital Of Divisions",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "cartography": {
+          "$ref": "#/$defs/CartographicHints",
+          "title": "cartography"
+        },
+        "class": {
+          "$ref": "#/$defs/DivisionClass"
+        },
+        "country": {
+          "description": "ISO 3166-1 alpha-2 country code of the country or country-like entity, that this division represents or belongs to.\n\nIf the entity this division represents has a country code, the country property contains it. If it does not, the country property contains the country code of the first division encountered by traversing the parent_division_id chain to the root.\n\nFor example:\n    - The country value for the United States is 'US'\n    - The country value for New York City is 'US'\n    - The country value for Puerto Rico, a dependency of the US,\n    is 'PR'.\n    - The country value for San Juan, Puerto Rico is 'PR'.\n\nIf an entity has an internationally-recognized ISO 3166-1 alpha-2 country code, it should always be used. In cases where the schema requires the code but no internationally-recognized code is available, a synthetic code may be used provided it does not conflict with any internationally-recognized codes.",
+          "maxLength": 2,
+          "minLength": 2,
+          "pattern": "^[A-Z]{2}$",
+          "title": "Country",
+          "type": "string"
+        },
+        "hierarchies": {
+          "description": "Hierarchies in which this division participates.\n\nEvery division participates in at least one hierarchy. Most participate in only one. Some divisions may participate in more than one hierarchy, for example if they are claimed by different parent divisions from different political perspectives; or if there are other real-world reasons why the division or one of its ancestors has multiple parents.\n\nThe first hierarchy in the list is the default hierarchy, and the second-to-last entry in the default hierarchy (if there is such an entry) always corresponds to the `parent_division_id' property. The ordering of hierarchies after the first one is arbitrary.",
+          "items": {
+            "description": "A hierarchy of divisions, with the first entry being a country; each subsequent entry, if any, being a division that is a direct child of the previous entry; and the last entry representing the division that contains the hierarchy.\n\nFor example, a hierarchy for the United States is simply [United States]. A hierarchy for the U.S. state of New Hampshire would be [United States, New Hampshire], and a hierarchy for the city of Concord, NH would be [United States, New Hampshire, Merrimack County, Concord].",
+            "items": {
+              "$ref": "#/$defs/HierarchyItem"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "minItems": 1,
+          "title": "Hierarchies",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "local_type": {
+          "additionalProperties": false,
+          "description": "Local name for the subtype property, optionally localized.\n\nFor example, the Canadian province of Quebec has the subtype 'region', but in the local administrative hierarchy it is referred to as a 'province'. Similarly, the Canadian Yukon territory also has subtype 'region', but is locally called a 'territory'.\n\nThis property is localized using a standard Overture names structure. So for example, in Switzerland the top-level administrative subdivision corresponding to subtype 'region' is the canton, which is may be translated in each of Switzerland's official languages as, 'canton' in French, 'kanton' in German, 'cantone' in Italian, and 'chantun' in Romansh.",
+          "patternProperties": {
+            "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$": {
+              "description": "String with no leading/trailing whitespace",
+              "pattern": "^(\\S.*)?\\S$",
+              "type": "string"
+            }
+          },
+          "propertyNames": {
+            "description": "IETF BCP-47 language tag"
+          },
+          "title": "Local Type",
+          "type": "object"
+        },
+        "names": {
+          "$ref": "#/$defs/Names"
+        },
+        "norms": {
+          "$ref": "#/$defs/Norms",
+          "description": "Collects information about local norms and rules within the division that are generally useful for mapping and map-related use cases.\n\nIf the norms property or a desired sub-property of the norms property is missing on a division, but at least one of its ancestor divisions has the norms property and the desired sub-property, then the value from the nearest ancestor division may be assumed."
+        },
+        "parent_division_id": {
+          "description": "Division ID of this division's parent division.\n\nNot allowed for top-level divisions (countries) and required for all other divisions.\n\nThe default parent division is the parent division as seen from the default political perspective, if there is one, and is otherwise chosen somewhat arbitrarily. The hierarchies property can be used to inspect the exhaustive list of parent divisions.",
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Parent Division Id",
+          "type": "string"
+        },
+        "perspectives": {
+          "$ref": "#/$defs/Perspectives",
+          "description": "Political perspectives from which this division is considered to be an accurate representation.\n\nIf this property is absent, then this division is not known to be disputed from any political perspective. Consequently, there is only one division feature representing the entire real world entity.\n\nIf this property is present, it means the division represents one of several alternative perspectives on the same real-world entity.\n\nThere are two modes of perspective:\n\n1. `accepted_by` means the representation of the division is accepted by the listed entities and would be included on a map drawn from their perspective.\n\n2. `disputed_by` means the representation of the division is disputed by the listed entities and would be excluded from a map drawn from their perspective.\n\nWhen drawing a map from the perspective of a given country, one would start by gathering all the undisputed divisions (with no `perspectives` property), and then adding to that first all divisions explicitly accepted by the country, and second all divisions not explicitly disputed by the country."
+        },
+        "population": {
+          "description": "Population of the division",
+          "minimum": 0,
+          "title": "Population",
+          "type": "integer"
+        },
+        "region": {
+          "description": "ISO 3166-2 principal subdivision code of the subdivision-like entity this division represents or belongs to.\n\nIf the entity this division represents has a principal subdivision code, the region property contains it. If it does not, the region property contains the principal subdivision code of the first division encountered by traversing the parent_division_id chain to the root.\n\nFor example:\n    - The region value for the United States is omitted.\n    - The region value for the U.S. state of New York is 'US-NY'.\n    - The region value for New York City is 'US-NY', which it\n    inherits from the state of New York.\n    - The region value for Puerto Rico is 'US-PR'.",
+          "maxLength": 6,
+          "minLength": 4,
+          "pattern": "^[A-Z]{2}-[A-Z0-9]{1,3}$",
+          "title": "Region",
+          "type": "string"
+        },
+        "sources": {
+          "description": "The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+          "items": {
+            "$ref": "#/$defs/SourcePropertyItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "subtype": {
+          "$ref": "#/$defs/PlaceType"
+        },
+        "theme": {
+          "const": "divisions",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "division",
+          "title": "Type",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        },
+        "wikidata": {
+          "description": "Wikidata identifier (Q followed by digits)",
+          "pattern": "^Q\\d+$",
+          "title": "Wikidata",
+          "type": "string"
+        }
+      },
+      "required": [
+        "names",
+        "theme",
+        "type",
+        "version",
+        "subtype",
+        "country",
+        "hierarchies"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "geometry",
+    "properties",
+    "type"
+  ],
+  "title": "division",
+  "type": "object"
+}
