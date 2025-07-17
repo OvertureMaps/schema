@@ -1,0 +1,674 @@
+{
+  "$defs": {
+    "InfrastructureClass": {
+      "description": "Further classification of the infrastructure type.",
+      "enum": [
+        "aerialway_station",
+        "airport",
+        "airport_gate",
+        "airstrip",
+        "apron",
+        "aqueduct",
+        "artwork",
+        "atm",
+        "barrier",
+        "bell_tower",
+        "bench",
+        "bicycle_parking",
+        "bicycle_rental",
+        "block",
+        "boardwalk",
+        "bollard",
+        "border_control",
+        "breakwater",
+        "bridge",
+        "bridge_support",
+        "bump_gate",
+        "bus_route",
+        "bus_station",
+        "bus_stop",
+        "bus_trap",
+        "cable",
+        "cable_barrier",
+        "cable_car",
+        "cable_distribution",
+        "camp_site",
+        "cantilever",
+        "catenary_mast",
+        "cattle_grid",
+        "chain",
+        "chair_lift",
+        "charging_station",
+        "city_wall",
+        "communication_line",
+        "communication_pole",
+        "communication_tower",
+        "connection",
+        "cooling",
+        "covered",
+        "crossing",
+        "cutline",
+        "cycle_barrier",
+        "dam",
+        "defensive",
+        "ditch",
+        "diving",
+        "drag_lift",
+        "drain",
+        "drinking_water",
+        "entrance",
+        "fence",
+        "ferry_terminal",
+        "fire_hydrant",
+        "fountain",
+        "full-height_turnstile",
+        "gasometer",
+        "gate",
+        "generator",
+        "give_way",
+        "gondola",
+        "goods",
+        "guard_rail",
+        "hampshire_gate",
+        "handrail",
+        "hedge",
+        "height_restrictor",
+        "heliostat",
+        "helipad",
+        "heliport",
+        "hose",
+        "information",
+        "insulator",
+        "international_airport",
+        "j-bar",
+        "jersey_barrier",
+        "kerb",
+        "kissing_gate",
+        "launchpad",
+        "lift_gate",
+        "lighting",
+        "lightning_protection",
+        "magic_carpet",
+        "manhole",
+        "milestone",
+        "military_airport",
+        "minaret",
+        "minor_line",
+        "mixed_lift",
+        "mobile_phone_tower",
+        "monitoring",
+        "motorcycle_parking",
+        "motorway_junction",
+        "movable",
+        "municipal_airport",
+        "observation",
+        "parking",
+        "parking_entrance",
+        "parking_space",
+        "pedestrian_crossing",
+        "picnic_table",
+        "pier",
+        "pipeline",
+        "plant",
+        "planter",
+        "platform",
+        "platter",
+        "portal",
+        "post_box",
+        "power_line",
+        "power_pole",
+        "power_tower",
+        "private_airport",
+        "pylon",
+        "quay",
+        "radar",
+        "railway_halt",
+        "railway_station",
+        "recycling",
+        "regional_airport",
+        "reservoir_covered",
+        "retaining_wall",
+        "rope_tow",
+        "runway",
+        "sally_port",
+        "seaplane_airport",
+        "sewer",
+        "silo",
+        "siren",
+        "stile",
+        "stop",
+        "stop_position",
+        "stopway",
+        "storage_tank",
+        "street_cabinet",
+        "street_lamp",
+        "substation",
+        "subway_station",
+        "swing_gate",
+        "switch",
+        "t-bar",
+        "taxilane",
+        "taxiway",
+        "terminal",
+        "toilets",
+        "toll_booth",
+        "traffic_signals",
+        "transformer",
+        "trestle",
+        "utility_pole",
+        "vending_machine",
+        "viaduct",
+        "viewpoint",
+        "wall",
+        "waste_basket",
+        "waste_disposal",
+        "watchtower",
+        "water_tower",
+        "weir",
+        "zip_line"
+      ],
+      "title": "InfrastructureClass",
+      "type": "string"
+    },
+    "InfrastructureSubtype": {
+      "description": "Further description of the type of infrastructure.",
+      "enum": [
+        "aerialway",
+        "airport",
+        "barrier",
+        "bridge",
+        "communication",
+        "emergency",
+        "manhole",
+        "pedestrian",
+        "pier",
+        "power",
+        "quay",
+        "recreation",
+        "tower",
+        "transit",
+        "transportation",
+        "utility",
+        "waste_management",
+        "water"
+      ],
+      "title": "InfrastructureSubtype",
+      "type": "string"
+    },
+    "NameRule": {
+      "additionalProperties": false,
+      "description": "Name rule with variant and language specification.",
+      "properties": {
+        "between": {
+          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "language": {
+          "description": "IETF BCP-47 language tag",
+          "pattern": "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$",
+          "title": "Language",
+          "type": "string"
+        },
+        "perspectives": {
+          "$ref": "#/$defs/Perspectives",
+          "description": "Political perspectives from which a named feature is viewed."
+        },
+        "side": {
+          "$ref": "#/$defs/Side"
+        },
+        "value": {
+          "description": "String with no leading/trailing whitespace",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Value",
+          "type": "string"
+        },
+        "variant": {
+          "$ref": "#/$defs/NameVariant"
+        }
+      },
+      "required": [
+        "value",
+        "variant"
+      ],
+      "title": "NameRule",
+      "type": "object"
+    },
+    "NameVariant": {
+      "enum": [
+        "common",
+        "official",
+        "alternate",
+        "short"
+      ],
+      "title": "NameVariant",
+      "type": "string"
+    },
+    "Names": {
+      "additionalProperties": false,
+      "description": "Multilingual names container.",
+      "properties": {
+        "common": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$": {
+              "description": "String with no leading/trailing whitespace",
+              "pattern": "^(\\S.*)?\\S$",
+              "type": "string"
+            }
+          },
+          "propertyNames": {
+            "description": "IETF BCP-47 language tag"
+          },
+          "title": "Common",
+          "type": "object"
+        },
+        "primary": {
+          "description": "The most commonly used name.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Primary",
+          "type": "string"
+        },
+        "rules": {
+          "description": "Rules for names that cannot be specified in the simple common names property. These rules can cover other name variants such as official, alternate, and short; and they can optionally include geometric scoping (linear referencing) and side-of-road scoping for complex cases.",
+          "items": {
+            "$ref": "#/$defs/NameRule"
+          },
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "primary"
+      ],
+      "title": "Names",
+      "type": "object"
+    },
+    "PerspectiveMode": {
+      "description": "Perspective mode for disputed names.",
+      "enum": [
+        "accepted_by",
+        "disputed_by"
+      ],
+      "title": "PerspectiveMode",
+      "type": "string"
+    },
+    "Perspectives": {
+      "additionalProperties": false,
+      "description": "Political perspectives container.",
+      "properties": {
+        "countries": {
+          "description": "Countries holding the given mode of perspective.",
+          "items": {
+            "description": "ISO 3166-1 alpha-2 country code",
+            "maxLength": 2,
+            "minLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Countries",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "mode": {
+          "$ref": "#/$defs/PerspectiveMode",
+          "description": "Whether the perspective holder accepts or disputes this name."
+        }
+      },
+      "required": [
+        "mode",
+        "countries"
+      ],
+      "title": "Perspectives",
+      "type": "object"
+    },
+    "Side": {
+      "description": "Represents the side on which something appears relative to a facing or heading direction, e.g. the side of a road relative to the road orientation, or relative to the direction of travel of a person or vehicle.",
+      "enum": [
+        "left",
+        "right"
+      ],
+      "title": "Side",
+      "type": "string"
+    },
+    "SourcePropertyItem": {
+      "additionalProperties": false,
+      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "properties": {
+        "between": {
+          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence score between 0.0 and 1.0",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "title": "Dataset",
+          "type": "string"
+        },
+        "property": {
+          "description": "JSON Pointer (RFC 6901)",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Refers to the specific record within the dataset that was used.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "ISO 8601 datetime",
+          "format": "date-time",
+          "pattern": "^([1-9]\\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d|60)(\\.\\d{1,3})?(Z|[-+]([01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourcePropertyItem",
+      "type": "object"
+    },
+    "SurfaceMaterial": {
+      "description": "Surface material enum used by infrastructure and land features.",
+      "enum": [
+        "asphalt",
+        "cobblestone",
+        "compacted",
+        "concrete",
+        "concrete_plates",
+        "dirt",
+        "earth",
+        "fine_gravel",
+        "grass",
+        "gravel",
+        "ground",
+        "paved",
+        "paving_stones",
+        "pebblestone",
+        "recreation_grass",
+        "recreation_paved",
+        "recreation_sand",
+        "rubber",
+        "sand",
+        "sett",
+        "tartan",
+        "unpaved",
+        "wood",
+        "woodchips"
+      ],
+      "title": "SurfaceMaterial",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Various features from OpenStreetMap such as bridges, airport runways, aerialways, or communication towers and lines.",
+  "patternProperties": {
+    "^ext_.*$": {
+      "description": "Additional top-level properties must be prefixed with `ext_`."
+    }
+  },
+  "properties": {
+    "geometry": {
+      "description": "Geometry (Point, LineString, Polygon, or MultiPolygon)",
+      "oneOf": [
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "type": "array"
+              },
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": {
+              "const": "LineString",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "items": {
+                  "items": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 2,
+                    "type": "array"
+                  },
+                  "minItems": 4,
+                  "type": "array"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "type": {
+              "const": "MultiPolygon",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": {
+              "const": "Point",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "type": "array"
+                },
+                "minItems": 4,
+                "type": "array"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "type": {
+              "const": "Polygon",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        }
+      ],
+      "title": "Geometry"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties must be prefixed with `ext_`."
+        }
+      },
+      "properties": {
+        "class": {
+          "$ref": "#/$defs/InfrastructureClass"
+        },
+        "height": {
+          "description": "Height of the feature in meters.",
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "number"
+        },
+        "level": {
+          "description": "Z-order of the feature where 0 is visual level",
+          "title": "Level",
+          "type": "integer"
+        },
+        "names": {
+          "$ref": "#/$defs/Names"
+        },
+        "source_tags": {
+          "additionalProperties": true,
+          "description": "Any attributes/tags from the original source data that should be passed through.",
+          "title": "Source Tags",
+          "type": "object"
+        },
+        "sources": {
+          "description": "The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+          "items": {
+            "$ref": "#/$defs/SourcePropertyItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "subtype": {
+          "$ref": "#/$defs/InfrastructureSubtype"
+        },
+        "surface": {
+          "$ref": "#/$defs/SurfaceMaterial"
+        },
+        "theme": {
+          "const": "base",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "infrastructure",
+          "title": "Type",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        },
+        "wikidata": {
+          "description": "Wikidata identifier (Q followed by digits)",
+          "pattern": "^Q\\d+$",
+          "title": "Wikidata",
+          "type": "string"
+        }
+      },
+      "required": [
+        "theme",
+        "type",
+        "version",
+        "class",
+        "subtype"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "geometry",
+    "properties",
+    "type"
+  ],
+  "title": "Infrastructure Schema",
+  "type": "object"
+}
