@@ -17,4 +17,4 @@ properties:
         subtype: geographical_region
         name: A division with an invalid class.
   ext_expected_errors:
-    - value must be one of 'megacity', 'city', 'town', 'village', 'hamlet', 'disputed', 'region', 'former_administrative_division'
+    - value must be one of 'megacity', 'city', 'town', 'village', 'hamlet', 'disputed', 'region'

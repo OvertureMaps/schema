@@ -66,9 +66,6 @@ properties:     # JSON Schema: Top-level object properties.
 
           - region        #A general geographical region.
                           #Example: Middle east.
-          - former_administrative_division # A division that no longer exists, but is still relevant as people
-                                           # often search for it.
-                                           # Example: Sogn og Fjordane, Norway.
       local_type:
         description:
           Local name for the subtype property, optionally localized.
