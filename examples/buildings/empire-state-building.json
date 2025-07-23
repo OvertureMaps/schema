@@ -18,7 +18,7 @@
     },
     "sources": [
       {
-        "property": "dataset",
+        "property": "",
         "dataset": "OpenStreetMap",
         "record_id": "w34633854@71"
       }

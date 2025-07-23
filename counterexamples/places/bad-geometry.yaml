@@ -5,5 +5,8 @@ geometry:
   type: MultiPolygon
   coordinates: [[[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]]
 properties:
+  theme: places
+  type: place
+  version: 0
   categories:
     primary: a_category

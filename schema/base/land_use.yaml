@@ -130,6 +130,7 @@ properties:
           - protected
           - protected_landscape_seascape
           - quarry
+          - railway
           - range
           - recreation_ground
           - religious
