@@ -15,6 +15,7 @@ members = [
     "overture-schema-core",
     "overture-schema-divisions-theme",
     "overture-schema-places-theme",
+    "overture-schema-transportation-theme",
     "overture-schema-validation",
     "overture-schema-workspace",
 ]
@@ -395,6 +396,7 @@ dependencies = [
     { name = "overture-schema-core" },
     { name = "overture-schema-divisions-theme" },
     { name = "overture-schema-places-theme" },
+    { name = "overture-schema-transportation-theme" },
     { name = "overture-schema-validation" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -419,6 +421,7 @@ requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-divisions-theme", editable = "packages/overture-schema-divisions-theme" },
     { name = "overture-schema-places-theme", editable = "packages/overture-schema-places-theme" },
+    { name = "overture-schema-transportation-theme", editable = "packages/overture-schema-transportation-theme" },
     { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
@@ -598,6 +601,22 @@ dev = [
     { name = "mypy" },
     { name = "pytest", specifier = ">=7.0" },
     { name = "ruff" },
+]
+
+[[package]]
+name = "overture-schema-transportation-theme"
+source = { editable = "packages/overture-schema-transportation-theme" }
+dependencies = [
+    { name = "overture-schema-core" },
+    { name = "overture-schema-validation" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
+    { name = "pydantic", specifier = ">=2.0" },
 ]
 
 [[package]]
