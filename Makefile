@@ -35,5 +35,6 @@ mypy:
 	@echo "Running mypy type checking"
 	@cd packages && uv run mypy --namespace-packages \
 		-p overture.schema \
+		-p overture.schema.addresses \
 		-p overture.schema.core \
 		-p overture.schema.validation
