@@ -8,11 +8,19 @@ from typing import TYPE_CHECKING, Annotated, Any, Union
 from pydantic import Field
 
 from overture.schema.addresses import Address
+from overture.schema.base import (
+    Bathymetry,
+    Infrastructure,
+    Land,
+    LandCover,
+    LandUse,
+    Water,
+)
 from overture.schema.core import parse_feature
 from overture.schema.core.discovery import discover_models
 
 Types = Annotated[
-    Address,
+    Address | Bathymetry | Infrastructure | Land | LandCover | LandUse | Water,
     Field(discriminator="type"),
 ]
 
