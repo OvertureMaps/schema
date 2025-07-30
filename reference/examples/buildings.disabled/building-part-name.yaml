@@ -1,0 +1,32 @@
+---
+id: overture:buildings:part:2345
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[
+            [-77.036873, 38.897804],
+            [-77.036873, 38.897559],
+            [-77.036260, 38.897559],
+            [-77.036260, 38.897804],
+            [-77.036873, 38.897804]
+          ]]
+properties:
+  # Overture properties
+  theme: buildings
+  type: building_part
+  version: 1
+  level: 1
+  building_id: abc1234
+  names:
+    primary: "East Wing"
+  height: 21.34
+  num_floors: 4
+  min_height: 15.0
+  min_floor: 2
+  roof_shape: dome
+  roof_orientation: across
+  roof_direction: 23.4
+  roof_height: 3.4
+  sources:
+  - property: ""
+    dataset: OpenStreetMap
