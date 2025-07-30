@@ -9,6 +9,7 @@ resolution-markers = [
 [manifest]
 members = [
     "overture-schema",
+    "overture-schema-addresses-theme",
     "overture-schema-core",
     "overture-schema-validation",
     "overture-schema-workspace",
@@ -353,6 +354,7 @@ wheels = [
 name = "overture-schema"
 source = { editable = "packages/overture-schema" }
 dependencies = [
+    { name = "overture-schema-addresses-theme" },
     { name = "overture-schema-core" },
     { name = "overture-schema-validation" },
     { name = "pydantic" },
@@ -372,6 +374,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "overture-schema-addresses-theme", editable = "packages/overture-schema-addresses-theme" },
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
     { name = "pydantic", specifier = ">=2.0" },
@@ -387,6 +390,36 @@ dev = [
     { name = "pyyaml" },
     { name = "ruff" },
     { name = "yamlcore", specifier = ">=0.0.4" },
+]
+
+[[package]]
+name = "overture-schema-addresses-theme"
+source = { editable = "packages/overture-schema-addresses-theme" }
+dependencies = [
+    { name = "overture-schema-core" },
+    { name = "overture-schema-validation" },
+    { name = "pydantic" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
+    { name = "pydantic", specifier = ">=2.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy" },
+    { name = "pytest", specifier = ">=7.0" },
+    { name = "ruff" },
 ]
 
 [[package]]
