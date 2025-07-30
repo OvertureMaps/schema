@@ -1,0 +1,16 @@
+---
+id: example:division_boundary:is_territorial:country:fi
+
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 1], [1, 2]]
+properties:
+  theme: divisions
+  type: division_boundary
+  version: 1
+  subtype: country
+  is_territorial: true
+  is_land: false
+  class: maritime
+  division_ids: ["example:division:country:left", "example:division:country:right"]

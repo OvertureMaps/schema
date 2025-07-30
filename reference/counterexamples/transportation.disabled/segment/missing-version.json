@@ -1,0 +1,16 @@
+{
+  "id": "bad-class",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[2, 2], [3, 3]]
+  },
+  "properties": {
+    "ext_expected_errors": [
+      "missing property 'version'"
+    ],
+    "theme": "transportation",
+    "type": "segment",
+    "subtype": "water"
+  }
+}

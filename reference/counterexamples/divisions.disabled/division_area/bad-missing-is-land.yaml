@@ -1,0 +1,14 @@
+---
+id: counterexample:division_area:bad-is-territorial
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 1], [1, 2]]
+properties:
+  theme: divisions
+  type: division_area
+  version: 0
+  subtype: country
+  division_id: counterexample:division_boundary:some-division
+  is_territorial: false
+  country: ZZ

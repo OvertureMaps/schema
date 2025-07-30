@@ -1,0 +1,31 @@
+---
+id: example:division:region:ca-on
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-86.0009770, 50.0006780]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: region
+  local_type:
+    en: province
+  names:
+    primary: Ontario
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: R68841.V267
+  country: CA
+  region: CA-ON
+  hierarchies:
+    - - division_id: example:division:country:ca
+        subtype: country
+        name: Canada
+      - division_id: example:division:region:ca-on
+        subtype: region
+        name: Ontario
+  capital_division_ids: [ example:division:locality:toronto ]
+  parent_division_id: example:division:country:ca
+  population: 13550900

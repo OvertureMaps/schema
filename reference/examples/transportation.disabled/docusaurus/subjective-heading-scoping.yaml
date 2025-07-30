@@ -1,0 +1,25 @@
+---
+id: overture:transportation:example:subjective-heading-scoping
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-1.3023158, 54.5579329]
+    - [-1.3020090, 54.5577898]
+    - [-1.3014511, 54.5575155]
+    - [-1.3009618, 54.5572737]
+    - [-1.3004518, 54.5570288]
+    - [-1.3003009, 54.5569580]
+properties:
+  theme: transportation
+  type: segment
+  version: 2
+  subtype: road
+  class: primary
+  access_restrictions:
+    - access_type: denied
+      when: { heading: backward }
+    - access_type: allowed
+      when:
+        heading: backward
+        mode: [bus]

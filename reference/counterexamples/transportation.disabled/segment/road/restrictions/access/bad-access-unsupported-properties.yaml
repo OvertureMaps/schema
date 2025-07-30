@@ -1,0 +1,19 @@
+id: overture:transportation:segment:counterexample:access-unsupported-properties
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[-1, -1], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: tertiary
+  version: 1
+  access_restrictions:
+    - foo: bar
+    - access_type: denied
+      when:
+        baz: qux
+  ext_expected_errors:
+    - "'/properties/access_restrictions/0' [S#/$defs/propertyContainers/accessContainer/items/required]: missing property 'access_type'"
+    - "'/properties/access_restrictions/1/when/baz' [S#/$defs/propertyContainers/accessContainer/items/properties/when/unevaluatedProperties]: false schema"

@@ -1,0 +1,16 @@
+---
+id: overture:transportation:segment:example:indoor
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  # Segment of subtype rail has a road flag (should be disallowed)
+  subtype: rail
+  road_flags:
+    - values: [is_indoor]
+  ext_expected_errors:
+    - "oneOf failed, none matched"

@@ -1,0 +1,20 @@
+---
+id: overture:transportation:segment:123
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  ext_expected_errors:
+    - "roadClass/enum]: value must be one of 'motorway',"
+  theme: transportation
+  type: segment
+  update_time: "2024-04-23T00:00:00-05:00"
+  version: 1
+  subtype: road
+  class: sidewalk
+  connectors: 
+  - connector_id: fooConnector
+    at: 0
+  - connector_id: barConnector
+    at: 1

@@ -1,0 +1,25 @@
+---
+id: overture:transportation:example:simple-road2
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-71.11213418200086, 42.3017182333833]
+    - [-71.11234408150312, 42.30149091145671]
+    - [-71.11248901211202, 42.3013264259736]
+    - [-71.11283634581244, 42.30093831245662]
+properties:
+  theme: transportation
+  type: segment
+  version: 5
+  subtype: road
+  class: secondary
+  connectors:
+    - connector_id: overture:transportation:example:via-turn-restriction-connector1
+      at: 0
+    - connector_id: overture:transportation:example:via-turn-restriction-connector2
+      at: 1
+  names:
+    primary: Washington Street
+  road_surface:
+    - value: paved

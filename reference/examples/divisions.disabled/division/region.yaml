@@ -1,0 +1,30 @@
+---
+id: example:division:region:us-ny
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-75.8449946, 43.1561681]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: region
+  local_type:
+    en: state
+  names:
+    primary: New York
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: R61320.V468
+  country: US
+  region: US-NY
+  hierarchies:
+    - - division_id: example:division:country:us
+        subtype: country
+        name: United States
+      - division_id: example:division:region:us-ny
+        subtype: region
+        name: New York
+  capital_division_ids: [ example:division:locality:albany ]
+  parent_division_id: example:division:country:us

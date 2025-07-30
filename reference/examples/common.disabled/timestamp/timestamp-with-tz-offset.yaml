@@ -1,0 +1,10 @@
+---
+id: timestamp-with-tz-offset
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  theme: transportation
+  type: connector
+  version: 0
