@@ -14,6 +14,7 @@ This will install the currently implemented theme packages:
 
 - `overture-schema-addresses-theme` - Address theme
 - `overture-schema-base-theme` - Base theme (infrastructure, land, water, bathymetry, land cover, land use)
+- `overture-schema-buildings-theme` - Buildings theme
 
 ## Usage
 
@@ -33,6 +34,9 @@ from overture.schema.base import (
     LandUse,
     Water,
 )
+
+# Buildings theme
+from overture.schema.buildings import Building, BuildingPart
 ```
 
 TK
