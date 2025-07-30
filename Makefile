@@ -8,6 +8,7 @@ default: test-all
 
 check: test
 	uv run ruff check
+	$(MAKE) mypy
 
 # Test target that continues on failure
 test-all:
@@ -28,3 +29,9 @@ test: $(TEST_TARGETS)
 $(TEST_TARGETS): test-%:
 	@echo "Running tests in packages/$*"
 	@cd packages/$* && uv run pytest
+
+# mypy type checking with namespace package support
+mypy:
+	@echo "Running mypy type checking"
+	@cd packages && uv run mypy --namespace-packages \
+		-p overture.schema.core
