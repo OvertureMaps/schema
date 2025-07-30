@@ -1,40 +1,41 @@
 [project]
-name = "overture-schema"
+name = "overture-schema-addresses-theme"
 dynamic = ["version"]
-description = "Complete Overture Maps schema collection with all themes and types"
+description = "Overture Maps addresses theme models and structures"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
-    "overture-schema-addresses-theme",
     "overture-schema-core",
     "overture-schema-validation",
     "pydantic>=2.0",
-    "pyyaml>=6.0.2",
 ]
 
 [tool.uv.sources]
-overture-schema-addresses-theme = { workspace = true }
 overture-schema-core = { workspace = true }
 overture-schema-validation = { workspace = true }
+
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[dependency-groups]
-dev = [
-    "pytest>=7.0",
-    "pytest-cov",
-    "pyyaml",
-    "deepdiff",
-    "ruff",
-    "mypy",
-    "yamlcore>=0.0.4",
-]
-
 [tool.hatch.version]
-path = "src/overture/schema/__about__.py"
+path = "src/overture/schema/addresses/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+    "ruff",
+    "mypy",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[project.entry-points."overture.models"]
+"addresses.address" = "overture.schema.addresses.address.models:Address"

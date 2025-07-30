@@ -12,7 +12,32 @@ pip install overture-schema
 
 ## Usage
 
-This package serves as a test harness and validation framework.
+This package serves as a test harness and validation framework. Import specific schemas from their
+respective theme packages:
+
+```python
+# Addresses theme
+from overture.schema.addresses import Address
+```
+
+TK
+
+```python
+from overture.schema import Types # returns a Union annotated for use by Pydantic as a discriminated union
+```
+
+### JSON Schema
+
+TK
+
+```python
+from overture.schema import Types, json_schema
+
+# TODO output JSON
+print(json_schema(Types))
+```
+
+### Utilities
 
 The package includes test utilities for:
 
@@ -29,6 +54,10 @@ All models are validated to test:
 - Field-level constraints (country codes, language tags, etc.)
 - Cross-field validation rules
 - Source attribution validation
+
+## Extension
+
+TK using setuptools entry points
 
 ## Testing
 
