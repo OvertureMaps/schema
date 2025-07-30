@@ -1,0 +1,38 @@
+---
+id: example:division:dependency:pr
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-66.4858295, 18.2247706]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: dependency
+  local_type:
+    en: territory
+  names:
+    primary: Puerto Rico
+    common:
+      en: Puerto Rico
+      fr: Porto Rico
+      es: Puerto Rico
+      zh: 波多黎各
+    rules:
+      - variant: official
+        language: es
+        value: Estado Libre Asociado de Puerto Rico
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: R4422604.V41
+  country: PR
+  region: US-PR
+  hierarchies:
+    - - division_id: example:division:country:us
+        subtype: country
+        name: United States
+  norms:
+    driving_side: right
+  capital_division_ids: [ example:division:locality:san_juan ]
+  parent_division_id: example:division:country:us

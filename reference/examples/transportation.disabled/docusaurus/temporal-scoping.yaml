@@ -1,0 +1,20 @@
+---
+id: overture:transportation:example:temporal-scoping
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-122.90019762265949, 49.20784664905824]
+    - [-122.9003738558948, 49.207833436710956]
+    - [-122.90052986564378, 49.207871186265805]
+properties:
+  theme: transportation
+  type: segment
+  version: 2
+  subtype: road
+  class: unknown
+  access_restrictions:
+    - access_type: denied
+      when:
+        mode: [bus]
+        during: "Mo-Fr 15:00-18:00"

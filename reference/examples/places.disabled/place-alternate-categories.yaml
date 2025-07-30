@@ -1,0 +1,42 @@
+---
+id: overture:places:place:1
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  categories:
+    primary: the1_category_you_want_first
+    alternate:
+      - another_category
+  confidence: 0.9
+  websites:
+    - https://www.example.com
+  emails:
+    - info@example.com
+  socials:
+    - https://www.twitter.com/example
+  phones:
+    - +32 1207
+  brand:
+    names:
+      primary: My Sweet POI Brand
+    wikidata: Q1000
+  addresses:
+    - freeform: "770 Broadway, Floor 8"
+      locality: "New York"
+    - freeform: "770 Broadway, #802"
+      locality: "New York"
+      region: "US-NY"
+      country: "US"
+  # Overture properties
+  theme: places
+  type: place
+  version: 1
+  names:
+    primary: My Sweet POI
+    common:
+      es: Something in Spanish
+    rules:
+      - variant: short
+        value: MSPOI
