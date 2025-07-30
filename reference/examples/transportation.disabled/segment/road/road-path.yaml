@@ -1,0 +1,12 @@
+---
+id: overture:transportation:segment:1516
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 5
+  subtype: road
+  class: path

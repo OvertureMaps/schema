@@ -1,0 +1,21 @@
+---
+id: "overture:land:example:1"
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[34.4379197, 28.7592689], [34.4380109, 28.7595816], [34.4380173, 28.7601587], [34.4380538, 28.7606186],[34.4381540, 28.7609863], [34.4380735, 28.7612459], [34.4377346, 28.7608396], [34.4377158, 28.7606139],[34.4377105, 28.7605527], [34.4376300, 28.7604258], [34.4376407, 28.7603599], [34.4376488, 28.7602494],[34.4376863, 28.7599673], [34.4376675, 28.7597980], [34.4376890, 28.7596216], [34.4379197, 28.7592689]]]
+properties:
+  theme: base
+  type: land
+  subtype: sand
+  class: dune
+  names:
+    primary: Hadeida
+  source_tags:
+    natural: dune
+    surface: sand
+  sources:
+    - record_id: w407753930@3
+      property: ""
+      dataset: OpenStreetMap
+  version: 0

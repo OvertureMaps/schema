@@ -1,0 +1,17 @@
+{
+  "id": "unrecognizedProperty",
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [0, 1]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "connector",
+    "version": 0,
+    "foo": "bar",
+    "ext_expected_errors": [
+      "schema/transportation/connector.yaml#/properties/properties/unevaluatedProperties]: false schema"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "bad-class",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[2, 2], [3, 3]]
+  },
+  "properties": {
+    "ext_expected_errors": [
+      "railFlagsContainer/items/properties/values/uniqueItems]: items at 0 and 1 are equal"
+    ],
+    "theme": "transportation",
+    "type": "segment",
+    "version": 19,
+    "subtype": "rail",
+    "class": "primary",
+    "rail_flags": [
+      {
+        "values": ["is_freight", "is_freight"]
+      }
+    ]
+  }
+}

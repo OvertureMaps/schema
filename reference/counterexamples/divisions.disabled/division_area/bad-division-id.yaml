@@ -1,0 +1,18 @@
+---
+id: counterexample:division_area:bad-division-id
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  theme: divisions
+  type: division_area
+  version: 0
+  subtype: country
+  class: maritime
+  division_id: 'abc '
+  names:
+    primary: A division area with an invalid division ID property.
+  country: ZZ
+  ext_expected_errors:
+    - "'abc ' does not match pattern"

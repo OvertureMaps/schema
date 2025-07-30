@@ -1,0 +1,19 @@
+{
+    "id": "invalid-road-flag-string-value",
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[2, 2], [3, 3]]
+    },
+    "properties": {
+      "ext_expected_errors": [
+        "got string, want object"
+      ],
+      "theme": "transportation",
+      "type": "segment",
+      "version": 20,
+      "subtype": "road",
+      "class": "primary",
+      "road_flags": ["is_tunnel"]
+    }
+  }

@@ -1,0 +1,18 @@
+---
+id: speed-limits-simple
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-123.09348187774302, 49.280278741717865]
+    - [-123.0895720621171, 49.280195795155265]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: residential
+  speed_limits:
+    - max_speed:
+        value: 30
+        unit: km/h
