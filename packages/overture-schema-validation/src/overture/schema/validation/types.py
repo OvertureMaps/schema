@@ -5,6 +5,7 @@ from typing import Annotated
 from pydantic import Field
 
 from .constraints import (
+    CategoryPatternConstraint,
     ConfidenceScoreConstraint,
     CountryCodeConstraint,
     HexColorConstraint,
@@ -13,6 +14,7 @@ from .constraints import (
     LanguageTagConstraint,
     LinearReferenceRangeConstraint,
     NoWhitespaceConstraint,
+    PhoneNumberConstraint,
     RegionCodeConstraint,
     WhitespaceConstraint,
     WikidataConstraint,
@@ -20,21 +22,23 @@ from .constraints import (
 )
 
 # String types with constraints
-LanguageTag = Annotated[str, LanguageTagConstraint()]
+CategoryPattern = Annotated[str, CategoryPatternConstraint()]
 CountryCode = Annotated[str, CountryCodeConstraint()]
-RegionCode = Annotated[str, RegionCodeConstraint()]
+HexColor = Annotated[str, HexColorConstraint()]
 ISO8601DateTime = Annotated[str, ISO8601DateTimeConstraint()]
 JSONPointer = Annotated[str, JSONPointerConstraint()]
-TrimmedString = Annotated[str, WhitespaceConstraint()]
-HexColor = Annotated[str, HexColorConstraint()]
+LanguageTag = Annotated[str, LanguageTagConstraint()]
 NoWhitespaceString = Annotated[str, NoWhitespaceConstraint()]
+PhoneNumber = Annotated[str, PhoneNumberConstraint()]
+RegionCode = Annotated[str, RegionCodeConstraint()]
+TrimmedString = Annotated[str, WhitespaceConstraint()]
 WikidataId = Annotated[str, WikidataConstraint()]
 
 # Numeric types with constraints
 ConfidenceScore = Annotated[float, ConfidenceScoreConstraint()]
-ZoomLevel = Annotated[int, ZoomLevelConstraint()]
 NonNegativeFloat = Annotated[float, Field(ge=0.0)]
 NonNegativeInt = Annotated[int, Field(ge=0)]
+ZoomLevel = Annotated[int, ZoomLevelConstraint()]
 
 # Collection types with constraints
 LinearReferenceRange = Annotated[list[float], LinearReferenceRangeConstraint()]

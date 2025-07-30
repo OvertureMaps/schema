@@ -30,6 +30,7 @@ Usage:
 # Import all constraint classes for easy access
 from .constraints import (
     BaseConstraint,
+    CategoryPatternConstraint,
     CollectionConstraint,
     CompositeUniqueConstraint,
     ConfidenceScoreConstraint,
@@ -43,6 +44,7 @@ from .constraints import (
     NoWhitespaceConstraint,
     PatternConstraint,
     PatternPropertiesDictConstraint,
+    PhoneNumberConstraint,
     RegionCodeConstraint,
     StringConstraint,
     UniqueItemsConstraint,
@@ -85,6 +87,7 @@ __all__ = [
     "AtLeastOneOfValidator",
     "BaseConstraint",
     "BaseConstraintValidator",
+    "CategoryPatternConstraint",
     "CollectionConstraint",
     "CompositeUniqueConstraint",
     "ConfidenceScore",
@@ -112,6 +115,7 @@ __all__ = [
     "NotRequiredIfValidator",
     "PatternConstraint",
     "PatternPropertiesDictConstraint",
+    "PhoneNumberConstraint",
     "RegionCode",
     "RegionCodeConstraint",
     "RequiredIfValidator",

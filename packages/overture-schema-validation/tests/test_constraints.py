@@ -6,6 +6,7 @@ import pytest
 from pydantic import BaseModel, Field, ValidationError
 
 from overture.schema.validation import (
+    CategoryPatternConstraint,
     CompositeUniqueConstraint,
     ConfidenceScore,
     ConfidenceScoreConstraint,
@@ -26,10 +27,12 @@ from overture.schema.validation import (
     NonNegativeInt,
     NoWhitespaceConstraint,
     PatternConstraint,
+    PhoneNumberConstraint,
     RegionCode,
     RegionCodeConstraint,
     UniqueItemsConstraint,
     WhitespaceConstraint,
+    WikidataConstraint,
     ZoomLevel,
     ZoomLevelConstraint,
 )
@@ -250,6 +253,108 @@ class TestStringConstraints:
             with pytest.raises(ValidationError) as exc_info:
                 TestModel(text=text)
             assert "cannot have leading or trailing whitespace" in str(exc_info.value)
+
+    def test_category_pattern_constraint_valid(self):
+        """Test CategoryPatternConstraint with valid snake_case patterns."""
+
+        class TestModel(BaseModel):
+            category: Annotated[str, CategoryPatternConstraint()]
+
+        valid_categories = [
+            "restaurant",
+            "gas_station",
+            "shopping_mall",
+            "coffee_shop",
+            "bank_atm",
+        ]
+
+        for cat in valid_categories:
+            model = TestModel(category=cat)
+            assert model.category == cat
+
+    def test_category_pattern_constraint_invalid(self):
+        """Test CategoryPatternConstraint with invalid category patterns."""
+
+        class TestModel(BaseModel):
+            category: Annotated[str, CategoryPatternConstraint()]
+
+        invalid_categories = [
+            "Restaurant",  # Capital letter
+            "gas-station",  # Hyphen instead of underscore
+            "shopping mall",  # Space instead of underscore
+            "category!",  # Special character
+        ]
+
+        for cat in invalid_categories:
+            with pytest.raises(ValidationError) as exc_info:
+                TestModel(category=cat)
+            assert "Invalid category format" in str(exc_info.value)
+
+    def test_wikidata_constraint_valid(self):
+        """Test WikidataConstraint with valid Wikidata identifiers."""
+
+        class TestModel(BaseModel):
+            wikidata_id: Annotated[str, WikidataConstraint()]
+
+        valid_ids = ["Q1", "Q123", "Q999999", "Q1234567890"]
+
+        for wid in valid_ids:
+            model = TestModel(wikidata_id=wid)
+            assert model.wikidata_id == wid
+
+    def test_wikidata_constraint_invalid(self):
+        """Test WikidataConstraint with invalid Wikidata identifiers."""
+
+        class TestModel(BaseModel):
+            wikidata_id: Annotated[str, WikidataConstraint()]
+
+        invalid_ids = [
+            "q123",  # Lowercase q
+            "P123",  # Property instead of item
+            "Q",  # Missing number
+            "123",  # Missing Q prefix
+            "Q12abc",  # Non-numeric suffix
+        ]
+
+        for wid in invalid_ids:
+            with pytest.raises(ValidationError) as exc_info:
+                TestModel(wikidata_id=wid)
+            assert "Invalid Wikidata identifier" in str(exc_info.value)
+
+    def test_phone_number_constraint_valid(self):
+        """Test PhoneNumberConstraint with valid international phone numbers."""
+
+        class TestModel(BaseModel):
+            phone: Annotated[str, PhoneNumberConstraint()]
+
+        valid_phones = [
+            "+1-555-123-4567",
+            "+44-20-7946-0958",
+            "+33-1-42-86-83-26",
+            "+81-3-1234-5678",
+            "+86-10-8888-8888",
+        ]
+
+        for phone in valid_phones:
+            model = TestModel(phone=phone)
+            assert model.phone == phone
+
+    def test_phone_number_constraint_invalid(self):
+        """Test PhoneNumberConstraint with invalid phone numbers."""
+
+        class TestModel(BaseModel):
+            phone: Annotated[str, PhoneNumberConstraint()]
+
+        invalid_phones = [
+            "555-123-4567",  # Missing country code
+            "1-555-123-4567",  # Missing +
+            "not-a-phone",  # Not a phone number
+        ]
+
+        for phone in invalid_phones:
+            with pytest.raises(ValidationError) as exc_info:
+                TestModel(phone=phone)
+            assert "Invalid phone number format" in str(exc_info.value)
 
     def test_hex_color_constraint_valid(self):
         """Test HexColorConstraint with valid hex colors."""

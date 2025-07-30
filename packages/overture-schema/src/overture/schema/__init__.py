@@ -19,6 +19,7 @@ from overture.schema.buildings import Building, BuildingPart
 from overture.schema.core import parse_feature
 from overture.schema.core.discovery import discover_models
 from overture.schema.divisions import Division, DivisionArea, DivisionBoundary
+from overture.schema.places import Place
 
 Types = Annotated[
     Address
@@ -32,7 +33,8 @@ Types = Annotated[
     | BuildingPart
     | Division
     | DivisionArea
-    | DivisionBoundary,
+    | DivisionBoundary
+    | Place,
     Field(discriminator="type"),
 ]
 
