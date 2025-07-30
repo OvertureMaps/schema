@@ -1,0 +1,38 @@
+[project]
+name = "overture-schema-divisions-theme"
+dynamic = ["version"]
+description = "Overture Maps divisions theme shared structures, division, division area and division boundary types"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "overture-schema-core",
+    "overture-schema-validation",
+    "pydantic>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+    "ruff",
+    "mypy",
+]
+
+[tool.uv.sources]
+overture-schema-core = { workspace = true }
+overture-schema-validation = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/overture/schema/divisions/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/overture"]
+
+[project.entry-points."overture.models"]
+"divisions.division" = "overture.schema.divisions.division.models:Division"
+"divisions.division_area" = "overture.schema.divisions.division_area.models:DivisionArea"
+"divisions.division_boundary" = "overture.schema.divisions.division_boundary.models:DivisionBoundary"
