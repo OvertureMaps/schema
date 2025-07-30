@@ -39,4 +39,5 @@ mypy:
 		-p overture.schema.base \
 		-p overture.schema.buildings \
 		-p overture.schema.core \
+		-p overture.schema.divisions \
 		-p overture.schema.validation
