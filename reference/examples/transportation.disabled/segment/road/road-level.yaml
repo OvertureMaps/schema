@@ -1,0 +1,17 @@
+---
+id: overture:transportation:segment:example:level
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 0]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  version: 2
+  class: residential
+  level_rules:
+    - value: -1
+      between: [0, 0.5]
+    - value: 1
+      between: [0.75, 1]

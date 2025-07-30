@@ -1,0 +1,29 @@
+id: overture:buildings:part:100
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[
+    [-117.1707971, 32.7240658],
+    [-117.1712198, 32.724],
+    [-117.1712713, 32.7242091],
+    [-117.1706665, 32.7243145],
+    [-117.1705738, 32.7239379],
+    [-117.1707783, 32.7239022],
+    [-117.1707949, 32.7240226],
+    [-117.1707279, 32.7240319],
+    [-117.1707635, 32.7241786],
+    [-117.1708208, 32.7241677],
+    [-117.1707971, 32.7240658]
+  ]]
+properties:
+  building_id: '1234'
+  ext_foo: I am a customer user property.
+  ext_bar: Me too!
+  theme: buildings
+  type: building_part
+  version: 1
+  level: 1
+  num_floors: 8
+  sources:
+  - property: ''
+    dataset: OpenStreetMap

@@ -1,0 +1,22 @@
+id: overture:transportation:segment:counterexample:prohibited-transitions-unsupported-properties
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[-1, -1], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: residential
+  version: 1
+  prohibited_transitions:
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: backward
+      foo: bar
+      when:
+        baz: qux
+  ext_expected_errors:
+    - "'/properties/prohibited_transitions/0/foo' [S#/$defs/propertyContainers/prohibitedTransitionsContainer/items/unevaluatedProperties]: false schema"
+    - "'/properties/prohibited_transitions/0/when/baz' [S#/$defs/propertyContainers/prohibitedTransitionsContainer/items/properties/when/unevaluatedProperties]: false schema"

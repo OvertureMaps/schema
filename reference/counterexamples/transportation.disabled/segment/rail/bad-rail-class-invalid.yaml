@@ -1,0 +1,16 @@
+---
+# Counterexample to test Pydantic validation of invalid rail class
+# This should trigger line 184 in segment models: raise ValueError(f"Invalid rail class: {v}")
+id: bad-rail-class-pydantic
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: rail
+  class: invalid_rail_class  # This should trigger Pydantic validation error
+  ext_expected_errors:
+    - "Invalid rail class: invalid_rail_class"

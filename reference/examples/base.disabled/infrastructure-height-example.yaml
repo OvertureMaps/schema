@@ -1,0 +1,19 @@
+---
+id: 08b4035ac1518fff0001a9e45d5e1c9d
+type: Feature
+geometry:
+  type: Point
+  coordinates: [111.5341723, 25.1110193]
+properties:
+  theme: base
+  type: infrastructure
+  subtype: power
+  class: generator
+  height: 160.0
+  names:
+    primary: DEW-G5000-195
+  sources:
+    - property: ""
+      record_id: n10707323715@5
+      dataset: OpenStreetMap
+  version: 0

@@ -1,0 +1,16 @@
+---
+# Counterexample to test Pydantic validation of invalid road class
+# This should trigger line 180 in segment models: raise ValueError(f"Invalid road class: {v}")
+id: bad-road-class-pydantic
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment  
+  version: 1
+  subtype: road
+  class: invalid_road_class  # This should trigger Pydantic validation error
+  ext_expected_errors:
+    - "Invalid road class: invalid_road_class"

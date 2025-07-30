@@ -1,0 +1,18 @@
+---
+id: counterexample:division_area:bad-geometry-coordinates
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division_area
+  version: 0
+  subtype: country
+  class: maritime
+  division_id: counterexample:division:some-division
+  names:
+    primary: A division area with invalid geometry coordinates.
+  country: ZZ
+  ext_expected_errors:
+    - got number, want array
