@@ -9,16 +9,18 @@ from pydantic import (
     Field,
     GetJsonSchemaHandler,
     model_serializer,
-    model_validator,
 )
 from pydantic_core import core_schema
 
-from .geometry import Geometry
+from overture.schema.validation import (
+    ConstraintValidatedModel,
+    ISO8601DateTime,
+    JSONPointer,
+    LinearReferenceRange,
+)
+from overture.schema.validation.mixin import allow_extension_fields
 
-# Type aliases
-ISO8601DateTime = str
-JSONPointer = str
-LinearReferenceRange = tuple[float, float]
+from .geometry import Geometry
 
 
 class StrictBaseModel(BaseModel):
@@ -44,23 +46,13 @@ class SourceItem(StrictBaseModel):
     )
 
 
-class ExtensibleBaseModel(BaseModel):
+@allow_extension_fields()
+class ExtensibleBaseModel(ConstraintValidatedModel, BaseModel):
     """Base model that allows ext_* prefixed fields only."""
 
     model_config = ConfigDict(
         extra="allow"
     )  # Allow extra fields, which will be constrained by `@allow_extension_fields`
-
-    @model_validator(mode="after")
-    def validate_extension_prefixes(self):
-        """Validate that extra fields use allowed prefixes."""
-        if hasattr(self, "__pydantic_extra__") and self.__pydantic_extra__:
-            for field_name in self.__pydantic_extra__.keys():
-                if not field_name.startswith("ext_"):
-                    raise ValueError(
-                        f"Unrecognized field '{field_name}' must use ext_ prefix"
-                    )
-        return self
 
 
 class OvertureFeature(ExtensibleBaseModel, ABC):

@@ -34,4 +34,5 @@ $(TEST_TARGETS): test-%:
 mypy:
 	@echo "Running mypy type checking"
 	@cd packages && uv run mypy --namespace-packages \
-		-p overture.schema.core
+		-p overture.schema.core \
+		-p overture.schema.validation
