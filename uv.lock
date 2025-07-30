@@ -13,6 +13,7 @@ members = [
     "overture-schema-base-theme",
     "overture-schema-buildings-theme",
     "overture-schema-core",
+    "overture-schema-divisions-theme",
     "overture-schema-validation",
     "overture-schema-workspace",
 ]
@@ -360,6 +361,7 @@ dependencies = [
     { name = "overture-schema-base-theme" },
     { name = "overture-schema-buildings-theme" },
     { name = "overture-schema-core" },
+    { name = "overture-schema-divisions-theme" },
     { name = "overture-schema-validation" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -382,6 +384,7 @@ requires-dist = [
     { name = "overture-schema-base-theme", editable = "packages/overture-schema-base-theme" },
     { name = "overture-schema-buildings-theme", editable = "packages/overture-schema-buildings-theme" },
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-divisions-theme", editable = "packages/overture-schema-divisions-theme" },
     { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
@@ -500,6 +503,36 @@ dev = [
     { name = "pytest-subtests", specifier = ">=0.14.2" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250516" },
     { name = "types-shapely", specifier = ">=2.1.0.20250710" },
+]
+
+[[package]]
+name = "overture-schema-divisions-theme"
+source = { editable = "packages/overture-schema-divisions-theme" }
+dependencies = [
+    { name = "overture-schema-core" },
+    { name = "overture-schema-validation" },
+    { name = "pydantic" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
+    { name = "pydantic", specifier = ">=2.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy" },
+    { name = "pytest", specifier = ">=7.0" },
+    { name = "ruff" },
 ]
 
 [[package]]

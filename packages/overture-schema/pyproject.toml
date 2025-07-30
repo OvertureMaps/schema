@@ -9,6 +9,7 @@ dependencies = [
     "overture-schema-addresses-theme",
     "overture-schema-base-theme",
     "overture-schema-buildings-theme",
+    "overture-schema-divisions-theme",
     "overture-schema-core",
     "overture-schema-validation",
     "pydantic>=2.0",
@@ -19,6 +20,7 @@ dependencies = [
 overture-schema-addresses-theme = { workspace = true }
 overture-schema-base-theme = { workspace = true }
 overture-schema-buildings-theme = { workspace = true }
+overture-schema-divisions-theme = { workspace = true }
 overture-schema-core = { workspace = true }
 overture-schema-validation = { workspace = true }
 
