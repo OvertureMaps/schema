@@ -4,7 +4,7 @@ from functools import reduce
 from operator import or_
 from typing import Annotated, Any
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from overture.schema.addresses import Address
 from overture.schema.base import (
@@ -15,11 +15,20 @@ from overture.schema.base import (
     LandUse,
     Water,
 )
+from overture.schema.buildings import Building, BuildingPart
 from overture.schema.core import parse_feature
 from overture.schema.core.discovery import discover_models
 
 Types = Annotated[
-    Address | Bathymetry | Infrastructure | Land | LandCover | LandUse | Water,
+    Address
+    | Bathymetry
+    | Infrastructure
+    | Land
+    | LandCover
+    | LandUse
+    | Water
+    | Building
+    | BuildingPart,
     Field(discriminator="type"),
 ]
 
