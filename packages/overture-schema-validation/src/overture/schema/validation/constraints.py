@@ -452,6 +452,39 @@ class UniqueItemsConstraint(CollectionConstraint):
         return json_schema
 
 
+class WikidataConstraint(StringConstraint):
+    """Constraint for Wikidata identifiers (Q followed by digits)."""
+
+    def __init__(self) -> None:
+        self.pattern = re.compile(r"^Q\d+$")
+
+    def validate(self, value: str, info: ValidationInfo) -> None:
+        if not self.pattern.match(value):
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Invalid Wikidata identifier: {value}. Must be Q followed by digits (e.g., Q123)"
+                        },
+                    )
+                ],
+            )
+
+    def __get_pydantic_json_schema__(
+        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> dict[str, Any]:
+        json_schema = handler(core_schema)
+        json_schema["pattern"] = self.pattern.pattern
+        json_schema["description"] = "Wikidata identifier (Q followed by digits)"
+        return json_schema
+
+
 class ConfidenceScoreConstraint(BaseConstraint):
     """Constraint for confidence/probability scores (0.0 to 1.0)."""
 

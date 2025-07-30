@@ -1,7 +1,7 @@
 """Base schema classes for Overture Maps features."""
 
 from abc import ABC
-from typing import Any
+from typing import Annotated, Any
 
 from pydantic import (
     BaseModel,
@@ -13,6 +13,7 @@ from pydantic import (
 from pydantic_core import core_schema
 
 from overture.schema.validation import (
+    ConfidenceScoreConstraint,
     ConstraintValidatedModel,
     ISO8601DateTime,
     JSONPointer,
@@ -32,14 +33,19 @@ class StrictBaseModel(BaseModel):
 class SourceItem(StrictBaseModel):
     """Source information for a specific property."""
 
+    # Required
+
     property: JSONPointer = Field(..., description="JSON Pointer to the property")
     dataset: str = Field(..., description="Source dataset identifier")
+
+    # Optional
+
     record_id: str = Field(default=None, description="Specific record within dataset")
     update_time: ISO8601DateTime = Field(
         default=None, description="When this property was last updated"
     )
-    confidence: float = Field(
-        default=None, ge=0, le=1, description="Confidence value for ML-derived data"
+    confidence: Annotated[float, ConfidenceScoreConstraint()] = Field(
+        default=None, description="Confidence value for ML-derived data"
     )
     between: LinearReferenceRange = Field(
         default=None, description="Linear referencing range"
@@ -57,6 +63,8 @@ class ExtensibleBaseModel(ConstraintValidatedModel, BaseModel):
 
 class OvertureFeature(ExtensibleBaseModel, ABC):
     """Base class for all Overture features."""
+
+    # Required
 
     id: str = Field(..., min_length=1, description="Feature identifier")
     theme: str = Field(..., description="Top-level Overture theme")

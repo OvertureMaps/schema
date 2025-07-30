@@ -47,6 +47,7 @@ from .constraints import (
     StringConstraint,
     UniqueItemsConstraint,
     WhitespaceConstraint,
+    WikidataConstraint,
     ZoomLevelConstraint,
 )
 from .mixin import (
@@ -118,6 +119,7 @@ __all__ = [
     "TrimmedString",
     "UniqueItemsConstraint",
     "WhitespaceConstraint",
+    "WikidataConstraint",
     "ZoomLevel",
     "ZoomLevelConstraint",
     "allow_extension_fields",
