@@ -18,6 +18,7 @@ mypy:
 		-p overture.schema \
 		-p overture.schema.addresses \
 		-p overture.schema.base \
+		-p overture.schema.buildings \
 		-p overture.schema.core \
 		-p overture.schema.validation
 	@uv run mypy packages/*/tests/*.py
