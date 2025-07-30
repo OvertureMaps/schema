@@ -15,6 +15,7 @@ from .constraints import (
     NoWhitespaceConstraint,
     RegionCodeConstraint,
     WhitespaceConstraint,
+    WikidataConstraint,
     ZoomLevelConstraint,
 )
 
@@ -27,6 +28,7 @@ JSONPointer = Annotated[str, JSONPointerConstraint()]
 TrimmedString = Annotated[str, WhitespaceConstraint()]
 HexColor = Annotated[str, HexColorConstraint()]
 NoWhitespaceString = Annotated[str, NoWhitespaceConstraint()]
+WikidataId = Annotated[str, WikidataConstraint()]
 
 # Numeric types with constraints
 ConfidenceScore = Annotated[float, ConfidenceScoreConstraint()]

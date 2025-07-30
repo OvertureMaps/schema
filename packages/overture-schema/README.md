@@ -1,6 +1,6 @@
 # overture-schema
 
-Overture Maps schema test harness and validation framework.
+Overture Maps schema collection with implemented themes.
 
 This package provides testing infrastructure for Overture Maps Pydantic schemas. It includes a pytest-based test harness that validates schema models against curated examples and counterexamples.
 
@@ -10,6 +10,11 @@ This package provides testing infrastructure for Overture Maps Pydantic schemas.
 pip install overture-schema
 ```
 
+This will install the currently implemented theme packages:
+
+- `overture-schema-addresses-theme` - Address theme
+- `overture-schema-base-theme` - Base theme (infrastructure, land, water, bathymetry, land cover, land use)
+
 ## Usage
 
 This package serves as a test harness and validation framework. Import specific schemas from their
@@ -18,6 +23,16 @@ respective theme packages:
 ```python
 # Addresses theme
 from overture.schema.addresses import Address
+
+# Base theme
+from overture.schema.base import (
+    Bathymetry,
+    Infrastructure,
+    Land,
+    LandCover,
+    LandUse,
+    Water,
+)
 ```
 
 TK
@@ -61,7 +76,8 @@ TK using setuptools entry points
 
 ## Testing
 
-This package includes test suites that validate schemas against curated examples and counterexamples. Tests ensure that:
+This package includes test suites that validate schemas against curated examples and
+counterexamples. Tests ensure that:
 
 - Valid examples pass validation
 - Invalid counterexamples properly fail validation
