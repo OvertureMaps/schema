@@ -21,6 +21,7 @@ from overture.schema.core import parse_feature
 from overture.schema.core.discovery import discover_models
 from overture.schema.divisions import Division, DivisionArea, DivisionBoundary
 from overture.schema.places import Place
+from overture.schema.transportation import Connector, Segment
 
 Types = Annotated[
     Address
@@ -35,7 +36,9 @@ Types = Annotated[
     | Division
     | DivisionArea
     | DivisionBoundary
-    | Place,
+    | Place
+    | Connector
+    | Segment,
     Field(discriminator="type"),
 ]
 

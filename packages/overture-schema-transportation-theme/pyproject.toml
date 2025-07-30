@@ -1,0 +1,31 @@
+[project]
+name = "overture-schema-transportation-theme"
+dynamic = ["version"]
+description = "Overture Maps transportation theme with shared structures and connector and segment types"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "overture-schema-core",
+    "overture-schema-validation",
+    "pydantic>=2.0",
+]
+
+[tool.uv.sources]
+overture-schema-core = { workspace = true }
+overture-schema-validation = { workspace = true }
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/overture/schema/transportation/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/overture"]
+
+[project.entry-points."overture.models"]
+"transportation.connector" = "overture.schema.transportation.connector.models:Connector"
+"transportation.segment" = "overture.schema.transportation.segment.models:Segment"
