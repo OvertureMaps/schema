@@ -452,6 +452,39 @@ class UniqueItemsConstraint(CollectionConstraint):
         return json_schema
 
 
+class CategoryPatternConstraint(StringConstraint):
+    """Constraint for place category patterns (snake_case)."""
+
+    def __init__(self) -> None:
+        self.pattern = re.compile(r"^[a-z0-9]+(_[a-z0-9]+)*$")
+
+    def validate(self, value: str, info: ValidationInfo) -> None:
+        if not self.pattern.match(value):
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Invalid category format: {value}. Must be snake_case (lowercase letters, numbers, underscores)"
+                        },
+                    )
+                ],
+            )
+
+    def __get_pydantic_json_schema__(
+        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> dict[str, Any]:
+        json_schema = handler(core_schema)
+        json_schema["pattern"] = self.pattern.pattern
+        json_schema["description"] = "Category in snake_case format"
+        return json_schema
+
+
 class WikidataConstraint(StringConstraint):
     """Constraint for Wikidata identifiers (Q followed by digits)."""
 
@@ -482,6 +515,41 @@ class WikidataConstraint(StringConstraint):
         json_schema = handler(core_schema)
         json_schema["pattern"] = self.pattern.pattern
         json_schema["description"] = "Wikidata identifier (Q followed by digits)"
+        return json_schema
+
+
+class PhoneNumberConstraint(StringConstraint):
+    """Constraint for international phone numbers."""
+
+    def __init__(self) -> None:
+        self.pattern = re.compile(r"^\+\d{1,3}[\s\-\(\)0-9]+$")
+
+    def validate(self, value: str, info: ValidationInfo) -> None:
+        if not self.pattern.match(value):
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Invalid phone number format: {value}. Must start with + and country code"
+                        },
+                    )
+                ],
+            )
+
+    def __get_pydantic_json_schema__(
+        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> dict[str, Any]:
+        json_schema = handler(core_schema)
+        json_schema["pattern"] = self.pattern.pattern
+        json_schema["description"] = (
+            "International phone number (+ followed by country code and number)"
+        )
         return json_schema
 
 
