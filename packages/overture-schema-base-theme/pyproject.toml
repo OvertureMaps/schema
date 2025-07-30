@@ -1,0 +1,42 @@
+[project]
+name = "overture-schema-base-theme"
+dynamic = ["version"]
+description = "Overture Maps base theme shared structures and models (bathymetry, infrastructure, land, land_cover, land_use, water)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "overture-schema-core",
+    "overture-schema-validation",
+    "pydantic>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+    "ruff",
+    "mypy",
+]
+
+[tool.uv.sources]
+overture-schema-core = { workspace = true }
+overture-schema-validation = { workspace = true }
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/overture/schema/base/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/overture"]
+
+[project.entry-points."overture.models"]
+"base.bathymetry" = "overture.schema.base.bathymetry.models:Bathymetry"
+"base.infrastructure" = "overture.schema.base.infrastructure.models:Infrastructure"
+"base.land" = "overture.schema.base.land.models:Land"
+"base.land_cover" = "overture.schema.base.land_cover.models:LandCover"
+"base.land_use" = "overture.schema.base.land_use.models:LandUse"
+"base.water" = "overture.schema.base.water.models:Water"

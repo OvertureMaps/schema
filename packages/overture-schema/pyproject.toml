@@ -7,6 +7,7 @@ requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
     "overture-schema-addresses-theme",
+    "overture-schema-base-theme",
     "overture-schema-core",
     "overture-schema-validation",
     "pydantic>=2.0",
@@ -15,6 +16,7 @@ dependencies = [
 
 [tool.uv.sources]
 overture-schema-addresses-theme = { workspace = true }
+overture-schema-base-theme = { workspace = true }
 overture-schema-core = { workspace = true }
 overture-schema-validation = { workspace = true }
 
