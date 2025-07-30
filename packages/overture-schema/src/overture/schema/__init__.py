@@ -5,10 +5,16 @@ from operator import or_
 from types import UnionType
 from typing import TYPE_CHECKING, Annotated, Any, Union
 
-from pydantic import BaseModel, Field, TypeAdapter
+from pydantic import Field
 
+from overture.schema.addresses import Address
 from overture.schema.core import parse_feature
 from overture.schema.core.discovery import discover_models
+
+Types = Annotated[
+    Address,
+    Field(discriminator="type"),
+]
 
 
 def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
