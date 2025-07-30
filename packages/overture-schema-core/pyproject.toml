@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "overture-schema-core"
+dynamic = ["version"]
+description = "Core schemas for Overture Maps"
+license = "MIT"
+dependencies = [
+    "pydantic>=2.0",
+    "shapely>=2.1.1",
+]
+
+[tool.hatch.version]
+path = "src/overture/schema/core/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/overture"]
+
+[dependency-groups]
+dev = [
+    "pytest-subtests>=0.14.2",
+    "types-pyyaml>=6.0.12.20250516",
+    "types-shapely>=2.1.0.20250710",
+]

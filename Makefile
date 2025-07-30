@@ -14,4 +14,6 @@ test:
 
 # mypy type checking with namespace package support
 mypy:
+	@cd packages && uv run mypy --namespace-packages \
+		-p overture.schema.core
 	@uv run mypy packages/*/tests/*.py
