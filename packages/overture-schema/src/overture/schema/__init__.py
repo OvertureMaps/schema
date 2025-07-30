@@ -1,0 +1,40 @@
+__path__ = __import__("pkgutil").extend_path(__path__, __name__)
+
+from functools import reduce
+from operator import or_
+from typing import Annotated, Any
+
+from pydantic import BaseModel, Field, TypeAdapter
+
+from overture.schema.core import parse_feature
+from overture.schema.core.discovery import discover_models
+
+
+def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
+    """
+    Parse and validate a feature using the union of all available models.
+
+    Args:
+        feature: Feature data (GeoJSON or flattened format)
+        mode: Output mode - "json" for GeoJSON format, "python" for flattened format
+
+    Returns:
+        Parsed feature in the specified format
+
+    Uses the discovery mechanism to find all registered models and validates
+    the feature against the union of all available models.
+    """
+    # Discover all registered models via entry points
+    models = discover_models()
+    if not models:
+        raise ValueError("No registered models found via entry points")
+
+    # Create union of all model classes
+    union_type = reduce(or_, list(models.values()))
+
+    model_type = Annotated[
+        union_type,
+        Field(discriminator="type"),
+    ]
+
+    return parse_feature(feature, model_type, mode)
