@@ -2,16 +2,23 @@ from typing import Annotated
 
 from pydantic import Field
 
-ConfidenceScore = float
-HexColor = str
-ISO8601DateTime = str
-JSONPointer = str
-LanguageTag = str
-NoWhitespaceString = str
-PhoneNumber = str
-RegionCode = str
-TrimmedString = str
-WikidataId = str
+from overture.schema.validation.constraints import (
+    CountryCodeConstraint,
+    LinearReferenceRangeConstraint,
+    PatternPropertiesDictConstraint,
+)
+from overture.schema.validation.types import (
+    ConfidenceScore,
+    HexColor,
+    ISO8601DateTime,
+    JSONPointer,
+    LanguageTag,
+    NoWhitespaceString,
+    PhoneNumber,
+    RegionCode,
+    TrimmedString,
+    WikidataId,
+)
 
 Id = Annotated[
     NoWhitespaceString,
@@ -32,6 +39,7 @@ LinearlyReferencedPosition = Annotated[
 ]
 LinearlyReferencedRange = Annotated[
     list[LinearlyReferencedPosition],
+    LinearReferenceRangeConstraint(),
     Field(
         description="Represents a non-empty range of positions along a path as a pair linearly-referenced positions. For example, the pair [0.25, 0.5] represents the range beginning 25% of the distance from the start of the path and ending 50% of the distance from the path",
     ),
@@ -51,7 +59,9 @@ Level = Annotated[
     int, Field(default=0, description="Z-order of the feature where 0 is visual level")
 ]
 
-CountryCode = Annotated[str, Field(description="ISO 3166-1 alpha-2 country code")]
+CountryCode = Annotated[
+    str, CountryCodeConstraint(), Field(description="ISO 3166-1 alpha-2 country code")
+]
 
 CommonNames = Annotated[
     dict[
@@ -65,7 +75,7 @@ The validating regular expression for this property follows the pattern describe
         ],
         TrimmedString,
     ],
-    None,
+    PatternPropertiesDictConstraint(),
 ]
 
 # It might be reasonable to combine "update_time" and "version" in a single "updateVersion" field
@@ -134,6 +144,7 @@ Type = Annotated[str, Field(description="Specific feature type within the theme"
 __all__ = [
     "ConfidenceScore",
     "CountryCode",
+    "CountryCodeConstraint",
     "HexColor",
     "Id",
     "ISO8601DateTime",
@@ -141,6 +152,7 @@ __all__ = [
     "LanguageTag",
     "LinearlyReferencedPosition",
     "LinearlyReferencedRange",
+    "LinearReferenceRangeConstraint",
     "Level",
     "MaxZoom",
     "MinZoom",
