@@ -12,7 +12,11 @@ from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 
 
 class Bathymetry(OvertureFeature):
-    """Bathymetry feature model."""
+    """Bathymetry feature model representing underwater depth measurements.
+
+    Polygonal features that represent areas of consistent water depth
+    for marine navigation and oceanographic mapping purposes.
+    """
 
     # Core
 

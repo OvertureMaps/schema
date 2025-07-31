@@ -207,7 +207,12 @@ class InfrastructureClass(str, Enum):
 
 
 class Infrastructure(OvertureFeature):
-    """Infrastructure feature model."""
+    """Infrastructure feature model representing built facilities and structures.
+
+    Covers a wide range of human-made structures including transportation
+    infrastructure (bridges, tunnels), utilities (power lines, towers),
+    and public facilities (airports, stations).
+    """
 
     # Core
 

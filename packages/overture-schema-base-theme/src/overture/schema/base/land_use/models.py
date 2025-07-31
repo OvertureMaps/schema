@@ -160,7 +160,16 @@ class LandUseClass(str, Enum):
 
 
 class LandUse(OvertureFeature):
-    """LandUse feature model for classifications of human use of land."""
+    """Human land use classification model.
+
+    Represents how humans utilize land areas through structured categorization
+    of land usage patterns. Covers diverse human activities including agriculture,
+    residential development, commercial areas, recreational facilities, industrial
+    zones, and infrastructure.
+
+    Supports detailed classification through subtype and class hierarchies,
+    elevation data, surface materials, and multilingual naming.
+    """
 
     # Core
 

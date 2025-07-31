@@ -33,7 +33,17 @@ from ..validation import parent_division_required_unless
 
 @parent_division_required_unless("subtype", PlaceType.COUNTRY)
 class Division(OvertureFeature):
-    """Division feature model."""
+    """Administrative and political division model representing organized territories.
+
+    Models administrative and political entities at various hierarchical levels,
+    from countries and provinces to cities, towns, and neighborhoods. Represents
+    both official governmental divisions and recognized informal territorial
+    organizations.
+
+    Each division has a point geometry indicating its representative location,
+    hierarchical relationships with parent/child divisions, and support for
+    multiple political perspectives in disputed territories.
+    """
 
     # Core
 

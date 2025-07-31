@@ -29,7 +29,11 @@ class AddressLevel(StrictBaseModel):
 
 
 class Address(OvertureFeature):
-    """Address feature model."""
+    """Address point model with flexible administrative level structure.
+
+    Uses a simplified schema with flexible administrative levels to capture
+    worldwide address points with varying local rules and field names.
+    """
 
     # Core
 

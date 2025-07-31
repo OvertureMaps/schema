@@ -11,7 +11,11 @@ from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 
 
 class Connector(OvertureFeature):
-    """Connector feature model."""
+    """Connector feature model representing junction points in transportation networks.
+
+    Point features that mark intersections, crossings, and connection points
+    between transportation segments, enabling network topology and routing.
+    """
 
     # Core
 

@@ -73,7 +73,12 @@ class WaterClass(str, Enum):
 
 
 class Water(OvertureFeature):
-    """Water feature model."""
+    """Water body feature model representing aquatic surfaces and waterways.
+
+    Models diverse water features including rivers, lakes, oceans, streams,
+    canals, ponds, and other aquatic surfaces. Covers both natural water bodies
+    and human-made water features such as reservoirs and artificial waterways.
+    """
 
     # Core
 

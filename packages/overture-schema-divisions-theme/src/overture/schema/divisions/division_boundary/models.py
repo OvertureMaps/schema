@@ -26,7 +26,15 @@ from ..shared import (
 @exactly_one_of("is_land", "is_territorial")
 @not_required_if("subtype", PlaceType.COUNTRY, ["country"])
 class DivisionBoundary(OvertureFeature):
-    """Division boundary feature model."""
+    """Administrative division boundary model representing borders between territories.
+
+    Models linear boundaries between adjacent administrative divisions using
+    line string geometries. Represents shared borders at various administrative
+    levels, from international boundaries to local district borders.
+
+    Supports both land and maritime boundaries, disputed boundary indicators,
+    and multiple political perspectives on contested borders.
+    """
 
     # Core
 

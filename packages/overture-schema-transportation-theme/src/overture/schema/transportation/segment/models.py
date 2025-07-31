@@ -209,3 +209,14 @@ class WaterSegment(TransportationSegment):
 Segment = Annotated[
     RoadSegment | RailSegment | WaterSegment, Field(discriminator="subtype")
 ]
+
+# Explicitly assign docstring to the Segment type alias
+Segment.__doc__ = """Transportation segment model representing linear travel infrastructure.
+
+Encompasses road, rail, and water transportation segments. Models linear features that enable
+movement of people, goods, and vehicles through structured networks. Each segment type provides
+specialized attributes for its respective transportation mode.
+
+Supports routing, mapping, navigation, and transportation network analysis through rich geometric
+and attribute data.
+"""

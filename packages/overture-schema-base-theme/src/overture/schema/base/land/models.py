@@ -82,7 +82,12 @@ class LandClass(str, Enum):
 
 
 class Land(OvertureFeature):
-    """Land feature model."""
+    """Land surface feature model representing physical terrain and natural elements.
+
+    Models diverse land surface features including geographic landforms, natural
+    terrain elements, and vegetation. Covers features like mountains, forests,
+    beaches, glaciers, and other physical land surfaces.
+    """
 
     # Core
 

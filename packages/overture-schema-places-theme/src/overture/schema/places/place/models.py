@@ -109,7 +109,11 @@ class Confidence(StrictBaseModel):
 
 
 class Place(OvertureFeature):
-    """Place feature model."""
+    """Point model for real-world facilities, services, and amenities.
+
+    Represents places of interest with category classifications, contact
+    information, and confidence scores for data quality assessment.
+    """
 
     # Required
 

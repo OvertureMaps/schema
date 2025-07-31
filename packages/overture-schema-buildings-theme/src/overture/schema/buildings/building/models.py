@@ -21,7 +21,11 @@ from ..shared import (
 
 
 class Building(OvertureFeature, BuildingShape):
-    """Building feature model."""
+    """Building model with footprint geometry and structural attributes.
+
+    Represents building footprints or roofprints with polygon geometry and
+    attributes for classification, physical properties, and appearance.
+    """
 
     # Core
 
