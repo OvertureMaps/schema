@@ -1,20 +1,22 @@
+from collections.abc import Iterator
 from dataclasses import dataclass
 from itertools import chain, combinations
-from typing import Annotated
+from typing import Annotated, Any
 
 import pytest
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from pydantic import BaseModel, ValidationError
+from pytest_subtests import SubTests
 
 
-def test_geometry_type_constraint_empty():
+def test_geometry_type_constraint_empty() -> None:
     with pytest.raises(ValueError):
 
         class EmptyGeometryTypeConstraintModel(BaseModel):
             geometry: Annotated[Geometry, GeometryTypeConstraint()]
 
 
-def test_geometry_type_constraint_invalid():
+def test_geometry_type_constraint_invalid() -> None:
     with pytest.raises(ValueError):
 
         class InvalidGeometryTypeConstraintModel(BaseModel):
@@ -47,7 +49,7 @@ TEST_GEOMETRY_TYPE_CASES: tuple[GeometryTypeCase] = (
 )
 
 
-def powerset(iterable):
+def powerset(iterable: list[Any]) -> Iterator[tuple[Any, ...]]:
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
@@ -58,7 +60,9 @@ TEST_GEOMETRY_TYPE_CASE_SUBSETS = tuple(
 
 
 @pytest.mark.parametrize("geometry_type_case_subset", TEST_GEOMETRY_TYPE_CASE_SUBSETS)
-def test_geometry_type_constraint_valid(geometry_type_case_subset, subtests):
+def test_geometry_type_constraint_valid(
+    geometry_type_case_subset: tuple[GeometryTypeCase, ...], subtests: SubTests
+) -> None:
     allowed_types = tuple(g.geometry_type for g in geometry_type_case_subset)
 
     class ConstrainedModel(BaseModel):

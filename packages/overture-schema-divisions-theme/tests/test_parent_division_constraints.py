@@ -23,7 +23,7 @@ class PlaceType(str, Enum):
 class TestParentDivisionValidator:
     """Test parent division constraint validation."""
 
-    def test_parent_division_validator_direct(self):
+    def test_parent_division_validator_direct(self) -> None:
         """Test ParentDivisionValidator directly."""
 
         class TestModel(StrictBaseModel):
@@ -56,7 +56,7 @@ class TestParentDivisionValidator:
         ):
             validator.validate(model)
 
-    def test_parent_division_constraint_decorator(self):
+    def test_parent_division_constraint_decorator(self) -> None:
         """Test parent division constraint using decorator."""
 
         @parent_division_required_unless("subtype", PlaceType.COUNTRY)
@@ -88,7 +88,7 @@ class TestParentDivisionValidator:
             exc_info.value
         )
 
-    def test_parent_division_nested_properties(self):
+    def test_parent_division_nested_properties(self) -> None:
         """Test parent division constraint with nested properties."""
 
         @parent_division_required_unless("subtype", PlaceType.COUNTRY)
@@ -107,7 +107,7 @@ class TestParentDivisionValidator:
             exc_info.value
         )
 
-    def test_parent_division_json_schema(self):
+    def test_parent_division_json_schema(self) -> None:
         """Test JSON schema generation for parent division constraint."""
 
         @parent_division_required_unless("subtype", PlaceType.COUNTRY)

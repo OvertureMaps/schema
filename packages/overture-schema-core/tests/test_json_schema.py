@@ -6,7 +6,7 @@ from pydantic.json_schema import GenerateJsonSchema
 class TestOptionalWithoutDefaultGenerator:
     """Test the OptionalWithoutDefaultGenerator class."""
 
-    def test_nullable_with_none_default_becomes_optional(self):
+    def test_nullable_with_none_default_becomes_optional(self) -> None:
         """Test that X | None = None becomes optional without default."""
 
         class TestModel(BaseModel):
@@ -31,7 +31,7 @@ class TestOptionalWithoutDefaultGenerator:
         assert nullable_field_schema["type"] == "string"
         assert "anyOf" not in nullable_field_schema
 
-    def test_nullable_with_other_default_keeps_default(self):
+    def test_nullable_with_other_default_keeps_default(self) -> None:
         """Test that X | None = 'value' keeps the default value."""
 
         class TestModel(BaseModel):
@@ -49,7 +49,7 @@ class TestOptionalWithoutDefaultGenerator:
         assert nullable_field_schema["type"] == "string"
         assert "anyOf" not in nullable_field_schema
 
-    def test_regular_defaults_preserved(self):
+    def test_regular_defaults_preserved(self) -> None:
         """Test that regular non-nullable defaults are preserved."""
 
         class TestModel(BaseModel):
@@ -67,7 +67,7 @@ class TestOptionalWithoutDefaultGenerator:
         assert properties["int_field"]["default"] == 42
         assert properties["bool_field"]["default"] is True
 
-    def test_required_fields_unchanged(self):
+    def test_required_fields_unchanged(self) -> None:
         """Test that required fields without defaults are unchanged."""
 
         class TestModel(BaseModel):
@@ -86,7 +86,7 @@ class TestOptionalWithoutDefaultGenerator:
         assert "default" not in properties["required_int"]
         assert "default" not in properties["optional_with_none"]
 
-    def test_comparison_with_standard_generator(self):
+    def test_comparison_with_standard_generator(self) -> None:
         """Test behavior differs from standard GenerateJsonSchema."""
 
         class TestModel(BaseModel):
@@ -113,7 +113,7 @@ class TestOptionalWithoutDefaultGenerator:
         assert custom_field["type"] == "string"
         assert "anyOf" not in custom_field
 
-    def test_multiple_nullable_fields(self):
+    def test_multiple_nullable_fields(self) -> None:
         """Test handling of multiple nullable fields with None defaults."""
 
         class TestModel(BaseModel):
@@ -140,7 +140,7 @@ class TestOptionalWithoutDefaultGenerator:
         assert properties["opt_bool"]["type"] == "boolean"
         assert "default" not in properties["opt_bool"]
 
-    def test_complex_optional_types(self):
+    def test_complex_optional_types(self) -> None:
         """Test with more complex optional types."""
 
         class NestedModel(BaseModel):
@@ -170,7 +170,7 @@ class TestOptionalWithoutDefaultGenerator:
         # None should be in required
         assert "required" not in schema or len(schema["required"]) == 0
 
-    def test_union_types_with_none_default(self):
+    def test_union_types_with_none_default(self) -> None:
         """Test union types like str | int | None = None."""
 
         class TestModel(BaseModel):

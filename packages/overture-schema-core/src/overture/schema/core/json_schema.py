@@ -1,3 +1,4 @@
+from types import UnionType
 from typing import Any, get_origin
 
 from pydantic import BaseModel
@@ -42,7 +43,7 @@ class OptionalWithoutDefaultGenerator(GenerateJsonSchema):
         return super().default_schema(schema)
 
 
-def json_schema(models: type[BaseModel] | Any) -> dict[str, Any]:
+def json_schema(models: type[BaseModel] | UnionType | type) -> dict[str, Any]:
     """Generate JSON schema for a Pydantic model or union of models.
 
     Args:

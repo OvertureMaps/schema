@@ -1,12 +1,12 @@
-from typing import Any
+from types import UnionType
 
-from pydantic import TypeAdapter
+from pydantic import BaseModel, TypeAdapter
 
 # Shared cache for TypeAdapter instances to avoid recreating them
-_TYPE_ADAPTER_CACHE: dict[Any, TypeAdapter] = {}
+_TYPE_ADAPTER_CACHE: dict[type[BaseModel] | UnionType | type, TypeAdapter] = {}
 
 
-def get_type_adapter(model_type: Any) -> TypeAdapter:
+def get_type_adapter(model_type: type[BaseModel] | UnionType | type) -> TypeAdapter:
     """Get a cached TypeAdapter instance for the given model type.
 
     Args:
