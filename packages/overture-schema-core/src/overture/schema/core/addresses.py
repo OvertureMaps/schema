@@ -1,18 +1,29 @@
 """Address-related models for Overture Maps features."""
 
+from typing import Annotated
+
 from pydantic import Field
 
+from overture.schema.validation.constraints import WhitespaceConstraint
 from overture.schema.validation.types import CountryCode, RegionCode
 
 from .base import ExtensibleBaseModel, StrictBaseModel
 
 
 class AddressLevel(StrictBaseModel):
-    """Address level with optional value."""
+    """Single administrative level in address hierarchy."""
 
-    # Optional
+    value: Annotated[str, WhitespaceConstraint()] | None = Field(
+        default=None,
+        min_length=1,
+        description="""An address "admin level". We want to avoid the phrase "admin level" and have chosen "address level". These represent states, regions, districts, cities, neighborhoods, etc. The address schema defines several numbered levels with per-country rules indicating which parts of a country's address goes to which numbered level.""",
+    )
 
-    value: str | None = Field(default=None, description="Address level value")
+    value: Annotated[str, WhitespaceConstraint()] | None = Field(
+        default=None,
+        min_length=1,
+        description="""An address "admin level". We want to avoid the phrase "admin level" and have chosen "address level". These represent states, regions, districts, cities, neighborhoods, etc. The address schema defines several numbered levels with per-country rules indicating which parts of a country's address goes to which numbered level.""",
+    )
 
 
 class AddressContainer(ExtensibleBaseModel):

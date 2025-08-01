@@ -4,9 +4,9 @@ from typing import Annotated, Literal
 
 from pydantic import Field
 
+from overture.schema.core.addresses import AddressLevel
 from overture.schema.core.base import (
     OvertureFeature,
-    StrictBaseModel,
 )
 from overture.schema.core.geometry import (
     Geometry,
@@ -16,16 +16,6 @@ from overture.schema.validation import (
     CountryCodeConstraint,
     WhitespaceConstraint,
 )
-
-
-class AddressLevel(StrictBaseModel):
-    """Single administrative level in address hierarchy."""
-
-    value: Annotated[str | None, WhitespaceConstraint()] = Field(
-        default=None,
-        min_length=1,
-        description="Administrative level value (no leading/trailing whitespace)",
-    )
 
 
 class Address(OvertureFeature):
