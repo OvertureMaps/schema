@@ -25,14 +25,16 @@ _GEOMETRY_TYPES = (
 
 
 class GeometryTypeConstraint:
-    def __init__(self, *allowed_types: str):
-        self.__allowed_types = self.__class__._validate_geometry_types(allowed_types)
+    def __init__(self, *allowed_types: str) -> None:
+        self.__allowed_types = self.__class__._validate_geometry_types(
+            list(allowed_types)
+        )
 
     @property
     def allowed_types(self) -> tuple[str, ...]:
         return self.__allowed_types
 
-    def validate(self, value: "Geometry", info: ValidationInfo) -> None:
+    def validate(self, value: "Geometry", info: ValidationInfo) -> "Geometry":
         geometry_type = value.geom.geom_type
         if geometry_type not in self.allowed_types:
             context = info.context or {}
@@ -53,7 +55,7 @@ class GeometryTypeConstraint:
         return value
 
     @classmethod
-    def _validate_geometry_types(cls, a: list[str]) -> tuple[str]:
+    def _validate_geometry_types(cls, a: list[str]) -> tuple[str, ...]:
         if not a:
             raise ValueError(
                 f"allowed_types is empty (it must contain at least one of: {_GEOMETRY_TYPES})"
@@ -98,10 +100,10 @@ _ALL_GEOMETRY_ALLOWED = GeometryTypeConstraint(*_GEOMETRY_TYPES)
 class Geometry:
     geom: BaseGeometry
 
-    def __init__(self, geom: BaseGeometry):
+    def __init__(self, geom: BaseGeometry) -> None:
         self.geom = geom
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, Geometry) and self.geom == other.geom
 
     def __hash__(self) -> int:
@@ -121,7 +123,7 @@ class Geometry:
         return mapping(self.geom)
 
     @classmethod
-    def from_geo_json(cls, value: Any) -> "Geometry":
+    def from_geo_json(cls, value: dict[str, Any] | BaseGeometry) -> "Geometry":
         # If it's already a Shapely geometry, use it directly
         if isinstance(value, BaseGeometry):
             return cls(value)
@@ -170,9 +172,12 @@ class Geometry:
 
     @classmethod
     def __get_pydantic_core_schema__(
-        cls, _source_type: Any, _handler: GetCoreSchemaHandler
+        cls, _source_type: type[Any], _handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
-        def validator(value: Any, info: ValidationInfo) -> Geometry:
+        def validator(
+            value: dict[str, Any] | BaseGeometry | bytes | str | Geometry,
+            info: ValidationInfo,
+        ) -> Geometry:
             try:
                 # Handle Shapely geometry directly
                 if isinstance(value, BaseGeometry):
@@ -205,7 +210,9 @@ class Geometry:
                     ],
                 ) from e
 
-        def serialize_geometry(v: Any, info: Any) -> Any:
+        def serialize_geometry(
+            v: "Geometry", info: ValidationInfo | None
+        ) -> "dict[str, Any] | 'Geometry'":
             if info and info.mode == "json":
                 return v.to_geo_json()
             return v
@@ -221,7 +228,7 @@ class Geometry:
     def __get_pydantic_json_schema__(
         cls, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
     ) -> dict[str, Any]:
-        return _ALL_GEOMETRY_ALLOWED.__get_pydantic_json_schema__(core_schema, handler)
+        return _ALL_GEOMETRY_ALLOWED.__get_pydantic_json_schema__(cls, handler)
 
 
 ########################################################################

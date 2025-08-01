@@ -33,7 +33,17 @@ from ..validation import parent_division_required_unless
 
 @parent_division_required_unless("subtype", PlaceType.COUNTRY)
 class Division(OvertureFeature):
-    """Division feature model."""
+    """Administrative and political division model representing organized territories.
+
+    Models administrative and political entities at various hierarchical levels,
+    from countries and provinces to cities, towns, and neighborhoods. Represents
+    both official governmental divisions and recognized informal territorial
+    organizations.
+
+    Each division has a point geometry indicating its representative location,
+    hierarchical relationships with parent/child divisions, and support for
+    multiple political perspectives in disputed territories.
+    """
 
     # Core
 
@@ -56,30 +66,32 @@ class Division(OvertureFeature):
 
     # Optional
 
-    capital_division_ids: Annotated[
-        list[NoWhitespaceString], UniqueItemsConstraint()
-    ] = Field(default=None, min_length=1, description="Capital division identifiers")
-    capital_of_divisions: Annotated[
-        list[CapitalOfDivisionItem], UniqueItemsConstraint()
-    ] = Field(default=None, min_length=1, description="Divisions this is capital of")
-    cartography: CartographyContainer = Field(
+    capital_division_ids: (
+        Annotated[list[NoWhitespaceString], UniqueItemsConstraint()] | None
+    ) = Field(default=None, min_length=1, description="Capital division identifiers")
+    capital_of_divisions: (
+        Annotated[list[CapitalOfDivisionItem], UniqueItemsConstraint()] | None
+    ) = Field(default=None, min_length=1, description="Divisions this is capital of")
+    cartography: CartographyContainer | None = Field(
         default=None, description="Cartographic display hints"
     )
-    class_: DivisionClass = Field(
+    class_: DivisionClass | None = Field(
         default=None, alias="class", description="Division class designation"
     )
-    local_type: dict[str, str] = Field(
+    local_type: dict[str, str] | None = Field(
         default=None, description="Localized subtype name"
     )
-    norms: Norms = Field(default=None, description="Local norms")
-    parent_division_id: NoWhitespaceString = Field(
+    norms: Norms | None = Field(default=None, description="Local norms")
+    parent_division_id: NoWhitespaceString | None = Field(
         default=None, min_length=1, description="Parent division identifier"
     )
-    perspectives: Perspectives = Field(
+    perspectives: Perspectives | None = Field(
         default=None, description="Political perspectives"
     )
-    population: int = Field(default=None, ge=0, description="Population count")
-    prominence: float = Field(
+    population: int | None = Field(default=None, ge=0, description="Population count")
+    prominence: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Prominence score (0.0-1.0)"
     )
-    region: RegionCode = Field(default=None, description="ISO 3166-2 region code")
+    region: RegionCode | None = Field(
+        default=None, description="ISO 3166-2 region code"
+    )

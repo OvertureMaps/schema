@@ -165,7 +165,7 @@ def create_test_cases(
     return test_cases
 
 
-def pytest_generate_tests(metafunc) -> None:
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     """Generate parameterized tests for examples and counterexamples."""
     if "example_file" in metafunc.fixturenames:
         # Generate tests for examples (should pass validation)
@@ -222,7 +222,7 @@ def pytest_generate_tests(metafunc) -> None:
             metafunc.parametrize("counterexample_file", param_values)
 
 
-def test_example_validation_geojson(example_file) -> None:
+def test_example_validation_geojson(example_file: str) -> None:
     """Test that examples pass validation with GeoJSON input format."""
     test_feature = convert_to_geojson_format(load_feature(example_file))
 
@@ -248,7 +248,7 @@ def test_example_validation_geojson(example_file) -> None:
         )
 
 
-def test_example_validation_flat(example_file) -> None:
+def test_example_validation_flat(example_file: str) -> None:
     """Test that examples pass validation with flat/Parquet-style input."""
     flat_feature = load_feature(example_file)  # Load as flat (authoritative)
     test_feature = flat_feature  # Use flat format directly
@@ -276,7 +276,7 @@ def test_example_validation_flat(example_file) -> None:
         )
 
 
-def test_counterexample_validation_geojson(counterexample_file) -> None:
+def test_counterexample_validation_geojson(counterexample_file: str) -> None:
     """Test that counterexamples fail validation with GeoJSON input format."""
     flat_feature = load_feature(counterexample_file)  # Load as flat (authoritative)
     test_feature = convert_to_geojson_format(flat_feature)  # Convert to GeoJSON format
@@ -293,7 +293,7 @@ def test_counterexample_validation_geojson(counterexample_file) -> None:
     )
 
 
-def test_counterexample_validation_flat(counterexample_file) -> None:
+def test_counterexample_validation_flat(counterexample_file: str) -> None:
     """Test that counterexamples fail validation with flat input format."""
     flat_feature = load_feature(counterexample_file)  # Load as flat (authoritative)
     test_feature = flat_feature  # Use flat format directly

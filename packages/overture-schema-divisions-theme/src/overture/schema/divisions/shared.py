@@ -51,6 +51,8 @@ class Side(str, Enum):
 class HierarchyItem(StrictBaseModel):
     """Single item in administrative hierarchy."""
 
+    # Required
+
     division_id: str = Field(..., description="Division identifier")
     subtype: PlaceType = Field(..., description="Administrative level")
     name: str = Field(..., description="Division name")
@@ -73,6 +75,8 @@ class HierarchyItem(StrictBaseModel):
 class CapitalOfDivisionItem(StrictBaseModel):
     """Division that has this division as capital."""
 
+    # Required
+
     division_id: str = Field(..., description="Division identifier")
     subtype: PlaceType = Field(..., description="Administrative level")
 
@@ -90,6 +94,8 @@ class CapitalOfDivisionItem(StrictBaseModel):
 class Norms(StrictBaseModel):
     """Local norms and standards."""
 
-    driving_side: Side = Field(
+    # Optional
+
+    driving_side: Side | None = Field(
         default=None, description="Driving side (inheritable from parent)"
     )

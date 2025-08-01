@@ -1,4 +1,5 @@
 import importlib.metadata
+from typing import cast
 
 from pydantic import BaseModel
 
@@ -31,7 +32,7 @@ def get_registered_model(theme: str, feature_type: str) -> type[BaseModel] | Non
     try:
         for entry_point in importlib.metadata.entry_points(group="overture.models"):
             if entry_point.name == entry_point_name:
-                return entry_point.load()
+                return cast(type[BaseModel], entry_point.load())
     except Exception as e:
         print(f"Warning: Could not load model {entry_point_name}: {e}")
 

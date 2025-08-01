@@ -74,7 +74,9 @@ class LevelRule(GeometricRangeScope):
 
     # Optional
 
-    when: ScopingConditions = Field(default=None, description="Scoping conditions")
+    when: ScopingConditions | None = Field(
+        default=None, description="Scoping conditions"
+    )
 
 
 class RailFlags(StrictBaseModel):
@@ -82,11 +84,11 @@ class RailFlags(StrictBaseModel):
 
     # Optional
 
-    is_bridge: bool = Field(default=None, description="Is bridge")
-    is_tunnel: bool = Field(default=None, description="Is tunnel")
-    is_seasonal: bool = Field(default=None, description="Is seasonal")
-    is_construction: bool = Field(default=None, description="Under construction")
-    service: Literal["yard", "siding", "spur", "crossover"] = Field(
+    is_bridge: bool | None = Field(default=None, description="Is bridge")
+    is_tunnel: bool | None = Field(default=None, description="Is tunnel")
+    is_seasonal: bool | None = Field(default=None, description="Is seasonal")
+    is_construction: bool | None = Field(default=None, description="Under construction")
+    service: Literal["yard", "siding", "spur", "crossover"] | None = Field(
         default=None, description="Rail service type"
     )
 
@@ -104,16 +106,6 @@ class TransportationSegment(OvertureFeature):
 
     # Required
 
-    level: int = Field(
-        default=0, description="Z-order of the feature where 0 is visual level"
-    )
-    level_rules: list[StrictLevelRule] = Field(
-        default=[],
-        description="Defines the Z-order, i.e. stacking order, of the road segment.",
-    )
-    subclass_rules: list[StrictSubclassRule] = Field(
-        default=[], description="Set of subclasses scoped along segment"
-    )
     # Should not be confused with a transport mode. A segment kind has an (implied) set of default
     # transport modes.
     subtype: SegmentSubtype = Field(
@@ -122,18 +114,34 @@ class TransportationSegment(OvertureFeature):
 
     # Optional
 
-    access_restrictions: Annotated[
-        list[StrictAccessRestrictionRule],
-        UniqueItemsConstraint(),
-    ] = Field(default=[], min_length=1, description="Access restriction rules")
-    connectors: Annotated[
-        list[ConnectorReference], CompositeUniqueConstraint("connector_id", "at")
-    ] = Field(default=[], description="Connector references")
-    names: NamesContainer = Field(
+    access_restrictions: (
+        Annotated[
+            list[StrictAccessRestrictionRule],
+            UniqueItemsConstraint(),
+        ]
+        | None
+    ) = Field(default=None, min_length=1, description="Access restriction rules")
+    connectors: (
+        Annotated[
+            list[ConnectorReference], CompositeUniqueConstraint("connector_id", "at")
+        ]
+        | None
+    ) = Field(default=[], description="Connector references")
+    level: int = Field(
+        default=0, description="Z-order of the feature where 0 is visual level"
+    )
+    level_rules: list[StrictLevelRule] | None = Field(
+        default=None,
+        description="Defines the Z-order, i.e. stacking order, of the road segment.",
+    )
+    names: NamesContainer | None = Field(
         default=None, description="Properties defining the names of a feature."
     )
-    routes: list[StrictRouteReference] = Field(
-        default=[], description="Routes this segment belongs to"
+    routes: list[StrictRouteReference] | None = Field(
+        default=None, description="Routes this segment belongs to"
+    )
+    subclass_rules: list[StrictSubclassRule] | None = Field(
+        default=None, description="Set of subclasses scoped along segment"
     )
 
 
@@ -154,26 +162,26 @@ class RoadSegment(TransportationSegment):
 
     # Optional
 
-    destinations: list[StrictDestinationRule] = Field(
+    destinations: list[StrictDestinationRule] | None = Field(
         default=None, description="Destination labels"
     )
-    prohibited_transitions: list[StrictProhibitedTransitionRule] = Field(
+    prohibited_transitions: list[StrictProhibitedTransitionRule] | None = Field(
         default=None, description="Turn restrictions"
     )
-    road_flags: list[StrictRoadFlagRule] = Field(
+    road_flags: list[StrictRoadFlagRule] | None = Field(
         default=None, description="Road-specific flags"
     )
-    road_surface: list[StrictSurfaceRule] = Field(
+    road_surface: list[StrictSurfaceRule] | None = Field(
         default=None, description="Road surface rules"
     )
-    speed_limits: list[StrictSpeedLimitRule] = Field(
+    speed_limits: list[StrictSpeedLimitRule] | None = Field(
         default=None, description="Speed limit rules"
     )
-    subclass: SegmentSubclass = Field(
+    subclass: SegmentSubclass | None = Field(
         default=None,
         description="Refines expected usage of the segment, must not overlap.",
     )
-    width_rules: list[StrictWidthRule] = Field(
+    width_rules: list[StrictWidthRule] | None = Field(
         default=None, min_length=1, description="Width rules"
     )
 
@@ -193,7 +201,7 @@ class RailSegment(TransportationSegment):
 
     # Optional
 
-    rail_flags: list[StrictRailFlagRule] = Field(
+    rail_flags: list[StrictRailFlagRule] | None = Field(
         default=None, description="Rail-specific flags"
     )
 
@@ -209,3 +217,14 @@ class WaterSegment(TransportationSegment):
 Segment = Annotated[
     RoadSegment | RailSegment | WaterSegment, Field(discriminator="subtype")
 ]
+
+# Explicitly assign docstring to the Segment type alias
+Segment.__doc__ = """Transportation segment model representing linear travel infrastructure.
+
+Encompasses road, rail, and water transportation segments. Models linear features that enable
+movement of people, goods, and vehicles through structured networks. Each segment type provides
+specialized attributes for its respective transportation mode.
+
+Supports routing, mapping, navigation, and transportation network analysis through rich geometric
+and attribute data.
+"""

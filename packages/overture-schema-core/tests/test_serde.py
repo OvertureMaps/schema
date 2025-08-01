@@ -99,7 +99,7 @@ SAMPLE_GEOJSON_FEATURE = {
 class TestSerializationModes:
     """Test serialization mode functionality."""
 
-    def test_python_mode_output_structure(self):
+    def test_python_mode_output_structure(self) -> None:
         """Test that Python mode returns flattened structure."""
         result = parse_feature(SAMPLE_FLAT_FEATURE, Place, mode="python")
 
@@ -113,7 +113,7 @@ class TestSerializationModes:
         assert result["theme"] == "places"
         assert result["type"] == "place"
 
-    def test_json_mode_output_structure(self):
+    def test_json_mode_output_structure(self) -> None:
         """Test that JSON mode returns GeoJSON structure."""
         result = parse_feature(SAMPLE_FLAT_FEATURE, Place, mode="json")
 
@@ -130,7 +130,7 @@ class TestSerializationModes:
         assert properties["theme"] == "places"
         assert properties["type"] == "place"
 
-    def test_mode_data_consistency(self):
+    def test_mode_data_consistency(self) -> None:
         """Test that both modes contain the same data, just structured differently."""
         python_result = parse_feature(SAMPLE_FLAT_FEATURE, Place, mode="python")
         json_result = parse_feature(SAMPLE_FLAT_FEATURE, Place, mode="json")
@@ -158,7 +158,7 @@ class TestSerializationModes:
             f"Python and JSON modes should contain same data:\n{diff_report}"
         )
 
-    def test_roundtrip_consistency(self):
+    def test_roundtrip_consistency(self) -> None:
         """Test that Python->JSON->Python roundtrip preserves data."""
         # Parse in Python mode
         python_output = parse_feature(SAMPLE_FLAT_FEATURE, Place, mode="python")
@@ -189,7 +189,7 @@ class TestSerializationModes:
         )
         assert is_equal, f"Roundtrip should preserve data:\n{diff_report}"
 
-    def test_input_format_independence(self):
+    def test_input_format_independence(self) -> None:
         """Test that flat vs GeoJSON input produces same output."""
         # Parse both input formats in both modes
         python_from_flat = parse_feature(SAMPLE_FLAT_FEATURE, Place, mode="python")
@@ -216,7 +216,7 @@ class TestSerializationModes:
 class TestGeometryFormats:
     """Test geometry format support."""
 
-    def test_geojson_geometry_input(self):
+    def test_geojson_geometry_input(self) -> None:
         """Test parsing with GeoJSON geometry dict."""
         feature = SAMPLE_FLAT_FEATURE.copy()
         expected_coords = feature["geometry"]["coordinates"]
@@ -232,7 +232,7 @@ class TestGeometryFormats:
         assert geo_json["type"] == "Point"
         assert list(geo_json["coordinates"]) == expected_coords
 
-    def test_shapely_geometry_input(self):
+    def test_shapely_geometry_input(self) -> None:
         """Test parsing with Shapely geometry objects."""
         feature = SAMPLE_FLAT_FEATURE.copy()
         expected_coords = feature["geometry"]["coordinates"]
@@ -249,7 +249,7 @@ class TestGeometryFormats:
         assert geo_json["type"] == "Point"
         assert list(geo_json["coordinates"]) == expected_coords
 
-    def test_wkb_geometry_input(self):
+    def test_wkb_geometry_input(self) -> None:
         """Test parsing with WKB bytes."""
         feature = SAMPLE_FLAT_FEATURE.copy()
         expected_coords = feature["geometry"]["coordinates"]
@@ -267,7 +267,7 @@ class TestGeometryFormats:
         assert geo_json["type"] == "Point"
         assert list(geo_json["coordinates"]) == expected_coords
 
-    def test_wkt_geometry_input(self):
+    def test_wkt_geometry_input(self) -> None:
         """Test parsing with WKT strings."""
         feature = SAMPLE_FLAT_FEATURE.copy()
         expected_coords = feature["geometry"]["coordinates"]
@@ -285,7 +285,7 @@ class TestGeometryFormats:
         assert geo_json["type"] == "Point"
         assert list(geo_json["coordinates"]) == expected_coords
 
-    def test_different_geometry_types(self):
+    def test_different_geometry_types(self) -> None:
         """Test parsing with different Point geometry coordinates."""
         base_feature = {
             "id": "test-geom",
@@ -315,7 +315,7 @@ class TestGeometryFormats:
             assert geo_json["type"] == "Point"
             assert list(geo_json["coordinates"]) == point_coords
 
-    def test_invalid_geometry_formats_fail(self):
+    def test_invalid_geometry_formats_fail(self) -> None:
         """Test that invalid geometry formats are rejected."""
         feature = SAMPLE_FLAT_FEATURE.copy()
 

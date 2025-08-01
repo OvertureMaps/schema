@@ -37,7 +37,7 @@ class Categories(StrictBaseModel):
 
     # Optional
 
-    alternate: Annotated[list[CategoryPattern], UniqueItemsConstraint()] = Field(
+    alternate: Annotated[list[CategoryPattern], UniqueItemsConstraint()] | None = Field(
         default=None, min_length=1, description="Alternate categories"
     )
 
@@ -51,7 +51,7 @@ class Brand(StrictBaseModel):
 
     # Optional
 
-    wikidata: WikidataId = Field(default=None, description="Wikidata identifier")
+    wikidata: WikidataId | None = Field(default=None, description="Wikidata identifier")
 
 
 class Contact(StrictBaseModel):
@@ -59,15 +59,15 @@ class Contact(StrictBaseModel):
 
     # Optional
 
-    email: EmailStr = Field(default=None, description="Email address")
-    phone: PhoneNumber = Field(
+    email: EmailStr | None = Field(default=None, description="Email address")
+    phone: PhoneNumber | None = Field(
         default=None,
         description="Phone number in international format",
     )
-    social_media: dict[str, AnyUrl] = Field(
+    social_media: dict[str, AnyUrl] | None = Field(
         default=None, description="Social media profiles"
     )
-    website: AnyUrl = Field(default=None, description="Website URL")
+    website: AnyUrl | None = Field(default=None, description="Website URL")
 
 
 # Hours format constraint
@@ -86,13 +86,13 @@ class OperatingHours(StrictBaseModel):
 
     # Optional
 
-    monday: HoursFormat = Field(default=None, description="Monday hours")
-    tuesday: HoursFormat = Field(default=None, description="Tuesday hours")
-    wednesday: HoursFormat = Field(default=None, description="Wednesday hours")
-    thursday: HoursFormat = Field(default=None, description="Thursday hours")
-    friday: HoursFormat = Field(default=None, description="Friday hours")
-    saturday: HoursFormat = Field(default=None, description="Saturday hours")
-    sunday: HoursFormat = Field(default=None, description="Sunday hours")
+    monday: HoursFormat | None = Field(default=None, description="Monday hours")
+    tuesday: HoursFormat | None = Field(default=None, description="Tuesday hours")
+    wednesday: HoursFormat | None = Field(default=None, description="Wednesday hours")
+    thursday: HoursFormat | None = Field(default=None, description="Thursday hours")
+    friday: HoursFormat | None = Field(default=None, description="Friday hours")
+    saturday: HoursFormat | None = Field(default=None, description="Saturday hours")
+    sunday: HoursFormat | None = Field(default=None, description="Sunday hours")
 
 
 class Confidence(StrictBaseModel):
@@ -100,16 +100,24 @@ class Confidence(StrictBaseModel):
 
     # Optional
 
-    overall: ConfidenceScore = Field(default=None, description="Overall confidence")
-    location: ConfidenceScore = Field(default=None, description="Location confidence")
-    name: ConfidenceScore = Field(default=None, description="Name confidence")
-    categories: ConfidenceScore = Field(
+    overall: ConfidenceScore | None = Field(
+        default=None, description="Overall confidence"
+    )
+    location: ConfidenceScore | None = Field(
+        default=None, description="Location confidence"
+    )
+    name: ConfidenceScore | None = Field(default=None, description="Name confidence")
+    categories: ConfidenceScore | None = Field(
         default=None, description="Categories confidence"
     )
 
 
 class Place(OvertureFeature):
-    """Place feature model."""
+    """Point model for real-world facilities, services, and amenities.
+
+    Represents places of interest with category classifications, contact
+    information, and confidence scores for data quality assessment.
+    """
 
     # Required
 
@@ -121,24 +129,24 @@ class Place(OvertureFeature):
 
     # Optional
 
-    addresses: list[AddressContainer] = Field(
+    addresses: list[AddressContainer] | None = Field(
         default=None, min_length=1, description="Place addresses"
     )
-    brand: Brand = Field(default=None, description="Brand information")
-    categories: Categories = Field(default=None, description="Place categories")
-    confidence: ConfidenceScore = Field(
+    brand: Brand | None = Field(default=None, description="Brand information")
+    categories: Categories | None = Field(default=None, description="Place categories")
+    confidence: ConfidenceScore | None = Field(
         default=None, description="Confidence score (0.0-1.0)"
     )
-    names: NamesContainer = Field(default=None, description="Multilingual names")
-    emails: Annotated[list[EmailStr], UniqueItemsConstraint()] = Field(
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")
+    emails: Annotated[list[EmailStr], UniqueItemsConstraint()] | None = Field(
         default=None, min_length=1, description="Email addresses"
     )
-    phones: Annotated[list[PhoneNumber], UniqueItemsConstraint()] = Field(
+    phones: Annotated[list[PhoneNumber], UniqueItemsConstraint()] | None = Field(
         default=None, min_length=1, description="Phone numbers"
     )
-    socials: Annotated[list[str], UniqueItemsConstraint()] = Field(
+    socials: Annotated[list[str], UniqueItemsConstraint()] | None = Field(
         default=None, min_length=1, description="Social media URLs"
     )
-    websites: Annotated[list[str], UniqueItemsConstraint()] = Field(
+    websites: Annotated[list[str], UniqueItemsConstraint()] | None = Field(
         default=None, min_length=1, description="Website URLs"
     )

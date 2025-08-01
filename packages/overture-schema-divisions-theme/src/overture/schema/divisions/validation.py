@@ -1,6 +1,7 @@
 """Division-specific validation constraints."""
 
-from typing import Any
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
@@ -9,11 +10,13 @@ from overture.schema.validation.mixin import (
     register_constraint,
 )
 
+T = TypeVar("T", bound=BaseModel)
+
 
 class ParentDivisionValidator(BaseConstraintValidator):
     """Validates parent division logic: parent_division_id is required unless field equals exempt value."""
 
-    def __init__(self, field_name: str, exempt_value: Any):
+    def __init__(self, field_name: str, exempt_value: str | int | float | bool) -> None:
         super().__init__()
         self.field_name = field_name
         self.exempt_value = exempt_value
@@ -69,10 +72,12 @@ class ParentDivisionValidator(BaseConstraintValidator):
         }
 
 
-def parent_division_required_unless(field_name: str, exempt_value: Any) -> Any:
+def parent_division_required_unless(
+    field_name: str, exempt_value: str | int | float | bool
+) -> Callable[[type[T]], type[T]]:
     """Decorator to add parent division validation: parent_division_id is required unless field equals exempt value."""
 
-    def decorator(cls: type[BaseModel]) -> type[BaseModel]:
+    def decorator(cls: type[T]) -> type[T]:
         constraint = ParentDivisionValidator(field_name, exempt_value)
         register_constraint(cls, constraint)
         return cls

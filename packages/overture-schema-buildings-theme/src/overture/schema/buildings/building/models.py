@@ -21,7 +21,11 @@ from ..shared import (
 
 
 class Building(OvertureFeature, BuildingShape):
-    """Building feature model."""
+    """Building model with footprint geometry and structural attributes.
+
+    Represents building footprints or roofprints with polygon geometry and
+    attributes for classification, physical properties, and appearance.
+    """
 
     # Core
 
@@ -33,11 +37,15 @@ class Building(OvertureFeature, BuildingShape):
 
     # Optional
 
-    address: AddressContainer = Field(default=None, description="Address information")
-    building_class: BuildingClass = Field(
+    address: AddressContainer | None = Field(
+        default=None, description="Address information"
+    )
+    building_class: BuildingClass | None = Field(
         default=None, alias="class", description="Building class"
     )
-    has_parts: bool = Field(default=None, description="Building has parts")
-    level: int = Field(default=None, description="Z-order level")
-    names: NamesContainer = Field(default=None, description="Multilingual names")
-    subtype: BuildingSubtype = Field(default=None, description="Building subtype")
+    has_parts: bool | None = Field(default=None, description="Building has parts")
+    level: int | None = Field(default=None, description="Z-order level")
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")
+    subtype: BuildingSubtype | None = Field(
+        default=None, description="Building subtype"
+    )

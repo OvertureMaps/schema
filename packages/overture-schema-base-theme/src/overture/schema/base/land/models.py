@@ -82,7 +82,12 @@ class LandClass(str, Enum):
 
 
 class Land(OvertureFeature):
-    """Land feature model."""
+    """Land surface feature model representing physical terrain and natural elements.
+
+    Models diverse land surface features including geographic landforms, natural
+    terrain elements, and vegetation. Covers features like mountains, forests,
+    beaches, glaciers, and other physical land surfaces.
+    """
 
     # Core
 
@@ -93,18 +98,19 @@ class Land(OvertureFeature):
         GeometryTypeConstraint("Point", "LineString", "Polygon", "MultiPolygon"),
     ] = Field(..., description="Geometry (Point, LineString, Polygon, or MultiPolygon)")
 
-    # Required
-
-    class_: LandClass = Field(..., alias="class", description="Land class")
-    subtype: LandSubtype = Field(..., description="Land subtype")
-
     # Optional
 
-    elevation: int = Field(
+    class_: LandClass = Field(
+        default=LandClass.LAND, alias="class", description="Land class"
+    )
+    elevation: int | None = Field(
         default=None, le=9000, description="Elevation above sea level in meters"
     )
-    names: NamesContainer = Field(default=None, description="Multilingual names")
-    source_tags: dict[str, Any] = Field(
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")
+    source_tags: dict[str, Any] | None = Field(
         default=None, description="Source tags from data providers"
     )
-    surface: SurfaceMaterial = Field(default=None, description="Surface material")
+    subtype: LandSubtype = Field(default=LandSubtype.LAND, description="Land subtype")
+    surface: SurfaceMaterial | None = Field(
+        default=None, description="Surface material"
+    )

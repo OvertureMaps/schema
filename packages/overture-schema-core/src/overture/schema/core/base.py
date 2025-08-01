@@ -1,6 +1,7 @@
 """Base schema classes for Overture Maps features."""
 
 from abc import ABC
+from collections.abc import Callable
 from typing import Annotated, Any
 
 from pydantic import (
@@ -8,6 +9,7 @@ from pydantic import (
     ConfigDict,
     Field,
     GetJsonSchemaHandler,
+    ValidationInfo,
     model_serializer,
 )
 from pydantic_core import core_schema
@@ -40,14 +42,16 @@ class SourceItem(StrictBaseModel):
 
     # Optional
 
-    record_id: str = Field(default=None, description="Specific record within dataset")
-    update_time: ISO8601DateTime = Field(
+    record_id: str | None = Field(
+        default=None, description="Specific record within dataset"
+    )
+    update_time: ISO8601DateTime | None = Field(
         default=None, description="When this property was last updated"
     )
-    confidence: Annotated[float, ConfidenceScoreConstraint()] = Field(
+    confidence: Annotated[float, ConfidenceScoreConstraint()] | None = Field(
         default=None, description="Confidence value for ML-derived data"
     )
-    between: LinearReferenceRange = Field(
+    between: LinearReferenceRange | None = Field(
         default=None, description="Linear referencing range"
     )
 
@@ -70,11 +74,15 @@ class OvertureFeature(ExtensibleBaseModel, ABC):
     theme: str = Field(..., description="Top-level Overture theme")
     type: str = Field(..., description="Specific feature type within theme")
     geometry: Geometry = Field(..., description="Geometry")
-    sources: list[SourceItem] = Field(default=None, description="Source information")
+    sources: list[SourceItem] = Field(default=None, description="Source information")  # type: ignore[assignment,arg-type]
     version: int = Field(..., ge=0, description="Feature version number")
 
-    @model_serializer(mode="wrap")
-    def serialize_model(self, serializer, info):
+    @model_serializer(mode="wrap")  # type: ignore[type-var]
+    def serialize_model(
+        self,
+        serializer: Callable[[Any], dict[str, Any]],
+        info: ValidationInfo,
+    ) -> dict[str, Any]:
         """Serialize to flattened structure for Python, GeoJSON for JSON."""
         # Get the default serialization
         data = serializer(self)

@@ -1,3 +1,9 @@
+"""Base theme.
+
+Fundamental geographic features including bathymetry, infrastructure, land,
+land cover, land use, and water features.
+"""
+
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
 from .bathymetry import Bathymetry

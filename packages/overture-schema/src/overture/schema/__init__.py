@@ -2,7 +2,8 @@ __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
 from functools import reduce
 from operator import or_
-from typing import Annotated, Any
+from types import UnionType
+from typing import TYPE_CHECKING, Annotated, Any, Union
 
 from pydantic import Field, TypeAdapter
 
@@ -61,12 +62,12 @@ def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
     if not models:
         raise ValueError("No registered models found via entry points")
 
-    # Create union of all model classes
-    union_type = reduce(or_, list(models.values()))
+    if TYPE_CHECKING:
+        # For type checking, use Any to avoid mypy errors with dynamic types
+        DiscriminatedUnion = Annotated[Any, Field(discriminator="type")]
+    else:
+        # Create a discriminated union for use at runtime
+        union_type = reduce(or_, list(models.values()))
+        DiscriminatedUnion = Annotated[union_type, Field(discriminator="type")]
 
-    model_type = Annotated[
-        union_type,
-        Field(discriminator="type"),
-    ]
-
-    return parse_feature(feature, model_type, mode)
+    return parse_feature(feature, DiscriminatedUnion, mode)

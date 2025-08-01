@@ -31,7 +31,12 @@ class LandCoverSubtype(str, Enum):
 
 
 class LandCover(OvertureFeature):
-    """LandCover feature model representing Earth's natural surfaces."""
+    """Earth's natural surface cover classification model.
+
+    Represents broad categorization of natural surface types including forests,
+    grasslands, croplands, urban areas, wetlands, and other surface cover types.
+    Provides structured classification of Earth's physical surface characteristics.
+    """
 
     # Core
 
@@ -47,8 +52,8 @@ class LandCover(OvertureFeature):
 
     # Optional
 
-    cartography: CartographyContainer = Field(
+    cartography: CartographyContainer | None = Field(
         default=None, description="Cartographic display hints"
     )
-    level: int = Field(default=None, description="Z-order level")
-    names: NamesContainer = Field(default=None, description="Multilingual names")
+    level: int | None = Field(default=None, description="Z-order level")
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")

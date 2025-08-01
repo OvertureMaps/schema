@@ -26,7 +26,15 @@ from ..shared import (
 @exactly_one_of("is_land", "is_territorial")
 @not_required_if("subtype", PlaceType.COUNTRY, ["country"])
 class DivisionBoundary(OvertureFeature):
-    """Division boundary feature model."""
+    """Administrative division boundary model representing borders between territories.
+
+    Models linear boundaries between adjacent administrative divisions using
+    line string geometries. Represents shared borders at various administrative
+    levels, from international boundaries to local district borders.
+
+    Supports both land and maritime boundaries, disputed boundary indicators,
+    and multiple political perspectives on contested borders.
+    """
 
     # Core
 
@@ -48,18 +56,23 @@ class DivisionBoundary(OvertureFeature):
 
     # Optional
 
-    country: CountryCode = Field(
+    country: CountryCode | None = Field(
         default=None,
         description="ISO 3166-1 alpha-2 country code (not for country boundaries)",
     )
-    is_disputed: bool = Field(default=None, description="Boundary is disputed")
-    is_land: bool = Field(
+    is_disputed: bool | None = Field(
+        default=None,
+        description="Boundary is disputed",
+    )
+    is_land: bool | None = Field(
         default=None, description="Land boundary designation", strict=True
     )
-    is_territorial: bool = Field(
+    is_territorial: bool | None = Field(
         default=None, description="Territorial boundary designation", strict=True
     )
-    perspectives: Perspectives = Field(
+    perspectives: Perspectives | None = Field(
         default=None, description="Political perspectives"
     )
-    region: RegionCode = Field(default=None, description="ISO 3166-2 region code")
+    region: RegionCode | None = Field(
+        default=None, description="ISO 3166-2 region code"
+    )

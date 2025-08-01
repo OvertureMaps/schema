@@ -1,4 +1,5 @@
-from typing import Any
+from types import UnionType
+from typing import Any, cast
 
 from pydantic import BaseModel
 
@@ -6,7 +7,9 @@ from ._cache import get_type_adapter
 
 
 def parse_feature(
-    feature: dict[str, Any], model_type: type[BaseModel] | Any, mode: str = "json"
+    feature: dict[str, Any],
+    model_type: type[BaseModel] | UnionType | type,
+    mode: str = "json",
 ) -> dict[str, Any] | None:
     """
     Parse and validate a feature using the provided model type.
@@ -43,6 +46,9 @@ def parse_feature(
         parsed_model = adapter.validate_python(flattened_feature)
 
         # Return using the requested mode
-        return parsed_model.model_dump(exclude_unset=True, mode=mode, by_alias=True)
+        return cast(
+            dict[str, Any],
+            parsed_model.model_dump(exclude_unset=True, mode=mode, by_alias=True),
+        )
     except Exception as e:
         raise ValueError(str(e)) from e

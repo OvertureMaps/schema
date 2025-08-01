@@ -25,7 +25,16 @@ from ..shared import (
 
 @exactly_one_of("is_land", "is_territorial")
 class DivisionArea(OvertureFeature):
-    """Division area feature model."""
+    """Administrative division area model representing territorial boundaries.
+
+    Models the geographic area covered by an administrative division using
+    polygon geometries. Represents both land areas and maritime territorial
+    boundaries, providing spatial extent information for political and
+    administrative entities.
+
+    Can distinguish between land-only boundaries and territorial boundaries
+    that include maritime areas.
+    """
 
     # Core
 
@@ -52,10 +61,12 @@ class DivisionArea(OvertureFeature):
 
     # Optional
 
-    is_land: bool = Field(
+    is_land: bool | None = Field(
         default=None, description="Land area designation", strict=True
     )
-    is_territorial: bool = Field(
+    is_territorial: bool | None = Field(
         default=None, description="Territorial area designation", strict=True
     )
-    region: RegionCode = Field(default=None, description="ISO 3166-2 region code")
+    region: RegionCode | None = Field(
+        default=None, description="ISO 3166-2 region code"
+    )

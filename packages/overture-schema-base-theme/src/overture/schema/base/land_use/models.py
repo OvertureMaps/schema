@@ -160,7 +160,16 @@ class LandUseClass(str, Enum):
 
 
 class LandUse(OvertureFeature):
-    """LandUse feature model for classifications of human use of land."""
+    """Human land use classification model.
+
+    Represents how humans utilize land areas through structured categorization
+    of land usage patterns. Covers diverse human activities including agriculture,
+    residential development, commercial areas, recreational facilities, industrial
+    zones, and infrastructure.
+
+    Supports detailed classification through subtype and class hierarchies,
+    elevation data, surface materials, and multilingual naming.
+    """
 
     # Core
 
@@ -183,10 +192,12 @@ class LandUse(OvertureFeature):
 
     # Optional
 
-    elevation: float = Field(default=None, description="Elevation in meters")
-    level: int = Field(default=None, description="Z-order level")
-    names: NamesContainer = Field(default=None, description="Multilingual names")
-    source_tags: dict[str, Any] = Field(
+    elevation: float | None = Field(default=None, description="Elevation in meters")
+    level: int | None = Field(default=None, description="Z-order level")
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")
+    source_tags: dict[str, Any] | None = Field(
         default=None, description="Source tags from data providers"
     )
-    surface: SurfaceMaterial = Field(default=None, description="Surface material")
+    surface: SurfaceMaterial | None = Field(
+        default=None, description="Surface material"
+    )

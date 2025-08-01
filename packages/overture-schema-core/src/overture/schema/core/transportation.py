@@ -76,7 +76,7 @@ class RecognizedStatus(str, Enum):
 class Speed(StrictBaseModel):
     """Speed value with unit."""
 
-    # Optional
+    # Required
 
     value: float = Field(..., gt=0, description="Speed value")
     unit: Literal["km/h", "mph"] = Field(..., description="Speed unit")
@@ -97,7 +97,7 @@ class VehicleConstraint(StrictBaseModel):
 
     # Optional
 
-    unit: str = Field(default=None, description="Unit of measurement")
+    unit: str | None = Field(default=None, description="Unit of measurement")
 
     def __hash__(self) -> int:
         """Make VehicleConstraint hashable."""

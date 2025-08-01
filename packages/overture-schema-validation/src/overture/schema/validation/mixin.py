@@ -6,7 +6,7 @@ proper JSON Schema generation.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, cast
 
 from pydantic import BaseModel, model_validator
 
@@ -302,12 +302,14 @@ def register_constraint(
 ) -> None:
     """Register a constraint for a model class."""
     if not hasattr(model_class, "__constraints__"):
-        model_class.__constraints__ = []
+        model_class.__constraints__ = []  # type: ignore[attr-defined]
     else:
         # Ensure we have a copy of the constraints list for this class
         # to avoid sharing references between classes
-        model_class.__constraints__ = model_class.__constraints__.copy()
-    model_class.__constraints__.append(constraint)
+        constraints = getattr(model_class, "__constraints__", [])
+        model_class.__constraints__ = constraints.copy()  # type: ignore[attr-defined]
+    constraints = model_class.__constraints__  # type: ignore[attr-defined]
+    constraints.append(constraint)
 
 
 def required_if(
@@ -441,7 +443,7 @@ class ConstraintValidatedModel:
     ) -> dict[str, Any]:
         """Generate JSON Schema with constraints applied."""
         # Get the base schema from Pydantic
-        schema = handler(core_schema)
+        schema: dict[str, Any] = handler(core_schema)
 
         # Apply constraint metadata
         all_constraints: list[BaseConstraintValidator] = []
@@ -451,7 +453,7 @@ class ConstraintValidatedModel:
 
         for constraint in all_constraints:
             constraint_metadata = constraint.get_json_schema_metadata(
-                model_class=cls, by_alias=True
+                model_class=cast(type[BaseModel], cls), by_alias=True
             )
             if not constraint_metadata:
                 continue
