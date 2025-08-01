@@ -1,0 +1,169 @@
+"""Base schema classes for Overture Maps features."""
+
+from abc import ABC
+from collections.abc import Callable
+from typing import Annotated, Any
+
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    GetJsonSchemaHandler,
+    ValidationInfo,
+    model_serializer,
+)
+from pydantic_core import core_schema
+
+from overture.schema.validation import (
+    ConfidenceScoreConstraint,
+    ConstraintValidatedModel,
+    ISO8601DateTime,
+    JSONPointer,
+    LinearReferenceRange,
+)
+from overture.schema.validation.mixin import allow_extension_fields
+
+from .geometry import Geometry
+
+
+class StrictBaseModel(BaseModel):
+    """Base model that forbids additional properties in JSON Schema."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class SourceItem(StrictBaseModel):
+    """Source information for a specific property."""
+
+    # Required
+
+    property: JSONPointer = Field(..., description="JSON Pointer to the property")
+    dataset: str = Field(..., description="Source dataset identifier")
+
+    # Optional
+
+    record_id: str | None = Field(
+        default=None, description="Specific record within dataset"
+    )
+    update_time: ISO8601DateTime | None = Field(
+        default=None, description="When this property was last updated"
+    )
+    confidence: Annotated[float, ConfidenceScoreConstraint()] | None = Field(
+        default=None, description="Confidence value for ML-derived data"
+    )
+    between: LinearReferenceRange | None = Field(
+        default=None, description="Linear referencing range"
+    )
+
+
+@allow_extension_fields()
+class ExtensibleBaseModel(ConstraintValidatedModel, BaseModel):
+    """Base model that allows ext_* prefixed fields only."""
+
+    model_config = ConfigDict(
+        extra="allow"
+    )  # Allow extra fields, which will be constrained by `@allow_extension_fields`
+
+
+class OvertureFeature(ExtensibleBaseModel, ABC):
+    """Base class for all Overture features."""
+
+    # Required
+
+    id: str = Field(..., min_length=1, description="Feature identifier")
+    theme: str = Field(..., description="Top-level Overture theme")
+    type: str = Field(..., description="Specific feature type within theme")
+    geometry: Geometry = Field(..., description="Geometry")
+    sources: list[SourceItem] = Field(default=None, description="Source information")  # type: ignore[assignment,arg-type]
+    version: int = Field(..., ge=0, description="Feature version number")
+
+    @model_serializer(mode="wrap")  # type: ignore[type-var]
+    def serialize_model(
+        self,
+        serializer: Callable[[Any], dict[str, Any]],
+        info: ValidationInfo,
+    ) -> dict[str, Any]:
+        """Serialize to flattened structure for Python, GeoJSON for JSON."""
+        # Get the default serialization
+        data = serializer(self)
+
+        # Check the serialization mode/context
+        if info.mode == "json":
+            # Transform to GeoJSON when outputting JSON
+            return {
+                "type": "Feature",
+                "id": data.pop("id"),
+                "geometry": data.pop("geometry"),
+                "properties": data,  # All remaining fields go into properties
+            }
+        else:
+            # Return flattened structure for Python output (info.mode == "python")
+            return data
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, core_schema: "core_schema.CoreSchema", handler: "GetJsonSchemaHandler"
+    ) -> dict[str, Any]:
+        """Generate JSON Schema that follows GeoJSON conventions."""
+        # Get the base JSON schema with extension constraints from parent class
+        json_schema = super().__get_pydantic_json_schema__(core_schema, handler)
+
+        # Move all non-GeoJSON properties down into the GeoJSON `properties` object
+        json_schema_top_level_required = json_schema.get("required", [])
+        json_schema_top_level_properties = json_schema["properties"]
+        geo_json_properties = {}
+        geo_json_required = []
+
+        for name in list(json_schema_top_level_properties.keys()):
+            if name not in ["id", "geometry"]:
+                value = json_schema_top_level_properties[name]
+                geo_json_properties[name] = value
+                del json_schema_top_level_properties[name]
+                if name in json_schema_top_level_required:
+                    json_schema_top_level_required.remove(name)
+                    geo_json_required.append(name)
+
+        # Create the properties schema
+        geo_json_properties_schema = {
+            "type": "object",
+            "properties": geo_json_properties,
+            # always reject properties that aren't defined in the schema
+            "unevaluatedProperties": False,
+        }
+
+        if geo_json_required:
+            geo_json_properties_schema["required"] = geo_json_required
+
+        # Preserve extension constraints from the original schema
+        if "patternProperties" in json_schema:
+            geo_json_properties_schema["patternProperties"] = json_schema[
+                "patternProperties"
+            ]
+
+        if "additionalProperties" in json_schema:
+            geo_json_properties_schema["additionalProperties"] = json_schema[
+                "additionalProperties"
+            ]
+
+        # Move constraint metadata from root to GeoJSON properties
+        for constraint_key in ["anyOf", "allOf", "oneOf", "not"]:
+            if constraint_key in json_schema:
+                geo_json_properties_schema[constraint_key] = json_schema[constraint_key]
+                del json_schema[constraint_key]
+
+        json_schema_top_level_properties["properties"] = geo_json_properties_schema
+        if "properties" not in json_schema_top_level_required:
+            json_schema_top_level_required.append("properties")
+
+        # Add the `"type": "Feature"` GeoJSON property at the top level
+        json_schema_top_level_properties["type"] = {
+            "type": "string",
+            "const": "Feature",
+        }
+        if "type" not in json_schema_top_level_required:
+            json_schema_top_level_required.append("type")
+
+        # Update the required fields
+        json_schema["required"] = json_schema_top_level_required
+
+        return json_schema

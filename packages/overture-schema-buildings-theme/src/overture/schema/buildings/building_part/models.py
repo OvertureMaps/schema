@@ -1,0 +1,59 @@
+"""Building part feature models for Overture Maps buildings theme."""
+
+from typing import Annotated, Literal
+
+from pydantic import Field
+
+from overture.schema.core.addresses import (
+    AddressContainer,
+)
+from overture.schema.core.base import OvertureFeature
+from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.names import (
+    NamesContainer,
+)
+
+from ..shared import (
+    BuildingClass,
+    BuildingShape,
+    BuildingSubtype,
+)
+
+
+class BuildingPart(OvertureFeature, BuildingShape):
+    """Building part feature model representing subdivisions of buildings.
+
+    Building parts are used to model complex buildings that have distinct
+    sections with different attributes, such as different heights, materials,
+    or construction dates.
+
+    Common use cases include wings of hospitals, towers in building complexes,
+    and architectural elements with distinct characteristics.
+    """
+
+    # Core
+
+    theme: Literal["buildings"] = Field(..., description="Feature theme")
+    type: Literal["building_part"] = Field(..., description="Feature type")
+    geometry: Annotated[Geometry, GeometryTypeConstraint("Polygon", "MultiPolygon")] = (
+        Field(..., description="Geometry (Polygon or MultiPolygon)")
+    )
+
+    # Required
+
+    building_id: str = Field(..., min_length=1, description="Parent building ID")
+
+    # Optional
+
+    building_class: BuildingClass | None = Field(
+        default=None, alias="class", description="Building class"
+    )
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")
+    address: AddressContainer | None = Field(
+        default=None, description="Address information"
+    )
+    has_parts: bool | None = Field(default=None, description="Building has parts")
+    level: int | None = Field(default=None, description="Z-order level")
+    subtype: BuildingSubtype | None = Field(
+        default=None, description="Building subtype"
+    )
