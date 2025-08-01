@@ -52,8 +52,8 @@ class LandCover(OvertureFeature):
 
     # Optional
 
-    cartography: CartographyContainer = Field(
+    cartography: CartographyContainer | None = Field(
         default=None, description="Cartographic display hints"
     )
-    level: int = Field(default=None, description="Z-order level")
-    names: NamesContainer = Field(default=None, description="Multilingual names")
+    level: int | None = Field(default=None, description="Z-order level")
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")

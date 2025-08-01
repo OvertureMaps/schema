@@ -32,6 +32,6 @@ class Bathymetry(OvertureFeature):
 
     # Optional
 
-    cartography: CartographyContainer = Field(
+    cartography: CartographyContainer | None = Field(
         default=None, description="Cartographic display hints"
     )

@@ -178,36 +178,42 @@ class BuildingShape(BaseModel):
 
     # Optional
 
-    facade_color: HexColor = Field(default=None, description="Facade color (hex)")
-    facade_material: FacadeMaterial = Field(default=None, description="Facade material")
-    height: float = Field(
+    facade_color: HexColor | None = Field(
+        default=None, description="Facade color (hex)"
+    )
+    facade_material: FacadeMaterial | None = Field(
+        default=None, description="Facade material"
+    )
+    height: float | None = Field(
         default=None, gt=0, description="Height of the building in meters"
     )
-    is_underground: bool = Field(
+    is_underground: bool | None = Field(
         default=None, description="Entire building is below ground"
     )
-    min_floor: int = Field(
+    min_floor: int | None = Field(
         default=None, gt=0, description="Start floor if building is floating"
     )
-    min_height: float = Field(
+    min_height: float | None = Field(
         default=None, description="Building bottom height in meters"
     )
-    num_floors: int = Field(
+    num_floors: int | None = Field(
         default=None, gt=0, description="Number of above-ground floors"
     )
-    num_floors_underground: int = Field(
+    num_floors_underground: int | None = Field(
         default=None, gt=0, description="Number of below-ground floors"
     )
-    roof_color: HexColor = Field(default=None, description="Roof color (hex)")
-    roof_direction: float = Field(
+    roof_color: HexColor | None = Field(default=None, description="Roof color (hex)")
+    roof_direction: float | None = Field(
         default=None, ge=0, lt=360, description="Roof bearing in degrees"
     )
-    roof_height: float = Field(default=None, description="Roof height in meters")
-    roof_material: RoofMaterial = Field(default=None, description="Roof material")
-    roof_orientation: RoofOrientation = Field(
+    roof_height: float | None = Field(default=None, description="Roof height in meters")
+    roof_material: RoofMaterial | None = Field(
+        default=None, description="Roof material"
+    )
+    roof_orientation: RoofOrientation | None = Field(
         default=None, description="Roof orientation"
     )
-    roof_shape: RoofShape = Field(default=None, description="Roof shape")
+    roof_shape: RoofShape | None = Field(default=None, description="Roof shape")
 
 
 __all__ = [

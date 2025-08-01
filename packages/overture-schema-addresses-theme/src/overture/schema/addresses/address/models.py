@@ -21,7 +21,7 @@ from overture.schema.validation import (
 class AddressLevel(StrictBaseModel):
     """Single administrative level in address hierarchy."""
 
-    value: Annotated[str, WhitespaceConstraint()] = Field(
+    value: Annotated[str | None, WhitespaceConstraint()] = Field(
         default=None,
         min_length=1,
         description="Administrative level value (no leading/trailing whitespace)",
@@ -57,27 +57,27 @@ class Address(OvertureFeature):
 
     # Optional
 
-    number: Annotated[str, WhitespaceConstraint()] = Field(
+    number: Annotated[str, WhitespaceConstraint()] | None = Field(
         default=None,
         min_length=1,
         description="House/building number (no leading/trailing whitespace)",
     )
-    postal_city: Annotated[str, WhitespaceConstraint()] = Field(
+    postal_city: Annotated[str, WhitespaceConstraint()] | None = Field(
         default=None,
         min_length=1,
         description="Alternative city name for mailing (no leading/trailing whitespace)",
     )
-    postcode: Annotated[str, WhitespaceConstraint()] = Field(
+    postcode: Annotated[str, WhitespaceConstraint()] | None = Field(
         default=None,
         min_length=1,
         description="Postal/ZIP code (no leading/trailing whitespace)",
     )
-    street: Annotated[str, WhitespaceConstraint()] = Field(
+    street: Annotated[str, WhitespaceConstraint()] | None = Field(
         default=None,
         min_length=1,
         description="Street name (no leading/trailing whitespace)",
     )
-    unit: Annotated[str, WhitespaceConstraint()] = Field(
+    unit: Annotated[str, WhitespaceConstraint()] | None = Field(
         default=None,
         min_length=1,
         description="Suite/apartment/floor number (no leading/trailing whitespace)",

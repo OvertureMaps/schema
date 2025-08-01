@@ -12,7 +12,7 @@ class AddressLevel(StrictBaseModel):
 
     # Optional
 
-    value: str = Field(default=None, description="Address level value")
+    value: str | None = Field(default=None, description="Address level value")
 
 
 class AddressContainer(ExtensibleBaseModel):
@@ -20,14 +20,18 @@ class AddressContainer(ExtensibleBaseModel):
 
     # Optional
 
-    freeform: str = Field(default=None, description="Freeform address string")
-    locality: str = Field(default=None, description="Locality name")
-    postcode: str = Field(default=None, description="Postal code")
-    region: RegionCode = Field(default=None, description="ISO 3166-2 subdivision code")
-    country: CountryCode = Field(
+    freeform: str | None = Field(default=None, description="Freeform address string")
+    locality: str | None = Field(default=None, description="Locality name")
+    postcode: str | None = Field(default=None, description="Postal code")
+    region: RegionCode | None = Field(
+        default=None, description="ISO 3166-2 subdivision code"
+    )
+    country: CountryCode | None = Field(
         default=None, description="ISO 3166-1 alpha-2 country code"
     )
-    address_levels: list[AddressLevel] = Field(
+    address_levels: list[AddressLevel] | None = Field(
         default=None, min_length=1, max_length=5, description="Address levels (1-5)"
     )
-    postal_city: str = Field(default=None, description="Postal city if different")
+    postal_city: str | None = Field(
+        default=None, description="Postal city if different"
+    )

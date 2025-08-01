@@ -192,10 +192,12 @@ class LandUse(OvertureFeature):
 
     # Optional
 
-    elevation: float = Field(default=None, description="Elevation in meters")
-    level: int = Field(default=None, description="Z-order level")
-    names: NamesContainer = Field(default=None, description="Multilingual names")
-    source_tags: dict[str, Any] = Field(
+    elevation: float | None = Field(default=None, description="Elevation in meters")
+    level: int | None = Field(default=None, description="Z-order level")
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")
+    source_tags: dict[str, Any] | None = Field(
         default=None, description="Source tags from data providers"
     )
-    surface: SurfaceMaterial = Field(default=None, description="Surface material")
+    surface: SurfaceMaterial | None = Field(
+        default=None, description="Surface material"
+    )

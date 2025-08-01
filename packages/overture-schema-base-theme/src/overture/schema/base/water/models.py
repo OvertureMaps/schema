@@ -92,19 +92,20 @@ class Water(OvertureFeature):
         description="Geometry (Point, LineString, Polygon, or MultiPolygon)",
     )
 
-    # Required
-
-    class_: WaterClass = Field(..., alias="class", description="Water class")
-    subtype: WaterSubtype = Field(..., description="Water subtype")
-
     # Optional
 
-    names: NamesContainer = Field(default=None, description="Multilingual names")
-    is_intermittent: bool = Field(
+    class_: WaterClass = Field(
+        default=WaterClass.WATER, alias="class", description="Water class"
+    )
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")
+    is_intermittent: bool | None = Field(
         default=None, description="Is it intermittent water or not"
     )
-    is_salt: bool = Field(default=None, description="Is it salt water or not")
-    source_tags: dict[str, Any] = Field(
+    is_salt: bool | None = Field(default=None, description="Is it salt water or not")
+    source_tags: dict[str, Any] | None = Field(
         default=None, description="Source tags from data providers"
     )
-    wikidata: WikidataId = Field(default=None, description="Wikidata identifier")
+    subtype: WaterSubtype = Field(
+        default=WaterSubtype.WATER, description="Water subtype"
+    )
+    wikidata: WikidataId | None = Field(default=None, description="Wikidata identifier")

@@ -225,14 +225,16 @@ class Infrastructure(OvertureFeature):
 
     # Optional
 
-    class_: InfrastructureClass = Field(
+    class_: InfrastructureClass | None = Field(
         default=None, alias="class", description="Infrastructure class"
     )
-    height: float = Field(
+    height: float | None = Field(
         default=None, gt=0, description="Height of the feature in meters"
     )
-    names: NamesContainer = Field(default=None, description="Multilingual names")
-    source_tags: dict[str, Any] = Field(
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")
+    source_tags: dict[str, Any] | None = Field(
         default=None, description="Source tags from data providers"
     )
-    surface: SurfaceMaterial = Field(default=None, description="Surface material")
+    surface: SurfaceMaterial | None = Field(
+        default=None, description="Surface material"
+    )

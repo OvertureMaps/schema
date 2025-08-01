@@ -45,7 +45,7 @@ class GeometricRangeScope(ExtensibleBaseModel):
 
     # Optional
 
-    between: LinearReferenceRange = Field(
+    between: LinearReferenceRange | None = Field(
         default=None,
         description="Linear referencing range [start, end] where 0=start, 1=end of feature",
     )
@@ -84,7 +84,7 @@ class TemporalScope(StrictBaseModel):
 
     # Optional
 
-    during: str = Field(
+    during: str | None = Field(
         default=None,
         description="Time periods in OSM opening hours format (e.g., 'Mo-Fr 08:00-17:00')",
     )
@@ -121,7 +121,7 @@ class HeadingScope(StrictBaseModel):
 
     # Optional
 
-    heading: Literal["forward", "backward"] = Field(
+    heading: Literal["forward", "backward"] | None = Field(
         default=None,
         description="Direction of travel: 'forward' follows feature geometry, 'backward' opposes it",
     )
@@ -158,7 +158,7 @@ class TravelModeScope(StrictBaseModel):
 
     # Optional
 
-    mode: list[TravelMode] = Field(
+    mode: list[TravelMode] | None = Field(
         default=None,
         min_length=1,
         description="Transportation modes affected by this rule (car, foot, bike, etc.)",
@@ -196,7 +196,7 @@ class PurposeOfUseScope(StrictBaseModel):
 
     # Optional
 
-    using: list[PurposeOfUse] = Field(
+    using: list[PurposeOfUse] | None = Field(
         default=None,
         min_length=1,
         description="Purpose of travel (to_deliver, at_destination, for_through_traffic, etc.)",
@@ -234,7 +234,7 @@ class RecognizedStatusScope(StrictBaseModel):
 
     # Optional
 
-    recognized: list[RecognizedStatus] = Field(
+    recognized: list[RecognizedStatus] | None = Field(
         default=None,
         min_length=1,
         description="Legal or social recognition status (as_private, as_employee, as_public, etc.)",
@@ -284,7 +284,7 @@ class VehicleScope(StrictBaseModel):
 
     # Optional
 
-    vehicle: list[VehicleConstraint] = Field(
+    vehicle: list[VehicleConstraint] | None = Field(
         default=None,
         min_length=1,
         description="Physical vehicle constraints (weight, height, width, length limits)",

@@ -61,10 +61,12 @@ class DivisionArea(OvertureFeature):
 
     # Optional
 
-    is_land: bool = Field(
+    is_land: bool | None = Field(
         default=None, description="Land area designation", strict=True
     )
-    is_territorial: bool = Field(
+    is_territorial: bool | None = Field(
         default=None, description="Territorial area designation", strict=True
     )
-    region: RegionCode = Field(default=None, description="ISO 3166-2 region code")
+    region: RegionCode | None = Field(
+        default=None, description="ISO 3166-2 region code"
+    )

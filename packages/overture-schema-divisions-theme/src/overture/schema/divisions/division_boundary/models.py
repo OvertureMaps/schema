@@ -56,18 +56,23 @@ class DivisionBoundary(OvertureFeature):
 
     # Optional
 
-    country: CountryCode = Field(
+    country: CountryCode | None = Field(
         default=None,
         description="ISO 3166-1 alpha-2 country code (not for country boundaries)",
     )
-    is_disputed: bool = Field(default=None, description="Boundary is disputed")
-    is_land: bool = Field(
+    is_disputed: bool | None = Field(
+        default=None,
+        description="Boundary is disputed",
+    )
+    is_land: bool | None = Field(
         default=None, description="Land boundary designation", strict=True
     )
-    is_territorial: bool = Field(
+    is_territorial: bool | None = Field(
         default=None, description="Territorial boundary designation", strict=True
     )
-    perspectives: Perspectives = Field(
+    perspectives: Perspectives | None = Field(
         default=None, description="Political perspectives"
     )
-    region: RegionCode = Field(default=None, description="ISO 3166-2 region code")
+    region: RegionCode | None = Field(
+        default=None, description="ISO 3166-2 region code"
+    )

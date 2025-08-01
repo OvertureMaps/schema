@@ -45,11 +45,15 @@ class BuildingPart(OvertureFeature, BuildingShape):
 
     # Optional
 
-    building_class: BuildingClass = Field(
+    building_class: BuildingClass | None = Field(
         default=None, alias="class", description="Building class"
     )
-    names: NamesContainer = Field(default=None, description="Multilingual names")
-    address: AddressContainer = Field(default=None, description="Address information")
-    has_parts: bool = Field(default=None, description="Building has parts")
-    level: int = Field(default=None, description="Z-order level")
-    subtype: BuildingSubtype = Field(default=None, description="Building subtype")
+    names: NamesContainer | None = Field(default=None, description="Multilingual names")
+    address: AddressContainer | None = Field(
+        default=None, description="Address information"
+    )
+    has_parts: bool | None = Field(default=None, description="Building has parts")
+    level: int | None = Field(default=None, description="Z-order level")
+    subtype: BuildingSubtype | None = Field(
+        default=None, description="Building subtype"
+    )

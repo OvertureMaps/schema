@@ -40,14 +40,16 @@ class SourceItem(StrictBaseModel):
 
     # Optional
 
-    record_id: str = Field(default=None, description="Specific record within dataset")
-    update_time: ISO8601DateTime = Field(
+    record_id: str | None = Field(
+        default=None, description="Specific record within dataset"
+    )
+    update_time: ISO8601DateTime | None = Field(
         default=None, description="When this property was last updated"
     )
-    confidence: Annotated[float, ConfidenceScoreConstraint()] = Field(
+    confidence: Annotated[float, ConfidenceScoreConstraint()] | None = Field(
         default=None, description="Confidence value for ML-derived data"
     )
-    between: LinearReferenceRange = Field(
+    between: LinearReferenceRange | None = Field(
         default=None, description="Linear referencing range"
     )
 

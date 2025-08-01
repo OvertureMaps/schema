@@ -211,12 +211,14 @@ class SpeedLimitRule(GeometricRangeScope):
 
     # Optional
 
-    max_speed: Speed = Field(default=None, description="Maximum speed limit")
-    min_speed: Speed = Field(default=None, description="Minimum speed limit")
+    max_speed: Speed | None = Field(default=None, description="Maximum speed limit")
+    min_speed: Speed | None = Field(default=None, description="Minimum speed limit")
     is_max_speed_variable: bool = Field(
-        default=None, description="Whether maximum speed is variable"
+        default=False, description="Whether maximum speed is variable"
     )
-    when: SpeedLimitWhenClause = Field(default=None, description="Scoping conditions")
+    when: SpeedLimitWhenClause | None = Field(
+        default=None, description="Scoping conditions"
+    )
 
 
 class AccessRestrictionRule(GeometricRangeScope):
@@ -228,7 +230,7 @@ class AccessRestrictionRule(GeometricRangeScope):
 
     # Optional
 
-    when: AccessRestrictionWhenClause = Field(
+    when: AccessRestrictionWhenClause | None = Field(
         default=None, description="Scoping conditions"
     )
 
@@ -281,10 +283,12 @@ class DestinationRule(StrictBaseModel):
 
     # Optional
 
-    symbols: Annotated[list[DestinationSignSymbol], UniqueItemsConstraint()] = Field(
-        default=None, description="Route symbols"
+    symbols: Annotated[list[DestinationSignSymbol], UniqueItemsConstraint()] | None = (
+        Field(default=None, description="Route symbols")
     )
-    when: DestinationWhenClause = Field(default=None, description="Scoping conditions")
+    when: DestinationWhenClause | None = Field(
+        default=None, description="Scoping conditions"
+    )
 
 
 class ProhibitedTransitionSequence(StrictBaseModel):
@@ -313,7 +317,7 @@ class ProhibitedTransitionRule(GeometricRangeScope):
 
     # Optional
 
-    when: ProhibitedTransitionWhenClause = Field(
+    when: ProhibitedTransitionWhenClause | None = Field(
         default=None, description="Scoping conditions"
     )
 
@@ -375,16 +379,16 @@ class RouteReference(GeometricRangeScope):
 
     # Optional
 
-    name: Annotated[str, WhitespaceConstraint()] = Field(
+    name: Annotated[str, WhitespaceConstraint()] | None = Field(
         default=None, min_length=1, description="Route name"
     )
-    network: Annotated[str, WhitespaceConstraint()] = Field(
+    network: Annotated[str, WhitespaceConstraint()] | None = Field(
         default=None, min_length=1, description="Route network"
     )
-    ref: Annotated[str, WhitespaceConstraint()] = Field(
+    ref: Annotated[str, WhitespaceConstraint()] | None = Field(
         default=None, min_length=1, description="Route reference number"
     )
-    symbol: Annotated[str, WhitespaceConstraint()] = Field(
+    symbol: Annotated[str, WhitespaceConstraint()] | None = Field(
         default=None, min_length=1, description="Route symbol URL"
     )
-    wikidata: WikidataId = Field(default=None, description="Wikidata identifier")
+    wikidata: WikidataId | None = Field(default=None, description="Wikidata identifier")

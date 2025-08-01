@@ -36,14 +36,16 @@ class NameRule(StrictBaseModel):
 
     # Optional
 
-    between: LinearReferenceRange = Field(
+    between: LinearReferenceRange | None = Field(
         default=None, description="Linear referencing range"
     )
-    language: LanguageTag = Field(default=None, description="IETF BCP-47 language tag")
-    perspectives: Perspectives = Field(
+    language: LanguageTag | None = Field(
+        default=None, description="IETF BCP-47 language tag"
+    )
+    perspectives: Perspectives | None = Field(
         default=None, description="Political perspectives"
     )
-    side: Literal["left", "right"] = Field(
+    side: Literal["left", "right"] | None = Field(
         default=None, description="Side specification"
     )
 
@@ -57,7 +59,8 @@ class NamesContainer(StrictBaseModel):
 
     # Optional
 
-    common: Annotated[
-        dict[LanguageTag, TrimmedString], PatternPropertiesDictConstraint()
-    ] = Field(default=None, description="Common names by language")
-    rules: list[NameRule] = Field(default=None, description="Name rules")
+    common: (
+        Annotated[dict[LanguageTag, TrimmedString], PatternPropertiesDictConstraint()]
+        | None
+    ) = Field(default=None, description="Common names by language")
+    rules: list[NameRule] | None = Field(default=None, description="Name rules")
