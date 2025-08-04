@@ -1,0 +1,19 @@
+---
+id: overture:transportation:segment:123
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Custom user properties.
+  ext_baz: I am a custom user property...
+  theme: transportation
+  type: segment
+  version: 3
+  subtype: rail
+  class: subway
+  names:
+    primary: Generic Rail Name
+  rail_flags:
+    - values: [is_tunnel]
+      between: [0, 0.5]

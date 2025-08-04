@@ -1,0 +1,21 @@
+---
+id: speed-limits-variable-max
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-123.12895930023527, 50.007761789070344]
+    - [-123.12637500433082, 50.00945836227345]
+    - [-123.12506896231434, 50.011762034223324]
+    - [-123.12415195409014, 50.01351203677902]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: motorway
+  speed_limits:
+    - max_speed:
+        value: 100
+        unit: km/h
+      is_max_speed_variable: true

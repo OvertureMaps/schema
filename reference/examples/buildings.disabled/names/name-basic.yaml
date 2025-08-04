@@ -1,0 +1,16 @@
+---
+id: overture:buildings:building:1234
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  # Custom user properties.
+  ext_foo: I am a customer user property.
+  ext_bar: Me too!
+  # Overture properties
+  theme: buildings
+  type: building
+  version: 1
+  names:
+    primary: Empire State Building

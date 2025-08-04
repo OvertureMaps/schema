@@ -1,0 +1,36 @@
+---
+id: overture:transportation:segment:1415
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Custom user properties.
+  ext_baz: I am a custom user property...
+  ext_description: >-
+    This is an example road segment in which as many properties as
+    possible are specified using rules instead of flat values. For
+    example, the road flags are specified using rules.
+  # Overture properties
+  theme: transportation
+  type: segment
+  version: 5
+  subtype: road
+  class: primary
+  access_restrictions:
+    - access_type: denied
+    - access_type: designated
+      when: {mode: [truck]}
+      between: [0.1, 0.25]
+    - access_type: allowed
+      when:
+        using: [as_customer, to_farm]
+        recognized: [as_permitted, as_employee]
+      between: [0.25, 0.50]
+    - access_type: allowed
+      when:
+        vehicle:
+          - dimension: axle_count
+            comparison: greater_than
+            value: 5
+      between: [0.50, 0.70]
