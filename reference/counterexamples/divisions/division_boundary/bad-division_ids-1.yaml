@@ -16,5 +16,5 @@ properties:
   ext_expected_errors:
     - "maxItems: got 4, want 2"
     - "items at 1 and 2 are equal"
-    - "propertyDefinitions/id/type]: got number, want string"
-    - got string, want boolean
+    - "got number, want string"
+    - "got string, want boolean"

@@ -1,9 +1,12 @@
 {
-  "id": "road segment where road.restrictions.speed_limits contains an empty rule",
+  "id": "123",
   "type": "Feature",
   "geometry": {
     "type": "LineString",
-    "coordinates": [[0, 1], [1, 1]]
+    "coordinates": [
+      [0, 1],
+      [1, 1]
+    ]
   },
   "properties": {
     "theme": "transportation",
@@ -11,9 +14,8 @@
     "version": 26,
     "subtype": "road",
     "class": "primary",
-    "speed_limits": [
-      {}
-    ],
+    "speed_limits": [{}],
+    "ext_description": "road segment where road.restrictions.speed_limits contains an empty rule",
     "ext_expected_errors": [
       "anyOf/0/required]: missing property 'min_speed'",
       "anyOf/1/required]: missing property 'max_speed'"

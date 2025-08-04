@@ -13,4 +13,4 @@ properties:
   subtype: road
   class: invalid_road_class  # This should trigger Pydantic validation error
   ext_expected_errors:
-    - "Invalid road class: invalid_road_class"
+    - "value must be one of 'motorway', 'primary', 'secondary', 'tertiary', 'residential', 'living_street', 'trunk', 'unclassified', 'service', 'pedestrian', 'footway', 'steps', 'path', 'track', 'cycleway', 'bridleway', 'unknown'"

@@ -1,0 +1,156 @@
+{
+  "$defs": {
+    "SourcePropertyItem": {
+      "additionalProperties": false,
+      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "properties": {
+        "between": {
+          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence score between 0.0 and 1.0",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "title": "Dataset",
+          "type": "string"
+        },
+        "property": {
+          "description": "JSON Pointer (RFC 6901)",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Refers to the specific record within the dataset that was used.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "ISO 8601 datetime",
+          "format": "date-time",
+          "pattern": "^([1-9]\\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d|60)(\\.\\d{1,3})?(Z|[-+]([01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourcePropertyItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Connectors create physical connections between segments. Connectors are compatible with GeoJSON Point features.",
+  "patternProperties": {
+    "^ext_.*$": {
+      "description": "Additional top-level properties must be prefixed with `ext_`."
+    }
+  },
+  "properties": {
+    "geometry": {
+      "description": "Connector's geometry which MUST be a Point as defined by GeoJSON schema.",
+      "properties": {
+        "bbox": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "type": "array"
+        },
+        "coordinates": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "type": "array"
+        },
+        "type": {
+          "const": "Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "title": "Geometry",
+      "type": "object"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties must be prefixed with `ext_`."
+        }
+      },
+      "properties": {
+        "sources": {
+          "description": "The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+          "items": {
+            "$ref": "#/$defs/SourcePropertyItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "theme": {
+          "const": "transportation",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "connector",
+          "title": "Type",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "theme",
+        "type",
+        "version"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "geometry",
+    "properties",
+    "type"
+  ],
+  "title": "connector",
+  "type": "object"
+}

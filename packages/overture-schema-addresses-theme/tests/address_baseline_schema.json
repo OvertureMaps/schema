@@ -1,0 +1,224 @@
+{
+  "$defs": {
+    "AddressLevel": {
+      "additionalProperties": false,
+      "description": "An address \"admin level\". We want to avoid the phrase \"admin level\" and have chosen \"address level\". These represent states, regions, districts, cities, neighborhoods, etc. The address schema defines several numbered levels with per-country rules indicating which parts of a country's address goes to which numbered level.",
+      "properties": {
+        "value": {
+          "description": "String with no leading/trailing whitespace",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "title": "AddressLevel",
+      "type": "object"
+    },
+    "SourcePropertyItem": {
+      "additionalProperties": false,
+      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "properties": {
+        "between": {
+          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence score between 0.0 and 1.0",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "title": "Dataset",
+          "type": "string"
+        },
+        "property": {
+          "description": "JSON Pointer (RFC 6901)",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Refers to the specific record within the dataset that was used.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "ISO 8601 datetime",
+          "format": "date-time",
+          "pattern": "^([1-9]\\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d|60)(\\.\\d{1,3})?(Z|[-+]([01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourcePropertyItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Addresses are geographic points used for locating businesses and individuals. The rules, fields, and fieldnames of an address can vary extensively between locations. We use a simplified schema to capture worldwide address points.  This initial schema is largely based on the OpenAddresses (www.openaddresses.io) project.\n\nThe address schema allows up to 5 \"admin levels\". Rather than have field names that apply across all countries, we provide an array called \"address_levels\" containing the necessary administrative levels for an address.",
+  "patternProperties": {
+    "^ext_.*$": {
+      "description": "Additional top-level properties must be prefixed with `ext_`."
+    }
+  },
+  "properties": {
+    "geometry": {
+      "description": "Geometry (Point)",
+      "properties": {
+        "bbox": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "type": "array"
+        },
+        "coordinates": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "type": "array"
+        },
+        "type": {
+          "const": "Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "title": "Geometry",
+      "type": "object"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties must be prefixed with `ext_`."
+        }
+      },
+      "properties": {
+        "address_levels": {
+          "description": "The administrative levels present in an address. The number of values in this list and their meaning is country-dependent. For example, in the United States we expect two values: the state and the municipality. In other countries there might be only one. Other countries could have three or more. The array is ordered with the highest levels first.\n\n                Note: when a level is not known - most likely because the data provider has not supplied it and we have not derived it from another source, the array element container must be present, but the \"value\" field should be omitted",
+          "items": {
+            "$ref": "#/$defs/AddressLevel"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Address Levels",
+          "type": "array"
+        },
+        "country": {
+          "description": "ISO 3166-1 alpha-2 country code",
+          "maxLength": 2,
+          "minLength": 2,
+          "pattern": "^[A-Z]{2}$",
+          "title": "Country",
+          "type": "string"
+        },
+        "number": {
+          "description": "The house number for this address. This field may not strictly be a number. Values such as \"74B\", \"189 1/2\", \"208.5\" are common as the number part of an address and they are not part of the \"unit\" of this address.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Number",
+          "type": "string"
+        },
+        "postal_city": {
+          "description": "In some countries or regions, a mailing address may need to specify a different city name than the city that actually contains the address coordinates. This optional field can be used to specify the alternate city name to use.\n\n                Example from US National Address Database:\n                716 East County Road, Winchester, Indiana has \"Ridgeville\" as its postal city\n\n                Another example in Slovenia:\n                Tomaj 71, 6221 Dutovlje, Slovenia",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Postal City",
+          "type": "string"
+        },
+        "postcode": {
+          "description": "The postcode for the address",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Postcode",
+          "type": "string"
+        },
+        "sources": {
+          "description": "The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+          "items": {
+            "$ref": "#/$defs/SourcePropertyItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "street": {
+          "description": "The street name associated with this address. The street name can include the street \"type\" or street suffix, e.g., Main Street. Ideally this is fully spelled out and not abbreviated but we acknowledge that many address datasets abbreviate the street name so it is acceptable.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Street",
+          "type": "string"
+        },
+        "theme": {
+          "const": "addresses",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "address",
+          "title": "Type",
+          "type": "string"
+        },
+        "unit": {
+          "description": "The suite/unit/apartment/floor number",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Unit",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "theme",
+        "type",
+        "version"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "geometry",
+    "properties",
+    "type"
+  ],
+  "title": "address",
+  "type": "object"
+}

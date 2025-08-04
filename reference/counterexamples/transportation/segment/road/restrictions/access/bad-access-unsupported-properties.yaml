@@ -15,5 +15,6 @@ properties:
       when:
         baz: qux
   ext_expected_errors:
-    - "'/properties/access_restrictions/0' [S#/$defs/propertyContainers/accessContainer/items/required]: missing property 'access_type'"
-    - "'/properties/access_restrictions/1/when/baz' [S#/$defs/propertyContainers/accessContainer/items/properties/when/unevaluatedProperties]: false schema"
+    - "missing property 'access_type'"
+    - "additional properties 'foo' not allowed"
+    - "additional properties 'baz' not allowed"

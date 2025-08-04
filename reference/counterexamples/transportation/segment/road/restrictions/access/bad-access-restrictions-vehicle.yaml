@@ -22,4 +22,4 @@ properties:
     - access_type: allowed
       when: {vehicle: [{dimension: axle_count, comparison: greater_than, value: {is_foo: 5}}]}
   ext_expected_errors:
-    - "propertyContainers/vehicleScopeContainer/properties/vehicle/items/properties/value/type]: got object, want number"
+    - "got object, want number"

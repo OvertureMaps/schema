@@ -21,4 +21,4 @@ properties:
     random_property: 10
   ext_expected_errors:
     - "value must be one of 'left', 'right'"
-    - "/properties/properties/properties/norms/unevaluatedProperties]: false schema"
+    - "additional properties 'random_property' not allowed"

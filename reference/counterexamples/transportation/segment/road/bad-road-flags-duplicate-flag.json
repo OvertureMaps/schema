@@ -7,7 +7,7 @@
   },
   "properties": {
     "ext_expected_errors": [
-      "roadFlagsContainer/items/properties/values/uniqueItems]: items at 0 and 1 are equal"
+      "items at 0 and 1 are equal"
     ],
     "theme": "transportation",
     "type": "segment",

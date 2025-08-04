@@ -13,4 +13,4 @@ properties:
   subtype: rail
   class: invalid_rail_class  # This should trigger Pydantic validation error
   ext_expected_errors:
-    - "Invalid rail class: invalid_rail_class"
+    - "value must be one of 'funicular', 'light_rail', 'monorail', 'narrow_gauge', 'standard_gauge', 'subway', 'tram', 'unknown'"
