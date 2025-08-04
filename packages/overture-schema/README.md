@@ -17,6 +17,7 @@ This will install the currently implemented theme packages:
 - `overture-schema-buildings-theme` - Buildings theme
 - `overture-schema-divisions-theme` - Divisions theme (political and administrative boundaries)
 - `overture-schema-places-theme` - Places theme
+- `overture-schema-transportation-theme` - Transportation theme (segments and connectors)
 
 ## Usage
 
@@ -45,6 +46,9 @@ from overture.schema.divisions import Division, DivisionArea, DivisionBoundary
 
 # Places theme
 from overture.schema.places import Place
+
+# Transportation theme
+from overture.schema.transportation import Connector, Segment
 ```
 
 TK
