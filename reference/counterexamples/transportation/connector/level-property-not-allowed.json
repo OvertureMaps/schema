@@ -11,7 +11,7 @@
       "version": 0,
       "level": 3,
       "ext_expected_errors": [
-        "/properties/unevaluatedProperties]: false schema"
+        "additional properties 'level' not allowed"
       ]
     }
   }

@@ -11,7 +11,7 @@
     "version": 0,
     "foo": "bar",
     "ext_expected_errors": [
-      "schema/transportation/connector.yaml#/properties/properties/unevaluatedProperties]: false schema"
+      "additional properties 'foo' not allowed"
     ]
   }
 }

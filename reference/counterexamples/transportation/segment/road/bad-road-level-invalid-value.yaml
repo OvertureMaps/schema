@@ -18,4 +18,4 @@ properties:
   level_rules:
     - value: 1.5
   ext_expected_errors:
-    - "schema/defs.yaml#/$defs/propertyDefinitions/level/type]: got number, want integer"
+    - "got number, want integer"

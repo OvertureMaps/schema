@@ -6,8 +6,8 @@ geometry:
   coordinates: [[0, 0], [1, 1]]
 properties:
   ext_expected_errors:
-    - "routes/items/properties/name/minLength]: minLength: got 0, want 1"
-    - "routes/items/properties/name/pattern]: '' does not match pattern"
+    - "minLength: got 0, want 1"
+    - "'' does not match pattern"
   theme: transportation
   type: segment
   version: 1

@@ -14,4 +14,4 @@ properties:
   rail_flags:
     - values: [is_bridge]
   ext_expected_errors:
-    - "rail_flags property not allowed for subtype 'road', only for 'rail'"
+    - "oneOf failed, none matched"

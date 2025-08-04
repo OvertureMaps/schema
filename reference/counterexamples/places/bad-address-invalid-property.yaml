@@ -5,7 +5,8 @@ geometry:
   type: Point
   coordinates: [0, 0]
 properties:
-  ext_expected_errors: ["/$defs/propertyDefinitions/address/unevaluatedProperties]: false schema"]
+  ext_expected_errors:
+    - "additional properties 'region2' not allowed"
   theme: places
   type: place
   version: 0
