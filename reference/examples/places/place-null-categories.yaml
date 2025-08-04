@@ -16,8 +16,6 @@ properties:
     names:
       primary: Example
     wikidata: Q1000
-  categories:
-    primary: some_category
   emails:
     - info@example.com
   phones:
@@ -28,5 +26,5 @@ properties:
   type: place
   version: 1
   websites:
-    - https://www.example.com
+    - https://www.example.com/
 type: Feature

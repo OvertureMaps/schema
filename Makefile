@@ -21,5 +21,6 @@ mypy:
 		-p overture.schema.buildings \
 		-p overture.schema.core \
 		-p overture.schema.divisions \
+		-p overture.schema.places \
 		-p overture.schema.validation
 	@uv run mypy packages/*/tests/*.py
