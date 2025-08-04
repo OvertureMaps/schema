@@ -30,6 +30,13 @@ from overture.schema.core.types import (
     TrimmedString,
     Type,
 )
+from overture.schema.validation import (
+    ConstraintValidatedModel,
+)
+from overture.schema.validation.constraints import UniqueItemsConstraint
+from overture.schema.validation.mixin import (
+    allow_extension_fields,
+)
 
 from .geometry import Geometry
 from .types import Id, Level, LinearlyReferencedRange
@@ -41,7 +48,8 @@ class StrictBaseModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class ExtensibleBaseModel(BaseModel):
+@allow_extension_fields()
+class ExtensibleBaseModel(ConstraintValidatedModel, BaseModel):
     """Base model that allows ext_* prefixed fields only."""
 
     model_config = ConfigDict(
@@ -97,6 +105,7 @@ Sources = Annotated[
         min_length=1,
         description="""The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.""",
     ),
+    UniqueItemsConstraint(),
 ]
 
 
@@ -224,6 +233,7 @@ class Perspectives(StrictBaseModel):
         Field(
             min_length=1, description="Countries holding the given mode of perspective."
         ),
+        UniqueItemsConstraint(),
     ]
 
 
