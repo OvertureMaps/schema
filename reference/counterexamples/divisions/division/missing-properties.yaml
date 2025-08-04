@@ -9,4 +9,4 @@ properties:
   type: division
   version: 0
   ext_expected_errors:
-    - "missing properties 'names', 'subtype', 'country', 'hierarchies'"
+    - "missing properties 'country', 'hierarchies', 'names', 'subtype'"
