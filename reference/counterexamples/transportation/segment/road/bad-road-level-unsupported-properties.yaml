@@ -19,4 +19,4 @@ properties:
     - value: 1
       foo: bar
   ext_expected_errors:
-    - "'/properties/level_rules/0/foo' [S#/$defs/propertyContainers/levelRulesContainer/items/unevaluatedProperties]: false schema"
+    - "additional properties 'foo' not allowed"

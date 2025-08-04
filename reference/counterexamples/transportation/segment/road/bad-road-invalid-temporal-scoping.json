@@ -20,7 +20,7 @@
       "during": "Mo-Sa 09:00-12:00, We 15:00-18:00"
     },
     "ext_expected_errors": [
-      "schema/transportation/segment.yaml#/properties/properties/unevaluatedProperties]: false schema"
+      "additional properties 'when' not allowed"
     ]
   }
 }

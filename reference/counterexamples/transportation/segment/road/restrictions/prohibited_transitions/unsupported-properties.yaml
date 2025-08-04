@@ -18,5 +18,5 @@ properties:
       when:
         baz: qux
   ext_expected_errors:
-    - "'/properties/prohibited_transitions/0/foo' [S#/$defs/propertyContainers/prohibitedTransitionsContainer/items/unevaluatedProperties]: false schema"
-    - "'/properties/prohibited_transitions/0/when/baz' [S#/$defs/propertyContainers/prohibitedTransitionsContainer/items/properties/when/unevaluatedProperties]: false schema"
+    - "additional properties 'baz' not allowed"
+    - "additional properties 'foo' not allowed"
