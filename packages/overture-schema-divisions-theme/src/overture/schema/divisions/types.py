@@ -2,8 +2,9 @@ from typing import Annotated
 
 from pydantic import Field
 
-from overture.schema.divisions.models import HierarchyItem
-from overture.schema.validation import UniqueItemsConstraint
+from overture.schema.core.validation import UniqueItemsConstraint
+
+from .models import HierarchyItem
 
 Hierarchy = Annotated[
     list[HierarchyItem],

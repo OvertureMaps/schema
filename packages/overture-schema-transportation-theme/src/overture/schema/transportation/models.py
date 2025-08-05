@@ -16,10 +16,11 @@ from overture.schema.core.types import (
     TrimmedString,
     WikidataId,
 )
-from overture.schema.validation.constraints import (
+from overture.schema.core.validation import (
+    ConstraintValidatedModel,
     UniqueItemsConstraint,
+    any_of,
 )
-from overture.schema.validation.mixin import ConstraintValidatedModel, any_of
 
 from .enums import (
     AccessType,

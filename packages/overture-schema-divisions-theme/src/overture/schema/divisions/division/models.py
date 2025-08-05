@@ -23,13 +23,13 @@ from overture.schema.core.types import (
     RegionCode,
     WikidataId,
 )
-from overture.schema.divisions.models import CapitalOfDivisionItem
-from overture.schema.divisions.types import Hierarchy
-from overture.schema.validation import (
+from overture.schema.core.validation import (
     UniqueItemsConstraint,
 )
 
 from ..enums import DivisionClass, PlaceType
+from ..models import CapitalOfDivisionItem
+from ..types import Hierarchy
 from ..validation import parent_division_required_unless
 
 
