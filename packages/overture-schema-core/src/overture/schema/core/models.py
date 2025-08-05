@@ -55,7 +55,8 @@ class ExtensibleBaseModel(ConstraintValidatedModel, BaseModel):
 
 
 class GeometricRangeScope(StrictBaseModel):
-    """Geometric scoping properties defining the range of positions on the segment where something is physically located or where a rule is active."""
+    """Geometric scoping properties defining the range of positions on the segment where
+    something is physically located or where a rule is active."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -69,7 +70,8 @@ class GeometricRangeScope(StrictBaseModel):
 
 
 class SideScope(StrictBaseModel):
-    """Geometric scoping properties defining the side of a road modeled when moving along the line from beginning to end"""
+    """Geometric scoping properties defining the side of a road modeled when moving
+    along the line from beginning to end."""
 
     # Optional
 
@@ -77,7 +79,13 @@ class SideScope(StrictBaseModel):
 
 
 class SourcePropertyItem(GeometricRangeScope):
-    """An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization."""
+    """An object storing the source for a specificed property.
+
+    The property is a reference to the property element within this Feature, and will be
+    referenced using JSON Pointer Notation RFC 6901 (
+    https://datatracker.ietf.org/doc/rfc6901/).
+    The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.
+    """
 
     # Required
 
@@ -286,7 +294,7 @@ class Named(BaseModel):
 
 
 class Stacked(BaseModel):
-    """Properties defining feature Z-order, i.e., stacking order"""
+    """Properties defining feature Z-order, i.e., stacking order."""
 
     level: Level | None = None
 

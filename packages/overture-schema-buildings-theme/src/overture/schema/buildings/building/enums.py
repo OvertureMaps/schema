@@ -2,7 +2,11 @@ from enum import Enum
 
 
 class Subtype(str, Enum):
-    """A broad category of the building type/purpose. When the current use of the building does not match the built purpose, the subtype should be set to represent the current use of the building."""
+    """A broad category of the building type/purpose.
+
+    When the current use of the building does not match the built purpose, the subtype
+    should be set to represent the current use of the building.
+    """
 
     AGRICULTURAL = "agricultural"
     CIVIC = "civic"

@@ -1,8 +1,7 @@
-"""
-Mixin-based constraint validation system with decorators.
+"""Mixin-based constraint validation system with decorators.
 
-This module provides a structured approach to model-level validation with
-proper JSON Schema generation.
+This module provides a structured approach to model-level validation with proper JSON
+Schema generation.
 """
 
 from abc import ABC, abstractmethod
@@ -136,7 +135,8 @@ class RequiredIfValidator(BaseConstraintValidator):
 
 
 class NotRequiredIfValidator(BaseConstraintValidator):
-    """Validates conditional field NOT requirements (field should be None when condition is met)."""
+    """Validates conditional field NOT requirements (field should be None when condition
+    is met)."""
 
     def __init__(
         self, condition_field: str, condition_value: Any, not_required_fields: list[str]

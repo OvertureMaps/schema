@@ -18,7 +18,11 @@ from .enums import (
 class Building(
     Feature[Literal["buildings"], Literal["building"]], Named, Stacked, Shape
 ):
-    """A building is a man-made structure with a roof that exists permanently in one place. Buildings are compatible with GeoJSON Polygon features."""
+    """A building is a man-made structure with a roof that exists permanently in one
+    place.
+
+    Buildings are compatible with GeoJSON Polygon features.
+    """
 
     model_config = ConfigDict(title="building")
 

@@ -1,7 +1,7 @@
 """Buildings theme.
 
-Human-made building structures, including building footprints and building parts
-with attributes like height, floors, and materials.
+Human-made building structures, including building footprints and building parts with
+attributes like height, floors, and materials.
 """
 
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)

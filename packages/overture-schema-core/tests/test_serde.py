@@ -1,5 +1,5 @@
-"""
-Tests for serialization/deserialization functionality in overture-schema-core.
+"""Tests for serialization/deserialization functionality in overture-schema-core.
+
 Tests mode switching and geometry format support with synthetic data.
 """
 
@@ -31,8 +31,8 @@ class Place(Feature):
 def deep_compare_dicts(
     original: dict[str, Any], parsed: dict[str, Any]
 ) -> tuple[bool, str]:
-    """
-    Perform deep comparison between original and parsed dictionaries.
+    """Perform deep comparison between original and parsed dictionaries.
+
     Returns (is_equal, differences_report).
     """
     diff = DeepDiff(original, parsed, ignore_order=True, significant_digits=15)

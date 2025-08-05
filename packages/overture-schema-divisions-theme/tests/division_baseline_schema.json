@@ -2,7 +2,7 @@
   "$defs": {
     "CapitalOfDivisionItem": {
       "additionalProperties": false,
-      "description": "One division that has capital",
+      "description": "One division that has capital.",
       "properties": {
         "division_id": {
           "description": "ID of the division",
@@ -70,7 +70,7 @@
     },
     "HierarchyItem": {
       "additionalProperties": false,
-      "description": "One division in a hierarchy",
+      "description": "One division in a hierarchy.",
       "properties": {
         "division_id": {
           "description": "ID of the division",
@@ -248,7 +248,7 @@
       "type": "object"
     },
     "PlaceType": {
-      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g. country, region, locality, etc.) similar to a Who's on First placetype.",
+      "description": "Category of the division from a finite, hierarchical, ordered list of categories\n(e.g. country, region, locality, etc.) similar to a Who's on First placetype.",
       "enum": [
         "country",
         "dependency",
@@ -267,7 +267,7 @@
       "type": "string"
     },
     "Side": {
-      "description": "Represents the side on which something appears relative to a facing or heading direction, e.g. the side of a road relative to the road orientation, or relative to the direction of travel of a person or vehicle.",
+      "description": "Represents the side on which something appears relative to a facing or heading\ndirection, e.g. the side of a road relative to the road orientation, or relative to\nthe direction of travel of a person or vehicle.",
       "enum": [
         "left",
         "right"
@@ -277,7 +277,7 @@
     },
     "SourcePropertyItem": {
       "additionalProperties": false,
-      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "description": "An object storing the source for a specificed property.\n\nThe property is a reference to the property element within this Feature, and will be\nreferenced using JSON Pointer Notation RFC 6901 (\nhttps://datatracker.ietf.org/doc/rfc6901/).\nThe source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
       "properties": {
         "between": {
           "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
@@ -329,7 +329,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Divisions are recognized official or non-official organizations of people as seen from a given political perspective. Examples include countries, provinces, cities, towns, neighborhoods, etc.",
+  "description": "Divisions are recognized official or non-official organizations of people as seen\nfrom a given political perspective.\n\nExamples include countries, provinces, cities, towns, neighborhoods, etc.",
   "patternProperties": {
     "^ext_.*$": {
       "description": "Additional top-level properties must be prefixed with `ext_`."

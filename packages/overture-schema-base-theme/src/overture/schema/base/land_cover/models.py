@@ -15,7 +15,7 @@ from overture.schema.core.models import CartographicallyHinted, Stacked
 class LandCover(
     Feature[Literal["base"], Literal["land_cover"]], Stacked, CartographicallyHinted
 ):
-    """Representation of the Earth's natural surfaces"""
+    """Representation of the Earth's natural surfaces."""
 
     model_config = ConfigDict(title="land_cover")
 
