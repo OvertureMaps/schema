@@ -88,17 +88,13 @@ class RequiredIfValidator(BaseConstraintValidator):
         self.required_fields = required_fields
 
     def validate(self, model_instance: BaseModel) -> None:
-        target = model_instance
-        if hasattr(model_instance, "properties"):
-            target = model_instance.properties
-
-        if hasattr(target, self.condition_field):
-            condition_value = getattr(target, self.condition_field)
+        if hasattr(model_instance, self.condition_field):
+            condition_value = getattr(model_instance, self.condition_field)
             if condition_value == self.condition_value:
                 for field_name in self.required_fields:
                     if (
-                        not hasattr(target, field_name)
-                        or getattr(target, field_name) is None
+                        not hasattr(model_instance, field_name)
+                        or getattr(model_instance, field_name) is None
                     ):
                         raise ValueError(
                             f"Field '{field_name}' is required when "
@@ -147,17 +143,13 @@ class NotRequiredIfValidator(BaseConstraintValidator):
         self.not_required_fields = not_required_fields
 
     def validate(self, model_instance: BaseModel) -> None:
-        target = model_instance
-        if hasattr(model_instance, "properties"):
-            target = model_instance.properties
-
-        if hasattr(target, self.condition_field):
-            condition_value = getattr(target, self.condition_field)
+        if hasattr(model_instance, self.condition_field):
+            condition_value = getattr(model_instance, self.condition_field)
             if condition_value != self.condition_value:
                 for field_name in self.not_required_fields:
                     if (
-                        not hasattr(target, field_name)
-                        or getattr(target, field_name) is None
+                        not hasattr(model_instance, field_name)
+                        or getattr(model_instance, field_name) is None
                     ):
                         raise ValueError(
                             f"Field '{field_name}' is required when "
@@ -203,13 +195,12 @@ class AnyOfValidator(BaseConstraintValidator):
         self.field_names = field_names
 
     def validate(self, model_instance: BaseModel) -> None:
-        target = model_instance
-        if hasattr(model_instance, "properties"):
-            target = model_instance.properties
-
         present_fields = []
         for field_name in self.field_names:
-            if hasattr(target, field_name) and getattr(target, field_name) is not None:
+            if (
+                hasattr(model_instance, field_name)
+                and getattr(model_instance, field_name) is not None
+            ):
                 present_fields.append(field_name)
 
         if not present_fields:
@@ -238,16 +229,12 @@ class ExactlyOneOfValidator(BaseConstraintValidator):
         self.field_names = field_names
 
     def validate(self, model_instance: BaseModel) -> None:
-        target = model_instance
-        if hasattr(model_instance, "properties"):
-            target = model_instance.properties
-
         true_fields = []
         missing_fields = []
 
         for field_name in self.field_names:
-            if hasattr(target, field_name):
-                field_value = getattr(target, field_name)
+            if hasattr(model_instance, field_name):
+                field_value = getattr(model_instance, field_name)
                 if field_value is True:
                     true_fields.append(field_name)
             else:
