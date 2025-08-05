@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
-    OvertureFeature,
+    Feature,
 )
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import Perspectives
@@ -26,7 +26,7 @@ from .enums import BoundaryClass
 
 @exactly_one_of("is_land", "is_territorial")
 @not_required_if("subtype", PlaceType.COUNTRY, ["country"])
-class DivisionBoundary(OvertureFeature):
+class DivisionBoundary(Feature):
     """Boundaries represent borders between divisions of the same subtype. Some boundaries may be disputed by the divisions on one or both sides."""
 
     model_config = ConfigDict(title="boundary")

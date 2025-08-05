@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
-    OvertureFeature,
+    Feature,
 )
 from overture.schema.core.enums import Side
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
@@ -47,7 +47,7 @@ class Norms(StrictBaseModel):
 
 
 @parent_division_required_unless("subtype", PlaceType.COUNTRY)
-class Division(OvertureFeature, Named, CartographicallyHinted):
+class Division(Feature, Named, CartographicallyHinted):
     """Divisions are recognized official or non-official organizations of people as seen from a given political perspective. Examples include countries, provinces, cities, towns, neighborhoods, etc."""
 
     model_config = ConfigDict(title="division")
