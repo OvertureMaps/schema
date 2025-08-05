@@ -4,7 +4,7 @@ from typing import Annotated
 
 from pydantic import Field
 
-from overture.schema.validation.constraints import UniqueItemsConstraint
+from overture.schema.core.validation import UniqueItemsConstraint
 
 from .models import (
     AccessRestrictionRule,

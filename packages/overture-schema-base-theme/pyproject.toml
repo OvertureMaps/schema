@@ -7,7 +7,6 @@ requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
     "overture-schema-core",
-    "overture-schema-validation",
     "pydantic>=2.0",
 ]
 
@@ -20,7 +19,6 @@ dev = [
 
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
-overture-schema-validation = { workspace = true }
 
 
 [build-system]

@@ -12,15 +12,23 @@ from pydantic import (
 )
 from pydantic_core import core_schema
 
-from overture.schema.core.enums import NameVariant, PerspectiveMode, Side
-from overture.schema.core.types import (
+from overture.schema.validation import (
+    allow_extension_fields,
+)
+
+from .enums import NameVariant, PerspectiveMode, Side
+from .geometry import Geometry
+from .types import (
     CommonNames,
     ConfidenceScore,
     CountryCode,
     FeatureUpdateTime,
     FeatureVersion,
+    Id,
     JSONPointer,
     LanguageTag,
+    Level,
+    LinearlyReferencedRange,
     MaxZoom,
     MinZoom,
     Prominence,
@@ -30,16 +38,7 @@ from overture.schema.core.types import (
     TrimmedString,
     Type,
 )
-from overture.schema.validation import (
-    ConstraintValidatedModel,
-)
-from overture.schema.validation.constraints import UniqueItemsConstraint
-from overture.schema.validation.mixin import (
-    allow_extension_fields,
-)
-
-from .geometry import Geometry
-from .types import Id, Level, LinearlyReferencedRange
+from .validation import ConstraintValidatedModel, UniqueItemsConstraint
 
 
 class StrictBaseModel(BaseModel):
