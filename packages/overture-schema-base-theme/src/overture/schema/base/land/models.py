@@ -16,15 +16,15 @@ from overture.schema.core.models import Named, Stacked
 from ..enums import SurfaceMaterial
 
 
-class Land(Feature, Named, Stacked, SourcedFromOpenStreetMap):
+class Land(
+    Feature[Literal["base"], Literal["land"]], Named, Stacked, SourcedFromOpenStreetMap
+):
     """Physical representations of land surfaces. Global land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap."""
 
     model_config = ConfigDict(title="land")
 
     # Core
 
-    theme: Literal["base"]
-    type: Literal["land"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Point", "LineString", "Polygon", "MultiPolygon"),

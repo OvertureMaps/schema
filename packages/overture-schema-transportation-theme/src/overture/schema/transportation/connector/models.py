@@ -10,15 +10,12 @@ from overture.schema.core import (
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 
 
-class Connector(Feature):
+class Connector(Feature[Literal["transportation"], Literal["connector"]]):
     """Connectors create physical connections between segments. Connectors are compatible with GeoJSON Point features."""
 
     model_config = ConfigDict(title="connector")
 
     # Core
-
-    theme: Literal["transportation"]
-    type: Literal["connector"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Point"),

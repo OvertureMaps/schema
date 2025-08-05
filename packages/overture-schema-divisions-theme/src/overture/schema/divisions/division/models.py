@@ -47,15 +47,14 @@ class Norms(StrictBaseModel):
 
 
 @parent_division_required_unless("subtype", PlaceType.COUNTRY)
-class Division(Feature, Named, CartographicallyHinted):
+class Division(
+    Feature[Literal["divisions"], Literal["division"]], Named, CartographicallyHinted
+):
     """Divisions are recognized official or non-official organizations of people as seen from a given political perspective. Examples include countries, provinces, cities, towns, neighborhoods, etc."""
 
     model_config = ConfigDict(title="division")
 
     # Core
-
-    theme: Literal["divisions"]
-    type: Literal["division"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Point"),

@@ -13,15 +13,15 @@ from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
 
 
-class Water(Feature, Stacked, Named, SourcedFromOpenStreetMap):
+class Water(
+    Feature[Literal["base"], Literal["water"]], Stacked, Named, SourcedFromOpenStreetMap
+):
     """Physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap."""
 
     model_config = ConfigDict(title="water")
 
     # Core
 
-    theme: Literal["base"]
-    type: Literal["water"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Point", "LineString", "Polygon", "MultiPolygon"),
