@@ -55,15 +55,12 @@ class Brand(StrictBaseModel, Named):
     wikidata: WikidataId | None = None
 
 
-class Place(Feature, Named):
+class Place(Feature[Literal["places"], Literal["place"]], Named):
     """A Place is a point representation of a real-world facility, service, or amenity. Place features are compatible with GeoJSON Point features."""
 
     model_config = ConfigDict(title="place")
 
     # Required
-
-    theme: Literal["places"]
-    type: Literal["place"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Point"),

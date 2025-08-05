@@ -19,15 +19,18 @@ from overture.schema.core.models import Named, Stacked
 from ..enums import SurfaceMaterial
 
 
-class Infrastructure(Feature, Named, Stacked, SourcedFromOpenStreetMap):
+class Infrastructure(
+    Feature[Literal["base"], Literal["infrastructure"]],
+    Named,
+    Stacked,
+    SourcedFromOpenStreetMap,
+):
     """Various features from OpenStreetMap such as bridges, airport runways, aerialways, or communication towers and lines."""
 
     model_config = ConfigDict(title="Infrastructure Schema")
 
     # Core
 
-    theme: Literal["base"]
-    type: Literal["infrastructure"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Point", "LineString", "Polygon", "MultiPolygon"),

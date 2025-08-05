@@ -15,15 +15,14 @@ from .enums import (
 )
 
 
-class Building(Feature, Named, Stacked, Shape):
+class Building(
+    Feature[Literal["buildings"], Literal["building"]], Named, Stacked, Shape
+):
     """A building is a man-made structure with a roof that exists permanently in one place. Buildings are compatible with GeoJSON Polygon features."""
 
     model_config = ConfigDict(title="building")
 
     # Core
-
-    theme: Literal["buildings"]
-    type: Literal["building"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Polygon", "MultiPolygon"),

@@ -12,13 +12,12 @@ from overture.schema.core.types import Id
 from ..models import Shape
 
 
-class BuildingPart(Feature, Named, Stacked, Shape):
+class BuildingPart(
+    Feature[Literal["buildings"], Literal["building_part"]], Named, Stacked, Shape
+):
     """A single building part. Parts describe their shape and color and other properties. Each building part must contain the building with which it is associated."""
 
     # Core
-
-    theme: Literal["buildings"]
-    type: Literal["building_part"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Polygon", "MultiPolygon"),
