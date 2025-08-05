@@ -276,6 +276,40 @@ class ExactlyOneOfValidator(BaseConstraintValidator):
         }
 
 
+class MinPropertiesValidator(BaseConstraintValidator):
+    """Validates that at least N properties are set on a model."""
+
+    def __init__(self, min_count: int):
+        super().__init__()
+        self.min_count = min_count
+
+    def validate(self, model_instance: BaseModel) -> None:
+        # Count all properties that are set (not None)
+        set_count = 0
+
+        # Get all field names from the model class
+        field_names = getattr(model_instance.__class__, "model_fields", {}).keys()
+
+        for field_name in field_names:
+            if hasattr(model_instance, field_name):
+                field_value = getattr(model_instance, field_name)
+                if field_value is not None:
+                    set_count += 1
+
+        if set_count < self.min_count:
+            raise ValueError(
+                f"At least {self.min_count} properties must be set, but only {set_count} are set"
+            )
+
+    def get_json_schema_metadata(
+        self, model_class: type[BaseModel] | None = None, by_alias: bool = True
+    ) -> dict[str, Any]:
+        return {
+            "type": "min_properties",
+            "minProperties": self.min_count,
+        }
+
+
 def register_constraint(
     model_class: type[BaseModel], constraint: BaseConstraintValidator
 ) -> None:
@@ -337,6 +371,17 @@ def not_required_if(
         constraint = NotRequiredIfValidator(
             condition_field, condition_value, not_required_fields
         )
+        register_constraint(cls, constraint)
+        return cls
+
+    return decorator
+
+
+def min_properties(min_count: int) -> Any:
+    """Decorator to add minimum properties validation."""
+
+    def decorator(cls: type[BaseModel]) -> type[BaseModel]:
+        constraint = MinPropertiesValidator(min_count)
         register_constraint(cls, constraint)
         return cls
 
@@ -449,6 +494,14 @@ class ConstraintValidatedModel:
                     ]
                 if constraint_metadata.get("additionalProperties") is False:
                     target_schema["additionalProperties"] = False
+                continue
+
+            # Handle min_properties constraint
+            if constraint_metadata.get("type") == "min_properties":
+                if constraint_metadata.get("minProperties"):
+                    target_schema["minProperties"] = constraint_metadata[
+                        "minProperties"
+                    ]
                 continue
 
             # Handle parent_division_required_unless constraint

@@ -10,6 +10,7 @@ from overture.schema.validation import (
     ConstraintValidatedModel,
     any_of,
     exactly_one_of,
+    min_properties,
     not_required_if,
     required_if,
 )
@@ -17,6 +18,7 @@ from overture.schema.validation.mixin import (
     AnyOfValidator,
     BaseConstraintValidator,
     ExactlyOneOfValidator,
+    MinPropertiesValidator,
     NotRequiredIfValidator,
     RequiredIfValidator,
 )
@@ -391,6 +393,137 @@ class TestConditionalNotRequiredValidator:
         )
 
 
+class TestMinPropertiesValidator:
+    """Test minimum properties constraint validation."""
+
+    def test_min_properties_validator_direct(self) -> None:
+        """Test MinPropertiesValidator directly."""
+
+        class TestModel(BaseModel):
+            field_a: str | None = None
+            field_b: str | None = None
+            field_c: str | None = None
+
+        validator = MinPropertiesValidator(min_count=1)
+
+        # Valid: one property is set
+        model = TestModel(field_a="value", field_b=None, field_c=None)
+        validator.validate(model)  # Should not raise
+
+        # Valid: multiple properties are set
+        model = TestModel(field_a="value_a", field_b="value_b", field_c=None)
+        validator.validate(model)  # Should not raise
+
+        # Invalid: no properties are set
+        model = TestModel(field_a=None, field_b=None, field_c=None)
+        with pytest.raises(
+            ValueError, match="At least 1 properties must be set, but only 0 are set"
+        ):
+            validator.validate(model)
+
+    def test_min_properties_constraint_decorator(self) -> None:
+        """Test minimum properties constraint using decorator."""
+
+        @min_properties(1)
+        class MinOnePropertyModel(ConstraintValidatedModel, BaseModel):
+            heading: str | None = None
+            during: str | None = None
+
+        # Valid: one property is set
+        model = MinOnePropertyModel(heading="north", during=None)
+        assert model.heading == "north"
+        assert model.during is None
+
+        # Valid: both properties are set
+        model = MinOnePropertyModel(heading="north", during="daytime")
+        assert model.heading == "north"
+        assert model.during == "daytime"
+
+        # Invalid: no properties are set
+        with pytest.raises(ValidationError) as exc_info:
+            MinOnePropertyModel(heading=None, during=None)
+        assert "At least 1 properties must be set, but only 0 are set" in str(
+            exc_info.value
+        )
+
+    def test_min_properties_higher_count(self) -> None:
+        """Test minimum properties constraint with higher minimum count."""
+
+        @min_properties(2)
+        class MinTwoPropertiesModel(ConstraintValidatedModel, BaseModel):
+            field_a: str | None = None
+            field_b: str | None = None
+            field_c: str | None = None
+
+        # Valid: exactly 2 properties set
+        model = MinTwoPropertiesModel(
+            field_a="value_a", field_b="value_b", field_c=None
+        )
+        assert model.field_a == "value_a"
+        assert model.field_b == "value_b"
+
+        # Valid: all 3 properties set
+        model = MinTwoPropertiesModel(
+            field_a="value_a", field_b="value_b", field_c="value_c"
+        )
+        assert model.field_a == "value_a"
+        assert model.field_c == "value_c"
+
+        # Invalid: only 1 property set
+        with pytest.raises(ValidationError) as exc_info:
+            MinTwoPropertiesModel(field_a="value_a", field_b=None, field_c=None)
+        assert "At least 2 properties must be set, but only 1 are set" in str(
+            exc_info.value
+        )
+
+        # Invalid: no properties set
+        with pytest.raises(ValidationError) as exc_info:
+            MinTwoPropertiesModel(field_a=None, field_b=None, field_c=None)
+        assert "At least 2 properties must be set, but only 0 are set" in str(
+            exc_info.value
+        )
+
+    def test_min_properties_json_schema(self) -> None:
+        """Test JSON schema generation for minimum properties constraint."""
+
+        @min_properties(1)
+        class TestModel(ConstraintValidatedModel, BaseModel):
+            field_a: str | None = None
+            field_b: str | None = None
+
+        schema = TestModel.model_json_schema()
+
+        # Should have minProperties constraint
+        assert "minProperties" in schema
+        assert schema["minProperties"] == 1
+
+    def test_min_properties_with_inheritance(self) -> None:
+        """Test minimum properties constraint with model inheritance."""
+
+        @min_properties(1)
+        class BaseTestModel(ConstraintValidatedModel, BaseModel):
+            field_a: str | None = None
+            field_b: str | None = None
+
+        class DerivedModel(BaseTestModel):
+            field_c: str | None = None
+
+        # Valid: base property set
+        model = DerivedModel(field_a="value", field_b=None, field_c=None)
+        assert model.field_a == "value"
+
+        # Valid: derived property set
+        model = DerivedModel(field_a=None, field_b=None, field_c="value")
+        assert model.field_c == "value"
+
+        # Invalid: no properties set
+        with pytest.raises(ValidationError) as exc_info:
+            DerivedModel(field_a=None, field_b=None, field_c=None)
+        assert "At least 1 properties must be set, but only 0 are set" in str(
+            exc_info.value
+        )
+
+
 class TestAnyOfValidator:
     """Test anyOf constraint validation."""
 
@@ -559,6 +692,52 @@ class TestMultipleConstraints:
         # Should have anyOf for at_least_one_of constraint
         assert "anyOf" in schema
         assert len(schema["anyOf"]) == 2  # For required_a and required_b
+
+    def test_multiple_constraints_with_min_properties(self) -> None:
+        """Test min_properties constraint combined with other constraints."""
+
+        @min_properties(1)
+        @any_of("required_a", "required_b")
+        class MultiConstraintModel(ConstraintValidatedModel, BaseModel):
+            field_a: str | None = None
+            field_b: str | None = None
+            required_a: str | None = None
+            required_b: str | None = None
+
+        # Valid: satisfies both min_properties and any_of
+        model = MultiConstraintModel(
+            field_a="value", field_b=None, required_a="value", required_b=None
+        )
+        assert model.field_a == "value"
+        assert model.required_a == "value"
+
+        # Invalid: violates constraints (no properties set)
+        # Either constraint could fail first, so check for either error
+        with pytest.raises(ValidationError) as exc_info:
+            MultiConstraintModel(
+                field_a=None, field_b=None, required_a=None, required_b=None
+            )
+        error_str = str(exc_info.value)
+        assert (
+            "At least 1 properties must be set, but only 0 are set" in error_str
+            or "At least one of required_a, required_b must be present" in error_str
+        )
+
+        # Invalid: satisfies min_properties but violates any_of
+        with pytest.raises(ValidationError) as exc_info:
+            MultiConstraintModel(
+                field_a="value", field_b=None, required_a=None, required_b=None
+            )
+        assert "At least one of required_a, required_b must be present" in str(
+            exc_info.value
+        )
+
+        # Test JSON schema generation includes both constraints
+        schema = MultiConstraintModel.model_json_schema()
+        assert "minProperties" in schema
+        assert schema["minProperties"] == 1
+        assert "anyOf" in schema
+        assert len(schema["anyOf"]) == 2
 
 
 class TestConstraintInheritance:
