@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, EmailStr, Field, HttpUrl
 
 from overture.schema.core import (
-    OvertureFeature,
+    Feature,
     StrictBaseModel,
 )
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
@@ -55,7 +55,7 @@ class Brand(StrictBaseModel, Named):
     wikidata: WikidataId | None = None
 
 
-class Place(OvertureFeature, Named):
+class Place(Feature, Named):
     """A Place is a point representation of a real-world facility, service, or amenity. Place features are compatible with GeoJSON Point features."""
 
     model_config = ConfigDict(title="place")

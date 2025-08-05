@@ -5,12 +5,12 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
-    OvertureFeature,
+    Feature,
 )
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 
 
-class Connector(OvertureFeature):
+class Connector(Feature):
     """Connectors create physical connections between segments. Connectors are compatible with GeoJSON Point features."""
 
     model_config = ConfigDict(title="connector")

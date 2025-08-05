@@ -7,13 +7,13 @@ from pydantic import ConfigDict, Field
 from overture.schema.base.models import SourcedFromOpenStreetMap
 from overture.schema.base.water.enums import WaterClass, WaterSubtype
 from overture.schema.core import (
-    OvertureFeature,
+    Feature,
 )
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
 
 
-class Water(OvertureFeature, Stacked, Named, SourcedFromOpenStreetMap):
+class Water(Feature, Stacked, Named, SourcedFromOpenStreetMap):
     """Physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap."""
 
     model_config = ConfigDict(title="water")
