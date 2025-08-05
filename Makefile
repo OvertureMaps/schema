@@ -25,3 +25,6 @@ mypy:
 		-p overture.schema.transportation \
 		-p overture.schema.validation
 	@uv run mypy packages/*/tests/*.py
+
+reset-baseline-schemas:
+	@find . -name \*_baseline_schema.json -delete
