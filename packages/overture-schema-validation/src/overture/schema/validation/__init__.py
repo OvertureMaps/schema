@@ -51,6 +51,7 @@ from .mixin import (
     allow_extension_fields,
     any_of,
     exactly_one_of,
+    min_properties,
     not_required_if,
     required_if,
 )
@@ -77,6 +78,7 @@ __all__ = [
     "allow_extension_fields",
     "any_of",
     "exactly_one_of",
+    "min_properties",
     "not_required_if",
     "required_if",
 ]

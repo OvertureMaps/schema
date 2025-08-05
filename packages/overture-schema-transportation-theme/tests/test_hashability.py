@@ -353,9 +353,10 @@ class TestAccessRestrictionWhenClauseHashability:
     """Test hashability of AccessRestrictionWhenClause."""
 
     def test_access_restriction_when_clause_empty(self) -> None:
-        """Test AccessRestrictionWhenClause with no fields set."""
-        clause1 = AccessRestrictionWhenClause()
-        clause2 = AccessRestrictionWhenClause()
+        """Test AccessRestrictionWhenClause with minimal fields set."""
+        # At least one property must be set due to @min_properties(1)
+        clause1 = AccessRestrictionWhenClause(heading=Heading.FORWARD)
+        clause2 = AccessRestrictionWhenClause(heading=Heading.FORWARD)
 
         assert hash(clause1) == hash(clause2)
         assert clause1 == clause2
