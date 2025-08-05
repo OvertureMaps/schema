@@ -11,7 +11,7 @@ from overture.schema.base.infrastructure.enums import (
 from overture.schema.base.models import SourcedFromOpenStreetMap
 from overture.schema.base.types import Height
 from overture.schema.core import (
-    OvertureFeature,
+    Feature,
 )
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
@@ -19,7 +19,7 @@ from overture.schema.core.models import Named, Stacked
 from ..enums import SurfaceMaterial
 
 
-class Infrastructure(OvertureFeature, Named, Stacked, SourcedFromOpenStreetMap):
+class Infrastructure(Feature, Named, Stacked, SourcedFromOpenStreetMap):
     """Various features from OpenStreetMap such as bridges, airport runways, aerialways, or communication towers and lines."""
 
     model_config = ConfigDict(title="Infrastructure Schema")

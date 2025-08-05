@@ -6,13 +6,13 @@ from pydantic import ConfigDict, Field
 
 from overture.schema.base.types import Depth
 from overture.schema.core import (
-    OvertureFeature,
+    Feature,
 )
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import CartographicallyHinted, Stacked
 
 
-class Bathymetry(OvertureFeature, Stacked, CartographicallyHinted):
+class Bathymetry(Feature, Stacked, CartographicallyHinted):
     """Topographic representation of an underwater area, such as a part of the ocean floor."""
 
     model_config = ConfigDict(title="bathymetry")
