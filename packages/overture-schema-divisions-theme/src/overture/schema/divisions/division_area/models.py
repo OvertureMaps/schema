@@ -13,12 +13,12 @@ from overture.schema.core.models import (
     Names,
 )
 from overture.schema.core.types import CountryCode, Id, RegionCode
-from overture.schema.divisions.division_area.enums import AreaBoundaryClass
-from overture.schema.validation import (
+from overture.schema.core.validation import (
     exactly_one_of,
 )
 
 from ..enums import PlaceType
+from .enums import AreaBoundaryClass
 
 
 @exactly_one_of("is_land", "is_territorial")

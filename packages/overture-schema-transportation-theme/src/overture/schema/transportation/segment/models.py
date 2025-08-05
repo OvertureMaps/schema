@@ -12,8 +12,8 @@ from overture.schema.core.models import (
     Named,
     Stacked,
 )
+from overture.schema.core.validation import UniqueItemsConstraint
 from overture.schema.transportation.models import ConnectorReference
-from overture.schema.validation.constraints import UniqueItemsConstraint
 
 from ..enums import RailClass, RoadClass, Subclass, Subtype
 from ..types import (

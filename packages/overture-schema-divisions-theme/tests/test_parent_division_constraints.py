@@ -4,11 +4,11 @@ from enum import Enum
 
 import pytest
 from overture.schema.core import StrictBaseModel
+from overture.schema.core.validation import ConstraintValidatedModel
 from overture.schema.divisions.validation import (
     ParentDivisionValidator,
     parent_division_required_unless,
 )
-from overture.schema.validation import ConstraintValidatedModel
 from pydantic import BaseModel, ValidationError
 
 
