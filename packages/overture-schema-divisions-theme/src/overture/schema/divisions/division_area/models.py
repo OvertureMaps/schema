@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
-    OvertureFeature,
+    Feature,
 )
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import (
@@ -22,7 +22,7 @@ from .enums import AreaBoundaryClass
 
 
 @exactly_one_of("is_land", "is_territorial")
-class DivisionArea(OvertureFeature, Named):
+class DivisionArea(Feature, Named):
     """Division areas are polygons that represent the land or maritime area covered by a division.
 
     Each division area belongs to a division which it references by ID, and for which the division

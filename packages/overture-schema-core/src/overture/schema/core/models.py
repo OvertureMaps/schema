@@ -108,7 +108,7 @@ Sources = Annotated[
 ]
 
 
-class OvertureFeature(ExtensibleBaseModel, ABC):
+class Feature(ExtensibleBaseModel, ABC):
     """Base class for all Overture features."""
 
     # Required

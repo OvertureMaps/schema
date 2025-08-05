@@ -8,7 +8,7 @@ from overture.schema.base.land.enums import LandClass, LandSubtype
 from overture.schema.base.models import SourcedFromOpenStreetMap
 from overture.schema.base.types import Elevation
 from overture.schema.core import (
-    OvertureFeature,
+    Feature,
 )
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
@@ -16,7 +16,7 @@ from overture.schema.core.models import Named, Stacked
 from ..enums import SurfaceMaterial
 
 
-class Land(OvertureFeature, Named, Stacked, SourcedFromOpenStreetMap):
+class Land(Feature, Named, Stacked, SourcedFromOpenStreetMap):
     """Physical representations of land surfaces. Global land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap."""
 
     model_config = ConfigDict(title="land")

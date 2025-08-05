@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field
 
-from overture.schema.core import OvertureFeature
+from overture.schema.core import Feature
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
 from overture.schema.core.types import Id
@@ -12,7 +12,7 @@ from overture.schema.core.types import Id
 from ..models import Shape
 
 
-class BuildingPart(OvertureFeature, Named, Stacked, Shape):
+class BuildingPart(Feature, Named, Stacked, Shape):
     """A single building part. Parts describe their shape and color and other properties. Each building part must contain the building with which it is associated."""
 
     # Core

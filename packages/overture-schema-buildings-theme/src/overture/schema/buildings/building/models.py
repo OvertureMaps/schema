@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field
 
-from overture.schema.core import OvertureFeature
+from overture.schema.core import Feature
 from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
 
@@ -15,7 +15,7 @@ from .enums import (
 )
 
 
-class Building(OvertureFeature, Named, Stacked, Shape):
+class Building(Feature, Named, Stacked, Shape):
     """A building is a man-made structure with a roof that exists permanently in one place. Buildings are compatible with GeoJSON Polygon features."""
 
     model_config = ConfigDict(title="building")
