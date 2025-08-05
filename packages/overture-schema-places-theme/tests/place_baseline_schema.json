@@ -40,7 +40,7 @@
     },
     "Brand": {
       "additionalProperties": false,
-      "description": "The brand of the place. A location with multiple brands is modeled as multiple separate places, each with its own brand.",
+      "description": "The brand of the place.\n\nA location with multiple brands is modeled as multiple separate places, each with\nits own brand.",
       "properties": {
         "names": {
           "$ref": "#/$defs/Names"
@@ -57,7 +57,7 @@
     },
     "Categories": {
       "additionalProperties": false,
-      "description": "The categories of the place. Complete list is available on\nGitHub: https://github.com/OvertureMaps/schema/blob/main/docs/schema/concepts/by-theme/places/overture_categories.csv",
+      "description": "The categories of the place.\n\nComplete list is available on\nGitHub: https://github.com/OvertureMaps/schema/blob/main/docs/schema/concepts/by-theme/places/overture_categories.csv",
       "properties": {
         "alternate": {
           "description": "Alternate categories of the place. Some places might fit into two categories, e.g. a book store and a coffee shop. In such a case, the primary category can be augmented with additional applicable categories.",
@@ -221,7 +221,7 @@
       "type": "object"
     },
     "Side": {
-      "description": "Represents the side on which something appears relative to a facing or heading direction, e.g. the side of a road relative to the road orientation, or relative to the direction of travel of a person or vehicle.",
+      "description": "Represents the side on which something appears relative to a facing or heading\ndirection, e.g. the side of a road relative to the road orientation, or relative to\nthe direction of travel of a person or vehicle.",
       "enum": [
         "left",
         "right"
@@ -231,7 +231,7 @@
     },
     "SourcePropertyItem": {
       "additionalProperties": false,
-      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "description": "An object storing the source for a specificed property.\n\nThe property is a reference to the property element within this Feature, and will be\nreferenced using JSON Pointer Notation RFC 6901 (\nhttps://datatracker.ietf.org/doc/rfc6901/).\nThe source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
       "properties": {
         "between": {
           "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
@@ -283,7 +283,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "A Place is a point representation of a real-world facility, service, or amenity. Place features are compatible with GeoJSON Point features.",
+  "description": "A Place is a point representation of a real-world facility, service, or amenity.\n\nPlace features are compatible with GeoJSON Point features.",
   "patternProperties": {
     "^ext_.*$": {
       "description": "Additional top-level properties must be prefixed with `ext_`."

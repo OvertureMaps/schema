@@ -2,7 +2,8 @@ from enum import Enum
 
 
 class LandSubtype(str, Enum):
-    """Further description of the type of land cover, such as forest, glacier, grass, or a physical feature, such as a mountain peak."""
+    """Further description of the type of land cover, such as forest, glacier, grass, or
+    a physical feature, such as a mountain peak."""
 
     CRATER = "crater"
     DESERT = "desert"
@@ -20,7 +21,7 @@ class LandSubtype(str, Enum):
 
 
 class LandClass(str, Enum):
-    """Further classification of type of landcover"""
+    """Further classification of type of landcover."""
 
     ARCHIPELAGO = "archipelago"
     BARE_ROCK = "bare_rock"

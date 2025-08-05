@@ -2,7 +2,7 @@
   "$defs": {
     "AddressLevel": {
       "additionalProperties": false,
-      "description": "An address \"admin level\". We want to avoid the phrase \"admin level\" and have chosen \"address level\". These represent states, regions, districts, cities, neighborhoods, etc. The address schema defines several numbered levels with per-country rules indicating which parts of a country's address goes to which numbered level.",
+      "description": "An address \"admin level\".\n\nWe want to avoid the phrase \"admin level\" and have chosen \"address level\". These\nrepresent states, regions, districts, cities, neighborhoods, etc. The address schema\ndefines several numbered levels with per-country rules indicating which parts of a\ncountry's address goes to which numbered level.",
       "properties": {
         "value": {
           "description": "String with no leading/trailing whitespace",
@@ -17,7 +17,7 @@
     },
     "SourcePropertyItem": {
       "additionalProperties": false,
-      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "description": "An object storing the source for a specificed property.\n\nThe property is a reference to the property element within this Feature, and will be\nreferenced using JSON Pointer Notation RFC 6901 (\nhttps://datatracker.ietf.org/doc/rfc6901/).\nThe source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
       "properties": {
         "between": {
           "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
@@ -69,7 +69,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Addresses are geographic points used for locating businesses and individuals. The rules, fields, and fieldnames of an address can vary extensively between locations. We use a simplified schema to capture worldwide address points.  This initial schema is largely based on the OpenAddresses (www.openaddresses.io) project.\n\nThe address schema allows up to 5 \"admin levels\". Rather than have field names that apply across all countries, we provide an array called \"address_levels\" containing the necessary administrative levels for an address.",
+  "description": "Addresses are geographic points used for locating businesses and individuals. The\nrules, fields, and fieldnames of an address can vary extensively between locations.\nWe use a simplified schema to capture worldwide address points.  This initial schema\nis largely based on the OpenAddresses (www.openaddresses.io) project.\n\nThe address schema allows up to 5 \"admin levels\". Rather than have field names that\napply across all countries, we provide an array called \"address_levels\" containing\nthe necessary administrative levels for an address.",
   "patternProperties": {
     "^ext_.*$": {
       "description": "Additional top-level properties must be prefixed with `ext_`."

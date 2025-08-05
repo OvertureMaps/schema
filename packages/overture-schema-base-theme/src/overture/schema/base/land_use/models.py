@@ -22,7 +22,7 @@ class LandUse(
     Stacked,
     SourcedFromOpenStreetMap,
 ):
-    """Land use features from OpenStreetMap"""
+    """Land use features from OpenStreetMap."""
 
     model_config = ConfigDict(title="land_use")
 

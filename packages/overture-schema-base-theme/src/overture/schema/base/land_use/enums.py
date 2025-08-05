@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class LandUseSubtype(str, Enum):
-    """Broad type of land"""
+    """Broad type of land."""
 
     AGRICULTURE = "agriculture"
     AQUACULTURE = "aquaculture"
@@ -31,7 +31,7 @@ class LandUseSubtype(str, Enum):
 
 
 class LandUseClass(str, Enum):
-    """Further classification of the land use"""
+    """Further classification of the land use."""
 
     ABORIGINAL_LAND = "aboriginal_land"
     AIRFIELD = "airfield"

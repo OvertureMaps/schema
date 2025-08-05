@@ -19,7 +19,10 @@ from ..enums import SurfaceMaterial
 class Land(
     Feature[Literal["base"], Literal["land"]], Named, Stacked, SourcedFromOpenStreetMap
 ):
-    """Physical representations of land surfaces. Global land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap."""
+    """Physical representations of land surfaces.
+
+    Global land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap.
+    """
 
     model_config = ConfigDict(title="land")
 

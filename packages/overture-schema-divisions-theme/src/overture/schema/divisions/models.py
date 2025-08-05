@@ -10,7 +10,7 @@ DivisionId = Annotated[Id, Field(min_length=1, description="ID of the division")
 
 
 class HierarchyItem(StrictBaseModel):
-    """One division in a hierarchy"""
+    """One division in a hierarchy."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -24,7 +24,7 @@ class HierarchyItem(StrictBaseModel):
 
 
 class CapitalOfDivisionItem(StrictBaseModel):
-    """One division that has capital"""
+    """One division that has capital."""
 
     model_config = ConfigDict(frozen=True)
 

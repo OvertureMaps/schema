@@ -37,7 +37,7 @@ class RoofMaterial(str, Enum):
 
 
 class RoofShape(str, Enum):
-    """The shape of the roof"""
+    """The shape of the roof."""
 
     DOME = "dome"
     FLAT = "flat"
@@ -56,7 +56,10 @@ class RoofShape(str, Enum):
 
 
 class RoofOrientation(str, Enum):
-    """Orientation of the roof shape relative to the footprint shape. Either "along" or "across"."""
+    """Orientation of the roof shape relative to the footprint shape.
+
+    Either "along" or "across".
+    """
 
     ACROSS = "across"
     ALONG = "along"

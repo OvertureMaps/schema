@@ -44,8 +44,7 @@ Types = Annotated[
 
 
 def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
-    """
-    Parse and validate a feature using the union of all available models.
+    """Parse and validate a feature using the union of all available models.
 
     Args:
         feature: Feature data (GeoJSON or flattened format)

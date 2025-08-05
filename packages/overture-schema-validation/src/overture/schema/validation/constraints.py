@@ -31,7 +31,10 @@ class BaseConstraint(ABC):
     def __get_pydantic_json_schema__(
         self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
     ) -> dict[str, Any]:
-        """Generate JSON schema. Override in subclasses for custom schema."""
+        """Generate JSON schema.
+
+        Override in subclasses for custom schema.
+        """
         return handler(core_schema)
 
 
@@ -111,15 +114,22 @@ class PatternConstraint(StringConstraint):
 
 
 class LanguageTagConstraint(StringConstraint):
-    """This pattern recognizes BCP-47 language tags at the lexical or syntactic level. It verifies that candidate tags follow the grammar described in the RFC, but not that they are validly registered tag in IANA's language subtag registry.
+    """This pattern recognizes BCP-47 language tags at the lexical or syntactic level.
+    It verifies that candidate tags follow the grammar described in the RFC, but not
+    that they are validly registered tag in IANA's language subtag registry.
 
-    In understanding the regular expression, remark that '(:?' indicates a non-capturing group, and that all the top-level or non-nested groups represent top-level components of `langtag` referenced in the syntax section of https://www.rfc-editor.org/rfc/bcp/bcp47.txt. In particular, the top-level groups in left-to-right order represent:
+    In understanding the regular expression, remark that '(:?' indicates a non-capturing
+    group, and that all the top-level or non-nested groups represent top-level
+    components of `langtag` referenced in the syntax section of
+    https://www.rfc-editor.org/rfc/bcp/bcp47.txt. In particular, the top-level groups in
+    left-to-right order represent:
 
     1. language
     2. ["-" script]
     3. ["-" region]
     4. *("-" variant)
-    5. *("-" extension)"""
+    5. *("-" extension)
+    """
 
     def __init__(self) -> None:
         self.pattern = re.compile(

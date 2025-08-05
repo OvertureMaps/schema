@@ -35,7 +35,7 @@
       "type": "object"
     },
     "LandCoverSubtype": {
-      "description": "type of surface represented",
+      "description": "Type of surface represented.",
       "enum": [
         "barren",
         "crop",
@@ -53,7 +53,7 @@
     },
     "SourcePropertyItem": {
       "additionalProperties": false,
-      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "description": "An object storing the source for a specificed property.\n\nThe property is a reference to the property element within this Feature, and will be\nreferenced using JSON Pointer Notation RFC 6901 (\nhttps://datatracker.ietf.org/doc/rfc6901/).\nThe source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
       "properties": {
         "between": {
           "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
@@ -105,7 +105,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Representation of the Earth's natural surfaces",
+  "description": "Representation of the Earth's natural surfaces.",
   "patternProperties": {
     "^ext_.*$": {
       "description": "Additional top-level properties must be prefixed with `ext_`."

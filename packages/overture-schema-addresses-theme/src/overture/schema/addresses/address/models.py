@@ -16,7 +16,13 @@ from overture.schema.core.types import CountryCode, TrimmedString
 
 
 class AddressLevel(StrictBaseModel):
-    """An address "admin level". We want to avoid the phrase "admin level" and have chosen "address level". These represent states, regions, districts, cities, neighborhoods, etc. The address schema defines several numbered levels with per-country rules indicating which parts of a country's address goes to which numbered level."""
+    """An address "admin level".
+
+    We want to avoid the phrase "admin level" and have chosen "address level". These
+    represent states, regions, districts, cities, neighborhoods, etc. The address schema
+    defines several numbered levels with per-country rules indicating which parts of a
+    country's address goes to which numbered level.
+    """
 
     value: Annotated[
         TrimmedString | None,
@@ -27,9 +33,14 @@ class AddressLevel(StrictBaseModel):
 
 
 class Address(Feature[Literal["addresses"], Literal["address"]]):
-    """Addresses are geographic points used for locating businesses and individuals. The rules, fields, and fieldnames of an address can vary extensively between locations. We use a simplified schema to capture worldwide address points.  This initial schema is largely based on the OpenAddresses (www.openaddresses.io) project.
+    """Addresses are geographic points used for locating businesses and individuals. The
+    rules, fields, and fieldnames of an address can vary extensively between locations.
+    We use a simplified schema to capture worldwide address points.  This initial schema
+    is largely based on the OpenAddresses (www.openaddresses.io) project.
 
-    The address schema allows up to 5 "admin levels". Rather than have field names that apply across all countries, we provide an array called "address_levels" containing the necessary administrative levels for an address.
+    The address schema allows up to 5 "admin levels". Rather than have field names that
+    apply across all countries, we provide an array called "address_levels" containing
+    the necessary administrative levels for an address.
     """
 
     model_config = ConfigDict(title="address")

@@ -624,7 +624,8 @@ class TestConstraintErrorHandling:
         assert model.name == "test"
 
     def test_constraint_validator_without_mixin(self) -> None:
-        """Test that decorators work but validation won't be applied without the mixin."""
+        """Test that decorators work but validation won't be applied without the
+        mixin."""
 
         # This should not raise - decorators can be applied to any class
         # but validation won't happen without ConstraintValidatedModel

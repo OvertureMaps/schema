@@ -26,7 +26,10 @@ def discover_models() -> dict[tuple[str, str], type[BaseModel]]:
 
 
 def get_registered_model(theme: str, feature_type: str) -> type[BaseModel] | None:
-    """Get the Pydantic model for a theme/type combination. This uses setuptools entry points for registration."""
+    """Get the Pydantic model for a theme/type combination.
+
+    This uses setuptools entry points for registration.
+    """
 
     entry_point_name = f"{theme}.{feature_type}"
     try:
