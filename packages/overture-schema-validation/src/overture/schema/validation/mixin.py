@@ -69,10 +69,20 @@ class BaseConstraintValidator(ABC):
         pass
 
     @abstractmethod
-    def get_json_schema_metadata(
+    def get_metadata(
         self, model_class: type[BaseModel] | None = None, by_alias: bool = True
     ) -> dict[str, Any]:
-        """Return JSON Schema metadata for this constraint."""
+        """Return plain constraint metadata."""
+        pass
+
+    @abstractmethod
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply this constraint's modifications directly to the target schema."""
         pass
 
 
@@ -101,7 +111,7 @@ class RequiredIfValidator(BaseConstraintValidator):
                             f"{self.condition_field} = {self.condition_value}"
                         )
 
-    def get_json_schema_metadata(
+    def get_metadata(
         self, model_class: type[BaseModel] | None = None, by_alias: bool = True
     ) -> dict[str, Any]:
         # Resolve field names to aliases if needed
@@ -118,16 +128,31 @@ class RequiredIfValidator(BaseConstraintValidator):
             condition_field = resolved_condition[0]
             required_fields = resolved_required
 
-        condition_value = self.condition_value
-
         return {
             "type": "required_if",
             "condition_field": condition_field,
-            "condition_value": condition_value,
+            "condition_value": self.condition_value,
             "required_fields": required_fields,
-            "if": {"properties": {condition_field: {"const": condition_value}}},
-            "then": {"required": required_fields},
         }
+
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply conditional requirement constraint to the schema."""
+        metadata = self.get_metadata(model_class, by_alias)
+
+        conditional_schema = {
+            "if": {
+                "properties": {
+                    metadata["condition_field"]: {"const": metadata["condition_value"]}
+                }
+            },
+            "then": {"required": metadata["required_fields"]},
+        }
+        target_schema.setdefault("allOf", []).append(conditional_schema)
 
 
 class NotRequiredIfValidator(BaseConstraintValidator):
@@ -156,7 +181,7 @@ class NotRequiredIfValidator(BaseConstraintValidator):
                             f"{self.condition_field} != {self.condition_value}"
                         )
 
-    def get_json_schema_metadata(
+    def get_metadata(
         self, model_class: type[BaseModel] | None = None, by_alias: bool = True
     ) -> dict[str, Any]:
         # Resolve field names to aliases if needed
@@ -173,18 +198,33 @@ class NotRequiredIfValidator(BaseConstraintValidator):
             condition_field = resolved_condition[0]
             not_required_fields = resolved_not_required
 
-        condition_value = self.condition_value
-
         return {
             "type": "not_required_if",
             "condition_field": condition_field,
-            "condition_value": condition_value,
+            "condition_value": self.condition_value,
             "not_required_fields": not_required_fields,
-            "if": {
-                "properties": {condition_field: {"not": {"const": condition_value}}}
-            },
-            "then": {"required": not_required_fields},
         }
+
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply conditional not-required constraint to the schema."""
+        metadata = self.get_metadata(model_class, by_alias)
+
+        conditional_schema = {
+            "if": {
+                "properties": {
+                    metadata["condition_field"]: {
+                        "not": {"const": metadata["condition_value"]}
+                    }
+                }
+            },
+            "then": {"required": metadata["not_required_fields"]},
+        }
+        target_schema.setdefault("allOf", []).append(conditional_schema)
 
 
 class AnyOfValidator(BaseConstraintValidator):
@@ -208,7 +248,7 @@ class AnyOfValidator(BaseConstraintValidator):
                 f"At least one of {', '.join(self.field_names)} must be present"
             )
 
-    def get_json_schema_metadata(
+    def get_metadata(
         self, model_class: type[BaseModel] | None = None, by_alias: bool = True
     ) -> dict[str, Any]:
         # Resolve field names to aliases if needed
@@ -217,8 +257,21 @@ class AnyOfValidator(BaseConstraintValidator):
             field_names = resolve_field_names(model_class, field_names, by_alias)
 
         return {
-            "anyOf": [{"required": [field]} for field in field_names],
+            "type": "any_of",
+            "field_names": field_names,
         }
+
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply anyOf constraint to the schema."""
+        metadata = self.get_metadata(model_class, by_alias)
+
+        any_of_clauses = [{"required": [field]} for field in metadata["field_names"]]
+        target_schema.setdefault("anyOf", []).extend(any_of_clauses)
 
 
 class ExactlyOneOfValidator(BaseConstraintValidator):
@@ -254,7 +307,7 @@ class ExactlyOneOfValidator(BaseConstraintValidator):
                     f"Exactly one field must be true, but found {len(true_fields)}: {', '.join(true_fields)}"
                 )
 
-    def get_json_schema_metadata(
+    def get_metadata(
         self, model_class: type[BaseModel] | None = None, by_alias: bool = True
     ) -> dict[str, Any]:
         # Resolve field names to aliases if needed
@@ -262,18 +315,27 @@ class ExactlyOneOfValidator(BaseConstraintValidator):
         if model_class is not None:
             field_names = resolve_field_names(model_class, field_names, by_alias)
 
+        return {
+            "type": "exactly_one_of",
+            "field_names": field_names,
+        }
+
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply oneOf constraint to the schema."""
+        metadata = self.get_metadata(model_class, by_alias)
+
         # Generate oneOf constraint where exactly one field is true
-        # This matches the reference schema format
         one_of_clauses = []
-        for field in field_names:
+        for field in metadata["field_names"]:
             clause = {"properties": {field: {"const": True}}}
             one_of_clauses.append(clause)
 
-        return {
-            "type": "exactly_one_of",
-            "fields": field_names,
-            "oneOf": one_of_clauses,
-        }
+        target_schema.setdefault("oneOf", []).extend(one_of_clauses)
 
 
 class MinPropertiesValidator(BaseConstraintValidator):
@@ -301,13 +363,24 @@ class MinPropertiesValidator(BaseConstraintValidator):
                 f"At least {self.min_count} properties must be set, but only {set_count} are set"
             )
 
-    def get_json_schema_metadata(
+    def get_metadata(
         self, model_class: type[BaseModel] | None = None, by_alias: bool = True
     ) -> dict[str, Any]:
         return {
             "type": "min_properties",
-            "minProperties": self.min_count,
+            "min_count": self.min_count,
         }
+
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply minProperties constraint to the schema."""
+        metadata = self.get_metadata(model_class, by_alias)
+
+        target_schema["minProperties"] = metadata["min_count"]
 
 
 def register_constraint(
@@ -414,19 +487,31 @@ class ExtensionPrefixValidator(BaseConstraintValidator):
                         f"Unrecognized field '{field_name}' must use ext_ prefix"
                     )
 
-    def get_json_schema_metadata(
+    def get_metadata(
         self, model_class: type[BaseModel] | None = None, by_alias: bool = True
     ) -> dict[str, Any]:
-        """Return JSON Schema metadata for extension prefix constraint."""
+        """Return plain constraint metadata."""
         return {
             "type": "extension_prefix",
-            "patternProperties": {
-                "^ext_.*$": {
-                    "description": "Additional top-level properties must be prefixed with `ext_`."
-                }
-            },
-            "additionalProperties": False,
+            "pattern": "^ext_.*$",
+            "description": "Additional top-level properties must be prefixed with `ext_`.",
+            "additional_properties": False,
         }
+
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply extension prefix constraint to the schema."""
+        metadata = self.get_metadata(model_class, by_alias)
+
+        target_schema["patternProperties"] = {
+            metadata["pattern"]: {"description": metadata["description"]}
+        }
+        if metadata["additional_properties"] is False:
+            target_schema["additionalProperties"] = False
 
 
 # Mixin class with constraint validation
@@ -476,73 +561,12 @@ class ConstraintValidatedModel:
             all_constraints.extend(class_constraints)
 
         for constraint in all_constraints:
-            constraint_metadata = constraint.get_json_schema_metadata(
-                model_class=cast(type[BaseModel], cls), by_alias=True
-            )
-            if not constraint_metadata:
-                continue
-
-            # Apply constraints to the current schema
+            # Apply constraint modifications directly to the schema
             # OvertureFeature will handle moving them to the correct GeoJSON structure if needed
-            target_schema = schema
-
-            # Handle extension prefix constraint
-            if constraint_metadata.get("type") == "extension_prefix":
-                if constraint_metadata.get("patternProperties"):
-                    target_schema["patternProperties"] = constraint_metadata[
-                        "patternProperties"
-                    ]
-                if constraint_metadata.get("additionalProperties") is False:
-                    target_schema["additionalProperties"] = False
-                continue
-
-            # Handle min_properties constraint
-            if constraint_metadata.get("type") == "min_properties":
-                if constraint_metadata.get("minProperties"):
-                    target_schema["minProperties"] = constraint_metadata[
-                        "minProperties"
-                    ]
-                continue
-
-            # Handle parent_division_required_unless constraint
-            if constraint_metadata.get("type") == "parent_division_required_unless":
-                conditional_schema = {"if": constraint_metadata["if"]}
-                if constraint_metadata.get("then"):
-                    conditional_schema["then"] = constraint_metadata["then"]
-                if constraint_metadata.get("else"):
-                    conditional_schema["else"] = constraint_metadata["else"]
-
-                target_schema.setdefault("allOf", []).append(conditional_schema)
-                continue
-
-            # Handle conditional constraints
-            if constraint_metadata.get("if"):
-                conditional_schema = {"if": constraint_metadata["if"]}
-                if constraint_metadata.get("then"):
-                    conditional_schema["then"] = constraint_metadata["then"]
-                if constraint_metadata.get("else"):
-                    conditional_schema["else"] = constraint_metadata["else"]
-
-                target_schema.setdefault("allOf", []).append(conditional_schema)
-
-            if constraint_metadata.get("anyOf"):
-                target_schema.setdefault("anyOf", []).extend(
-                    constraint_metadata["anyOf"]
-                )
-
-            if constraint_metadata.get("oneOf"):
-                target_schema.setdefault("oneOf", []).extend(
-                    constraint_metadata["oneOf"]
-                )
-
-            if constraint_metadata.get("allOf"):
-                target_schema.setdefault("allOf", []).extend(
-                    constraint_metadata["allOf"]
-                )
-
-            if constraint_metadata.get("not"):
-                target_schema.setdefault("allOf", []).append(
-                    {"not": constraint_metadata["not"]}
-                )
+            constraint.apply_json_schema_metadata(
+                target_schema=schema,
+                model_class=cast(type[BaseModel], cls),
+                by_alias=True,
+            )
 
         return schema

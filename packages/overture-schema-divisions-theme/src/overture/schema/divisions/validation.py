@@ -35,7 +35,7 @@ class ParentDivisionValidator(BaseConstraintValidator):
                     f"parent_division_id is required when {self.field_name} is not {self.exempt_value} (current: {field_value})"
                 )
 
-    def get_json_schema_metadata(
+    def get_metadata(
         self, model_class: type[BaseModel] | None = None, by_alias: bool = True
     ) -> dict[str, Any]:
         from overture.schema.validation.mixin import resolve_field_names
@@ -56,10 +56,29 @@ class ParentDivisionValidator(BaseConstraintValidator):
             "type": "parent_division_required_unless",
             "field_name": field_name,
             "exempt_value": self.exempt_value,
-            "if": {"properties": {field_name: {"const": self.exempt_value}}},
-            "then": {"not": {"required": [parent_division_id]}},
-            "else": {"required": [parent_division_id]},
+            "parent_division_id": parent_division_id,
         }
+
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply parent division constraint to the schema."""
+        metadata = self.get_metadata(model_class, by_alias)
+
+        conditional_schema = {
+            "if": {
+                "properties": {
+                    metadata["field_name"]: {"const": metadata["exempt_value"]}
+                }
+            },
+            "then": {"not": {"required": [metadata["parent_division_id"]]}},
+            "else": {"required": [metadata["parent_division_id"]]},
+        }
+
+        target_schema.setdefault("allOf", []).append(conditional_schema)
 
 
 def parent_division_required_unless(
