@@ -1,6 +1,6 @@
 from abc import ABC
 from collections.abc import Callable
-from typing import Annotated, Any
+from typing import Annotated, Any, Generic, TypeVar
 
 from pydantic import (
     BaseModel,
@@ -34,9 +34,7 @@ from .types import (
     Prominence,
     RegionCode,
     SortKey,
-    Theme,
     TrimmedString,
-    Type,
 )
 from .validation import ConstraintValidatedModel, UniqueItemsConstraint
 
@@ -107,16 +105,19 @@ Sources = Annotated[
     UniqueItemsConstraint(),
 ]
 
+ThemeT = TypeVar("ThemeT", bound=str)
+TypeT = TypeVar("TypeT", bound=str)
 
-class Feature(ExtensibleBaseModel, ABC):
+
+class Feature(ExtensibleBaseModel, Generic[ThemeT, TypeT], ABC):
     """Base class for all Overture features."""
 
     # Required
 
     id: Id
-    theme: Theme
-    # this is an enum in the JSON Schema, but that prevents OvertureFeature from being extended
-    type: Type
+    theme: ThemeT
+    # this is an enum in the JSON Schema, but that prevents Feature from being extended
+    type: TypeT
     geometry: Geometry
     version: FeatureVersion
 

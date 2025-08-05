@@ -16,15 +16,18 @@ from overture.schema.core.models import Named, Stacked
 from ..enums import SurfaceMaterial
 
 
-class LandUse(Feature, Named, Stacked, SourcedFromOpenStreetMap):
+class LandUse(
+    Feature[Literal["base"], Literal["land_use"]],
+    Named,
+    Stacked,
+    SourcedFromOpenStreetMap,
+):
     """Land use features from OpenStreetMap"""
 
     model_config = ConfigDict(title="land_use")
 
     # Core
 
-    theme: Literal["base"]
-    type: Literal["land_use"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Point", "LineString", "Polygon", "MultiPolygon"),
