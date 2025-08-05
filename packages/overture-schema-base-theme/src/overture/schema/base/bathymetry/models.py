@@ -12,15 +12,15 @@ from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import CartographicallyHinted, Stacked
 
 
-class Bathymetry(Feature, Stacked, CartographicallyHinted):
+class Bathymetry(
+    Feature[Literal["base"], Literal["bathymetry"]], Stacked, CartographicallyHinted
+):
     """Topographic representation of an underwater area, such as a part of the ocean floor."""
 
     model_config = ConfigDict(title="bathymetry")
 
     # Core
 
-    theme: Literal["base"]
-    type: Literal["bathymetry"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Polygon", "MultiPolygon"),

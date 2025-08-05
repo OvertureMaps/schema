@@ -12,15 +12,15 @@ from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
 from overture.schema.core.models import CartographicallyHinted, Stacked
 
 
-class LandCover(Feature, Stacked, CartographicallyHinted):
+class LandCover(
+    Feature[Literal["base"], Literal["land_cover"]], Stacked, CartographicallyHinted
+):
     """Representation of the Earth's natural surfaces"""
 
     model_config = ConfigDict(title="land_cover")
 
     # Core
 
-    theme: Literal["base"]
-    type: Literal["land_cover"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Polygon", "MultiPolygon"),

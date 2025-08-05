@@ -31,15 +31,14 @@ from ..types import (
 )
 
 
-class TransportationSegment(Feature, Stacked, Named):
+class TransportationSegment(
+    Feature[Literal["transportation"], Literal["segment"]], Stacked, Named
+):
     """Common Segment Properties."""
 
     model_config = ConfigDict(title="segment")
 
     # Core
-
-    theme: Literal["transportation"]
-    type: Literal["segment"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("LineString"),

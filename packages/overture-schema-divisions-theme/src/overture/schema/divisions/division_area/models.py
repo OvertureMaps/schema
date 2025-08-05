@@ -22,7 +22,7 @@ from .enums import AreaBoundaryClass
 
 
 @exactly_one_of("is_land", "is_territorial")
-class DivisionArea(Feature, Named):
+class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]], Named):
     """Division areas are polygons that represent the land or maritime area covered by a division.
 
     Each division area belongs to a division which it references by ID, and for which the division
@@ -33,9 +33,6 @@ class DivisionArea(Feature, Named):
     model_config = ConfigDict(title="division_area")
 
     # Core
-
-    theme: Literal["divisions"]
-    type: Literal["division_area"]
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint("Polygon", "MultiPolygon"),
