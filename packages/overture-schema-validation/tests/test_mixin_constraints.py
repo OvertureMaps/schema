@@ -53,13 +53,24 @@ class TestBaseConstraintValidator:
                     if model_instance.custom_field != self.required_value:
                         raise ValueError(f"custom_field must be {self.required_value}")
 
-            def get_json_schema_metadata(
+            def get_metadata(
                 self, model_class: type[BaseModel] | None = None, by_alias: bool = True
             ) -> dict[str, Any]:
                 return {
                     "type": "custom_constraint",
                     "required_value": self.required_value,
                 }
+
+            def apply_json_schema_metadata(
+                self,
+                target_schema: dict[str, Any],
+                model_class: type[BaseModel] | None = None,
+                by_alias: bool = True,
+            ) -> None:
+                """Apply custom constraint metadata to the schema."""
+                # This is just a test constraint, so we'll add a simple property
+                metadata = self.get_metadata(model_class, by_alias)
+                target_schema["custom_constraint"] = metadata
 
         # Test the custom validator
         validator = CustomValidator("expected")
@@ -76,8 +87,8 @@ class TestBaseConstraintValidator:
         with pytest.raises(ValueError, match="custom_field must be expected"):
             validator.validate(model)
 
-        # Test JSON schema metadata
-        metadata = validator.get_json_schema_metadata()
+        # Test metadata
+        metadata = validator.get_metadata()
         assert metadata["type"] == "custom_constraint"
         assert metadata["required_value"] == "expected"
 
