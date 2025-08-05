@@ -48,7 +48,8 @@ Width = Annotated[float, Field(gt=0)]
 
 
 class ConnectorReference(StrictBaseModel):
-    """Contains the GERS ID and relative position between 0 and 1 of a connector feature along the segment."""
+    """Contains the GERS ID and relative position between 0 and 1 of a connector feature
+    along the segment."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -163,7 +164,8 @@ class RouteReference(GeometricRangeScope):
 
 
 class Speed(StrictBaseModel):
-    """A speed value, i.e. a certain number of distance units travelled per unit time."""
+    """A speed value, i.e. a certain number of distance units travelled per unit
+    time."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -325,7 +327,8 @@ class PurposeOfUseScope(StrictBaseModel):
 
 
 class TemporalScope(StrictBaseModel):
-    """Temporal scoping properties defining the time spans when a recurring rule is active."""
+    """Temporal scoping properties defining the time spans when a recurring rule is
+    active."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -369,7 +372,7 @@ class RecognizedStatusScope(StrictBaseModel):
 
 
 class VehicleScopeRule(StrictBaseModel):
-    """An individual vehicle scope rule"""
+    """An individual vehicle scope rule."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -420,7 +423,7 @@ class SpeedLimitWhenClause(
 
 @any_of("max_speed", "min_speed")
 class SpeedLimitRule(ConstraintValidatedModel, GeometricRangeScope):
-    """An individual speed limit rule"""
+    """An individual speed limit rule."""
 
     # TODO: Speed limits probably have directionality, so should factor out a headingScopeContainer for this purpose and use it to introduce an optional direction property in each rule.
 
@@ -534,8 +537,8 @@ class RailFlagRule(GeometricRangeScope):
 
 
 class LevelRule(GeometricRangeScope):
-    """A single level rule defining the Z-order, i.e. stacking order, applicable within a given
-    scope on the road segment."""
+    """A single level rule defining the Z-order, i.e. stacking order, applicable within
+    a given scope on the road segment."""
 
     # Required
 
@@ -543,7 +546,7 @@ class LevelRule(GeometricRangeScope):
 
 
 class SubclassRule(GeometricRangeScope):
-    """Set of subclasses scoped along segment"""
+    """Set of subclasses scoped along segment."""
 
     # Required
 

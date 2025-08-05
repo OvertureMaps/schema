@@ -11,8 +11,7 @@ def parse_feature(
     model_type: type[BaseModel] | UnionType | type,
     mode: str = "json",
 ) -> dict[str, Any] | None:
-    """
-    Parse and validate a feature using the provided model type.
+    """Parse and validate a feature using the provided model type.
 
     Args:
         feature: Feature data (GeoJSON or flattened format)

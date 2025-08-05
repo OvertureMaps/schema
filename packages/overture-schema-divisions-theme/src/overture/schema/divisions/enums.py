@@ -2,7 +2,8 @@ from enum import Enum
 
 
 class PlaceType(str, Enum):
-    """Category of the division from a finite, hierarchical, ordered list of categories (e.g. country, region, locality, etc.) similar to a Who's on First placetype."""
+    """Category of the division from a finite, hierarchical, ordered list of categories
+    (e.g. country, region, locality, etc.) similar to a Who's on First placetype."""
 
     # Largest unit of independent sovereignty, e.g. the United States, France.
     COUNTRY = "country"

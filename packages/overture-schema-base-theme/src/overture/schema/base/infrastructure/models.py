@@ -25,7 +25,8 @@ class Infrastructure(
     Stacked,
     SourcedFromOpenStreetMap,
 ):
-    """Various features from OpenStreetMap such as bridges, airport runways, aerialways, or communication towers and lines."""
+    """Various features from OpenStreetMap such as bridges, airport runways, aerialways,
+    or communication towers and lines."""
 
     model_config = ConfigDict(title="Infrastructure Schema")
 

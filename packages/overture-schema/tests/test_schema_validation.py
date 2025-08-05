@@ -53,8 +53,8 @@ def convert_to_geojson_format(flattened_feature: dict[str, Any]) -> dict[str, An
 def deep_compare_dicts(
     original: dict[str, Any], parsed: dict[str, Any]
 ) -> tuple[bool, str]:
-    """
-    Perform deep comparison between original and parsed dictionaries.
+    """Perform deep comparison between original and parsed dictionaries.
+
     Returns (is_equal, differences_report).
     """
     diff = DeepDiff(original, parsed, ignore_order=True, significant_digits=15)
@@ -91,7 +91,8 @@ def deep_compare_dicts(
 
 
 def walk_directory(directory: Path) -> Generator[Path, None, None]:
-    """Walk directory and yield all relevant files, including those in .disabled directories."""
+    """Walk directory and yield all relevant files, including those in .disabled
+    directories."""
     for file_path in directory.rglob("*"):
         if file_path.is_file() and file_path.suffix in {
             ".json",

@@ -9,7 +9,8 @@ from ._cache import get_type_adapter
 
 
 class OptionalFieldGenerator(GenerateJsonSchema):
-    """Simplify the generated JSON Schema for nullable fields by removing null from anyOf and removing null defaults."""
+    """Simplify the generated JSON Schema for nullable fields by removing null from
+    anyOf and removing null defaults."""
 
     def nullable_schema(self, schema: core_schema.NullableSchema) -> JsonSchemaValue:
         """Generates a JSON schema that matches a nullable schema.

@@ -26,7 +26,9 @@ from ..types import PlaceCategory
 
 
 class Categories(StrictBaseModel):
-    """The categories of the place. Complete list is available on
+    """The categories of the place.
+
+    Complete list is available on
     GitHub: https://github.com/OvertureMaps/schema/blob/main/docs/schema/concepts/by-theme/places/overture_categories.csv
     """
 
@@ -48,7 +50,11 @@ class Categories(StrictBaseModel):
 
 
 class Brand(StrictBaseModel, Named):
-    """The brand of the place. A location with multiple brands is modeled as multiple separate places, each with its own brand."""
+    """The brand of the place.
+
+    A location with multiple brands is modeled as multiple separate places, each with
+    its own brand.
+    """
 
     # Optional
 
@@ -56,7 +62,10 @@ class Brand(StrictBaseModel, Named):
 
 
 class Place(Feature[Literal["places"], Literal["place"]], Named):
-    """A Place is a point representation of a real-world facility, service, or amenity. Place features are compatible with GeoJSON Point features."""
+    """A Place is a point representation of a real-world facility, service, or amenity.
+
+    Place features are compatible with GeoJSON Point features.
+    """
 
     model_config = ConfigDict(title="place")
 

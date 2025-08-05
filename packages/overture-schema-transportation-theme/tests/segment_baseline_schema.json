@@ -92,7 +92,7 @@
     },
     "ConnectorReference": {
       "additionalProperties": false,
-      "description": "Contains the GERS ID and relative position between 0 and 1 of a connector feature along the segment.",
+      "description": "Contains the GERS ID and relative position between 0 and 1 of a connector feature\nalong the segment.",
       "properties": {
         "at": {
           "description": "Represents a linearly-referenced position between 0% and 100% of the distance along a path such as a road segment or a river center-line segment.",
@@ -117,7 +117,7 @@
       "type": "object"
     },
     "DestinationLabelType": {
-      "description": "Indicates what special symbol/icon is present on a signpost, visible as road marking or similar.",
+      "description": "Indicates what special symbol/icon is present on a signpost, visible as road\nmarking or similar.",
       "enum": [
         "street",
         "country",
@@ -211,7 +211,7 @@
       "type": "object"
     },
     "DestinationSignSymbol": {
-      "description": "Indicates what special symbol/icon is present on a signpost, visible as road marking or similar.",
+      "description": "Indicates what special symbol/icon is present on a signpost, visible as road\nmarking or similar.",
       "enum": [
         "motorway",
         "airport",
@@ -272,7 +272,7 @@
     },
     "LevelRule": {
       "additionalProperties": false,
-      "description": "A single level rule defining the Z-order, i.e. stacking order, applicable within a given\nscope on the road segment.",
+      "description": "A single level rule defining the Z-order, i.e. stacking order, applicable within\na given scope on the road segment.",
       "properties": {
         "between": {
           "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
@@ -527,7 +527,7 @@
       "type": "object"
     },
     "PurposeOfUse": {
-      "description": "Reason why a person or entity travelling on the transportation network is using a particular location.",
+      "description": "Reason why a person or entity travelling on the transportation network is using a\nparticular location.",
       "enum": [
         "as_customer",
         "at_destination",
@@ -554,7 +554,7 @@
       "type": "string"
     },
     "RailFlag": {
-      "description": "Simple flags that can be on or off for a railway segment. Specifies physical characteristics and can overlap.",
+      "description": "Simple flags that can be on or off for a railway segment.\n\nSpecifies physical characteristics and can overlap.",
       "enum": [
         "is_bridge",
         "is_tunnel",
@@ -780,7 +780,7 @@
       "type": "object"
     },
     "RecognizedStatus": {
-      "description": "Status of the person or entity travelling as recognized by authorities controlling the particular location",
+      "description": "Status of the person or entity travelling as recognized by authorities\ncontrolling the particular location.",
       "enum": [
         "as_permitted",
         "as_private",
@@ -816,7 +816,7 @@
       "type": "string"
     },
     "RoadFlag": {
-      "description": "Simple flags that can be on or off for a road segment. Specifies physical characteristics and can overlap.",
+      "description": "Simple flags that can be on or off for a road segment.\n\nSpecifies physical characteristics and can overlap.",
       "enum": [
         "is_bridge",
         "is_link",
@@ -1090,7 +1090,7 @@
       "type": "object"
     },
     "RoadSurface": {
-      "description": "Physical surface of the road",
+      "description": "Physical surface of the road.",
       "enum": [
         "unknown",
         "paved",
@@ -1184,7 +1184,7 @@
       "type": "object"
     },
     "Side": {
-      "description": "Represents the side on which something appears relative to a facing or heading direction, e.g. the side of a road relative to the road orientation, or relative to the direction of travel of a person or vehicle.",
+      "description": "Represents the side on which something appears relative to a facing or heading\ndirection, e.g. the side of a road relative to the road orientation, or relative to\nthe direction of travel of a person or vehicle.",
       "enum": [
         "left",
         "right"
@@ -1194,7 +1194,7 @@
     },
     "SourcePropertyItem": {
       "additionalProperties": false,
-      "description": "An object storing the source for a specificed property. The property is a reference to the property element within this Feature, and will be referenced using JSON Pointer Notation RFC 6901 (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "description": "An object storing the source for a specificed property.\n\nThe property is a reference to the property element within this Feature, and will be\nreferenced using JSON Pointer Notation RFC 6901 (\nhttps://datatracker.ietf.org/doc/rfc6901/).\nThe source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
       "properties": {
         "between": {
           "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
@@ -1246,7 +1246,7 @@
     },
     "Speed": {
       "additionalProperties": false,
-      "description": "A speed value, i.e. a certain number of distance units travelled per unit time.",
+      "description": "A speed value, i.e. a certain number of distance units travelled per unit\ntime.",
       "properties": {
         "unit": {
           "$ref": "#/$defs/SpeedUnit"
@@ -1280,7 +1280,7 @@
           ]
         }
       ],
-      "description": "An individual speed limit rule",
+      "description": "An individual speed limit rule.",
       "properties": {
         "between": {
           "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
@@ -1367,7 +1367,7 @@
       "type": "object"
     },
     "SpeedUnit": {
-      "description": "Speed unit",
+      "description": "Speed unit.",
       "enum": [
         "mph",
         "km/h"
@@ -1391,7 +1391,7 @@
     },
     "SubclassRule": {
       "additionalProperties": false,
-      "description": "Set of subclasses scoped along segment",
+      "description": "Set of subclasses scoped along segment.",
       "properties": {
         "between": {
           "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
@@ -1441,7 +1441,7 @@
       "type": "object"
     },
     "TravelMode": {
-      "description": "Enumerates possible travel modes. Some modes represent groups of modes.",
+      "description": "Enumerates possible travel modes.\n\nSome modes represent groups of modes.",
       "enum": [
         "vehicle",
         "motor_vehicle",
@@ -1459,7 +1459,7 @@
       "type": "string"
     },
     "VehicleComparison": {
-      "description": "Enumerates possible comparison operators for use in scoping",
+      "description": "Enumerates possible comparison operators for use in scoping.",
       "enum": [
         "greater_than",
         "greater_than_equal",
@@ -1471,7 +1471,7 @@
       "type": "string"
     },
     "VehicleDimension": {
-      "description": "Enumerates possible vehicle dimensions for use in restrictions",
+      "description": "Enumerates possible vehicle dimensions for use in restrictions.",
       "enum": [
         "axle_count",
         "height",
@@ -1484,7 +1484,7 @@
     },
     "VehicleScopeRule": {
       "additionalProperties": false,
-      "description": "An individual vehicle scope rule",
+      "description": "An individual vehicle scope rule.",
       "properties": {
         "comparison": {
           "$ref": "#/$defs/VehicleComparison"

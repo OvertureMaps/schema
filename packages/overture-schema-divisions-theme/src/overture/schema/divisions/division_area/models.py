@@ -23,11 +23,13 @@ from .enums import AreaBoundaryClass
 
 @exactly_one_of("is_land", "is_territorial")
 class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]], Named):
-    """Division areas are polygons that represent the land or maritime area covered by a division.
+    """Division areas are polygons that represent the land or maritime area covered by a
+    division.
 
-    Each division area belongs to a division which it references by ID, and for which the division
-    area provides an area polygon. For ease of use, every division area repeats the subtype, names,
-    country, and region properties of the division it belongs to.
+    Each division area belongs to a division which it references by ID, and for which
+    the division area provides an area polygon. For ease of use, every division area
+    repeats the subtype, names, country, and region properties of the division it
+    belongs to.
     """
 
     model_config = ConfigDict(title="division_area")

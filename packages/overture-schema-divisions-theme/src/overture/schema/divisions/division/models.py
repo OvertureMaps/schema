@@ -50,7 +50,11 @@ class Norms(StrictBaseModel):
 class Division(
     Feature[Literal["divisions"], Literal["division"]], Named, CartographicallyHinted
 ):
-    """Divisions are recognized official or non-official organizations of people as seen from a given political perspective. Examples include countries, provinces, cities, towns, neighborhoods, etc."""
+    """Divisions are recognized official or non-official organizations of people as seen
+    from a given political perspective.
+
+    Examples include countries, provinces, cities, towns, neighborhoods, etc.
+    """
 
     model_config = ConfigDict(title="division")
 

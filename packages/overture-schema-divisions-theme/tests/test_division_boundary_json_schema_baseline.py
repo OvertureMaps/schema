@@ -8,7 +8,8 @@ from overture.schema.divisions import DivisionBoundary
 
 
 def test_division_boundary_json_schema_baseline() -> None:
-    """Test that DivisionBoundary generates consistent JSON Schema (baseline comparison)."""
+    """Test that DivisionBoundary generates consistent JSON Schema (baseline
+    comparison)."""
     schema = json_schema(DivisionBoundary)
 
     # Path to baseline file

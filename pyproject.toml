@@ -43,3 +43,11 @@ disallow_untyped_defs = true
 namespace_packages = true
 explicit_package_bases = true
 files = "packages/**/*.py"
+
+[dependency-groups]
+dev = [
+    "docformatter>=1.7.7",
+]
+
+[tool.docformatter]
+black = true
