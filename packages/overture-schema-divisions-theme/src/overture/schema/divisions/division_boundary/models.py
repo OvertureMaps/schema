@@ -14,14 +14,14 @@ from overture.schema.core.types import (
     Id,
     RegionCode,
 )
-from overture.schema.divisions.division_boundary.enums import BoundaryClass
-from overture.schema.validation import (
+from overture.schema.core.validation import (
     UniqueItemsConstraint,
+    exactly_one_of,
     not_required_if,
 )
-from overture.schema.validation.mixin import exactly_one_of
 
 from ..enums import PlaceType
+from .enums import BoundaryClass
 
 
 @exactly_one_of("is_land", "is_territorial")

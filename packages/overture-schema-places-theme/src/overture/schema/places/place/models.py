@@ -18,7 +18,7 @@ from overture.schema.core.types import (
     PhoneNumber,
     WikidataId,
 )
-from overture.schema.validation import (
+from overture.schema.core.validation import (
     UniqueItemsConstraint,
 )
 
