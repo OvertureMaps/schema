@@ -27,7 +27,10 @@ from .enums import BoundaryClass
 @exactly_one_of("is_land", "is_territorial")
 @not_required_if("subtype", PlaceType.COUNTRY, ["country"])
 class DivisionBoundary(Feature[Literal["divisions"], Literal["division_boundary"]]):
-    """Boundaries represent borders between divisions of the same subtype. Some boundaries may be disputed by the divisions on one or both sides."""
+    """Boundaries represent borders between divisions of the same subtype.
+
+    Some boundaries may be disputed by the divisions on one or both sides.
+    """
 
     model_config = ConfigDict(title="boundary")
 

@@ -19,7 +19,7 @@ class WaterSubtype(str, Enum):
 
 
 class WaterClass(str, Enum):
-    """Further description of the type of water"""
+    """Further description of the type of water."""
 
     BASIN = "basin"
     BAY = "bay"

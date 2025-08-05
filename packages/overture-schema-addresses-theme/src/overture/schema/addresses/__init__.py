@@ -1,7 +1,7 @@
 """Addresses theme.
 
-Geographic address point features with flexible administrative levels and
-location data structures.
+Geographic address point features with flexible administrative levels and location data
+structures.
 """
 
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)

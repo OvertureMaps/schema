@@ -16,7 +16,10 @@ from overture.schema.core.models import Named, Stacked
 class Water(
     Feature[Literal["base"], Literal["water"]], Stacked, Named, SourcedFromOpenStreetMap
 ):
-    """Physical representations of inland and ocean marine surfaces. Translates `natural` and `waterway` tags from OpenStreetMap."""
+    """Physical representations of inland and ocean marine surfaces.
+
+    Translates `natural` and `waterway` tags from OpenStreetMap.
+    """
 
     model_config = ConfigDict(title="water")
 

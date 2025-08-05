@@ -154,9 +154,19 @@ uv run pytest packages/overture-schema-building-type/
 
 # Run tests matching a pattern
 uv run pytest -k "buildings"
+```
 
-# Code quality
-uv run ruff check .
-uv run ruff format .
+Check code quality:
+
+```shell
+uv run ruff check
 make mypy
+```
+
+Auto-format / fix code to align with project expectations:
+
+```shell
+uv run ruff check --fix
+uv run ruff format
+uv run docformatter --in-place --recursive packages/
 ```

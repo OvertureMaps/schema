@@ -8,7 +8,8 @@ from overture.schema.core import json_schema
 
 
 def test_infrastructure_json_schema_baseline() -> None:
-    """Test that Infrastructure generates consistent JSON Schema (baseline comparison)."""
+    """Test that Infrastructure generates consistent JSON Schema (baseline
+    comparison)."""
     schema = json_schema(Infrastructure)
 
     # Path to baseline file

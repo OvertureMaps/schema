@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class LandCoverSubtype(str, Enum):
-    """type of surface represented"""
+    """Type of surface represented."""
 
     BARREN = "barren"
     CROP = "crop"

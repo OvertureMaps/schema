@@ -1,4 +1,5 @@
-"""Comprehensive tests for constraint-based validation in overture-schema-validation package."""
+"""Comprehensive tests for constraint-based validation in overture-schema-validation
+package."""
 
 from typing import Annotated
 
@@ -214,7 +215,8 @@ class TestStringConstraints:
             assert "JSON Pointer must start" in str(exc_info.value)
 
     def test_whitespace_constraint_valid(self) -> None:
-        """Test WhitespaceConstraint with valid strings (no leading/trailing whitespace)."""
+        """Test WhitespaceConstraint with valid strings (no leading/trailing
+        whitespace)."""
 
         class TestModel(BaseModel):
             text: Annotated[str, WhitespaceConstraint()]
@@ -231,7 +233,8 @@ class TestStringConstraints:
             assert model.text == text
 
     def test_whitespace_constraint_invalid(self) -> None:
-        """Test WhitespaceConstraint with invalid strings (leading/trailing whitespace)."""
+        """Test WhitespaceConstraint with invalid strings (leading/trailing
+        whitespace)."""
 
         class TestModel(BaseModel):
             text: Annotated[str, WhitespaceConstraint()]

@@ -13,7 +13,8 @@ class Subtype(str, Enum):
 
 
 class DestinationLabelType(str, Enum):
-    """Indicates what special symbol/icon is present on a signpost, visible as road marking or similar."""
+    """Indicates what special symbol/icon is present on a signpost, visible as road
+    marking or similar."""
 
     STREET = "street"
     COUNTRY = "country"
@@ -70,7 +71,10 @@ class Heading(str, Enum):
 
 
 class TravelMode(str, Enum):
-    """Enumerates possible travel modes. Some modes represent groups of modes."""
+    """Enumerates possible travel modes.
+
+    Some modes represent groups of modes.
+    """
 
     VEHICLE = "vehicle"
     MOTOR_VEHICLE = "motor_vehicle"  # includes car, truck and motorcycle
@@ -86,7 +90,8 @@ class TravelMode(str, Enum):
 
 
 class DestinationSignSymbol(str, Enum):
-    """Indicates what special symbol/icon is present on a signpost, visible as road marking or similar."""
+    """Indicates what special symbol/icon is present on a signpost, visible as road
+    marking or similar."""
 
     MOTORWAY = "motorway"
     AIRPORT = "airport"
@@ -111,7 +116,10 @@ class DestinationSignSymbol(str, Enum):
 
 
 class RoadFlag(str, Enum):
-    """Simple flags that can be on or off for a road segment. Specifies physical characteristics and can overlap."""
+    """Simple flags that can be on or off for a road segment.
+
+    Specifies physical characteristics and can overlap.
+    """
 
     IS_BRIDGE = "is_bridge"
     IS_LINK = "is_link"  # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
@@ -123,7 +131,10 @@ class RoadFlag(str, Enum):
 
 
 class RailFlag(str, Enum):
-    """Simple flags that can be on or off for a railway segment. Specifies physical characteristics and can overlap."""
+    """Simple flags that can be on or off for a railway segment.
+
+    Specifies physical characteristics and can overlap.
+    """
 
     IS_BRIDGE = "is_bridge"
     IS_TUNNEL = "is_tunnel"  # You may also be looking for the 'subway' class (though subways are occasionally above-ground)
@@ -136,7 +147,7 @@ class RailFlag(str, Enum):
 
 
 class RoadSurface(str, Enum):
-    """Physical surface of the road"""
+    """Physical surface of the road."""
 
     UNKNOWN = "unknown"
     PAVED = "paved"
@@ -160,14 +171,15 @@ class Subclass(str, Enum):
 
 
 class SpeedUnit(str, Enum):
-    """Speed unit"""
+    """Speed unit."""
 
     MPH = "mph"
     KPH = "km/h"
 
 
 class PurposeOfUse(str, Enum):
-    """Reason why a person or entity travelling on the transportation network is using a particular location."""
+    """Reason why a person or entity travelling on the transportation network is using a
+    particular location."""
 
     AS_CUSTOMER = "as_customer"
     AT_DESTINATION = "at_destination"
@@ -177,7 +189,8 @@ class PurposeOfUse(str, Enum):
 
 
 class RecognizedStatus(str, Enum):
-    """Status of the person or entity travelling as recognized by authorities controlling the particular location"""
+    """Status of the person or entity travelling as recognized by authorities
+    controlling the particular location."""
 
     AS_PERMITTED = "as_permitted"
     AS_PRIVATE = "as_private"
@@ -187,7 +200,7 @@ class RecognizedStatus(str, Enum):
 
 
 class VehicleDimension(str, Enum):
-    """Enumerates possible vehicle dimensions for use in restrictions"""
+    """Enumerates possible vehicle dimensions for use in restrictions."""
 
     AXLE_COUNT = "axle_count"
     HEIGHT = "height"
@@ -197,7 +210,7 @@ class VehicleDimension(str, Enum):
 
 
 class VehicleComparison(str, Enum):
-    """Enumerates possible comparison operators for use in scoping"""
+    """Enumerates possible comparison operators for use in scoping."""
 
     GREATER_THAN = "greater_than"
     GREATER_THAN_EQUAL = "greater_than_equal"
