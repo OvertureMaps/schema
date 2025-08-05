@@ -680,14 +680,14 @@ class TestRealWorldScenarios:
     def test_geojson_feature_model(self) -> None:
         """Test constraint validation on a GeoJSON-like feature model."""
 
-        class PropertiesModel(BaseModel):
+        @exactly_one_of("is_land", "is_territorial")
+        class PropertiesModel(ConstraintValidatedModel, BaseModel):
             subtype: PlaceType
             parent_division_id: str | None = None
             is_land: bool | None = None
             is_territorial: bool | None = None
 
-        @exactly_one_of("is_land", "is_territorial")
-        class FeatureModel(ConstraintValidatedModel, BaseModel):
+        class FeatureModel(BaseModel):
             id: str
             type: str = "Feature"
             properties: PropertiesModel
