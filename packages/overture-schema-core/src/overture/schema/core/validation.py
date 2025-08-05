@@ -4,6 +4,7 @@ from overture.schema.validation import (
     UniqueItemsConstraint,
     any_of,
     exactly_one_of,
+    min_properties,
     not_required_if,
     required_if,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "UniqueItemsConstraint",
     "any_of",
     "exactly_one_of",
+    "min_properties",
     "not_required_if",
     "required_if",
 ]

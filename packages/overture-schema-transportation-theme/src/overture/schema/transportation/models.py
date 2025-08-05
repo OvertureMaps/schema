@@ -20,6 +20,7 @@ from overture.schema.core.validation import (
     ConstraintValidatedModel,
     UniqueItemsConstraint,
     any_of,
+    min_properties,
 )
 
 from .enums import (
@@ -69,8 +70,8 @@ class HeadingScope(StrictBaseModel):
     heading: Heading | None = None
 
 
-# TODO generate minProperties: 1 in JSON Schema (and validate)
-class DestinationWhenClause(HeadingScope):
+@min_properties(1)
+class DestinationWhenClause(ConstraintValidatedModel, HeadingScope):
     pass
 
 
@@ -408,9 +409,9 @@ class VehicleScope(StrictBaseModel):
         return hash((tuple(self.vehicle) if self.vehicle is not None else None,))
 
 
-# TODO require at least one property from these classes
-# TODO generate minProperties: 1
+@min_properties(1)
 class SpeedLimitWhenClause(
+    ConstraintValidatedModel,
     TemporalScope,
     HeadingScope,
     PurposeOfUseScope,
@@ -442,9 +443,9 @@ class SpeedLimitRule(ConstraintValidatedModel, GeometricRangeScope):
     when: SpeedLimitWhenClause | None = None
 
 
-# TODO require at least one property from these classes
-# TODO generate minProperties: 1
+@min_properties(1)
 class AccessRestrictionWhenClause(
+    ConstraintValidatedModel,
     TemporalScope,
     HeadingScope,
     PurposeOfUseScope,
@@ -484,9 +485,9 @@ class AccessRestrictionRule(GeometricRangeScope):
         return hash((super().__hash__(), self.access_type, self.when))
 
 
-# TODO require at least one property from these classes
-# TODO generate minProperties: 1
+@min_properties(1)
 class ProhibitedTransitionWhenClause(
+    ConstraintValidatedModel,
     HeadingScope,
     TemporalScope,
     PurposeOfUseScope,
