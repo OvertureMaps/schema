@@ -1,10 +1,10 @@
-from overture.schema.core.json_schema import OptionalFieldGenerator
+from overture.schema.core.json_schema import EnhancedJsonSchemaGenerator
 from pydantic import BaseModel
 from pydantic.json_schema import GenerateJsonSchema
 
 
-class TestOptionalFieldGenerator:
-    """Test the OptionalFieldGenerator class."""
+class TestEnhancedJsonSchemaGenerator:
+    """Test the EnhancedJsonSchemaGenerator class."""
 
     def test_nullable_with_none_default_becomes_optional(self) -> None:
         """Test that X | None = None becomes optional without default."""
@@ -13,7 +13,9 @@ class TestOptionalFieldGenerator:
             nullable_field: str | None = None
             required_field: str
 
-        schema = TestModel.model_json_schema(schema_generator=OptionalFieldGenerator)
+        schema = TestModel.model_json_schema(
+            schema_generator=EnhancedJsonSchemaGenerator
+        )
 
         # The nullable_field should not appear in required fields
         assert "required" in schema
@@ -35,7 +37,9 @@ class TestOptionalFieldGenerator:
         class TestModel(BaseModel):
             nullable_field: str | None = "default_value"
 
-        schema = TestModel.model_json_schema(schema_generator=OptionalFieldGenerator)
+        schema = TestModel.model_json_schema(
+            schema_generator=EnhancedJsonSchemaGenerator
+        )
 
         properties = schema["properties"]
         nullable_field_schema = properties["nullable_field"]
@@ -53,7 +57,9 @@ class TestOptionalFieldGenerator:
             int_field: int = 42
             bool_field: bool = True
 
-        schema = TestModel.model_json_schema(schema_generator=OptionalFieldGenerator)
+        schema = TestModel.model_json_schema(
+            schema_generator=EnhancedJsonSchemaGenerator
+        )
 
         properties = schema["properties"]
 
@@ -69,7 +75,9 @@ class TestOptionalFieldGenerator:
             required_int: int
             optional_with_none: str | None = None
 
-        schema = TestModel.model_json_schema(schema_generator=OptionalFieldGenerator)
+        schema = TestModel.model_json_schema(
+            schema_generator=EnhancedJsonSchemaGenerator
+        )
 
         assert schema["required"] == ["required_str", "required_int"]
 
@@ -91,7 +99,7 @@ class TestOptionalFieldGenerator:
 
         # Our custom generator schema
         custom_schema = TestModel.model_json_schema(
-            schema_generator=OptionalFieldGenerator
+            schema_generator=EnhancedJsonSchemaGenerator
         )
 
         # Standard should have default: null
@@ -114,7 +122,9 @@ class TestOptionalFieldGenerator:
             opt_bool: bool | None = None
             required_field: str
 
-        schema = TestModel.model_json_schema(schema_generator=OptionalFieldGenerator)
+        schema = TestModel.model_json_schema(
+            schema_generator=EnhancedJsonSchemaGenerator
+        )
 
         assert schema["required"] == ["required_field"]
 
@@ -141,7 +151,9 @@ class TestOptionalFieldGenerator:
             opt_dict: dict[str, str] | None = None
             opt_nested: NestedModel | None = None
 
-        schema = TestModel.model_json_schema(schema_generator=OptionalFieldGenerator)
+        schema = TestModel.model_json_schema(
+            schema_generator=EnhancedJsonSchemaGenerator
+        )
 
         properties = schema["properties"]
 
@@ -164,7 +176,9 @@ class TestOptionalFieldGenerator:
         class TestModel(BaseModel):
             union_field: str | int | None = None
 
-        schema = TestModel.model_json_schema(schema_generator=OptionalFieldGenerator)
+        schema = TestModel.model_json_schema(
+            schema_generator=EnhancedJsonSchemaGenerator
+        )
 
         properties = schema["properties"]
         union_schema = properties["union_field"]
