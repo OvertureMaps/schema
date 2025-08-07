@@ -279,7 +279,7 @@
         "division_ids": {
           "description": "Identifies the two divisions to the left and right, respectively, of the boundary line. The left- and right-hand sides of the boundary are considered from the perspective of a person standing on the line facing in the direction in which the geometry is oriented, i.e. facing toward the end of the line.\n\nThe first array element is the Overture ID of the left division. The second element is the Overture ID of the right division.",
           "items": {
-            "description": "String without whitespace characters",
+            "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
             "minLength": 1,
             "pattern": "^\\S+$",
             "type": "string"
