@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, NewType
 
 from pydantic import ConfigDict, Field
 
@@ -6,7 +6,9 @@ from overture.schema.core import StrictBaseModel
 from overture.schema.core.types import Id, TrimmedString
 from overture.schema.divisions.enums import PlaceType
 
-DivisionId = Annotated[Id, Field(min_length=1, description="ID of the division")]
+DivisionId = NewType(
+    "DivisionId", Annotated[Id, Field(min_length=1, description="ID of the division")]
+)
 
 
 class HierarchyItem(StrictBaseModel):

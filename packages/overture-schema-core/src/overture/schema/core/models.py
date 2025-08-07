@@ -1,6 +1,6 @@
 from abc import ABC
 from collections.abc import Callable
-from typing import Annotated, Any, Generic, TypeVar
+from typing import Annotated, Any, Generic, NewType, TypeVar
 
 from pydantic import (
     BaseModel,
@@ -111,14 +111,17 @@ class SourcePropertyItem(GeometricRangeScope):
     confidence: ConfidenceScore | None = None
 
 
-Sources = Annotated[
-    list[SourcePropertyItem],
-    Field(
-        min_length=1,
-        description="""The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.""",
-    ),
-    UniqueItemsConstraint(),
-]
+Sources = NewType(
+    "Sources",
+    Annotated[
+        list[SourcePropertyItem],
+        Field(
+            min_length=1,
+            description="""The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.""",
+        ),
+        UniqueItemsConstraint(),
+    ],
+)
 
 ThemeT = TypeVar("ThemeT", bound=str)
 TypeT = TypeVar("TypeT", bound=str)
