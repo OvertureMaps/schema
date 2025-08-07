@@ -1,6 +1,6 @@
 """Transportation theme models."""
 
-from typing import Annotated
+from typing import Annotated, NewType
 
 from pydantic import ConfigDict, Field
 
@@ -43,9 +43,11 @@ from .enums import (
     WeightUnit,
 )
 
-SpeedValue = Annotated[int, Field(ge=1, le=350, description="Speed value")]
+SpeedValue = NewType(
+    "SpeedValue", Annotated[int, Field(ge=1, le=350, description="Speed value")]
+)
 
-Width = Annotated[float, Field(gt=0)]
+Width = NewType("Width", Annotated[float, Field(gt=0)])
 
 
 class ConnectorReference(StrictBaseModel):
