@@ -143,6 +143,7 @@
         },
         "version": {
           "description": "",
+          "maximum": 2147483647,
           "minimum": 0,
           "title": "Version",
           "type": "integer"

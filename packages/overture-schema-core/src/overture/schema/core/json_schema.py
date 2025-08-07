@@ -8,9 +8,14 @@ from pydantic_core import core_schema
 from ._cache import get_type_adapter
 
 
-class OptionalFieldGenerator(GenerateJsonSchema):
-    """Simplify the generated JSON Schema for nullable fields by removing null from
-    anyOf and removing null defaults."""
+class EnhancedJsonSchemaGenerator(GenerateJsonSchema):
+    """Enhanced JSON Schema generator with optional field support.
+
+    This generator enhances the default Pydantic generator with the following:
+
+    - Optional field handling: simplifies nullable fields by removing null from anyOf
+      and removing null defaults to make fields truly optional.
+    """
 
     def nullable_schema(self, schema: core_schema.NullableSchema) -> JsonSchemaValue:
         """Generates a JSON schema that matches a nullable schema.
@@ -64,10 +69,10 @@ def json_schema(models: type[BaseModel] | UnionType | type) -> dict[str, Any]:
         TypeError: If models is not a BaseModel or union type.
     """
     if isinstance(models, type) and issubclass(models, BaseModel):
-        return models.model_json_schema(schema_generator=OptionalFieldGenerator)
+        return models.model_json_schema(schema_generator=EnhancedJsonSchemaGenerator)
 
     if get_origin(models) is not None:
         adapter = get_type_adapter(models)
-        return adapter.json_schema(schema_generator=OptionalFieldGenerator)
+        return adapter.json_schema(schema_generator=EnhancedJsonSchemaGenerator)
 
     raise TypeError(f"Expected BaseModel or union type, got {type(models)}")
