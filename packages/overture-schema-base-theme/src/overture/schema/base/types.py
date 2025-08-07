@@ -2,10 +2,12 @@ from typing import Annotated, Any, NewType
 
 from pydantic import Field
 
+from overture.schema.core.types.abstract.types import Float64, Int32
+
 Elevation = NewType(
     "Elevation",
     Annotated[
-        int,
+        Int32,
         Field(
             le=9000,
             description="Elevation above sea level (in meters) of the feature.",
@@ -16,7 +18,7 @@ Elevation = NewType(
 Depth = NewType(
     "Depth",
     Annotated[
-        int,
+        Int32,
         Field(
             ge=0,
             description="Depth below surface level (in meters) of the feature.",
@@ -26,7 +28,7 @@ Depth = NewType(
 
 Height = NewType(
     "Height",
-    Annotated[float, Field(gt=0, description="Height of the feature in meters.")],
+    Annotated[Float64, Field(gt=0, description="Height of the feature in meters.")],
 )
 
 SourceTags = NewType(

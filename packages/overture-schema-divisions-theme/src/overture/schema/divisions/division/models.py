@@ -23,9 +23,12 @@ from overture.schema.core.types import (
     RegionCode,
     WikidataId,
 )
+from overture.schema.core.types.abstract.types import Int32
 from overture.schema.core.validation import (
     UniqueItemsConstraint,
 )
+from overture.schema.divisions.models import CapitalOfDivisionItem
+from overture.schema.divisions.types import Hierarchy
 
 from ..enums import DivisionClass, PlaceType
 from ..models import CapitalOfDivisionItem
@@ -168,7 +171,7 @@ If the norms property or a desired sub-property of the norms property is missing
         ),
     ] = None
     population: Annotated[
-        int | None, Field(ge=0, description="Population of the division")
+        Int32 | None, Field(ge=0, description="Population of the division")
     ] = None
     capital_division_ids: Annotated[
         list[Id] | None,

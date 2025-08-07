@@ -6,11 +6,35 @@ from pydantic.json_schema import GenerateJsonSchema, JsonSchemaValue
 from pydantic_core import core_schema
 
 from ._cache import get_type_adapter
+from .types.abstract import AbstractTypeDefinition
 
 
-class OptionalFieldGenerator(GenerateJsonSchema):
-    """Simplify the generated JSON Schema for nullable fields by removing null from
-    anyOf and removing null defaults."""
+class EnhancedJsonSchemaGenerator(GenerateJsonSchema):
+    """Enhanced JSON Schema generator with optional field and abstract type support.
+
+    This generator provides two key enhancements over the default Pydantic generator:
+    1. Optional field handling: Simplifies nullable fields by removing null from anyOf
+       and removing null defaults to make fields truly optional.
+    2. Abstract type support: Detects AbstractType annotations and applies explicit
+       JSON schema overrides when specified.
+    """
+
+    def generate_inner(self, schema: core_schema.CoreSchema) -> JsonSchemaValue:
+        """Override to detect abstract types and generate appropriate JSON schema."""
+
+        # Check for metadata that might contain AbstractType information
+        metadata = schema.get("metadata", {})
+
+        # Look for AbstractTypeDefinition in the metadata (from Annotated types)
+        for item in metadata:
+            if isinstance(item, AbstractTypeDefinition):
+                # We found an AbstractTypeDefinition in the metadata
+                explicit_schema = item.json_schema_override
+                if explicit_schema:
+                    return explicit_schema  # type: ignore[no-any-return]
+
+        # Generate standard schema (includes Annotated constraints automatically)
+        return super().generate_inner(schema)
 
     def nullable_schema(self, schema: core_schema.NullableSchema) -> JsonSchemaValue:
         """Generates a JSON schema that matches a nullable schema.
@@ -64,10 +88,10 @@ def json_schema(models: type[BaseModel] | UnionType | type) -> dict[str, Any]:
         TypeError: If models is not a BaseModel or union type.
     """
     if isinstance(models, type) and issubclass(models, BaseModel):
-        return models.model_json_schema(schema_generator=OptionalFieldGenerator)
+        return models.model_json_schema(schema_generator=EnhancedJsonSchemaGenerator)
 
     if get_origin(models) is not None:
         adapter = get_type_adapter(models)
-        return adapter.json_schema(schema_generator=OptionalFieldGenerator)
+        return adapter.json_schema(schema_generator=EnhancedJsonSchemaGenerator)
 
     raise TypeError(f"Expected BaseModel or union type, got {type(models)}")
