@@ -16,6 +16,7 @@ from overture.schema.core.models import (
     Perspectives,
     StrictBaseModel,
 )
+from overture.schema.core.primitives import int32
 from overture.schema.core.types import (
     CommonNames,
     CountryCode,
@@ -168,7 +169,7 @@ If the norms property or a desired sub-property of the norms property is missing
         ),
     ] = None
     population: Annotated[
-        int | None, Field(ge=0, description="Population of the division")
+        int32 | None, Field(ge=0, description="Population of the division")
     ] = None
     capital_division_ids: Annotated[
         list[Id] | None,

@@ -509,6 +509,7 @@
         },
         "population": {
           "description": "Population of the division",
+          "maximum": 2147483647,
           "minimum": 0,
           "title": "Population",
           "type": "integer"
@@ -546,6 +547,7 @@
         },
         "version": {
           "description": "",
+          "maximum": 2147483647,
           "minimum": 0,
           "title": "Version",
           "type": "integer"

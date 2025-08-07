@@ -20,6 +20,8 @@ from overture.schema.validation.types import (
     WikidataId,
 )
 
+from .primitives.numeric import float64, int32
+
 Id = NewType(
     "Id",
     Annotated[
@@ -31,11 +33,13 @@ Id = NewType(
     ],
 )
 
-# One possible advantage to using percentages over absolute distances is being able to trivially validate that the position lies "on" its segment (i.e. is between zero and one). Of course, this level of validity doesn't mean the number isn't nonsense.
+# One possible advantage to using percentages over absolute distances is being able to
+# trivially validate that the position lies "on" its segment (i.e. is between zero and
+# one). Of course, this level of validity doesn't mean the number isn't nonsense
 LinearlyReferencedPosition = NewType(
     "LinearlyReferencedPosition",
     Annotated[
-        float,
+        float64,
         Field(
             ge=0,
             le=1,
@@ -56,7 +60,8 @@ LinearlyReferencedRange = NewType(
 
 # Validating the opening hours value is going to have to happen outside of JSON Schema.
 #
-# Reasons for using the OSM opening hours specification for transportation rule time restrictions are documented in https://github.com/OvertureMaps/schema-wg/pull/10
+# Reasons for using the OSM opening hours specification for transportation rule time
+# restrictions are documented in https://github.com/OvertureMaps/schema-wg/pull/10
 OpeningHours = NewType(
     "OpeningHours",
     Annotated[
@@ -70,7 +75,7 @@ OpeningHours = NewType(
 Level = NewType(
     "Level",
     Annotated[
-        int,
+        int32,
         Field(default=0, description="Z-order of the feature where 0 is visual level"),
     ],
 )
@@ -102,14 +107,17 @@ The validating regular expression for this property follows the pattern describe
     ],
 )
 
-# It might be reasonable to combine "update_time" and "version" in a single "updateVersion" field
-# which gives the last Overture version number in which the feature changed. The downside to doing
-# this is that the number would cease to be indicative of the "rate of change" of the feature.
-FeatureVersion = NewType("FeatureVersion", Annotated[int, Field(ge=0, description="")])
+# It might be reasonable to combine "update_time" and "version" in a single
+# "updateVersion" field which gives the last Overture version number in which the
+# feature changed. The downside to doing this is that the number would cease to be
+# indicative of the "rate of change" of the feature.
+FeatureVersion = NewType(
+    "FeatureVersion", Annotated[int32, Field(ge=0, description="")]
+)
 
-# A somewhat more compact approach would be to reference the Overture version where the feature last
-# changed instead of the update time, and expect clients to do a lookup if they really care about
-# the time.
+# A somewhat more compact approach would be to reference the Overture version where the
+# feature last changed instead of the update time, and expect clients to do a lookup if
+# they really care about the time
 FeatureUpdateTime = NewType(
     "FeatureUpdateTime",
     Annotated[
@@ -182,18 +190,21 @@ Theme = Annotated[
 Type = Annotated[str, Field(description="Specific feature type within the theme")]
 
 __all__ = [
+    "CommonNames",
     "ConfidenceScore",
     "CountryCode",
     "CountryCodeConstraint",
+    "FeatureUpdateTime",
+    "FeatureVersion",
     "HexColor",
     "Id",
     "ISO8601DateTime",
     "JSONPointer",
     "LanguageTag",
+    "Level",
     "LinearlyReferencedPosition",
     "LinearlyReferencedRange",
     "LinearReferenceRangeConstraint",
-    "Level",
     "MaxZoom",
     "MinZoom",
     "NoWhitespaceString",
