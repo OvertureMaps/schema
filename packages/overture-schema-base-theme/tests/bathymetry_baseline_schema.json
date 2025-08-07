@@ -213,12 +213,15 @@
         },
         "depth": {
           "description": "Depth below surface level (in meters) of the feature.",
+          "maximum": 2147483647,
           "minimum": 0,
           "title": "Depth",
           "type": "integer"
         },
         "level": {
           "description": "Z-order of the feature where 0 is visual level",
+          "maximum": 2147483647,
+          "minimum": -2147483648,
           "title": "Level",
           "type": "integer"
         },
@@ -244,6 +247,7 @@
         },
         "version": {
           "description": "",
+          "maximum": 2147483647,
           "minimum": 0,
           "title": "Version",
           "type": "integer"

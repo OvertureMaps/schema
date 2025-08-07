@@ -8,6 +8,7 @@ from overture.schema.buildings.enums import (
     RoofOrientation,
     RoofShape,
 )
+from overture.schema.core.primitives import float64, int32
 from overture.schema.core.types import HexColor
 
 
@@ -17,7 +18,7 @@ class Shape(BaseModel):
     # Optional
 
     height: Annotated[
-        float | None,
+        float64 | None,
         Field(
             gt=0,
             description="""Height of the building or part in meters. The height is the distance from the lowest point to the highest point.""",
@@ -31,27 +32,27 @@ class Shape(BaseModel):
         ),
     ] = None
     num_floors: Annotated[
-        int | None,
+        int32 | None,
         Field(
             gt=0,
             description="Number of above-ground floors of the building or part.",
         ),
     ] = None
     num_floors_underground: Annotated[
-        int | None,
+        int32 | None,
         Field(
             gt=0,
             description="Number of below-ground floors of the building or part.",
         ),
     ] = None
     min_height: Annotated[
-        float | None,
+        float64 | None,
         Field(
             description="The height of the bottom part of building in meters. Used if a building or part of building starts above the ground level.",
         ),
     ] = None
     min_floor: Annotated[
-        int | None,
+        int32 | None,
         Field(
             gt=0,
             description="""The "start" floor of this building or part. Indicates that the building or part is "floating" and its bottom-most floor is above ground level, usually because it is part of a larger building in which some parts do reach down to ground level. An example is a building that has an entry road or driveway at ground level into an interior courtyard, where part of the building bridges above the entry road. This property may sometimes be populated when min_height is missing and in these cases can be used as a proxy for min_height.""",
@@ -74,7 +75,7 @@ class Shape(BaseModel):
         RoofShape | None, Field(description="The shape of the roof")
     ] = None
     roof_direction: Annotated[
-        float | None,
+        float64 | None,
         Field(
             ge=0,
             lt=360,
@@ -94,7 +95,7 @@ class Shape(BaseModel):
         ),
     ] = None
     roof_height: Annotated[
-        float | None,
+        float64 | None,
         Field(
             description="""The height of the building roof in meters. This represents the distance from the base of the roof to the highest point of the roof.""",
         ),
