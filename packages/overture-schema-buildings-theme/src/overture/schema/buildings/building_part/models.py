@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 from overture.schema.core import Feature
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
 from overture.schema.core.types import Id
 
@@ -24,9 +24,9 @@ class BuildingPart(
     # Core
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("Polygon", "MultiPolygon"),
+        GeometryTypeConstraint(GeometryType.POLYGON, GeometryType.MULTI_POLYGON),
         Field(
-            description="The part's geometry. It must be a polygon or multipolygon.",
+            description="The part's geometry.",
         ),
     ]
 

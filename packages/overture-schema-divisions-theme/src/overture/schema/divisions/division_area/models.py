@@ -7,7 +7,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     Named,
     Names,
@@ -37,9 +37,9 @@ class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]], Name
     # Core
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("Polygon", "MultiPolygon"),
+        GeometryTypeConstraint(GeometryType.POLYGON, GeometryType.MULTI_POLYGON),
         Field(
-            description="Division area geometries MUST be polygons or multi-polygons as defined by the GeoJSON schema.",
+            description="The area covered by the division with which this area feature is associated",
         ),
     ]
 

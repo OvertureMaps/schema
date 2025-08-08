@@ -7,7 +7,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 
 
 class Connector(Feature[Literal["transportation"], Literal["connector"]]):
@@ -21,8 +21,8 @@ class Connector(Feature[Literal["transportation"], Literal["connector"]]):
     # Core
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("Point"),
+        GeometryTypeConstraint(GeometryType.POINT),
         Field(
-            description="Connector's geometry which MUST be a Point as defined by GeoJSON schema.",
+            description="Position of the connector",
         ),
     ]

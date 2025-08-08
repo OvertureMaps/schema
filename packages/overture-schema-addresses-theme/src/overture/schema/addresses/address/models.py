@@ -10,6 +10,7 @@ from overture.schema.core import (
 )
 from overture.schema.core.geometry import (
     Geometry,
+    GeometryType,
     GeometryTypeConstraint,
 )
 from overture.schema.core.types import CountryCode, TrimmedString
@@ -47,7 +48,9 @@ class Address(Feature[Literal["addresses"], Literal["address"]]):
 
     # Core
     geometry: Annotated[
-        Geometry, GeometryTypeConstraint("Point"), Field(description="Geometry (Point)")
+        Geometry,
+        GeometryTypeConstraint(GeometryType.POINT),
+        Field(description="Geometry (Point)"),
     ]
 
     # Optional

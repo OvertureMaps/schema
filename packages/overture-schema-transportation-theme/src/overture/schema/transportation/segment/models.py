@@ -7,7 +7,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     Named,
     Stacked,
@@ -41,8 +41,8 @@ class TransportationSegment(
     # Core
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("LineString"),
-        Field(description="Geometry (LineString)"),
+        GeometryTypeConstraint(GeometryType.LINE_STRING),
+        Field(description="Segment centerline"),
     ]
 
     # Required

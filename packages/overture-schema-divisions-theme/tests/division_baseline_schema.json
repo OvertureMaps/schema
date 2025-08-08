@@ -337,7 +337,7 @@
   },
   "properties": {
     "geometry": {
-      "description": "Division geometry MUST be a Point as defined by GeoJSON schema. It represents the approximate location of a position commonly associated with the real-world entity modeled by the division feature.",
+      "description": "Approximate location of a position commonly associated with the real-world entity modeled by the division feature.",
       "properties": {
         "bbox": {
           "items": {
