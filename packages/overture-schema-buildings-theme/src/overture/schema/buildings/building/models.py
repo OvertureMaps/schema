@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import Feature
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
 
 from ..models import Shape
@@ -29,9 +29,9 @@ class Building(
     # Core
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("Polygon", "MultiPolygon"),
+        GeometryTypeConstraint(GeometryType.POLYGON, GeometryType.MULTI_POLYGON),
         Field(
-            description="""A regular building's geometry is defined as its footprint or roofprint (if traced from aerial/satellite imagery). It MUST be a Polygon or MultiPolygon as defined by the GeoJSON schema.""",
+            description="""The building's footprint or roofprint (if traced from aerial/satellite imagery).""",
         ),
     ]
 

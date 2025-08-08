@@ -1,12 +1,34 @@
+import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 from itertools import chain, combinations
 from typing import Annotated, Any
 
 import pytest
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from pydantic import BaseModel, ValidationError
 from pytest_subtests import SubTests
+
+
+def test_geometry_type_sorted() -> None:
+    enumerated_order = tuple(GeometryType)
+
+    assert enumerated_order == tuple(sorted(enumerated_order))
+
+    indices = [item._value for item in enumerated_order]
+
+    assert indices == list(range(0, len(indices)))
+
+
+def test_geometry_type_geo_json_type() -> None:
+    def to_upper_camel_case(s: str) -> str:
+        parts = re.split(r"[^a-zA-Z0-9]", s)
+        return "".join(word.capitalize() for word in parts if word)
+
+    actual = [item.geo_json_type for item in GeometryType]
+    expected = [to_upper_camel_case(item.name) for item in GeometryType]
+
+    assert actual == expected
 
 
 def test_geometry_type_constraint_empty() -> None:
@@ -25,14 +47,14 @@ def test_geometry_type_constraint_invalid() -> None:
 
 @dataclass
 class GeometryTypeCase:
-    geometry_type: str
+    geometry_type: GeometryType
     examples: tuple[dict[Any, Any], ...] = ()
     counterexamples: tuple[dict[Any, Any], ...] = ()
 
 
 TEST_GEOMETRY_TYPE_CASES: tuple[GeometryTypeCase] = (
     GeometryTypeCase(
-        geometry_type="Point",
+        geometry_type=GeometryType.POINT,
         examples=(
             {"type": "Point", "coordinates": [0, 0]},
             {"type": "Point", "coordinates": [-90, 131.5]},
