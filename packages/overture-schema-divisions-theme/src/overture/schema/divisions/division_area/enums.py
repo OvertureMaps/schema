@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class AreaBoundaryClass(str, Enum):
+class AreaClass(str, Enum):
     """Area and boundary class designations."""
 
     LAND = "land"  # The area does not extend beyond the coastline.
