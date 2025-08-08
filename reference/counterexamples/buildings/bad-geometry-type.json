@@ -1,0 +1,13 @@
+{
+  "id": "foo",
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [0, 1]
+  },
+  "properties": {
+    "theme": "buildings",
+    "type": "building",
+    "version": 0,
+  }
+}
