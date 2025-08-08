@@ -1,12 +1,12 @@
 {
   "$defs": {
-    "AreaBoundaryClass": {
+    "AreaClass": {
       "description": "Area and boundary class designations.",
       "enum": [
         "land",
         "maritime"
       ],
-      "title": "AreaBoundaryClass",
+      "title": "AreaClass",
       "type": "string"
     },
     "NameRule": {
@@ -347,7 +347,7 @@
       },
       "properties": {
         "class": {
-          "$ref": "#/$defs/AreaBoundaryClass"
+          "$ref": "#/$defs/AreaClass"
         },
         "country": {
           "description": "ISO 3166-1 alpha-2 country code of the division this area belongs to.",
