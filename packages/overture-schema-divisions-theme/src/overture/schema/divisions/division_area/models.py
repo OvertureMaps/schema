@@ -18,7 +18,7 @@ from overture.schema.core.validation import (
 )
 
 from ..enums import PlaceType
-from .enums import AreaBoundaryClass
+from .enums import AreaClass
 
 
 @exactly_one_of("is_land", "is_territorial")
@@ -48,7 +48,7 @@ class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]], Name
     names: Names
     subtype: PlaceType
     class_: Annotated[
-        AreaBoundaryClass,
+        AreaClass,
         Field(alias="class"),
     ]
     is_land: Annotated[
