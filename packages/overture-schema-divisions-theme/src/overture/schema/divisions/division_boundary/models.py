@@ -7,7 +7,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import Perspectives
 from overture.schema.core.types import (
     CountryCode,
@@ -37,9 +37,11 @@ class DivisionBoundary(Feature[Literal["divisions"], Literal["division_boundary"
     # Core
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("LineString", "MultiLineString"),
+        GeometryTypeConstraint(
+            GeometryType.LINE_STRING, GeometryType.MULTI_LINE_STRING
+        ),
         Field(
-            description="Boundary's geometry which MUST be a LineString or MultiLineString as defined by the GeoJSON schema.",
+            description="Boundary line or lines",
         ),
     ]
 
