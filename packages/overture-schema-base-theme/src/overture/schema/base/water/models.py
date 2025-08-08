@@ -9,7 +9,7 @@ from overture.schema.base.water.enums import WaterClass, WaterSubtype
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
 
 
@@ -27,7 +27,12 @@ class Water(
 
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("Point", "LineString", "Polygon", "MultiPolygon"),
+        GeometryTypeConstraint(
+            GeometryType.POINT,
+            GeometryType.LINE_STRING,
+            GeometryType.POLYGON,
+            GeometryType.MULTI_POLYGON,
+        ),
         Field(
             description="Geometry (Point, LineString, Polygon, or MultiPolygon)",
         ),

@@ -128,7 +128,7 @@
   },
   "properties": {
     "geometry": {
-      "description": "Boundary's geometry which MUST be a LineString or MultiLineString as defined by the GeoJSON schema.",
+      "description": "Boundary line or lines",
       "oneOf": [
         {
           "properties": {

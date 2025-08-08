@@ -613,7 +613,7 @@
       },
       "properties": {
         "geometry": {
-          "description": "Geometry (LineString)",
+          "description": "Segment centerline",
           "properties": {
             "bbox": {
               "items": {
@@ -874,7 +874,7 @@
       },
       "properties": {
         "geometry": {
-          "description": "Geometry (LineString)",
+          "description": "Segment centerline",
           "properties": {
             "bbox": {
               "items": {
@@ -1531,7 +1531,7 @@
       },
       "properties": {
         "geometry": {
-          "description": "Geometry (LineString)",
+          "description": "Segment centerline",
           "properties": {
             "bbox": {
               "items": {

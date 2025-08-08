@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any
 
 from pydantic import (
@@ -11,31 +12,54 @@ from shapely import wkb, wkt
 from shapely.geometry import mapping, shape
 from shapely.geometry.base import BaseGeometry
 
-# Note: It would be better to model this as a string enumeration class GeometryType(Enum, str)
-#       and then you get GeometryType(str) with a ValueError on unrecognized type as a freebie.
-_GEOMETRY_TYPES = (
-    "GeometryCollection",
-    "LineString",
-    "Point",
-    "Polygon",
-    "MultiLineString",
-    "MultiPoint",
-    "MultiPolygon",
-)
+
+class GeometryType(Enum):
+    GEOMETRY_COLLECTION = 0, "GeometryCollection"
+    LINE_STRING = 1, "LineString"
+    POINT = 2, "Point"
+    POLYGON = 3, "Polygon"
+    MULTI_LINE_STRING = 4, "MultiLineString"
+    MULTI_POINT = 5, "MultiPoint"
+    MULTI_POLYGON = 6, "MultiPolygon"
+
+    def __init__(self, value: int, geo_json_type: str) -> None:
+        self._value = value
+        self._geo_json_type = geo_json_type
+
+    def __lt__(self, other: "GeometryType") -> bool:
+        if not isinstance(other, GeometryType):
+            return NotImplemented
+        return self._value < other._value
+
+    @property
+    def geo_json_type(self) -> str:
+        return self._geo_json_type
+
+
+_GEOMETRY_GEO_JSON_TYPES = [item.geo_json_type for item in GeometryType]
+
+_GEOMETRY_TYPE_REVERSE_LOOKUP = {item.geo_json_type: item for item in GeometryType}
 
 
 class GeometryTypeConstraint:
-    def __init__(self, *allowed_types: str) -> None:
+    def __init__(self, *allowed_types: GeometryType) -> None:
         self.__allowed_types = self.__class__._validate_geometry_types(
             list(allowed_types)
         )
 
     @property
-    def allowed_types(self) -> tuple[str, ...]:
+    def allowed_types(self) -> tuple[GeometryType, ...]:
         return self.__allowed_types
 
     def validate(self, value: "Geometry", info: ValidationInfo) -> "Geometry":
-        geometry_type = value.geom.geom_type
+        try:
+            geometry_type: GeometryType = _GEOMETRY_TYPE_REVERSE_LOOKUP[
+                value.geom.geom_type
+            ]
+        except KeyError as e:
+            raise RuntimeError(
+                f"inter `geom` has unknown type: {repr(value.geom.geom_type)}"
+            ) from e
         if geometry_type not in self.allowed_types:
             context = info.context or {}
             loc = context.get("loc_prefix", ()) + ("value",)
@@ -55,16 +79,18 @@ class GeometryTypeConstraint:
         return value
 
     @classmethod
-    def _validate_geometry_types(cls, a: list[str]) -> tuple[str, ...]:
+    def _validate_geometry_types(
+        cls, a: list[GeometryType]
+    ) -> tuple[GeometryType, ...]:
         if not a:
             raise ValueError(
-                f"allowed_types is empty (it must contain at least one of: {_GEOMETRY_TYPES})"
+                f"allowed_types is empty (it must contain at least one: {type(GeometryType).__name__})"
             )
 
-        if not all(item in _GEOMETRY_TYPES for item in a):
-            invalid = [item for item in a if item not in _GEOMETRY_TYPES]
+        if not all(isinstance(item, GeometryType) for item in a):
+            invalid = [item for item in a if not isinstance(item, GeometryType)]
             raise ValueError(
-                f"allowed_types contains invalid values: {invalid} (allowed: {_GEOMETRY_TYPES})"
+                f"allowed_types contains invalid value{'s' if len(invalid) > 1 else ''}: {invalid} (allowed: {list(GeometryType)})"
             )
 
         if len(set(a)) != len(a):
@@ -94,7 +120,7 @@ class GeometryTypeConstraint:
             }
 
 
-_ALL_GEOMETRY_ALLOWED = GeometryTypeConstraint(*_GEOMETRY_TYPES)
+_ALL_GEOMETRY_ALLOWED = GeometryTypeConstraint(*GeometryType)
 
 
 class Geometry:
@@ -125,7 +151,9 @@ class Geometry:
     @classmethod
     def from_geo_json(cls, value: dict[str, Any] | BaseGeometry) -> "Geometry":
         # If it's already a Shapely geometry, use it directly
-        if isinstance(value, BaseGeometry):
+        if isinstance(
+            value, BaseGeometry
+        ):  # FIXME: For consistency, this probably should move to a separate `from_shapely()` method.
             return cls(value)
 
         if not isinstance(value, dict):
@@ -135,9 +163,9 @@ class Geometry:
 
         type_ = value.get("type")
 
-        if type_ not in _GEOMETRY_TYPES:
+        if type_ not in _GEOMETRY_GEO_JSON_TYPES:
             raise ValueError(
-                f"allowed_types contains invalid value {repr(type_)} (allowed: {_GEOMETRY_TYPES})"
+                f"allowed_types contains invalid value {repr(type_)} (allowed: {_GEOMETRY_GEO_JSON_TYPES})"
             )
 
         return cls(shape(value))
@@ -365,11 +393,11 @@ _GEOMETRY_COLLECTION_JSON_SCHEMA = geometry_json_schema(
 ########################################################################
 
 _GEOMETRY_JSON_SCHEMA = {
-    "GeometryCollection": _GEOMETRY_COLLECTION_JSON_SCHEMA,
-    "LineString": _LINE_STRING_GEOMETRY_JSON_SCHEMA,
-    "Point": _POINT_GEOMETRY_JSON_SCHEMA,
-    "Polygon": _POLYGON_GEOMETRY_JSON_SCHEMA,
-    "MultiLineString": _MULTI_LINE_STRING_GEOMETRY_JSON_SCHEMA,
-    "MultiPoint": _MULTI_POINT_GEOMETRY_JSON_SCHEMA,
-    "MultiPolygon": _MULTI_POLYGON_GEOMETRY_JSON_SCHEMA,
+    GeometryType.GEOMETRY_COLLECTION: _GEOMETRY_COLLECTION_JSON_SCHEMA,
+    GeometryType.LINE_STRING: _LINE_STRING_GEOMETRY_JSON_SCHEMA,
+    GeometryType.POINT: _POINT_GEOMETRY_JSON_SCHEMA,
+    GeometryType.POLYGON: _POLYGON_GEOMETRY_JSON_SCHEMA,
+    GeometryType.MULTI_LINE_STRING: _MULTI_LINE_STRING_GEOMETRY_JSON_SCHEMA,
+    GeometryType.MULTI_POINT: _MULTI_POINT_GEOMETRY_JSON_SCHEMA,
+    GeometryType.MULTI_POLYGON: _MULTI_POLYGON_GEOMETRY_JSON_SCHEMA,
 }

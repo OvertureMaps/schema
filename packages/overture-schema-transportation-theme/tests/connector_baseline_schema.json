@@ -62,7 +62,7 @@
   },
   "properties": {
     "geometry": {
-      "description": "Connector's geometry which MUST be a Point as defined by GeoJSON schema.",
+      "description": "Position of the connector",
       "properties": {
         "bbox": {
           "items": {

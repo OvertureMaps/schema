@@ -8,7 +8,7 @@ from overture.schema.core import (
     Feature,
     StrictBaseModel,
 )
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     Address,
     Named,
@@ -72,9 +72,9 @@ class Place(Feature[Literal["places"], Literal["place"]], Named):
     # Required
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("Point"),
+        GeometryTypeConstraint(GeometryType.POINT),
         Field(
-            description="Geometry (Point)",
+            description="Position of the place",
         ),
     ]
 

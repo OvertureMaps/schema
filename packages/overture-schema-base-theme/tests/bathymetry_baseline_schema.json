@@ -111,23 +111,19 @@
               "items": {
                 "items": {
                   "items": {
-                    "items": {
-                      "type": "number"
-                    },
-                    "minItems": 2,
-                    "type": "array"
+                    "type": "number"
                   },
-                  "minItems": 4,
+                  "minItems": 2,
                   "type": "array"
                 },
-                "minItems": 1,
+                "minItems": 4,
                 "type": "array"
               },
               "minItems": 1,
               "type": "array"
             },
             "type": {
-              "const": "MultiPolygon",
+              "const": "Polygon",
               "type": "string"
             }
           },
@@ -150,19 +146,23 @@
               "items": {
                 "items": {
                   "items": {
-                    "type": "number"
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 2,
+                    "type": "array"
                   },
-                  "minItems": 2,
+                  "minItems": 4,
                   "type": "array"
                 },
-                "minItems": 4,
+                "minItems": 1,
                 "type": "array"
               },
               "minItems": 1,
               "type": "array"
             },
             "type": {
-              "const": "Polygon",
+              "const": "MultiPolygon",
               "type": "string"
             }
           },

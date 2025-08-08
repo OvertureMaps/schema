@@ -8,7 +8,7 @@ from overture.schema.base.land_cover.enums import LandCoverSubtype
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import CartographicallyHinted, Stacked
 
 
@@ -23,7 +23,7 @@ class LandCover(
 
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("Polygon", "MultiPolygon"),
+        GeometryTypeConstraint(GeometryType.POLYGON, GeometryType.MULTI_POLYGON),
         Field(description="Geometry (Polygon or MultiPolygon)"),
     ]
 
