@@ -8,7 +8,7 @@ from overture.schema.core import (
     Feature,
 )
 from overture.schema.core.enums import Side
-from overture.schema.core.geometry import Geometry, GeometryTypeConstraint
+from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     CartographicallyHinted,
     Named,
@@ -61,9 +61,9 @@ class Division(
     # Core
     geometry: Annotated[
         Geometry,
-        GeometryTypeConstraint("Point"),
+        GeometryTypeConstraint(GeometryType.POINT),
         Field(
-            description="""Division geometry MUST be a Point as defined by GeoJSON schema. It represents the approximate location of a position commonly associated with the real-world entity modeled by the division feature.""",
+            description="""Approximate location of a position commonly associated with the real-world entity modeled by the division feature.""",
         ),
     ]
 
