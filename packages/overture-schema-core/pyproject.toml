@@ -20,6 +20,7 @@ packages = ["src/overture"]
 
 [dependency-groups]
 dev = [
+    "jsonpath-ng>=1.7.0",
     "pytest-subtests>=0.14.2",
     "types-pyyaml>=6.0.12.20250516",
     "types-shapely>=2.1.0.20250710",

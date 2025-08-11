@@ -12,6 +12,7 @@ from pydantic import (
 )
 from pydantic_core import core_schema
 
+from overture.schema.core.bbox import BBox
 from overture.schema.validation import (
     allow_extension_fields,
 )
@@ -131,6 +132,8 @@ class Feature(ExtensibleBaseModel, Generic[ThemeT, TypeT], ABC):
 
     # Optional
 
+    bbox: BBox | None = None
+
     sources: Sources | None = None
 
     @model_serializer(mode="wrap")  # type: ignore[type-var]
@@ -146,9 +149,11 @@ class Feature(ExtensibleBaseModel, Generic[ThemeT, TypeT], ABC):
         # Check the serialization mode/context
         if info.mode == "json":
             # Transform to GeoJSON when outputting JSON
+
             return {
                 "type": "Feature",
                 "id": data.pop("id"),
+                **({"bbox": data.pop("bbox")} if "bbox" in data else {}),
                 "geometry": data.pop("geometry"),
                 "properties": data,  # All remaining fields go into properties
             }
@@ -171,7 +176,7 @@ class Feature(ExtensibleBaseModel, Generic[ThemeT, TypeT], ABC):
         geo_json_required = []
 
         for name in list(json_schema_top_level_properties.keys()):
-            if name not in ["id", "geometry"]:
+            if name not in ["id", "bbox", "geometry"]:
                 value = json_schema_top_level_properties[name]
                 geo_json_properties[name] = value
                 del json_schema_top_level_properties[name]

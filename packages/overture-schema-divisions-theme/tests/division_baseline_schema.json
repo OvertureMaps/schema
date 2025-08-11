@@ -336,6 +336,15 @@
     }
   },
   "properties": {
+    "bbox": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
     "geometry": {
       "description": "Approximate location of a position commonly associated with the real-world entity modeled by the division feature.",
       "properties": {

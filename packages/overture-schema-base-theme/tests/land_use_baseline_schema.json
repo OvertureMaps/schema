@@ -385,6 +385,15 @@
     }
   },
   "properties": {
+    "bbox": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
     "geometry": {
       "description": "Classifications of the human use of a section of land. Translates `landuse` from OpenStreetMap tag from OpenStreetMap.",
       "oneOf": [
