@@ -390,6 +390,15 @@
     }
   },
   "properties": {
+    "bbox": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
     "geometry": {
       "description": "The building's footprint or roofprint (if traced from aerial/satellite imagery).",
       "oneOf": [
