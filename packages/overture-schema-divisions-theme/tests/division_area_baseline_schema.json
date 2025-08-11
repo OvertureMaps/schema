@@ -235,6 +235,15 @@
     }
   },
   "properties": {
+    "bbox": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
     "geometry": {
       "description": "The area covered by the division with which this area feature is associated",
       "oneOf": [
