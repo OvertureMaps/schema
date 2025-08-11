@@ -203,16 +203,18 @@ class Geometry:
         cls, _source_type: type[Any], _handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
         def validator(
-            value: dict[str, Any] | BaseGeometry | bytes | str | Geometry,
+            value: Geometry | dict[str, Any] | BaseGeometry | bytes | str,
             info: ValidationInfo,
         ) -> Geometry:
             try:
-                # Handle Shapely geometry directly
-                if isinstance(value, BaseGeometry):
-                    return cls(value)
+                if isinstance(value, Geometry):
+                    return value
                 # Handle GeoJSON dict
                 elif isinstance(value, dict):
                     return cls.from_geo_json(value)
+                # Handle Shapely geometry directly
+                elif isinstance(value, BaseGeometry):
+                    return cls(value)
                 # Handle WKB bytes
                 elif isinstance(value, bytes):
                     return cls.from_wkb(value)
@@ -221,7 +223,7 @@ class Geometry:
                     return cls.from_wkt(value)
                 else:
                     raise TypeError(
-                        f"Expected dict, BaseGeometry, bytes, str, or Geometry, got {type(value).__name__}"
+                        f"expected `Geometry`, `dict` (GeoJSON), `BaseGeometry`, `bytes` (WKB), or `str` (WKT); got `{type(value).__name__}` with value {value}"
                     )
             except Exception as e:
                 context = info.context or {}
