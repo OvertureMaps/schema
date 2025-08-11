@@ -112,6 +112,15 @@
     }
   },
   "properties": {
+    "bbox": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
     "geometry": {
       "description": "Geometry (Polygon or MultiPolygon)",
       "oneOf": [
