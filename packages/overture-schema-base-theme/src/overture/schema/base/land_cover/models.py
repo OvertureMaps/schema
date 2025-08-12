@@ -9,11 +9,11 @@ from overture.schema.core import (
     Feature,
 )
 from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
-from overture.schema.core.models import CartographicallyHinted, Stacked
+from overture.schema.core.models import CartographicallyHinted
 
 
 class LandCover(
-    Feature[Literal["base"], Literal["land_cover"]], Stacked, CartographicallyHinted
+    Feature[Literal["base"], Literal["land_cover"]], CartographicallyHinted
 ):
     """Representation of the Earth's natural surfaces."""
 
