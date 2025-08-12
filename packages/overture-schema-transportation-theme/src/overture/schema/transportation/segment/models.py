@@ -10,7 +10,6 @@ from overture.schema.core import (
 from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     Named,
-    Stacked,
 )
 from overture.schema.core.validation import UniqueItemsConstraint
 from overture.schema.transportation.models import ConnectorReference
@@ -32,7 +31,7 @@ from ..types import (
 
 
 class TransportationSegment(
-    Feature[Literal["transportation"], Literal["segment"]], Stacked, Named
+    Feature[Literal["transportation"], Literal["segment"]], Named
 ):
     """Common Segment Properties."""
 

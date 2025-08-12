@@ -9,11 +9,11 @@ from overture.schema.core import (
     Feature,
 )
 from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
-from overture.schema.core.models import CartographicallyHinted, Stacked
+from overture.schema.core.models import CartographicallyHinted
 
 
 class Bathymetry(
-    Feature[Literal["base"], Literal["bathymetry"]], Stacked, CartographicallyHinted
+    Feature[Literal["base"], Literal["bathymetry"]], CartographicallyHinted
 ):
     """Topographic representation of an underwater area, such as a part of the ocean
     floor."""
