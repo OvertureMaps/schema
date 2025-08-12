@@ -217,13 +217,6 @@
           "title": "Depth",
           "type": "integer"
         },
-        "level": {
-          "description": "Z-order of the feature where 0 is visual level",
-          "maximum": 2147483647,
-          "minimum": -2147483648,
-          "title": "Level",
-          "type": "integer"
-        },
         "sources": {
           "description": "The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
           "items": {
