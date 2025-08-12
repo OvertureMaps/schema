@@ -133,7 +133,7 @@ class Geometry:
         return isinstance(other, Geometry) and self.geom == other.geom
 
     def __hash__(self) -> int:
-        return hash(self.geom)
+        return hash(self.geom)  # Shapely `BaseGometry` is immutable.
 
     def __repr__(self) -> str:
         return f"<{repr(self.geom)}>"
@@ -149,13 +149,8 @@ class Geometry:
         return mapping(self.geom)
 
     @classmethod
-    def from_geo_json(cls, value: dict[str, Any] | BaseGeometry) -> "Geometry":
-        # If it's already a Shapely geometry, use it directly
-        if isinstance(
-            value, BaseGeometry
-        ):  # FIXME: For consistency, this probably should move to a separate `from_shapely()` method.
-            return cls(value)
-
+    def from_geo_json(cls, value: dict[str, Any]) -> "Geometry":
+        """Create a Geometry from a dict containing GeoJSON-compatible geometry."""
         if not isinstance(value, dict):
             raise TypeError(
                 f"value must be a dict; but {repr(value)} has type {type(value).__name__}"
