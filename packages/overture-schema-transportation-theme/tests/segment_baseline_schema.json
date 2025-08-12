@@ -696,13 +696,6 @@
               "type": "array",
               "uniqueItems": true
             },
-            "level": {
-              "description": "Z-order of the feature where 0 is visual level",
-              "maximum": 2147483647,
-              "minimum": -2147483648,
-              "title": "Level",
-              "type": "integer"
-            },
             "level_rules": {
               "description": "Defines the Z-order, i.e. stacking order, of the road segment.",
               "items": {
@@ -977,13 +970,6 @@
               },
               "title": "Destinations",
               "type": "array"
-            },
-            "level": {
-              "description": "Z-order of the feature where 0 is visual level",
-              "maximum": 2147483647,
-              "minimum": -2147483648,
-              "title": "Level",
-              "type": "integer"
             },
             "level_rules": {
               "description": "Defines the Z-order, i.e. stacking order, of the road segment.",
@@ -1641,13 +1627,6 @@
               "title": "Connectors",
               "type": "array",
               "uniqueItems": true
-            },
-            "level": {
-              "description": "Z-order of the feature where 0 is visual level",
-              "maximum": 2147483647,
-              "minimum": -2147483648,
-              "title": "Level",
-              "type": "integer"
             },
             "level_rules": {
               "description": "Defines the Z-order, i.e. stacking order, of the road segment.",
