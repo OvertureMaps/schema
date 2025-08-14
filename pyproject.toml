@@ -33,6 +33,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"**/tests/*.py" = ["ANN401"]
 
 [tool.mypy]
 python_version = "3.10"
