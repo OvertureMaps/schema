@@ -1,0 +1,19 @@
+---
+id: overture:transportation:segment:123
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  ext_expected_errors:
+    - "value must be one of 'motorway', 'primary', 'secondary'"
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: sidewalk
+  connectors: 
+  - connector_id: fooConnector
+    at: 0
+  - connector_id: barConnector
+    at: 1

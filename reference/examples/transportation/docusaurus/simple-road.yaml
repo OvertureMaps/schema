@@ -1,0 +1,24 @@
+---
+id: overture:transportation:example:simple-road
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-123.13538016118466, 49.28584368472093]
+    - [-123.13430200328841, 49.28656927229528]
+    - [-123.13325122717998, 49.28727252390803]
+properties:
+  theme: transportation
+  type: segment
+  version: 5
+  subtype: road
+  class: residential
+  connectors:
+    - connector_id: overture:transportation:example:via-turn-restriction-connector1
+      at: 0
+    - connector_id: overture:transportation:example:via-turn-restriction-connector2
+      at: 1
+  names:
+    primary: Nicola Street
+  road_surface:
+    - value: paved

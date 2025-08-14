@@ -1,0 +1,19 @@
+---
+id: overture:transportation:segment:1555
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 5
+  subtype: road
+  class: service
+  subclass_rules:
+    - value: alley
+      between: [0, 0.5]
+  access_restrictions:
+    - access_type: allowed
+      when:
+        using: [at_destination]

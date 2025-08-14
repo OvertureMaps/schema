@@ -1,0 +1,106 @@
+# overture-schema
+
+Overture Maps schema collection with implemented themes.
+
+This package provides testing infrastructure for Overture Maps Pydantic schemas. It includes a pytest-based test harness that validates schema models against curated examples and counterexamples.
+
+## Installation
+
+```bash
+pip install overture-schema
+```
+
+This will install the currently implemented theme packages:
+
+- `overture-schema-addresses-theme` - Address theme
+- `overture-schema-base-theme` - Base theme (infrastructure, land, water, bathymetry, land cover, land use)
+- `overture-schema-buildings-theme` - Buildings theme
+- `overture-schema-divisions-theme` - Divisions theme (political and administrative boundaries)
+- `overture-schema-places-theme` - Places theme
+- `overture-schema-transportation-theme` - Transportation theme (segments and connectors)
+
+## Usage
+
+This package serves as a test harness and validation framework. Import specific schemas from their
+respective theme packages:
+
+```python
+# Addresses theme
+from overture.schema.addresses import Address
+
+# Base theme
+from overture.schema.base import (
+    Bathymetry,
+    Infrastructure,
+    Land,
+    LandCover,
+    LandUse,
+    Water,
+)
+
+# Buildings theme
+from overture.schema.buildings import Building, BuildingPart
+
+# Divisions theme
+from overture.schema.divisions import Division, DivisionArea, DivisionBoundary
+
+# Places theme
+from overture.schema.places import Place
+
+# Transportation theme
+from overture.schema.transportation import Connector, Segment
+```
+
+TK
+
+```python
+from overture.schema import Types # returns a Union annotated for use by Pydantic as a discriminated union
+```
+
+### JSON Schema
+
+TK
+
+```python
+from overture.schema import Types, json_schema
+
+# TODO output JSON
+print(json_schema(Types))
+```
+
+### Utilities
+
+The package includes test utilities for:
+
+- Loading and parsing GeoJSON and YAML test files
+- Converting between GeoJSON and flat/tabular data formats
+- Deep comparison of validation results
+
+## Schema Validation
+
+All models are validated to test:
+
+- Geometry validation for GeoJSON-compatible structures
+- Theme and type consistency checking
+- Field-level constraints (country codes, language tags, etc.)
+- Cross-field validation rules
+- Source attribution validation
+
+## Extension
+
+TK using setuptools entry points
+
+## Testing
+
+This package includes test suites that validate schemas against curated examples and
+counterexamples. Tests ensure that:
+
+- Valid examples pass validation
+- Invalid counterexamples properly fail validation
+- Schemas work with both GeoJSON and flat/tabular data formats
+
+Run tests with:
+
+```bash
+uv run pytest
+```

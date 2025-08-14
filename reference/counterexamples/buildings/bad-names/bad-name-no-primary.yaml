@@ -1,0 +1,14 @@
+---
+id: overture:buildings:footprint:1234
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  ext_expected_errors: ["missing property 'primary'"]
+  theme: buildings
+  type: building
+  version: 1
+  names:
+    common:
+      en: Empire State Building

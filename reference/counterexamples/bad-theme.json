@@ -1,0 +1,11 @@
+{
+  "id": "badTheme",
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [0, 1]
+  },
+  "properties": {
+    "theme": "foo"
+  }
+}
