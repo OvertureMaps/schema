@@ -274,7 +274,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "A single building part.\n\nParts describe their shape and color and other properties. Each building part must\ncontain the building with which it is associated.",
+  "description": "A single building part.\n\nParts describe their shape and color and other properties. Each building part must\nrefer to the building to which it belongs.",
   "patternProperties": {
     "^ext_.*$": {
       "description": "Additional top-level properties must be prefixed with `ext_`."
