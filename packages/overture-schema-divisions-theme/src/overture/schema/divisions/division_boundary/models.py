@@ -9,6 +9,7 @@ from overture.schema.core import (
 )
 from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import Perspectives
+from overture.schema.core.ref import Reference, Relationship
 from overture.schema.core.types import (
     CountryCode,
     Id,
@@ -20,6 +21,7 @@ from overture.schema.core.validation import (
     not_required_if,
 )
 
+from ..division import Division
 from ..enums import PlaceType
 from .enums import BoundaryClass
 
@@ -69,7 +71,10 @@ can be used for data processing, reverse-geocoding, and similar purposes.""",
         ),
     ] = None
     division_ids: Annotated[
-        list[Id],
+        list[Annotated[
+            Id,
+            Reference(Relationship.BOUNDARY_OF, Division),
+        ]],
         Field(
             min_length=2,
             max_length=2,
