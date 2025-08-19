@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -13,23 +14,27 @@ from shapely.geometry import mapping, shape
 from shapely.geometry.base import BaseGeometry
 
 
-class GeometryType(Enum):
-    GEOMETRY_COLLECTION = 0, "GeometryCollection"
-    LINE_STRING = 1, "LineString"
-    POINT = 2, "Point"
-    POLYGON = 3, "Polygon"
-    MULTI_LINE_STRING = 4, "MultiLineString"
-    MULTI_POINT = 5, "MultiPoint"
-    MULTI_POLYGON = 6, "MultiPolygon"
+class GeometryType(str, Enum):
+    """
+    Vector geometry type.
+    """
 
-    def __init__(self, value: int, geo_json_type: str) -> None:
-        self._value = value
-        self._geo_json_type = geo_json_type
+    _geo_json_type: str
 
-    def __lt__(self, other: "GeometryType") -> bool:
-        if not isinstance(other, GeometryType):
-            return NotImplemented
-        return self._value < other._value
+    GEOMETRY_COLLECTION = "geometry_collection", "GeometryCollection", "A mixed type collection of geometries treated as a single geometry."
+    LINE_STRING = "line_string", "LineString", "A sequence of positions connected by straight line segments."
+    MULTI_LINE_STRING = "multi_line_string", "MultiLineString", "A collection of line strings treated as a single geometry."
+    MULTI_POINT = "multi_point", "MultiPoint", "A collection of points treated as a single geometry."
+    MULTI_POLYGON = "multi_polygon", "MultiPolygon", "A collection of polygons treated as a single geometry."
+    POINT = "point", "Point", "A single position defined by one coordinate tuple."
+    POLYGON = "polygon", "Polygon", "A planar surface bounded by one outer ring and zero or more inner rings (holes)."
+
+    def __new__(cls, value: str, geo_json_type: str, doc: str) -> "GeometryType":
+        obj = str.__new__(cls, value)
+        obj._value_ = value
+        obj._geo_json_type = geo_json_type
+        obj.__doc__ = doc
+        return obj
 
     @property
     def geo_json_type(self) -> str:
@@ -41,26 +46,42 @@ _GEOMETRY_GEO_JSON_TYPES = [item.geo_json_type for item in GeometryType]
 _GEOMETRY_TYPE_REVERSE_LOOKUP = {item.geo_json_type: item for item in GeometryType}
 
 
+@dataclass(frozen=True, slots=True)
 class GeometryTypeConstraint:
+    """
+    Limits the geometry types allowed on a `Geometry` field.
+
+    Parameters
+    ----------
+    *allowed_types: GeometryType
+        The geometry types that the constrained geometry is allowed to have. (May not be empty or
+        contain duplicates.)
+
+    Attributes
+    ----------
+    allowed_types: tuple[GeometryType, ...]
+        The geometry types that the constrained geometry is allowed to have, sorted in alphabetical
+        order.
+
+    Examples
+    --------
+    Limit allowed geometry of a feature type to line string and multi line string.
+
+    >>> from overture.schema.core.geometry import Geometry
+    >>> from overture.schema.core.models import Feature
+    >>> class MyFeature(Feature):
+    >>>     geometry: Annotated[Geometry, GeometryTypeConstraint("line_string", "multi_line_string")]
+    """
+
+    allowed_types: tuple[GeometryType, ...]
+
     def __init__(self, *allowed_types: GeometryType) -> None:
-        self.__allowed_types = self.__class__._validate_geometry_types(
-            list(allowed_types)
-        )
+        object.__setattr__(self, "allowed_types", GeometryTypeConstraint._validate_geometry_types(allowed_types))
 
-    @property
-    def allowed_types(self) -> tuple[GeometryType, ...]:
-        return self.__allowed_types
+    def _validate(self, value: "Geometry", info: ValidationInfo) -> "Geometry":
+        geom_type = value.geom_type
 
-    def validate(self, value: "Geometry", info: ValidationInfo) -> "Geometry":
-        try:
-            geometry_type: GeometryType = _GEOMETRY_TYPE_REVERSE_LOOKUP[
-                value.geom.geom_type
-            ]
-        except KeyError as e:
-            raise RuntimeError(
-                f"inter `geom` has unknown type: {repr(value.geom.geom_type)}"
-            ) from e
-        if geometry_type not in self.allowed_types:
+        if geom_type not in self.allowed_types:
             context = info.context or {}
             loc = context.get("loc_prefix", ()) + ("value",)
             raise ValidationError.from_exception_data(
@@ -71,7 +92,7 @@ class GeometryTypeConstraint:
                         loc=loc,
                         input=value,
                         ctx={
-                            "error": f"geometry type not allowed: {repr(geometry_type)} (allowed values: {repr(self.allowed_types)})"
+                            "error": f"geometry type not allowed: {repr(geom_type)} (allowed values: {repr(self.allowed_types)})"
                         },
                     )
                 ],
@@ -80,7 +101,7 @@ class GeometryTypeConstraint:
 
     @classmethod
     def _validate_geometry_types(
-        cls, a: list[GeometryType]
+        cls, a: tuple[GeometryType, ...]
     ) -> tuple[GeometryType, ...]:
         if not a:
             raise ValueError(
@@ -106,7 +127,7 @@ class GeometryTypeConstraint:
                 f"{GeometryTypeConstraint.__name__} can only be applied to {Geometry.__name__}; but it was applied to {source.__name__}"
             )
         schema = handler(source)
-        return core_schema.with_info_after_validator_function(self.validate, schema)
+        return core_schema.with_info_after_validator_function(self._validate, schema)
 
     def __get_pydantic_json_schema__(
         self, source: type[Any], handler: GetJsonSchemaHandler
@@ -124,10 +145,50 @@ _ALL_GEOMETRY_ALLOWED = GeometryTypeConstraint(*GeometryType)
 
 
 class Geometry:
+    """
+    Immutable vector geometry primitive.
+
+    This type is a geometric primitive with representations that can differ significantly between
+    different data formats. Consequently, does not derive from the Pydantic `BaseModel` although it
+    can participate in a `BaseModel` as a field.
+
+    Parameters
+    ----------
     geom: BaseGeometry
+        The wrapped Shapely geometry.
+
+    Examples
+    --------
+    Create a new geometry value by wrapping a Shapely geometry:
+
+    >>> from shapely.geometry import Point
+    >>> geom = Geometry(Point(1, 2))
+    >>> assert geom.wkt == "POINT (1 2)"
+
+    Create a new geometry value from a GeoJSON dict:
+
+    >>> geom = Geometry.from_geo_json({ "type": "Point", "coordinates": [1, 2]})
+    >>> assert geom.wkt == "POINT (1 2)"
+
+    Create a new geometry value from its well-known text (WKT) representation:
+
+    >>> geom = Geometry.from_wkt("POINT (1 2)")
+    >>> assert geom.wkt == "POINT (1 2)"
+    """
+
+    __slots__ = ('_geom',)
+
+    _geom: BaseGeometry
 
     def __init__(self, geom: BaseGeometry) -> None:
-        self.geom = geom
+        if not isinstance(geom, BaseGeometry):
+            raise TypeError(f"`geom` must be a `BaseGeometry` (Shapely) but {geom} is a `{type(geom).__name__}`")
+        if geom.is_empty:
+            raise ValueError(f"`geom` must not be empty, but {geom} is empty")
+        object.__setattr__(self, '_geom', geom)
+
+    def __setattr__(self, _: str, __: object) -> None:
+        raise AttributeError(f"`{self.__class__.__name__} is immutable")
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Geometry) and self.geom == other.geom
@@ -142,10 +203,33 @@ class Geometry:
         return self.wkt
 
     @property
+    def geom(self) -> BaseGeometry:
+        """
+        BaseGeometry: The wrapped Shapely geometry.
+        """
+        return self._geom
+
+    @property
+    def geom_type(self) -> GeometryType:
+        """
+        GeometryType: The geometry type.
+        """
+        try:
+            return _GEOMETRY_TYPE_REVERSE_LOOKUP[self.geom.geom_type]
+        except KeyError as e:
+            raise RuntimeError(
+                f"internal `geom` has unknown type: {repr(self.geom.geom_type)}"
+            ) from e
+
+    @property
     def wkt(self) -> str:
+        """
+        str: Well-known text (WKT) representation of the geometry.
+        """
         return self.geom.wkt
 
     def to_geo_json(self) -> dict[str, Any]:
+        """Get a GeoJSON-compatible representation of the geometry."""
         return mapping(self.geom)
 
     @classmethod
@@ -260,6 +344,10 @@ class Geometry:
 # JSON Schema primitives for GeoJSON geometry
 ########################################################################
 
+# This is the `bbox` schema for a GeoJSON *geometry* object, not for a
+# *feature*. We include it to maximize GeoJSON interop, but we ignore it
+# and do not support roundtripping it from GeoJSON into the Overture
+# Pydantic model and back to GeoJSON.
 _BBOX_JSON_SCHEMA = {
     "type": "array",
     "minItems": 4,
@@ -271,6 +359,7 @@ _BBOX_JSON_SCHEMA = {
 _POINT_COORDINATES_JSON_SCHEMA = {
     "type": "array",
     "minItems": 2,
+    "maxItems": 3, # Shapely only supports up to 3D
     "items": {
         "type": "number",
     },
