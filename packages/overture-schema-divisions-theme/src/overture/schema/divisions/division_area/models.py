@@ -12,11 +12,13 @@ from overture.schema.core.models import (
     Named,
     Names,
 )
+from overture.schema.core.ref import Reference, Relationship
 from overture.schema.core.types import CountryCode, Id, RegionCode
 from overture.schema.core.validation import (
     exactly_one_of,
 )
 
+from ..division.models import Division
 from ..enums import PlaceType
 from .enums import AreaClass
 
@@ -70,6 +72,7 @@ class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]], Name
         Field(
             description="Division ID of the division this area belongs to.",
         ),
+        Reference(Relationship.BELONGS_TO, Division)
     ]
     country: Annotated[
         CountryCode,
