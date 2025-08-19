@@ -333,6 +333,7 @@
                 "items": {
                   "type": "number"
                 },
+                "maxItems": 3,
                 "minItems": 2,
                 "type": "array"
               },
@@ -361,8 +362,49 @@
             },
             "coordinates": {
               "items": {
+                "items": {
+                  "items": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 3,
+                    "minItems": 2,
+                    "type": "array"
+                  },
+                  "minItems": 4,
+                  "type": "array"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "type": {
+              "const": "MultiPolygon",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "bbox": {
+              "items": {
                 "type": "number"
               },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 3,
               "minItems": 2,
               "type": "array"
             },
@@ -392,6 +434,7 @@
                   "items": {
                     "type": "number"
                   },
+                  "maxItems": 3,
                   "minItems": 2,
                   "type": "array"
                 },
@@ -403,45 +446,6 @@
             },
             "type": {
               "const": "Polygon",
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "coordinates"
-          ],
-          "type": "object"
-        },
-        {
-          "properties": {
-            "bbox": {
-              "items": {
-                "type": "number"
-              },
-              "minItems": 4,
-              "type": "array"
-            },
-            "coordinates": {
-              "items": {
-                "items": {
-                  "items": {
-                    "items": {
-                      "type": "number"
-                    },
-                    "minItems": 2,
-                    "type": "array"
-                  },
-                  "minItems": 4,
-                  "type": "array"
-                },
-                "minItems": 1,
-                "type": "array"
-              },
-              "minItems": 1,
-              "type": "array"
-            },
-            "type": {
-              "const": "MultiPolygon",
               "type": "string"
             }
           },

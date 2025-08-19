@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from typing import Any
 
 import pytest
+from deepdiff import DeepDiff
 from overture.schema.core.bbox import BBox
 from overture.schema.core.geometry import Geometry
 from overture.schema.core.models import Feature
@@ -19,593 +20,528 @@ def prune_dict(data: dict[str, Any] | tuple | list, remove_list: tuple[str, ...]
         for item in data:
             prune_dict(item, remove_list)
 
+
 def prune_json_schema(data: dict[str, Any]) -> dict[str, Any]:
     prune_dict(data, ('title', 'description'))
     return data
+
 
 def test_feature_json_schema() -> None:
     actual = prune_json_schema(Feature.model_json_schema())
 
     expect = {
-    '$defs': {
-        'SourcePropertyItem': {
-            'additionalProperties': False,
-            'properties': {
-                'between': {
-                    'anyOf': [
-                        {
+        '$defs': {
+            'SourcePropertyItem': {
+                'additionalProperties': False,
+                'properties': {
+                    'between': {
+                        'anyOf': [{
                             'items': {
                                 'maximum': 1.0,
                                 'minimum': 0.0,
-                                'type': 'number',
+                                'type': 'number'
                             },
                             'maxItems': 2,
                             'minItems': 2,
-                            'type': 'array',
-                        },
-                        {
-                            'type': 'null',
-                        },
-                    ],
-                    'default': None,
-                },
-                'confidence': {
-                    'anyOf': [
-                        {
-                            'maximum': 1.0,
-                            'minimum': 0.0,
-                            'type': 'number',
-                        },
-                        {
-                            'type': 'null',
-                        },
-                    ],
-                    'default': None,
-                },
-                'dataset': {
-                    'type': 'string',
-                },
-                'property': {
-                    'type': 'string',
-                },
-                'record_id': {
-                    'anyOf': [
-                        {
-                            'type': 'string',
-                        },
-                        {
-                            'type': 'null',
-                        },
-                    ],
-                    'default': None,
-                },
-                'update_time': {
-                    'anyOf': [
-                        {
+                            'type': 'array'
+                        }, {
+                            'type': 'null'
+                        }],
+                        'default': None,
+                    },
+                    'property': {
+                        'type': 'string'
+                    },
+                    'dataset': {
+                        'type': 'string'
+                    },
+                    'record_id': {
+                        'anyOf': [{
+                            'type': 'string'
+                        }, {
+                            'type': 'null'
+                        }],
+                        'default': None,
+                    },
+                    'update_time': {
+                        'anyOf': [{
                             'format': 'date-time',
                             'pattern': '^([1-9]\\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d|60)(\\.\\d{1,3})?(Z|[-+]([01]\\d|2[0-3]):[0-5]\\d)$',
-                            'type': 'string',
-                        },
-                        {
-                            'type': 'null',
-                        },
-                    ],
-                    'default': None,
-                },
-            },
-            'required': [
-                'property',
-                'dataset',
-            ],
-            'type': 'object',
-        },
-    },
-    'additionalProperties': False,
-    'patternProperties': {
-        '^ext_.*$': {},
-    },
-    'properties': {
-        'bbox': {
-            'anyOf': [
-                {
-                    'items': {
-                        'type': 'number',
+                            'type': 'string'
+                        }, {
+                            'type': 'null'
+                        }],
+                        'default': None,
                     },
-                    'minItems': 4,
-                    'maxItems': 4,
-                    'type': 'array',
+                    'confidence': {
+                        'anyOf': [{
+                            'maximum': 1.0,
+                            'minimum': 0.0,
+                            'type': 'number'
+                        }, {
+                            'type': 'null'
+                        }],
+                        'default': None,
+                    }
                 },
-                {
-                    'type': 'null',
-                },
-            ],
-            'default': None,
+                'required': ['property', 'dataset'],
+                'type': 'object'
+            }
         },
-        'geometry': {
-            'oneOf': [
-                {
+        'additionalProperties': False,
+        'patternProperties': {
+            '^ext_.*$': {
+            }
+        },
+        'properties': {
+            'id': {
+                'minLength': 1,
+                'pattern': '^\\S+$',
+                'type': 'string'
+            },
+            'geometry': {
+                'oneOf': [{
                     'properties': {
-                        'bbox': {
-                            'items': {
-                                'type': 'number',
-                            },
-                            'minItems': 4,
-                            'type': 'array',
-                        },
-                        'geometries': {
-                            'oneOf': [
-                                {
-                                    'properties': {
-                                        'bbox': {
-                                            'items': {
-                                                'type': 'number',
-                                            },
-                                            'minItems': 4,
-                                            'type': 'array',
-                                        },
-                                        'coordinates': {
-                                            'items': {
-                                                'items': {
-                                                    'type': 'number',
-                                                },
-                                                'minItems': 2,
-                                                'type': 'array',
-                                            },
-                                            'minItems': 2,
-                                            'type': 'array',
-                                        },
-                                        'type': {
-                                            'const': 'LineString',
-                                            'type': 'string',
-                                        },
-                                    },
-                                    'required': [
-                                        'type',
-                                        'coordinates',
-                                    ],
-                                    'type': 'object',
-                                },
-                                {
-                                    'properties': {
-                                        'bbox': {
-                                            'items': {
-                                                'type': 'number',
-                                            },
-                                            'minItems': 4,
-                                            'type': 'array',
-                                        },
-                                        'coordinates': {
-                                            'items': {
-                                                'type': 'number',
-                                            },
-                                            'minItems': 2,
-                                            'type': 'array',
-                                        },
-                                        'type': {
-                                            'const': 'Point',
-                                            'type': 'string',
-                                        },
-                                    },
-                                    'required': [
-                                        'type',
-                                        'coordinates',
-                                    ],
-                                    'type': 'object',
-                                },
-                                {
-                                    'properties': {
-                                        'bbox': {
-                                            'items': {
-                                                'type': 'number',
-                                            },
-                                            'minItems': 4,
-                                            'type': 'array',
-                                        },
-                                        'coordinates': {
-                                            'items': {
-                                                'items': {
-                                                    'items': {
-                                                        'type': 'number',
-                                                    },
-                                                    'minItems': 2,
-                                                    'type': 'array',
-                                                },
-                                                'minItems': 4,
-                                                'type': 'array',
-                                            },
-                                            'minItems': 1,
-                                            'type': 'array',
-                                        },
-                                        'type': {
-                                            'const': 'Polygon',
-                                            'type': 'string',
-                                        },
-                                    },
-                                    'required': [
-                                        'type',
-                                        'coordinates',
-                                    ],
-                                    'type': 'object',
-                                },
-                                {
-                                    'properties': {
-                                        'bbox': {
-                                            'items': {
-                                                'type': 'number',
-                                            },
-                                            'minItems': 4,
-                                            'type': 'array',
-                                        },
-                                        'coordinates': {
-                                            'items': {
-                                                'items': {
-                                                    'items': {
-                                                        'type': 'number',
-                                                    },
-                                                    'minItems': 2,
-                                                    'type': 'array',
-                                                },
-                                                'minItems': 2,
-                                                'type': 'array',
-                                            },
-                                            'minItems': 1,
-                                            'type': 'array',
-                                        },
-                                        'type': {
-                                            'const': 'MultiLineString',
-                                            'type': 'string',
-                                        },
-                                    },
-                                    'required': [
-                                        'type',
-                                        'coordinates',
-                                    ],
-                                    'type': 'object',
-                                },
-                                {
-                                    'properties': {
-                                        'bbox': {
-                                            'items': {
-                                                'type': 'number',
-                                            },
-                                            'minItems': 4,
-                                            'type': 'array',
-                                        },
-                                        'coordinates': {
-                                            'items': {
-                                                'items': {
-                                                    'type': 'number',
-                                                },
-                                                'minItems': 2,
-                                                'type': 'array',
-                                            },
-                                            'minItems': 1,
-                                            'type': 'array',
-                                        },
-                                        'type': {
-                                            'const': 'MultiPoint',
-                                            'type': 'string',
-                                        },
-                                    },
-                                    'required': [
-                                        'type',
-                                        'coordinates',
-                                    ],
-                                    'type': 'object',
-                                },
-                                {
-                                    'properties': {
-                                        'bbox': {
-                                            'items': {
-                                                'type': 'number',
-                                            },
-                                            'minItems': 4,
-                                            'type': 'array',
-                                        },
-                                        'coordinates': {
-                                            'items': {
-                                                'items': {
-                                                    'items': {
-                                                        'items': {
-                                                            'type': 'number',
-                                                        },
-                                                        'minItems': 2,
-                                                        'type': 'array',
-                                                    },
-                                                    'minItems': 4,
-                                                    'type': 'array',
-                                                },
-                                                'minItems': 1,
-                                                'type': 'array',
-                                            },
-                                            'minItems': 1,
-                                            'type': 'array',
-                                        },
-                                        'type': {
-                                            'const': 'MultiPolygon',
-                                            'type': 'string',
-                                        },
-                                    },
-                                    'required': [
-                                        'type',
-                                        'coordinates',
-                                    ],
-                                    'type': 'object',
-                                },
-                            ],
-                        },
                         'type': {
                             'const': 'GeometryCollection',
-                            'type': 'string',
+                            'type': 'string'
                         },
-                    },
-                    'required': [
-                        'type',
-                        'geometries',
-                    ],
-                    'type': 'object',
-                },
-                {
-                    'properties': {
                         'bbox': {
                             'items': {
-                                'type': 'number',
+                                'type': 'number'
                             },
                             'minItems': 4,
-                            'type': 'array',
+                            'type': 'array'
                         },
-                        'coordinates': {
-                            'items': {
-                                'items': {
-                                    'type': 'number',
+                        'geometries': {
+                            'oneOf': [{
+                                'properties': {
+                                    'type': {
+                                        'const': 'LineString',
+                                        'type': 'string'
+                                    },
+                                    'bbox': {
+                                        'items': {
+                                            'type': 'number'
+                                        },
+                                        'minItems': 4,
+                                        'type': 'array'
+                                    },
+                                    'coordinates': {
+                                        'items': {
+                                            'items': {
+                                                'type': 'number'
+                                            },
+                                            'maxItems': 3,
+                                            'minItems': 2,
+                                            'type': 'array'
+                                        },
+                                        'minItems': 2,
+                                        'type': 'array'
+                                    }
                                 },
-                                'minItems': 2,
-                                'type': 'array',
-                            },
-                            'minItems': 2,
-                            'type': 'array',
-                        },
+                                'required': ['type', 'coordinates'],
+                                'type': 'object'
+                            }, {
+                                'properties': {
+                                    'type': {
+                                        'const': 'Point',
+                                        'type': 'string'
+                                    },
+                                    'bbox': {
+                                        'items': {
+                                            'type': 'number'
+                                        },
+                                        'minItems': 4,
+                                        'type': 'array'
+                                    },
+                                    'coordinates': {
+                                        'items': {
+                                            'type': 'number'
+                                        },
+                                        'maxItems': 3,
+                                        'minItems': 2,
+                                        'type': 'array'
+                                    }
+                                },
+                                'required': ['type', 'coordinates'],
+                                'type': 'object'
+                            }, {
+                                'properties': {
+                                    'type': {
+                                        'const': 'Polygon',
+                                        'type': 'string'
+                                    },
+                                    'bbox': {
+                                        'items': {
+                                            'type': 'number'
+                                        },
+                                        'minItems': 4,
+                                        'type': 'array'
+                                    },
+                                    'coordinates': {
+                                        'items': {
+                                            'items': {
+                                                'items': {
+                                                    'type': 'number'
+                                                },
+                                                'maxItems': 3,
+                                                'minItems': 2,
+                                                'type': 'array'
+                                            },
+                                            'minItems': 4,
+                                            'type': 'array'
+                                        },
+                                        'minItems': 1,
+                                        'type': 'array'
+                                    }
+                                },
+                                'required': ['type', 'coordinates'],
+                                'type': 'object'
+                            }, {
+                                'properties': {
+                                    'type': {
+                                        'const': 'MultiLineString',
+                                        'type': 'string'
+                                    },
+                                    'bbox': {
+                                        'items': {
+                                            'type': 'number'
+                                        },
+                                        'minItems': 4,
+                                        'type': 'array'
+                                    },
+                                    'coordinates': {
+                                        'items': {
+                                            'items': {
+                                                'items': {
+                                                    'type': 'number'
+                                                },
+                                                'maxItems': 3,
+                                                'minItems': 2,
+                                                'type': 'array'
+                                            },
+                                            'minItems': 2,
+                                            'type': 'array'
+                                        },
+                                        'minItems': 1,
+                                        'type': 'array'
+                                    }
+                                },
+                                'required': ['type', 'coordinates'],
+                                'type': 'object'
+                            }, {
+                                'properties': {
+                                    'type': {
+                                        'const': 'MultiPoint',
+                                        'type': 'string'
+                                    },
+                                    'bbox': {
+                                        'items': {
+                                            'type': 'number'
+                                        },
+                                        'minItems': 4,
+                                        'type': 'array'
+                                    },
+                                    'coordinates': {
+                                        'items': {
+                                            'items': {
+                                                'type': 'number'
+                                            },
+                                            'maxItems': 3,
+                                            'minItems': 2,
+                                            'type': 'array'
+                                        },
+                                        'minItems': 1,
+                                        'type': 'array'
+                                    }
+                                },
+                                'required': ['type', 'coordinates'],
+                                'type': 'object'
+                            }, {
+                                'properties': {
+                                    'type': {
+                                        'const': 'MultiPolygon',
+                                        'type': 'string'
+                                    },
+                                    'bbox': {
+                                        'items': {
+                                            'type': 'number'
+                                        },
+                                        'minItems': 4,
+                                        'type': 'array'
+                                    },
+                                    'coordinates': {
+                                        'items': {
+                                            'items': {
+                                                'items': {
+                                                    'items': {
+                                                        'type': 'number'
+                                                    },
+                                                    'maxItems': 3,
+                                                    'minItems': 2,
+                                                    'type': 'array'
+                                                },
+                                                'minItems': 4,
+                                                'type': 'array'
+                                            },
+                                            'minItems': 1,
+                                            'type': 'array'
+                                        },
+                                        'minItems': 1,
+                                        'type': 'array'
+                                    }
+                                },
+                                'required': ['type', 'coordinates'],
+                                'type': 'object'
+                            }]
+                        }
+                    },
+                    'required': ['type', 'geometries'],
+                    'type': 'object'
+                }, {
+                    'properties': {
                         'type': {
                             'const': 'LineString',
-                            'type': 'string',
+                            'type': 'string'
                         },
-                    },
-                    'required': [
-                        'type',
-                        'coordinates',
-                    ],
-                    'type': 'object',
-                },
-                {
-                    'properties': {
                         'bbox': {
                             'items': {
-                                'type': 'number',
+                                'type': 'number'
                             },
                             'minItems': 4,
-                            'type': 'array',
+                            'type': 'array'
                         },
                         'coordinates': {
                             'items': {
-                                'type': 'number',
+                                'items': {
+                                    'type': 'number'
+                                },
+                                'maxItems': 3,
+                                'minItems': 2,
+                                'type': 'array'
                             },
                             'minItems': 2,
-                            'type': 'array',
-                        },
-                        'type': {
-                            'const': 'Point',
-                            'type': 'string',
-                        },
+                            'type': 'array'
+                        }
                     },
-                    'required': [
-                        'type',
-                        'coordinates',
-                    ],
-                    'type': 'object',
-                },
-                {
+                    'required': ['type', 'coordinates'],
+                    'type': 'object'
+                }, {
                     'properties': {
-                        'bbox': {
-                            'items': {
-                                'type': 'number',
-                            },
-                            'minItems': 4,
-                            'type': 'array',
-                        },
-                        'coordinates': {
-                            'items': {
-                                'items': {
-                                    'items': {
-                                        'type': 'number',
-                                    },
-                                    'minItems': 2,
-                                    'type': 'array',
-                                },
-                                'minItems': 4,
-                                'type': 'array',
-                            },
-                            'minItems': 1,
-                            'type': 'array',
-                        },
-                        'type': {
-                            'const': 'Polygon',
-                            'type': 'string',
-                        },
-                    },
-                    'required': [
-                        'type',
-                        'coordinates',
-                    ],
-                    'type': 'object',
-                },
-                {
-                    'properties': {
-                        'bbox': {
-                            'items': {
-                                'type': 'number',
-                            },
-                            'minItems': 4,
-                            'type': 'array',
-                        },
-                        'coordinates': {
-                            'items': {
-                                'items': {
-                                    'items': {
-                                        'type': 'number',
-                                    },
-                                    'minItems': 2,
-                                    'type': 'array',
-                                },
-                                'minItems': 2,
-                                'type': 'array',
-                            },
-                            'minItems': 1,
-                            'type': 'array',
-                        },
                         'type': {
                             'const': 'MultiLineString',
-                            'type': 'string',
+                            'type': 'string'
                         },
-                    },
-                    'required': [
-                        'type',
-                        'coordinates',
-                    ],
-                    'type': 'object',
-                },
-                {
-                    'properties': {
                         'bbox': {
                             'items': {
-                                'type': 'number',
+                                'type': 'number'
                             },
                             'minItems': 4,
-                            'type': 'array',
+                            'type': 'array'
                         },
                         'coordinates': {
                             'items': {
                                 'items': {
-                                    'type': 'number',
+                                    'items': {
+                                        'type': 'number'
+                                    },
+                                    'maxItems': 3,
+                                    'minItems': 2,
+                                    'type': 'array'
                                 },
                                 'minItems': 2,
-                                'type': 'array',
+                                'type': 'array'
                             },
                             'minItems': 1,
-                            'type': 'array',
-                        },
+                            'type': 'array'
+                        }
+                    },
+                    'required': ['type', 'coordinates'],
+                    'type': 'object'
+                }, {
+                    'properties': {
                         'type': {
                             'const': 'MultiPoint',
-                            'type': 'string',
+                            'type': 'string'
                         },
-                    },
-                    'required': [
-                        'type',
-                        'coordinates',
-                    ],
-                    'type': 'object',
-                },
-                {
-                    'properties': {
                         'bbox': {
                             'items': {
-                                'type': 'number',
+                                'type': 'number'
                             },
                             'minItems': 4,
-                            'type': 'array',
+                            'type': 'array'
+                        },
+                        'coordinates': {
+                            'items': {
+                                'items': {
+                                    'type': 'number'
+                                },
+                                'maxItems': 3,
+                                'minItems': 2,
+                                'type': 'array'
+                            },
+                            'minItems': 1,
+                            'type': 'array'
+                        }
+                    },
+                    'required': ['type', 'coordinates'],
+                    'type': 'object'
+                }, {
+                    'properties': {
+                        'type': {
+                            'const': 'MultiPolygon',
+                            'type': 'string'
+                        },
+                        'bbox': {
+                            'items': {
+                                'type': 'number'
+                            },
+                            'minItems': 4,
+                            'type': 'array'
                         },
                         'coordinates': {
                             'items': {
                                 'items': {
                                     'items': {
                                         'items': {
-                                            'type': 'number',
+                                            'type': 'number'
                                         },
+                                        'maxItems': 3,
                                         'minItems': 2,
-                                        'type': 'array',
+                                        'type': 'array'
                                     },
                                     'minItems': 4,
-                                    'type': 'array',
+                                    'type': 'array'
                                 },
                                 'minItems': 1,
-                                'type': 'array',
+                                'type': 'array'
                             },
                             'minItems': 1,
-                            'type': 'array',
-                        },
-                        'type': {
-                            'const': 'MultiPolygon',
-                            'type': 'string',
-                        },
+                            'type': 'array'
+                        }
                     },
-                    'required': [
-                        'type',
-                        'coordinates',
-                    ],
-                    'type': 'object',
-                },
-            ],
-        },
-        'id': {
-            'minLength': 1,
-            'pattern': '^\\S+$',
-            'type': 'string',
-        },
-        'properties': {
-            'additionalProperties': False,
-            'patternProperties': {
-                '^ext_.*$': {},
+                    'required': ['type', 'coordinates'],
+                    'type': 'object'
+                }, {
+                    'properties': {
+                        'type': {
+                            'const': 'Point',
+                            'type': 'string'
+                        },
+                        'bbox': {
+                            'items': {
+                                'type': 'number'
+                            },
+                            'minItems': 4,
+                            'type': 'array'
+                        },
+                        'coordinates': {
+                            'items': {
+                                'type': 'number'
+                            },
+                            'maxItems': 3,
+                            'minItems': 2,
+                            'type': 'array'
+                        }
+                    },
+                    'required': ['type', 'coordinates'],
+                    'type': 'object'
+                }, {
+                    'properties': {
+                        'type': {
+                            'const': 'Polygon',
+                            'type': 'string'
+                        },
+                        'bbox': {
+                            'items': {
+                                'type': 'number'
+                            },
+                            'minItems': 4,
+                            'type': 'array'
+                        },
+                        'coordinates': {
+                            'items': {
+                                'items': {
+                                    'items': {
+                                        'type': 'number'
+                                    },
+                                    'maxItems': 3,
+                                    'minItems': 2,
+                                    'type': 'array'
+                                },
+                                'minItems': 4,
+                                'type': 'array'
+                            },
+                            'minItems': 1,
+                            'type': 'array'
+                        }
+                    },
+                    'required': ['type', 'coordinates'],
+                    'type': 'object'
+                }],
+            },
+            'bbox': {
+                'anyOf': [{
+                    'items': {
+                        'type': 'number'
+                    },
+                    'maxItems': 4,
+                    'minItems': 4,
+                    'type': 'array'
+                }, {
+                    'type': 'null'
+                }],
+                'default': None,
             },
             'properties': {
-                'sources': {
-                    'anyOf': [
-                        {
+                'type': 'object',
+                'properties': {
+                    'theme': {
+                        'type': 'string'
+                    },
+                    'type': {
+                        'type': 'string'
+                    },
+                    'version': {
+                        'minimum': 0,
+                        'type': 'integer'
+                    },
+                    'sources': {
+                        'anyOf': [{
                             'items': {
-                                '$ref': '#/$defs/SourcePropertyItem',
+                                '$ref': '#/$defs/SourcePropertyItem'
                             },
                             'minItems': 1,
                             'type': 'array',
-                            'uniqueItems': True,
-                        },
-                        {
-                            'type': 'null',
-                        },
-                    ],
-                    'default': None,
+                            'uniqueItems': True
+                        }, {
+                            'type': 'null'
+                        }],
+                        'default': None,
+                    }
                 },
-                'theme': {
-                    'type': 'string',
+                'unevaluatedProperties': False,
+                'required': ['theme', 'type', 'version'],
+                'patternProperties': {
+                    '^ext_.*$': {
+                    }
                 },
-                'type': {
-                    'type': 'string',
-                },
-                'version': {
-                    'minimum': 0,
-                    'type': 'integer',
-                },
+                'additionalProperties': False
             },
-            'required': [
-                'theme',
-                'type',
-                'version',
-            ],
-            'type': 'object',
-            'unevaluatedProperties': False,
+            'type': {
+                'const': 'Feature',
+                'type': 'string'
+            }
         },
-        'type': {
-            'const': 'Feature',
-            'type': 'string',
-        },
-    },
-    'required': [
-        'id',
-        'geometry',
-        'properties',
-        'type',
-    ],
-    'type': 'object',
-}
+        'required': ['id', 'geometry', 'properties', 'type'],
+        'type': 'object',
+    }
 
-    assert actual == expect
+
+    diff = DeepDiff(actual, expect, ignore_order=True)
+
+    assert diff == {}
 
 
 @pytest.mark.parametrize("feature, expect", [
