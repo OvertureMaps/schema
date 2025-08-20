@@ -1,0 +1,12 @@
+---
+id: timestamp-utc
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  categories:
+    primary: some_category
+  theme: places
+  type: place
+  version: 1

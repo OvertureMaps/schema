@@ -1,0 +1,20 @@
+id: overture:transportation:segment:counterexample:access-unsupported-properties
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[-1, -1], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: tertiary
+  version: 1
+  access_restrictions:
+    - foo: bar
+    - access_type: denied
+      when:
+        baz: qux
+  ext_expected_errors:
+    - "missing property 'access_type'"
+    - "additional properties 'foo' not allowed"
+    - "additional properties 'baz' not allowed"
