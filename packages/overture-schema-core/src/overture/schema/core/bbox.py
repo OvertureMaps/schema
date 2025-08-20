@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Any
 
 from pydantic import (
@@ -10,10 +9,13 @@ from pydantic import (
 from pydantic_core import InitErrorDetails, core_schema
 
 
-@dataclass(order=True, frozen=True, slots=True)
 class BBox:
     """
-    Two-dimensional bounding box.
+    Immutable 2D bounding box primitive.
+
+    This type is a geometric primitive with representations that can differ significantly between
+    different data formats. Consequently, does not derive from the Pydantic `BaseModel` although it
+    can participate in a `BaseModel` as a field.
 
     Parameters
     ----------
@@ -25,19 +27,6 @@ class BBox:
         Maximum X-coordinate
     ymax : float | int
         Maximum Y-coordinate
-
-
-    Attributes
-    ----------
-    xmin : float | int
-        Minimum X-coordinate
-    ymin : float | int
-        Minimum Y-coordiate
-    xmax : float | int
-        Maximum X-coordinate
-    ymax : float | int
-        Maximum Y-coordinate
-
 
     Examples
     --------
@@ -61,20 +50,73 @@ class BBox:
     BBox(xmin=1, ymin=2, xmax=3, ymax=4)
     """
 
-    xmin: float | int
-    ymin: float | int
-    xmax: float | int
-    ymax: float | int
+    __slots__ = ('_xmin', '_ymin', '_xmax', '_ymax')
 
-    def __post_init__(self) -> None:
-        if not isinstance(self.xmin, float | int):
-            raise TypeError(f"`xmin` must be a `float` or `int`; but {repr(self.xmin)} is a `{type(self.xmin).__name__}`")
-        elif not isinstance(self.ymin, float | int):
-            raise TypeError(f"`ymin` must be a `float` or `int`; but {repr(self.ymin)} is a `{type(self.ymin).__name__}`")
-        elif not isinstance(self.xmax, float | int):
-            raise TypeError(f"`xmax` must be a `float` or `int`; but {repr(self.xmax)} is a `{type(self.xmax).__name__}`")
-        elif not isinstance(self.ymax, float | int):
-            raise TypeError(f"`ymax` must be a `float` or `int`; but {repr(self.ymax)} is a `{type(self.ymax).__name__}`")
+    _xmin: float | int
+    _ymin: float | int
+    _xmax: float | int
+    _ymax: float | int
+
+    def __init__(self, xmin: float | int, ymin: float | int, xmax: float | int, ymax: float | int) -> None:
+        if not isinstance(xmin, float | int):
+            raise TypeError(f"`xmin` must be a `float` or `int`; but {repr(xmin)} is a `{type(xmin).__name__}`")
+        elif not isinstance(ymin, float | int):
+            raise TypeError(f"`ymin` must be a `float` or `int`; but {repr(ymin)} is a `{type(ymin).__name__}`")
+        elif not isinstance(xmax, float | int):
+            raise TypeError(f"`xmax` must be a `float` or `int`; but {repr(xmax)} is a `{type(xmax).__name__}`")
+        elif not isinstance(ymax, float | int):
+            raise TypeError(f"`ymax` must be a `float` or `int`; but {repr(ymax)} is a `{type(ymax).__name__}`")
+        object.__setattr__(self, '_xmin', xmin)
+        object.__setattr__(self, '_ymin', ymin)
+        object.__setattr__(self, '_xmax', xmax)
+        object.__setattr__(self, '_ymax', ymax)
+
+    def __setattr__(self, _: str, __: object) -> None:
+        raise AttributeError(f"`{self.__class__.__name__} is immutable")
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, BBox) and \
+            self.xmin == other.xmin and \
+            self.ymin == other.ymin and \
+            self.xmax == other.xmax and \
+            self.ymax == other.ymax
+
+    def __hash__(self) -> int:
+        return hash((self.xmin, self.ymin, self.xmax, self.ymax))
+
+    def __repr__(self) -> str:
+        return f"BBox({self.xmin}, {self.ymin}, {self.xmax}, {self.ymax})"
+
+    def __str__(self) -> str:
+        return f"({self.xmin}, {self.ymin}, {self.xmax}, {self.ymax})"
+
+    @property
+    def xmin(self) -> float | int:
+        """
+        float | int: Minimum X-coordinate
+        """
+        return self._xmin
+
+    @property
+    def ymin(self) -> float | int:
+        """
+        float | int: Minimum Y-coordinate
+        """
+        return self._ymin
+
+    @property
+    def xmax(self) -> float | int:
+        """
+        float | int: Maximum X-coordinate
+        """
+        return self._xmax
+
+    @property
+    def ymax(self) -> float | int:
+        """
+        float | int: Maximum Y-coordinate
+        """
+        return self._ymax
 
     def to_geo_json(self) -> tuple[float | int, ...]:
         """

@@ -35,6 +35,71 @@ def test_bbox_construct_keyword() -> None:
     assert bbox.ymax == 4
 
 
+def test_bbox_immutable() -> None:
+    bbox = BBox(1, 2, 3, 4)
+
+    with pytest.raises(AttributeError):
+        bbox.xmin = -1 # type: ignore[misc]
+
+    with pytest.raises(AttributeError):
+        bbox.ymin = -2 # type: ignore[misc]
+
+    with pytest.raises(AttributeError):
+        bbox.xmax = -3 # type: ignore[misc]
+
+    with pytest.raises(AttributeError):
+        bbox.ymax = -4 # type: ignore[misc]
+
+    assert bbox == BBox(1, 2, 3, 4)
+
+
+@pytest.mark.parametrize("a, b", [
+    (BBox(0, 0, 0, 0), BBox(0, 0, 0, 0)),
+    (BBox(0, 0, 0, 0), BBox(0.0, 0.0, 0.0, 0.0)),
+    (BBox(1, 2, 3, 4), BBox(1.0, 2.0, 3.0, 4.0)),
+    (BBox(-1.0, 0.5, 1.5, 2.5), BBox(-1, 0.5, 1.5, 2.5)),
+])
+def test_bbox_eq(a: BBox, b: BBox) -> None:
+    assert a == a
+    assert b == b
+    assert a == b
+    assert b == a
+    assert hash(a) == hash(a)
+    assert hash(a) == hash(b)
+
+    c = BBox(a.xmin+1, a.ymin, a.xmax, a.ymax)
+    assert c == c
+    assert a != c
+    assert c != a
+
+    d = BBox(a.xmin, a.ymin+1, a.xmax, a.ymax)
+    assert d == d
+    assert a != d
+    assert d != a
+
+    e = BBox(a.xmin, a.ymin, a.xmax+1, a.ymax)
+    assert e == e
+    assert a != e
+    assert e != a
+
+    f = BBox(a.xmin, a.ymin, a.xmax, a.ymax+1)
+    assert f == f
+    assert a != f
+    assert f != a
+
+
+def test_bbox_repr() -> None:
+    bbox = BBox(1, 2, 3.5, 4)
+
+    assert repr(bbox) == "BBox(1, 2, 3.5, 4)"
+
+
+def test_bbox_str() -> None:
+    bbox = BBox(-1.25, 2.0, -3, 4.75)
+
+    assert str(bbox) == "(-1.25, 2.0, -3, 4.75)"
+
+
 def test_bbox_to_geo_json() -> None:
     bbox = BBox(-10, -20, 30, 40)
 
