@@ -45,4 +45,4 @@ properties:
     rules:
       - variant: short
         value: MSPOI
-  operating_status: closed
+  operating_status: permanently_closed
