@@ -5,9 +5,11 @@ from typing import Annotated
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
+    Feature,
     StrictBaseModel,
 )
 from overture.schema.core.models import GeometricRangeScope
+from overture.schema.core.ref import Reference, Relationship
 from overture.schema.core.types import (
     Id,
     Level,
@@ -48,6 +50,12 @@ SpeedValue = Annotated[int, Field(ge=1, le=350, description="Speed value")]
 Width = Annotated[float, Field(gt=0)]
 
 
+def _connector_type() -> type[Feature]:
+    from .connector import Connector
+
+    return Connector
+
+
 class ConnectorReference(StrictBaseModel):
     """Contains the GERS ID and relative position between 0 and 1 of a connector feature
     along the segment."""
@@ -56,7 +64,7 @@ class ConnectorReference(StrictBaseModel):
 
     # Required
 
-    connector_id: Id
+    connector_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, _connector_type())]
     at: LinearlyReferencedPosition
 
 
