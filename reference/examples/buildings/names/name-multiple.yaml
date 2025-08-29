@@ -1,0 +1,29 @@
+---
+id: overture:buildings:building:1234
+type: Feature
+properties:
+  # Custom user properties.
+  ext_foo: I am a customer user property.
+  ext_bar: Me too!
+  # Overture properties
+  theme: buildings
+  type: building
+  version: 1
+  names:
+    primary: The White house
+    common:
+      es: La Casa Blanca
+    rules:
+      - variant: official
+        value: The White House
+      - variant: alternate
+        value: White House
+geometry:
+  type: Polygon
+  coordinates: [[
+            [-77.036873, 38.897804],
+            [-77.036873, 38.897559],
+            [-77.036260, 38.897559],
+            [-77.036260, 38.897804],
+            [-77.036873, 38.897804]
+          ]]

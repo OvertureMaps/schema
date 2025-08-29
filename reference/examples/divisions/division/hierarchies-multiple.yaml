@@ -1,0 +1,43 @@
+---
+id: example:division:borough:bronx
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-73.8785937, 40.8466508]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: borough
+  local_type:
+    en: borough
+  names:
+    primary: The Bronx
+  country: US
+  region: US-NY
+  hierarchies:
+    - - division_id: example:division:country:us      # Default hierarchy is first.
+        subtype: country
+        name: United States
+      - division_id: example:division:region:us-ny
+        subtype: region
+        name: New York
+      - division_id: example:division:locality:nyc
+        subtype: locality
+        name: New York City
+      - division_id: example:division:borough:bronx
+        subtype: borough
+        name: The Bronx
+    - - division_id: example:division:country:us
+        subtype: country
+        name: United States
+      - division_id: example:division:region:us-ny
+        subtype: region
+        name: New York
+      - division_id: example:division:county:bronx
+        subtype: county
+        name: Bronx County
+      - division_id: example:division:borough:bronx
+        subtype: borough
+        name: The Bronx
+  parent_division_id: example:division:locality:nyc   # Parent from default hierarchy.

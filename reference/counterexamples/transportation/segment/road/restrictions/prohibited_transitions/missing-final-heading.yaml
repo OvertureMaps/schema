@@ -1,0 +1,23 @@
+---
+id: overture:transportation:counterexample:bad-sequence-duplicate-entry
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 2
+  subtype: road
+  class: primary
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
+  prohibited_transitions:
+    - sequence:
+        - segment_id: foo
+          connector_id: bar
+  ext_expected_errors:
+    - "missing property 'final_heading'"

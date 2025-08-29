@@ -1,0 +1,22 @@
+---
+id: access-restrictions-segment-axle-limit
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [0, 0]
+    - [0, 1]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: motorway
+  access_restrictions:
+    - access_type: denied
+      when:
+        mode: [hgv]
+        vehicle:
+          - dimension: axle_count
+            comparison: greater_than_equal
+            value: 5

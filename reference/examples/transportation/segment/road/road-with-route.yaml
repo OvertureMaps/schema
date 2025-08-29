@@ -1,0 +1,25 @@
+---
+id: overture:transportation:segment:123
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: motorway
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
+  routes:
+    - name: I 95
+      network: US:I
+      ref: "95"
+      symbol: https://upload.wikimedia.org/wikipedia/commons/6/61/I-95.svg
+      wikidata: Q94967
+      between: [0, 0.5]
