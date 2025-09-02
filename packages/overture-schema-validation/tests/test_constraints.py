@@ -12,7 +12,7 @@ from overture.schema.validation import (
     ConfidenceScoreConstraint,
     CountryCodeConstraint,
     HexColorConstraint,
-    JSONPointerConstraint,
+    JsonPointerConstraint,
     LanguageTagConstraint,
     LinearReferenceRangeConstraint,
     NoWhitespaceConstraint,
@@ -27,7 +27,7 @@ from overture.schema.validation.types import (
     ConfidenceScore,
     CountryCode,
     HexColor,
-    JSONPointer,
+    JsonPointer,
     LanguageTag,
     RegionCode,
 )
@@ -142,10 +142,10 @@ class TestStringConstraints:
             assert "Invalid ISO 3166-2 subdivision code" in str(exc_info.value)
 
     def test_json_pointer_constraint_valid(self) -> None:
-        """Test JSONPointerConstraint with valid JSON pointers."""
+        """Test JsonPointerConstraint with valid JSON pointers."""
 
         class TestModel(BaseModel):
-            pointer: Annotated[str, JSONPointerConstraint()]
+            pointer: Annotated[str, JsonPointerConstraint()]
 
         valid_pointers = [
             "",
@@ -162,10 +162,10 @@ class TestStringConstraints:
             assert model.pointer == ptr
 
     def test_json_pointer_constraint_invalid(self) -> None:
-        """Test JSONPointerConstraint with invalid JSON pointers."""
+        """Test JsonPointerConstraint with invalid JSON pointers."""
 
         class TestModel(BaseModel):
-            pointer: Annotated[str, JSONPointerConstraint()]
+            pointer: Annotated[str, JsonPointerConstraint()]
 
         invalid_pointers = [
             "foo",  # Must start with /
@@ -527,7 +527,7 @@ class TestConstrainedTypes:
             country: CountryCode
             region: RegionCode
             timestamp: datetime
-            pointer: JSONPointer
+            pointer: JsonPointer
             confidence: ConfidenceScore
             color: HexColor
 
