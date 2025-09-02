@@ -5,6 +5,7 @@ import pytest
 from deepdiff import DeepDiff
 from overture.schema.core.bbox import BBox
 from overture.schema.core.geometry import Geometry
+from overture.schema.core.json_schema import EnhancedJsonSchemaGenerator
 from overture.schema.core.models import Feature
 from shapely.geometry import LineString, Point
 
@@ -29,7 +30,9 @@ def prune_json_schema(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def test_feature_json_schema() -> None:
-    actual = prune_json_schema(Feature.model_json_schema())
+    actual = prune_json_schema(
+        Feature.model_json_schema(schema_generator=EnhancedJsonSchemaGenerator)
+    )
 
     expect = {
         "$defs": {
@@ -37,57 +40,27 @@ def test_feature_json_schema() -> None:
                 "additionalProperties": False,
                 "properties": {
                     "between": {
-                        "anyOf": [
-                            {
-                                "items": {
-                                    "maximum": 1.0,
-                                    "minimum": 0.0,
-                                    "type": "number",
-                                },
-                                "maxItems": 2,
-                                "minItems": 2,
-                                "type": "array",
-                            },
-                            {"type": "null"},
-                        ],
-                        "default": None,
+                        "items": {
+                            "maximum": 1.0,
+                            "minimum": 0.0,
+                            "type": "number",
+                        },
+                        "maxItems": 2,
+                        "minItems": 2,
+                        "type": "array",
                     },
                     "property": {"type": "string"},
                     "dataset": {"type": "string"},
                     "license": {
-                        "anyOf": [
-                            {
-                                "pattern": "^(\\S.*)?\\S$",
-                                "type": "string",
-                            },
-                            {
-                                "type": "null",
-                            },
-                        ],
-                        "default": None,
+                        "pattern": "^(\\S.*)?\\S$",
+                        "type": "string",
                     },
-                    "record_id": {
-                        "anyOf": [{"type": "string"}, {"type": "null"}],
-                        "default": None,
-                    },
+                    "record_id": {"type": "string"},
                     "update_time": {
-                        "anyOf": [
-                            {
-                                "format": "date-time",
-                                "pattern": "^([1-9]\\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d|60)(\\.\\d{1,3})?(Z|[-+]([01]\\d|2[0-3]):[0-5]\\d)$",
-                                "type": "string",
-                            },
-                            {"type": "null"},
-                        ],
-                        "default": None,
+                        "format": "date-time",
+                        "type": "string",
                     },
-                    "confidence": {
-                        "anyOf": [
-                            {"maximum": 1.0, "minimum": 0.0, "type": "number"},
-                            {"type": "null"},
-                        ],
-                        "default": None,
-                    },
+                    "confidence": {"maximum": 1.0, "minimum": 0.0, "type": "number"},
                 },
                 "required": ["property", "dataset"],
                 "type": "object",
@@ -424,16 +397,10 @@ def test_feature_json_schema() -> None:
                 ],
             },
             "bbox": {
-                "anyOf": [
-                    {
-                        "items": {"type": "number"},
-                        "maxItems": 4,
-                        "minItems": 4,
-                        "type": "array",
-                    },
-                    {"type": "null"},
-                ],
-                "default": None,
+                "items": {"type": "number"},
+                "maxItems": 4,
+                "minItems": 4,
+                "type": "array",
             },
             "properties": {
                 "type": "object",
@@ -442,16 +409,10 @@ def test_feature_json_schema() -> None:
                     "type": {"type": "string"},
                     "version": {"maximum": 2147483647, "minimum": 0, "type": "integer"},
                     "sources": {
-                        "anyOf": [
-                            {
-                                "items": {"$ref": "#/$defs/SourcePropertyItem"},
-                                "minItems": 1,
-                                "type": "array",
-                                "uniqueItems": True,
-                            },
-                            {"type": "null"},
-                        ],
-                        "default": None,
+                        "items": {"$ref": "#/$defs/SourcePropertyItem"},
+                        "minItems": 1,
+                        "type": "array",
+                        "uniqueItems": True,
                     },
                 },
                 "unevaluatedProperties": False,
