@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, NewType
 
 from pydantic import Field
@@ -10,7 +11,6 @@ from overture.schema.validation.constraints import (
 from overture.schema.validation.types import (
     ConfidenceScore,
     HexColor,
-    ISO8601DateTime,
     JSONPointer,
     LanguageTag,
     NoWhitespaceString,
@@ -121,8 +121,10 @@ FeatureVersion = NewType(
 FeatureUpdateTime = NewType(
     "FeatureUpdateTime",
     Annotated[
-        ISO8601DateTime,
-        Field(description="Timestamp when the feature was last updated"),
+        datetime,
+        Field(
+            description="Timestamp when the feature was last updated",
+        ),
     ],
 )
 
@@ -198,7 +200,6 @@ __all__ = [
     "FeatureVersion",
     "HexColor",
     "Id",
-    "ISO8601DateTime",
     "JSONPointer",
     "LanguageTag",
     "Level",

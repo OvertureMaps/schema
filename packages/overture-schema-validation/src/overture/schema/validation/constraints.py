@@ -229,45 +229,6 @@ class RegionCodeConstraint(StringConstraint):
         return json_schema
 
 
-class ISO8601DateTimeConstraint(StringConstraint):
-    """ISO 8601 datetime constraint."""
-
-    def __init__(self) -> None:
-        # Simplified ISO 8601 validation
-        self.pattern = re.compile(
-            r"^([1-9]\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T"
-            r"([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(\.\d{1,3})?"
-            r"(Z|[-+]([01]\d|2[0-3]):[0-5]\d)$"
-        )
-
-    def validate(self, value: str, info: ValidationInfo) -> None:
-        if not self.pattern.match(value):
-            context = info.context or {}
-            loc = context.get("loc_prefix", ()) + ("value",)
-            raise ValidationError.from_exception_data(
-                title=self.__class__.__name__,
-                line_errors=[
-                    InitErrorDetails(
-                        type="value_error",
-                        loc=loc,
-                        input=value,
-                        ctx={"error": f"Invalid ISO 8601 datetime: {value}"},
-                    )
-                ],
-            )
-
-    def __get_pydantic_json_schema__(
-        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
-        json_schema = handler(core_schema)
-        json_schema["format"] = "date-time"
-        json_schema["description"] = "ISO 8601 datetime"
-        # Pattern is used as a fallback because not all JSON schema implementations treat "format"
-        # as an assertion, for some it is only an annotation.
-        json_schema["pattern"] = self.pattern.pattern
-        return json_schema
-
-
 class JSONPointerConstraint(StringConstraint):
     """JSON Pointer constraint (RFC 6901)."""
 
