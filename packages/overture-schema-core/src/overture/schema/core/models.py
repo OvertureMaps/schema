@@ -26,7 +26,7 @@ from .types import (
     FeatureUpdateTime,
     FeatureVersion,
     Id,
-    JSONPointer,
+    JsonPointer,
     LanguageTag,
     Level,
     LinearlyReferencedRange,
@@ -90,7 +90,7 @@ class SourcePropertyItem(GeometricRangeScope):
 
     # Required
 
-    property: JSONPointer
+    property: JsonPointer
     dataset: str
 
     # Optional
