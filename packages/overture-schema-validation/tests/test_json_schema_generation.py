@@ -10,7 +10,7 @@ from overture.schema.validation.constraints import (
     ConfidenceScoreConstraint,
     CountryCodeConstraint,
     HexColorConstraint,
-    JSONPointerConstraint,
+    JsonPointerConstraint,
     LanguageTagConstraint,
     LinearReferenceRangeConstraint,
     NoWhitespaceConstraint,
@@ -342,8 +342,8 @@ class TestJSONSchemaGeneration:
         )
 
     def test_json_pointer_constraint_json_schema(self) -> None:
-        """Test JSONPointerConstraint JSON schema generation."""
-        constraint = JSONPointerConstraint()
+        """Test JsonPointerConstraint JSON schema generation."""
+        constraint = JsonPointerConstraint()
         TestModel = create_field_constraint_model(str, constraint)
         schema = TestModel.model_json_schema()
 

@@ -229,7 +229,7 @@ class RegionCodeConstraint(StringConstraint):
         return json_schema
 
 
-class JSONPointerConstraint(StringConstraint):
+class JsonPointerConstraint(StringConstraint):
     """JSON Pointer constraint (RFC 6901)."""
 
     def validate(self, value: str, info: ValidationInfo) -> None:

@@ -11,7 +11,7 @@ from overture.schema.validation.constraints import (
 from overture.schema.validation.types import (
     ConfidenceScore,
     HexColor,
-    JSONPointer,
+    JsonPointer,
     LanguageTag,
     NoWhitespaceString,
     PhoneNumber,
@@ -200,7 +200,7 @@ __all__ = [
     "FeatureVersion",
     "HexColor",
     "Id",
-    "JSONPointer",
+    "JsonPointer",
     "LanguageTag",
     "Level",
     "LinearlyReferencedPosition",
