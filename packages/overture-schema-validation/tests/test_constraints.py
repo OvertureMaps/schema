@@ -1,6 +1,7 @@
 """Comprehensive tests for constraint-based validation in overture-schema-validation
 package."""
 
+from datetime import datetime
 from typing import Annotated
 
 import pytest
@@ -11,7 +12,6 @@ from overture.schema.validation import (
     ConfidenceScoreConstraint,
     CountryCodeConstraint,
     HexColorConstraint,
-    ISO8601DateTimeConstraint,
     JSONPointerConstraint,
     LanguageTagConstraint,
     LinearReferenceRangeConstraint,
@@ -27,7 +27,6 @@ from overture.schema.validation.types import (
     ConfidenceScore,
     CountryCode,
     HexColor,
-    ISO8601DateTime,
     JSONPointer,
     LanguageTag,
     RegionCode,
@@ -141,42 +140,6 @@ class TestStringConstraints:
             with pytest.raises(ValidationError) as exc_info:
                 TestModel(region=code)
             assert "Invalid ISO 3166-2 subdivision code" in str(exc_info.value)
-
-    def test_iso8601_datetime_constraint_valid(self) -> None:
-        """Test ISO8601DateTimeConstraint with valid datetime strings."""
-
-        class TestModel(BaseModel):
-            timestamp: Annotated[str, ISO8601DateTimeConstraint()]
-
-        valid_datetimes = [
-            "2023-10-15T10:30:00Z",
-            "2023-12-25T00:00:00+00:00",
-            "2024-01-01T12:00:00-05:00",
-            "2023-06-15T14:30:00.123Z",
-        ]
-
-        for dt in valid_datetimes:
-            model = TestModel(timestamp=dt)
-            assert model.timestamp == dt
-
-    def test_iso8601_datetime_constraint_invalid(self) -> None:
-        """Test ISO8601DateTimeConstraint with invalid datetime strings."""
-
-        class TestModel(BaseModel):
-            timestamp: Annotated[str, ISO8601DateTimeConstraint()]
-
-        invalid_datetimes = [
-            "not-a-timestamp",
-            "2023-13-01T10:30:00Z",  # Invalid month
-            "2023-10-32T10:30:00Z",  # Invalid day
-            "2023-10-15 10:30:00",  # Missing T separator
-            "2023/10/15T10:30:00Z",  # Wrong date separator
-        ]
-
-        for dt in invalid_datetimes:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(timestamp=dt)
-            assert "Invalid ISO 8601 datetime" in str(exc_info.value)
 
     def test_json_pointer_constraint_valid(self) -> None:
         """Test JSONPointerConstraint with valid JSON pointers."""
@@ -563,7 +526,7 @@ class TestConstrainedTypes:
             language: LanguageTag
             country: CountryCode
             region: RegionCode
-            timestamp: ISO8601DateTime
+            timestamp: datetime
             pointer: JSONPointer
             confidence: ConfidenceScore
             color: HexColor
