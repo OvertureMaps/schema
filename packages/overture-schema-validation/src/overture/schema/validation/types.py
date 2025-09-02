@@ -11,7 +11,7 @@ from .constraints import (
     ConfidenceScoreConstraint,
     CountryCodeConstraint,
     HexColorConstraint,
-    JSONPointerConstraint,
+    JsonPointerConstraint,
     LanguageTagConstraint,
     NoWhitespaceConstraint,
     PhoneNumberConstraint,
@@ -31,7 +31,7 @@ CountryCode = NewType(
     ],
 )
 HexColor = NewType("HexColor", Annotated[str, HexColorConstraint()])
-JSONPointer = NewType("JSONPointer", Annotated[str, JSONPointerConstraint()])
+JsonPointer = NewType("JsonPointer", Annotated[str, JsonPointerConstraint()])
 LanguageTag = NewType("LanguageTag", Annotated[str, LanguageTagConstraint()])
 NoWhitespaceString = NewType(
     "NoWhitespaceString", Annotated[str, NoWhitespaceConstraint()]
