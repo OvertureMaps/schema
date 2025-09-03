@@ -10,8 +10,7 @@ from overture.schema.validation.constraints import (
     ConfidenceScoreConstraint,
     CountryCodeConstraint,
     HexColorConstraint,
-    ISO8601DateTimeConstraint,
-    JSONPointerConstraint,
+    JsonPointerConstraint,
     LanguageTagConstraint,
     LinearReferenceRangeConstraint,
     NoWhitespaceConstraint,
@@ -342,21 +341,9 @@ class TestJSONSchemaGeneration:
             schema, "test_field", r"^\S+$", "String without whitespace characters"
         )
 
-    def test_iso8601_datetime_constraint_json_schema(self) -> None:
-        """Test ISO8601DateTimeConstraint JSON schema generation."""
-        constraint = ISO8601DateTimeConstraint()
-        TestModel = create_field_constraint_model(str, constraint)
-        schema = TestModel.model_json_schema()
-
-        assert "properties" in schema
-        assert "test_field" in schema["properties"]
-        field_schema = schema["properties"]["test_field"]
-        assert field_schema.get("format") == "date-time"
-        assert field_schema.get("description") == "ISO 8601 datetime"
-
     def test_json_pointer_constraint_json_schema(self) -> None:
-        """Test JSONPointerConstraint JSON schema generation."""
-        constraint = JSONPointerConstraint()
+        """Test JsonPointerConstraint JSON schema generation."""
+        constraint = JsonPointerConstraint()
         TestModel = create_field_constraint_model(str, constraint)
         schema = TestModel.model_json_schema()
 

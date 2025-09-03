@@ -13,11 +13,108 @@ pip install overture-schema-core
 - **Base Classes**: Extensible base models for Overture Maps features
 - **Geometry Types**: WKB geometry type hints and utilities
 - **Common Structures**: Shared models used across all themes
+- **Primitive Data Types**: Validated primitive types with multi-target serialization support
 - **Scoping System**: Flexible conditional rule application framework
+
+## Enhanced Primitive Types
+
+The enhanced primitive types system provides validated primitive types with automatic
+constraint checking and multi-target serialization support. This enables consistent type
+definitions that can generate appropriate representations for different targets (Spark,
+Parquet, etc.).
+
+### Available Types
+
+Built-in Python primitive types (`str`, `int`, `float`, `bool`, `list`, etc.) are
+automatically mapped.
+
+We also provide the following additional types:
+
+#### Integer Types
+
+- **`uint8`**: 8-bit unsigned integer (0-255)
+- **`uint16`**: 16-bit unsigned integer (0-65535)
+- **`uint32`**: 32-bit unsigned integer (0-4294967295)
+- **`int8`**: 8-bit signed integer (-128 to 127)
+- **`int32`**: 32-bit signed integer (-2³¹ to 2³¹-1)
+- **`int64`**: 64-bit signed integer (-2⁶³ to 2⁶³-1)
+
+#### Floating Point Types
+
+- **`float32`**: 32-bit floating point number
+- **`float64`**: 64-bit floating point number
+
+### Basic Usage
+
+```python
+from pydantic import BaseModel, Field
+from overture.schema.core.primitives import (
+    uint8, uint32, float32
+)
+
+class Building(BaseModel):
+    """Building feature with specific primitive data types."""
+
+    height: float32 | None = Field(
+        None,
+        description="Height of building in meters"
+    )
+
+    num_floors: uint8 | None = Field(
+        None,
+        description="Number of floors in building"
+    )
+
+    area: uint32 | None = Field(
+        None,
+        description="Floor area in square meters"
+    )
+```
+
+### Automatic Validation
+
+Enhanced primitive types automatically validate constraints:
+
+```python
+# Valid values
+building = Building(height=45.5, num_floors=12, area=2500)
+
+# Invalid values raise ValidationError
+Building(num_floors=256)  # Error: 256 > UInt8 maximum (255)
+Building(num_floors=-1)   # Error: -1 < UInt8 minimum (0)
+```
+
+### Type Safety
+
+The enhanced primitive types provide strong type safety guarantees at both static and
+runtime levels:
+
+**Static Type Checking**: mypy can distinguish between different primitive types,
+*preventing common errors:
+
+```python
+from overture.schema.core.primitives import uint8, uint32
+
+def process_floor_count(floors: uint8) -> str:
+    return f"Building has {floors} floors"
+
+def process_area(area: uint32) -> str:
+    return f"Area: {area} sq meters"
+
+# Type checker prevents mixing incompatible types
+floors: uint8 = 12
+area: uint32 = 2500
+
+process_floor_count(area)   # mypy error: Expected UInt8, got UInt32
+process_area(floors)        # mypy error: Expected UInt32, got UInt8
+```
 
 ## Scoping System
 
-The scoping system enables precise conditional application of rules based on geometric, temporal, directional, and subjective criteria. This is essential for transportation rules like speed limits, access restrictions, and other regulations that apply under specific conditions.
+The scoping system enables precise conditional application of rules based on geometric,
+temporal, directional, and subjective criteria. This is essential for transportation
+rules like speed limits, access restrictions, and other regulations that apply under
+specific conditions.
 
 ### Architecture
 
