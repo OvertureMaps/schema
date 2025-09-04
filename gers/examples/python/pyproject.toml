@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "overture-gers-examples"
+version = "0.1.0"
+description = "Python examples for working with GERS (Global Entity Reference System) in Overture Maps data"
+readme = "README.md"
+license = {file = "../../../LICENSE"}
+authors = [
+    {name = "Overture Maps Foundation"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+dependencies = [
+    "geojson==3.0.1",
+    "geopandas==0.13.2",
+    "gpxpy==1.5.0",
+    "h3==3.7.6",
+    "haversine==2.8.0",
+    "shapely==2.0.1",
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/OvertureMaps/schema"
+Repository = "https://github.com/OvertureMaps/schema"
+Documentation = "https://docs.overturemaps.org"
+
+[project.scripts]
+match-traces = "match_traces:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["overture_gers_examples"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/overture_gers_examples",
+    "/README.md",
+    "/MATCH_TRACES.md",
+    "/requirements.txt",
+]
