@@ -95,6 +95,12 @@ class SourcePropertyItem(GeometricRangeScope):
 
     # Optional
 
+    license: Annotated[
+        TrimmedString | None,
+        Field(
+            description="License name. This should be a valid SPDX license identifier when available. If the license is NULL, contact the data provider for more license information.",
+        ),
+    ] = None
     record_id: Annotated[
         str | None,
         Field(
