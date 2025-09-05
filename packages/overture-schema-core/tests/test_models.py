@@ -55,6 +55,18 @@ def test_feature_json_schema() -> None:
                     'dataset': {
                         'type': 'string'
                     },
+                    'license': {
+                        'anyOf': [
+                            {
+                                'pattern': '^(\\S.*)?\\S$',
+                                'type': 'string',
+                            },
+                            {
+                                'type': 'null',
+                            },
+                        ],
+                        'default': None
+                    },
                     'record_id': {
                         'anyOf': [{
                             'type': 'string'
