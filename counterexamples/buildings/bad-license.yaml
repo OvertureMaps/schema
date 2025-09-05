@@ -5,9 +5,6 @@ geometry:
   type: Polygon
   coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
 properties:
-  # Custom user properties.
-  ext_foo: I am a customer user property.
-  ext_bar: Me too!
   # Overture properties
   theme: buildings
   type: building
@@ -17,4 +14,4 @@ properties:
       property: "/geometry"
       update_time: '2024-04-26T23:55:01-08:00'
       confidence: 0.3
-      license:
+      license: ""
