@@ -320,6 +320,12 @@
           "title": "Dataset",
           "type": "string"
         },
+        "license": {
+          "description": "License name. This should be a valid SPDX license identifier when available. If the license is NULL, contact the data provider for more license information.",
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "License",
+          "type": "string"
+        },
         "property": {
           "description": "JSON Pointer (RFC 6901)",
           "title": "Property",
