@@ -37,3 +37,4 @@ properties:
     rules:
       - variant: short
         value: MSPOI
+  operating_status: open
