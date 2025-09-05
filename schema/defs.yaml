@@ -268,7 +268,7 @@ description: Common schema definitions shared by all themes
         approved sources from the Overture Data Working Group that contains
         the relevant metadata for that dataset including license source organization.
       type: object
-      required: [property, dataset, license]
+      required: [property, dataset]
       allOf:
         - { "$ref": "#/$defs/propertyContainers/geometricRangeScopeContainer" }
       unevaluatedProperties: false
