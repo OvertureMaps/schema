@@ -23,6 +23,7 @@ from overture.schema.core.validation import (
 )
 
 from ..types import PlaceCategory
+from .enums import OperatingStatus
 
 
 class Categories(StrictBaseModel):
@@ -77,6 +78,13 @@ class Place(Feature[Literal["places"], Literal["place"]], Named):
             description="Position of the place",
         ),
     ]
+    operating_status: Annotated[
+        OperatingStatus,
+        Field(
+            description="""Indicates the operating status of a place, can be one of ["open", "permanently_closed", "temporarily_closed"].
+This is not an indication of 'opening hours' or that the place is open/closed at the current time-of-day or day-of-week.""",
+        ),
+    ]
 
     # Optional
 
@@ -84,7 +92,7 @@ class Place(Feature[Literal["places"], Literal["place"]], Named):
     confidence: Annotated[
         ConfidenceScore | None,
         Field(
-            description="""The confidence of the existence of the place. It's a number between 0 and 1. 0 means that we're sure that the place doesn't exist (anymore). 1 means that we're sure that the place exists. If there's no value for the confidence, it means that we don't have any confidence information.""",
+            description="""The confidence of the existence of the place. It's a number between 0 and 1. 0 means that we're sure that the place doesn't exist (anymore). 1 means that we're sure that the place exists. If there's no value for the confidence, it means that we don't have any confidence information. Places with operating_status set to 'closed' will have a confidence score of 0""",
         ),
     ] = None
     websites: Annotated[
