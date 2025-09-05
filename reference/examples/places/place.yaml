@@ -20,6 +20,7 @@ properties:
     names:
       primary: My Sweet POI Brand
     wikidata: Q1000
+  operating_status: open
   addresses:
     - freeform: "770 Broadway, Floor 8"
       locality: "New York"
