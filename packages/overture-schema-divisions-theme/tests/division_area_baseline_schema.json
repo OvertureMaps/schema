@@ -201,6 +201,12 @@
           "title": "Dataset",
           "type": "string"
         },
+        "license": {
+          "description": "License name. When null consult the theme documentation on the Overture website",
+          "pattern": "^\\S+$",
+          "title": "License",
+          "type": "string"
+        },
         "property": {
           "description": "JSON Pointer (RFC 6901)",
           "title": "Property",

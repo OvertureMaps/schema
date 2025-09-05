@@ -32,6 +32,7 @@ from .types import (
     LinearlyReferencedRange,
     MaxZoom,
     MinZoom,
+    NoWhitespaceString,
     Prominence,
     RegionCode,
     SortKey,
@@ -95,6 +96,12 @@ class SourcePropertyItem(GeometricRangeScope):
 
     # Optional
 
+    license: Annotated[
+        NoWhitespaceString | None,
+        Field(
+            description="License name. When null consult the theme documentation on the Overture website",
+        ),
+    ] = None
     record_id: Annotated[
         str | None,
         Field(
