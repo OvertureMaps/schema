@@ -23,7 +23,7 @@ properties:
   addresses:
     - freeform: "770 Broadway, Floor 8"
       locality: "New York"
-    - freeform: "770 Brodway, #802"
+    - freeform: "770 Broadway, #802"
       locality: "New York"
       region: "US-NY"
       country: "US"
