@@ -9,7 +9,7 @@ properties:
     primary: some_category
   confidence: 0.9
   websites:
-    - https://www.example.com
+    - https://www.example.com/
   emails:
     - info@example.com
   socials:
