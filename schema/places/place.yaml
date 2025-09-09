@@ -95,7 +95,7 @@ properties:
         minItems: 1
       operating_status:
         description: >-
-          Indicates the operating status of a place, can be one of ["open", "permanently_closed", "temporarily_closed"]
+          Indicates the operating status of a place, can be one of ["open", "permanently_closed", "temporarily_closed"]. This is not an indication of 'opening hours' or that the place is open/closed at the current time-of-day or day-of-week.
         type: string
         default: "open"
         enum: ["open", "permanently_closed", "temporarily_closed"]
