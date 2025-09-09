@@ -279,7 +279,9 @@ description: Common schema definitions shared by all themes
           type: string
         license:
           type: string
-          description: License name if available
+          description: >-
+            License name. This should be a valid SPDX license identifier when available.
+            If the license is NULL, contact the data provider for more license information.
           minLength: 1
         record_id:
           type: string
