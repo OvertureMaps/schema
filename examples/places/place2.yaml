@@ -29,4 +29,6 @@ properties:
   version: 1
   websites:
     - https://www.example.com
+  operating_status: open
+>>>>>>> 79dfa26 (fix more tests)
 type: Feature

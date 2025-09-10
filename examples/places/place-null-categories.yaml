@@ -27,4 +27,5 @@ properties:
   version: 1
   websites:
     - https://www.example.com
+  operating_status: open 
 type: Feature
