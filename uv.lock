@@ -15,6 +15,7 @@ members = [
     "overture-schema-core",
     "overture-schema-divisions-theme",
     "overture-schema-places-theme",
+    "overture-schema-sources",
     "overture-schema-transportation-theme",
     "overture-schema-validation",
     "overture-schema-workspace",
@@ -674,6 +675,34 @@ requires-dist = [
     { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pydantic", extras = ["email"] },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy" },
+    { name = "pytest", specifier = ">=7.0" },
+    { name = "ruff" },
+]
+
+[[package]]
+name = "overture-schema-sources"
+source = { editable = "packages/overture-schema-sources" }
+dependencies = [
+    { name = "overture-schema-core" },
+    { name = "pydantic" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "pydantic", specifier = ">=2.0" },
 ]
 
 [package.metadata.requires-dev]
