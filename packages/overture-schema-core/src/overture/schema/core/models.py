@@ -80,7 +80,7 @@ class SideScope(StrictBaseModel):
 
 
 class SourcePropertyItem(GeometricRangeScope):
-    """An object storing the source for a specificed property.
+    """An object storing the source for a specified property.
 
     The property is a reference to the property element within this Feature, and will be
     referenced using JSON Pointer Notation RFC 6901 (
