@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from overture.schema.core.models import Feature
+from .models import Feature
 
 
 class Relationship(Enum):
@@ -17,9 +17,9 @@ class Relationship(Enum):
         self._value_ = value
         self.__doc__ = doc
 
-    BELONGS_TO = "belongs_to", "The referent belongs to the referee"
-    BOUNDARY_OF = "boundary_of", "The referent is a boundary of the referee"
-    CONNECTS_TO = "connects_to", "The referent connects to the referee"
+    BELONGS_TO = "belongs_to", "The relator belongs to the relatee"
+    BOUNDARY_OF = "boundary_of", "The relator is a boundary of the relatee"
+    CONNECTS_TO = "connects_to", "The relator connects to the relatee"
 
 
 @dataclass(frozen=True, slots=True)
