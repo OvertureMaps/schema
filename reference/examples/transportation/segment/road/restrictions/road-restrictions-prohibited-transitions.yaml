@@ -1,0 +1,91 @@
+---
+id: overture:transportation:segment:example:prohibited-transitions
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 0]]
+properties:
+  theme: transportation
+  type: segment
+  subtype: road
+  class: secondary
+  version: 2
+  prohibited_transitions:
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: forward
+      between: [ 0, 0.5 ]
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: forward
+      when:
+        during: PH
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: forward
+      when: {heading: forward}
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: forward
+      when:
+        heading: forward
+        mode: [car, hgv]
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: forward
+      when:
+        heading: forward
+        using: [at_destination]
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: forward
+      when:
+        heading: forward
+        recognized: [as_employee]
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: forward
+      when:
+        heading: forward
+        vehicle:
+          - dimension: axle_count
+            comparison: less_than
+            value: 3
+          - dimension: weight
+            comparison: less_than_equal
+            value: 600
+            unit: 'kg'
+          - dimension: height
+            comparison: less_than
+            value: 12
+            unit: 'ft'
+    - sequence:
+        - connector_id: connector1
+          segment_id: segment1
+      final_heading: forward
+      between: [0.25, 0.5]
+      when:
+        heading: forward
+        during: PH
+        mode: [car, hgv]
+        using: [at_destination]
+        recognized: [as_employee]
+        vehicle:
+          - dimension: axle_count
+            comparison: less_than
+            value: 3
+          - dimension: weight
+            comparison: less_than_equal
+            value: 600
+            unit: 'kg'
+          - dimension: height
+            comparison: less_than
+            value: 12
+            unit: 'ft'
