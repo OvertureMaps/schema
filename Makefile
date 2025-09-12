@@ -5,6 +5,7 @@ default: test-all
 check: test
 	@uv run ruff check -q packages/
 	@$(MAKE) mypy
+	@uv run ruff format --check packages/
 
 test-all:
 	@uv run pytest packages/
