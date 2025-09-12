@@ -593,33 +593,6 @@ class NoWhitespaceConstraint(StringConstraint):
         return json_schema
 
 
-class PatternPropertiesDictConstraint(BaseConstraint):
-    """Constraint for dictionaries with pattern-validated keys that require additionalProperties: false.
-
-    This constraint ensures that dictionaries using patternProperties in their JSON Schema
-    have additionalProperties set to false, preventing keys that don't match the declared
-    pattern from being accepted.
-
-    Use this when you have a dict[SomeConstrainedType, ValueType] where SomeConstrainedType
-    uses a pattern constraint and you want to enforce that only keys matching that pattern
-    are allowed.
-    """
-
-    def __get_pydantic_core_schema__(
-        self, source: type[Any], handler: GetCoreSchemaHandler
-    ) -> core_schema.CoreSchema:
-        return handler(source)
-
-    def __get_pydantic_json_schema__(
-        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
-        json_schema = handler(core_schema)
-        # Ensure additionalProperties is false for pattern-based dictionaries
-        if "patternProperties" in json_schema:
-            json_schema["additionalProperties"] = False
-        return json_schema
-
-
 class ExtensionPrefixModelConstraint(BaseConstraint):
     """Constraint for models that allow only ext_* prefixed extra fields.
 

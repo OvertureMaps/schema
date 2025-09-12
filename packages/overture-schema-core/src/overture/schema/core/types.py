@@ -6,7 +6,6 @@ from pydantic import Field
 from overture.schema.validation.constraints import (
     CountryCodeConstraint,
     LinearReferenceRangeConstraint,
-    PatternPropertiesDictConstraint,
 )
 from overture.schema.validation.types import (
     ConfidenceScore,
@@ -103,7 +102,7 @@ The validating regular expression for this property follows the pattern describe
             ],
             TrimmedString,
         ],
-        PatternPropertiesDictConstraint(),
+        Field(json_schema_extra={"additionalProperties": False}),
     ],
 )
 
