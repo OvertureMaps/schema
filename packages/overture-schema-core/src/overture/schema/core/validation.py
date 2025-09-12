@@ -1,6 +1,5 @@
 from overture.schema.validation import (
     ConstraintValidatedModel,
-    PatternPropertiesDictConstraint,
     UniqueItemsConstraint,
     any_of,
     exactly_one_of,
@@ -11,7 +10,6 @@ from overture.schema.validation import (
 
 __all__ = [
     "ConstraintValidatedModel",
-    "PatternPropertiesDictConstraint",
     "UniqueItemsConstraint",
     "any_of",
     "exactly_one_of",

@@ -319,7 +319,7 @@ This validation package integrates with Overture Maps schema packages using a hy
 # In your schema models
 from typing import Annotated, Literal
 from pydantic import model_validator
-from overture.schema.validation import CountryCode, LanguageTag, PatternPropertiesDictConstraint
+from overture.schema.validation import CountryCode, LanguageTag
 from overture.schema.validation.mixin import ConstraintValidatedModel
 
 # Base properties with field-level validation
@@ -327,7 +327,10 @@ class OvertureFeatureProperties(BaseModel):
     theme: str = Field(..., description="Overture theme")
     type: str = Field(..., description="Feature type")
     country: Optional[CountryCode] = None
-    names: Annotated[dict[LanguageTag, str], PatternPropertiesDictConstraint()] = Field(default_factory=dict)
+    names: Annotated[
+        dict[LanguageTag, str],
+        Field(json_schema_extra={"additionalProperties": False})
+    ]
 
 # Division-specific validation with mixin constraints
 @required_if("subtype", "region", ["parent_division_id"])
