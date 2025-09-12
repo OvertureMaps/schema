@@ -15,7 +15,6 @@ from overture.schema.validation.constraints import (
     LinearReferenceRangeConstraint,
     NoWhitespaceConstraint,
     PatternConstraint,
-    PatternPropertiesDictConstraint,
     RegionCodeConstraint,
     UniqueItemsConstraint,
     WhitespaceConstraint,
@@ -408,23 +407,6 @@ class TestJSONSchemaGeneration:
             field_schema.get("description")
             == "Linear reference range [start, end] where 0.0 <= start < end <= 1.0"
         )
-
-    def test_pattern_properties_dict_constraint_json_schema(self) -> None:
-        """Test PatternPropertiesDictConstraint JSON schema generation."""
-        constraint = PatternPropertiesDictConstraint()
-        TestModel = create_field_constraint_model(dict[str, str], constraint)
-        schema = TestModel.model_json_schema()
-
-        # This constraint ensures additionalProperties is false when patternProperties present
-        # Since we're testing with a simple dict, patternProperties may not be present
-        # but the constraint should still be applied correctly
-        assert "properties" in schema
-        assert "test_field" in schema["properties"]
-        field_schema = schema["properties"]["test_field"]
-
-        # The constraint only adds additionalProperties: false if patternProperties is present
-        if "patternProperties" in field_schema:
-            assert not field_schema.get("additionalProperties")
 
 
 if __name__ == "__main__":
