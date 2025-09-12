@@ -71,10 +71,12 @@ can be used for data processing, reverse-geocoding, and similar purposes.""",
         ),
     ] = None
     division_ids: Annotated[
-        list[Annotated[
-            Id,
-            Reference(Relationship.BOUNDARY_OF, Division),
-        ]],
+        list[
+            Annotated[
+                Id,
+                Reference(Relationship.BOUNDARY_OF, Division),
+            ]
+        ],
         Field(
             min_length=2,
             max_length=2,

@@ -72,7 +72,7 @@ class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]], Name
         Field(
             description="Division ID of the division this area belongs to.",
         ),
-        Reference(Relationship.BELONGS_TO, Division)
+        Reference(Relationship.BELONGS_TO, Division),
     ]
     country: Annotated[
         CountryCode,

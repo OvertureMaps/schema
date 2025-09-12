@@ -57,11 +57,16 @@ class Reference:
     >>> class ParkBench(Feature):
     >>>    park_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Park)]
     """
+
     relationship: Relationship
     relatee: type[Feature]
 
     def __post_init__(self) -> None:
-       if not isinstance(self.relationship, Relationship):
-          raise TypeError(f"`relationship` must be a member of the `Relationship` enumeration, but {self.relationship} is a `{type(self.relationship).__name__}`")
-       if not isinstance(self.relatee, type) or not issubclass(self.relatee, Feature):
-          raise TypeError(f"`relatee` must be a `Feature` type, i.e. a type that subclasses `Feature`, but {self.relatee} is a `{type(self.relatee).__name__}`")
+        if not isinstance(self.relationship, Relationship):
+            raise TypeError(
+                f"`relationship` must be a member of the `Relationship` enumeration, but {self.relationship} is a `{type(self.relationship).__name__}`"
+            )
+        if not isinstance(self.relatee, type) or not issubclass(self.relatee, Feature):
+            raise TypeError(
+                f"`relatee` must be a `Feature` type, i.e. a type that subclasses `Feature`, but {self.relatee} is a `{type(self.relatee).__name__}`"
+            )

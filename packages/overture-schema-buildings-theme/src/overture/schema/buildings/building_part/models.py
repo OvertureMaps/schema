@@ -37,5 +37,5 @@ class BuildingPart(
     building_id: Annotated[
         Id,
         Field(description="The building ID to which this part belongs"),
-        Reference(Relationship.BELONGS_TO, Building)
+        Reference(Relationship.BELONGS_TO, Building),
     ]
