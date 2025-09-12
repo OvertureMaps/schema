@@ -2,10 +2,9 @@ __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
 from functools import reduce
 from operator import or_
-from types import UnionType
-from typing import TYPE_CHECKING, Annotated, Any, Union
+from typing import TYPE_CHECKING, Annotated, Any
 
-from pydantic import Field, TypeAdapter
+from pydantic import Field
 
 from overture.schema.addresses import Address
 from overture.schema.base import (
@@ -17,30 +16,11 @@ from overture.schema.base import (
     Water,
 )
 from overture.schema.buildings import Building, BuildingPart
-from overture.schema.core import parse_feature
+from overture.schema.core import json_schema, parse_feature
 from overture.schema.core.discovery import discover_models
 from overture.schema.divisions import Division, DivisionArea, DivisionBoundary
 from overture.schema.places import Place
 from overture.schema.transportation import Connector, Segment
-
-Types = Annotated[
-    Address
-    | Bathymetry
-    | Infrastructure
-    | Land
-    | LandCover
-    | LandUse
-    | Water
-    | Building
-    | BuildingPart
-    | Division
-    | DivisionArea
-    | DivisionBoundary
-    | Place
-    | Connector
-    | Segment,
-    Field(discriminator="type"),
-]
 
 
 def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
@@ -70,3 +50,25 @@ def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
         DiscriminatedUnion = Annotated[union_type, Field(discriminator="type")]
 
     return parse_feature(feature, DiscriminatedUnion, mode)
+
+
+__all__ = [
+    "Address",
+    "Bathymetry",
+    "Infrastructure",
+    "Land",
+    "LandCover",
+    "LandUse",
+    "Water",
+    "Building",
+    "BuildingPart",
+    "Division",
+    "DivisionArea",
+    "DivisionBoundary",
+    "Place",
+    "Connector",
+    "Segment",
+    "parse",
+    "parse_feature",
+    "json_schema",
+]
