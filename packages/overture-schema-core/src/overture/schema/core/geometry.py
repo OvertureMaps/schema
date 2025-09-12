@@ -21,13 +21,37 @@ class GeometryType(str, Enum):
 
     _geo_json_type: str
 
-    GEOMETRY_COLLECTION = "geometry_collection", "GeometryCollection", "A mixed type collection of geometries treated as a single geometry."
-    LINE_STRING = "line_string", "LineString", "A sequence of positions connected by straight line segments."
-    MULTI_LINE_STRING = "multi_line_string", "MultiLineString", "A collection of line strings treated as a single geometry."
-    MULTI_POINT = "multi_point", "MultiPoint", "A collection of points treated as a single geometry."
-    MULTI_POLYGON = "multi_polygon", "MultiPolygon", "A collection of polygons treated as a single geometry."
+    GEOMETRY_COLLECTION = (
+        "geometry_collection",
+        "GeometryCollection",
+        "A mixed type collection of geometries treated as a single geometry.",
+    )
+    LINE_STRING = (
+        "line_string",
+        "LineString",
+        "A sequence of positions connected by straight line segments.",
+    )
+    MULTI_LINE_STRING = (
+        "multi_line_string",
+        "MultiLineString",
+        "A collection of line strings treated as a single geometry.",
+    )
+    MULTI_POINT = (
+        "multi_point",
+        "MultiPoint",
+        "A collection of points treated as a single geometry.",
+    )
+    MULTI_POLYGON = (
+        "multi_polygon",
+        "MultiPolygon",
+        "A collection of polygons treated as a single geometry.",
+    )
     POINT = "point", "Point", "A single position defined by one coordinate tuple."
-    POLYGON = "polygon", "Polygon", "A planar surface bounded by one outer ring and zero or more inner rings (holes)."
+    POLYGON = (
+        "polygon",
+        "Polygon",
+        "A planar surface bounded by one outer ring and zero or more inner rings (holes).",
+    )
 
     def __new__(cls, value: str, geo_json_type: str, doc: str) -> "GeometryType":
         obj = str.__new__(cls, value)
@@ -76,7 +100,11 @@ class GeometryTypeConstraint:
     allowed_types: tuple[GeometryType, ...]
 
     def __init__(self, *allowed_types: GeometryType) -> None:
-        object.__setattr__(self, "allowed_types", GeometryTypeConstraint._validate_geometry_types(allowed_types))
+        object.__setattr__(
+            self,
+            "allowed_types",
+            GeometryTypeConstraint._validate_geometry_types(allowed_types),
+        )
 
     def _validate(self, value: "Geometry", info: ValidationInfo) -> "Geometry":
         geom_type = value.geom_type
@@ -176,16 +204,18 @@ class Geometry:
     >>> assert geom.wkt == "POINT (1 2)"
     """
 
-    __slots__ = ('_geom',)
+    __slots__ = ("_geom",)
 
     _geom: BaseGeometry
 
     def __init__(self, geom: BaseGeometry) -> None:
         if not isinstance(geom, BaseGeometry):
-            raise TypeError(f"`geom` must be a `BaseGeometry` (Shapely) but {geom} is a `{type(geom).__name__}`")
+            raise TypeError(
+                f"`geom` must be a `BaseGeometry` (Shapely) but {geom} is a `{type(geom).__name__}`"
+            )
         if geom.is_empty:
             raise ValueError(f"`geom` must not be empty, but {geom} is empty")
-        object.__setattr__(self, '_geom', geom)
+        object.__setattr__(self, "_geom", geom)
 
     def __setattr__(self, _: str, __: object) -> None:
         raise AttributeError(f"`{self.__class__.__name__} is immutable")
@@ -359,7 +389,7 @@ _BBOX_JSON_SCHEMA = {
 _POINT_COORDINATES_JSON_SCHEMA = {
     "type": "array",
     "minItems": 2,
-    "maxItems": 3, # Shapely only supports up to 3D
+    "maxItems": 3,  # Shapely only supports up to 3D
     "items": {
         "type": "number",
     },

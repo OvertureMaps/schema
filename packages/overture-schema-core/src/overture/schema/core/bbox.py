@@ -50,36 +50,48 @@ class BBox:
     BBox(xmin=1, ymin=2, xmax=3, ymax=4)
     """
 
-    __slots__ = ('_xmin', '_ymin', '_xmax', '_ymax')
+    __slots__ = ("_xmin", "_ymin", "_xmax", "_ymax")
 
     _xmin: float | int
     _ymin: float | int
     _xmax: float | int
     _ymax: float | int
 
-    def __init__(self, xmin: float | int, ymin: float | int, xmax: float | int, ymax: float | int) -> None:
+    def __init__(
+        self, xmin: float | int, ymin: float | int, xmax: float | int, ymax: float | int
+    ) -> None:
         if not isinstance(xmin, float | int):
-            raise TypeError(f"`xmin` must be a `float` or `int`; but {repr(xmin)} is a `{type(xmin).__name__}`")
+            raise TypeError(
+                f"`xmin` must be a `float` or `int`; but {repr(xmin)} is a `{type(xmin).__name__}`"
+            )
         elif not isinstance(ymin, float | int):
-            raise TypeError(f"`ymin` must be a `float` or `int`; but {repr(ymin)} is a `{type(ymin).__name__}`")
+            raise TypeError(
+                f"`ymin` must be a `float` or `int`; but {repr(ymin)} is a `{type(ymin).__name__}`"
+            )
         elif not isinstance(xmax, float | int):
-            raise TypeError(f"`xmax` must be a `float` or `int`; but {repr(xmax)} is a `{type(xmax).__name__}`")
+            raise TypeError(
+                f"`xmax` must be a `float` or `int`; but {repr(xmax)} is a `{type(xmax).__name__}`"
+            )
         elif not isinstance(ymax, float | int):
-            raise TypeError(f"`ymax` must be a `float` or `int`; but {repr(ymax)} is a `{type(ymax).__name__}`")
-        object.__setattr__(self, '_xmin', xmin)
-        object.__setattr__(self, '_ymin', ymin)
-        object.__setattr__(self, '_xmax', xmax)
-        object.__setattr__(self, '_ymax', ymax)
+            raise TypeError(
+                f"`ymax` must be a `float` or `int`; but {repr(ymax)} is a `{type(ymax).__name__}`"
+            )
+        object.__setattr__(self, "_xmin", xmin)
+        object.__setattr__(self, "_ymin", ymin)
+        object.__setattr__(self, "_xmax", xmax)
+        object.__setattr__(self, "_ymax", ymax)
 
     def __setattr__(self, _: str, __: object) -> None:
         raise AttributeError(f"`{self.__class__.__name__} is immutable")
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, BBox) and \
-            self.xmin == other.xmin and \
-            self.ymin == other.ymin and \
-            self.xmax == other.xmax and \
-            self.ymax == other.ymax
+        return (
+            isinstance(other, BBox)
+            and self.xmin == other.xmin
+            and self.ymin == other.ymin
+            and self.xmax == other.xmax
+            and self.ymax == other.ymax
+        )
 
     def __hash__(self) -> int:
         return hash((self.xmin, self.ymin, self.xmax, self.ymax))
@@ -130,7 +142,9 @@ class BBox:
         return (self.xmin, self.ymin, self.xmax, self.ymax)
 
     @classmethod
-    def from_geo_json(cls, *bbox: float | int | tuple[float | int, ...] | list[float | int]) -> "BBox":
+    def from_geo_json(
+        cls, *bbox: float | int | tuple[float | int, ...] | list[float | int]
+    ) -> "BBox":
         """
         Convert a GeoJSON-compliant `bbox` array into a `Bbox` value.
 
@@ -176,7 +190,8 @@ class BBox:
         ]
         if len(incompatible_items) > 0:
             incompatible_str = ",".join(
-                f"{repr(v)} (type `{t}` at index {i})" for (i, v, t) in incompatible_items
+                f"{repr(v)} (type `{t}` at index {i})"
+                for (i, v, t) in incompatible_items
             )
             raise TypeError(
                 f"`bbox` must contain only `float` or `int`; but {repr(bbox)} contains the following incompatible values: {incompatible_str} "
@@ -184,12 +199,14 @@ class BBox:
 
         return BBox(bbox[0], bbox[1], bbox[2], bbox[3])
 
-
     @classmethod
     def __get_pydantic_core_schema__(
         cls, _source_type: type[Any], _handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
-        def validator(value: BBox | tuple[float | int, ...] | list[float | int], info: ValidationInfo) -> "BBox":
+        def validator(
+            value: BBox | tuple[float | int, ...] | list[float | int],
+            info: ValidationInfo,
+        ) -> "BBox":
             try:
                 if isinstance(value, BBox):
                     return value
@@ -211,12 +228,14 @@ class BBox:
                             type="value_error",
                             loc=loc,
                             input=value,
-                            ctx={"error": f"invalid bounding box value: {str(e)}"}
+                            ctx={"error": f"invalid bounding box value: {str(e)}"},
                         )
-                    ]
+                    ],
                 ) from e
 
-        def serialize_bbox(v: "BBox", info: ValidationInfo | None) -> "tuple[float | int, ...] | 'BBox'":
+        def serialize_bbox(
+            v: "BBox", info: ValidationInfo | None
+        ) -> "tuple[float | int, ...] | 'BBox'":
             if info and info.mode == "json":
                 return v.to_geo_json()
             return v
@@ -233,10 +252,10 @@ class BBox:
         cls, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
     ) -> dict[str, Any]:
         return {
-            'type': 'array',
-            'minItems': 4,
-            'maxItems': 4,  # Expressly limit to subset of GeoJSON bboxes that are 2D.
-            'items': {
-                'type': 'number',
-            }
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,  # Expressly limit to subset of GeoJSON bboxes that are 2D.
+            "items": {
+                "type": "number",
+            },
         }
