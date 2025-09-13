@@ -1,10 +1,24 @@
 # Overture Schema
 
-Pydantic schemas for Overture Maps data structures.
+[Pydantic](https://docs.pydantic.dev/latest/) schemas for [Overture Maps data](https://docs.overturemaps.org/guides/).
 
 ## Overview
 
-This project provides type-safe Python models for validating and working with [Overture Maps Foundation](https://overturemaps.org) data. The library uses a multi-package workspace architecture with theme-based namespaces, enabling modular development and extensibility.
+This project provides type-safe Python models for validating and working with [Overture Maps Foundation](https://overturemaps.org/) data. Overture Maps is an open geospatial dataset containing buildings, places, addresses, transportation networks, and administrative boundaries curated from multiple sources.
+
+Use these schemas to:
+
+- Validate Overture Maps data
+- Build data processing pipelines with type safety
+- Extend schemas with custom fields and validation rules
+
+## Getting Started
+
+- Install [Python](https://www.python.org/downloads/) 3.10 or newer
+- Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
+- Clone this repository: `git clone https://github.com/OvertureMaps/schema.git`
+- Install dependencies: `uv sync --all-packages`
+- Run tests to ensure that everything is configured correctly: `make check` (on Windows, without `make`: `uv run pytest packages`)
 
 ## Packages
 
@@ -25,117 +39,65 @@ This workspace contains the following packages:
 - **`overture-schema-places-theme`** - Points of interest, businesses, and named locations
 - **`overture-schema-transportation-theme`** - Road segments and transportation network connectors
 
-### Usage Examples
+### Usage (Python)
+
+Install the main package using `pip` (or your package manager of choice):
+
+```shell
+pip install overture-schema
+```
 
 ```python
 from overture.schema.buildings.building import Building
 from overture.schema.places.place import Place
-from overture.schema.transportation.segment import Segment
+import json
 
-# Validate data
+# Validate data - supports both flat/tabular- (Parquet-style) and GeoJSON-formatted dicts
 building = Building.model_validate(feature_data)
-place = Place.model_validate(place_data)
+building_geojson = Building.model_validate(geojson_feature)
 
-# Extension development
-from overture.schema.core import OvertureFeature
-from overture.schema.validation.mixin import ValidationMixin
+# Parse and validate JSON strings
+building_from_json = Building.model_validate_json(json_string)
+
+# Convert to GeoJSON format
+geojson_output = building.model_dump(mode="json")
 ```
 
 ## Schema Extension
 
-The library is designed to support data producer extensions through multiple patterns. This extensibility is a core feature that allows organizations to add custom fields and types while maintaining compatibility with the base Overture schema.
+The library is designed to support data producer extensions through multiple patterns. This extensibility is a core feature that allows organizations to add custom fields and types while maintaining compatibility with the base Overture schema. We are in the process of determining how this should work.
 
-### Model Registration System
+### Model Registration via Entry Points
 
-TODO this is out of date
+Models are registered using [setuptools entry points](https://setuptools.pypa.io/en/latest/userguide/entry_point.html) in each package's `pyproject.toml` file. This enables automatic discovery and loading of models at runtime without requiring explicit imports.
 
-The library uses a global model registry that enables modular packages while supporting centralized validation and schema generation:
+Registration is done in the `[project.entry-points."overture.models"]` section:
 
-```python
-# Models register themselves on import
-from overture.schema.core import OvertureFeature, register_model
-from typing import Literal
-
-class MyFeature(OvertureFeature):
-    type: Literal["my_feature"] = "my_feature"
-    custom_field: str
-
-# Register when module is imported
-register_model("places", "my_feature", MyFeature)
+```toml
+[project.entry-points."overture.models"]
+"buildings.building" = "overture.schema.buildings.building.models:Building"
+"buildings.building_part" = "overture.schema.buildings.building_part.models:BuildingPart"
 ```
 
-The registration system provides:
-
-- **Import-time registration**: Models register automatically when modules are imported
-- **Global registry**: Central mapping of `(theme, type)` tuples to Pydantic model classes
-- **Explicit collection**: Tests and schema generation import all model modules to trigger registration
-
-### Extension Patterns
-
-#### New Columns
-
-Add fields to existing types:
+The discovery system provides programmatic access to registered models:
 
 ```python
-from overture.schema.buildings.building import Building
-from pydantic import Field
+from overture.schema.core.discovery import discover_models, get_registered_model
 
-class ExtendedBuilding(Building):
-    door_color: str = Field(description="Color of the building's front door")
-    security_level: int = Field(ge=1, le=5, description="Security clearance level")
-```
+# Discover all registered models
+all_models = discover_models()
+# Returns:
+# {
+#   ("buildings", "building"): BuildingModel,
+#   ("places", "place"): PlaceModel,
+# ...
+# }
 
-#### New Types
-
-Create entirely new feature types:
-
-```python
-from overture.schema.core import OvertureFeature
-from pydantic import Field
-from typing import Literal
-
-class EVCharger(OvertureFeature):
-    """Electric vehicle charging station"""
-    type: Literal["ev_charger"] = "ev_charger"
-    connector_types: list[str] = Field(description="Available connector types")
-    max_power_kw: float = Field(description="Maximum charging power in kilowatts")
-    network_operator: str | None = Field(default=None)
-
-# Register the new type
-register_model("places", "ev_charger", EVCharger)
-```
-
-#### Value Expansion
-
-Extend enums with additional values:
-
-```python
-from overture.schema.places.shared import PlaceCategory
-from enum import Enum
-
-class ExtendedPlaceCategory(PlaceCategory):
-    """Extended categories including specialized types"""
-    CRYPTOCURRENCY_ATM = "cryptocurrency_atm"
-    DRONE_DELIVERY_HUB = "drone_delivery_hub"
-```
-
-### Development Experience
-
-Extension authors typically:
-
-1. **Depend on specific packages**: Import only the theme packages needed rather than the full `overture-schema` package
-2. **Follow registration patterns**: Use `register_model()` to make extensions discoverable
-3. **Test against examples**: Validate extensions using the same example/counterexample system
-4. **Generate schemas**: Export JSON Schema for integration with other tools
-
-```python
-# Extension package structure
-my_extension/
-├── pyproject.toml  # Depends on specific overture-schema-* packages
-└── src/
-    └── my_extension/
-        ├── models.py      # Extended/new models with registration
-        └── __init__.py    # Import models to trigger registration
+# Get a specific model by theme and type
+building_model = get_registered_model("buildings", "building")
+if building_model:
+    # Use the model class
+    building = building_model.model_validate(building_data)
 ```
 
 ## Development
@@ -144,23 +106,16 @@ This project uses [uv](https://docs.astral.sh/uv/) for dependency management:
 
 ```bash
 # Install dependencies for entire workspace
-uv sync
+uv sync --all-packages
 
-# Run all tests across all packages
-make test
+# Run all tests and type/code quality checks
+make check
 
 # Run tests for specific package
-uv run pytest packages/overture-schema-building-type/
+uv run pytest packages/overture-schema-buildings-theme/
 
 # Run tests matching a pattern
 uv run pytest -k "buildings"
-```
-
-Check code quality:
-
-```shell
-uv run ruff check
-make mypy
 ```
 
 Auto-format / fix code to align with project expectations:
