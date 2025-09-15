@@ -29,26 +29,26 @@ class Dataset(StrictBaseModel):
         ),
     ]
     data_url: Annotated[
-        HttpUrl,
+        HttpUrl | Literal[""],
         Field(
             description="The data page or data portal of this source, typically includes links to data downloads and license links.",
         ),
     ]
     data_url_archived: Annotated[
-        HttpUrl,
+        HttpUrl | Literal[""],
         Field(
             description="URL of the source's data page, stored on archive.org, at or near the date the source data was obtained for use within Overture.",
         ),
     ]
     license_url: Annotated[
-        HttpUrl,
+        HttpUrl | Literal[""],
         Field(
             description="A link to this source's data license or page referencing the license associated with the data being imported. This should include explicit license terms.",
             format="uri",
         ),
     ]
     license_url_archived: Annotated[
-        HttpUrl,
+        HttpUrl | Literal[""],
         Field(
             description="URL of the source's license page, stored on archive.org, at or near the date the source data was obtained for use within Overture.",
             format="uri",
@@ -98,7 +98,7 @@ class Dataset(StrictBaseModel):
         ),
     ] = None
     data_download_url: Annotated[
-        list[HttpUrl] | None,
+        list[HttpUrl | Literal[""]] | None,
         Field(
             description="Either a direct download link of data from this source, typically a geo-format or compressed file, or an endpoint from where the data was obtained for use within Overture."
         ),
