@@ -12,6 +12,7 @@ This guide helps you work with Overture Maps Pydantic schemas - Python models th
   - [Collections and Lists](#collections-and-lists)
   - [Enumerations](#enumerations)
 - [Advanced Patterns](#advanced-patterns)
+  - [Relationship Patterns](#relationship-patterns)
   - [Discriminated Unions](#discriminated-unions)
   - [Pattern Properties (Constrained Key-Value Maps)](#pattern-properties-constrained-key-value-maps)
   - [Nested List Validation](#nested-list-validation)
@@ -516,6 +517,183 @@ Inheriting from `str, Enum` makes enum values work as both enums and strings, wh
 
 ## Advanced Patterns
 
+### Relationship Patterns
+
+**What are relationships?** Relationships (or "associations") represent connections between different features or models. Think of them like links that connect related pieces of information - for example, a city center that belongs to an administrative area, or a transportation segment that connects to specific intersections.
+
+Pydantic provides several ways to express these relationships, each suited to different use cases and complexity levels.
+
+#### 1. Direct References (Foreign Keys)
+
+The fundamental pattern is a direct reference where one feature "points to" another using an ID field with type safety and semantic information. This creates a one-way relationship - like a building knowing which neighborhood it belongs to, but the neighborhood doesn't automatically know about all its buildings.
+
+```python
+from typing import Annotated, Literal
+from pydantic import Field
+from overture.schema.core import Feature
+from overture.schema.core.ref import Reference, Relationship
+from overture.schema.core.types import Id
+
+class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]]):
+    """Area polygon that belongs to a division."""
+
+    # Required reference - every division area must belong to a division
+    division_id: Annotated[
+        Id,
+        Reference(Relationship.BELONGS_TO, Division),
+        Field(description="Division this area belongs to")
+    ]
+
+    # Optional reference - may or may not be associated with a place
+    place_id: Annotated[
+        Id | None,
+        Reference(Relationship.CONNECTS_TO, Place),
+        Field(description="Place this area is associated with")
+    ] = None
+```
+
+**Available relationship types (see [Relationship](packages/overture-schema-core/src/overture/schema/core/ref.py)):**
+
+- **`BELONGS_TO`**: The referencing feature belongs to the referenced feature (division area belongs to division)
+- **`CONNECTS_TO`**: The referencing feature connects to the referenced feature (segment connects to connector)
+- **`BOUNDARY_OF`**: The referencing feature forms a boundary of the referenced feature (boundary line defines area)
+
+#### 2. Association as a Separate Feature (Complex Relationships)
+
+When the relationship itself needs to store information, create a dedicated feature to represent that relationship. This is like creating a "relationship record" that describes how two things are connected.
+
+**Simple relationship (use Pattern 1):**
+
+- "Building A belongs to Neighborhood B" - just needs an ID reference
+
+**Complex relationship (use Pattern 2):**
+
+- "Admin Area X has City Center Y as its primary center since 2010 with 85% confidence" - the relationship has properties (`type=primary`, `date=2010`, `confidence=85%`)
+
+```python
+class AdminCityCenterAssociation(Feature[Literal["associations"], Literal["admin_city_center"]]):
+    """Describes how an administrative area relates to a city center."""
+
+    # The two things being connected
+    admin_area_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, AdminArea)]
+    city_center_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, CityCenter)]
+
+    # Information about the relationship itself
+    relationship_type: Literal["primary_center", "secondary_center"] = "primary_center"
+    established_date: str | None = None
+    confidence_score: Annotated[float64, Field(ge=0.0, le=1.0)] | None = None
+```
+
+When to use separate association features:
+
+- The relationship has properties: confidence scores, dates, types, notes
+- Many-to-many connections: one admin area can have multiple city centers, one city center can serve multiple admin areas
+- You need to query the relationships: "show me all primary city center relationships established after 2015"
+
+This focuses on the core concept: when relationships carry data, they become features themselves.
+
+#### 3. Collection References
+
+When a feature needs to reference multiple other features, use a list of references:
+
+```python
+class Route(Feature[Literal["transportation"], Literal["route"]]):
+    """A transportation route that passes through multiple segments."""
+
+    segment_ids: Annotated[
+        list[Id],
+        Field(min_length=1, description="Ordered list of segments in this route"),
+        UniqueItemsConstraint(),  # No duplicate segments
+        Reference(Relationship.CONNECTS_TO, TransportationSegment)  # All IDs reference segments
+    ]
+
+class Building(Feature[Literal["buildings"], Literal["building"]]):
+    """A building that may contain multiple building parts."""
+
+    part_ids: Annotated[
+        list[Id] | None,
+        Field(description="Building parts that belong to this building"),
+        Reference(Relationship.BOUNDARY_OF, BuildingPart)  # All IDs reference building parts
+    ] = None
+```
+
+#### Best Practices
+
+**1. Always Use Reference Annotations**
+
+Include `Reference` annotations for semantic clarity and documentation:
+
+```python
+# Good - complete relationship information
+division_id: Annotated[
+    Id,
+    Reference(Relationship.BELONGS_TO, Division),
+    Field(description="Division this area belongs to")
+]
+
+# Avoid - missing semantic information
+division_id: Id
+```
+
+**2. Choose the Right Pattern**
+
+- **Simple relationships** → Direct references (foreign keys)
+- **Relationships with metadata** → Separate association features
+
+```python
+# Simple: just a link
+admin_area_id: Annotated[Id, Reference(Relationship.BELONGS_TO, AdminArea)]
+
+# Complex: relationship has properties
+class AdminCityCenterAssociation(Feature[...]):
+    admin_area_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, AdminArea)]
+    city_center_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, CityCenter)]
+    relationship_type: Literal["primary", "secondary"] = "primary"
+```
+
+#### Association Pattern Examples
+
+**Transportation Network:**
+
+```python
+# Segments connect to connectors (intersection points)
+class Segment(Feature[Literal["transportation"], Literal["segment"]]):
+    from_connector_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, Connector)]
+    to_connector_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, Connector)]
+
+# Routes contain multiple segments in order
+class Route(Feature[Literal["transportation"], Literal["route"]]):
+    segment_ids: Annotated[
+        list[Id],
+        Reference(Relationship.CONNECTS_TO, TransportationSegment),
+        Field(description="Ordered list of segments in this route")
+    ]
+```
+
+**Administrative Hierarchy:**
+
+```python
+# Division areas belong to divisions
+class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]]):
+    division_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Division)]
+
+# Places belong to administrative areas
+class Place(Feature[Literal["places"], Literal["place"]]):
+    admin_area_id: Annotated[Id | None, Reference(Relationship.BELONGS_TO, AdminArea)] = None
+```
+
+**Building Relationships:**
+
+```python
+# Building parts belong to buildings
+class BuildingPart(Feature[Literal["buildings"], Literal["building_part"]]):
+    building_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Building)]
+
+# Buildings can reference their address
+class Building(Feature[Literal["buildings"], Literal["building"]]):
+    address_id: Annotated[Id | None, Reference(Relationship.CONNECTS_TO, Address)] = None
+```
+
 ### Discriminated Unions
 
 **What is a discriminated union?** A discriminated union is a type that can be backed by one of several different models, where a specific field (the "discriminator") determines which model it actually is. Think of it like a form that changes its fields based on a category selection.
@@ -551,6 +729,71 @@ Segment = Annotated[
 ```
 
 The `discriminator="subtype"` tells Pydantic to look at the `subtype` field to determine which specific model to use. If `subtype` is "road", it uses `RoadSegment`; if "rail", it uses `RailSegment`.
+
+#### Abstract vs Concrete Classes
+
+**What's the difference?** In UML and traditional OOP, abstract classes cannot be instantiated - they serve as templates for concrete classes. In Pydantic, by default, **all classes are concrete** (can be instantiated), but you can make classes abstract when needed.
+
+**Current pattern (all concrete):**
+
+```python
+# Both can be instantiated as map features
+base_segment = TransportationSegment(subtype=Subtype.ROAD, geometry=...)  # Valid
+road_segment = RoadSegment(subtype=Subtype.ROAD, geometry=..., class_=...)  # Valid
+```
+
+**Making the base class abstract:**
+
+```python
+from abc import ABC, abstractmethod
+from typing import Annotated, Literal
+from pydantic import Field
+
+class TransportationSegment(Feature[Literal["transportation"], Literal["segment"]], ABC):
+    """Abstract base - cannot be instantiated directly."""
+
+    subtype: Subtype  # Discriminator field
+
+    @abstractmethod
+    def get_speed_limit(self) -> float:
+        """Each concrete type must implement this."""
+        pass
+
+class RoadSegment(TransportationSegment):
+    """Concrete class - can be instantiated."""
+    subtype: Literal[Subtype.ROAD]
+    speed_limits: SpeedLimits | None = None
+
+    def get_speed_limit(self) -> float:
+        return self.speed_limits.max_speed if self.speed_limits else 50.0
+
+# Now only concrete classes can be instantiated
+# base_segment = TransportationSegment(...)  # TypeError: Can't instantiate abstract class
+road_segment = RoadSegment(subtype=Subtype.ROAD, ...)  # Valid
+```
+
+**Registration pattern (recommended when working with Overture models):**
+
+Instead of making classes abstract, we use **entry point registration** where only specific concrete types are discoverable as map features:
+
+```python
+# In packages/overture-schema-transportation-theme/pyproject.toml
+[project.entry-points."overture.models"]
+"transportation.connector" = "overture.schema.transportation.connector.models:Connector"
+"transportation.segment" = "overture.schema.transportation.segment.models:Segment"
+```
+
+**Real example:** See [`packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/models.py`](packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/models.py) where:
+
+- **`Segment`** is a discriminated union: `RoadSegment | RailSegment | WaterSegment`
+- **`TransportationSegment`** is the concrete base class that all segment types inherit from
+- **Individual segment types** (`RoadSegment`, `RailSegment`, `WaterSegment`) are NOT directly registered
+
+**This registration pattern means:**
+
+1. Only **`Segment`** (the union type) is discoverable as an official map feature
+2. The union automatically resolves to the correct concrete type based on the `subtype` field
+3. All classes (`TransportationSegment`, `RoadSegment`, etc.) can be reused as base classes for alternate implementations
 
 ### Pattern Properties (Constrained Key-Value Maps)
 
@@ -937,6 +1180,40 @@ class Contact(StrictBaseModel):
     ] = None
 ```
 
+#### Association Feature Template
+
+```python models.py
+from typing import Annotated, Literal
+from pydantic import Field
+from overture.schema.core import Feature
+from overture.schema.core.ref import Reference, Relationship
+from overture.schema.core.types import Id
+from overture.schema.core.primitives.numeric import float64
+
+class MyAssociation(Feature[Literal["associations"], Literal["my_association"]]):
+    """Represents a relationship between two features with metadata."""
+
+    # References to the associated features
+    feature_a_id: Annotated[
+        Id,
+        Reference(Relationship.CONNECTS_TO, FeatureA),
+        Field(description="First feature in the relationship")
+    ]
+
+    feature_b_id: Annotated[
+        Id,
+        Reference(Relationship.CONNECTS_TO, FeatureB),
+        Field(description="Second feature in the relationship")
+    ]
+
+    # Relationship metadata
+    relationship_type: Literal["primary", "secondary"] = "primary"
+    confidence: Annotated[float64 | None, Field(ge=0.0, le=1.0)] = None
+
+    # Optional contextual information
+    notes: str | None = None
+```
+
 ### Quick Reference
 
 #### Essential Patterns (Most Common)
@@ -951,6 +1228,10 @@ priority: Literal["high", "medium", "low"] | None = None  # Constrained values
 # Validated fields
 height: Annotated[float64 | None, Field(ge=0, description="Height in meters")] = None
 tags: Annotated[list[str] | None, Field(min_length=1), UniqueItemsConstraint()] = None
+
+# Association patterns
+parent_id: Annotated[Id | None, Reference(Relationship.BELONGS_TO, ParentModel)] = None
+connector_ids: list[Id]  # References to multiple related features
 ```
 
 #### Model Templates
@@ -992,6 +1273,10 @@ from overture.schema.core import Feature
 from overture.schema.core.models import StrictBaseModel
 from overture.schema.validation import UniqueItemsConstraint
 from overture.schema.core.primitives.numeric import int32, float64
+
+# For associations and references
+from overture.schema.core.ref import Reference, Relationship
+from overture.schema.core.types import Id
 ```
 
 #### Naming Conventions
