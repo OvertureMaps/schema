@@ -10,3 +10,4 @@ properties:
   theme: places
   type: place
   version: 1
+  operating_status: open

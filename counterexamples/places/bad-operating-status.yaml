@@ -6,12 +6,9 @@ geometry:
   coordinates: [0, 0]
 properties:
   categories:
-    primary: the1_category_you_want_first
-    alternate:
-      - another_category
+    primary: some_category
   confidence: 0.9
-  websites:
-    - https://www.example.com
+    - https://www.example.com/
   emails:
     - info@example.com
   socials:
@@ -33,6 +30,13 @@ properties:
   theme: places
   type: place
   version: 1
+  sources:
+    - property: ""
+      dataset: metaPlaces
+      record_id: "10101"
+    - property: "/properties/brand"
+      dataset: msftPlaces
+      record_id: "10df72b8"
   names:
     primary: My Sweet POI
     common:
@@ -40,4 +44,4 @@ properties:
     rules:
       - variant: short
         value: MSPOI
-  operating_status: open      
+  operating_status: blah
