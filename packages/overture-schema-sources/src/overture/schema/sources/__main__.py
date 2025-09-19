@@ -80,12 +80,32 @@ def main() -> None:
 
             return None
 
+        def format_field_path(loc):
+            if len(loc) <= 2:
+                return ""
+
+            field_parts = []
+            for part in loc[2:]:
+                if isinstance(part, str):
+                    if "[" in part or "(" in part or ")" in part:
+                        continue
+                    field_parts.append(part)
+                # Ignore numeric indices in the path to keep output concise
+
+            return ".".join(field_parts)
+
         for error in e.errors():
-            source_name = source_name_for_error(error["loc"])
+            loc = error["loc"]
+            source_name = source_name_for_error(loc)
+
             if source_name:
-                identifier = source_name
+                field_path = format_field_path(loc)
+                if field_path:
+                    identifier = f"{source_name}: {field_path}"
+                else:
+                    identifier = source_name
             else:
-                identifier = " -> ".join(str(loc) for loc in error["loc"])
+                identifier = " -> ".join(str(part) for part in loc)
 
             print(f"  {identifier}: {error['msg']}", file=sys.stderr)
         sys.exit(1)
