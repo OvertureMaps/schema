@@ -50,9 +50,44 @@ def main() -> None:
 
     except ValidationError as e:
         print(f"Error: Validation failed for '{json_file_path}':", file=sys.stderr)
+
+        datasets = None
+        if isinstance(data, dict):
+            datasets = data.get("datasets")
+
+        def source_name_for_error(loc):
+            if not loc:
+                return None
+            if loc[0] != "datasets" or len(loc) < 2:
+                return None
+
+            dataset_index = loc[1]
+            if not isinstance(dataset_index, int):
+                return None
+
+            if not isinstance(datasets, list):
+                return None
+            if dataset_index < 0 or dataset_index >= len(datasets):
+                return None
+
+            dataset = datasets[dataset_index]
+            if not isinstance(dataset, dict):
+                return None
+
+            source_name = dataset.get("source_name")
+            if isinstance(source_name, str) and source_name:
+                return source_name
+
+            return None
+
         for error in e.errors():
-            location = " -> ".join(str(loc) for loc in error["loc"])
-            print(f"  {location}: {error['msg']}", file=sys.stderr)
+            source_name = source_name_for_error(error["loc"])
+            if source_name:
+                identifier = source_name
+            else:
+                identifier = " -> ".join(str(loc) for loc in error["loc"])
+
+            print(f"  {identifier}: {error['msg']}", file=sys.stderr)
         sys.exit(1)
 
     except Exception as e:
