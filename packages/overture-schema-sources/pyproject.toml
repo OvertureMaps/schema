@@ -29,3 +29,6 @@ path = "src/overture/schema/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]
+
+[project.entry-points."overture.models"]
+"sources.sources" = "overture.schema.sources.models:Sources"
