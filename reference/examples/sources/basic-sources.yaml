@@ -1,0 +1,71 @@
+---
+datasets:
+  - source_name: Example City Open Data
+    source_dataset_name: address_points
+    data_url: https://data.example.gov/datasets/address-points
+    data_url_archived: https://web.archive.org/web/2025/https://data.example.gov/datasets/address-points
+    license_url: https://data.example.gov/license
+    license_url_archived: https://web.archive.org/web/2025/https://data.example.gov/license
+    license_type: CC-BY-4.0
+    license_text: |
+      The City of Example grants permission to use this dataset under the terms of the Creative Commons Attribution 4.0 International License.
+    license_attribution: City of Example GIS Department
+    coverage_bbox:
+      - -122.79
+      - 45.43
+      - -122.45
+      - 45.65
+    inception_date: '2022-08-01'
+    url: https://example.gov
+    url_archived: https://web.archive.org/web/2025/https://example.gov
+    data_download_url:
+      - https://data.example.gov/downloads/address_points.geojson
+    countries:
+      - US
+    coverage_description: Citywide coverage
+    data_layer_name: address_points
+    oa_path:
+      - us/example_city/addresses.csv
+    address_levels:
+      - address
+    file_format: CSV
+    update_frequency: monthly
+    build_source: OpenAddresses
+    update_type: continuous
+    update_schedule:
+      - January
+      - July
+    known_issues: Source omits new subdivisions until quarterly update.
+    notes: Dataset normalized to Overture schema during ingest.
+    requires_attribution: Yes
+  - source_name: Example Parcel Authority
+    source_dataset_name: parcel_boundaries
+    data_url: https://parcels.example.gov/downloads/boundaries
+    data_url_archived: https://web.archive.org/web/2025/https://parcels.example.gov/downloads/boundaries
+    license_url: https://parcels.example.gov/license
+    license_url_archived: https://web.archive.org/web/2025/https://parcels.example.gov/license
+    license_type: ODbL-1.0
+    license_text: |
+      This dataset is available under the Open Database License v1.0.
+    license_attribution: Example Parcel Authority
+    coverage_bbox:
+      - -122.81
+      - 45.38
+      - -122.37
+      - 45.72
+    url: https://parcels.example.gov
+    data_download_url:
+      - https://parcels.example.gov/downloads/parcels.gpkg
+    countries:
+      - US
+    coverage_description: Countywide parcel coverage
+    file_format: GPKG
+    update_frequency: quarterly
+    build_source: tf-data-platform
+    update_type: manual
+    known_issues: Parcel ownership attributes excluded from public release.
+    notes: Simplified geometry provided for efficient rendering.
+    requires_attribution: Required in downstream products.
+license_priority:
+  CC-BY-4.0: 1
+  ODbL-1.0: 2
