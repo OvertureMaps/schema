@@ -32,3 +32,7 @@ packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
 "sources.sources" = "overture.schema.sources.models:Sources"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
