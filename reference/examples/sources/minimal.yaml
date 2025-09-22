@@ -1,0 +1,18 @@
+---
+datasets:
+  - source_name: Address Sample
+    source_dataset_name: addresses_sample
+    data_url: https://example.com/addresses
+    data_url_archived: https://web.archive.org/web/2024/https://example.com/addresses
+    license_url: https://example.com/addresses/license
+    license_url_archived: https://web.archive.org/web/2024/https://example.com/addresses/license
+    license_type: CC-BY-4.0
+    license_text: This sample dataset is released under CC-BY-4.0.
+    license_attribution: Addresses Sample Contributors
+    coverage_bbox:
+      - -10.0
+      - 50.0
+      - -9.5
+      - 50.5
+license_priority:
+  CC-BY-4.0: 1
