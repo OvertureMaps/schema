@@ -8,7 +8,6 @@ from overture.schema.core import (
     Feature,
 )
 from overture.schema.core.enums import Side
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     CartographicallyHinted,
     Named,
@@ -26,6 +25,11 @@ from overture.schema.core.types import (
 )
 from overture.schema.core.validation import (
     UniqueItemsConstraint,
+)
+from overture.schema.foundation.primitive.geometry import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
 )
 
 from ..enums import DivisionClass, PlaceType

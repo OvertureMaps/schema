@@ -8,12 +8,12 @@ from overture.schema.core import (
     Feature,
     StrictBaseModel,
 )
-from overture.schema.core.geometry import (
+from overture.schema.core.types import CountryCode, TrimmedString
+from overture.schema.foundation.primitive.geometry import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
 )
-from overture.schema.core.types import CountryCode, TrimmedString
 
 
 class AddressLevel(StrictBaseModel):

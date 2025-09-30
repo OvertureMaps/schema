@@ -7,7 +7,11 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.foundation.primitive.geometry import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 
 
 class Connector(Feature[Literal["transportation"], Literal["connector"]]):

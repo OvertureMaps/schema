@@ -4,9 +4,8 @@ from typing import Any
 import pytest
 from deepdiff import DeepDiff
 from overture.schema.core.bbox import BBox
-from overture.schema.core.geometry import Geometry
-from overture.schema.core.json_schema import EnhancedJsonSchemaGenerator
 from overture.schema.core.models import Feature
+from overture.schema.foundation.primitive.geometry import Geometry
 from shapely.geometry import LineString, Point
 
 
@@ -40,6 +39,7 @@ def test_feature_json_schema() -> None:
                 "additionalProperties": False,
                 "properties": {
                     "between": {
+<<<<<<< HEAD
                         "items": {
                             "maximum": 1.0,
                             "minimum": 0.0,
@@ -61,6 +61,47 @@ def test_feature_json_schema() -> None:
                         "type": "string",
                     },
                     "confidence": {"maximum": 1.0, "minimum": 0.0, "type": "number"},
+=======
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "maximum": 1.0,
+                                    "minimum": 0.0,
+                                    "type": "number",
+                                },
+                                "maxItems": 2,
+                                "minItems": 2,
+                                "type": "array",
+                            },
+                            {"type": "null"},
+                        ],
+                        "default": None,
+                    },
+                    "property": {"type": "string"},
+                    "dataset": {"type": "string"},
+                    "record_id": {
+                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                        "default": None,
+                    },
+                    "update_time": {
+                        "anyOf": [
+                            {
+                                "format": "date-time",
+                                "pattern": "^([1-9]\\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d|60)(\\.\\d{1,3})?(Z|[-+]([01]\\d|2[0-3]):[0-5]\\d)$",
+                                "type": "string",
+                            },
+                            {"type": "null"},
+                        ],
+                        "default": None,
+                    },
+                    "confidence": {
+                        "anyOf": [
+                            {"maximum": 1.0, "minimum": 0.0, "type": "number"},
+                            {"type": "null"},
+                        ],
+                        "default": None,
+                    },
+>>>>>>> cdf76fd (wip - repackage/modularize)
                 },
                 "required": ["property", "dataset"],
                 "type": "object",
@@ -397,22 +438,50 @@ def test_feature_json_schema() -> None:
                 ],
             },
             "bbox": {
+<<<<<<< HEAD
                 "items": {"type": "number"},
                 "maxItems": 4,
                 "minItems": 4,
                 "type": "array",
+=======
+                "anyOf": [
+                    {
+                        "items": {"type": "number"},
+                        "maxItems": 4,
+                        "minItems": 4,
+                        "type": "array",
+                    },
+                    {"type": "null"},
+                ],
+                "default": None,
+>>>>>>> cdf76fd (wip - repackage/modularize)
             },
             "properties": {
                 "type": "object",
                 "properties": {
                     "theme": {"type": "string"},
                     "type": {"type": "string"},
+<<<<<<< HEAD
                     "version": {"maximum": 2147483647, "minimum": 0, "type": "integer"},
                     "sources": {
                         "items": {"$ref": "#/$defs/SourcePropertyItem"},
                         "minItems": 1,
                         "type": "array",
                         "uniqueItems": True,
+=======
+                    "version": {"minimum": 0, "type": "integer"},
+                    "sources": {
+                        "anyOf": [
+                            {
+                                "items": {"$ref": "#/$defs/SourcePropertyItem"},
+                                "minItems": 1,
+                                "type": "array",
+                                "uniqueItems": True,
+                            },
+                            {"type": "null"},
+                        ],
+                        "default": None,
+>>>>>>> cdf76fd (wip - repackage/modularize)
                     },
                 },
                 "unevaluatedProperties": False,

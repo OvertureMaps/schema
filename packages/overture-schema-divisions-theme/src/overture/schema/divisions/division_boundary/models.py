@@ -7,7 +7,6 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import Perspectives
 from overture.schema.core.ref import Reference, Relationship
 from overture.schema.core.types import (
@@ -19,6 +18,11 @@ from overture.schema.core.validation import (
     UniqueItemsConstraint,
     exactly_one_of,
     not_required_if,
+)
+from overture.schema.foundation.primitive.geometry import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
 )
 
 from ..division import Division

@@ -8,8 +8,12 @@ from overture.schema.base.land_cover.enums import LandCoverSubtype
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
-from overture.schema.core.models import CartographicallyHinted
+from overture.schema.core.models import CartographicallyHinted, Stacked
+from overture.schema.foundation.primitive.geometry import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 
 
 class LandCover(

@@ -7,14 +7,18 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     Named,
 )
 from overture.schema.core.validation import UniqueItemsConstraint
-from overture.schema.transportation.models import ConnectorReference
+from overture.schema.foundation.primitive.geometry import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 
 from ..enums import RailClass, RoadClass, Subclass, Subtype
+from ..models import ConnectorReference
 from ..types import (
     AccessRules,
     Destinations,

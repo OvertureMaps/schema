@@ -13,12 +13,12 @@ from pydantic import (
 from pydantic_core import core_schema
 
 from overture.schema.core.bbox import BBox
+from overture.schema.foundation.primitive.geometry import Geometry
 from overture.schema.validation import (
     allow_extension_fields,
 )
 
 from .enums import NameVariant, PerspectiveMode, Side
-from .geometry import Geometry
 from .types import (
     CommonNames,
     ConfidenceScore,

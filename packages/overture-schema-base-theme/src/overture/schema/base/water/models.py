@@ -9,8 +9,12 @@ from overture.schema.base.water.enums import WaterClass, WaterSubtype
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
+from overture.schema.foundation.primitive.geometry import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 
 
 class Water(

@@ -8,7 +8,6 @@ from overture.schema.core import (
     Feature,
     StrictBaseModel,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     Address,
     Named,
@@ -20,6 +19,11 @@ from overture.schema.core.types import (
 )
 from overture.schema.core.validation import (
     UniqueItemsConstraint,
+)
+from overture.schema.foundation.primitive.geometry import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
 )
 
 from ..types import PlaceCategory

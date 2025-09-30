@@ -10,8 +10,12 @@ from overture.schema.base.types import Elevation
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
+from overture.schema.foundation.primitive.geometry import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 
 from ..enums import SurfaceMaterial
 
