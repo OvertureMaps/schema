@@ -22,7 +22,7 @@ from overture.schema.core.types import (
     RegionCode,
     WikidataId,
 )
-from overture.schema.core.validation import (
+from overture.schema.foundation.constraint import (
     UniqueItemsConstraint,
 )
 from overture.schema.foundation.primitive import (

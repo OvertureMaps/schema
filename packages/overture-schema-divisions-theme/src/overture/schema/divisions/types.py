@@ -2,7 +2,7 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
-from overture.schema.core.validation import UniqueItemsConstraint
+from overture.schema.foundation.constraint import UniqueItemsConstraint
 
 from .models import HierarchyItem
 

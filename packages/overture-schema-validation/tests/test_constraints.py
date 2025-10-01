@@ -7,6 +7,7 @@ from typing import Annotated
 import pytest
 from pydantic import BaseModel, Field, ValidationError
 
+from overture.schema.foundation.constraint import UniqueItemsConstraint
 from overture.schema.validation import (
     CategoryPatternConstraint,
     ConfidenceScoreConstraint,
@@ -19,7 +20,6 @@ from overture.schema.validation import (
     PatternConstraint,
     PhoneNumberConstraint,
     RegionCodeConstraint,
-    UniqueItemsConstraint,
     WhitespaceConstraint,
     WikidataConstraint,
 )

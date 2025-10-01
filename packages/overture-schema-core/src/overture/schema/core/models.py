@@ -12,6 +12,7 @@ from pydantic import (
 )
 from pydantic_core import core_schema
 
+from overture.schema.foundation.constraint import UniqueItemsConstraint
 from overture.schema.foundation.primitive import (
     BBox,
     Geometry,
@@ -39,7 +40,7 @@ from .types import (
     SortKey,
     TrimmedString,
 )
-from .validation import ConstraintValidatedModel, UniqueItemsConstraint
+from .validation import ConstraintValidatedModel
 
 
 class StrictBaseModel(BaseModel):

@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel, Field
 
+from overture.schema.foundation.constraint import UniqueItemsConstraint
 from overture.schema.validation.constraints import (
     ConfidenceScoreConstraint,
     CountryCodeConstraint,
@@ -16,7 +17,6 @@ from overture.schema.validation.constraints import (
     NoWhitespaceConstraint,
     PatternConstraint,
     RegionCodeConstraint,
-    UniqueItemsConstraint,
     WhitespaceConstraint,
 )
 from overture.schema.validation.mixin import (

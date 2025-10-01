@@ -20,10 +20,10 @@ from overture.schema.core.types import (
 )
 from overture.schema.core.validation import (
     ConstraintValidatedModel,
-    UniqueItemsConstraint,
     any_of,
     min_properties,
 )
+from overture.schema.foundation.constraint import UniqueItemsConstraint
 from overture.schema.foundation.primitive import float64, int32
 
 from .enums import (

@@ -10,7 +10,7 @@ from overture.schema.core import (
 from overture.schema.core.models import (
     Named,
 )
-from overture.schema.core.validation import UniqueItemsConstraint
+from overture.schema.foundation.constraint import UniqueItemsConstraint
 from overture.schema.foundation.primitive import (
     Geometry,
     GeometryType,

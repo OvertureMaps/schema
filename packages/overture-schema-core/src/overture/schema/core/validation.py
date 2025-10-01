@@ -1,6 +1,6 @@
+from overture.schema.foundation.constraint import UniqueItemsConstraint
 from overture.schema.validation import (
     ConstraintValidatedModel,
-    UniqueItemsConstraint,
     any_of,
     exactly_one_of,
     min_properties,

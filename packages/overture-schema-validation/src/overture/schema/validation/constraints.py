@@ -1,9 +1,7 @@
 """Constraint-based validation for Overture Maps schemas."""
 
 import re
-from abc import ABC, abstractmethod
-from collections.abc import Collection
-from typing import Any, get_origin
+from typing import Any
 
 from pydantic import (
     GetCoreSchemaHandler,
@@ -13,32 +11,10 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails, core_schema
 
-
-class BaseConstraint(ABC):
-    """Base class for all constraints."""
-
-    def validate(self, value: Any, info: ValidationInfo) -> None:  # noqa: B027
-        """Validate the value and raise ValidationError if invalid."""
-        pass
-
-    @abstractmethod
-    def __get_pydantic_core_schema__(
-        self, source: type[Any], handler: GetCoreSchemaHandler
-    ) -> core_schema.CoreSchema:
-        """Generate Pydantic core schema."""
-        pass
-
-    def __get_pydantic_json_schema__(
-        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
-        """Generate JSON schema.
-
-        Override in subclasses for custom schema.
-        """
-        return handler(core_schema)
+from overture.schema.foundation.constraint import CollectionConstraint, Constraint
 
 
-class StringConstraint(BaseConstraint):
+class StringConstraint(Constraint):
     """Base class for string-based constraints."""
 
     def __get_pydantic_core_schema__(
@@ -53,32 +29,6 @@ class StringConstraint(BaseConstraint):
         return core_schema.with_info_after_validator_function(
             validate_string, python_schema
         )
-
-
-class CollectionConstraint(BaseConstraint):
-    """Base class for collection-based constraints."""
-
-    def __get_pydantic_core_schema__(
-        self, source: type[Any], handler: GetCoreSchemaHandler
-    ) -> core_schema.CoreSchema:
-        # Let the handler generate the proper schema for the collection type
-        python_schema = handler(source)
-
-        def validate_collection(value: Any, info: ValidationInfo) -> Any:
-            self.validate(value, info)
-            return value
-
-        return core_schema.with_info_after_validator_function(
-            validate_collection, python_schema
-        )
-
-    @staticmethod
-    def _is_collection_type(source: type[Any]) -> bool:
-        origin = get_origin(source)
-        if origin is not None:
-            return issubclass(origin, Collection)
-        else:
-            return issubclass(source, Collection)
 
 
 class PatternConstraint(StringConstraint):
@@ -362,51 +312,6 @@ class WhitespaceConstraint(StringConstraint):
         return json_schema
 
 
-class UniqueItemsConstraint(CollectionConstraint):
-    """Constraint to ensure all items in a collection are unique."""
-
-    def validate(self, value: list[Any], info: ValidationInfo) -> None:
-        # First try the fast path for hashable items
-        try:
-            if len(value) != len(set(value)):
-                self._raise_duplicate_error(value, info)
-        except TypeError:
-            # Fallback for unhashable items (like lists)
-            if self._has_duplicates_unhashable(value):
-                self._raise_duplicate_error(value, info)
-
-    def _has_duplicates_unhashable(self, value: list[Any]) -> bool:
-        """Check for duplicates when items are not hashable."""
-        for i, item1 in enumerate(value):
-            for item2 in value[i + 1 :]:
-                if item1 == item2:
-                    return True
-        return False
-
-    def _raise_duplicate_error(self, value: list[Any], info: ValidationInfo) -> None:
-        """Raise validation error for duplicate items."""
-        context = info.context or {}
-        loc = context.get("loc_prefix", ()) + ("value",)
-        raise ValidationError.from_exception_data(
-            title=self.__class__.__name__,
-            line_errors=[
-                InitErrorDetails(
-                    type="value_error",
-                    loc=loc,
-                    input=value,
-                    ctx={"error": "All items must be unique"},
-                )
-            ],
-        )
-
-    def __get_pydantic_json_schema__(
-        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
-        json_schema = handler(core_schema)
-        json_schema["uniqueItems"] = True
-        return json_schema
-
-
 class CategoryPatternConstraint(StringConstraint):
     """Constraint for place category patterns (snake_case)."""
 
@@ -508,7 +413,8 @@ class PhoneNumberConstraint(StringConstraint):
         return json_schema
 
 
-class ConfidenceScoreConstraint(BaseConstraint):
+# TODO: Not understanding why this is needed versus just using vanilla annotation.
+class ConfidenceScoreConstraint(Constraint):
     """Constraint for confidence/probability scores (0.0 to 1.0)."""
 
     def __get_pydantic_core_schema__(
@@ -593,7 +499,7 @@ class NoWhitespaceConstraint(StringConstraint):
         return json_schema
 
 
-class ExtensionPrefixModelConstraint(BaseConstraint):
+class ExtensionPrefixModelConstraint(Constraint):
     """Constraint for models that allow only ext_* prefixed extra fields.
 
     This ensures that additional properties beyond those explicitly defined

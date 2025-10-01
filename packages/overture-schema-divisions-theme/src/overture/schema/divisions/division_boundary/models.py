@@ -15,10 +15,10 @@ from overture.schema.core.types import (
     RegionCode,
 )
 from overture.schema.core.validation import (
-    UniqueItemsConstraint,
     exactly_one_of,
     not_required_if,
 )
+from overture.schema.foundation.constraint import UniqueItemsConstraint
 from overture.schema.foundation.primitive import (
     Geometry,
     GeometryType,
