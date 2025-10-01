@@ -1,28 +1,21 @@
 [project]
-name = "overture-schema-sources"
-dynamic = ["version"]
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.10"
-license = "MIT"
 dependencies = [
     "overture-schema-core",
     "pydantic>=2.0",
 ]
+description = "Add your description here"
+dynamic = ["version"]
+license = "MIT"
+name = "overture-schema-sources"
+readme = "README.md"
+requires-python = ">=3.10"
 
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
 
 [build-system]
-requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[dependency-groups]
-dev = [
-    "pytest>=7.0",
-    "ruff",
-    "mypy",
-]
+requires = ["hatchling"]
 
 [tool.hatch.version]
 path = "src/overture/schema/__about__.py"
