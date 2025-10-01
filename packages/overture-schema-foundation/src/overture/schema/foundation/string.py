@@ -1,4 +1,4 @@
-from typing import Annotated, NewType
+from typing import Annotated, NewType, TypeAlias
 
 from pydantic import Field
 
@@ -14,7 +14,7 @@ from overture.schema.foundation.constraint import (
     WikidataIdConstraint,
 )
 
-HexColor = NewType(
+HexColor: TypeAlias = NewType(
     "HexColor",
     Annotated[
         str,
@@ -23,7 +23,7 @@ HexColor = NewType(
             description="A color represented as an #RRGGBB or #RGB hexadecimal string, for example #ff0000 for pure red."
         ),
     ],
-)
+)  # type: ignore [type-arg]
 HexColor.__doc__ = """
 HexColor : NewType
     A color represented as an #RRGGBB or #RGB hexadecimal string.
@@ -36,14 +36,14 @@ HexColor : NewType
 """
 
 
-JsonPointer = NewType(
+JsonPointer: TypeAlias = NewType(
     "JsonPointer",
     Annotated[
         str,
         JsonPointerConstraint(),
         Field(description="A JSON Pointer (as described in RFC-6901)"),
     ],
-)
+)  # type: ignore [type-arg]
 JsonPointer.__doc__ = """
 JsonPointer : NewType
     A JSON Pointer
@@ -52,7 +52,7 @@ JsonPointer : NewType
 """
 
 
-LanguageTag = NewType(
+LanguageTag: TypeAlias = NewType(
     "LanguageTag",
     Annotated[
         str,
@@ -61,7 +61,7 @@ LanguageTag = NewType(
             description="A BCP-47 language tag",
         ),
     ],
-)
+)  # type: ignore [type-arg]
 LanguageTag.__doc__ = """
 LanguageTag : NewType
     A BCP-47 language tag.
@@ -70,7 +70,7 @@ LanguageTag : NewType
 """
 
 
-StrippedString = NewType(
+StrippedString: TypeAlias = NewType(
     "StrippedString",
     Annotated[
         str,
@@ -79,73 +79,73 @@ StrippedString = NewType(
             description="A string without leading or trailing whitespace",
         ),
     ],
-)
+)  # type: ignore [type-arg]
 StrippedString.__doc__ = """
 StrippedString : NewType
     A string without leading or trailing whitespace.
 """
 
 
-NoWhitespaceString = NewType(
+NoWhitespaceString: TypeAlias = NewType(
     "NoWhitespaceString",
     Annotated[
         str,
         NoWhitespaceConstraint(),
         Field(description="A string that contains no whitespace characters"),
     ],
-)
+)  # type: ignore [type-arg]
 NoWhitespaceString.__doc__ = """
 NoWhitespaceString : NewType
     A string that contains no whitespace characters.
 """
 
 
-CountryCode = NewType(
+CountryCode: TypeAlias = NewType(
     "CountryCode",
     Annotated[
         str,
         CountryCodeConstraint(),
         Field(description="An ISO 3166-1 alpha-2 country code"),
     ],
-)
+)  # type: ignore [type-arg]
 CountryCode.__doc__ = """
 CountryCode : NewType
     An ISO-316601 alpha-2 country code.
 """
 
-RegionCode = NewType(
+RegionCode: TypeAlias = NewType(
     "RegionCode",
     Annotated[
         str,
         RegionCodeConstraint(),
         Field(description="An ISO 3166-2 principal subdivision code"),
     ],
-)
+)  # type: ignore [type-arg]
 RegionCode.__doc__ = """
 RegionCode : NewType
     An ISO 3166-2 principal subdivision code.
 """
 
-WikidataId = NewType(
+WikidataId: TypeAlias = NewType(
     "WikidataId",
     Annotated[
         str,
         WikidataIdConstraint(),
         Field(description="A wikidata ID, as found on https://www.wikidata.org/"),
     ],
-)
+)  # type: ignore [type-arg]
 WikidataId.__doc__ = """
 WikidataId : NewType
     A wikidata ID, as found on https://www.wikidata.org/.
 """
 
 
-PhoneNumber = NewType(
+PhoneNumber: TypeAlias = NewType(
     "PhoneNumber",
     Annotated[
         str, PhoneNumberConstraint(), Field(description="An international phone number")
     ],
-)
+)  # type: ignore [type-arg]
 PhoneNumber.__doc__ = """
 PhoneNumber : NewType
     An international telephone number.
