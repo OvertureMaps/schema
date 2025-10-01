@@ -3,7 +3,7 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
-from overture.schema.foundation.primitive import float64, int32
+from overture.schema.foundation.primitive import float64, int32, pct
 from overture.schema.validation.constraints import (
     CountryCodeConstraint,
     LinearReferenceRangeConstraint,
@@ -37,10 +37,8 @@ Id = NewType(
 LinearlyReferencedPosition = NewType(
     "LinearlyReferencedPosition",
     Annotated[
-        float64,
+        pct,
         Field(
-            ge=0,
-            le=1,
             description="Represents a linearly-referenced position between 0% and 100% of the distance along a path such as a road segment or a river center-line segment.",
         ),
     ],
