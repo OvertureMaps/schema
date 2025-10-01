@@ -8,7 +8,7 @@ from overture.schema.core import (
     Feature,
     StrictBaseModel,
 )
-from overture.schema.core.types import CountryCode, TrimmedString
+from overture.schema.core.types import CountryCode, StrippedString
 from overture.schema.foundation.primitive import (
     Geometry,
     GeometryType,
@@ -26,7 +26,7 @@ class AddressLevel(StrictBaseModel):
     """
 
     value: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(
             min_length=1,
         ),
@@ -67,14 +67,14 @@ class Address(Feature[Literal["addresses"], Literal["address"]]):
     ] = None
     country: CountryCode | None = None
     number: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(
             min_length=1,
             description="""The house number for this address. This field may not strictly be a number. Values such as "74B", "189 1/2", "208.5" are common as the number part of an address and they are not part of the "unit" of this address.""",
         ),
     ] = None
     postal_city: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(
             min_length=1,
             description="""In some countries or regions, a mailing address may need to specify a different city name than the city that actually contains the address coordinates. This optional field can be used to specify the alternate city name to use.
@@ -87,21 +87,21 @@ class Address(Feature[Literal["addresses"], Literal["address"]]):
         ),
     ] = None
     postcode: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(
             min_length=1,
             description="The postcode for the address",
         ),
     ] = None
     street: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(
             min_length=1,
             description="""The street name associated with this address. The street name can include the street "type" or street suffix, e.g., Main Street. Ideally this is fully spelled out and not abbreviated but we acknowledge that many address datasets abbreviate the street name so it is acceptable.""",
         ),
     ] = None
     unit: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(
             min_length=1,
             description="The suite/unit/apartment/floor number",

@@ -282,7 +282,7 @@ class LinearReferenceRangeConstraint(CollectionConstraint):
         return json_schema
 
 
-class WhitespaceConstraint(StringConstraint):
+class StrippedConstraint(StringConstraint):
     """Constraint to ensure string has no leading/trailing whitespace."""
 
     def validate(self, value: str, info: ValidationInfo) -> None:

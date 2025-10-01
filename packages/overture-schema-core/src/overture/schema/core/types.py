@@ -16,7 +16,7 @@ from overture.schema.validation.types import (
     NoWhitespaceString,
     PhoneNumber,
     RegionCode,
-    TrimmedString,
+    StrippedString,
     WikidataId,
 )
 
@@ -97,7 +97,7 @@ CommonNames = NewType(
 The validating regular expression for this property follows the pattern described in https://www.rfc-editor.org/rfc/bcp/bcp47.txt with the exception that private use tags are not supported."""
                 ),
             ],
-            TrimmedString,
+            StrippedString,
         ],
         Field(json_schema_extra={"additionalProperties": False}),
     ],
@@ -211,7 +211,7 @@ __all__ = [
     "RegionCode",
     "SortKey",
     "Theme",
-    "TrimmedString",
+    "StrippedString",
     "Type",
     "WikidataId",
 ]

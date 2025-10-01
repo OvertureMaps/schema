@@ -15,7 +15,7 @@ from overture.schema.core.types import (
     Level,
     LinearlyReferencedPosition,
     OpeningHours,
-    TrimmedString,
+    StrippedString,
     WikidataId,
 )
 from overture.schema.core.validation import (
@@ -94,7 +94,7 @@ class DestinationLabels(StrictBaseModel):
     # Required
 
     value: Annotated[
-        TrimmedString,
+        StrippedString,
         Field(min_length=1, description="Names the object that is reached"),
     ]
     type: DestinationLabelType
@@ -155,21 +155,21 @@ class RouteReference(GeometricRangeScope):
     # Optional
 
     name: Annotated[
-        TrimmedString | None, Field(min_length=1, description="Full name of the route")
+        StrippedString | None, Field(min_length=1, description="Full name of the route")
     ] = None
     network: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(
             min_length=1,
             description="Name of the highway system this route belongs to",
         ),
     ] = None
     ref: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(min_length=1, description="Code or number used to reference the route"),
     ] = None
     symbol: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(min_length=1, description="URL or description of route signage"),
     ] = None
     wikidata: WikidataId | None = None

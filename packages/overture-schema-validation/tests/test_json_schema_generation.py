@@ -17,7 +17,7 @@ from overture.schema.validation.constraints import (
     NoWhitespaceConstraint,
     PatternConstraint,
     RegionCodeConstraint,
-    WhitespaceConstraint,
+    StrippedConstraint,
 )
 from overture.schema.validation.mixin import (
     ConstraintValidatedModel,
@@ -353,7 +353,7 @@ class TestJSONSchemaGeneration:
 
     def test_whitespace_constraint_json_schema(self) -> None:
         """Test WhitespaceConstraint JSON schema generation."""
-        constraint = WhitespaceConstraint()
+        constraint = StrippedConstraint()
         TestModel = create_field_constraint_model(str, constraint)
         schema = TestModel.model_json_schema()
 

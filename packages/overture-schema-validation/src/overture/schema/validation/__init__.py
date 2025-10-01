@@ -42,7 +42,7 @@ from .constraints import (
     PhoneNumberConstraint,
     RegionCodeConstraint,
     StringConstraint,
-    WhitespaceConstraint,
+    StrippedConstraint,
     WikidataConstraint,
 )
 from .mixin import (
@@ -70,7 +70,7 @@ __all__ = [
     "RegionCodeConstraint",
     "StringConstraint",
     "UniqueItemsConstraint",
-    "WhitespaceConstraint",
+    "StrippedConstraint",
     "WikidataConstraint",
     "allow_extension_fields",
     "any_of",

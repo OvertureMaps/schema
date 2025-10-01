@@ -38,7 +38,7 @@ from .types import (
     Prominence,
     RegionCode,
     SortKey,
-    TrimmedString,
+    StrippedString,
 )
 from .validation import ConstraintValidatedModel
 
@@ -99,7 +99,7 @@ class SourcePropertyItem(GeometricRangeScope):
     # Optional
 
     license: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(
             description="License name. This should be a valid SPDX license identifier when available. If the license is NULL, contact the data provider for more license information.",
         ),
@@ -267,7 +267,7 @@ class NameRule(GeometricRangeScope, SideScope):
 
     # Required
 
-    value: Annotated[TrimmedString, Field(min_length=1)]
+    value: Annotated[StrippedString, Field(min_length=1)]
     variant: NameVariant
 
     # Optional
@@ -290,7 +290,7 @@ class Names(StrictBaseModel):
     # Required
 
     primary: Annotated[
-        TrimmedString, Field(min_length=1, description="The most commonly used name.")
+        StrippedString, Field(min_length=1, description="The most commonly used name.")
     ]
 
     # Optional

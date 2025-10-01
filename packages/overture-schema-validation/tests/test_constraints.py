@@ -20,7 +20,7 @@ from overture.schema.validation import (
     PatternConstraint,
     PhoneNumberConstraint,
     RegionCodeConstraint,
-    WhitespaceConstraint,
+    StrippedConstraint,
     WikidataConstraint,
 )
 from overture.schema.validation.types import (
@@ -182,7 +182,7 @@ class TestStringConstraints:
         whitespace)."""
 
         class TestModel(BaseModel):
-            text: Annotated[str, WhitespaceConstraint()]
+            text: Annotated[str, StrippedConstraint()]
 
         valid_strings = [
             "hello",
@@ -200,7 +200,7 @@ class TestStringConstraints:
         whitespace)."""
 
         class TestModel(BaseModel):
-            text: Annotated[str, WhitespaceConstraint()]
+            text: Annotated[str, StrippedConstraint()]
 
         invalid_strings = [
             " hello",  # Leading space

@@ -16,7 +16,7 @@ from .constraints import (
     NoWhitespaceConstraint,
     PhoneNumberConstraint,
     RegionCodeConstraint,
-    WhitespaceConstraint,
+    StrippedConstraint,
     WikidataConstraint,
 )
 
@@ -45,7 +45,7 @@ RegionCode = NewType(
         Field(description="ISO 3166-2 principal subdivision code."),
     ],
 )
-TrimmedString = NewType("TrimmedString", Annotated[str, WhitespaceConstraint()])
+StrippedString = NewType("StrippedString", Annotated[str, StrippedConstraint()])
 WikidataId = NewType(
     "WikidataId",
     Annotated[
