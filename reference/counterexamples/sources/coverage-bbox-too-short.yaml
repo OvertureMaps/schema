@@ -1,4 +1,3 @@
----
 datasets:
   - source_name: Example City Open Data
     source_dataset_name: address_points

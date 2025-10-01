@@ -1,4 +1,3 @@
----
 datasets:
   - source_name: Address Sample
     source_dataset_name: addresses_sample
