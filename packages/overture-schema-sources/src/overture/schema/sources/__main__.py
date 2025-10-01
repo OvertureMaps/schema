@@ -55,7 +55,7 @@ def main() -> None:
         if isinstance(data, dict):
             datasets = data.get("datasets")
 
-        def source_name_for_error(loc):
+        def source_name_for_error(loc: tuple[int | str, ...]) -> str | None:
             if not loc:
                 return None
             if loc[0] != "datasets" or len(loc) < 2:
@@ -80,7 +80,7 @@ def main() -> None:
 
             return None
 
-        def format_field_path(loc):
+        def format_field_path(loc: tuple[int | str, ...]) -> str:
             if len(loc) <= 2:
                 return ""
 

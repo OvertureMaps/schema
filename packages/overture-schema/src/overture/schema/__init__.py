@@ -4,23 +4,10 @@ from functools import reduce
 from operator import or_
 from typing import TYPE_CHECKING, Annotated, Any
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 
-from overture.schema.addresses import Address
-from overture.schema.base import (
-    Bathymetry,
-    Infrastructure,
-    Land,
-    LandCover,
-    LandUse,
-    Water,
-)
-from overture.schema.buildings import Building, BuildingPart
-from overture.schema.core import json_schema, parse_feature
+from overture.schema.core import parse_feature
 from overture.schema.core.discovery import discover_models
-from overture.schema.divisions import Division, DivisionArea, DivisionBoundary
-from overture.schema.places import Place
-from overture.schema.transportation import Connector, Segment
 
 
 def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
@@ -43,13 +30,34 @@ def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
 
     if TYPE_CHECKING:
         # For type checking, use Any to avoid mypy errors with dynamic types
-        DiscriminatedUnion = Annotated[Any, Field(discriminator="type")]
+        model_union = Any
     else:
-        # Create a discriminated union for use at runtime
-        union_type = reduce(or_, list(models.values()))
-        DiscriminatedUnion = Annotated[union_type, Field(discriminator="type")]
+        # Filter out BaseModel types without a 'type' field; they can't be discriminated
+        # This is an Overture-specific optimization, as our core models all have 'type'
+        discriminated_models = []
+        non_discriminated_models = []
 
-    return parse_feature(feature, DiscriminatedUnion, mode)
+        for model in models.values():
+            if (
+                isinstance(model, type)
+                and issubclass(model, BaseModel)
+                and "type" not in model.model_fields
+            ):
+                non_discriminated_models.append(model)
+            else:
+                # Include union types and models with 'type' field
+                discriminated_models.append(model)
+
+        # Create a discriminated union from models that can be discriminated
+        discriminated_union = Annotated[
+            reduce(or_, discriminated_models), Field(discriminator="type")
+        ]
+
+        non_discriminated_union = reduce(or_, non_discriminated_models)
+
+        model_union = discriminated_union | non_discriminated_union
+
+    return parse_feature(feature, model_union, mode)
 
 
 __all__ = [

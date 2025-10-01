@@ -7,7 +7,6 @@ from pydantic import Field, HttpUrl
 
 from overture.schema.core.models import StrictBaseModel
 from overture.schema.core.types import CountryCode
-from overture.schema.validation import PatternPropertiesDictConstraint
 
 from .enums import BuildSource, UpdateType
 from .types import LicenseShortname
@@ -44,14 +43,12 @@ class Dataset(StrictBaseModel):
         HttpUrl | Literal[""],
         Field(
             description="A link to this source's data license or page referencing the license associated with the data being imported. This should include explicit license terms.",
-            format="uri",
         ),
     ]
     license_url_archived: Annotated[
         HttpUrl | Literal[""],
         Field(
             description="URL of the source's license page, stored on archive.org, at or near the date the source data was obtained for use within Overture.",
-            format="uri",
         ),
     ]
     license_type: Annotated[
@@ -175,9 +172,9 @@ class Sources(StrictBaseModel):
         Field(description="List of data source entries used by Overture."),
     ]
     license_priority: Annotated[
-        dict[LicenseShortname, Annotated[int, Field(min=0)]],
+        dict[LicenseShortname, Annotated[int, Field(ge=0)]],
         Field(
             description="Map of license shortnames to their priority (lower number indicates higher priority)."
         ),
-        PatternPropertiesDictConstraint(),  # TODO see if this is necessary now that `LicenseShortname` is annotated with a pattern
+        Field(json_schema_extra={"additionalProperties": False}),
     ]
