@@ -225,7 +225,12 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 def test_example_validation_geojson(example_file: str) -> None:
     """Test that examples pass validation with GeoJSON input format."""
-    test_feature = convert_to_geojson_format(load_feature(example_file))
+    feature = load_feature(example_file)
+
+    if "geometry" not in feature:
+        pytest.skip("Example does not have a geometry field")
+
+    test_feature = convert_to_geojson_format(feature)
 
     is_valid = False
     error_msg = None
@@ -267,7 +272,7 @@ def test_example_validation_flat(example_file: str) -> None:
     )
 
     # If validation passed and we have a parsed feature, compare with GeoJSON format
-    if parsed_feature is not None:
+    if parsed_feature is not None and "geometry" in flat_feature:
         # Parsed feature should be in GeoJSON format, so compare with GeoJSON variant
         expected_geojson = convert_to_geojson_format(flat_feature)
         is_equal, diff_report = deep_compare_dicts(expected_geojson, parsed_feature)
