@@ -15,7 +15,6 @@ from overture.schema.core.models import (
     Perspectives,
     StrictBaseModel,
 )
-from overture.schema.core.primitives import int32
 from overture.schema.core.types import (
     CommonNames,
     CountryCode,
@@ -26,10 +25,11 @@ from overture.schema.core.types import (
 from overture.schema.core.validation import (
     UniqueItemsConstraint,
 )
-from overture.schema.foundation.primitive.geometry import (
+from overture.schema.foundation.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
+    int32,
 )
 
 from ..enums import DivisionClass, PlaceType

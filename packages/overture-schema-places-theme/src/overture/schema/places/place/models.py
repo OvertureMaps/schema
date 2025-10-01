@@ -20,7 +20,7 @@ from overture.schema.core.types import (
 from overture.schema.core.validation import (
     UniqueItemsConstraint,
 )
-from overture.schema.foundation.primitive.geometry import (
+from overture.schema.foundation.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

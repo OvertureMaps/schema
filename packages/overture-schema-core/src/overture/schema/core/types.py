@@ -3,6 +3,7 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
+from overture.schema.foundation.primitive import float64, int32
 from overture.schema.validation.constraints import (
     CountryCodeConstraint,
     LinearReferenceRangeConstraint,
@@ -18,8 +19,6 @@ from overture.schema.validation.types import (
     TrimmedString,
     WikidataId,
 )
-
-from .primitives.numeric import float64, int32
 
 Id = NewType(
     "Id",

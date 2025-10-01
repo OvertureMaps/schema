@@ -2,7 +2,7 @@ from typing import Annotated, Any, NewType
 
 from pydantic import Field
 
-from overture.schema.core.primitives import float64, int32
+from overture.schema.foundation.primitive import float64, int32
 
 Elevation = NewType(
     "Elevation",

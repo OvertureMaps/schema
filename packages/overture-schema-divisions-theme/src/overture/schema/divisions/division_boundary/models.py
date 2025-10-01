@@ -19,7 +19,7 @@ from overture.schema.core.validation import (
     exactly_one_of,
     not_required_if,
 )
-from overture.schema.foundation.primitive.geometry import (
+from overture.schema.foundation.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

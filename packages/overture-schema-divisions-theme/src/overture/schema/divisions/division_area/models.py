@@ -16,7 +16,7 @@ from overture.schema.core.types import CountryCode, Id, RegionCode
 from overture.schema.core.validation import (
     exactly_one_of,
 )
-from overture.schema.foundation.primitive.geometry import (
+from overture.schema.foundation.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

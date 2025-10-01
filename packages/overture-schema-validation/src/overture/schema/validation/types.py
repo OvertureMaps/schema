@@ -4,7 +4,7 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
-from overture.schema.core.primitives import float64
+from overture.schema.foundation.primitive import float64
 
 from .constraints import (
     CategoryPatternConstraint,

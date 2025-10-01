@@ -9,7 +9,7 @@ from overture.schema.core import (
     StrictBaseModel,
 )
 from overture.schema.core.types import CountryCode, TrimmedString
-from overture.schema.foundation.primitive.geometry import (
+from overture.schema.foundation.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

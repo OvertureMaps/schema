@@ -9,7 +9,7 @@ from overture.schema.core import (
     Feature,
 )
 from overture.schema.core.models import CartographicallyHinted
-from overture.schema.foundation.primitive.geometry import (
+from overture.schema.foundation.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

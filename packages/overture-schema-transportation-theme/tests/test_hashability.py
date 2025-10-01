@@ -1,7 +1,7 @@
 """Tests for hashability of all scope and related classes."""
 
 from overture.schema.core.models import GeometricRangeScope
-from overture.schema.foundation.primitive.geometry import Geometry
+from overture.schema.foundation.primitive import Geometry
 from overture.schema.transportation.enums import (
     AccessType,
     DestinationLabelType,

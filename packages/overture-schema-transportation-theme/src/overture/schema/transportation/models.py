@@ -9,7 +9,6 @@ from overture.schema.core import (
     StrictBaseModel,
 )
 from overture.schema.core.models import GeometricRangeScope
-from overture.schema.core.primitives import float64, int32
 from overture.schema.core.ref import Reference, Relationship
 from overture.schema.core.types import (
     Id,
@@ -25,6 +24,7 @@ from overture.schema.core.validation import (
     any_of,
     min_properties,
 )
+from overture.schema.foundation.primitive import float64, int32
 
 from .enums import (
     AccessType,
