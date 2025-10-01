@@ -1,35 +1,28 @@
 [project]
-name = "overture-schema-addresses-theme"
-dynamic = ["version"]
-description = "Overture Maps addresses theme models and structures"
-readme = "README.md"
-requires-python = ">=3.10"
-license = "MIT"
 dependencies = [
     "overture-schema-core",
     "pydantic>=2.0",
 ]
+description = "Overture Maps addresses theme models and structures"
+dynamic = ["version"]
+license = "MIT"
+name = "overture-schema-addresses-theme"
+readme = "README.md"
+requires-python = ">=3.10"
 
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
 
 
 [build-system]
-requires = ["hatchling"]
 build-backend = "hatchling.build"
+requires = ["hatchling"]
 
 [tool.hatch.version]
 path = "src/overture/schema/addresses/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]
-
-[dependency-groups]
-dev = [
-    "pytest>=7.0",
-    "ruff",
-    "mypy",
-]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

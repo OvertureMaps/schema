@@ -1,29 +1,22 @@
 [project]
-name = "overture-schema-base-theme"
-dynamic = ["version"]
-description = "Overture Maps base theme shared structures and models (bathymetry, infrastructure, land, land_cover, land_use, water)"
-readme = "README.md"
-requires-python = ">=3.10"
-license = "MIT"
 dependencies = [
     "overture-schema-core",
     "pydantic>=2.0",
 ]
-
-[dependency-groups]
-dev = [
-    "pytest>=7.0",
-    "ruff",
-    "mypy",
-]
+description = "Overture Maps base theme shared structures and models (bathymetry, infrastructure, land, land_cover, land_use, water)"
+dynamic = ["version"]
+license = "MIT"
+name = "overture-schema-base-theme"
+readme = "README.md"
+requires-python = ">=3.10"
 
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
 
 
 [build-system]
-requires = ["hatchling"]
 build-backend = "hatchling.build"
+requires = ["hatchling"]
 
 [tool.hatch.version]
 path = "src/overture/schema/base/__about__.py"

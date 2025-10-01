@@ -1,10 +1,4 @@
 [project]
-name = "overture-schema"
-dynamic = ["version"]
-description = "Complete Overture Maps schema collection with all themes and types"
-readme = "README.md"
-requires-python = ">=3.10"
-license = "MIT"
 dependencies = [
     "overture-schema-addresses-theme",
     "overture-schema-base-theme",
@@ -16,28 +10,30 @@ dependencies = [
     "pydantic>=2.0",
     "pyyaml>=6.0.2",
 ]
+description = "Complete Overture Maps schema collection with all themes and types"
+dynamic = ["version"]
+license = "MIT"
+name = "overture-schema"
+readme = "README.md"
+requires-python = ">=3.10"
 
 [tool.uv.sources]
 overture-schema-addresses-theme = { workspace = true }
 overture-schema-base-theme = { workspace = true }
 overture-schema-buildings-theme = { workspace = true }
+overture-schema-core = { workspace = true }
 overture-schema-divisions-theme = { workspace = true }
 overture-schema-places-theme = { workspace = true }
 overture-schema-transportation-theme = { workspace = true }
-overture-schema-core = { workspace = true }
 
 [build-system]
-requires = ["hatchling"]
 build-backend = "hatchling.build"
+requires = ["hatchling"]
 
 [dependency-groups]
 dev = [
-    "pytest>=7.0",
-    "pytest-cov",
     "pyyaml",
     "deepdiff",
-    "ruff",
-    "mypy",
     "yamlcore>=0.0.4",
 ]
 

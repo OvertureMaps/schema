@@ -1,31 +1,24 @@
 [project]
-name = "overture-schema-places-theme"
-dynamic = ["version"]
-description = "Overture Maps places theme with place type models"
-readme = "README.md"
-requires-python = ">=3.10"
-license = "MIT"
 dependencies = [
     "overture-schema-core",
     "overture-schema-validation",
     "pydantic>=2.0",
     "pydantic[email]",
 ]
+description = "Overture Maps places theme with place type models"
+dynamic = ["version"]
+license = "MIT"
+name = "overture-schema-places-theme"
+readme = "README.md"
+requires-python = ">=3.10"
 
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
 overture-schema-validation = { workspace = true }
 
-[dependency-groups]
-dev = [
-    "pytest>=7.0",
-    "ruff",
-    "mypy",
-]
-
 [build-system]
-requires = ["hatchling"]
 build-backend = "hatchling.build"
+requires = ["hatchling"]
 
 [tool.hatch.version]
 path = "src/overture/schema/places/__about__.py"

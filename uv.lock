@@ -491,11 +491,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "deepdiff" },
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
     { name = "pyyaml" },
-    { name = "ruff" },
     { name = "yamlcore" },
 ]
 
@@ -515,11 +511,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "deepdiff" },
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "pytest-cov" },
     { name = "pyyaml" },
-    { name = "ruff" },
     { name = "yamlcore", specifier = ">=0.0.4" },
 ]
 
@@ -531,24 +523,10 @@ dependencies = [
     { name = "pydantic" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "pydantic", specifier = ">=2.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
 ]
 
 [[package]]
@@ -559,24 +537,10 @@ dependencies = [
     { name = "pydantic" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "pydantic", specifier = ">=2.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
 ]
 
 [[package]]
@@ -632,25 +596,11 @@ dependencies = [
     { name = "pydantic" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
     { name = "pydantic", specifier = ">=2.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
 ]
 
 [[package]]
@@ -662,26 +612,12 @@ dependencies = [
     { name = "pydantic", extra = ["email"] },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pydantic", extras = ["email"] },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
 ]
 
 [[package]]
@@ -692,24 +628,10 @@ dependencies = [
     { name = "pydantic" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "pydantic", specifier = ">=2.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
 ]
 
 [[package]]
@@ -734,24 +656,10 @@ dependencies = [
     { name = "shapely" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "shapely", specifier = ">=2.0.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
 ]
 
 [[package]]
@@ -762,12 +670,22 @@ source = { virtual = "." }
 [package.dev-dependencies]
 dev = [
     { name = "docformatter" },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
 
 [package.metadata.requires-dev]
-dev = [{ name = "docformatter", specifier = ">=1.7.7" }]
+dev = [
+    { name = "docformatter", specifier = ">=1.7.7" },
+    { name = "mypy" },
+    { name = "pytest", specifier = ">=7.0" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+]
 
 [[package]]
 name = "packaging"
