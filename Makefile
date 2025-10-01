@@ -1,20 +1,23 @@
-.PHONY: check test test-all mypy
+.PHONY: default uv-sync check test-all test mypy reset-baseline-schemas
 
 default: test-all
 
-check: test
+uv-sync:
+	@uv sync --all-packages
+
+check: test uv-sync
 	@uv run ruff check -q packages/
 	@$(MAKE) mypy
 	@uv run ruff format --check packages/
 
-test-all:
+test-all: uv-sync
 	@uv run pytest packages/
 
-test:
+test: uv-sync
 	@uv run pytest packages/ -x
 
 # mypy type checking with namespace package support
-mypy:
+mypy: uv-sync
 	@cd packages && uv run mypy --no-error-summary --namespace-packages \
 		-p overture.schema \
 		-p overture.schema.addresses \
