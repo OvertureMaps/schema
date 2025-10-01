@@ -3,9 +3,9 @@ from typing import Any
 
 import pytest
 from deepdiff import DeepDiff
-from overture.schema.core.bbox import BBox
 from overture.schema.core.json_schema import EnhancedJsonSchemaGenerator
 from overture.schema.core.models import Feature
+from overture.schema.foundation.primitive.bbox import BBox
 from overture.schema.foundation.primitive.geometry import Geometry
 from shapely.geometry import LineString, Point
 

@@ -12,7 +12,7 @@ from pydantic import (
 )
 from pydantic_core import core_schema
 
-from overture.schema.core.bbox import BBox
+from overture.schema.foundation.primitive.bbox import BBox
 from overture.schema.foundation.primitive.geometry import Geometry
 from overture.schema.validation import (
     allow_extension_fields,
