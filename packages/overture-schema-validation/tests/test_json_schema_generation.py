@@ -7,17 +7,19 @@ import pytest
 from pydantic import BaseModel, Field
 
 from overture.schema.foundation.constraint import UniqueItemsConstraint
-from overture.schema.validation.constraints import (
-    ConfidenceScoreConstraint,
+from overture.schema.foundation.constraint.string import (
     CountryCodeConstraint,
     HexColorConstraint,
     JsonPointerConstraint,
     LanguageTagConstraint,
-    LinearReferenceRangeConstraint,
     NoWhitespaceConstraint,
     PatternConstraint,
     RegionCodeConstraint,
     StrippedConstraint,
+)
+from overture.schema.validation.constraints import (
+    ConfidenceScoreConstraint,
+    LinearReferenceRangeConstraint,
 )
 from overture.schema.validation.mixin import (
     ConstraintValidatedModel,

@@ -15,8 +15,6 @@ from overture.schema.core.types import (
     Level,
     LinearlyReferencedPosition,
     OpeningHours,
-    StrippedString,
-    WikidataId,
 )
 from overture.schema.core.validation import (
     ConstraintValidatedModel,
@@ -25,6 +23,7 @@ from overture.schema.core.validation import (
 )
 from overture.schema.foundation.constraint import UniqueItemsConstraint
 from overture.schema.foundation.primitive import float64, int32
+from overture.schema.foundation.string import StrippedString, WikidataId
 
 from .enums import (
     AccessType,

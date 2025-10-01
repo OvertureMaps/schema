@@ -1,4 +1,3 @@
-
 DEFAULT_H3_RESOLUTION = 12
 
 # default params for nearest match

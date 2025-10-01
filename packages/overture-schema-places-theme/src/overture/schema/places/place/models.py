@@ -14,8 +14,6 @@ from overture.schema.core.models import (
 )
 from overture.schema.core.types import (
     ConfidenceScore,
-    PhoneNumber,
-    WikidataId,
 )
 from overture.schema.foundation.constraint import (
     UniqueItemsConstraint,
@@ -25,6 +23,7 @@ from overture.schema.foundation.primitive import (
     GeometryType,
     GeometryTypeConstraint,
 )
+from overture.schema.foundation.string import PhoneNumber, WikidataId
 
 from ..types import PlaceCategory
 from .enums import OperatingStatus

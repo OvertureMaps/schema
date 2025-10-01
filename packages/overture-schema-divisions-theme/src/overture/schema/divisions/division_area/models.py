@@ -12,7 +12,7 @@ from overture.schema.core.models import (
     Names,
 )
 from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import CountryCode, Id, RegionCode
+from overture.schema.core.types import CountryCode, Id
 from overture.schema.core.validation import (
     exactly_one_of,
 )
@@ -21,6 +21,7 @@ from overture.schema.foundation.primitive import (
     GeometryType,
     GeometryTypeConstraint,
 )
+from overture.schema.foundation.string import RegionCode
 
 from ..division.models import Division
 from ..enums import PlaceType

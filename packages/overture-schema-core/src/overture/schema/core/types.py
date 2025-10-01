@@ -3,13 +3,11 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
-from overture.schema.foundation.primitive import int32, pct
-from overture.schema.validation.constraints import (
+from overture.schema.foundation.constraint.string import (
     CountryCodeConstraint,
-    LinearReferenceRangeConstraint,
 )
-from overture.schema.validation.types import (
-    ConfidenceScore,
+from overture.schema.foundation.primitive import int32, pct
+from overture.schema.foundation.string import (
     HexColor,
     JsonPointer,
     LanguageTag,
@@ -18,6 +16,12 @@ from overture.schema.validation.types import (
     RegionCode,
     StrippedString,
     WikidataId,
+)
+from overture.schema.validation.constraints import (
+    LinearReferenceRangeConstraint,
+)
+from overture.schema.validation.types import (
+    ConfidenceScore,
 )
 
 Id = NewType(

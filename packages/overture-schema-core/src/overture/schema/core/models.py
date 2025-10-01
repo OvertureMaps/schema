@@ -17,6 +17,12 @@ from overture.schema.foundation.primitive import (
     BBox,
     Geometry,
 )
+from overture.schema.foundation.string import (
+    JsonPointer,
+    LanguageTag,
+    RegionCode,
+    StrippedString,
+)
 from overture.schema.validation import (
     allow_extension_fields,
 )
@@ -29,16 +35,12 @@ from .types import (
     FeatureUpdateTime,
     FeatureVersion,
     Id,
-    JsonPointer,
-    LanguageTag,
     Level,
     LinearlyReferencedRange,
     MaxZoom,
     MinZoom,
     Prominence,
-    RegionCode,
     SortKey,
-    StrippedString,
 )
 from .validation import ConstraintValidatedModel
 
