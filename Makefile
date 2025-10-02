@@ -30,16 +30,13 @@ doctest: uv-sync
 
 # mypy type checking with namespace package support
 mypy: uv-sync
-	@cd packages && uv run mypy --no-error-summary --namespace-packages \
-		-p overture.schema \
-		-p overture.schema.addresses \
-		-p overture.schema.base \
-		-p overture.schema.buildings \
-		-p overture.schema.core \
-		-p overture.schema.divisions \
-		-p overture.schema.places \
-		-p overture.schema.transportation \
-		-p overture.schema.validation
+	@# $$ escapes $ for make - sed needs literal $ for end-of-line anchor
+	@find packages -maxdepth 1 -type d -name "overture-schema*" \
+		| sort \
+		| sed 's:-theme$$::' \
+		| tr - . \
+		| sed 's:^packages/\|:-p :' \
+		| xargs uv run mypy --no-error-summary
 	@uv run mypy --no-error-summary packages/*/tests/*.py
 
 reset-baseline-schemas:
