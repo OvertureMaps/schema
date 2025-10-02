@@ -1,4 +1,4 @@
-from typing import Annotated, NewType, TypeAlias
+from typing import Annotated, NewType
 
 from pydantic import Field
 
@@ -14,7 +14,7 @@ from overture.schema.foundation.constraint import (
     WikidataIdConstraint,
 )
 
-HexColor: TypeAlias = NewType(
+HexColor = NewType(
     "HexColor",
     Annotated[
         str,
@@ -36,7 +36,7 @@ HexColor : NewType
 """
 
 
-JsonPointer: TypeAlias = NewType(
+JsonPointer = NewType(
     "JsonPointer",
     Annotated[
         str,
@@ -52,7 +52,7 @@ JsonPointer : NewType
 """
 
 
-LanguageTag: TypeAlias = NewType(
+LanguageTag = NewType(
     "LanguageTag",
     Annotated[
         str,
@@ -70,7 +70,7 @@ LanguageTag : NewType
 """
 
 
-StrippedString: TypeAlias = NewType(
+StrippedString = NewType(
     "StrippedString",
     Annotated[
         str,
@@ -86,7 +86,7 @@ StrippedString : NewType
 """
 
 
-NoWhitespaceString: TypeAlias = NewType(
+NoWhitespaceString = NewType(
     "NoWhitespaceString",
     Annotated[
         str,
@@ -100,7 +100,7 @@ NoWhitespaceString : NewType
 """
 
 
-CountryCode: TypeAlias = NewType(
+CountryCode = NewType(
     "CountryCode",
     Annotated[
         str,
@@ -113,7 +113,7 @@ CountryCode : NewType
     An ISO-316601 alpha-2 country code.
 """
 
-RegionCode: TypeAlias = NewType(
+RegionCode = NewType(
     "RegionCode",
     Annotated[
         str,
@@ -126,7 +126,7 @@ RegionCode : NewType
     An ISO 3166-2 principal subdivision code.
 """
 
-WikidataId: TypeAlias = NewType(
+WikidataId = NewType(
     "WikidataId",
     Annotated[
         str,
@@ -140,7 +140,7 @@ WikidataId : NewType
 """
 
 
-PhoneNumber: TypeAlias = NewType(
+PhoneNumber = NewType(
     "PhoneNumber",
     Annotated[
         str, PhoneNumberConstraint(), Field(description="An international phone number")
