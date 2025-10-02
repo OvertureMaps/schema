@@ -16,6 +16,10 @@ test-all: uv-sync
 test: uv-sync
 	@uv run pytest packages/ -x
 
+docformat:
+	@find packages/*/src -name "*.py" -type f -not -name "__*" \
+		| xargs uv run pydocstyle --convention=numpy --add-ignore=D105
+
 doctest: uv-sync
 	@# $$ escapes $ for make - sed needs literal $ for end-of-line anchor
 	@find packages/*/src -name "*.py" -type f -not -name "__*" \
