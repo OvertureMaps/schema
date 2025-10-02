@@ -48,10 +48,10 @@ warn_unused_configs = true
 [dependency-groups]
 dev = [
     "docformatter>=1.7.7",
-    "mypy",
-    "pytest>=7.0",
+    "mypy>=1.17.0",
+    "pytest>=8.4.1",
     "pytest-cov",
-    "ruff",
+    "ruff>=0.12.4",
 ]
 
 [tool.docformatter]
