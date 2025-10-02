@@ -3,11 +3,11 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
-from overture.schema.foundation.constraint.string import (
+from overture.schema.system.constraint.string import (
     CountryCodeConstraint,
 )
-from overture.schema.foundation.primitive import int32, pct
-from overture.schema.foundation.string import (
+from overture.schema.system.primitive import int32, pct
+from overture.schema.system.string import (
     HexColor,
     JsonPointer,
     LanguageTag,

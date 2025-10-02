@@ -5,7 +5,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import StrictBaseModel
 from overture.schema.core.types import Id
 from overture.schema.divisions.enums import PlaceType
-from overture.schema.foundation.string import StrippedString
+from overture.schema.system.string import StrippedString
 
 DivisionId = NewType(
     "DivisionId", Annotated[Id, Field(min_length=1, description="ID of the division")]

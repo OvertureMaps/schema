@@ -8,7 +8,7 @@ from overture.schema.core import Feature
 from overture.schema.core.models import Named, Stacked
 from overture.schema.core.ref import Reference, Relationship
 from overture.schema.core.types import Id
-from overture.schema.foundation.primitive import (
+from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

@@ -12,12 +12,12 @@ from pydantic import (
 )
 from pydantic_core import core_schema
 
-from overture.schema.foundation.constraint import UniqueItemsConstraint
-from overture.schema.foundation.primitive import (
+from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.primitive import (
     BBox,
     Geometry,
 )
-from overture.schema.foundation.string import (
+from overture.schema.system.string import (
     JsonPointer,
     LanguageTag,
     RegionCode,

@@ -16,12 +16,12 @@ from overture.schema.core.types import CountryCode, Id
 from overture.schema.core.validation import (
     exactly_one_of,
 )
-from overture.schema.foundation.primitive import (
+from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
 )
-from overture.schema.foundation.string import RegionCode
+from overture.schema.system.string import RegionCode
 
 from ..division.models import Division
 from ..enums import PlaceType

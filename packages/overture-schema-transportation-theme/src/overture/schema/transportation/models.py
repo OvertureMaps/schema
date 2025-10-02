@@ -21,9 +21,9 @@ from overture.schema.core.validation import (
     any_of,
     min_properties,
 )
-from overture.schema.foundation.constraint import UniqueItemsConstraint
-from overture.schema.foundation.primitive import float64, int32
-from overture.schema.foundation.string import StrippedString, WikidataId
+from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.primitive import float64, int32
+from overture.schema.system.string import StrippedString, WikidataId
 
 from .enums import (
     AccessType,

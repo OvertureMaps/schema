@@ -4,7 +4,7 @@ import jsonpath_ng  # type: ignore[import-untyped]
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from overture.schema.foundation.primitive.bbox import BBox
+from overture.schema.system.primitive.bbox import BBox
 
 
 @pytest.mark.parametrize(

@@ -1,7 +1,7 @@
 """Tests for JSON Schema generation with primitive types."""
 
 from overture.schema.core.json_schema import json_schema
-from overture.schema.foundation.primitive import (
+from overture.schema.system.primitive import (
     float32,
     float64,
     int32,

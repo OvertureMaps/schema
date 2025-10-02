@@ -3,7 +3,7 @@
 from typing import Annotated
 
 import pytest
-from overture.schema.foundation.primitive import (
+from overture.schema.system.primitive import (
     float32,
     float64,
     int32,

@@ -3,7 +3,7 @@ from typing import Annotated
 import pytest
 from pydantic import BaseModel, Field, ValidationError
 
-from overture.schema.foundation.constraint import UniqueItemsConstraint
+from overture.schema.system.constraint import UniqueItemsConstraint
 
 
 class TestUniqueItemsConstraint:

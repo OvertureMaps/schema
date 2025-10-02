@@ -5,7 +5,7 @@ import pytest
 from deepdiff import DeepDiff
 from overture.schema.core.json_schema import EnhancedJsonSchemaGenerator
 from overture.schema.core.models import Feature
-from overture.schema.foundation.primitive import (
+from overture.schema.system.primitive import (
     BBox,
     Geometry,
 )

@@ -4,10 +4,8 @@ from enum import Enum
 from typing import Any
 
 import pytest
-from pydantic import BaseModel, Field
-
-from overture.schema.foundation.constraint import UniqueItemsConstraint
-from overture.schema.foundation.constraint.string import (
+from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.constraint.string import (
     CountryCodeConstraint,
     HexColorConstraint,
     JsonPointerConstraint,
@@ -17,6 +15,8 @@ from overture.schema.foundation.constraint.string import (
     RegionCodeConstraint,
     StrippedConstraint,
 )
+from pydantic import BaseModel, Field
+
 from overture.schema.validation.constraints import (
     ConfidenceScoreConstraint,
     LinearReferenceRangeConstraint,

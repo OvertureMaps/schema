@@ -17,13 +17,13 @@ from overture.schema.core.validation import (
     exactly_one_of,
     not_required_if,
 )
-from overture.schema.foundation.constraint import UniqueItemsConstraint
-from overture.schema.foundation.primitive import (
+from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
 )
-from overture.schema.foundation.string import RegionCode
+from overture.schema.system.string import RegionCode
 
 from ..division import Division
 from ..enums import PlaceType

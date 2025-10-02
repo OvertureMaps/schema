@@ -27,7 +27,7 @@ Usage:
         tags: Annotated[list[str], UniqueItemsConstraint()]
 """
 
-from overture.schema.foundation.constraint import UniqueItemsConstraint
+from overture.schema.system.constraint import UniqueItemsConstraint
 
 from .constraints import (
     CategoryPatternConstraint,

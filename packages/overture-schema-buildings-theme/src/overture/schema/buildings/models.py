@@ -8,8 +8,8 @@ from overture.schema.buildings.enums import (
     RoofOrientation,
     RoofShape,
 )
-from overture.schema.foundation.primitive import float64, int32
-from overture.schema.foundation.string import HexColor
+from overture.schema.system.primitive import float64, int32
+from overture.schema.system.string import HexColor
 
 
 class Shape(BaseModel):

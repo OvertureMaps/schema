@@ -11,8 +11,8 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails, core_schema
 
-from overture.schema.foundation.constraint import CollectionConstraint, Constraint
-from overture.schema.foundation.constraint.string import StringConstraint
+from overture.schema.system.constraint import CollectionConstraint, Constraint
+from overture.schema.system.constraint.string import StringConstraint
 
 
 class LinearReferenceRangeConstraint(CollectionConstraint):

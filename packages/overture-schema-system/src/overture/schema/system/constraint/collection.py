@@ -23,7 +23,7 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails, core_schema
 
-from overture.schema.foundation.constraint.constraint import Constraint
+from overture.schema.system.constraint.constraint import Constraint
 
 
 class CollectionConstraint(Constraint):

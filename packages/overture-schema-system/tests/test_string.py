@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from overture.schema.foundation.string import (
+from overture.schema.system.string import (
     CountryCode,
     HexColor,
     JsonPointer,

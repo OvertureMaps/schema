@@ -20,16 +20,16 @@ from overture.schema.core.types import (
     CountryCode,
     Id,
 )
-from overture.schema.foundation.constraint import (
+from overture.schema.system.constraint import (
     UniqueItemsConstraint,
 )
-from overture.schema.foundation.primitive import (
+from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
     int32,
 )
-from overture.schema.foundation.string import RegionCode, WikidataId
+from overture.schema.system.string import RegionCode, WikidataId
 
 from ..enums import DivisionClass, PlaceType
 from ..models import CapitalOfDivisionItem

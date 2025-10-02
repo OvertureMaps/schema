@@ -3,7 +3,7 @@ from typing import Annotated
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from overture.schema.foundation.constraint.string import (
+from overture.schema.system.constraint.string import (
     CountryCodeConstraint,
     HexColorConstraint,
     JsonPointerConstraint,

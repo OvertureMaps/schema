@@ -9,7 +9,7 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails, core_schema
 
-from overture.schema.foundation.constraint import (
+from overture.schema.system.constraint import (
     Constraint,
 )
 
