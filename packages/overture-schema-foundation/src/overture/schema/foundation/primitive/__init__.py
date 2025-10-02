@@ -109,7 +109,6 @@ __all__ = [
     "Geometry",
     "GeometryType",
     "GeometryTypeConstraint",
-
     "int8",
     "int16",
     "int32",
