@@ -5,8 +5,12 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import Feature
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import Named, Stacked
+from overture.schema.system.primitive import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 
 from ..models import Shape
 from .enums import (

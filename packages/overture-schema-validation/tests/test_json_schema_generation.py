@@ -4,20 +4,22 @@ from enum import Enum
 from typing import Any
 
 import pytest
-from pydantic import BaseModel, Field
-
-from overture.schema.validation.constraints import (
-    ConfidenceScoreConstraint,
+from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.constraint.string import (
     CountryCodeConstraint,
     HexColorConstraint,
     JsonPointerConstraint,
     LanguageTagConstraint,
-    LinearReferenceRangeConstraint,
     NoWhitespaceConstraint,
     PatternConstraint,
     RegionCodeConstraint,
-    UniqueItemsConstraint,
-    WhitespaceConstraint,
+    StrippedConstraint,
+)
+from pydantic import BaseModel, Field
+
+from overture.schema.validation.constraints import (
+    ConfidenceScoreConstraint,
+    LinearReferenceRangeConstraint,
 )
 from overture.schema.validation.mixin import (
     ConstraintValidatedModel,
@@ -353,7 +355,7 @@ class TestJSONSchemaGeneration:
 
     def test_whitespace_constraint_json_schema(self) -> None:
         """Test WhitespaceConstraint JSON schema generation."""
-        constraint = WhitespaceConstraint()
+        constraint = StrippedConstraint()
         TestModel = create_field_constraint_model(str, constraint)
         schema = TestModel.model_json_schema()
 

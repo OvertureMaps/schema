@@ -3,23 +3,26 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
-from overture.schema.validation.constraints import (
+from overture.schema.system.constraint.string import (
     CountryCodeConstraint,
-    LinearReferenceRangeConstraint,
 )
-from overture.schema.validation.types import (
-    ConfidenceScore,
+from overture.schema.system.primitive import int32, pct
+from overture.schema.system.string import (
     HexColor,
     JsonPointer,
     LanguageTag,
     NoWhitespaceString,
     PhoneNumber,
     RegionCode,
-    TrimmedString,
+    StrippedString,
     WikidataId,
 )
-
-from .primitives.numeric import float64, int32
+from overture.schema.validation.constraints import (
+    LinearReferenceRangeConstraint,
+)
+from overture.schema.validation.types import (
+    ConfidenceScore,
+)
 
 Id = NewType(
     "Id",
@@ -38,10 +41,8 @@ Id = NewType(
 LinearlyReferencedPosition = NewType(
     "LinearlyReferencedPosition",
     Annotated[
-        float64,
+        pct,
         Field(
-            ge=0,
-            le=1,
             description="Represents a linearly-referenced position between 0% and 100% of the distance along a path such as a road segment or a river center-line segment.",
         ),
     ],
@@ -100,7 +101,7 @@ CommonNames = NewType(
 The validating regular expression for this property follows the pattern described in https://www.rfc-editor.org/rfc/bcp/bcp47.txt with the exception that private use tags are not supported."""
                 ),
             ],
-            TrimmedString,
+            StrippedString,
         ],
         Field(json_schema_extra={"additionalProperties": False}),
     ],
@@ -214,7 +215,7 @@ __all__ = [
     "RegionCode",
     "SortKey",
     "Theme",
-    "TrimmedString",
+    "StrippedString",
     "Type",
     "WikidataId",
 ]

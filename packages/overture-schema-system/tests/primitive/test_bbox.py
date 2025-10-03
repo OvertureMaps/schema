@@ -2,8 +2,9 @@ from typing import Any
 
 import jsonpath_ng  # type: ignore[import-untyped]
 import pytest
-from overture.schema.core.bbox import BBox
 from pydantic import BaseModel, ValidationError
+
+from overture.schema.system.primitive.bbox import BBox
 
 
 @pytest.mark.parametrize(

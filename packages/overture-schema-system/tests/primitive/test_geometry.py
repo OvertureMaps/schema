@@ -5,10 +5,15 @@ from itertools import chain, combinations
 from typing import Annotated, Any
 
 import pytest
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from pydantic import BaseModel, ValidationError
 from pytest_subtests import SubTests
 from shapely import wkt
+
+from overture.schema.system.primitive import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 
 
 def test_geometry_type_sorted() -> None:
