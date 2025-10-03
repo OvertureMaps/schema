@@ -3,8 +3,8 @@
 import json
 import os
 
+from overture.schema.annex import Sources
 from overture.schema.core import json_schema
-from overture.schema.sources import Sources
 
 
 def test_sources_json_schema_baseline() -> None:
