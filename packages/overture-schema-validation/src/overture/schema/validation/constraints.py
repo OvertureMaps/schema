@@ -1,6 +1,5 @@
 """Constraint-based validation for Overture Maps schemas."""
 
-import re
 from typing import Any
 
 from pydantic import (
@@ -12,7 +11,6 @@ from pydantic import (
 from pydantic_core import InitErrorDetails, core_schema
 
 from overture.schema.system.constraint import CollectionConstraint, Constraint
-from overture.schema.system.constraint.string import StringConstraint
 
 
 class LinearReferenceRangeConstraint(CollectionConstraint):
@@ -82,39 +80,6 @@ class LinearReferenceRangeConstraint(CollectionConstraint):
         json_schema["description"] = (
             "Linear reference range [start, end] where 0.0 <= start < end <= 1.0"
         )
-        return json_schema
-
-
-class CategoryPatternConstraint(StringConstraint):
-    """Constraint for place category patterns (snake_case)."""
-
-    def __init__(self) -> None:
-        self.pattern = re.compile(r"^[a-z0-9]+(_[a-z0-9]+)*$")
-
-    def validate(self, value: str, info: ValidationInfo) -> None:
-        if not self.pattern.match(value):
-            context = info.context or {}
-            loc = context.get("loc_prefix", ()) + ("value",)
-            raise ValidationError.from_exception_data(
-                title=self.__class__.__name__,
-                line_errors=[
-                    InitErrorDetails(
-                        type="value_error",
-                        loc=loc,
-                        input=value,
-                        ctx={
-                            "error": f"Invalid category format: {value}. Must be snake_case (lowercase letters, numbers, underscores)"
-                        },
-                    )
-                ],
-            )
-
-    def __get_pydantic_json_schema__(
-        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
-        json_schema = handler(core_schema)
-        json_schema["pattern"] = self.pattern.pattern
-        json_schema["description"] = "Category in snake_case format"
         return json_schema
 
 

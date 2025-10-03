@@ -25,7 +25,7 @@ from overture.schema.system.primitive import (
 )
 from overture.schema.system.string import PhoneNumber, WikidataId
 
-from ..types import PlaceCategory
+from ..types import SnakeCaseString
 from .enums import OperatingStatus
 
 
@@ -39,13 +39,13 @@ class Categories(StrictBaseModel):
     # Required
 
     primary: Annotated[
-        PlaceCategory, Field(description="The primary or main category of the place.")
+        SnakeCaseString, Field(description="The primary or main category of the place.")
     ]
 
     # Optional
 
     alternate: Annotated[
-        list[PlaceCategory] | None,
+        list[SnakeCaseString] | None,
         Field(
             description="""Alternate categories of the place. Some places might fit into two categories, e.g. a book store and a coffee shop. In such a case, the primary category can be augmented with additional applicable categories.""",
         ),

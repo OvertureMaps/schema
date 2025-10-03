@@ -30,7 +30,6 @@ Usage:
 from overture.schema.system.constraint import UniqueItemsConstraint
 
 from .constraints import (
-    CategoryPatternConstraint,
     ConfidenceScoreConstraint,
     LinearReferenceRangeConstraint,
 )
@@ -45,7 +44,6 @@ from .mixin import (
 )
 
 __all__ = [
-    "CategoryPatternConstraint",
     "ConfidenceScoreConstraint",
     "ConstraintValidatedModel",
     "LinearReferenceRangeConstraint",

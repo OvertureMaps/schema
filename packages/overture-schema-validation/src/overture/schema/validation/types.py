@@ -7,13 +7,9 @@ from pydantic import Field
 from overture.schema.system.primitive import float64
 
 from .constraints import (
-    CategoryPatternConstraint,
     ConfidenceScoreConstraint,
 )
 
-# String types with constraints
-PlaceCategory = NewType("PlaceCategory", Annotated[str, CategoryPatternConstraint()])
-# Numeric types with constraints
 ConfidenceScore = NewType(
     "ConfidenceScore",
     Annotated[

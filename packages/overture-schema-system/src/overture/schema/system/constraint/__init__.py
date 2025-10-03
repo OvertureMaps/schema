@@ -1,20 +1,7 @@
 """
-constraint
-==========
 Reusable constraints.
 
 todo - vic
-
-
-Modules
--------
-constraint : module
-    Base constraint type.
-collection : module
-    Constraints for collection fields.
-string : module
-    Constraints for string fields.
-
 """
 
 from .collection import (
@@ -31,6 +18,7 @@ from .string import (
     PatternConstraint,
     PhoneNumberConstraint,
     RegionCodeConstraint,
+    SnakeCaseConstraint,
     StringConstraint,
     StrippedConstraint,
     WikidataIdConstraint,
@@ -48,6 +36,7 @@ __all__ = [
     "PatternConstraint",
     "PhoneNumberConstraint",
     "RegionCodeConstraint",
+    "SnakeCaseConstraint",
     "StringConstraint",
     "StrippedConstraint",
     "WikidataIdConstraint",

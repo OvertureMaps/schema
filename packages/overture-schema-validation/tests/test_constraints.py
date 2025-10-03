@@ -4,48 +4,9 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from overture.schema.validation import (
-    CategoryPatternConstraint,
     ConfidenceScoreConstraint,
     LinearReferenceRangeConstraint,
 )
-
-
-class TestCategoryPatternConstraint:
-    def test_category_pattern_constraint_valid(self) -> None:
-        """Test CategoryPatternConstraint with valid snake_case patterns."""
-
-        class TestModel(BaseModel):
-            category: Annotated[str, CategoryPatternConstraint()]
-
-        valid_categories = [
-            "restaurant",
-            "gas_station",
-            "shopping_mall",
-            "coffee_shop",
-            "bank_atm",
-        ]
-
-        for cat in valid_categories:
-            model = TestModel(category=cat)
-            assert model.category == cat
-
-    def test_category_pattern_constraint_invalid(self) -> None:
-        """Test CategoryPatternConstraint with invalid category patterns."""
-
-        class TestModel(BaseModel):
-            category: Annotated[str, CategoryPatternConstraint()]
-
-        invalid_categories = [
-            "Restaurant",  # Capital letter
-            "gas-station",  # Hyphen instead of underscore
-            "shopping mall",  # Space instead of underscore
-            "category!",  # Special character
-        ]
-
-        for cat in invalid_categories:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(category=cat)
-            assert "Invalid category format" in str(exc_info.value)
 
 
 class TestNumericConstraints:

@@ -212,36 +212,6 @@ class JsonPointerConstraint(StringConstraint):
         return json_schema
 
 
-class StrippedConstraint(StringConstraint):
-    """Constraint to ensure string has no leading/trailing whitespace."""
-
-    def validate(self, value: str, info: ValidationInfo) -> None:
-        if value != value.strip():
-            context = info.context or {}
-            loc = context.get("loc_prefix", ()) + ("value",)
-            raise ValidationError.from_exception_data(
-                title=self.__class__.__name__,
-                line_errors=[
-                    InitErrorDetails(
-                        type="value_error",
-                        loc=loc,
-                        input=value,
-                        ctx={
-                            "error": f"String cannot have leading or trailing whitespace: {repr(value)}"
-                        },
-                    )
-                ],
-            )
-
-    def __get_pydantic_json_schema__(
-        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
-        json_schema = handler(core_schema)
-        json_schema["pattern"] = r"^(\S.*)?\S$"
-        json_schema["description"] = "String with no leading/trailing whitespace"
-        return json_schema
-
-
 class WikidataIdConstraint(StringConstraint):
     """Constraint for Wikidata identifiers (Q followed by digits)."""
 
@@ -373,4 +343,67 @@ class NoWhitespaceConstraint(StringConstraint):
         json_schema = handler(core_schema)
         json_schema["pattern"] = self.pattern.pattern
         json_schema["description"] = "String without whitespace characters"
+        return json_schema
+
+
+class StrippedConstraint(StringConstraint):
+    """Constraint to ensure string has no leading/trailing whitespace."""
+
+    def validate(self, value: str, info: ValidationInfo) -> None:
+        if value != value.strip():
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"String cannot have leading or trailing whitespace: {repr(value)}"
+                        },
+                    )
+                ],
+            )
+
+    def __get_pydantic_json_schema__(
+        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> dict[str, Any]:
+        json_schema = handler(core_schema)
+        json_schema["pattern"] = r"^(\S.*)?\S$"
+        json_schema["description"] = "String with no leading/trailing whitespace"
+        return json_schema
+
+
+class SnakeCaseConstraint(StringConstraint):
+    """A string containing a snake case identifier, *e.g.* `"foo_bar"`."""
+
+    def __init__(self) -> None:
+        self.pattern = re.compile(r"^[a-z0-9]+(_[a-z0-9]+)*$")
+
+    def validate(self, value: str, info: ValidationInfo) -> None:
+        if not self.pattern.match(value):
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Invalid category format: {value}. Must be snake_case (lowercase letters, numbers, underscores)"
+                        },
+                    )
+                ],
+            )
+
+    def __get_pydantic_json_schema__(
+        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> dict[str, Any]:
+        json_schema = handler(core_schema)
+        json_schema["pattern"] = self.pattern.pattern
+        json_schema["description"] = "Category in snake_case format"
         return json_schema

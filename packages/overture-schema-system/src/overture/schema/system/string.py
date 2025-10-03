@@ -10,9 +10,23 @@ from overture.schema.system.constraint import (
     NoWhitespaceConstraint,
     PhoneNumberConstraint,
     RegionCodeConstraint,
+    SnakeCaseConstraint,
     StrippedConstraint,
     WikidataIdConstraint,
 )
+
+CountryCode = NewType(
+    "CountryCode",
+    Annotated[
+        str,
+        CountryCodeConstraint(),
+        Field(description="An ISO 3166-1 alpha-2 country code"),
+    ],
+)  # type: ignore [type-arg]
+CountryCode.__doc__ = """
+CountryCode : NewType
+    An ISO-316601 alpha-2 country code.
+"""
 
 HexColor = NewType(
     "HexColor",
@@ -35,7 +49,6 @@ HexColor : NewType
     - "#000000" or "#000" for black ⬛
 """
 
-
 JsonPointer = NewType(
     "JsonPointer",
     Annotated[
@@ -50,7 +63,6 @@ JsonPointer : NewType
 
     As described in `the JSON Pointer specification, RFC-6901 <https://rfc-editor.org/rfc/rfc6901.html>`
 """
-
 
 LanguageTag = NewType(
     "LanguageTag",
@@ -69,6 +81,44 @@ LanguageTag : NewType
     As described in `Tags for Identifying Languages, BCP-47 <https://www.rfc-editor.org/rfc/bcp/bcp47.txt>`
 """
 
+NoWhitespaceString = NewType(
+    "NoWhitespaceString",
+    Annotated[
+        str,
+        NoWhitespaceConstraint(),
+        Field(description="A string that contains no whitespace characters"),
+    ],
+)  # type: ignore [type-arg]
+NoWhitespaceString.__doc__ = """
+NoWhitespaceString : NewType
+    A string that contains no whitespace characters.
+"""
+
+PhoneNumber = NewType(
+    "PhoneNumber",
+    Annotated[
+        str, PhoneNumberConstraint(), Field(description="An international phone number")
+    ],
+)  # type: ignore [type-arg]
+PhoneNumber.__doc__ = """
+PhoneNumber : NewType
+    An international telephone number.
+"""
+
+RegionCode = NewType(
+    "RegionCode",
+    Annotated[
+        str,
+        RegionCodeConstraint(),
+        Field(description="An ISO 3166-2 principal subdivision code"),
+    ],
+)  # type: ignore [type-arg]
+RegionCode.__doc__ = """
+RegionCode : NewType
+    An ISO 3166-2 principal subdivision code.
+"""
+
+SnakeCaseString = NewType("SnakeCaseString", Annotated[str, SnakeCaseConstraint()])
 
 StrippedString = NewType(
     "StrippedString",
@@ -85,47 +135,6 @@ StrippedString : NewType
     A string without leading or trailing whitespace.
 """
 
-
-NoWhitespaceString = NewType(
-    "NoWhitespaceString",
-    Annotated[
-        str,
-        NoWhitespaceConstraint(),
-        Field(description="A string that contains no whitespace characters"),
-    ],
-)  # type: ignore [type-arg]
-NoWhitespaceString.__doc__ = """
-NoWhitespaceString : NewType
-    A string that contains no whitespace characters.
-"""
-
-
-CountryCode = NewType(
-    "CountryCode",
-    Annotated[
-        str,
-        CountryCodeConstraint(),
-        Field(description="An ISO 3166-1 alpha-2 country code"),
-    ],
-)  # type: ignore [type-arg]
-CountryCode.__doc__ = """
-CountryCode : NewType
-    An ISO-316601 alpha-2 country code.
-"""
-
-RegionCode = NewType(
-    "RegionCode",
-    Annotated[
-        str,
-        RegionCodeConstraint(),
-        Field(description="An ISO 3166-2 principal subdivision code"),
-    ],
-)  # type: ignore [type-arg]
-RegionCode.__doc__ = """
-RegionCode : NewType
-    An ISO 3166-2 principal subdivision code.
-"""
-
 WikidataId = NewType(
     "WikidataId",
     Annotated[
@@ -137,16 +146,4 @@ WikidataId = NewType(
 WikidataId.__doc__ = """
 WikidataId : NewType
     A wikidata ID, as found on https://www.wikidata.org/.
-"""
-
-
-PhoneNumber = NewType(
-    "PhoneNumber",
-    Annotated[
-        str, PhoneNumberConstraint(), Field(description="An international phone number")
-    ],
-)  # type: ignore [type-arg]
-PhoneNumber.__doc__ = """
-PhoneNumber : NewType
-    An international telephone number.
 """

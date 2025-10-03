@@ -1,3 +1,3 @@
-from overture.schema.validation.types import PlaceCategory
+from overture.schema.system.string import SnakeCaseString
 
-__all__ = ["PlaceCategory"]
+__all__ = ["SnakeCaseString"]
