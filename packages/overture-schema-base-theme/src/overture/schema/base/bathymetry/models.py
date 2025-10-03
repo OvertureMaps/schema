@@ -8,8 +8,12 @@ from overture.schema.base.types import Depth
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import CartographicallyHinted
+from overture.schema.system.primitive import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 
 
 class Bathymetry(

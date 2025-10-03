@@ -12,13 +12,22 @@ from pydantic import (
 )
 from pydantic_core import core_schema
 
-from overture.schema.core.bbox import BBox
+from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.primitive import (
+    BBox,
+    Geometry,
+)
+from overture.schema.system.string import (
+    JsonPointer,
+    LanguageTag,
+    RegionCode,
+    StrippedString,
+)
 from overture.schema.validation import (
     allow_extension_fields,
 )
 
 from .enums import NameVariant, PerspectiveMode, Side
-from .geometry import Geometry
 from .types import (
     CommonNames,
     ConfidenceScore,
@@ -26,18 +35,14 @@ from .types import (
     FeatureUpdateTime,
     FeatureVersion,
     Id,
-    JsonPointer,
-    LanguageTag,
     Level,
     LinearlyReferencedRange,
     MaxZoom,
     MinZoom,
     Prominence,
-    RegionCode,
     SortKey,
-    TrimmedString,
 )
-from .validation import ConstraintValidatedModel, UniqueItemsConstraint
+from .validation import ConstraintValidatedModel
 
 
 class StrictBaseModel(BaseModel):
@@ -96,7 +101,7 @@ class SourcePropertyItem(GeometricRangeScope):
     # Optional
 
     license: Annotated[
-        TrimmedString | None,
+        StrippedString | None,
         Field(
             description="License name. This should be a valid SPDX license identifier when available. If the license is NULL, contact the data provider for more license information.",
         ),
@@ -264,7 +269,7 @@ class NameRule(GeometricRangeScope, SideScope):
 
     # Required
 
-    value: Annotated[TrimmedString, Field(min_length=1)]
+    value: Annotated[StrippedString, Field(min_length=1)]
     variant: NameVariant
 
     # Optional
@@ -287,7 +292,7 @@ class Names(StrictBaseModel):
     # Required
 
     primary: Annotated[
-        TrimmedString, Field(min_length=1, description="The most commonly used name.")
+        StrippedString, Field(min_length=1, description="The most commonly used name.")
     ]
 
     # Optional

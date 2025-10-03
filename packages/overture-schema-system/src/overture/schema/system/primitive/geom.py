@@ -91,10 +91,13 @@ class GeometryTypeConstraint:
     --------
     Limit allowed geometry of a feature type to line string and multi line string.
 
-    >>> from overture.schema.core.geometry import Geometry
-    >>> from overture.schema.core.models import Feature
-    >>> class MyFeature(Feature):
-    >>>     geometry: Annotated[Geometry, GeometryTypeConstraint("line_string", "multi_line_string")]
+    >>> from typing import Annotated
+    >>> from pydantic import BaseModel;
+    >>> class MyModel(BaseModel):
+    ...     geometry: Annotated[
+    ...                  Geometry,
+    ...                  GeometryTypeConstraint(GeometryType.LINE_STRING, GeometryType.MULTI_LINE_STRING)
+    ...               ]
     """
 
     allowed_types: tuple[GeometryType, ...]
