@@ -8,19 +8,22 @@ from overture.schema.core import (
     Feature,
     StrictBaseModel,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     Address,
     Named,
 )
 from overture.schema.core.types import (
     ConfidenceScore,
-    PhoneNumber,
-    WikidataId,
 )
-from overture.schema.core.validation import (
+from overture.schema.system.constraint import (
     UniqueItemsConstraint,
 )
+from overture.schema.system.primitive import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
+from overture.schema.system.string import PhoneNumber, WikidataId
 
 from ..types import PlaceCategory
 from .enums import OperatingStatus

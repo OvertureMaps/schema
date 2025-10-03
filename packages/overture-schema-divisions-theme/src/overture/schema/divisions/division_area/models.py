@@ -7,16 +7,21 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     Feature,
 )
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     Named,
     Names,
 )
 from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import CountryCode, Id, RegionCode
+from overture.schema.core.types import CountryCode, Id
 from overture.schema.core.validation import (
     exactly_one_of,
 )
+from overture.schema.system.primitive import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
+from overture.schema.system.string import RegionCode
 
 from ..division.models import Division
 from ..enums import PlaceType

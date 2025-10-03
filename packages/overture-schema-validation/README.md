@@ -122,7 +122,7 @@ from overture.schema.validation import (
     RegionCode,           # Annotated[str, RegionCodeConstraint()]
     ISO8601DateTime,      # Annotated[str, ISO8601DateTimeConstraint()]
     JSONPointer,          # Annotated[str, JSONPointerConstraint()]
-    TrimmedString,        # Annotated[str, WhitespaceConstraint()]
+    StrippedString,       # Annotated[str, StrippedConstraint()]
     HexColor,             # Annotated[str, HexColorConstraint()]
     NoWhitespaceString,   # Annotated[str, NoWhitespaceConstraint()]
 

@@ -53,9 +53,9 @@ class Reference:
     >>> from overture.schema.core.ref import Reference, Relationship
     >>> from overture.schema.core.types import Id
     >>> class Park(Feature):
-    >>>     pass
+    ...     pass
     >>> class ParkBench(Feature):
-    >>>    park_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Park)]
+    ...    park_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Park)]
     """
 
     relationship: Relationship

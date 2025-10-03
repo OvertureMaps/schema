@@ -42,12 +42,12 @@ class BBox:
     Read a bounding box from its GeoJSON representation:
 
     >>> BBox.from_geo_json([1, 2, 3, 4])
-    BBox(xmin=1, ymin=2, xmax=3, ymax=4)
+    BBox(1, 2, 3, 4)
 
     Read a bounding box from its GeoJSON representation (simplified form for easier interactive use):
 
     >>> BBox.from_geo_json(1, 2, 3, 4)
-    BBox(xmin=1, ymin=2, xmax=3, ymax=4)
+    BBox(1, 2, 3, 4)
     """
 
     __slots__ = ("_xmin", "_ymin", "_xmax", "_ymax")

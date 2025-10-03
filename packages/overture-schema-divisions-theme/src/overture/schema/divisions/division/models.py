@@ -8,7 +8,6 @@ from overture.schema.core import (
     Feature,
 )
 from overture.schema.core.enums import Side
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
 from overture.schema.core.models import (
     CartographicallyHinted,
     Named,
@@ -16,17 +15,21 @@ from overture.schema.core.models import (
     Perspectives,
     StrictBaseModel,
 )
-from overture.schema.core.primitives import int32
 from overture.schema.core.types import (
     CommonNames,
     CountryCode,
     Id,
-    RegionCode,
-    WikidataId,
 )
-from overture.schema.core.validation import (
+from overture.schema.system.constraint import (
     UniqueItemsConstraint,
 )
+from overture.schema.system.primitive import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+    int32,
+)
+from overture.schema.system.string import RegionCode, WikidataId
 
 from ..enums import DivisionClass, PlaceType
 from ..models import CapitalOfDivisionItem

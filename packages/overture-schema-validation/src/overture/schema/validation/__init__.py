@@ -27,22 +27,12 @@ Usage:
         tags: Annotated[list[str], UniqueItemsConstraint()]
 """
 
+from overture.schema.system.constraint import UniqueItemsConstraint
+
 from .constraints import (
     CategoryPatternConstraint,
     ConfidenceScoreConstraint,
-    CountryCodeConstraint,
-    HexColorConstraint,
-    JsonPointerConstraint,
-    LanguageTagConstraint,
     LinearReferenceRangeConstraint,
-    NoWhitespaceConstraint,
-    PatternConstraint,
-    PhoneNumberConstraint,
-    RegionCodeConstraint,
-    StringConstraint,
-    UniqueItemsConstraint,
-    WhitespaceConstraint,
-    WikidataConstraint,
 )
 from .mixin import (
     ConstraintValidatedModel,
@@ -58,19 +48,7 @@ __all__ = [
     "CategoryPatternConstraint",
     "ConfidenceScoreConstraint",
     "ConstraintValidatedModel",
-    "CountryCodeConstraint",
-    "HexColorConstraint",
-    "JsonPointerConstraint",
-    "LanguageTagConstraint",
     "LinearReferenceRangeConstraint",
-    "NoWhitespaceConstraint",
-    "PatternConstraint",
-    "PhoneNumberConstraint",
-    "RegionCodeConstraint",
-    "StringConstraint",
-    "UniqueItemsConstraint",
-    "WhitespaceConstraint",
-    "WikidataConstraint",
     "allow_extension_fields",
     "any_of",
     "exactly_one_of",
