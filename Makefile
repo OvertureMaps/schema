@@ -1,4 +1,4 @@
-.PHONY: default uv-sync check test-all test mypy reset-baseline-schemas
+.PHONY: default uv-sync check test-all test docformat doctest mypy reset-baseline-schemas
 
 default: test-all
 

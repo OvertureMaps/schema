@@ -14,8 +14,9 @@ members = [
     "overture-schema-buildings-theme",
     "overture-schema-core",
     "overture-schema-divisions-theme",
-    "overture-schema-foundation",
     "overture-schema-places-theme",
+    "overture-schema-sources",
+    "overture-schema-system",
     "overture-schema-transportation-theme",
     "overture-schema-validation",
     "overture-schema-workspace",
@@ -268,7 +269,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -632,11 +633,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "deepdiff" },
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
     { name = "pyyaml" },
-    { name = "ruff" },
     { name = "yamlcore" },
 ]
 
@@ -656,11 +653,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "deepdiff" },
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "pytest-cov" },
     { name = "pyyaml" },
-    { name = "ruff" },
     { name = "yamlcore", specifier = ">=0.0.4" },
 ]
 
@@ -672,24 +665,10 @@ dependencies = [
     { name = "pydantic" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "pydantic", specifier = ">=2.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
 ]
 
 [[package]]
@@ -700,24 +679,10 @@ dependencies = [
     { name = "pydantic" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "pydantic", specifier = ">=2.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
 ]
 
 [[package]]
@@ -773,13 +738,6 @@ dependencies = [
     { name = "pydantic" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
@@ -787,15 +745,39 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.0" },
 ]
 
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
+[[package]]
+name = "overture-schema-places-theme"
+source = { editable = "packages/overture-schema-places-theme" }
+dependencies = [
+    { name = "overture-schema-core" },
+    { name = "overture-schema-validation" },
+    { name = "pydantic", extra = ["email"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
+    { name = "pydantic", specifier = ">=2.0" },
+    { name = "pydantic", extras = ["email"] },
 ]
 
 [[package]]
-name = "overture-schema-foundation"
+name = "overture-schema-sources"
+source = { editable = "packages/overture-schema-sources" }
+dependencies = [
+    { name = "overture-schema-core" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "pydantic", specifier = ">=2.0" },
+]
+
+[[package]]
+name = "overture-schema-system"
 source = { editable = "packages/overture-schema-system" }
 dependencies = [
     { name = "pydantic" },
@@ -813,37 +795,6 @@ dev = [
 requires-dist = [
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "shapely", specifier = ">=2.0.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
-]
-
-[[package]]
-name = "overture-schema-places-theme"
-source = { editable = "packages/overture-schema-places-theme" }
-dependencies = [
-    { name = "overture-schema-core" },
-    { name = "overture-schema-validation" },
-    { name = "pydantic", extra = ["email"] },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
-    { name = "overture-schema-validation", editable = "packages/overture-schema-validation" },
-    { name = "pydantic", specifier = ">=2.0" },
-    { name = "pydantic", extras = ["email"] },
 ]
 
 [package.metadata.requires-dev]
@@ -875,24 +826,10 @@ dependencies = [
     { name = "shapely" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "shapely", specifier = ">=2.0.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy" },
-    { name = "pytest", specifier = ">=7.0" },
-    { name = "ruff" },
 ]
 
 [[package]]
@@ -907,6 +844,7 @@ dev = [
     { name = "pdoc" },
     { name = "pydocstyle" },
     { name = "pytest" },
+    { name = "pytest-cov" },
     { name = "ruff" },
 ]
 
@@ -919,6 +857,7 @@ dev = [
     { name = "pdoc", specifier = ">=15.0.4" },
     { name = "pydocstyle", specifier = ">=6.3.0" },
     { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-cov" },
     { name = "ruff", specifier = ">=0.12.4" },
 ]
 

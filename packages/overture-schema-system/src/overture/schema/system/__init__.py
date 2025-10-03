@@ -1,6 +1,6 @@
 """
-foundation
-==========
+system
+======
 Foundational types at the base of the Overture Maps schema system.
 
 A set of primitive types, constraint rules, and Pydantic base model classes that
