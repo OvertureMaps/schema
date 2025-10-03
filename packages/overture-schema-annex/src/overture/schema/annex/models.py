@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 from pydantic import Field, HttpUrl
 
 from overture.schema.core.models import StrictBaseModel
-from overture.schema.core.types import CountryCode
+from overture.schema.core.types import CountryCodeAlpha2
 
 from .enums import BuildSource, UpdateType
 from .types import LicenseShortname
@@ -101,7 +101,7 @@ class Dataset(StrictBaseModel):
         ),
     ] = None
     countries: Annotated[
-        list[CountryCode | Literal["Global"]] | None,
+        list[CountryCodeAlpha2 | Literal["Global"]] | None,
         Field(
             description="A list of two-character iso country codes that this data source provides data in."
         ),

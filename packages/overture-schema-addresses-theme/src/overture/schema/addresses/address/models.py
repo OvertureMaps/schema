@@ -8,7 +8,7 @@ from overture.schema.core import (
     Feature,
     StrictBaseModel,
 )
-from overture.schema.core.types import CountryCode
+from overture.schema.core.types import CountryCodeAlpha2
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
@@ -66,7 +66,7 @@ class Address(Feature[Literal["addresses"], Literal["address"]]):
                 Note: when a level is not known - most likely because the data provider has not supplied it and we have not derived it from another source, the array element container must be present, but the "value" field should be omitted""",
         ),
     ] = None
-    country: CountryCode | None = None
+    country: CountryCodeAlpha2 | None = None
     number: Annotated[
         StrippedString | None,
         Field(

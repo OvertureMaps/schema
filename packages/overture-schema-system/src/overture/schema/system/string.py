@@ -3,7 +3,7 @@ from typing import Annotated, NewType
 from pydantic import Field
 
 from overture.schema.system.constraint import (
-    CountryCodeConstraint,
+    CountryCodeAlpha2Constraint,
     HexColorConstraint,
     JsonPointerConstraint,
     LanguageTagConstraint,
@@ -15,16 +15,16 @@ from overture.schema.system.constraint import (
     WikidataIdConstraint,
 )
 
-CountryCode = NewType(
-    "CountryCode",
+CountryCodeAlpha2 = NewType(
+    "CountryCodeAlpha2",
     Annotated[
         str,
-        CountryCodeConstraint(),
+        CountryCodeAlpha2Constraint(),
         Field(description="An ISO 3166-1 alpha-2 country code"),
     ],
 )  # type: ignore [type-arg]
-CountryCode.__doc__ = """
-CountryCode : NewType
+CountryCodeAlpha2.__doc__ = """
+CountryCodeAlpha2 : NewType
     An ISO-316601 alpha-2 country code.
 """
 

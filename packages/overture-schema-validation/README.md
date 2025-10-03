@@ -31,7 +31,7 @@ from pydantic import Field
 from overture.schema.core import StrictBaseModel
 from overture.schema.validation import (
     LanguageTagConstraint,
-    CountryCodeConstraint,
+    CountryCodeAlpha2Constraint,
     UniqueItemsConstraint,
 )
 
@@ -42,7 +42,7 @@ class PlaceProperties(StrictBaseModel):
     )
 
     # Country code validation
-    country: Annotated[str, CountryCodeConstraint()] = Field(
+    country: Annotated[str, CountryCodeAlpha2Constraint()] = Field(
         ..., description="ISO 3166-1 alpha-2 country code"
     )
 
@@ -63,7 +63,7 @@ Validate string formats against common patterns:
 |------------|---------|---------|
 | `PatternConstraint` | Generic regex pattern matching | Custom patterns |
 | `LanguageTagConstraint` | IETF BCP-47 language tags | `"en-US"`, `"fr-CA"` |
-| `CountryCodeConstraint` | ISO 3166-1 alpha-2 codes | `"US"`, `"CA"`, `"GB"` |
+| `CountryCodeAlpha2Constraint` | ISO 3166-1 alpha-2 codes | `"US"`, `"CA"`, `"GB"` |
 | `RegionCodeConstraint` | ISO 3166-2 subdivision codes | `"US-CA"`, `"CA-ON"` |
 | `ISO8601DateTimeConstraint` | ISO 8601 datetime strings | `"2023-12-25T10Z"` |
 | `HexColorConstraint` | Hexadecimal color codes | `"#FF0000"` |
@@ -118,7 +118,7 @@ from overture.schema.core import StrictBaseModel
 from overture.schema.validation import (
     # String types
     LanguageTag,          # Annotated[str, LanguageTagConstraint()]
-    CountryCode,          # Annotated[str, CountryCodeConstraint()]
+    CountryCodeAlpha2,          # Annotated[str, CountryCodeAlpha2Constraint()]
     RegionCode,           # Annotated[str, RegionCodeConstraint()]
     ISO8601DateTime,      # Annotated[str, ISO8601DateTimeConstraint()]
     JSONPointer,          # Annotated[str, JSONPointerConstraint()]
@@ -138,7 +138,7 @@ from overture.schema.validation import (
 
 class MyModel(StrictBaseModel):
     language: LanguageTag = Field(..., description="IETF BCP-47 language tag")
-    country: CountryCode = Field(..., description="ISO 3166-1 alpha-2 country code")
+    country: CountryCodeAlpha2 = Field(..., description="ISO 3166-1 alpha-2 country code")
     region: RegionCode = Field(None, description="ISO 3166-2 region code")
     confidence: ConfidenceScore = Field(..., description="ML confidence score")
     zoom: ZoomLevel = Field(..., description="Map zoom level")
@@ -224,7 +224,7 @@ class PlaceProperties(BaseModel):
 
 ```python
 class PlaceProperties(BaseModel):
-    country: Annotated[str, CountryCodeConstraint()] = Field(
+    country: Annotated[str, CountryCodeAlpha2Constraint()] = Field(
         ..., description="Country code"
     )
     language: Annotated[str, LanguageTagConstraint()] = Field(
@@ -319,14 +319,14 @@ This validation package integrates with Overture Maps schema packages using a hy
 # In your schema models
 from typing import Annotated, Literal
 from pydantic import model_validator
-from overture.schema.validation import CountryCode, LanguageTag
+from overture.schema.validation import CountryCodeAlpha2, LanguageTag
 from overture.schema.validation.mixin import ConstraintValidatedModel
 
 # Base properties with field-level validation
 class OvertureFeatureProperties(BaseModel):
     theme: str = Field(..., description="Overture theme")
     type: str = Field(..., description="Feature type")
-    country: Optional[CountryCode] = None
+    country: Optional[CountryCodeAlpha2] = None
     names: Annotated[
         dict[LanguageTag, str],
         Field(json_schema_extra={"additionalProperties": False})

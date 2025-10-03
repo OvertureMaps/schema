@@ -4,7 +4,7 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from overture.schema.system.constraint.string import (
-    CountryCodeConstraint,
+    CountryCodeAlpha2Constraint,
     HexColorConstraint,
     JsonPointerConstraint,
     LanguageTagConstraint,
@@ -77,10 +77,10 @@ class TestStringConstraints:
             assert "Invalid IETF BCP-47 language tag" in str(exc_info.value)
 
     def test_country_code_constraint_valid(self) -> None:
-        """Test CountryCodeConstraint with valid ISO 3166-1 alpha-2 codes."""
+        """Test CountryCodeAlpha2Constraint with valid ISO 3166-1 alpha-2 codes."""
 
         class TestModel(BaseModel):
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
 
         valid_codes = ["US", "GB", "CA", "FR", "DE", "JP", "CN", "BR"]
 
@@ -89,10 +89,10 @@ class TestStringConstraints:
             assert model.country == code
 
     def test_country_code_constraint_invalid(self) -> None:
-        """Test CountryCodeConstraint with invalid country codes."""
+        """Test CountryCodeAlpha2Constraint with invalid country codes."""
 
         class TestModel(BaseModel):
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
 
         invalid_codes = ["USA", "123", "invalid", "gb", "us"]
 
@@ -361,7 +361,7 @@ class TestJsonSchemaGeneration:
 
         class TestModel(BaseModel):
             language: Annotated[str, LanguageTagConstraint()]
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
             color: Annotated[str, HexColorConstraint()]
 
         schema = TestModel.model_json_schema()
@@ -383,7 +383,7 @@ class TestErrorHandling:
         """Test that validation errors include proper context and location info."""
 
         class TestModel(BaseModel):
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
 
         with pytest.raises(ValidationError) as exc_info:
             TestModel(country="invalid")
@@ -402,7 +402,7 @@ class TestErrorHandling:
         """Test validation errors in nested structures."""
 
         class NestedModel(BaseModel):
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
 
         class TestModel(BaseModel):
             nested: NestedModel

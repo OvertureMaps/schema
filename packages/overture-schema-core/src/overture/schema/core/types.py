@@ -4,7 +4,7 @@ from typing import Annotated, NewType
 from pydantic import Field
 
 from overture.schema.system.constraint.string import (
-    CountryCodeConstraint,
+    CountryCodeAlpha2Constraint,
 )
 from overture.schema.system.primitive import int32, pct
 from overture.schema.system.string import (
@@ -80,11 +80,11 @@ Level = NewType(
     ],
 )
 
-CountryCode = NewType(
-    "CountryCode",
+CountryCodeAlpha2 = NewType(
+    "CountryCodeAlpha2",
     Annotated[
         str,
-        CountryCodeConstraint(),
+        CountryCodeAlpha2Constraint(),
         Field(description="ISO 3166-1 alpha-2 country code"),
     ],
 )
@@ -194,8 +194,8 @@ Type = Annotated[str, Field(description="Specific feature type within the theme"
 __all__ = [
     "CommonNames",
     "ConfidenceScore",
-    "CountryCode",
-    "CountryCodeConstraint",
+    "CountryCodeAlpha2",
+    "CountryCodeAlpha2Constraint",
     "FeatureUpdateTime",
     "FeatureVersion",
     "HexColor",

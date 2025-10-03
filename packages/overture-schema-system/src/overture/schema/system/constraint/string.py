@@ -111,7 +111,7 @@ class LanguageTagConstraint(StringConstraint):
         return json_schema
 
 
-class CountryCodeConstraint(StringConstraint):
+class CountryCodeAlpha2Constraint(StringConstraint):
     """ISO 3166-1 alpha-2 country code constraint."""
 
     def __init__(self) -> None:

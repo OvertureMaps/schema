@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from overture.schema.system.constraint import UniqueItemsConstraint
 from overture.schema.system.constraint.string import (
-    CountryCodeConstraint,
+    CountryCodeAlpha2Constraint,
     HexColorConstraint,
     JsonPointerConstraint,
     LanguageTagConstraint,
@@ -297,8 +297,8 @@ class TestJSONSchemaGeneration:
         )
 
     def test_country_code_constraint_json_schema(self) -> None:
-        """Test CountryCodeConstraint JSON schema generation."""
-        constraint = CountryCodeConstraint()
+        """Test CountryCodeAlpha2Constraint JSON schema generation."""
+        constraint = CountryCodeAlpha2Constraint()
         TestModel = create_field_constraint_model(str, constraint)
         schema = TestModel.model_json_schema()
 

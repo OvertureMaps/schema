@@ -31,7 +31,7 @@ from .enums import NameVariant, PerspectiveMode, Side
 from .types import (
     CommonNames,
     ConfidenceScore,
-    CountryCode,
+    CountryCodeAlpha2,
     FeatureUpdateTime,
     FeatureVersion,
     Id,
@@ -256,7 +256,7 @@ class Perspectives(StrictBaseModel):
         ),
     ]
     countries: Annotated[
-        list[CountryCode],
+        list[CountryCodeAlpha2],
         Field(
             min_length=1, description="Countries holding the given mode of perspective."
         ),
@@ -352,4 +352,4 @@ class Address(StrictBaseModel):
         str | None, Field(description="Postal code where the address is located")
     ] = None
     region: RegionCode | None = None
-    country: CountryCode | None = None
+    country: CountryCodeAlpha2 | None = None

@@ -17,7 +17,7 @@ from overture.schema.core.models import (
 )
 from overture.schema.core.types import (
     CommonNames,
-    CountryCode,
+    CountryCodeAlpha2,
     Id,
 )
 from overture.schema.system.constraint import (
@@ -76,7 +76,7 @@ class Division(
     names: Names
     subtype: PlaceType
     country: Annotated[
-        CountryCode,
+        CountryCodeAlpha2,
         Field(
             description="""ISO 3166-1 alpha-2 country code of the country or country-like entity, that this division represents or belongs to.
 
