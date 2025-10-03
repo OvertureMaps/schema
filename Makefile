@@ -33,9 +33,9 @@ mypy: uv-sync
 	@# $$ escapes $ for make - sed needs literal $ for end-of-line anchor
 	@find packages -maxdepth 1 -type d -name "overture-schema*" \
 		| sort \
-		| sed 's:-theme$$::' \
+		| sed 's|-theme$$||' \
 		| tr - . \
-		| sed 's:^packages/\|:-p :' \
+		| sed 's|^packages/|-p |' \
 		| xargs uv run mypy --no-error-summary
 	@uv run mypy --no-error-summary packages/*/tests/*.py
 
