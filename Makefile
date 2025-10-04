@@ -22,10 +22,13 @@ docformat:
 
 doctest: uv-sync
 	@# $$ escapes $ for make - sed needs literal $ for end-of-line anchor
-	@find packages/*/src -name "*.py" -type f -not -name "__*" \
+	@find packages/*/src -name "*.py" -type f \
 		| sed 's|^packages/[^/]*/src/||' \
 		| sed 's|/|.|g' \
 		| sed 's|\.py$$||' \
+		| sed 's|\.__init__$$||' \
+		| sed '/\.__.*__$$/d' \
+		| sort -u \
 		| xargs uv run python -c 'import doctest, importlib, sys; [doctest.testmod(importlib.import_module(m)) for m in sys.argv[1:]]'
 
 # mypy type checking with namespace package support

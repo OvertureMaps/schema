@@ -1,7 +1,8 @@
 """
-Reusable constraints.
+Field constraints.
 
-todo - vic
+This module provides a convenient set of reusable constraint classes that can be used to annotate
+Pydantic fields in order to ensure the field values conform to expectations.
 """
 
 from .collection import (
@@ -25,9 +26,8 @@ from .string import (
 )
 
 __all__ = [
-    "Constraint",
     "CollectionConstraint",
-    "UniqueItemsConstraint",
+    "Constraint",
     "CountryCodeAlpha2Constraint",
     "HexColorConstraint",
     "JsonPointerConstraint",
@@ -39,5 +39,6 @@ __all__ = [
     "SnakeCaseConstraint",
     "StringConstraint",
     "StrippedConstraint",
+    "UniqueItemsConstraint",
     "WikidataIdConstraint",
 ]
