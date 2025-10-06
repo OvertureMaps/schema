@@ -1,14 +1,20 @@
 from datetime import datetime
 from typing import Annotated, Any, NewType
 
-from pydantic import Field, GetJsonSchemaHandler, ValidationError, ValidationInfo
+from pydantic import (
+    Field,
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
+    ValidationError,
+    ValidationInfo,
+)
 from pydantic_core import InitErrorDetails, core_schema
 
-from overture.schema.system.constraint import CollectionConstraint
+from overture.schema.system.constraint import CollectionConstraint, Constraint
 from overture.schema.system.constraint.string import (
     CountryCodeAlpha2Constraint,
 )
-from overture.schema.system.primitive import int32, pct
+from overture.schema.system.primitive import float64, int32, pct
 from overture.schema.system.string import (
     HexColor,
     JsonPointer,
@@ -18,9 +24,6 @@ from overture.schema.system.string import (
     RegionCode,
     StrippedString,
     WikidataId,
-)
-from overture.schema.validation.types import (
-    ConfidenceScore,
 )
 
 Id = NewType(
@@ -33,6 +36,38 @@ Id = NewType(
         ),
     ],
 )
+
+
+class ConfidenceScoreConstraint(Constraint):
+    """Constraint for confidence/probability scores (0.0 to 1.0)."""
+
+    def __get_pydantic_core_schema__(
+        self, source: type[Any], handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        # Use built-in constraints for validation
+        return core_schema.float_schema(ge=0.0, le=1.0)
+
+    def __get_pydantic_json_schema__(
+        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> dict[str, Any]:
+        json_schema = handler(core_schema)
+        json_schema["minimum"] = 0.0
+        json_schema["maximum"] = 1.0
+        json_schema["description"] = "Confidence score between 0.0 and 1.0"
+        return json_schema
+
+
+ConfidenceScore = NewType(
+    "ConfidenceScore",
+    Annotated[
+        float64,
+        ConfidenceScoreConstraint(),
+        Field(
+            description="Confidence value from the source dataset, particularly relevant for ML-derived data."
+        ),
+    ],
+)
+
 
 # One possible advantage to using percentages over absolute distances is being able to
 # trivially validate that the position lies "on" its segment (i.e. is between zero and

@@ -27,9 +27,6 @@ Usage:
         tags: Annotated[list[str], UniqueItemsConstraint()]
 """
 
-from .constraints import (
-    ConfidenceScoreConstraint,
-)
 from .mixin import (
     ConstraintValidatedModel,
     allow_extension_fields,
@@ -41,7 +38,6 @@ from .mixin import (
 )
 
 __all__ = [
-    "ConfidenceScoreConstraint",
     "ConstraintValidatedModel",
     "allow_extension_fields",
     "any_of",

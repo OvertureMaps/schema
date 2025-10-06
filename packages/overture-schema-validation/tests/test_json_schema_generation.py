@@ -4,7 +4,10 @@ from enum import Enum
 from typing import Any
 
 import pytest
-from overture.schema.core.types import LinearReferenceRangeConstraint
+from overture.schema.core.types import (
+    ConfidenceScoreConstraint,
+    LinearReferenceRangeConstraint,
+)
 from overture.schema.system.constraint import UniqueItemsConstraint
 from overture.schema.system.constraint.string import (
     CountryCodeAlpha2Constraint,
@@ -18,9 +21,6 @@ from overture.schema.system.constraint.string import (
 )
 from pydantic import BaseModel, Field
 
-from overture.schema.validation.constraints import (
-    ConfidenceScoreConstraint,
-)
 from overture.schema.validation.mixin import (
     ConstraintValidatedModel,
     any_of,
