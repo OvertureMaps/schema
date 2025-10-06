@@ -29,7 +29,7 @@ doctest: uv-sync
 		| sed 's|\.__init__$$||' \
 		| sed '/\.__.*__$$/d' \
 		| sort -u \
-		| xargs uv run python -c 'import doctest, importlib, sys; [doctest.testmod(importlib.import_module(m)) for m in sys.argv[1:]]'
+		| xargs uv run python -c 'import doctest, importlib, sys; sys.exit(any(doctest.testmod(importlib.import_module(m)).failed for m in sys.argv[1:]))'
 
 # mypy type checking with namespace package support
 mypy: uv-sync
