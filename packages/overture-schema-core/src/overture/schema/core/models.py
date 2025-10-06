@@ -12,6 +12,9 @@ from pydantic import (
 )
 from pydantic_core import core_schema
 
+from overture.schema.core.ext import (
+    allow_extension_fields,
+)
 from overture.schema.system.constraint import UniqueItemsConstraint
 from overture.schema.system.primitive import (
     BBox,
@@ -22,9 +25,6 @@ from overture.schema.system.string import (
     LanguageTag,
     RegionCode,
     StrippedString,
-)
-from overture.schema.validation import (
-    allow_extension_fields,
 )
 
 from .enums import NameVariant, PerspectiveMode, Side
