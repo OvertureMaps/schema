@@ -1,8 +1,10 @@
 from datetime import datetime
-from typing import Annotated, NewType
+from typing import Annotated, Any, NewType
 
-from pydantic import Field
+from pydantic import Field, GetJsonSchemaHandler, ValidationError, ValidationInfo
+from pydantic_core import InitErrorDetails, core_schema
 
+from overture.schema.system.constraint import CollectionConstraint
 from overture.schema.system.constraint.string import (
     CountryCodeAlpha2Constraint,
 )
@@ -16,9 +18,6 @@ from overture.schema.system.string import (
     RegionCode,
     StrippedString,
     WikidataId,
-)
-from overture.schema.validation.constraints import (
-    LinearReferenceRangeConstraint,
 )
 from overture.schema.validation.types import (
     ConfidenceScore,
@@ -47,6 +46,78 @@ LinearlyReferencedPosition = NewType(
         ),
     ],
 )
+
+
+class LinearReferenceRangeConstraint(CollectionConstraint):
+    """Linear reference range constraint (0.0 to 1.0)."""
+
+    def validate(self, value: list[float], info: ValidationInfo) -> None:
+        if len(value) != 2:
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Linear reference range must have exactly 2 values, got {len(value)}"
+                        },
+                    )
+                ],
+            )
+
+        start, end = value
+        if not (0.0 <= start <= 1.0 and 0.0 <= end <= 1.0):
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Linear reference range values must be between 0.0 and 1.0: [{start}, {end}]"
+                        },
+                    )
+                ],
+            )
+
+        if start >= end:
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Linear reference range start must be less than end: [{start}, {end}]"
+                        },
+                    )
+                ],
+            )
+
+    def __get_pydantic_json_schema__(
+        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> dict[str, Any]:
+        json_schema = handler(core_schema)
+        json_schema["type"] = "array"
+        json_schema["minItems"] = 2
+        json_schema["maxItems"] = 2
+        json_schema["items"] = {"type": "number", "minimum": 0.0, "maximum": 1.0}
+        json_schema["description"] = (
+            "Linear reference range [start, end] where 0.0 <= start < end <= 1.0"
+        )
+        return json_schema
+
+
 LinearlyReferencedRange = NewType(
     "LinearlyReferencedRange",
     Annotated[

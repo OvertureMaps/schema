@@ -27,11 +27,8 @@ Usage:
         tags: Annotated[list[str], UniqueItemsConstraint()]
 """
 
-from overture.schema.system.constraint import UniqueItemsConstraint
-
 from .constraints import (
     ConfidenceScoreConstraint,
-    LinearReferenceRangeConstraint,
 )
 from .mixin import (
     ConstraintValidatedModel,
@@ -46,7 +43,6 @@ from .mixin import (
 __all__ = [
     "ConfidenceScoreConstraint",
     "ConstraintValidatedModel",
-    "LinearReferenceRangeConstraint",
     "allow_extension_fields",
     "any_of",
     "exactly_one_of",

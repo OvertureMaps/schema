@@ -24,6 +24,8 @@ Features
 - Tightly integrated with Pydantic's JSON Schema system, providing rich JSON Schemas and maximum
   parity between Pydantic, generated JSON Schemas, and Overture's code generation tools.
 - First-class support for geospatial data using the geometry primitives.
+- Conditional fields and validation on relationships between fields (*e.g.* if the type field
+  contains "region", then region code field must also be set).
 
 Examples
 --------
