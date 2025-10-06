@@ -21,7 +21,7 @@ from overture.schema.core.validation import (
     any_of,
     min_properties,
 )
-from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.primitive import float64, int32
 from overture.schema.system.string import StrippedString, WikidataId
 

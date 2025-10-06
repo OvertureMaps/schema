@@ -15,7 +15,7 @@ from overture.schema.core.models import (
 from overture.schema.core.types import (
     ConfidenceScore,
 )
-from overture.schema.system.constraint import (
+from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
 from overture.schema.system.primitive import (

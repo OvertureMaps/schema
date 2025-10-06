@@ -9,14 +9,14 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails, core_schema
 
-from .constraint import Constraint
+from .field_constraint import FieldConstraint
 
 ###################################
 # General string constraint types #
 ###################################
 
 
-class StringConstraint(Constraint):
+class StringConstraint(FieldConstraint):
     """Base class for string-based constraints."""
 
     def __get_pydantic_core_schema__(

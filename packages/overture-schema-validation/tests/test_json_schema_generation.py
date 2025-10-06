@@ -8,8 +8,8 @@ from overture.schema.core.types import (
     ConfidenceScoreConstraint,
     LinearReferenceRangeConstraint,
 )
-from overture.schema.system.constraint import UniqueItemsConstraint
-from overture.schema.system.constraint.string import (
+from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.field_constraint.string import (
     CountryCodeAlpha2Constraint,
     HexColorConstraint,
     JsonPointerConstraint,

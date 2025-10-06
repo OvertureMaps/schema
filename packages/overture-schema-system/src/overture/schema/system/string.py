@@ -15,7 +15,7 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
-from overture.schema.system.constraint import (
+from overture.schema.system.field_constraint import (
     CountryCodeAlpha2Constraint,
     HexColorConstraint,
     JsonPointerConstraint,

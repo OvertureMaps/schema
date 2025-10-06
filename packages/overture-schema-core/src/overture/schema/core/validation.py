@@ -1,4 +1,4 @@
-from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.validation import (
     ConstraintValidatedModel,
     any_of,

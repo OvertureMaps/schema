@@ -20,7 +20,7 @@ from overture.schema.core.types import (
     CountryCodeAlpha2,
     Id,
 )
-from overture.schema.system.constraint import (
+from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
 from overture.schema.system.primitive import (

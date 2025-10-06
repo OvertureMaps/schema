@@ -10,8 +10,11 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails, core_schema
 
-from overture.schema.system.constraint import CollectionConstraint, Constraint
-from overture.schema.system.constraint.string import (
+from overture.schema.system.field_constraint import (
+    CollectionConstraint,
+    FieldConstraint,
+)
+from overture.schema.system.field_constraint.string import (
     CountryCodeAlpha2Constraint,
 )
 from overture.schema.system.primitive import float64, int32, pct
@@ -38,7 +41,7 @@ Id = NewType(
 )
 
 
-class ConfidenceScoreConstraint(Constraint):
+class ConfidenceScoreConstraint(FieldConstraint):
     """Constraint for confidence/probability scores (0.0 to 1.0)."""
 
     def __get_pydantic_core_schema__(

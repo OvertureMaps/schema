@@ -8,7 +8,7 @@ Subpackages
 -----------
 - :mod:`primitive <overture.schema.system.primitive>` Primitive data types, including numeric and
   geometry types.
-- :mod:`constraint <overture.schema.system.constraint>` Constraints that can be annotated onto
+- :mod:`constraint <overture.schema.system.field_constraint>` Constraints that can be annotated onto
   Pydantic model fields to force them to conform to well-known rules, for example "a collection
   that contains unique items" or "a string that is a valid country code".
 - :mod:`string <overture.schema.system.string>` String types with built-in validation to conform to
@@ -59,7 +59,7 @@ Combine Overture and Pydantic constraints on a single field:
 
 >>> from typing import Annotated
 >>> from pydantic import BaseModel, Field
->>> from overture.schema.system.constraint import UniqueItemsConstraint
+>>> from overture.schema.system.field_constraint import UniqueItemsConstraint
 >>> class MyModel(BaseModel):
 ...    # Unique tags: at least one is required, at most 10 are allowed.
 ...    tags: Annotated[
@@ -69,7 +69,7 @@ Combine Overture and Pydantic constraints on a single field:
 
 Create a custom regular expression pattern constraint:
 
->>> from overture.schema.system.constraint import PatternConstraint
+>>> from overture.schema.system.field_constraint import PatternConstraint
 >>> OsmIdConstraint = PatternConstraint(
 ...     pattern=r"^[nwr]\d+$",
 ...     error_message="Invalid OSM ID format: {value}. Must be n123, w123, or r123."

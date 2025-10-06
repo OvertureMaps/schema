@@ -9,7 +9,7 @@ from .collection import (
     CollectionConstraint,
     UniqueItemsConstraint,
 )
-from .constraint import Constraint
+from .field_constraint import FieldConstraint
 from .string import (
     CountryCodeAlpha2Constraint,
     HexColorConstraint,
@@ -27,8 +27,8 @@ from .string import (
 
 __all__ = [
     "CollectionConstraint",
-    "Constraint",
     "CountryCodeAlpha2Constraint",
+    "FieldConstraint",
     "HexColorConstraint",
     "JsonPointerConstraint",
     "LanguageTagConstraint",

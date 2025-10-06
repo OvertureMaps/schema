@@ -15,7 +15,7 @@ from pydantic_core import core_schema
 from overture.schema.core.ext import (
     allow_extension_fields,
 )
-from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.primitive import (
     BBox,
     Geometry,

@@ -9,10 +9,10 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails, core_schema
 
-from .constraint import Constraint
+from .field_constraint import FieldConstraint
 
 
-class CollectionConstraint(Constraint):
+class CollectionConstraint(FieldConstraint):
     """Base class for collection-based constraints."""
 
     def __get_pydantic_core_schema__(

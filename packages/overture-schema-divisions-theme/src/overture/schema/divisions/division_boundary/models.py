@@ -17,7 +17,7 @@ from overture.schema.core.validation import (
     exactly_one_of,
     not_required_if,
 )
-from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
