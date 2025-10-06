@@ -1,10 +1,32 @@
+# TODO: vic: Ensure the system model constraints have the following capabilities:
+#
+#       Require at least one field from a set, where the JSON Schema should be implemented like
+#       this (but currently in this file it just uses minProperties):
+#
+#       ```json
+#       {
+#           "type": "object",
+#           "anyOf": [
+#               {"required": ["field1"]},
+#               {"required": ["field2"]},
+#               {"required": ["field3"]}
+#           ],
+#           "properties": {
+#               "field1": {"type": "string"},
+#               "field2": {"type": "string"},
+#               "field3": {"type": "string"}
+#           }
+#       }
+#       ```
+
+from collections.abc import (
+    Callable,
+    Collection,
+)
 from enum import Enum
 from typing import (
     Annotated,
     Any,
-    Collection,
-    Optional,
-    Type,
     Union,
     get_args,
     get_origin,
@@ -30,7 +52,7 @@ class Scope(Enum):
     VEHICLE = (9,)
 
     @property
-    def _field_name(self):
+    def _field_name(self) -> str:
         match self:
             case Scope.GEOMETRIC_POINT:
                 return "at"
@@ -57,7 +79,7 @@ class Scope(Enum):
 def scoped(
     allowed: Scope | Collection[Scope],
     required: Scope | Collection[Scope] | None = None,
-):
+) -> Callable:
     def collect_scopes(
         context: str, scopes: Scope | Collection[Scope]
     ) -> frozenset[Scope]:
@@ -73,7 +95,7 @@ def scoped(
             )
         elif not scopes:
             raise ValueError(
-                f"for `@scoped`, at least one scope must be allowed, but `allowed` is empty"
+                "for `@scoped`, at least one scope must be allowed, but `allowed` is empty"
             )
         else:
             return frozenset(scopes)
@@ -92,22 +114,24 @@ def scoped(
 
     new_fields = _make_scoped_fields(allowed, required)
 
-    def decorator(cls):
+    def decorator(cls: type[BaseModel]) -> BaseModel:
         if not isinstance(cls, type):
-            raise TypeError(f"`@scoped` can only be applied to classes")
+            raise TypeError("`@scoped` can only be applied to classes")
         if not issubclass(cls, BaseModel):
             raise TypeError(
                 f"`@scoped` target class must inherit from `{BaseModel.__module__}.{BaseModel.__name__}`"
             )
-        base_model: Type[BaseModel] = cls
+        base_model_type: type[BaseModel] = cls
         conflict_fields = sorted(
-            [f for f in base_model.model_fields.keys() if f in new_fields]
+            [f for f in base_model_type.model_fields.keys() if f in new_fields]
         )
         if conflict_fields:
             raise TypeError(
-                f"can't apply `@scoped` to model {base_model.__name__}: the following model fields conflict with fields `@scoped` needs to create: {conflict_fields.join(', ')})"
+                f"can't apply `@scoped` to model {base_model_type.__name__}: the following model fields conflict with fields `@scoped` needs to create: {', '.join(conflict_fields)})"
             )
-        return create_model(base_model.__name__, __base__=base_model, **new_fields)
+        return BaseModel, create_model(
+            base_model_type.__name__, __base__=base_model_type, **new_fields
+        )  # type: ignore
 
     return decorator
 
@@ -128,8 +152,8 @@ class Heading(str, Enum):
 
 def _make_scoped_fields(
     allowed: frozenset[Scope], required: frozenset[Scope]
-) -> dict[str, tuple[Type, Any]]:
-    scoped_fields: dict[str, tuple[Type, Any]] = {}
+) -> dict[str, tuple[type[Any], Any]]:
+    scoped_fields: dict[str, tuple[type[Any], Any]] = {}
 
     if Scope.GEOMETRIC_POINT in allowed:
         _put_scoped_field(
@@ -141,7 +165,7 @@ def _make_scoped_fields(
             Scope.GEOMETRIC_RANGE, required, "between", GeometricRange, scoped_fields
         )
 
-    when_fields: dict[str, tuple[Type, Any]] = {}
+    when_fields: dict[str, tuple[type[Any], Any]] = {}
 
     if Scope.HEADING in allowed:
         _put_scoped_field(Scope.HEADING, required, "heading", Heading, when_fields)
@@ -151,15 +175,15 @@ def _make_scoped_fields(
     if when_fields:
         has_required = any(_is_required_type(pair[0]) for pair in when_fields.values())
         if has_required:
-            scoped_fields["when"] = (_make_when(when_fields), ...)
+            scoped_fields["when"] = (_make_when(when_fields), ...)  # type: ignore
         elif len(when_fields) == 1:
             ((field_name, field_type),) = when_fields.items()
             field_type = (_unpack_optional_inner_type(field_type[0]), ...)
-            scoped_fields["when"] = _make_when({field_name: field_type})
+            scoped_fields["when"] = _make_when({field_name: field_type})  # type: ignore
         else:
             when = _make_when(when_fields)
-            _require_at_least_one_field_set(when)
-            scoped_fields["when"] = (Optional[when], None)
+            _require_at_least_one_field_set(when.__class__, list(when_fields.keys()))
+            scoped_fields["when"] = (when.__class__ | None, None)  #  type: ignore
 
     return scoped_fields
 
@@ -168,58 +192,74 @@ def _put_scoped_field(
     scope: Scope,
     required: frozenset[Scope],
     field_name: str,
-    field_type: Type,
-    into: dict[str, tuple[Type, Any]],
-):
+    field_type: type[Any],
+    into: dict[str, tuple[type[Any], Any]],
+) -> None:
     if scope in required:
         into[field_name] = (field_type, ...)
     else:
-        into[field_name] = (Optional[field_type], None)
+        into[field_name] = (field_type | None, None)  # type: ignore
 
 
-def _is_optional_type(t: Type) -> bool:
+def _is_optional_type(t: type[Any]) -> bool:
     return get_origin(t) is Union and type(None) in get_args(t)
 
 
-def _is_required_type(t: Type) -> bool:
+def _is_required_type(t: type[Any]) -> bool:
     return not _is_optional_type(t)
 
 
-def _unpack_optional_inner_type(t: Type) -> Type:
+def _unpack_optional_inner_type(t: type[Any]) -> type[Any]:
     assert _is_optional_type(t)
-    non_none_types = [arg for arg in get_args(t) if arg is not type(None)]
+    non_none_types = [
+        arg for arg in get_args(t) if isinstance(arg, type) and arg is not type(None)
+    ]
     assert len(non_none_types) == 1
     return non_none_types[0]
 
 
-def _make_when(when_fields: dict[str, tuple[Any, Any]]):
-    return create_model("When", **when_fields, __config__=ConfigDict(extra="forbid"))
+def _make_when(when_fields: dict[str, tuple[Any, Any]]) -> BaseModel:
+    return create_model("When", **when_fields, __config__=ConfigDict(extra="forbid"))  # type: ignore
 
 
 def _require_at_least_one_field_set(
-    model_type: Type[BaseModel], required_field_names: list[str]
-):
+    model_type: type[BaseModel], required_field_names: list[str]
+) -> None:
     # Wrap the base Pydantic model validation with an added validation to ensure at least one of the
     # required fields is set.
 
-    orig_validate = model_type.validate
+    orig_validate = model_type.model_validate
 
-    @classmethod
-    def validate(cls, data, *args, **kwargs):
-        model = orig_validate.__func__(cls, data, *args, **kwargs)
-        actual_field_names = model.model_dump().keys()
+    def validate(
+        obj: BaseModel,
+        *,
+        strict: bool | None,
+        from_attributes: bool | None,
+        context: Any | None,  # noqa: ANN401
+        by_alias: bool | None,
+        by_name: bool | None,
+    ) -> BaseModel:
+        base_model: BaseModel = orig_validate(
+            obj,
+            strict=strict,
+            from_attributes=from_attributes,
+            context=context,
+            by_alias=by_alias,
+            by_name=by_name,
+        )
+        actual_field_names = base_model.model_dump().keys()
         if not any(f in actual_field_names for f in required_field_names):
             field_names = ", ".join(
-                f"`{field_name}`" for field_name in required_field_names.keys()
+                f"`{field_name}`" for field_name in required_field_names
             )
             raise ValueError(f"at least one of {field_names} must be set")
-        return model
+        return base_model
 
-    model_type.validate = validate
+    model_type.model_validate = validate  # type: ignore
 
     # Set the Pydantic-generated JSON Schema to require at least one property to be set. It is safe
     # to do this, because we created `model_type`, `json_schema_extra` is a user field, and we`know
     # we didn't previously set it.
 
-    assert model_type.model_config["json_schema_extra]"] is None
-    model_type.model_config["json_schema_extra]"] = {"minProperties": 1}
+    assert model_type.model_config["json_schema_extra"] is None
+    model_type.model_config["json_schema_extra"] = {"minProperties": 1}
