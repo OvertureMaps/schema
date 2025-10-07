@@ -10,7 +10,7 @@ properties:
   theme: places
   type: place
   version: 1
-  category: woof__
+  basic_category: woof__
   confidence: 0.1
   names:
     primary: bad bad basic category
