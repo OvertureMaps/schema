@@ -41,6 +41,23 @@ properties:
             items:
               "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
             uniqueItems: true
+      basic_level_category:
+        description: |
+          The Basic-level categorization is a cognitive science model that is relevant
+          for taxonomy and ontology development that shows the most broadest and general
+          category name that is most often found in the middle of a general-to-specific
+          hierarchy, with generalization proceeding upward and specialization
+          proceeding downward. The full list of basic level categories is available at:(todo)
+        type: object
+        required: [basic]
+        properties:
+          basic:
+            description: The basic level category of the place.
+            "$ref": "./defs.yaml#/$defs/typeDefinitions/basic_level_category"
+            type: array
+            items:
+              "$ref": "./defs.yaml#/$defs/typeDefinitions/basic_level_category"
+            uniqueItems: true
       confidence:
         description: The confidence of the existence of the place. It's a number between 0 and 1. 0 means that we're sure that the place doesn't exist (anymore). 1 means that we're sure that the place exists. If there's no value for the confidence, it means that we don't have any confidence information. Places with operating_status set to 'closed' will have a confidence score of 0
         type: number
