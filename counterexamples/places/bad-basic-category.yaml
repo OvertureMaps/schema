@@ -14,3 +14,4 @@ properties:
   confidence: 0.1
   names:
     primary: bad bad basic category
+  operating_status: open 
