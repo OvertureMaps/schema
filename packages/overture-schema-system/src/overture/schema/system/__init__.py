@@ -8,9 +8,12 @@ Subpackages
 -----------
 - :mod:`primitive <overture.schema.system.primitive>` Primitive data types, including numeric and
   geometry types.
-- :mod:`constraint <overture.schema.system.field_constraint>` Constraints that can be annotated onto
-  Pydantic model fields to force them to conform to well-known rules, for example "a collection
-  that contains unique items" or "a string that is a valid country code".
+- :mod:`field_constraint <overture.schema.system.field_constraint>` Constraints that can be
+  annotated onto Pydantic model fields to force them to conform to well-known rules, for example "a
+  collection that contains unique items" or "a string that is a valid country code".
+- :mod:`model_constraint <overture.schema.system.model_constraint>` Constraints that can be
+  decorated onto Pydantic model classes to add cross-field validation rules, for example "these two
+  fields are mutually-exclusive" or "if this field is set, then that field must also be set".
 - :mod:`string <overture.schema.system.string>` String types with built-in validation to conform to
   well-known patterns, for example a country code, a hexadecimal color code, a language tag, or just
   a string that doesn't contain whitespace.
@@ -26,10 +29,12 @@ Features
 - First-class support for geospatial data using the geometry primitives.
 - Conditional fields and validation on relationships between fields (*e.g.* if the type field
   contains "region", then region code field must also be set).
+- Constraint rules produce detailed and consistent error messages with useful domain knowledge.
 
 Examples
 --------
-Make a simple Pydantic model using the fundamental types that rejects invalid input:
+Make a simple Pydantic model using the fundamental types from this package and verify that it
+rejects invalid input:
 
 >>> from pydantic import BaseModel, ValidationError
 >>> from overture.schema.system.primitive import uint32;
@@ -84,6 +89,31 @@ Create a custom regular expression pattern constraint:
 ...    MyModel(**{"osm_id": "foo"})
 ... except ValidationError as e:
 ...    assert "Invalid OSM ID format: foo. Must be n123, w123, or r123." in str(e)
+...    print("Validation failed")
+Validation failed
+
+Use decorators to add complex multi-field constraints. In this example, a validation rule is added
+saying that at least one of the two optional fields is required, but they aren't both required:
+
+>>> from pydantic import BaseModel, ValidationError
+>>> from overture.schema.system.model_constraint import require_any_of
+>>>
+>>> @require_any_of("foo", "bar")
+... class MyModel(BaseModel):
+...     foo: int | None
+...     bar: str | None
+...
+>>> MyModel(foo=42, bar="hello")    # validates OK
+MyModel(foo=42, bar='hello')
+>>> MyModel(foo=42, bar=None)       # validates OK
+MyModel(foo=42, bar=None)
+>>> MyModel(foo=None, bar="hello")  # validates OK
+MyModel(foo=None, bar='hello')
+>>>
+>>> try:
+...     MyModel(foo=None, bar=None)
+... except ValidationError as e:
+...    assert "at least one of these fields must have a value, but none do: bar, foo" in str(e)
 ...    print("Validation failed")
 Validation failed
 """

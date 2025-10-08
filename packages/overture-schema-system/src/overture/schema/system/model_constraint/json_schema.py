@@ -35,8 +35,8 @@ def put_all_of(json_schema: JsonDict, operands: list[JsonDict]) -> None:
         if isinstance(maybe_list, list):
             maybe_list += operands
         else:
-            raise TypeError(
-                f'expected value of "anyOf" key to be a `list`, but it is a `{type(maybe_list).__name__}` in the JSON Schema {json_schema}'
+            raise ValueError(
+                f'expected value of "allOf" key to be a `list`, but it is a `{type(maybe_list).__name__}` in the JSON Schema {json_schema}'
             )
 
 
@@ -74,7 +74,8 @@ def put_if(
     def _put(dst: JsonDict) -> JsonDict:
         dst["if"] = condition
         dst["then"] = when_true
-        dst["else"] = when_false
+        if when_false:
+            dst["else"] = when_false
         return dst
 
     if not prev:
@@ -83,20 +84,20 @@ def put_if(
         put_all_of(json_schema, [prev, _put({})])
 
 
-def _verify_operands_len_2(args: list[JsonDict]) -> None:
-    if not isinstance(args, list):
+def _verify_operands_len_2(operands: list[JsonDict]) -> None:
+    if not isinstance(operands, list):
         raise TypeError(
-            f"`args` must be a `list`, but {args} is a {type(args).__name__}"
+            f"`operands` must be a `list`, but {operands} is a {type(operands).__name__}"
         )
-    if len(args) < 2:
+    if len(operands) < 2:
         raise ValueError(
-            f"`args` must have length at least 2, but {args} only has length {len(args)}"
+            f"`operands` must have length at least 2, but {operands} only has length {len(operands)}"
         )
     origin = cast(type, get_origin(JsonDict))
-    mismatches = [a for a in args if not isinstance(a, origin)]
+    mismatches = [a for a in operands if not isinstance(a, origin)]
     if mismatches:
         raise TypeError(
-            "`args` items must be `JsonDict` values, but these items are not: {mismatches}"
+            "`operands` items must be `JsonDict` values, but these items are not: {mismatches}"
         )
 
 
