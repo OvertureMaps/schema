@@ -39,6 +39,8 @@ from pydantic import (
     create_model,
 )
 
+from overture.schema.system.model_constraint import RequireAnyOfConstraint
+
 
 class Scope(Enum):
     GEOMETRIC_POINT = (1,)
@@ -187,7 +189,7 @@ def _make_scoped_fields(
             scoped_fields["when"] = _make_when({field_name: field_type})  # type: ignore
         else:
             when = _make_when(when_fields)
-            _require_at_least_one_field_set(when.__class__, list(when_fields.keys()))
+            when = RequireAnyOfConstraint(*when_fields.keys()).attach(when)
             scoped_fields["when"] = (when.__class__ | None, None)  #  type: ignore
 
     return scoped_fields
@@ -223,48 +225,5 @@ def _unpack_optional_inner_type(t: type[Any]) -> type[Any]:
     return non_none_types[0]
 
 
-def _make_when(when_fields: dict[str, tuple[Any, Any]]) -> BaseModel:
-    return create_model("When", **when_fields, __config__=ConfigDict(extra="forbid"))  # type: ignore
-
-
-def _require_at_least_one_field_set(
-    model_type: type[BaseModel], required_field_names: list[str]
-) -> None:
-    # Wrap the base Pydantic model validation with an added validation to ensure at least one of the
-    # required fields is set.
-
-    orig_validate = model_type.model_validate
-
-    def validate(
-        obj: BaseModel,
-        *,
-        strict: bool | None,
-        from_attributes: bool | None,
-        context: Any | None,  # noqa: ANN401
-        by_alias: bool | None,
-        by_name: bool | None,
-    ) -> BaseModel:
-        base_model: BaseModel = orig_validate(
-            obj,
-            strict=strict,
-            from_attributes=from_attributes,
-            context=context,
-            by_alias=by_alias,
-            by_name=by_name,
-        )
-        actual_field_names = base_model.model_dump().keys()
-        if not any(f in actual_field_names for f in required_field_names):
-            field_names = ", ".join(
-                f"`{field_name}`" for field_name in required_field_names
-            )
-            raise ValueError(f"at least one of {field_names} must be set")
-        return base_model
-
-    model_type.model_validate = validate  # type: ignore
-
-    # Set the Pydantic-generated JSON Schema to require at least one property to be set. It is safe
-    # to do this, because we created `model_type`, `json_schema_extra` is a user field, and we`know
-    # we didn't previously set it.
-
-    assert model_type.model_config["json_schema_extra"] is None
-    model_type.model_config["json_schema_extra"] = {"minProperties": 1}
+def _make_when(when_fields: dict[str, tuple[Any, Any]]) -> type[BaseModel]:
+    return create_model("When", __config__=ConfigDict(extra="forbid"), **when_fields)  # type: ignore
