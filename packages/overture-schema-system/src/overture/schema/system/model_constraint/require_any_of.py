@@ -24,25 +24,28 @@ def require_any_of(*field_names: str) -> Callable[[type[BaseModel]], type[BaseMo
     Returns
     -------
     Callable
-        Decorator
+        Decorator factory
 
     Example
     -------
-    >>> from pydantic import BaseModel
+    >>> from pydantic import BaseModel, ValidationError
     >>>
     >>> @require_any_of("foo", "bar")
-    >>> class MyModel(BaseModel):
+    ... class MyModel(BaseModel):
     ...     foo: int | None
     ...     bar: str | None
     ...
     >>> MyModel(foo=42, bar="hello")    # validates OK
+    MyModel(foo=42, bar='hello')
     >>> MyModel(foo=42, bar=None)       # validates OK
+    MyModel(foo=42, bar=None)
     >>> MyModel(foo=None, bar="hello")  # validates OK
+    MyModel(foo=None, bar='hello')
     >>>
     >>> try:
     ...     MyModel(foo=None, bar=None)
     ... except ValidationError as e:
-    ...    assert "todo update this string to what's really there" in str(e)
+    ...    assert "at least one of these fields must have a value, but none do: bar, foo" in str(e)
     ...    print("Validation failed")
     Validation failed
     """
@@ -50,7 +53,7 @@ def require_any_of(*field_names: str) -> Callable[[type[BaseModel]], type[BaseMo
         f"@{require_any_of.__name__}", *field_names
     )
 
-    return model_constraint.get_decorator_factory()
+    return model_constraint.attach
 
 
 class RequireAnyOfConstraint(ModelConstraint):
@@ -63,13 +66,13 @@ class RequireAnyOfConstraint(ModelConstraint):
         self.__set_field_names(field_names)
 
     @classmethod
-    def _create_internal(cls, name: str, *field_names: str):
+    def _create_internal(cls, name: str, *field_names: str) -> "RequireAnyOfConstraint":
         instance = cls.__new__(cls)
         super(RequireAnyOfConstraint, instance).__init__(name)
         instance.__set_field_names(field_names)
         return instance
 
-    def __set_field_names(self, field_names: list[str]) -> tuple[str]:
+    def __set_field_names(self, field_names: tuple[str, ...]) -> None:
         if not isinstance(field_names, tuple):
             raise TypeError(
                 f"`field_names` must be a `tuple`, but {field_names} is a `{type(field_names).__name__}"
@@ -92,7 +95,7 @@ class RequireAnyOfConstraint(ModelConstraint):
         self.__field_names = tuple(sorted(field_names))
 
     @property
-    def field_names(self) -> tuple[str]:
+    def field_names(self) -> tuple[str, ...]:
         return self.__field_names
 
     @override
@@ -119,4 +122,4 @@ class RequireAnyOfConstraint(ModelConstraint):
         def required(field_name: str) -> JsonDict:
             return {"required": [apply_alias(model_class, field_name)]}
 
-        put_any_of(json_schema, *[required(f) for f in self.field_names])
+        put_any_of(json_schema, [required(f) for f in self.field_names])

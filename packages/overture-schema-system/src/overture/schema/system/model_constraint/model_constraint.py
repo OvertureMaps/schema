@@ -1,11 +1,10 @@
 from collections.abc import Callable
 from copy import deepcopy
-from typing import final
+from typing import Any, cast, final
 
 from pydantic import (
     BaseModel,
     ConfigDict,
-    PydanticUserError,
     create_model,
     model_validator,
 )
@@ -42,29 +41,32 @@ class ModelConstraint:
         return self.__name
 
     @final
-    def get_decorator_factory(self) -> Callable[[type[BaseModel]], type[BaseModel]]:
+    def attach(self, model_class: type[BaseModel]) -> type[BaseModel]:
         """
-        Returns a function that can be used to implement an `@decorator`.
+        Attaches this constraint to a Pydantic model, returning a new version of the model.
 
         This is a final method and should not be overridden by subclasses.
 
         Example
         -------
+        As well as simply attaching the contraint to a model, this function can be used to implement
+        a reusable `@decorator`.
+
         >>> from pydantic import BaseModel, ValidationError
         >>>
         >>> # Define a simple model constraint
         >>> class FooConstraint(ModelConstraint):
-        ...     def validate(self, model_instance: BaseModel) -> None:
+        ...     def validate_instance(self, model_instance: BaseModel) -> None:
         ...         if getattr(model_instance, "foo", None) != "bar":
         ...             raise ValueError('the `foo` field must equal "bar"')
         ...
         >>> # Define a decorator.
-        >>> def foo() -> Callable:
-        ...     return FooConstraint().get_decorator()
+        >>> def foo(model_class: type[BaseModel]) -> type[BaseModel]:
+        ...     return FooConstraint().attach(model_class)
         ...
         >>> # Apply the decorator.
         >>> @foo
-        ... class FooModel:
+        ... class FooModel(BaseModel):
         ...     foo: str = "baz"
         ...
         >>> # Create an instance of the model, triggering the validation.
@@ -76,31 +78,33 @@ class ModelConstraint:
         Validation failed
         """
 
-        def decorator(model_class: type[BaseModel]) -> type[BaseModel]:
-            if not isinstance(model_class, type):
-                raise TypeError(f"`{self.name}` can only be applied to classes")
-            if not issubclass(model_class, BaseModel):
-                raise TypeError(
-                    f"`{self.name}` target class must inherit from `{BaseModel.__module__}.{BaseModel.__name__}`"
-                )
-            self.validate_class(model_class)
-            config = deepcopy(model_class.model_config)
-            self.edit_config(model_class, config)
-            model_constraints = ModelConstraint.get_model_constraints(model_class)
-            config[_MODEL_CONSTRAINT_PRIVATE_LIST_NAME] = (*model_constraints, self)
-            return create_model(
-                model_class.__name__,
-                __config__=config,
-                __doc__=model_class.__doc__,
-                __base__=model_class,
-                __validators__={
-                    self.name: model_validator(mode="after")(self.__validate_instance)
-                },
+        if not isinstance(model_class, type):
+            raise TypeError(f"`{self.name}` can only be applied to classes")
+        if not issubclass(model_class, BaseModel):
+            raise TypeError(
+                f"`{self.name}` target class must inherit from `{BaseModel.__module__}.{BaseModel.__name__}`, but `{model_class.__name__}` does not"
             )
+        self.validate_class(model_class)
+        config = deepcopy(model_class.model_config)
+        self.edit_config(model_class, config)
+        new_model_class = create_model(
+            model_class.__name__,
+            __config__=config,
+            __doc__=model_class.__doc__,
+            __base__=model_class,
+            __module__=model_class.__module__,
+            __validators__={
+                self.name: cast(
+                    Callable[..., Any],
+                    model_validator(mode="after")(self.__validate_instance),
+                )
+            },
+        )
+        model_constraints = (*ModelConstraint.get_model_constraints(model_class), self)
+        setattr(new_model_class, _MODEL_CONSTRAINT_PRIVATE_LIST_NAME, model_constraints)
+        return new_model_class
 
-        return decorator
-
-    def validate_class(self, model_class: type[BaseModel]):
+    def validate_class(self, model_class: type[BaseModel]) -> None:
         """
         Validates that the constraint is appropriate for the model class.
 
@@ -167,10 +171,30 @@ class ModelConstraint:
     @classmethod
     def get_model_constraints(
         cls: type["ModelConstraint"], model_class: type[BaseModel]
-    ) -> tuple["ModelConstraint"]:
-        maybe_tuple = model_class.model_config.get(
-            _MODEL_CONSTRAINT_PRIVATE_LIST_NAME, None
-        )
+    ) -> tuple["ModelConstraint", ...]:
+        """
+        Returns the model constraints that have been applied to the given Pydantic model class.
+
+        This is a final method and should not be overridden by subclasses.
+
+        The purpose of this method is to support code generation: code generators need to know which
+        system-level constraints have been applied to the model in order to generate target-specific
+        validation code for those constraint.
+
+        Example
+        -------
+        >>> from pydantic import BaseModel
+        >>> from overture.schema.system.model_constraint import require_any_of
+        >>> @require_any_of("foo", "bar")
+        ... class MyModel(BaseModel):
+        ...     foo: int | None
+        ...     bar: str | None
+        ...
+        >>> [c.name for c in ModelConstraint.get_model_constraints(MyModel)]
+        ['@require_any_of']
+        """
+
+        maybe_tuple = getattr(model_class, _MODEL_CONSTRAINT_PRIVATE_LIST_NAME, None)
         if not maybe_tuple:
             return ()
         elif not isinstance(maybe_tuple, tuple):
@@ -206,7 +230,7 @@ def apply_alias(model_class: type[BaseModel], field_name: str) -> str:
 
     Raises
     ------
-    PydanticUserError
+    ValueError
         If the base model doesn't have a field with the given name.
 
     Example
@@ -216,16 +240,16 @@ def apply_alias(model_class: type[BaseModel], field_name: str) -> str:
     ...     bar: str
     ...     baz: str = Field(alias = "qux")
     ...
-    >>> print(f"applied alias for bar ➜ {_apply_alias(Foo, 'bar')}")
-    >>> print(f"applied alias for baz ➜ {_apply_alias(Foo, 'baz')}")
+    >>> print(f"applied alias for bar ➜ {apply_alias(Foo, 'bar')}")
     applied alias for bar ➜ bar
+    >>> print(f"applied alias for baz ➜ {apply_alias(Foo, 'baz')}")
     applied alias for baz ➜ qux
     """
     try:
         field_info = model_class.model_fields[field_name]
     except KeyError as e:
-        raise PydanticUserError(
-            f"model class `{model_class.__name_}` does not contain a field named {repr(field_name)}"
+        raise ValueError(
+            f"model class `{model_class.__name__}` does not contain a field named {repr(field_name)}"
         ) from e
     if field_info.alias is not None:
         return field_info.alias

@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic.json_schema import JsonDict
 
 from overture.schema.system.model_constraint import (
+    ModelConstraint,
     RequireAnyOfConstraint,
     require_any_of,
 )
@@ -69,6 +70,18 @@ def test_valid_model_instance(foo: int | None, bar: str | None):
     TestModel(foo=foo, bar=bar)
 
 
+def test_model_json_schema_no_model_config():
+    @require_any_of("foo", "bar")
+    class TestModel(BaseModel):
+        foo: int | None
+        bar: str | None = Field(alias="baz")
+
+    actual = TestModel.model_json_schema()
+    expect = {"anyOf": [{"required": ["baz"]}, {"required": ["foo"]}]}
+    assert expect == TestModel.model_config["json_schema_extra"]
+    assert_subset(expect, actual, "expect", "actual")
+
+
 @pytest.mark.parametrize(
     "base_json_schema,expect",
     [
@@ -84,7 +97,9 @@ def test_valid_model_instance(foo: int | None, bar: str | None):
         ),
     ],
 )
-def test_model_json_schema(base_json_schema: JsonDict | None, expect: JsonDict):
+def test_model_json_schema_with_model_config(
+    base_json_schema: JsonDict | None, expect: JsonDict
+):
     @require_any_of("foo", "bar")
     class TestModel(BaseModel):
         model_config = ConfigDict(json_schema_extra=base_json_schema)
@@ -94,3 +109,17 @@ def test_model_json_schema(base_json_schema: JsonDict | None, expect: JsonDict):
 
     actual = TestModel.model_json_schema()
     assert_subset(expect, actual, "expect", "actual")
+
+
+def test_model_constraints():
+    constraint = RequireAnyOfConstraint("foo", "bar")
+
+    class TestModel(BaseModel):
+        foo: int | None
+        bar: str | None
+
+    assert 0 == len(ModelConstraint.get_model_constraints(TestModel))
+
+    new_model_class = constraint.attach(TestModel)
+
+    assert (constraint,) == ModelConstraint.get_model_constraints(new_model_class)

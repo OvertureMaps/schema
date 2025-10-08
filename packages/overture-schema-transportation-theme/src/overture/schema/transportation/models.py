@@ -18,10 +18,10 @@ from overture.schema.core.types import (
 )
 from overture.schema.core.validation import (
     ConstraintValidatedModel,
-    any_of,
     min_properties,
 )
 from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import require_any_of
 from overture.schema.system.primitive import float64, int32
 from overture.schema.system.string import StrippedString, WikidataId
 
@@ -99,7 +99,7 @@ class DestinationLabels(StrictBaseModel):
     type: DestinationLabelType
 
 
-@any_of("labels", "symbols")
+@require_any_of("labels", "symbols")
 class DestinationRule(StrictBaseModel):
     # Required
 
@@ -432,8 +432,8 @@ class SpeedLimitWhenClause(
     pass
 
 
-@any_of("max_speed", "min_speed")
-class SpeedLimitRule(ConstraintValidatedModel, GeometricRangeScope):
+@require_any_of("max_speed", "min_speed")
+class SpeedLimitRule(GeometricRangeScope):
     """An individual speed limit rule."""
 
     # TODO: Speed limits probably have directionality, so should factor out a headingScopeContainer for this purpose and use it to introduce an optional direction property in each rule.

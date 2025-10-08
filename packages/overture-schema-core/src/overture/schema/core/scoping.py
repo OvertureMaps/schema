@@ -112,29 +112,31 @@ def scoped(
                 f"for `@scoped`, all required values must be allowed; but {not_in_allowed} are required but not allowed"
             )
 
-    new_fields = _make_scoped_fields(allowed, required)
+    from typing import cast
 
-    def decorator(cls: type[BaseModel]) -> BaseModel:
-        if not isinstance(cls, type):
+    new_fields = cast(dict[str, Any], _make_scoped_fields(allowed, required))
+
+    def decorator(model_class: type[BaseModel]) -> type[BaseModel]:
+        if not isinstance(model_class, type):
             raise TypeError("`@scoped` can only be applied to classes")
-        if not issubclass(cls, BaseModel):
+        if not issubclass(model_class, BaseModel):
             raise TypeError(
                 f"`@scoped` target class must inherit from `{BaseModel.__module__}.{BaseModel.__name__}`"
             )
-        base_model_type: type[BaseModel] = cls
         conflict_fields = sorted(
-            [f for f in base_model_type.model_fields.keys() if f in new_fields]
+            [f for f in model_class.model_fields.keys() if f in new_fields]
         )
         if conflict_fields:
             raise TypeError(
-                f"can't apply `@scoped` to model {base_model_type.__name__}: the following model fields conflict with fields `@scoped` needs to create: {', '.join(conflict_fields)})"
+                f"can't apply `@scoped` to model {model_class.__name__}: the following model fields conflict with fields `@scoped` needs to create: {', '.join(conflict_fields)})"
             )
         return create_model(
-            base_model_type.__name__,
-            __doc__=base_model_type.__doc__,
-            __base__=base_model_type,
+            model_class.__name__,
+            __doc__=model_class.__doc__,
+            __base__=model_class,
+            __module__=model_class.__module__,
             **new_fields,
-        )  # type: ignore
+        )
 
     return decorator
 
