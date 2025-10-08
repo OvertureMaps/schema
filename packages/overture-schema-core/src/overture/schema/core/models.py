@@ -16,6 +16,7 @@ from overture.schema.core.ext import (
     allow_extension_fields,
 )
 from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.primitive import (
     BBox,
     Geometry,
@@ -45,12 +46,6 @@ from .types import (
 from .validation import ConstraintValidatedModel
 
 
-class StrictBaseModel(BaseModel):
-    """Base model that forbids additional properties in JSON Schema."""
-
-    model_config = ConfigDict(extra="forbid")
-
-
 @allow_extension_fields()
 class ExtensibleBaseModel(ConstraintValidatedModel, BaseModel):
     """Base model that allows ext_* prefixed fields only."""
@@ -60,7 +55,8 @@ class ExtensibleBaseModel(ConstraintValidatedModel, BaseModel):
     )  # Allow extra fields, which will be constrained by `@allow_extension_fields`
 
 
-class GeometricRangeScope(StrictBaseModel):
+@no_extra_fields
+class GeometricRangeScope(BaseModel):
     """Geometric scoping properties defining the range of positions on the segment where
     something is physically located or where a rule is active."""
 
@@ -75,7 +71,8 @@ class GeometricRangeScope(StrictBaseModel):
         return hash((tuple(self.between) if self.between is not None else None,))
 
 
-class SideScope(StrictBaseModel):
+@no_extra_fields
+class SideScope(BaseModel):
     """Geometric scoping properties defining the side of a road modeled when moving
     along the line from beginning to end."""
 
@@ -84,6 +81,7 @@ class SideScope(StrictBaseModel):
     side: Side | None = None
 
 
+@no_extra_fields
 class SourcePropertyItem(GeometricRangeScope):
     """An object storing the source for a specified property.
 
@@ -244,7 +242,8 @@ class Feature(ExtensibleBaseModel, Generic[ThemeT, TypeT], ABC):
         return json_schema
 
 
-class Perspectives(StrictBaseModel):
+@no_extra_fields
+class Perspectives(BaseModel):
     """Political perspectives container."""
 
     # Required
@@ -264,6 +263,7 @@ class Perspectives(StrictBaseModel):
     ]
 
 
+@no_extra_fields
 class NameRule(GeometricRangeScope, SideScope):
     """Name rule with variant and language specification."""
 
@@ -286,7 +286,8 @@ class NameRule(GeometricRangeScope, SideScope):
     ) = None
 
 
-class Names(StrictBaseModel):
+@no_extra_fields
+class Names(BaseModel):
     """Multilingual names container."""
 
     # Required
@@ -318,7 +319,8 @@ class Stacked(BaseModel):
     level: Level | None = None
 
 
-class CartographicHints(StrictBaseModel):
+@no_extra_fields
+class CartographicHints(BaseModel):
     """Defines cartographic hints for optimal use of Overture features in map-making."""
 
     # Optional
@@ -333,7 +335,9 @@ class CartographicallyHinted(BaseModel):
     cartography: Annotated[CartographicHints | None, Field(title="cartography")] = None
 
 
-class Address(StrictBaseModel):
+# TODO - vic - move this into Places
+@no_extra_fields
+class Address(BaseModel):
     # Optional
 
     freeform: Annotated[

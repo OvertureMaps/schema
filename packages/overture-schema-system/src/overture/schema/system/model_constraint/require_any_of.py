@@ -14,7 +14,7 @@ def require_any_of(*field_names: str) -> Callable[[type[BaseModel]], type[BaseMo
     Decorates a Pydantic model class with a constraint requiring that at least one of the named
     fields has a value.
 
-    This function is the decorator version of the `RequireAnyOf` class.
+    This function is the decorator version of the `RequireAnyOfConstraint` class.
 
     Parameters
     ----------

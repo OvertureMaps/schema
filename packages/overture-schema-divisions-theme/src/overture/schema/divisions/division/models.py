@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from pydantic import ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from overture.schema.core import (
     Feature,
@@ -13,7 +13,6 @@ from overture.schema.core.models import (
     Named,
     Names,
     Perspectives,
-    StrictBaseModel,
 )
 from overture.schema.core.types import (
     CommonNames,
@@ -23,6 +22,7 @@ from overture.schema.core.types import (
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
+from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
@@ -37,7 +37,8 @@ from ..types import Hierarchy
 from ..validation import parent_division_required_unless
 
 
-class Norms(StrictBaseModel):
+@no_extra_fields
+class Norms(BaseModel):
     """Local norms and standards."""
 
     # Optional

@@ -3,16 +3,17 @@
 from datetime import date
 from typing import Annotated, Literal
 
-from pydantic import Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl
 
-from overture.schema.core.models import StrictBaseModel
 from overture.schema.core.types import CountryCodeAlpha2
+from overture.schema.system.model_constraint import no_extra_fields
 
 from .enums import BuildSource, UpdateType
 from .types import LicenseShortname
 
 
-class Dataset(StrictBaseModel):
+@no_extra_fields
+class Dataset(BaseModel):
     """Dataset definition for Overture Maps data sources."""
 
     # Required
@@ -162,7 +163,8 @@ class Dataset(StrictBaseModel):
     ] = None
 
 
-class Sources(StrictBaseModel):
+@no_extra_fields
+class Sources(BaseModel):
     """Common schema definitions for data sources."""
 
     # Required

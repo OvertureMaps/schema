@@ -2,11 +2,10 @@
 
 from typing import Annotated, Literal
 
-from pydantic import ConfigDict, EmailStr, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 
 from overture.schema.core import (
     Feature,
-    StrictBaseModel,
 )
 from overture.schema.core.models import (
     Address,
@@ -18,6 +17,7 @@ from overture.schema.core.types import (
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
+from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
@@ -29,7 +29,8 @@ from ..types import SnakeCaseString
 from .enums import OperatingStatus
 
 
-class Categories(StrictBaseModel):
+@no_extra_fields
+class Categories(BaseModel):
     """The categories of the place.
 
     Complete list is available on
@@ -53,7 +54,8 @@ class Categories(StrictBaseModel):
     ] = None
 
 
-class Brand(StrictBaseModel, Named):
+@no_extra_fields
+class Brand(Named):
     """The brand of the place.
 
     A location with multiple brands is modeled as multiple separate places, each with
