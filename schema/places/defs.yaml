@@ -8,9 +8,3 @@ description: Common schema definitions for places theme
       type: string
       minLength: 1
       pattern: ^[a-z0-9]+(_[a-z0-9]+)*$
-    basic_category:
-      description: basic level category of a place.
-      type: string
-      minLength: 1
-      pattern: ^[a-z0-9]+(_[a-z0-9]+)*$
-
