@@ -29,7 +29,6 @@ Usage:
 
 from .mixin import (
     ConstraintValidatedModel,
-    any_of,
     exactly_one_of,
     min_properties,
     not_required_if,
@@ -38,7 +37,6 @@ from .mixin import (
 
 __all__ = [
     "ConstraintValidatedModel",
-    "any_of",
     "exactly_one_of",
     "min_properties",
     "not_required_if",

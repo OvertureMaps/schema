@@ -23,7 +23,6 @@ from pydantic import BaseModel, Field
 
 from overture.schema.validation.mixin import (
     ConstraintValidatedModel,
-    any_of,
     exactly_one_of,
     required_if,
 )
@@ -144,49 +143,6 @@ class TestJSONSchemaGeneration:
         condition = schema["allOf"][0]
         assert "if" in condition
         assert "then" in condition
-
-    def test_at_least_one_of_constraint_json_schema(self) -> None:
-        """Test JSON Schema generation for at-least-one-of constraint."""
-
-        @any_of("field_a", "field_b")
-        class TestModel(ConstraintValidatedModel, BaseModel):
-            field_a: str | None = None
-            field_b: str | None = None
-
-        schema = TestModel.model_json_schema()
-
-        # Should have anyOf constraint
-        assert "anyOf" in schema
-        assert len(schema["anyOf"]) == 2
-
-        # Check anyOf structure
-        required_fields = []
-        for condition in schema["anyOf"]:
-            assert "required" in condition
-            required_fields.extend(condition["required"])
-
-        assert set(required_fields) == {"field_a", "field_b"}
-
-    def test_multiple_constraints_json_schema(self) -> None:
-        """Test JSON Schema generation with multiple constraints."""
-
-        @exactly_one_of("flag_a", "flag_b")
-        @any_of("required_a", "required_b")
-        class TestModel(ConstraintValidatedModel, BaseModel):
-            flag_a: bool | None = None
-            flag_b: bool | None = None
-            required_a: str | None = None
-            required_b: str | None = None
-
-        schema = TestModel.model_json_schema()
-
-        # Should have oneOf for exactly_one_of constraint (parallel to anyOf)
-        assert "oneOf" in schema
-        assert len(schema["oneOf"]) == 2  # For flag_a and flag_b
-
-        # Should have anyOf for at_least_one_of constraint
-        assert "anyOf" in schema
-        assert len(schema["anyOf"]) == 2  # For required_a and required_b
 
     def test_no_constraints_json_schema(self) -> None:
         """Test JSON Schema generation for models without constraints."""

@@ -7,7 +7,6 @@ Vic notes:
 Summary of the different mixins:
     @required_if(condition_field, condition_value, required_fields) -> if/then
     @not_required_if(condition_field, condition_value, not_required_fields) -> if/then
-    @any_of(field_names) -> anyOf . required
     @exactly_one_of(field_names) -> oneOf . const True
     @min_properties -> minProperties
 

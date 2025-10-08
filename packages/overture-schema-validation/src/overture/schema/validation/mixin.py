@@ -227,53 +227,6 @@ class NotRequiredIfValidator(BaseConstraintValidator):
         target_schema.setdefault("allOf", []).append(conditional_schema)
 
 
-class AnyOfValidator(BaseConstraintValidator):
-    """Validates that any of a set of fields is present."""
-
-    def __init__(self, *field_names: str):
-        super().__init__()
-        self.field_names = field_names
-
-    def validate(self, model_instance: BaseModel) -> None:
-        present_fields = []
-        for field_name in self.field_names:
-            if (
-                hasattr(model_instance, field_name)
-                and getattr(model_instance, field_name) is not None
-            ):
-                present_fields.append(field_name)
-
-        if not present_fields:
-            raise ValueError(
-                f"At least one of {', '.join(self.field_names)} must be present"
-            )
-
-    def get_metadata(
-        self, model_class: type[BaseModel] | None = None, by_alias: bool = True
-    ) -> dict[str, Any]:
-        # Resolve field names to aliases if needed
-        field_names = list(self.field_names)
-        if model_class is not None:
-            field_names = resolve_field_names(model_class, field_names, by_alias)
-
-        return {
-            "type": "any_of",
-            "field_names": field_names,
-        }
-
-    def apply_json_schema_metadata(
-        self,
-        target_schema: dict[str, Any],
-        model_class: type[BaseModel] | None = None,
-        by_alias: bool = True,
-    ) -> None:
-        """Apply anyOf constraint to the schema."""
-        metadata = self.get_metadata(model_class, by_alias)
-
-        any_of_clauses = [{"required": [field]} for field in metadata["field_names"]]
-        target_schema.setdefault("anyOf", []).extend(any_of_clauses)
-
-
 class ExactlyOneOfValidator(BaseConstraintValidator):
     """Validates that exactly one of multiple boolean fields is true."""
 
@@ -407,17 +360,6 @@ def required_if(
         constraint = RequiredIfValidator(
             condition_field, condition_value, required_fields
         )
-        register_constraint(cls, constraint)
-        return cls
-
-    return decorator
-
-
-def any_of(*field_names: str) -> Any:
-    """Decorator to add anyOf validation."""
-
-    def decorator(cls: type[BaseModel]) -> type[BaseModel]:
-        constraint = AnyOfValidator(*field_names)
         register_constraint(cls, constraint)
         return cls
 
