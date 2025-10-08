@@ -1,3 +1,9 @@
+Vic notes:
+    Feature is ExtensibleBaseModel -> Migrate that up into Feature and deprecate.
+                                      Note: It doesn't really work e2e since how does it apply in codegen context?
+    StrictBaseModel is useful for sub-structs.
+
+
 ### Differences from Traditional Validators
 
 #### Replacing @field_validator

@@ -129,8 +129,11 @@ def scoped(
             raise TypeError(
                 f"can't apply `@scoped` to model {base_model_type.__name__}: the following model fields conflict with fields `@scoped` needs to create: {', '.join(conflict_fields)})"
             )
-        return BaseModel, create_model(
-            base_model_type.__name__, __base__=base_model_type, **new_fields
+        return create_model(
+            base_model_type.__name__,
+            __doc__=base_model_type.__doc__,
+            __base__=base_model_type,
+            **new_fields,
         )  # type: ignore
 
     return decorator
