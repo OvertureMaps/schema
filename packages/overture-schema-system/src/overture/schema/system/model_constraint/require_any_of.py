@@ -53,7 +53,7 @@ def require_any_of(*field_names: str) -> Callable[[type[BaseModel]], type[BaseMo
         f"@{require_any_of.__name__}", *field_names
     )
 
-    return model_constraint.attach
+    return model_constraint.decorate
 
 
 class RequireAnyOfConstraint(ModelConstraint):

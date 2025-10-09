@@ -189,7 +189,7 @@ def _make_scoped_fields(
             scoped_fields["when"] = _make_when({field_name: field_type})  # type: ignore
         else:
             when = _make_when(when_fields)
-            when = RequireAnyOfConstraint(*when_fields.keys()).attach(when)
+            when = RequireAnyOfConstraint(*when_fields.keys()).decorate(when)
             scoped_fields["when"] = (when.__class__ | None, None)  #  type: ignore
 
     return scoped_fields

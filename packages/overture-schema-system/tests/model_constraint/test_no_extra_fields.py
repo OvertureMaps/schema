@@ -41,7 +41,7 @@ def test_error_invalid_model_class() -> None:
     ],
 )
 def test_valid_model_class(model_class: type[BaseModel]) -> None:
-    decorated_class = NoExtraFieldsConstraint().attach(model_class)
+    decorated_class = NoExtraFieldsConstraint().decorate(model_class)
 
     assert "forbid" == decorated_class.model_config["extra"]
     assert_subset(decorated_class.model_json_schema(), {"additionalProperties": False})

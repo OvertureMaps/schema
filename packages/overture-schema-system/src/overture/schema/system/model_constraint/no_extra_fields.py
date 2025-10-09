@@ -42,7 +42,7 @@ def no_extra_fields(model_class: type[BaseModel]) -> type[BaseModel]:
         f"@{no_extra_fields.__name__}"
     )
 
-    return model_constraint.attach(model_class)
+    return model_constraint.decorate(model_class)
 
 
 class NoExtraFieldsConstraint(ModelConstraint):

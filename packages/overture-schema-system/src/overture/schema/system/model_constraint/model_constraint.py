@@ -41,11 +41,23 @@ class ModelConstraint:
         return self.__name
 
     @final
-    def attach(self, model_class: type[BaseModel]) -> type[BaseModel]:
+    def decorate(self, model_class: type[BaseModel]) -> type[BaseModel]:
         """
-        Attaches this constraint to a Pydantic model, returning a new version of the model.
+        Decorates a Pydantic model with this constraint, returning a new version of the model that
+        has this constraint applied to it.
 
         This is a final method and should not be overridden by subclasses.
+
+        Parameters
+        ----------
+        model_class : type[BaseModel]
+            Pydantic model to decorate. It is not decorated in-place, rather a new version of the
+            model class is returned with this constraint attached to it.
+
+        Returns
+        -------
+        type[BaseModel]
+            New version of `model_class` with this constraint applied to it
 
         Example
         -------
@@ -62,7 +74,7 @@ class ModelConstraint:
         ...
         >>> # Define a decorator.
         >>> def foo(model_class: type[BaseModel]) -> type[BaseModel]:
-        ...     return FooConstraint().attach(model_class)
+        ...     return FooConstraint().decorate(model_class)
         ...
         >>> # Apply the decorator.
         >>> @foo

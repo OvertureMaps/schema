@@ -120,6 +120,6 @@ def test_model_constraints():
 
     assert 0 == len(ModelConstraint.get_model_constraints(TestModel))
 
-    new_model_class = constraint.attach(TestModel)
+    new_model_class = constraint.decorate(TestModel)
 
     assert (constraint,) == ModelConstraint.get_model_constraints(new_model_class)
