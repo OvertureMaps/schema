@@ -1,24 +1,3 @@
-# TODO: vic: Ensure the system model constraints have the following capabilities:
-#
-#       Require at least one field from a set, where the JSON Schema should be implemented like
-#       this (but currently in this file it just uses minProperties):
-#
-#       ```json
-#       {
-#           "type": "object",
-#           "anyOf": [
-#               {"required": ["field1"]},
-#               {"required": ["field2"]},
-#               {"required": ["field3"]}
-#           ],
-#           "properties": {
-#               "field1": {"type": "string"},
-#               "field2": {"type": "string"},
-#               "field3": {"type": "string"}
-#           }
-#       }
-#       ```
-
 from collections.abc import (
     Callable,
     Collection,

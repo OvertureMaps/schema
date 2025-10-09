@@ -1,29 +1,3 @@
-Vic notes:
-    Feature is ExtensibleBaseModel -> Migrate that up into Feature and deprecate.
-                                      Note: It doesn't really work e2e since how does it apply in codegen context?
-
-Summary of the different mixins:
-    @required_if(condition_field, condition_value, required_fields) -> if/then
-    @not_required_if(condition_field, condition_value, not_required_fields) -> if/then
-    @exactly_one_of(field_names) -> oneOf . const True
-    @min_properties -> minProperties
-
-Next steps roadmap:
-    3) PR.
-    4) List and finish mixins that need migrating, drop `ConstrainedBaseModel`
-    5) Update `ModelConstraint` test with some multi-constraint cases.
-    6) Drop validation package.
-    7) *Possibly* move `Id` and `Ref` down into `system`.
-    8) PR.
-    9) Organization pass #1 on core.
-   10) Drop `pct` or move it up into `core`.
-   11) Finish scoping and migrate transportation theme onto it.
-   12) Finish organizing core.
-   13) Organization/docs passes on the themes.
-   14) Turn on `make docformat` rule and make sure it includes `docformatter` as well as `pydocstyle`.
-   15) FieldPointer (JsonPointer to a field) in system.
-
-
 ### Differences from Traditional Validators
 
 #### Replacing @field_validator
