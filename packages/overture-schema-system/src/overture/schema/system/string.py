@@ -1,14 +1,13 @@
 """
 Fundamental string types.
 
-This module provides a convenient set of reusable string types that can as field types in Pydantic
-models to ensure the field values conform to well-known patterns, for example country codes,
-language tags, or hexadecimal color codes.
+This module provides a convenient set of reusable string types that can be used as field types in
+Pydantic models to ensure the field values conform to well-known patterns, for example country
+codes, language tags, and color codes.
 
 While not considered "primitives", the fundamental string types are intended to provide specific,
 well-defined behavior for a wide range of serialization targets including not just Pydantic models
-and JSON, but also a range of other serialization targets, for example, the Parquet format or Spark
-dataframes.
+and JSON, but also including targets such as the Parquet data formats and Spark dataframes.
 """
 
 from typing import Annotated, NewType
@@ -37,7 +36,7 @@ CountryCodeAlpha2 = NewType(
     ],
 )  # type: ignore [type-arg]
 """
-An ISO-316601 alpha-2 country code.
+An ISO-3166-1 alpha-2 country code.
 """
 
 HexColor = NewType(
@@ -77,7 +76,7 @@ As described in `the JSON Pointer specification, RFC-6901`_.
 
 For example:
 
-- `""`
+- `""` (root value)
 - `"/connectors/"`
 - `"/connectors/0/at"`
 """
@@ -126,7 +125,7 @@ PhoneNumber = NewType(
     ],
 )  # type: ignore [type-arg]
 """
-An international telephone number.
+An international phone number.
 """
 
 RegionCode = NewType(
@@ -142,6 +141,9 @@ An ISO 3166-2 principal subdivision code.
 """
 
 SnakeCaseString = NewType("SnakeCaseString", Annotated[str, SnakeCaseConstraint()])
+"""
+A string that looks like a snake case identifier, like a Python variable name (*e.g.*, `foo_bar`).
+"""
 
 StrippedString = NewType(
     "StrippedString",

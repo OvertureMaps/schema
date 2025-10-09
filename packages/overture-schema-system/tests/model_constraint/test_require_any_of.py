@@ -85,13 +85,13 @@ def test_model_json_schema_no_model_config():
 @pytest.mark.parametrize(
     "base_json_schema,expect",
     [
-        (None, {"anyOf": [{"required": ["foo"]}, {"required": ["baz"]}]}),
+        (None, {"anyOf": [{"required": ["baz"]}, {"required": ["foo"]}]}),
         (
             {"anyOf": "anything"},
             {
                 "allOf": [
                     {"anyOf": "anything"},
-                    {"anyOf": [{"required": ["foo"]}, {"required": ["baz"]}]},
+                    {"anyOf": [{"required": ["baz"]}, {"required": ["foo"]}]},
                 ]
             },
         ),

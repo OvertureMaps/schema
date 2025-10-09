@@ -18,7 +18,7 @@ class ModelConstraint:
     First, the model constraints defined in this package work across the Overture schema system's
     code generation targets. This means that they validate the same data the same way in generated
     Java code as they do in Pydantic. Second, model constraints have integrated JSON Schema hooks
-    to allow them to describe how the contraint should be applied at the JSON Schema level. The
+    to allow them to describe how the constraint should be applied at the JSON Schema level. The
     model constraints defined in this package all provide applicable JSON Schema enhancements.
     """
 
@@ -61,8 +61,8 @@ class ModelConstraint:
 
         Example
         -------
-        As well as simply attaching the contraint to a model, this function can be used to implement
-        a reusable `@decorator`.
+        As well as simply attaching the constraint to a model, this function can be used to
+        implement a reusable `@decorator`.
 
         >>> from pydantic import BaseModel, ValidationError
         >>>
@@ -187,7 +187,7 @@ class ModelConstraint:
 
         The purpose of this method is to support code generation: code generators need to know which
         system-level constraints have been applied to the model in order to generate target-specific
-        validation code for those constraint.
+        validation code for those constraints.
 
         Example
         -------

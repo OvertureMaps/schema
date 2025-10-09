@@ -36,13 +36,14 @@ def subset_conflicts(a: JsonDict, b: JsonDict) -> JsonDict:
                     conflicts[k] = sub_conflicts
             else:
                 conflicts[k] = av
+    return conflicts
 
 
 def assert_subset(a: JsonDict, b: JsonDict, a_name: str = "a", b_name: str = "b"):
     conflicts = subset_conflicts(a, b)
     if conflicts:
         raise AssertionError(
-            f"expected `{a_name}` to be a subset of `{b_name}`, \
-                but the following parts of `{a_name}` were missing or different in `{b_name}`: {conflicts} \
-                (full context: `{a_name}` = {a}, `{b_name}` = {b})"
+            f"expected `{a_name}` to be a subset of `{b_name}`, "
+            f"but the following parts of `{a_name}` were missing or different in `{b_name}`: {conflicts} "
+            f"(full context: `{a_name}` = {a}, `{b_name}` = {b})"
         )
