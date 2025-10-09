@@ -227,9 +227,9 @@
       "allOf": [
         {
           "if": {
-            "properties": {
-              "subtype": {
-                "not": {
+            "not": {
+              "properties": {
+                "subtype": {
                   "const": "country"
                 }
               }
@@ -239,6 +239,22 @@
             "required": [
               "country"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "country"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "country"
+              ]
+            }
           }
         }
       ],

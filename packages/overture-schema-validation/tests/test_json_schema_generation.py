@@ -24,7 +24,6 @@ from pydantic import BaseModel, Field
 from overture.schema.validation.mixin import (
     ConstraintValidatedModel,
     exactly_one_of,
-    required_if,
 )
 
 
@@ -125,24 +124,6 @@ class TestJSONSchemaGeneration:
 
         assert field_a_condition["properties"]["field_a"]["const"] is True
         assert field_b_condition["properties"]["field_b"]["const"] is True
-
-    def test_conditional_required_constraint_json_schema(self) -> None:
-        """Test JSON Schema generation for conditional required constraint."""
-
-        @required_if("type_field", "special", ["required_field"])
-        class TestModel(ConstraintValidatedModel, BaseModel):
-            type_field: str
-            required_field: str | None = None
-
-        schema = TestModel.model_json_schema()
-
-        # Should have conditional in allOf
-        assert "allOf" in schema
-        assert len(schema["allOf"]) == 1
-
-        condition = schema["allOf"][0]
-        assert "if" in condition
-        assert "then" in condition
 
     def test_no_constraints_json_schema(self) -> None:
         """Test JSON Schema generation for models without constraints."""

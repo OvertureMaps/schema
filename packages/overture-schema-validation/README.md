@@ -155,13 +155,4 @@ class OvertureFeatureProperties(BaseModel):
         dict[LanguageTag, str],
         Field(json_schema_extra={"additionalProperties": False})
     ]
-
-# Division-specific validation with mixin constraints
-@required_if("subtype", "region", ["parent_division_id"])
-class DivisionProperties(ConstraintValidatedModel, OvertureFeatureProperties):
-    theme: Literal["divisions"] = Field(...)
-    type: Literal["division"] = Field(...)
-
-    subtype: PlaceType = Field(..., description="Administrative level")
-    parent_division_id: Optional[str] = Field(None, description="Parent ID")
 ```

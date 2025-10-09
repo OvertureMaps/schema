@@ -10,15 +10,11 @@ from overture.schema.validation import (
     ConstraintValidatedModel,
     exactly_one_of,
     min_properties,
-    not_required_if,
-    required_if,
 )
 from overture.schema.validation.mixin import (
     BaseConstraintValidator,
     ExactlyOneOfValidator,
     MinPropertiesValidator,
-    NotRequiredIfValidator,
-    RequiredIfValidator,
 )
 
 
@@ -262,146 +258,6 @@ class TestExactlyOneOfValidator:
         assert len(schema["oneOf"]) == 2
 
 
-class TestConditionalRequiredValidator:
-    """Test conditional required constraint validation."""
-
-    def test_conditional_required_validator_direct(self) -> None:
-        """Test RequiredIfValidator directly."""
-
-        class TestModel(BaseModel):
-            type_field: str
-            required_field: str | None = None
-
-        validator = RequiredIfValidator("type_field", "special", ["required_field"])
-
-        # Valid: condition not met, field can be None
-        model = TestModel(type_field="normal", required_field=None)
-        validator.validate(model)  # Should not raise
-
-        # Valid: condition met, field provided
-        model = TestModel(type_field="special", required_field="value")
-        validator.validate(model)  # Should not raise
-
-        # Invalid: condition met, field missing
-        model = TestModel(type_field="special", required_field=None)
-        with pytest.raises(
-            ValueError,
-            match="Field 'required_field' is required when type_field = special",
-        ):
-            validator.validate(model)
-
-    def test_conditional_required_constraint_decorator(self) -> None:
-        """Test conditional required constraint using decorator."""
-
-        @required_if("subtype", "road", ["class_"])
-        @required_if("subtype", "rail", ["class_"])
-        class SegmentModel(ConstraintValidatedModel, BaseModel):
-            subtype: str
-            class_: str | None = None
-
-        # Valid: subtype doesn't require class_
-        model = SegmentModel(subtype="water", class_=None)
-        assert model.subtype == "water"
-        assert model.class_ is None
-
-        # Valid: road subtype with class_
-        model = SegmentModel(subtype="road", class_="primary")
-        assert model.subtype == "road"
-        assert model.class_ == "primary"
-
-        # Valid: rail subtype with class_
-        model = SegmentModel(subtype="rail", class_="passenger")
-        assert model.subtype == "rail"
-        assert model.class_ == "passenger"
-
-        # Invalid: road subtype without class_
-        with pytest.raises(ValidationError) as exc_info:
-            SegmentModel(subtype="road", class_=None)
-        assert "Field 'class_' is required when subtype = road" in str(exc_info.value)
-
-        # Invalid: rail subtype without class_
-        with pytest.raises(ValidationError) as exc_info:
-            SegmentModel(subtype="rail", class_=None)
-        assert "Field 'class_' is required when subtype = rail" in str(exc_info.value)
-
-    def test_conditional_required_multiple_fields(self) -> None:
-        """Test conditional required constraint with multiple required fields."""
-
-        @required_if("type", "complex", ["field_a", "field_b"])
-        class TestModel(ConstraintValidatedModel, BaseModel):
-            type: str
-            field_a: str | None = None
-            field_b: str | None = None
-
-        # Valid: condition not met
-        model = TestModel(type="simple", field_a=None, field_b=None)
-        assert model.type == "simple"
-
-        # Valid: condition met, all fields provided
-        model = TestModel(type="complex", field_a="value_a", field_b="value_b")
-        assert model.type == "complex"
-        assert model.field_a == "value_a"
-        assert model.field_b == "value_b"
-
-        # Invalid: condition met, field_a missing
-        with pytest.raises(ValidationError) as exc_info:
-            TestModel(type="complex", field_a=None, field_b="value_b")
-        assert "Field 'field_a' is required when type = complex" in str(exc_info.value)
-
-
-class TestConditionalNotRequiredValidator:
-    """Test conditional not required constraint validation."""
-
-    def test_conditional_not_required_validator_direct(self) -> None:
-        """Test NotRequiredIfValidator directly."""
-
-        class TestModel(BaseModel):
-            subtype: PlaceType
-            country: str | None = None
-
-        validator = NotRequiredIfValidator("subtype", PlaceType.COUNTRY, ["country"])
-
-        # Valid: country subtype, country can be None
-        model = TestModel(subtype=PlaceType.COUNTRY, country=None)
-        validator.validate(model)  # Should not raise
-
-        # Valid: non-country subtype, country provided
-        model = TestModel(subtype=PlaceType.REGION, country="US")
-        validator.validate(model)  # Should not raise
-
-        # Invalid: non-country subtype, country missing
-        model = TestModel(subtype=PlaceType.REGION, country=None)
-        with pytest.raises(
-            ValueError, match="Field 'country' is required when subtype != country"
-        ):
-            validator.validate(model)
-
-    def test_conditional_not_required_constraint_decorator(self) -> None:
-        """Test conditional not required constraint using decorator."""
-
-        @not_required_if("subtype", PlaceType.COUNTRY, ["country"])
-        class BoundaryModel(ConstraintValidatedModel, BaseModel):
-            subtype: PlaceType
-            country: str | None = None
-
-        # Valid: country subtype, no country field needed
-        model = BoundaryModel(subtype=PlaceType.COUNTRY, country=None)
-        assert model.subtype == PlaceType.COUNTRY
-        assert model.country is None
-
-        # Valid: region subtype, country provided
-        model = BoundaryModel(subtype=PlaceType.REGION, country="US")
-        assert model.subtype == PlaceType.REGION
-        assert model.country == "US"
-
-        # Invalid: region subtype, country missing
-        with pytest.raises(ValidationError) as exc_info:
-            BoundaryModel(subtype=PlaceType.REGION, country=None)
-        assert "Field 'country' is required when subtype != country" in str(
-            exc_info.value
-        )
-
-
 class TestMinPropertiesValidator:
     """Test minimum properties constraint validation."""
 
@@ -533,68 +389,6 @@ class TestMinPropertiesValidator:
         )
 
 
-class TestMultipleConstraints:
-    """Test models with multiple constraints applied."""
-
-    def test_multiple_constraint_decorators(self) -> None:
-        """Test applying multiple constraint decorators to one model."""
-
-        @exactly_one_of("is_land", "is_territorial")
-        @required_if("subtype", PlaceType.REGION, ["region_code"])
-        class ComplexModel(ConstraintValidatedModel, BaseModel):
-            subtype: PlaceType
-            parent_division_id: str | None = None
-            is_land: bool | None = None
-            is_territorial: bool | None = None
-            region_code: str | None = None
-
-        # Valid: country with no parent, land boundary, no region code needed
-        model = ComplexModel(
-            subtype=PlaceType.COUNTRY,
-            parent_division_id=None,
-            is_land=True,
-            is_territorial=False,
-            region_code=None,
-        )
-        assert model.subtype == PlaceType.COUNTRY
-        assert model.is_land is True
-
-        # Valid: region with parent, territorial boundary, region code provided
-        model = ComplexModel(
-            subtype=PlaceType.REGION,
-            parent_division_id="parent",
-            is_land=False,
-            is_territorial=True,
-            region_code="US-CA",
-        )
-        assert model.subtype == PlaceType.REGION
-        assert model.region_code == "US-CA"
-
-        # Invalid: violates mutually exclusive constraint
-        with pytest.raises(ValidationError) as exc_info:
-            ComplexModel(
-                subtype=PlaceType.REGION,
-                parent_division_id="parent",
-                is_land=True,
-                is_territorial=True,  # Both True - invalid
-                region_code="US-CA",
-            )
-        assert "Exactly one field must be true, but found 2" in str(exc_info.value)
-
-        # Invalid: violates conditional required constraint
-        with pytest.raises(ValidationError) as exc_info:
-            ComplexModel(
-                subtype=PlaceType.REGION,
-                parent_division_id="parent",
-                is_land=True,
-                is_territorial=False,
-                region_code=None,  # Required when subtype is REGION
-            )
-        assert "Field 'region_code' is required when subtype = region" in str(
-            exc_info.value
-        )
-
-
 class TestConstraintErrorHandling:
     """Test error handling and edge cases."""
 
@@ -628,25 +422,6 @@ class TestConstraintErrorHandling:
             field_b=True,  # would fail validation if mixin was present
         )
         assert model.field_a is True
-
-    def test_constraint_validation_order(self) -> None:
-        """Test that constraints are validated in the correct order."""
-
-        # This test ensures that field validation happens before constraint validation
-        @required_if("type_field", "special", ["required_field"])
-        class OrderTestModel(ConstraintValidatedModel, BaseModel):
-            type_field: str
-            required_field: str | None = None
-
-        # Field validation should catch invalid type_field before constraint validation
-        with pytest.raises(ValidationError) as exc_info:
-            # This should fail due to validation of enum field, not constraint
-            OrderTestModel(type_field=123, required_field=None)  # Invalid type
-
-        # Constraint validation should catch missing required field
-        with pytest.raises(ValidationError) as exc_info:
-            OrderTestModel(type_field="special", required_field=None)
-        assert "Field 'required_field' is required" in str(exc_info.value)
 
     def test_json_schema_with_no_constraints(self) -> None:
         """Test JSON schema generation when no constraints are registered."""
