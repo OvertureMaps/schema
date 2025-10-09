@@ -1,12 +1,11 @@
-import json
+import test_setup
 import os
+import json
 import unittest
-
 import constants
 from match_classes import TraceSnapOptions
 from match_traces import get_trace_matches
-from utils import get_features_with_cells, load_matchable_set
-
+from utils import load_matchable_set, get_features_with_cells
 
 class TestTraces(unittest.TestCase):
 
@@ -35,7 +34,7 @@ class TestTraces(unittest.TestCase):
         self.assertEqual(len(match_res.points), len(source_feature.geometry.coords))
 
         self.assertGreater(match_res.source_length, 5000)
-        self.assertGreater(match_res.route_length, 5000)
+        self.assertGreater(match_res.route_length, 5000)       
 
         json_res = match_res.to_json()
         self.assertIsNotNone(json_res)

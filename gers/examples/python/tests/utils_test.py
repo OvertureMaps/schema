@@ -1,15 +1,9 @@
+import test_setup
 import os
 import unittest
-
 import constants
-from shapely import LineString, Point
-from utils import (
-    get_distance,
-    get_intersecting_h3_cells_for_geo_json,
-    get_linestring_length,
-    load_matchable_set,
-)
-
+from utils import get_distance, get_linestring_length, get_intersecting_h3_cells_for_geo_json, load_matchable_set
+from shapely import Point, LineString
 
 class TestUtils(unittest.TestCase):
 
@@ -24,15 +18,15 @@ class TestUtils(unittest.TestCase):
     def test_get_distance(self):
         p1 = Point(-83.6878343, 32.8413587)
         p2 = Point(-83.6877941, 32.8413903)
-
+        
         d = get_distance(p1, p2)
         self.assertAlmostEqual(d, 5.1, delta=0.1)
 
     def test_get_linestring_length(self):
         l = LineString([(-83.6878343, 32.8413587), (-83.6877941, 32.8413903)])
-
+        
         d = get_linestring_length(l)
-        self.assertAlmostEqual(d, 5.1, delta=0.1)
+        self.assertAlmostEqual(d, 5.1, delta=0.1)       
 
     def test_get_intersecting_h3_cells_for_geo_json(self):
         point = { "type": "Point", "coordinates": [-83.6197063, 32.8589311] }

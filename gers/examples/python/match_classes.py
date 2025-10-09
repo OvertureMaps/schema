@@ -1,10 +1,8 @@
 import json
-from collections.abc import Iterable
-
-import constants
+from typing import Dict, Iterable
 from shapely.geometry import Point
 from shapely.geometry.base import BaseGeometry
-
+import constants
 
 class MatchableFeature:
     """
@@ -28,7 +26,7 @@ class MatchableFeature:
 
 class MatchableFeaturesSet:
     """Collection of matchable features, indexed by id, and by cells (H3 in current implementation)"""
-    def __init__(self, features: dict[str, Iterable[MatchableFeature]], cells_by_id: dict[str, Iterable[str]], features_by_cell: dict[str, Iterable[MatchableFeature]]) -> None:
+    def __init__(self, features: Dict[str, Iterable[MatchableFeature]], cells_by_id: Dict[str, Iterable[str]], features_by_cell: Dict[str, Iterable[MatchableFeature]]) -> None:
         self.features_by_id = features
         self.cells_by_id = cells_by_id
         self.features_by_cell = features_by_cell

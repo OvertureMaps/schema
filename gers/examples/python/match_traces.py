@@ -1,38 +1,25 @@
 import argparse
 import csv
 import json
-import math
 import os
-from collections.abc import Iterable
-from timeit import default_timer as timer
+import math
 
 import constants
-from match_classes import (
-    MatchableFeature,
-    PointSnapInfo,
-    RouteStep,
-    SnappedPointPrediction,
-    TraceMatchResult,
-    TraceSnapOptions,
-)
 from route_utils import get_shortest_route
+from match_classes import TraceSnapOptions, MatchableFeature, TraceMatchResult, SnappedPointPrediction, PointSnapInfo, RouteStep
+from utils import get_features_with_cells, get_seconds_elapsed, get_distance, get_linestring_length, load_matchable_set
+
 from shapely import Point
 from shapely.ops import nearest_points
-from utils import (
-    get_distance,
-    get_features_with_cells,
-    get_linestring_length,
-    get_seconds_elapsed,
-    load_matchable_set,
-)
+from timeit import default_timer as timer
+from typing import Dict, Iterable
 
-
-def get_feature_id_to_connected_features(features_overture: Iterable[MatchableFeature]) -> dict[str, Iterable[MatchableFeature]]:
+def get_feature_id_to_connected_features(features_overture: Iterable[MatchableFeature]) -> Dict[str, Iterable[MatchableFeature]]:
     """returns a connected roads "graph" as a dictionary of feature id to features that are connected to it, as modeled in overture schema via connector_ids property"""
     connector_id_to_features = {}
     for feature in features_overture:
         for connector_id in feature.get_connector_ids():
-            if connector_id not in connector_id_to_features:
+            if not connector_id in connector_id_to_features:
                 connector_id_to_features[connector_id] = []
             connector_id_to_features[connector_id].append(feature)
 
@@ -48,21 +35,21 @@ def get_feature_id_to_connected_features(features_overture: Iterable[MatchableFe
 def read_predictions(predictions_file: str):
     """reads snap predictions from tab separated file with columns: trace_id, point_index, gers_id, score"""
     p = {}
-    with open(predictions_file) as file:
+    with open(predictions_file, 'r') as file:
         reader = csv.reader(file, delimiter=constants.COLUMN_SEPARATOR)
         for row in reader:
             try:
                 trace_id = row[0]
                 point_index = int(row[1])
                 gers_id = row[3]
-                if trace_id not in p:
+                if not(trace_id in p):
                     p[trace_id] = {}
                 p[trace_id][point_index] = gers_id
             except ValueError:
                 continue # header or invalid line
     return p
 
-def calculate_error_rate(labeled_file: str, target_features_by_id: dict[str, Iterable[MatchableFeature]], match_results: Iterable[TraceMatchResult]):
+def calculate_error_rate(labeled_file: str, target_features_by_id: Dict[str, Iterable[MatchableFeature]], match_results: Iterable[TraceMatchResult]):
     """returns total error rate from a labeled file and a list of trace match results"""
     if not(os.path.exists(labeled_file)):
         print(f'no metrics to compute (file {labeled_file} does not exist)')
@@ -74,7 +61,7 @@ def calculate_error_rate(labeled_file: str, target_features_by_id: dict[str, Ite
     with open(labeled_file + ".actual.txt",'w') as f:
         f.write(constants.COLUMN_SEPARATOR.join(["trace_id", "point_index", "label_gers_id", "prediction_gers_id", "label_snapped_wkt", "prediction_snapped_wkt", "distance_to_prev_point", "is_correct"]) + "\n")
         for trace_match_result in match_results:
-            if trace_match_result.id not in labels:
+            if not(trace_match_result.id in labels):
                 continue
 
             correct_distance = 0
@@ -82,13 +69,13 @@ def calculate_error_rate(labeled_file: str, target_features_by_id: dict[str, Ite
             prev_point = None
 
             for point in trace_match_result.points:
-                if point.index not in labels[trace_match_result.id]:
+                if not(point.index in labels[trace_match_result.id]):
                     print(f'no label for trace_id={trace_match_result.id} point_index={point.index}')
                     break
 
                 label_gers_id = labels[trace_match_result.id][point.index]
                 dist_to_prev_point = 0
-                is_correct = point.best_prediction is not None and (str(point.best_prediction.id) == label_gers_id)
+                is_correct = not(point.best_prediction is None) and (str(point.best_prediction.id) == label_gers_id)
                 if prev_point is not None:
                     dist_to_prev_point = get_distance(prev_point, point.original_point)
                     correct_distance += dist_to_prev_point
@@ -101,7 +88,7 @@ def calculate_error_rate(labeled_file: str, target_features_by_id: dict[str, Ite
                         incorrect_distance += dist_to_prev_point
 
                 label_snapped_point = None
-                if label_gers_id not in target_features_by_id:
+                if not(label_gers_id in target_features_by_id):
                     print(f'no target feature for label_gers_id={label_gers_id}')
                 else:
                     label_shape = target_features_by_id[label_gers_id].geometry
@@ -296,7 +283,7 @@ def get_trace_matches(source_feature: MatchableFeature, target_candidates: Itera
             else:
                 trace_dist_from_prev_point = get_distance(original_point, prev_point.original_point)
                 for prev_prediction in prev_point.predictions:
-                    if not(options.allow_loops) and prev_prediction.best_sequence is not None and target_feature.id in prev_prediction.best_sequence and prev_prediction.referenced_feature.id != target_feature.id:
+                    if not(options.allow_loops) and not(prev_prediction.best_sequence is None) and target_feature.id in prev_prediction.best_sequence and prev_prediction.referenced_feature.id != target_feature.id:
                         # already part of best sequence, but then moved to a different segment, so this is not a good candidate, it means this would walk back on itself
                         continue
 
@@ -491,11 +478,11 @@ def get_args():
     parser.add_argument("--input-overture", help="Input file containing overture features", required=True)
     parser.add_argument("--output", help="Output file containing match results", required=True)
     parser.add_argument("--resolution", help="H3 cell resolution used to pre-filter candidates", type=int, default=constants.DEFAULT_H3_RESOLUTION, choices=range(0,15))
-    parser.add_argument("--sigma", type=float, help="Sigma param - controlling tolerance to GPS noise", required=False, default=constants.DEFAULT_SIGMA)
-    parser.add_argument("--beta", type=float, help="Beta param - controlling confidence in route", required=False, default=constants.DEFAULT_BETA)
-    parser.add_argument("--allow_loops", type=bool, help="Allow same sequence to revisit same segment with other segment(s) in between", required=False, default=constants.DEFAULT_ALLOW_LOOPS)
-    parser.add_argument("--max_point_to_road_distance", type=float, help="Maximum distance in meters between a trace point and a match candidate road", required=False, default=constants.DEFAULT_MAX_POINT_TO_ROAD_DISTANCE)
-    parser.add_argument("--max_route_to_trace_distance_difference", type=float, help="Maximum difference between route and trace lengths in meters", required=False, default=constants.DEFAULT_MAX_ROUTE_TO_TRACE_DISTANCE_DIFFERENCE)
+    parser.add_argument("--sigma", type=float, help=f"Sigma param - controlling tolerance to GPS noise", required=False, default=constants.DEFAULT_SIGMA)
+    parser.add_argument("--beta", type=float, help=f"Beta param - controlling confidence in route", required=False, default=constants.DEFAULT_BETA)
+    parser.add_argument("--allow_loops", type=bool, help=f"Allow same sequence to revisit same segment with other segment(s) in between", required=False, default=constants.DEFAULT_ALLOW_LOOPS)
+    parser.add_argument("--max_point_to_road_distance", type=float, help=f"Maximum distance in meters between a trace point and a match candidate road", required=False, default=constants.DEFAULT_MAX_POINT_TO_ROAD_DISTANCE)
+    parser.add_argument("--max_route_to_trace_distance_difference", type=float, help=f"Maximum difference between route and trace lengths in meters", required=False, default=constants.DEFAULT_MAX_ROUTE_TO_TRACE_DISTANCE_DIFFERENCE)
     parser.add_argument("--revisit_segment_penalty_weight", type=float, help="How much to penalize a route with one segment revisit", required=False, default=constants.DEFAULT_SEGMENT_REVISIT_PENALTY)
     parser.add_argument("--revisit_via_point_penalty_weight", type=float, help="How much to penalize a route with one via-point revisit", required=False, default=constants.DEFAULT_VIA_POINT_PENALTY_WEIGHT)
     parser.add_argument("--broken_time_gap_reset_sequence", type=float, help="How big the time gap in seconds between points without valid route options before we consider it a broken sequence", required=False, default=constants.DEFAULT_BROKEN_TIME_GAP_RESET_SEQUENCE)
