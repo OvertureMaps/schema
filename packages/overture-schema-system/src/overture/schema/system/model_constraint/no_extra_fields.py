@@ -54,9 +54,7 @@ class NoExtraFieldsConstraint(ModelConstraint):
         super().__init__()
 
     @classmethod
-    def _create_internal(
-        cls, name: str, *field_names: str
-    ) -> "NoExtraFieldsConstraint":
+    def _create_internal(cls, name: str) -> "NoExtraFieldsConstraint":
         instance = cls.__new__(cls)
         super(NoExtraFieldsConstraint, instance).__init__(name)
         return instance
@@ -67,7 +65,7 @@ class NoExtraFieldsConstraint(ModelConstraint):
         extra = config.get("extra", None)
         if extra and extra != "forbid":
             raise TypeError(
-                f'can\'t apply `{self.name}` to model class `{model_class.__name__}: existing `model_config["extra"]` is already set to {repr(extra)}'
+                f"can't apply `{self.name}` to model class `{model_class.__name__}`: existing `model_config['extra']` is already set to {repr(extra)}"
             )
 
     @override

@@ -9,7 +9,6 @@ Summary of the different mixins:
     @min_properties -> minProperties
 
 Next steps roadmap:
-    2) Test `@no_extra_fields`.
     3) PR.
     4) List and finish mixins that need migrating, drop `ConstrainedBaseModel`
     5) Update `ModelConstraint` test with some multi-constraint cases.
