@@ -38,7 +38,6 @@ class PatternConstraint(StringConstraint):
 
     def __init__(self, pattern: str, error_message: str, flags: int = 0):
         self.pattern = re.compile(pattern, flags)
-        self.pattern_str = pattern
         self.error_message = error_message
 
     def validate(self, value: str, info: ValidationInfo) -> None:
@@ -61,7 +60,7 @@ class PatternConstraint(StringConstraint):
         self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
     ) -> dict[str, Any]:
         json_schema = handler(core_schema)
-        json_schema["pattern"] = self.pattern_str
+        json_schema["pattern"] = self.pattern.pattern
         return json_schema
 
 
