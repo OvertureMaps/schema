@@ -120,8 +120,8 @@ class ModelConstraint:
         """
         Validates that the constraint is appropriate for the model class.
 
-        This method is called by the `get_decorator` method to ensure this constraint is applicable
-        to the class being decorated with it.
+        This method is called by the `decorate` method to ensure this constraint is applicable to
+        the class being decorated with it.
 
         Parameters
         ----------
@@ -158,9 +158,10 @@ class ModelConstraint:
 
         The existing config dictionary may already have been edited by other model constraints
         applied earlier in the process. Implementations must take care not to make changes that
-        overwrite or alter the meaning of earlier changes made by other constraints. A
-        `RuntimeError` should be raised if the constraint can't apply its changes because the config
-        has already been put into a state that makes this impossible.
+        overwrite or alter the meaning of earlier changes made by other constraints.
+
+        The `config` should never be in a state that makes applying this constraint impossible,
+        because that state should already have been detected by `validate_class`.
 
         This method will often be used to extend the JSON Schema by amending `json_schema_extra`,
         but other changes can also be made.
@@ -171,11 +172,6 @@ class ModelConstraint:
             Pydantic model class being validated
         config : ConfigDict
             Config dictionary to edit
-
-        Raises
-        ------
-        RuntimeError
-            If the config is in an unacceptable state
         """
         pass  # noqa: B027
 
