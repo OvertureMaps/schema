@@ -60,11 +60,52 @@ def put_one_of(json_schema: JsonDict, operands: list[JsonDict]) -> None:
         put_all_of(json_schema, [prev, {"oneOf": cast(JsonValue, operands)}])
 
 
+def put_not(json_schema: JsonDict, operand: JsonDict) -> None:
+    origin = cast(type, get_origin(JsonDict))
+    if not isinstance(operand, origin):
+        raise TypeError(
+            f"`operand` must be a `JsonDict` value, but it is not: {operand}"
+        )
+    prev: JsonDict = {}
+    _try_move("not", json_schema, prev)
+
+    # Simple case: if the JSON didn't already have a "not", we just add it.
+    if not prev:
+        json_schema["not"] = operand
+        return
+
+    not_schema = prev["not"]
+    if not isinstance(not_schema, origin):
+        raise ValueError(
+            f'expected value of "not" key to be a `JsonDict`, but it is a {type(not_schema).__name__} in the JSON Schema {json_schema}'
+        )
+    not_schema = cast(JsonDict, not_schema)
+
+    # Next simplest case: the only child of the "not" is "anyOf".
+    if len(not_schema) == 1 and "anyOf" in not_schema:
+        not_any_of_schema = not_schema["anyOf"]
+        if not isinstance(not_any_of_schema, list):
+            raise ValueError(
+                f'expected value of "anyOf" key under "not" to be a `list`, but is a {type(not_any_of_schema).__name__} in the JSON Schema {json_schema}'
+            )
+        not_any_of_schema.append(operand)
+        json_schema["not"] = not_schema
+        return
+
+    # Most complex case: "not" either contains multiple keys, or a key that's not "anyOf".
+    json_schema["not"] = {
+        "anyOf": [
+            not_schema,
+            operand,
+        ]
+    }
+
+
 def put_if(
     json_schema: JsonDict,
     condition: JsonDict,
     when_true: JsonDict,
-    when_false: JsonDict | None,
+    when_false: JsonDict | None = None,
 ) -> None:
     prev: JsonDict = {}
     _try_move("if", json_schema, prev)

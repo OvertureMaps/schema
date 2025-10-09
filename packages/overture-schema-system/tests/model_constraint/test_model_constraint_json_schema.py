@@ -9,6 +9,7 @@ from overture.schema.system.model_constraint.json_schema import (
     put_all_of,
     put_any_of,
     put_if,
+    put_not,
     put_one_of,
 )
 
@@ -191,6 +192,64 @@ def test_put_one_of_error_too_few_operands(operands: list[JsonDict]) -> None:
 def test_put_one_of_error_bad_type(operands: list[JsonDict]) -> None:
     with pytest.raises(TypeError):
         put_one_of({}, operands)
+
+
+####################################################################################################
+#                                           test_put_not                                           #
+####################################################################################################
+
+
+@pytest.mark.parametrize(
+    "json_schema,operand,expect",
+    [
+        ({}, {}, {"not": {}}),
+        ({"foo": "bar"}, {"baz": "qux"}, {"foo": "bar", "not": {"baz": "qux"}}),
+        ({"not": {"anyOf": []}}, {}, {"not": {"anyOf": [{}]}}),
+        (
+            {"not": {"anyOf": [1, 2]}},
+            {"foo": "bar"},
+            {"not": {"anyOf": [1, 2, {"foo": "bar"}]}},
+        ),
+        ({"not": {}}, {}, {"not": {"anyOf": [{}, {}]}}),
+        (
+            {"not": {"foo": "bar"}},
+            {"baz": "qux"},
+            {"not": {"anyOf": [{"foo": "bar"}, {"baz": "qux"}]}},
+        ),
+        (
+            {"not": {"foo": "bar", "anyOf": []}},
+            {"baz": "qux"},
+            {"not": {"anyOf": [{"foo": "bar", "anyOf": []}, {"baz": "qux"}]}},
+        ),
+    ],
+)
+def test_put_not_success(
+    json_schema: JsonDict, operand: JsonDict, expect: JsonDict
+) -> None:
+    put_not(json_schema, operand)
+
+    assert expect == json_schema
+
+
+def test_put_not_error_invalid_operand() -> None:
+    with pytest.raises(
+        TypeError, match="`operand` must be a `JsonDict` value, but it is not"
+    ):
+        put_not({}, cast(JsonDict, 123))
+
+
+def test_put_not_error_invalid_not_value() -> None:
+    with pytest.raises(
+        ValueError, match='expected value of "not" key to be a `JsonDict`'
+    ):
+        put_not({"not": []}, {})
+
+
+def test_put_not_error_invalid_not_any_of_value() -> None:
+    with pytest.raises(
+        ValueError, match='expected value of "anyOf" key under "not" to be a `list`'
+    ):
+        put_not({"not": {"anyOf": {}}}, {})
 
 
 ####################################################################################################

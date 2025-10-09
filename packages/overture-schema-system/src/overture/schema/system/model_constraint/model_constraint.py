@@ -1,3 +1,4 @@
+from collections import Counter
 from collections.abc import Callable
 from copy import deepcopy
 from typing import Any, cast, final
@@ -8,6 +9,7 @@ from pydantic import (
     create_model,
     model_validator,
 )
+from typing_extensions import override
 
 
 class ModelConstraint:
@@ -20,6 +22,13 @@ class ModelConstraint:
     Java code as they do in Pydantic. Second, model constraints have integrated JSON Schema hooks
     to allow them to describe how the constraint should be applied at the JSON Schema level. The
     model constraints defined in this package all provide applicable JSON Schema enhancements.
+
+    Parameters
+    ----------
+    name : str | None
+        Friendly name of the constraint instance for error messaging purposes. This should be set
+        to `None` if a constraint class was instantiated directly, or to the decorator name if the
+        constraint was instantiated via decorator function.
     """
 
     def __init__(self, name: str | None = None):
@@ -195,8 +204,8 @@ class ModelConstraint:
         >>> from overture.schema.system.model_constraint import require_any_of
         >>> @require_any_of("foo", "bar")
         ... class MyModel(BaseModel):
-        ...     foo: int | None
-        ...     bar: str | None
+        ...     foo: int | None = None
+        ...     bar: str | None = None
         ...
         >>> [c.name for c in ModelConstraint.get_model_constraints(MyModel)]
         ['@require_any_of']
@@ -218,6 +227,107 @@ class ModelConstraint:
 
 
 _MODEL_CONSTRAINT_PRIVATE_LIST_NAME = "_ModelConstraint__private_list"
+
+
+class FieldGroupConstraint(ModelConstraint):
+    """
+    A model constraint that constrains a group of fields in the Pydantic model it decorates.
+
+    Use this constraint as a base class when developing model constraints that affect lists of
+    fields. It takes care of validating the list of field names at construction time (checking for
+    duplicates, minimum count, and proper types). It then validates the model class being decorated
+    (to ensure it contains all the expected fields). Subclasses may want to add additional
+    validation, for example to check the types of the constrained fields.
+
+    Use `OptionalFieldGroupConstraint` rather than `FieldGroupConstraint` if it is important that
+    the fields in the group are all optional.
+
+    Parameters
+    ----------
+    name : str | None
+        Friendly name of the constraint instance for error messaging purposes. This should be set
+        to `None` if a constraint class was instantiated directly, or to the decorator name if the
+        constraint was instantiated via decorator function.
+    field_names : tuple[str, ...]
+        Names of at least two model fields affected by the constraint
+
+    Raises
+    ------
+    ValueError
+        If `field_names` has fewer than two names in it or contains duplicates
+    TypeError
+        If `field_names` is not a `tuple` of `str`
+    """
+
+    def __init__(self, name: str | None, field_names: tuple[str, ...]):
+        super().__init__(name)
+        self.__set_field_names(field_names)
+
+    @property
+    def field_names(self) -> tuple[str, ...]:
+        return self.__field_names
+
+    def __set_field_names(self, field_names: tuple[str, ...]) -> None:
+        if not isinstance(field_names, tuple):
+            raise TypeError(
+                f"`field_names` must be a `tuple`, but {field_names} is a `{type(field_names).__name__}"
+            )
+        elif len(field_names) == 0:
+            raise ValueError("`field_names` cannot be empty, but it is")
+        elif not all(isinstance(s, str) for s in field_names):
+            raise TypeError(
+                f"`field_names` must contain only `str` values, but {field_names} contains at least one non-string"
+            )
+        dupes = [s for s, count in Counter(field_names).items() if count > 1]
+        if dupes:
+            raise ValueError(
+                f"`field_names` must not contain duplicates, but {field_names} contains at least one repeated value"
+            )
+        self.__field_names = field_names
+
+    @override
+    def validate_class(self, model_class: type[BaseModel]) -> None:
+        missing_fields = [
+            f for f in self.field_names if f not in model_class.model_fields
+        ]
+        if missing_fields:
+            raise TypeError(
+                f"`{self.name}` specifies fields that are not in the model class `{model_class.__name__}`: {', '.join(missing_fields)}  "
+            )
+
+
+class OptionalFieldGroupConstraint(FieldGroupConstraint):
+    """
+    A model constraint that constrains a group of *optional* fields in the Pydantic model it
+    decorates.
+
+    Inherits all field validation behavior from FieldGroupConstraint and adds an additional check
+    that all specified fields are optional.
+
+    Parameters
+    ----------
+    name : str | None
+        Friendly name of the constraint instance for error messaging purposes. This should be set
+        to `None` if a constraint class was instantiated directly, or to the decorator name if the
+        constraint was instantiated via decorator function.
+    field_names : tuple[str, ...]
+        Names of at least two model fields affected by the constraint
+    """
+
+    def __init__(self, name: str | None, field_names: tuple[str, ...]):
+        super().__init__(name, field_names)
+
+    @override
+    def validate_class(self, model_class: type[BaseModel]) -> None:
+        super().validate_class(model_class)
+
+        required_fields = [
+            f for f in self.field_names if model_class.model_fields[f].is_required()
+        ]
+        if required_fields:
+            raise TypeError(
+                f"`{self.name}` expects all the fields to be optional, but at least one is required in the model class `{model_class.__name__}`: {', '.join(required_fields)}"
+            )
 
 
 def apply_alias(model_class: type[BaseModel], field_name: str) -> str:

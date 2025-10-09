@@ -100,8 +100,8 @@ saying that at least one of the two optional fields is required, but they aren't
 >>>
 >>> @require_any_of("foo", "bar")
 ... class MyModel(BaseModel):
-...     foo: int | None
-...     bar: str | None
+...     foo: int | None = None
+...     bar: str | None = None
 ...
 >>> MyModel(foo=42, bar="hello")    # validates OK
 MyModel(foo=42, bar='hello')
@@ -113,7 +113,7 @@ MyModel(foo=None, bar='hello')
 >>> try:
 ...     MyModel(foo=None, bar=None)
 ... except ValidationError as e:
-...    assert "at least one of these fields must have a value, but none do: bar, foo" in str(e)
+...    assert "at least one of these fields must have a value, but none do: foo, bar" in str(e)
 ...    print("Validation failed")
 Validation failed
 """

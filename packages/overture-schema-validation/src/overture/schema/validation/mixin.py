@@ -168,6 +168,11 @@ class NotRequiredIfValidator(BaseConstraintValidator):
         self.not_required_fields = not_required_fields
 
     def validate(self, model_instance: BaseModel) -> None:
+        # This logic is backward. The meaning of `{"not":{"required":["foo"]}}` in JSON Schema is a
+        # bit mysterious, but it is "foo" is required NOT to be there, i.e. not allowed. The
+        # docstring is actually saying the right thing "field should be None when condition is met",
+        # but that didn't make it into the `validate` logic, which is reversed.
+
         if hasattr(model_instance, self.condition_field):
             condition_value = getattr(model_instance, self.condition_field)
             if condition_value != self.condition_value:

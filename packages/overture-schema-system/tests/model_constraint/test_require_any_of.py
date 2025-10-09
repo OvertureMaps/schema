@@ -31,7 +31,7 @@ def test_error_duplicate_field_names(field_names: list[str]):
 
 
 def test_error_invalid_model_class():
-    expect = "specifies fields that are not in the model class `TestModel`: bar, foo"
+    expect = "specifies fields that are not in the model class `TestModel`: foo, bar"
 
     with pytest.raises(TypeError, match=expect):
 
@@ -50,12 +50,12 @@ def test_error_invalid_model_class():
 def test_error_invalid_model_instance():
     @require_any_of("foo", "bar")
     class TestModel(BaseModel):
-        foo: int | None
-        bar: str | None
+        foo: int | None = None
+        bar: str | None = None
 
     with pytest.raises(
         ValidationError,
-        match="at least one of these fields must have a value, but none do: bar, foo",
+        match="at least one of these fields must have a value, but none do: foo, bar",
     ):
         TestModel(foo=None, bar=None)
 
@@ -64,8 +64,8 @@ def test_error_invalid_model_instance():
 def test_valid_model_instance(foo: int | None, bar: str | None):
     @require_any_of("foo", "bar")
     class TestModel(BaseModel):
-        foo: int | None
-        bar: str | None
+        foo: int | None = None
+        bar: str | None = None
 
     TestModel(foo=foo, bar=bar)
 
@@ -73,11 +73,11 @@ def test_valid_model_instance(foo: int | None, bar: str | None):
 def test_model_json_schema_no_model_config():
     @require_any_of("foo", "bar")
     class TestModel(BaseModel):
-        foo: int | None
-        bar: str | None = Field(alias="baz")
+        foo: int | None = None
+        bar: str | None = Field(default=None, alias="baz")
 
     actual = TestModel.model_json_schema()
-    expect = {"anyOf": [{"required": ["baz"]}, {"required": ["foo"]}]}
+    expect = {"anyOf": [{"required": ["foo"]}, {"required": ["baz"]}]}
     assert expect == TestModel.model_config["json_schema_extra"]
     assert_subset(expect, actual, "expect", "actual")
 
@@ -85,13 +85,13 @@ def test_model_json_schema_no_model_config():
 @pytest.mark.parametrize(
     "base_json_schema,expect",
     [
-        (None, {"anyOf": [{"required": ["baz"]}, {"required": ["foo"]}]}),
+        (None, {"anyOf": [{"required": ["foo"]}, {"required": ["baz"]}]}),
         (
             {"anyOf": "anything"},
             {
                 "allOf": [
                     {"anyOf": "anything"},
-                    {"anyOf": [{"required": ["baz"]}, {"required": ["foo"]}]},
+                    {"anyOf": [{"required": ["foo"]}, {"required": ["baz"]}]},
                 ]
             },
         ),
@@ -104,8 +104,8 @@ def test_model_json_schema_with_model_config(
     class TestModel(BaseModel):
         model_config = ConfigDict(json_schema_extra=base_json_schema)
 
-        foo: int | None
-        bar: str | None = Field(alias="baz")
+        foo: int | None = None
+        bar: str | None = Field(default=None, alias="baz")
 
     actual = TestModel.model_json_schema()
     assert_subset(expect, actual, "expect", "actual")
@@ -115,8 +115,8 @@ def test_model_constraints():
     constraint = RequireAnyOfConstraint("foo", "bar")
 
     class TestModel(BaseModel):
-        foo: int | None
-        bar: str | None
+        foo: int | None = None
+        bar: str | None = None
 
     assert 0 == len(ModelConstraint.get_model_constraints(TestModel))
 
