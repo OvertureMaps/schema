@@ -13,12 +13,12 @@ from overture.schema.core.types import (
     LinearlyReferencedPosition,
     OpeningHours,
 )
-from overture.schema.core.validation import (
-    ConstraintValidatedModel,
-    min_properties,
-)
 from overture.schema.system.field_constraint import UniqueItemsConstraint
-from overture.schema.system.model_constraint import no_extra_fields, require_any_of
+from overture.schema.system.model_constraint import (
+    min_fields_set,
+    no_extra_fields,
+    require_any_of,
+)
 from overture.schema.system.primitive import float64, int32
 from overture.schema.system.string import StrippedString, WikidataId
 
@@ -79,8 +79,8 @@ class HeadingScope(BaseModel):
     heading: Heading | None = None
 
 
-@min_properties(1)
-class DestinationWhenClause(ConstraintValidatedModel, HeadingScope):
+@min_fields_set(1)
+class DestinationWhenClause(HeadingScope):
     pass
 
 
@@ -445,9 +445,8 @@ class VehicleScope(BaseModel):
         return hash((tuple(self.vehicle) if self.vehicle is not None else None,))
 
 
-@min_properties(1)
+@min_fields_set(1)
 class SpeedLimitWhenClause(
-    ConstraintValidatedModel,
     TemporalScope,
     HeadingScope,
     PurposeOfUseScope,
@@ -479,9 +478,8 @@ class SpeedLimitRule(GeometricRangeScope):
     when: SpeedLimitWhenClause | None = None
 
 
-@min_properties(1)
+@min_fields_set(1)
 class AccessRestrictionWhenClause(
-    ConstraintValidatedModel,
     TemporalScope,
     HeadingScope,
     PurposeOfUseScope,
@@ -521,9 +519,8 @@ class AccessRestrictionRule(GeometricRangeScope):
         return hash((super().__hash__(), self.access_type, self.when))
 
 
-@min_properties(1)
+@min_fields_set(1)
 class ProhibitedTransitionWhenClause(
-    ConstraintValidatedModel,
     HeadingScope,
     TemporalScope,
     PurposeOfUseScope,

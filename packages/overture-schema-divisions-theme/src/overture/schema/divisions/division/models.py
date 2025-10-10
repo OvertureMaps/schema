@@ -22,7 +22,11 @@ from overture.schema.core.types import (
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
-from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.model_constraint import (
+    forbid_if,
+    no_extra_fields,
+    require_if,
+)
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
@@ -31,10 +35,9 @@ from overture.schema.system.primitive import (
 )
 from overture.schema.system.string import RegionCode, WikidataId
 
-from ..enums import DivisionClass, PlaceType
+from ..enums import IS_COUNTRY, DivisionClass, PlaceType
 from ..models import CapitalOfDivisionItem
 from ..types import Hierarchy
-from ..validation import parent_division_required_unless
 
 
 @no_extra_fields
@@ -51,7 +54,8 @@ class Norms(BaseModel):
     ] = None
 
 
-@parent_division_required_unless("subtype", PlaceType.COUNTRY)
+@forbid_if(["parent_division_id"], IS_COUNTRY)
+@require_if(["parent_division_id"], ~IS_COUNTRY)
 class Division(
     Feature[Literal["divisions"], Literal["division"]], Named, CartographicallyHinted
 ):

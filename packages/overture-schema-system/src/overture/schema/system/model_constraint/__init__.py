@@ -1,4 +1,5 @@
 from .forbid_if import ForbidIfConstraint, forbid_if
+from .min_fields_set import MinFieldsSetConstraint, min_fields_set
 from .model_constraint import (
     Condition,
     FieldEqCondition,
@@ -20,6 +21,8 @@ __all__ = [
     "FieldGroupConstraint",
     "forbid_if",
     "ForbidIfConstraint",
+    "min_fields_set",
+    "MinFieldsSetConstraint",
     "ModelConstraint",
     "no_extra_fields",
     "NoExtraFieldsConstraint",

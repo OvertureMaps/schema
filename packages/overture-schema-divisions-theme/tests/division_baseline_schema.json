@@ -391,11 +391,22 @@
       "additionalProperties": false,
       "allOf": [
         {
-          "else": {
+          "if": {
+            "not": {
+              "properties": {
+                "subtype": {
+                  "const": "country"
+                }
+              }
+            }
+          },
+          "then": {
             "required": [
               "parent_division_id"
             ]
-          },
+          }
+        },
+        {
           "if": {
             "properties": {
               "subtype": {

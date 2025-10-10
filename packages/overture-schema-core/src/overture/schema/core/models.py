@@ -1,6 +1,6 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections.abc import Callable
-from typing import Annotated, Any, Generic, NewType, TypeVar
+from typing import Annotated, Any, Generic, NewType, TypeVar, cast
 
 from pydantic import (
     BaseModel,
@@ -9,6 +9,7 @@ from pydantic import (
     GetJsonSchemaHandler,
     ValidationInfo,
     model_serializer,
+    model_validator,
 )
 from pydantic_core import core_schema
 
@@ -43,7 +44,97 @@ from .types import (
     Prominence,
     SortKey,
 )
-from .validation import ConstraintValidatedModel
+
+
+# Temporarily copied in from validation package.
+class BaseConstraintValidator(ABC):
+    """Base class for constraint validators."""
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        self.args = args
+        self.kwargs = kwargs
+
+    @abstractmethod
+    def validate(self, model_instance: BaseModel) -> None:
+        """Validate the constraint against the model instance."""
+        pass
+
+    @abstractmethod
+    def get_metadata(
+        self, model_class: type[BaseModel] | None = None, by_alias: bool = True
+    ) -> dict[str, Any]:
+        """Return plain constraint metadata."""
+        pass
+
+    @abstractmethod
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply this constraint's modifications directly to the target schema."""
+        pass
+
+
+# Temporarily copied in from validation package.
+class ConstraintValidatedModel:
+    """Mixin class that provides constraint validation capabilities.
+
+    This is a true mixin - it doesn't inherit from BaseModel to avoid MRO issues.
+    Use it like: class MyModel(ConstraintValidatedModel, BaseModel)
+    """
+
+    @model_validator(mode="after")
+    def validate_constraints(self) -> "ConstraintValidatedModel":
+        """Run all registered constraints for this model and its parent classes."""
+        all_constraints: list[BaseConstraintValidator] = []
+
+        # Collect constraints from this class and all parent classes
+        # Use a more sophisticated approach to avoid cross-contamination
+        for cls in self.__class__.__mro__:
+            # Skip if this class has no constraints of its own
+            if not hasattr(cls, "__constraints__"):
+                continue
+
+            # Only include constraints that were explicitly added to this class
+            # (not inherited from shared base classes)
+            class_constraints = getattr(cls, "__constraints__", [])
+            if class_constraints:
+                all_constraints.extend(class_constraints)
+
+        # Run all constraints
+        for constraint in all_constraints:
+            # Cast self to BaseModel for the constraint validator
+            constraint.validate(self)  # type: ignore[arg-type]
+        return self
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls,
+        core_schema: Any,  # noqa: ANN401
+        handler: Any,  # noqa: ANN401
+    ) -> dict[str, Any]:
+        """Generate JSON Schema with constraints applied."""
+        # Get the base schema from Pydantic
+        schema: dict[str, Any] = handler(core_schema)
+
+        # Apply constraint metadata
+        all_constraints: list[BaseConstraintValidator] = []
+        class_constraints = getattr(cls, "__constraints__", [])
+        if class_constraints:
+            all_constraints.extend(class_constraints)
+
+        for constraint in all_constraints:
+            # Apply constraint modifications directly to the schema
+            # OvertureFeature will handle moving them to the correct GeoJSON structure if needed
+            constraint.apply_json_schema_metadata(
+                target_schema=schema,
+                model_class=cast(type[BaseModel], cls),
+                by_alias=True,
+            )
+
+        return schema
 
 
 @allow_extension_fields()

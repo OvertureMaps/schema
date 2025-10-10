@@ -1,12 +1,55 @@
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Any
 
 from pydantic import BaseModel
 
-from overture.schema.validation.mixin import (
-    BaseConstraintValidator,
-    register_constraint,
-)
+
+# Temporarily copied in from validation package.
+class BaseConstraintValidator(ABC):
+    """Base class for constraint validators."""
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        self.args = args
+        self.kwargs = kwargs
+
+    @abstractmethod
+    def validate(self, model_instance: BaseModel) -> None:
+        """Validate the constraint against the model instance."""
+        pass
+
+    @abstractmethod
+    def get_metadata(
+        self, model_class: type[BaseModel] | None = None, by_alias: bool = True
+    ) -> dict[str, Any]:
+        """Return plain constraint metadata."""
+        pass
+
+    @abstractmethod
+    def apply_json_schema_metadata(
+        self,
+        target_schema: dict[str, Any],
+        model_class: type[BaseModel] | None = None,
+        by_alias: bool = True,
+    ) -> None:
+        """Apply this constraint's modifications directly to the target schema."""
+        pass
+
+
+# Temporarily copied in from validation package.
+def register_constraint(
+    model_class: type[BaseModel], constraint: BaseConstraintValidator
+) -> None:
+    """Register a constraint for a model class."""
+    if not hasattr(model_class, "__constraints__"):
+        model_class.__constraints__ = []  # type: ignore[attr-defined]
+    else:
+        # Ensure we have a copy of the constraints list for this class
+        # to avoid sharing references between classes
+        constraints = getattr(model_class, "__constraints__", [])
+        model_class.__constraints__ = constraints.copy()  # type: ignore[attr-defined]
+    constraints = model_class.__constraints__  # type: ignore[attr-defined]
+    constraints.append(constraint)
 
 
 def allow_extension_fields() -> Callable:
