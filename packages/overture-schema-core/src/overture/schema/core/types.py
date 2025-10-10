@@ -281,6 +281,8 @@ The Slippy Maps zooms are explained in the following references:
     ],
 )
 
+# FIXME: Use of `default` on this "floating" type declaration results in a Pydantic warning that the
+#        default has no effect. Default value should be migrated to site usage in the actual models.
 SortKey = NewType(
     "SortKey",
     Annotated[
