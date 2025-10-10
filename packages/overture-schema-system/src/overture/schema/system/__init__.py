@@ -93,7 +93,8 @@ Create a custom regular expression pattern constraint:
 Validation failed
 
 Use decorators to add complex multi-field constraints. In this example, a validation rule is added
-saying that at least one of the two optional fields is required, but they aren't both required:
+saying that at least one of the two optional fields is required to have an explicit value, but
+they aren't both required to:
 
 >>> from pydantic import BaseModel, ValidationError
 >>> from overture.schema.system.model_constraint import require_any_of
@@ -105,15 +106,17 @@ saying that at least one of the two optional fields is required, but they aren't
 ...
 >>> MyModel(foo=42, bar="hello")    # validates OK
 MyModel(foo=42, bar='hello')
->>> MyModel(foo=42, bar=None)       # validates OK
+>>> MyModel(foo=42)                 # validates OK
 MyModel(foo=42, bar=None)
->>> MyModel(foo=None, bar="hello")  # validates OK
+>>> MyModel(bar="hello")            # validates OK
 MyModel(foo=None, bar='hello')
+>>> MyModel(foo=None, bar=None)     # validates OK because foo and bar are explicitly set to `None`
+MyModel(foo=None, bar=None)
 >>>
 >>> try:
-...     MyModel(foo=None, bar=None)
+...     MyModel()
 ... except ValidationError as e:
-...    assert "at least one of these fields must have a value, but none do: foo, bar" in str(e)
+...    assert "at least one of these fields must be explicitly set, but none are: foo, bar" in str(e)
 ...    print("Validation failed")
 Validation failed
 """

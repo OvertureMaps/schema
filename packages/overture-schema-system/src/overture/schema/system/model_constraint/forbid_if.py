@@ -17,7 +17,12 @@ def forbid_if(
 ) -> Callable[[type[BaseModel]], type[BaseModel]]:
     """
     Decorates a Pydantic model class with a constraint forbidding any of the named fields from
-    a value, but only if a field value condition is true.
+    holding an explicitly-assigned value, but only if a field value condition is true.
+
+    To ensure parity between Python and JSON Schema validation, a field's value must be explicitly
+    set to violate the constraint. This means in particular that fields whose value was set by
+    Pydantic using a default value do not count as having a set value, and fields containing the
+    value `None`, if this value was explicitly set rather than being inherited by default, do count.
 
     Parameters
     ----------
@@ -50,7 +55,7 @@ def forbid_if(
     >>> try:
     ...     MyModel(foo='special value', bar=42)
     ... except ValidationError as e:
-    ...     assert 'at least one field has a value when it should not: bar' in str(e)
+    ...     assert 'at least one field has an explicit value when it should not: bar' in str(e)
     ...     print('Validation failed')
     Validation failed
     """
@@ -108,12 +113,12 @@ class ForbidIfConstraint(OptionalFieldGroupConstraint):
             return
 
         present_fields = [
-            f for f in self.field_names if getattr(model_instance, f) is not None
+            f for f in self.field_names if f in model_instance.model_fields_set
         ]
 
         if present_fields:
             raise ValueError(
-                f"at least one field has a value when it should not: {', '.join(present_fields)} - "
+                f"at least one field has an explicit value when it should not: {', '.join(present_fields)} - "
                 f"these field value(s) are forbidden because {self.__condition} is true "
                 f"(`{self.name}`)"
             )

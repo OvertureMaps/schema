@@ -55,9 +55,9 @@ def test_error_invalid_model_instance():
 
     with pytest.raises(
         ValidationError,
-        match="at least one of these fields must have a value, but none do: foo, bar",
+        match="at least one of these fields must be explicitly set, but none are: foo, bar",
     ):
-        TestModel(foo=None, bar=None)
+        TestModel()
 
 
 @pytest.mark.parametrize("foo,bar", [(42, "hello"), (42, None), (None, "hello")])

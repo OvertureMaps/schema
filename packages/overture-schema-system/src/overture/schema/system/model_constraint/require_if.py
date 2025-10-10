@@ -17,7 +17,12 @@ def require_if(
 ) -> Callable[[type[BaseModel]], type[BaseModel]]:
     """
     Decorates a Pydantic model class with a constraint requiring all of the named fields to have a
-    value, but only if a field value condition is true.
+    value explicitly set, but only if a field value condition is true.
+
+    To ensure parity between Python and JSON Schema validation, a field's value must be explicitly
+    set to satisfy the constraint. This means in particular that fields whose value was set by
+    Pydantic using a default value do not count as having a set value, and fields containing the
+    value `None`, if this value was explicitly set rather than being inherited by default, do count.
 
     Parameters
     ----------
@@ -50,7 +55,9 @@ def require_if(
     >>> try:
     ...     MyModel(foo='special value')
     ... except ValidationError as e:
-    ...     assert 'at least one field is missing a value when it should have one: bar, baz' in str(e)
+    ...     assert (
+    ...         'at least one field is missing an explicit value when it should have one: bar, baz'
+    ...     ) in str(e)
     ...     print('Validation failed')
     Validation failed
     """
@@ -108,12 +115,12 @@ class RequireIfConstraint(OptionalFieldGroupConstraint):
             return
 
         missing_fields = [
-            f for f in self.field_names if getattr(model_instance, f) is None
+            f for f in self.field_names if f not in model_instance.model_fields_set
         ]
 
         if missing_fields:
             raise ValueError(
-                f"at least one field is missing a value when it should have one: {', '.join(missing_fields)} - "
+                f"at least one field is missing an explicit value when it should have one: {', '.join(missing_fields)} - "
                 f"these field value(s) are required because {self.__condition} is true` (`{self.name}`)"
             )
 
