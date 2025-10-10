@@ -86,70 +86,6 @@ class BaseConstraintValidator(ABC):
         pass
 
 
-class ExactlyOneOfValidator(BaseConstraintValidator):
-    """Validates that exactly one of multiple boolean fields is true."""
-
-    def __init__(self, *field_names: str):
-        super().__init__()
-        self.field_names = field_names
-
-    def validate(self, model_instance: BaseModel) -> None:
-        true_fields = []
-        missing_fields = []
-
-        for field_name in self.field_names:
-            if hasattr(model_instance, field_name):
-                field_value = getattr(model_instance, field_name)
-                if field_value is True:
-                    true_fields.append(field_name)
-            else:
-                missing_fields.append(field_name)
-
-        # If all fields are missing, gracefully handle it (don't validate)
-        if len(missing_fields) == len(self.field_names):
-            return
-
-        if len(true_fields) != 1:
-            if len(true_fields) == 0:
-                raise ValueError(
-                    f"Exactly one of {', '.join(self.field_names)} must be true"
-                )
-            else:
-                raise ValueError(
-                    f"Exactly one field must be true, but found {len(true_fields)}: {', '.join(true_fields)}"
-                )
-
-    def get_metadata(
-        self, model_class: type[BaseModel] | None = None, by_alias: bool = True
-    ) -> dict[str, Any]:
-        # Resolve field names to aliases if needed
-        field_names = list(self.field_names)
-        if model_class is not None:
-            field_names = resolve_field_names(model_class, field_names, by_alias)
-
-        return {
-            "type": "exactly_one_of",
-            "field_names": field_names,
-        }
-
-    def apply_json_schema_metadata(
-        self,
-        target_schema: dict[str, Any],
-        model_class: type[BaseModel] | None = None,
-        by_alias: bool = True,
-    ) -> None:
-        """Apply oneOf constraint to the schema."""
-        metadata = self.get_metadata(model_class, by_alias)
-
-        # Generate oneOf constraint where exactly one field is true
-        one_of_clauses = []
-        for field in metadata["field_names"]:
-            clause = {"properties": {field: {"const": True}}}
-            one_of_clauses.append(clause)
-
-        target_schema.setdefault("oneOf", []).extend(one_of_clauses)
-
-
 class MinPropertiesValidator(BaseConstraintValidator):
     """Validates that at least N properties are set on a model."""
 
@@ -208,17 +144,6 @@ def register_constraint(
         model_class.__constraints__ = constraints.copy()  # type: ignore[attr-defined]
     constraints = model_class.__constraints__  # type: ignore[attr-defined]
     constraints.append(constraint)
-
-
-def exactly_one_of(*field_names: str) -> Any:
-    """Decorator to add exactly-one-of validation where fields must be true."""
-
-    def decorator(cls: type[BaseModel]) -> type[BaseModel]:
-        constraint = ExactlyOneOfValidator(*field_names)
-        register_constraint(cls, constraint)
-        return cls
-
-    return decorator
 
 
 def min_properties(min_count: int) -> Any:

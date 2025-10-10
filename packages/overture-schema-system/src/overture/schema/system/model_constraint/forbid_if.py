@@ -96,6 +96,10 @@ class ForbidIfConstraint(OptionalFieldGroupConstraint):
             )
         self.__condition = condition
 
+    @property
+    def condition(self) -> Condition:
+        return self.__condition
+
     @override
     def validate_instance(self, model_instance: BaseModel) -> None:
         super().validate_instance(model_instance)
@@ -110,7 +114,8 @@ class ForbidIfConstraint(OptionalFieldGroupConstraint):
         if present_fields:
             raise ValueError(
                 f"at least one field has a value when it should not: {', '.join(present_fields)} - "
-                f"these field value(s) are forbidden because {self.__condition} is true"
+                f"these field value(s) are forbidden because {self.__condition} is true "
+                f"(`{self.name}`)"
             )
 
     @override

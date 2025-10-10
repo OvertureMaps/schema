@@ -9,6 +9,7 @@ from .model_constraint import (
     apply_alias,
 )
 from .no_extra_fields import NoExtraFieldsConstraint, no_extra_fields
+from .radio_group import RadioGroupConstraint, radio_group
 from .require_any_of import RequireAnyOfConstraint, require_any_of
 from .require_if import RequireIfConstraint, require_if
 
@@ -24,6 +25,8 @@ __all__ = [
     "NoExtraFieldsConstraint",
     "Not",
     "OptionalFieldGroupConstraint",
+    "radio_group",
+    "RadioGroupConstraint",
     "require_any_of",
     "require_if",
     "RequireAnyOfConstraint",

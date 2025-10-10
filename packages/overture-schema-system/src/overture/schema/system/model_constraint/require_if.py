@@ -96,6 +96,10 @@ class RequireIfConstraint(OptionalFieldGroupConstraint):
             )
         self.__condition = condition
 
+    @property
+    def condition(self) -> Condition:
+        return self.__condition
+
     @override
     def validate_instance(self, model_instance: BaseModel) -> None:
         super().validate_instance(model_instance)
@@ -110,7 +114,7 @@ class RequireIfConstraint(OptionalFieldGroupConstraint):
         if missing_fields:
             raise ValueError(
                 f"at least one field is missing a value when it should have one: {', '.join(missing_fields)} - "
-                f"these field value(s) are required because {self.__condition} is true`)"
+                f"these field value(s) are required because {self.__condition} is true` (`{self.name}`)"
             )
 
     @override

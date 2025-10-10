@@ -8,12 +8,10 @@ from pydantic import BaseModel, ValidationError
 
 from overture.schema.validation import (
     ConstraintValidatedModel,
-    exactly_one_of,
     min_properties,
 )
 from overture.schema.validation.mixin import (
     BaseConstraintValidator,
-    ExactlyOneOfValidator,
     MinPropertiesValidator,
 )
 
@@ -127,135 +125,6 @@ class TestConstraintValidatedModel:
 
         # Should not have constraint-specific fields
         assert "allOf" not in schema
-
-
-class TestExactlyOneOfValidator:
-    """Test exactly one of constraint validation."""
-
-    def test_exactly_one_of_validator_direct(self) -> None:
-        """Test ExactlyOneOfValidator directly."""
-
-        class TestModel(BaseModel):
-            field_a: bool | None = None
-            field_b: bool | None = None
-
-        validator = ExactlyOneOfValidator("field_a", "field_b")
-
-        # Valid: exactly one field is True
-        model = TestModel(field_a=True, field_b=False)
-        validator.validate(model)  # Should not raise
-
-        model = TestModel(field_a=False, field_b=True)
-        validator.validate(model)  # Should not raise
-
-        # Invalid: no fields are True
-        model = TestModel(field_a=False, field_b=False)
-        with pytest.raises(
-            ValueError, match="Exactly one of field_a, field_b must be true"
-        ):
-            validator.validate(model)
-
-        # Invalid: fields are None (treated as not True)
-        model = TestModel(field_a=None, field_b=None)
-        with pytest.raises(
-            ValueError, match="Exactly one of field_a, field_b must be true"
-        ):
-            validator.validate(model)
-
-        # Invalid: both fields are True
-        model = TestModel(field_a=True, field_b=True)
-        with pytest.raises(
-            ValueError,
-            match="Exactly one field must be true, but found 2: field_a, field_b",
-        ):
-            validator.validate(model)
-
-    def test_exactly_one_of_constraint_decorator(self) -> None:
-        """Test exactly one of constraint using decorator."""
-
-        @exactly_one_of("is_land", "is_territorial")
-        class DivisionModel(ConstraintValidatedModel, BaseModel):
-            is_land: bool | None = None
-            is_territorial: bool | None = None
-
-        # Valid cases: exactly one is True
-        model = DivisionModel(is_land=True, is_territorial=False)
-        assert model.is_land is True
-        assert model.is_territorial is False
-
-        model = DivisionModel(is_land=False, is_territorial=True)
-        assert model.is_land is False
-        assert model.is_territorial is True
-
-        # Invalid case: neither True
-        with pytest.raises(ValidationError) as exc_info:
-            DivisionModel(is_land=False, is_territorial=False)
-        assert "Exactly one of is_land, is_territorial must be true" in str(
-            exc_info.value
-        )
-
-        # Invalid case: both True
-        with pytest.raises(ValidationError) as exc_info:
-            DivisionModel(is_land=True, is_territorial=True)
-        assert (
-            "Exactly one field must be true, but found 2: is_land, is_territorial"
-            in str(exc_info.value)
-        )
-
-        # Invalid case: both None
-        with pytest.raises(ValidationError) as exc_info:
-            DivisionModel(is_land=None, is_territorial=None)
-        assert "Exactly one of is_land, is_territorial must be true" in str(
-            exc_info.value
-        )
-
-    def test_exactly_one_of_multiple_fields(self) -> None:
-        """Test exactly one of constraint with more than 2 fields."""
-
-        @exactly_one_of("option_a", "option_b", "option_c")
-        class OptionsModel(ConstraintValidatedModel, BaseModel):
-            option_a: bool | None = None
-            option_b: bool | None = None
-            option_c: bool | None = None
-
-        # Valid: exactly one option True
-        model = OptionsModel(option_a=True, option_b=False, option_c=False)
-        assert model.option_a is True
-
-        model = OptionsModel(option_a=False, option_b=True, option_c=False)
-        assert model.option_b is True
-
-        model = OptionsModel(option_a=False, option_b=False, option_c=True)
-        assert model.option_c is True
-
-        # Invalid: no options True
-        with pytest.raises(ValidationError) as exc_info:
-            OptionsModel(option_a=False, option_b=False, option_c=False)
-        assert "Exactly one of option_a, option_b, option_c must be true" in str(
-            exc_info.value
-        )
-
-        # Invalid: multiple options True
-        with pytest.raises(ValidationError) as exc_info:
-            OptionsModel(option_a=True, option_b=True, option_c=False)
-        assert "Exactly one field must be true, but found 2: option_a, option_b" in str(
-            exc_info.value
-        )
-
-    def test_exactly_one_of_json_schema(self) -> None:
-        """Test JSON schema generation for exactly one of constraint."""
-
-        @exactly_one_of("field_a", "field_b")
-        class TestModel(ConstraintValidatedModel, BaseModel):
-            field_a: bool | None = None
-            field_b: bool | None = None
-
-        schema = TestModel.model_json_schema()
-
-        # Should have oneOf constraint (ExactlyOneOfValidator generates oneOf)
-        # The constraint metadata is included by the ConstraintValidatedModel at top level
-        assert "oneOf" in schema
-        assert len(schema["oneOf"]) == 2
 
 
 class TestMinPropertiesValidator:
@@ -392,37 +261,6 @@ class TestMinPropertiesValidator:
 class TestConstraintErrorHandling:
     """Test error handling and edge cases."""
 
-    def test_constraint_with_missing_fields(self) -> None:
-        """Test constraints when referenced fields don't exist."""
-
-        @exactly_one_of("field_a", "field_b")
-        class IncompleteModel(ConstraintValidatedModel, BaseModel):
-            # Missing subtype and parent_division_id fields
-            name: str
-
-        # Should not raise validation errors for missing fields
-        # (constraint should handle missing fields gracefully)
-        model = IncompleteModel(name="test")
-        assert model.name == "test"
-
-    def test_constraint_validator_without_mixin(self) -> None:
-        """Test that decorators work but validation won't be applied without the
-        mixin."""
-
-        # This should not raise - decorators can be applied to any class
-        # but validation won't happen without ConstraintValidatedModel
-        @exactly_one_of("field_a", "field_b")
-        class InvalidModel(BaseModel):  # Missing ConstraintValidatedModel
-            field_a: bool | None = None
-            field_b: bool | None = None
-
-        # This should NOT fail validation since ConstraintValidatedModel isn't mixed in
-        model = InvalidModel(
-            field_a=True,
-            field_b=True,  # would fail validation if mixin was present
-        )
-        assert model.field_a is True
-
     def test_json_schema_with_no_constraints(self) -> None:
         """Test JSON schema generation when no constraints are registered."""
 
@@ -435,58 +273,6 @@ class TestConstraintErrorHandling:
         # Should generate normal schema without constraint extensions
         assert "properties" in schema
         assert "allOf" not in schema
-
-
-class TestRealWorldScenarios:
-    """Test real-world usage scenarios."""
-
-    def test_geojson_feature_model(self) -> None:
-        """Test constraint validation on a GeoJSON-like feature model."""
-
-        @exactly_one_of("is_land", "is_territorial")
-        class PropertiesModel(ConstraintValidatedModel, BaseModel):
-            subtype: PlaceType
-            parent_division_id: str | None = None
-            is_land: bool | None = None
-            is_territorial: bool | None = None
-
-        class FeatureModel(BaseModel):
-            id: str
-            type: str = "Feature"
-            properties: PropertiesModel
-            geometry: dict
-
-        # Valid feature
-        feature_data = {
-            "id": "test-feature",
-            "properties": {
-                "subtype": PlaceType.REGION,
-                "parent_division_id": "US",
-                "is_land": True,
-                "is_territorial": False,
-            },
-            "geometry": {"type": "Point", "coordinates": [0, 0]},
-        }
-
-        model = FeatureModel(**feature_data)
-        assert model.id == "test-feature"
-        assert model.properties.subtype == PlaceType.REGION
-
-        # Invalid feature - violates mutually exclusive constraint
-        invalid_feature_data = {
-            "id": "invalid-feature",
-            "properties": {
-                "subtype": PlaceType.COUNTRY,
-                "parent_division_id": "parent",
-                "is_land": True,
-                "is_territorial": True,  # Both True - violates mutually exclusive
-            },
-            "geometry": {"type": "Point", "coordinates": [0, 0]},
-        }
-
-        with pytest.raises(ValidationError) as exc_info:
-            FeatureModel(**invalid_feature_data)
-        assert "Exactly one field must be true, but found 2" in str(exc_info.value)
 
 
 if __name__ == "__main__":

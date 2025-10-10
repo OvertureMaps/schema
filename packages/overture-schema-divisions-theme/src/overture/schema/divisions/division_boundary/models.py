@@ -13,13 +13,11 @@ from overture.schema.core.types import (
     CountryCodeAlpha2,
     Id,
 )
-from overture.schema.core.validation import (
-    exactly_one_of,
-)
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     forbid_if,
+    radio_group,
     require_if,
 )
 from overture.schema.system.primitive import (
@@ -36,9 +34,9 @@ from .enums import BoundaryClass
 __IS_COUNTRY = FieldEqCondition("subtype", PlaceType.COUNTRY)
 
 
-@exactly_one_of("is_land", "is_territorial")
 @forbid_if(["country"], __IS_COUNTRY)
 @require_if(["country"], ~__IS_COUNTRY)
+@radio_group("is_land", "is_territorial")
 class DivisionBoundary(Feature[Literal["divisions"], Literal["division_boundary"]]):
     """Boundaries represent borders between divisions of the same subtype.
 
