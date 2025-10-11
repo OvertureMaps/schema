@@ -17,21 +17,21 @@ from util import assert_subset
 
 
 @pytest.mark.parametrize("field_names", [[], ["foo"]])
-def test_error_not_enough_field_names(field_names: list[str]):
+def test_error_not_enough_field_names(field_names: list[str]) -> None:
     with pytest.raises(
-        ValueError, match="field_names` must contain at least two items"
+        ValueError, match="`field_names` must contain at least two items"
     ):
         require_any_of(*field_names)
 
 
 @pytest.mark.parametrize("field_names", [["foo", "foo"], ["bar", "foo", "bar"]])
-def test_error_duplicate_field_names(field_names: list[str]):
+def test_error_duplicate_field_names(field_names: list[str]) -> None:
     with pytest.raises(ValueError, match="`field_names` must not contain duplicates"):
         require_any_of(*field_names)
 
 
-def test_error_invalid_model_class():
-    expect = "specifies fields that are not in the model class `TestModel`: foo, bar"
+def test_error_invalid_model_class() -> None:
+    expect = "specifies one or more fields that are not in the model class `TestModel`: foo, bar"
 
     with pytest.raises(TypeError, match=expect):
 
@@ -47,7 +47,7 @@ def test_error_invalid_model_class():
         RequireAnyOfConstraint("foo", "bar").validate_class(TestModel)
 
 
-def test_error_invalid_model_instance():
+def test_error_invalid_model_instance() -> None:
     @require_any_of("foo", "bar")
     class TestModel(BaseModel):
         foo: int | None = None
@@ -61,7 +61,7 @@ def test_error_invalid_model_instance():
 
 
 @pytest.mark.parametrize("foo,bar", [(42, "hello"), (42, None), (None, "hello")])
-def test_valid_model_instance(foo: int | None, bar: str | None):
+def test_valid_model_instance(foo: int | None, bar: str | None) -> None:
     @require_any_of("foo", "bar")
     class TestModel(BaseModel):
         foo: int | None = None
@@ -70,7 +70,7 @@ def test_valid_model_instance(foo: int | None, bar: str | None):
     TestModel(foo=foo, bar=bar)
 
 
-def test_model_json_schema_no_model_config():
+def test_model_json_schema_no_model_config() -> None:
     @require_any_of("foo", "bar")
     class TestModel(BaseModel):
         foo: int | None = None
@@ -99,7 +99,7 @@ def test_model_json_schema_no_model_config():
 )
 def test_model_json_schema_with_model_config(
     base_json_schema: JsonDict | None, expect: JsonDict
-):
+) -> None:
     @require_any_of("foo", "bar")
     class TestModel(BaseModel):
         model_config = ConfigDict(json_schema_extra=base_json_schema)
@@ -111,7 +111,7 @@ def test_model_json_schema_with_model_config(
     assert_subset(expect, actual, "expect", "actual")
 
 
-def test_model_constraints():
+def test_model_constraints() -> None:
     constraint = RequireAnyOfConstraint("foo", "bar")
 
     class TestModel(BaseModel):

@@ -1,13 +1,13 @@
 from collections.abc import Callable
 from types import NoneType, UnionType
-from typing import Any, Union, get_args, get_origin
+from typing import Annotated, Any, Union, get_args, get_origin
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.json_schema import JsonDict
 from typing_extensions import override
 
 from .json_schema import get_static_json_schema, put_one_of
-from .model_constraint import OptionalFieldGroupConstraint, apply_alias
+from .model_constraint import FieldGroupConstraint, apply_alias
 
 
 def radio_group(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel]]:
@@ -66,7 +66,7 @@ def radio_group(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel
     return model_constraint.decorate
 
 
-class RadioGroupConstraint(OptionalFieldGroupConstraint):
+class RadioGroupConstraint(FieldGroupConstraint):
     """
     Class implementing the `radio_group` decorator, which can also be used standalone.
     """
@@ -97,9 +97,14 @@ class RadioGroupConstraint(OptionalFieldGroupConstraint):
         def is_bool(annotation: type[Any] | None) -> bool:
             if annotation is bool:
                 return True
+            origin = get_origin(annotation)
+            if origin is Annotated:
+                return is_bool(get_args(annotation)[0])
             elif get_origin(annotation) in (Union, UnionType):
                 args = get_args(annotation)
-                return all(a in (bool, NoneType) for a in args)
+                return any(is_bool(a) for a in args) and all(
+                    is_bool(a) or a in (None, NoneType) for a in args
+                )
             else:
                 return False
 
@@ -110,25 +115,27 @@ class RadioGroupConstraint(OptionalFieldGroupConstraint):
         ]
         if non_bool_fields:
             raise TypeError(
-                f"`{self.name}` specifies fields that are have a non-`bool` type in the `{model_class.__name__}`: {', '.join(non_bool_fields)}  "
+                f"`{self.name}` specifies fields that are have a non-`bool` type in the model class `{model_class.__name__}`: {', '.join(non_bool_fields)}  "
             )
 
     @override
     def validate_instance(self, model_instance: BaseModel) -> None:
         super().validate_instance(model_instance)
 
-        non_true_fields = [
-            f for f in self.field_names if getattr(model_instance, f) is not True
+        true_fields = [
+            f for f in self.field_names if getattr(model_instance, f) is True
         ]
 
-        if len(non_true_fields) == 1:
+        if len(true_fields) == 1:
             return
-        elif len(non_true_fields) == 0:
+        elif len(true_fields) == 0:
             msg = "none is True"
-        elif len(non_true_fields) == 2:
-            msg = f"both of these fields are True: {non_true_fields[0]} and {non_true_fields[1]}"
+        elif len(true_fields) == 2:
+            msg = (
+                f"both of these fields are True: {true_fields[0]} and {true_fields[1]}"
+            )
         else:
-            msg = f"all of these fields are True: {', '.join(non_true_fields)}"
+            msg = f"all of these fields are True: {', '.join(true_fields)}"
         raise ValueError(
             f"exactly one field from the `bool` field group [{', '.join(self.field_names)}] "
             f"must be True, but {msg} (`{self.name}`)"

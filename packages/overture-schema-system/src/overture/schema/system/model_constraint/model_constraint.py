@@ -8,11 +8,13 @@ from typing import Any, cast, final
 from pydantic import (
     BaseModel,
     ConfigDict,
-    create_model,
     model_validator,
 )
 from pydantic.json_schema import JsonDict, to_jsonable_python
 from typing_extensions import override
+
+from ..create_model import create_model
+from ..metadata import Key, Metadata
 
 
 class ModelConstraint:
@@ -39,7 +41,7 @@ class ModelConstraint:
             name = type(self).__name__
         elif not isinstance(name, str):
             raise TypeError(
-                f"`name` must be a str, but {name} is a `{type(name).__name__}`"
+                f"`name` must be a `str`, but {name} has type `{type(name).__name__}`"
             )
         self.__name = name
 
@@ -111,6 +113,9 @@ class ModelConstraint:
         self.validate_class(model_class)
         config = deepcopy(model_class.model_config)
         self.edit_config(model_class, config)
+        metadata = Metadata.retrieve_from(model_class, Metadata()).copy()
+        model_constraints = (*ModelConstraint.get_model_constraints(model_class), self)
+        metadata[_MODEL_CONSTRAINT_KEY] = model_constraints
         new_model_class = create_model(
             model_class.__name__,
             __config__=config,
@@ -123,9 +128,8 @@ class ModelConstraint:
                     model_validator(mode="after")(self.__validate_instance),
                 )
             },
+            __metadata__=metadata,
         )
-        model_constraints = (*ModelConstraint.get_model_constraints(model_class), self)
-        setattr(new_model_class, _MODEL_CONSTRAINT_PRIVATE_LIST_NAME, model_constraints)
         return new_model_class
 
     def validate_class(self, model_class: type[BaseModel]) -> None:
@@ -213,23 +217,23 @@ class ModelConstraint:
         >>> [c.name for c in ModelConstraint.get_model_constraints(MyModel)]
         ['@require_any_of']
         """
-
-        maybe_tuple = getattr(model_class, _MODEL_CONSTRAINT_PRIVATE_LIST_NAME, None)
-        if not maybe_tuple:
-            return ()
-        elif not isinstance(maybe_tuple, tuple):
-            raise TypeError(
-                f"attribute {_MODEL_CONSTRAINT_PRIVATE_LIST_NAME} must be a tuple, but {maybe_tuple} is a `{type(maybe_tuple).__name__}`"
-            )
-        elif not all(isinstance(x, ModelConstraint) for x in maybe_tuple):
-            raise TypeError(
-                f"attribute {_MODEL_CONSTRAINT_PRIVATE_LIST_NAME} may only contain `{str.__name__}` values"
-            )
-        else:
-            return maybe_tuple
+        return cast(
+            tuple[ModelConstraint, ...],
+            Metadata.retrieve_from(model_class, Metadata()).get(
+                _MODEL_CONSTRAINT_KEY, ()
+            ),
+        )
 
 
-_MODEL_CONSTRAINT_PRIVATE_LIST_NAME = "_ModelConstraint__private_list"
+# Private: Used to construct the opaque metadata key.
+class _ModelKeyClass:
+    pass
+
+
+# Private: Opaque metadata key.
+_MODEL_CONSTRAINT_KEY = Key(
+    f"{ModelConstraint.__module__}.{ModelConstraint.__qualname__}", _ModelKeyClass
+)
 
 
 class FieldGroupConstraint(ModelConstraint):
@@ -273,13 +277,13 @@ class FieldGroupConstraint(ModelConstraint):
     def __set_field_names(self, field_names: tuple[str, ...]) -> None:
         if not isinstance(field_names, tuple):
             raise TypeError(
-                f"`field_names` must be a `tuple`, but {field_names} is a `{type(field_names).__name__}"
+                f"`field_names` must be a `tuple`, but {field_names} has type `{type(field_names).__name__}`"
             )
         elif len(field_names) == 0:
             raise ValueError("`field_names` cannot be empty, but it is")
         elif not all(isinstance(s, str) for s in field_names):
             raise TypeError(
-                f"`field_names` must contain only `str` values, but {field_names} contains at least one non-string"
+                f"`field_names` must contain only `str` values, but {field_names} contains at least one non-`str` value"
             )
         dupes = [s for s, count in Counter(field_names).items() if count > 1]
         if dupes:
@@ -295,7 +299,7 @@ class FieldGroupConstraint(ModelConstraint):
         ]
         if missing_fields:
             raise TypeError(
-                f"`{self.name}` specifies fields that are not in the model class `{model_class.__name__}`: {', '.join(missing_fields)}  "
+                f"`{self.name}` specifies one or more fields that are not in the model class `{model_class.__name__}`: {', '.join(missing_fields)}"
             )
 
 
@@ -444,7 +448,7 @@ class __FieldCondition(Condition):
     def __post_init__(self) -> None:
         if not isinstance(self.field_name, str):
             raise TypeError(
-                f"`field_name` must be a `str`, but {repr(self.field_name)} is a {type(self.field_name).__name__})"
+                f"`field_name` must be a `str`, but {repr(self.field_name)} is a {type(self.field_name).__name__}"
             )
 
     @override
@@ -464,7 +468,7 @@ class __FieldCondition(Condition):
         """
         if self.field_name not in model_class.model_fields:
             raise TypeError(
-                f"`model class `{model_class.__name__}` must contain the condition field {repr(self.field_name)}, but it does not"
+                f"model class `{model_class.__name__}` must contain the condition field {repr(self.field_name)}, but it does not"
             )
 
 

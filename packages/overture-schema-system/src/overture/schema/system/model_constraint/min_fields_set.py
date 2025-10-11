@@ -71,7 +71,11 @@ class MinFieldsSetConstraint(ModelConstraint):
     def __set_count(self, count: int) -> None:
         if not isinstance(count, int):
             raise TypeError(
-                f"count must be an `int`, but {repr(count)} is a `{type(count).__name__}`"
+                f"`count` must be an `int`, but {repr(count)} is a `{type(count).__name__}`"
+            )
+        elif count < 1:
+            raise ValueError(
+                f"`count` must be a positive number, but {count} is less than 1"
             )
         self.__count = count
 

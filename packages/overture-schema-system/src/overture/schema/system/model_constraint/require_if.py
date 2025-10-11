@@ -99,13 +99,19 @@ class RequireIfConstraint(OptionalFieldGroupConstraint):
     def __set_condition(self, condition: Condition) -> None:
         if not isinstance(condition, Condition):
             raise TypeError(
-                f"`condition` must be a `{Condition.__name__}`, but {repr(condition)} is a {type(condition).__name__} (`{self.name}`)"
+                f"`condition` must be a `{Condition.__name__}`, but {repr(condition)} has type `{type(condition).__name__}` (`{self.name}`)"
             )
         self.__condition = condition
 
     @property
     def condition(self) -> Condition:
         return self.__condition
+
+    @override
+    def validate_class(self, model_class: type[BaseModel]) -> None:
+        super().validate_class(model_class)
+
+        self.__condition.validate_class(model_class)
 
     @override
     def validate_instance(self, model_instance: BaseModel) -> None:
@@ -123,12 +129,6 @@ class RequireIfConstraint(OptionalFieldGroupConstraint):
                 f"at least one field is missing an explicit value when it should have one: {', '.join(missing_fields)} - "
                 f"these field value(s) are required because {self.__condition} is true` (`{self.name}`)"
             )
-
-    @override
-    def validate_class(self, model_class: type[BaseModel]) -> None:
-        super().validate_class(model_class)
-
-        self.__condition.validate_class(model_class)
 
     @override
     def edit_config(self, model_class: type[BaseModel], config: ConfigDict) -> None:
