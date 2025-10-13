@@ -17,7 +17,7 @@ from overture.schema.system.field_constraint import (
 from overture.schema.system.field_constraint.string import (
     CountryCodeAlpha2Constraint,
 )
-from overture.schema.system.primitive import float64, int32, pct
+from overture.schema.system.primitive import float32, int32, pct
 from overture.schema.system.string import (
     HexColor,
     JsonPointer,
