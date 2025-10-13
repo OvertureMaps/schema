@@ -21,7 +21,7 @@ Subpackages
 
 Features
 --------
-- Integrates with Overture code generation tools, making Pydantic models build using these types
+- Integrates with Overture code generation tools, making Pydantic models built using these types
   portable across different programming languages (*e.g.*, Java) and serialization formats (*e.g.*,
   Parquet.)
 - Tightly integrated with Pydantic's JSON Schema system, providing rich JSON Schemas and maximum
