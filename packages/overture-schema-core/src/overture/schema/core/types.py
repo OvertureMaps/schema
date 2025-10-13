@@ -1,12 +1,23 @@
 from datetime import datetime
-from typing import Annotated, NewType
+from typing import Annotated, Any, NewType
 
-from pydantic import Field
-
-from overture.schema.system.constraint.string import (
-    CountryCodeConstraint,
+from pydantic import (
+    Field,
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
+    ValidationError,
+    ValidationInfo,
 )
-from overture.schema.system.primitive import int32, pct
+from pydantic_core import InitErrorDetails, core_schema
+
+from overture.schema.system.field_constraint import (
+    CollectionConstraint,
+    FieldConstraint,
+)
+from overture.schema.system.field_constraint.string import (
+    CountryCodeAlpha2Constraint,
+)
+from overture.schema.system.primitive import float32, int32, pct
 from overture.schema.system.string import (
     HexColor,
     JsonPointer,
@@ -16,12 +27,6 @@ from overture.schema.system.string import (
     RegionCode,
     StrippedString,
     WikidataId,
-)
-from overture.schema.validation.constraints import (
-    LinearReferenceRangeConstraint,
-)
-from overture.schema.validation.types import (
-    ConfidenceScore,
 )
 
 Id = NewType(
@@ -35,6 +40,38 @@ Id = NewType(
     ],
 )
 
+
+class ConfidenceScoreConstraint(FieldConstraint):
+    """Constraint for confidence/probability scores (0.0 to 1.0)."""
+
+    def __get_pydantic_core_schema__(
+        self, source: type[Any], handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        # Use built-in constraints for validation
+        return core_schema.float_schema(ge=0.0, le=1.0)
+
+    def __get_pydantic_json_schema__(
+        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> dict[str, Any]:
+        json_schema = handler(core_schema)
+        json_schema["minimum"] = 0.0
+        json_schema["maximum"] = 1.0
+        json_schema["description"] = "Confidence score between 0.0 and 1.0"
+        return json_schema
+
+
+ConfidenceScore = NewType(
+    "ConfidenceScore",
+    Annotated[
+        float32,
+        ConfidenceScoreConstraint(),
+        Field(
+            description="Confidence value from the source dataset, particularly relevant for ML-derived data."
+        ),
+    ],
+)
+
+
 # One possible advantage to using percentages over absolute distances is being able to
 # trivially validate that the position lies "on" its segment (i.e. is between zero and
 # one). Of course, this level of validity doesn't mean the number isn't nonsense
@@ -47,6 +84,78 @@ LinearlyReferencedPosition = NewType(
         ),
     ],
 )
+
+
+class LinearReferenceRangeConstraint(CollectionConstraint):
+    """Linear reference range constraint (0.0 to 1.0)."""
+
+    def validate(self, value: list[float], info: ValidationInfo) -> None:
+        if len(value) != 2:
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Linear reference range must have exactly 2 values, got {len(value)}"
+                        },
+                    )
+                ],
+            )
+
+        start, end = value
+        if not (0.0 <= start <= 1.0 and 0.0 <= end <= 1.0):
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Linear reference range values must be between 0.0 and 1.0: [{start}, {end}]"
+                        },
+                    )
+                ],
+            )
+
+        if start >= end:
+            context = info.context or {}
+            loc = context.get("loc_prefix", ()) + ("value",)
+            raise ValidationError.from_exception_data(
+                title=self.__class__.__name__,
+                line_errors=[
+                    InitErrorDetails(
+                        type="value_error",
+                        loc=loc,
+                        input=value,
+                        ctx={
+                            "error": f"Linear reference range start must be less than end: [{start}, {end}]"
+                        },
+                    )
+                ],
+            )
+
+    def __get_pydantic_json_schema__(
+        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> dict[str, Any]:
+        json_schema = handler(core_schema)
+        json_schema["type"] = "array"
+        json_schema["minItems"] = 2
+        json_schema["maxItems"] = 2
+        json_schema["items"] = {"type": "number", "minimum": 0.0, "maximum": 1.0}
+        json_schema["description"] = (
+            "Linear reference range [start, end] where 0.0 <= start < end <= 1.0"
+        )
+        return json_schema
+
+
 LinearlyReferencedRange = NewType(
     "LinearlyReferencedRange",
     Annotated[
@@ -80,11 +189,11 @@ Level = NewType(
     ],
 )
 
-CountryCode = NewType(
-    "CountryCode",
+CountryCodeAlpha2 = NewType(
+    "CountryCodeAlpha2",
     Annotated[
         str,
-        CountryCodeConstraint(),
+        CountryCodeAlpha2Constraint(),
         Field(description="ISO 3166-1 alpha-2 country code"),
     ],
 )
@@ -194,8 +303,8 @@ Type = Annotated[str, Field(description="Specific feature type within the theme"
 __all__ = [
     "CommonNames",
     "ConfidenceScore",
-    "CountryCode",
-    "CountryCodeConstraint",
+    "CountryCodeAlpha2",
+    "CountryCodeAlpha2Constraint",
     "FeatureUpdateTime",
     "FeatureVersion",
     "HexColor",

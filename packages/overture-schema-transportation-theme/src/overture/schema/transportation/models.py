@@ -2,12 +2,9 @@
 
 from typing import Annotated, NewType
 
-from pydantic import ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 
-from overture.schema.core import (
-    Feature,
-    StrictBaseModel,
-)
+from overture.schema.core import Feature
 from overture.schema.core.models import GeometricRangeScope
 from overture.schema.core.ref import Reference, Relationship
 from overture.schema.core.types import (
@@ -18,10 +15,10 @@ from overture.schema.core.types import (
 )
 from overture.schema.core.validation import (
     ConstraintValidatedModel,
-    any_of,
     min_properties,
 )
-from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import no_extra_fields, require_any_of
 from overture.schema.system.primitive import float64, int32
 from overture.schema.system.string import StrippedString, WikidataId
 
@@ -58,7 +55,8 @@ def _connector_type() -> type[Feature]:
     return Connector
 
 
-class ConnectorReference(StrictBaseModel):
+@no_extra_fields
+class ConnectorReference(BaseModel):
     """Contains the GERS ID and relative position between 0 and 1 of a connector feature
     along the segment."""
 
@@ -70,7 +68,8 @@ class ConnectorReference(StrictBaseModel):
     at: LinearlyReferencedPosition
 
 
-class HeadingScope(StrictBaseModel):
+@no_extra_fields
+class HeadingScope(BaseModel):
     """Properties defining travel headings that match a rule."""
 
     model_config = ConfigDict(frozen=True)
@@ -85,7 +84,8 @@ class DestinationWhenClause(ConstraintValidatedModel, HeadingScope):
     pass
 
 
-class DestinationLabels(StrictBaseModel):
+@no_extra_fields
+class DestinationLabels(BaseModel):
     """The type of object of the destination label."""
 
     model_config = ConfigDict(frozen=True)
@@ -99,8 +99,9 @@ class DestinationLabels(StrictBaseModel):
     type: DestinationLabelType
 
 
-@any_of("labels", "symbols")
-class DestinationRule(StrictBaseModel):
+@require_any_of("labels", "symbols")
+@no_extra_fields
+class DestinationRule(BaseModel):
     # Required
 
     from_connector_id: Annotated[
@@ -174,7 +175,8 @@ class RouteReference(GeometricRangeScope):
     wikidata: WikidataId | None = None
 
 
-class Speed(StrictBaseModel):
+@no_extra_fields
+class Speed(BaseModel):
     """A speed value, i.e. a certain number of distance units travelled per unit
     time."""
 
@@ -186,23 +188,28 @@ class Speed(StrictBaseModel):
     unit: SpeedUnit
 
 
-class IsMoreThanIntegerRelation(StrictBaseModel):
+@no_extra_fields
+class IsMoreThanIntegerRelation(BaseModel):
     is_more_than: int32
 
 
-class IsAtLeastIntegerRelation(StrictBaseModel):
+@no_extra_fields
+class IsAtLeastIntegerRelation(BaseModel):
     is_at_least: int32
 
 
-class IsEqualToIntegerRelation(StrictBaseModel):
+@no_extra_fields
+class IsEqualToIntegerRelation(BaseModel):
     is_equal_to: int32
 
 
-class IsAtMostIntegerRelation(StrictBaseModel):
+@no_extra_fields
+class IsAtMostIntegerRelation(BaseModel):
     is_at_most: int32
 
 
-class IsLessThanIntegerRelation(StrictBaseModel):
+@no_extra_fields
+class IsLessThanIntegerRelation(BaseModel):
     is_less_than: int32
 
 
@@ -218,7 +225,8 @@ IntegerRelation.__doc__ = """Completes an integer relational expression of the f
     `{ axle_count: { is_less_than: 2 } }`."""
 
 
-class LengthValueWithUnit(StrictBaseModel):
+@no_extra_fields
+class LengthValueWithUnit(BaseModel):
     """Combines a length value with a length unit."""
 
     # Required
@@ -227,23 +235,28 @@ class LengthValueWithUnit(StrictBaseModel):
     value: Annotated[float64, Field(ge=0)]
 
 
-class IsMoreThanLengthRelation(StrictBaseModel):
+@no_extra_fields
+class IsMoreThanLengthRelation(BaseModel):
     is_more_than: LengthValueWithUnit
 
 
-class IsAtLeastLengthRelation(StrictBaseModel):
+@no_extra_fields
+class IsAtLeastLengthRelation(BaseModel):
     is_at_least: LengthValueWithUnit
 
 
-class IsEqualToLengthRelation(StrictBaseModel):
+@no_extra_fields
+class IsEqualToLengthRelation(BaseModel):
     is_equal_to: LengthValueWithUnit
 
 
-class IsAtMostLengthRelation(StrictBaseModel):
+@no_extra_fields
+class IsAtMostLengthRelation(BaseModel):
     is_at_most: LengthValueWithUnit
 
 
-class IsLessThanLengthRelation(StrictBaseModel):
+@no_extra_fields
+class IsLessThanLengthRelation(BaseModel):
     is_less_than: LengthValueWithUnit
 
 
@@ -259,7 +272,8 @@ LengthRelation.__doc__ = """Completes a length relational expression of the form
     `{ height: { is_less_than: { value: 3, unit: 'm' } } }`."""
 
 
-class WeightValueWithUnit(StrictBaseModel):
+@no_extra_fields
+class WeightValueWithUnit(BaseModel):
     """Combines a weight value with a weight unit."""
 
     # Required
@@ -268,23 +282,28 @@ class WeightValueWithUnit(StrictBaseModel):
     value: Annotated[float64, Field(ge=0)]
 
 
-class IsMoreThanWeightRelation(StrictBaseModel):
+@no_extra_fields
+class IsMoreThanWeightRelation(BaseModel):
     is_more_than: WeightValueWithUnit
 
 
-class IsAtLeastWeightRelation(StrictBaseModel):
+@no_extra_fields
+class IsAtLeastWeightRelation(BaseModel):
     is_at_least: WeightValueWithUnit
 
 
-class IsEqualToWeightRelation(StrictBaseModel):
+@no_extra_fields
+class IsEqualToWeightRelation(BaseModel):
     is_equal_to: WeightValueWithUnit
 
 
-class IsAtMostWeightRelation(StrictBaseModel):
+@no_extra_fields
+class IsAtMostWeightRelation(BaseModel):
     is_at_most: WeightValueWithUnit
 
 
-class IsLessThanWeightRelation(StrictBaseModel):
+@no_extra_fields
+class IsLessThanWeightRelation(BaseModel):
     is_less_than: WeightValueWithUnit
 
 
@@ -300,7 +319,8 @@ WeightRelation.__doc__ = """        Completes a weight relational expression of 
 `{ weight: { is_more_than: { value: 2, unit: 't' } } }`."""
 
 
-class SequenceEntry(StrictBaseModel):
+@no_extra_fields
+class SequenceEntry(BaseModel):
     """A segment/connector pair in a prohibited transition sequence."""
 
     model_config = ConfigDict(frozen=True)
@@ -321,7 +341,8 @@ class SequenceEntry(StrictBaseModel):
     ]
 
 
-class PurposeOfUseScope(StrictBaseModel):
+@no_extra_fields
+class PurposeOfUseScope(BaseModel):
     """Properties defining usage purposes that match a rule."""
 
     model_config = ConfigDict(frozen=True)
@@ -337,7 +358,8 @@ class PurposeOfUseScope(StrictBaseModel):
         return hash((tuple(self.using) if self.using is not None else None,))
 
 
-class TemporalScope(StrictBaseModel):
+@no_extra_fields
+class TemporalScope(BaseModel):
     """Temporal scoping properties defining the time spans when a recurring rule is
     active."""
 
@@ -348,7 +370,8 @@ class TemporalScope(StrictBaseModel):
     during: OpeningHours | None = None
 
 
-class TravelModeScope(StrictBaseModel):
+@no_extra_fields
+class TravelModeScope(BaseModel):
     """Properties defining travel modes that match a rule."""
 
     model_config = ConfigDict(frozen=True)
@@ -366,7 +389,8 @@ class TravelModeScope(StrictBaseModel):
         return hash((tuple(self.mode) if self.mode is not None else None,))
 
 
-class RecognizedStatusScope(StrictBaseModel):
+@no_extra_fields
+class RecognizedStatusScope(BaseModel):
     """Properties defining statuses that match a rule."""
 
     model_config = ConfigDict(frozen=True)
@@ -382,7 +406,8 @@ class RecognizedStatusScope(StrictBaseModel):
         return hash((tuple(self.recognized) if self.recognized is not None else None,))
 
 
-class VehicleScopeRule(StrictBaseModel):
+@no_extra_fields
+class VehicleScopeRule(BaseModel):
     """An individual vehicle scope rule."""
 
     model_config = ConfigDict(frozen=True)
@@ -398,7 +423,8 @@ class VehicleScopeRule(StrictBaseModel):
     unit: VehicleScopeUnit | None = None
 
 
-class VehicleScope(StrictBaseModel):
+@no_extra_fields
+class VehicleScope(BaseModel):
     """Properties defining vehicle attributes for which a rule is active."""
 
     model_config = ConfigDict(frozen=True)
@@ -432,8 +458,8 @@ class SpeedLimitWhenClause(
     pass
 
 
-@any_of("max_speed", "min_speed")
-class SpeedLimitRule(ConstraintValidatedModel, GeometricRangeScope):
+@require_any_of("max_speed", "min_speed")
+class SpeedLimitRule(GeometricRangeScope):
     """An individual speed limit rule."""
 
     # TODO: Speed limits probably have directionality, so should factor out a headingScopeContainer for this purpose and use it to introduce an optional direction property in each rule.

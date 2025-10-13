@@ -49,14 +49,22 @@ def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
                 # Include union types and models with 'type' field
                 discriminated_models.append(model)
 
-        # Create a discriminated union from models that can be discriminated
-        discriminated_union = Annotated[
-            reduce(or_, discriminated_models), Field(discriminator="type")
-        ]
+        assert discriminated_models or non_discriminated_models
 
-        non_discriminated_union = reduce(or_, non_discriminated_models)
+        discriminated_union = None
+        if discriminated_models:
+            discriminated_union = Annotated[
+                reduce(or_, discriminated_models), Field(discriminator="type")
+            ]
 
-        model_union = discriminated_union | non_discriminated_union
+        non_discriminated_union = reduce(or_, non_discriminated_models, None)
+
+        if discriminated_union and non_discriminated_union:
+            model_union = discriminated_union | non_discriminated_union
+        elif discriminated_union:
+            model_union = discriminated_union
+        else:
+            model_union = non_discriminated_union
 
     return parse_feature(feature, model_union, mode)
 

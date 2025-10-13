@@ -1,10 +1,10 @@
 from typing import Annotated, NewType
 
-from pydantic import ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 
-from overture.schema.core import StrictBaseModel
 from overture.schema.core.types import Id
 from overture.schema.divisions.enums import PlaceType
+from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.string import StrippedString
 
 DivisionId = NewType(
@@ -12,7 +12,8 @@ DivisionId = NewType(
 )
 
 
-class HierarchyItem(StrictBaseModel):
+@no_extra_fields
+class HierarchyItem(BaseModel):
     """One division in a hierarchy."""
 
     model_config = ConfigDict(frozen=True)
@@ -26,7 +27,8 @@ class HierarchyItem(StrictBaseModel):
     ]
 
 
-class CapitalOfDivisionItem(StrictBaseModel):
+@no_extra_fields
+class CapitalOfDivisionItem(BaseModel):
     """One division that has capital."""
 
     model_config = ConfigDict(frozen=True)

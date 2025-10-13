@@ -1,17 +1,3 @@
-"""
-collection
-==========
-Constraints for collection types.
-
-This module provides a set of reusable Pydantic constraints that can be applied to collections such
-as lists and dicts to further constrain them.
-
-
-Types
------
-
-"""
-
 from collections.abc import Collection
 from typing import Any, get_origin
 
@@ -23,10 +9,10 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails, core_schema
 
-from overture.schema.system.constraint.constraint import Constraint
+from .field_constraint import FieldConstraint
 
 
-class CollectionConstraint(Constraint):
+class CollectionConstraint(FieldConstraint):
     """Base class for collection-based constraints."""
 
     def __get_pydantic_core_schema__(
@@ -53,7 +39,7 @@ class CollectionConstraint(Constraint):
 
 
 class UniqueItemsConstraint(CollectionConstraint):
-    """Constraint to ensure all items in a collection are unique."""
+    """Ensures all items in a collection are unique."""
 
     def validate(self, value: list[Any], info: ValidationInfo) -> None:
         # First try the fast path for hashable items

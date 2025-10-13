@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from pydantic import ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from overture.schema.core import (
     Feature,
@@ -13,16 +13,16 @@ from overture.schema.core.models import (
     Named,
     Names,
     Perspectives,
-    StrictBaseModel,
 )
 from overture.schema.core.types import (
     CommonNames,
-    CountryCode,
+    CountryCodeAlpha2,
     Id,
 )
-from overture.schema.system.constraint import (
+from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
+from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
@@ -37,7 +37,8 @@ from ..types import Hierarchy
 from ..validation import parent_division_required_unless
 
 
-class Norms(StrictBaseModel):
+@no_extra_fields
+class Norms(BaseModel):
     """Local norms and standards."""
 
     # Optional
@@ -76,7 +77,7 @@ class Division(
     names: Names
     subtype: PlaceType
     country: Annotated[
-        CountryCode,
+        CountryCodeAlpha2,
         Field(
             description="""ISO 3166-1 alpha-2 country code of the country or country-like entity, that this division represents or belongs to.
 

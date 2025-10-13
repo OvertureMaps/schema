@@ -4,7 +4,7 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from overture.schema.system.string import (
-    CountryCode,
+    CountryCodeAlpha2,
     HexColor,
     JsonPointer,
     LanguageTag,
@@ -20,7 +20,7 @@ class TestConstrainedTypes:
 
         class TestModel(BaseModel):
             language: LanguageTag
-            country: CountryCode
+            country: CountryCodeAlpha2
             region: RegionCode
             timestamp: datetime
             pointer: JsonPointer
@@ -45,7 +45,7 @@ class TestConstrainedTypes:
 
         class TestModel(BaseModel):
             language: LanguageTag
-            country: CountryCode
+            country: CountryCodeAlpha2
             color: HexColor
 
         # Test invalid language tag
