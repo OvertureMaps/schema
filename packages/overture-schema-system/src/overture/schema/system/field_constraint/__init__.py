@@ -1,29 +1,17 @@
 """
-constraint
-==========
-Reusable constraints.
+Field constraints.
 
-todo - vic
-
-
-Modules
--------
-constraint : module
-    Base constraint type.
-collection : module
-    Constraints for collection fields.
-string : module
-    Constraints for string fields.
-
+This module provides a convenient set of reusable constraint classes that can be used to annotate
+Pydantic fields in order to ensure the field values conform to expectations.
 """
 
 from .collection import (
     CollectionConstraint,
     UniqueItemsConstraint,
 )
-from .constraint import Constraint
+from .field_constraint import FieldConstraint
 from .string import (
-    CountryCodeConstraint,
+    CountryCodeAlpha2Constraint,
     HexColorConstraint,
     JsonPointerConstraint,
     LanguageTagConstraint,
@@ -31,16 +19,16 @@ from .string import (
     PatternConstraint,
     PhoneNumberConstraint,
     RegionCodeConstraint,
+    SnakeCaseConstraint,
     StringConstraint,
     StrippedConstraint,
     WikidataIdConstraint,
 )
 
 __all__ = [
-    "Constraint",
     "CollectionConstraint",
-    "UniqueItemsConstraint",
-    "CountryCodeConstraint",
+    "CountryCodeAlpha2Constraint",
+    "FieldConstraint",
     "HexColorConstraint",
     "JsonPointerConstraint",
     "LanguageTagConstraint",
@@ -48,7 +36,9 @@ __all__ = [
     "PatternConstraint",
     "PhoneNumberConstraint",
     "RegionCodeConstraint",
+    "SnakeCaseConstraint",
     "StringConstraint",
     "StrippedConstraint",
+    "UniqueItemsConstraint",
     "WikidataIdConstraint",
 ]

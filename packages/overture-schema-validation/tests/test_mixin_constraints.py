@@ -8,14 +8,12 @@ from pydantic import BaseModel, ValidationError
 
 from overture.schema.validation import (
     ConstraintValidatedModel,
-    any_of,
     exactly_one_of,
     min_properties,
     not_required_if,
     required_if,
 )
 from overture.schema.validation.mixin import (
-    AnyOfValidator,
     BaseConstraintValidator,
     ExactlyOneOfValidator,
     MinPropertiesValidator,
@@ -535,91 +533,6 @@ class TestMinPropertiesValidator:
         )
 
 
-class TestAnyOfValidator:
-    """Test anyOf constraint validation."""
-
-    def test_any_of_validator_direct(self) -> None:
-        """Test AtLeastOneOfValidator directly."""
-
-        class TestModel(BaseModel):
-            max_speed: str | None = None
-            min_speed: str | None = None
-
-        validator = AnyOfValidator("max_speed", "min_speed")
-
-        # Valid: max_speed provided
-        model = TestModel(max_speed="50", min_speed=None)
-        validator.validate(model)  # Should not raise
-
-        # Valid: min_speed provided
-        model = TestModel(max_speed=None, min_speed="30")
-        validator.validate(model)  # Should not raise
-
-        # Valid: both provided
-        model = TestModel(max_speed="50", min_speed="30")
-        validator.validate(model)  # Should not raise
-
-        # Invalid: neither provided
-        model = TestModel(max_speed=None, min_speed=None)
-        with pytest.raises(
-            ValueError, match="At least one of max_speed, min_speed must be present"
-        ):
-            validator.validate(model)
-
-    def test_any_of_constraint_decorator(self) -> None:
-        """Test at-least-one-of constraint using decorator."""
-
-        @any_of("max_speed", "min_speed")
-        class SpeedRuleModel(ConstraintValidatedModel, BaseModel):
-            max_speed: str | None = None
-            min_speed: str | None = None
-
-        # Valid cases
-        model = SpeedRuleModel(max_speed="50", min_speed=None)
-        assert model.max_speed == "50"
-        assert model.min_speed is None
-
-        model = SpeedRuleModel(max_speed=None, min_speed="30")
-        assert model.max_speed is None
-        assert model.min_speed == "30"
-
-        model = SpeedRuleModel(max_speed="50", min_speed="30")
-        assert model.max_speed == "50"
-        assert model.min_speed == "30"
-
-        # Invalid case: neither provided
-        with pytest.raises(ValidationError) as exc_info:
-            SpeedRuleModel(max_speed=None, min_speed=None)
-        assert "At least one of max_speed, min_speed must be present" in str(
-            exc_info.value
-        )
-
-    def test_any_of_multiple_fields(self) -> None:
-        """Test anyOf constraint with multiple fields."""
-
-        @any_of("field_a", "field_b", "field_c")
-        class TestModel(ConstraintValidatedModel, BaseModel):
-            field_a: str | None = None
-            field_b: str | None = None
-            field_c: str | None = None
-
-        # Valid: one field provided
-        model = TestModel(field_a="value", field_b=None, field_c=None)
-        assert model.field_a == "value"
-
-        # Valid: multiple fields provided
-        model = TestModel(field_a="value_a", field_b="value_b", field_c=None)
-        assert model.field_a == "value_a"
-        assert model.field_b == "value_b"
-
-        # Invalid: no fields provided
-        with pytest.raises(ValidationError) as exc_info:
-            TestModel(field_a=None, field_b=None, field_c=None)
-        assert "At least one of field_a, field_b, field_c must be present" in str(
-            exc_info.value
-        )
-
-
 class TestMultipleConstraints:
     """Test models with multiple constraints applied."""
 
@@ -678,121 +591,6 @@ class TestMultipleConstraints:
                 region_code=None,  # Required when subtype is REGION
             )
         assert "Field 'region_code' is required when subtype = region" in str(
-            exc_info.value
-        )
-
-    def test_multiple_constraints_json_schema(self) -> None:
-        """Test JSON schema generation with multiple constraints."""
-
-        @exactly_one_of("field_a", "field_b")
-        @any_of("required_a", "required_b")
-        class MultiConstraintModel(ConstraintValidatedModel, BaseModel):
-            subtype: PlaceType
-            parent_division_id: str | None = None
-            field_a: bool | None = None
-            field_b: bool | None = None
-            required_a: str | None = None
-            required_b: str | None = None
-
-        schema = MultiConstraintModel.model_json_schema()
-
-        # Should have oneOf for exactly_one_of constraint (parallel to anyOf)
-        assert "oneOf" in schema
-        assert len(schema["oneOf"]) == 2  # For field_a and field_b
-
-        # Should have anyOf for at_least_one_of constraint
-        assert "anyOf" in schema
-        assert len(schema["anyOf"]) == 2  # For required_a and required_b
-
-    def test_multiple_constraints_with_min_properties(self) -> None:
-        """Test min_properties constraint combined with other constraints."""
-
-        @min_properties(1)
-        @any_of("required_a", "required_b")
-        class MultiConstraintModel(ConstraintValidatedModel, BaseModel):
-            field_a: str | None = None
-            field_b: str | None = None
-            required_a: str | None = None
-            required_b: str | None = None
-
-        # Valid: satisfies both min_properties and any_of
-        model = MultiConstraintModel(
-            field_a="value", field_b=None, required_a="value", required_b=None
-        )
-        assert model.field_a == "value"
-        assert model.required_a == "value"
-
-        # Invalid: violates constraints (no properties set)
-        # Either constraint could fail first, so check for either error
-        with pytest.raises(ValidationError) as exc_info:
-            MultiConstraintModel(
-                field_a=None, field_b=None, required_a=None, required_b=None
-            )
-        error_str = str(exc_info.value)
-        assert (
-            "At least 1 properties must be set, but only 0 are set" in error_str
-            or "At least one of required_a, required_b must be present" in error_str
-        )
-
-        # Invalid: satisfies min_properties but violates any_of
-        with pytest.raises(ValidationError) as exc_info:
-            MultiConstraintModel(
-                field_a="value", field_b=None, required_a=None, required_b=None
-            )
-        assert "At least one of required_a, required_b must be present" in str(
-            exc_info.value
-        )
-
-        # Test JSON schema generation includes both constraints
-        schema = MultiConstraintModel.model_json_schema()
-        assert "minProperties" in schema
-        assert schema["minProperties"] == 1
-        assert "anyOf" in schema
-        assert len(schema["anyOf"]) == 2
-
-
-class TestConstraintInheritance:
-    """Test constraint inheritance and complex model hierarchies."""
-
-    def test_constraint_inheritance(self) -> None:
-        """Test that constraints work with model inheritance."""
-
-        @exactly_one_of("field_a", "field_b")
-        class TestBaseModel(ConstraintValidatedModel, BaseModel):
-            field_a: bool | None = None
-            field_b: bool | None = None
-
-        @any_of("required_c", "required_d")
-        class DerivedModel(TestBaseModel):
-            required_c: str | None = None
-            required_d: str | None = None
-
-        # Valid: satisfies both constraints
-        model = DerivedModel(
-            field_a=True, field_b=False, required_c="value", required_d=None
-        )
-        assert model.field_a is True
-        assert model.required_c == "value"
-
-        # Invalid: violates base class constraint
-        with pytest.raises(ValidationError) as exc_info:
-            DerivedModel(
-                field_a=True,
-                field_b=True,  # Violates mutually exclusive
-                required_c="value",
-                required_d=None,
-            )
-        assert "Exactly one field must be true, but found 2" in str(exc_info.value)
-
-        # Invalid: violates derived class constraint
-        with pytest.raises(ValidationError) as exc_info:
-            DerivedModel(
-                field_a=True,
-                field_b=False,
-                required_c=None,
-                required_d=None,  # Violates at_least_one_of
-            )
-        assert "At least one of required_c, required_d must be present" in str(
             exc_info.value
         )
 
@@ -914,57 +712,6 @@ class TestRealWorldScenarios:
         with pytest.raises(ValidationError) as exc_info:
             FeatureModel(**invalid_feature_data)
         assert "Exactly one field must be true, but found 2" in str(exc_info.value)
-
-    def test_transportation_rule_model(self) -> None:
-        """Test constraint validation on transportation rule models."""
-
-        @any_of("max_speed", "min_speed")
-        @required_if("is_variable", True, ["conditions"])
-        class SpeedLimitRule(ConstraintValidatedModel, BaseModel):
-            max_speed: dict | None = None
-            min_speed: dict | None = None
-            is_variable: bool = False
-            conditions: list[str] | None = None
-
-        # Valid: has max_speed, not variable
-        rule = SpeedLimitRule(
-            max_speed={"value": 50, "unit": "km/h"},
-            min_speed=None,
-            is_variable=False,
-            conditions=None,
-        )
-        assert rule.max_speed is not None and rule.max_speed["value"] == 50
-
-        # Valid: variable speed with conditions
-        rule = SpeedLimitRule(
-            max_speed={"value": 50, "unit": "km/h"},
-            min_speed=None,
-            is_variable=True,
-            conditions=["weather_dependent"],
-        )
-        assert rule.is_variable is True
-        assert rule.conditions == ["weather_dependent"]
-
-        # Invalid: no speeds provided
-        with pytest.raises(ValidationError) as exc_info:
-            SpeedLimitRule(
-                max_speed=None, min_speed=None, is_variable=False, conditions=None
-            )
-        assert "At least one of max_speed, min_speed must be present" in str(
-            exc_info.value
-        )
-
-        # Invalid: variable but no conditions
-        with pytest.raises(ValidationError) as exc_info:
-            SpeedLimitRule(
-                max_speed={"value": 50, "unit": "km/h"},
-                min_speed=None,
-                is_variable=True,
-                conditions=None,
-            )
-        assert "Field 'conditions' is required when is_variable = True" in str(
-            exc_info.value
-        )
 
 
 if __name__ == "__main__":

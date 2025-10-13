@@ -2,8 +2,8 @@
 Primitive data types.
 
 This module provides a set of primitive types that can be used as fields in Pydantic models but are
-not themselves models. The primitive types include specific numeric types such as int32 and
-geometric types including `Geometry` and `BBox`.
+not themselves models. The primitive types include specific numeric types such as `int16` and
+`float64`; and geometric types including `Geometry` and `BBox`.
 
 Primitives are intended to provide specific, well-defined behavior for a wide range of serialization
 targets including not just Pydantic models and JSON, but also a range of other serialization

@@ -3,8 +3,8 @@ from typing import Annotated
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from overture.schema.system.constraint.string import (
-    CountryCodeConstraint,
+from overture.schema.system.field_constraint.string import (
+    CountryCodeAlpha2Constraint,
     HexColorConstraint,
     JsonPointerConstraint,
     LanguageTagConstraint,
@@ -12,6 +12,7 @@ from overture.schema.system.constraint.string import (
     PatternConstraint,
     PhoneNumberConstraint,
     RegionCodeConstraint,
+    SnakeCaseConstraint,
     StrippedConstraint,
     WikidataIdConstraint,
 )
@@ -76,10 +77,10 @@ class TestStringConstraints:
             assert "Invalid IETF BCP-47 language tag" in str(exc_info.value)
 
     def test_country_code_constraint_valid(self) -> None:
-        """Test CountryCodeConstraint with valid ISO 3166-1 alpha-2 codes."""
+        """Test CountryCodeAlpha2Constraint with valid ISO 3166-1 alpha-2 codes."""
 
         class TestModel(BaseModel):
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
 
         valid_codes = ["US", "GB", "CA", "FR", "DE", "JP", "CN", "BR"]
 
@@ -88,10 +89,10 @@ class TestStringConstraints:
             assert model.country == code
 
     def test_country_code_constraint_invalid(self) -> None:
-        """Test CountryCodeConstraint with invalid country codes."""
+        """Test CountryCodeAlpha2Constraint with invalid country codes."""
 
         class TestModel(BaseModel):
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
 
         invalid_codes = ["USA", "123", "invalid", "gb", "us"]
 
@@ -360,7 +361,7 @@ class TestJsonSchemaGeneration:
 
         class TestModel(BaseModel):
             language: Annotated[str, LanguageTagConstraint()]
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
             color: Annotated[str, HexColorConstraint()]
 
         schema = TestModel.model_json_schema()
@@ -382,7 +383,7 @@ class TestErrorHandling:
         """Test that validation errors include proper context and location info."""
 
         class TestModel(BaseModel):
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
 
         with pytest.raises(ValidationError) as exc_info:
             TestModel(country="invalid")
@@ -401,7 +402,7 @@ class TestErrorHandling:
         """Test validation errors in nested structures."""
 
         class NestedModel(BaseModel):
-            country: Annotated[str, CountryCodeConstraint()]
+            country: Annotated[str, CountryCodeAlpha2Constraint()]
 
         class TestModel(BaseModel):
             nested: NestedModel
@@ -422,3 +423,39 @@ class TestErrorHandling:
 
         error = exc_info.value
         assert error.error_count() >= 1
+
+    def test_snake_case_constraint_valid(self) -> None:
+        """Test CategoryPatternConstraint with valid snake_case patterns."""
+
+        class TestModel(BaseModel):
+            category: Annotated[str, SnakeCaseConstraint()]
+
+        valid_categories = [
+            "restaurant",
+            "gas_station",
+            "shopping_mall",
+            "coffee_shop",
+            "bank_atm",
+        ]
+
+        for cat in valid_categories:
+            model = TestModel(category=cat)
+            assert model.category == cat
+
+    def test_snake_case_constraint_invalid(self) -> None:
+        """Test CategoryPatternConstraint with invalid category patterns."""
+
+        class TestModel(BaseModel):
+            category: Annotated[str, SnakeCaseConstraint()]
+
+        invalid_categories = [
+            "Restaurant",  # Capital letter
+            "gas-station",  # Hyphen instead of underscore
+            "shopping mall",  # Space instead of underscore
+            "category!",  # Special character
+        ]
+
+        for cat in invalid_categories:
+            with pytest.raises(ValidationError) as exc_info:
+                TestModel(category=cat)
+            assert "Invalid category format" in str(exc_info.value)

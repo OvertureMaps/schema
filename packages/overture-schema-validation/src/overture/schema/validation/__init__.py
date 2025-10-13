@@ -15,7 +15,7 @@ Key Features:
 Usage:
     from overture.schema.validation import (
         LanguageTagConstraint,
-        CountryCodeConstraint,
+        CountryCodeAlpha2Constraint,
         UniqueItemsConstraint,
     )
     from typing import Annotated
@@ -23,21 +23,12 @@ Usage:
 
     class MyModel(BaseModel):
         language: Annotated[str, LanguageTagConstraint()]
-        country: Annotated[str, CountryCodeConstraint()]
+        country: Annotated[str, CountryCodeAlpha2Constraint()]
         tags: Annotated[list[str], UniqueItemsConstraint()]
 """
 
-from overture.schema.system.constraint import UniqueItemsConstraint
-
-from .constraints import (
-    CategoryPatternConstraint,
-    ConfidenceScoreConstraint,
-    LinearReferenceRangeConstraint,
-)
 from .mixin import (
     ConstraintValidatedModel,
-    allow_extension_fields,
-    any_of,
     exactly_one_of,
     min_properties,
     not_required_if,
@@ -45,12 +36,7 @@ from .mixin import (
 )
 
 __all__ = [
-    "CategoryPatternConstraint",
-    "ConfidenceScoreConstraint",
     "ConstraintValidatedModel",
-    "LinearReferenceRangeConstraint",
-    "allow_extension_fields",
-    "any_of",
     "exactly_one_of",
     "min_properties",
     "not_required_if",

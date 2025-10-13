@@ -12,7 +12,7 @@ from overture.schema.core.models import (
     Names,
 )
 from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import CountryCode, Id
+from overture.schema.core.types import CountryCodeAlpha2, Id
 from overture.schema.core.validation import (
     exactly_one_of,
 )
@@ -80,7 +80,7 @@ class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]], Name
         Reference(Relationship.BELONGS_TO, Division),
     ]
     country: Annotated[
-        CountryCode,
+        CountryCodeAlpha2,
         Field(
             description="ISO 3166-1 alpha-2 country code of the division this area belongs to.",
         ),

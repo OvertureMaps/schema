@@ -232,17 +232,12 @@ def test_example_validation_geojson(example_file: str) -> None:
 
     test_feature = convert_to_geojson_format(feature)
 
-    is_valid = False
-    error_msg = None
     try:
         parsed_feature = parse(test_feature)
-        is_valid = True
     except Exception as e:
-        error_msg = e
-
-    assert is_valid, (
-        f"Example failed validation (geojson): {example_file}\nError: {error_msg}"
-    )
+        raise pytest.fail.Exception(
+            f"Example failed validation (GeoJSON): {example_file}"
+        ) from e
 
     # If validation passed and we have a parsed feature, compare with GeoJSON format
     if parsed_feature is not None:
@@ -259,17 +254,12 @@ def test_example_validation_flat(example_file: str) -> None:
     flat_feature = load_feature(example_file)  # Load as flat (authoritative)
     test_feature = flat_feature  # Use flat format directly
 
-    is_valid = False
-    error_msg = None
     try:
         parsed_feature = parse(test_feature)
-        is_valid = True
     except Exception as e:
-        error_msg = e
-
-    assert is_valid, (
-        f"Example failed validation (flat): {example_file}\nError: {error_msg}"
-    )
+        raise pytest.fail.Exception(
+            f"Example failed validation (flat): {example_file}"
+        ) from e
 
     # If validation passed and we have a parsed feature, compare with GeoJSON format
     if parsed_feature is not None and "geometry" in flat_feature:
