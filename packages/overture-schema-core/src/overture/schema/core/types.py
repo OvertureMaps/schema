@@ -63,7 +63,7 @@ class ConfidenceScoreConstraint(FieldConstraint):
 ConfidenceScore = NewType(
     "ConfidenceScore",
     Annotated[
-        float64,
+        float32,
         ConfidenceScoreConstraint(),
         Field(
             description="Confidence value from the source dataset, particularly relevant for ML-derived data."
