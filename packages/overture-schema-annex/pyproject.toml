@@ -6,7 +6,7 @@ dependencies = [
 description = "Add your description here"
 dynamic = ["version"]
 license = "MIT"
-name = "overture-schema-sources"
+name = "overture-schema-annex"
 readme = "README.md"
 requires-python = ">=3.10"
 
@@ -24,7 +24,7 @@ path = "src/overture/schema/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"sources.sources" = "overture.schema.sources.models:Sources"
+"sources.sources" = "overture.schema.annex.models:Sources"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

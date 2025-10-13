@@ -10,14 +10,14 @@ from overture.schema.core import (
 from overture.schema.core.models import Perspectives
 from overture.schema.core.ref import Reference, Relationship
 from overture.schema.core.types import (
-    CountryCode,
+    CountryCodeAlpha2,
     Id,
 )
 from overture.schema.core.validation import (
     exactly_one_of,
     not_required_if,
 )
-from overture.schema.system.constraint import UniqueItemsConstraint
+from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
@@ -91,7 +91,7 @@ The first array element is the Overture ID of the left division. The second elem
         UniqueItemsConstraint(),
     ]
     country: Annotated[
-        CountryCode | None,
+        CountryCodeAlpha2 | None,
         Field(
             description="""ISO 3166-1 alpha-2 country code of the country or country-like
 entity that both sides of the boundary share.

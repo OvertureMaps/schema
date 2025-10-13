@@ -153,6 +153,18 @@
     },
     "DestinationRule": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "labels"
+          ]
+        },
+        {
+          "required": [
+            "symbols"
+          ]
+        }
+      ],
       "properties": {
         "final_heading": {
           "$ref": "#/$defs/Heading",

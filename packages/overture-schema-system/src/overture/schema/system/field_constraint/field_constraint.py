@@ -5,11 +5,11 @@ from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler, ValidationInfo
 from pydantic_core import core_schema
 
 
-class Constraint(ABC):
-    """Base class for all constraints."""
+class FieldConstraint(ABC):
+    """Base class for field-level constraints."""
 
     def validate(self, value: Any, info: ValidationInfo) -> None:  # noqa: B027
-        """Validate the value and raise ValidationError if invalid."""
+        """Validate the value and raise `ValidationError` if invalid."""
         pass
 
     @abstractmethod
