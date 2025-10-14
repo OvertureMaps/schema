@@ -1,8 +1,8 @@
 # overture-schema
 
-Overture Maps schema collection with implemented themes.
+Type-safe Python models for [Overture Maps Foundation](https://overturemaps.org/) data.
 
-This package provides testing infrastructure for Overture Maps Pydantic schemas. It includes a pytest-based test harness that validates schema models against curated examples and counterexamples.
+This package provides Pydantic models for validating and working with Overture Maps data, including buildings, places, addresses, transportation networks, and administrative boundaries.
 
 ## Installation
 
@@ -10,97 +10,84 @@ This package provides testing infrastructure for Overture Maps Pydantic schemas.
 pip install overture-schema
 ```
 
-This will install the currently implemented theme packages:
-
-- `overture-schema-addresses-theme` - Address theme
-- `overture-schema-base-theme` - Base theme (infrastructure, land, water, bathymetry, land cover, land use)
-- `overture-schema-buildings-theme` - Buildings theme
-- `overture-schema-divisions-theme` - Divisions theme (political and administrative boundaries)
-- `overture-schema-places-theme` - Places theme
-- `overture-schema-transportation-theme` - Transportation theme (segments and connectors)
-
 ## Usage
 
-This package serves as a test harness and validation framework. Import specific schemas from their
-respective theme packages:
+Import and use schemas:
 
 ```python
-# Addresses theme
-from overture.schema.addresses import Address
+from overture.schema import Building, Place
+import json
 
-# Base theme
-from overture.schema.base import (
+# Validate Overture Maps data (supports both flat/tabular and GeoJSON formats)
+building = Building.model_validate(feature_data)
+place = Place.model_validate(geojson_feature)
+
+# Parse and validate JSON strings
+building_from_json = Building.model_validate_json(json_string)
+
+# Convert to GeoJSON format for output
+geojson_output = building.model_dump(mode="json")
+```
+
+### Available Models
+
+```python
+# All models are re-exported from their respective theme packages for convenience
+from overture.schema import (
+    # Addresses theme
+    Address,
+
+    # Base theme
     Bathymetry,
     Infrastructure,
     Land,
     LandCover,
     LandUse,
     Water,
+
+    # Buildings theme
+    Building,
+    BuildingPart,
+
+    # Divisions theme
+    Division,
+    DivisionArea,
+    DivisionBoundary,
+
+    # Places theme
+    Place,
+
+    # Transportation theme
+    Connector,
+    Segment,
 )
-
-# Buildings theme
-from overture.schema.buildings import Building, BuildingPart
-
-# Divisions theme
-from overture.schema.divisions import Division, DivisionArea, DivisionBoundary
-
-# Places theme
-from overture.schema.places import Place
-
-# Transportation theme
-from overture.schema.transportation import Connector, Segment
 ```
 
-TK
+### Utility Functions
+
+The package also exports several utility functions:
 
 ```python
-from overture.schema import Types # returns a Union annotated for use by Pydantic as a discriminated union
-```
+from overture.schema import parse, parse_feature, discover_models, json_schema
+from overture.schema import Building
 
-### JSON Schema
+# Parse any Overture feature (auto-discovers all registered models)
+validated_feature = parse(feature_data, mode="json")  # Returns GeoJSON format
+validated_feature = parse(feature_data, mode="python")  # Returns flat format
 
-TK
+# Parse with a specific model type
+parsed_building = parse_feature(building_data, Building)
 
-```python
-from overture.schema import Types, json_schema
+# Discover all registered models programmatically
+all_models = discover_models()
+# Returns:
+# {
+#   ("buildings", "building"): BuildingModel,
+#   ("places", "place"): PlaceModel,
+# ...
+# }
 
-# TODO output JSON
-print(json_schema(Types))
-```
-
-### Utilities
-
-The package includes test utilities for:
-
-- Loading and parsing GeoJSON and YAML test files
-- Converting between GeoJSON and flat/tabular data formats
-- Deep comparison of validation results
-
-## Schema Validation
-
-All models are validated to test:
-
-- Geometry validation for GeoJSON-compatible structures
-- Theme and type consistency checking
-- Field-level constraints (country codes, language tags, etc.)
-- Cross-field validation rules
-- Source attribution validation
-
-## Extension
-
-TK using setuptools entry points
-
-## Testing
-
-This package includes test suites that validate schemas against curated examples and
-counterexamples. Tests ensure that:
-
-- Valid examples pass validation
-- Invalid counterexamples properly fail validation
-- Schemas work with both GeoJSON and flat/tabular data formats
-
-Run tests with:
-
-```bash
-uv run pytest
+# Generate JSON Schema for models or unions
+schema = json_schema(Building)
+union_schema = json_schema(Building | Place)  # Works with unions too
 ```
