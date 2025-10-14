@@ -28,6 +28,7 @@ from overture.schema.system.string import PhoneNumber, WikidataId
 from ..types import SnakeCaseString
 from .enums import OperatingStatus
 
+
 @no_extra_fields
 class Categories(BaseModel):
     """The categories of the place.
