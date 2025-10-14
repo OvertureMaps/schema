@@ -2,6 +2,7 @@ from collections.abc import (
     Hashable,
     ItemsView,
     Iterable,
+    Iterator,
     KeysView,
     Mapping,
     MutableMapping,
@@ -10,6 +11,7 @@ from collections.abc import (
 from typing import (
     Union,
     cast,
+    overload,
 )
 
 from typing_extensions import override
@@ -44,11 +46,14 @@ class Key:
     -------
     >>> class _private: pass    # Private data
     >>>
-    >>> Key("mypkg.mymodule", _private)
-    Key(name="mypkg.mymodule", ...)
+    >>> Key('mypkg.mymodule', _private)
+    Key('mypkg.mymodule', ...)
     """
 
     __slots__ = ("name", "_Key__private")
+
+    name: str
+    __private: Hashable | None
 
     def __init__(self, name: str, private: Hashable | None = None) -> None:
         object.__setattr__(self, "name", name)
@@ -66,12 +71,12 @@ class Key:
         return self.name
 
     def __repr__(self) -> str:
-        return f"Key(name={repr(self.name)}, ...)"
+        return f"Key({repr(self.name)}, ...)"
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: object) -> None:
         raise AttributeError("cannot modify a `Key`")
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str) -> None:
         raise AttributeError("cannot modify a `Key`")
 
 
@@ -91,7 +96,7 @@ class Metadata(MutableMapping[Key, object]):
 
     Parameters
     ----------
-    data : Mapping[Key, object] | Iterable[tuple[Key, object] | list[Key, object]] | None = None
+    data : Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None
         Source data to build the `Metadata` dictionary
 
     Examples
@@ -121,11 +126,9 @@ class Metadata(MutableMapping[Key, object]):
 
     def __init__(
         self,
-        data: Mapping[Key, object]
-        | Iterable[tuple[Key, object] | list[Key, object]]
-        | None = None,
+        data: Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None,
     ):
-        if data is None:
+        if not data:
             self.__wrapped = {}
         else:
             self.__wrapped = dict(Metadata.__validate_data(data))
@@ -153,10 +156,10 @@ class Metadata(MutableMapping[Key, object]):
     def __getitem__(self, key: Key) -> object:
         return self.__wrapped[key]
 
-    def __iter__(self) -> Iterable[Key]:
+    def __iter__(self) -> Iterator[Key]:
         return iter(self.__wrapped)
 
-    def __contains__(self, key: Key) -> bool:
+    def __contains__(self, key: object) -> bool:
         return key in self.__wrapped
 
     def __delitem__(self, key: Key) -> None:
@@ -190,7 +193,7 @@ class Metadata(MutableMapping[Key, object]):
         return result
 
     @override
-    def get(self, key: Key, default=None) -> object:
+    def get(self, key: Key, default: object = None) -> object:
         return self.__wrapped.get(key, default)
 
     @override
@@ -211,11 +214,15 @@ class Metadata(MutableMapping[Key, object]):
         """
         return Metadata(self.__wrapped.copy())
 
+    @overload  # type: ignore[override]
+    def update(self, other: Mapping[Key, object], /) -> None: ...
+
+    @overload
+    def update(self, other: Iterable[tuple[Key, object]], /) -> None: ...
+
     def update(
         self,
-        data: Mapping[Key, object]
-        | Iterable[tuple[Key, object] | list[Key, object]]
-        | None = None,
+        data: Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None,
     ) -> None:
         """
         Updates this metadata by inserting values from `data`. In the case of a key conflict, the
@@ -223,10 +230,10 @@ class Metadata(MutableMapping[Key, object]):
 
         Parameters
         ----------
-        data : Mapping[Key, object] | Iterable[tuple[Key, object] | list[Key, object]] | None = None
+        data : Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None
             New data to insert (ignored if the value is `None`)
         """
-        if data is not None:
+        if data:
             self.__wrapped.update(Metadata.__validate_data(data))
 
     def attach_to(self, target: object) -> None:
@@ -250,9 +257,7 @@ class Metadata(MutableMapping[Key, object]):
     @staticmethod
     def retrieve_from(
         source: object,
-        default: Mapping[Key, object]
-        | Iterable[tuple[Key, object] | list[Key, object]]
-        | None = None,
+        default: Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None,
     ) -> Union["Metadata", None]:
         """
         Retrieves the metadata attached go a given source value, if it exists. Metadata can be
@@ -262,7 +267,7 @@ class Metadata(MutableMapping[Key, object]):
         ----------
         source : object
             Value to retrieve the metadata from
-        default : default: Mapping[Key, object] | Iterable[tuple[Key, object] | list[Key, object]] | None = None
+        default : default: Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None
             Default value to return if `source` has no attached metadata
 
         Returns
@@ -284,8 +289,8 @@ class Metadata(MutableMapping[Key, object]):
 
     @staticmethod
     def __validate_data(
-        data: Mapping[Key, object] | Iterable[tuple[Key, object] | list[Key, object]],
-    ) -> Mapping[Key, object] | Iterable[tuple[Key, object] | list[Key, object]]:
+        data: Mapping[Key, object] | Iterable[tuple[Key, object]],
+    ) -> Mapping[Key, object] | Iterable[tuple[Key, object]]:
         if isinstance(data, Mapping):
             for k, _ in data.items():
                 if not isinstance(k, Key):
@@ -296,7 +301,7 @@ class Metadata(MutableMapping[Key, object]):
             for i, item in enumerate(data):
                 if not isinstance(item, (tuple, list)):
                     raise TypeError(
-                        f"items must be pairs (`tuple` or `list`), but item index {i} has type `{type(item).__name}`"
+                        f"items must be pairs (`tuple` or `list`), but item index {i} has type `{type(item).__name__}`"
                     )
                 elif len(item) != 2:
                     raise ValueError(
@@ -306,6 +311,7 @@ class Metadata(MutableMapping[Key, object]):
                     raise TypeError(
                         f"each item's first element must be a `Key`, but first element for item index {i} has type `{type(item[0]).__name__}`"
                     )
+            return cast(Iterable[tuple[Key, object]], data)
         else:
             raise TypeError(
                 f"`data` must be a `Mapping` or `Iterable`, but {data} has type `{type(data).__name__}`"

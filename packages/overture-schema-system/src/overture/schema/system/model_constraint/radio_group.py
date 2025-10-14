@@ -54,7 +54,7 @@ def radio_group(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel
     ... except ValidationError as e:
     ...    assert (
     ...        "exactly one field from the `bool` field group [foo, bar] must be True, "
-    ...        "but both of these fields are True: foo and bar"
+    ...        "but none is True"
     ...    ) in str(e)
     ...    print("Validation failed")
     Validation failed

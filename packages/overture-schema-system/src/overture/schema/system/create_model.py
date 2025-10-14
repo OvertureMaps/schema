@@ -36,12 +36,12 @@ def create_model(
     the new model. If a non-`None` value is provided for `__metadata__`, the new model receives the
     new metadata and the metadata on the base model is not propagated.
     """
-    model_class = pydantic.create_model(
+    model_class = pydantic.create_model(  # type: ignore[misc]
         model_name,
         __config__=__config__,
         __doc__=__doc__,
-        __base__=__base__,
-        __module__=__module__,
+        __base__=__base__,  # type: ignore[arg-type]
+        __module__=__module__,  # type: ignore[arg-type]
         __validators__=__validators__,
         __cls_kwargs__=__cls_kwargs__,
         __qualname__=__qualname__,
@@ -53,4 +53,4 @@ def create_model(
         prev = Metadata.retrieve_from(__base__, None)
         if prev is not None:
             prev.attach_to(model_class)
-    return model_class
+    return model_class  # type: ignore[return-value]

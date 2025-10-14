@@ -113,7 +113,7 @@ class ModelConstraint:
         self.validate_class(model_class)
         config = deepcopy(model_class.model_config)
         self.edit_config(model_class, config)
-        metadata = Metadata.retrieve_from(model_class, Metadata()).copy()
+        metadata = Metadata.retrieve_from(model_class, Metadata()).copy()  # type: ignore[union-attr]
         model_constraints = (*ModelConstraint.get_model_constraints(model_class), self)
         metadata[_MODEL_CONSTRAINT_KEY] = model_constraints
         new_model_class = create_model(
@@ -219,7 +219,7 @@ class ModelConstraint:
         """
         return cast(
             tuple[ModelConstraint, ...],
-            Metadata.retrieve_from(model_class, Metadata()).get(
+            Metadata.retrieve_from(model_class, Metadata()).get(  # type: ignore[union-attr]
                 _MODEL_CONSTRAINT_KEY, ()
             ),
         )
