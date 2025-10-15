@@ -40,7 +40,10 @@ class Categories(BaseModel):
     # Required
 
     primary: Annotated[
-        SnakeCaseString, Field(description="The primary or main category of the place. This can be empty.")
+        SnakeCaseString,
+        Field(
+            description="The primary or main category of the place. This can be empty."
+        ),
     ]
 
     # Optional
@@ -95,7 +98,10 @@ This is not an indication of 'opening hours' or that the place is open/closed at
 
     categories: Categories | None = None
     basic_category: Annotated[
-        SnakeCaseString | None, Field(description="""The basic level category of a place. At present this is a mapping of the categories.primary entry to a new, simplified name. This mapping can be 1:1 or M:1 from the existing primary.categories entry. If the entry is currently empty in categories.primary, this entry will be empty.  This type of categorization is a cognitive science model that is relevant for taxonomy and ontology development that shows the most broadest and general category name that is most often found in the middle of a general-to-specific hierarchy, with generalization proceeding upward and specialization proceeding downward.  The full list of basic level categories is available at:(todo)""")
+        SnakeCaseString | None,
+        Field(
+            description="""The basic level category of a place. At present this is a mapping of the categories.primary entry to a new, simplified name. This mapping can be 1:1 or M:1 from the existing primary.categories entry. If the entry is currently empty in categories.primary, this entry will be empty.  This type of categorization is a cognitive science model that is relevant for taxonomy and ontology development that shows the most broadest and general category name that is most often found in the middle of a general-to-specific hierarchy, with generalization proceeding upward and specialization proceeding downward.  The full list of basic level categories is available at:(todo)"""
+        ),
     ] = None
     confidence: Annotated[
         ConfidenceScore | None,
