@@ -3,7 +3,7 @@ from collections.abc import Callable
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 
-from .json_schema import get_static_json_schema, put_if
+from .._json_schema import get_static_json_schema, put_if
 from .model_constraint import (
     Condition,
     OptionalFieldGroupConstraint,

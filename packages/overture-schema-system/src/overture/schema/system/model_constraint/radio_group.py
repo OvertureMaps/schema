@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.json_schema import JsonDict
 from typing_extensions import override
 
-from .json_schema import get_static_json_schema, put_one_of
+from .._json_schema import get_static_json_schema, put_one_of
 from .model_constraint import FieldGroupConstraint, apply_alias
 
 

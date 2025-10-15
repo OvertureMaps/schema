@@ -15,7 +15,7 @@ from overture.schema.system.model_constraint import (
     require_if,
 )
 
-sys.path.insert(0, str(Path(__file__).parent))  # Needed to import `util` peer module.
+sys.path.insert(0, str(Path(__file__).parent.parent))  # Needed to import `util` module.
 
 from util import assert_subset
 

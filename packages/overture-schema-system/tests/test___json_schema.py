@@ -4,7 +4,7 @@ import pytest
 from pydantic import ConfigDict
 from pydantic.json_schema import JsonDict
 
-from overture.schema.system.model_constraint.json_schema import (
+from overture.schema.system._json_schema import (
     get_static_json_schema,
     put_all_of,
     put_any_of,

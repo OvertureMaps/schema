@@ -121,14 +121,26 @@ MyModel(foo=None, bar=None)
 Validation failed
 """
 
-from . import field_constraint, metadata, model_constraint, primitive, string
+from . import (
+    feature,
+    field_constraint,
+    metadata,
+    model_constraint,
+    optionality,
+    primitive,
+    ref,
+    string,
+)
 from .create_model import create_model
 
 __all__ = [
     "create_model",
+    "feature",
     "field_constraint",
     "metadata",
     "model_constraint",
+    "optionality",
     "primitive",
+    "ref",
     "string",
 ]
