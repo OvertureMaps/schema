@@ -292,7 +292,7 @@ class Feature(ExtensibleBaseModel, Generic[ThemeT, TypeT], ABC):
             "type": "object",
             "properties": geo_json_properties,
             # always reject properties that aren't defined in the schema
-            "unevaluatedProperties": False,
+            "unevaluatedProperties": False,  # FIXME: We don't want this unless extra='forbid'
         }
 
         if geo_json_required:

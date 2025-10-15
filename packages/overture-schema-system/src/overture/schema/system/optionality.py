@@ -23,8 +23,8 @@ class Omitable(Generic[T]):
     >>> from pydantic import BaseModel
     >>> class MyModel(BaseModel):
     ...     my_optional_field: int | None = None
-    >>> let json_schema = MyModel.model_json_schema()
-    >>> let any_of = json_schema['properties']['my_optional_field']['anyOf']
+    >>> json_schema = MyModel.model_json_schema()
+    >>> any_of = json_schema['properties']['my_optional_field']['anyOf']
     >>> assert [{'type': 'integer'}, {'type': 'null'}] == any_of
 
     Although this approach works well in many scenarios, it can't represent JSON Schemas that allow
@@ -54,8 +54,8 @@ class Omitable(Generic[T]):
     >>> class MyModel(BaseModel):
     ...     foo: str
     ...     bar: Omitable[int]
-    >>> let json_schema = MyModel.model_json_schema()
-    >>> let bar_type = json_schema['properties']['bar']['type']
+    >>> json_schema = MyModel.model_json_schema()
+    >>> bar_type = json_schema['properties']['bar']['type']
     >>> assert 'integer' == bar_type
     """
 

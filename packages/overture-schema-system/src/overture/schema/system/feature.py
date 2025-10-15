@@ -1,7 +1,8 @@
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import (
     BaseModel,
+    Field,
     GetJsonSchemaHandler,
     ModelWrapValidatorHandler,
     SerializerFunctionWrapHandler,
@@ -21,10 +22,80 @@ from overture.schema.system.ref import Id
 
 
 class Feature(BaseModel):
-    type: Literal["Feature"]
-    id: Omitable[Id]
-    bbox: Omitable[BBox]
-    geometry: Geometry
+    """
+    A feature is something you can point to on a map—like a building, road, lake, or park—with the
+    facts about that thing.
+
+    Every feature has a geometry that describes where it is and what it looks like. In addition, a
+    feature may have an `id` field that uniquely identifies it. It may also have a bounding box,
+    which is a simplified geometry that facilitates efficient spatial operations.
+
+    Derive a subclass of `Feature` to add new fields with facts about your feature type.
+
+    >>> from typing  import Annotated
+    >>> from pydantic import Field
+    >>> from overture.schema.system.primitive import Geometry, float32
+    ...
+    >>> class Mountain(Feature):
+    ...     name: str
+    ...     max_elevation: Annotated[
+    ...         float32 ,
+    ...         Field(description='Maximum elevation above sea level in meters')
+    ...     ]
+    ...
+    >>> mount_everest = Mountain(
+    ...     geometry=Geometry.from_wkt('POINT(86.9252 27.9888)'),
+    ...     name='Mount Everest',
+    ...     max_elevation=8_848.86
+    ... )
+
+    A feature has a special JSON representation that conforms to the `GeoJSON format`_
+    specification.
+
+    >>> print(mount_everest.model_dump_json(indent=2))
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          86.9252,
+          27.9888
+        ]
+      },
+      "properties": {
+        "name": "Mount Everest",
+        "max_elevation": 8848.86
+      }
+    }
+
+    Use a geometry type constraint to limit the geometry types allowed on your feature subclass.
+    This can help maximize validation and data integrity by preventing geometries that do not make
+    sense from being stored.
+
+    >>> from overture.schema.system.primitive import GeometryType, GeometryTypeConstraint
+    ...
+    >>> class River(Feature):
+    ...     geometry: Annotated[
+    ...         Geometry,
+    ...         GeometryTypeConstraint(GeometryType.LINE_STRING)
+    ...     ]
+
+    .. _GeoJSON format: https://datatracker.ietf.org/doc/html/rfc7946
+    """
+
+    id: Omitable[Id] = Field(description="An optional unique ID for the feature")
+    """An optional unique ID for the feature."""
+
+    bbox: Omitable[BBox] = Field(description="An optional bounding box for the feature")
+    """An optional bounding box for the feature."""
+
+    geometry: Geometry = Field(description="The feature's geometry")
+    """
+    The feature's geometry.
+
+    Subclasses of `Feature` may limit the geometry types allowed on `geometry` by repeating this
+    field and annotating it with a `GeometryTypeConstraint`.
+    """
 
     @model_serializer(mode="wrap")
     def serialize_model(
@@ -61,7 +132,10 @@ class Feature(BaseModel):
             )
 
         if info.mode == "json":
-            def validation_error(type: str, input: object, error: str, *loc: str) -> ValidationError:
+
+            def validation_error(
+                type: str, input: object, error: str, *loc: str
+            ) -> ValidationError:
                 context = info.context or {}
                 loc = context.get("loc_prefix", ()) + loc
                 return ValidationError.from_exception_data(
@@ -73,31 +147,61 @@ class Feature(BaseModel):
                             input=input,
                             ctx={"error": error},
                         )
-                    ]
+                    ],
                 )
 
-            def type_property_error(input: object, problem: str) -> ValidationError:
-                return validation_error('geo_json_type', input, f"{problem} (it should have value 'Feature')", "type")
+            def type_property_error(
+                type: str, input: object, problem: str
+            ) -> ValidationError:
+                return validation_error(
+                    type,
+                    input,
+                    f"{problem} feature JSON (it should have value 'Feature')",
+                    "type",
+                )
 
-            def properties_property_error(input: object, problem: str) -> ValidationError:
+            def properties_property_type_error(
+                type: str, input: object, prefix: str, suffix: str, *loc: str
+            ) -> ValidationError:
+                return validation_error(
+                    type,
+                    input,
+                    f"{prefix} feature JSON (it must be a `dict` or an explicitly preset `None` value){suffix}",
+                    "properties",
+                )
 
-
-            # GeoJSON features require `type=Feature` at the top level.
+            # GeoJSON features require `type=Feature` at the top level. Note that this validation
+            # *could* be done as a `Literal["Feature"]` field, but that approach would have two
+            # shortcomings. First (minor), it would force the non-JSON Python representation to
+            # have the "type" field. Second (major) it would make it trickier for the perfectly
+            # valid use case of a property under "properties" named "type", since our approach to
+            # "properties" is to lift them up into the root level object before calling the
+            # provided handler. Lifting up an inner "type" variable would overwrite the outer "type"
+            # and cause a validation failure.
             try:
                 t = data.pop("type")
             except KeyError:
-                raise type_property_error(None, "'type' property is missing") from None
+                raise type_property_error(
+                    "missing", None, "'type' property is missing from"
+                ) from None
             if t != "Feature":
-                raise type_property_error(t, f"'type' property has a wrong value, {repr(t)}")
+                raise type_property_error(
+                    "value_error", t, f"'type' property has wrong value {repr(t)} in"
+                )
 
             # Remove the properties sub-dictionary so we can flatten it.
             try:
                 properties = data.pop("properties")
             except KeyError:
-                properties = None
+                raise properties_property_type_error(
+                    "missing", None, "'properties' property is missing from", ""
+                ) from None
             if not isinstance(properties, dict | None):
-                raise TypeError(
-                    f"'properties' key in feature JSON must be a `dict`, but {repr(properties)} is a `{type(properties).__name__}"
+                raise properties_property_type_error(
+                    "value_error",
+                    None,
+                    "'properties' property has wrong type in",
+                    f", but {repr(properties)} is a `{type(properties).__name__}`",
                 )
 
             # Ensure there's nothing in data root level that repeats a valid model field.
@@ -107,8 +211,10 @@ class Feature(BaseModel):
                 if f not in {"id", "bbox", "geometry", "properties"}
             ]
             if conflicts:
-                raise ValueError(
-                    "illegal root-level properties in feature JSON: these properties may only be children of the 'properties' object: {repr(conflicts)}"
+                raise validation_error(
+                    "value_error",
+                    properties,
+                    f"illegal top-level properties in feature JSON: {repr(conflicts)} (these properties may only be children of the 'properties' object)",
                 )
 
             if properties:
@@ -117,8 +223,11 @@ class Feature(BaseModel):
                     f for f in properties.keys() if f in {"id", "bbox", "geometry"}
                 ]
                 if conflicts:
-                    raise ValueError(
-                        "illegal properties in feature JSON: these properties may only appear in the root, but they are in the 'properties' object: {repr(conficts)}"
+                    raise validation_error(
+                        "value_error",
+                        properties,
+                        f"illegal properties in feature JSON: {repr(conflicts)} (these properties may only appear at the top level, but they are in the 'properties' object)",
+                        "properties",
                     )
 
                 # Spread the 'properties' sub-dictionary across the root-level data object.
