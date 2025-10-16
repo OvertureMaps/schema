@@ -432,7 +432,7 @@
         "capital_division_ids": {
           "description": "Division IDs of this division's capital divisions. If present, this property will refer to the division IDs of the capital cities, county seats, etc. of a division.",
           "items": {
-            "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+            "description": "A unique identifier",
             "minLength": 1,
             "pattern": "^\\S+$",
             "type": "string"

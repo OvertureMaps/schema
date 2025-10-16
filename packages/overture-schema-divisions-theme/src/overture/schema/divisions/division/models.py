@@ -14,11 +14,7 @@ from overture.schema.core.models import (
     Names,
     Perspectives,
 )
-from overture.schema.core.types import (
-    CommonNames,
-    CountryCodeAlpha2,
-    Id,
-)
+from overture.schema.core.types import CommonNames
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
@@ -33,7 +29,8 @@ from overture.schema.system.primitive import (
     GeometryTypeConstraint,
     int32,
 )
-from overture.schema.system.string import RegionCode, WikidataId
+from overture.schema.system.ref import Id
+from overture.schema.system.string import CountryCodeAlpha2, RegionCode, WikidataId
 
 from ..enums import IS_COUNTRY, DivisionClass, PlaceType
 from ..models import CapitalOfDivisionItem

@@ -11,15 +11,14 @@ from overture.schema.core.models import (
     Named,
     Names,
 )
-from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import CountryCodeAlpha2, Id
 from overture.schema.system.model_constraint import radio_group
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
 )
-from overture.schema.system.string import RegionCode
+from overture.schema.system.ref import Id, Reference, Relationship
+from overture.schema.system.string import CountryCodeAlpha2, RegionCode
 
 from ..division.models import Division
 from ..enums import PlaceType

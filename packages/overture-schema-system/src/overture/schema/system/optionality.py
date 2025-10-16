@@ -21,11 +21,15 @@ class Omitable(Generic[T]):
     the main type, for example:
 
     >>> from pydantic import BaseModel
+    >>>
     >>> class MyModel(BaseModel):
     ...     my_optional_field: int | None = None
+    ...
+    >>> MyModel().model_dump()
+    {'my_optional_field': None}
     >>> json_schema = MyModel.model_json_schema()
-    >>> any_of = json_schema['properties']['my_optional_field']['anyOf']
-    >>> assert [{'type': 'integer'}, {'type': 'null'}] == any_of
+    >>> json_schema['properties']['my_optional_field']['anyOf']
+    [{'type': 'integer'}, {'type': 'null'}]
 
     Although this approach works well in many scenarios, it can't represent JSON Schemas that allow
     values to be omitted but do not allow them to be explicitly set to the JSON value `null`, for

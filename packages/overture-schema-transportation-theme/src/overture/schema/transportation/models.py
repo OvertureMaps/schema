@@ -6,9 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from overture.schema.core import Feature
 from overture.schema.core.models import GeometricRangeScope
-from overture.schema.core.ref import Reference, Relationship
 from overture.schema.core.types import (
-    Id,
     Level,
     LinearlyReferencedPosition,
     OpeningHours,
@@ -20,6 +18,7 @@ from overture.schema.system.model_constraint import (
     require_any_of,
 )
 from overture.schema.system.primitive import float64, int32
+from overture.schema.system.ref import Id, Reference, Relationship
 from overture.schema.system.string import StrippedString, WikidataId
 
 from .enums import (

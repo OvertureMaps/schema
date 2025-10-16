@@ -22,7 +22,9 @@ from overture.schema.system.primitive import (
     BBox,
     Geometry,
 )
+from overture.schema.system.ref import Id, Identified
 from overture.schema.system.string import (
+    CountryCodeAlpha2,
     JsonPointer,
     LanguageTag,
     RegionCode,
@@ -33,10 +35,8 @@ from .enums import NameVariant, PerspectiveMode, Side
 from .types import (
     CommonNames,
     ConfidenceScore,
-    CountryCodeAlpha2,
     FeatureUpdateTime,
     FeatureVersion,
-    Id,
     Level,
     LinearlyReferencedRange,
     MaxZoom,
@@ -221,12 +221,14 @@ ThemeT = TypeVar("ThemeT", bound=str)
 TypeT = TypeVar("TypeT", bound=str)
 
 
-class Feature(ExtensibleBaseModel, Generic[ThemeT, TypeT], ABC):
+class Feature(ExtensibleBaseModel, Identified, Generic[ThemeT, TypeT], ABC):
     """Base class for all Overture features."""
 
     # Required
 
-    id: Id
+    id: Id = Field(
+        description="A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if—and-only-if the feature represents an entity that is part of GERS."
+    )
     theme: ThemeT
     # this is an enum in the JSON Schema, but that prevents Feature from being extended
     type: TypeT

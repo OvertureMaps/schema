@@ -14,30 +14,10 @@ from overture.schema.system.field_constraint import (
     CollectionConstraint,
     FieldConstraint,
 )
-from overture.schema.system.field_constraint.string import (
-    CountryCodeAlpha2Constraint,
-)
 from overture.schema.system.primitive import float32, int32, pct
 from overture.schema.system.string import (
-    HexColor,
-    JsonPointer,
     LanguageTag,
-    NoWhitespaceString,
-    PhoneNumber,
-    RegionCode,
     StrippedString,
-    WikidataId,
-)
-
-Id = NewType(
-    "Id",
-    Annotated[
-        NoWhitespaceString,
-        Field(
-            min_length=1,
-            description="A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if—and-only-if the feature represents an entity that is part of GERS.",
-        ),
-    ],
 )
 
 
@@ -189,15 +169,6 @@ Level = NewType(
     ],
 )
 
-CountryCodeAlpha2 = NewType(
-    "CountryCodeAlpha2",
-    Annotated[
-        str,
-        CountryCodeAlpha2Constraint(),
-        Field(description="ISO 3166-1 alpha-2 country code"),
-    ],
-)
-
 CommonNames = NewType(
     "CommonNames",
     Annotated[
@@ -305,28 +276,17 @@ Type = Annotated[str, Field(description="Specific feature type within the theme"
 __all__ = [
     "CommonNames",
     "ConfidenceScore",
-    "CountryCodeAlpha2",
-    "CountryCodeAlpha2Constraint",
     "FeatureUpdateTime",
     "FeatureVersion",
-    "HexColor",
-    "Id",
-    "JsonPointer",
-    "LanguageTag",
     "Level",
     "LinearlyReferencedPosition",
     "LinearlyReferencedRange",
     "LinearReferenceRangeConstraint",
     "MaxZoom",
     "MinZoom",
-    "NoWhitespaceString",
     "OpeningHours",
-    "PhoneNumber",
     "Prominence",
-    "RegionCode",
     "SortKey",
     "Theme",
-    "StrippedString",
     "Type",
-    "WikidataId",
 ]

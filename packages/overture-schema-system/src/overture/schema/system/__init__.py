@@ -1,19 +1,25 @@
 r"""
 Foundational types at the base of the Overture schema system.
 
-A set of primitive types, constraint rules, and Pydantic base model classes that
-can be used to create strongly-typed, predictably validated, data.
+A set of primitive types, constraint rules, and Pydantic model classes, and annotations that can be
+used to create strongly-typed, predictably validated, data.
 
 Subpackages
 -----------
-- :mod:`primitive <overture.schema.system.primitive>` Primitive data types, including numeric and
-  geometry types.
+- :mod:`feature <overture.schema.system.feature>` The `Feature` type, a Pydantic model type for
+  geospatial data whose JSON Schema and serialized JSON representation are compatible with GeoJSON.
 - :mod:`field_constraint <overture.schema.system.field_constraint>` Constraints that can be
   annotated onto Pydantic model fields to force them to conform to well-known rules, for example "a
   collection that contains unique items" or "a string that is a valid country code".
 - :mod:`model_constraint <overture.schema.system.model_constraint>` Constraints that can be
   decorated onto Pydantic model classes to add cross-field validation rules, for example "these two
   fields are mutually-exclusive" or "if this field is set, then that field must also be set".
+- :mod:`optionality` <overture.schema.system.optionality>` The `Omitable` type hint, syntax sugar to
+  help a Pydantic model's optional fields behave closer to JSON Schema semantics.
+- :mod:`primitive <overture.schema.system.primitive>` Primitive data types, including numeric and
+  geometry types.
+- :mod:`ref <overture.schema.system.ref>` Unique IDs and annotations to descrie relationships
+  between models based on unique IDs. (*i.e.*, foreign key relationships).
 - :mod:`string <overture.schema.system.string>` String types with built-in validation to conform to
   well-known patterns, for example a country code, a hexadecimal color code, a language tag, or just
   a string that doesn't contain whitespace.
@@ -26,10 +32,12 @@ Features
   Parquet.)
 - Tightly integrated with Pydantic's JSON Schema system, providing rich JSON Schemas and maximum
   parity between Pydantic, generated JSON Schemas, and Overture's code generation tools.
-- First-class support for geospatial data using the geometry primitives.
+- First-class support for geospatial data using the geometry primitives and the
+  `overture.schema.system.feature.Feature` class.
 - Conditional fields and validation on relationships between fields (*e.g.*, if the type field
   contains "region", then region code field must also be set).
 - Constraint rules produce detailed and consistent error messages with useful domain knowledge.
+- Reference annotations allow foreign key relationships between models to be described.
 
 Examples
 --------
@@ -119,6 +127,16 @@ MyModel(foo=None, bar=None)
 ...    assert "at least one of these fields must be explicitly set, but none are: foo, bar" in str(e)
 ...    print("Validation failed")
 Validation failed
+
+Describe a foreign key relationship between two models where one model has a field that contains the
+unique identifier of another model.
+
+>>> from typing import Annotated
+>>> from overture.schema.system.ref import Id, Identified, Reference, Relationship
+>>> class Park(Identified):
+...     pass
+>>> class ParkBench(Identified):
+...    park_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Park)]
 """
 
 from . import (
