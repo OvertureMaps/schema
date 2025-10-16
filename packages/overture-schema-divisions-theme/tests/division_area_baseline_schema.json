@@ -234,11 +234,6 @@
   },
   "additionalProperties": false,
   "description": "Division areas are polygons that represent the land or maritime area covered by a\ndivision.\n\nEach division area belongs to a division which it references by ID, and for which\nthe division area provides an area polygon. For ease of use, every division area\nrepeats the subtype, names, country, and region properties of the division it\nbelongs to.",
-  "patternProperties": {
-    "^ext_.*$": {
-      "description": "Additional top-level properties must be prefixed with `ext_`."
-    }
-  },
   "properties": {
     "bbox": {
       "items": {
@@ -340,6 +335,13 @@
     },
     "properties": {
       "additionalProperties": false,
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
       "oneOf": [
         {
           "properties": {
@@ -358,7 +360,7 @@
       ],
       "patternProperties": {
         "^ext_.*$": {
-          "description": "Additional top-level properties must be prefixed with `ext_`."
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
         }
       },
       "properties": {
@@ -442,8 +444,7 @@
         "division_id",
         "country"
       ],
-      "type": "object",
-      "unevaluatedProperties": false
+      "type": "object"
     },
     "type": {
       "const": "Feature",
@@ -451,10 +452,10 @@
     }
   },
   "required": [
+    "type",
     "id",
     "geometry",
-    "properties",
-    "type"
+    "properties"
   ],
   "title": "division_area",
   "type": "object"

@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import Perspectives
 from overture.schema.system.field_constraint import UniqueItemsConstraint
@@ -30,7 +30,9 @@ from .enums import BoundaryClass
 @forbid_if(["country"], IS_COUNTRY)
 @require_if(["country"], ~IS_COUNTRY)
 @radio_group("is_land", "is_territorial")
-class DivisionBoundary(Feature[Literal["divisions"], Literal["division_boundary"]]):
+class DivisionBoundary(
+    OvertureFeature[Literal["divisions"], Literal["division_boundary"]]
+):
     """Boundaries represent borders between divisions of the same subtype.
 
     Some boundaries may be disputed by the divisions on one or both sides.

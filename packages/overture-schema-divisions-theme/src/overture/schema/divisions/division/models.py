@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.enums import Side
 from overture.schema.core.models import (
@@ -54,7 +54,9 @@ class Norms(BaseModel):
 @forbid_if(["parent_division_id"], IS_COUNTRY)
 @require_if(["parent_division_id"], ~IS_COUNTRY)
 class Division(
-    Feature[Literal["divisions"], Literal["division"]], Named, CartographicallyHinted
+    OvertureFeature[Literal["divisions"], Literal["division"]],
+    Named,
+    CartographicallyHinted,
 ):
     """Divisions are recognized official or non-official organizations of people as seen
     from a given political perspective.

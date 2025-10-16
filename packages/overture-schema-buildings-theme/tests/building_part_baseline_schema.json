@@ -275,11 +275,6 @@
   },
   "additionalProperties": false,
   "description": "A single building part.\n\nParts describe their shape and color and other properties. Each building part must\nrefer to the building to which it belongs.",
-  "patternProperties": {
-    "^ext_.*$": {
-      "description": "Additional top-level properties must be prefixed with `ext_`."
-    }
-  },
   "properties": {
     "bbox": {
       "items": {
@@ -381,9 +376,16 @@
     },
     "properties": {
       "additionalProperties": false,
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
       "patternProperties": {
         "^ext_.*$": {
-          "description": "Additional top-level properties must be prefixed with `ext_`."
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
         }
       },
       "properties": {
@@ -516,8 +518,7 @@
         "version",
         "building_id"
       ],
-      "type": "object",
-      "unevaluatedProperties": false
+      "type": "object"
     },
     "type": {
       "const": "Feature",
@@ -525,10 +526,10 @@
     }
   },
   "required": [
+    "type",
     "id",
     "geometry",
-    "properties",
-    "type"
+    "properties"
   ],
   "title": "BuildingPart",
   "type": "object"

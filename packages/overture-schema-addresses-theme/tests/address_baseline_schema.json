@@ -75,11 +75,6 @@
   },
   "additionalProperties": false,
   "description": "Addresses are geographic points used for locating businesses and individuals. The\nrules, fields, and fieldnames of an address can vary extensively between locations.\nWe use a simplified schema to capture worldwide address points.  This initial schema\nis largely based on the OpenAddresses (www.openaddresses.io) project.\n\nThe address schema allows up to 5 \"admin levels\". Rather than have field names that\napply across all countries, we provide an array called \"address_levels\" containing\nthe necessary administrative levels for an address.",
-  "patternProperties": {
-    "^ext_.*$": {
-      "description": "Additional top-level properties must be prefixed with `ext_`."
-    }
-  },
   "properties": {
     "bbox": {
       "items": {
@@ -129,9 +124,16 @@
     },
     "properties": {
       "additionalProperties": false,
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
       "patternProperties": {
         "^ext_.*$": {
-          "description": "Additional top-level properties must be prefixed with `ext_`."
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
         }
       },
       "properties": {
@@ -221,8 +223,7 @@
         "type",
         "version"
       ],
-      "type": "object",
-      "unevaluatedProperties": false
+      "type": "object"
     },
     "type": {
       "const": "Feature",
@@ -230,10 +231,10 @@
     }
   },
   "required": [
+    "type",
     "id",
     "geometry",
-    "properties",
-    "type"
+    "properties"
   ],
   "title": "address",
   "type": "object"

@@ -4,7 +4,7 @@ from typing import Annotated, NewType
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from overture.schema.core import Feature
+from overture.schema.core import OvertureFeature
 from overture.schema.core.models import GeometricRangeScope
 from overture.schema.core.types import (
     Level,
@@ -48,7 +48,7 @@ SpeedValue = NewType(
 Width = NewType("Width", Annotated[float64, Field(gt=0)])
 
 
-def _connector_type() -> type[Feature]:
+def _connector_type() -> type[OvertureFeature]:
     from .connector import Connector
 
     return Connector
