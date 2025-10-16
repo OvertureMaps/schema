@@ -27,7 +27,7 @@ def get_static_json_schema(config: ConfigDict) -> JsonSchemaValue:
 
 
 def put_all_of(json_schema: JsonSchemaValue, operands: list[JsonSchemaValue]) -> None:
-    _verify_json_schema_value(('json_schema', json_schema))
+    _verify_json_schema_value(("json_schema", json_schema))
     _verify_operands_not_empty(JsonSchemaValue, operands)
     if "allOf" not in json_schema:
         json_schema["allOf"] = cast(JsonValue, operands)
@@ -42,7 +42,7 @@ def put_all_of(json_schema: JsonSchemaValue, operands: list[JsonSchemaValue]) ->
 
 
 def put_any_of(json_schema: JsonSchemaValue, operands: list[JsonSchemaValue]) -> None:
-    _verify_json_schema_value(('json_schema', json_schema))
+    _verify_json_schema_value(("json_schema", json_schema))
     _verify_operands_not_empty(JsonSchemaValue, operands)
     prev: JsonSchemaValue = {}
     try_move("anyOf", json_schema, prev)
@@ -53,7 +53,7 @@ def put_any_of(json_schema: JsonSchemaValue, operands: list[JsonSchemaValue]) ->
 
 
 def put_one_of(json_schema: JsonSchemaValue, operands: list[JsonSchemaValue]) -> None:
-    _verify_json_schema_value(('json_schema', json_schema))
+    _verify_json_schema_value(("json_schema", json_schema))
     _verify_operands_not_empty(JsonSchemaValue, operands)
     prev: JsonSchemaValue = {}
     try_move("oneOf", json_schema, prev)
@@ -64,7 +64,7 @@ def put_one_of(json_schema: JsonSchemaValue, operands: list[JsonSchemaValue]) ->
 
 
 def put_not(json_schema: JsonSchemaValue, operand: JsonSchemaValue) -> None:
-    _verify_json_schema_value(('json_schema', json_schema), ('operand', operand))
+    _verify_json_schema_value(("json_schema", json_schema), ("operand", operand))
     prev: JsonSchemaValue = {}
     try_move("not", json_schema, prev)
 
@@ -106,13 +106,13 @@ def put_if(
     when_true: JsonSchemaValue | None,
     when_false: JsonSchemaValue | None = None,
 ) -> None:
-    _verify_json_schema_value(('json_schema', json_schema))
+    _verify_json_schema_value(("json_schema", json_schema))
     if condition is not None:
-        _verify_json_schema_value(('condition', condition))
+        _verify_json_schema_value(("condition", condition))
     if when_true is not None:
-        _verify_json_schema_value(('when_true', when_true))
+        _verify_json_schema_value(("when_true", when_true))
     if when_false is not None:
-        _verify_json_schema_value(('when_false', when_false))
+        _verify_json_schema_value(("when_false", when_false))
 
     prev: JsonSchemaValue = {}
     try_move("if", json_schema, prev)
@@ -134,11 +134,8 @@ def put_if(
         put_all_of(json_schema, [prev, _put({})])
 
 
-def put_required(
-        json_schema: JsonSchemaValue,
-        operands: list[str]
-) -> None:
-    _verify_json_schema_value(('json_schema', json_schema))
+def put_required(json_schema: JsonSchemaValue, operands: list[str]) -> None:
+    _verify_json_schema_value(("json_schema", json_schema))
     _verify_operands_not_empty(str, operands)
     if "required" in json_schema:
         required = json_schema["required"]
@@ -149,10 +146,12 @@ def put_required(
 
 
 def put_properties(
-        json_schema: JsonSchemaValue,
-        new_properties: JsonSchemaValue,
+    json_schema: JsonSchemaValue,
+    new_properties: JsonSchemaValue,
 ) -> None:
-    _verify_json_schema_value(('json_schema', json_schema), ('new_properties', new_properties))
+    _verify_json_schema_value(
+        ("json_schema", json_schema), ("new_properties", new_properties)
+    )
     if "properties" in json_schema:
         properties = json_schema["properties"]
     else:
@@ -173,13 +172,18 @@ def try_move(key: str, src: JsonSchemaValue, dst: JsonSchemaValue) -> None:
     except KeyError:
         pass
 
-T = TypeVar('T', JsonSchemaValue, str)
+
+T = TypeVar("T", JsonSchemaValue, str)
+
 
 def _verify_json_schema_value(*candidates: tuple[str, JsonSchemaValue]) -> None:
     origin = get_origin(JsonSchemaValue)
     for target in candidates:
         if not isinstance(target[1], origin):
-            raise TypeError(f"`{target[0]}` must be a `JsonSchemaValue` value, but {repr(target[1])} has type `{type(target[1]).__name__}`")
+            raise TypeError(
+                f"`{target[0]}` must be a `JsonSchemaValue` value, but {repr(target[1])} has type `{type(target[1]).__name__}`"
+            )
+
 
 def _verify_operands_not_empty(tp: T, operands: list[T]) -> None:
     if not isinstance(operands, list):
@@ -203,11 +207,15 @@ def _verify_operands_not_empty(tp: T, operands: list[T]) -> None:
 def _merge(src: JsonSchemaValue, dst: JsonValue, *loc: str) -> None:
     origin = get_origin(JsonSchemaValue)
     if not isinstance(dst, origin):
-        raise ValueError(f"`put_properties` merge conflict: `dst[{repr(k)}]` exists but `src` cannot be merged in because `dst` is not a `JsonSchemaValue` (full path: {repr(loc)})")
+        raise ValueError(
+            f"`put_properties` merge conflict: `dst` exists but `src` cannot be merged in because `dst` is not a `JsonSchemaValue` (full path: {repr(loc)}) (`dst` value {repr(dst)} has type `{type(dst).__name__}`)"
+        )
     for k, v in src.items():
         if k not in dst:
             dst[k] = v
         elif isinstance(v, origin):
             _merge(v, dst[k], *loc, k)
         elif dst[k] != v:
-            ValueError(f"`put_properties` merge conflict: `dst[{repr(k)}]={repr(dst[k])}` exists and does not equal `src[{repr(k)}]={repr(v)}` (full path: {repr(loc)})")
+            ValueError(
+                f"`put_properties` merge conflict: `dst[{repr(k)}]={repr(dst[k])}` exists and does not equal `src[{repr(k)}]={repr(v)}` (full path: {repr(loc)})"
+            )

@@ -632,13 +632,14 @@ class TestJsonSchema:
         expect = {
             "title": "Feature",
             "type": "object",
+            "additionalProperties": False,
             "required": [
                 "type",
                 "geometry",
                 "properties",
             ],
-            "additionalProperties": False,
             "properties": {
+                "type": {"const": "Feature", "type": "string"},
                 "id": {
                     "type": "string",
                 },
@@ -657,7 +658,6 @@ class TestJsonSchema:
                         },
                     ],
                 },
-                "type": {"const": "Feature", "type": "string"},
             },
         }
 
@@ -675,13 +675,14 @@ class TestJsonSchema:
         expect = {
             "title": "SubFeature",
             "type": "object",
+            "additionalProperties": False,
             "required": [
                 "type",
                 "geometry",
                 "properties",
             ],
-            "additionalProperties": False,
             "properties": {
+                "type": {"const": "Feature", "type": "string"},
                 "id": {
                     "type": "string",
                 },
@@ -707,7 +708,6 @@ class TestJsonSchema:
                         "baz": {"type": "number"},
                     },
                 },
-                "type": {"const": "Feature", "type": "string"},
             },
         }
 
@@ -717,7 +717,49 @@ class TestJsonSchema:
         assert_subset(expect, actual, "expect", "actual")
 
     def test_subclass_make_required_fields_not_required(self):
-        assert False
+        """
+        A subclass can technically redefine a required field to make it not required. This test
+        verifies that the JSON Schema generation works as expected in this scenario.
+        """
+
+        class SubFeature(Feature):
+            geometry: Omitable[Geometry]
+
+        expect = {
+            "title": "SubFeature",
+            "type": "object",
+            "additionalProperties": False,
+            "required": [
+                "type",
+                "properties",
+            ],
+            "properties": {
+                "type": {"const": "Feature", "type": "string"},
+                "id": {
+                    "type": "string",
+                },
+                "bbox": {
+                    "type": "array",
+                },
+                "geometry": {},
+                "properties": {
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "not": {"required": ["id", "bbox", "geometry"]},
+                        },
+                        {
+                            "type": "null",
+                        },
+                    ],
+                },
+            },
+        }
+
+        actual = SubFeature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
 
     def test_subclass_geometry_type_constraint(self):
         class PointFeature(Feature):
@@ -726,13 +768,14 @@ class TestJsonSchema:
         expect = {
             "title": "PointFeature",
             "type": "object",
+            "additionalProperties": False,
             "required": [
+                "type",
                 "geometry",
                 "properties",
-                "type",
             ],
-            "additionalProperties": False,
             "properties": {
+                "type": {"const": "Feature", "type": "string"},
                 "id": {
                     "type": "string",
                 },
@@ -762,14 +805,12 @@ class TestJsonSchema:
                         {
                             "type": "object",
                             "not": {"required": ["id", "bbox", "geometry"]},
-                            "properties": {},
                         },
                         {
                             "type": "null",
                         },
                     ],
                 },
-                "type": {"const": "Feature", "type": "string"},
             },
         }
 
@@ -778,19 +819,21 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_forbid_extra_fields(self):
+    def test_forbid_extra_fields_without_adding_fields(self):
         class SubFeature(Feature):
             model_config = ConfigDict(extra="forbid")
 
         expect = {
             "title": "SubFeature",
             "type": "object",
+            "additionalProperties": False,
             "required": [
+                "type",
                 "geometry",
                 "properties",
-                "type",
             ],
             "properties": {
+                "type": {"const": "Feature", "type": "string"},
                 "id": {
                     "type": "string",
                 },
@@ -802,16 +845,13 @@ class TestJsonSchema:
                     "anyOf": [
                         {
                             "type": "object",
-                            "not": {"required": ["id", "bbox", "geometry"]},
-                            "additionalProperties": False,
-                            "properties": {},
+                            "maxProperties": 0,
                         },
                         {
                             "type": "null",
                         },
                     ],
                 },
-                "type": {"const": "Feature", "type": "string"},
             },
         }
 
@@ -820,33 +860,293 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_unsupported_keyword(self):
-        assert False
+    def test_forbid_extra_fields_with_added_optional_field(self):
+        class SubFeature(Feature):
+            model_config = ConfigDict(extra="forbid")
+
+            added_field: Omitable[int]
+
+        expect = {
+            "title": "SubFeature",
+            "type": "object",
+            "additionalProperties": False,
+            "required": [
+                "type",
+                "geometry",
+                "properties",
+            ],
+            "properties": {
+                "type": {"const": "Feature", "type": "string"},
+                "id": {
+                    "type": "string",
+                },
+                "bbox": {
+                    "type": "array",
+                },
+                "geometry": {},
+                "properties": {
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "not": {"required": ["id", "bbox", "geometry"]},
+                            "properties": {
+                                "added_field": {
+                                    "type": "integer",
+                                },
+                            },
+                        },
+                        {
+                            "type": "null",
+                        },
+                    ],
+                },
+            },
+        }
+
+        actual = SubFeature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
+
+    def test_forbid_extra_fields_with_added_required_field(self):
+        class SubFeature(Feature):
+            model_config = ConfigDict(extra="forbid")
+
+            added_field: float
+
+        expect = {
+            "title": "SubFeature",
+            "type": "object",
+            "additionalProperties": False,
+            "required": [
+                "type",
+                "geometry",
+                "properties",
+            ],
+            "properties": {
+                "type": {"const": "Feature", "type": "string"},
+                "id": {
+                    "type": "string",
+                },
+                "bbox": {
+                    "type": "array",
+                },
+                "geometry": {},
+                "properties": {
+                    "type": "object",
+                    "required": ["added_field"],
+                    "not": {"required": ["id", "bbox", "geometry"]},
+                    "properties": {
+                        "added_field": {
+                            "type": "number",
+                        },
+                    },
+                },
+            },
+        }
+
+        actual = SubFeature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
+
+    def test_unsupported_keyword_min_properties(self):
+        """
+        We don't have a clean way to port the JSON Schema "minProperties" keyword to the GeoJSON
+        Schema in a way that respects the fact that the "logical" properties of the Feature get
+        split, due to the quirks of GeoJSON, between to levels of the Feature object: the top level,
+        and the Feature's properties object. Therefore we prohibit this keyword in the Feature
+        JSON Schema.
+        """
+
+        @min_fields_set(1)
+        class MinFieldsFeature(Feature):
+            pass
+
+        with pytest.raises(
+            ValueError, match="unsupported JSON Schema keyword 'minProperties'"
+        ):
+            actual = MinFieldsFeature.model_json_schema()
+            print(json.dumps(actual, indent=2))
+
+    def test_reuse_synthetic_field_names(self):
+        """
+        GeoJSON introduces two artificial field names, "type" and "properties". Since these aren't
+        really part of the "logical" structure of a GeoJSON Feature (they are just "physical"
+        artifacts of the structure chosen), there is no reason why a model shouldn't be allowed to
+        use these field names. This test verifies that every thing works as expected at the JSON
+        Schema level when these synthetic field names are used.
+        """
+
+        class SyntheticFieldNamesModel(Feature):
+            type: int
+            properties: str | None = None
+
+        expect = {
+            "properties": {
+                "properties": {
+                    "type": "object",
+                    "required": ["type"],
+                    "properties": {
+                        "type": {
+                            "type": "integer",
+                        },
+                        "properties": {
+                            "anyOf": [
+                                {"type": "string"},
+                                {"type": "null"},
+                            ]
+                        },
+                    },
+                }
+            }
+        }
+
+        actual = SyntheticFieldNamesModel.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
 
     def test_model_constraint_top_level_only(self):
-        assert False
+        @forbid_if(["bbox"], FieldEqCondition("id", "hello"))
+        @require_if(["id"], FieldEqCondition("bbox", [0, 0, 0, 0]))
+        @require_any_of("id", "bbox")
+        class TopLevelConstraintFeature(Feature):
+            pass
+
+        expect = {
+            "title": "TopLevelConstraintFeature",
+            "type": "object",
+            "additionalProperties": False,
+            "required": [
+                "type",
+                "geometry",
+                "properties",
+            ],
+            "anyOf": [
+                {"required": ["id"]},
+                {"required": ["bbox"]},
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "bbox": {
+                                "const": [0, 0, 0, 0],
+                            },
+                        },
+                    },
+                    "then": {
+                        "required": ["id"],
+                    },
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "id": {
+                                "const": "hello",
+                            }
+                        }
+                    },
+                    "then": {
+                        "not": {
+                            "required": ["bbox"],
+                        },
+                    },
+                },
+            ],
+            "properties": {
+                "type": {"const": "Feature", "type": "string"},
+                "id": {},
+                "bbox": {},
+                "geometry": {},
+                "properties": {
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "not": {"required": ["id", "bbox", "geometry"]},
+                        },
+                        {"type": "null"},
+                    ]
+                },
+            },
+        }
+
+        actual = TopLevelConstraintFeature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
 
     def test_model_constraint_properties_object_only(self):
-        assert False
+        @forbid_if(["bar"], FieldEqCondition("baz", 42))
+        @require_any_of("foo", "bar")
+        class PropertiesObjectConstraintFeature(Feature):
+            foo: Omitable[str]
+            bar: Omitable[bool]
+            baz: int
+
+        expect = {
+            "title": "PropertiesObjectConstraintFeature",
+            "type": "object",
+            "additionalProperties": False,
+            "required": [
+                "type",
+                "geometry",
+                "properties",
+            ],
+            "properties": {
+                "type": {"const": "Feature", "type": "string"},
+                "id": {},
+                "bbox": {},
+                "geometry": {},
+                "properties": {
+                    "required": ["baz"],
+                    "anyOf": [
+                        {"required": ["foo"]},
+                        {"required": ["bar"]},
+                    ],
+                    "if": {
+                        "properties": {
+                            "baz": {
+                                "const": 42,
+                            },
+                        },
+                    },
+                    "then": {
+                        "not": {"required": ["bar"]},
+                    },
+                },
+            },
+        }
+
+        actual = PropertiesObjectConstraintFeature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
 
     def test_model_constraint_mixed(self):
-        @forbid_if(["foo"], FieldEqCondition("qux", "ban.foo"))
+        @forbid_if(["foo", "type"], FieldEqCondition("properties", "ban.foo"))
         @require_if(["id", "foo", "qux"], FieldEqCondition("corge", 42))
         @require_any_of("bbox", "foo", "garply")
-        class SubFeature(Feature):
+        class MixedConstraintFeature(Feature):
             foo: Omitable[bool]
             bar: bool
             baz: bool
             qux: Omitable[str]
             corge: int
             garply: Omitable[bool]
+            type: Omitable[str]
+            properties: str
 
         expect = {
+            "title": "MixedConstraintFeature",
             "type": "object",
+            "additionalProperties": False,
             "required": [
+                "type",
                 "geometry",
                 "properties",
-                "type",
             ],
             "anyOf": [
                 {"required": ["bbox"]},
@@ -897,7 +1197,7 @@ class TestJsonSchema:
                             "properties": {
                                 "type": "object",
                                 "properties": {
-                                    "qux": {
+                                    "properties": {
                                         "const": "ban.foo",
                                     },
                                 },
@@ -909,7 +1209,7 @@ class TestJsonSchema:
                             "properties": {
                                 "properties": {
                                     "type": "object",
-                                    "required": ["foo"],
+                                    "required": ["foo", "type"],
                                 }
                             }
                         },
@@ -917,6 +1217,7 @@ class TestJsonSchema:
                 },
             ],
             "properties": {
+                "type": {"const": "Feature", "type": "string"},
                 "id": {
                     "type": "string",
                 },
@@ -926,7 +1227,7 @@ class TestJsonSchema:
                 "geometry": {},
                 "properties": {
                     "type": "object",
-                    "required": ["bar", "baz", "corge"],
+                    "required": ["bar", "baz", "corge", "properties"],
                     "properties": {
                         "foo": {
                             "type": "boolean",
@@ -946,17 +1247,21 @@ class TestJsonSchema:
                         "garply": {
                             "type": "boolean",
                         },
+                        "type": {
+                            "type": "string",
+                        },
+                        "properties": {
+                            "type": "string",
+                        },
                     },
                 },
-                "type": {"const": "Feature", "type": "string"},
             },
         }
 
-        actual = SubFeature.model_json_schema()
+        actual = MixedConstraintFeature.model_json_schema()
         print(json.dumps(actual, indent=2))
 
         assert_subset(expect, actual, "expect", "actual")
-        assert False
 
 
 class Test_FieldLevel:
@@ -1190,72 +1495,152 @@ class TestRefactoring:
         [
             ({}, {}, {}, None, None),
             (
-                { "required": ["id"] },
-                { },
-                { },
-                { "required": ["id"] },
+                {"required": ["id"]},
+                {},
+                {},
+                {"required": ["id"]},
                 None,
             ),
             (
-                { "required": ["foo"] },
-                { },
-                { },
+                {"required": ["foo"]},
+                {},
+                {},
                 None,
-                { "required": ["foo"] },
+                {"required": ["foo"]},
             ),
             (
-                { "required": ["id", "foo"] },
-                { },
-                { },
+                {"required": ["id", "foo"]},
+                {},
+                {},
                 {
                     "required": ["id"],
                     "properties": {
-                        "properties": {
-                            "type": "object",
-                            "required": ["foo"]
-                        }
-                    }
+                        "properties": {"type": "object", "required": ["foo"]}
+                    },
                 },
                 None,
             ),
             (
                 {
                     "anyOf": [
-                        { "required": ["foo"] },
-                        { "required": ["bar"] },
+                        {"required": ["foo"]},
+                        {"required": ["bar"]},
                     ]
                 },
-                { },
-                { },
+                {},
+                {},
                 None,
                 {
                     "anyOf": [
-                        { "required": ["foo"] },
-                        { "required": ["bar"] },
+                        {"required": ["foo"]},
+                        {"required": ["bar"]},
                     ]
                 },
             ),
             (
                 {
                     "anyOf": [
-                        { "required": ["id"] },
-                        { "required": ["foo"] },
+                        {"required": ["id"]},
+                        {"required": ["foo"]},
                     ]
                 },
-                { },
-                { },
+                {},
+                {},
                 {
                     "anyOf": [
-                        { "required": ["id"] },
+                        {"required": ["id"]},
                         {
                             "properties": {
                                 "properties": {
                                     "type": "object",
                                     "required": ["foo"],
-                                }
-                            }
-                        }
-                    ]
+                                },
+                            },
+                        },
+                    ],
+                },
+                None,
+            ),
+            (
+                {
+                    "if": {
+                        "required": ["id", "foo"],
+                    },
+                    "then": {
+                        "allOf": [
+                            {
+                                "not": {
+                                    "required": ["bbox", "bar"],
+                                },
+                            },
+                            {
+                                "properties": {
+                                    "id": {"const": "hello"},
+                                    "baz": {"const": 123},
+                                },
+                            },
+                        ],
+                    },
+                    "else": {
+                        "anyOf": [
+                            {"required": ["bbox"]},
+                            {"required": ["qux"]},
+                        ],
+                    },
+                },
+                {},
+                {},
+                {
+                    "if": {
+                        "properties": {
+                            "properties": {
+                                "type": "object",
+                                "required": ["foo"],
+                            },
+                        },
+                        "required": ["id"],
+                    },
+                    "then": {
+                        "allOf": [
+                            {
+                                "not": {
+                                    "required": ["bbox"],
+                                    "properties": {
+                                        "properties": {
+                                            "type": "object",
+                                            "required": ["bar"],
+                                        },
+                                    },
+                                },
+                            },
+                            {
+                                "properties": {
+                                    "id": {
+                                        "const": "hello",
+                                    },
+                                    "properties": {
+                                        "type": "object",
+                                        "properties": {
+                                            "baz": {"const": 123},
+                                        },
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                    "else": {
+                        "anyOf": [
+                            {"required": ["bbox"]},
+                            {
+                                "properties": {
+                                    "properties": {
+                                        "type": "object",
+                                        "required": ["qux"],
+                                    },
+                                },
+                            },
+                        ],
+                    },
                 },
                 None,
             ),

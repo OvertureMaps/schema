@@ -29,7 +29,9 @@ from overture.schema.system._json_schema import (
         (ConfigDict(json_schema_extra={"foo": "bar"}), {"foo": "bar"}),
     ],
 )
-def test_get_static_json_schema_success(config: ConfigDict, expect: JsonSchemaValue) -> None:
+def test_get_static_json_schema_success(
+    config: ConfigDict, expect: JsonSchemaValue
+) -> None:
     actual = get_static_json_schema(config)
 
     assert expect == actual
@@ -66,7 +68,9 @@ def test_get_static_json_schema_error_invalid_type() -> None:
     ],
 )
 def test_put_all_of_success(
-    json_schema: JsonSchemaValue, operands: list[JsonSchemaValue], expect: JsonSchemaValue
+    json_schema: JsonSchemaValue,
+    operands: list[JsonSchemaValue],
+    expect: JsonSchemaValue,
 ) -> None:
     put_all_of(json_schema, operands)
 
@@ -123,7 +127,9 @@ def test_put_any_of_error_existing_all_of_not_list():
     ],
 )
 def test_put_any_of_success(
-    json_schema: JsonSchemaValue, operands: list[JsonSchemaValue], expect: JsonSchemaValue
+    json_schema: JsonSchemaValue,
+    operands: list[JsonSchemaValue],
+    expect: JsonSchemaValue,
 ) -> None:
     put_any_of(json_schema, operands)
 
@@ -173,7 +179,9 @@ def test_put_any_of_error_bad_type(operands: list[JsonSchemaValue]) -> None:
     ],
 )
 def test_put_one_of_success(
-    json_schema: JsonSchemaValue, operands: list[JsonSchemaValue], expect: JsonSchemaValue
+    json_schema: JsonSchemaValue,
+    operands: list[JsonSchemaValue],
+    expect: JsonSchemaValue,
 ) -> None:
     put_one_of(json_schema, operands)
 
@@ -232,7 +240,8 @@ def test_put_not_success(
 
 def test_put_not_error_invalid_operand() -> None:
     with pytest.raises(
-        TypeError, match="`operand` must be a `JsonSchemaValue` value, but 123 has type `int`"
+        TypeError,
+        match="`operand` must be a `JsonSchemaValue` value, but 123 has type `int`",
     ):
         put_not({}, cast(JsonSchemaValue, 123))
 
@@ -345,29 +354,53 @@ def test_put_if_success(
 #                                          put_required                                            #
 ####################################################################################################
 
+
 def test_put_required_error_invalid_json_schema():
-    with pytest.raises(TypeError, match="`json_schema` must be a `JsonSchemaValue` value, but True has type `bool`"):
+    with pytest.raises(
+        TypeError,
+        match="`json_schema` must be a `JsonSchemaValue` value, but True has type `bool`",
+    ):
         put_required(True, ["foo"])
 
-@pytest.mark.parametrize("operands,expect_error_type",[
-    (42, TypeError),
-    ([42], TypeError),
-    ([], ValueError),
-])
-def test_put_required_error_invalid_operands(operands: object, expect_error_type: type[Exception]):
+
+@pytest.mark.parametrize(
+    "operands,expect_error_type",
+    [
+        (42, TypeError),
+        ([42], TypeError),
+        ([], ValueError),
+    ],
+)
+def test_put_required_error_invalid_operands(
+    operands: object, expect_error_type: type[Exception]
+):
     with pytest.raises(expect_error_type):
         put_required({}, cast(list[str], operands))
 
-@pytest.mark.parametrize("json_schema,operands,expect",[
-    ({}, ["foo"], {"required":["foo"]}),
-    ({}, ["foo", "bar"], {"required":["foo", "bar"]}),
-    ({"required":[]}, ["foo"], {"required":["foo"]}),
-    ({"required":[]}, ["bar", "foo"], {"required":["bar", "foo"]}),
-    ({"required":["baz"]}, ["foo"], {"required":["baz", "foo"]}),
-    ({"required":["baz"]}, ["foo", "baz", "bar", "qux"], {"required":["baz", "foo", "bar", "qux"]}),
-    ({"required":["qux", "corge"]}, ["baz", "bar", "qux"], {"required":["qux", "corge", "baz", "bar"]}),
-])
-def test_put_required_success(json_schema: JsonSchemaValue, operands: list[str], expect: JsonSchemaValue):
+
+@pytest.mark.parametrize(
+    "json_schema,operands,expect",
+    [
+        ({}, ["foo"], {"required": ["foo"]}),
+        ({}, ["foo", "bar"], {"required": ["foo", "bar"]}),
+        ({"required": []}, ["foo"], {"required": ["foo"]}),
+        ({"required": []}, ["bar", "foo"], {"required": ["bar", "foo"]}),
+        ({"required": ["baz"]}, ["foo"], {"required": ["baz", "foo"]}),
+        (
+            {"required": ["baz"]},
+            ["foo", "baz", "bar", "qux"],
+            {"required": ["baz", "foo", "bar", "qux"]},
+        ),
+        (
+            {"required": ["qux", "corge"]},
+            ["baz", "bar", "qux"],
+            {"required": ["qux", "corge", "baz", "bar"]},
+        ),
+    ],
+)
+def test_put_required_success(
+    json_schema: JsonSchemaValue, operands: list[str], expect: JsonSchemaValue
+):
     put_required(json_schema, operands)
 
     assert expect == json_schema

@@ -248,19 +248,38 @@ class Feature(BaseModel):
         """
         json_schema = handler(schema)
 
-        # FIXME: TODO: vic - delete
-        # for name in list(top_level_properties_schema.keys()):
-        #     if name not in ["id", "bbox", "geometry"]:
-        #         value = top_level_properties_schema[name]
-        #         properties_object_properties_schema[name] = value
-        #         del top_level_properties_schema[name]
-        #         if name in top_level_required:
-        #             top_level_required.remove(name)
-        #             properties_object_required.append(name)
+        top_level_required = json_schema.get("required", [])
+        top_level_properties = json_schema["properties"]
 
         # Determine if the schema allows any additional properties apart from the three basic ones,
         # "id", "bbox", and "geometry".
-        may_have_properties = len(cls.model_fields) > 3 or cls.model_config.get("extra", None) != "forbid"
+        may_have_properties = (
+            any(
+                f
+                for f in cls.model_fields.keys()
+                if f not in ["id", "bbox", "geometry"]
+            )
+            or cls.model_config.get("extra", None) != "forbid"
+        )
+
+        # Migrate any top-level properties that aren't part of the three basic ones, "id", "bbox",
+        # and "geometry", down into the GeoJSON feature's "properties" object.
+        if may_have_properties:
+            properties_object_properties = {}
+            properties_object_required = []
+            for name in list(top_level_properties.keys()):
+                if name not in ["id", "bbox", "geometry"]:
+                    properties_object_properties[name] = top_level_properties.pop(name)
+                    if name in top_level_required:
+                        top_level_required.remove(name)
+                        properties_object_required.append(name)
+
+        # Add `type=Feature` at the top level.
+        top_level_properties["type"] = {
+            "type": "string",
+            "const": "Feature",
+        }
+        top_level_required.insert(0, "type")
 
         # If additional properties may be allowed, we have to factor the schema to ensure that all
         # properties apart from the basic ones are homed in the Feature object's "properties"
@@ -270,9 +289,18 @@ class Feature(BaseModel):
             # "id", "bbox", and "geometry", cannot appear in the properties sub-object.
             properties_object_schema = {
                 "type": "object",
+                **(
+                    {"required": properties_object_required}
+                    if properties_object_required
+                    else {}
+                ),
                 "not": {"required": ["id", "bbox", "geometry"]},
+                **(
+                    {"properties": properties_object_properties}
+                    if properties_object_properties
+                    else {}
+                ),
             }
-            _json_schema.put_properties(json_schema, { "properties": properties_object_schema })
 
             # Preserve simple constraints from the original schema by migrating them down into the
             # 'properties' sub-schema.
@@ -289,7 +317,14 @@ class Feature(BaseModel):
             # More complex constraints may require factoring the constraint using "JSON Schema
             # algebra" if the constraint mixes he three top-level fields ("id", etc.) with fields
             # that belong in the properties sub-object.
-            for key in ["required", "properties", "allOf", "anyOf", "oneOf", "not"]:
+            for key in [
+                "allOf",
+                "anyOf",
+                "oneOf",
+                "not",
+                "minProperties",
+                "maxProperties",
+            ]:
                 if key in json_schema:
                     _maybe_refactor_schema(
                         cls,
@@ -311,12 +346,11 @@ class Feature(BaseModel):
             # might be blocked by conditional schemas, for example if a field is conditionally
             # required.
             may_null_properties = len(properties_object_schema.get("required", [])) == 0
-
             if may_null_properties:
                 properties_object_schema = {
                     "anyOf": [
                         properties_object_schema,
-                        { "type": "null" },
+                        {"type": "null"},
                     ]
                 }
         else:
@@ -326,43 +360,20 @@ class Feature(BaseModel):
                         "type": "object",
                         "maxProperties": 0,
                     },
-                    { "type": "null" },
+                    {"type": "null"},
                 ]
             }
 
         # Insert the Feature's properties sub-object schema into the top-level object properties.
-        top_level_properties_schema = json_schema["properties"]
-        top_level_properties_schema["properties"] = properties_object_schema
-
-        # Create the sub-schema for the GeoJSON 'properties' sub-object.
-        # properties_object_schema = {
-        #     "type": "object",
-        #     "properties": properties_object_properties_schema,
-        #     **(
-        #         {"required": properties_object_required}
-        #         if properties_object_required
-        #         else {}
-        #     ),
-        #     "not": {"required": ["id", "bbox", "geometry"]},
-        # }
-
-        # Get the top-level required schema. This may not exist, because subclasses of Feature can
-        # technically eliminate the mandatoriness of the basic fields by redefining them.
-        try:
-            top_level_required = json_schema["required"]
-        except KeyError:
-            top_level_required = []
-            json_schema["required"] = top_level_required
-
-        # Add `type=Feature` at the top level.
-        top_level_properties_schema["type"] = {
-            "type": "string",
-            "const": "Feature",
-        }
-        top_level_required.insert(0, "type")
+        top_level_properties["properties"] = properties_object_schema
 
         # Make the properties sub-object required, consistent with the GeoJSON format spec.
         top_level_required.append("properties")
+
+        # Store the top-level required schema. This may be empty, because subclasses of Feature can
+        # technically eliminate the mandatoriness of the basic fields by redefining them.
+        if top_level_required:
+            json_schema["required"] = top_level_required
 
         # Do not allow any extra properties in the root JSON object: we want to restrict it only to
         # the core GeoJSON properties. Any extra fields, if they are allowed by the Pydantic model,
@@ -418,7 +429,7 @@ class _FieldLevel(str, Enum):
                     continue
                 elif in_object_properties:
                     new_level = _FieldLevel.classify(cls, k, True, *loc, k)
-                elif k in ["minProperties"]:
+                elif k in ["minProperties", "maxProperties"]:
                     raise ValueError(
                         f"unsupported JSON Schema keyword {repr(k)} at path {repr(loc)}: the keyword cannot be used at the top level of the `{cls.__name__}` schema"
                     )
@@ -464,8 +475,6 @@ def _maybe_refactor_schema(
 ) -> None:
     field_level = _FieldLevel.classify(cls, sub_schema)
 
-    print(f"field_level => {field_level} for sub_schema => {sub_schema}") # TODO - delete - vic
-
     if field_level == _FieldLevel.PROPERTIES_OBJECT:
         _merge_schemas(properties_object_schema, sub_schema)
     elif field_level != _FieldLevel.MIXED:
@@ -473,12 +482,7 @@ def _maybe_refactor_schema(
         top_level_schema |= sub_schema
     else:
         _refactor_schema(sub_schema)
-
-        print(f"refactored sub_schema => {sub_schema}") # TODO - delete - vic
-
         _merge_schemas(top_level_schema, sub_schema)
-
-        print(f"merged schema => {top_level_schema}") # TODO - delete - vic
 
 
 def _refactor_schema(schema: JsonSchemaValue) -> None:
@@ -499,20 +503,15 @@ def _refactor_properties(schema: JsonSchemaValue) -> None:
 
     lower_properties = {}
     for k, v in list(properties.items()):
-        if k not in [ "id", "bbox", "geometry"]:
+        if k not in ["id", "bbox", "geometry"]:
             lower_properties[k] = v
             del properties[k]
-
-    # This is a conceptual nightmare. "k not in the 3 main props" but by this point, I have already
-    # added the properties object schema so now there are 4. This is going to lead to a mess. The
-    # properties object schema somehow has to be kept separate.
-    print(f"LOWER PROPS => {lower_properties}")
 
     if len(lower_properties) > 0:
         try:
             properties_object_schema = properties["properties"]
         except KeyError:
-            properties_object_schema = { "type": "object" }
+            properties_object_schema = {"type": "object"}
             properties["properties"] = properties_object_schema
         _json_schema.put_properties(properties_object_schema, lower_properties)
 
@@ -538,8 +537,6 @@ def _refactor_required(schema: JsonSchemaValue) -> None:
         schema_properties["properties"] = properties_schema
         schema["properties"] = schema_properties
 
-        print(f"TODO - Vic - delete - _refactore_required schema => {schema}")
-
 
 def _merge_schemas(
     target_schema: JsonSchemaValue, source_schema: JsonSchemaValue
@@ -549,7 +546,12 @@ def _merge_schemas(
     _json_schema.try_move("then", source_schema, if_then_else)
     _json_schema.try_move("else", source_schema, if_then_else)
     if if_then_else:
-        _json_schema.put_if(target_schema, if_then_else.get("if", None), if_then_else.get("then", None), if_then_else.get("else", None))
+        _json_schema.put_if(
+            target_schema,
+            if_then_else.get("if", None),
+            if_then_else.get("then", None),
+            if_then_else.get("else", None),
+        )
 
     table = {
         "allOf": lambda json_schema, operand: _json_schema.put_all_of(
@@ -561,15 +563,13 @@ def _merge_schemas(
         "oneOf": lambda json_schema, operand: _json_schema.put_one_of(
             json_schema, operand
         ),
-        "not": lambda json_schema, operand: _json_schema.put_not(
-            json_schema, operand
-        ),
+        "not": lambda json_schema, operand: _json_schema.put_not(json_schema, operand),
         "required": lambda json_schema, operand: _json_schema.put_required(
             json_schema, operand
         ),
         "properties": lambda json_schema, operand: _json_schema.put_properties(
             json_schema, operand
-        )
+        ),
     }
 
     for k, v in source_schema.items():
@@ -577,11 +577,4 @@ def _merge_schemas(
             f = table[k]
         except KeyError as e:
             raise RuntimeError(f"no schema merge mapping for key {repr(k)}") from e
-
-        if k == "properties":
-            print(f"_merge_schemas BEFORE properties WITH source {source_schema} => ...") # TODO: vic - delete
-
         f(target_schema, v)
-
-        if k == "properties":
-            print(f"_merge_schemas AFTER properties => {target_schema['properties']}") # TODO: vic - delete
