@@ -1,12 +1,33 @@
 import json
 import re
+import sys
+from copy import deepcopy
+from pathlib import Path
+from typing import Annotated
 
 import pytest
 from pydantic import ConfigDict, ValidationError, create_model
+from pydantic.json_schema import JsonSchemaValue, JsonValue
 
-from overture.schema.system.feature import Feature
+from overture.schema.system.feature import Feature, _FieldLevel, _maybe_refactor_schema
+from overture.schema.system.model_constraint import (
+    FieldEqCondition,
+    forbid_if,
+    min_fields_set,
+    require_any_of,
+    require_if,
+)
 from overture.schema.system.optionality import Omitable
-from overture.schema.system.primitive import BBox, Geometry
+from overture.schema.system.primitive import (
+    BBox,
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
+
+sys.path.insert(0, str(Path(__file__).parent.parent))  # Needed to import `util` module.
+
+from util import assert_subset
 
 
 class TestSerializeModel:
@@ -607,5 +628,664 @@ class TestValidateModel:
 
 
 class TestJsonSchema:
-    def test_json_schema(self):
-        assert False, "todo: this"
+    def test_simple_json_schema(self):
+        expect = {
+            "title": "Feature",
+            "type": "object",
+            "required": [
+                "type",
+                "geometry",
+                "properties",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "id": {
+                    "type": "string",
+                },
+                "bbox": {
+                    "type": "array",
+                },
+                "geometry": {},
+                "properties": {
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "not": {"required": ["id", "bbox", "geometry"]},
+                        },
+                        {
+                            "type": "null",
+                        },
+                    ],
+                },
+                "type": {"const": "Feature", "type": "string"},
+            },
+        }
+
+        actual = Feature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
+
+    def test_subclass_new_fields(self):
+        class SubFeature(Feature):
+            foo: Omitable[int]
+            bar: str | None = None
+            baz: float
+
+        expect = {
+            "title": "SubFeature",
+            "type": "object",
+            "required": [
+                "type",
+                "geometry",
+                "properties",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "id": {
+                    "type": "string",
+                },
+                "bbox": {
+                    "type": "array",
+                },
+                "geometry": {},
+                "properties": {
+                    "type": "object",
+                    "required": ["baz"],
+                    "not": {"required": ["id", "bbox", "geometry"]},
+                    "properties": {
+                        "foo": {
+                            "type": "integer",
+                        },
+                        "bar": {
+                            "anyOf": [
+                                {"type": "string"},
+                                {"type": "null"},
+                            ],
+                            "default": None,
+                        },
+                        "baz": {"type": "number"},
+                    },
+                },
+                "type": {"const": "Feature", "type": "string"},
+            },
+        }
+
+        actual = SubFeature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
+
+    def test_subclass_make_required_fields_not_required(self):
+        assert False
+
+    def test_subclass_geometry_type_constraint(self):
+        class PointFeature(Feature):
+            geometry: Annotated[Geometry, GeometryTypeConstraint(GeometryType.POINT)]
+
+        expect = {
+            "title": "PointFeature",
+            "type": "object",
+            "required": [
+                "geometry",
+                "properties",
+                "type",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "id": {
+                    "type": "string",
+                },
+                "bbox": {
+                    "type": "array",
+                },
+                "geometry": {
+                    "type": "object",
+                    "required": ["type", "coordinates"],
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "const": "Point",
+                        },
+                        "coordinates": {
+                            "type": "array",
+                            "items": {
+                                "type": "number",
+                            },
+                            "minItems": 2,
+                            "maxItems": 3,
+                        },
+                    },
+                },
+                "properties": {
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "not": {"required": ["id", "bbox", "geometry"]},
+                            "properties": {},
+                        },
+                        {
+                            "type": "null",
+                        },
+                    ],
+                },
+                "type": {"const": "Feature", "type": "string"},
+            },
+        }
+
+        actual = PointFeature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
+
+    def test_forbid_extra_fields(self):
+        class SubFeature(Feature):
+            model_config = ConfigDict(extra="forbid")
+
+        expect = {
+            "title": "SubFeature",
+            "type": "object",
+            "required": [
+                "geometry",
+                "properties",
+                "type",
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                },
+                "bbox": {
+                    "type": "array",
+                },
+                "geometry": {},
+                "properties": {
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "not": {"required": ["id", "bbox", "geometry"]},
+                            "additionalProperties": False,
+                            "properties": {},
+                        },
+                        {
+                            "type": "null",
+                        },
+                    ],
+                },
+                "type": {"const": "Feature", "type": "string"},
+            },
+        }
+
+        actual = SubFeature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
+
+    def test_unsupported_keyword(self):
+        assert False
+
+    def test_model_constraint_top_level_only(self):
+        assert False
+
+    def test_model_constraint_properties_object_only(self):
+        assert False
+
+    def test_model_constraint_mixed(self):
+        @forbid_if(["foo"], FieldEqCondition("qux", "ban.foo"))
+        @require_if(["id", "foo", "qux"], FieldEqCondition("corge", 42))
+        @require_any_of("bbox", "foo", "garply")
+        class SubFeature(Feature):
+            foo: Omitable[bool]
+            bar: bool
+            baz: bool
+            qux: Omitable[str]
+            corge: int
+            garply: Omitable[bool]
+
+        expect = {
+            "type": "object",
+            "required": [
+                "geometry",
+                "properties",
+                "type",
+            ],
+            "anyOf": [
+                {"required": ["bbox"]},
+                {
+                    "properties": {
+                        "properties": {
+                            "type": "object",
+                            "required": ["foo"],
+                        }
+                    },
+                },
+                {
+                    "properties": {
+                        "properties": {
+                            "type": "object",
+                            "required": ["garply"],
+                        },
+                    },
+                },
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "properties": {
+                                "type": "object",
+                                "properties": {
+                                    "corge": {
+                                        "const": 42,
+                                    },
+                                },
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": ["id"],
+                        "properties": {
+                            "properties": {
+                                "type": "object",
+                                "required": ["foo", "qux"],
+                            },
+                        },
+                    },
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "properties": {
+                                "type": "object",
+                                "properties": {
+                                    "qux": {
+                                        "const": "ban.foo",
+                                    },
+                                },
+                            }
+                        },
+                    },
+                    "then": {
+                        "not": {
+                            "properties": {
+                                "properties": {
+                                    "type": "object",
+                                    "required": ["foo"],
+                                }
+                            }
+                        },
+                    },
+                },
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                },
+                "bbox": {
+                    "type": "array",
+                },
+                "geometry": {},
+                "properties": {
+                    "type": "object",
+                    "required": ["bar", "baz", "corge"],
+                    "properties": {
+                        "foo": {
+                            "type": "boolean",
+                        },
+                        "bar": {
+                            "type": "boolean",
+                        },
+                        "baz": {
+                            "type": "boolean",
+                        },
+                        "qux": {
+                            "type": "string",
+                        },
+                        "corge": {
+                            "type": "integer",
+                        },
+                        "garply": {
+                            "type": "boolean",
+                        },
+                    },
+                },
+                "type": {"const": "Feature", "type": "string"},
+            },
+        }
+
+        actual = SubFeature.model_json_schema()
+        print(json.dumps(actual, indent=2))
+
+        assert_subset(expect, actual, "expect", "actual")
+        assert False
+
+
+class Test_FieldLevel:
+    @pytest.mark.parametrize(
+        "value",
+        [
+            True,
+            False,
+            {},
+            {"$comment": "foo"},
+            {"default": "bar"},
+            {"deprecated": "baz"},
+            {"description": "qux"},
+            {"examples": "corge"},
+            {"examples": {}},
+            {"readOnly": True},
+            {"writeOnly": True},
+            {"title": "garply"},
+            {"properties": {}},
+            {"required": []},
+            {"allOf": []},
+            {"anyOf": []},
+            {"oneOf": []},
+            {"not": {}},
+            {"if": {}},
+            {"then": {}},
+            {"else": {}},
+            {
+                "allOf": [
+                    {"required": []},
+                    {"properties": {}},
+                ]
+            },
+            {
+                "anyOf": [
+                    {"required": []},
+                    {"properties": {}},
+                ]
+            },
+            {
+                "anyOf": [
+                    {"required": []},
+                    {"properties": {}},
+                ]
+            },
+            {
+                "oneOf": [
+                    {"required": []},
+                    {"properties": {}},
+                ]
+            },
+            {
+                "not": [
+                    {"required": []},
+                    {"properties": {}},
+                ]
+            },
+            {
+                "if": [
+                    {"required": []},
+                    {"properties": {}},
+                ]
+            },
+            {
+                "then": [
+                    {"required": []},
+                    {"properties": {}},
+                ]
+            },
+            {
+                "else": [
+                    {"required": []},
+                    {"properties": {}},
+                ]
+            },
+        ],
+    )
+    def test_classify_unknown(self, value: JsonValue) -> None:
+        actual = _FieldLevel.classify(Feature, value)
+
+        assert _FieldLevel.UNKNOWN == actual
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            ["id", "foo"],
+            ["bbox", "foo"],
+            ["geometry", "foo"],
+            ["bar", "baz", "id", "qux", "geometry", "bbox"],
+            {"required": ["id", "foo"]},
+            {
+                "properties": {
+                    "foo": {},
+                    "bbox": {},
+                }
+            },
+            {
+                "required": ["id"],
+                "properties": {
+                    "foo": {},
+                },
+            },
+            {"allOf": [{"required": ["id", "foo"]}]},
+            {"anyOf": [{"required": ["id", "foo"]}]},
+            {"oneOf": [{"required": ["id", "foo"]}]},
+            {"not": {"required": ["id", "foo"]}},
+            {"if": {"required": ["id", "foo"]}},
+            {"then": {"required": ["id", "foo"]}},
+            {"else": {"required": ["id", "foo"]}},
+        ],
+    )
+    def test_classify_mixed(self, value: JsonValue) -> None:
+        actual = _FieldLevel.classify(Feature, value)
+
+        assert _FieldLevel.MIXED == actual
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "foo",
+            "properties",
+            ["foo"],
+            ("properties",),
+            ["foo", "bar", "properties"],
+            {"required": ["foo"]},
+            {"required": ["properties"]},
+            {"required": ["foo", "properties"]},
+            {
+                "properties": {
+                    "foo": {"type": "object", "required": ["id", "bbox"]},
+                }
+            },
+            {
+                "required": ["foo", "bar"],
+                "properties": {
+                    "properties": {},
+                    "baz": {},
+                },
+            },
+            {"allOf": [{"required": ["foo"]}]},  # This one?
+            {"anyOf": [{"required": ["foo"]}]},
+            {"oneOf": [{"required": ["foo"]}]},
+            {"not": {"required": ["foo"]}},
+            {"if": {"required": ["foo"]}},
+            {"then": {"required": ["foo"]}},
+            {"else": {"required": ["foo"]}},
+        ],
+    )
+    def test_classify_properties_object(self, value: JsonValue) -> None:
+        actual = _FieldLevel.classify(Feature, value)
+
+        assert _FieldLevel.PROPERTIES_OBJECT == actual
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "id",
+            "bbox",
+            "geometry",
+            ["id"],
+            ("bbox",),
+            ["geometry"],
+            ("id", "bbox", "geometry"),
+            {"required": ["id"]},
+            {"required": ["bbox"]},
+            {"required": ["bbox", "geometry"]},
+            {
+                "properties": {
+                    "bbox": {"type": "object", "required": ["foo", "bar"]},
+                }
+            },
+            {
+                "required": ["id", "bbox"],
+                "properties": {
+                    "id": {},
+                    "geometry": {},
+                },
+            },
+            {"allOf": [{"required": ["id"]}]},
+            {"anyOf": [{"required": ["bbox"]}]},
+            {"oneOf": [{"required": ["geometry"]}]},
+            {"not": {"required": ["id", "bbox"]}},
+            {"if": {"required": ["bbox", "geometry"]}},
+            {"then": {"required": ["id"]}},
+            {"else": {"required": ["id"]}},
+        ],
+    )
+    def test_classify_top_level_object(self, value: JsonValue) -> None:
+        actual = _FieldLevel.classify(Feature, value)
+
+        assert _FieldLevel.TOP_LEVEL_OBJECT == actual
+
+    def test_classify_error_unsupported_keyword_deep(self) -> None:
+        _ = _FieldLevel.classify(
+            Feature,
+            {
+                "properties": {
+                    "foo": {
+                        "type": "object",
+                        "minProperties": 1,
+                    },
+                    "bbox": {
+                        "type": "object",
+                        "minProperties": 2,
+                    },
+                }
+            },
+        )
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            {"minProperties": 1},
+            {"allOf": [{"minProperties": 2}]},
+            {"anyOf": [{"minProperties": 2}]},
+            {"oneOf": [{"minProperties": 2}]},
+            {"not": {"minProperties": 2}},
+            {"allOf": [{"not": {"minProperties": 2}}]},
+            {"anyOf": [{"not": {"minProperties": 2}}]},
+            {"oneOf": [{"not": {"minProperties": 2}}]},
+        ],
+    )
+    def test_classify_error_unsupported_keyword_shallow(self, value: JsonValue) -> None:
+        with pytest.raises(ValueError, match="unsupported JSON Schema keyword '\\w+'"):
+            _FieldLevel.classify(Feature, value)
+
+
+class TestRefactoring:
+    @pytest.mark.parametrize(
+        "sub_schema,top_level_schema,properties_object_schema,expect_top_level_schema,expect_properties_object_schema",
+        [
+            ({}, {}, {}, None, None),
+            (
+                { "required": ["id"] },
+                { },
+                { },
+                { "required": ["id"] },
+                None,
+            ),
+            (
+                { "required": ["foo"] },
+                { },
+                { },
+                None,
+                { "required": ["foo"] },
+            ),
+            (
+                { "required": ["id", "foo"] },
+                { },
+                { },
+                {
+                    "required": ["id"],
+                    "properties": {
+                        "properties": {
+                            "type": "object",
+                            "required": ["foo"]
+                        }
+                    }
+                },
+                None,
+            ),
+            (
+                {
+                    "anyOf": [
+                        { "required": ["foo"] },
+                        { "required": ["bar"] },
+                    ]
+                },
+                { },
+                { },
+                None,
+                {
+                    "anyOf": [
+                        { "required": ["foo"] },
+                        { "required": ["bar"] },
+                    ]
+                },
+            ),
+            (
+                {
+                    "anyOf": [
+                        { "required": ["id"] },
+                        { "required": ["foo"] },
+                    ]
+                },
+                { },
+                { },
+                {
+                    "anyOf": [
+                        { "required": ["id"] },
+                        {
+                            "properties": {
+                                "properties": {
+                                    "type": "object",
+                                    "required": ["foo"],
+                                }
+                            }
+                        }
+                    ]
+                },
+                None,
+            ),
+        ],
+    )
+    def test_maybe_refactor_schema(
+        self,
+        sub_schema: JsonSchemaValue,
+        top_level_schema: JsonSchemaValue,
+        properties_object_schema: JsonSchemaValue,
+        expect_top_level_schema: JsonSchemaValue | None,
+        expect_properties_object_schema: JsonSchemaValue | None,
+    ) -> None:
+        _sub_schema = deepcopy(sub_schema)
+        _top_level_schema = deepcopy(top_level_schema)
+        _properties_object_schema = deepcopy(properties_object_schema)
+
+        _maybe_refactor_schema(
+            Feature, _sub_schema, _top_level_schema, _properties_object_schema
+        )
+
+        print(f"_top_level_schema => {repr(_top_level_schema)}")
+        print(f"_properties_object_schema => {repr(_properties_object_schema)}")
+
+        if expect_top_level_schema:
+            assert expect_top_level_schema == _top_level_schema
+        else:
+            assert top_level_schema == _top_level_schema
+
+        if expect_properties_object_schema:
+            assert expect_properties_object_schema == _properties_object_schema
+        else:
+            assert properties_object_schema == _properties_object_schema

@@ -1,3 +1,5 @@
+from enum import Enum
+from functools import reduce
 from typing import Any
 
 from pydantic import (
@@ -11,11 +13,11 @@ from pydantic import (
     model_serializer,
     model_validator,
 )
-from pydantic.json_schema import JsonSchemaValue
+from pydantic.json_schema import JsonSchemaValue, JsonValue
 from pydantic_core import InitErrorDetails, core_schema
 from typing_extensions import Self
 
-from overture.schema.system._json_schema import put_not
+from overture.schema.system import _json_schema
 from overture.schema.system.optionality import Omitable
 from overture.schema.system.primitive import BBox, Geometry
 from overture.schema.system.ref import Id
@@ -30,7 +32,7 @@ class Feature(BaseModel):
     feature may have an `id` field that uniquely identifies it. It may also have a bounding box,
     which is a simplified geometry that facilitates efficient spatial operations.
 
-    Derive a subclass of `Feature` to add new fields with facts about your feature type.
+    To add new fields with facts about your own feature type, derive a subclass of `Feature`:
 
     >>> from typing  import Annotated
     >>> from pydantic import Field
@@ -68,7 +70,7 @@ class Feature(BaseModel):
       }
     }
 
-    Use a geometry type constraint to limit the geometry types allowed on your feature subclass.
+    To limit the geometry types allowed on your feature subclass, use a geometry type constraint.
     This can help maximize validation and data integrity by preventing geometries that do not make
     sense from being stored.
 
@@ -237,79 +239,130 @@ class Feature(BaseModel):
 
     @classmethod
     def __get_pydantic_json_schema__(
-        cls, schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+        cls: type["Feature"],
+        schema: core_schema.CoreSchema,
+        handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         """
         Generates a JSON Schema that validates the feature as GeoJSON.
         """
-        json_schema = super().__get_pydantic_json_schema__(core_schema, handler)
+        json_schema = handler(schema)
 
-        # Move all non-GeoJSON properties down into the GeoJSON 'properties' object.
-        try:
-            json_schema_top_level_required = json_schema["required"]
-        except KeyError:
-            json_schema_top_level_required = []
-            json_schema["required"] = json_schema_top_level_required
-        json_schema_top_level_properties = json_schema["properties"]
-        geo_json_properties = {}
-        geo_json_required = []
+        # FIXME: TODO: vic - delete
+        # for name in list(top_level_properties_schema.keys()):
+        #     if name not in ["id", "bbox", "geometry"]:
+        #         value = top_level_properties_schema[name]
+        #         properties_object_properties_schema[name] = value
+        #         del top_level_properties_schema[name]
+        #         if name in top_level_required:
+        #             top_level_required.remove(name)
+        #             properties_object_required.append(name)
 
-        for name in json_schema_top_level_properties.keys():
-            if name not in ["id", "bbox", "geometry"]:
-                value = json_schema_top_level_properties[name]
-                geo_json_properties[name] = value
-                del json_schema_top_level_properties[name]
-                if name in json_schema_top_level_required:
-                    json_schema_top_level_required.remove(name)
-                    geo_json_required.append(name)
+        # Determine if the schema allows any additional properties apart from the three basic ones,
+        # "id", "bbox", and "geometry".
+        may_have_properties = len(cls.model_fields) > 3 or cls.model_config.get("extra", None) != "forbid"
+
+        # If additional properties may be allowed, we have to factor the schema to ensure that all
+        # properties apart from the basic ones are homed in the Feature object's "properties"
+        # sub-object.
+        if may_have_properties:
+            # Start the schema for the properties sub-object. Ensure the three basic properties,
+            # "id", "bbox", and "geometry", cannot appear in the properties sub-object.
+            properties_object_schema = {
+                "type": "object",
+                "not": {"required": ["id", "bbox", "geometry"]},
+            }
+            _json_schema.put_properties(json_schema, { "properties": properties_object_schema })
+
+            # Preserve simple constraints from the original schema by migrating them down into the
+            # 'properties' sub-schema.
+            for key in [
+                "additionalProperties",
+                "unevaluatedProperties",
+                "patternProperties",
+            ]:
+                if key in json_schema:
+                    properties_object_schema[key] = json_schema.pop(key)
+
+            # Migrate the remaining sub-schemas into the properties sub-object.
+            #
+            # More complex constraints may require factoring the constraint using "JSON Schema
+            # algebra" if the constraint mixes he three top-level fields ("id", etc.) with fields
+            # that belong in the properties sub-object.
+            for key in ["required", "properties", "allOf", "anyOf", "oneOf", "not"]:
+                if key in json_schema:
+                    _maybe_refactor_schema(
+                        cls,
+                        {key: json_schema.pop(key)},
+                        json_schema,
+                        properties_object_schema,
+                    )
+            if_then_else = {}
+            _json_schema.try_move("if", json_schema, if_then_else)
+            _json_schema.try_move("then", json_schema, if_then_else)
+            _json_schema.try_move("else", json_schema, if_then_else)
+            if if_then_else:
+                _maybe_refactor_schema(
+                    cls, if_then_else, json_schema, properties_object_schema
+                )
+
+            # Determine if the properties object is allowed to be null or not. We only allow null
+            # if there are no explicitly required fields. Note that even if we allow null here, it
+            # might be blocked by conditional schemas, for example if a field is conditionally
+            # required.
+            may_null_properties = len(properties_object_schema.get("required", [])) == 0
+
+            if may_null_properties:
+                properties_object_schema = {
+                    "anyOf": [
+                        properties_object_schema,
+                        { "type": "null" },
+                    ]
+                }
+        else:
+            properties_object_schema = {
+                "anyOf": [
+                    {
+                        "type": "object",
+                        "maxProperties": 0,
+                    },
+                    { "type": "null" },
+                ]
+            }
+
+        # Insert the Feature's properties sub-object schema into the top-level object properties.
+        top_level_properties_schema = json_schema["properties"]
+        top_level_properties_schema["properties"] = properties_object_schema
 
         # Create the sub-schema for the GeoJSON 'properties' sub-object.
-        geo_json_properties_schema = {
-            "type": "object",
-            "properties": geo_json_properties,
-            **({"required": geo_json_required} if geo_json_required else {}),
-        }
+        # properties_object_schema = {
+        #     "type": "object",
+        #     "properties": properties_object_properties_schema,
+        #     **(
+        #         {"required": properties_object_required}
+        #         if properties_object_required
+        #         else {}
+        #     ),
+        #     "not": {"required": ["id", "bbox", "geometry"]},
+        # }
 
-        # Preserve the relevant constraints from the original schema by migrating them into the
-        # 'properties' sub-schema.
-        for key in [
-            "anyOf",
-            "allOf",
-            "oneOf",
-            "not",
-            "additionalProperteis",
-            "unevaluatedProperties",
-            "patternProperties",
-        ]:
-            try:
-                geo_json_properties_schema[key] = json_schema.pop(key)
-            except KeyError:
-                pass
-
-        # Prohibit the core top-level properties from being replicated in the 'properties'
-        # sub-object.
-        put_not(geo_json_properties_schema, {"required": ["id", "bbox", "geometry"]})
-
-        # Insert the sub-schema for the 'properties' sub-object. If 'properties' has no required
-        # members then we allow it to be `null` in conformance with the GeoJSON specification.
-        # Otherwise, it must be an object.
-        if geo_json_required:
-            json_schema_top_level_properties["properties"] = geo_json_properties_schema
-        else:
-            json_schema_top_level_properties["properties"] = {
-                "anyOf": {
-                    geo_json_properties_schema,
-                    {"type": "null"},
-                }
-            }
-        json_schema_top_level_required.append("properties")
+        # Get the top-level required schema. This may not exist, because subclasses of Feature can
+        # technically eliminate the mandatoriness of the basic fields by redefining them.
+        try:
+            top_level_required = json_schema["required"]
+        except KeyError:
+            top_level_required = []
+            json_schema["required"] = top_level_required
 
         # Add `type=Feature` at the top level.
-        json_schema_top_level_properties["type"] = {
+        top_level_properties_schema["type"] = {
             "type": "string",
             "const": "Feature",
         }
-        json_schema_top_level_required.append("type")
+        top_level_required.insert(0, "type")
+
+        # Make the properties sub-object required, consistent with the GeoJSON format spec.
+        top_level_required.append("properties")
 
         # Do not allow any extra properties in the root JSON object: we want to restrict it only to
         # the core GeoJSON properties. Any extra fields, if they are allowed by the Pydantic model,
@@ -318,3 +371,217 @@ class Feature(BaseModel):
 
         # Return the completed GeoJSON-flavored JSON Schema.
         return json_schema
+
+
+class _FieldLevel(str, Enum):
+    UNKNOWN = "unknown"
+    MIXED = "mixed"
+    PROPERTIES_OBJECT = "properties"
+    TOP_LEVEL_OBJECT = "top_level"
+
+    @staticmethod
+    def classify(
+        cls: type[Feature],
+        value: JsonValue,
+        in_object_properties: bool = False,
+        *loc: int | str,
+    ) -> "_FieldLevel":
+        if isinstance(value, list | tuple):
+            return reduce(
+                lambda acc, x: _FieldLevel.combine(acc, x),
+                [
+                    _FieldLevel.classify(cls, v, in_object_properties, *loc, i)
+                    for i, v in enumerate(value)
+                ],
+                _FieldLevel.UNKNOWN,
+            )
+        elif isinstance(value, str):
+            return (
+                _FieldLevel.TOP_LEVEL_OBJECT
+                if value in ["id", "bbox", "geometry"]
+                else _FieldLevel.PROPERTIES_OBJECT
+            )
+        elif not isinstance(value, dict):
+            return _FieldLevel.UNKNOWN
+        else:
+            field_level = _FieldLevel.UNKNOWN
+            for k, v in value.items():
+                if k.startswith("$") or k in {
+                    "default",
+                    "deprecated",
+                    "description",
+                    "examples",
+                    "readOnly",
+                    "writeOnly",
+                    "title",
+                }:
+                    continue
+                elif in_object_properties:
+                    new_level = _FieldLevel.classify(cls, k, True, *loc, k)
+                elif k in ["minProperties"]:
+                    raise ValueError(
+                        f"unsupported JSON Schema keyword {repr(k)} at path {repr(loc)}: the keyword cannot be used at the top level of the `{cls.__name__}` schema"
+                    )
+                elif k in {
+                    "allOf",
+                    "anyOf",
+                    "oneOf",
+                    "not",
+                    "if",
+                    "then",
+                    "else",
+                    "required",
+                }:
+                    new_level = _FieldLevel.classify(
+                        cls, v, in_object_properties, *loc, k
+                    )
+                elif k == "properties":
+                    new_level = _FieldLevel.classify(cls, v, True, *loc, "properties")
+                else:
+                    new_level = _FieldLevel.UNKNOWN
+                field_level = _FieldLevel.combine(field_level, new_level)
+                if field_level == _FieldLevel.MIXED:
+                    break
+            return field_level
+
+    @staticmethod
+    def combine(a: "_FieldLevel", b: "_FieldLevel") -> "_FieldLevel":
+        if a == b:
+            return a
+        elif a == _FieldLevel.UNKNOWN:
+            return b
+        elif b == _FieldLevel.UNKNOWN:
+            return a
+        else:
+            return _FieldLevel.MIXED
+
+
+def _maybe_refactor_schema(
+    cls: type[Feature],
+    sub_schema: JsonSchemaValue,
+    top_level_schema: JsonSchemaValue,
+    properties_object_schema: JsonSchemaValue,
+) -> None:
+    field_level = _FieldLevel.classify(cls, sub_schema)
+
+    print(f"field_level => {field_level} for sub_schema => {sub_schema}") # TODO - delete - vic
+
+    if field_level == _FieldLevel.PROPERTIES_OBJECT:
+        _merge_schemas(properties_object_schema, sub_schema)
+    elif field_level != _FieldLevel.MIXED:
+        # This is safe because it was taken out of the top level and we are just putting it back now.
+        top_level_schema |= sub_schema
+    else:
+        _refactor_schema(sub_schema)
+
+        print(f"refactored sub_schema => {sub_schema}") # TODO - delete - vic
+
+        _merge_schemas(top_level_schema, sub_schema)
+
+        print(f"merged schema => {top_level_schema}") # TODO - delete - vic
+
+
+def _refactor_schema(schema: JsonSchemaValue) -> None:
+    for k, v in list(schema.items()):
+        if k == "properties":
+            _refactor_properties(schema)
+        elif k == "required":
+            _refactor_required(schema)
+        elif isinstance(v, dict):
+            _refactor_schema(v)
+        elif isinstance(v, list):
+            for item in v:
+                _refactor_schema(item)
+
+
+def _refactor_properties(schema: JsonSchemaValue) -> None:
+    properties = schema["properties"]
+
+    lower_properties = {}
+    for k, v in list(properties.items()):
+        if k not in [ "id", "bbox", "geometry"]:
+            lower_properties[k] = v
+            del properties[k]
+
+    # This is a conceptual nightmare. "k not in the 3 main props" but by this point, I have already
+    # added the properties object schema so now there are 4. This is going to lead to a mess. The
+    # properties object schema somehow has to be kept separate.
+    print(f"LOWER PROPS => {lower_properties}")
+
+    if len(lower_properties) > 0:
+        try:
+            properties_object_schema = properties["properties"]
+        except KeyError:
+            properties_object_schema = { "type": "object" }
+            properties["properties"] = properties_object_schema
+        _json_schema.put_properties(properties_object_schema, lower_properties)
+
+
+def _refactor_required(schema: JsonSchemaValue) -> None:
+    required = schema.pop("required")
+
+    upper_required = [p for p in required if p in ["id", "bbox", "geometry"]]
+    if len(upper_required) > 0:
+        schema["required"] = upper_required
+
+    if len(upper_required) < len(required):
+        schema_properties = schema.get("properties", {})
+        properties_schema = schema_properties.get(
+            "properties",
+            {
+                "type": "object",
+            },
+        )
+        properties_schema["required"] = [
+            p for p in required if p not in {"id", "bbox", "geometry"}
+        ]
+        schema_properties["properties"] = properties_schema
+        schema["properties"] = schema_properties
+
+        print(f"TODO - Vic - delete - _refactore_required schema => {schema}")
+
+
+def _merge_schemas(
+    target_schema: JsonSchemaValue, source_schema: JsonSchemaValue
+) -> None:
+    if_then_else = {}
+    _json_schema.try_move("if", source_schema, if_then_else)
+    _json_schema.try_move("then", source_schema, if_then_else)
+    _json_schema.try_move("else", source_schema, if_then_else)
+    if if_then_else:
+        _json_schema.put_if(target_schema, if_then_else.get("if", None), if_then_else.get("then", None), if_then_else.get("else", None))
+
+    table = {
+        "allOf": lambda json_schema, operand: _json_schema.put_all_of(
+            json_schema, operand
+        ),
+        "anyOf": lambda json_schema, operand: _json_schema.put_any_of(
+            json_schema, operand
+        ),
+        "oneOf": lambda json_schema, operand: _json_schema.put_one_of(
+            json_schema, operand
+        ),
+        "not": lambda json_schema, operand: _json_schema.put_not(
+            json_schema, operand
+        ),
+        "required": lambda json_schema, operand: _json_schema.put_required(
+            json_schema, operand
+        ),
+        "properties": lambda json_schema, operand: _json_schema.put_properties(
+            json_schema, operand
+        )
+    }
+
+    for k, v in source_schema.items():
+        try:
+            f = table[k]
+        except KeyError as e:
+            raise RuntimeError(f"no schema merge mapping for key {repr(k)}") from e
+
+        if k == "properties":
+            print(f"_merge_schemas BEFORE properties WITH source {source_schema} => ...") # TODO: vic - delete
+
+        f(target_schema, v)
+
+        if k == "properties":
+            print(f"_merge_schemas AFTER properties => {target_schema['properties']}") # TODO: vic - delete
