@@ -1,3 +1,4 @@
+import re
 from typing import cast
 
 import pytest
@@ -11,6 +12,7 @@ from overture.schema.system._json_schema import (
     put_if,
     put_not,
     put_one_of,
+    put_properties,
     put_required,
     try_move,
 )
@@ -248,7 +250,7 @@ def test_put_not_error_invalid_operand() -> None:
 
 def test_put_not_error_invalid_not_value() -> None:
     with pytest.raises(
-        ValueError, match='expected value of "not" key to be a `JsonSchemaValue`'
+        TypeError, match='expected value of "not" key to be a `JsonSchemaValue`'
     ):
         put_not({"not": []}, {})
 
@@ -410,7 +412,131 @@ def test_put_required_success(
 #                                         put_properties                                           #
 ####################################################################################################
 
-# todo - vic
+
+def test_put_properties_error_invalid_json_schema_type() -> None:
+    with pytest.raises(
+        TypeError,
+        match="`json_schema` must be a `JsonSchemaValue` value, but 42 has type `int`",
+    ):
+        put_properties(42, {})
+
+
+def test_put_properties_error_invalid_new_properties_type() -> None:
+    with pytest.raises(
+        TypeError,
+        match="`new_properties` must be a `JsonSchemaValue` value, but 'foo' has type `str`",
+    ):
+        put_properties({}, "foo")
+
+
+def test_put_properties_error_invalid_existing_properties_type() -> None:
+    with pytest.raises(
+        TypeError,
+        match='expected value of "properties" key to be a `JsonSchemaValue`, but 42 has type `int`',
+    ):
+        put_properties({"properties": 42}, {})
+
+
+def test_put_properties_error_invalid_new_property_value_type() -> None:
+    with pytest.raises(
+        TypeError,
+        match="expected property value for 'foo' key to be a `JsonSchemaValue`, but 'bar' has type `str`",
+    ):
+        put_properties({}, {"foo": "bar"})
+
+
+@pytest.mark.parametrize(
+    "json_schema,new_properties",
+    [
+        (
+            {"properties": {"foo": "bar"}},
+            {"foo": {"type": "integer"}},
+        ),
+        (
+            {
+                "properties": {
+                    "foo": {
+                        "bar": "baz",
+                    }
+                }
+            },
+            {
+                "foo": {
+                    "bar": {"type": "integer"},
+                }
+            },
+        ),
+    ],
+)
+def test_put_properties_error_merge_conflict_dst_type(
+    json_schema: JsonSchemaValue, new_properties: JsonSchemaValue
+) -> None:
+    with pytest.raises(
+        TypeError,
+        match="put_properties` merge conflict: `dst` exists but `src` cannot be merged in because `dst` is not a `JsonSchemaValue`",
+    ):
+        put_properties(json_schema, new_properties)
+
+
+def test_put_properties_error_merge_conflict_dst_value() -> None:
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "`put_properties` merge conflict: `dst['type']='bar'` exists and does not equal `src['type']='baz'`"
+        ),
+    ):
+        put_properties(
+            {
+                "properties": {
+                    "foo": {
+                        "type": "bar",
+                    }
+                }
+            },
+            {
+                "foo": {
+                    "type": "baz",
+                },
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    "json_schema,new_properties,expect",
+    [
+        ({}, {}, {}),
+        ({}, {"foo": {}}, {"properties": {"foo": {}}}),
+        ({"properties": {"foo": {}}}, {"foo": {}}, {"properties": {"foo": {}}}),
+        (
+            {"properties": {"foo": {}}},
+            {"bar": {"baz": "qux"}},
+            {"properties": {"foo": {}, "bar": {"baz": "qux"}}},
+        ),
+        (
+            {"properties": {"foo": {"bar": "baz"}}},
+            {"foo": {"qux": "corge"}},
+            {"properties": {"foo": {"bar": "baz", "qux": "corge"}}},
+        ),
+        (
+            {"properties": {"foo": {"bar": "baz", "qux": {"corge": "garply"}}}},
+            {"foo": {"qux": {"hello": [42]}}},
+            {
+                "properties": {
+                    "foo": {"bar": "baz", "qux": {"corge": "garply", "hello": [42]}}
+                }
+            },
+        ),
+    ],
+)
+def test_put_properties_success(
+    json_schema: JsonSchemaValue,
+    new_properties: JsonSchemaValue,
+    expect: JsonSchemaValue,
+) -> None:
+    put_properties(json_schema, new_properties)
+
+    assert expect == json_schema
+
 
 ####################################################################################################
 #                                            try_move                                              #

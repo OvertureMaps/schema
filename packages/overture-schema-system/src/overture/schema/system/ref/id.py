@@ -14,4 +14,6 @@ Id = NewType(
         ),
     ],
 )
-# todo - Vic - Pdoc string
+"""
+A unique identifier.
+"""
