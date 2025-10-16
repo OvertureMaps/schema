@@ -16,6 +16,9 @@ test-all: uv-sync
 test: uv-sync
 	@uv run pytest packages/ -x
 
+coverage: uv-sync
+	@uv run pytest packages/ --cov overture.schema --cov-report=term --cov-report=html && open htmlcov/index.html
+
 docformat:
 	@find packages/*/src -name "*.py" -type f -not -name "__*" \
 		| xargs uv run pydocstyle --convention=numpy --add-ignore=D105

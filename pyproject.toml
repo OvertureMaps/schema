@@ -52,7 +52,7 @@ dev = [
     "pdoc>=15.0.4",
     "pydocstyle>=6.3.0",
     "pytest>=8.4.1",
-    "pytest-cov",
+    "pytest-cov>=7.0.0",
     "ruff>=0.12.4",
 ]
 
