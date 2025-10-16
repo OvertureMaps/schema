@@ -59,7 +59,7 @@ class Omitable(Generic[T]):
     >>> assert 'integer' == bar_type
     """
 
-    def __class_getitem__(cls, item) -> type[Any]:
+    def __class_getitem__(cls, item: Any) -> Any:
         if _has_none(item):
             raise TypeError(
                 f"`None` not allowed in `{Omitable.__name__}` args, but found `None` in {item}"

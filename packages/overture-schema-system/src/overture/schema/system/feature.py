@@ -7,6 +7,7 @@ from pydantic import (
     Field,
     GetJsonSchemaHandler,
     ModelWrapValidatorHandler,
+    SerializationInfo,
     SerializerFunctionWrapHandler,
     ValidationError,
     ValidationInfo,
@@ -101,8 +102,8 @@ class Feature(BaseModel):
 
     @model_serializer(mode="wrap")
     def serialize_model(
-        self, serializer: SerializerFunctionWrapHandler, info: ValidationInfo
-    ) -> dict[str, object]:
+        self, serializer: SerializerFunctionWrapHandler, info: SerializationInfo
+    ) -> Any:
         """
         Serializes to GeoJSON when the mode is JSON, otherwise to Pydantic's standard Python mode.
         """
@@ -332,7 +333,7 @@ class Feature(BaseModel):
                         json_schema,
                         properties_object_schema,
                     )
-            if_then_else = {}
+            if_then_else: JsonSchemaValue = {}
             _json_schema.try_move("if", json_schema, if_then_else)
             _json_schema.try_move("then", json_schema, if_then_else)
             _json_schema.try_move("else", json_schema, if_then_else)
@@ -541,7 +542,7 @@ def _refactor_required(schema: JsonSchemaValue) -> None:
 def _merge_schemas(
     target_schema: JsonSchemaValue, source_schema: JsonSchemaValue
 ) -> None:
-    if_then_else = {}
+    if_then_else: JsonSchemaValue = {}
     _json_schema.try_move("if", source_schema, if_then_else)
     _json_schema.try_move("then", source_schema, if_then_else)
     _json_schema.try_move("else", source_schema, if_then_else)

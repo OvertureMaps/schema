@@ -2,7 +2,7 @@ import json
 import sys
 from pathlib import Path
 from types import NoneType
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 import pytest
 from pydantic import BaseModel, create_model
@@ -16,7 +16,7 @@ from util import assert_subset
 
 
 @pytest.mark.parametrize(
-    "model,expect_json,expect_json_schema",
+    "model_instance,expect_json,expect_json_schema",
     [
         (
             create_model("case1", foo=Omitable[int])(),
@@ -71,20 +71,22 @@ from util import assert_subset
     ],
 )
 def test_omitable_model(
-    model: type[BaseModel], expect_json: JsonDict, expect_json_schema: JsonDict
+    model_instance: BaseModel,
+    expect_json: JsonDict,
+    expect_json_schema: dict[str, object],
 ) -> None:
-    actual_json = json.loads(model.model_dump_json())
+    actual_json = json.loads(model_instance.model_dump_json())
     assert expect_json == actual_json
 
-    actual_json_schema = model.model_json_schema()
+    actual_json_schema = model_instance.model_json_schema()
     assert_subset(
         expect_json_schema,
-        actual_json_schema,
+        cast(dict[str, object], actual_json_schema),
         "expect_json_schema",
         "actual_json_schema",
     )
 
-    assert not model.__class__.model_fields["foo"].is_required()
+    assert not model_instance.__class__.model_fields["foo"].is_required()
 
 
 @pytest.mark.parametrize(

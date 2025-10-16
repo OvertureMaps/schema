@@ -3,7 +3,7 @@ import re
 import sys
 from copy import deepcopy
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, cast
 
 import pytest
 from pydantic import ConfigDict, ValidationError, create_model
@@ -35,7 +35,7 @@ class TestSerializeModel:
         "feature,expect",
         [
             (
-                Feature(geometry=Geometry.from_wkt("POINT(1 2)")),
+                Feature(geometry=Geometry.from_wkt("POINT(1 2)")),  # type: ignore[call-arg]
                 {
                     "type": "Feature",
                     "geometry": {"type": "Point", "coordinates": [1.0, 2.0]},
@@ -43,7 +43,7 @@ class TestSerializeModel:
                 },
             ),
             (
-                Feature(id="foo", geometry=Geometry.from_wkt("POINT(1 2)")),
+                Feature(id="foo", geometry=Geometry.from_wkt("POINT(1 2)")),  # type: ignore[call-arg]
                 {
                     "type": "Feature",
                     "id": "foo",
@@ -52,7 +52,7 @@ class TestSerializeModel:
                 },
             ),
             (
-                Feature(
+                Feature(  # type: ignore[call-arg]
                     bbox=BBox(0, 1, 0, 2), geometry=Geometry.from_wkt("POINT(1 2)")
                 ),
                 {
@@ -87,13 +87,13 @@ class TestSerializeModel:
         "feature,expect",
         [
             (
-                Feature(geometry=Geometry.from_wkt("POINT(1 2)")),
+                Feature(geometry=Geometry.from_wkt("POINT(1 2)")),  # type: ignore[call-arg]
                 {
                     "geometry": Geometry.from_wkt("POINT(1 2)"),
                 },
             ),
             (
-                Feature(id="foo", geometry=Geometry.from_wkt("POINT(1 2)")),
+                Feature(id="foo", geometry=Geometry.from_wkt("POINT(1 2)")),  # type: ignore[call-arg]
                 {
                     "id": "foo",
                     "geometry": Geometry.from_wkt("POINT(1 2)"),
@@ -101,7 +101,8 @@ class TestSerializeModel:
             ),
             (
                 Feature(
-                    bbox=BBox(0, 1, 0, 2), geometry=Geometry.from_wkt("POINT(1 2)")
+                    bbox=BBox(0, 1, 0, 2),
+                    geometry=Geometry.from_wkt("POINT(1 2)"),  # type: ignore[call-arg]
                 ),
                 {
                     "bbox": BBox(0, 1, 0, 2),
@@ -134,7 +135,7 @@ class TestSerializeModel:
             baz: bool | None = None
 
         geometry = Geometry.from_wkt("LINESTRING(0 1, 0 2)")
-        sub_feature = SubFeature(id="foo", foo=42, geometry=geometry)
+        sub_feature = SubFeature(id="foo", foo=42, geometry=geometry)  # type: ignore[call-arg]
 
         actual_json = json.loads(sub_feature.model_dump_json())
         assert {
@@ -166,7 +167,7 @@ class TestValidateModel:
                     "geometry": {"type": "Point", "coordinates": [1.0, 2.0]},
                     "properties": {},
                 },
-                Feature(geometry=Geometry.from_wkt("POINT(1 2)")),
+                Feature(geometry=Geometry.from_wkt("POINT(1 2)")),  # type: ignore[call-arg]
             ),
             (
                 {
@@ -175,7 +176,7 @@ class TestValidateModel:
                     "geometry": {"type": "Point", "coordinates": [1.0, 2.0]},
                     "properties": {},
                 },
-                Feature(id="foo", geometry=Geometry.from_wkt("POINT(1 2)")),
+                Feature(id="foo", geometry=Geometry.from_wkt("POINT(1 2)")),  # type: ignore[call-arg]
             ),
             (
                 {
@@ -184,7 +185,7 @@ class TestValidateModel:
                     "geometry": {"type": "Point", "coordinates": [1.0, 2.0]},
                     "properties": {},
                 },
-                Feature(
+                Feature(  # type: ignore[call-arg]
                     bbox=BBox(0, 1, 0, 2), geometry=Geometry.from_wkt("POINT(1 2)")
                 ),
             ),
@@ -216,21 +217,21 @@ class TestValidateModel:
                 {
                     "geometry": Geometry.from_wkt("POINT(1 2)"),
                 },
-                Feature(geometry=Geometry.from_wkt("POINT(1 2)")),
+                Feature(geometry=Geometry.from_wkt("POINT(1 2)")),  # type: ignore[call-arg]
             ),
             (
                 {
                     "id": "foo",
                     "geometry": Geometry.from_wkt("POINT(1 2)"),
                 },
-                Feature(id="foo", geometry=Geometry.from_wkt("POINT(1 2)")),
+                Feature(id="foo", geometry=Geometry.from_wkt("POINT(1 2)")),  # type: ignore[call-arg]
             ),
             (
                 {
                     "bbox": BBox(0, 1, 0, 2),
                     "geometry": Geometry.from_wkt("POINT(1 2)"),
                 },
-                Feature(
+                Feature(  # type: ignore[call-arg]
                     bbox=BBox(0, 1, 0, 2), geometry=Geometry.from_wkt("POINT(1 2)")
                 ),
             ),
@@ -263,7 +264,7 @@ class TestValidateModel:
 
         bbox = BBox(0, 1, 0, 2)
         geometry = Geometry.from_wkt("LINESTRING(0 1, 0 2)")
-        expect = SubFeature(id="Hello", foo=42, baz=None, bbox=bbox, geometry=geometry)
+        expect = SubFeature(id="Hello", foo=42, baz=None, bbox=bbox, geometry=geometry)  # type: ignore[call-arg]
 
         actual_from_json = SubFeature.model_validate_json(
             json.dumps(
@@ -628,7 +629,7 @@ class TestValidateModel:
 
 
 class TestJsonSchema:
-    def test_simple_json_schema(self):
+    def test_simple_json_schema(self) -> None:
         expect = {
             "title": "Feature",
             "type": "object",
@@ -666,7 +667,7 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_subclass_new_fields(self):
+    def test_subclass_new_fields(self) -> None:
         class SubFeature(Feature):
             foo: Omitable[int]
             bar: str | None = None
@@ -716,14 +717,14 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_subclass_make_required_fields_not_required(self):
+    def test_subclass_make_required_fields_not_required(self) -> None:
         """
         A subclass can technically redefine a required field to make it not required. This test
         verifies that the JSON Schema generation works as expected in this scenario.
         """
 
         class SubFeature(Feature):
-            geometry: Omitable[Geometry]
+            geometry: Omitable[Geometry]  # type: ignore[assignment]
 
         expect = {
             "title": "SubFeature",
@@ -761,7 +762,7 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_subclass_geometry_type_constraint(self):
+    def test_subclass_geometry_type_constraint(self) -> None:
         class PointFeature(Feature):
             geometry: Annotated[Geometry, GeometryTypeConstraint(GeometryType.POINT)]
 
@@ -819,7 +820,7 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_forbid_extra_fields_without_adding_fields(self):
+    def test_forbid_extra_fields_without_adding_fields(self) -> None:
         class SubFeature(Feature):
             model_config = ConfigDict(extra="forbid")
 
@@ -860,7 +861,7 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_forbid_extra_fields_with_added_optional_field(self):
+    def test_forbid_extra_fields_with_added_optional_field(self) -> None:
         class SubFeature(Feature):
             model_config = ConfigDict(extra="forbid")
 
@@ -909,7 +910,7 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_forbid_extra_fields_with_added_required_field(self):
+    def test_forbid_extra_fields_with_added_required_field(self) -> None:
         class SubFeature(Feature):
             model_config = ConfigDict(extra="forbid")
 
@@ -951,7 +952,7 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_unsupported_keyword_min_properties(self):
+    def test_unsupported_keyword_min_properties(self) -> None:
         """
         We don't have a clean way to port the JSON Schema "minProperties" keyword to the GeoJSON
         Schema in a way that respects the fact that the "logical" properties of the Feature get
@@ -970,7 +971,7 @@ class TestJsonSchema:
             actual = MinFieldsFeature.model_json_schema()
             print(json.dumps(actual, indent=2))
 
-    def test_reuse_synthetic_field_names(self):
+    def test_reuse_synthetic_field_names(self) -> None:
         """
         GeoJSON introduces two artificial field names, "type" and "properties". Since these aren't
         really part of the "logical" structure of a GeoJSON Feature (they are just "physical"
@@ -983,7 +984,7 @@ class TestJsonSchema:
             type: int
             properties: str | None = None
 
-        expect = {
+        expect: dict[str, object] = {
             "properties": {
                 "properties": {
                     "type": "object",
@@ -1006,9 +1007,9 @@ class TestJsonSchema:
         actual = SyntheticFieldNamesModel.model_json_schema()
         print(json.dumps(actual, indent=2))
 
-        assert_subset(expect, actual, "expect", "actual")
+        assert_subset(expect, cast(dict[str, object], actual), "expect", "actual")
 
-    def test_model_constraint_top_level_only(self):
+    def test_model_constraint_top_level_only(self) -> None:
         @forbid_if(["bbox"], FieldEqCondition("id", "hello"))
         @require_if(["id"], FieldEqCondition("bbox", [0, 0, 0, 0]))
         @require_any_of("id", "bbox")
@@ -1078,7 +1079,7 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_model_constraint_properties_object_only(self):
+    def test_model_constraint_properties_object_only(self) -> None:
         @forbid_if(["bar"], FieldEqCondition("baz", 42))
         @require_any_of("foo", "bar")
         class PropertiesObjectConstraintFeature(Feature):
@@ -1125,7 +1126,7 @@ class TestJsonSchema:
 
         assert_subset(expect, actual, "expect", "actual")
 
-    def test_model_constraint_mixed(self):
+    def test_model_constraint_mixed(self) -> None:
         @forbid_if(["foo", "type"], FieldEqCondition("properties", "ban.foo"))
         @require_if(["id", "foo", "qux"], FieldEqCondition("corge", 42))
         @require_any_of("bbox", "foo", "garply")

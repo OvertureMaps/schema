@@ -74,7 +74,7 @@ def put_not(json_schema: JsonSchemaValue, operand: JsonSchemaValue) -> None:
         return
 
     not_schema = prev["not"]
-    if not isinstance(not_schema, get_origin(JsonSchemaValue)):
+    if not isinstance(not_schema, cast(type, get_origin(JsonSchemaValue))):
         raise TypeError(
             f'expected value of "not" key to be a `JsonSchemaValue`, but {repr(not_schema)} has type `{type(not_schema).__name__}` in the JSON Schema {json_schema}'
         )
@@ -152,7 +152,7 @@ def put_properties(
     _verify_json_schema_value(
         ("json_schema", json_schema), ("new_properties", new_properties)
     )
-    origin = get_origin(JsonSchemaValue)
+    origin = cast(type, get_origin(JsonSchemaValue))
     if "properties" in json_schema:
         properties = json_schema["properties"]
         if not isinstance(properties, origin):
@@ -171,7 +171,7 @@ def put_properties(
         elif k not in properties:
             properties[k] = v
         else:
-            _merge(v, properties[k], k)
+            _merge(cast(JsonSchemaValue, v), properties[k], k)
     if not already_in and properties:
         json_schema["properties"] = properties
 
@@ -189,7 +189,7 @@ T = TypeVar("T", JsonSchemaValue, str)
 
 
 def _verify_json_schema_value(*candidates: tuple[str, JsonSchemaValue]) -> None:
-    origin = get_origin(JsonSchemaValue)
+    origin = cast(type, get_origin(JsonSchemaValue))
     for target in candidates:
         if not isinstance(target[1], origin):
             raise TypeError(
@@ -197,7 +197,7 @@ def _verify_json_schema_value(*candidates: tuple[str, JsonSchemaValue]) -> None:
             )
 
 
-def _verify_operands_not_empty(tp: T, operands: list[T]) -> None:
+def _verify_operands_not_empty(tp: type[T], operands: list[T]) -> None:
     if not isinstance(operands, list):
         raise TypeError(
             f"`operands` must be a `list`, but {operands} has type `{type(operands).__name__}`"
@@ -217,16 +217,17 @@ def _verify_operands_not_empty(tp: T, operands: list[T]) -> None:
 
 
 def _merge(src: JsonSchemaValue, dst: JsonValue, *loc: str) -> None:
-    origin = get_origin(JsonSchemaValue)
+    origin = cast(type, get_origin(JsonSchemaValue))
     if not isinstance(dst, origin):
         raise TypeError(
             f"`put_properties` merge conflict: `dst` exists but `src` cannot be merged in because `dst` is not a `JsonSchemaValue` (full path: {repr(loc)}) (`dst` value {repr(dst)} has type `{type(dst).__name__}`)"
         )
+    dst = cast(JsonSchemaValue, dst)
     for k, v in src.items():
         if k not in dst:
             dst[k] = v
         elif isinstance(v, origin):
-            _merge(v, dst[k], *loc, k)
+            _merge(cast(JsonSchemaValue, v), dst[k], *loc, k)
         elif dst[k] != v:
             raise ValueError(
                 f"`put_properties` merge conflict: `dst[{repr(k)}]={repr(dst[k])}` exists and does not equal `src[{repr(k)}]={repr(v)}` (full path: {repr(loc)})"

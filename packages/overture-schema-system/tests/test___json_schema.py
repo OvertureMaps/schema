@@ -45,7 +45,7 @@ def test_get_static_json_schema_error_invalid_type() -> None:
         ValueError,
         match='expected value of config\'s "json_schema_extra" key to be a `dict`, but it is a `function`',
     ):
-        get_static_json_schema(ConfigDict(json_schema_extra=lambda _: {}))
+        get_static_json_schema(ConfigDict(json_schema_extra=lambda _: None))
 
 
 ####################################################################################################
@@ -92,7 +92,7 @@ def test_put_all_of_error_bad_type(operands: list[JsonSchemaValue]) -> None:
         put_all_of({}, operands)
 
 
-def test_put_any_of_error_existing_all_of_not_list():
+def test_put_any_of_error_existing_all_of_not_list() -> None:
     with pytest.raises(
         ValueError, match='expected value of "allOf" key to be a `list`'
     ):
@@ -357,12 +357,12 @@ def test_put_if_success(
 ####################################################################################################
 
 
-def test_put_required_error_invalid_json_schema():
+def test_put_required_error_invalid_json_schema() -> None:
     with pytest.raises(
         TypeError,
         match="`json_schema` must be a `JsonSchemaValue` value, but True has type `bool`",
     ):
-        put_required(True, ["foo"])
+        put_required(cast(JsonSchemaValue, True), ["foo"])
 
 
 @pytest.mark.parametrize(
@@ -375,7 +375,7 @@ def test_put_required_error_invalid_json_schema():
 )
 def test_put_required_error_invalid_operands(
     operands: object, expect_error_type: type[Exception]
-):
+) -> None:
     with pytest.raises(expect_error_type):
         put_required({}, cast(list[str], operands))
 
@@ -402,7 +402,7 @@ def test_put_required_error_invalid_operands(
 )
 def test_put_required_success(
     json_schema: JsonSchemaValue, operands: list[str], expect: JsonSchemaValue
-):
+) -> None:
     put_required(json_schema, operands)
 
     assert expect == json_schema
@@ -418,7 +418,7 @@ def test_put_properties_error_invalid_json_schema_type() -> None:
         TypeError,
         match="`json_schema` must be a `JsonSchemaValue` value, but 42 has type `int`",
     ):
-        put_properties(42, {})
+        put_properties(cast(JsonSchemaValue, 42), {})
 
 
 def test_put_properties_error_invalid_new_properties_type() -> None:
@@ -426,7 +426,7 @@ def test_put_properties_error_invalid_new_properties_type() -> None:
         TypeError,
         match="`new_properties` must be a `JsonSchemaValue` value, but 'foo' has type `str`",
     ):
-        put_properties({}, "foo")
+        put_properties({}, cast(JsonSchemaValue, "foo"))
 
 
 def test_put_properties_error_invalid_existing_properties_type() -> None:
@@ -543,9 +543,9 @@ def test_put_properties_success(
 ####################################################################################################
 
 
-def test_try_move_existing_key():
+def test_try_move_existing_key() -> None:
     src = {"foo": "bar"}
-    dst = {}
+    dst: JsonSchemaValue = {}
 
     try_move("foo", src, dst)
 
@@ -553,9 +553,9 @@ def test_try_move_existing_key():
     assert {"foo": "bar"} == dst
 
 
-def test_try_move_missing_key():
+def test_try_move_missing_key() -> None:
     src = {"foo": "bar"}
-    dst = {}
+    dst: JsonSchemaValue = {}
 
     try_move("baz", src, dst)
 
