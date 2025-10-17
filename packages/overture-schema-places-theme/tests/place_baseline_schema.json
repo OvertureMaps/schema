@@ -300,6 +300,7 @@
   "description": "A Place is a point representation of a real-world facility, service, or amenity.\n\nPlace features are compatible with GeoJSON Point features.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

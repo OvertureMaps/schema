@@ -434,6 +434,7 @@
   "description": "Various features from OpenStreetMap such as bridges, airport runways, aerialways,\nor communication towers and lines.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

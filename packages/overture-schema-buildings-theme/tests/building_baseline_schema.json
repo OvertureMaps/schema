@@ -391,6 +391,7 @@
   "description": "A building is a man-made structure with a roof that exists permanently in one\nplace.\n\nBuildings are compatible with GeoJSON Polygon features.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

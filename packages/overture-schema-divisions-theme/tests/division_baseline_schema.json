@@ -337,6 +337,7 @@
   "description": "Divisions are recognized official or non-official organizations of people as seen\nfrom a given political perspective.\n\nExamples include countries, provinces, cities, towns, neighborhoods, etc.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

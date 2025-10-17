@@ -386,6 +386,7 @@
   "description": "Land use features from OpenStreetMap.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

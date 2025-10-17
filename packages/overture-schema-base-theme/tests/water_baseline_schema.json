@@ -269,6 +269,7 @@
   "description": "Physical representations of inland and ocean marine surfaces.\n\nTranslates `natural` and `waterway` tags from OpenStreetMap.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

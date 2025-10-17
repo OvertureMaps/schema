@@ -277,6 +277,7 @@
   "description": "A single building part.\n\nParts describe their shape and color and other properties. Each building part must\nrefer to the building to which it belongs.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

@@ -113,6 +113,7 @@
   "description": "Representation of the Earth's natural surfaces.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

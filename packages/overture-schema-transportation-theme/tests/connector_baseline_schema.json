@@ -62,6 +62,7 @@
   "description": "Connectors create physical connections between segments.\n\nConnectors are compatible with GeoJSON Point features.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

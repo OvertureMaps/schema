@@ -448,7 +448,6 @@ def test_feature_json_schema() -> None:
             {
                 "type": "Feature",
                 "id": "foo",
-                "bbox": None,
                 "geometry": {
                     "type": "Point",
                     "coordinates": [-1, 1],

@@ -77,6 +77,7 @@
   "description": "Addresses are geographic points used for locating businesses and individuals. The\nrules, fields, and fieldnames of an address can vary extensively between locations.\nWe use a simplified schema to capture worldwide address points.  This initial schema\nis largely based on the OpenAddresses (www.openaddresses.io) project.\n\nThe address schema allows up to 5 \"admin levels\". Rather than have field names that\napply across all countries, we provide an array called \"address_levels\" containing\nthe necessary administrative levels for an address.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

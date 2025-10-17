@@ -96,6 +96,7 @@
   "description": "Topographic representation of an underwater area, such as a part of the ocean\nfloor.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

@@ -128,6 +128,7 @@
   "description": "Boundaries represent borders between divisions of the same subtype.\n\nSome boundaries may be disputed by the divisions on one or both sides.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

@@ -622,6 +622,7 @@
       "description": "Rail Segment Properties.",
       "properties": {
         "bbox": {
+          "description": "An optional bounding box for the feature",
           "items": {
             "type": "number"
           },
@@ -890,6 +891,7 @@
       "description": "Road Segment Properties.",
       "properties": {
         "bbox": {
+          "description": "An optional bounding box for the feature",
           "items": {
             "type": "number"
           },
@@ -1559,6 +1561,7 @@
       "description": "Water Segment Properties.",
       "properties": {
         "bbox": {
+          "description": "An optional bounding box for the feature",
           "items": {
             "type": "number"
           },

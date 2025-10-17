@@ -236,6 +236,7 @@
   "description": "Division areas are polygons that represent the land or maritime area covered by a\ndivision.\n\nEach division area belongs to a division which it references by ID, and for which\nthe division area provides an area polygon. For ease of use, every division area\nrepeats the subtype, names, country, and region properties of the division it\nbelongs to.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },

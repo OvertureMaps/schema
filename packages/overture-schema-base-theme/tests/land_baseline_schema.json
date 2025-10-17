@@ -308,6 +308,7 @@
   "description": "Physical representations of land surfaces.\n\nGlobal land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap.",
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },
