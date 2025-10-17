@@ -29,4 +29,4 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [project.entry-points."overture.models"]
-"addresses.address" = "overture.schema.addresses.address.models:Address"
+"addresses.address" = "overture.schema.addresses:Address"
