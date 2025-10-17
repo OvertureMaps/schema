@@ -2,7 +2,7 @@
   "$defs": {
     "AddressLevel": {
       "additionalProperties": false,
-      "description": "An address \"admin level\".\n\nWe want to avoid the phrase \"admin level\" and have chosen \"address level\". These\nrepresent states, regions, districts, cities, neighborhoods, etc. The address schema\ndefines several numbered levels with per-country rules indicating which parts of a\ncountry's address goes to which numbered level.",
+      "description": "A sub-country addressing unit, such as a region, city, or neighborhood, that is less specific\nthan a street name and not a postal code.\n\nIn the following address, the terms `Montr\u00e9al` and `QC` are address levels:\n\n```\n3998 Rue De Bullion, Montr\u00e9al, QC H2W 2E4\n```\n\nThe number of address levels per address is country-dependent.\n\nOther addressing systems may use the terms \"administrative level\" or \"admin level\"  for the\nsame concept. We have chosen the term \"address level\" to communicate the fact that in some\ncountries and regions, address levels do not necessarily correspond to administrative units.",
       "properties": {
         "value": {
           "description": "String with no leading/trailing whitespace",
@@ -74,7 +74,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Addresses are geographic points used for locating businesses and individuals. The\nrules, fields, and fieldnames of an address can vary extensively between locations.\nWe use a simplified schema to capture worldwide address points.  This initial schema\nis largely based on the OpenAddresses (www.openaddresses.io) project.\n\nThe address schema allows up to 5 \"admin levels\". Rather than have field names that\napply across all countries, we provide an array called \"address_levels\" containing\nthe necessary administrative levels for an address.",
+  "description": "Addresses are structured labels for the geographic locations where businesses and individuals\nreside.\n\nWhile address formats around the world have some general points in common, the specifics vary\nextensively from place to place. The rules for dividing an address up into parts or fields vary,\nas do the names of those parts or fields.\n\nThe address schema uses a simplified approach to capture the common structure of addresses\nworldwide while accommodating local variance. The schema is heavily based on the OpenAddresses\n(www.openaddresses.io) project.\n\nFor sub-country administrative levels (and non-administrative levels such as neighborhoods), the\nschema provides the `address_levels` field. This is where the names of cities and towns,\nprovinces, state, and regions, and similar addressing units are found.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -87,7 +87,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "Geometry (Point)",
+      "description": "Position of the address. Addresses are point geometries.",
       "properties": {
         "bbox": {
           "items": {
@@ -139,7 +139,7 @@
       },
       "properties": {
         "address_levels": {
-          "description": "The administrative levels present in an address. The number of values in this list and their meaning is country-dependent. For example, in the United States we expect two values: the state and the municipality. In other countries there might be only one. Other countries could have three or more. The array is ordered with the highest levels first.\n\n                Note: when a level is not known - most likely because the data provider has not supplied it and we have not derived it from another source, the array element container must be present, but the \"value\" field should be omitted",
+          "description": "Names of the sub-country addressing areas the address belongs to, including the city\nor locality, in descending order of generality.\n\nThe list is sorted so that the highest, or most general, level comes first (*e.g.*,\nregion) and the lowest, or most particular level, comes last (*e.g.*, city or town).\n\nThe number of items in this list and their meaning is country-dependent. For\nexample, in the United States, we expect two items: the state, and the locality or\nmunicipality within the state. Other countries might have as few as one, or even\nthree or more.\n\nWhen a specific level that is required for a country is not known. most likely\nbecause the data provider has not supplied it and we have not derived it from\nanother source, the list item corresponding to that level must be present, but its\n`value` field should be omitted.",
           "items": {
             "$ref": "#/$defs/AddressLevel"
           },
@@ -149,7 +149,7 @@
           "type": "array"
         },
         "country": {
-          "description": "ISO 3166-1 alpha-2 country code",
+          "description": "The country the address belongs to, as an ISO 3166-1 alpha-2 country code.",
           "maxLength": 2,
           "minLength": 2,
           "pattern": "^[A-Z]{2}$",
@@ -157,21 +157,21 @@
           "type": "string"
         },
         "number": {
-          "description": "The house number for this address. This field may not strictly be a number. Values such as \"74B\", \"189 1/2\", \"208.5\" are common as the number part of an address and they are not part of the \"unit\" of this address.",
+          "description": "The house number.\n\nThis field does not necessarily contain an integer or even a number. Values such as\n\"74B\", \"189 1/2\", and \"208.5\", where the non-integer or non-number part is part of\nthe house number, not a unit number, are in common use.",
           "minLength": 1,
           "pattern": "^(\\S.*)?\\S$",
           "title": "Number",
           "type": "string"
         },
         "postal_city": {
-          "description": "In some countries or regions, a mailing address may need to specify a different city name than the city that actually contains the address coordinates. This optional field can be used to specify the alternate city name to use.\n\n                Example from US National Address Database:\n                716 East County Road, Winchester, Indiana has \"Ridgeville\" as its postal city\n\n                Another example in Slovenia:\n                Tomaj 71, 6221 Dutovlje, Slovenia",
+          "description": "The postal authority designated city name, if applicable.\n\nIn some countries or regions, a mailing address may need to specify a different city\nname than the city that actually contains the address coordinates. This optional\nfield can be used to specify the alternate city name to use.\n\nFor example:\n\n- The postal city for the US address *716 East County Road, Winchester, Indiana*\n  is Ridgeville.\n- The postal city for the Slovenian address *Tomaj 71, 6221 Tomaj, Slovenia* is\n  Dutovlje.",
           "minLength": 1,
           "pattern": "^(\\S.*)?\\S$",
           "title": "Postal City",
           "type": "string"
         },
         "postcode": {
-          "description": "The postcode for the address",
+          "description": "The postal code.",
           "minLength": 1,
           "pattern": "^(\\S.*)?\\S$",
           "title": "Postcode",
@@ -188,7 +188,7 @@
           "uniqueItems": true
         },
         "street": {
-          "description": "The street name associated with this address. The street name can include the street \"type\" or street suffix, e.g., Main Street. Ideally this is fully spelled out and not abbreviated but we acknowledge that many address datasets abbreviate the street name so it is acceptable.",
+          "description": "The street name.\n\nThe street name can include a type (*e.g.*, \"Street\" or \"St\", \"Boulevard\" or \"Blvd\",\n*etc.*) and a directional (*e.g.*, \"NW\" or \"Northwest\", \"S\" or \"Sud\"). Both type and\ndirectional, if present, may be either a prefix or a suffix to the primary name.\nThey may either be fully spelled-out or abbreviated.",
           "minLength": 1,
           "pattern": "^(\\S.*)?\\S$",
           "title": "Street",
@@ -205,7 +205,7 @@
           "type": "string"
         },
         "unit": {
-          "description": "The suite/unit/apartment/floor number",
+          "description": "The secondary address unit designator.\n\nIn the case where the primary street address is divided into secondary units, which\nmay be apartments, floors, or even buildings if the primary street address is a\ncampus, this field names the specific secondary unit being addressed.",
           "minLength": 1,
           "pattern": "^(\\S.*)?\\S$",
           "title": "Unit",
@@ -222,7 +222,8 @@
       "required": [
         "theme",
         "type",
-        "version"
+        "version",
+        "country"
       ],
       "type": "object"
     },

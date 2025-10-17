@@ -1,11 +1,10 @@
 """Addresses theme.
 
-Geographic address point features with flexible administrative levels and location data
-structures.
+Feature types and shared components for the Overture Maps addresses theme.
 """
 
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
-from .address import Address
+from .address import Address, AddressLevel
 
-__all__ = ["Address"]
+__all__ = ["Address", "AddressLevel"]
