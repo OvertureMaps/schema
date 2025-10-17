@@ -6,6 +6,8 @@ used to create strongly-typed, predictably validated, data.
 
 Subpackages
 -----------
+- :mod:`doc <overture.schema.system.doc>`. Documentation support for things that are hard to
+  document in Python, such as enumeration members.
 - :mod:`feature <overture.schema.system.feature>` The `Feature` type, a Pydantic model type for
   geospatial data whose JSON Schema and serialized JSON representation are compatible with GeoJSON.
 - :mod:`field_constraint <overture.schema.system.field_constraint>` Constraints that can be
@@ -140,6 +142,7 @@ unique identifier of another model.
 """
 
 from . import (
+    doc,
     feature,
     field_constraint,
     metadata,
@@ -153,6 +156,7 @@ from .create_model import create_model
 
 __all__ = [
     "create_model",
+    "doc",
     "feature",
     "field_constraint",
     "metadata",
