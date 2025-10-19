@@ -8,12 +8,12 @@ from typing import Any, Literal
 
 import pytest
 from deepdiff import DeepDiff
-from overture.schema.core import Feature, parse_feature
+from overture.schema.core import OvertureFeature, parse_feature
 from pydantic import Field
 from shapely.geometry import Point
 
 
-class Place(Feature):
+class Place(OvertureFeature):
     """Simple stubbed place model for testing serde functionality."""
 
     theme: Literal["places"]

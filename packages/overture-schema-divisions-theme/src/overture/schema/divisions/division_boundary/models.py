@@ -5,34 +5,34 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import Perspectives
-from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import (
-    CountryCodeAlpha2,
-    Id,
-)
-from overture.schema.core.validation import (
-    exactly_one_of,
-    not_required_if,
-)
 from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import (
+    forbid_if,
+    radio_group,
+    require_if,
+)
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
 )
-from overture.schema.system.string import RegionCode
+from overture.schema.system.ref import Id, Reference, Relationship
+from overture.schema.system.string import CountryCodeAlpha2, RegionCode
 
 from ..division import Division
-from ..enums import PlaceType
+from ..enums import IS_COUNTRY, PlaceType
 from .enums import BoundaryClass
 
 
-@exactly_one_of("is_land", "is_territorial")
-@not_required_if("subtype", PlaceType.COUNTRY, ["country"])
-class DivisionBoundary(Feature[Literal["divisions"], Literal["division_boundary"]]):
+@forbid_if(["country"], IS_COUNTRY)
+@require_if(["country"], ~IS_COUNTRY)
+@radio_group("is_land", "is_territorial")
+class DivisionBoundary(
+    OvertureFeature[Literal["divisions"], Literal["division_boundary"]]
+):
     """Boundaries represent borders between divisions of the same subtype.
 
     Some boundaries may be disputed by the divisions on one or both sides.

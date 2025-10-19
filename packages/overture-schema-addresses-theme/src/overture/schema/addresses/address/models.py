@@ -5,16 +5,15 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
-from overture.schema.core.types import CountryCodeAlpha2
 from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
 )
-from overture.schema.system.string import StrippedString
+from overture.schema.system.string import CountryCodeAlpha2, StrippedString
 
 
 @no_extra_fields
@@ -35,7 +34,7 @@ class AddressLevel(BaseModel):
     ] = None
 
 
-class Address(Feature[Literal["addresses"], Literal["address"]]):
+class Address(OvertureFeature[Literal["addresses"], Literal["address"]]):
     """Addresses are geographic points used for locating businesses and individuals. The
     rules, fields, and fieldnames of an address can vary extensively between locations.
     We use a simplified schema to capture worldwide address points.  This initial schema

@@ -1,5 +1,7 @@
 from enum import Enum
 
+from overture.schema.system.model_constraint import FieldEqCondition
+
 
 class PlaceType(str, Enum):
     """Category of the division from a finite, hierarchical, ordered list of categories
@@ -70,3 +72,7 @@ class DivisionClass(str, Enum):
     # A small, isolated human settlement in a rural area
     # Example: Tjarnabyggð, Iceland.
     HAMLET = "hamlet"
+
+
+# TODO - vic - Migrate this into a better home
+IS_COUNTRY = FieldEqCondition("subtype", PlaceType.COUNTRY)

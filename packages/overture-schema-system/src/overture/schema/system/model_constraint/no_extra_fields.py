@@ -61,6 +61,8 @@ class NoExtraFieldsConstraint(ModelConstraint):
 
     @override
     def validate_class(self, model_class: type[BaseModel]) -> None:
+        super().validate_class(model_class)
+
         config = model_class.model_config
         extra = config.get("extra", None)
         if extra and extra != "forbid":
@@ -70,4 +72,6 @@ class NoExtraFieldsConstraint(ModelConstraint):
 
     @override
     def edit_config(self, model_class: type[BaseModel], config: ConfigDict) -> None:
+        super().edit_config(model_class, config)
+
         config["extra"] = "forbid"

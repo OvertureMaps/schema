@@ -1,10 +1,11 @@
+import json
 from collections.abc import Mapping
 from typing import Any
 
 import pytest
 from deepdiff import DeepDiff
 from overture.schema.core.json_schema import EnhancedJsonSchemaGenerator
-from overture.schema.core.models import Feature
+from overture.schema.core.models import OvertureFeature
 from overture.schema.system.primitive import (
     BBox,
     Geometry,
@@ -33,8 +34,9 @@ def prune_json_schema(data: dict[str, Any]) -> dict[str, Any]:
 
 def test_feature_json_schema() -> None:
     actual = prune_json_schema(
-        Feature.model_json_schema(schema_generator=EnhancedJsonSchemaGenerator)
+        OvertureFeature.model_json_schema(schema_generator=EnhancedJsonSchemaGenerator)
     )
+    print(json.dumps(actual, indent=2))
 
     expect = {
         "$defs": {
@@ -69,7 +71,6 @@ def test_feature_json_schema() -> None:
             }
         },
         "additionalProperties": False,
-        "patternProperties": {"^ext_.*$": {}},
         "properties": {
             "id": {"minLength": 1, "pattern": "^\\S+$", "type": "string"},
             "geometry": {
@@ -406,6 +407,7 @@ def test_feature_json_schema() -> None:
             },
             "properties": {
                 "type": "object",
+                "not": {"required": ["id", "bbox", "geometry"]},
                 "properties": {
                     "theme": {"type": "string"},
                     "type": {"type": "string"},
@@ -417,7 +419,6 @@ def test_feature_json_schema() -> None:
                         "uniqueItems": True,
                     },
                 },
-                "unevaluatedProperties": False,
                 "required": ["theme", "type", "version"],
                 "patternProperties": {"^ext_.*$": {}},
                 "additionalProperties": False,
@@ -437,7 +438,7 @@ def test_feature_json_schema() -> None:
     "feature, expect",
     [
         (
-            Feature(
+            OvertureFeature(  # type: ignore[call-arg]
                 id="foo",
                 theme="bar",
                 type="baz",
@@ -447,7 +448,6 @@ def test_feature_json_schema() -> None:
             {
                 "type": "Feature",
                 "id": "foo",
-                "bbox": None,
                 "geometry": {
                     "type": "Point",
                     "coordinates": [-1, 1],
@@ -461,7 +461,7 @@ def test_feature_json_schema() -> None:
             },
         ),
         (
-            Feature(
+            OvertureFeature(
                 id="foo",
                 theme="bar",
                 type="baz",
@@ -490,5 +490,5 @@ def test_feature_json_schema() -> None:
         ),
     ],
 )
-def test_feature_json(feature: Feature, expect: dict[str, Any]) -> None:
+def test_feature_json(feature: OvertureFeature, expect: dict[str, Any]) -> None:
     assert feature.model_dump(mode="json") == expect

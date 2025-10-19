@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import (
     Named,
@@ -35,7 +35,7 @@ from ..types import (
 
 
 class TransportationSegment(
-    Feature[Literal["transportation"], Literal["segment"]], Named
+    OvertureFeature[Literal["transportation"], Literal["segment"]], Named
 ):
     """Common Segment Properties."""
 

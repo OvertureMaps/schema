@@ -8,6 +8,8 @@ from pydantic_core import core_schema
 from ._cache import get_type_adapter
 
 
+# TODO: Vic - I think we can remove this once `Omitable[T]` is applied everywhere (and once the
+#             @model_constraints are made `Omitable`-aware).
 class EnhancedJsonSchemaGenerator(GenerateJsonSchema):
     """Enhanced JSON Schema generator with optional field support.
 

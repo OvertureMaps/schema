@@ -6,7 +6,7 @@ from pydantic import ConfigDict, Field
 
 from overture.schema.base.land_cover.enums import LandCoverSubtype
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import CartographicallyHinted
 from overture.schema.system.primitive import (
@@ -17,7 +17,7 @@ from overture.schema.system.primitive import (
 
 
 class LandCover(
-    Feature[Literal["base"], Literal["land_cover"]], CartographicallyHinted
+    OvertureFeature[Literal["base"], Literal["land_cover"]], CartographicallyHinted
 ):
     """Representation of the Earth's natural surfaces."""
 
