@@ -65,3 +65,22 @@ class TestUniqueItemsConstraint:
         assert props["min_items"].get("minItems") == 2
         assert props["max_items"].get("uniqueItems") is True
         assert props["max_items"].get("maxItems") == 5
+
+    def test_none_values_allowed(self) -> None:
+        """Test UniqueItemsConstraint with None values on optional fields."""
+
+        class TestModel(BaseModel):
+            tags: Annotated[list[str] | None, UniqueItemsConstraint()]
+
+        # None should be valid (constraint should be skipped)
+        model = TestModel(tags=None)
+        assert model.tags is None
+
+        # Non-None values should still be validated
+        model = TestModel(tags=["a", "b"])
+        assert model.tags == ["a", "b"]
+
+        # Duplicates should still fail
+        with pytest.raises(ValidationError) as exc_info:
+            TestModel(tags=["a", "a"])
+        assert "All items must be unique" in str(exc_info.value)
