@@ -4,22 +4,24 @@ from typing import Annotated, Literal
 
 from pydantic import Field
 
-from overture.schema.core import Feature
+from overture.schema.core import OvertureFeature
 from overture.schema.core.models import Named, Stacked
-from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import Id
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
 )
+from overture.schema.system.ref import Id, Reference, Relationship
 
 from ..building.models import Building
 from ..models import Shape
 
 
 class BuildingPart(
-    Feature[Literal["buildings"], Literal["building_part"]], Named, Stacked, Shape
+    OvertureFeature[Literal["buildings"], Literal["building_part"]],
+    Named,
+    Stacked,
+    Shape,
 ):
     """A single building part.
 

@@ -111,13 +111,9 @@
   },
   "additionalProperties": false,
   "description": "Representation of the Earth's natural surfaces.",
-  "patternProperties": {
-    "^ext_.*$": {
-      "description": "Additional top-level properties must be prefixed with `ext_`."
-    }
-  },
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },
@@ -217,9 +213,16 @@
     },
     "properties": {
       "additionalProperties": false,
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
       "patternProperties": {
         "^ext_.*$": {
-          "description": "Additional top-level properties must be prefixed with `ext_`."
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
         }
       },
       "properties": {
@@ -264,8 +267,7 @@
         "version",
         "subtype"
       ],
-      "type": "object",
-      "unevaluatedProperties": false
+      "type": "object"
     },
     "type": {
       "const": "Feature",
@@ -273,10 +275,10 @@
     }
   },
   "required": [
+    "type",
     "id",
     "geometry",
-    "properties",
-    "type"
+    "properties"
   ],
   "title": "land_cover",
   "type": "object"

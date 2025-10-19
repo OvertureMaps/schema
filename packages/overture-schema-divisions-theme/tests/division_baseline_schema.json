@@ -335,13 +335,9 @@
   },
   "additionalProperties": false,
   "description": "Divisions are recognized official or non-official organizations of people as seen\nfrom a given political perspective.\n\nExamples include countries, provinces, cities, towns, neighborhoods, etc.",
-  "patternProperties": {
-    "^ext_.*$": {
-      "description": "Additional top-level properties must be prefixed with `ext_`."
-    }
-  },
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },
@@ -391,11 +387,22 @@
       "additionalProperties": false,
       "allOf": [
         {
-          "else": {
+          "if": {
+            "not": {
+              "properties": {
+                "subtype": {
+                  "const": "country"
+                }
+              }
+            }
+          },
+          "then": {
             "required": [
               "parent_division_id"
             ]
-          },
+          }
+        },
+        {
           "if": {
             "properties": {
               "subtype": {
@@ -412,16 +419,23 @@
           }
         }
       ],
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
       "patternProperties": {
         "^ext_.*$": {
-          "description": "Additional top-level properties must be prefixed with `ext_`."
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
         }
       },
       "properties": {
         "capital_division_ids": {
           "description": "Division IDs of this division's capital divisions. If present, this property will refer to the division IDs of the capital cities, county seats, etc. of a division.",
           "items": {
-            "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+            "description": "A unique identifier",
             "minLength": 1,
             "pattern": "^\\S+$",
             "type": "string"
@@ -567,8 +581,7 @@
         "country",
         "hierarchies"
       ],
-      "type": "object",
-      "unevaluatedProperties": false
+      "type": "object"
     },
     "type": {
       "const": "Feature",
@@ -576,10 +589,10 @@
     }
   },
   "required": [
+    "type",
     "id",
     "geometry",
-    "properties",
-    "type"
+    "properties"
   ],
   "title": "division",
   "type": "object"

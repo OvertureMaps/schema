@@ -103,7 +103,7 @@
           "type": "number"
         },
         "connector_id": {
-          "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+          "description": "A unique identifier",
           "minLength": 1,
           "pattern": "^\\S+$",
           "title": "Connector Id",
@@ -620,13 +620,9 @@
     "RailSegment": {
       "additionalProperties": false,
       "description": "Rail Segment Properties.",
-      "patternProperties": {
-        "^ext_.*$": {
-          "description": "Additional top-level properties must be prefixed with `ext_`."
-        }
-      },
       "properties": {
         "bbox": {
+          "description": "An optional bounding box for the feature",
           "items": {
             "type": "number"
           },
@@ -678,9 +674,16 @@
         },
         "properties": {
           "additionalProperties": false,
+          "not": {
+            "required": [
+              "id",
+              "bbox",
+              "geometry"
+            ]
+          },
           "patternProperties": {
             "^ext_.*$": {
-              "description": "Additional top-level properties must be prefixed with `ext_`."
+              "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
             }
           },
           "properties": {
@@ -785,8 +788,7 @@
             "subtype",
             "class"
           ],
-          "type": "object",
-          "unevaluatedProperties": false
+          "type": "object"
         },
         "type": {
           "const": "Feature",
@@ -794,10 +796,10 @@
         }
       },
       "required": [
+        "type",
         "id",
         "geometry",
-        "properties",
-        "type"
+        "properties"
       ],
       "title": "Rail-Specific Properties",
       "type": "object"
@@ -887,13 +889,9 @@
     "RoadSegment": {
       "additionalProperties": false,
       "description": "Road Segment Properties.",
-      "patternProperties": {
-        "^ext_.*$": {
-          "description": "Additional top-level properties must be prefixed with `ext_`."
-        }
-      },
       "properties": {
         "bbox": {
+          "description": "An optional bounding box for the feature",
           "items": {
             "type": "number"
           },
@@ -945,9 +943,16 @@
         },
         "properties": {
           "additionalProperties": false,
+          "not": {
+            "required": [
+              "id",
+              "bbox",
+              "geometry"
+            ]
+          },
           "patternProperties": {
             "^ext_.*$": {
-              "description": "Additional top-level properties must be prefixed with `ext_`."
+              "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
             }
           },
           "properties": {
@@ -1101,8 +1106,7 @@
             "subtype",
             "class"
           ],
-          "type": "object",
-          "unevaluatedProperties": false
+          "type": "object"
         },
         "type": {
           "const": "Feature",
@@ -1110,10 +1114,10 @@
         }
       },
       "required": [
+        "type",
         "id",
         "geometry",
-        "properties",
-        "type"
+        "properties"
       ],
       "title": "Road-Specific Properties",
       "type": "object"
@@ -1555,13 +1559,9 @@
     "WaterSegment": {
       "additionalProperties": false,
       "description": "Water Segment Properties.",
-      "patternProperties": {
-        "^ext_.*$": {
-          "description": "Additional top-level properties must be prefixed with `ext_`."
-        }
-      },
       "properties": {
         "bbox": {
+          "description": "An optional bounding box for the feature",
           "items": {
             "type": "number"
           },
@@ -1613,9 +1613,16 @@
         },
         "properties": {
           "additionalProperties": false,
+          "not": {
+            "required": [
+              "id",
+              "bbox",
+              "geometry"
+            ]
+          },
           "patternProperties": {
             "^ext_.*$": {
-              "description": "Additional top-level properties must be prefixed with `ext_`."
+              "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
             }
           },
           "properties": {
@@ -1706,8 +1713,7 @@
             "version",
             "subtype"
           ],
-          "type": "object",
-          "unevaluatedProperties": false
+          "type": "object"
         },
         "type": {
           "const": "Feature",
@@ -1715,10 +1721,10 @@
         }
       },
       "required": [
+        "type",
         "id",
         "geometry",
-        "properties",
-        "type"
+        "properties"
       ],
       "title": "Water-Specific Properties",
       "type": "object"

@@ -11,7 +11,7 @@ from overture.schema.base.infrastructure.enums import (
 from overture.schema.base.models import SourcedFromOpenStreetMap
 from overture.schema.base.types import Height
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import Named, Stacked
 from overture.schema.system.primitive import (
@@ -24,7 +24,7 @@ from ..enums import SurfaceMaterial
 
 
 class Infrastructure(
-    Feature[Literal["base"], Literal["infrastructure"]],
+    OvertureFeature[Literal["base"], Literal["infrastructure"]],
     Named,
     Stacked,
     SourcedFromOpenStreetMap,

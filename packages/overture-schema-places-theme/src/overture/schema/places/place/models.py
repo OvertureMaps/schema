@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import (
     Address,
@@ -70,7 +70,7 @@ class Brand(Named):
     wikidata: WikidataId | None = None
 
 
-class Place(Feature[Literal["places"], Literal["place"]], Named):
+class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
     """A Place is a point representation of a real-world facility, service, or amenity.
 
     Place features are compatible with GeoJSON Point features.

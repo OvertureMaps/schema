@@ -8,7 +8,7 @@ from overture.schema.base.land_use.enums import LandUseClass, LandUseSubtype
 from overture.schema.base.models import SourcedFromOpenStreetMap
 from overture.schema.base.types import Elevation
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import Named, Stacked
 from overture.schema.system.primitive import (
@@ -21,7 +21,7 @@ from ..enums import SurfaceMaterial
 
 
 class LandUse(
-    Feature[Literal["base"], Literal["land_use"]],
+    OvertureFeature[Literal["base"], Literal["land_use"]],
     Named,
     Stacked,
     SourcedFromOpenStreetMap,

@@ -2,9 +2,9 @@ from typing import Annotated, NewType
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from overture.schema.core.types import Id
 from overture.schema.divisions.enums import PlaceType
 from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.ref import Id
 from overture.schema.system.string import StrippedString
 
 DivisionId = NewType(
