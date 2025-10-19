@@ -41,7 +41,11 @@ class CollectionConstraint(FieldConstraint):
 class UniqueItemsConstraint(CollectionConstraint):
     """Ensures all items in a collection are unique."""
 
-    def validate(self, value: list[Any], info: ValidationInfo) -> None:
+    def validate(self, value: list[Any] | None, info: ValidationInfo) -> None:
+        # Skip validation for None values (used with optional fields)
+        if value is None:
+            return
+
         # First try the fast path for hashable items
         try:
             if len(value) != len(set(value)):
