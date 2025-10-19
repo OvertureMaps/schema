@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.system.primitive import (
     Geometry,
@@ -14,7 +14,7 @@ from overture.schema.system.primitive import (
 )
 
 
-class Connector(Feature[Literal["transportation"], Literal["connector"]]):
+class Connector(OvertureFeature[Literal["transportation"], Literal["connector"]]):
     """Connectors create physical connections between segments.
 
     Connectors are compatible with GeoJSON Point features.

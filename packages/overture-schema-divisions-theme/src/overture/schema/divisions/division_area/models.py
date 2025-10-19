@@ -5,31 +5,30 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import (
     Named,
     Names,
 )
-from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import CountryCodeAlpha2, Id
-from overture.schema.core.validation import (
-    exactly_one_of,
-)
+from overture.schema.system.model_constraint import radio_group
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
 )
-from overture.schema.system.string import RegionCode
+from overture.schema.system.ref import Id, Reference, Relationship
+from overture.schema.system.string import CountryCodeAlpha2, RegionCode
 
 from ..division.models import Division
 from ..enums import PlaceType
 from .enums import AreaClass
 
 
-@exactly_one_of("is_land", "is_territorial")
-class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]], Named):
+@radio_group("is_land", "is_territorial")
+class DivisionArea(
+    OvertureFeature[Literal["divisions"], Literal["division_area"]], Named
+):
     """Division areas are polygons that represent the land or maritime area covered by a
     division.
 

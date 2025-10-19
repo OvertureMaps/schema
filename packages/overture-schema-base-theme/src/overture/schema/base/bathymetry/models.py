@@ -6,7 +6,7 @@ from pydantic import ConfigDict, Field
 
 from overture.schema.base.types import Depth
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import CartographicallyHinted
 from overture.schema.system.primitive import (
@@ -17,7 +17,7 @@ from overture.schema.system.primitive import (
 
 
 class Bathymetry(
-    Feature[Literal["base"], Literal["bathymetry"]], CartographicallyHinted
+    OvertureFeature[Literal["base"], Literal["bathymetry"]], CartographicallyHinted
 ):
     """Topographic representation of an underwater area, such as a part of the ocean
     floor."""

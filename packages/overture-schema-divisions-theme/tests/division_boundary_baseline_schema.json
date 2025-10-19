@@ -126,13 +126,9 @@
   },
   "additionalProperties": false,
   "description": "Boundaries represent borders between divisions of the same subtype.\n\nSome boundaries may be disputed by the divisions on one or both sides.",
-  "patternProperties": {
-    "^ext_.*$": {
-      "description": "Additional top-level properties must be prefixed with `ext_`."
-    }
-  },
   "properties": {
     "bbox": {
+      "description": "An optional bounding box for the feature",
       "items": {
         "type": "number"
       },
@@ -227,9 +223,9 @@
       "allOf": [
         {
           "if": {
-            "properties": {
-              "subtype": {
-                "not": {
+            "not": {
+              "properties": {
+                "subtype": {
                   "const": "country"
                 }
               }
@@ -240,8 +236,31 @@
               "country"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "country"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "country"
+              ]
+            }
+          }
         }
       ],
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
       "oneOf": [
         {
           "properties": {
@@ -260,7 +279,7 @@
       ],
       "patternProperties": {
         "^ext_.*$": {
-          "description": "Additional top-level properties must be prefixed with `ext_`."
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
         }
       },
       "properties": {
@@ -278,7 +297,7 @@
         "division_ids": {
           "description": "Identifies the two divisions to the left and right, respectively, of the boundary line. The left- and right-hand sides of the boundary are considered from the perspective of a person standing on the line facing in the direction in which the geometry is oriented, i.e. facing toward the end of the line.\n\nThe first array element is the Overture ID of the left division. The second element is the Overture ID of the right division.",
           "items": {
-            "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+            "description": "A unique identifier",
             "minLength": 1,
             "pattern": "^\\S+$",
             "type": "string"
@@ -355,8 +374,7 @@
         "class",
         "division_ids"
       ],
-      "type": "object",
-      "unevaluatedProperties": false
+      "type": "object"
     },
     "type": {
       "const": "Feature",
@@ -364,10 +382,10 @@
     }
   },
   "required": [
+    "type",
     "id",
     "geometry",
-    "properties",
-    "type"
+    "properties"
   ],
   "title": "boundary",
   "type": "object"

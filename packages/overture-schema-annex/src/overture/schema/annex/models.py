@@ -5,8 +5,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, HttpUrl
 
-from overture.schema.core.types import CountryCodeAlpha2
 from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.string import CountryCodeAlpha2
 
 from .enums import BuildSource, UpdateType
 from .types import LicenseShortname

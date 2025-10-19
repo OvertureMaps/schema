@@ -8,7 +8,7 @@ from overture.schema.base.land.enums import LandClass, LandSubtype
 from overture.schema.base.models import SourcedFromOpenStreetMap
 from overture.schema.base.types import Elevation
 from overture.schema.core import (
-    Feature,
+    OvertureFeature,
 )
 from overture.schema.core.models import Named, Stacked
 from overture.schema.system.primitive import (
@@ -21,7 +21,10 @@ from ..enums import SurfaceMaterial
 
 
 class Land(
-    Feature[Literal["base"], Literal["land"]], Named, Stacked, SourcedFromOpenStreetMap
+    OvertureFeature[Literal["base"], Literal["land"]],
+    Named,
+    Stacked,
+    SourcedFromOpenStreetMap,
 ):
     """Physical representations of land surfaces.
 

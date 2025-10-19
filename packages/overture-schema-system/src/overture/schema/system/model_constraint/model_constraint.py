@@ -1,13 +1,20 @@
+from abc import ABC, abstractmethod
+from collections import Counter
 from collections.abc import Callable
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Any, cast, final
 
 from pydantic import (
     BaseModel,
     ConfigDict,
-    create_model,
     model_validator,
 )
+from pydantic.json_schema import JsonDict, to_jsonable_python
+from typing_extensions import override
+
+from ..create_model import create_model
+from ..metadata import Key, Metadata
 
 
 class ModelConstraint:
@@ -20,6 +27,13 @@ class ModelConstraint:
     Java code as they do in Pydantic. Second, model constraints have integrated JSON Schema hooks
     to allow them to describe how the constraint should be applied at the JSON Schema level. The
     model constraints defined in this package all provide applicable JSON Schema enhancements.
+
+    Parameters
+    ----------
+    name : str | None
+        Friendly name of the constraint instance for error messaging purposes. This should be set
+        to `None` if a constraint class was instantiated directly, or to the decorator name if the
+        constraint was instantiated via decorator function.
     """
 
     def __init__(self, name: str | None = None):
@@ -27,7 +41,7 @@ class ModelConstraint:
             name = type(self).__name__
         elif not isinstance(name, str):
             raise TypeError(
-                f"`name` must be a str, but {name} is a `{type(name).__name__}`"
+                f"`name` must be a `str`, but {name} has type `{type(name).__name__}`"
             )
         self.__name = name
 
@@ -99,6 +113,9 @@ class ModelConstraint:
         self.validate_class(model_class)
         config = deepcopy(model_class.model_config)
         self.edit_config(model_class, config)
+        metadata = Metadata.retrieve_from(model_class, Metadata()).copy()  # type: ignore[union-attr]
+        model_constraints = (*ModelConstraint.get_model_constraints(model_class), self)
+        metadata[_MODEL_CONSTRAINT_KEY] = model_constraints
         new_model_class = create_model(
             model_class.__name__,
             __config__=config,
@@ -111,9 +128,8 @@ class ModelConstraint:
                     model_validator(mode="after")(self.__validate_instance),
                 )
             },
+            __metadata__=metadata,
         )
-        model_constraints = (*ModelConstraint.get_model_constraints(model_class), self)
-        setattr(new_model_class, _MODEL_CONSTRAINT_PRIVATE_LIST_NAME, model_constraints)
         return new_model_class
 
     def validate_class(self, model_class: type[BaseModel]) -> None:
@@ -195,29 +211,309 @@ class ModelConstraint:
         >>> from overture.schema.system.model_constraint import require_any_of
         >>> @require_any_of("foo", "bar")
         ... class MyModel(BaseModel):
-        ...     foo: int | None
-        ...     bar: str | None
+        ...     foo: int | None = None
+        ...     bar: str | None = None
         ...
         >>> [c.name for c in ModelConstraint.get_model_constraints(MyModel)]
         ['@require_any_of']
         """
+        return cast(
+            tuple[ModelConstraint, ...],
+            Metadata.retrieve_from(model_class, Metadata()).get(  # type: ignore[union-attr]
+                _MODEL_CONSTRAINT_KEY, ()
+            ),
+        )
 
-        maybe_tuple = getattr(model_class, _MODEL_CONSTRAINT_PRIVATE_LIST_NAME, None)
-        if not maybe_tuple:
-            return ()
-        elif not isinstance(maybe_tuple, tuple):
+
+# Private: Used to construct the opaque metadata key.
+class _ModelKeyClass:
+    pass
+
+
+# Private: Opaque metadata key.
+_MODEL_CONSTRAINT_KEY = Key(
+    f"{ModelConstraint.__module__}.{ModelConstraint.__qualname__}", _ModelKeyClass
+)
+
+
+class FieldGroupConstraint(ModelConstraint):
+    """
+    A model constraint that constrains a group of fields in the Pydantic model it decorates.
+
+    Use this constraint as a base class when developing model constraints that affect lists of
+    fields. It takes care of validating the list of field names at construction time (checking for
+    duplicates, minimum count, and proper types). It then validates the model class being decorated
+    (to ensure it contains all the expected fields). Subclasses may want to add additional
+    validation, for example to check the types of the constrained fields.
+
+    Use `OptionalFieldGroupConstraint` rather than `FieldGroupConstraint` if it is important that
+    the fields in the group are all optional.
+
+    Parameters
+    ----------
+    name : str | None
+        Friendly name of the constraint instance for error messaging purposes. This should be set
+        to `None` if a constraint class was instantiated directly, or to the decorator name if the
+        constraint was instantiated via decorator function.
+    field_names : tuple[str, ...]
+        Names of at least two model fields affected by the constraint
+
+    Raises
+    ------
+    ValueError
+        If `field_names` has fewer than two names in it or contains duplicates
+    TypeError
+        If `field_names` is not a `tuple` of `str`
+    """
+
+    def __init__(self, name: str | None, field_names: tuple[str, ...]):
+        super().__init__(name)
+        self.__set_field_names(field_names)
+
+    @property
+    def field_names(self) -> tuple[str, ...]:
+        return self.__field_names
+
+    def __set_field_names(self, field_names: tuple[str, ...]) -> None:
+        if not isinstance(field_names, tuple):
             raise TypeError(
-                f"attribute {_MODEL_CONSTRAINT_PRIVATE_LIST_NAME} must be a tuple, but {maybe_tuple} is a `{type(maybe_tuple).__name__}`"
+                f"`field_names` must be a `tuple`, but {field_names} has type `{type(field_names).__name__}`"
             )
-        elif not all(isinstance(x, ModelConstraint) for x in maybe_tuple):
+        elif len(field_names) == 0:
+            raise ValueError("`field_names` cannot be empty, but it is")
+        elif not all(isinstance(s, str) for s in field_names):
             raise TypeError(
-                f"attribute {_MODEL_CONSTRAINT_PRIVATE_LIST_NAME} may only contain `{str.__name__}` values"
+                f"`field_names` must contain only `str` values, but {field_names} contains at least one non-`str` value"
             )
-        else:
-            return maybe_tuple
+        dupes = [s for s, count in Counter(field_names).items() if count > 1]
+        if dupes:
+            raise ValueError(
+                f"`field_names` must not contain duplicates, but {field_names} contains at least one repeated value"
+            )
+        self.__field_names = field_names
+
+    @override
+    def validate_class(self, model_class: type[BaseModel]) -> None:
+        missing_fields = [
+            f for f in self.field_names if f not in model_class.model_fields
+        ]
+        if missing_fields:
+            raise TypeError(
+                f"`{self.name}` specifies one or more fields that are not in the model class `{model_class.__name__}`: {', '.join(missing_fields)}"
+            )
 
 
-_MODEL_CONSTRAINT_PRIVATE_LIST_NAME = "_ModelConstraint__private_list"
+class OptionalFieldGroupConstraint(FieldGroupConstraint):
+    """
+    A model constraint that constrains a group of *optional* fields in the Pydantic model it
+    decorates.
+
+    Inherits all field validation behavior from FieldGroupConstraint and adds an additional check
+    that all specified fields are optional.
+
+    Parameters
+    ----------
+    name : str | None
+        Friendly name of the constraint instance for error messaging purposes. This should be set
+        to `None` if a constraint class was instantiated directly, or to the decorator name if the
+        constraint was instantiated via decorator function.
+    field_names : tuple[str, ...]
+        Names of at least two model fields affected by the constraint
+    """
+
+    def __init__(self, name: str | None, field_names: tuple[str, ...]):
+        super().__init__(name, field_names)
+
+    @override
+    def validate_class(self, model_class: type[BaseModel]) -> None:
+        super().validate_class(model_class)
+
+        required_fields = [
+            f for f in self.field_names if model_class.model_fields[f].is_required()
+        ]
+        if required_fields:
+            raise TypeError(
+                f"`{self.name}` expects all the fields to be optional, but at least one is required in the model class `{model_class.__name__}`: {', '.join(required_fields)}"
+            )
+
+
+class Condition(ABC):
+    @final
+    def __invert__(self) -> "Condition":
+        return self.negate()
+
+    @abstractmethod
+    def validate_class(self, model_class: type[BaseModel]) -> None:
+        """
+        Validates that the constraint is appropriate for the model class.
+
+        Parameters
+        ----------
+        model_class : type[BaseModel]
+            Pydantic model class being validated
+
+        Raises
+        ------
+        TypeError
+            If the model class is invalid.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def eval(self, model_instance: BaseModel) -> bool:
+        """
+        Evaluates the condition against a Pydantic model instance.
+
+        This method must only be called on model instances where `validate_class` does not raise
+        an exception on the instance's model class.
+
+        Parameters
+        ----------
+        model_instance : BaseModel
+            Model to evaluate the condition against
+
+        Returns
+        -------
+        bool
+            Whether the condition evaluated `true` or not
+        """
+        raise NotImplementedError()
+
+    def negate(self) -> "Condition":
+        """
+        Returns a condition that represents the logical negation of this condition.
+
+        Examples
+        --------
+        >>> FieldEqCondition('foo', 'bar').negate()
+        Not(FieldEqCondition(field_name='foo', value='bar'))
+
+        The `~` operator can be used as shorthand.
+
+        >>> ~FieldEqCondition('foo', 'bar')
+        Not(FieldEqCondition(field_name='foo', value='bar'))
+        """
+        return Not(self)
+
+    def json_schema(self, model_class: type[BaseModel]) -> JsonDict:
+        """
+        Returns a JSON Schema that models the condition value with respect to a Pydantic model
+        class.
+
+        This method must only be called on model classes for which `validate_class` does not raise
+        an exception.
+
+        Parameters
+        ----------
+        model_class : type[BaseModel]
+            Pydantic model class being this condition is being evaluated against
+
+        Returns
+        -------
+        JsonDict
+            JSON Schema for this condition with respect to `model_class`
+        """
+        raise NotImplementedError()
+
+
+@dataclass(frozen=True, slots=True)
+class Not(Condition):
+    inner: Condition
+
+    def __repr__(self) -> str:
+        return f"Not({repr(self.inner)})"
+
+    @override
+    def validate_class(self, model_class: type[BaseModel]) -> None:
+        return self.inner.validate_class(model_class)
+
+    @override
+    def eval(self, model_instance: BaseModel) -> bool:
+        return not self.inner.eval(model_instance)
+
+    @override
+    def negate(self) -> Condition:
+        return self.inner
+
+    @override
+    def json_schema(self, model_class: type[BaseModel]) -> JsonDict:
+        return {"not": self.inner.json_schema(model_class)}
+
+
+@dataclass(frozen=True, slots=True)
+class __FieldCondition(Condition):
+    field_name: str
+    value: object
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.field_name, str):
+            raise TypeError(
+                f"`field_name` must be a `str`, but {repr(self.field_name)} is a {type(self.field_name).__name__}"
+            )
+
+    @override
+    def validate_class(self, model_class: type[BaseModel]) -> None:
+        """
+        Validates that the constraint is appropriate for the model class.
+
+        Parameters
+        ----------
+        model_class : type[BaseModel]
+            Pydantic model class being validated
+
+        Raises
+        ------
+        TypeError
+            If the model class is invalid.
+        """
+        if self.field_name not in model_class.model_fields:
+            raise TypeError(
+                f"model class `{model_class.__name__}` must contain the condition field {repr(self.field_name)}, but it does not"
+            )
+
+
+class FieldEqCondition(__FieldCondition):
+    """
+    Represents a condition that is true when a Pydantic field is set to a specific value.
+
+    Attributes
+    ----------
+    field_name : str
+        Name of the model field to check as part of the condition
+    value : object
+        Value the field must have for the condition to be true
+
+    Examples
+    --------
+    >>> from pydantic import BaseModel
+    >>>
+    >>> class MyModel(BaseModel):
+    ...    foo: str
+    ...
+    >>> condition = FieldEqCondition('foo', 'baz')
+    >>> condition.validate_class(MyModel)
+    >>>
+    >>> condition.eval(MyModel(foo='bar'))
+    False
+    >>> condition.eval(MyModel(foo='baz'))
+    True
+    >>> condition.negate().eval(MyModel(foo='baz'))
+    False
+    >>> (~condition).eval(MyModel(foo='bar'))           # ~ is shorthand for `.negate()`
+    True
+    """
+
+    @override
+    def eval(self, model_instance: BaseModel) -> bool:
+        actual_value = getattr(model_instance, self.field_name)
+        return bool(actual_value == self.value)
+
+    @override
+    def json_schema(self, model_class: type[BaseModel]) -> JsonDict:
+        property_name = apply_alias(model_class, self.field_name)
+        return {
+            "properties": {property_name: {"const": to_jsonable_python(self.value)}}
+        }
 
 
 def apply_alias(model_class: type[BaseModel], field_name: str) -> str:
