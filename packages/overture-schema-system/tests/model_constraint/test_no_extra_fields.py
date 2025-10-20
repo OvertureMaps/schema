@@ -1,17 +1,11 @@
-import sys
-from pathlib import Path
-
 import pytest
 from pydantic import BaseModel, ConfigDict, create_model
+from util import assert_subset
 
 from overture.schema.system.model_constraint import (
     NoExtraFieldsConstraint,
     no_extra_fields,
 )
-
-sys.path.insert(0, str(Path(__file__).parent.parent))  # Needed to import `util` module.
-
-from util import assert_subset
 
 
 def test_error_invalid_model_class() -> None:
