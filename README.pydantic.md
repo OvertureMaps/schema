@@ -90,7 +90,7 @@ This workspace contains the following packages:
   convenient usage
 - **`overture-schema-core`** - Base classes, geometry models, and common structures
   shared across all themes
-- **`overture-schema-system`** - Foundational system of primitivef types and constraints
+- **`overture-schema-system`** - Foundational system of primitive types and constraints
 
 ### Theme Packages
 
