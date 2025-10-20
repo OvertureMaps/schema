@@ -1,20 +1,15 @@
-import sys
 from collections.abc import Callable
-from pathlib import Path
 from typing import cast
 
 import pytest
 from pydantic import BaseModel, ConfigDict
+from util import assert_subset
 
 from overture.schema.system import create_model
 from overture.schema.system.model_constraint import (
     MinFieldsSetConstraint,
     min_fields_set,
 )
-
-sys.path.insert(0, str(Path(__file__).parent.parent))  # Needed to import `util` module.
-
-from util import assert_subset
 
 
 def test_error_invalid_count_type() -> None:

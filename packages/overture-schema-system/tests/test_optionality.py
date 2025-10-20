@@ -1,18 +1,13 @@
 import json
-import sys
-from pathlib import Path
 from types import NoneType
 from typing import Annotated, Any, cast
 
 import pytest
 from pydantic import BaseModel, create_model
 from pydantic.json_schema import JsonDict
+from util import assert_subset
 
 from overture.schema.system.optionality import Omitable
-
-sys.path.insert(0, str(Path(__file__).parent.parent))  # Needed to import `util` module.
-
-from util import assert_subset
 
 
 @pytest.mark.parametrize(

@@ -56,5 +56,19 @@ dev = [
     "ruff>=0.12.4",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = [
+    "packages/overture-schema-addresses-theme/tests",
+    "packages/overture-schema-annex/tests",
+    "packages/overture-schema-base-theme/tests",
+    "packages/overture-schema-buildings-theme/tests",
+    "packages/overture-schema-core/tests",
+    "packages/overture-schema-divisions-theme/tests",
+    "packages/overture-schema-places-theme/tests",
+    "packages/overture-schema-system/tests",
+    "packages/overture-schema-transportation-theme/tests",
+    "packages/overture-schema/tests",
+]
+
 [tool.docformatter]
 black = true
