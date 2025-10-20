@@ -23,7 +23,6 @@ from overture.schema.system.string import (
     CountryCodeAlpha2,
     JsonPointer,
     LanguageTag,
-    RegionCode,
     StrippedString,
 )
 
@@ -273,27 +272,3 @@ class CartographicHints(BaseModel):
 
 class CartographicallyHinted(BaseModel):
     cartography: Annotated[CartographicHints | None, Field(title="cartography")] = None
-
-
-# TODO - vic - move this into Places
-@no_extra_fields
-class Address(BaseModel):
-    # Optional
-
-    freeform: Annotated[
-        str | None,
-        Field(
-            description="Free-form address that contains street name, house number and other address info",
-        ),
-    ] = None
-    locality: Annotated[
-        str | None,
-        Field(
-            description="Name of the city or neighborhood where the address is located",
-        ),
-    ] = None
-    postcode: Annotated[
-        str | None, Field(description="Postal code where the address is located")
-    ] = None
-    region: RegionCode | None = None
-    country: CountryCodeAlpha2 | None = None

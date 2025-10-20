@@ -27,4 +27,4 @@ path = "src/overture/schema/places/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"places.place" = "overture.schema.places.place.models:Place"
+"places.place" = "overture.schema.places:Place"
