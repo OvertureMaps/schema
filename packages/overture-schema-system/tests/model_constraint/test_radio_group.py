@@ -1,10 +1,9 @@
-import sys
-from pathlib import Path
 from typing import Annotated, Union
 
 import pytest
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.json_schema import JsonDict
+from util import assert_subset
 
 from overture.schema.system import create_model
 from overture.schema.system.model_constraint import (
@@ -12,10 +11,6 @@ from overture.schema.system.model_constraint import (
     RadioGroupConstraint,
     radio_group,
 )
-
-sys.path.insert(0, str(Path(__file__).parent.parent))  # Needed to import `util` module.
-
-from util import assert_subset
 
 
 @pytest.mark.parametrize("field_names", [[], (), ["foo"], ("bar",)])
