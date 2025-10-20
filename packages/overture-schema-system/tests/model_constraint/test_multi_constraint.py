@@ -1,7 +1,5 @@
-import sys
-from pathlib import Path
-
 from pydantic import BaseModel
+from util import assert_subset
 
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
@@ -19,10 +17,6 @@ from overture.schema.system.model_constraint import (
     require_any_of,
     require_if,
 )
-
-sys.path.insert(0, str(Path(__file__).parent.parent))  # Needed to import `util` module.
-
-from util import assert_subset
 
 
 def test_many_constraints():
