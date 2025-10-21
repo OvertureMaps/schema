@@ -71,7 +71,24 @@
         "vehicle": {
           "description": "Vehicle attributes for which the rule applies",
           "items": {
-            "$ref": "#/$defs/VehicleScopeRule"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/VehicleAxleCountSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleHeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleLengthSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWidthSelector"
+              }
+            ],
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
           },
           "minItems": 1,
           "title": "Vehicle",
@@ -97,8 +114,8 @@
       "properties": {
         "at": {
           "description": "Represents a linearly-referenced position between 0% and 100% of the distance along a path such as a road segment or a river center-line segment.",
-          "maximum": 1,
-          "minimum": 0,
+          "maximum": 1.0,
+          "minimum": 0.0,
           "title": "At",
           "type": "number"
         },
@@ -271,7 +288,7 @@
       "type": "string"
     },
     "LengthUnit": {
-      "description": "Enumerates length units supported by the Overture schema.",
+      "description": "Unit of length.",
       "enum": [
         "in",
         "ft",
@@ -532,7 +549,24 @@
         "vehicle": {
           "description": "Vehicle attributes for which the rule applies",
           "items": {
-            "$ref": "#/$defs/VehicleScopeRule"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/VehicleAxleCountSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleHeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleLengthSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWidthSelector"
+              }
+            ],
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
           },
           "minItems": 1,
           "title": "Vehicle",
@@ -1217,7 +1251,7 @@
       "type": "object"
     },
     "Side": {
-      "description": "Represents the side on which something appears relative to a facing or heading\ndirection, e.g. the side of a road relative to the road orientation, or relative to\nthe direction of travel of a person or vehicle.",
+      "description": "The side, left or right, on which something appears relative to a facing or heading direction\n(*e.g.*, the side of a road relative to the road orientation), or relative to the direction of\ntravel of a person or vehicle.",
       "enum": [
         "left",
         "right"
@@ -1394,7 +1428,24 @@
         "vehicle": {
           "description": "Vehicle attributes for which the rule applies",
           "items": {
-            "$ref": "#/$defs/VehicleScopeRule"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/VehicleAxleCountSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleHeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleLengthSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWidthSelector"
+              }
+            ],
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
           },
           "minItems": 1,
           "title": "Vehicle",
@@ -1406,7 +1457,7 @@
       "type": "object"
     },
     "SpeedUnit": {
-      "description": "Speed unit.",
+      "description": "Unit of speed.",
       "enum": [
         "mph",
         "km/h"
@@ -1497,52 +1548,52 @@
       "title": "TravelMode",
       "type": "string"
     },
-    "VehicleComparison": {
-      "description": "Enumerates possible comparison operators for use in scoping.",
-      "enum": [
-        "greater_than",
-        "greater_than_equal",
-        "equal",
-        "less_than",
-        "less_than_equal"
-      ],
-      "title": "VehicleComparison",
-      "type": "string"
-    },
-    "VehicleDimension": {
-      "description": "Enumerates possible vehicle dimensions for use in restrictions.",
-      "enum": [
-        "axle_count",
-        "height",
-        "length",
-        "weight",
-        "width"
-      ],
-      "title": "VehicleDimension",
-      "type": "string"
-    },
-    "VehicleScopeRule": {
+    "VehicleAxleCountSelector": {
       "additionalProperties": false,
-      "description": "An individual vehicle scope rule.",
+      "description": "Selects vehicles based on the number of axles they have.",
       "properties": {
         "comparison": {
-          "$ref": "#/$defs/VehicleComparison"
+          "$ref": "#/$defs/VehicleRelation"
         },
         "dimension": {
-          "$ref": "#/$defs/VehicleDimension"
-        },
-        "unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/LengthUnit"
-            },
-            {
-              "$ref": "#/$defs/WeightUnit"
-            }
-          ],
-          "title": "Unit"
+          "const": "axle_count",
+          "title": "Dimension",
+          "type": "string"
         },
         "value": {
+          "description": "Number of axles on the vehicle",
+          "maximum": 255,
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "dimension",
+        "comparison",
+        "value"
+      ],
+      "title": "VehicleAxleCountSelector",
+      "type": "object"
+    },
+    "VehicleHeightSelector": {
+      "additionalProperties": false,
+      "description": "Selects vehicles based on their height.",
+      "properties": {
+        "comparison": {
+          "$ref": "#/$defs/VehicleRelation"
+        },
+        "dimension": {
+          "const": "height",
+          "title": "Dimension",
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/LengthUnit",
+          "description": "Height unit in which `value` is expressed"
+        },
+        "value": {
+          "decription": "Vehicle height selection threshold in the given `unit`",
           "minimum": 0,
           "title": "Value",
           "type": "number"
@@ -1551,9 +1602,118 @@
       "required": [
         "dimension",
         "comparison",
-        "value"
+        "value",
+        "unit"
       ],
-      "title": "VehicleScopeRule",
+      "title": "VehicleHeightSelector",
+      "type": "object"
+    },
+    "VehicleLengthSelector": {
+      "additionalProperties": false,
+      "description": "Selects vehicles based on their length.",
+      "properties": {
+        "comparison": {
+          "$ref": "#/$defs/VehicleRelation"
+        },
+        "dimension": {
+          "const": "length",
+          "title": "Dimension",
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/LengthUnit",
+          "description": "Length unit in which `value` is expressed"
+        },
+        "value": {
+          "description": "Vehicle length selection threshold in the given `unit`",
+          "minimum": 0,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "dimension",
+        "comparison",
+        "value",
+        "unit"
+      ],
+      "title": "VehicleLengthSelector",
+      "type": "object"
+    },
+    "VehicleRelation": {
+      "description": "Relational operator, such as less than or equal to.",
+      "enum": [
+        "greater_than",
+        "greater_than_equal",
+        "equal",
+        "less_than",
+        "less_than_equal"
+      ],
+      "title": "VehicleRelation",
+      "type": "string"
+    },
+    "VehicleWeightSelector": {
+      "additionalProperties": false,
+      "description": "Selects vehicles based on their weight.",
+      "properties": {
+        "comparison": {
+          "$ref": "#/$defs/VehicleRelation"
+        },
+        "dimension": {
+          "const": "weight",
+          "title": "Dimension",
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/WeightUnit",
+          "description": "Weight unit in which `value` is expressed"
+        },
+        "value": {
+          "description": "Vehicle weight selection threshold in the given `unit`",
+          "minimum": 0,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "dimension",
+        "comparison",
+        "value",
+        "unit"
+      ],
+      "title": "VehicleWeightSelector",
+      "type": "object"
+    },
+    "VehicleWidthSelector": {
+      "additionalProperties": false,
+      "description": "Selects vehicles based on their width.",
+      "properties": {
+        "comparison": {
+          "$ref": "#/$defs/VehicleRelation"
+        },
+        "dimension": {
+          "const": "width",
+          "title": "Dimension",
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/LengthUnit",
+          "description": "Width unit in which `value` is expressed"
+        },
+        "value": {
+          "description": "Vehicle width selection threshold in the given `unit`",
+          "minimum": 0,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "dimension",
+        "comparison",
+        "value",
+        "unit"
+      ],
+      "title": "VehicleWidthSelector",
       "type": "object"
     },
     "WaterSegment": {
@@ -1730,7 +1890,7 @@
       "type": "object"
     },
     "WeightUnit": {
-      "description": "Enumerates weight units supported by the Overture schema.",
+      "description": "Unit of weight.",
       "enum": [
         "oz",
         "lb",

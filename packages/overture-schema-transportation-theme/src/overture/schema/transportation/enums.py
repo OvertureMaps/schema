@@ -1,7 +1,6 @@
 """Transportation theme enums."""
 
 from enum import Enum
-from typing import Annotated
 
 
 class Subtype(str, Enum):
@@ -63,30 +62,12 @@ class RailClass(str, Enum):
     UNKNOWN = "unknown"
 
 
+# todo - Vic - delete this
 class Heading(str, Enum):
     """Enumerates possible travel headings along segment geometry."""
 
     FORWARD = "forward"
     BACKWARD = "backward"
-
-
-class TravelMode(str, Enum):
-    """Enumerates possible travel modes.
-
-    Some modes represent groups of modes.
-    """
-
-    VEHICLE = "vehicle"
-    MOTOR_VEHICLE = "motor_vehicle"  # includes car, truck and motorcycle
-    CAR = "car"
-    TRUCK = "truck"
-    MOTORCYCLE = "motorcycle"
-    FOOT = "foot"
-    BICYCLE = "bicycle"
-    BUS = "bus"
-    HGV = "hgv"
-    HOV = "hov"
-    EMERGENCY = "emergency"
 
 
 class DestinationSignSymbol(str, Enum):
@@ -168,95 +149,6 @@ class Subclass(str, Enum):
     DRIVEWAY = "driveway"  # Service road intended for deliveries
     ALLEY = "alley"  # Service road intended for rear entrances, fire exits
     CYCLE_CROSSING = "cycle_crossing"  # Cycleway that intersects with other roads
-
-
-class SpeedUnit(str, Enum):
-    """Speed unit."""
-
-    MPH = "mph"
-    KPH = "km/h"
-
-
-class PurposeOfUse(str, Enum):
-    """Reason why a person or entity travelling on the transportation network is using a
-    particular location."""
-
-    AS_CUSTOMER = "as_customer"
-    AT_DESTINATION = "at_destination"
-    TO_DELIVER = "to_deliver"
-    TO_FARM = "to_farm"
-    FOR_FORESTRY = "for_forestry"
-
-
-class RecognizedStatus(str, Enum):
-    """Status of the person or entity travelling as recognized by authorities
-    controlling the particular location."""
-
-    AS_PERMITTED = "as_permitted"
-    AS_PRIVATE = "as_private"
-    AS_DISABLED = "as_disabled"
-    AS_EMPLOYEE = "as_employee"
-    AS_STUDENT = "as_student"
-
-
-class VehicleDimension(str, Enum):
-    """Enumerates possible vehicle dimensions for use in restrictions."""
-
-    AXLE_COUNT = "axle_count"
-    HEIGHT = "height"
-    LENGTH = "length"
-    WEIGHT = "weight"
-    WIDTH = "width"
-
-
-class VehicleComparison(str, Enum):
-    """Enumerates possible comparison operators for use in scoping."""
-
-    GREATER_THAN = "greater_than"
-    GREATER_THAN_EQUAL = "greater_than_equal"
-    EQUAL = "equal"
-    LESS_THAN = "less_than"
-    LESS_THAN_EQUAL = "less_than_equal"
-
-
-class LengthUnit(str, Enum):
-    """Enumerates length units supported by the Overture schema."""
-
-    # Keep in sync with `combobulib/measure.py`.
-
-    # Imperial units.
-    IN = "in"  # Imperial: Inch.
-    FT = "ft"  # Imperial: Foot.
-    YD = "yd"  # Imperial: Yard.
-    MI = "mi"  # Imperial: Mile.
-
-    # SI units.
-    CM = "cm"  # SI: centimeter.
-    M = "m"  # SI: meter.
-    KM = "km"  # SI: kilometer.
-
-
-class WeightUnit(str, Enum):
-    """Enumerates weight units supported by the Overture schema."""
-
-    # Keep in sync with `combobulib/measure.py`.
-
-    # Imperial units.
-    OZ = "oz"  # Imperial: Ounce.
-    LB = "lb"  # Imperial: Pound.
-    ST = "st"  # Imperial: Short Ton.
-    LT = "lt"  # Imperial: Long Ton.
-
-    # SI units.
-    G = "g"  # SI: gram.
-    KG = "kg"  # SI: kilogram.
-    T = "t"  # SI: tonne.
-
-
-VehicleScopeUnit = Annotated[LengthUnit | WeightUnit, None]
-VehicleScopeUnit.__doc__ = (
-    """Parent enum of both length and width for use in vehicle scoping"""
-)
 
 
 class AccessType(str, Enum):
