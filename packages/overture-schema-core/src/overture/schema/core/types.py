@@ -5,16 +5,13 @@ from pydantic import (
     Field,
     GetCoreSchemaHandler,
     GetJsonSchemaHandler,
-    ValidationError,
-    ValidationInfo,
 )
-from pydantic_core import InitErrorDetails, core_schema
+from pydantic_core import core_schema
 
 from overture.schema.system.field_constraint import (
-    CollectionConstraint,
     FieldConstraint,
 )
-from overture.schema.system.primitive import float32, int32, pct
+from overture.schema.system.primitive import float32, int32
 from overture.schema.system.string import (
     LanguageTag,
     StrippedString,
@@ -51,115 +48,6 @@ ConfidenceScore = NewType(
     ],
 )
 
-
-# One possible advantage to using percentages over absolute distances is being able to
-# trivially validate that the position lies "on" its segment (i.e. is between zero and
-# one). Of course, this level of validity doesn't mean the number isn't nonsense
-LinearlyReferencedPosition = NewType(
-    "LinearlyReferencedPosition",
-    Annotated[
-        pct,
-        Field(
-            description="Represents a linearly-referenced position between 0% and 100% of the distance along a path such as a road segment or a river center-line segment.",
-        ),
-    ],
-)
-
-
-class LinearReferenceRangeConstraint(CollectionConstraint):
-    """Linear reference range constraint (0.0 to 1.0)."""
-
-    def validate(self, value: list[float], info: ValidationInfo) -> None:
-        if len(value) != 2:
-            context = info.context or {}
-            loc = context.get("loc_prefix", ()) + ("value",)
-            raise ValidationError.from_exception_data(
-                title=self.__class__.__name__,
-                line_errors=[
-                    InitErrorDetails(
-                        type="value_error",
-                        loc=loc,
-                        input=value,
-                        ctx={
-                            "error": f"Linear reference range must have exactly 2 values, got {len(value)}"
-                        },
-                    )
-                ],
-            )
-
-        start, end = value
-        if not (0.0 <= start <= 1.0 and 0.0 <= end <= 1.0):
-            context = info.context or {}
-            loc = context.get("loc_prefix", ()) + ("value",)
-            raise ValidationError.from_exception_data(
-                title=self.__class__.__name__,
-                line_errors=[
-                    InitErrorDetails(
-                        type="value_error",
-                        loc=loc,
-                        input=value,
-                        ctx={
-                            "error": f"Linear reference range values must be between 0.0 and 1.0: [{start}, {end}]"
-                        },
-                    )
-                ],
-            )
-
-        if start >= end:
-            context = info.context or {}
-            loc = context.get("loc_prefix", ()) + ("value",)
-            raise ValidationError.from_exception_data(
-                title=self.__class__.__name__,
-                line_errors=[
-                    InitErrorDetails(
-                        type="value_error",
-                        loc=loc,
-                        input=value,
-                        ctx={
-                            "error": f"Linear reference range start must be less than end: [{start}, {end}]"
-                        },
-                    )
-                ],
-            )
-
-    def __get_pydantic_json_schema__(
-        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
-        json_schema = handler(core_schema)
-        json_schema["type"] = "array"
-        json_schema["minItems"] = 2
-        json_schema["maxItems"] = 2
-        json_schema["items"] = {"type": "number", "minimum": 0.0, "maximum": 1.0}
-        json_schema["description"] = (
-            "Linear reference range [start, end] where 0.0 <= start < end <= 1.0"
-        )
-        return json_schema
-
-
-LinearlyReferencedRange = NewType(
-    "LinearlyReferencedRange",
-    Annotated[
-        list[LinearlyReferencedPosition],
-        LinearReferenceRangeConstraint(),
-        Field(
-            description="Represents a non-empty range of positions along a path as a pair linearly-referenced positions. For example, the pair [0.25, 0.5] represents the range beginning 25% of the distance from the start of the path and ending 50% of the distance from the path",
-        ),
-    ],
-)
-
-# Validating the opening hours value is going to have to happen outside of JSON Schema.
-#
-# Reasons for using the OSM opening hours specification for transportation rule time
-# restrictions are documented in https://github.com/OvertureMaps/schema-wg/pull/10
-OpeningHours = NewType(
-    "OpeningHours",
-    Annotated[
-        str,
-        Field(
-            description="Time span or time spans during which something is open or active, specified in the OSM opening hours specification: https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification"
-        ),
-    ],
-)
 
 Level = NewType(
     "Level",
@@ -279,12 +167,8 @@ __all__ = [
     "FeatureUpdateTime",
     "FeatureVersion",
     "Level",
-    "LinearlyReferencedPosition",
-    "LinearlyReferencedRange",
-    "LinearReferenceRangeConstraint",
     "MaxZoom",
     "MinZoom",
-    "OpeningHours",
     "Prominence",
     "SortKey",
     "Theme",

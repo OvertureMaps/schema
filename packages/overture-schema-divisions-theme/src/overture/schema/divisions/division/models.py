@@ -7,13 +7,13 @@ from pydantic import BaseModel, ConfigDict, Field
 from overture.schema.core import (
     OvertureFeature,
 )
-from overture.schema.core.enums import Side
 from overture.schema.core.models import (
     CartographicallyHinted,
     Named,
     Names,
     Perspectives,
 )
+from overture.schema.core.scoping.side import Side
 from overture.schema.core.types import CommonNames
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,

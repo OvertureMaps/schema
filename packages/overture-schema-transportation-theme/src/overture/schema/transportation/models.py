@@ -6,11 +6,16 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from overture.schema.core import OvertureFeature
 from overture.schema.core.models import GeometricRangeScope
+from overture.schema.core.scoping.lr import LinearlyReferencedPosition
+from overture.schema.core.scoping.opening_hours import OpeningHours
+from overture.schema.core.scoping.purpose_of_use import PurposeOfUse
+from overture.schema.core.scoping.recognized_status import RecognizedStatus
+from overture.schema.core.scoping.travel_mode import TravelMode
+from overture.schema.core.scoping.vehicle import VehicleSelector
 from overture.schema.core.types import (
     Level,
-    LinearlyReferencedPosition,
-    OpeningHours,
 )
+from overture.schema.core.unit import LengthUnit, SpeedUnit, WeightUnit
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (
     min_fields_set,
@@ -26,19 +31,10 @@ from .enums import (
     DestinationLabelType,
     DestinationSignSymbol,
     Heading,
-    LengthUnit,
-    PurposeOfUse,
     RailFlag,
-    RecognizedStatus,
     RoadFlag,
     RoadSurface,
-    SpeedUnit,
     Subclass,
-    TravelMode,
-    VehicleComparison,
-    VehicleDimension,
-    VehicleScopeUnit,
-    WeightUnit,
 )
 
 SpeedValue = NewType(
@@ -406,23 +402,6 @@ class RecognizedStatusScope(BaseModel):
 
 
 @no_extra_fields
-class VehicleScopeRule(BaseModel):
-    """An individual vehicle scope rule."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Required
-
-    dimension: VehicleDimension
-    comparison: VehicleComparison
-    value: Annotated[float64, Field(ge=0)]
-
-    # Optional
-
-    unit: VehicleScopeUnit | None = None
-
-
-@no_extra_fields
 class VehicleScope(BaseModel):
     """Properties defining vehicle attributes for which a rule is active."""
 
@@ -431,7 +410,7 @@ class VehicleScope(BaseModel):
     # Optional
 
     vehicle: Annotated[
-        list[VehicleScopeRule] | None,
+        list[VehicleSelector] | None,
         Field(
             min_length=1,
             description="Vehicle attributes for which the rule applies",
