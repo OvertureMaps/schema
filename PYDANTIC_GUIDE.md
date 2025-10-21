@@ -41,24 +41,26 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 # Overture core models
-from overture.schema.core import Feature
-from overture.schema.core.models import StrictBaseModel
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.core import OvertureFeature
+from overture.schema.system.primitive import Geometry, GeometryType, GeometryTypeConstraint
 
 # Validation system
-from overture.schema.validation import UniqueItemsConstraint
+from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import no_extra_fields
 
 # Common types
+from overture.schema.system.string import (
+    CountryCodeAlpha2,
+    NoWhitespaceString,
+    StrippedString,
+)
 from overture.schema.core.types import (
     ConfidenceScore,
-    CountryCode,
     LanguageTag,
-    NoWhitespaceString,
-    TrimmedString
 )
 
 # Numeric primitives (use these instead of int/float)
-from overture.schema.core.primitives.numeric import (
+from overture.schema.system.primitive import (
     int8, int32, int64,
     uint8, uint16, uint32,
     float32, float64
@@ -69,11 +71,12 @@ from overture.schema.core.primitives.numeric import (
 
 ```python
 from typing import Annotated
-from pydantic import Field
-from overture.schema.core.models import StrictBaseModel
-from overture.schema.core.primitives.numeric import int8, float64
+from pydantic import BaseModel, Field
+from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.primitive import int8, float64
 
-class MyCustomType(StrictBaseModel):
+@no_extra_fields
+class MyCustomType(BaseModel):
     """Brief description of what this represents."""
 
     # Required fields (no default value)
@@ -99,10 +102,10 @@ class MyCustomType(StrictBaseModel):
 ```python
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import Feature
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.core import OvertureFeature
+from overture.schema.system.primitive import Geometry, GeometryType, GeometryTypeConstraint
 
-class MyFeature(Feature[Literal["my_theme"], Literal["my_type"]]):
+class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
     """Description of what this feature represents."""
 
     # Geometry with constraints
@@ -130,14 +133,15 @@ Pydantic models are Python classes that define data structures and their constra
 
 **What is a "base class"?** A base class defines common fields and behaviors that other classes can reuse. Think of it like a slide template - you create one layout, then make specific slides that use that structure.
 
-**What is "inheritance"?** Inheritance means one class automatically gets all the fields and behaviors from another class. If Building inherits from Feature, it automatically gets all of Feature's fields (like `id`, `geometry`) plus any new fields you add to Building (like `height`). When multiple parent classes have the same field name, Python uses a [specific order](https://docs.python.org/3/tutorial/classes.html#multiple-inheritance) to determine which one takes precedence.
+**What is "inheritance"?** Inheritance means one class automatically gets all the fields and behaviors from another class. If Building inherits from OvertureFeature, it automatically gets all of Feature's fields (like `id`, `geometry`) plus any new fields you add to Building (like `height`). When multiple parent classes have the same field name, Python uses a [specific order](https://docs.python.org/3/tutorial/classes.html#multiple-inheritance) to determine which one takes precedence.
 
-**StrictBaseModel** - Use for structured data components that should reject unknown fields:
+**@no_extra_fields** - Use for structured data components that should reject unknown fields:
 
 ```python
-from overture.schema.core.models import StrictBaseModel
+from overture.schema.system.model_constraint import no_extra_fields
 
-class Address(StrictBaseModel):
+@no_extra_fields
+class Address(BaseModel):
     """A postal address - no extra fields allowed."""
     street: str
     city: str
@@ -145,20 +149,20 @@ class Address(StrictBaseModel):
     # Any field not defined here will cause validation to fail
 ```
 
-**Feature[ThemeT, TypeT]** - A generic base class for all geospatial features with typed theme and type parameters:
+**OvertureFeature[ThemeT, TypeT]** - A generic base class for all geospatial features with typed theme and type parameters:
 
 ```python
 from typing import Literal
-from overture.schema.core import Feature
-from overture.schema.core.primitives import float64
+from overture.schema.core import OvertureFeature
+from overture.schema.system.primitive import float64
 
-class Building(Feature[Literal["buildings"], Literal["building"]]):
+class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
     """A building feature with strongly-typed theme and type."""
     # Inherits: id, theme, type, geometry, bbox, version, sources
     height: float64 | None = None
 ```
 
-**What does "generic" mean?** The `Feature[ThemeT, TypeT]` syntax makes Feature a "generic" class - think of it like a template that can be customized with specific values. The square brackets `[]` contain "type parameters" that specify exactly what theme and type this feature represents.
+**What does "generic" mean?** The `OvertureFeature[ThemeT, TypeT]` syntax makes OvertureFeature a "generic" class - think of it like a template that can be customized with specific values. The square brackets `[]` contain "type parameters" that specify exactly what theme and type this feature represents.
 
 **What are ThemeT and TypeT?** These are placeholders for specific text values:
 
@@ -167,7 +171,7 @@ class Building(Feature[Literal["buildings"], Literal["building"]]):
 
 **What is `Literal`?** `Literal` means the field must be exactly one of the specified values - nothing else is allowed. So `Literal["buildings"]` means this theme can only be "buildings", not any other string.
 
-By specifying `Feature[Literal["buildings"], Literal["building"]]`, you're saying "this is a Feature that must have theme='buildings' and type='building'" - no other values are allowed. This prevents mistakes like accidentally creating a building with theme="places".
+By specifying `OvertureFeature[Literal["buildings"], Literal["building"]]`, you're saying "this is a Feature that must have theme='buildings' and type='building'" - no other values are allowed. This prevents mistakes like accidentally creating a building with theme="places".
 
 #### Inheritance Patterns
 
@@ -175,11 +179,12 @@ By specifying `Feature[Literal["buildings"], Literal["building"]]`, you're sayin
 
 ```python
 from typing import Literal
-from overture.schema.core import Feature
-from overture.schema.core.models import Named, Stacked
-from overture.schema.core.primitives import float64
+from overture.schema.core import OvertureFeature
+from overture.schema.core.models import Stacked
+from overture.schema.core.names import Named
+from overture.schema.system.primitives import float64
 
-class Building(Feature[Literal["buildings"], Literal["building"]], Named, Stacked):
+class Building(OvertureFeature[Literal["buildings"], Literal["building"]], Named, Stacked):
     # Gets fields from Feature: id, theme, type, geometry, etc.
     # Gets fields from Named: names
     # Gets fields from Stacked: level
@@ -195,7 +200,7 @@ Sometimes you need a field name that conflicts with Python keywords or conventio
 from typing import Annotated
 from pydantic import Field
 
-class Building(Feature):
+class Building(OvertureFeature):
     # Use class_ in Python code, but "class" in the actual data
     class_: Annotated[str | None, Field(alias="class")] = None
 
@@ -211,7 +216,7 @@ A common example is `class_` with `Field(alias="class")` since "class" is a Pyth
 #### Required vs Optional Fields
 
 ```python
-class Building(Feature):
+class Building(OvertureFeature):
     # Required field (no default value)
     geometry: Geometry
 
@@ -261,13 +266,15 @@ Keep the schema separate from business logic. The schema describes the shape of 
 **Always use specific numeric types instead of Python's generic `int`/`float`:**
 
 ```python
-from overture.schema.core.primitives.numeric import (
+from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.primitive import (
     int8, int32, int64,        # Signed integers
     uint8, uint16, uint32,     # Unsigned integers
     float32, float64           # Floating point
 )
 
-class MyModel(StrictBaseModel):
+@no_extra_fields
+class MyModel(BaseModel):
     # Signed integers with specific ranges
     level: int8 | None = None           # -128 to 127
     year: int32 | None = None           # -2,147,483,648 to 2,147,483,647
@@ -311,7 +318,7 @@ Union types allow a field to accept multiple different types. The `|` symbol mea
 ```python
 from typing import Literal
 
-class Building(Feature):
+class Building(OvertureFeature):
     # This field can be either a string OR None (most common union)
     name: str | None = None
 
@@ -379,7 +386,7 @@ Use Pydantic's `Field()` function to add constraints and descriptions:
 from typing import Annotated
 from pydantic import Field
 
-class Building(Feature):
+class Building(OvertureFeature):
     # Range constraints
     height: Annotated[
         float64 | None,
@@ -403,7 +410,7 @@ class Building(Feature):
 **String constraints:**
 
 ```python
-class Place(Feature):
+class Place(OvertureFeature):
     # Length constraints
     name: Annotated[
         str | None,
@@ -439,9 +446,9 @@ class Building(Feature):
 #### List Constraints
 
 ```python
-from overture.schema.validation import UniqueItemsConstraint
+from overture.schema.system.field_constraint import UniqueItemsConstraint
 
-class Building(Feature):
+class Building(OvertureFeature):
     # List with size and uniqueness constraints
     categories: Annotated[
         list[str] | None,
@@ -491,13 +498,15 @@ class BuildingClass(str, Enum):
     CIVIC = "civic"
 
 # Usage in a model
-class Building(Feature):
+class Building(OvertureFeature):
     class_: Annotated[BuildingClass | None, Field(alias="class")] = None
 ```
 
 #### Documenting Enum Values
 
 Add documentation to describe what the enum and its values mean. In Python, you do this with **docstrings** - text enclosed in triple quotes `"""` that describes what something does:
+
+TODO: DocumentedEnum
 
 ```python
 class VehicleType(str, Enum):
@@ -530,11 +539,10 @@ The fundamental pattern is a direct reference where one feature "points to" anot
 ```python
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import Feature
-from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import Id
+from overture.schema.core import OvertureFeature
+from overture.schema.system.ref import Id, Reference, Relationship
 
-class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]]):
+class DivisionArea(OvertureFeature[Literal["divisions"], Literal["division_area"]]):
     """Area polygon that belongs to a division."""
 
     # Required reference - every division area must belong to a division
@@ -571,7 +579,7 @@ When the relationship itself needs to store information, create a dedicated feat
 - "Admin Area X has City Center Y as its primary center since 2010 with 85% confidence" - the relationship has properties (`type=primary`, `date=2010`, `confidence=85%`)
 
 ```python
-class AdminCityCenterAssociation(Feature[Literal["associations"], Literal["admin_city_center"]]):
+class AdminCityCenterAssociation(OvertureFeature[Literal["associations"], Literal["admin_city_center"]]):
     """Describes how an administrative area relates to a city center."""
 
     # The two things being connected
@@ -597,7 +605,7 @@ This focuses on the core concept: when relationships carry data, they become fea
 When a feature needs to reference multiple other features, use a list of references:
 
 ```python
-class Route(Feature[Literal["transportation"], Literal["route"]]):
+class Route(OvertureFeature[Literal["transportation"], Literal["route"]]):
     """A transportation route that passes through multiple segments."""
 
     segment_ids: Annotated[
@@ -607,7 +615,7 @@ class Route(Feature[Literal["transportation"], Literal["route"]]):
         Reference(Relationship.CONNECTS_TO, TransportationSegment)  # All IDs reference segments
     ]
 
-class Building(Feature[Literal["buildings"], Literal["building"]]):
+class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
     """A building that may contain multiple building parts."""
 
     part_ids: Annotated[
@@ -657,7 +665,7 @@ class AdminCityCenterAssociation(Feature[...]):
 
 ```python
 # Segments connect to connectors (intersection points)
-class Segment(Feature[Literal["transportation"], Literal["segment"]]):
+class Segment(OvertureFeature[Literal["transportation"], Literal["segment"]]):
     from_connector_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, Connector)]
     to_connector_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, Connector)]
 
@@ -674,11 +682,11 @@ class Route(Feature[Literal["transportation"], Literal["route"]]):
 
 ```python
 # Division areas belong to divisions
-class DivisionArea(Feature[Literal["divisions"], Literal["division_area"]]):
+class DivisionArea(OvertureFeature[Literal["divisions"], Literal["division_area"]]):
     division_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Division)]
 
 # Places belong to administrative areas
-class Place(Feature[Literal["places"], Literal["place"]]):
+class Place(OvertureFeature[Literal["places"], Literal["place"]]):
     admin_area_id: Annotated[Id | None, Reference(Relationship.BELONGS_TO, AdminArea)] = None
 ```
 
@@ -686,11 +694,11 @@ class Place(Feature[Literal["places"], Literal["place"]]):
 
 ```python
 # Building parts belong to buildings
-class BuildingPart(Feature[Literal["buildings"], Literal["building_part"]]):
+class BuildingPart(OvertureFeature[Literal["buildings"], Literal["building_part"]]):
     building_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Building)]
 
 # Buildings can reference their address
-class Building(Feature[Literal["buildings"], Literal["building"]]):
+class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
     address_id: Annotated[Id | None, Reference(Relationship.CONNECTS_TO, Address)] = None
 ```
 
@@ -701,10 +709,10 @@ class Building(Feature[Literal["buildings"], Literal["building"]]):
 ```python
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import Feature
+from overture.schema.core import OvertureFeature
 
 # Base class with common fields
-class TransportationSegment(Feature[Literal["transportation"], Literal["segment"]]):
+class TransportationSegment(OvertureFeature[Literal["transportation"], Literal["segment"]]):
     subtype: Subtype  # This is the discriminator field
     # ... common fields for all segments
 
@@ -749,7 +757,7 @@ from abc import ABC, abstractmethod
 from typing import Annotated, Literal
 from pydantic import Field
 
-class TransportationSegment(Feature[Literal["transportation"], Literal["segment"]], ABC):
+class TransportationSegment(OvertureFeature[Literal["transportation"], Literal["segment"]], ABC):
     """Abstract base - cannot be instantiated directly."""
 
     subtype: Subtype  # Discriminator field
@@ -801,9 +809,10 @@ Instead of making classes abstract, we use **entry point registration** where on
 
 ```python
 from typing import Annotated
-from pydantic import Field
+from pydantic import BaseModel, Field
 
-class Names(StrictBaseModel):
+@no_extra_fields
+class Names(BaseModel):
     primary: str
 
     # Keys (strings) must match a language tag pattern, values are strings
@@ -847,11 +856,12 @@ from typing import Annotated
 from pydantic import Field
 
 # Each item has its own field validation
-class HierarchyItem(StrictBaseModel):
+@no_extra_fields
+class HierarchyItem(BaseModel):
     division_id: str
     name: str
 
-class Division(Feature):
+class Division(OvertureFeature):
     # Nested list validation: outer list AND inner lists both have length constraints
     hierarchies: Annotated[
         list[  # Outer list
@@ -889,7 +899,7 @@ This creates validation at three levels:
 
 ```python
 from typing import NewType, Annotated
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 # Create distinct types for different kinds of strings
 SegmentId = NewType("SegmentId", str)  # IDs are strings, but distinct
@@ -901,7 +911,8 @@ EmailList = NewType("EmailList", Annotated[
     Field(min_length=1, description="List of email addresses")
 ])
 
-class Contact(StrictBaseModel):
+@no_extra_fields
+class Contact(BaseModel):
     # Clear, self-documenting field types
     id: SegmentId  # Can't accidentally use a CountryCode here
     country: CountryCode  # Can't accidentally use a SegmentId here
@@ -927,7 +938,7 @@ Organize code by scope and avoid circular imports:
 
 **Cross-theme shared**: `overture-schema-core` package
 
-- Used by multiple themes (e.g., `LanguageTag`, `CountryCode`, `Feature`)
+- Used by multiple themes (e.g., `LanguageTag`, `CountryCode`, `OvertureFeature`)
 
 **Theme-level shared**: Theme package root (e.g., `overture-schema-transportation-theme/src/overture/schema/transportation/`)
 
@@ -954,9 +965,9 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
 
 # Cross-theme imports
-from overture.schema.core import Feature
-from overture.schema.core.models import StrictBaseModel
-from overture.schema.validation import UniqueItemsConstraint
+from overture.schema.core import OvertureFeature
+from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import no_extra_fields
 
 # Local imports last
 from .enums import SegmentType
@@ -967,7 +978,7 @@ from .types import SegmentId, LaneWidth  # Only non-model type aliases
 
 #### Why Not Use @field_validator or @model_validator?
 
-This project uses a custom validation system that generates better JSON Schema output and supports code generation (without additional work, `@field_validator` and `@model_validator` don't make their constraints discoverable). Always use constraints from `overture.schema.validation` instead of using Pydantic validation decorators:
+This project uses a custom validation system that generates better JSON Schema output and supports code generation (without additional work, `@field_validator` and `@model_validator` don't make their constraints discoverable). Always use constraints from `overture.schema.system` instead of using Pydantic validation decorators:
 
 ```python
 # Don't do this
@@ -978,9 +989,9 @@ def validate_categories_unique(cls, v):
     return v
 
 # Do this instead
-from overture.schema.validation import UniqueItemsConstraint
+from overture.schema.system.field_constraint import UniqueItemsConstraint
 
-class Building(Feature):
+class Building(OvertureFeature):
     categories: Annotated[
         list[str] | None,
         Field(min_length=1, description="Building categories"),
@@ -1015,13 +1026,14 @@ properties:
 
 ```python
 # In overture-schema-core/src/overture/schema/core/models.py
-class Address(StrictBaseModel):
+@no_extra_fields
+class Address(BaseModel):
     """A postal address."""
     freeform: str | None = None
     locality: str | None = None
 
 # In overture-schema-buildings-theme/src/overture/schema/buildings/building/models.py
-class Building(Feature):
+class Building(OvertureFeature):
     address: Address | None = None
 ```
 
@@ -1097,11 +1109,12 @@ JSON Schema containers become **mixin classes** in Pydantic that you inherit fro
 
 ```python models.py
 from typing import Annotated
-from pydantic import Field
-from overture.schema.core.models import StrictBaseModel
-from overture.schema.core.primitives.numeric import int8, float64
+from pydantic import BaseModel, Field
+from overture.schema.model_constraints import no_extra
+from overture.schema.system.primitive import int8, float64
 
-class MyCustomType(StrictBaseModel):
+@no_extra_fields
+class MyCustomType(BaseModel):
     """Brief description of what this represents."""
 
     # Required fields (no default value)
@@ -1127,10 +1140,10 @@ class MyCustomType(StrictBaseModel):
 ```python models.py
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import Feature
-from overture.schema.core.geometry import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.core import OvertureFeature
+from overture.schema.system.primitive import Geometry, GeometryType, GeometryTypeConstraint
 
-class MyFeature(Feature[Literal["my_theme"], Literal["my_type"]]):
+class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
     """Description of what this feature represents."""
 
     # Geometry with constraints
@@ -1161,11 +1174,12 @@ class MyEnum(str, Enum):
 
 ```python models.py
 from typing import Annotated
-from pydantic import Field
-from overture.schema.validation import UniqueItemsConstraint
-from overture.schema.core.models import StrictBaseModel
+from pydantic import BaseModel, Field
+from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import no_extra_fields
 
-class Contact(StrictBaseModel):
+@no_extra_fields
+class Contact(BaseModel):
     """Contact information with validation constraints."""
 
     name: str
@@ -1185,12 +1199,11 @@ class Contact(StrictBaseModel):
 ```python models.py
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import Feature
-from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import Id
-from overture.schema.core.primitives.numeric import float64
+from overture.schema.core import OvertureFeature
+from overture.schema.system.primitive import float64
+from overture.schema.system.ref import Id, Reference, Relationship
 
-class MyAssociation(Feature[Literal["associations"], Literal["my_association"]]):
+class MyAssociation(OvertureFeature[Literal["associations"], Literal["my_association"]]):
     """Represents a relationship between two features with metadata."""
 
     # References to the associated features
@@ -1238,12 +1251,13 @@ connector_ids: list[Id]  # References to multiple related features
 
 ```python
 # Non-feature model
-class Address(StrictBaseModel):
+@no_extra_fields
+class Address(BaseModel):
     street: str
     city: str | None = None
 
 # Feature model
-class Building(Feature[Literal["buildings"], Literal["building"]]):
+class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
     geometry: Geometry
     height: float64 | None = None
 
@@ -1269,14 +1283,13 @@ class Status(str, Enum):
 from typing import Annotated, Literal
 from enum import Enum
 from pydantic import Field
-from overture.schema.core import Feature
-from overture.schema.core.models import StrictBaseModel
-from overture.schema.validation import UniqueItemsConstraint
-from overture.schema.core.primitives.numeric import int32, float64
+from overture.schema.core import OvertureFeature
+from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.primitive import int32, float64
 
 # For associations and references
-from overture.schema.core.ref import Reference, Relationship
-from overture.schema.core.types import Id
+from overture.schema.system.ref import Id, Reference, Relationship
 ```
 
 #### Naming Conventions
