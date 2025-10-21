@@ -1,9 +1,9 @@
 from typing import Annotated
 
 import pytest
+from overture.schema.core.scoping.lr import LinearReferenceRangeConstraint
 from overture.schema.core.types import (
     ConfidenceScoreConstraint,
-    LinearReferenceRangeConstraint,
 )
 from pydantic import BaseModel, ValidationError
 

@@ -95,14 +95,6 @@ This is a `float` at runtime, but using `float64` for Pydantic model fields inst
 them portable across different serialization and validation platforms.
 """
 
-pct = NewType("pct", Annotated[float, Field(ge=0, le=1)])  # type: ignore[type-arg]
-"""
-Portable percent value in the range [0, 1] where 0 represents 0% and 1 represents 100%.
-
-This is a `float` at runtime, but using `pct` for Pydantic model fields instead of `float` makes
-them portable across different serialization and validation platforms.
-"""
-
 
 __all__ = [
     "BBox",
@@ -115,7 +107,6 @@ __all__ = [
     "int64",
     "float32",
     "float64",
-    "pct",
     "uint8",
     "uint16",
     "uint32",
