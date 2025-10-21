@@ -12,10 +12,6 @@ from overture.schema.system.field_constraint import (
     FieldConstraint,
 )
 from overture.schema.system.primitive import float32, int32
-from overture.schema.system.string import (
-    LanguageTag,
-    StrippedString,
-)
 
 
 class ConfidenceScoreConstraint(FieldConstraint):
@@ -54,24 +50,6 @@ Level = NewType(
     Annotated[
         int32,
         Field(default=0, description="Z-order of the feature where 0 is visual level"),
-    ],
-)
-
-CommonNames = NewType(
-    "CommonNames",
-    Annotated[
-        dict[
-            Annotated[
-                LanguageTag,
-                Field(
-                    description="""Each entry consists of a key that is an IETF-BCP47 language tag; and a value that reflects the common name in the language represented by the key's language tag.
-
-The validating regular expression for this property follows the pattern described in https://www.rfc-editor.org/rfc/bcp/bcp47.txt with the exception that private use tags are not supported."""
-                ),
-            ],
-            StrippedString,
-        ],
-        Field(json_schema_extra={"additionalProperties": False}),
     ],
 )
 
@@ -162,7 +140,6 @@ Theme = Annotated[
 Type = Annotated[str, Field(description="Specific feature type within the theme")]
 
 __all__ = [
-    "CommonNames",
     "ConfidenceScore",
     "FeatureUpdateTime",
     "FeatureVersion",

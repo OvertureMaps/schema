@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 from overture.schema.core import (
     OvertureFeature,
 )
-from overture.schema.core.models import (
+from overture.schema.core.names import (
     Named,
 )
 from overture.schema.core.types import (

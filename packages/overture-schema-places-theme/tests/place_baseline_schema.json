@@ -89,7 +89,7 @@
       "description": "Name rule with variant and language specification.",
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing NameRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -111,7 +111,8 @@
           "description": "Political perspectives from which a named feature is viewed."
         },
         "side": {
-          "$ref": "#/$defs/Side"
+          "$ref": "#/$defs/Side",
+          "description": "The side, either left or right, that the containing NameRule applies to."
         },
         "value": {
           "description": "String with no leading/trailing whitespace",
