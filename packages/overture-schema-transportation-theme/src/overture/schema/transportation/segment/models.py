@@ -7,7 +7,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     OvertureFeature,
 )
-from overture.schema.core.models import (
+from overture.schema.core.names import (
     Named,
 )
 from overture.schema.system.field_constraint import UniqueItemsConstraint
