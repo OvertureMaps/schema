@@ -232,7 +232,7 @@
       "type": "object"
     },
     "Side": {
-      "description": "Represents the side on which something appears relative to a facing or heading\ndirection, e.g. the side of a road relative to the road orientation, or relative to\nthe direction of travel of a person or vehicle.",
+      "description": "The side, left or right, on which something appears relative to a facing or heading direction\n(*e.g.*, the side of a road relative to the road orientation), or relative to the direction of\ntravel of a person or vehicle.",
       "enum": [
         "left",
         "right"

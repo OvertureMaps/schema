@@ -26,14 +26,15 @@ from overture.schema.system.string import (
     StrippedString,
 )
 
-from .enums import NameVariant, PerspectiveMode, Side
+from .enums import NameVariant, PerspectiveMode
+from .scoping.lr import LinearlyReferencedRange
+from .scoping.side import Side
 from .types import (
     CommonNames,
     ConfidenceScore,
     FeatureUpdateTime,
     FeatureVersion,
     Level,
-    LinearlyReferencedRange,
     MaxZoom,
     MinZoom,
     Prominence,
