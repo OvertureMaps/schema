@@ -9,12 +9,10 @@ from overture.schema.core import (
 )
 from overture.schema.core.models import (
     CartographicallyHinted,
-    Named,
-    Names,
     Perspectives,
 )
+from overture.schema.core.names import CommonNames, Named, Names
 from overture.schema.core.scoping.side import Side
-from overture.schema.core.types import CommonNames
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )

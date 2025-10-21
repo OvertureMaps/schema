@@ -22,15 +22,13 @@ from overture.schema.system.ref import Id, Identified
 from overture.schema.system.string import (
     CountryCodeAlpha2,
     JsonPointer,
-    LanguageTag,
     StrippedString,
 )
 
-from .enums import NameVariant, PerspectiveMode
+from .enums import PerspectiveMode
 from .scoping.lr import LinearlyReferencedRange
 from .scoping.side import Side
 from .types import (
-    CommonNames,
     ConfidenceScore,
     FeatureUpdateTime,
     FeatureVersion,
@@ -201,56 +199,6 @@ class Perspectives(BaseModel):
         ),
         UniqueItemsConstraint(),
     ]
-
-
-@no_extra_fields
-class NameRule(GeometricRangeScope, SideScope):
-    """Name rule with variant and language specification."""
-
-    # Required
-
-    value: Annotated[StrippedString, Field(min_length=1)]
-    variant: NameVariant
-
-    # Optional
-
-    language: LanguageTag | None = None
-    perspectives: (
-        Annotated[
-            Perspectives,
-            Field(
-                description="Political perspectives from which a named feature is viewed."
-            ),
-        ]
-        | None
-    ) = None
-
-
-@no_extra_fields
-class Names(BaseModel):
-    """Multilingual names container."""
-
-    # Required
-
-    primary: Annotated[
-        StrippedString, Field(min_length=1, description="The most commonly used name.")
-    ]
-
-    # Optional
-
-    common: CommonNames | None = None
-    rules: Annotated[
-        list[NameRule] | None,
-        Field(
-            description="Rules for names that cannot be specified in the simple common names property. These rules can cover other name variants such as official, alternate, and short; and they can optionally include geometric scoping (linear referencing) and side-of-road scoping for complex cases.",
-        ),
-    ] = None
-
-
-class Named(BaseModel):
-    """Properties defining the names of a feature."""
-
-    names: Names | None = None
 
 
 class Stacked(BaseModel):
