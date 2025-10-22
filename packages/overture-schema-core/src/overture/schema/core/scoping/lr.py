@@ -6,8 +6,6 @@ from pydantic_core import InitErrorDetails, core_schema
 from overture.schema.system.field_constraint import CollectionConstraint
 from overture.schema.system.primitive import float64
 
-GeometricPosition = Annotated[float, Field(ge=0, le=1)]
-GeometricRange = Annotated[list[GeometricPosition], Field(min_length=2, max_length=2)]
 # One possible advantage to using percentages over absolute distances is being able to
 # trivially validate that the position lies "on" its segment (i.e. is between zero and
 # one). Of course, this level of validity doesn't mean the number isn't nonsense

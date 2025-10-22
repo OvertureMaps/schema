@@ -5,20 +5,13 @@ from typing import Annotated, NewType
 from pydantic import BaseModel, ConfigDict, Field
 
 from overture.schema.core import OvertureFeature
-from overture.schema.core.models import GeometricRangeScope
-from overture.schema.core.scoping.lr import LinearlyReferencedPosition
-from overture.schema.core.scoping.opening_hours import OpeningHours
-from overture.schema.core.scoping.purpose_of_use import PurposeOfUse
-from overture.schema.core.scoping.recognized_status import RecognizedStatus
-from overture.schema.core.scoping.travel_mode import TravelMode
-from overture.schema.core.scoping.vehicle import VehicleSelector
+from overture.schema.core.scoping import Heading, Scope, scoped
 from overture.schema.core.types import (
     Level,
 )
-from overture.schema.core.unit import LengthUnit, SpeedUnit, WeightUnit
+from overture.schema.core.unit import SpeedUnit
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (
-    min_fields_set,
     no_extra_fields,
     require_any_of,
 )
@@ -30,7 +23,6 @@ from .enums import (
     AccessType,
     DestinationLabelType,
     DestinationSignSymbol,
-    Heading,
     RailFlag,
     RoadFlag,
     RoadSurface,
@@ -51,6 +43,7 @@ def _connector_type() -> type[OvertureFeature]:
 
 
 @no_extra_fields
+@scoped(Scope.GEOMETRIC_POSITION)
 class ConnectorReference(BaseModel):
     """Contains the GERS ID and relative position between 0 and 1 of a connector feature
     along the segment."""
@@ -60,23 +53,6 @@ class ConnectorReference(BaseModel):
     # Required
 
     connector_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, _connector_type())]
-    at: LinearlyReferencedPosition
-
-
-@no_extra_fields
-class HeadingScope(BaseModel):
-    """Properties defining travel headings that match a rule."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Optional
-
-    heading: Heading | None = None
-
-
-@min_fields_set(1)
-class DestinationWhenClause(HeadingScope):
-    pass
 
 
 @no_extra_fields
@@ -96,6 +72,7 @@ class DestinationLabels(BaseModel):
 
 @require_any_of("labels", "symbols")
 @no_extra_fields
+@scoped(Scope.HEADING)
 class DestinationRule(BaseModel):
     # Required
 
@@ -141,10 +118,11 @@ class DestinationRule(BaseModel):
         ),
         UniqueItemsConstraint(),
     ] = None
-    when: DestinationWhenClause | None = None
 
 
-class RouteReference(GeometricRangeScope):
+@no_extra_fields
+@scoped(Scope.GEOMETRIC_RANGE)
+class RouteReference(BaseModel):
     """Route reference with linear referencing support."""
 
     # Optional
@@ -184,137 +162,6 @@ class Speed(BaseModel):
 
 
 @no_extra_fields
-class IsMoreThanIntegerRelation(BaseModel):
-    is_more_than: int32
-
-
-@no_extra_fields
-class IsAtLeastIntegerRelation(BaseModel):
-    is_at_least: int32
-
-
-@no_extra_fields
-class IsEqualToIntegerRelation(BaseModel):
-    is_equal_to: int32
-
-
-@no_extra_fields
-class IsAtMostIntegerRelation(BaseModel):
-    is_at_most: int32
-
-
-@no_extra_fields
-class IsLessThanIntegerRelation(BaseModel):
-    is_less_than: int32
-
-
-IntegerRelation = Annotated[
-    IsMoreThanIntegerRelation
-    | IsAtLeastIntegerRelation
-    | IsEqualToIntegerRelation
-    | IsAtMostIntegerRelation
-    | IsLessThanIntegerRelation,
-    None,
-]
-IntegerRelation.__doc__ = """Completes an integer relational expression of the form <lhs> <operator> <length_value>. An example of such an expression is:
-    `{ axle_count: { is_less_than: 2 } }`."""
-
-
-@no_extra_fields
-class LengthValueWithUnit(BaseModel):
-    """Combines a length value with a length unit."""
-
-    # Required
-
-    unit: LengthUnit
-    value: Annotated[float64, Field(ge=0)]
-
-
-@no_extra_fields
-class IsMoreThanLengthRelation(BaseModel):
-    is_more_than: LengthValueWithUnit
-
-
-@no_extra_fields
-class IsAtLeastLengthRelation(BaseModel):
-    is_at_least: LengthValueWithUnit
-
-
-@no_extra_fields
-class IsEqualToLengthRelation(BaseModel):
-    is_equal_to: LengthValueWithUnit
-
-
-@no_extra_fields
-class IsAtMostLengthRelation(BaseModel):
-    is_at_most: LengthValueWithUnit
-
-
-@no_extra_fields
-class IsLessThanLengthRelation(BaseModel):
-    is_less_than: LengthValueWithUnit
-
-
-LengthRelation = Annotated[
-    IsMoreThanLengthRelation
-    | IsAtLeastLengthRelation
-    | IsEqualToLengthRelation
-    | IsAtMostLengthRelation
-    | IsLessThanLengthRelation,
-    None,
-]
-LengthRelation.__doc__ = """Completes a length relational expression of the form <lhs> <operator> <length_value>. An example of such an expression is:
-    `{ height: { is_less_than: { value: 3, unit: 'm' } } }`."""
-
-
-@no_extra_fields
-class WeightValueWithUnit(BaseModel):
-    """Combines a weight value with a weight unit."""
-
-    # Required
-
-    unit: WeightUnit
-    value: Annotated[float64, Field(ge=0)]
-
-
-@no_extra_fields
-class IsMoreThanWeightRelation(BaseModel):
-    is_more_than: WeightValueWithUnit
-
-
-@no_extra_fields
-class IsAtLeastWeightRelation(BaseModel):
-    is_at_least: WeightValueWithUnit
-
-
-@no_extra_fields
-class IsEqualToWeightRelation(BaseModel):
-    is_equal_to: WeightValueWithUnit
-
-
-@no_extra_fields
-class IsAtMostWeightRelation(BaseModel):
-    is_at_most: WeightValueWithUnit
-
-
-@no_extra_fields
-class IsLessThanWeightRelation(BaseModel):
-    is_less_than: WeightValueWithUnit
-
-
-WeightRelation = Annotated[
-    IsMoreThanWeightRelation
-    | IsAtLeastWeightRelation
-    | IsEqualToWeightRelation
-    | IsAtMostWeightRelation
-    | IsLessThanWeightRelation,
-    None,
-]
-WeightRelation.__doc__ = """        Completes a weight relational expression of the form <lhs> <operator> <weight_value>. An example of such an expression is:
-`{ weight: { is_more_than: { value: 2, unit: 't' } } }`."""
-
-
-@no_extra_fields
 class SequenceEntry(BaseModel):
     """A segment/connector pair in a prohibited transition sequence."""
 
@@ -337,109 +184,18 @@ class SequenceEntry(BaseModel):
 
 
 @no_extra_fields
-class PurposeOfUseScope(BaseModel):
-    """Properties defining usage purposes that match a rule."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Optional
-
-    using: Annotated[
-        list[PurposeOfUse] | None, Field(min_length=1), UniqueItemsConstraint()
-    ] = None
-
-    def __hash__(self) -> int:
-        """Make PurposeOfUseScope hashable."""
-        return hash((tuple(self.using) if self.using is not None else None,))
-
-
-@no_extra_fields
-class TemporalScope(BaseModel):
-    """Temporal scoping properties defining the time spans when a recurring rule is
-    active."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Optional
-
-    during: OpeningHours | None = None
-
-
-@no_extra_fields
-class TravelModeScope(BaseModel):
-    """Properties defining travel modes that match a rule."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Optional
-
-    mode: Annotated[
-        list[TravelMode] | None,
-        Field(min_length=1, description="Travel mode(s) to which the rule applies"),
-        UniqueItemsConstraint(),
-    ] = None
-
-    def __hash__(self) -> int:
-        """Make TravelModeScope hashable."""
-        return hash((tuple(self.mode) if self.mode is not None else None,))
-
-
-@no_extra_fields
-class RecognizedStatusScope(BaseModel):
-    """Properties defining statuses that match a rule."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Optional
-
-    recognized: Annotated[
-        list[RecognizedStatus] | None, Field(min_length=1), UniqueItemsConstraint()
-    ] = None
-
-    def __hash__(self) -> int:
-        """Make RecognizedStatusScope hashable."""
-        return hash((tuple(self.recognized) if self.recognized is not None else None,))
-
-
-@no_extra_fields
-class VehicleScope(BaseModel):
-    """Properties defining vehicle attributes for which a rule is active."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Optional
-
-    vehicle: Annotated[
-        list[VehicleSelector] | None,
-        Field(
-            min_length=1,
-            description="Vehicle attributes for which the rule applies",
-        ),
-        UniqueItemsConstraint(),
-    ] = None
-
-    def __hash__(self) -> int:
-        """Make VehicleScope hashable."""
-        return hash((tuple(self.vehicle) if self.vehicle is not None else None,))
-
-
-@min_fields_set(1)
-class SpeedLimitWhenClause(
-    TemporalScope,
-    HeadingScope,
-    PurposeOfUseScope,
-    RecognizedStatusScope,
-    TravelModeScope,
-    VehicleScope,
-):
-    pass
-
-
 @require_any_of("max_speed", "min_speed")
-class SpeedLimitRule(GeometricRangeScope):
+@scoped(
+    Scope.GEOMETRIC_RANGE,
+    Scope.HEADING,
+    Scope.PURPOSE_OF_USE,
+    Scope.RECOGNIZED_STATUS,
+    Scope.TEMPORAL,
+    Scope.TRAVEL_MODE,
+    Scope.VEHICLE,
+)
+class SpeedLimitRule(BaseModel):
     """An individual speed limit rule."""
-
-    # TODO: Speed limits probably have directionality, so should factor out a headingScopeContainer for this purpose and use it to introduce an optional direction property in each rule.
 
     # Optional
 
@@ -453,63 +209,37 @@ class SpeedLimitRule(GeometricRangeScope):
             strict=True,
         ),
     ] = False
-    when: SpeedLimitWhenClause | None = None
 
 
-@min_fields_set(1)
-class AccessRestrictionWhenClause(
-    TemporalScope,
-    HeadingScope,
-    PurposeOfUseScope,
-    RecognizedStatusScope,
-    TravelModeScope,
-    VehicleScope,
-):
-    model_config = ConfigDict(frozen=True)
-
-    def __hash__(self) -> int:
-        """Make AccessRestrictionWhenClause hashable."""
-        return hash(
-            (
-                TemporalScope.__hash__(self),
-                HeadingScope.__hash__(self),
-                PurposeOfUseScope.__hash__(self),
-                RecognizedStatusScope.__hash__(self),
-                TravelModeScope.__hash__(self),
-                VehicleScope.__hash__(self),
-            )
-        )
-
-
-class AccessRestrictionRule(GeometricRangeScope):
+@no_extra_fields
+@scoped(
+    Scope.GEOMETRIC_RANGE,
+    Scope.HEADING,
+    Scope.PURPOSE_OF_USE,
+    Scope.RECOGNIZED_STATUS,
+    Scope.TEMPORAL,
+    Scope.TRAVEL_MODE,
+    Scope.VEHICLE,
+)
+class AccessRestrictionRule(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     # Required
 
     access_type: AccessType
 
-    # Optional
 
-    when: AccessRestrictionWhenClause | None = None
-
-    def __hash__(self) -> int:
-        """Make AccessRestrictionRule hashable."""
-        return hash((super().__hash__(), self.access_type, self.when))
-
-
-@min_fields_set(1)
-class ProhibitedTransitionWhenClause(
-    HeadingScope,
-    TemporalScope,
-    PurposeOfUseScope,
-    RecognizedStatusScope,
-    TravelModeScope,
-    VehicleScope,
-):
-    pass
-
-
-class ProhibitedTransitionRule(GeometricRangeScope):
+@no_extra_fields
+@scoped(
+    Scope.GEOMETRIC_RANGE,
+    Scope.HEADING,
+    Scope.PURPOSE_OF_USE,
+    Scope.RECOGNIZED_STATUS,
+    Scope.TEMPORAL,
+    Scope.TRAVEL_MODE,
+    Scope.VEHICLE,
+)
+class ProhibitedTransitionRule(BaseModel):
     # Required
 
     sequence: Annotated[
@@ -527,12 +257,10 @@ class ProhibitedTransitionRule(GeometricRangeScope):
         ),
     ]
 
-    # Optional
 
-    when: ProhibitedTransitionWhenClause | None = None
-
-
-class RoadFlagRule(GeometricRangeScope):
+@no_extra_fields
+@scoped(Scope.GEOMETRIC_RANGE)
+class RoadFlagRule(BaseModel):
     """Road-specific flag rule with geometric scoping only."""
 
     # Required
@@ -540,7 +268,9 @@ class RoadFlagRule(GeometricRangeScope):
     values: Annotated[list[RoadFlag], Field(min_length=1), UniqueItemsConstraint()]
 
 
-class RailFlagRule(GeometricRangeScope):
+@no_extra_fields
+@scoped(Scope.GEOMETRIC_RANGE)
+class RailFlagRule(BaseModel):
     """Rail-specific flag rule with geometric scoping only."""
 
     # Required
@@ -548,7 +278,9 @@ class RailFlagRule(GeometricRangeScope):
     values: Annotated[list[RailFlag], Field(min_length=1), UniqueItemsConstraint()]
 
 
-class LevelRule(GeometricRangeScope):
+@no_extra_fields
+@scoped(Scope.GEOMETRIC_RANGE)
+class LevelRule(BaseModel):
     """A single level rule defining the Z-order, i.e. stacking order, applicable within
     a given scope on the road segment."""
 
@@ -557,7 +289,9 @@ class LevelRule(GeometricRangeScope):
     value: Level
 
 
-class SubclassRule(GeometricRangeScope):
+@no_extra_fields
+@scoped(Scope.GEOMETRIC_RANGE)
+class SubclassRule(BaseModel):
     """Set of subclasses scoped along segment."""
 
     # Required
@@ -565,13 +299,17 @@ class SubclassRule(GeometricRangeScope):
     value: Subclass
 
 
-class SurfaceRule(GeometricRangeScope):
+@no_extra_fields
+@scoped(Scope.GEOMETRIC_RANGE)
+class SurfaceRule(BaseModel):
     # Required
 
     value: RoadSurface
 
 
-class WidthRule(GeometricRangeScope):
+@no_extra_fields
+@scoped(Scope.GEOMETRIC_RANGE)
+class WidthRule(BaseModel):
     # Required
 
     value: Width
