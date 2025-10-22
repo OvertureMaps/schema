@@ -62,14 +62,6 @@ class RailClass(str, Enum):
     UNKNOWN = "unknown"
 
 
-# todo - Vic - delete this
-class Heading(str, Enum):
-    """Enumerates possible travel headings along segment geometry."""
-
-    FORWARD = "forward"
-    BACKWARD = "backward"
-
-
 class DestinationSignSymbol(str, Enum):
     """Indicates what special symbol/icon is present on a signpost, visible as road
     marking or similar."""

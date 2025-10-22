@@ -7,7 +7,7 @@
           "$ref": "#/$defs/AccessType"
         },
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing AccessRestrictionRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -19,84 +19,13 @@
           "type": "array"
         },
         "when": {
-          "$ref": "#/$defs/AccessRestrictionWhenClause"
+          "$ref": "#/$defs/overture__schema__transportation__models__AccessRestrictionRule__When"
         }
       },
       "required": [
         "access_type"
       ],
       "title": "AccessRestrictionRule",
-      "type": "object"
-    },
-    "AccessRestrictionWhenClause": {
-      "additionalProperties": false,
-      "minProperties": 1,
-      "properties": {
-        "during": {
-          "description": "Time span or time spans during which something is open or active, specified in the OSM opening hours specification: https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification",
-          "title": "During",
-          "type": "string"
-        },
-        "heading": {
-          "$ref": "#/$defs/Heading"
-        },
-        "mode": {
-          "description": "Travel mode(s) to which the rule applies",
-          "items": {
-            "$ref": "#/$defs/TravelMode"
-          },
-          "minItems": 1,
-          "title": "Mode",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "recognized": {
-          "items": {
-            "$ref": "#/$defs/RecognizedStatus"
-          },
-          "minItems": 1,
-          "title": "Recognized",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "using": {
-          "items": {
-            "$ref": "#/$defs/PurposeOfUse"
-          },
-          "minItems": 1,
-          "title": "Using",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "vehicle": {
-          "description": "Vehicle attributes for which the rule applies",
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/VehicleAxleCountSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleHeightSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleLengthSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleWeightSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleWidthSelector"
-              }
-            ],
-            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
-          },
-          "minItems": 1,
-          "title": "Vehicle",
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "title": "AccessRestrictionWhenClause",
       "type": "object"
     },
     "AccessType": {
@@ -113,7 +42,7 @@
       "description": "Contains the GERS ID and relative position between 0 and 1 of a connector feature\nalong the segment.",
       "properties": {
         "at": {
-          "description": "Represents a linearly-referenced position between 0% and 100% of the distance along a path such as a road segment or a river center-line segment.",
+          "description": "The linearly-referenced position on the geometry, specified as a percentage displacement from the start of the geometry, that the containing ConnectorReference applies to.",
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "At",
@@ -128,8 +57,7 @@
         }
       },
       "required": [
-        "connector_id",
-        "at"
+        "connector_id"
       ],
       "title": "ConnectorReference",
       "type": "object"
@@ -228,7 +156,7 @@
           "type": "string"
         },
         "when": {
-          "$ref": "#/$defs/DestinationWhenClause"
+          "$ref": "#/$defs/overture__schema__transportation__models__DestinationRule__When"
         }
       },
       "required": [
@@ -267,19 +195,8 @@
       "title": "DestinationSignSymbol",
       "type": "string"
     },
-    "DestinationWhenClause": {
-      "additionalProperties": false,
-      "minProperties": 1,
-      "properties": {
-        "heading": {
-          "$ref": "#/$defs/Heading"
-        }
-      },
-      "title": "DestinationWhenClause",
-      "type": "object"
-    },
     "Heading": {
-      "description": "Enumerates possible travel headings along segment geometry.",
+      "description": "Travel direction along an oriented path: forward or backward.",
       "enum": [
         "forward",
         "backward"
@@ -306,7 +223,7 @@
       "description": "A single level rule defining the Z-order, i.e. stacking order, applicable within\na given scope on the road segment.",
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing LevelRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -471,7 +388,7 @@
       "additionalProperties": false,
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing ProhibitedTransitionRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -497,7 +414,7 @@
           "uniqueItems": true
         },
         "when": {
-          "$ref": "#/$defs/ProhibitedTransitionWhenClause"
+          "$ref": "#/$defs/overture__schema__transportation__models__ProhibitedTransitionRule__When"
         }
       },
       "required": [
@@ -505,77 +422,6 @@
         "final_heading"
       ],
       "title": "ProhibitedTransitionRule",
-      "type": "object"
-    },
-    "ProhibitedTransitionWhenClause": {
-      "additionalProperties": false,
-      "minProperties": 1,
-      "properties": {
-        "during": {
-          "description": "Time span or time spans during which something is open or active, specified in the OSM opening hours specification: https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification",
-          "title": "During",
-          "type": "string"
-        },
-        "heading": {
-          "$ref": "#/$defs/Heading"
-        },
-        "mode": {
-          "description": "Travel mode(s) to which the rule applies",
-          "items": {
-            "$ref": "#/$defs/TravelMode"
-          },
-          "minItems": 1,
-          "title": "Mode",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "recognized": {
-          "items": {
-            "$ref": "#/$defs/RecognizedStatus"
-          },
-          "minItems": 1,
-          "title": "Recognized",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "using": {
-          "items": {
-            "$ref": "#/$defs/PurposeOfUse"
-          },
-          "minItems": 1,
-          "title": "Using",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "vehicle": {
-          "description": "Vehicle attributes for which the rule applies",
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/VehicleAxleCountSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleHeightSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleLengthSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleWeightSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleWidthSelector"
-              }
-            ],
-            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
-          },
-          "minItems": 1,
-          "title": "Vehicle",
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "title": "ProhibitedTransitionWhenClause",
       "type": "object"
     },
     "PurposeOfUse": {
@@ -625,7 +471,7 @@
       "description": "Rail-specific flag rule with geometric scoping only.",
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing RailFlagRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -894,7 +740,7 @@
       "description": "Road-specific flag rule with geometric scoping only.",
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing RoadFlagRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -1176,7 +1022,7 @@
       "description": "Route reference with linear referencing support.",
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing RouteReference applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -1356,7 +1202,7 @@
       "description": "An individual speed limit rule.",
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SpeedLimitRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -1380,81 +1226,10 @@
           "$ref": "#/$defs/Speed"
         },
         "when": {
-          "$ref": "#/$defs/SpeedLimitWhenClause"
+          "$ref": "#/$defs/overture__schema__transportation__models__SpeedLimitRule__When"
         }
       },
       "title": "SpeedLimitRule",
-      "type": "object"
-    },
-    "SpeedLimitWhenClause": {
-      "additionalProperties": false,
-      "minProperties": 1,
-      "properties": {
-        "during": {
-          "description": "Time span or time spans during which something is open or active, specified in the OSM opening hours specification: https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification",
-          "title": "During",
-          "type": "string"
-        },
-        "heading": {
-          "$ref": "#/$defs/Heading"
-        },
-        "mode": {
-          "description": "Travel mode(s) to which the rule applies",
-          "items": {
-            "$ref": "#/$defs/TravelMode"
-          },
-          "minItems": 1,
-          "title": "Mode",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "recognized": {
-          "items": {
-            "$ref": "#/$defs/RecognizedStatus"
-          },
-          "minItems": 1,
-          "title": "Recognized",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "using": {
-          "items": {
-            "$ref": "#/$defs/PurposeOfUse"
-          },
-          "minItems": 1,
-          "title": "Using",
-          "type": "array",
-          "uniqueItems": true
-        },
-        "vehicle": {
-          "description": "Vehicle attributes for which the rule applies",
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/VehicleAxleCountSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleHeightSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleLengthSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleWeightSelector"
-              },
-              {
-                "$ref": "#/$defs/VehicleWidthSelector"
-              }
-            ],
-            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
-          },
-          "minItems": 1,
-          "title": "Vehicle",
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "title": "SpeedLimitWhenClause",
       "type": "object"
     },
     "SpeedUnit": {
@@ -1485,7 +1260,7 @@
       "description": "Set of subclasses scoped along segment.",
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SubclassRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -1510,7 +1285,7 @@
       "additionalProperties": false,
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SurfaceRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -1908,7 +1683,7 @@
       "additionalProperties": false,
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing WidthRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -1929,6 +1704,339 @@
         "value"
       ],
       "title": "WidthRule",
+      "type": "object"
+    },
+    "overture__schema__transportation__models__AccessRestrictionRule__When": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "heading"
+          ]
+        },
+        {
+          "required": [
+            "during"
+          ]
+        },
+        {
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "required": [
+            "using"
+          ]
+        },
+        {
+          "required": [
+            "recognized"
+          ]
+        },
+        {
+          "required": [
+            "vehicle"
+          ]
+        }
+      ],
+      "description": "Scopes for AccessRestrictionRule: Scope.HEADING, Scope.TEMPORAL, Scope.TRAVEL MODE, Scope.PURPOSE OF USE, Scope.RECOGNIZED STATUS and Scope.VEHICLE",
+      "properties": {
+        "during": {
+          "description": "The recurring time span, in the OpenStreetMap opening hours format, that the containing AccessRestrictionRule applies to. For the OSM opening hours specification, see https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification.",
+          "title": "During",
+          "type": "string"
+        },
+        "heading": {
+          "$ref": "#/$defs/Heading",
+          "description": "The heading, either forward or backward, that the containing AccessRestrictionRule applies to."
+        },
+        "mode": {
+          "description": "A list of one or more travel modes, such as car, truck, or foot, that the containing AccessRestrictionRule applies to.",
+          "items": {
+            "$ref": "#/$defs/TravelMode"
+          },
+          "minItems": 1,
+          "title": "Mode",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "recognized": {
+          "description": "A list of one or more recognized status values, such as employee or student, that the containing AccessRestrictionRule applies to.",
+          "items": {
+            "$ref": "#/$defs/RecognizedStatus"
+          },
+          "minItems": 1,
+          "title": "Recognized",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "using": {
+          "description": "A list of one or more usage purposes, such as delivery or arrival at final destination, that the containing AccessRestrictionRule applies to.",
+          "items": {
+            "$ref": "#/$defs/PurposeOfUse"
+          },
+          "minItems": 1,
+          "title": "Using",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "vehicle": {
+          "description": "A list of one or more vehicle parameters that limit the vehicles the containing AccessRestrictionRule applies to.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/VehicleAxleCountSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleHeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleLengthSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWidthSelector"
+              }
+            ],
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
+          },
+          "minItems": 1,
+          "title": "Vehicle",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "title": "AccessRestrictionRule.When",
+      "type": "object"
+    },
+    "overture__schema__transportation__models__DestinationRule__When": {
+      "additionalProperties": false,
+      "description": "Scope for DestinationRule: ",
+      "properties": {
+        "heading": {
+          "$ref": "#/$defs/Heading",
+          "description": "The heading, either forward or backward, that the containing DestinationRule applies to."
+        }
+      },
+      "required": [
+        "heading"
+      ],
+      "title": "DestinationRule.When",
+      "type": "object"
+    },
+    "overture__schema__transportation__models__ProhibitedTransitionRule__When": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "heading"
+          ]
+        },
+        {
+          "required": [
+            "during"
+          ]
+        },
+        {
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "required": [
+            "using"
+          ]
+        },
+        {
+          "required": [
+            "recognized"
+          ]
+        },
+        {
+          "required": [
+            "vehicle"
+          ]
+        }
+      ],
+      "description": "Scopes for ProhibitedTransitionRule: Scope.HEADING, Scope.TEMPORAL, Scope.TRAVEL MODE, Scope.PURPOSE OF USE, Scope.RECOGNIZED STATUS and Scope.VEHICLE",
+      "properties": {
+        "during": {
+          "description": "The recurring time span, in the OpenStreetMap opening hours format, that the containing ProhibitedTransitionRule applies to. For the OSM opening hours specification, see https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification.",
+          "title": "During",
+          "type": "string"
+        },
+        "heading": {
+          "$ref": "#/$defs/Heading",
+          "description": "The heading, either forward or backward, that the containing ProhibitedTransitionRule applies to."
+        },
+        "mode": {
+          "description": "A list of one or more travel modes, such as car, truck, or foot, that the containing ProhibitedTransitionRule applies to.",
+          "items": {
+            "$ref": "#/$defs/TravelMode"
+          },
+          "minItems": 1,
+          "title": "Mode",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "recognized": {
+          "description": "A list of one or more recognized status values, such as employee or student, that the containing ProhibitedTransitionRule applies to.",
+          "items": {
+            "$ref": "#/$defs/RecognizedStatus"
+          },
+          "minItems": 1,
+          "title": "Recognized",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "using": {
+          "description": "A list of one or more usage purposes, such as delivery or arrival at final destination, that the containing ProhibitedTransitionRule applies to.",
+          "items": {
+            "$ref": "#/$defs/PurposeOfUse"
+          },
+          "minItems": 1,
+          "title": "Using",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "vehicle": {
+          "description": "A list of one or more vehicle parameters that limit the vehicles the containing ProhibitedTransitionRule applies to.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/VehicleAxleCountSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleHeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleLengthSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWidthSelector"
+              }
+            ],
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
+          },
+          "minItems": 1,
+          "title": "Vehicle",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "title": "ProhibitedTransitionRule.When",
+      "type": "object"
+    },
+    "overture__schema__transportation__models__SpeedLimitRule__When": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "heading"
+          ]
+        },
+        {
+          "required": [
+            "during"
+          ]
+        },
+        {
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "required": [
+            "using"
+          ]
+        },
+        {
+          "required": [
+            "recognized"
+          ]
+        },
+        {
+          "required": [
+            "vehicle"
+          ]
+        }
+      ],
+      "description": "Scopes for SpeedLimitRule: Scope.HEADING, Scope.TEMPORAL, Scope.TRAVEL MODE, Scope.PURPOSE OF USE, Scope.RECOGNIZED STATUS and Scope.VEHICLE",
+      "properties": {
+        "during": {
+          "description": "The recurring time span, in the OpenStreetMap opening hours format, that the containing SpeedLimitRule applies to. For the OSM opening hours specification, see https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification.",
+          "title": "During",
+          "type": "string"
+        },
+        "heading": {
+          "$ref": "#/$defs/Heading",
+          "description": "The heading, either forward or backward, that the containing SpeedLimitRule applies to."
+        },
+        "mode": {
+          "description": "A list of one or more travel modes, such as car, truck, or foot, that the containing SpeedLimitRule applies to.",
+          "items": {
+            "$ref": "#/$defs/TravelMode"
+          },
+          "minItems": 1,
+          "title": "Mode",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "recognized": {
+          "description": "A list of one or more recognized status values, such as employee or student, that the containing SpeedLimitRule applies to.",
+          "items": {
+            "$ref": "#/$defs/RecognizedStatus"
+          },
+          "minItems": 1,
+          "title": "Recognized",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "using": {
+          "description": "A list of one or more usage purposes, such as delivery or arrival at final destination, that the containing SpeedLimitRule applies to.",
+          "items": {
+            "$ref": "#/$defs/PurposeOfUse"
+          },
+          "minItems": 1,
+          "title": "Using",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "vehicle": {
+          "description": "A list of one or more vehicle parameters that limit the vehicles the containing SpeedLimitRule applies to.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/VehicleAxleCountSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleHeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleLengthSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWidthSelector"
+              }
+            ],
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
+          },
+          "minItems": 1,
+          "title": "Vehicle",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "title": "SpeedLimitRule.When",
       "type": "object"
     }
   },
