@@ -56,7 +56,7 @@
       "description": "An object storing the source for a specified property.\n\nThe property is a reference to the property element within this Feature, and will be\nreferenced using JSON Pointer Notation RFC 6901 (\nhttps://datatracker.ietf.org/doc/rfc6901/).\nThe source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
       "properties": {
         "between": {
-          "description": "Linear reference range [start, end] where 0.0 <= start < end <= 1.0",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SourcePropertyItem applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
