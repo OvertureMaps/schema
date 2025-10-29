@@ -40,7 +40,7 @@ def test_feature_json_schema() -> None:
 
     expect = {
         "$defs": {
-            "SourcePropertyItem": {
+            "SourceItem": {
                 "additionalProperties": False,
                 "properties": {
                     "between": {
@@ -413,7 +413,7 @@ def test_feature_json_schema() -> None:
                     "type": {"type": "string"},
                     "version": {"maximum": 2147483647, "minimum": 0, "type": "integer"},
                     "sources": {
-                        "items": {"$ref": "#/$defs/SourcePropertyItem"},
+                        "items": {"$ref": "#/$defs/SourceItem"},
                         "minItems": 1,
                         "type": "array",
                         "uniqueItems": True,

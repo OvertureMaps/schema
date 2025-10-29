@@ -1,46 +1,17 @@
 from datetime import datetime
-from typing import Annotated, Any, NewType
+from typing import Annotated, NewType
 
 from pydantic import (
     Field,
-    GetCoreSchemaHandler,
-    GetJsonSchemaHandler,
 )
-from pydantic_core import core_schema
 
-from overture.schema.system.field_constraint import (
-    FieldConstraint,
-)
 from overture.schema.system.primitive import float32, int32
-
-
-class ConfidenceScoreConstraint(FieldConstraint):
-    """Constraint for confidence/probability scores (0.0 to 1.0)."""
-
-    def __get_pydantic_core_schema__(
-        self, source: type[Any], handler: GetCoreSchemaHandler
-    ) -> core_schema.CoreSchema:
-        # Use built-in constraints for validation
-        return core_schema.float_schema(ge=0.0, le=1.0)
-
-    def __get_pydantic_json_schema__(
-        self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
-    ) -> dict[str, Any]:
-        json_schema = handler(core_schema)
-        json_schema["minimum"] = 0.0
-        json_schema["maximum"] = 1.0
-        json_schema["description"] = "Confidence score between 0.0 and 1.0"
-        return json_schema
-
 
 ConfidenceScore = NewType(
     "ConfidenceScore",
     Annotated[
         float32,
-        ConfidenceScoreConstraint(),
-        Field(
-            description="Confidence value from the source dataset, particularly relevant for ML-derived data."
-        ),
+        Field(description="Confidence score between 0.0 and 1.0", ge=0.0, le=1.0),
     ],
 )
 

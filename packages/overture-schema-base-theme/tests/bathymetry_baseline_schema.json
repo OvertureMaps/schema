@@ -34,12 +34,12 @@
       "title": "CartographicHints",
       "type": "object"
     },
-    "SourcePropertyItem": {
+    "SourceItem": {
       "additionalProperties": false,
-      "description": "An object storing the source for a specified property.\n\nThe property is a reference to the property element within this Feature, and will be\nreferenced using JSON Pointer Notation RFC 6901 (\nhttps://datatracker.ietf.org/doc/rfc6901/).\nThe source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+      "description": "Specifies the source of the data used for a feature or one of its properties.",
       "properties": {
         "between": {
-          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SourcePropertyItem applies to.",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SourceItem applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -51,29 +51,30 @@
           "type": "array"
         },
         "confidence": {
-          "description": "Confidence score between 0.0 and 1.0",
+          "description": "Confidence value from the source dataset.\n\nThis is a value between 0.0 and 1.0 and is particularly relevant for ML-derived data.",
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "Confidence",
           "type": "number"
         },
         "dataset": {
+          "description": "Name of the dataset where the source data can be found.",
           "title": "Dataset",
           "type": "string"
         },
         "license": {
-          "description": "License name. This should be a valid SPDX license identifier when available. If the license is NULL, contact the data provider for more license information.",
+          "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
           "pattern": "^(\\S.*)?\\S$",
           "title": "License",
           "type": "string"
         },
         "property": {
-          "description": "JSON Pointer (RFC 6901)",
+          "description": "A JSON Pointer identifying the property (field) that this source information applies to.\n\nThe root document value `\"\"` indicates that this source information applies to the\nentire feature, excepting properties (fields) for which a dedicated source information\nrecord exists.\n\nAny other JSON Pointer apart from `\"\"` indicates that this source record provides\ndedicated source information for the property at the path in the JSON Pointer. As an\nexample, the value `\"/names/common/en\"` indicates that the source information applies to\nthe English common name of a named feature, while the value `\"/geometry\"` indicates that\nit applies to the feature geometry.",
           "title": "Property",
           "type": "string"
         },
         "record_id": {
-          "description": "Refers to the specific record within the dataset that was used.",
+          "description": "Identifies the specific record within the source dataset where the source data can\nbe found.\n\nThe format of record identifiers is dataset-specific.",
           "title": "Record Id",
           "type": "string"
         },
@@ -88,7 +89,7 @@
         "property",
         "dataset"
       ],
-      "title": "SourcePropertyItem",
+      "title": "SourceItem",
       "type": "object"
     }
   },
@@ -221,9 +222,9 @@
           "type": "integer"
         },
         "sources": {
-          "description": "The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.",
+          "description": "Information about the source data used to assemble the feature.",
           "items": {
-            "$ref": "#/$defs/SourcePropertyItem"
+            "$ref": "#/$defs/SourceItem"
           },
           "minItems": 1,
           "title": "Sources",
