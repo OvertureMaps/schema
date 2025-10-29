@@ -1,5 +1,5 @@
 import textwrap
-from typing import Annotated, Generic, NewType, TypeVar
+from typing import Annotated, Generic, TypeVar
 
 from pydantic import (
     BaseModel,
@@ -12,6 +12,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 from typing_extensions import Self
 
+from overture.schema.core.sources import Sources
 from overture.schema.system.feature import Feature
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
@@ -21,68 +22,16 @@ from overture.schema.system.primitive import (
 from overture.schema.system.ref import Id, Identified
 from overture.schema.system.string import (
     CountryCodeAlpha2,
-    JsonPointer,
-    StrippedString,
 )
 
 from .enums import PerspectiveMode
-from .scoping import Scope, scoped
 from .types import (
-    ConfidenceScore,
-    FeatureUpdateTime,
     FeatureVersion,
     Level,
     MaxZoom,
     MinZoom,
     Prominence,
     SortKey,
-)
-
-
-@no_extra_fields
-@scoped(Scope.GEOMETRIC_RANGE)
-class SourcePropertyItem(BaseModel):
-    """An object storing the source for a specified property.
-
-    The property is a reference to the property element within this Feature, and will be
-    referenced using JSON Pointer Notation RFC 6901 (
-    https://datatracker.ietf.org/doc/rfc6901/).
-    The source dataset for that referenced property will be specified in the overture list of approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.
-    """
-
-    # Required
-
-    property: JsonPointer
-    dataset: str
-
-    # Optional
-
-    license: Annotated[
-        StrippedString | None,
-        Field(
-            description="License name. This should be a valid SPDX license identifier when available. If the license is NULL, contact the data provider for more license information.",
-        ),
-    ] = None
-    record_id: Annotated[
-        str | None,
-        Field(
-            description="Refers to the specific record within the dataset that was used.",
-        ),
-    ] = None
-    update_time: FeatureUpdateTime | None = None
-    confidence: ConfidenceScore | None = None
-
-
-Sources = NewType(
-    "Sources",
-    Annotated[
-        list[SourcePropertyItem],
-        Field(
-            min_length=1,
-            description="""The array of source information for the properties of a given feature, with each entry being a source object which lists the property in JSON Pointer notation and the dataset approved sources from the Overture Data Working Group that contains the relevant metadata for that dataset including license source organization.""",
-        ),
-        UniqueItemsConstraint(),
-    ],
 )
 
 ThemeT = TypeVar("ThemeT", bound=str)
