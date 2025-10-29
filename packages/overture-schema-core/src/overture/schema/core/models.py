@@ -26,8 +26,7 @@ from overture.schema.system.string import (
 )
 
 from .enums import PerspectiveMode
-from .scoping.lr import LinearlyReferencedRange
-from .scoping.side import Side
+from .scoping import Scope, scoped
 from .types import (
     ConfidenceScore,
     FeatureUpdateTime,
@@ -41,33 +40,8 @@ from .types import (
 
 
 @no_extra_fields
-class GeometricRangeScope(BaseModel):
-    """Geometric scoping properties defining the range of positions on the segment where
-    something is physically located or where a rule is active."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # Optional
-
-    between: LinearlyReferencedRange | None = None
-
-    def __hash__(self) -> int:
-        """Make GeometricRangeScope hashable."""
-        return hash((tuple(self.between) if self.between is not None else None,))
-
-
-@no_extra_fields
-class SideScope(BaseModel):
-    """Geometric scoping properties defining the side of a road modeled when moving
-    along the line from beginning to end."""
-
-    # Optional
-
-    side: Side | None = None
-
-
-@no_extra_fields
-class SourcePropertyItem(GeometricRangeScope):
+@scoped(Scope.GEOMETRIC_RANGE)
+class SourcePropertyItem(BaseModel):
     """An object storing the source for a specified property.
 
     The property is a reference to the property element within this Feature, and will be
