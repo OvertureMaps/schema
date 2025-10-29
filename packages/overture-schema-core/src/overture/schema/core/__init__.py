@@ -1,4 +1,4 @@
-from . import scoping
+from . import scoping, sources
 from .json_schema import json_schema
 from .models import OvertureFeature
 from .parser import parse_feature
@@ -11,4 +11,5 @@ __all__ = [
     "Scope",
     "scoped",
     "scoping",
+    "sources",
 ]
