@@ -19,7 +19,7 @@ Level = NewType(
     "Level",
     Annotated[
         int32,
-        Field(default=0, description="Z-order of the feature where 0 is visual level"),
+        Field(description="Z-order of the feature where 0 is visual level"),
     ],
 )
 
@@ -71,14 +71,12 @@ The Slippy Maps zooms are explained in the following references:
     ],
 )
 
-# FIXME: Use of `default` on this "floating" type declaration results in a Pydantic warning that the
-#        default has no effect. Default value should be migrated to site usage in the actual models.
 SortKey = NewType(
     "SortKey",
     Annotated[
         int,
         Field(
-            default=0,
+            #default=0,
             description="An ascending numeric that defines the recommended order features should be drawn in. Features with lower number should be shown on top of features with a higher number.",
         ),
     ],
