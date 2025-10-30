@@ -235,7 +235,6 @@
           "type": "array"
         },
         "value": {
-          "default": 0,
           "description": "Z-order of the feature where 0 is visual level",
           "maximum": 2147483647,
           "minimum": -2147483648,
@@ -243,6 +242,9 @@
           "type": "integer"
         }
       },
+      "required": [
+        "value"
+      ],
       "title": "LevelRule",
       "type": "object"
     },

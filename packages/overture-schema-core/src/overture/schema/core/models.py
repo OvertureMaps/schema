@@ -127,7 +127,7 @@ class Perspectives(BaseModel):
 class Stacked(BaseModel):
     """Properties defining feature Z-order, i.e., stacking order."""
 
-    level: Level | None = None
+    level: Level | None = 0
 
 
 @no_extra_fields
