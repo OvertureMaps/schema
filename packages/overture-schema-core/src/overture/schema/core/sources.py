@@ -1,10 +1,11 @@
 import textwrap
+from datetime import datetime
 from typing import Annotated, NewType
 
 from pydantic import BaseModel, Field
 
 from overture.schema.core.scoping import Scope, scoped
-from overture.schema.core.types import ConfidenceScore, FeatureUpdateTime
+from overture.schema.core.types import ConfidenceScore
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.string import JsonPointer, StrippedString
@@ -67,7 +68,10 @@ class SourceItem(BaseModel):
             ).strip()
         ),
     ] = None
-    update_time: FeatureUpdateTime | None = None
+    update_time: Annotated[
+        datetime | None,
+        Field(description="Last update time of the source data record."),
+    ] = None
     confidence: Annotated[
         ConfidenceScore | None,
         Field(
