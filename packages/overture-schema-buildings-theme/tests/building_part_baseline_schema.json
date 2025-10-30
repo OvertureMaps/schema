@@ -170,15 +170,15 @@
         "roof_tiles",
         "slate",
         "solar_panels",
-        "thatch",
         "tar_paper",
+        "thatch",
         "wood"
       ],
       "title": "RoofMaterial",
       "type": "string"
     },
     "RoofOrientation": {
-      "description": "Orientation of the roof shape relative to the footprint shape.\n\nEither \"along\" or \"across\".",
+      "description": "Orientation of the roof shape relative to the footprint shape.\n\nThe members of this enumeration, `\"across\"` and `\"along\"`, are borrowed from the OpenStreetMap\n`roof:orientation=*` tag and have the same meanings as they do in OSM.",
       "enum": [
         "across",
         "along"
@@ -276,7 +276,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "A single building part.\n\nParts describe their shape and color and other properties. Each building part must\nrefer to the building to which it belongs.",
+  "description": "Building parts represent parts of larger building features. They allow buildings to be modeled\nin rich detail suitable for creating realistic 3D models.\n\nEvery building part is associated with a parent `Building` feature via the `building_id` field.\nIn addition, a building part has a footprint geometry and may include additional details such as\nits height, the number of floors, and the color and material of its facade and roof.\n\nBuilding parts can float or be stacked on top of each other. The `min_height`, `min_floor`,\n`height`, and `num_floors`, fields can be used to arrange the parts correctly along the\nvertical dimension.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -289,7 +289,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "The part's geometry.",
+      "description": "The footprint or roofprint of the building part.",
       "oneOf": [
         {
           "properties": {
@@ -393,29 +393,30 @@
       },
       "properties": {
         "building_id": {
-          "description": "The building ID to which this part belongs",
+          "description": "The building to which this part belongs",
           "minLength": 1,
           "pattern": "^\\S+$",
           "title": "Building Id",
           "type": "string"
         },
         "facade_color": {
-          "description": "The color (name or color triplet) of the facade of a building or building part in hexadecimal",
+          "description": "Facade color in `#rgb` or `#rrggbb` hex notation",
           "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$",
           "title": "Facade Color",
           "type": "string"
         },
         "facade_material": {
-          "$ref": "#/$defs/FacadeMaterial"
+          "$ref": "#/$defs/FacadeMaterial",
+          "description": "Outer surface material of the facade"
         },
         "height": {
-          "description": "Height of the building or part in meters. The height is the distance from the lowest point to the highest point.",
+          "description": "Height of the building or part in meters.\n\nThis is the distance from the lowest point to the highest point.",
           "exclusiveMinimum": 0,
           "title": "Height",
           "type": "number"
         },
         "is_underground": {
-          "description": "Whether the entire building or part is completely below ground. This is useful for rendering which typically omits these buildings or styles them differently because they are not visible above ground. This is different than the level column which is used to indicate z-ordering of elements and negative values may be above ground.",
+          "description": "Whether the entire building or part is completely below ground.\n\nThe underground flag is useful for display purposes. Buildings and building parts\nthat are entirely below ground can be styled differently or omitted from the\nrendered image.\n\nThis flag is conceptually different from the `level` field, which indicates\nrelative z-ordering and, notably, can be negative even if the building is entirely\nabove-ground.",
           "title": "Is Underground",
           "type": "boolean"
         },
@@ -427,7 +428,7 @@
           "type": "integer"
         },
         "min_floor": {
-          "description": "The \"start\" floor of this building or part. Indicates that the building or part is \"floating\" and its bottom-most floor is above ground level, usually because it is part of a larger building in which some parts do reach down to ground level. An example is a building that has an entry road or driveway at ground level into an interior courtyard, where part of the building bridges above the entry road. This property may sometimes be populated when min_height is missing and in these cases can be used as a proxy for min_height.",
+          "description": "Start floor of this building or part.\n\nIf present, this value indicates that the building or part is \"floating\" and its\nbottom-most floor is above ground level, usually because it is part of a larger\nbuilding in which some parts do reach down to ground level. An example is a building\nthat has an entry road or driveway at ground level into an interior courtyard, where\npart of the building bridges above the entry road. This property may sometimes be\npopulated when `min_height` is missing and in these cases can be used as a proxy for\n`min_height`.",
           "exclusiveMinimum": 0,
           "maximum": 2147483647,
           "minimum": -2147483648,
@@ -435,7 +436,7 @@
           "type": "integer"
         },
         "min_height": {
-          "description": "The height of the bottom part of building in meters. Used if a building or part of building starts above the ground level.",
+          "description": "Altitude above ground where the bottom of the building or building part starts.\n\nIf present, this value indicates that the lowest part of the building or building\npart starts is above ground level.",
           "title": "Min Height",
           "type": "number"
         },
@@ -459,33 +460,34 @@
           "type": "integer"
         },
         "roof_color": {
-          "description": "The color (name or color triplet) of the roof of a building or building part in hexadecimal",
+          "description": "The roof color in `#rgb` or `#rrggbb` hex notation",
           "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$",
           "title": "Roof Color",
           "type": "string"
         },
         "roof_direction": {
-          "description": "Bearing of the roof ridge line in degrees.",
+          "description": "Bearing of the roof ridge line in degrees",
           "exclusiveMaximum": 360,
           "minimum": 0,
           "title": "Roof Direction",
           "type": "number"
         },
         "roof_height": {
-          "description": "The height of the building roof in meters. This represents the distance from the base of the roof to the highest point of the roof.",
+          "description": "Height of the roof in meters.\n\nThis is the distance from the base of the roof to its highest point.",
           "title": "Roof Height",
           "type": "number"
         },
         "roof_material": {
-          "$ref": "#/$defs/RoofMaterial"
+          "$ref": "#/$defs/RoofMaterial",
+          "description": "Outer surface material of the roof"
         },
         "roof_orientation": {
           "$ref": "#/$defs/RoofOrientation",
-          "description": "Orientation of the roof shape relative to the footprint shape. Either \"along\" or \"across\"."
+          "description": "Orientation of the roof shape relative to the footprint shape"
         },
         "roof_shape": {
           "$ref": "#/$defs/RoofShape",
-          "description": "The shape of the roof"
+          "description": "Shape of the roof"
         },
         "sources": {
           "description": "Information about the source data used to assemble the feature.",

@@ -25,5 +25,5 @@ path = "src/overture/schema/buildings/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"buildings.building" = "overture.schema.buildings.building.models:Building"
-"buildings.building_part" = "overture.schema.buildings.building_part.models:BuildingPart"
+"buildings.building" = "overture.schema.buildings:Building"
+"buildings.building_part" = "overture.schema.buildings:BuildingPart"
