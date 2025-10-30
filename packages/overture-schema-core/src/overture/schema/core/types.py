@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Annotated, NewType
 
 from pydantic import (
@@ -24,25 +23,8 @@ Level = NewType(
     ],
 )
 
-# It might be reasonable to combine "update_time" and "version" in a single
-# "updateVersion" field which gives the last Overture version number in which the
-# feature changed. The downside to doing this is that the number would cease to be
-# indicative of the "rate of change" of the feature.
 FeatureVersion = NewType(
     "FeatureVersion", Annotated[int32, Field(ge=0, description="")]
-)
-
-# A somewhat more compact approach would be to reference the Overture version where the
-# feature last changed instead of the update time, and expect clients to do a lookup if
-# they really care about the time
-FeatureUpdateTime = NewType(
-    "FeatureUpdateTime",
-    Annotated[
-        datetime,
-        Field(
-            description="Timestamp when the feature was last updated",
-        ),
-    ],
 )
 
 Prominence = NewType(
@@ -112,7 +94,6 @@ Type = Annotated[str, Field(description="Specific feature type within the theme"
 
 __all__ = [
     "ConfidenceScore",
-    "FeatureUpdateTime",
     "FeatureVersion",
     "Level",
     "MaxZoom",
