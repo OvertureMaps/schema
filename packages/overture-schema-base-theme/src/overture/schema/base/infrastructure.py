@@ -1,8 +1,32 @@
+"""Infrastructure feature models for Overture Maps base theme."""
+
+import textwrap
 from enum import Enum
+from typing import Annotated, Literal
+
+from pydantic import ConfigDict, Field
+
+from overture.schema.base._common import Height, SourcedFromOpenStreetMap
+from overture.schema.core import (
+    OvertureFeature,
+)
+from overture.schema.core.models import Stacked
+from overture.schema.core.names import Named
+from overture.schema.system.primitive import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
+
+from ._common import SurfaceMaterial
 
 
 class InfrastructureSubtype(str, Enum):
-    """Further description of the type of infrastructure."""
+    """
+    Broadest classification of the type of infrastructure.
+
+    This broad classification can be refined by `InfrastructureClass`.
+    """
 
     AERIALWAY = "aerialway"
     AIRPORT = "airport"
@@ -25,7 +49,11 @@ class InfrastructureSubtype(str, Enum):
 
 
 class InfrastructureClass(str, Enum):
-    """Further classification of the infrastructure type."""
+    """
+    Further classification of the type of infrastructure.
+
+    The infrastructure class adds detail to the broad classification of `InfrastructureSubtype`.
+    """
 
     AERIALWAY_STATION = "aerialway_station"
     AIRPORT = "airport"
@@ -191,3 +219,45 @@ class InfrastructureClass(str, Enum):
     WATER_TOWER = "water_tower"
     WEIR = "weir"
     ZIP_LINE = "zip_line"
+
+
+class Infrastructure(
+    OvertureFeature[Literal["base"], Literal["infrastructure"]],
+    Named,
+    Stacked,
+    SourcedFromOpenStreetMap,
+):
+    """
+    Infrastructure features provide basic information about real-world infrastructure entitites
+    such as bridges, airports, runways, aerialways, communication towers, and power lines.
+    """
+
+    model_config = ConfigDict(title="infrastructure")
+
+    # Overture Feature
+
+    geometry: Annotated[
+        Geometry,
+        GeometryTypeConstraint(
+            GeometryType.POINT,
+            GeometryType.LINE_STRING,
+            GeometryType.POLYGON,
+            GeometryType.MULTI_POLYGON,
+        ),
+        Field(
+            description=textwrap.dedent("""
+                Geometry of the infrastructure feature, which may be a point, line string, polygon, or
+                multi-polygon.
+            """).strip()
+        ),
+    ]
+
+    # Required
+
+    class_: Annotated[InfrastructureClass, Field(alias="class")]
+    subtype: InfrastructureSubtype
+
+    # Optional
+
+    height: Height | None = None
+    surface: SurfaceMaterial | None = None

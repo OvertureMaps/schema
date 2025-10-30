@@ -35,7 +35,7 @@
       "type": "object"
     },
     "LandCoverSubtype": {
-      "description": "Type of surface represented.",
+      "description": "Primary or dominant material covering the land.",
       "enum": [
         "barren",
         "crop",
@@ -111,7 +111,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Representation of the Earth's natural surfaces.",
+  "description": "Land cover features indicate the primary natural or artificial surface material covering a land\narea on the earth, including vegetation types like forests and crops, built environments like\ncities, and natural surfaces like wetlands or barren ground.\n\nLand cover features relate to `LandUse` features in the following way: land cover is the\nphysical thing covering the land, while land use is the human use to which the land is being\nput.\n\nTODO: Explain relationship to `Land` features.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -124,7 +124,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "Geometry (Polygon or MultiPolygon)",
+      "description": "Shape of the covered land area, which may be a polygon or multi-polygon.",
       "oneOf": [
         {
           "properties": {
