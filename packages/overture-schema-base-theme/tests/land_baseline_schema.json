@@ -1,7 +1,7 @@
 {
   "$defs": {
     "LandClass": {
-      "description": "Further classification of type of landcover.",
+      "description": "Further classification of the land.\n\nThe land class adds detail to the broad classification of `LandSubtype`.",
       "enum": [
         "archipelago",
         "bare_rock",
@@ -50,7 +50,7 @@
       "type": "string"
     },
     "LandSubtype": {
-      "description": "Further description of the type of land cover, such as forest, glacier, grass, or\na physical feature, such as a mountain peak.",
+      "description": "Broadest classification of the land.\n\nThis broad classification can be refined by `LandClass`.",
       "enum": [
         "crater",
         "desert",
@@ -275,7 +275,7 @@
       "type": "object"
     },
     "SurfaceMaterial": {
-      "description": "Surface material enum used by infrastructure and land features.",
+      "description": "Material that makes up the surface of `Infrastructure` and `Land` features.",
       "enum": [
         "asphalt",
         "cobblestone",
@@ -307,7 +307,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Physical representations of land surfaces.\n\nGlobal land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap.",
+  "description": "Land features are representations of physical land surfaces.\n\nIn Overture data releases, land features are sourced from OpenStreetMap. TODO. Finish this when\nI get more info from Jennings.\n\n\n\nPhysical representations of land surfaces.\n\nGlobal land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap.\n\nTODO: Update this description when the relationship to `land_cover` is better understood.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -320,7 +320,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "Geometry (Point, LineString, Polygon, or MultiPolygon)",
+      "description": "Geometry of the land feature, which may be a point, line string, polygon, or\nmulti-polygon.",
       "oneOf": [
         {
           "properties": {
@@ -488,7 +488,7 @@
           "default": "land"
         },
         "elevation": {
-          "description": "Elevation above sea level (in meters) of the feature.",
+          "description": "Elevation above sea level of the feature in meters.",
           "maximum": 9000,
           "minimum": -2147483648,
           "title": "Elevation",
@@ -506,7 +506,7 @@
         },
         "source_tags": {
           "additionalProperties": true,
-          "description": "Any attributes/tags from the original source data that should be passed through.",
+          "description": "Key/value pairs imported directly from the source data without change.\n\nThis field provides access to raw OSM entity tags for features sourced from\nOpenStreetMap.",
           "title": "Source Tags",
           "type": "object"
         },

@@ -64,7 +64,8 @@ class Address(OvertureFeature[Literal["addresses"], Literal["address"]]):
 
     model_config = ConfigDict(title="address")
 
-    # Core
+    # Overture Feature
+
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint(GeometryType.POINT),

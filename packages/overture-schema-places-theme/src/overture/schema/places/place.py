@@ -122,12 +122,12 @@ class Address(BaseModel):
 
 class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
     """
-    A Place is a point representation of a real-world facility, service, or amenity.
+    Places are point representations of real-world facilities, businesses, services, or amenities.
     """
 
     model_config = ConfigDict(title="place")
 
-    # Required
+    # Overture Feature
 
     geometry: Annotated[
         Geometry,
@@ -136,6 +136,9 @@ class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
             description="Position of the place. Places are point geometries.",
         ),
     ]
+
+    # Required
+
     operating_status: Annotated[
         OperatingStatus,
         Field(

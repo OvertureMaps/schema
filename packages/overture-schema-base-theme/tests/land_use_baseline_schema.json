@@ -1,7 +1,7 @@
 {
   "$defs": {
     "LandUseClass": {
-      "description": "Further classification of the land use.",
+      "description": "Further classification of the land use.\n\nThe land use class adds detail to the broad classification of `LandUseSubtype`.",
       "enum": [
         "aboriginal_land",
         "airfield",
@@ -117,7 +117,7 @@
       "type": "string"
     },
     "LandUseSubtype": {
-      "description": "Broad type of land.",
+      "description": "Broadest classification of the land use.\n\nThis broad classification can be refined by `LandUseClass`.",
       "enum": [
         "agriculture",
         "aquaculture",
@@ -353,7 +353,7 @@
       "type": "object"
     },
     "SurfaceMaterial": {
-      "description": "Surface material enum used by infrastructure and land features.",
+      "description": "Material that makes up the surface of `Infrastructure` and `Land` features.",
       "enum": [
         "asphalt",
         "cobblestone",
@@ -385,7 +385,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Land use features from OpenStreetMap.",
+  "description": "Land use features specify the predominant human use of an area of land, for example commercial\nactivity, recreation, farming, housing, education, or military use.\n\nLand use features relate to `LandCover` features in the following way: land use is the human\nhuman activity being done with the land, while land cover is the physical thing that covers it.\n\nTODO: Explain relationship to `Land` features.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -398,7 +398,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "Classifications of the human use of a section of land. Translates `landuse` from OpenStreetMap tag from OpenStreetMap.",
+      "description": "Geometry of the land use area, which may be a point, line string, polygon, or\nmulti-polygon.",
       "oneOf": [
         {
           "properties": {
@@ -565,7 +565,7 @@
           "$ref": "#/$defs/LandUseClass"
         },
         "elevation": {
-          "description": "Elevation above sea level (in meters) of the feature.",
+          "description": "Elevation above sea level of the feature in meters.",
           "maximum": 9000,
           "minimum": -2147483648,
           "title": "Elevation",
@@ -583,7 +583,7 @@
         },
         "source_tags": {
           "additionalProperties": true,
-          "description": "Any attributes/tags from the original source data that should be passed through.",
+          "description": "Key/value pairs imported directly from the source data without change.\n\nThis field provides access to raw OSM entity tags for features sourced from\nOpenStreetMap.",
           "title": "Source Tags",
           "type": "object"
         },
