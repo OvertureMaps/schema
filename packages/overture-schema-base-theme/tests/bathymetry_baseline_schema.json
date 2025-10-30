@@ -79,7 +79,7 @@
           "type": "string"
         },
         "update_time": {
-          "description": "Timestamp when the feature was last updated",
+          "description": "Last update time of the source data record.",
           "format": "date-time",
           "title": "Update Time",
           "type": "string"
