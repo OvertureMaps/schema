@@ -3,7 +3,7 @@
 import json
 import os
 
-from overture.schema.buildings import Building
+from overture.schema.buildings.building import Building
 from overture.schema.core import json_schema
 
 
