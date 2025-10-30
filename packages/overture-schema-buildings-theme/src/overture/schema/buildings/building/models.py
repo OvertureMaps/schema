@@ -31,7 +31,8 @@ class Building(
 
     model_config = ConfigDict(title="building")
 
-    # Core
+    # Overture Feature
+
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint(GeometryType.POLYGON, GeometryType.MULTI_POLYGON),

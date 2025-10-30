@@ -1,8 +1,32 @@
+"""Land use feature models for Overture Maps base theme."""
+
+import textwrap
 from enum import Enum
+from typing import Annotated, Literal
+
+from pydantic import ConfigDict, Field
+
+from overture.schema.base._common import Elevation, SourcedFromOpenStreetMap
+from overture.schema.core import (
+    OvertureFeature,
+)
+from overture.schema.core.models import Stacked
+from overture.schema.core.names import Named
+from overture.schema.system.primitive import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
+
+from ._common import SurfaceMaterial
 
 
 class LandUseSubtype(str, Enum):
-    """Broad type of land."""
+    """
+    Broadest classification of the land use.
+
+    This broad classification can be refined by `LandUseClass`.
+    """
 
     AGRICULTURE = "agriculture"
     AQUACULTURE = "aquaculture"
@@ -31,7 +55,11 @@ class LandUseSubtype(str, Enum):
 
 
 class LandUseClass(str, Enum):
-    """Further classification of the land use."""
+    """
+    Further classification of the land use.
+
+    The land use class adds detail to the broad classification of `LandUseSubtype`.
+    """
 
     ABORIGINAL_LAND = "aboriginal_land"
     AIRFIELD = "airfield"
@@ -142,3 +170,52 @@ class LandUseClass(str, Enum):
     WINTER_SPORTS = "winter_sports"
     WORKS = "works"
     ZOO = "zoo"
+
+
+class LandUse(
+    OvertureFeature[Literal["base"], Literal["land_use"]],
+    Named,
+    Stacked,
+    SourcedFromOpenStreetMap,
+):
+    """
+    Land use features specify the predominant human use of an area of land, for example commercial
+    activity, recreation, farming, housing, education, or military use.
+
+    Land use features relate to `LandCover` features in the following way: land use is the human
+    human activity being done with the land, while land cover is the physical thing that covers it.
+
+    TODO: Explain relationship to `Land` features.
+    """
+
+    model_config = ConfigDict(title="land_use")
+
+    # Core
+
+    geometry: Annotated[
+        Geometry,
+        GeometryTypeConstraint(
+            GeometryType.POINT,
+            GeometryType.LINE_STRING,
+            GeometryType.POLYGON,
+            GeometryType.MULTI_POLYGON,
+        ),
+        Field(
+            description=textwrap.dedent(
+                """
+                Geometry of the land use area, which may be a point, line string, polygon, or
+                multi-polygon.
+                """
+            ).strip(),
+        ),
+    ]
+
+    # Required
+
+    class_: Annotated[LandUseClass, Field(alias="class")]
+    subtype: LandUseSubtype
+
+    # Optional
+
+    elevation: Elevation | None = None
+    surface: SurfaceMaterial | None = None

@@ -1,7 +1,7 @@
 {
   "$defs": {
     "InfrastructureClass": {
-      "description": "Further classification of the infrastructure type.",
+      "description": "Further classification of the type of infrastructure.\n\nThe infrastructure class adds detail to the broad classification of `InfrastructureSubtype`.",
       "enum": [
         "aerialway_station",
         "airport",
@@ -172,7 +172,7 @@
       "type": "string"
     },
     "InfrastructureSubtype": {
-      "description": "Further description of the type of infrastructure.",
+      "description": "Broadest classification of the type of infrastructure.\n\nThis broad classification can be refined by `InfrastructureClass`.",
       "enum": [
         "aerialway",
         "airport",
@@ -402,7 +402,7 @@
       "type": "object"
     },
     "SurfaceMaterial": {
-      "description": "Surface material enum used by infrastructure and land features.",
+      "description": "Material that makes up the surface of `Infrastructure` and `Land` features.",
       "enum": [
         "asphalt",
         "cobblestone",
@@ -434,7 +434,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Various features from OpenStreetMap such as bridges, airport runways, aerialways,\nor communication towers and lines.",
+  "description": "Infrastructure features provide basic information about real-world infrastructure entitites\nsuch as bridges, airports, runways, aerialways, communication towers, and power lines.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -447,7 +447,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "Geometry (Point, LineString, Polygon, or MultiPolygon)",
+      "description": "Geometry of the infrastructure feature, which may be a point, line string, polygon, or\nmulti-polygon.",
       "oneOf": [
         {
           "properties": {
@@ -631,7 +631,7 @@
         },
         "source_tags": {
           "additionalProperties": true,
-          "description": "Any attributes/tags from the original source data that should be passed through.",
+          "description": "Key/value pairs imported directly from the source data without change.\n\nThis field provides access to raw OSM entity tags for features sourced from\nOpenStreetMap.",
           "title": "Source Tags",
           "type": "object"
         },
@@ -695,6 +695,6 @@
     "geometry",
     "properties"
   ],
-  "title": "Infrastructure Schema",
+  "title": "infrastructure",
   "type": "object"
 }

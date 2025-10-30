@@ -94,7 +94,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Topographic representation of an underwater area, such as a part of the ocean\nfloor.",
+  "description": "Bathymetry features provide topographic representations of underwater areas, such as parts of\nlake beds or ocean floors.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -107,7 +107,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "Geometry (Polygon or MultiPolygon)",
+      "description": "Shape of the underwater area, which may be a polygon or multi-polygon.",
       "oneOf": [
         {
           "properties": {
@@ -215,7 +215,7 @@
           "title": "cartography"
         },
         "depth": {
-          "description": "Depth below surface level (in meters) of the feature.",
+          "description": "Depth below surface level of the feature in meters.",
           "maximum": 2147483647,
           "minimum": 0,
           "title": "Depth",
