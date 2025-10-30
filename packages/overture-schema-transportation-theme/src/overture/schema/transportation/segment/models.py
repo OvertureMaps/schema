@@ -63,7 +63,6 @@ class TransportationSegment(
     connectors: Annotated[
         list[ConnectorReference] | None,
         Field(
-            default=[],
             min_length=2,
             description="List of connectors which this segment is physically connected to and their relative location. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments which share the same connector.",
         ),

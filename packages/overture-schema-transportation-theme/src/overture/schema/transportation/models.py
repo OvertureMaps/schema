@@ -204,7 +204,6 @@ class SpeedLimitRule(BaseModel):
     is_max_speed_variable: Annotated[
         bool | None,
         Field(
-            default=False,
             description="Indicates a variable speed corridor",
             strict=True,
         ),
