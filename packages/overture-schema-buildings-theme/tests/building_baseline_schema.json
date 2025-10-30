@@ -1,7 +1,7 @@
 {
   "$defs": {
     "BuildingClass": {
-      "description": "Further delineation of the building's built purpose.",
+      "description": "Further classification of the type and purpose of a building.\n\nThe building class adds detail to the broad classification of `BuildingSubtype`.",
       "enum": [
         "agricultural",
         "allotment_house",
@@ -92,6 +92,26 @@
         "wayside_shrine"
       ],
       "title": "BuildingClass",
+      "type": "string"
+    },
+    "BuildingSubtype": {
+      "description": "Broadest classification of the type and purpose of a building.\n\nThis broad classification can be refined by `BuildingClass`.",
+      "enum": [
+        "agricultural",
+        "civic",
+        "commercial",
+        "education",
+        "entertainment",
+        "industrial",
+        "medical",
+        "military",
+        "outbuilding",
+        "religious",
+        "residential",
+        "service",
+        "transportation"
+      ],
+      "title": "BuildingSubtype",
       "type": "string"
     },
     "FacadeMaterial": {
@@ -264,15 +284,15 @@
         "roof_tiles",
         "slate",
         "solar_panels",
-        "thatch",
         "tar_paper",
+        "thatch",
         "wood"
       ],
       "title": "RoofMaterial",
       "type": "string"
     },
     "RoofOrientation": {
-      "description": "Orientation of the roof shape relative to the footprint shape.\n\nEither \"along\" or \"across\".",
+      "description": "Orientation of the roof shape relative to the footprint shape.\n\nThe members of this enumeration, `\"across\"` and `\"along\"`, are borrowed from the OpenStreetMap\n`roof:orientation=*` tag and have the same meanings as they do in OSM.",
       "enum": [
         "across",
         "along"
@@ -367,30 +387,10 @@
       ],
       "title": "SourceItem",
       "type": "object"
-    },
-    "Subtype": {
-      "description": "A broad category of the building type/purpose.\n\nWhen the current use of the building does not match the built purpose, the subtype\nshould be set to represent the current use of the building.",
-      "enum": [
-        "agricultural",
-        "civic",
-        "commercial",
-        "education",
-        "entertainment",
-        "industrial",
-        "medical",
-        "military",
-        "outbuilding",
-        "religious",
-        "residential",
-        "service",
-        "transportation"
-      ],
-      "title": "Subtype",
-      "type": "string"
     }
   },
   "additionalProperties": false,
-  "description": "A building is a man-made structure with a roof that exists permanently in one\nplace.\n\nBuildings are compatible with GeoJSON Polygon features.",
+  "description": "Buildings are man-made structures with roofs that exists permanently in one place.\n\nA building's geometry represents the two-dimensional footprint of the building as viewed from\ndirectly above, looking down. Fields such as `height` and `num_floors` allow the\nthree-dimensional shape to be approximated. Some buildings, identified by the `has_parts` field,\nhave associated `BuildingPart` features which can be used to generate a more representative 3D\nmodel of the building.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -507,30 +507,32 @@
       },
       "properties": {
         "class": {
-          "$ref": "#/$defs/BuildingClass"
+          "$ref": "#/$defs/BuildingClass",
+          "description": "A more specific classification of the current use and purpose of the building.\n\nIf the current use of the building no longer accords with the original built\npurpose, the current use should be specified."
         },
         "facade_color": {
-          "description": "The color (name or color triplet) of the facade of a building or building part in hexadecimal",
+          "description": "Facade color in `#rgb` or `#rrggbb` hex notation",
           "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$",
           "title": "Facade Color",
           "type": "string"
         },
         "facade_material": {
-          "$ref": "#/$defs/FacadeMaterial"
+          "$ref": "#/$defs/FacadeMaterial",
+          "description": "Outer surface material of the facade"
         },
         "has_parts": {
-          "description": "Flag indicating whether the building has parts",
+          "description": "Whether the building has associated building part features",
           "title": "Has Parts",
           "type": "boolean"
         },
         "height": {
-          "description": "Height of the building or part in meters. The height is the distance from the lowest point to the highest point.",
+          "description": "Height of the building or part in meters.\n\nThis is the distance from the lowest point to the highest point.",
           "exclusiveMinimum": 0,
           "title": "Height",
           "type": "number"
         },
         "is_underground": {
-          "description": "Whether the entire building or part is completely below ground. This is useful for rendering which typically omits these buildings or styles them differently because they are not visible above ground. This is different than the level column which is used to indicate z-ordering of elements and negative values may be above ground.",
+          "description": "Whether the entire building or part is completely below ground.\n\nThe underground flag is useful for display purposes. Buildings and building parts\nthat are entirely below ground can be styled differently or omitted from the\nrendered image.\n\nThis flag is conceptually different from the `level` field, which indicates\nrelative z-ordering and, notably, can be negative even if the building is entirely\nabove-ground.",
           "title": "Is Underground",
           "type": "boolean"
         },
@@ -542,7 +544,7 @@
           "type": "integer"
         },
         "min_floor": {
-          "description": "The \"start\" floor of this building or part. Indicates that the building or part is \"floating\" and its bottom-most floor is above ground level, usually because it is part of a larger building in which some parts do reach down to ground level. An example is a building that has an entry road or driveway at ground level into an interior courtyard, where part of the building bridges above the entry road. This property may sometimes be populated when min_height is missing and in these cases can be used as a proxy for min_height.",
+          "description": "Start floor of this building or part.\n\nIf present, this value indicates that the building or part is \"floating\" and its\nbottom-most floor is above ground level, usually because it is part of a larger\nbuilding in which some parts do reach down to ground level. An example is a building\nthat has an entry road or driveway at ground level into an interior courtyard, where\npart of the building bridges above the entry road. This property may sometimes be\npopulated when `min_height` is missing and in these cases can be used as a proxy for\n`min_height`.",
           "exclusiveMinimum": 0,
           "maximum": 2147483647,
           "minimum": -2147483648,
@@ -550,7 +552,7 @@
           "type": "integer"
         },
         "min_height": {
-          "description": "The height of the bottom part of building in meters. Used if a building or part of building starts above the ground level.",
+          "description": "Altitude above ground where the bottom of the building or building part starts.\n\nIf present, this value indicates that the lowest part of the building or building\npart starts is above ground level.",
           "title": "Min Height",
           "type": "number"
         },
@@ -574,33 +576,34 @@
           "type": "integer"
         },
         "roof_color": {
-          "description": "The color (name or color triplet) of the roof of a building or building part in hexadecimal",
+          "description": "The roof color in `#rgb` or `#rrggbb` hex notation",
           "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$",
           "title": "Roof Color",
           "type": "string"
         },
         "roof_direction": {
-          "description": "Bearing of the roof ridge line in degrees.",
+          "description": "Bearing of the roof ridge line in degrees",
           "exclusiveMaximum": 360,
           "minimum": 0,
           "title": "Roof Direction",
           "type": "number"
         },
         "roof_height": {
-          "description": "The height of the building roof in meters. This represents the distance from the base of the roof to the highest point of the roof.",
+          "description": "Height of the roof in meters.\n\nThis is the distance from the base of the roof to its highest point.",
           "title": "Roof Height",
           "type": "number"
         },
         "roof_material": {
-          "$ref": "#/$defs/RoofMaterial"
+          "$ref": "#/$defs/RoofMaterial",
+          "description": "Outer surface material of the roof"
         },
         "roof_orientation": {
           "$ref": "#/$defs/RoofOrientation",
-          "description": "Orientation of the roof shape relative to the footprint shape. Either \"along\" or \"across\"."
+          "description": "Orientation of the roof shape relative to the footprint shape"
         },
         "roof_shape": {
           "$ref": "#/$defs/RoofShape",
-          "description": "The shape of the roof"
+          "description": "Shape of the roof"
         },
         "sources": {
           "description": "Information about the source data used to assemble the feature.",
@@ -613,7 +616,8 @@
           "uniqueItems": true
         },
         "subtype": {
-          "$ref": "#/$defs/Subtype"
+          "$ref": "#/$defs/BuildingSubtype",
+          "description": "A broad classification of the current use and purpose of the building.\n\nIf the current use of the building no longer accords with the original built\npurpose, the current use should be specified. For example, a building built as a\ntrain station but later converted into a shopping mall would have the value\n`\"commercial\"` rather than `\"transportation\"`."
         },
         "theme": {
           "const": "buildings",
