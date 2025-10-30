@@ -55,7 +55,7 @@ class VehicleHeightSelector(BaseModel):
     value: Annotated[
         float32,
         Field(
-            ge=0, decription="Vehicle height selection threshold in the given `unit`"
+            ge=0, description="Vehicle height selection threshold in the given `unit`"
         ),
     ]
     unit: LengthUnit = Field(description="Height unit in which `value` is expressed")
