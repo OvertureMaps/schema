@@ -301,7 +301,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "A Place is a point representation of a real-world facility, service, or amenity.",
+  "description": "Places are point representations of real-world facilities, businesses, services, or amenities.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",

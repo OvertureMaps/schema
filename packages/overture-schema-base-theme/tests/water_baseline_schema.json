@@ -206,7 +206,7 @@
       "type": "object"
     },
     "WaterClass": {
-      "description": "Further description of the type of water.",
+      "description": "Further description of the type of water body.\n\nThe water class adds detail to the broad classification of `WaterSubtype`.",
       "enum": [
         "basin",
         "bay",
@@ -248,7 +248,7 @@
       "type": "string"
     },
     "WaterSubtype": {
-      "description": "The type of water body such as an river, ocean or lake.",
+      "description": "The broad classification of water body such as river, ocean or lake.\n\nThis broad classification can be refined using `WaterClass`.",
       "enum": [
         "canal",
         "human_made",
@@ -268,7 +268,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Physical representations of inland and ocean marine surfaces.\n\nTranslates `natural` and `waterway` tags from OpenStreetMap.",
+  "description": "Water features represent ocean and inland water bodies.\n\nIn Overture data releases, water features are sourced from OpenStreetMap. There are two main\ncategories of water feature: ocean and inland water bodies.\n\nOcean\n-----\nThe `subytpe` value `\"ocean\"` indicates an ocean area feature whose geometry represents the\nsurface area of an ocean or part of an ocean. Ocean area may be tiled into many small polygons\nof consistent complexity to ensure manageable geometry. In Overture data releases, ocean area\nfeatures are created from OpenStreetMap coastlines data (`natural=coastline`) using a QA'd\nversion of the output from the OSMCoastline tool. In aggregate, all the ocean area features\nrepresent the inverse of the land features with subtype `\"land\"` and class `\"land\"`.\n\nThe names and recommended label position for oceans and seas can be found in features with the\nsubtype `\"physical\"` and the class `\"ocean\"` or `\"sea\"`.\n\nInland Water\n------------\nSubtypes other than `\"ocean\"` (and `\"physical\"`) represent inland water bodies. In Overture data\nreleases, these features are sourced from the OpenStreetMap tag `natural=*` where the tag value\nindicates a water body, as well as the tags `natural=water`,  `waterway=*`,\nand `water=*`.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -281,7 +281,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "Geometry (Point, LineString, Polygon, or MultiPolygon)",
+      "description": "Geometry of the water feature, which may be a point, line string, polygon, or\nmulti-polygon.",
       "oneOf": [
         {
           "properties": {
@@ -449,12 +449,12 @@
           "default": "water"
         },
         "is_intermittent": {
-          "description": "Is it intermittent water or not",
+          "description": "Whether the water body exists intermittently, not permanently",
           "title": "Is Intermittent",
           "type": "boolean"
         },
         "is_salt": {
-          "description": "Is it salt water or not",
+          "description": "Whether the water body contains salt water",
           "title": "Is Salt",
           "type": "boolean"
         },
@@ -470,7 +470,7 @@
         },
         "source_tags": {
           "additionalProperties": true,
-          "description": "Any attributes/tags from the original source data that should be passed through.",
+          "description": "Key/value pairs imported directly from the source data without change.\n\nThis field provides access to raw OSM entity tags for features sourced from\nOpenStreetMap.",
           "title": "Source Tags",
           "type": "object"
         },
