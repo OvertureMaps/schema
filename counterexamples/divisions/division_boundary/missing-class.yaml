@@ -8,7 +8,7 @@ properties:
   theme: divisions
   type: division_boundary
   version: 0
-  subtype: macroregion
+  subtype: region
   is_territorial: true
   is_land: false
   country: "XX"
