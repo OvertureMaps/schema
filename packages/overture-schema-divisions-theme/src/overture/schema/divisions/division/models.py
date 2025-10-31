@@ -7,8 +7,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from overture.schema.core import (
     OvertureFeature,
 )
+from overture.schema.core.cartography import CartographicallyHinted
 from overture.schema.core.models import (
-    CartographicallyHinted,
     Perspectives,
 )
 from overture.schema.core.names import CommonNames, Named, Names

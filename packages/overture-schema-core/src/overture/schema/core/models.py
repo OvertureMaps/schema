@@ -28,10 +28,6 @@ from .enums import PerspectiveMode
 from .types import (
     FeatureVersion,
     Level,
-    MaxZoom,
-    MinZoom,
-    Prominence,
-    SortKey,
 )
 
 ThemeT = TypeVar("ThemeT", bound=str)
@@ -128,19 +124,3 @@ class Stacked(BaseModel):
     """Properties defining feature Z-order, i.e., stacking order."""
 
     level: Level | None = 0  # type: ignore[assignment]
-
-
-@no_extra_fields
-class CartographicHints(BaseModel):
-    """Defines cartographic hints for optimal use of Overture features in map-making."""
-
-    # Optional
-
-    prominence: Prominence | None = None
-    min_zoom: MinZoom | None = None
-    max_zoom: MaxZoom | None = None
-    sort_key: SortKey | None = None
-
-
-class CartographicallyHinted(BaseModel):
-    cartography: Annotated[CartographicHints | None, Field(title="cartography")] = None
