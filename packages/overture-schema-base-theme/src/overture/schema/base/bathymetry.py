@@ -7,7 +7,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.core import (
     OvertureFeature,
 )
-from overture.schema.core.models import CartographicallyHinted
+from overture.schema.core.cartography import CartographicallyHinted
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
