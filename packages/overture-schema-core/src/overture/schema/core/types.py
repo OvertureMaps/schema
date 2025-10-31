@@ -4,7 +4,7 @@ from pydantic import (
     Field,
 )
 
-from overture.schema.system.primitive import float32, int32
+from overture.schema.system.primitive import float32, int16, int32
 
 ConfidenceScore = NewType(
     "ConfidenceScore",
@@ -18,7 +18,7 @@ ConfidenceScore = NewType(
 Level = NewType(
     "Level",
     Annotated[
-        int32,
+        int16,
         Field(description="Z-order of the feature where 0 is visual level"),
     ],
 )
@@ -76,7 +76,7 @@ SortKey = NewType(
     Annotated[
         int,
         Field(
-            #default=0,
+            # default=0,
             description="An ascending numeric that defines the recommended order features should be drawn in. Features with lower number should be shown on top of features with a higher number.",
         ),
     ],
