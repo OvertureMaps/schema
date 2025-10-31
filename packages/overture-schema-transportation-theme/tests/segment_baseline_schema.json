@@ -236,8 +236,8 @@
         },
         "value": {
           "description": "Z-order of the feature where 0 is visual level",
-          "maximum": 2147483647,
-          "minimum": -2147483648,
+          "maximum": 32767,
+          "minimum": -32768,
           "title": "Value",
           "type": "integer"
         }
