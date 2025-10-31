@@ -2,31 +2,33 @@
   "$defs": {
     "CartographicHints": {
       "additionalProperties": false,
-      "description": "Defines cartographic hints for optimal use of Overture features in map-making.",
+      "description": "Cartographic hints for optimal use of Overture features in map-making.",
       "properties": {
         "max_zoom": {
-          "description": "Recommended maximum tile zoom per the Slippy Maps convention.\n\nThe Slippy Maps zooms are explained in the following references:\n- https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames\n- https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection",
+          "description": "Recommended maximum tile zoom level in which this feature should be displayed.\n\nIt is recommended that the feature be hidden at zoom levels above this value.\n\nZoom levels follow the Slippy Maps convention, documented in the following\nreferences:\n- https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames\n- https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection",
           "maximum": 23,
           "minimum": 0,
           "title": "Max Zoom",
           "type": "integer"
         },
         "min_zoom": {
-          "description": "Recommended minimum tile zoom per the Slippy Maps convention.\n\nThe Slippy Maps zooms are explained in the following references:\n- https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames\n- https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection",
+          "description": "Recommended minimum tile zoom level in which this feature should be displayed.\n\nIt is recommended that the feature be hidden at zoom levels below this value.\n\nZoom levels follow the Slippy Maps convention, documented in the following\nreferences:\n- https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames\n- https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection",
           "maximum": 23,
           "minimum": 0,
           "title": "Min Zoom",
           "type": "integer"
         },
         "prominence": {
-          "description": "Represents Overture's view of a place's significance or importance.  This value can be used to help drive cartographic display of a place and is derived from various factors including, but not limited to: population, capital status, place tags, and type.",
-          "exclusiveMaximum": 100,
+          "description": "Subjective scale of feature significance or importance, with 1 being the least, and\n100 being the most, significant.\n\nThis value can be used to help drive decisions about how and when to display a\nfeature, and how to treat it relative to neighboring features.\n\nWhen populated by Overture, this value is derived from various factors including,\nbut not limited to: feature and subtype, population, and capital status.",
+          "maximum": 100,
           "minimum": 1,
           "title": "Prominence",
           "type": "integer"
         },
         "sort_key": {
-          "description": "An ascending numeric that defines the recommended order features should be drawn in. Features with lower number should be shown on top of features with a higher number.",
+          "description": "Integer indicating the recommended order in which to draw features.\n\nFeatures with a lower number should be drawn \"in front\" of features with a higher\nnumber.",
+          "maximum": 255,
+          "minimum": 0,
           "title": "Sort Key",
           "type": "integer"
         }
