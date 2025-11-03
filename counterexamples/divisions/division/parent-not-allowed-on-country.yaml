@@ -1,5 +1,5 @@
 ---
-id: counterexample:division:parent-not-allowed-on-country
+id: counterexample:division:parent-not-allowed-on-admin0
 type: Feature
 geometry:
   type: Point
@@ -8,14 +8,14 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: country
+  subtype: admin0
   names:
-    primary: A country division that has a parent ID, which is not allowed
+    primary: An admin0 division that has a parent ID, which is not allowed
   country: ZZ
   hierarchies:
-    - - division_id: counterexample:division:parent-not-allowed-on-country
-        subtype: country
-        name: A country division that has a parent ID, which is not allowed
+    - - division_id: counterexample:division:parent-not-allowed-on-admin0
+        subtype: admin0
+        name: An admin0 division that has a parent ID, which is not allowed
   parent_division_id: counterexample:division:some-parent-division
   ext_expected_errors:
     - "[S#/properties/properties/allOf/3/then]: not failed"

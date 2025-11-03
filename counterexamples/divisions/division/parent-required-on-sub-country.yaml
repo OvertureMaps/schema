@@ -1,5 +1,5 @@
 ---
-id: counterexample:division:parent-required-on-sub-country
+id: counterexample:division:parent-required-on-sub-admin0
 type: Feature
 geometry:
   type: Point
@@ -8,17 +8,17 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: region
+  subtype: admin1
   names:
-    primary: A sub-country division that lacks a parent ID
+    primary: A sub-admin0 division that lacks a parent ID
   country: ZZ
   region: ZZ-ABC
   hierarchies:
     - - division_id: counterexample:division:some-parent-division
-        subtype: country
+        subtype: admin0
         name: Some parent division
-      - division_id: counterexample:division:parent-required-on-sub-country
-        subtype: region
-        name: A sub-country division that lacks a parent ID
+      - division_id: counterexample:division:parent-required-on-sub-admin0
+        subtype: admin1
+        name: A sub-admin0 division that lacks a parent ID
   ext_expected_errors:
     - "missing property 'parent_division_id'"

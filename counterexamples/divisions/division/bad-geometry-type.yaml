@@ -8,13 +8,13 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: country
+  subtype: admin0
   names:
     primary: A division with an invalid geometry type.
   country: ZZ
   hierarchies:
     - - division_id: counterexample:division:bad-geometry-type
-        subtype: country
+        subtype: admin0
         name: A division with an invalid geometry type.
   norms:
     driving_side: left

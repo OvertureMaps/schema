@@ -8,17 +8,17 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: region
+  subtype: admin1
   names:
     primary: A division with an invalid region
   country: ZZ
   region: foo
   hierarchies:
     - - division_id: counterexample:division:some-parent-division
-        subtype: country
+        subtype: admin0
         name: Some parent division
       - division_id: counterexample:division:bad-region
-        subtype: region
+        subtype: admin1
         name: A division with an invalid ISO 3166-2 primary subdivision code ('region')
   parent_division_id: counterexample:division:some-parent-division
   ext_expected_errors:

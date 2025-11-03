@@ -19,12 +19,12 @@ properties:
       record_id: N21040334
   country: DK
   hierarchies:
-    - - division_id: example:division:country:dk
-        subtype: country
+    - - division_id: example:division:admin0:dk
+        subtype: admin0
         name: Denmark
   capital_of_divisions:
-    - division_id: example:division:country:dk
-      subtype: country
-  parent_division_id: example:division:country:dk
+    - division_id: example:division:admin0:dk
+      subtype: admin0
+  parent_division_id: example:division:admin0:dk
   population: 50781
   class: city

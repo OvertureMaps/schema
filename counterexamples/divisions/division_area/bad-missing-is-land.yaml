@@ -8,7 +8,7 @@ properties:
   theme: divisions
   type: division_area
   version: 0
-  subtype: country
+  subtype: admin0
   division_id: counterexample:division_boundary:some-division
   is_territorial: false
   country: ZZ

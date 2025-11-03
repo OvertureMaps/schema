@@ -1,5 +1,5 @@
 ---
-id: example:division:dependency:pr
+id: example:division:admin0:pr
 type: Feature
 geometry:
   type: Point
@@ -8,7 +8,7 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: dependency
+  subtype: admin0
   local_type:
     en: territory
   names:
@@ -29,10 +29,10 @@ properties:
   country: PR
   region: US-PR
   hierarchies:
-    - - division_id: example:division:country:us
-        subtype: country
+    - - division_id: example:division:admin0:us
+        subtype: admin0
         name: United States
   norms:
     driving_side: right
   capital_division_ids: [ example:division:locality:san_juan ]
-  parent_division_id: example:division:country:us
+  parent_division_id: example:division:admin0:us

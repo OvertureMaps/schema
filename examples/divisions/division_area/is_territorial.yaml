@@ -1,5 +1,5 @@
 ---
-id: example:division_area:is_territorial:country:fi
+id: example:division_area:is_territorial:admin0:fi
 type: Feature
 geometry:
   type: Polygon
@@ -75,12 +75,12 @@ geometry:
 properties:
   theme: divisions
   type: division_area
-  subtype: country
+  subtype: admin0
   is_territorial: true
   is_land: false
   country: FI
   version: 0
   class: land
-  division_id: example:division:country:fi
+  division_id: example:division:admin0:fi
   names:
     primary: Finland

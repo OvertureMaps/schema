@@ -8,7 +8,7 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: country
+  subtype: admin0
   names:
     primary: Kuzey Kıbrıs
     common:
@@ -22,7 +22,7 @@ properties:
   country: XX
   hierarchies:
     - - division_id: example:perspectives:trnc
-        subtype: country
+        subtype: admin0
         name: Kuzey Kıbrıs
   perspectives:
     mode: accepted_by

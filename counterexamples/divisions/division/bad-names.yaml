@@ -8,7 +8,7 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: country
+  subtype: admin0
   names:
     primary:
     common:
@@ -16,7 +16,7 @@ properties:
   country: ZZ
   hierarchies:
     - - division_id: counterexample:division:bad-names
-        subtype: country
+        subtype: admin0
         name: A division with invalid names
   norms:
     driving_side: left

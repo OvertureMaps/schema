@@ -8,7 +8,7 @@ properties:
   theme: divisions
   type: division_area
   version: 0
-  subtype: country
+  subtype: admin0
   class: maritime
   division_id: counterexample:division:some-division
   names:
