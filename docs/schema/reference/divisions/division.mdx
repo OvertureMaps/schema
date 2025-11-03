@@ -12,7 +12,6 @@ import TabItem from '@theme/TabItem';
 import division_example_country from '!!raw-loader!@site/docs/_examples/divisions/division/country.yaml';
 import division_example_region from '!!raw-loader!@site/docs/_examples/divisions/division/region.yaml';
 import division_example_hierarchies_multiple from '!!raw-loader!@site/docs/_examples/divisions/division/hierarchies-multiple.yaml';
-import division_example_dependency from '!!raw-loader!@site/docs/_examples/divisions/division/dependency.yaml';
 import division_example_population from '!!raw-loader!@site/docs/_examples/divisions/division/population.yaml';
 import division_example_perspectives from '!!raw-loader!@site/docs/_examples/divisions/division/perspectives.yaml';
 
@@ -44,88 +43,71 @@ While the schema for the divisions theme contains an comprehensive list of subty
 
 Currently, the following subtypes are available in the `division` feature type:
 
-- `country`
-- `dependency`
-- `region`
-- `county`
-- `localadmin`
+- `admin0`
+- `admin1`
+- `admin2`
+- `admin3`
 - `locality`
 - `macrohood`
 - `neighborhood`
 - `microhood`
 
 <Tabs>
-  <TabItem value="country" label="country" default>
+  <TabItem value="admin0" label="admin0" default>
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>country</code></td>
+        <td><code>admin0</code></td>
       </tr>
       </tbody>
     </table>
 
 
-A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [division boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+An admin0 division represents the highest level of administrative organization, covering countries and country-like dependencies. The border of an admin0 division, if known, is given by [division boundary](/schema/reference/divisions/division_boundary) features. Examples: United States, Puerto Rico
 
   </TabItem>
-<TabItem value="dependency" label="dependency" default>
+  <TabItem value="admin1" label="admin1">
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>dependency</code></td>
+        <td><code>admin1</code></td>
       </tr>
       </tbody>
     </table>
 
-
- A dependency is a place that is not exactly a sub-region of a country but is dependent on a parent country for defense, passport control, etc. Example: Puerto Rico
-
-  </TabItem>
-
-
-  <TabItem value="region" label="region">
-    <table>
-      <tbody>
-      <tr>
-        <th><code>subtype</code></th>
-        <td><code>region</code></td>
-      </tr>
-      </tbody>
-    </table>
-
-A region is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
+An admin1 division is the largest administrative unit within most countries and is typically the first-level administrative subdivision. Example: Alberta
 
   </TabItem>
 
-  <TabItem value="county" label="county" default>
+  <TabItem value="admin2" label="admin2" default>
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>county</code></td>
+        <td><code>admin2</code></td>
       </tr>
       </tbody>
     </table>
 
 
-A county is a second-level administrative subdivision. Example: Kings County, NY
+An admin2 division is a second-level administrative subdivision. Example: Kings County, NY
 
   </TabItem>
 
-  <TabItem value="localadmin" label="localadmin" default>
+  <TabItem value="admin3" label="admin3" default>
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>localadmin</code></td>
+        <td><code>admin3</code></td>
       </tr>
       </tbody>
     </table>
 
 
-Localadmin is a level of government in some parts of the world that contains localities or populated places that themselves have no authority. Often but not exclusively found in Europe. Localadmin is a third-level administrative subdivision. Example: [Paris](https://spelunker.whosonfirst.org/id/1159322569/)
+An admin3 division is an administrative unit in some parts of the world that contains localities or populated places that themselves have no authority. Often but not exclusively found in Europe. Example: [Paris](https://spelunker.whosonfirst.org/id/1159322569/)
 
   </TabItem>
 

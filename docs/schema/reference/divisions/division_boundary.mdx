@@ -47,51 +47,51 @@ While the schema for the divisions theme contains an comprehensive list of subty
 
 Currently, the following subtypes are available in the `division_boundary` feature type:
 
-- `country`
-- `region`
-- `county`
+- `admin0`
+- `admin1`
+- `admin2`
 
 <Tabs>
-  <TabItem value="country" label="country" default>
+  <TabItem value="admin0" label="admin0" default>
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>country</code></td>
+        <td><code>admin0</code></td>
       </tr>
       </tbody>
     </table>
 
 
-A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [divsion boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+An admin0 division is the highest level of administrative organization, covering countries and country-like dependencies. The border of an admin0 division, if known, is given by [division boundary](/schema/reference/divisions/division_boundary) features. Example: United States
 
   </TabItem>
 
-  <TabItem value="region" label="region">
+  <TabItem value="admin1" label="admin1">
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>region</code></td>
+        <td><code>admin1</code></td>
       </tr>
       </tbody>
     </table>
 
-A region is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
+An admin1 division is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
   </TabItem>
 
-  <TabItem value="county" label="county" default>
+  <TabItem value="admin2" label="admin2" default>
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>county</code></td>
+        <td><code>admin2</code></td>
       </tr>
       </tbody>
     </table>
 
 
-A county is a second-level administrative subdivision. Example: Kings County, NY
+An admin2 division is a second-level administrative subdivision. Example: Kings County, NY
   </TabItem>
 
 </Tabs>
