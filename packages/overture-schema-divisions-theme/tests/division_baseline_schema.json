@@ -102,7 +102,7 @@
     },
     "NameRule": {
       "additionalProperties": false,
-      "description": "Name rule with variant and language specification.",
+      "description": "A rule that can be evaluated to determine the name in advanced scenarios.\n\nName rules are used for cases where the primary name is not sufficient; the common name is not\nthe right fit for the use case and another variant is needed; or where the name only applies in\ncertain specific circumstances.\n\nExamples might include:\n- An official, alternate, or short name.\n- A name that only applies to part of a linear path like a road segment (geometric range\n  scoping).\n- A name that only applies to the left or right side of a linear path like a road segment (side\n  scoping).\n- A name that is only accepted by some political perspectives.",
       "properties": {
         "between": {
           "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing NameRule applies to.",
@@ -117,7 +117,7 @@
           "type": "array"
         },
         "language": {
-          "description": "IETF BCP-47 language tag",
+          "description": "The language in which the name `value` is specified, if known, as an IETF BCP 47\nlanguage tag.",
           "pattern": "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$",
           "title": "Language",
           "type": "string"
@@ -131,14 +131,15 @@
           "description": "The side, either left or right, that the containing NameRule applies to."
         },
         "value": {
-          "description": "String with no leading/trailing whitespace",
+          "description": "The actual name value.",
           "minLength": 1,
           "pattern": "^(\\S.*)?\\S$",
           "title": "Value",
           "type": "string"
         },
         "variant": {
-          "$ref": "#/$defs/NameVariant"
+          "$ref": "#/$defs/NameVariant",
+          "description": "The name variant for this name rule."
         }
       },
       "required": [
@@ -149,6 +150,7 @@
       "type": "object"
     },
     "NameVariant": {
+      "description": "Name variant used in a `NameRule`.",
       "enum": [
         "common",
         "official",
@@ -251,7 +253,7 @@
       "type": "object"
     },
     "PlaceType": {
-      "description": "Category of the division from a finite, hierarchical, ordered list of categories\n(e.g. country, region, locality, etc.) similar to a Who's on First placetype.",
+      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g., country,\nregion, locality, etc.) similar to a Who's on First placetype.",
       "enum": [
         "country",
         "dependency",

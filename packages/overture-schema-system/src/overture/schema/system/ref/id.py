@@ -1,3 +1,7 @@
+"""
+Unique identifiers and models with unique IDs.
+"""
+
 from typing import Annotated, NewType
 
 from pydantic import BaseModel, Field

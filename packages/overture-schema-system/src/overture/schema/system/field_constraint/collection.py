@@ -1,3 +1,7 @@
+"""
+Constraints on fields with collection types, such as lists and dictionaries.
+"""
+
 from collections.abc import Collection
 from typing import Any, get_origin
 

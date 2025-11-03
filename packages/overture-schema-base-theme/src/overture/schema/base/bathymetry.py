@@ -1,4 +1,6 @@
-"""Bathymetry feature models for Overture Maps base theme."""
+"""
+The `Bathymetry` feature type model and supporting types.
+"""
 
 from typing import Annotated, Literal
 

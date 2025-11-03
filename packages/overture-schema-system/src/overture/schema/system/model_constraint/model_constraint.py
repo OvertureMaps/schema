@@ -1,3 +1,14 @@
+"""
+Interfaces for constraints that apply to an entire Pydantic model, not just one field.
+
+- If you are authoring new model-level constraints, this module is for you: you will very likely
+  want to derive a subclass of `ModelConstraint` or a more specific base class such as
+  `FieldGroupConstraint` or `OptionalFieldGroupConstraint`.
+- If you are looking to reuse existing constraints, this module is too low-level for you. You need
+  one of the peer modules that implements a specific constraint type, such as: `forbid_if`,
+  `min_fields_set`, `no_extra_fields`, or `radio_group`.
+"""
+
 from abc import ABC, abstractmethod
 from collections import Counter
 from collections.abc import Callable
@@ -57,8 +68,8 @@ class ModelConstraint:
     @final
     def decorate(self, model_class: type[BaseModel]) -> type[BaseModel]:
         """
-        Decorates a Pydantic model with this constraint, returning a new version of the model that
-        has this constraint applied to it.
+        Decorate a Pydantic model, returning a new version of the model that has this constraint
+        applied to it.
 
         This is a final method and should not be overridden by subclasses.
 
@@ -103,7 +114,6 @@ class ModelConstraint:
         ...    print("Validation failed")
         Validation failed
         """
-
         if not isinstance(model_class, type):
             raise TypeError(f"`{self.name}` can only be applied to classes")
         if not issubclass(model_class, BaseModel):
@@ -134,7 +144,7 @@ class ModelConstraint:
 
     def validate_class(self, model_class: type[BaseModel]) -> None:
         """
-        Validates that the constraint is appropriate for the model class.
+        Validate that the constraint is appropriate for the model class.
 
         This method is called by the `decorate` method to ensure this constraint is applicable to
         the class being decorated with it.
@@ -153,7 +163,7 @@ class ModelConstraint:
 
     def validate_instance(self, model_instance: BaseModel) -> None:
         """
-        Validates the model instance against this constraint.
+        Validate the model instance against this constraint.
 
         Parameters
         ----------
@@ -169,7 +179,7 @@ class ModelConstraint:
 
     def edit_config(self, model_class: type[BaseModel], config: ConfigDict) -> None:
         """
-        Makes any changes to an existing config dictionary needed to reflect this constraint's
+        Make any changes to an existing config dictionary needed to reflect this constraint's
         validations.
 
         The existing config dictionary may already have been edited by other model constraints
@@ -197,7 +207,7 @@ class ModelConstraint:
         cls: type["ModelConstraint"], model_class: type[BaseModel]
     ) -> tuple["ModelConstraint", ...]:
         """
-        Returns the model constraints that have been applied to the given Pydantic model class.
+        Return the model constraints that have been applied to the given Pydantic model class.
 
         This is a final method and should not be overridden by subclasses.
 
@@ -338,6 +348,16 @@ class OptionalFieldGroupConstraint(FieldGroupConstraint):
 
 
 class Condition(ABC):
+    """
+    Interface for a condition expression that evaluates to a boolean value, `True` or `False`.
+
+    Conditions may be used to control the behavior of conditional constraints.
+
+    Conditions can be negated using the `negate` method, the convenience operator `~`, or by
+    explicitly instantiating an instance of `Not` that wraps `c`. In other words, for any condition
+    `c`, the conditions `c.negate()`, `~c`, and `Not(c)` are `True` whenever `c` is `False`.
+    """
+
     @final
     def __invert__(self) -> "Condition":
         return self.negate()
@@ -345,7 +365,7 @@ class Condition(ABC):
     @abstractmethod
     def validate_class(self, model_class: type[BaseModel]) -> None:
         """
-        Validates that the constraint is appropriate for the model class.
+        Validate that the constraint is appropriate for the model class.
 
         Parameters
         ----------
@@ -362,10 +382,10 @@ class Condition(ABC):
     @abstractmethod
     def eval(self, model_instance: BaseModel) -> bool:
         """
-        Evaluates the condition against a Pydantic model instance.
+        Evaluate the condition against a Pydantic model instance.
 
-        This method must only be called on model instances where `validate_class` does not raise
-        an exception on the instance's model class.
+        This method must only be called on model instances where `validate_class` does not raise an
+        exception on the instance's model class.
 
         Parameters
         ----------
@@ -381,7 +401,7 @@ class Condition(ABC):
 
     def negate(self) -> "Condition":
         """
-        Returns a condition that represents the logical negation of this condition.
+        Return a condition that represents the logical negation of this condition.
 
         Examples
         --------
@@ -397,8 +417,7 @@ class Condition(ABC):
 
     def json_schema(self, model_class: type[BaseModel]) -> JsonDict:
         """
-        Returns a JSON Schema that models the condition value with respect to a Pydantic model
-        class.
+        Return a JSON Schema that models the condition value with respect to a Pydantic model class.
 
         This method must only be called on model classes for which `validate_class` does not raise
         an exception.
@@ -418,6 +437,10 @@ class Condition(ABC):
 
 @dataclass(frozen=True, slots=True)
 class Not(Condition):
+    """
+    A negated condition.
+    """
+
     inner: Condition
 
     def __repr__(self) -> str:
@@ -454,7 +477,7 @@ class __FieldCondition(Condition):
     @override
     def validate_class(self, model_class: type[BaseModel]) -> None:
         """
-        Validates that the constraint is appropriate for the model class.
+        Validate that the constraint is appropriate for the model class.
 
         Parameters
         ----------

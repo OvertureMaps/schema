@@ -1,3 +1,7 @@
+"""
+Types supporting the side scope.
+"""
+
 from overture.schema.system.doc import DocumentedEnum
 
 

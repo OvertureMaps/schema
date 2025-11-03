@@ -1,3 +1,7 @@
+"""
+Constraints on fields with string values.
+"""
+
 import re
 from typing import Any
 

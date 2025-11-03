@@ -1,3 +1,7 @@
+"""
+Specify cartographic hints for features and fields of features.
+"""
+
 import textwrap
 from typing import Annotated, NewType
 
@@ -98,4 +102,8 @@ class CartographicHints(BaseModel):
 
 
 class CartographicallyHinted(BaseModel):
+    """
+    Properties for adding cartographic hints to a model.
+    """
+
     cartography: Annotated[CartographicHints | None, Field(title="cartography")] = None

@@ -11,7 +11,8 @@ from ._cache import get_type_adapter
 # TODO: Vic - I think we can remove this once `Omitable[T]` is applied everywhere (and once the
 #             @model_constraints are made `Omitable`-aware).
 class EnhancedJsonSchemaGenerator(GenerateJsonSchema):
-    """Enhanced JSON Schema generator with optional field support.
+    """
+    Enhanced JSON Schema generator with optional field support.
 
     This generator enhances the default Pydantic generator with the following:
 
@@ -20,13 +21,18 @@ class EnhancedJsonSchemaGenerator(GenerateJsonSchema):
     """
 
     def nullable_schema(self, schema: core_schema.NullableSchema) -> JsonSchemaValue:
-        """Generates a JSON schema that matches a nullable schema.
+        """
+        Generate a JSON schema that matches a nullable schema.
 
-        Args:
-            schema: The core schema.
+        Parameters
+        ----------
+        schema : core_schema.NullableSchema
+            The core schema for which to generate a JSON schema
 
-        Returns:
-            The generated JSON schema.
+        Return
+        ------
+        JsonSchemaValue
+            The generated JSON schema
         """
         # Generate the default nullable schema first
         json_schema = super().nullable_schema(schema)
@@ -60,15 +66,21 @@ class EnhancedJsonSchemaGenerator(GenerateJsonSchema):
 def json_schema(models: type[BaseModel] | UnionType | type) -> dict[str, Any]:
     """Generate JSON schema for a Pydantic model or union of models.
 
-    Args:
-        models: Either a Pydantic BaseModel class or a union type (possibly
-                annotated with discriminator information) of BaseModels.
+    Parameters
+    ----------
+    models : type[BaseModel] | UnionType | type
+        Either a class that is a subclass of Pydantic's `BaseModel` class or a union type (possibly
+        annotated with discriminator information) representing a union of `BaseModel` classes.
 
-    Returns:
-        dict: JSON schema representation of the model(s).
+    Returns
+    -------
+    dict[str, Any]
+        JSON schema representation of the model(s).
 
-    Raises:
-        TypeError: If models is not a BaseModel or union type.
+    Raises
+    ------
+    TypeError
+        If `models` is not a subclass of `BaseModel` or a union of such classes
     """
     if isinstance(models, type) and issubclass(models, BaseModel):
         return models.model_json_schema(schema_generator=EnhancedJsonSchemaGenerator)
@@ -77,4 +89,6 @@ def json_schema(models: type[BaseModel] | UnionType | type) -> dict[str, Any]:
         adapter = get_type_adapter(models)
         return adapter.json_schema(schema_generator=EnhancedJsonSchemaGenerator)
 
-    raise TypeError(f"Expected BaseModel or union type, got {type(models)}")
+    raise TypeError(
+        f"`models` must be a subclass of `BaseModel` or a union of such subclasses, but {repr(models)} is a `{type(models).__name__}`"
+    )

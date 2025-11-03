@@ -1,15 +1,19 @@
+"""
+Require some minimum number of fields to be set to a non-`None` value.
+"""
+
 from collections.abc import Callable
 
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 
-from .._json_schema import get_static_json_schema
+from .._json_schema import get_static_json_schema_extra
 from .model_constraint import ModelConstraint
 
 
 def min_fields_set(count: int) -> Callable[[type[BaseModel]], type[BaseModel]]:
     """
-    Decorates a Pydantic model class with a constraint that requires a minimum number of fields in
+    Decorate a Pydantic model class with a constraint that requires a minimum number of fields in
     the model to be set to a non-`None` value.
 
     This function is the decorator version of the `MinFieldsSetConstraint` class.
@@ -114,7 +118,7 @@ class MinFieldsSetConstraint(ModelConstraint):
     def edit_config(self, model_class: type[BaseModel], config: ConfigDict) -> None:
         super().edit_config(model_class, config)
 
-        json_schema = get_static_json_schema(config)
+        json_schema = get_static_json_schema_extra(config)
 
         try:
             prev = json_schema["minProperties"]
