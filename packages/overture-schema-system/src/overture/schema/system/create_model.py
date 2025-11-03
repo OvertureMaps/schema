@@ -1,3 +1,7 @@
+"""
+Dynamic Pydantic model creation with preservation of Overture metadata.
+"""
+
 from collections.abc import Callable
 from typing import Any, TypeVar
 
@@ -23,7 +27,7 @@ def create_model(
     **field_definitions: Any | tuple[str, Any],
 ) -> type[ModelT]:
     """
-    Dynamically creates and returns a new Pydantic model, preserving Overture metadata.
+    Dynamically create and return a new Pydantic model, preserving Overture metadata.
 
     Use `create_model` to dynamically create a subclass of any `BaseModel` while preserving Overture
     `Metadata`.

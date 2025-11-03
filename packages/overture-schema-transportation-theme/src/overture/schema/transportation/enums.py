@@ -12,8 +12,10 @@ class Subtype(str, Enum):
 
 
 class DestinationLabelType(str, Enum):
-    """Indicates what special symbol/icon is present on a signpost, visible as road
-    marking or similar."""
+    """
+    Indicates what special symbol/icon is present on a signpost, visible as road marking or
+    similar.
+    """
 
     STREET = "street"
     COUNTRY = "country"
@@ -63,8 +65,10 @@ class RailClass(str, Enum):
 
 
 class DestinationSignSymbol(str, Enum):
-    """Indicates what special symbol/icon is present on a signpost, visible as road
-    marking or similar."""
+    """
+    Indicates what special symbol/icon is present on a signpost, visible as road marking or
+    similar.
+    """
 
     MOTORWAY = "motorway"
     AIRPORT = "airport"

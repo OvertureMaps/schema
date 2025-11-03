@@ -1,3 +1,7 @@
+"""
+Measurement units for speed, length, weight, and the like.
+"""
+
 from overture.schema.system.doc import DocumentedEnum
 
 

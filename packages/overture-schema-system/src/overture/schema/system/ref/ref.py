@@ -1,3 +1,7 @@
+"""
+Relationships and references between related entities.
+"""
+
 from dataclasses import dataclass
 from enum import Enum
 

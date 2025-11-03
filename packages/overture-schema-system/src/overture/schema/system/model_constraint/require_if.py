@@ -1,9 +1,14 @@
+"""
+Require every field in a group of fields to have a value explicitly set, but only if a condition is
+true.
+"""
+
 from collections.abc import Callable
 
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 
-from .._json_schema import get_static_json_schema, put_if
+from .._json_schema import get_static_json_schema_extra, put_if
 from .model_constraint import (
     Condition,
     OptionalFieldGroupConstraint,
@@ -16,8 +21,8 @@ def require_if(
     condition: Condition,
 ) -> Callable[[type[BaseModel]], type[BaseModel]]:
     """
-    Decorates a Pydantic model class with a constraint requiring all of the named fields to have a
-    value explicitly set, but only if a field value condition is true.
+    Decorate a Pydantic model class with a constraint requiring all of the named fields to have a
+    value explicitly set, but only if a condition is true.
 
     To ensure parity between Python and JSON Schema validation, a field's value must be explicitly
     set to satisfy the constraint. This means in particular that fields whose value was set by
@@ -61,7 +66,6 @@ def require_if(
     ...     print('Validation failed')
     Validation failed
     """
-
     model_constraint = RequireIfConstraint._create_internal(
         f"@{require_if.__name__}",
         field_names,
@@ -134,7 +138,7 @@ class RequireIfConstraint(OptionalFieldGroupConstraint):
     def edit_config(self, model_class: type[BaseModel], config: ConfigDict) -> None:
         super().edit_config(model_class, config)
 
-        json_schema = get_static_json_schema(config)
+        json_schema = get_static_json_schema_extra(config)
 
         put_if(
             json_schema,

@@ -48,7 +48,7 @@
       "type": "object"
     },
     "PlaceType": {
-      "description": "Category of the division from a finite, hierarchical, ordered list of categories\n(e.g. country, region, locality, etc.) similar to a Who's on First placetype.",
+      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g., country,\nregion, locality, etc.) similar to a Who's on First placetype.",
       "enum": [
         "country",
         "dependency",

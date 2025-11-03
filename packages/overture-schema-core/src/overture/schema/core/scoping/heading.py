@@ -1,3 +1,7 @@
+"""
+Types supporting the heading scope.
+"""
+
 from enum import Enum
 
 

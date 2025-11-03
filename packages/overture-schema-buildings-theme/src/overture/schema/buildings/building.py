@@ -1,3 +1,7 @@
+"""
+The `Building` feature type model and supporting types.
+"""
+
 import textwrap
 from enum import Enum
 from typing import Annotated, Literal

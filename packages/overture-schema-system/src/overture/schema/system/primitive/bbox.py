@@ -1,3 +1,7 @@
+"""
+Bounding box primitive.
+"""
+
 from typing import Any
 
 from pydantic import (
@@ -105,28 +109,48 @@ class BBox:
     @property
     def xmin(self) -> float | int:
         """
-        float | int: Minimum X-coordinate
+        Minimum X-coordinate of the bounding box.
+
+        Returns
+        -------
+        float | int
+            Minimum X-coordinate
         """
         return self._xmin
 
     @property
     def ymin(self) -> float | int:
         """
-        float | int: Minimum Y-coordinate
+        Minimum Y-coordinate of the bounding box.
+
+        Returns
+        -------
+        float | int
+            Minimum Y-coordinate
         """
         return self._ymin
 
     @property
     def xmax(self) -> float | int:
         """
-        float | int: Maximum X-coordinate
+        Maximum X-coordinate of the bounding box
+
+        Returns
+        -------
+        float | int
+            Maximum X-coordinate
         """
         return self._xmax
 
     @property
     def ymax(self) -> float | int:
         """
-        float | int: Maximum Y-coordinate
+        Maximum Y-coordinate of the bounding box
+
+        Returns
+        -------
+        float | int
+            Maximum Y-coordinate
         """
         return self._ymax
 

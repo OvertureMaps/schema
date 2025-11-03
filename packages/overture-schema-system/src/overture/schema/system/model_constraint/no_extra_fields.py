@@ -1,3 +1,7 @@
+"""
+Prohibit extra fields that aren't explicitly part of the model.
+"""
+
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 
@@ -6,7 +10,7 @@ from .model_constraint import ModelConstraint
 
 def no_extra_fields(model_class: type[BaseModel]) -> type[BaseModel]:
     """
-    Decorates a Pydantic model class with a constraint that forbids extra fields that aren't
+    Decorate a Pydantic model class with a constraint that forbids extra fields that aren't
     explicitly part of the model.
 
     This function is the decorator version of the `NoExtraFieldsConstraint` class. It is syntax

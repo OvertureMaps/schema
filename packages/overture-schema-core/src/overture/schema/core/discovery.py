@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 def discover_models() -> dict[tuple[str, str], type[BaseModel]]:
     """Discover all registered Overture models via entry points."""
-
     models = {}
     try:
         for entry_point in importlib.metadata.entry_points(group="overture.models"):
@@ -30,7 +29,6 @@ def get_registered_model(theme: str, feature_type: str) -> type[BaseModel] | Non
 
     This uses setuptools entry points for registration.
     """
-
     entry_point_name = f"{theme}.{feature_type}"
     try:
         for entry_point in importlib.metadata.entry_points(group="overture.models"):

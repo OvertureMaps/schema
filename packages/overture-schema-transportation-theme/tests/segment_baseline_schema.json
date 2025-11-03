@@ -39,7 +39,7 @@
     },
     "ConnectorReference": {
       "additionalProperties": false,
-      "description": "Contains the GERS ID and relative position between 0 and 1 of a connector feature\nalong the segment.",
+      "description": "Contains the GERS ID and relative position between 0 and 1 of a connector feature along the\nsegment.",
       "properties": {
         "at": {
           "description": "The linearly-referenced position on the geometry, specified as a percentage displacement from the start of the geometry, that the containing ConnectorReference applies to.",
@@ -63,7 +63,7 @@
       "type": "object"
     },
     "DestinationLabelType": {
-      "description": "Indicates what special symbol/icon is present on a signpost, visible as road\nmarking or similar.",
+      "description": "Indicates what special symbol/icon is present on a signpost, visible as road marking or\nsimilar.",
       "enum": [
         "street",
         "country",
@@ -169,7 +169,7 @@
       "type": "object"
     },
     "DestinationSignSymbol": {
-      "description": "Indicates what special symbol/icon is present on a signpost, visible as road\nmarking or similar.",
+      "description": "Indicates what special symbol/icon is present on a signpost, visible as road marking or\nsimilar.",
       "enum": [
         "motorway",
         "airport",
@@ -220,7 +220,7 @@
     },
     "LevelRule": {
       "additionalProperties": false,
-      "description": "A single level rule defining the Z-order, i.e. stacking order, applicable within\na given scope on the road segment.",
+      "description": "A single level rule defining the Z-order, i.e. stacking order, applicable within a given scope\non the road segment.",
       "properties": {
         "between": {
           "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing LevelRule applies to.",
@@ -250,7 +250,7 @@
     },
     "NameRule": {
       "additionalProperties": false,
-      "description": "Name rule with variant and language specification.",
+      "description": "A rule that can be evaluated to determine the name in advanced scenarios.\n\nName rules are used for cases where the primary name is not sufficient; the common name is not\nthe right fit for the use case and another variant is needed; or where the name only applies in\ncertain specific circumstances.\n\nExamples might include:\n- An official, alternate, or short name.\n- A name that only applies to part of a linear path like a road segment (geometric range\n  scoping).\n- A name that only applies to the left or right side of a linear path like a road segment (side\n  scoping).\n- A name that is only accepted by some political perspectives.",
       "properties": {
         "between": {
           "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing NameRule applies to.",
@@ -265,7 +265,7 @@
           "type": "array"
         },
         "language": {
-          "description": "IETF BCP-47 language tag",
+          "description": "The language in which the name `value` is specified, if known, as an IETF BCP 47\nlanguage tag.",
           "pattern": "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$",
           "title": "Language",
           "type": "string"
@@ -279,14 +279,15 @@
           "description": "The side, either left or right, that the containing NameRule applies to."
         },
         "value": {
-          "description": "String with no leading/trailing whitespace",
+          "description": "The actual name value.",
           "minLength": 1,
           "pattern": "^(\\S.*)?\\S$",
           "title": "Value",
           "type": "string"
         },
         "variant": {
-          "$ref": "#/$defs/NameVariant"
+          "$ref": "#/$defs/NameVariant",
+          "description": "The name variant for this name rule."
         }
       },
       "required": [
@@ -297,6 +298,7 @@
       "type": "object"
     },
     "NameVariant": {
+      "description": "Name variant used in a `NameRule`.",
       "enum": [
         "common",
         "official",
@@ -427,7 +429,7 @@
       "type": "object"
     },
     "PurposeOfUse": {
-      "description": "Reason why a person or entity travelling on the transportation network is using a\nparticular location.",
+      "description": "Reason why a person or entity travelling on the transportation network is using a particular\nlocation.",
       "enum": [
         "as_customer",
         "at_destination",
@@ -688,7 +690,7 @@
       "type": "object"
     },
     "RecognizedStatus": {
-      "description": "Status of the person or entity travelling as recognized by authorities\ncontrolling the particular location.",
+      "description": "Status of the person or entity travelling as recognized by authorities controlling the particular\nlocation.",
       "enum": [
         "as_permitted",
         "as_private",
@@ -1168,7 +1170,7 @@
     },
     "Speed": {
       "additionalProperties": false,
-      "description": "A speed value, i.e. a certain number of distance units travelled per unit\ntime.",
+      "description": "A speed value, i.e. a certain number of distance units travelled per unit time.",
       "properties": {
         "unit": {
           "$ref": "#/$defs/SpeedUnit"
