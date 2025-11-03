@@ -10,12 +10,15 @@ properties:
   version: 0
   subtype: admin0
   names:
-    primary: An admin0 division that has a parent ID, which is not allowed
+    primary: An admin0 division whose parent is not admin0
   country: ZZ
   hierarchies:
-    - - division_id: counterexample:division:parent-not-allowed-on-admin0
+    - - division_id: counterexample:division:some-parent-division
+        subtype: admin1
+        name: Some non-admin0 parent
+      - division_id: counterexample:division:parent-not-allowed-on-admin0
         subtype: admin0
-        name: An admin0 division that has a parent ID, which is not allowed
+        name: An admin0 division whose parent is not admin0
   parent_division_id: counterexample:division:some-parent-division
   ext_expected_errors:
-    - "[S#/properties/properties/allOf/3/then]: not failed"
+    - "admin0 divisions with parent_division_id must reference an admin0 ancestor"
