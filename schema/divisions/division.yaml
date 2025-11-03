@@ -36,14 +36,8 @@ properties:     # JSON Schema: Top-level object properties.
             parent_division_id: {}
         then:
           properties:
-            hierarchies:
-              items:
-                contains:
-                  allOf:
-                    - required: [subtype]
-                    - properties:
-                        subtype: { const: admin0 }
-                minContains: 1
+            parent_division_id:
+              pattern: ":admin0:"
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
       class:

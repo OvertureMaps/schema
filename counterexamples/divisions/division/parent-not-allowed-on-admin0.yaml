@@ -16,6 +16,9 @@ properties:
     - - division_id: counterexample:division:some-parent-division
         subtype: admin1
         name: Some non-admin0 parent
+      - division_id: counterexample:division:parent-not-allowed-on-admin0
+        subtype: admin0
+        name: An admin0 division whose parent is not admin0
   parent_division_id: counterexample:division:some-parent-division
   ext_expected_errors:
-    - "[{'division_id': 'counterexample:division:some-parent-division', 'subtype': 'admin1', 'name': 'Some non-admin0 parent'}] does not contain items matching the given schema"
+    - "'counterexample:division:some-parent-division' does not match ':admin0:'"
