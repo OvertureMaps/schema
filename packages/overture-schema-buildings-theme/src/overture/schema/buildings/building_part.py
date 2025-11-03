@@ -1,3 +1,7 @@
+"""
+The `BuildingPart` feature type model and supporting types.
+"""
+
 from typing import Annotated, Literal
 
 from pydantic import Field

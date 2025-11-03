@@ -87,7 +87,7 @@ Create a custom regular expression pattern constraint:
 >>> from overture.schema.system.field_constraint import PatternConstraint
 >>> OsmIdConstraint = PatternConstraint(
 ...     pattern=r"^[nwr]\d+$",
-...     error_message="Invalid OSM ID format: {value}. Must be n123, w123, or r123."
+...     error_message="invalid OSM ID format: {value}. Must be n123, w123, or r123."
 ... )
 >>>
 >>> from pydantic import BaseModel, Field
@@ -98,7 +98,7 @@ Create a custom regular expression pattern constraint:
 >>> try:
 ...    MyModel(**{"osm_id": "foo"})
 ... except ValidationError as e:
-...    assert "Invalid OSM ID format: foo. Must be n123, w123, or r123." in str(e)
+...    assert "invalid OSM ID format: foo. Must be n123, w123, or r123." in str(e)
 ...    print("Validation failed")
 Validation failed
 

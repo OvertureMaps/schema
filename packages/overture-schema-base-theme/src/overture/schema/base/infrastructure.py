@@ -1,4 +1,6 @@
-"""Infrastructure feature models for Overture Maps base theme."""
+"""
+The `Infrastructure` feature type model and supporting types.
+"""
 
 import textwrap
 from enum import Enum

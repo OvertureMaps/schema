@@ -1,3 +1,7 @@
+"""
+Geospatial feature model with GeoJSON-compatible JSON Schema.
+"""
+
 from enum import Enum
 from functools import reduce
 from typing import Any
@@ -105,7 +109,7 @@ class Feature(BaseModel):
         self, serializer: SerializerFunctionWrapHandler, info: SerializationInfo
     ) -> Any:
         """
-        Serializes to GeoJSON when the mode is JSON, otherwise to Pydantic's standard Python mode.
+        Serialize to GeoJSON when the mode is JSON, otherwise to Pydantic's standard Python mode.
         """
         data = serializer(self)
 
@@ -126,7 +130,7 @@ class Feature(BaseModel):
         cls, data: Any, handler: ModelWrapValidatorHandler[Self], info: ValidationInfo
     ) -> Self:
         """
-        Validates the model as GeoJSON when the mode is JSON, otherwise applies Pydantic's standard
+        Validate the model as GeoJSON when the mode is JSON, otherwise applies Pydantic's standard
         validation.
         """
         if not isinstance(data, dict):
@@ -245,7 +249,7 @@ class Feature(BaseModel):
         handler: GetJsonSchemaHandler,
     ) -> JsonSchemaValue:
         """
-        Generates a JSON Schema that validates the feature as GeoJSON.
+        Generate a JSON Schema that validates the feature as GeoJSON.
         """
         json_schema = handler(schema)
 

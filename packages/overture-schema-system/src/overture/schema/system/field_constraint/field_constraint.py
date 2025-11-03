@@ -1,3 +1,13 @@
+"""
+Interface for constraints that apply to a single Pydantic field.
+
+- If you are authoring new field-level constraints, this module is for you: you will very likely
+  want to derive a subclass of `FieldConstraint` (or of a more specific base class such as
+  `CollectionConstraint`).
+- If you are looking to reuse existing constraints, this module is too low-level for you. You need
+  one of the peer modules that implements a specific constraint type.
+"""
+
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -22,7 +32,8 @@ class FieldConstraint(ABC):
     def __get_pydantic_json_schema__(
         self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
     ) -> dict[str, Any]:
-        """Generate JSON schema.
+        """
+        Generate JSON schema.
 
         Override in subclasses for custom schema.
         """

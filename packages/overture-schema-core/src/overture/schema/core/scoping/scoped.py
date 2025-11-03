@@ -1,3 +1,5 @@
+"""Provides the `@scoped` decorator and `Scope` enumeration."""
+
 from collections.abc import (
     Callable,
     Iterable,
@@ -35,9 +37,7 @@ from .vehicle import VehicleSelector
 
 
 class Scope(str, Enum):
-    """
-    A scope type supported by the `scoped` decorator.
-    """
+    """A scope type supported by the `scoped` decorator."""
 
     GEOMETRIC_POSITION = "geometric_position"
     """
@@ -307,7 +307,7 @@ def scoped(
     required: Scope | Iterable[Scope] | None = None,
 ) -> Callable:
     """
-    Returns a decorator to decorate a Pydantic model class with one or more scoping attributes.
+    Return a decorator to decorate a Pydantic model class with one or more scoping attributes.
 
     At least one `Scope` must be given either in `optional` or `required` or both. A scope may be
     optional or required, but not both.

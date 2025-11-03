@@ -6,7 +6,7 @@ from pydantic import ConfigDict
 from pydantic.json_schema import JsonSchemaValue
 
 from overture.schema.system._json_schema import (
-    get_static_json_schema,
+    get_static_json_schema_extra,
     put_all_of,
     put_any_of,
     put_if,
@@ -34,7 +34,7 @@ from overture.schema.system._json_schema import (
 def test_get_static_json_schema_success(
     config: ConfigDict, expect: JsonSchemaValue
 ) -> None:
-    actual = get_static_json_schema(config)
+    actual = get_static_json_schema_extra(config)
 
     assert expect == actual
     assert actual is config["json_schema_extra"]
@@ -45,7 +45,7 @@ def test_get_static_json_schema_error_invalid_type() -> None:
         ValueError,
         match='expected value of config\'s "json_schema_extra" key to be a `dict`, but it is a `function`',
     ):
-        get_static_json_schema(ConfigDict(json_schema_extra=lambda _: None))
+        get_static_json_schema_extra(ConfigDict(json_schema_extra=lambda _: None))
 
 
 ####################################################################################################

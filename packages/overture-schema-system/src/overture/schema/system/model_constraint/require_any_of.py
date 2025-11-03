@@ -1,16 +1,20 @@
+"""
+Require at least one named field to have a value explicitly set.
+"""
+
 from collections.abc import Callable
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.json_schema import JsonDict
 from typing_extensions import override
 
-from .._json_schema import get_static_json_schema, put_any_of
+from .._json_schema import get_static_json_schema_extra, put_any_of
 from .model_constraint import OptionalFieldGroupConstraint, apply_alias
 
 
 def require_any_of(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel]]:
     """
-    Decorates a Pydantic model class with a constraint requiring that at least one of the named
+    Decorate a Pydantic model class with a constraint requiring that at least one of the named
     fields has a value explicitly set.
 
     This function is the decorator version of the `RequireAnyOfConstraint` class.
@@ -104,7 +108,7 @@ class RequireAnyOfConstraint(OptionalFieldGroupConstraint):
     def edit_config(self, model_class: type[BaseModel], config: ConfigDict) -> None:
         super().edit_config(model_class, config)
 
-        json_schema = get_static_json_schema(config)
+        json_schema = get_static_json_schema_extra(config)
 
         def required(field_name: str) -> JsonDict:
             return {"required": [apply_alias(model_class, field_name)]}

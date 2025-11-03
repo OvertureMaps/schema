@@ -1,3 +1,10 @@
+"""
+Documentation support.
+
+This module enables documenting things that "native Python" doesn't have a documentation solution
+for.
+"""
+
 from enum import Enum
 from typing import TypeVar, cast
 
@@ -27,7 +34,6 @@ class DocumentedEnum(Enum):
 
     Examples
     --------
-
     A documented enumeration:
 
     >>> class Status(str, DocumentedEnum):

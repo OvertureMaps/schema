@@ -1,3 +1,7 @@
+"""
+Types supporting the trravel mode scope.
+"""
+
 from enum import Enum
 
 

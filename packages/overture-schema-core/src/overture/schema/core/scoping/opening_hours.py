@@ -1,7 +1,7 @@
-# Validating the opening hours value is going to have to happen outside of JSON Schema.
-#
-# Reasons for using the OSM opening hours specification for transportation rule time
-# restrictions are documented in https://github.com/OvertureMaps/schema-wg/pull/10
+"""
+OpenStreetMap opening hours type.
+"""
+
 from typing import Annotated, NewType
 
 from pydantic import Field
@@ -15,3 +15,7 @@ OpeningHours = NewType(
         ),
     ],
 )
+"""
+Time span or time spans during which something is open or active, specified in the OpenStreetMap
+opening hours specification: https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification.
+"""

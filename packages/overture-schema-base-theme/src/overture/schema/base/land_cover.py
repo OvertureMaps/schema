@@ -1,4 +1,6 @@
-"""Land cover feature models for Overture Maps base theme."""
+"""
+The `LandCover` feature type model and supporting types.
+"""
 
 from enum import Enum
 from typing import Annotated, Literal
