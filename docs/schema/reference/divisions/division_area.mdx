@@ -9,9 +9,9 @@ import yamlLoad from "@site/src/components/yamlLoad"
 import divisions_division_area_schema from '!!raw-loader!@site/docs/_schema/divisions/division_area.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import division_area_example_country_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/country_land.yaml';
-import division_area_example_region_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/region_land.yaml';
-import division_area_example_country_maritime from '!!raw-loader!@site/docs/_examples/divisions/division_area/country_maritime.yaml';
+import division_area_example_admin0_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/admin0_land.yaml';
+import division_area_example_admin1_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/admin1_land.yaml';
+import division_area_example_admin0_maritime from '!!raw-loader!@site/docs/_examples/divisions/division_area/admin0_maritime.yaml';
 
 
 # Division area
@@ -174,13 +174,13 @@ A neighborhood is a geographically localized community within a city, town, subu
 ## Examples
 
 <Tabs>
-  <TabItem value="country_land" label="admin0, land class" default>
-    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_land), null, 2) }</CodeBlock>
+  <TabItem value="admin0_land" label="admin0, land class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_admin0_land), null, 2) }</CodeBlock>
   </TabItem>
-  <TabItem value="country_maritime" label="admin0, maritime class" default>
-    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_maritime), null, 2) }</CodeBlock>
+  <TabItem value="admin0_maritime" label="admin0, maritime class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_admin0_maritime), null, 2) }</CodeBlock>
   </TabItem>
-   <TabItem value="region_land" label="admin1, land class" default>
-    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_region_land), null, 2) }</CodeBlock>
+   <TabItem value="admin1_land" label="admin1, land class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_admin1_land), null, 2) }</CodeBlock>
   </TabItem>
 </Tabs>

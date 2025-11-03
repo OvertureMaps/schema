@@ -9,8 +9,8 @@ import yamlLoad from "@site/src/components/yamlLoad"
 import divisions_division_schema from '!!raw-loader!@site/docs/_schema/divisions/division.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import division_example_country from '!!raw-loader!@site/docs/_examples/divisions/division/country.yaml';
-import division_example_region from '!!raw-loader!@site/docs/_examples/divisions/division/region.yaml';
+import division_example_admin0 from '!!raw-loader!@site/docs/_examples/divisions/division/admin0.yaml';
+import division_example_admin1 from '!!raw-loader!@site/docs/_examples/divisions/division/admin1.yaml';
 import division_example_hierarchies_multiple from '!!raw-loader!@site/docs/_examples/divisions/division/hierarchies-multiple.yaml';
 import division_example_population from '!!raw-loader!@site/docs/_examples/divisions/division/population.yaml';
 import division_example_perspectives from '!!raw-loader!@site/docs/_examples/divisions/division/perspectives.yaml';
@@ -187,11 +187,11 @@ A microhood is a mini-neighborhood that is contained within a neighborhood. Exam
 ## Examples
 
 <Tabs>
-  <TabItem value="country" label="country" default>
-    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_example_country), null, 2) }</CodeBlock>
+  <TabItem value="admin0" label="admin0" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_example_admin0), null, 2) }</CodeBlock>
      </TabItem>
-    <TabItem value="region" label="region" default>
-    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_example_region), null, 2) }</CodeBlock>
+    <TabItem value="admin1" label="admin1" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_example_admin1), null, 2) }</CodeBlock>
     </TabItem>
     <TabItem value="population" label="population" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_example_population), null, 2) }</CodeBlock>
