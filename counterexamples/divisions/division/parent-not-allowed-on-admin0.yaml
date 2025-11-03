@@ -21,4 +21,4 @@ properties:
         name: An admin0 division whose parent is not admin0
   parent_division_id: counterexample:division:some-parent-division
   ext_expected_errors:
-    - "'counterexample:division:some-parent-division' does not match ':admin0:'"
+    - "'counterexample:division:some-parent-division' does not match pattern ':admin0:'"
