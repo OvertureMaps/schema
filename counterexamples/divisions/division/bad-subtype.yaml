@@ -17,5 +17,5 @@ properties:
         subtype: foo
         name: A division with an invalid subtype
   ext_expected_errors:
-    - "/propertyDefinitions/placetype/enum]: value must be one of 'country',"
-    - "/propertyDefinitions/placetype/enum]: value must be one of 'country',"
+    - "/propertyDefinitions/placetype/enum]: value must be one of 'admin0',"
+    - "/propertyDefinitions/placetype/enum]: value must be one of 'admin0',"
