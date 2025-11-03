@@ -1,3 +1,36 @@
+"""
+Geometry primitive and geometry type constraint.
+
+Use `Geometry` as the type for fields containing geometry values. Use `GeometryTypeConstraint` if
+you need to constrain allowed types of geometries.
+
+Example
+-------
+Create a Pydantic model with a geometry field that is constrained to only allow point geometries.
+
+>>> from typing import Annotated
+>>> from pydantic import BaseModel
+>>> from overture.schema.system.primitive import float32
+>>> class Peak(BaseModel):
+...     position: Annotated[
+...                  Geometry,
+...                  GeometryTypeConstraint(GeometryType.POINT)
+...               ]
+...     elevation: float32
+...
+>>> fuji = Peak(position=Geometry.from_wkt('POINT(138.7274 35.3606)'), elevation=3_776)
+
+Non-point geometries will be rejected with a validation error.
+
+>>> from pydantic import ValidationError
+>>> try:
+...     Peak(position=Geometry.from_wkt('LINESTRING(0 0, 1 1)'), elevation=0)
+... except ValidationError as e:
+...    assert "geometry type not allowed" in str(e)
+...    print("Validation failed")
+Validation failed
+"""
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -443,7 +476,7 @@ _MULTI_POLYGON_COORDINATES_JSON_SCHEMA = {
 ########################################################################
 
 
-def geometry_json_schema(
+def _geometry_json_schema(
     geometry_type: str,
     coordinates: dict[str, Any] | None = None,
     geometries: dict[str, Any] | None = None,
@@ -469,31 +502,31 @@ def geometry_json_schema(
     }
 
 
-_LINE_STRING_GEOMETRY_JSON_SCHEMA = geometry_json_schema(
+_LINE_STRING_GEOMETRY_JSON_SCHEMA = _geometry_json_schema(
     "LineString", coordinates=_LINE_STRING_COORDINATES_JSON_SCHEMA
 )
 
-_POINT_GEOMETRY_JSON_SCHEMA = geometry_json_schema(
+_POINT_GEOMETRY_JSON_SCHEMA = _geometry_json_schema(
     "Point", coordinates=_POINT_COORDINATES_JSON_SCHEMA
 )
 
-_POLYGON_GEOMETRY_JSON_SCHEMA = geometry_json_schema(
+_POLYGON_GEOMETRY_JSON_SCHEMA = _geometry_json_schema(
     "Polygon", coordinates=_POLYGON_COORDINATES_JSON_SCHEMA
 )
 
-_MULTI_LINE_STRING_GEOMETRY_JSON_SCHEMA = geometry_json_schema(
+_MULTI_LINE_STRING_GEOMETRY_JSON_SCHEMA = _geometry_json_schema(
     "MultiLineString", coordinates=_MULTI_LINE_STRING_COORDINATES_JSON_SCHEMA
 )
 
-_MULTI_POINT_GEOMETRY_JSON_SCHEMA = geometry_json_schema(
+_MULTI_POINT_GEOMETRY_JSON_SCHEMA = _geometry_json_schema(
     "MultiPoint", coordinates=_MULTI_POINT_COORDINATES_JSON_SCHEMA
 )
 
-_MULTI_POLYGON_GEOMETRY_JSON_SCHEMA = geometry_json_schema(
+_MULTI_POLYGON_GEOMETRY_JSON_SCHEMA = _geometry_json_schema(
     "MultiPolygon", coordinates=_MULTI_POLYGON_COORDINATES_JSON_SCHEMA
 )
 
-_GEOMETRY_COLLECTION_JSON_SCHEMA = geometry_json_schema(
+_GEOMETRY_COLLECTION_JSON_SCHEMA = _geometry_json_schema(
     "GeometryCollection",
     geometries={
         "oneOf": [

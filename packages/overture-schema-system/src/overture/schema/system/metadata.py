@@ -1,3 +1,9 @@
+"""
+Metadata that can be attached to arbitrary Python values.
+
+Overture Metadata is primarily used to supply metadata for code generation use cases.
+"""
+
 from collections.abc import (
     Hashable,
     ItemsView,
@@ -210,7 +216,7 @@ class Metadata(MutableMapping[Key, object]):
 
     def copy(self) -> "Metadata":
         """
-        Returns a shallow copy of this metadata.
+        Return a shallow copy of this metadata.
         """
         return Metadata(self.__wrapped.copy())
 
@@ -225,8 +231,8 @@ class Metadata(MutableMapping[Key, object]):
         data: Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None,
     ) -> None:
         """
-        Updates this metadata by inserting values from `data`. In the case of a key conflict, the
-        new value from `data` replaces the old value.
+        Update this metadata by inserting values from `data`. In the case of a key conflict, the new
+        value from `data` replaces the old value.
 
         Parameters
         ----------
@@ -238,7 +244,7 @@ class Metadata(MutableMapping[Key, object]):
 
     def attach_to(self, target: object) -> None:
         """
-        Attaches this metadata to the given target value. The metadata can be retrieved by calling
+        Attach this metadata to the given target value. The metadata can be retrieved by calling
         `retrieve_from`.
 
         Parameters
@@ -260,7 +266,7 @@ class Metadata(MutableMapping[Key, object]):
         default: Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None,
     ) -> Union["Metadata", None]:
         """
-        Retrieves the metadata attached go a given source value, if it exists. Metadata can be
+        Retrieve the metadata attached go a given source value, if it exists. Metadata can be
         attached by calling `attach_to`.
 
         Parameters

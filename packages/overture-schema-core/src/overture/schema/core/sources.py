@@ -1,3 +1,7 @@
+"""
+Document source data from which features and fields of features are derived.
+"""
+
 import textwrap
 from datetime import datetime
 from typing import Annotated, NewType

@@ -21,7 +21,7 @@ coverage: uv-sync
 
 docformat:
 	@find packages/*/src -name "*.py" -type f -not -name "__*" \
-		| xargs uv run pydocstyle --convention=numpy --add-ignore=D105
+		| xargs uv run pydocstyle --convention=numpy --add-ignore=D102,D105,D200,D205,D400
 
 doctest: uv-sync
 	@# $$ escapes $ for make - sed needs literal $ for end-of-line anchor

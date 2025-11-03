@@ -1,4 +1,6 @@
-"""Address feature model."""
+"""
+The `Address` feature type model and supporting types.
+"""
 
 import textwrap
 from typing import Annotated, Literal

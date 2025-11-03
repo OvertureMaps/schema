@@ -1,3 +1,7 @@
+"""
+Linear referencing types.
+"""
+
 from typing import Annotated, Any, NewType
 
 from pydantic import Field, GetJsonSchemaHandler, ValidationError, ValidationInfo
@@ -6,9 +10,6 @@ from pydantic_core import InitErrorDetails, core_schema
 from overture.schema.system.field_constraint import CollectionConstraint
 from overture.schema.system.primitive import float64
 
-# One possible advantage to using percentages over absolute distances is being able to
-# trivially validate that the position lies "on" its segment (i.e. is between zero and
-# one). Of course, this level of validity doesn't mean the number isn't nonsense
 LinearlyReferencedPosition = NewType(
     "LinearlyReferencedPosition",
     Annotated[

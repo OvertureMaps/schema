@@ -82,9 +82,7 @@ class RoofOrientation(str, DocumentedEnum):
 
 
 class Appearance(BaseModel):
-    """
-    Physical and visual properties of a building, including dimensions, materials, and colors.
-    """
+    """Physical and visual properties of a building, including dimensions, materials, and colors."""
 
     # Optional
 

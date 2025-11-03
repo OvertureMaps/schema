@@ -45,8 +45,10 @@ def _connector_type() -> type[OvertureFeature]:
 @no_extra_fields
 @scoped(Scope.GEOMETRIC_POSITION)
 class ConnectorReference(BaseModel):
-    """Contains the GERS ID and relative position between 0 and 1 of a connector feature
-    along the segment."""
+    """
+    Contains the GERS ID and relative position between 0 and 1 of a connector feature along the
+    segment.
+    """
 
     model_config = ConfigDict(frozen=True)
 
@@ -150,8 +152,7 @@ class RouteReference(BaseModel):
 
 @no_extra_fields
 class Speed(BaseModel):
-    """A speed value, i.e. a certain number of distance units travelled per unit
-    time."""
+    """A speed value, i.e. a certain number of distance units travelled per unit time."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -280,8 +281,10 @@ class RailFlagRule(BaseModel):
 @no_extra_fields
 @scoped(Scope.GEOMETRIC_RANGE)
 class LevelRule(BaseModel):
-    """A single level rule defining the Z-order, i.e. stacking order, applicable within
-    a given scope on the road segment."""
+    """
+    A single level rule defining the Z-order, i.e. stacking order, applicable within a given scope
+    on the road segment.
+    """
 
     # Required
 

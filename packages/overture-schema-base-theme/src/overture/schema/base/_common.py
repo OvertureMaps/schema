@@ -52,6 +52,10 @@ SourceTags = NewType(
 
 
 class SourcedFromOpenStreetMap(BaseModel):
+    """
+    Model derived from an OpenStreetMap entity and containing the entity's OSM tags and wikidata ID.
+    """
+
     source_tags: SourceTags | None = None
     wikidata: WikidataId | None = None
 

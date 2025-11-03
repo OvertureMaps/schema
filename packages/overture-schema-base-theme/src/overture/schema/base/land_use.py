@@ -1,4 +1,6 @@
-"""Land use feature models for Overture Maps base theme."""
+"""
+The `LandUse` feature type model and supporting types.
+"""
 
 import textwrap
 from enum import Enum

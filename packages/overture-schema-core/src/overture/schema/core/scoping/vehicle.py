@@ -1,3 +1,7 @@
+"""
+Types supporting the vehicle scope.
+"""
+
 from enum import Enum
 from typing import Annotated, Literal
 

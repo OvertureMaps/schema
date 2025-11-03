@@ -10,20 +10,26 @@ def parse_feature(
     feature: dict[str, Any],
     model_type: type[BaseModel] | UnionType | type,
     mode: str = "json",
-) -> dict[str, Any] | None:
-    """Parse and validate a feature using the provided model type.
+) -> dict[str, Any]:
+    """
+    Parse and validate a feature using the provided model type.
 
-    Args:
-        feature: Feature data (GeoJSON or flattened format)
-        model_type: Pydantic model type or union type to validate against
-        mode: Output mode - "json" for GeoJSON format, "python" for flattened format
+    Parameters
+    ----------
+    feature : dict[str, Any]
+        Feature data (GeoJSON or flattened format)
+    model_type : type[BaseModel] | UnionType | type
+        Pydantic model type or union type to validate against
+    mode : str
+        Output mode - "json" for GeoJSON format, "python" for flattened format
 
-    Returns:
+    Returns
+    -------
+    dict[str, Any]
         Parsed feature in the specified format
 
     Supports both GeoJSON format (with nested properties) and flattened format.
     """
-
     try:
         # Basic structure validation
         if not isinstance(feature, dict):
