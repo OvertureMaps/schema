@@ -32,6 +32,9 @@ properties:
     - - division_id: example:division:admin0:us
         subtype: admin0
         name: United States
+      - division_id: example:division:admin0:pr
+        subtype: admin0
+        name: Puerto Rico
   norms:
     driving_side: right
   capital_division_ids: [ example:division:locality:san_juan ]
