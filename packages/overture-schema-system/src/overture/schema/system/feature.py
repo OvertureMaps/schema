@@ -105,7 +105,7 @@ class Feature(BaseModel):
     """
 
     @model_serializer(mode="wrap")
-    def serialize_model(
+    def __serialize_with_geo_json_support__(
         self, serializer: SerializerFunctionWrapHandler, info: SerializationInfo
     ) -> Any:
         """
@@ -126,7 +126,7 @@ class Feature(BaseModel):
 
     @model_validator(mode="wrap")
     @classmethod
-    def validate_model(
+    def __validate_with_geo_json_support__(
         cls, data: Any, handler: ModelWrapValidatorHandler[Self], info: ValidationInfo
     ) -> Self:
         """

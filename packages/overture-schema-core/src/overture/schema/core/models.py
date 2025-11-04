@@ -46,7 +46,7 @@ class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
         description="A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if—and-only-if the feature represents an entity that is part of GERS."
     )  # type: ignore[assignment]
     theme: ThemeT
-    # this is an enum in the JSON Schema, but that prevents Feature from being extended
+    # this is an enum in the JSON Schema, but that prevents OvertureFeature from being extended
     type: TypeT
     geometry: Geometry
     version: FeatureVersion
@@ -56,7 +56,7 @@ class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
     sources: Sources | None = None
 
     @model_validator(mode="after")
-    def validate_model(self) -> Self:
+    def __validate_ext_fields__(self) -> Self:
         extra = self.model_extra
         invalid_extra_fields = (
             [f for f in extra.keys() if not f.startswith("ext_")] if extra else ()
