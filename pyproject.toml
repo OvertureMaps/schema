@@ -47,7 +47,6 @@ warn_unused_configs = true
 
 [dependency-groups]
 dev = [
-    "docformatter>=1.7.7",
     "mypy>=1.17.0",
     "pdoc>=15.0.4",
     "pydocstyle>=6.3.0",
@@ -69,6 +68,3 @@ pythonpath = [
     "packages/overture-schema-transportation-theme/tests",
     "packages/overture-schema/tests",
 ]
-
-[tool.docformatter]
-black = true
