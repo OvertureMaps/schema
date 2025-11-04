@@ -434,61 +434,77 @@ def test_feature_json_schema() -> None:
     assert diff == {}
 
 
-@pytest.mark.parametrize(
-    "feature, expect",
-    [
-        (
-            OvertureFeature(  # type: ignore[call-arg]
-                id="foo",
-                theme="bar",
-                type="baz",
-                geometry=Geometry(Point(-1, 1)),
-                version=1,
-            ),
-            {
-                "type": "Feature",
-                "id": "foo",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [-1, 1],
-                },
-                "properties": {
-                    "theme": "bar",
-                    "type": "baz",
-                    "version": 1,
-                    "sources": None,
-                },
-            },
+FEATURE_WITH_GEO_JSON: tuple[tuple[OvertureFeature, dict[str, Any]], ...] = (
+    (
+        OvertureFeature(  # type: ignore[call-arg]
+            id="foo",
+            theme="bar",
+            type="baz",
+            geometry=Geometry(Point(-1, 1)),
+            version=1,
         ),
-        (
-            OvertureFeature(
-                id="foo",
-                theme="bar",
-                type="baz",
-                bbox=BBox(0, 0, 1, 1),
-                geometry=Geometry(LineString(((0, 0), (1, 1)))),
-                version=2,
-            ),
-            {
-                "type": "Feature",
-                "id": "foo",
-                "bbox": [0, 0, 1, 1],
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": [
-                        [0, 0],
-                        [1, 1],
-                    ],
-                },
-                "properties": {
-                    "theme": "bar",
-                    "type": "baz",
-                    "version": 2,
-                    "sources": None,
-                },
+        {
+            "type": "Feature",
+            "id": "foo",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-1, 1],
             },
+            "properties": {
+                "theme": "bar",
+                "type": "baz",
+                "version": 1,
+                "sources": None,
+            },
+        },
+    ),
+    (
+        OvertureFeature(
+            id="foo",
+            theme="bar",
+            type="baz",
+            bbox=BBox(0, 0, 1, 1),
+            geometry=Geometry(LineString(((0, 0), (1, 1)))),
+            version=2,
         ),
-    ],
+        {
+            "type": "Feature",
+            "id": "foo",
+            "bbox": [0, 0, 1, 1],
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [0, 0],
+                    [1, 1],
+                ],
+            },
+            "properties": {
+                "theme": "bar",
+                "type": "baz",
+                "version": 2,
+                "sources": None,
+            },
+        },
+    ),
 )
-def test_feature_json(feature: OvertureFeature, expect: dict[str, Any]) -> None:
-    assert feature.model_dump(mode="json") == expect
+
+
+@pytest.mark.parametrize("feature, geo_json", FEATURE_WITH_GEO_JSON)
+def test_feature_dump_json(feature: OvertureFeature, geo_json: dict[str, Any]) -> None:
+    """Ensure GeoJSON serialization inherited from `Feature` continues to work correctly."""
+    assert feature.model_dump(mode="json") == geo_json
+
+
+@pytest.mark.parametrize("feature, geo_json", FEATURE_WITH_GEO_JSON)
+def test_feature_validate_json(
+    feature: OvertureFeature, geo_json: dict[str, Any]
+) -> None:
+    """
+    Ensure validation from a GeoJSON string continues, functionality inherited from `Feature`,
+    continues to work correctly.
+    """
+    validated: OvertureFeature = OvertureFeature.model_validate_json(
+        json.dumps(geo_json)
+    )
+
+    assert feature == validated
