@@ -237,12 +237,20 @@
           "$ref": "#/$defs/NameVariant"
         }
       },
-      "required": ["value", "variant"],
+      "required": [
+        "value",
+        "variant"
+      ],
       "title": "NameRule",
       "type": "object"
     },
     "NameVariant": {
-      "enum": ["common", "official", "alternate", "short"],
+      "enum": [
+        "common",
+        "official",
+        "alternate",
+        "short"
+      ],
       "title": "NameVariant",
       "type": "string"
     },
@@ -281,13 +289,18 @@
           "type": "array"
         }
       },
-      "required": ["primary"],
+      "required": [
+        "primary"
+      ],
       "title": "Names",
       "type": "object"
     },
     "PerspectiveMode": {
       "description": "Perspective mode for disputed names.",
-      "enum": ["accepted_by", "disputed_by"],
+      "enum": [
+        "accepted_by",
+        "disputed_by"
+      ],
       "title": "PerspectiveMode",
       "type": "string"
     },
@@ -314,13 +327,19 @@
           "description": "Whether the perspective holder accepts or disputes this name."
         }
       },
-      "required": ["mode", "countries"],
+      "required": [
+        "mode",
+        "countries"
+      ],
       "title": "Perspectives",
       "type": "object"
     },
     "Side": {
       "description": "The side, left or right, on which something appears relative to a facing or heading direction\n(*e.g.*, the side of a road relative to the road orientation), or relative to the direction of\ntravel of a person or vehicle.",
-      "enum": ["left", "right"],
+      "enum": [
+        "left",
+        "right"
+      ],
       "title": "Side",
       "type": "string"
     },
@@ -374,7 +393,10 @@
           "type": "string"
         }
       },
-      "required": ["property", "dataset"],
+      "required": [
+        "property",
+        "dataset"
+      ],
       "title": "SourcePropertyItem",
       "type": "object"
     },
@@ -452,7 +474,10 @@
               "type": "string"
             }
           },
-          "required": ["type", "coordinates"],
+          "required": [
+            "type",
+            "coordinates"
+          ],
           "type": "object"
         },
         {
@@ -489,7 +514,10 @@
               "type": "string"
             }
           },
-          "required": ["type", "coordinates"],
+          "required": [
+            "type",
+            "coordinates"
+          ],
           "type": "object"
         },
         {
@@ -514,7 +542,10 @@
               "type": "string"
             }
           },
-          "required": ["type", "coordinates"],
+          "required": [
+            "type",
+            "coordinates"
+          ],
           "type": "object"
         },
         {
@@ -547,7 +578,10 @@
               "type": "string"
             }
           },
-          "required": ["type", "coordinates"],
+          "required": [
+            "type",
+            "coordinates"
+          ],
           "type": "object"
         }
       ],
@@ -563,7 +597,11 @@
     "properties": {
       "additionalProperties": false,
       "not": {
-        "required": ["id", "bbox", "geometry"]
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
       },
       "patternProperties": {
         "^ext_.*$": {
@@ -636,7 +674,13 @@
           "type": "string"
         }
       },
-      "required": ["theme", "type", "version", "class", "subtype"],
+      "required": [
+        "theme",
+        "type",
+        "version",
+        "class",
+        "subtype"
+      ],
       "type": "object"
     },
     "type": {
@@ -644,7 +688,12 @@
       "type": "string"
     }
   },
-  "required": ["type", "id", "geometry", "properties"],
+  "required": [
+    "type",
+    "id",
+    "geometry",
+    "properties"
+  ],
   "title": "Infrastructure Schema",
   "type": "object"
 }
