@@ -1,11 +1,21 @@
 import json
 import re
 from copy import deepcopy
-from typing import Annotated, cast
+from enum import Enum
+from typing import Annotated, Any, Literal, cast
 
 import pytest
-from pydantic import ConfigDict, ValidationError, create_model
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    Tag,
+    TypeAdapter,
+    ValidationError,
+    create_model,
+)
 from pydantic.json_schema import JsonSchemaValue, JsonValue
+from pytest_subtests import SubTests
 from util import assert_subset
 
 from overture.schema.system.feature import Feature, _FieldLevel, _maybe_refactor_schema
@@ -23,6 +33,401 @@ from overture.schema.system.primitive import (
     GeometryType,
     GeometryTypeConstraint,
 )
+
+
+class TestFieldDiscriminator:
+    @pytest.mark.parametrize("field", ["hello", "type", "properties"])
+    def test_validation_success_simple(self, field: str, subtests: SubTests) -> None:
+        """
+        Test the discriminated union success case for a discriminator that is a simple string.
+
+        The test parameters include edge case tests for the discriminator field where the
+        discriminator field is one of the two core GeoJSON properties, "type" and "properties",
+        that `Feature` allows to be used as fields.
+        """
+        foo_feature_fields: dict[str, Any] = {
+            field: str,
+            "foo": Annotated[int | None, Field(default=None)],
+        }
+        FooFeature = create_model(
+            "FooFeature",
+            __base__=Feature,
+            **foo_feature_fields,
+        )
+
+        bar_model_fields: dict[str, Any] = {field: str, "bar": int}
+        BarModel = create_model("BarModel", **bar_model_fields)
+
+        baz_feature_fields: dict[str, Any] = {
+            field: str,
+            "baz": Annotated[bool | None, Field(default=None)],
+        }
+        BazFeature = create_model(
+            "BazFeature",
+            __base__=Feature,
+            **baz_feature_fields,
+        )
+
+        tap: TypeAdapter = TypeAdapter(
+            Annotated[
+                Annotated[FooFeature, Tag("foo_feature")]
+                | Annotated[BarModel, Tag("bar_model")]
+                | Annotated[BazFeature, Tag("baz_feature")],
+                Field(
+                    discriminator=Feature.field_discriminator(
+                        field, FooFeature, BarModel, BazFeature
+                    )
+                ),
+            ]
+        )
+
+        MODEL_INSTANCES = (
+            FooFeature(
+                **{
+                    "id": "foo_feature_1",
+                    "geometry": Geometry.from_wkt("POINT(0 1)"),
+                    field: "foo_feature",
+                }
+            ),
+            FooFeature(
+                **{
+                    "id": "foo_feature_2",
+                    "geometry": Geometry.from_wkt("LINESTRING(0 0, 1 1)"),
+                    field: "foo_feature",
+                    "foo": 42,
+                }
+            ),
+            FooFeature(
+                **{
+                    "bbox": BBox(
+                        0,
+                        0,
+                        2,
+                        2,
+                    ),
+                    "geometry": Geometry.from_wkt("LINESTRING(0 0, 2 2)"),
+                    field: "foo_feature",
+                }
+            ),
+            BarModel(**{field: "bar_model", "bar": 42}),
+            BazFeature(
+                **{
+                    "id": "baz_feature_1",
+                    "geometry": Geometry.from_wkt("POINT(0 1)"),
+                    field: "baz_feature",
+                }
+            ),
+            BazFeature(
+                **{
+                    "id": "baz_feature_2",
+                    "geometry": Geometry.from_wkt("LINESTRING(0 0, 1 1)"),
+                    field: "baz_feature",
+                    "baz": True,
+                }
+            ),
+            BazFeature(
+                **{
+                    "id": "baz_feature_3",
+                    "geometry": Geometry.from_wkt("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"),
+                    field: "baz_feature",
+                    "baz": False,
+                }
+            ),
+        )
+
+        for expect in MODEL_INSTANCES:
+            with subtests.test(msg="model_validate_json", expect=expect):
+                json_data = expect.model_dump_json()
+                actual = tap.validate_json(json_data)
+                assert expect == actual
+
+            with subtests.test(msg="model_validate from dict", expect=expect):
+                data = expect.model_dump()
+                actual = tap.validate_python(data)
+                assert expect == actual
+
+            with subtests.test(msg="model_validate from model", expect=expect):
+                actual = tap.validate_python(expect)
+                assert expect == actual
+
+    def test_validation_success_convert(self, subtests: SubTests) -> None:
+        """
+        Test the discriminated union success case where the discriminator value is of a variety of
+        types.
+        """
+
+        class TestEnum(str, Enum):
+            VALUE1 = "value1"
+            VALUE2 = "value2"
+
+        DISCRIMINATORS: tuple[tuple[object, object], ...] = (
+            (TestEnum.VALUE1, TestEnum.VALUE2),
+            (TestEnum.VALUE2, 42),
+            (0.01, "foo"),
+        )
+
+        for value1, value2 in DISCRIMINATORS:
+            with subtests.test(value1=value1, value2=value2):
+                Model1 = create_model(
+                    "Model1", __base__=Feature, discriminator_field=Literal[value1]
+                )
+                Model2 = create_model(
+                    "Model2",
+                    discriminator_field=Annotated[
+                        Literal[value2], "random value", Field(description="something")
+                    ],
+                )
+
+                tap: TypeAdapter = TypeAdapter(
+                    Annotated[
+                        Annotated[Model1, Tag(value1)] | Annotated[Model2, Tag(value2)],  # type: ignore[arg-type]
+                        Field(
+                            discriminator=Feature.field_discriminator(
+                                "discriminator_field",
+                                Model1,
+                                Model2,
+                            )
+                        ),
+                    ]
+                )
+
+                model1_expect = Model1(
+                    id="model1",
+                    bbox=BBox(0, 0, 0, 0),
+                    geometry=Geometry.from_wkt("POINT(0 0)"),
+                    discriminator_field=value1,
+                )
+                model2_expect = Model2(discriminator_field=value2)
+
+                with subtests.test(
+                    msg="model_validate_json",
+                    model1_expect=model1_expect,
+                    model2_expect=model2_expect,
+                ):
+                    model1_actual = tap.validate_json(model1_expect.model_dump_json())
+                    assert model1_expect == model1_actual
+
+                    model2_actual = tap.validate_json(model2_expect.model_dump_json())
+                    assert model2_expect == model2_actual
+
+                with subtests.test(
+                    msg="model_validate from dict",
+                    model1_expect=model1_expect,
+                    model2_expect=model2_expect,
+                ):
+                    model1_actual = tap.validate_python(model1_expect.model_dump())
+                    assert model1_expect == model1_actual
+
+                with subtests.test(
+                    msg="model_validate from model",
+                    model1_expect=model1_expect,
+                    model2_expect=model2_expect,
+                ):
+                    model1_actual = tap.validate_python(model1_expect)
+                    assert model1_expect == model1_actual
+
+    def test_validation_success_missing_discriminator(self, subtests: SubTests) -> None:
+        """
+        Tests a union of discriminated unions against an input that doesn't contain the
+        contain the discriminator field of the first union, but does contain the discriminator field
+        for the second one.
+        """
+
+        class Union1ModelA(BaseModel):
+            mia: Literal["1A"]
+
+        class Union1ModelB(Feature):
+            mia: Literal["1B"]
+
+        union1 = Annotated[
+            Annotated[Union1ModelA, Tag("1A")] | Annotated[Union1ModelB, Tag("1B")],
+            Field(
+                discriminator=Feature.field_discriminator(
+                    "mia", Union1ModelA, Union1ModelB
+                )
+            ),
+        ]
+
+        class Union2ModelA(Feature):
+            here: Literal["2A"]
+
+        class Union2ModelB(BaseModel):
+            here: Literal["2B"]
+
+        union2 = Annotated[
+            Annotated[Union2ModelA, Tag("2A")] | Annotated[Union2ModelB, Tag("2B")],
+            Field(
+                discriminator=Feature.field_discriminator(
+                    "here", Union2ModelA, Union2ModelB
+                )
+            ),
+        ]
+
+        tap: TypeAdapter = TypeAdapter(union1 | union2)
+
+        expect = Union2ModelB(here="2B")
+
+        with subtests.test(msg="model_validate_json"):
+            json_data = expect.model_dump_json()
+            actual = tap.validate_json(json_data)
+            assert expect == actual
+
+        with subtests.test(msg="model_validate from dict"):
+            data = expect.model_dump()
+            actual = tap.validate_python(data)
+            assert expect == actual
+
+        with subtests.test(msg="model_validate from model", expect=expect):
+            actual = tap.validate_python(expect)
+            assert expect == actual
+
+    @pytest.mark.parametrize(
+        "data",
+        [
+            {"type": "Feature", "geometry": None, "properties": None},
+            {"type": "Feature", "geometry": None, "properties": {}},
+            {"type": "Feature", "geometry": 42, "properties": {"foo": "baz"}},
+            {},
+            {"foo": "baz"},
+            {"type": "Feature"},
+            {"geometry": {"type": "Point", "coordinates": [0, 0]}},
+            {"properties": None},
+            {"properties": {}},
+            {"type": "Feature", "geometry": {}},
+            {"type": "Feature", "properties": None},
+            {"type": "Feature", "properties": {}},
+            {"geometry": {}, "properties": None},
+            {"geometry": {}, "properties": {}},
+            42,
+        ],
+    )
+    def test_validation_error_cant_find_field(
+        self,
+        data: object,
+    ) -> None:
+        class BarFeature(Feature):
+            bar: str
+
+        class BarBazFeature(BarFeature):
+            baz: bool
+
+        class BarModel(BaseModel):
+            bar: str
+
+        tap: TypeAdapter = TypeAdapter(
+            Annotated[
+                Annotated[BarFeature, Tag("bar")]
+                | Annotated[BarBazFeature, Tag("bar_baz")]
+                | Annotated[BarModel, Tag("bar_baz")],
+                Field(
+                    discriminator=Feature.field_discriminator(
+                        "bar", BarBazFeature, BarFeature, BarModel
+                    )
+                ),
+            ]
+        )
+
+        with pytest.raises(
+            ValidationError, match="Unable to extract tag using discriminator"
+        ):
+            tap.validate_json(json.dumps(data))
+
+    def test_error_field_not_str(self) -> None:
+        with pytest.raises(
+            TypeError, match="`field` must be a `str`, but 42 has type `int`"
+        ):
+            Feature.field_discriminator(cast(str, 42))
+
+    @pytest.mark.parametrize("field", ["bbox", "geometry", "id"])
+    def test_error_field_name_not_allowed(self, field: str) -> None:
+        with pytest.raises(
+            ValueError, match=f"`field` value {repr(field)} is not allowed"
+        ):
+            Feature.field_discriminator(field)
+
+    @pytest.mark.parametrize(
+        "model_classes",
+        [
+            (),
+            (BaseModel,),
+            (Feature,),
+        ],
+    )
+    def test_error_model_classes_length_not_at_least_2(
+        self, model_classes: tuple[type[BaseModel], ...]
+    ) -> None:
+        with pytest.raises(
+            ValueError, match="`model_classes` must have at least two items"
+        ):
+            Feature.field_discriminator("foo", *model_classes)
+
+    @pytest.mark.parametrize(
+        "model_classes",
+        [
+            (42, BaseModel),
+            (BaseModel, 42),
+            (int, BaseModel),
+            (BaseModel, int),
+            (Feature, int),
+            ("foo", BaseModel),
+            (BaseModel, "bar"),
+            (str, BaseModel),
+            (BaseModel, str),
+            (Feature, dict),
+            (Feature, BaseModel, {}),
+        ],
+    )
+    def test_error_non_model_classes(self, model_classes: tuple[object, ...]) -> None:
+        with pytest.raises(
+            TypeError, match="`model_classes` contains at least one non-model class"
+        ):
+            Feature.field_discriminator(
+                "foo", *[cast(type[BaseModel], x) for x in model_classes]
+            )
+
+    @pytest.mark.parametrize(
+        "model_classes",
+        [
+            (BaseModel, Feature),
+            (Feature, BaseModel),
+            (
+                create_model("Foo", __base__=Feature, foo=int),
+                create_model("Bar", __base__=Feature, bar=int),
+            ),
+            (
+                create_model("Bar", __base__=Feature, bar=str),
+                create_model("Foo", __base__=Feature, foo=str),
+            ),
+            (
+                create_model("Foo", __base__=BaseModel, foo=str),
+                create_model("FooBar", __base__=Feature, foo=str, bar=int),
+                BaseModel,
+            ),
+        ],
+    )
+    def test_error_model_class_missing_field(
+        self, model_classes: tuple[type[BaseModel], ...]
+    ) -> None:
+        with pytest.raises(
+            TypeError,
+            match="`model_classes` contains at least one model class that does not have a field named 'foo'",
+        ):
+            Feature.field_discriminator("foo", *model_classes)
+
+    def test_error_no_feature_classes(self) -> None:
+        class BarBaz(BaseModel):
+            bar: int
+            baz: bool
+
+        class BarQux(BaseModel):
+            bar: int
+            qux: str
+
+        with pytest.raises(
+            TypeError,
+            match="`model_classes` does not contain any subclasses of `Feature`",
+        ):
+            Feature.field_discriminator("bar", BarBaz, BarQux)
 
 
 class TestSerializeModel:
@@ -180,9 +585,9 @@ class TestValidateModel:
                     "geometry": {"type": "Point", "coordinates": [1.0, 2.0]},
                     "properties": {},
                 },
-                Feature(  # type: ignore[call-arg]
+                Feature(
                     bbox=BBox(0, 1, 0, 2), geometry=Geometry.from_wkt("POINT(1 2)")
-                ),
+                ),  # type: ignore[call-arg]
             ),
             (
                 {
@@ -202,6 +607,12 @@ class TestValidateModel:
     )
     def test_simple_json(self, json_dict: dict[str, object], expect: Feature) -> None:
         actual = Feature.model_validate_json(json.dumps(json_dict))
+
+        assert expect == actual
+
+    def test_simple_python_feature(self) -> None:
+        expect = Feature(geometry=Geometry.from_wkt("POINT(1 2)"))  # type: ignore[call-arg]
+        actual = Feature.model_validate(expect)
 
         assert expect == actual
 
@@ -244,7 +655,7 @@ class TestValidateModel:
             ),
         ],
     )
-    def test_simple_python(
+    def test_simple_python_dict(
         self, python_dict: dict[str, object], expect: Feature
     ) -> None:
         actual = Feature.model_validate(python_dict)
@@ -310,14 +721,14 @@ class TestValidateModel:
 
         assert extra == sub_feature.model_extra
 
-    def test_error_data_not_dict(self) -> None:
-        with pytest.raises(
-            TypeError, match="feature data must be a `dict`, but 'foo' is a `str`"
-        ):
+    def test_error_python_data_not_feature_or_dict(self) -> None:
+        with pytest.raises(ValidationError):
             Feature.model_validate("foo")
 
+    def test_error_json_data_not_dict(self) -> None:
         with pytest.raises(
-            TypeError, match="feature data must be a `dict`, but 'bar' is a `str`"
+            TypeError,
+            match="feature data must be a `dict` when validating JSON, but 'bar' is a `str`",
         ):
             Feature.model_validate_json('"bar"')
 

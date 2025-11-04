@@ -2,12 +2,14 @@
 Geospatial feature model with GeoJSON-compatible JSON Schema.
 """
 
+import inspect
 from enum import Enum
 from functools import reduce
 from typing import Any
 
 from pydantic import (
     BaseModel,
+    Discriminator,
     Field,
     GetJsonSchemaHandler,
     ModelWrapValidatorHandler,
@@ -88,6 +90,82 @@ class Feature(BaseModel):
     ...     ]
 
     .. _GeoJSON format: https://datatracker.ietf.org/doc/html/rfc7946
+
+    Because the GeoJSON format moves feature fields to a place Pydantic does not expect them (the
+    `"properties"` block of the JSON object), a naive use of Pydantic discriminated unions will not
+    work when deserializing from JSON with `model_validate_json`. To create a robust discriminated
+    union, use the `field_discriminator` method:
+
+    >>> from typing import Annotated, Literal
+    >>> from overture.schema.system.primitive import float32
+    >>> import pydantic
+    >>>
+    >>> class Field(Feature):
+    ...     geometry: Annotated[
+    ...         Geometry,
+    ...         GeometryTypeConstraint(GeometryType.POLYGON, GeometryType.MULTI_POLYGON)
+    ...     ]
+    ...     type: Literal['field']
+    ...
+    >>> class Fence(Feature):
+    ...     geometry: Annotated[
+    ...         Geometry,
+    ...         GeometryTypeConstraint(GeometryType.LINE_STRING)
+    ...     ]
+    ...     type: Literal['fence']
+    ...     subtype: Literal[
+    ...         'chain_link', 'barb_wire_3', 'barb_wire_4', 'barb_wire_5', 'electric_1',
+    ...         'electric_2', 'electric_3', 'electric_4', 'split_rail', 'woven_wire'
+    ...     ]
+    ...     height: float32 | None = pydantic.Field(
+    ...         default=None,
+    ...         description='Optional fence height in meters'
+    ...     )
+    ...
+    >>> FarmFeature = pydantic.TypeAdapter(
+    ...     Annotated[
+    ...         Annotated[Field, pydantic.Tag('field')]
+    ...             | Annotated[Fence, pydantic.Tag('fence')],
+    ...         pydantic.Field(
+    ...            discriminator=Feature.field_discriminator('type', Field, Fence)
+    ...         ),
+    ...    ]
+    ... )
+    >>>
+    >>> FarmFeature.validate_json('''{
+    ...     "type": "Feature",
+    ...     "geometry": {
+    ...         "type": "LineString",
+    ...         "coordinates": [[0, 0], [0, 0.01]]
+    ...     },
+    ...     "properties": {
+    ...         "type": "fence",
+    ...         "subtype": "barb_wire_4"
+    ...     }
+    ... }''')
+    Fence(id=<MISSING>, bbox=<MISSING>, geometry=<<LINESTRING (0 0, 0 0.01)>>, type='fence', subtype='barb_wire_4', height=None)
+
+    You can model classes that are not `Feature` subclasses in `field_discriminator` to enable
+    discriminated unions between features and non-features, as long as at least one model class is
+    a `Feature`:
+
+    >>> class Farmer(BaseModel):
+    ...     type: Literal['farmer']
+    ...     name: str
+    ...
+    >>> FarmModel = pydantic.TypeAdapter(
+    ...     Annotated[
+    ...         Annotated[Farmer, pydantic.Tag('farmer')]
+    ...             | Annotated[Field, pydantic.Tag('field')]
+    ...             | Annotated[Fence, pydantic.Tag('fence')],
+    ...         pydantic.Field(
+    ...             discriminator=Feature.field_discriminator('type', Field, Fence)
+    ...         ),
+    ...    ]
+    ... )
+    >>>
+    >>> FarmModel.validate_json('{"type":"farmer","name":"John Deere"}')
+    Farmer(type='farmer', name='John Deere')
     """
 
     id: Omitable[Id] = Field(description="An optional unique ID for the feature")
@@ -103,6 +181,122 @@ class Feature(BaseModel):
     Subclasses of `Feature` may limit the geometry types allowed on `geometry` by repeating this
     field and annotating it with a `GeometryTypeConstraint`.
     """
+
+    @staticmethod
+    def field_discriminator(
+        field: str, *model_classes: type[BaseModel]
+    ) -> Discriminator:
+        """
+        Return a discriminator that can be used in a Pydantic `Field` to support tagged unions of
+        features.
+
+        Use this method to generate a Pydantic discriminator that works *both* with Python-style
+        flat data *and* GeoJSON. Note that at least one member of `model_classes` must be a
+        `Feature` (if no feature models are involved, you don't need this method and should build
+        your discriminated union using Pydantic's standard discriminator facilities).
+
+        Parameters
+        ----------
+        field : str
+            Field name, which must be present in all models
+        *model_classes : type[BaseModel]
+            One or more Pydantic model classes, at least one of which must be a subclass of the
+            `Feature` class
+
+        Returns
+        -------
+        Discriminator
+            Discriminator that enables discriminated unions that include features
+
+        Raises
+        ------
+        TypeError
+            If any member of `model_classes` is not a subclass of `BaseModel`.
+        TypeError
+            If no member of `model_classes` is a subclass of `Feature`.
+        TypeError
+            If any member of `model_classes` does not have a field named `field`.
+        ValueError
+            If `field` names one of the core GeoJSON feature fields that cannot be discriminated:
+            `"bbox"`, `"geometry`", or `"id"`.
+        ValueError
+            If `model_classes` has length less than 2.
+        """
+        if not isinstance(field, str):
+            raise TypeError(
+                f"`field` must be a `str`, but {repr(field)} has type `{type(field).__name__}`"
+            )
+        elif field in ["bbox", "geometry", "id"]:
+            raise ValueError(
+                f"`field` value {repr(field)} is not allowed because it is one of the core GeoJSON "
+                "feature properties: 'bbox', 'geometry', and 'id' - use a different discriminator "
+                "field!"
+            )
+        elif len(model_classes) < 2:
+            raise ValueError(
+                f"`model_classes` must have at least two items, but {repr(model_classes)} has length {len(model_classes)}"
+            )
+
+        non_models = [
+            x
+            for x in model_classes
+            if not isinstance(x, type) or not issubclass(x, BaseModel)
+        ]
+        if non_models:
+            raise TypeError(
+                "`model_classes` contains at least one non-model class: the value(s) "
+                f"{repr(non_models)} should be subclasses of {BaseModel.__name__} but the type(s) "
+                f"are {', '.join([f'`{x.__name__ if isinstance(x, type) else type(x).__name__}`' for x in non_models])}, "
+                f"respectively, which are not subclasses of `{BaseModel.__name__}`..."
+            )
+
+        missing_field = [
+            f"`{t.__name__}`" for t in model_classes if field not in t.model_fields
+        ]
+        if missing_field:
+            raise TypeError(
+                "`model_classes` contains at least one model class that does not have a field "
+                f"named {repr(field)}: {', '.join(missing_field)}"
+            )
+
+        if not any(t for t in model_classes if issubclass(t, Feature)):
+            frame = inspect.currentframe()
+            method_name = (
+                f"{Feature.__name__}.{frame.f_code.co_name if frame else '???'}"
+            )
+            raise TypeError(
+                f"`model_classes` does not contain any subclasses of `{Feature.__name__}` - "
+                f"you don't need `{method_name}(...)` unless you have at least one "
+                f"`{Feature.__name__}` model - use standard Pydantic discriminators instead"
+            )
+
+        def get_discriminator_value(data: object) -> Any:
+            # Pydantic doesn't have a facility to tell the dynamic discriminator function whether
+            # the context is 'python' or 'json', so we just have to use heuristics. If the input is
+            # a `dict` with the mandatory attributes `"type": "Feature"`, `"geometry"`, and
+            # `"properties"`, we assume we're in GeoJSON-land, otherwise not.
+            #
+            # If the data doesn't contain the discriminator field at all, we return `None` to tell
+            # Pydantic proceed to try the next variant in the union, if there is one. This is
+            # equivalent to how Pydantic behaves with static unions.
+            if (
+                isinstance(data, dict)
+                and all(f in data for f in ["geometry", "properties", "type"])
+                and data["type"] == "Feature"
+            ):
+                properties: Any = data["properties"]
+                if not isinstance(properties, dict):
+                    return None
+                else:
+                    return properties.get(field, None)
+            else:
+                return (
+                    data.get(field, None)
+                    if isinstance(data, dict)
+                    else getattr(data, field, None)
+                )
+
+        return Discriminator(get_discriminator_value)
 
     @model_serializer(mode="wrap")
     def __serialize_with_geo_json_support__(
@@ -133,12 +327,11 @@ class Feature(BaseModel):
         Validate the model as GeoJSON when the mode is JSON, otherwise applies Pydantic's standard
         validation.
         """
-        if not isinstance(data, dict):
-            raise TypeError(
-                f"feature data must be a `dict`, but {repr(data)} is a `{type(data).__name__}`"
-            )
-
         if info.mode == "json":
+            if not isinstance(data, dict):
+                raise TypeError(
+                    f"feature data must be a `dict` when validating JSON, but {repr(data)} is a `{type(data).__name__}`"
+                )
 
             def validation_error(
                 type: str, input: object, error: str, *loc: str
