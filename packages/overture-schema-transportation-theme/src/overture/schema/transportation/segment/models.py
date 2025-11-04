@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, Tag
 
 from overture.schema.core import (
     OvertureFeature,
@@ -10,6 +10,7 @@ from overture.schema.core import (
 from overture.schema.core.names import (
     Named,
 )
+from overture.schema.system.feature import Feature
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.primitive import (
     Geometry,
@@ -126,7 +127,14 @@ class WaterSegment(TransportationSegment):
 
 
 Segment = Annotated[
-    RoadSegment | RailSegment | WaterSegment, Field(discriminator="subtype")
+    Annotated[RoadSegment, Tag(Subtype.ROAD)]
+    | Annotated[RailSegment, Tag(Subtype.RAIL)]
+    | Annotated[WaterSegment, Tag(Subtype.WATER)],
+    Field(
+        discriminator=Feature.field_discriminator(
+            "subtype", RoadSegment, RailSegment, WaterSegment
+        )
+    ),
 ]
 
 # Explicitly assign docstring to the Segment type alias
