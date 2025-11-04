@@ -152,6 +152,7 @@ class InfrastructureClass(str, Enum):
     REGIONAL_AIRPORT = "regional_airport"
     RESERVOIR_COVERED = "reservoir_covered"
     RETAINING_WALL = "retaining_wall"
+    ROLLER_COASTER = "roller_coaster"
     ROPE_TOW = "rope_tow"
     RUNWAY = "runway"
     SALLY_PORT = "sally_port"
