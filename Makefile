@@ -11,10 +11,10 @@ check: test doctest
 	@uv run ruff format --check packages/
 
 test-all: uv-sync
-	@uv run pytest packages/
+	@uv run pytest -W error packages/
 
 test: uv-sync
-	@uv run pytest packages/ -x
+	@uv run pytest -W error packages/ -x
 
 coverage: uv-sync
 	@uv run pytest packages/ --cov overture.schema --cov-report=term --cov-report=html && open htmlcov/index.html
