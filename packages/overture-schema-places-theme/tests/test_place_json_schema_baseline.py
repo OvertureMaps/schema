@@ -3,8 +3,8 @@
 import json
 import os
 
-from overture.schema.core import json_schema
 from overture.schema.places import Place
+from overture.schema.system.json_schema import json_schema
 
 
 def test_place_json_schema_baseline() -> None:

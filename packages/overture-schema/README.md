@@ -68,15 +68,12 @@ from overture.schema import (
 The package also exports several utility functions:
 
 ```python
-from overture.schema import parse, parse_feature, discover_models, json_schema
+from overture.schema import parse, discover_models, json_schema
 from overture.schema import Building
 
 # Parse any Overture feature (auto-discovers all registered models)
-validated_feature = parse(feature_data, mode="json")  # Returns GeoJSON format
-validated_feature = parse(feature_data, mode="python")  # Returns flat format
-
-# Parse with a specific model type
-parsed_building = parse_feature(building_data, Building)
+validated_feature = parse(feature_data, mode="json")    # Parses GeoJSON format
+validated_feature = parse(feature_data, mode="python")  # Parses flat format
 
 # Discover all registered models programmatically
 all_models = discover_models()

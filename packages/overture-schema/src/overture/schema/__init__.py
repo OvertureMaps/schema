@@ -1,76 +1,171 @@
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
+from collections.abc import Generator
 from functools import reduce
 from operator import or_
-from typing import TYPE_CHECKING, Annotated, Any
+from types import UnionType
+from typing import Annotated, Any, Literal, cast, get_args, get_origin
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, Tag, TypeAdapter
 
-from overture.schema.core import parse_feature
+from overture.schema.core import OvertureFeature
 from overture.schema.core.discovery import discover_models
-from overture.schema.core.json_schema import json_schema
+from overture.schema.system.feature import Feature
 
 
-def parse(feature: dict[str, Any], mode: str = "json") -> dict[str, Any] | None:
-    """Parse and validate a feature using the union of all available models.
-
-    Args:
-        feature: Feature data (GeoJSON or flattened format)
-        mode: Output mode - "json" for GeoJSON format, "python" for flattened format
-
-    Returns:
-        Parsed feature in the specified format
-
-    Uses the discovery mechanism to find all registered models and validates
-    the feature against the union of all available models.
+def validate(data: object) -> BaseModel:
     """
-    # Discover all registered models via entry points
-    models = discover_models()
-    if not models:
-        raise ValueError("No registered models found via entry points")
+    Validate a Python object, which can be a dictionary or model instance, using the union of all
+    discovered Overture models.
 
-    if TYPE_CHECKING:
-        # For type checking, use Any to avoid mypy errors with dynamic types
-        model_union = Any
-    else:
-        # Filter out BaseModel types without a 'type' field; they can't be discriminated
-        # This is an Overture-specific optimization, as our core models all have 'type'
-        discriminated_models = []
-        non_discriminated_models = []
+    Parameters
+    ----------
+    data : object
+        Python object to validate against the model.
 
-        for model in models.values():
-            if (
-                isinstance(model, type)
-                and issubclass(model, BaseModel)
-                and "type" not in model.model_fields
-            ):
-                non_discriminated_models.append(model)
-            else:
-                # Include union types and models with 'type' field
-                discriminated_models.append(model)
+    Returns
+    -------
+    BaseModel
+        Validated model class
 
-        assert discriminated_models or non_discriminated_models
+    Raises
+    ------
+    ValidationError
+        If `data` is not valid according to one of the discovered Overture models
+    """
+    tap = _union_type_adapter()
 
-        discriminated_union = None
-        if discriminated_models:
-            discriminated_union = Annotated[
-                reduce(or_, discriminated_models), Field(discriminator="type")
-            ]
+    return cast(BaseModel, tap.validate_python(data))
 
-        non_discriminated_union = reduce(or_, non_discriminated_models, None)
 
-        if discriminated_union and non_discriminated_union:
-            model_union = discriminated_union | non_discriminated_union
-        elif discriminated_union:
-            model_union = discriminated_union
-        else:
-            model_union = non_discriminated_union
+def validate_json(json_data: str | bytes | bytearray) -> BaseModel:
+    """
+    Validate JSON data using the union of all discovered Overture models.
 
-    return parse_feature(feature, model_union, mode)
+    Parameters
+    ----------
+    data : str | bytes | bytearray
+        JSON data to validate
+
+    Returns
+    -------
+    BaseModel
+        Validated model class
+
+    Raises
+    ------
+    ValidationError
+        If `json_data` is not valid according to one of the discovered Overture models
+    """
+    tap = _union_type_adapter()
+
+    return cast(BaseModel, tap.validate_json(json_data))
 
 
 __all__ = [
-    "parse",
-    "parse_feature",
-    "json_schema",
+    "validate",
+    "validate_json",
 ]
+
+
+def _union_type_adapter() -> TypeAdapter:
+    """
+    Return a Pydantic type adapter that can validate the union of all models discovered using entry
+    points.
+    """
+    models = discover_models()
+    if not models:
+        raise RuntimeError("no registered models found via entry points")
+
+    discriminated_models: tuple[type[OvertureFeature], ...] = tuple(
+        cast(type[OvertureFeature], m) for m in models.values() if _can_discriminate(m)
+    )
+    discriminated_union: UnionType | None = _discriminated_union(discriminated_models)
+
+    non_discriminated_models: Generator[type[BaseModel], None, None] = (
+        m for m in models.values() if not _can_discriminate(m)
+    )
+    non_discriminated_union: UnionType | None = reduce(
+        or_, non_discriminated_models, None
+    )
+
+    if discriminated_union and non_discriminated_union:
+        model_union = discriminated_union | non_discriminated_union
+    elif discriminated_union:
+        model_union = discriminated_union
+    elif non_discriminated_union:
+        model_union = non_discriminated_union
+    else:
+        raise RuntimeError("logic error: unreachable code")
+
+    return TypeAdapter(model_union)
+
+
+def _discriminated_union(
+    feature_classes: tuple[type[OvertureFeature], ...],
+) -> Any:  # noqa: ANN401
+    """
+    Create a discriminated union of the Overture features since they can be discriminated on the
+    `type` field. This is just a performance optimization, and the union will work even if no models
+    are discriminated.
+    """
+    if not feature_classes:
+        return None
+    else:
+        return Annotated[
+            reduce(
+                or_,
+                (
+                    Annotated[f, Tag(cast(str, _typeliteral(f)))]
+                    for f in feature_classes
+                ),
+            ),
+            Field(discriminator=Feature.field_discriminator("type", *feature_classes)),
+        ]
+
+
+def _can_discriminate(model_class: object) -> bool:
+    """
+    Return true if given value can participate in a discriminated union on the `type` field because
+    it is an Overture feature with where the `type` field has a single literal value.
+    """
+    return (
+        isinstance(model_class, type)
+        and issubclass(model_class, OvertureFeature)
+        and _typeliteral(cast(type[OvertureFeature], model_class)) is not None
+    )
+
+
+def _typeliteral(feature_class: type[OvertureFeature]) -> object:
+    """
+    Return the literal value of the Overture Feature model's `type` field, if it has one, or `None`
+    if it does not.
+
+    Parameters
+    ----------
+    feature_class : type[OvertureFeature]
+        Overture feature model class
+
+    Returns
+    -------
+    object
+        The literal constrained value of the model class' `type` field, or `None` if the `type`
+        field does not have a literal value
+
+    Raises
+    ------
+    TypeError
+        If the `type` field is constrained to `Literal[None]`, as this is absurd
+    """
+    type_type = feature_class.model_fields["type"].annotation
+    while get_origin(type_type) is Annotated:
+        type_type = get_args(Annotated)[0]
+    if get_origin(type_type) is not Literal:
+        return None
+    literal = get_args(type_type)[0]
+    if literal is None:
+        raise TypeError(
+            f"literal value of `type` field for `{OvertureFeature.__name__}` class "
+            f"`{feature_class.__name__}` is constrained to `None`"
+        )
+    return literal

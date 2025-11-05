@@ -3,7 +3,7 @@
 import json
 import os
 
-from overture.schema.core import json_schema
+from overture.schema.system.json_schema import json_schema
 from overture.schema.transportation import Connector
 
 
