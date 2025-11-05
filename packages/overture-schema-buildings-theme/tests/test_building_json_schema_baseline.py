@@ -4,7 +4,7 @@ import json
 import os
 
 from overture.schema.buildings.building import Building
-from overture.schema.core import json_schema
+from overture.schema.system.json_schema import json_schema
 
 
 def test_building_json_schema_baseline() -> None:

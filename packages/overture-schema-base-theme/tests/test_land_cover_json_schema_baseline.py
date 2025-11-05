@@ -4,7 +4,7 @@ import json
 import os
 
 from overture.schema.base import LandCover
-from overture.schema.core import json_schema
+from overture.schema.system.json_schema import json_schema
 
 
 def test_land_cover_json_schema_baseline() -> None:
