@@ -1,11 +1,12 @@
+import json
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
 import pytest
 import yaml
-from deepdiff import DeepDiff
-from overture.schema import parse
+from overture.schema import validate, validate_json
+from pydantic import ValidationError
 from yamlcore import CoreLoader  # type: ignore
 
 # Top-level constants for paths
@@ -14,12 +15,11 @@ EXAMPLES_DIR = PROJECT_ROOT / "reference" / "examples"
 COUNTEREXAMPLES_DIR = PROJECT_ROOT / "reference" / "counterexamples"
 
 
-def load_feature(file_path: str) -> dict[str, Any]:
+def load_example_file(file_path: str) -> Any:
     """Load a feature from JSON or YAML file and return flattened/tabular format."""
     with open(file_path, encoding="utf-8") as f:
         # use a YAML-1.2-compliant (which dropped support for yes/no boolean values) Loader
-        feature = yaml.load(f, Loader=CoreLoader)
-        return create_flat_variant(feature)
+        return yaml.load(f, Loader=CoreLoader)
 
 
 def create_flat_variant(feature: dict[str, Any]) -> dict[str, Any]:
@@ -36,58 +36,6 @@ def create_flat_variant(feature: dict[str, Any]) -> dict[str, Any]:
             del flat_feature["type"]
 
     return flat_feature
-
-
-def convert_to_geojson_format(flattened_feature: dict[str, Any]) -> dict[str, Any]:
-    """Convert flattened feature to GeoJSON format for comparison."""
-    return {
-        "type": "Feature",
-        "id": flattened_feature.get("id", None),
-        "geometry": flattened_feature.get("geometry", None),
-        "properties": {
-            k: v for k, v in flattened_feature.items() if k not in ["id", "geometry"]
-        },
-    }
-
-
-def deep_compare_dicts(
-    original: dict[str, Any], parsed: dict[str, Any]
-) -> tuple[bool, str]:
-    """Perform deep comparison between original and parsed dictionaries.
-
-    Returns (is_equal, differences_report).
-    """
-    diff = DeepDiff(original, parsed, ignore_order=True, significant_digits=15)
-
-    if not diff:
-        return True, ""
-
-    # Format differences for readable output
-    differences = []
-
-    if "values_changed" in diff:
-        differences.append("Value changes:")
-        for key, change in diff["values_changed"].items():
-            differences.append(
-                f"  {key}: {change['old_value']} -> {change['new_value']}"
-            )
-
-    if "dictionary_item_added" in diff:
-        differences.append("Added items:")
-        for item in diff["dictionary_item_added"]:
-            differences.append(f"  {item}")
-
-    if "dictionary_item_removed" in diff:
-        differences.append("Removed items:")
-        for item in diff["dictionary_item_removed"]:
-            differences.append(f"  {item}")
-
-    if "type_changes" in diff:
-        differences.append("Type changes:")
-        for key, change in diff["type_changes"].items():
-            differences.append(f"  {key}: {change['old_type']} -> {change['new_type']}")
-
-    return False, "\n".join(differences)
 
 
 def walk_directory(directory: Path) -> Generator[Path, None, None]:
@@ -138,7 +86,7 @@ def group_files_by_directory(files: list[Path], base_dir: Path) -> dict[str, Any
 
 
 def create_test_cases(
-    group: dict[str, Any], base_dir: Path, is_counterexample: bool = False
+    group: dict[str, Any], base_dir: Path
 ) -> list[tuple[str, str, bool]]:
     """Create test cases from grouped files."""
     test_cases = []
@@ -173,9 +121,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
         if EXAMPLES_DIR.exists():
             example_files = list(walk_directory(EXAMPLES_DIR))
             grouped_examples = group_files_by_directory(example_files, EXAMPLES_DIR)
-            test_cases = create_test_cases(
-                grouped_examples, EXAMPLES_DIR, is_counterexample=False
-            )
+            test_cases = create_test_cases(grouped_examples, EXAMPLES_DIR)
 
             # Create parameter values with marks for enabled/disabled tests
             param_values = []
@@ -201,9 +147,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
             grouped_counterexamples = group_files_by_directory(
                 counterexample_files, COUNTEREXAMPLES_DIR
             )
-            test_cases = create_test_cases(
-                grouped_counterexamples, COUNTEREXAMPLES_DIR, is_counterexample=True
-            )
+            test_cases = create_test_cases(grouped_counterexamples, COUNTEREXAMPLES_DIR)
 
             # Create parameter values with marks for enabled/disabled tests
             param_values = []
@@ -223,84 +167,82 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
             metafunc.parametrize("counterexample_file", param_values)
 
 
-def test_example_validation_geojson(example_file: str) -> None:
-    """Test that examples pass validation with GeoJSON input format."""
-    feature = load_feature(example_file)
-
-    if "geometry" not in feature:
-        pytest.skip("Example does not have a geometry field")
-
-    test_feature = convert_to_geojson_format(feature)
+def test_example_validation_json(example_file: str) -> None:
+    """
+    Test that examples pass validation with JSON input format. This will test GeoJSON parsing for
+    examples based on GeoJSON features.
+    """
+    json_input = load_example_file(example_file)
 
     try:
-        parsed_feature = parse(test_feature)
+        model = validate_json(json.dumps(json_input))
     except Exception as e:
         raise pytest.fail.Exception(
-            f"Example failed validation (GeoJSON): {example_file}"
+            f"Example failed validation (JSON): {example_file}"
         ) from e
 
-    # If validation passed and we have a parsed feature, compare with GeoJSON format
-    if parsed_feature is not None:
-        # Parsed feature should be in GeoJSON format, so compare directly
-        is_equal, diff_report = deep_compare_dicts(test_feature, parsed_feature)
-        assert is_equal, (
-            f"Parsed feature differs from original (geojson): {example_file}\n"
-            f"Differences:\n{diff_report}"
-        )
+    # If validation passed and we have a parsed feature, serialize to JSON and compare with the
+    # original JSON.
+    json_dump = model.model_dump(exclude_unset=True, by_alias=True, mode="json")
+    assert json_dump == json_input, (
+        f"Dumped model JSON differs from original: {example_file}"
+    )
 
 
 def test_example_validation_flat(example_file: str) -> None:
-    """Test that examples pass validation with flat/Parquet-style input."""
-    flat_feature = load_feature(example_file)  # Load as flat (authoritative)
-    test_feature = flat_feature  # Use flat format directly
+    """
+    Test that examples pass validation with Python input format, which should have the same
+    structure as Parquet.
+    """
+    json_input = load_example_file(example_file)
+    flat_input = create_flat_variant(json_input)
 
     try:
-        parsed_feature = parse(test_feature)
+        model = validate(flat_input)
     except Exception as e:
         raise pytest.fail.Exception(
-            f"Example failed validation (flat): {example_file}"
+            f"example failed validation (Python): {example_file}"
         ) from e
 
-    # If validation passed and we have a parsed feature, compare with GeoJSON format
-    if parsed_feature is not None and "geometry" in flat_feature:
-        # Parsed feature should be in GeoJSON format, so compare with GeoJSON variant
-        expected_geojson = convert_to_geojson_format(flat_feature)
-        is_equal, diff_report = deep_compare_dicts(expected_geojson, parsed_feature)
-        assert is_equal, (
-            f"Parsed feature differs from expected (flat): {example_file}\n"
-            f"Differences:\n{diff_report}"
-        )
+    # If validation passed and we have a parsed feature, serialize back to both the flattened mode
+    # and JSON and verify no differences.
+    json_dump = model.model_dump(exclude_unset=True, by_alias=True, mode="json")
+    assert json_dump == json_input, (
+        f"Dumped model JSON differs from original: {example_file}"
+    )
 
 
-def test_counterexample_validation_geojson(counterexample_file: str) -> None:
-    """Test that counterexamples fail validation with GeoJSON input format."""
-    flat_feature = load_feature(counterexample_file)  # Load as flat (authoritative)
-    test_feature = convert_to_geojson_format(flat_feature)  # Convert to GeoJSON format
+def test_counterexample_validation_json(counterexample_file: str) -> None:
+    """
+    Test that counterexamples fail validation with JSON input format. This will test GeoJSON
+    validation for counterexamples based on GeoJSON features.
+    """
+    json_input = load_example_file(counterexample_file)
 
     is_valid = False
     try:
-        parse(test_feature)
+        validate_json(json.dumps(json_input))
         is_valid = True
-    except Exception:
+    except ValidationError:
         pass
 
     assert not is_valid, (
-        f"Counterexample should have failed validation (geojson): {counterexample_file}"
+        f"Counterexample should have failed validation (JSON): {counterexample_file}"
     )
 
 
 def test_counterexample_validation_flat(counterexample_file: str) -> None:
     """Test that counterexamples fail validation with flat input format."""
-    flat_feature = load_feature(counterexample_file)  # Load as flat (authoritative)
-    test_feature = flat_feature  # Use flat format directly
+    json_input = load_example_file(counterexample_file)
+    flat_input = create_flat_variant(json_input)
 
     is_valid = False
     try:
-        parse(test_feature)
+        validate(flat_input)
         is_valid = True
-    except Exception:
+    except ValidationError:
         pass
 
     assert not is_valid, (
-        f"Counterexample should have failed validation (flat): {counterexample_file}"
+        f"Counterexample should have failed validation (Python): {counterexample_file}"
     )
