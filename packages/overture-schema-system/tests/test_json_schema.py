@@ -1,11 +1,10 @@
-from overture.schema.core.json_schema import EnhancedJsonSchemaGenerator
 from pydantic import BaseModel
-from pydantic.json_schema import GenerateJsonSchema
+from pydantic.json_schema import GenerateJsonSchema, JsonSchemaValue
+
+from overture.schema.system.json_schema import GenerateOmitNullableOptionalJsonSchema
 
 
-class TestEnhancedJsonSchemaGenerator:
-    """Test the EnhancedJsonSchemaGenerator class."""
-
+class TestenerateOmitOptionalJsonSchema:
     def test_nullable_with_none_default_becomes_optional(self) -> None:
         """Test that X | None = None becomes optional without default."""
 
@@ -14,7 +13,7 @@ class TestEnhancedJsonSchemaGenerator:
             required_field: str
 
         schema = TestModel.model_json_schema(
-            schema_generator=EnhancedJsonSchemaGenerator
+            schema_generator=GenerateOmitNullableOptionalJsonSchema
         )
 
         # The nullable_field should not appear in required fields
@@ -38,7 +37,7 @@ class TestEnhancedJsonSchemaGenerator:
             nullable_field: str | None = "default_value"
 
         schema = TestModel.model_json_schema(
-            schema_generator=EnhancedJsonSchemaGenerator
+            schema_generator=GenerateOmitNullableOptionalJsonSchema
         )
 
         properties = schema["properties"]
@@ -58,7 +57,7 @@ class TestEnhancedJsonSchemaGenerator:
             bool_field: bool = True
 
         schema = TestModel.model_json_schema(
-            schema_generator=EnhancedJsonSchemaGenerator
+            schema_generator=GenerateOmitNullableOptionalJsonSchema
         )
 
         properties = schema["properties"]
@@ -72,19 +71,29 @@ class TestEnhancedJsonSchemaGenerator:
 
         class TestModel(BaseModel):
             required_str: str
-            required_int: int
+            required_int: int | None
             optional_with_none: str | None = None
 
         schema = TestModel.model_json_schema(
-            schema_generator=EnhancedJsonSchemaGenerator
+            schema_generator=GenerateOmitNullableOptionalJsonSchema
         )
 
         assert schema["required"] == ["required_str", "required_int"]
 
+        def strip(json_schema: JsonSchemaValue, *keys: str) -> JsonSchemaValue:
+            for k in keys:
+                del json_schema[k]
+            return json_schema
+
         properties = schema["properties"]
-        assert "default" not in properties["required_str"]
-        assert "default" not in properties["required_int"]
-        assert "default" not in properties["optional_with_none"]
+        assert {"type": "string"} == strip(properties["required_str"], "title")
+        assert {
+            "anyOf": [
+                {"type": "integer"},
+                {"type": "null"},
+            ]
+        } == strip(properties["required_int"], "title")
+        assert {"type": "string"} == strip(properties["optional_with_none"], "title")
 
     def test_comparison_with_standard_generator(self) -> None:
         """Test behavior differs from standard GenerateJsonSchema."""
@@ -99,7 +108,7 @@ class TestEnhancedJsonSchemaGenerator:
 
         # Our custom generator schema
         custom_schema = TestModel.model_json_schema(
-            schema_generator=EnhancedJsonSchemaGenerator
+            schema_generator=GenerateOmitNullableOptionalJsonSchema
         )
 
         # Standard should have default: null
@@ -123,7 +132,7 @@ class TestEnhancedJsonSchemaGenerator:
             required_field: str
 
         schema = TestModel.model_json_schema(
-            schema_generator=EnhancedJsonSchemaGenerator
+            schema_generator=GenerateOmitNullableOptionalJsonSchema
         )
 
         assert schema["required"] == ["required_field"]
@@ -152,7 +161,7 @@ class TestEnhancedJsonSchemaGenerator:
             opt_nested: NestedModel | None = None
 
         schema = TestModel.model_json_schema(
-            schema_generator=EnhancedJsonSchemaGenerator
+            schema_generator=GenerateOmitNullableOptionalJsonSchema
         )
 
         properties = schema["properties"]
@@ -177,7 +186,7 @@ class TestEnhancedJsonSchemaGenerator:
             union_field: str | int | None = None
 
         schema = TestModel.model_json_schema(
-            schema_generator=EnhancedJsonSchemaGenerator
+            schema_generator=GenerateOmitNullableOptionalJsonSchema
         )
 
         properties = schema["properties"]

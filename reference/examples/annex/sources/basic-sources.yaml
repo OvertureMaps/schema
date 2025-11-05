@@ -15,7 +15,7 @@ datasets:
       - -122.45
       - 45.65
     inception_date: '2022-08-01'
-    url: https://example.gov
+    url: https://example.gov/
     url_archived: https://web.archive.org/web/2025/https://example.gov
     data_download_url:
       - https://data.example.gov/downloads/address_points.geojson
@@ -52,7 +52,7 @@ datasets:
       - 45.38
       - -122.37
       - 45.72
-    url: https://parcels.example.gov
+    url: https://parcels.example.gov/
     data_download_url:
       - https://parcels.example.gov/downloads/parcels.gpkg
     countries:

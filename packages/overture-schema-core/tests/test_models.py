@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 from deepdiff import DeepDiff
-from overture.schema.core.json_schema import EnhancedJsonSchemaGenerator
 from overture.schema.core.models import OvertureFeature
+from overture.schema.system.json_schema import GenerateOmitNullableOptionalJsonSchema
 from overture.schema.system.primitive import (
     BBox,
     Geometry,
@@ -34,7 +34,9 @@ def prune_json_schema(data: dict[str, Any]) -> dict[str, Any]:
 
 def test_feature_json_schema() -> None:
     actual = prune_json_schema(
-        OvertureFeature.model_json_schema(schema_generator=EnhancedJsonSchemaGenerator)
+        OvertureFeature.model_json_schema(
+            schema_generator=GenerateOmitNullableOptionalJsonSchema
+        )
     )
     print(json.dumps(actual, indent=2))
 

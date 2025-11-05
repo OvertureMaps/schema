@@ -13,6 +13,8 @@ Subpackages
 - :mod:`field_constraint <overture.schema.system.field_constraint>` Constraints that can be
   annotated onto Pydantic model fields to force them to conform to well-known rules, for example "a
   collection that contains unique items" or "a string that is a valid country code".
+- :mod:`json_schema <overture.schema.system.json_schema>` Overture-flavored JSON Schema generation
+  for Pydantic models.
 - :mod:`model_constraint <overture.schema.system.model_constraint>` Constraints that can be
   decorated onto Pydantic model classes to add cross-field validation rules, for example "these two
   fields are mutually-exclusive" or "if this field is set, then that field must also be set".
@@ -145,6 +147,7 @@ from . import (
     doc,
     feature,
     field_constraint,
+    json_schema,
     metadata,
     model_constraint,
     optionality,
@@ -159,6 +162,7 @@ __all__ = [
     "doc",
     "feature",
     "field_constraint",
+    "json_schema",
     "metadata",
     "model_constraint",
     "optionality",

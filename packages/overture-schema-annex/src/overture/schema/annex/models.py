@@ -68,6 +68,7 @@ class Dataset(BaseModel):
         str,
         Field(description="Any attribution required by this source."),
     ]
+    # FIXME: This should be a `BBox` primitive, not a `list[float]`.
     coverage_bbox: Annotated[
         list[float],
         Field(
