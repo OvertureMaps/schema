@@ -12,6 +12,6 @@ properties:
   is_territorial: true
   is_land: false
   class: land
-  division_ids: ["example:division:admin0:left", "example:division:admin0:right"]
+  division_ids: ["example:division:admin1:left", "example:division:admin1:right"]
   ext_expected_errors:
     - "missing property 'country'"
