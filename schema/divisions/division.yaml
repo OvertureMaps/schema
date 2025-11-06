@@ -146,14 +146,15 @@ properties:     # JSON Schema: Top-level object properties.
         description:
           Division ID of this division's parent division.
           
-          Not allowed for top-level divisions (admin0) and required
-          for all other divisions.
-          
           The default parent division is the parent division as seen
           from the default political perspective, if there is one, and
           is otherwise chosen somewhat arbitrarily. The hierarchies
           property can be used to inspect the exhaustive list of
           parent divisions.
+          
+          For admin0 divisions, the field is optional but, when present,
+          must reference another admin0 (e.g., a dependency pointing to
+          its sovereign state).
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
       perspectives:
