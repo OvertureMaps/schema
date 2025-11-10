@@ -30,14 +30,6 @@ properties:     # JSON Schema: Top-level object properties.
           required: [names, subtype, country, hierarchies]
         else:
           required: [names, subtype, country, hierarchies, parent_division_id]
-      - if:
-          properties:
-            subtype: { enum: [admin0] }
-            parent_division_id: {}
-        then:
-          properties:
-            parent_division_id:
-              pattern: ":admin0:"
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
       class:
