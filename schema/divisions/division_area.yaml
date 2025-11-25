@@ -73,3 +73,9 @@ properties:     # JSON Schema: Top-level object properties.
           belongs to.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_2SubdivisionCode"
+      admin_level:
+        description:
+          Integer representing the associated division's position in the country's
+          administrative hierarchy. Lower numbers correspond to higher-level divisions.
+        type: integer
+        minimum: 0

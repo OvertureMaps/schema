@@ -149,6 +149,12 @@ properties:     # JSON Schema: Top-level object properties.
           parent divisions.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
+      admin_level:
+        description:
+          Integer representing this division's position in its country's administrative
+          hierarchy. Lower numbers correspond to higher-level administrative units.
+        type: integer
+        minimum: 0
       perspectives:
         description: >-
           Political perspectives from which this division is considered
