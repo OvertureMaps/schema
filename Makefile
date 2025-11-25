@@ -3,7 +3,7 @@
 default: test-all
 
 uv-sync:
-	@uv sync --all-packages
+	@uv sync --all-packages 2> /dev/null
 
 check: test doctest
 	@uv run ruff check -q packages/
