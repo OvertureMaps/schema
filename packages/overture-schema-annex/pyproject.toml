@@ -1,8 +1,5 @@
 [project]
-dependencies = [
-    "overture-schema-core",
-    "pydantic>=2.0",
-]
+dependencies = ["overture-schema-core", "pydantic>=2.0"]
 description = "Add your description here"
 dynamic = ["version"]
 license = "MIT"
@@ -24,7 +21,7 @@ path = "src/overture/schema/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"sources.sources" = "overture.schema.annex.models:Sources"
+"annex:sources" = "overture.schema.annex:Sources"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
