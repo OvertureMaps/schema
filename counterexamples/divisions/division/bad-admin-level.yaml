@@ -18,4 +18,4 @@ properties:
         name: Invalid admin_level Example
   admin_level: -1
   ext_expected_errors:
-    - "-1 is less than the minimum of 0"
+    - "minimum: got -1, want 0"
