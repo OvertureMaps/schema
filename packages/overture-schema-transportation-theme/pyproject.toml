@@ -25,5 +25,5 @@ path = "src/overture/schema/transportation/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"transportation.connector" = "overture.schema.transportation.connector.models:Connector"
-"transportation.segment" = "overture.schema.transportation.segment.models:Segment"
+"overture:transportation:connector" = "overture.schema.transportation:Connector"
+"overture:transportation:segment" = "overture.schema.transportation:Segment"
