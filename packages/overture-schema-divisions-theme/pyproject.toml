@@ -26,6 +26,6 @@ path = "src/overture/schema/divisions/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"divisions.division" = "overture.schema.divisions.division.models:Division"
-"divisions.division_area" = "overture.schema.divisions.division_area.models:DivisionArea"
-"divisions.division_boundary" = "overture.schema.divisions.division_boundary.models:DivisionBoundary"
+"overture:divisions:division" = "overture.schema.divisions:Division"
+"overture:divisions:division_area" = "overture.schema.divisions:DivisionArea"
+"overture:divisions:division_boundary" = "overture.schema.divisions:DivisionBoundary"
