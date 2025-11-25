@@ -1,0 +1,21 @@
+---
+id: counterexample:division:bad-admin-level
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: country
+  names:
+    primary: Invalid admin_level Example
+  country: ZZ
+  hierarchies:
+    - - division_id: counterexample:division:bad-admin-level
+        subtype: country
+        name: Invalid admin_level Example
+  admin_level: -1
+  ext_expected_errors:
+    - "-1 is less than the minimum of 0"
