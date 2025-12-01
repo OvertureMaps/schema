@@ -324,6 +324,13 @@
           "title": "Is Territorial",
           "type": "boolean"
         },
+        "admin_level": {
+          "description": "Integer representing the shared administrative level of the divisions on this boundary, where lower numbers correspond to higher level administrative units.",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Admin Level",
+          "type": "integer"
+        },
         "perspectives": {
           "$ref": "#/$defs/Perspectives",
           "description": "Political perspectives from which this division boundary is considered to be an accurate representation.\n\nIf this property is absent, then this boundary is not known to be disputed from any political perspective. Consequently, there is only one boundary feature representing the entire real world entity.\n\nIf this property is present, it means the boundary represents one of several alternative perspectives on the same real-world entity.\n\nThere are two modes of perspective:\n\n  1. `accepted_by` means the representation of the boundary is accepted by the listed entities and would be included on a map drawn from their perspective.\n\n  2. `disputed_by` means the representation of the boundary is disputed by the listed entities and would be excluded from a map drawn from their perspective.\n\nWhen drawing a map from the perspective of a given country, one would start by gathering all the undisputed boundary (with no `perspectives` property), and then adding to that first all boundary explicitly accepted by the country, and second all boundary not explicitly disputed by the country."

@@ -522,6 +522,13 @@
           "title": "Parent Division Id",
           "type": "string"
         },
+        "admin_level": {
+          "description": "Integer representing this division's position within its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Admin Level",
+          "type": "integer"
+        },
         "perspectives": {
           "$ref": "#/$defs/Perspectives",
           "description": "Political perspectives from which this division is considered to be an accurate representation.\n\nIf this property is absent, then this division is not known to be disputed from any political perspective. Consequently, there is only one division feature representing the entire real world entity.\n\nIf this property is present, it means the division represents one of several alternative perspectives on the same real-world entity.\n\nThere are two modes of perspective:\n\n1. `accepted_by` means the representation of the division is accepted by the listed entities and would be included on a map drawn from their perspective.\n\n2. `disputed_by` means the representation of the division is disputed by the listed entities and would be excluded from a map drawn from their perspective.\n\nWhen drawing a map from the perspective of a given country, one would start by gathering all the undisputed divisions (with no `perspectives` property), and then adding to that first all divisions explicitly accepted by the country, and second all divisions not explicitly disputed by the country."
