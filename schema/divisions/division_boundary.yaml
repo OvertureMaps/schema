@@ -23,10 +23,10 @@ properties:     # JSON Schema: Top-level object properties.
           properties:
             subtype: { enum: [country] }
         then:
-          required: [subtype, class, division_ids, is_land, is_territorial, admin_level]
+          required: [subtype, class, division_ids, is_land, is_territorial]
           not: { required: [country] }
         else:
-          required: [subtype, class, division_ids, is_land, is_territorial, country, admin_level]
+          required: [subtype, class, division_ids, is_land, is_territorial, country]
     oneOf:
       - properties:
           is_land:
