@@ -1,0 +1,22 @@
+---
+id: overture:transportation:example:simple-turn-restriction-target
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-113.57851814418316, 50.01923724443006]
+    - [-113.57837460847787, 50.01919574268962]
+    - [-113.57812342099429, 50.01919343703648]
+    - [-113.57803729957116, 50.01923263312719]
+    - [-113.57766410673773, 50.01923263312719]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: secondary
+  connectors:
+    - connector_id: overture:transportation:example:via-turn-restriction-connector1
+      at: 0
+    - connector_id: overture:transportation:example:via-turn-restriction-connector2
+      at: 1

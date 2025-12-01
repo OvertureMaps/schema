@@ -1,0 +1,17 @@
+---
+id: overture:transportation:segment:example:covered
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  # Overture properties
+  theme: transportation
+  type: segment
+  version: 3
+  subtype: road
+  class: tertiary
+  road_surface:
+    - value: paved
+  road_flags:
+    - values: [is_covered]

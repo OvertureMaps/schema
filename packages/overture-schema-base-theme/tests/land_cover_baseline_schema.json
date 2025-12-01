@@ -1,0 +1,288 @@
+{
+  "$defs": {
+    "CartographicHints": {
+      "additionalProperties": false,
+      "description": "Cartographic hints for optimal use of Overture features in map-making.",
+      "properties": {
+        "max_zoom": {
+          "description": "Recommended maximum tile zoom level in which this feature should be displayed.\n\nIt is recommended that the feature be hidden at zoom levels above this value.\n\nZoom levels follow the Slippy Maps convention, documented in the following\nreferences:\n- https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames\n- https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection",
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Max Zoom",
+          "type": "integer"
+        },
+        "min_zoom": {
+          "description": "Recommended minimum tile zoom level in which this feature should be displayed.\n\nIt is recommended that the feature be hidden at zoom levels below this value.\n\nZoom levels follow the Slippy Maps convention, documented in the following\nreferences:\n- https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames\n- https://www.maptiler.com/google-maps-coordinates-tile-bounds-projection",
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Min Zoom",
+          "type": "integer"
+        },
+        "prominence": {
+          "description": "Subjective scale of feature significance or importance, with 1 being the least, and\n100 being the most, significant.\n\nThis value can be used to help drive decisions about how and when to display a\nfeature, and how to treat it relative to neighboring features.\n\nWhen populated by Overture, this value is derived from various factors including,\nbut not limited to: feature and subtype, population, and capital status.",
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Prominence",
+          "type": "integer"
+        },
+        "sort_key": {
+          "description": "Integer indicating the recommended order in which to draw features.\n\nFeatures with a lower number should be drawn \"in front\" of features with a higher\nnumber.",
+          "maximum": 255,
+          "minimum": 0,
+          "title": "Sort Key",
+          "type": "integer"
+        }
+      },
+      "title": "CartographicHints",
+      "type": "object"
+    },
+    "LandCoverSubtype": {
+      "description": "Primary or dominant material covering the land.",
+      "enum": [
+        "barren",
+        "crop",
+        "forest",
+        "grass",
+        "mangrove",
+        "moss",
+        "shrub",
+        "snow",
+        "urban",
+        "wetland"
+      ],
+      "title": "LandCoverSubtype",
+      "type": "string"
+    },
+    "SourceItem": {
+      "additionalProperties": false,
+      "description": "Specifies the source of the data used for a feature or one of its properties.",
+      "properties": {
+        "between": {
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SourceItem applies to.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence value from the source dataset.\n\nThis is a value between 0.0 and 1.0 and is particularly relevant for ML-derived data.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "description": "Name of the dataset where the source data can be found.",
+          "title": "Dataset",
+          "type": "string"
+        },
+        "license": {
+          "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "License",
+          "type": "string"
+        },
+        "property": {
+          "description": "A JSON Pointer identifying the property (field) that this source information applies to.\n\nThe root document value `\"\"` indicates that this source information applies to the\nentire feature, excepting properties (fields) for which a dedicated source information\nrecord exists.\n\nAny other JSON Pointer apart from `\"\"` indicates that this source record provides\ndedicated source information for the property at the path in the JSON Pointer. As an\nexample, the value `\"/names/common/en\"` indicates that the source information applies to\nthe English common name of a named feature, while the value `\"/geometry\"` indicates that\nit applies to the feature geometry.",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Identifies the specific record within the source dataset where the source data can\nbe found.\n\nThe format of record identifiers is dataset-specific.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "Last update time of the source data record.",
+          "format": "date-time",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourceItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Land cover features indicate the primary natural or artificial surface material covering a land\narea on the earth, including vegetation types like forests and crops, built environments like\ncities, and natural surfaces like wetlands or barren ground.\n\nLand cover features relate to `LandUse` features in the following way: land cover is the\nphysical thing covering the land, while land use is the human use to which the land is being\nput.\n\nTODO: Explain relationship to `Land` features.",
+  "properties": {
+    "bbox": {
+      "description": "An optional bounding box for the feature",
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
+    "geometry": {
+      "description": "Shape of the covered land area, which may be a polygon or multi-polygon.",
+      "oneOf": [
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "items": {
+                  "items": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 3,
+                    "minItems": 2,
+                    "type": "array"
+                  },
+                  "minItems": 4,
+                  "type": "array"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "type": {
+              "const": "MultiPolygon",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "maxItems": 3,
+                  "minItems": 2,
+                  "type": "array"
+                },
+                "minItems": 4,
+                "type": "array"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "type": {
+              "const": "Polygon",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        }
+      ],
+      "title": "Geometry"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
+        }
+      },
+      "properties": {
+        "cartography": {
+          "$ref": "#/$defs/CartographicHints",
+          "title": "cartography"
+        },
+        "sources": {
+          "description": "Information about the source data used to assemble the feature.",
+          "items": {
+            "$ref": "#/$defs/SourceItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "subtype": {
+          "$ref": "#/$defs/LandCoverSubtype"
+        },
+        "theme": {
+          "const": "base",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "land_cover",
+          "title": "Type",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "theme",
+        "type",
+        "version",
+        "subtype"
+      ],
+      "type": "object"
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "id",
+    "geometry",
+    "properties"
+  ],
+  "title": "land_cover",
+  "type": "object"
+}

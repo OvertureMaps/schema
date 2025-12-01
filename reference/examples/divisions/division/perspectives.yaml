@@ -1,0 +1,29 @@
+---
+id: example:division:perspectives:trnc
+type: Feature
+geometry:
+  type: Point
+  coordinates: [33.6252379, 35.2245313]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: country
+  names:
+    primary: Kuzey Kıbrıs
+    common:
+      en: Northern Cyprus
+    rules:
+      - variant: short
+        value: TRNC
+      - variant: official
+        language: en
+        value: Turkish Republic of Northern Cyprus
+  country: XX
+  hierarchies:
+    - - division_id: example:perspectives:trnc
+        subtype: country
+        name: Kuzey Kıbrıs
+  perspectives:
+    mode: accepted_by
+    countries: [TR]

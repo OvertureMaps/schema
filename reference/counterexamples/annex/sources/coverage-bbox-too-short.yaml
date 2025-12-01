@@ -1,0 +1,37 @@
+datasets:
+  - source_name: Example City Open Data
+    source_dataset_name: address_points
+    data_url: https://data.example.gov/datasets/address-points
+    data_url_archived: https://web.archive.org/web/2025/https://data.example.gov/datasets/address-points
+    license_url: https://data.example.gov/license
+    license_url_archived: https://web.archive.org/web/2025/https://data.example.gov/license
+    license_type: CC-BY-4.0
+    license_text: Example text
+    license_attribution: City of Example GIS Department
+    coverage_bbox:
+      - -122.79
+      - 45.43
+      - -122.45
+    data_download_url:
+      - https://data.example.gov/downloads/address_points.geojson
+    countries:
+      - US
+    coverage_description: Citywide coverage
+    update_frequency: monthly
+  - source_name: Example Parcel Authority
+    source_dataset_name: parcel_boundaries
+    data_url: https://parcels.example.gov/downloads/boundaries
+    data_url_archived: https://web.archive.org/web/2025/https://parcels.example.gov/downloads/boundaries
+    license_url: https://parcels.example.gov/license
+    license_url_archived: https://web.archive.org/web/2025/https://parcels.example.gov/license
+    license_type: CC0-1.0
+    license_text: Parcel license text
+    license_attribution: Example Parcel Authority
+    coverage_bbox:
+      - -122.81
+      - 45.38
+      - -122.37
+      - 45.72
+license_priority:
+  CC-BY-4.0: 1
+  CC0-1.0: 2

@@ -1,0 +1,24 @@
+---
+id: counterexample:division:bad-norms
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: country
+  names:
+    primary: A division with invalid norms
+  country: ZZ
+  hierarchies:
+    - - division_id: counterexample:division:bad-names
+        subtype: country
+        name: A division with invalid norms
+  norms:
+    driving_side: middle
+    random_property: 10
+  ext_expected_errors:
+    - "value must be one of 'left', 'right'"
+    - "additional properties 'random_property' not allowed"

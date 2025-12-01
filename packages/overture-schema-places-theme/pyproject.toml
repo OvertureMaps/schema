@@ -1,0 +1,30 @@
+[project]
+dependencies = [
+    "overture-schema-core",
+    "overture-schema-system",
+    "pydantic>=2.0",
+    "pydantic[email]",
+]
+description = "Overture Maps places theme with place type models"
+dynamic = ["version"]
+license = "MIT"
+name = "overture-schema-places-theme"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.uv.sources]
+overture-schema-core = { workspace = true }
+overture-schema-system = { workspace = true }
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.hatch.version]
+path = "src/overture/schema/places/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/overture"]
+
+[project.entry-points."overture.models"]
+"overture:places:place" = "overture.schema.places:Place"

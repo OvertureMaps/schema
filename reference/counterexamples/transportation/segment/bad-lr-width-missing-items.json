@@ -1,0 +1,19 @@
+{
+  "id": "segment with empty road width rules array",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[0, 1], [1, 1]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "version": 26,
+    "subtype": "road",
+    "class": "primary",
+    "width_rules": [],
+    "ext_expected_errors": [
+      "minItems: got 0, want 1"
+    ]
+  }
+}

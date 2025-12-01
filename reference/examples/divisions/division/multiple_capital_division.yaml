@@ -1,0 +1,30 @@
+---
+id: example:division:region:pl-04
+type: Feature
+geometry:
+  type: Point
+  coordinates: [18.3392939, 53.3220016]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: region
+  local_type:
+    en: province
+  names:
+    primary: Woj Kujawsko-Pomorskie
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: R223407.V254
+  country: PL
+  region: PL-04
+  hierarchies:
+    - - division_id: example:division:country:pl
+        subtype: country
+        name: Poland
+      - division_id: example:division:region:pl-04
+        subtype: region
+        name: Woj Kujawsko-Pomorskie
+  capital_division_ids: [ example:division:locality:bydgoszcz, example:division:locality:torun]
+  parent_division_id: example:division:country:pl

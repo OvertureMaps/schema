@@ -1,0 +1,17 @@
+---
+id: counterexample:place:bad-categories-values
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  ext_expected_errors:
+    - "'woof__' does not match pattern"
+  theme: places
+  type: place
+  version: 1
+  basic_category: woof__
+  confidence: 0.1
+  names:
+    primary: bad bad basic category
+  operating_status: open

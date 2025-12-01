@@ -3,3 +3,5 @@
 .watchman*
 .DS_Store
 docs/docusaurus
+__pycache__/
+.coverage

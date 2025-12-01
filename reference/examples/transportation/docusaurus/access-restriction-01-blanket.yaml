@@ -1,0 +1,16 @@
+---
+id: access-restrictions-segment-blanket
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [0, 0]
+    - [0, 1]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: residential
+  access_restrictions:
+    - access_type: denied

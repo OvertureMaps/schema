@@ -1,0 +1,21 @@
+---
+id: overture:transportation:example:geometric-scoping
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: primary
+  speed_limits:
+    - between: [0, 0.15]
+      max_speed:
+        value: 100
+        unit: km/h
+    - between: [0.15, 1]
+      max_speed:
+        value: 60
+        unit: km/h
