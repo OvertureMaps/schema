@@ -20,3 +20,4 @@ properties:
   confidence: 0.9
   names:
     primary: Problematic POI with problematic categories
+  operating_status: open
