@@ -1,0 +1,48 @@
+---
+id: example:geography:cultural:east_asia
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [
+    [
+      [100.0, 20.0],
+      [145.0, 20.0],
+      [145.0, 50.0],
+      [100.0, 50.0],
+      [100.0, 20.0]
+    ]
+  ]
+bbox: [100.0, 20.0, 145.0, 50.0]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: cultural
+  class: colloquial
+  names:
+    primary: East Asia
+    common:
+      en: East Asia
+      es: Asia Oriental
+      fr: Asie de l'Est
+      zh: 東亞
+      zh-Hans: 东亚
+      ja: 東アジア
+      ko: 동아시아
+  cartography:
+    prominence: 85
+    min_zoom: 3
+    max_zoom: 8
+  associated_division_ids:
+    - example:division:country:cn
+    - example:division:country:jp
+    - example:division:country:kr
+    - example:division:country:kp
+    - example:division:country:mn
+    - example:division:country:tw
+  population: 1677000000
+  wikidata: Q27231
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: relation/345678

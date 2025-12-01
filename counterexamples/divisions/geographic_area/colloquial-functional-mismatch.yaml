@@ -1,0 +1,16 @@
+---
+id: counterexample:geography:colloquial-functional-mismatch
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: functional
+  class: colloquial
+  names:
+    primary: A functional geography with colloquial class (only allowed for cultural).
+  ext_expected_errors:
+    - "colloquial class is only allowed for cultural subtype"

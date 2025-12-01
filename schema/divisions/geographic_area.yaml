@@ -1,0 +1,99 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: geographic_area
+description:
+  Geographic area features represent functional or cultural regions that may
+  span across multiple administrative divisions. These regions capture
+  areas defined by shared characteristics, usage patterns, or cultural
+  identity rather than formal administrative boundaries.
+  
+  Examples include metropolitan areas (functional) or colloquial regions
+  like "the Bay Area" or "New England" (cultural).
+type: object
+properties:     # JSON Schema: Top-level object properties.
+  id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
+  geometry:
+    description:
+      Geography geometry MUST be a Polygon or MultiPolygon as defined
+      by GeoJSON schema. The geometry is constructed from associated
+      divisions or available sources.
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:   # GeoJSON: top-level object 'properties' property.
+    unevaluatedProperties: false
+    required: [names, subtype, class]
+    allOf:
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      - "$ref": ../defs.yaml#/$defs/propertyContainers/cartographyContainer
+      - if:
+          properties:
+            class: { const: colloquial }
+        then:
+          properties:
+            subtype: { const: cultural }
+      - if:
+          properties:
+            class: { const: postal }
+        then:
+          properties:
+            subtype: { const: functional }
+    properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
+      subtype:
+        description:
+          The type of geography feature.
+          
+          - functional: Regions defined by functional characteristics or
+            usage patterns (e.g., metropolitan areas, economic zones).
+          
+          - cultural: Regions defined by cultural identity, colloquial
+            usage, or shared cultural characteristics (e.g., "the Bay Area",
+            "New England", "Silicon Valley").
+        type: string
+        enum:
+          - functional    # Region defined by functional characteristics
+                          # or usage patterns.
+          
+          - cultural      # Region defined by cultural identity or
+                          # colloquial usage.
+      class:
+        description:
+          Classification of the geography feature.
+          
+          - colloquial: Colloquial regions are informal, culturally defined,
+            or commonly referenced areas that do not correspond to official
+            administrative boundaries. Unlike countries, states, counties, or
+            cities—whose boundaries are legally defined—colloquial regions
+            evolve from cultural, historical, economic, or linguistic identity.
+            Examples include South Florida, East Asia, and California Wine Country.
+            Only applicable to cultural subtype.
+          
+          - postal: Postal code regions used for mail delivery and routing.
+            Examples include US ZIP codes, UK postcodes, and Canadian postal codes.
+            Only applicable to functional subtype.
+        type: string
+        enum:
+          - colloquial      # Informal, culturally defined regions without
+                            # official administrative boundaries.
+          
+          - postal          # Postal code regions for mail delivery.
+      associated_division_ids:
+        description:
+          Optional list of division IDs representing the set of divisions
+          that make up this geography region. This property links the
+          geography to the underlying administrative divisions it
+          encompasses or relates to. May be null if the region cannot be
+          precisely mapped to specific administrative divisions.
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/id" }
+      population:
+        description:
+          Optional population represented in the region, if inferable from
+          associated divisions or available sources.
+        type: integer
+        minimum: 0
+      wikidata: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/wikidata" }

@@ -1,0 +1,15 @@
+---
+id: counterexample:geography:missing-class
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: cultural
+  names:
+    primary: A geography missing required class property.
+  ext_expected_errors:
+    - "required property 'class' is missing"

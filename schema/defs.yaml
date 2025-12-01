@@ -90,6 +90,7 @@ description: Common schema definitions shared by all themes
         - division
         - division_area
         - division_boundary
+        - geographic_area
         - infrastructure
         - land
         - land_cover

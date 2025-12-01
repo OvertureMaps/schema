@@ -1,0 +1,15 @@
+---
+id: counterexample:geography:bad-geometry
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: functional
+  names:
+    primary: A geography with invalid Point geometry (must be Polygon or MultiPolygon).
+  ext_expected_errors:
+    - "geometry type must be Polygon or MultiPolygon"

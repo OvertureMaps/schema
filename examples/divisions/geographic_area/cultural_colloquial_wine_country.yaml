@@ -1,0 +1,36 @@
+---
+id: example:geography:cultural:california_wine_country
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [
+    [
+      [-123.5, 38.0],
+      [-122.0, 38.0],
+      [-122.0, 39.0],
+      [-123.5, 39.0],
+      [-123.5, 38.0]
+    ]
+  ]
+bbox: [-123.5, 38.0, -122.0, 39.0]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: cultural
+  class: colloquial
+  names:
+    primary: California Wine Country
+    common:
+      en: Wine Country
+      es: Región Vinícola de California
+  cartography:
+    prominence: 50
+    min_zoom: 8
+    max_zoom: 13
+  wikidata: Q3303756
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: relation/123456
+      update_time: "2023-09-10T08:15:00Z"
