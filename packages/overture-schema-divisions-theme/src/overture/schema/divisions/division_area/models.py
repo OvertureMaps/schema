@@ -16,6 +16,7 @@ from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
+    int32,
 )
 from overture.schema.system.ref import Id, Reference, Relationship
 from overture.schema.system.string import CountryCodeAlpha2, RegionCode
@@ -91,5 +92,12 @@ class DivisionArea(
         RegionCode | None,
         Field(
             description="ISO 3166-2 principal subdivision code of the division this area belongs to.",
+        ),
+    ] = None
+    admin_level: Annotated[
+        int32 | None,
+        Field(
+            ge=0,
+            description="Integer representing this division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
         ),
     ] = None
