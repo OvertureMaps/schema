@@ -31,7 +31,7 @@ properties:
           primary:
             description: The primary or main category of the place. This can be empty.
             "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
-          alternates:
+          alternate:
             description:
               Alternate categories of the place. Some places might fit into two
               categories, e.g. a book store and a coffee shop. In such a case,
