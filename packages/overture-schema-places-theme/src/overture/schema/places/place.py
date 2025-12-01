@@ -83,6 +83,50 @@ class Categories(BaseModel):
 
 
 @no_extra_fields
+class Taxonomy(BaseModel):
+    """
+    A structured representation of the place's category within the Overture taxonomy.
+
+    Provides the primary classification, full hierarchy path, and alternate categories.
+    """
+
+    # Required
+
+    primary: Annotated[
+        SnakeCaseString,
+        Field(
+            description="The most specific category for this place within the taxonomy hierarchy."
+        ),
+    ]
+
+    hierarchy: Annotated[
+        list[SnakeCaseString],
+        Field(
+            min_length=1,
+            description=textwrap.dedent("""
+                The full taxonomy path from the most general to most specific category,
+                represented as an ordered array (e.g., [food_and_drink, restaurant,
+                casual_eatery, gas_station_sushi]).
+            """).strip(),
+        ),
+    ]
+
+    # Optional
+
+    alternates: Annotated[
+        list[SnakeCaseString] | None,
+        Field(
+            description=textwrap.dedent("""
+                Additional categories that apply to this place but are not the primary
+                classification. Useful for places that fit multiple categories (e.g., a
+                gas station that also serves sushi).
+            """).strip(),
+        ),
+        UniqueItemsConstraint(),
+    ] = None
+
+
+@no_extra_fields
 class Brand(Named):
     """
     A brand associated with a place.
@@ -175,6 +219,18 @@ class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
                 name at the level of generality that is preferred by humans in learning and memory
                 tasks. This category to be roughly in the middle of the general-to-specific category
                 hierarchy.
+                """
+            ).strip()
+        ),
+    ] = None
+    taxonomy: Annotated[
+        Taxonomy | None,
+        Field(
+            description=textwrap.dedent(
+                """
+                A structured representation of the place's category within the Overture taxonomy.
+
+                Provides the primary classification, full hierarchy path, and alternate categories.
                 """
             ).strip()
         ),
