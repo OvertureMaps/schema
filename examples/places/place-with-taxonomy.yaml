@@ -37,7 +37,7 @@ properties:
   addresses:
     - freeform: "4200 South Congress Ave"
       locality: "Austin"
-      region: "TX"
+      region: "US-TX"
       postcode: "78745"
       country: "US"
   # Overture properties
