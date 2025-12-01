@@ -22,7 +22,7 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
-    required: [names, subtype, class, country, division_id, is_land, is_territorial]
+    required: [names, subtype, class, country, division_id, is_land, is_territorial, admin_level]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
@@ -74,8 +74,4 @@ properties:     # JSON Schema: Top-level object properties.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_2SubdivisionCode"
       admin_level:
-        description:
-          Integer representing the associated division's position in the country's
-          administrative hierarchy. Lower numbers correspond to higher-level divisions.
-        type: integer
-        minimum: 0
+        "$ref": "./defs.yaml#/$defs/propertyDefinitions/admin_level"

@@ -27,10 +27,10 @@ properties:     # JSON Schema: Top-level object properties.
           properties:
             subtype: { enum: [country] }
         then:
-          required: [names, subtype, country, hierarchies]
+          required: [names, subtype, country, hierarchies, admin_level]
           not: { required: [parent_division_id] }
         else:
-          required: [names, subtype, country, hierarchies, parent_division_id]
+          required: [names, subtype, country, hierarchies, parent_division_id, admin_level]
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype: { "$ref": "./defs.yaml#/$defs/propertyDefinitions/placetype" }
       class:
@@ -150,11 +150,7 @@ properties:     # JSON Schema: Top-level object properties.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
       admin_level:
-        description:
-          Integer representing this division's position in its country's administrative
-          hierarchy. Lower numbers correspond to higher-level administrative units.
-        type: integer
-        minimum: 0
+        "$ref": "./defs.yaml#/$defs/propertyDefinitions/admin_level"
       perspectives:
         description: >-
           Political perspectives from which this division is considered

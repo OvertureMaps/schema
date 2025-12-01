@@ -23,10 +23,10 @@ properties:     # JSON Schema: Top-level object properties.
           properties:
             subtype: { enum: [country] }
         then:
-          required: [subtype, class, division_ids, is_land, is_territorial]
+          required: [subtype, class, division_ids, is_land, is_territorial, admin_level]
           not: { required: [country] }
         else:
-          required: [subtype, class, division_ids, is_land, is_territorial, country]
+          required: [subtype, class, division_ids, is_land, is_territorial, country, admin_level]
     oneOf:
       - properties:
           is_land:
@@ -93,11 +93,7 @@ properties:     # JSON Schema: Top-level object properties.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_2SubdivisionCode"
       admin_level:
-        description:
-          Integer representing the administrative level shared by both divisions on the
-          boundary. Lower numbers correspond to higher-level administrative units.
-        type: integer
-        minimum: 0
+        "$ref": "./defs.yaml#/$defs/propertyDefinitions/admin_level"
       is_disputed:
         description: >-
           Indicator if there are entities disputing this division boundary.
