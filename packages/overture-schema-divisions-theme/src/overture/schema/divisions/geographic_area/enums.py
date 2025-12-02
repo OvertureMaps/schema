@@ -6,10 +6,10 @@ from enum import Enum
 class GeographicAreaSubtype(str, Enum):
     """
     The type of geographic area feature.
-    
+
     - functional: Regions defined by functional characteristics or usage patterns
       (e.g., postal codes, economic zones).
-    
+
     - cultural: Regions defined by cultural identity, colloquial usage, or shared
       cultural characteristics (e.g., "East Asia", "California Wine Country").
     """

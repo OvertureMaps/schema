@@ -46,7 +46,7 @@
       "type": "string"
     },
     "GeographicAreaSubtype": {
-      "description": "The type of geographic area feature.\n\n- functional: Regions defined by functional characteristics or usage patterns\n  (e.g., metropolitan areas, economic zones).\n\n- cultural: Regions defined by cultural identity, colloquial usage, or shared\n  cultural characteristics (e.g., \"the Bay Area\", \"New England\", \"Silicon Valley\").",
+      "description": "The type of geographic area feature.\n\n- functional: Regions defined by functional characteristics or usage patterns\n  (e.g., postal codes, economic zones).\n\n- cultural: Regions defined by cultural identity, colloquial usage, or shared\n  cultural characteristics (e.g., \"East Asia\", \"California Wine Country\").",
       "enum": [
         "functional",
         "cultural"
@@ -263,7 +263,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Geographic area features represent functional or cultural regions that may span across\nmultiple administrative divisions.\n\nThese regions capture areas defined by shared characteristics, usage patterns, or\ncultural identity rather than formal administrative boundaries.\n\nExamples include metropolitan areas (functional) or colloquial regions like \"the Bay\nArea\" or \"New England\" (cultural).",
+  "description": "Geographic area features represent functional or cultural regions that may span across\nmultiple administrative divisions.\n\nThese regions capture areas defined by shared characteristics, usage patterns, or\ncultural identity rather than formal administrative boundaries.\n\nExamples include postal code regions (functional) or colloquial regions like \"East Asia\"\nor \"California Wine Country\" (cultural).",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -422,7 +422,7 @@
         },
         "subtype": {
           "$ref": "#/$defs/GeographicAreaSubtype",
-          "description": "The type of geography feature.\n            \n- functional: Regions defined by functional characteristics or usage patterns (e.g., metropolitan areas, economic zones).\n\n- cultural: Regions defined by cultural identity, colloquial usage, or shared cultural characteristics (e.g., \"the Bay Area\", \"New England\", \"Silicon Valley\")."
+          "description": "The type of geography feature.\n            \n- functional: Regions defined by functional characteristics or usage patterns (e.g., postal codes, economic zones).\n\n- cultural: Regions defined by cultural identity, colloquial usage, or shared cultural characteristics (e.g., \"East Asia\", \"California Wine Country\")."
         },
         "theme": {
           "const": "divisions",

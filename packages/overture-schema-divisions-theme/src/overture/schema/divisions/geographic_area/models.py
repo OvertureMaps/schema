@@ -92,11 +92,17 @@ class GeographicArea(
     def validate_class_rules(self) -> "GeographicArea":
         """Validate class field rules."""
         # Colloquial class only allowed for cultural subtype
-        if self.class_ == GeographicAreaClass.COLLOQUIAL and self.subtype != GeographicAreaSubtype.CULTURAL:
+        if (
+            self.class_ == GeographicAreaClass.COLLOQUIAL
+            and self.subtype != GeographicAreaSubtype.CULTURAL
+        ):
             raise ValueError("colloquial class is only allowed for cultural subtype")
-        
+
         # Postal class only allowed for functional subtype
-        if self.class_ == GeographicAreaClass.POSTAL and self.subtype != GeographicAreaSubtype.FUNCTIONAL:
+        if (
+            self.class_ == GeographicAreaClass.POSTAL
+            and self.subtype != GeographicAreaSubtype.FUNCTIONAL
+        ):
             raise ValueError("postal class is only allowed for functional subtype")
-        
+
         return self
