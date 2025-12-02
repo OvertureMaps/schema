@@ -31,8 +31,8 @@ class GeographicArea(
     These regions capture areas defined by shared characteristics, usage patterns, or
     cultural identity rather than formal administrative boundaries.
 
-    Examples include metropolitan areas (functional) or colloquial regions like "the Bay
-    Area" or "New England" (cultural).
+    Examples include postal code regions (functional) or colloquial regions like "East Asia"
+    or "California Wine Country" (cultural).
     """
 
     model_config = ConfigDict(title="geographic_area")
@@ -54,9 +54,9 @@ class GeographicArea(
         Field(
             description="""The type of geography feature.
             
-- functional: Regions defined by functional characteristics or usage patterns (e.g., metropolitan areas, economic zones).
+- functional: Regions defined by functional characteristics or usage patterns (e.g., postal codes, economic zones).
 
-- cultural: Regions defined by cultural identity, colloquial usage, or shared cultural characteristics (e.g., "the Bay Area", "New England", "Silicon Valley")."""
+- cultural: Regions defined by cultural identity, colloquial usage, or shared cultural characteristics (e.g., "East Asia", "California Wine Country")."""
         ),
     ]
 
