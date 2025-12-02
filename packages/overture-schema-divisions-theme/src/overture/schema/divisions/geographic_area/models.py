@@ -53,7 +53,7 @@ class GeographicArea(
         GeographicAreaSubtype,
         Field(
             description="""The type of geography feature.
-            
+
 - functional: Regions defined by functional characteristics or usage patterns (e.g., postal codes, economic zones).
 
 - cultural: Regions defined by cultural identity, colloquial usage, or shared cultural characteristics (e.g., "East Asia", "California Wine Country")."""
