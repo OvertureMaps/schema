@@ -14,4 +14,4 @@ properties:
     primary: A geography with negative population.
   population: -1000
   ext_expected_errors:
-    - "population must be greater than or equal to 0"
+    - "minimum: got -1,000, want 0"

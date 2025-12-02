@@ -13,4 +13,4 @@ properties:
   names:
     primary: A cultural geography with postal class (only allowed for functional).
   ext_expected_errors:
-    - "postal class is only allowed for functional subtype"
+    - "value must be 'functional'"

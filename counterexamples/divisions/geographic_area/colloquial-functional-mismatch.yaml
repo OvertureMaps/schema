@@ -13,4 +13,4 @@ properties:
   names:
     primary: A functional geography with colloquial class (only allowed for cultural).
   ext_expected_errors:
-    - "colloquial class is only allowed for cultural subtype"
+    - "value must be 'cultural'"

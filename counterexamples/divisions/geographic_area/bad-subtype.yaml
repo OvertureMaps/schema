@@ -9,6 +9,7 @@ properties:
   type: geographic_area
   version: 0
   subtype: administrative
+  class: colloquial
   names:
     primary: A geography with an invalid subtype.
   ext_expected_errors:
