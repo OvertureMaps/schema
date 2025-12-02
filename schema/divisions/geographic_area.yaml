@@ -42,15 +42,15 @@ properties:     # JSON Schema: Top-level object properties.
             subtype: { const: functional }
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
       subtype:
-        description:
+        description: >-
           The type of geography feature.
           
-          - functional: Regions defined by functional characteristics or
-            usage patterns (e.g., metropolitan areas, economic zones).
+          functional: Regions defined by functional characteristics or
+          usage patterns (e.g., metropolitan areas, economic zones).
           
-          - cultural: Regions defined by cultural identity, colloquial
-            usage, or shared cultural characteristics (e.g., "the Bay Area",
-            "New England", "Silicon Valley").
+          cultural: Regions defined by cultural identity, colloquial
+          usage, or shared cultural characteristics (e.g., "the Bay Area",
+          "New England", "Silicon Valley").
         type: string
         enum:
           - functional    # Region defined by functional characteristics
@@ -59,20 +59,20 @@ properties:     # JSON Schema: Top-level object properties.
           - cultural      # Region defined by cultural identity or
                           # colloquial usage.
       class:
-        description:
+        description: >-
           Classification of the geography feature.
           
-          - colloquial: Colloquial regions are informal, culturally defined,
-            or commonly referenced areas that do not correspond to official
-            administrative boundaries. Unlike countries, states, counties, or
-            cities—whose boundaries are legally defined—colloquial regions
-            evolve from cultural, historical, economic, or linguistic identity.
-            Examples include South Florida, East Asia, and California Wine Country.
-            Only applicable to cultural subtype.
+          colloquial: Colloquial regions are informal, culturally defined,
+          or commonly referenced areas that do not correspond to official
+          administrative boundaries. Unlike countries, states, counties, or
+          cities—whose boundaries are legally defined—colloquial regions
+          evolve from cultural, historical, economic, or linguistic identity.
+          Examples include South Florida, East Asia, and California Wine Country.
+          Only applicable to cultural subtype.
           
-          - postal: Postal code regions used for mail delivery and routing.
-            Examples include US ZIP codes, UK postcodes, and Canadian postal codes.
-            Only applicable to functional subtype.
+          postal: Postal code regions used for mail delivery and routing.
+          Examples include US ZIP codes, UK postcodes, and Canadian postal codes.
+          Only applicable to functional subtype.
         type: string
         enum:
           - colloquial      # Informal, culturally defined regions without
