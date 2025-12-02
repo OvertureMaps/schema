@@ -224,6 +224,90 @@
       "allOf": [
         {
           "if": {
+            "properties": {
+              "subtype": {
+                "const": "county"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "macrocounty"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "region"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "macroregion"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "dependency"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "country"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
             "not": {
               "properties": {
                 "subtype": {
@@ -284,6 +368,13 @@
         }
       },
       "properties": {
+        "admin_level": {
+          "description": "Integer representing the shared administrative level of the divisions on either side of this boundary.",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Admin Level",
+          "type": "integer"
+        },
         "class": {
           "$ref": "#/$defs/BoundaryClass"
         },
@@ -323,13 +414,6 @@
           "description": "A boolean to indicate whether or not the feature geometry represents\nOverture's best approximation of this place's maritime boundary. For\ncoastal places, this would tend to include the water area. The geometry\ncan be used for data processing, reverse-geocoding, and similar purposes.",
           "title": "Is Territorial",
           "type": "boolean"
-        },
-        "admin_level": {
-          "description": "Integer representing the shared administrative level of the divisions on this boundary, where lower numbers correspond to higher level administrative units.",
-          "maximum": 2147483647,
-          "minimum": 0,
-          "title": "Admin Level",
-          "type": "integer"
         },
         "perspectives": {
           "$ref": "#/$defs/Perspectives",

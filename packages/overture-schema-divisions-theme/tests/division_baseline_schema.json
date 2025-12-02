@@ -394,6 +394,90 @@
       "allOf": [
         {
           "if": {
+            "properties": {
+              "subtype": {
+                "const": "county"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "macrocounty"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "region"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "macroregion"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "dependency"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "country"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
             "not": {
               "properties": {
                 "subtype": {
@@ -438,6 +522,13 @@
         }
       },
       "properties": {
+        "admin_level": {
+          "description": "Integer representing this division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Admin Level",
+          "type": "integer"
+        },
         "capital_division_ids": {
           "description": "Division IDs of this division's capital divisions. If present, this property will refer to the division IDs of the capital cities, county seats, etc. of a division.",
           "items": {
@@ -521,13 +612,6 @@
           "pattern": "^\\S+$",
           "title": "Parent Division Id",
           "type": "string"
-        },
-        "admin_level": {
-          "description": "Integer representing this division's position within its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
-          "maximum": 2147483647,
-          "minimum": 0,
-          "title": "Admin Level",
-          "type": "integer"
         },
         "perspectives": {
           "$ref": "#/$defs/Perspectives",
