@@ -27,6 +27,19 @@ properties:     # JSON Schema: Top-level object properties.
           not: { required: [country] }
         else:
           required: [subtype, class, division_ids, is_land, is_territorial, country]
+      - if:
+          properties:
+            subtype:
+              enum:
+                - country
+                - dependency
+                - macroregion
+                - region
+                - macrocounty
+                - county
+        then:
+          required:
+            - admin_level
     oneOf:
       - properties:
           is_land:

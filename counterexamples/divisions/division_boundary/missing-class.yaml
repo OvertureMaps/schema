@@ -9,6 +9,7 @@ properties:
   type: division_boundary
   version: 0
   subtype: macroregion
+  admin_level: 1
   is_territorial: true
   is_land: false
   country: "XX"

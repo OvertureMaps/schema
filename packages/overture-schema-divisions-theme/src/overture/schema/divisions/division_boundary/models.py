@@ -10,6 +10,7 @@ from overture.schema.core import (
 from overture.schema.core.models import Perspectives
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (
+    FieldEqCondition,
     forbid_if,
     radio_group,
     require_if,
@@ -30,6 +31,12 @@ from .enums import BoundaryClass
 
 @forbid_if(["country"], IS_COUNTRY)
 @require_if(["country"], ~IS_COUNTRY)
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTRY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.DEPENDENCY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROREGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.REGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROCOUNTY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTY))
 @radio_group("is_land", "is_territorial")
 class DivisionBoundary(
     OvertureFeature[Literal["divisions"], Literal["division_boundary"]]

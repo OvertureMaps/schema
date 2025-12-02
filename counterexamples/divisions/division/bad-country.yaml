@@ -18,6 +18,7 @@ properties:
         name: A division with an invalid country property.
   norms:
     driving_side: left
+  admin_level: 0
   ext_expected_errors:
     - "maxLength: got 3, want 2"
     - "'ZZZ' does not match pattern"

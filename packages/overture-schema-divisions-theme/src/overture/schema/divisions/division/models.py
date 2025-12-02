@@ -17,6 +17,7 @@ from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
 from overture.schema.system.model_constraint import (
+    FieldEqCondition,
     forbid_if,
     no_extra_fields,
     require_if,
@@ -51,6 +52,12 @@ class Norms(BaseModel):
 
 @forbid_if(["parent_division_id"], IS_COUNTRY)
 @require_if(["parent_division_id"], ~IS_COUNTRY)
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTRY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.DEPENDENCY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROREGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.REGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROCOUNTY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTY))
 class Division(
     OvertureFeature[Literal["divisions"], Literal["division"]],
     Named,

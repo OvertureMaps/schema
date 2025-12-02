@@ -26,6 +26,7 @@ properties:
       - division_id: example:division:region:ca-on
         subtype: region
         name: Ontario
+  admin_level: 1
   capital_division_ids: [ example:division:locality:toronto ]
   parent_division_id: example:division:country:ca
   population: 13550900

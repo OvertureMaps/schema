@@ -11,7 +11,11 @@ from overture.schema.core.names import (
     Named,
     Names,
 )
-from overture.schema.system.model_constraint import radio_group
+from overture.schema.system.model_constraint import (
+    FieldEqCondition,
+    radio_group,
+    require_if,
+)
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
@@ -26,6 +30,12 @@ from ..enums import PlaceType
 from .enums import AreaClass
 
 
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTRY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.DEPENDENCY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROREGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.REGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROCOUNTY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTY))
 @radio_group("is_land", "is_territorial")
 class DivisionArea(
     OvertureFeature[Literal["divisions"], Literal["division_area"]], Named

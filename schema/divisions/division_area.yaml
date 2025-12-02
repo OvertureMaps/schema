@@ -26,6 +26,19 @@ properties:     # JSON Schema: Top-level object properties.
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      - if:
+          properties:
+            subtype:
+              enum:
+                - country
+                - dependency
+                - macroregion
+                - region
+                - macrocounty
+                - county
+        then:
+          required:
+            - admin_level
     anyOf:
       - properties:
           is_land:

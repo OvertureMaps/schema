@@ -20,6 +20,7 @@ properties:
         name: A division with invalid names
   norms:
     driving_side: left
+  admin_level: 0
   ext_expected_errors:
     - "/propertyDefinitions/allNames/properties/primary/type]: got null, want string"
     - additional properties 'a-b-c-d-e-f-g-h-i-j-k-l' not allowed

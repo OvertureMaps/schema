@@ -18,5 +18,6 @@ properties:
         name: A division with invalid geometry coordinates.
   norms:
     driving_side: left
+  admin_level: 0
   ext_expected_errors:
     - "properties/coordinates/items/type]: got string, want number"

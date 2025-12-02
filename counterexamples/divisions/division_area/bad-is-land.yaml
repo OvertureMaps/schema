@@ -12,5 +12,6 @@ properties:
   division_id: counterexample:division_boundary:some-division
   is_land: yes
   country: ZZ
+  admin_level: 0
   ext_expected_errors:
     - "is_land/type]: got string, want boolean"

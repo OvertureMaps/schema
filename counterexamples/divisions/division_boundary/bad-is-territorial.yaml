@@ -9,6 +9,7 @@ properties:
   type: division_boundary
   version: 0
   subtype: country
+  admin_level: 0
   division_ids: ["example:division:country:left", "example:division:country:right"]
   class: land
   is_territorial: no
