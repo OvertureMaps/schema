@@ -1,0 +1,38 @@
+---
+id: example:geography:functional:us_zip_90210
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [
+    [
+      [-118.416, 34.088],
+      [-118.396, 34.088],
+      [-118.396, 34.108],
+      [-118.416, 34.108],
+      [-118.416, 34.088]
+    ]
+  ]
+bbox: [-118.416, 34.088, -118.396, 34.108]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: functional
+  class: postal
+  names:
+    primary: "90210"
+    common:
+      en: Beverly Hills ZIP Code
+  cartography:
+    prominence: 30
+    min_zoom: 11
+    max_zoom: 15
+  associated_division_ids:
+    - example:division:locality:beverly_hills
+  population: 21733
+  wikidata: Q3271856
+  sources:
+    - property: ""
+      dataset: US Census Bureau
+      record_id: ZCTA5/90210
+      update_time: "2023-08-15T12:00:00Z"

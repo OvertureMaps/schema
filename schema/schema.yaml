@@ -110,6 +110,14 @@ oneOf:
       properties:
         properties:
           properties:
+            theme: { enum: [divisions] }
+            type: { enum: [geographic_area] }
+    then: { "$ref": divisions/geographic_area.yaml }
+    else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
             theme: { enum: [places] }
             type: { enum: [place] }
     then: { "$ref": places/place.yaml }

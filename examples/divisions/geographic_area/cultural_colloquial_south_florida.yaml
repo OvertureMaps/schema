@@ -1,0 +1,41 @@
+---
+id: example:geography:cultural:south_florida
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [
+    [
+      [-81.5, 25.0],
+      [-79.8, 25.0],
+      [-79.8, 27.0],
+      [-81.5, 27.0],
+      [-81.5, 25.0]
+    ]
+  ]
+bbox: [-81.5, 25.0, -79.8, 27.0]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: cultural
+  class: colloquial
+  names:
+    primary: South Florida
+    common:
+      en: South Florida
+      es: Sur de Florida
+  cartography:
+    prominence: 65
+    min_zoom: 7
+    max_zoom: 11
+  associated_division_ids:
+    - example:division:county:miami_dade
+    - example:division:county:broward
+    - example:division:county:palm_beach
+    - example:division:county:monroe
+  population: 6198782
+  wikidata: Q1352730
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: relation/234567

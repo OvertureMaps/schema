@@ -1,0 +1,48 @@
+---
+id: example:geography:cultural:bay_area
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [
+    [
+      [-123.0, 37.3],
+      [-121.5, 37.3],
+      [-121.5, 38.5],
+      [-123.0, 38.5],
+      [-123.0, 37.3]
+    ]
+  ]
+bbox: [-123.0, 37.3, -121.5, 38.5]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: cultural
+  class: colloquial
+  names:
+    primary: San Francisco Bay Area
+    common:
+      en: Bay Area
+      es: Área de la Bahía
+      zh: 舊金山灣區
+  cartography:
+    prominence: 75
+    min_zoom: 6
+    max_zoom: 12
+  associated_division_ids:
+    - example:division:locality:san_francisco
+    - example:division:locality:oakland
+    - example:division:locality:san_jose
+    - example:division:county:alameda
+    - example:division:county:contra_costa
+    - example:division:county:marin
+    - example:division:county:san_francisco
+    - example:division:county:san_mateo
+    - example:division:county:santa_clara
+  population: 7753000
+  wikidata: Q213205
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: relation/111968
+      update_time: "2023-11-15T10:20:30Z"

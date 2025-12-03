@@ -1,0 +1,16 @@
+---
+id: counterexample:geography:postal-cultural-mismatch
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: cultural
+  class: postal
+  names:
+    primary: A cultural geography with postal class (only allowed for functional).
+  ext_expected_errors:
+    - "value must be 'functional'"

@@ -1,0 +1,45 @@
+---
+id: example:geography:cultural:new_england
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [
+    [
+      [-73.5, 41.0],
+      [-69.5, 41.0],
+      [-69.5, 47.5],
+      [-73.5, 47.5],
+      [-73.5, 41.0]
+    ]
+  ]
+bbox: [-73.5, 41.0, -69.5, 47.5]
+properties:
+  theme: divisions
+  type: geographic_area
+  version: 0
+  subtype: cultural
+  class: colloquial
+  names:
+    primary: New England
+    common:
+      en: New England
+      es: Nueva Inglaterra
+      fr: Nouvelle-Angleterre
+      pt: Nova Inglaterra
+  cartography:
+    prominence: 70
+    min_zoom: 5
+    max_zoom: 10
+  associated_division_ids:
+    - example:division:region:connecticut
+    - example:division:region:maine
+    - example:division:region:massachusetts
+    - example:division:region:new_hampshire
+    - example:division:region:rhode_island
+    - example:division:region:vermont
+  population: 15116205
+  wikidata: Q18389
+  sources:
+    - property: ""
+      dataset: OpenStreetMap
+      record_id: relation/60759

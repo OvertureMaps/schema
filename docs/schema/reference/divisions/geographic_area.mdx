@@ -1,0 +1,117 @@
+---
+title: geographic_area
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import yamlLoad from "@site/src/components/yamlLoad"
+import divisions_geographic_area_schema from '!!raw-loader!@site/docs/_schema/divisions/geographic_area.yaml';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import geographic_area_example_cultural_bay_area from '!!raw-loader!@site/docs/_examples/divisions/geographic_area/cultural_colloquial_bay_area.yaml';
+import geographic_area_example_cultural_wine_country from '!!raw-loader!@site/docs/_examples/divisions/geographic_area/cultural_colloquial_wine_country.yaml';
+import geographic_area_example_functional_zip from '!!raw-loader!@site/docs/_examples/divisions/geographic_area/functional_postal_zip_code.yaml';
+
+
+# Geographic area
+
+A geographic area is a functional or cultural region that may span across multiple administrative divisions. These regions capture areas defined by shared characteristics, usage patterns, or cultural identity rather than formal administrative boundaries.
+
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Polygon</code> or <code>MultiPolygon</code></td>
+  </tr>
+  <tr>
+    <th>Theme</th>
+    <td><code>divisions</code></td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>geographic_area</code></td>
+  </tr>
+  </tbody>
+</table>
+
+## Subtypes
+
+Geographic areas are categorized into two main subtypes:
+
+<Tabs>
+  <TabItem value="functional" label="functional" default>
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>functional</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+Functional regions are defined by functional characteristics or usage patterns, such as postal code regions or economic zones. These areas serve specific operational or administrative purposes.
+
+<p><strong>Classes:</strong></p>
+<ul>
+<li><code>postal</code> - Postal code regions used for mail delivery and routing (e.g., US ZIP codes, UK postcodes, Canadian postal codes)</li>
+</ul>
+  </TabItem>
+
+  <TabItem value="cultural" label="cultural">
+    <table>
+      <tbody>
+      <tr>
+        <th><code>subtype</code></th>
+        <td><code>cultural</code></td>
+      </tr>
+      </tbody>
+    </table>
+
+Cultural regions are defined by cultural identity, colloquial usage, or shared cultural characteristics. These areas reflect how people commonly refer to regions in everyday language.
+
+<p><strong>Classes:</strong></p>
+<ul>
+<li><code>colloquial</code> - Colloquial regions are informal, culturally defined, or commonly referenced areas that do not correspond to official administrative boundaries. Unlike countries, states, counties, or cities—whose boundaries are legally defined—colloquial regions evolve from cultural, historical, economic, or linguistic identity. Examples include South Florida, East Asia, and California Wine Country.</li>
+</ul>
+
+  </TabItem>
+</Tabs>
+
+## Properties
+
+Key properties of geographic areas include:
+
+- **names** - Primary name and optional translations
+- **subtype** - Either `functional` or `cultural`
+- **class** - Required classification (e.g., `colloquial` for cultural, `postal` for functional)
+- **associated_division_ids** - Optional list of division IDs that make up the geographic area
+- **population** - Optional population count if inferable
+- **cartography** - Cartographic hints including prominence for map display
+- **wikidata** - Optional Wikidata ID reference
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(divisions_geographic_area_schema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/divisions'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{divisions_geographic_area_schema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="cultural_bay_area" label="Cultural: Bay Area" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(geographic_area_example_cultural_bay_area), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="cultural_wine_country" label="Cultural: Wine Country">
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(geographic_area_example_cultural_wine_country), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="functional_zip" label="Functional: ZIP Code">
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(geographic_area_example_functional_zip), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>

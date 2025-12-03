@@ -4,7 +4,7 @@ dependencies = [
     "overture-schema-system",
     "pydantic>=2.0",
 ]
-description = "Overture Maps divisions theme shared structures, division, division area and division boundary types"
+description = "Overture Maps divisions theme shared structures, division, division area, division boundary, and geographic area types"
 dynamic = ["version"]
 license = "MIT"
 name = "overture-schema-divisions-theme"
@@ -29,3 +29,4 @@ packages = ["src/overture"]
 "overture:divisions:division" = "overture.schema.divisions:Division"
 "overture:divisions:division_area" = "overture.schema.divisions:DivisionArea"
 "overture:divisions:division_boundary" = "overture.schema.divisions:DivisionBoundary"
+"overture:divisions:geographic_area" = "overture.schema.divisions:GeographicArea"
