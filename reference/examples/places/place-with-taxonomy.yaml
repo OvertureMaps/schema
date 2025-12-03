@@ -23,7 +23,7 @@ properties:
       - sushi_restaurant
   confidence: 0.85
   websites:
-    - https://www.buckysgas.example.com
+    - https://www.buckysgas.example.com/
   emails:
     - sushi@buckysgas.example.com
   socials:
