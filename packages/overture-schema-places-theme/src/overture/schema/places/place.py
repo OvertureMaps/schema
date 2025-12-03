@@ -83,6 +83,72 @@ class Categories(BaseModel):
 
 
 @no_extra_fields
+class Taxonomy(BaseModel):
+    """
+    A structured representation of the place's category within the Overture taxonomy.
+
+    Provides the primary classification, full hierarchy path, and alternate categories.
+    """
+
+    # Required
+
+    primary: Annotated[
+        SnakeCaseString,
+        Field(
+            description=textwrap.dedent("""
+            The primary, or most specific, category known about this place.
+
+            The `primary` category value must always equal the last or rightmost entry in the `hierarchy` field.
+            """)
+        ),
+    ]
+
+    hierarchy: Annotated[
+        list[SnakeCaseString],
+        Field(
+            min_length=1,
+            description=textwrap.dedent("""
+                The full primary hierarchy of categories known for this place, ordered from most general to most specific.
+                An example hierarchy might be: `["food_and_drink", "restaurant", "casual_eatery", "gas_station_sushi"]`.
+
+                The rightmost, or most specific, value in the `hierarchy` must always be equal to the `primary` field.
+                The basic level category of the place will typically be found in the middle of the primary hierarchy.
+                The primary hierarchy does not include any of the alternate categories found in the `alternates` field.
+                """).strip(),
+        ),
+        UniqueItemsConstraint(),
+    ]
+
+    # Optional
+
+    alternates: Annotated[
+        list[SnakeCaseString] | None,
+        Field(
+            min_length=1,
+            description=textwrap.dedent("""
+                Unordered list of additional categories that are known for this
+                place but that are not part of the primary category hierarchy.
+
+                Alternate categories allow a more complete picture of the place
+                to be surfaced when it fits multiple unconnected branches in the
+                taxonomy. For example a gas station that also sells groceries
+                might have primary category of "gas_station" with an alternate
+                of "grocery_store".
+
+                Alternate categories are not part of the primary hierarchy or
+                another alternate category's hierarchy.
+                In other words, if a category is a parent in the hierarchy of another category,
+                that category can't be a primary or alternate category itself.
+
+                Note as well that this field is an unordered list of extra
+                categories and does not represent a hierarchy.
+            """).strip(),
+        ),
+        UniqueItemsConstraint(),
+    ] = None
+
+
+@no_extra_fields
 class Brand(Named):
     """
     A brand associated with a place.
@@ -175,6 +241,20 @@ class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
                 name at the level of generality that is preferred by humans in learning and memory
                 tasks. This category to be roughly in the middle of the general-to-specific category
                 hierarchy.
+
+                The full list of basic level categories is available at https://docs.overturemaps.org/guides/places/
+                """
+            ).strip()
+        ),
+    ] = None
+    taxonomy: Annotated[
+        Taxonomy | None,
+        Field(
+            description=textwrap.dedent(
+                """
+                A structured representation of the place's category within the Overture taxonomy.
+
+                Provides the primary classification, full hierarchy path, and alternate categories.
                 """
             ).strip()
         ),

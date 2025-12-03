@@ -300,6 +300,48 @@
       ],
       "title": "SourceItem",
       "type": "object"
+    },
+    "Taxonomy": {
+      "additionalProperties": false,
+      "description": "A structured representation of the place's category within the Overture taxonomy.\n\nProvides the primary classification, full hierarchy path, and alternate categories.",
+      "properties": {
+        "alternates": {
+          "description": "Unordered list of additional categories that are known for this\nplace but that are not part of the primary category hierarchy.\n\nAlternate categories allow a more complete picture of the place\nto be surfaced when it fits multiple unconnected branches in the\ntaxonomy. For example a gas station that also sells groceries\nmight have primary category of \"gas_station\" with an alternate\nof \"grocery_store\".\n\nAlternate categories are not part of the primary hierarchy or\nanother alternate category's hierarchy.\nIn other words, if a category is a parent in the hierarchy of another category,\nthat category can't be a primary or alternate category itself.\n\nNote as well that this field is an unordered list of extra\ncategories and does not represent a hierarchy.",
+          "items": {
+            "description": "Category in snake_case format",
+            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Alternates",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "hierarchy": {
+          "description": "The full primary hierarchy of categories known for this place, ordered from most general to most specific.\nAn example hierarchy might be: `[\"food_and_drink\", \"restaurant\", \"casual_eatery\", \"gas_station_sushi\"]`.\n\nThe rightmost, or most specific, value in the `hierarchy` must always be equal to the `primary` field.\nThe basic level category of the place will typically be found in the middle of the primary hierarchy.\nThe primary hierarchy does not include any of the alternate categories found in the `alternates` field.",
+          "items": {
+            "description": "Category in snake_case format",
+            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Hierarchy",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "primary": {
+          "description": "\nThe primary, or most specific, category known about this place.\n\nThe `primary` category value must always equal the last or rightmost entry in the `hierarchy` field.\n",
+          "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+          "title": "Primary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "primary",
+        "hierarchy"
+      ],
+      "title": "Taxonomy",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -377,7 +419,7 @@
           "type": "array"
         },
         "basic_category": {
-          "description": "The basic level category of a place.\n\nThis field classifies places into categories at a level that most people find\nintuitive. The full list of possible values it may hold can be found at (TODO).\n\nThe basic level category, or simply basic category, is based on a cognitive science\nmodel use in taxonomy and ontology development. The idea is to provide the category\nname at the level of generality that is preferred by humans in learning and memory\ntasks. This category to be roughly in the middle of the general-to-specific category\nhierarchy.",
+          "description": "The basic level category of a place.\n\nThis field classifies places into categories at a level that most people find\nintuitive. The full list of possible values it may hold can be found at (TODO).\n\nThe basic level category, or simply basic category, is based on a cognitive science\nmodel use in taxonomy and ontology development. The idea is to provide the category\nname at the level of generality that is preferred by humans in learning and memory\ntasks. This category to be roughly in the middle of the general-to-specific category\nhierarchy.\n\nThe full list of basic level categories is available at https://docs.overturemaps.org/guides/places/",
           "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
           "title": "Basic Category",
           "type": "string"
@@ -448,6 +490,9 @@
           "title": "Sources",
           "type": "array",
           "uniqueItems": true
+        },
+        "taxonomy": {
+          "$ref": "#/$defs/Taxonomy"
         },
         "theme": {
           "const": "places",
