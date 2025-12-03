@@ -109,7 +109,7 @@ class Taxonomy(BaseModel):
             min_length=1,
             description=textwrap.dedent("""
                 The full primary hierarchy of categories known for this place, ordered from most general to most specific.
-                An example hierarchy might be: `["food_and_drink", "restaurant", "casual_eatery", "gas_station_sushi"].
+                An example hierarchy might be: `["food_and_drink", "restaurant", "casual_eatery", "gas_station_sushi"]`.
 
                 The rightmost, or most specific, value in the `hierarchy` must always be equal to the `primary` field.
                 The basic level category of the place will typically be found in the middle of the primary hierarchy.
@@ -241,6 +241,8 @@ class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
                 name at the level of generality that is preferred by humans in learning and memory
                 tasks. This category to be roughly in the middle of the general-to-specific category
                 hierarchy.
+
+                The full list of basic level categories is available at https://docs.overturemaps.org/guides/places/
                 """
             ).strip()
         ),

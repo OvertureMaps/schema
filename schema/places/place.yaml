@@ -47,7 +47,7 @@ properties:
           existing categories.primary entry. If the entry is currently empty in categories.primary, this entry will be empty.
           This type of categorization is a cognitive science model that is relevant for taxonomy and ontology development that shows the most broadest and general
           category name that is most often found in the middle of a general-to-specific hierarchy, with generalization proceeding upward and specialization proceeding downward.
-          The full list of basic level categories is available at:(todo)
+          The full list of basic level categories is available at https://docs.overturemaps.org/guides/places/
         type: string
         "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
       taxonomy:
