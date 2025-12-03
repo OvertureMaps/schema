@@ -15,6 +15,7 @@ properties:
     primary: A division area with an invalid ISO 3166-2 primary subdivision code ('region')
   country: ZZ
   region: this just seems wrong
+  admin_level: 1
   ext_expected_errors:
     - "/propertyDefinitions/iso3166_2SubdivisionCode/maxLength]: maxLength: got 21, want 6"
     - "'this just seems wrong' does not match pattern"

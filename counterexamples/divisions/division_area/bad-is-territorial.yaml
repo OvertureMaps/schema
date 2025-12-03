@@ -13,5 +13,6 @@ properties:
   is_territorial: no
   is_land: true
   country: ZZ
+  admin_level: 0
   ext_expected_errors:
     - "is_territorial/type]: got string, want boolean"

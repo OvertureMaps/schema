@@ -18,6 +18,7 @@ properties:
         name: A division with an invalid capital_division_id property.
   norms:
     driving_side: right
+  admin_level: 0
   capital_division_ids: ['    ']
   ext_expected_errors:
     - "'    ' does not match pattern"

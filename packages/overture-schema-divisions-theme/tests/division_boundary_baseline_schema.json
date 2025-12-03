@@ -224,6 +224,90 @@
       "allOf": [
         {
           "if": {
+            "properties": {
+              "subtype": {
+                "const": "county"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "macrocounty"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "region"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "macroregion"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "dependency"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "country"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
             "not": {
               "properties": {
                 "subtype": {
@@ -284,6 +368,13 @@
         }
       },
       "properties": {
+        "admin_level": {
+          "description": "Integer representing the shared administrative level of the divisions on either side of this boundary.",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Admin Level",
+          "type": "integer"
+        },
         "class": {
           "$ref": "#/$defs/BoundaryClass"
         },

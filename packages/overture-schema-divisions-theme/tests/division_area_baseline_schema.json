@@ -340,6 +340,92 @@
     },
     "properties": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "county"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "macrocounty"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "region"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "macroregion"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "dependency"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subtype": {
+                "const": "country"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "admin_level"
+            ]
+          }
+        }
+      ],
       "not": {
         "required": [
           "id",
@@ -369,6 +455,13 @@
         }
       },
       "properties": {
+        "admin_level": {
+          "description": "Integer representing this division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Admin Level",
+          "type": "integer"
+        },
         "class": {
           "$ref": "#/$defs/AreaClass"
         },

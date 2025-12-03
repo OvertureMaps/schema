@@ -27,6 +27,19 @@ properties:     # JSON Schema: Top-level object properties.
           not: { required: [country] }
         else:
           required: [subtype, class, division_ids, is_land, is_territorial, country]
+      - if:
+          properties:
+            subtype:
+              enum:
+                - country
+                - dependency
+                - macroregion
+                - region
+                - macrocounty
+                - county
+        then:
+          required:
+            - admin_level
     oneOf:
       - properties:
           is_land:
@@ -92,6 +105,8 @@ properties:     # JSON Schema: Top-level object properties.
           present on boundaries between different principal subdivisions or countries.
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/iso3166_2SubdivisionCode"
+      admin_level:
+        "$ref": "./defs.yaml#/$defs/propertyDefinitions/admin_level"
       is_disputed:
         description: >-
           Indicator if there are entities disputing this division boundary.

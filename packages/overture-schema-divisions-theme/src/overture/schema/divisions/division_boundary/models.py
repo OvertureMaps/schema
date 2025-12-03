@@ -10,6 +10,7 @@ from overture.schema.core import (
 from overture.schema.core.models import Perspectives
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (
+    FieldEqCondition,
     forbid_if,
     radio_group,
     require_if,
@@ -18,6 +19,7 @@ from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
+    int32,
 )
 from overture.schema.system.ref import Id, Reference, Relationship
 from overture.schema.system.string import CountryCodeAlpha2, RegionCode
@@ -29,6 +31,12 @@ from .enums import BoundaryClass
 
 @forbid_if(["country"], IS_COUNTRY)
 @require_if(["country"], ~IS_COUNTRY)
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTRY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.DEPENDENCY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROREGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.REGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROCOUNTY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTY))
 @radio_group("is_land", "is_territorial")
 class DivisionBoundary(
     OvertureFeature[Literal["divisions"], Literal["division_boundary"]]
@@ -113,6 +121,13 @@ entity that both sides of the boundary share.
 This property will be present on boundaries between two counties, localadmins
 or similar entities within the same principal subdivision, but will not be
 present on boundaries between different principal subdivisions or countries.""",
+        ),
+    ] = None
+    admin_level: Annotated[
+        int32 | None,
+        Field(
+            ge=0,
+            description="Integer representing the shared administrative level of the divisions on either side of this boundary.",
         ),
     ] = None
     is_disputed: Annotated[

@@ -24,6 +24,7 @@ properties:
     - - division_id: example:perspectives:trnc
         subtype: country
         name: Kuzey Kıbrıs
+  admin_level: 0
   perspectives:
     mode: accepted_by
     countries: [TR]

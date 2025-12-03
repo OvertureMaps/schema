@@ -57,6 +57,20 @@ description: Common schema definitions for divisions theme
 
         - microhood     # A mini-neighborhood that is contained within a
                         # division of type neighborhood.
+    admin_level:
+      description:
+        Integer representing this division's position in its country's
+        administrative hierarchy, where lower numbers correspond to higher
+        level administrative units.
+
+        In Overture data releases, this value is typically equal to the
+        number of ancestor features in the division's primary hierarchy
+        (the one defined by following `parent_division_id`). Thus, a
+        country always has an `admin_level` of 0, a region has an
+        `admin_level` of 1, while further subdivisions have `admin_level`
+        values greater than 1.
+      type: integer
+      minimum: 0
     hierarchy:
       description:
         A hierarchy of divisions, with the first entry being a country;

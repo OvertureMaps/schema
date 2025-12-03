@@ -11,11 +11,16 @@ from overture.schema.core.names import (
     Named,
     Names,
 )
-from overture.schema.system.model_constraint import radio_group
+from overture.schema.system.model_constraint import (
+    FieldEqCondition,
+    radio_group,
+    require_if,
+)
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
+    int32,
 )
 from overture.schema.system.ref import Id, Reference, Relationship
 from overture.schema.system.string import CountryCodeAlpha2, RegionCode
@@ -25,6 +30,12 @@ from ..enums import PlaceType
 from .enums import AreaClass
 
 
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTRY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.DEPENDENCY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROREGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.REGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROCOUNTY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTY))
 @radio_group("is_land", "is_territorial")
 class DivisionArea(
     OvertureFeature[Literal["divisions"], Literal["division_area"]], Named
@@ -91,5 +102,12 @@ class DivisionArea(
         RegionCode | None,
         Field(
             description="ISO 3166-2 principal subdivision code of the division this area belongs to.",
+        ),
+    ] = None
+    admin_level: Annotated[
+        int32 | None,
+        Field(
+            ge=0,
+            description="Integer representing this division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
         ),
     ] = None

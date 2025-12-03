@@ -17,6 +17,7 @@ from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
 from overture.schema.system.model_constraint import (
+    FieldEqCondition,
     forbid_if,
     no_extra_fields,
     require_if,
@@ -51,6 +52,12 @@ class Norms(BaseModel):
 
 @forbid_if(["parent_division_id"], IS_COUNTRY)
 @require_if(["parent_division_id"], ~IS_COUNTRY)
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTRY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.DEPENDENCY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROREGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.REGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROCOUNTY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTY))
 class Division(
     OvertureFeature[Literal["divisions"], Literal["division"]],
     Named,
@@ -115,6 +122,13 @@ The first hierarchy in the list is the default hierarchy, and the second-to-last
 Not allowed for top-level divisions (countries) and required for all other divisions.
 
 The default parent division is the parent division as seen from the default political perspective, if there is one, and is otherwise chosen somewhat arbitrarily. The hierarchies property can be used to inspect the exhaustive list of parent divisions.""",
+        ),
+    ] = None
+    admin_level: Annotated[
+        int32 | None,
+        Field(
+            ge=0,
+            description="Integer representing this division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
         ),
     ] = None
 
