@@ -6,33 +6,22 @@ description: Common schema definitions for divisions theme
     placetype:
       description:
         Category of the division from a finite, hierarchical, ordered
-        list of categories (e.g. country, region, locality, etc.)
+        list of categories (e.g. admin0, admin1, locality, etc.)
         similar to a Who's on First placetype.
       type: string
       enum:
-        - country       # Largest unit of independent sovereignty, e.g.
-                        # the United States, France.
+        - admin0        # Highest-level administrative divisions such as
+                        # countries or country-like dependencies, e.g.
+                        # the United States, Puerto Rico, France.
 
-        - dependency    # A place that is not exactly a sub-region of a
-                        # country but is dependent on a parent country
-                        # for defence, passport control, etc., e.g.
-                        # Puerto Rico.
-
-        - macroregion   # A bundle of regions, e.g. England, Scotland,
-                        # Île-de-France. These exist mainly in Europe.
-
-        - region        # A state, province, region, etc. Largest
+        - admin1        # A state, province, region, etc. Largest
                         # sub-country administrative unit in most
-                        # countries, except those that have dependencies
-                        # or macro-regions.
+                        # countries.
 
-        - macrocounty   # A bundle of counties, e.g. Inverness. These
-                        # exist mainly in Europe.
+        - admin2        # Largest sub-region administrative unit in most
+                        # countries below the admin1 level.
 
-        - county        # Largest sub-region administrative unit in most
-                        # countries, unless they have macrocounties.
-
-        - localadmin    # An administrative unit existing in some parts
+        - admin3        # An administrative unit existing in some parts
                         # of the world that contains localities or
                         # populated places, e.g. département de Paris.
                         # Often the contained places do not have
@@ -59,7 +48,7 @@ description: Common schema definitions for divisions theme
                         # division of type neighborhood.
     hierarchy:
       description:
-        A hierarchy of divisions, with the first entry being a country;
+        A hierarchy of divisions, with the first entry being an admin0;
         each subsequent entry, if any, being a division that is a direct
         child of the previous entry; and the last entry representing
         the division that contains the hierarchy.

@@ -21,7 +21,7 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - if:
           properties:
-            subtype: { enum: [country] }
+            subtype: { enum: [admin0] }
         then:
           required: [subtype, class, division_ids, is_land, is_territorial]
           not: { required: [country] }
@@ -77,7 +77,7 @@ properties:     # JSON Schema: Top-level object properties.
           ISO 3166-1 alpha-2 country code of the country or country-like
           entity that both sides of the boundary share.
 
-          This property will be present on boundaries between two regions, counties,
+          This property will be present on boundaries between two admin1s, admin2s,
           or similar entities within the same country, but will not be present on boundaries
           between two countries or country-like entities.
         allOf:
@@ -87,7 +87,7 @@ properties:     # JSON Schema: Top-level object properties.
           ISO 3166-2 principal subdivision code of the subdivision-like
           entity that both sides of the boundary share.
           
-          This property will be present on boundaries between two counties, localadmins
+          This property will be present on boundaries between two admin2s, admin3s,
           or similar entities within the same principal subdivision, but will not be
           present on boundaries between different principal subdivisions or countries.
         allOf:

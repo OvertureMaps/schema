@@ -8,15 +8,15 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: county
+  subtype: admin2
   names:
     primary: A division with an invalid hierarchies property
   country: ZZ
   hierarchies:
     - - division_id: counterexample:division:bad-hierarchies-country
-        subtype: country
+        subtype: admin0
       - name: foo
-        subtype: region
+        subtype: admin1
       - division_id: counterexample:division:bad-hierarchies-county
         name: bar
     - []

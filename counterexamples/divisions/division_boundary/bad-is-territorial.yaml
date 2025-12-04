@@ -8,8 +8,8 @@ properties:
   theme: divisions
   type: division_boundary
   version: 0
-  subtype: country
-  division_ids: ["example:division:country:left", "example:division:country:right"]
+  subtype: admin0
+  division_ids: ["example:division:admin0:left", "example:division:admin0:right"]
   class: land
   is_territorial: no
   is_land: true

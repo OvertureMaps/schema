@@ -1,5 +1,5 @@
 ---
-id: example:division_area:land:region:it-umbria
+id: example:division_area:land:admin1:it-umbria
 type: Feature
 geometry:
   type: MultiPolygon
@@ -71,11 +71,11 @@ properties:
   theme: divisions
   type: division_area
   version: 0
-  subtype: region
+  subtype: admin1
   class: land
   is_land: true
   is_territorial: false
-  division_id: example:division:country:it
+  division_id: example:division:admin0:it
   names:
     primary: Umbria
   country: IT

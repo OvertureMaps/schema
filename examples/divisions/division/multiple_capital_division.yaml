@@ -1,5 +1,5 @@
 ---
-id: example:division:region:pl-04
+id: example:division:admin1:pl-04
 type: Feature
 geometry:
   type: Point
@@ -8,7 +8,7 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: region
+  subtype: admin1
   local_type:
     en: province
   names:
@@ -20,11 +20,11 @@ properties:
   country: PL
   region: PL-04
   hierarchies:
-    - - division_id: example:division:country:pl
-        subtype: country
+    - - division_id: example:division:admin0:pl
+        subtype: admin0
         name: Poland
-      - division_id: example:division:region:pl-04
-        subtype: region
+      - division_id: example:division:admin1:pl-04
+        subtype: admin1
         name: Woj Kujawsko-Pomorskie
   capital_division_ids: [ example:division:locality:bydgoszcz, example:division:locality:torun]
-  parent_division_id: example:division:country:pl
+  parent_division_id: example:division:admin0:pl

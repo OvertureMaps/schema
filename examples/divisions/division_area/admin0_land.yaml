@@ -1,5 +1,5 @@
 ---
-id: example:division_area:land:country:us
+id: example:division_area:land:admin0:us
 type: Feature
 geometry:
   type: MultiPolygon
@@ -302,11 +302,11 @@ properties:
   theme: divisions
   type: division_area
   version: 0
-  subtype: country
+  subtype: admin0
   class: land
   is_land: true
   is_territorial: false
-  division_id: example:division:country:us
+  division_id: example:division:admin0:us
   names:
     primary: United States
   country: US

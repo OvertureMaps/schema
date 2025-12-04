@@ -1,5 +1,5 @@
 ---
-id: example:division:country:us
+id: example:division:admin0:us
 type: Feature
 geometry:
   type: Point
@@ -8,13 +8,13 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: country
+  subtype: admin0
   names:
     primary: United States
   country: US
   hierarchies:
-    - - division_id: example:division:country:us
-        subtype: country
+    - - division_id: example:division:admin0:us
+        subtype: admin0
         name: United States
   norms:
     driving_side: right

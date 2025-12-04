@@ -25,10 +25,9 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": ../defs.yaml#/$defs/propertyContainers/cartographyContainer
       - if:
           properties:
-            subtype: { enum: [country] }
+            subtype: { enum: [admin0] }
         then:
           required: [names, subtype, country, hierarchies]
-          not: { required: [parent_division_id] }
         else:
           required: [names, subtype, country, hierarchies, parent_division_id]
     properties: # JSON Schema: properties within GeoJSON top-level object 'properties' property
@@ -57,14 +56,14 @@ properties:     # JSON Schema: Top-level object properties.
           Local name for the subtype property, optionally localized.
 
           For example, the Canadian province of Quebec has the subtype
-          'region', but in the local administrative hierarchy it is
+          'admin1', but in the local administrative hierarchy it is
           referred to as a 'province'. Similarly, the Canadian Yukon
-          territory also has subtype 'region', but is locally called
+          territory also has subtype 'admin1', but is locally called
           a 'territory'.
 
           This property is localized using a standard Overture names
           structure. So for example, in Switzerland the top-level
-          administrative subdivision corresponding to subtype 'region'
+          administrative subdivision corresponding to subtype 'admin1'
           is the canton, which is may be translated in each of
           Switzerland's official languages as, 'canton' in French, 
           'kanton' in German, 'cantone' in Italian, and 'chantun' in
@@ -139,14 +138,15 @@ properties:     # JSON Schema: Top-level object properties.
         description:
           Division ID of this division's parent division.
           
-          Not allowed for top-level divisions (countries) and required
-          for all other divisions.
-          
           The default parent division is the parent division as seen
           from the default political perspective, if there is one, and
           is otherwise chosen somewhat arbitrarily. The hierarchies
           property can be used to inspect the exhaustive list of
           parent divisions.
+          
+          For admin0 divisions, the field is optional but, when present,
+          must reference another admin0 (e.g., a dependency pointing to
+          its sovereign state).
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyDefinitions/id"
       perspectives:

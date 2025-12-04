@@ -8,11 +8,11 @@ properties:
   theme: divisions
   type: division_boundary
   version: 1
-  subtype: country
+  subtype: admin0
   class: land
   is_land: true
   is_territorial: false
-  division_ids: ["example:division:country:left", "example:division:country:right"]
+  division_ids: ["example:division:admin0:left", "example:division:admin0:right"]
   is_disputed: true
   perspectives:
     mode: disputed_by

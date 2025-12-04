@@ -15,5 +15,7 @@ properties:
     primary: A division area with an invalid subtype property.
   country: ZZ
   region: ZZ-AB
+  is_land: true
+  is_territorial: false
   ext_expected_errors:
-    - "/propertyDefinitions/placetype/enum]: value must be one of 'country',"
+    - "/propertyDefinitions/placetype/enum]: value must be one of 'admin0',"

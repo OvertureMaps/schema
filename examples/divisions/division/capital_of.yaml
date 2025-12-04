@@ -19,11 +19,11 @@ properties:
       record_id: N6968827.V76
   country: SI
   hierarchies:
-    - - division_id: example:division:country:si
-        subtype: country
+    - - division_id: example:division:admin0:si
+        subtype: admin0
         name: Slovenia
   capital_of_divisions:
-    - division_id: example:division:country:si
-      subtype: country
-  parent_division_id: example:division:country:si
+    - division_id: example:division:admin0:si
+      subtype: admin0
+  parent_division_id: example:division:admin0:si
   population: 335509

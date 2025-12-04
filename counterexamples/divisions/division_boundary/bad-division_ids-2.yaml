@@ -8,9 +8,9 @@ properties:
   theme: divisions
   type: division_boundary
   version: 1
-  subtype: county
+  subtype: admin2
   country: "XX"
   class: land
-  division_ids: ["example:division:country:lonelylhsdivision"]
+  division_ids: ["example:division:admin0:lonelylhsdivision"]
   ext_expected_errors:
     - "minItems: got 1, want 2"

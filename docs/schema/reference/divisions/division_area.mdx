@@ -9,9 +9,9 @@ import yamlLoad from "@site/src/components/yamlLoad"
 import divisions_division_area_schema from '!!raw-loader!@site/docs/_schema/divisions/division_area.yaml';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import division_area_example_country_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/country_land.yaml';
-import division_area_example_region_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/region_land.yaml';
-import division_area_example_country_maritime from '!!raw-loader!@site/docs/_examples/divisions/division_area/country_maritime.yaml';
+import division_area_example_admin0_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/admin0_land.yaml';
+import division_area_example_admin1_land from '!!raw-loader!@site/docs/_examples/divisions/division_area/admin1_land.yaml';
+import division_area_example_admin0_maritime from '!!raw-loader!@site/docs/_examples/divisions/division_area/admin0_maritime.yaml';
 
 
 # Division area
@@ -42,87 +42,72 @@ While the schema for the divisions theme contains an comprehensive list of subty
 
 Currently, the following subtypes are available in the `division_area` feature type:
 
-- `country`
-- `dependency`
-- `region`
-- `county`
-- `localadmin`
+- `admin0`
+- `admin1`
+- `admin2`
+- `admin3`
 - `locality`
 - `macrohood`
 - `neighborhood`
 
 <Tabs>
-  <TabItem value="country" label="country" default>
+  <TabItem value="admin0" label="admin0" default>
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>country</code></td>
+        <td><code>admin0</code></td>
       </tr>
       </tbody>
     </table>
 
 
-A country is the largest unit of independent sovereignty. The border of a country, if known, is given by [divsion boundary](/schema/reference/divisions/division_boundary) features. Example: United States
+An admin0 division is the highest-level administrative unit, covering countries and country-like dependencies. The border of an admin0 division, if known, is given by [division boundary](/schema/reference/divisions/division_boundary) features. Examples: United States, Puerto Rico
 
   </TabItem>
 
-  <TabItem value="dependency" label="dependency" default>
+  <TabItem value="admin1" label="admin1" default>
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>dependency</code></td>
+        <td><code>admin1</code></td>
       </tr>
       </tbody>
     </table>
 
 
- A dependency is a place that is not exactly a sub-region of a country but is dependent on a parent country for defense, passport control, etc. Example: Puerto Rico
+An admin1 division is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
 
   </TabItem>
 
-  <TabItem value="region" label="region">
+  <TabItem value="admin2" label="admin2" default>
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>region</code></td>
+        <td><code>admin2</code></td>
       </tr>
       </tbody>
     </table>
 
-A region is the largest administrative unit within most countries and a first-level administrative subdivision. Example: Alberta
+
+An admin2 division is a second-level administrative subdivision. Example: Kings County, NY
 
   </TabItem>
 
-  <TabItem value="county" label="county" default>
+  <TabItem value="admin3" label="admin3" default>
     <table>
       <tbody>
       <tr>
         <th><code>subtype</code></th>
-        <td><code>county</code></td>
+        <td><code>admin3</code></td>
       </tr>
       </tbody>
     </table>
 
 
-A county is a second-level administrative subdivision. Example: Kings County, NY
-
-  </TabItem>
-
-  <TabItem value="localadmin" label="localadmin" default>
-    <table>
-      <tbody>
-      <tr>
-        <th><code>subtype</code></th>
-        <td><code>localadmin</code></td>
-      </tr>
-      </tbody>
-    </table>
-
-
-Localadmin is a level of government in some parts of the world that contains localities or populated places that themselves have no authority. Often but not exclusively found in Europe. Localadmin is a third-level administrative subdivision. Example: [Paris](https://spelunker.whosonfirst.org/id/1159322569/)
+An admin3 division is an administrative unit in some parts of the world that contains localities or populated places that themselves have no authority. Often but not exclusively found in Europe. Example: [Paris](https://spelunker.whosonfirst.org/id/1159322569/)
 
   </TabItem>
 
@@ -189,13 +174,13 @@ A neighborhood is a geographically localized community within a city, town, subu
 ## Examples
 
 <Tabs>
-  <TabItem value="country_land" label="country, land class" default>
-    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_land), null, 2) }</CodeBlock>
+  <TabItem value="admin0_land" label="admin0, land class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_admin0_land), null, 2) }</CodeBlock>
   </TabItem>
-  <TabItem value="country_maritime" label="country, maritime class" default>
-    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_country_maritime), null, 2) }</CodeBlock>
+  <TabItem value="admin0_maritime" label="admin0, maritime class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_admin0_maritime), null, 2) }</CodeBlock>
   </TabItem>
-   <TabItem value="region_land" label="region, land class" default>
-    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_region_land), null, 2) }</CodeBlock>
+   <TabItem value="admin1_land" label="admin1, land class" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(division_area_example_admin1_land), null, 2) }</CodeBlock>
   </TabItem>
 </Tabs>

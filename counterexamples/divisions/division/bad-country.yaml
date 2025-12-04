@@ -8,13 +8,13 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: country
+  subtype: admin0
   names:
     primary: A division with an invalid country property.
   country: ZZZ
   hierarchies:
     - - division_id: counterexample:division:bad-country
-        subtype: country
+        subtype: admin0
         name: A division with an invalid country property.
   norms:
     driving_side: left

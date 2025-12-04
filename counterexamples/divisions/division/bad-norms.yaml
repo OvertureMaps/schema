@@ -8,13 +8,13 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: country
+  subtype: admin0
   names:
     primary: A division with invalid norms
   country: ZZ
   hierarchies:
     - - division_id: counterexample:division:bad-names
-        subtype: country
+        subtype: admin0
         name: A division with invalid norms
   norms:
     driving_side: middle

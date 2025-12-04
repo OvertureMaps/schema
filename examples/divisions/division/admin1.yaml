@@ -1,5 +1,5 @@
 ---
-id: example:division:region:us-ny
+id: example:division:admin1:us-ny
 type: Feature
 geometry:
   type: Point
@@ -8,7 +8,7 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: region
+  subtype: admin1
   local_type:
     en: state
   names:
@@ -20,11 +20,11 @@ properties:
   country: US
   region: US-NY
   hierarchies:
-    - - division_id: example:division:country:us
-        subtype: country
+    - - division_id: example:division:admin0:us
+        subtype: admin0
         name: United States
-      - division_id: example:division:region:us-ny
-        subtype: region
+      - division_id: example:division:admin1:us-ny
+        subtype: admin1
         name: New York
   capital_division_ids: [ example:division:locality:albany ]
-  parent_division_id: example:division:country:us
+  parent_division_id: example:division:admin0:us
