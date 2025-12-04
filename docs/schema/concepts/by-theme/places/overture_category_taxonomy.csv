@@ -1,0 +1,2118 @@
+Category,Domain,Topic,Subtopic,Niche,Variant,Subvariant,Display Name,Hierarchy Level
+bed_and_breakfast,accommodation,bed_and_breakfast,,,,,Bed And Breakfast,2
+cabin,accommodation,cabin,,,,,Cabin,2
+campground,accommodation,campground,,,,,Campground,2
+cottage,accommodation,cottage,,,,,Cottage,2
+guest_house,accommodation,guest_house,,,,,Guest House,2
+health_retreats,accommodation,health_retreats,,,,,Health Retreats,2
+holiday_rental_home,accommodation,holiday_rental_home,,,,,Holiday Rental Home,2
+hostel,accommodation,hostel,,,,,Hostel,2
+hotel,accommodation,hotel,,,,,Hotel,2
+inn,accommodation,inn,,,,,Inn,2
+lodge,accommodation,lodge,,,,,Lodge,2
+motel,accommodation,motel,,,,,Motel,2
+mountain_huts,accommodation,mountain_huts,,,,,Mountain Huts,2
+beach_resort,accommodation,resort,beach_resort,,,,Beach Resort,3
+resort,accommodation,resort,,,,,Resort,2
+rv_park,accommodation,rv_park,,,,,Rv Park,2
+service_apartments,accommodation,service_apartments,,,,,Service Apartments,2
+accommodation,accommodation,,,,,,Accommodation,1
+aerial_fitness_center,active_life,sports_and_fitness_instruction,aerial_fitness_center,,,,Aerial Fitness Center,3
+barre_classes,active_life,sports_and_fitness_instruction,barre_classes,,,,Barre Classes,3
+boot_camp,active_life,sports_and_fitness_instruction,boot_camp,,,,Boot Camp,3
+boxing_class,active_life,sports_and_fitness_instruction,boxing_class,,,,Boxing Class,3
+boxing_club,active_life,sports_and_fitness_instruction,boxing_club,,,,Boxing Club,3
+boxing_gym,active_life,sports_and_fitness_instruction,boxing_gym,,,,Boxing Gym,3
+cardio_classes,active_life,sports_and_fitness_instruction,cardio_classes,,,,Cardio Classes,3
+climbing_class,active_life,sports_and_fitness_instruction,climbing_class,,,,Climbing Class,3
+cycling_classes,active_life,sports_and_fitness_instruction,cycling_classes,,,,Cycling Classes,3
+dance_school,active_life,sports_and_fitness_instruction,dance_school,,,,Dance School,3
+free_diving_instruction,active_life,sports_and_fitness_instruction,diving_instruction,free_diving_instruction,,,Free Diving Instruction,4
+scuba_diving_instruction,active_life,sports_and_fitness_instruction,diving_instruction,scuba_diving_instruction,,,Scuba Diving Instruction,4
+ems_training,active_life,sports_and_fitness_instruction,ems_training,,,,Ems Training,3
+fitness_trainer,active_life,sports_and_fitness_instruction,fitness_trainer,,,,Fitness Trainer,3
+golf_instructor,active_life,sports_and_fitness_instruction,golf_instructor,,,,Golf Instructor,3
+health_consultant,active_life,sports_and_fitness_instruction,health_consultant,,,,Health Consultant,3
+meditation_center,active_life,sports_and_fitness_instruction,meditation_center,,,,Meditation Center,3
+paddleboarding_lessons,active_life,sports_and_fitness_instruction,paddleboarding_lessons,,,,Paddleboarding Lessons,3
+pilates_studio,active_life,sports_and_fitness_instruction,pilates_studio,,,,Pilates Studio,3
+qi_gong_studio,active_life,sports_and_fitness_instruction,qi_gong_studio,,,,Qi Gong Studio,3
+racing_experience,active_life,sports_and_fitness_instruction,racing_experience,,,,Racing Experience,3
+rock_climbing_instructor,active_life,sports_and_fitness_instruction,rock_climbing_instructor,,,,Rock Climbing Instructor,3
+self_defense_classes,active_life,sports_and_fitness_instruction,self_defense_classes,,,,Self Defense Classes,3
+ski_and_snowboard_school,active_life,sports_and_fitness_instruction,ski_and_snowboard_school,,,,Ski And Snowboard School,3
+surfing_school,active_life,sports_and_fitness_instruction,surfing_school,,,,Surfing School,3
+swimming_instructor,active_life,sports_and_fitness_instruction,swimming_instructor,,,,Swimming Instructor,3
+tai_chi_studio,active_life,sports_and_fitness_instruction,tai_chi_studio,,,,Tai Chi Studio,3
+yoga_instructor,active_life,sports_and_fitness_instruction,yoga_instructor,,,,Yoga Instructor,3
+yoga_studio,active_life,sports_and_fitness_instruction,yoga_studio,,,,Yoga Studio,3
+sports_and_fitness_instruction,active_life,sports_and_fitness_instruction,,,,,Sports And Fitness Instruction,2
+beach_equipment_rentals,active_life,sports_and_recreation_rental_and_services,beach_equipment_rentals,,,,Beach Equipment Rentals,3
+bike_rentals,active_life,sports_and_recreation_rental_and_services,bike_rentals,,,,Bike Rentals,3
+canoe_and_kayak_hire_service,active_life,sports_and_recreation_rental_and_services,boat_hire_service,canoe_and_kayak_hire_service,,,Canoe And Kayak Hire Service,4
+scooter_rental,active_life,sports_and_recreation_rental_and_services,scooter_rental,,,,Scooter Rental,3
+sport_equipment_rentals,active_life,sports_and_recreation_rental_and_services,sport_equipment_rentals,,,,Sport Equipment Rentals,3
+sports_and_recreation_rental_and_services,active_life,sports_and_recreation_rental_and_services,,,,,Sports And Recreation Rental And Services,2
+adventure_sports_center,active_life,sports_and_recreation_venue,adventure_sports_center,,,,Adventure Sports Center,3
+airsoft_fields,active_life,sports_and_recreation_venue,airsoft_fields,,,,Airsoft Fields,3
+american_football_field,active_life,sports_and_recreation_venue,american_football_field,,,,American Football Field,3
+archery_range,active_life,sports_and_recreation_venue,archery_range,,,,Archery Range,3
+atv_recreation_park,active_life,sports_and_recreation_venue,atv_recreation_park,,,,Atv Recreation Park,3
+badminton_court,active_life,sports_and_recreation_venue,badminton_court,,,,Badminton Court,3
+baseball_field,active_life,sports_and_recreation_venue,baseball_field,,,,Baseball Field,3
+basketball_court,active_life,sports_and_recreation_venue,basketball_court,,,,Basketball Court,3
+batting_cage,active_life,sports_and_recreation_venue,batting_cage,,,,Batting Cage,3
+beach_volleyball_court,active_life,sports_and_recreation_venue,beach_volleyball_court,,,,Beach Volleyball Court,3
+bicycle_path,active_life,sports_and_recreation_venue,bicycle_path,,,,Bicycle Path,3
+bocce_ball_court,active_life,sports_and_recreation_venue,bocce_ball_court,,,,Bocce Ball Court,3
+bowling_alley,active_life,sports_and_recreation_venue,bowling_alley,,,,Bowling Alley,3
+bubble_soccer_field,active_life,sports_and_recreation_venue,bubble_soccer_field,,,,Bubble Soccer Field,3
+disc_golf_course,active_life,sports_and_recreation_venue,disc_golf_course,,,,Disc Golf Course,3
+free_diving_center,active_life,sports_and_recreation_venue,diving_center,free_diving_center,,,Free Diving Center,4
+scuba_diving_center,active_life,sports_and_recreation_venue,diving_center,scuba_diving_center,,,Scuba Diving Center,4
+diving_center,active_life,sports_and_recreation_venue,diving_center,,,,Diving Center,3
+flyboarding_center,active_life,sports_and_recreation_venue,flyboarding_center,,,,Flyboarding Center,3
+futsal_field,active_life,sports_and_recreation_venue,futsal_field,,,,Futsal Field,3
+driving_range,active_life,sports_and_recreation_venue,golf_course,driving_range,,,Driving Range,4
+golf_course,active_life,sports_and_recreation_venue,golf_course,,,,Golf Course,3
+gym,active_life,sports_and_recreation_venue,gym,,,,Gym,3
+gymnastics_center,active_life,sports_and_recreation_venue,gymnastics_center,,,,Gymnastics Center,3
+handball_court,active_life,sports_and_recreation_venue,handball_court,,,,Handball Court,3
+hang_gliding_center,active_life,sports_and_recreation_venue,hang_gliding_center,,,,Hang Gliding Center,3
+hockey_field,active_life,sports_and_recreation_venue,hockey_field,,,,Hockey Field,3
+equestrian_facility,active_life,sports_and_recreation_venue,horse_riding,equestrian_facility,,,Equestrian Facility,4
+horse_racing_track,active_life,sports_and_recreation_venue,horse_riding,horse_racing_track,,,Horse Racing Track,4
+horse_riding,active_life,sports_and_recreation_venue,horse_riding,,,,Horse Riding,3
+kiteboarding,active_life,sports_and_recreation_venue,kiteboarding,,,,Kiteboarding,3
+miniature_golf_course,active_life,sports_and_recreation_venue,miniature_golf_course,,,,Miniature Golf Course,3
+paddleboarding_center,active_life,sports_and_recreation_venue,paddleboarding_center,,,,Paddleboarding Center,3
+playground,active_life,sports_and_recreation_venue,playground,,,,Playground,3
+pool_hall,active_life,sports_and_recreation_venue,pool_billiards,pool_hall,,,Pool Hall,4
+pool_billiards,active_life,sports_and_recreation_venue,pool_billiards,,,,Pool Billiards,3
+race_track,active_life,sports_and_recreation_venue,race_track,,,,Race Track,3
+racquetball_court,active_life,sports_and_recreation_venue,racquetball_court,,,,Racquetball Court,3
+rock_climbing_gym,active_life,sports_and_recreation_venue,rock_climbing_gym,,,,Rock Climbing Gym,3
+rugby_pitch,active_life,sports_and_recreation_venue,rugby_pitch,,,,Rugby Pitch,3
+shooting_range,active_life,sports_and_recreation_venue,shooting_range,,,,Shooting Range,3
+skate_park,active_life,sports_and_recreation_venue,skate_park,,,,Skate Park,3
+ice_skating_rink,active_life,sports_and_recreation_venue,skating_rink,ice_skating_rink,,,Ice Skating Rink,4
+roller_skating_rink,active_life,sports_and_recreation_venue,skating_rink,roller_skating_rink,,,Roller Skating Rink,4
+skating_rink,active_life,sports_and_recreation_venue,skating_rink,,,,Skating Rink,3
+sky_diving,active_life,sports_and_recreation_venue,sky_diving,,,,Sky Diving,3
+soccer_field,active_life,sports_and_recreation_venue,soccer_field,,,,Soccer Field,3
+squash_court,active_life,sports_and_recreation_venue,squash_court,,,,Squash Court,3
+swimming_pool,active_life,sports_and_recreation_venue,swimming_pool,,,,Swimming Pool,3
+tennis_court,active_life,sports_and_recreation_venue,tennis_court,,,,Tennis Court,3
+trampoline_park,active_life,sports_and_recreation_venue,trampoline_park,,,,Trampoline Park,3
+tubing_provider,active_life,sports_and_recreation_venue,tubing_provider,,,,Tubing Provider,3
+volleyball_court,active_life,sports_and_recreation_venue,volleyball_court,,,,Volleyball Court,3
+wildlife_hunting_range,active_life,sports_and_recreation_venue,wildlife_hunting_range,,,,Wildlife Hunting Range,3
+zorbing_center,active_life,sports_and_recreation_venue,zorbing_center,,,,Zorbing Center,3
+sports_and_recreation_venue,active_life,sports_and_recreation_venue,,,,,Sports And Recreation Venue,2
+amateur_sports_league,active_life,sports_club_and_league,amateur_sports_league,,,,Amateur Sports League,3
+amateur_sports_team,active_life,sports_club_and_league,amateur_sports_team,,,,Amateur Sports Team,3
+beach_volleyball_club,active_life,sports_club_and_league,beach_volleyball_club,,,,Beach Volleyball Club,3
+esports_league,active_life,sports_club_and_league,esports_league,,,,Esports League,3
+esports_team,active_life,sports_club_and_league,esports_team,,,,Esports Team,3
+fencing_club,active_life,sports_club_and_league,fencing_club,,,,Fencing Club,3
+fishing_club,active_life,sports_club_and_league,fishing_club,,,,Fishing Club,3
+football_club,active_life,sports_club_and_league,football_club,,,,Football Club,3
+go_kart_club,active_life,sports_club_and_league,go_kart_club,,,,Go Kart Club,3
+indoor_golf_center,active_life,sports_club_and_league,golf_club,indoor_golf_center,,,Indoor Golf Center,4
+golf_club,active_life,sports_club_and_league,golf_club,,,,Golf Club,3
+gymnastics_club,active_life,sports_club_and_league,gymnastics_club,,,,Gymnastics Club,3
+lawn_bowling_club,active_life,sports_club_and_league,lawn_bowling_club,,,,Lawn Bowling Club,3
+brazilian_jiu_jitsu_club,active_life,sports_club_and_league,martial_arts_club,brazilian_jiu_jitsu_club,,,Brazilian Jiu Jitsu Club,4
+chinese_martial_arts_club,active_life,sports_club_and_league,martial_arts_club,chinese_martial_arts_club,,,Chinese Martial Arts Club,4
+karate_club,active_life,sports_club_and_league,martial_arts_club,karate_club,,,Karate Club,4
+kickboxing_club,active_life,sports_club_and_league,martial_arts_club,kickboxing_club,,,Kickboxing Club,4
+muay_thai_club,active_life,sports_club_and_league,martial_arts_club,muay_thai_club,,,Muay Thai Club,4
+taekwondo_club,active_life,sports_club_and_league,martial_arts_club,taekwondo_club,,,Taekwondo Club,4
+martial_arts_club,active_life,sports_club_and_league,martial_arts_club,,,,Martial Arts Club,3
+nudist_clubs,active_life,sports_club_and_league,nudist_clubs,,,,Nudist Clubs,3
+paddle_tennis_club,active_life,sports_club_and_league,paddle_tennis_club,,,,Paddle Tennis Club,3
+professional_sports_league,active_life,sports_club_and_league,professional_sports_league,,,,Professional Sports League,3
+professional_sports_team,active_life,sports_club_and_league,professional_sports_team,,,,Professional Sports Team,3
+rowing_club,active_life,sports_club_and_league,rowing_club,,,,Rowing Club,3
+sailing_club,active_life,sports_club_and_league,sailing_club,,,,Sailing Club,3
+school_sports_league,active_life,sports_club_and_league,school_sports_league,,,,School Sports League,3
+school_sports_team,active_life,sports_club_and_league,school_sports_team,,,,School Sports Team,3
+soccer_club,active_life,sports_club_and_league,soccer_club,,,,Soccer Club,3
+surf_lifesaving_club,active_life,sports_club_and_league,surf_lifesaving_club,,,,Surf Lifesaving Club,3
+table_tennis_club,active_life,sports_club_and_league,table_tennis_club,,,,Table Tennis Club,3
+volleyball_club,active_life,sports_club_and_league,volleyball_club,,,,Volleyball Club,3
+sports_club_and_league,active_life,sports_club_and_league,,,,,Sports Club And League,2
+active_life,active_life,,,,,,Active Life,1
+erotic_massage,arts_and_entertainment,adult_entertainment,erotic_massage,,,,Erotic Massage,3
+strip_club,arts_and_entertainment,adult_entertainment,strip_club,,,,Strip Club,3
+striptease_dancer,arts_and_entertainment,adult_entertainment,striptease_dancer,,,,Striptease Dancer,3
+adult_entertainment,arts_and_entertainment,adult_entertainment,,,,,Adult Entertainment,2
+arcade,arts_and_entertainment,arcade,,,,,Arcade,2
+auditorium,arts_and_entertainment,auditorium,,,,,Auditorium,2
+bar_crawl,arts_and_entertainment,bar_crawl,,,,,Bar Crawl,2
+betting_center,arts_and_entertainment,betting_center,,,,,Betting Center,2
+bingo_hall,arts_and_entertainment,bingo_hall,,,,,Bingo Hall,2
+bookmakers,arts_and_entertainment,bookmakers,,,,,Bookmakers,2
+cabaret,arts_and_entertainment,cabaret,,,,,Cabaret,2
+carousel,arts_and_entertainment,carousel,,,,,Carousel,2
+casino,arts_and_entertainment,casino,,,,,Casino,2
+chamber_of_handicraft,arts_and_entertainment,chamber_of_handicraft,,,,,Chamber Of Handicraft,2
+choir,arts_and_entertainment,choir,,,,,Choir,2
+drive_in_theater,arts_and_entertainment,cinema,drive_in_theater,,,,Drive In Theater,3
+outdoor_movies,arts_and_entertainment,cinema,outdoor_movies,,,,Outdoor Movies,3
+cinema,arts_and_entertainment,cinema,,,,,Cinema,2
+circus,arts_and_entertainment,circus,,,,,Circus,2
+club_crawl,arts_and_entertainment,club_crawl,,,,,Club Crawl,2
+comedy_club,arts_and_entertainment,comedy_club,,,,,Comedy Club,2
+country_club,arts_and_entertainment,country_club,,,,,Country Club,2
+country_dance_hall,arts_and_entertainment,country_dance_hall,,,,,Country Dance Hall,2
+dance_club,arts_and_entertainment,dance_club,,,,,Dance Club,2
+dinner_theater,arts_and_entertainment,dinner_theater,,,,,Dinner Theater,2
+eatertainment,arts_and_entertainment,eatertainment,,,,,Eatertainment,2
+escape_rooms,arts_and_entertainment,escape_rooms,,,,,Escape Rooms,2
+exhibition_and_trade_center,arts_and_entertainment,exhibition_and_trade_center,,,,,Exhibition And Trade Center,2
+attraction_farm,arts_and_entertainment,farm,attraction_farm,,,,Attraction Farm,3
+orchard,arts_and_entertainment,farm,orchard,,,,Orchard,3
+pick_your_own_farm,arts_and_entertainment,farm,pick_your_own_farm,,,,Pick Your Own Farm,3
+poultry_farm,arts_and_entertainment,farm,poultry_farm,,,,Poultry Farm,3
+ranch,arts_and_entertainment,farm,ranch,,,,Ranch,3
+farm,arts_and_entertainment,farm,,,,,Farm,2
+fair,arts_and_entertainment,festival,fair,,,,Fair,3
+film_festivals_and_organizations,arts_and_entertainment,festival,film_festivals_and_organizations,,,,Film Festivals And Organizations,3
+general_festivals,arts_and_entertainment,festival,general_festivals,,,,General Festivals,3
+holiday_market,arts_and_entertainment,festival,holiday_market,,,,Holiday Market,3
+music_festivals_and_organizations,arts_and_entertainment,festival,music_festivals_and_organizations,,,,Music Festivals And Organizations,3
+trade_fair,arts_and_entertainment,festival,trade_fair,,,,Trade Fair,3
+festival,arts_and_entertainment,festival,,,,,Festival,2
+glass_blowing,arts_and_entertainment,glass_blowing,,,,,Glass Blowing,2
+indoor_playcenter,arts_and_entertainment,indoor_playcenter,,,,,Indoor Playcenter,2
+internet_cafe,arts_and_entertainment,internet_cafe,,,,,Internet Cafe,2
+jazz_and_blues,arts_and_entertainment,jazz_and_blues,,,,,Jazz And Blues,2
+karaoke,arts_and_entertainment,karaoke,,,,,Karaoke,2
+laser_tag,arts_and_entertainment,laser_tag,,,,,Laser Tag,2
+makerspace,arts_and_entertainment,makerspace,,,,,Makerspace,2
+marching_band,arts_and_entertainment,marching_band,,,,,Marching Band,2
+music_venue,arts_and_entertainment,music_venue,,,,,Music Venue,2
+musical_band_orchestras_and_symphonies,arts_and_entertainment,musical_band_orchestras_and_symphonies,,,,,Musical Band Orchestras And Symphonies,2
+opera_and_ballet,arts_and_entertainment,opera_and_ballet,,,,,Opera And Ballet,2
+paint_and_sip,arts_and_entertainment,paint_and_sip,,,,,Paint And Sip,2
+paintball,arts_and_entertainment,paintball,,,,,Paintball,2
+performing_arts,arts_and_entertainment,performing_arts,,,,,Performing Arts,2
+planetarium,arts_and_entertainment,planetarium,,,,,Planetarium,2
+rodeo,arts_and_entertainment,rodeo,,,,,Rodeo,2
+salsa_club,arts_and_entertainment,salsa_club,,,,,Salsa Club,2
+fraternal_organization,arts_and_entertainment,social_club,fraternal_organization,,,,Fraternal Organization,3
+veterans_organization,arts_and_entertainment,social_club,veterans_organization,,,,Veterans Organization,3
+social_club,arts_and_entertainment,social_club,,,,,Social Club,2
+baseball_stadium,arts_and_entertainment,stadium_arena,baseball_stadium,,,,Baseball Stadium,3
+basketball_stadium,arts_and_entertainment,stadium_arena,basketball_stadium,,,,Basketball Stadium,3
+cricket_ground,arts_and_entertainment,stadium_arena,cricket_ground,,,,Cricket Ground,3
+football_stadium,arts_and_entertainment,stadium_arena,football_stadium,,,,Football Stadium,3
+hockey_arena,arts_and_entertainment,stadium_arena,hockey_arena,,,,Hockey Arena,3
+rugby_stadium,arts_and_entertainment,stadium_arena,rugby_stadium,,,,Rugby Stadium,3
+soccer_stadium,arts_and_entertainment,stadium_arena,soccer_stadium,,,,Soccer Stadium,3
+tennis_stadium,arts_and_entertainment,stadium_arena,tennis_stadium,,,,Tennis Stadium,3
+track_stadium,arts_and_entertainment,stadium_arena,track_stadium,,,,Track Stadium,3
+stadium_arena,arts_and_entertainment,stadium_arena,,,,,Stadium Arena,2
+studio_taping,arts_and_entertainment,studio_taping,,,,,Studio Taping,2
+astrologer,arts_and_entertainment,supernatural_reading,astrologer,,,,Astrologer,3
+mystic,arts_and_entertainment,supernatural_reading,mystic,,,,Mystic,3
+psychic,arts_and_entertainment,supernatural_reading,psychic,,,,Psychic,3
+psychic_medium,arts_and_entertainment,supernatural_reading,psychic_medium,,,,Psychic Medium,3
+supernatural_reading,arts_and_entertainment,supernatural_reading,,,,,Supernatural Reading,2
+theatre,arts_and_entertainment,theaters_and_performance_venues,theatre,,,,Theatre,3
+theaters_and_performance_venues,arts_and_entertainment,theaters_and_performance_venues,,,,,Theaters And Performance Venues,2
+ticket_sales,arts_and_entertainment,ticket_sales,,,,,Ticket Sales,2
+topic_concert_venue,arts_and_entertainment,topic_concert_venue,,,,,Topic Concert Venue,2
+virtual_reality_center,arts_and_entertainment,virtual_reality_center,,,,,Virtual Reality Center,2
+water_park,arts_and_entertainment,water_park,,,,,Water Park,2
+wildlife_sanctuary,arts_and_entertainment,wildlife_sanctuary,,,,,Wildlife Sanctuary,2
+arts_and_entertainment,arts_and_entertainment,,,,,,Arts And Entertainment,1
+amusement_park,attractions_and_activities,amusement_park,,,,,Amusement Park,2
+aquarium,attractions_and_activities,aquarium,,,,,Aquarium,2
+architecture,attractions_and_activities,architecture,,,,,Architecture,2
+art_gallery,attractions_and_activities,art_gallery,,,,,Art Gallery,2
+atv_rentals_and_tours,attractions_and_activities,atv_rentals_and_tours,,,,,Atv Rentals And Tours,2
+axe_throwing,attractions_and_activities,axe_throwing,,,,,Axe Throwing,2
+backpacking_area,attractions_and_activities,backpacking_area,,,,,Backpacking Area,2
+beach,attractions_and_activities,beach,,,,,Beach,2
+beach_combing_area,attractions_and_activities,beach_combing_area,,,,,Beach Combing Area,2
+boat_rental_and_training,attractions_and_activities,boat_rental_and_training,,,,,Boat Rental And Training,2
+boating_places,attractions_and_activities,boating_places,,,,,Boating Places,2
+bobsledding_field,attractions_and_activities,bobsledding_field,,,,,Bobsledding Field,2
+botanical_garden,attractions_and_activities,botanical_garden,,,,,Botanical Garden,2
+bungee_jumping_center,attractions_and_activities,bungee_jumping_center,,,,,Bungee Jumping Center,2
+canyon,attractions_and_activities,canyon,,,,,Canyon,2
+castle,attractions_and_activities,castle,,,,,Castle,2
+cave,attractions_and_activities,cave,,,,,Cave,2
+challenge_courses_center,attractions_and_activities,challenge_courses_center,,,,,Challenge Courses Center,2
+cliff_jumping_center,attractions_and_activities,cliff_jumping_center,,,,,Cliff Jumping Center,2
+climbing_service,attractions_and_activities,climbing_service,,,,,Climbing Service,2
+crater,attractions_and_activities,crater,,,,,Crater,2
+cultural_center,attractions_and_activities,cultural_center,,,,,Cultural Center,2
+fishing_charter,attractions_and_activities,fishing_charter,,,,,Fishing Charter,2
+flyboarding_rental,attractions_and_activities,flyboarding_rental,,,,,Flyboarding Rental,2
+fort,attractions_and_activities,fort,,,,,Fort,2
+fountain,attractions_and_activities,fountain,,,,,Fountain,2
+go_kart_track,attractions_and_activities,go_kart_track,,,,,Go Kart Track,2
+haunted_house,attractions_and_activities,haunted_house,,,,,Haunted House,2
+high_gliding_center,attractions_and_activities,high_gliding_center,,,,,High Gliding Center,2
+horseback_riding_service,attractions_and_activities,horseback_riding_service,,,,,Horseback Riding Service,2
+hot_air_balloons_tour,attractions_and_activities,hot_air_balloons_tour,,,,,Hot Air Balloons Tour,2
+hot_springs,attractions_and_activities,hot_springs,,,,,Hot Springs,2
+jet_skis_rental,attractions_and_activities,jet_skis_rental,,,,,Jet Skis Rental,2
+kiteboarding_instruction,attractions_and_activities,kiteboarding_instruction,,,,,Kiteboarding Instruction,2
+lake,attractions_and_activities,lake,,,,,Lake,2
+landmark_and_historical_building,attractions_and_activities,landmark_and_historical_building,,,,,Landmark And Historical Building,2
+lighthouse,attractions_and_activities,lighthouse,,,,,Lighthouse,2
+lookout,attractions_and_activities,lookout,,,,,Lookout,2
+marina,attractions_and_activities,marina,,,,,Marina,2
+monument,attractions_and_activities,monument,,,,,Monument,2
+mountain_bike_parks,attractions_and_activities,mountain_bike_parks,,,,,Mountain Bike Parks,2
+asian_art_museum,attractions_and_activities,museum,art_museum,asian_art_museum,,,Asian Art Museum,4
+cartooning_museum,attractions_and_activities,museum,art_museum,cartooning_museum,,,Cartooning Museum,4
+contemporary_art_museum,attractions_and_activities,museum,art_museum,contemporary_art_museum,,,Contemporary Art Museum,4
+costume_museum,attractions_and_activities,museum,art_museum,costume_museum,,,Costume Museum,4
+decorative_arts_museum,attractions_and_activities,museum,art_museum,decorative_arts_museum,,,Decorative Arts Museum,4
+design_museum,attractions_and_activities,museum,art_museum,design_museum,,,Design Museum,4
+modern_art_museum,attractions_and_activities,museum,art_museum,modern_art_museum,,,Modern Art Museum,4
+photography_museum,attractions_and_activities,museum,art_museum,photography_museum,,,Photography Museum,4
+textile_museum,attractions_and_activities,museum,art_museum,textile_museum,,,Textile Museum,4
+art_museum,attractions_and_activities,museum,art_museum,,,,Art Museum,3
+aviation_museum,attractions_and_activities,museum,aviation_museum,,,,Aviation Museum,3
+childrens_museum,attractions_and_activities,museum,childrens_museum,,,,Childrens Museum,3
+civilization_museum,attractions_and_activities,museum,history_museum,civilization_museum,,,Civilization Museum,4
+community_museum,attractions_and_activities,museum,history_museum,community_museum,,,Community Museum,4
+history_museum,attractions_and_activities,museum,history_museum,,,,History Museum,3
+military_museum,attractions_and_activities,museum,military_museum,,,,Military Museum,3
+national_museum,attractions_and_activities,museum,national_museum,,,,National Museum,3
+computer_museum,attractions_and_activities,museum,science_museum,computer_museum,,,Computer Museum,4
+science_museum,attractions_and_activities,museum,science_museum,,,,Science Museum,3
+sports_museum,attractions_and_activities,museum,sports_museum,,,,Sports Museum,3
+state_museum,attractions_and_activities,museum,state_museum,,,,State Museum,3
+museum,attractions_and_activities,museum,,,,,Museum,2
+observatory,attractions_and_activities,observatory,,,,,Observatory,2
+paddleboard_rental,attractions_and_activities,paddleboard_rental,,,,,Paddleboard Rental,2
+palace,attractions_and_activities,palace,,,,,Palace,2
+parasailing_ride_service,attractions_and_activities,parasailing_ride_service,,,,,Parasailing Ride Service,2
+dog_park,attractions_and_activities,park,dog_park,,,,Dog Park,3
+memorial_park,attractions_and_activities,park,memorial_park,,,,Memorial Park,3
+national_park,attractions_and_activities,park,national_park,,,,National Park,3
+state_park,attractions_and_activities,park,state_park,,,,State Park,3
+park,attractions_and_activities,park,,,,,Park,2
+plaza,attractions_and_activities,plaza,,,,,Plaza,2
+rafting_kayaking_area,attractions_and_activities,rafting_kayaking_area,,,,,Rafting Kayaking Area,2
+rock_climbing_spot,attractions_and_activities,rock_climbing_spot,,,,,Rock Climbing Spot,2
+ruin,attractions_and_activities,ruin,,,,,Ruin,2
+sailing_area,attractions_and_activities,sailing_area,,,,,Sailing Area,2
+sand_dune,attractions_and_activities,sand_dune,,,,,Sand Dune,2
+scavenger_hunts_provider,attractions_and_activities,scavenger_hunts_provider,,,,,Scavenger Hunts Provider,2
+sculpture_statue,attractions_and_activities,sculpture_statue,,,,,Sculpture Statue,2
+ski_area,attractions_and_activities,ski_area,,,,,Ski Area,2
+skyline,attractions_and_activities,skyline,,,,,Skyline,2
+sledding_rental,attractions_and_activities,sledding_rental,,,,,Sledding Rental,2
+snorkeling,attractions_and_activities,snorkeling,,,,,Snorkeling,2
+snorkeling_equipment_rental,attractions_and_activities,snorkeling_equipment_rental,,,,,Snorkeling Equipment Rental,2
+snowboarding_center,attractions_and_activities,snowboarding_center,,,,,Snowboarding Center,2
+stargazing_area,attractions_and_activities,stargazing_area,,,,,Stargazing Area,2
+street_art,attractions_and_activities,street_art,,,,,Street Art,2
+surfboard_rental,attractions_and_activities,surfing,surfboard_rental,,,,Surfboard Rental,3
+windsurfing_center,attractions_and_activities,surfing,windsurfing_center,,,,Windsurfing Center,3
+surfing,attractions_and_activities,surfing,,,,,Surfing,2
+hiking_trail,attractions_and_activities,trail,hiking_trail,,,,Hiking Trail,3
+mountain_bike_trails,attractions_and_activities,trail,mountain_bike_trails,,,,Mountain Bike Trails,3
+trail,attractions_and_activities,trail,,,,,Trail,2
+waterfall,attractions_and_activities,waterfall,,,,,Waterfall,2
+ziplining_center,attractions_and_activities,ziplining_center,,,,,Ziplining Center,2
+petting_zoo,attractions_and_activities,zoo,petting_zoo,,,,Petting Zoo,3
+zoo,attractions_and_activities,zoo,,,,,Zoo,2
+attractions_and_activities,attractions_and_activities,,,,,,Attractions And Activities,1
+aircraft_dealer,automotive,aircraft_dealer,,,,,Aircraft Dealer,2
+avionics_shop,automotive,aircraft_parts_and_supplies,avionics_shop,,,,Avionics Shop,3
+aircraft_parts_and_supplies,automotive,aircraft_parts_and_supplies,,,,,Aircraft Parts And Supplies,2
+aircraft_repair,automotive,aircraft_services_and_repair,,,,,Aircraft Repair,
+auto_company,automotive,auto_company,,,,,Auto Company,2
+automobile_leasing,automotive,automobile_leasing,,,,,Automobile Leasing,2
+car_dealer,automotive,automotive_dealer,car_dealer,,,,Car Dealer,3
+commercial_vehicle_dealer,automotive,automotive_dealer,commercial_vehicle_dealer,,,,Commercial Vehicle Dealer,3
+golf_cart_dealer,automotive,automotive_dealer,golf_cart_dealer,,,,Golf Cart Dealer,3
+motorcycle_dealer,automotive,automotive_dealer,motorcycle_dealer,,,,Motorcycle Dealer,3
+motorsport_vehicle_dealer,automotive,automotive_dealer,motorsport_vehicle_dealer,,,,Motorsport Vehicle Dealer,3
+recreational_vehicle_dealer,automotive,automotive_dealer,recreational_vehicle_dealer,,,,Recreational Vehicle Dealer,3
+scooter_dealers,automotive,automotive_dealer,scooter_dealers,,,,Scooter Dealers,3
+trailer_dealer,automotive,automotive_dealer,trailer_dealer,,,,Trailer Dealer,3
+truck_dealer,automotive,automotive_dealer,truck_dealer,,,,Truck Dealer,3
+used_car_dealer,automotive,automotive_dealer,used_car_dealer,,,,Used Car Dealer,3
+automotive_dealer,automotive,automotive_dealer,,,,,Automotive Dealer,2
+car_stereo_store,automotive,automotive_parts_and_accessories,car_stereo_store,,,,Car Stereo Store,3
+interlock_system,automotive,automotive_parts_and_accessories,interlock_system,,,,Interlock System,3
+motorcycle_gear,automotive,automotive_parts_and_accessories,motorcycle_gear,,,,Motorcycle Gear,3
+motorsports_store,automotive,automotive_parts_and_accessories,motorsports_store,,,,Motorsports Store,3
+recreational_vehicle_parts_and_accessories,automotive,automotive_parts_and_accessories,recreational_vehicle_parts_and_accessories,,,,Recreational Vehicle Parts And Accessories,3
+automotive_parts_and_accessories,automotive,automotive_parts_and_accessories,,,,,Automotive Parts And Accessories,2
+automotive_repair,automotive,automotive_repair,,,,,Automotive Repair,2
+auto_body_shop,automotive,automotive_services_and_repair,auto_body_shop,,,,Auto Body Shop,3
+auto_customization,automotive,automotive_services_and_repair,auto_customization,,,,Auto Customization,3
+auto_detailing,automotive,automotive_services_and_repair,auto_detailing,,,,Auto Detailing,3
+auto_electrical_repair,automotive,automotive_services_and_repair,auto_electrical_repair,,,,Auto Electrical Repair,3
+car_window_tinting,automotive,automotive_services_and_repair,auto_glass_service,car_window_tinting,,,Car Window Tinting,4
+auto_glass_service,automotive,automotive_services_and_repair,auto_glass_service,,,,Auto Glass Service,3
+auto_restoration_services,automotive,automotive_services_and_repair,auto_restoration_services,,,,Auto Restoration Services,3
+auto_security,automotive,automotive_services_and_repair,auto_security,,,,Auto Security,3
+auto_upholstery,automotive,automotive_services_and_repair,auto_upholstery,,,,Auto Upholstery,3
+automobile_registration_service,automotive,automotive_services_and_repair,automobile_registration_service,,,,Automobile Registration Service,3
+automotive_consultant,automotive,automotive_services_and_repair,automotive_consultant,,,,Automotive Consultant,3
+automotive_storage_facility,automotive,automotive_services_and_repair,automotive_storage_facility,,,,Automotive Storage Facility,3
+automotive_wheel_polishing_service,automotive,automotive_services_and_repair,automotive_wheel_polishing_service,,,,Automotive Wheel Polishing Service,3
+brake_service_and_repair,automotive,automotive_services_and_repair,brake_service_and_repair,,,,Brake Service And Repair,3
+car_inspection,automotive,automotive_services_and_repair,car_inspection,,,,Car Inspection,3
+car_stereo_installation,automotive,automotive_services_and_repair,car_stereo_installation,,,,Car Stereo Installation,3
+car_wash,automotive,automotive_services_and_repair,car_wash,,,,Car Wash,3
+diy_auto_shop,automotive,automotive_services_and_repair,diy_auto_shop,,,,Diy Auto Shop,3
+emissions_inspection,automotive,automotive_services_and_repair,emissions_inspection,,,,Emissions Inspection,3
+engine_repair_service,automotive,automotive_services_and_repair,engine_repair_service,,,,Engine Repair Service,3
+exhaust_and_muffler_repair,automotive,automotive_services_and_repair,exhaust_and_muffler_repair,,,,Exhaust And Muffler Repair,3
+hybrid_car_repair,automotive,automotive_services_and_repair,hybrid_car_repair,,,,Hybrid Car Repair,3
+motorcycle_repair,automotive,automotive_services_and_repair,motorcycle_repair,,,,Motorcycle Repair,3
+motorsport_vehicle_repair,automotive,automotive_services_and_repair,motorsport_vehicle_repair,,,,Motorsport Vehicle Repair,3
+oil_change_station,automotive,automotive_services_and_repair,oil_change_station,,,,Oil Change Station,3
+recreation_vehicle_repair,automotive,automotive_services_and_repair,recreation_vehicle_repair,,,,Recreation Vehicle Repair,3
+emergency_roadside_service,automotive,automotive_services_and_repair,roadside_assistance,emergency_roadside_service,,,Emergency Roadside Service,4
+mobile_dent_repair,automotive,automotive_services_and_repair,roadside_assistance,mobile_dent_repair,,,Mobile Dent Repair,4
+roadside_assistance,automotive,automotive_services_and_repair,roadside_assistance,,,,Roadside Assistance,3
+tire_dealer_and_repair,automotive,automotive_services_and_repair,tire_dealer_and_repair,,,,Tire Dealer And Repair,3
+towing_service,automotive,automotive_services_and_repair,towing_service,,,,Towing Service,3
+trailer_repair,automotive,automotive_services_and_repair,trailer_repair,,,,Trailer Repair,3
+transmission_repair,automotive,automotive_services_and_repair,transmission_repair,,,,Transmission Repair,3
+truck_repair,automotive,automotive_services_and_repair,truck_repair,,,,Truck Repair,3
+vehicle_shipping,automotive,automotive_services_and_repair,vehicle_shipping,,,,Vehicle Shipping,3
+vehicle_wrap,automotive,automotive_services_and_repair,vehicle_wrap,,,,Vehicle Wrap,3
+wheel_and_rim_repair,automotive,automotive_services_and_repair,wheel_and_rim_repair,,,,Wheel And Rim Repair,3
+windshield_installation_and_repair,automotive,automotive_services_and_repair,windshield_installation_and_repair,,,,Windshield Installation And Repair,3
+automotive_services_and_repair,automotive,automotive_services_and_repair,,,,,Automotive Services And Repair,2
+boat_dealer,automotive,boat_dealer,,,,,Boat Dealer,2
+boat_parts_and_accessories,automotive,boat_parts_and_accessories,,,,,Boat Parts And Accessories,2
+boat_service_and_repair,automotive,boat_service_and_repair,,,,,Boat Service And Repair,2
+car_buyer,automotive,car_buyer,,,,,Car Buyer,2
+ev_charging_station,automotive,electric_vehicle_charging_station,,,,,Ev Charging Station,
+fuel_dock,automotive,gas_station,fuel_dock,,,,Fuel Dock,3
+truck_gas_station,automotive,gas_station,truck_gas_station,,,,Truck Gas Station,3
+gas_station,automotive,gas_station,,,,,Gas Station,2
+motorcycle_manufacturer,automotive,motorcycle_manufacturer,,,,,Motorcycle Manufacturer,2
+truck_stop,automotive,truck_stop,,,,,Truck Stop,2
+automotive,automotive,,,,,,Automotive,1
+acne_treatment,beauty_and_spa,acne_treatment,,,,,Acne Treatment,2
+aromatherapy,beauty_and_spa,aromatherapy,,,,,Aromatherapy,2
+barber,beauty_and_spa,barber,,,,,Barber,2
+beauty_salon,beauty_and_spa,beauty_salon,,,,,Beauty Salon,2
+eyebrow_service,beauty_and_spa,eyebrow_service,,,,,Eyebrow Service,2
+eyelash_service,beauty_and_spa,eyelash_service,,,,,Eyelash Service,2
+foot_care,beauty_and_spa,foot_care,,,,,Foot Care,2
+hair_extensions,beauty_and_spa,hair_extensions,,,,,Hair Extensions,2
+hair_loss_center,beauty_and_spa,hair_loss_center,,,,,Hair Loss Center,2
+laser_hair_removal,beauty_and_spa,hair_removal,laser_hair_removal,,,,Laser Hair Removal,3
+sugaring,beauty_and_spa,hair_removal,sugaring,,,,Sugaring,3
+threading_service,beauty_and_spa,hair_removal,threading_service,,,,Threading Service,3
+waxing,beauty_and_spa,hair_removal,waxing,,,,Waxing,3
+hair_removal,beauty_and_spa,hair_removal,,,,,Hair Removal,2
+hair_replacement,beauty_and_spa,hair_replacement,,,,,Hair Replacement,2
+blow_dry_blow_out_service,beauty_and_spa,hair_salon,blow_dry_blow_out_service,,,,Blow Dry Blow Out Service,3
+hair_stylist,beauty_and_spa,hair_salon,hair_stylist,,,,Hair Stylist,3
+kids_hair_salon,beauty_and_spa,hair_salon,kids_hair_salon,,,,Kids Hair Salon,3
+hair_salon,beauty_and_spa,hair_salon,,,,,Hair Salon,2
+health_spa,beauty_and_spa,health_spa,,,,,Health Spa,2
+image_consultant,beauty_and_spa,image_consultant,,,,,Image Consultant,2
+makeup_artist,beauty_and_spa,makeup_artist,,,,,Makeup Artist,2
+massage,beauty_and_spa,massage,,,,,Massage,2
+nail_salon,beauty_and_spa,nail_salon,,,,,Nail Salon,2
+onsen,beauty_and_spa,onsen,,,,,Onsen,2
+permanent_makeup,beauty_and_spa,permanent_makeup,,,,,Permanent Makeup,2
+public_bath_houses,beauty_and_spa,public_bath_houses,,,,,Public Bath Houses,2
+esthetician,beauty_and_spa,skin_care,esthetician,,,,Esthetician,3
+skin_care,beauty_and_spa,skin_care,,,,,Skin Care,2
+day_spa,beauty_and_spa,spas,day_spa,,,,Day Spa,3
+medical_spa,beauty_and_spa,spas,medical_spa,,,,Medical Spa,3
+spas,beauty_and_spa,spas,,,,,Spas,2
+spray_tanning,beauty_and_spa,tanning_salon,spray_tanning,,,,Spray Tanning,3
+tanning_bed,beauty_and_spa,tanning_salon,tanning_bed,,,,Tanning Bed,3
+tanning_salon,beauty_and_spa,tanning_salon,,,,,Tanning Salon,2
+piercing,beauty_and_spa,tattoo_and_piercing,piercing,,,,Piercing,3
+tattoo,beauty_and_spa,tattoo_and_piercing,tattoo,,,,Tattoo,3
+tattoo_and_piercing,beauty_and_spa,tattoo_and_piercing,,,,,Tattoo And Piercing,2
+teeth_whitening,beauty_and_spa,teeth_whitening,,,,,Teeth Whitening,2
+turkish_baths,beauty_and_spa,turkish_baths,,,,,Turkish Baths,2
+beauty_and_spa,beauty_and_spa,,,,,,Beauty And Spa,1
+agricultural_cooperatives,business_to_business,b2b_agriculture_and_food,agricultural_cooperatives,,,,Agricultural Cooperatives,3
+agricultural_engineering_service,business_to_business,b2b_agriculture_and_food,agricultural_engineering_service,,,,Agricultural Engineering Service,3
+agricultural_service,business_to_business,b2b_agriculture_and_food,agricultural_service,,,,Agricultural Service,3
+agriculture,business_to_business,b2b_agriculture_and_food,agriculture,,,,Agriculture,3
+apiaries_and_beekeepers,business_to_business,b2b_agriculture_and_food,apiaries_and_beekeepers,,,,Apiaries And Beekeepers,3
+b2b_dairies,business_to_business,b2b_agriculture_and_food,b2b_dairies,,,,B2B Dairies,3
+dairy_farm,business_to_business,b2b_agriculture_and_food,b2b_farming,b2b_farms,dairy_farm,,Dairy Farm,5
+pig_farm,business_to_business,b2b_agriculture_and_food,b2b_farming,b2b_farms,pig_farm,,Pig Farm,5
+urban_farm,business_to_business,b2b_agriculture_and_food,b2b_farming,b2b_farms,urban_farm,,Urban Farm,5
+b2b_farms,business_to_business,b2b_agriculture_and_food,b2b_farming,b2b_farms,,,B2B Farms,4
+fertilizer_store,business_to_business,b2b_agriculture_and_food,b2b_farming,farm_equipment_and_supply,fertilizer_store,,Fertilizer Store,5
+grain_elevators,business_to_business,b2b_agriculture_and_food,b2b_farming,farm_equipment_and_supply,grain_elevators,,Grain Elevators,5
+greenhouses,business_to_business,b2b_agriculture_and_food,b2b_farming,farm_equipment_and_supply,greenhouses,,Greenhouses,5
+irrigation_companies,business_to_business,b2b_agriculture_and_food,b2b_farming,farm_equipment_and_supply,irrigation_companies,,Irrigation Companies,5
+farm_equipment_and_supply,business_to_business,b2b_agriculture_and_food,b2b_farming,farm_equipment_and_supply,,,Farm Equipment And Supply,4
+farming_services,business_to_business,b2b_agriculture_and_food,b2b_farming,farming_services,,,Farming Services,4
+b2b_farming,business_to_business,b2b_agriculture_and_food,b2b_farming,,,,B2B Farming,3
+b2b_food_products,business_to_business,b2b_agriculture_and_food,b2b_food_products,,,,B2B Food Products,3
+grain_production,business_to_business,b2b_agriculture_and_food,crops_production,grain_production,,,Grain Production,4
+orchards_production,business_to_business,b2b_agriculture_and_food,crops_production,orchards_production,,,Orchards Production,4
+crops_production,business_to_business,b2b_agriculture_and_food,crops_production,,,,Crops Production,3
+fish_farm,business_to_business,b2b_agriculture_and_food,fish_farms_and_hatcheries,fish_farm,,,Fish Farm,4
+fish_farms_and_hatcheries,business_to_business,b2b_agriculture_and_food,fish_farms_and_hatcheries,,,,Fish Farms And Hatcheries,3
+livestock_breeder,business_to_business,b2b_agriculture_and_food,livestock_breeder,,,,Livestock Breeder,3
+livestock_dealers,business_to_business,b2b_agriculture_and_food,livestock_dealers,,,,Livestock Dealers,3
+poultry_farming,business_to_business,b2b_agriculture_and_food,poultry_farming,,,,Poultry Farming,3
+b2b_agriculture_and_food,business_to_business,b2b_agriculture_and_food,,,,,B2B Agriculture And Food,2
+coal_and_coke,business_to_business,b2b_energy_and_mining,mining,coal_and_coke,,,Coal And Coke,4
+quarries,business_to_business,b2b_energy_and_mining,mining,quarries,,,Quarries,4
+mining,business_to_business,b2b_energy_and_mining,mining,,,,Mining,3
+b2b_oil_and_gas_extraction_and_services,business_to_business,b2b_energy_and_mining,oil_and_gas,b2b_oil_and_gas_extraction_and_services,,,B2B Oil And Gas Extraction And Services,4
+oil_and_gas_exploration_and_development,business_to_business,b2b_energy_and_mining,oil_and_gas,oil_and_gas_exploration_and_development,,,Oil And Gas Exploration And Development,4
+oil_and_gas_field_equipment_and_services,business_to_business,b2b_energy_and_mining,oil_and_gas,oil_and_gas_field_equipment_and_services,,,Oil And Gas Field Equipment And Services,4
+oil_refiners,business_to_business,b2b_energy_and_mining,oil_and_gas,oil_refiners,,,Oil Refiners,4
+oil_and_gas,business_to_business,b2b_energy_and_mining,oil_and_gas,,,,Oil And Gas,3
+power_plants_and_power_plant_service,business_to_business,b2b_energy_and_mining,power_plants_and_power_plant_service,,,,Power Plants And Power Plant Service,3
+b2b_energy_and_mining,business_to_business,b2b_energy_and_mining,,,,,B2B Energy And Mining,2
+biotechnology_company,business_to_business,b2b_medical_support_services,biotechnology_company,,,,Biotechnology Company,3
+clinical_laboratories,business_to_business,b2b_medical_support_services,clinical_laboratories,,,,Clinical Laboratories,3
+dental_laboratories,business_to_business,b2b_medical_support_services,dental_laboratories,,,,Dental Laboratories,3
+hospital_equipment_and_supplies,business_to_business,b2b_medical_support_services,hospital_equipment_and_supplies,,,,Hospital Equipment And Supplies,3
+medical_research_and_development,business_to_business,b2b_medical_support_services,medical_research_and_development,,,,Medical Research And Development,3
+pharmaceutical_companies,business_to_business,b2b_medical_support_services,pharmaceutical_companies,,,,Pharmaceutical Companies,3
+surgical_appliances_and_supplies,business_to_business,b2b_medical_support_services,surgical_appliances_and_supplies,,,,Surgical Appliances And Supplies,3
+b2b_medical_support_services,business_to_business,b2b_medical_support_services,,,,,B2B Medical Support Services,2
+b2b_scientific_equipment,business_to_business,b2b_science_and_technology,b2b_scientific_equipment,,,,B2B Scientific Equipment,3
+research_institute,business_to_business,b2b_science_and_technology,research_institute,,,,Research Institute,3
+scientific_laboratories,business_to_business,b2b_science_and_technology,scientific_laboratories,,,,Scientific Laboratories,3
+b2b_science_and_technology,business_to_business,b2b_science_and_technology,,,,,B2B Science And Technology,2
+airline,business_to_business,business,airline,,,,Airline,3
+bags_luggage_company,business_to_business,business,bags_luggage_company,,,,Bags Luggage Company,3
+bottled_water_company,business_to_business,business,bottled_water_company,,,,Bottled Water Company,3
+clothing_company,business_to_business,business,clothing_company,,,,Clothing Company,3
+ferry_boat_company,business_to_business,business,ferry_boat_company,,,,Ferry Boat Company,3
+food_beverage_service_distribution,business_to_business,business,food_beverage_service_distribution,,,,Food Beverage Service Distribution,3
+hotel_supply_service,business_to_business,business,hotel_supply_service,,,,Hotel Supply Service,3
+tobacco_company,business_to_business,business,tobacco_company,,,,Tobacco Company,3
+travel_company,business_to_business,business,travel_company,,,,Travel Company,3
+business,business_to_business,business,,,,,Business,2
+business_signage,business_to_business,business_advertising,business_signage,,,,Business Signage,3
+direct_mail_advertising,business_to_business,business_advertising,direct_mail_advertising,,,,Direct Mail Advertising,3
+marketing_consultant,business_to_business,business_advertising,marketing_consultant,,,,Marketing Consultant,3
+newspaper_advertising,business_to_business,business_advertising,newspaper_advertising,,,,Newspaper Advertising,3
+outdoor_advertising,business_to_business,business_advertising,outdoor_advertising,,,,Outdoor Advertising,3
+promotional_products_and_services,business_to_business,business_advertising,promotional_products_and_services,,,,Promotional Products And Services,3
+publicity_service,business_to_business,business_advertising,publicity_service,,,,Publicity Service,3
+radio_and_television_commercials,business_to_business,business_advertising,radio_and_television_commercials,,,,Radio And Television Commercials,3
+telemarketing_services,business_to_business,business_advertising,telemarketing_services,,,,Telemarketing Services,3
+business_advertising,business_to_business,business_advertising,,,,,Business Advertising,2
+beauty_product_supplier,business_to_business,business_equipment_and_supply,beauty_product_supplier,,,,Beauty Product Supplier,3
+beverage_supplier,business_to_business,business_equipment_and_supply,beverage_supplier,,,,Beverage Supplier,3
+business_office_supplies_and_stationery,business_to_business,business_equipment_and_supply,business_office_supplies_and_stationery,,,,Business Office Supplies And Stationery,3
+electronic_parts_supplier,business_to_business,business_equipment_and_supply,electronic_parts_supplier,,,,Electronic Parts Supplier,3
+energy_equipment_and_solution,business_to_business,business_equipment_and_supply,energy_equipment_and_solution,,,,Energy Equipment And Solution,3
+hydraulic_equipment_supplier,business_to_business,business_equipment_and_supply,hydraulic_equipment_supplier,,,,Hydraulic Equipment Supplier,3
+laboratory_equipment_supplier,business_to_business,business_equipment_and_supply,laboratory_equipment_supplier,,,,Laboratory Equipment Supplier,3
+restaurant_equipment_and_supply,business_to_business,business_equipment_and_supply,restaurant_equipment_and_supply,,,,Restaurant Equipment And Supply,3
+thread_supplier,business_to_business,business_equipment_and_supply,thread_supplier,,,,Thread Supplier,3
+vending_machine_supplier,business_to_business,business_equipment_and_supply,vending_machine_supplier,,,,Vending Machine Supplier,3
+water_softening_equipment_supplier,business_to_business,business_equipment_and_supply,water_softening_equipment_supplier,,,,Water Softening Equipment Supplier,3
+computer_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,computer_wholesaler,,,Computer Wholesaler,4
+electrical_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,electrical_wholesaler,,,Electrical Wholesaler,4
+fabric_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,fabric_wholesaler,,,Fabric Wholesaler,4
+fitness_equipment_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,fitness_equipment_wholesaler,,,Fitness Equipment Wholesaler,4
+spices_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,fmcg_wholesaler,spices_wholesaler,,Spices Wholesaler,5
+fmcg_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,fmcg_wholesaler,,,Fmcg Wholesaler,4
+footwear_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,footwear_wholesaler,,,Footwear Wholesaler,4
+greengrocer,business_to_business,business_equipment_and_supply,wholesaler,greengrocer,,,Greengrocer,4
+industrial_spares_and_products_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,industrial_spares_and_products_wholesaler,,,Industrial Spares And Products Wholesaler,4
+iron_and_steel_store,business_to_business,business_equipment_and_supply,wholesaler,iron_and_steel_store,,,Iron And Steel Store,4
+lingerie_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,lingerie_wholesaler,,,Lingerie Wholesaler,4
+meat_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,meat_wholesaler,,,Meat Wholesaler,4
+optical_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,optical_wholesaler,,,Optical Wholesaler,4
+pharmaceutical_products_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,pharmaceutical_products_wholesaler,,,Pharmaceutical Products Wholesaler,4
+produce_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,produce_wholesaler,,,Produce Wholesaler,4
+restaurant_wholesale,business_to_business,business_equipment_and_supply,wholesaler,restaurant_wholesale,,,Restaurant Wholesale,4
+seafood_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,seafood_wholesaler,,,Seafood Wholesaler,4
+tea_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,tea_wholesaler,,,Tea Wholesaler,4
+threads_and_yarns_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,threads_and_yarns_wholesaler,,,Threads And Yarns Wholesaler,4
+tools_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,tools_wholesaler,,,Tools Wholesaler,4
+wholesale_florist,business_to_business,business_equipment_and_supply,wholesaler,wholesale_florist,,,Wholesale Florist,4
+wholesale_grocer,business_to_business,business_equipment_and_supply,wholesaler,wholesale_grocer,,,Wholesale Grocer,4
+wine_wholesaler,business_to_business,business_equipment_and_supply,wholesaler,wine_wholesaler,,,Wine Wholesaler,4
+wholesaler,business_to_business,business_equipment_and_supply,wholesaler,,,,Wholesaler,3
+business_equipment_and_supply,business_to_business,business_equipment_and_supply,,,,,Business Equipment And Supply,2
+abrasives_supplier,business_to_business,business_manufacturing_and_supply,abrasives_supplier,,,,Abrasives Supplier,3
+aggregate_supplier,business_to_business,business_manufacturing_and_supply,aggregate_supplier,,,,Aggregate Supplier,3
+aircraft_manufacturer,business_to_business,business_manufacturing_and_supply,aircraft_manufacturer,,,,Aircraft Manufacturer,3
+aluminum_supplier,business_to_business,business_manufacturing_and_supply,aluminum_supplier,,,,Aluminum Supplier,3
+appliance_manufacturer,business_to_business,business_manufacturing_and_supply,appliance_manufacturer,,,,Appliance Manufacturer,3
+b2b_apparel,business_to_business,business_manufacturing_and_supply,b2b_apparel,,,,B2B Apparel,3
+auto_manufacturers_and_distributors,business_to_business,business_manufacturing_and_supply,b2b_autos_and_vehicles,auto_manufacturers_and_distributors,,,Auto Manufacturers And Distributors,4
+b2b_tires,business_to_business,business_manufacturing_and_supply,b2b_autos_and_vehicles,b2b_tires,,,B2B Tires,4
+b2b_autos_and_vehicles,business_to_business,business_manufacturing_and_supply,b2b_autos_and_vehicles,,,,B2B Autos And Vehicles,3
+b2b_electronic_equipment,business_to_business,business_manufacturing_and_supply,b2b_electronic_equipment,,,,B2B Electronic Equipment,3
+furniture_manufacturers,business_to_business,business_manufacturing_and_supply,b2b_furniture_and_housewares,furniture_manufacturers,,,Furniture Manufacturers,4
+furniture_wholesalers,business_to_business,business_manufacturing_and_supply,b2b_furniture_and_housewares,furniture_wholesalers,,,Furniture Wholesalers,4
+b2b_furniture_and_housewares,business_to_business,business_manufacturing_and_supply,b2b_furniture_and_housewares,,,,B2B Furniture And Housewares,3
+b2b_hardware,business_to_business,business_manufacturing_and_supply,b2b_hardware,,,,B2B Hardware,3
+b2b_jewelers,business_to_business,business_manufacturing_and_supply,b2b_jewelers,,,,B2B Jewelers,3
+b2b_equipment_maintenance_and_repair,business_to_business,business_manufacturing_and_supply,b2b_machinery_and_tools,b2b_equipment_maintenance_and_repair,,,B2B Equipment Maintenance And Repair,4
+industrial_equipment,business_to_business,business_manufacturing_and_supply,b2b_machinery_and_tools,industrial_equipment,,,Industrial Equipment,4
+b2b_machinery_and_tools,business_to_business,business_manufacturing_and_supply,b2b_machinery_and_tools,,,,B2B Machinery And Tools,3
+plastic_company,business_to_business,business_manufacturing_and_supply,b2b_rubber_and_plastics,plastic_company,,,Plastic Company,4
+plastic_manufacturer,business_to_business,business_manufacturing_and_supply,b2b_rubber_and_plastics,plastic_manufacturer,,,Plastic Manufacturer,4
+b2b_rubber_and_plastics,business_to_business,business_manufacturing_and_supply,b2b_rubber_and_plastics,,,,B2B Rubber And Plastics,3
+b2b_sporting_and_recreation_goods,business_to_business,business_manufacturing_and_supply,b2b_sporting_and_recreation_goods,,,,B2B Sporting And Recreation Goods,3
+b2b_textiles,business_to_business,business_manufacturing_and_supply,b2b_textiles,,,,B2B Textiles,3
+battery_inverter_supplier,business_to_business,business_manufacturing_and_supply,battery_inverter_supplier,,,,Battery Inverter Supplier,3
+bearing_supplier,business_to_business,business_manufacturing_and_supply,bearing_supplier,,,,Bearing Supplier,3
+casting_molding_and_machining,business_to_business,business_manufacturing_and_supply,casting_molding_and_machining,,,,Casting Molding And Machining,3
+cement_supplier,business_to_business,business_manufacturing_and_supply,cement_supplier,,,,Cement Supplier,3
+chemical_plant,business_to_business,business_manufacturing_and_supply,chemical_plant,,,,Chemical Plant,3
+cleaning_products_supplier,business_to_business,business_manufacturing_and_supply,cleaning_products_supplier,,,,Cleaning Products Supplier,3
+cosmetic_products_manufacturer,business_to_business,business_manufacturing_and_supply,cosmetic_products_manufacturer,,,,Cosmetic Products Manufacturer,3
+drinking_water_dispenser,business_to_business,business_manufacturing_and_supply,drinking_water_dispenser,,,,Drinking Water Dispenser,3
+fastener_supplier,business_to_business,business_manufacturing_and_supply,fastener_supplier,,,,Fastener Supplier,3
+glass_manufacturer,business_to_business,business_manufacturing_and_supply,glass_manufacturer,,,,Glass Manufacturer,3
+granite_supplier,business_to_business,business_manufacturing_and_supply,granite_supplier,,,,Granite Supplier,3
+hvac_supplier,business_to_business,business_manufacturing_and_supply,hvac_supplier,,,,Hvac Supplier,3
+jewelry_and_watches_manufacturer,business_to_business,business_manufacturing_and_supply,jewelry_and_watches_manufacturer,,,,Jewelry And Watches Manufacturer,3
+jewelry_manufacturer,business_to_business,business_manufacturing_and_supply,jewelry_manufacturer,,,,Jewelry Manufacturer,3
+leather_products_manufacturer,business_to_business,business_manufacturing_and_supply,leather_products_manufacturer,,,,Leather Products Manufacturer,3
+lighting_fixture_manufacturers,business_to_business,business_manufacturing_and_supply,lighting_fixture_manufacturers,,,,Lighting Fixture Manufacturers,3
+mattress_manufacturing,business_to_business,business_manufacturing_and_supply,mattress_manufacturing,,,,Mattress Manufacturing,3
+iron_work,business_to_business,business_manufacturing_and_supply,metals,metal_fabricator,iron_and_steel_industry,iron_work,Iron Work,6
+iron_and_steel_industry,business_to_business,business_manufacturing_and_supply,metals,metal_fabricator,iron_and_steel_industry,,Iron And Steel Industry,5
+metal_fabricator,business_to_business,business_manufacturing_and_supply,metals,metal_fabricator,,,Metal Fabricator,4
+metal_plating_service,business_to_business,business_manufacturing_and_supply,metals,metal_plating_service,,,Metal Plating Service,4
+metal_supplier,business_to_business,business_manufacturing_and_supply,metals,metal_supplier,,,Metal Supplier,4
+scrap_metals,business_to_business,business_manufacturing_and_supply,metals,scrap_metals,,,Scrap Metals,4
+sheet_metal,business_to_business,business_manufacturing_and_supply,metals,sheet_metal,,,Sheet Metal,4
+steel_fabricators,business_to_business,business_manufacturing_and_supply,metals,steel_fabricators,,,Steel Fabricators,4
+metals,business_to_business,business_manufacturing_and_supply,metals,,,,Metals,3
+cotton_mill,business_to_business,business_manufacturing_and_supply,mills,cotton_mill,,,Cotton Mill,4
+flour_mill,business_to_business,business_manufacturing_and_supply,mills,flour_mill,,,Flour Mill,4
+paper_mill,business_to_business,business_manufacturing_and_supply,mills,paper_mill,,,Paper Mill,4
+rice_mill,business_to_business,business_manufacturing_and_supply,mills,rice_mill,,,Rice Mill,4
+saw_mill,business_to_business,business_manufacturing_and_supply,mills,saw_mill,,,Saw Mill,4
+textile_mill,business_to_business,business_manufacturing_and_supply,mills,textile_mill,,,Textile Mill,4
+weaving_mill,business_to_business,business_manufacturing_and_supply,mills,weaving_mill,,,Weaving Mill,4
+mills,business_to_business,business_manufacturing_and_supply,mills,,,,Mills,3
+pipe_supplier,business_to_business,business_manufacturing_and_supply,pipe_supplier,,,,Pipe Supplier,3
+plastic_fabrication_company,business_to_business,business_manufacturing_and_supply,plastic_fabrication_company,,,,Plastic Fabrication Company,3
+plastic_injection_molding_workshop,business_to_business,business_manufacturing_and_supply,plastic_injection_molding_workshop,,,,Plastic Injection Molding Workshop,3
+printing_equipment_and_supply,business_to_business,business_manufacturing_and_supply,printing_equipment_and_supply,,,,Printing Equipment And Supply,3
+retaining_wall_supplier,business_to_business,business_manufacturing_and_supply,retaining_wall_supplier,,,,Retaining Wall Supplier,3
+sand_and_gravel_supplier,business_to_business,business_manufacturing_and_supply,sand_and_gravel_supplier,,,,Sand And Gravel Supplier,3
+scale_supplier,business_to_business,business_manufacturing_and_supply,scale_supplier,,,,Scale Supplier,3
+seal_and_hanko_dealers,business_to_business,business_manufacturing_and_supply,seal_and_hanko_dealers,,,,Seal And Hanko Dealers,3
+shoe_factory,business_to_business,business_manufacturing_and_supply,shoe_factory,,,,Shoe Factory,3
+spring_supplier,business_to_business,business_manufacturing_and_supply,spring_supplier,,,,Spring Supplier,3
+stone_supplier,business_to_business,business_manufacturing_and_supply,stone_supplier,,,,Stone Supplier,3
+turnery,business_to_business,business_manufacturing_and_supply,turnery,,,,Turnery,3
+window_supplier,business_to_business,business_manufacturing_and_supply,window_supplier,,,,Window Supplier,3
+logging_contractor,business_to_business,business_manufacturing_and_supply,wood_and_pulp,logging_contractor,,,Logging Contractor,4
+logging_equipment_and_supplies,business_to_business,business_manufacturing_and_supply,wood_and_pulp,logging_equipment_and_supplies,,,Logging Equipment And Supplies,4
+logging_services,business_to_business,business_manufacturing_and_supply,wood_and_pulp,logging_services,,,Logging Services,4
+wood_and_pulp,business_to_business,business_manufacturing_and_supply,wood_and_pulp,,,,Wood And Pulp,3
+business_manufacturing_and_supply,business_to_business,business_manufacturing_and_supply,,,,,Business Manufacturing And Supply,2
+warehouse_rental_services_and_yards,business_to_business,business_storage_and_transportation,b2b_storage_and_warehouses,warehouse_rental_services_and_yards,,,Warehouse Rental Services And Yards,4
+warehouses,business_to_business,business_storage_and_transportation,b2b_storage_and_warehouses,warehouses,,,Warehouses,4
+b2b_storage_and_warehouses,business_to_business,business_storage_and_transportation,b2b_storage_and_warehouses,,,,B2B Storage And Warehouses,3
+distribution_services,business_to_business,business_storage_and_transportation,freight_and_cargo_service,distribution_services,,,Distribution Services,4
+freight_forwarding_agency,business_to_business,business_storage_and_transportation,freight_and_cargo_service,freight_forwarding_agency,,,Freight Forwarding Agency,4
+freight_and_cargo_service,business_to_business,business_storage_and_transportation,freight_and_cargo_service,,,,Freight And Cargo Service,3
+motor_freight_trucking,business_to_business,business_storage_and_transportation,motor_freight_trucking,,,,Motor Freight Trucking,3
+pipeline_transportation,business_to_business,business_storage_and_transportation,pipeline_transportation,,,,Pipeline Transportation,3
+railroad_freight,business_to_business,business_storage_and_transportation,railroad_freight,,,,Railroad Freight,3
+b2b_forklift_dealers,business_to_business,business_storage_and_transportation,trucks_and_industrial_vehicles,b2b_forklift_dealers,,,B2B Forklift Dealers,4
+b2b_tractor_dealers,business_to_business,business_storage_and_transportation,trucks_and_industrial_vehicles,b2b_tractor_dealers,,,B2B Tractor Dealers,4
+b2b_truck_equipment_parts_and_accessories,business_to_business,business_storage_and_transportation,trucks_and_industrial_vehicles,b2b_truck_equipment_parts_and_accessories,,,B2B Truck Equipment Parts And Accessories,4
+truck_dealer_for_businesses,business_to_business,business_storage_and_transportation,trucks_and_industrial_vehicles,truck_dealer_for_businesses,,,Truck Dealer For Businesses,4
+truck_repair_and_services_for_businesses,business_to_business,business_storage_and_transportation,trucks_and_industrial_vehicles,truck_repair_and_services_for_businesses,,,Truck Repair And Services For Businesses,4
+trucks_and_industrial_vehicles,business_to_business,business_storage_and_transportation,trucks_and_industrial_vehicles,,,,Trucks And Industrial Vehicles,3
+business_storage_and_transportation,business_to_business,business_storage_and_transportation,,,,,Business Storage And Transportation,2
+agricultural_production,business_to_business,business_to_business_services,agricultural_production,,,,Agricultural Production,3
+audio_visual_production_and_design,business_to_business,business_to_business_services,audio_visual_production_and_design,,,,Audio Visual Production And Design,3
+boat_builder,business_to_business,business_to_business_services,boat_builder,,,,Boat Builder,3
+business_records_storage_and_management,business_to_business,business_to_business_services,business_records_storage_and_management,,,,Business Records Storage And Management,3
+business_management_services,business_to_business,business_to_business_services,consultant_and_general_service,business_management_services,,,Business Management Services,4
+executive_search_consultants,business_to_business,business_to_business_services,consultant_and_general_service,executive_search_consultants,,,Executive Search Consultants,4
+food_consultant,business_to_business,business_to_business_services,consultant_and_general_service,food_consultant,,,Food Consultant,4
+manufacturing_and_industrial_consultant,business_to_business,business_to_business_services,consultant_and_general_service,manufacturing_and_industrial_consultant,,,Manufacturing And Industrial Consultant,4
+secretarial_services,business_to_business,business_to_business_services,consultant_and_general_service,secretarial_services,,,Secretarial Services,4
+consultant_and_general_service,business_to_business,business_to_business_services,consultant_and_general_service,,,,Consultant And General Service,3
+coworking_space,business_to_business,business_to_business_services,coworking_space,,,,Coworking Space,3
+manufacturers_agents_and_representatives,business_to_business,business_to_business_services,domestic_business_and_trade_organizations,manufacturers_agents_and_representatives,,,Manufacturers Agents And Representatives,4
+domestic_business_and_trade_organizations,business_to_business,business_to_business_services,domestic_business_and_trade_organizations,,,,Domestic Business And Trade Organizations,3
+water_treatment_equipment_and_services,business_to_business,business_to_business_services,environmental_and_ecological_services_for_businesses,b2b_cleaning_and_waste_management,water_treatment_equipment_and_services,,Water Treatment Equipment And Services,5
+b2b_cleaning_and_waste_management,business_to_business,business_to_business_services,environmental_and_ecological_services_for_businesses,b2b_cleaning_and_waste_management,,,B2B Cleaning And Waste Management,4
+energy_management_and_conservation_consultants,business_to_business,business_to_business_services,environmental_and_ecological_services_for_businesses,energy_management_and_conservation_consultants,,,Energy Management And Conservation Consultants,4
+environmental_conservation_and_ecological_organizations,business_to_business,business_to_business_services,environmental_and_ecological_services_for_businesses,environmental_conservation_and_ecological_organizations,,,Environmental Conservation And Ecological Organizations,4
+environmental_renewable_natural_resource,business_to_business,business_to_business_services,environmental_and_ecological_services_for_businesses,environmental_renewable_natural_resource,,,Environmental Renewable Natural Resource,4
+forestry_consultants,business_to_business,business_to_business_services,environmental_and_ecological_services_for_businesses,forestry_consultants,,,Forestry Consultants,4
+geological_services,business_to_business,business_to_business_services,environmental_and_ecological_services_for_businesses,geological_services,,,Geological Services,4
+environmental_and_ecological_services_for_businesses,business_to_business,business_to_business_services,environmental_and_ecological_services_for_businesses,,,,Environmental And Ecological Services For Businesses,3
+background_check_services,business_to_business,business_to_business_services,human_resource_services,background_check_services,,,Background Check Services,4
+human_resource_services,business_to_business,business_to_business_services,human_resource_services,,,,Human Resource Services,3
+information_technology_company,business_to_business,business_to_business_services,information_technology_company,,,,Information Technology Company,3
+food_and_beverage_exporter,business_to_business,business_to_business_services,international_business_and_trade_services,importer_and_exporter,exporters,food_and_beverage_exporter,Food And Beverage Exporter,6
+exporters,business_to_business,business_to_business_services,international_business_and_trade_services,importer_and_exporter,exporters,,Exporters,5
+importers,business_to_business,business_to_business_services,international_business_and_trade_services,importer_and_exporter,importers,,Importers,5
+importer_and_exporter,business_to_business,business_to_business_services,international_business_and_trade_services,importer_and_exporter,,,Importer And Exporter,4
+international_business_and_trade_services,business_to_business,business_to_business_services,international_business_and_trade_services,,,,International Business And Trade Services,3
+laser_cutting_service_provider,business_to_business,business_to_business_services,laser_cutting_service_provider,,,,Laser Cutting Service Provider,3
+restaurant_management,business_to_business,business_to_business_services,restaurant_management,,,,Restaurant Management,3
+telecommunications_company,business_to_business,business_to_business_services,telecommunications_company,,,,Telecommunications Company,3
+tower_communication_service,business_to_business,business_to_business_services,tower_communication_service,,,,Tower Communication Service,3
+transcription_services,business_to_business,business_to_business_services,transcription_services,,,,Transcription Services,3
+translating_and_interpreting_services,business_to_business,business_to_business_services,translating_and_interpreting_services,,,,Translating And Interpreting Services,3
+business_to_business_services,business_to_business,business_to_business_services,,,,,Business To Business Services,2
+automation_services,business_to_business,commercial_industrial,automation_services,,,,Automation Services,3
+industrial_company,business_to_business,commercial_industrial,industrial_company,,,,Industrial Company,3
+inventory_control_service,business_to_business,commercial_industrial,inventory_control_service,,,,Inventory Control Service,3
+occupational_safety,business_to_business,commercial_industrial,occupational_safety,,,,Occupational Safety,3
+commercial_industrial,business_to_business,commercial_industrial,,,,,Commercial Industrial,2
+business_to_business,business_to_business,,,,,,Business To Business,1
+airport_lounge,eat_and_drink,bar,airport_lounge,,,,Airport Lounge,3
+beach_bar,eat_and_drink,bar,beach_bar,,,,Beach Bar,3
+beer_bar,eat_and_drink,bar,beer_bar,,,,Beer Bar,3
+beer_garden,eat_and_drink,bar,beer_garden,,,,Beer Garden,3
+brewery,eat_and_drink,bar,brewery,,,,Brewery,3
+bubble_tea,eat_and_drink,bar,bubble_tea,,,,Bubble Tea,3
+champagne_bar,eat_and_drink,bar,champagne_bar,,,,Champagne Bar,3
+cidery,eat_and_drink,bar,cidery,,,,Cidery,3
+cigar_bar,eat_and_drink,bar,cigar_bar,,,,Cigar Bar,3
+cocktail_bar,eat_and_drink,bar,cocktail_bar,,,,Cocktail Bar,3
+dive_bar,eat_and_drink,bar,dive_bar,,,,Dive Bar,3
+drive_thru_bar,eat_and_drink,bar,drive_thru_bar,,,,Drive Thru Bar,3
+gay_bar,eat_and_drink,bar,gay_bar,,,,Gay Bar,3
+hookah_bar,eat_and_drink,bar,hookah_bar,,,,Hookah Bar,3
+hotel_bar,eat_and_drink,bar,hotel_bar,,,,Hotel Bar,3
+irish_pub,eat_and_drink,bar,irish_pub,,,,Irish Pub,3
+kombucha,eat_and_drink,bar,kombucha,,,,Kombucha,3
+lounge,eat_and_drink,bar,lounge,,,,Lounge,3
+milk_bar,eat_and_drink,bar,milk_bar,,,,Milk Bar,3
+milkshake_bar,eat_and_drink,bar,milkshake_bar,,,,Milkshake Bar,3
+piano_bar,eat_and_drink,bar,piano_bar,,,,Piano Bar,3
+pub,eat_and_drink,bar,pub,,,,Pub,3
+sake_bar,eat_and_drink,bar,sake_bar,,,,Sake Bar,3
+smoothie_juice_bar,eat_and_drink,bar,smoothie_juice_bar,,,,Smoothie Juice Bar,3
+speakeasy,eat_and_drink,bar,speakeasy,,,,Speakeasy,3
+sports_bar,eat_and_drink,bar,sports_bar,,,,Sports Bar,3
+sugar_shack,eat_and_drink,bar,sugar_shack,,,,Sugar Shack,3
+tabac,eat_and_drink,bar,tabac,,,,Tabac,3
+tiki_bar,eat_and_drink,bar,tiki_bar,,,,Tiki Bar,3
+vermouth_bar,eat_and_drink,bar,vermouth_bar,,,,Vermouth Bar,3
+whiskey_bar,eat_and_drink,bar,whiskey_bar,,,,Whiskey Bar,3
+wine_bar,eat_and_drink,bar,wine_bar,,,,Wine Bar,3
+bar,eat_and_drink,bar,,,,,Bar,2
+coffee_roastery,eat_and_drink,cafe,coffee_roastery,,,,Coffee Roastery,3
+coffee_shop,eat_and_drink,cafe,coffee_shop,,,,Coffee Shop,3
+tea_room,eat_and_drink,cafe,tea_room,,,,Tea Room,3
+cafe,eat_and_drink,cafe,,,,,Cafe,2
+acai_bowls,eat_and_drink,restaurant,acai_bowls,,,,Acai Bowls,3
+afghan_restaurant,eat_and_drink,restaurant,afghan_restaurant,,,,Afghan Restaurant,3
+ethiopian_restaurant,eat_and_drink,restaurant,african_restaurant,ethiopian_restaurant,,,Ethiopian Restaurant,4
+moroccan_restaurant,eat_and_drink,restaurant,african_restaurant,moroccan_restaurant,,,Moroccan Restaurant,4
+nigerian_restaurant,eat_and_drink,restaurant,african_restaurant,nigerian_restaurant,,,Nigerian Restaurant,4
+senegalese_restaurant,eat_and_drink,restaurant,african_restaurant,senegalese_restaurant,,,Senegalese Restaurant,4
+south_african_restaurant,eat_and_drink,restaurant,african_restaurant,south_african_restaurant,,,South African Restaurant,4
+african_restaurant,eat_and_drink,restaurant,african_restaurant,,,,African Restaurant,3
+american_restaurant,eat_and_drink,restaurant,american_restaurant,,,,American Restaurant,3
+arabian_restaurant,eat_and_drink,restaurant,arabian_restaurant,,,,Arabian Restaurant,3
+asian_fusion_restaurant,eat_and_drink,restaurant,asian_restaurant,asian_fusion_restaurant,,,Asian Fusion Restaurant,4
+burmese_restaurant,eat_and_drink,restaurant,asian_restaurant,burmese_restaurant,,,Burmese Restaurant,4
+cambodian_restaurant,eat_and_drink,restaurant,asian_restaurant,cambodian_restaurant,,,Cambodian Restaurant,4
+chinese_restaurant,eat_and_drink,restaurant,asian_restaurant,chinese_restaurant,,,Chinese Restaurant,4
+dim_sum_restaurant,eat_and_drink,restaurant,asian_restaurant,dim_sum_restaurant,,,Dim Sum Restaurant,4
+filipino_restaurant,eat_and_drink,restaurant,asian_restaurant,filipino_restaurant,,,Filipino Restaurant,4
+hong_kong_style_cafe,eat_and_drink,restaurant,asian_restaurant,hong_kong_style_cafe,,,Hong Kong Style Cafe,4
+indo_chinese_restaurant,eat_and_drink,restaurant,asian_restaurant,indo_chinese_restaurant,,,Indo Chinese Restaurant,4
+indonesian_restaurant,eat_and_drink,restaurant,asian_restaurant,indonesian_restaurant,,,Indonesian Restaurant,4
+japanese_restaurant,eat_and_drink,restaurant,asian_restaurant,japanese_restaurant,,,Japanese Restaurant,4
+korean_restaurant,eat_and_drink,restaurant,asian_restaurant,korean_restaurant,,,Korean Restaurant,4
+laotian_restaurant,eat_and_drink,restaurant,asian_restaurant,laotian_restaurant,,,Laotian Restaurant,4
+malaysian_restaurant,eat_and_drink,restaurant,asian_restaurant,malaysian_restaurant,,,Malaysian Restaurant,4
+mongolian_restaurant,eat_and_drink,restaurant,asian_restaurant,mongolian_restaurant,,,Mongolian Restaurant,4
+noodles_restaurant,eat_and_drink,restaurant,asian_restaurant,noodles_restaurant,,,Noodles Restaurant,4
+pan_asian_restaurant,eat_and_drink,restaurant,asian_restaurant,pan_asian_restaurant,,,Pan Asian Restaurant,4
+singaporean_restaurant,eat_and_drink,restaurant,asian_restaurant,singaporean_restaurant,,,Singaporean Restaurant,4
+sushi_restaurant,eat_and_drink,restaurant,asian_restaurant,sushi_restaurant,,,Sushi Restaurant,4
+taiwanese_restaurant,eat_and_drink,restaurant,asian_restaurant,taiwanese_restaurant,,,Taiwanese Restaurant,4
+thai_restaurant,eat_and_drink,restaurant,asian_restaurant,thai_restaurant,,,Thai Restaurant,4
+vietnamese_restaurant,eat_and_drink,restaurant,asian_restaurant,vietnamese_restaurant,,,Vietnamese Restaurant,4
+asian_restaurant,eat_and_drink,restaurant,asian_restaurant,,,,Asian Restaurant,3
+australian_restaurant,eat_and_drink,restaurant,australian_restaurant,,,,Australian Restaurant,3
+austrian_restaurant,eat_and_drink,restaurant,austrian_restaurant,,,,Austrian Restaurant,3
+bangladeshi_restaurant,eat_and_drink,restaurant,bangladeshi_restaurant,,,,Bangladeshi Restaurant,3
+baozi_restaurant,eat_and_drink,restaurant,baozi_restaurant,,,,Baozi Restaurant,3
+bar_and_grill_restaurant,eat_and_drink,restaurant,bar_and_grill_restaurant,,,,Bar And Grill Restaurant,3
+barbecue_restaurant,eat_and_drink,restaurant,barbecue_restaurant,,,,Barbecue Restaurant,3
+basque_restaurant,eat_and_drink,restaurant,basque_restaurant,,,,Basque Restaurant,3
+belgian_restaurant,eat_and_drink,restaurant,belgian_restaurant,,,,Belgian Restaurant,3
+bistro,eat_and_drink,restaurant,bistro,,,,Bistro,3
+brasserie,eat_and_drink,restaurant,brasserie,,,,Brasserie,3
+bagel_restaurant,eat_and_drink,restaurant,breakfast_and_brunch_restaurant,bagel_restaurant,,,Bagel Restaurant,4
+baguettes,eat_and_drink,restaurant,breakfast_and_brunch_restaurant,baguettes,,,Baguettes,4
+pancake_house,eat_and_drink,restaurant,breakfast_and_brunch_restaurant,pancake_house,,,Pancake House,4
+breakfast_and_brunch_restaurant,eat_and_drink,restaurant,breakfast_and_brunch_restaurant,,,,Breakfast And Brunch Restaurant,3
+british_restaurant,eat_and_drink,restaurant,british_restaurant,,,,British Restaurant,3
+buffet_restaurant,eat_and_drink,restaurant,buffet_restaurant,,,,Buffet Restaurant,3
+burger_restaurant,eat_and_drink,restaurant,burger_restaurant,,,,Burger Restaurant,3
+cafeteria,eat_and_drink,restaurant,cafeteria,,,,Cafeteria,3
+cajun_and_creole_restaurant,eat_and_drink,restaurant,cajun_and_creole_restaurant,,,,Cajun And Creole Restaurant,3
+canadian_restaurant,eat_and_drink,restaurant,canadian_restaurant,,,,Canadian Restaurant,3
+canteen,eat_and_drink,restaurant,canteen,,,,Canteen,3
+dominican_restaurant,eat_and_drink,restaurant,caribbean_restaurant,dominican_restaurant,,,Dominican Restaurant,4
+haitian_restaurant,eat_and_drink,restaurant,caribbean_restaurant,haitian_restaurant,,,Haitian Restaurant,4
+jamaican_restaurant,eat_and_drink,restaurant,caribbean_restaurant,jamaican_restaurant,,,Jamaican Restaurant,4
+trinidadian_restaurant,eat_and_drink,restaurant,caribbean_restaurant,trinidadian_restaurant,,,Trinidadian Restaurant,4
+caribbean_restaurant,eat_and_drink,restaurant,caribbean_restaurant,,,,Caribbean Restaurant,3
+catalan_restaurant,eat_and_drink,restaurant,catalan_restaurant,,,,Catalan Restaurant,3
+cheesesteak_restaurant,eat_and_drink,restaurant,cheesesteak_restaurant,,,,Cheesesteak Restaurant,3
+chicken_restaurant,eat_and_drink,restaurant,chicken_restaurant,,,,Chicken Restaurant,3
+chicken_wings_restaurant,eat_and_drink,restaurant,chicken_wings_restaurant,,,,Chicken Wings Restaurant,3
+comfort_food_restaurant,eat_and_drink,restaurant,comfort_food_restaurant,,,,Comfort Food Restaurant,3
+curry_sausage_restaurant,eat_and_drink,restaurant,curry_sausage_restaurant,,,,Curry Sausage Restaurant,3
+czech_restaurant,eat_and_drink,restaurant,czech_restaurant,,,,Czech Restaurant,3
+diner,eat_and_drink,restaurant,diner,,,,Diner,3
+diy_foods_restaurant,eat_and_drink,restaurant,diy_foods_restaurant,,,,Diy Foods Restaurant,3
+dog_meat_restaurant,eat_and_drink,restaurant,dog_meat_restaurant,,,,Dog Meat Restaurant,3
+doner_kebab,eat_and_drink,restaurant,doner_kebab,,,,Doner Kebab,3
+dumpling_restaurant,eat_and_drink,restaurant,dumpling_restaurant,,,,Dumpling Restaurant,3
+belarusian_restaurant,eat_and_drink,restaurant,eastern_european_restaurant,belarusian_restaurant,,,Belarusian Restaurant,4
+bulgarian_restaurant,eat_and_drink,restaurant,eastern_european_restaurant,bulgarian_restaurant,,,Bulgarian Restaurant,4
+romanian_restaurant,eat_and_drink,restaurant,eastern_european_restaurant,romanian_restaurant,,,Romanian Restaurant,4
+tatar_restaurant,eat_and_drink,restaurant,eastern_european_restaurant,tatar_restaurant,,,Tatar Restaurant,4
+ukrainian_restaurant,eat_and_drink,restaurant,eastern_european_restaurant,ukrainian_restaurant,,,Ukrainian Restaurant,4
+eastern_european_restaurant,eat_and_drink,restaurant,eastern_european_restaurant,,,,Eastern European Restaurant,3
+empanadas,eat_and_drink,restaurant,empanadas,,,,Empanadas,3
+european_restaurant,eat_and_drink,restaurant,european_restaurant,,,,European Restaurant,3
+falafel_restaurant,eat_and_drink,restaurant,falafel_restaurant,,,,Falafel Restaurant,3
+fast_food_restaurant,eat_and_drink,restaurant,fast_food_restaurant,,,,Fast Food Restaurant,3
+fischbrotchen_restaurant,eat_and_drink,restaurant,fischbrotchen_restaurant,,,,Fischbrotchen Restaurant,3
+fish_and_chips_restaurant,eat_and_drink,restaurant,fish_and_chips_restaurant,,,,Fish And Chips Restaurant,3
+fish_restaurant,eat_and_drink,restaurant,fish_restaurant,,,,Fish Restaurant,3
+flatbread_restaurant,eat_and_drink,restaurant,flatbread_restaurant,,,,Flatbread Restaurant,3
+fondue_restaurant,eat_and_drink,restaurant,fondue_restaurant,,,,Fondue Restaurant,3
+food_court,eat_and_drink,restaurant,food_court,,,,Food Court,3
+french_restaurant,eat_and_drink,restaurant,french_restaurant,,,,French Restaurant,3
+gastropub,eat_and_drink,restaurant,gastropub,,,,Gastropub,3
+german_restaurant,eat_and_drink,restaurant,german_restaurant,,,,German Restaurant,3
+gluten_free_restaurant,eat_and_drink,restaurant,gluten_free_restaurant,,,,Gluten Free Restaurant,3
+guamanian_restaurant,eat_and_drink,restaurant,guamanian_restaurant,,,,Guamanian Restaurant,3
+halal_restaurant,eat_and_drink,restaurant,halal_restaurant,,,,Halal Restaurant,3
+haute_cuisine_restaurant,eat_and_drink,restaurant,haute_cuisine_restaurant,,,,Haute Cuisine Restaurant,3
+hawaiian_restaurant,eat_and_drink,restaurant,hawaiian_restaurant,,,,Hawaiian Restaurant,3
+health_food_restaurant,eat_and_drink,restaurant,health_food_restaurant,,,,Health Food Restaurant,3
+himalayan_nepalese_restaurant,eat_and_drink,restaurant,himalayan_nepalese_restaurant,,,,Himalayan Nepalese Restaurant,3
+hot_dog_restaurant,eat_and_drink,restaurant,hot_dog_restaurant,,,,Hot Dog Restaurant,3
+hungarian_restaurant,eat_and_drink,restaurant,hungarian_restaurant,,,,Hungarian Restaurant,3
+iberian_restaurant,eat_and_drink,restaurant,iberian_restaurant,,,,Iberian Restaurant,3
+indian_restaurant,eat_and_drink,restaurant,indian_restaurant,,,,Indian Restaurant,3
+international_restaurant,eat_and_drink,restaurant,international_restaurant,,,,International Restaurant,3
+irish_restaurant,eat_and_drink,restaurant,irish_restaurant,,,,Irish Restaurant,3
+italian_restaurant,eat_and_drink,restaurant,italian_restaurant,,,,Italian Restaurant,3
+jewish_restaurant,eat_and_drink,restaurant,jewish_restaurant,,,,Jewish Restaurant,3
+kosher_restaurant,eat_and_drink,restaurant,kosher_restaurant,,,,Kosher Restaurant,3
+argentine_restaurant,eat_and_drink,restaurant,latin_american_restaurant,argentine_restaurant,,,Argentine Restaurant,4
+belizean_restaurant,eat_and_drink,restaurant,latin_american_restaurant,belizean_restaurant,,,Belizean Restaurant,4
+bolivian_restaurant,eat_and_drink,restaurant,latin_american_restaurant,bolivian_restaurant,,,Bolivian Restaurant,4
+brazilian_restaurant,eat_and_drink,restaurant,latin_american_restaurant,brazilian_restaurant,,,Brazilian Restaurant,4
+chilean_restaurant,eat_and_drink,restaurant,latin_american_restaurant,chilean_restaurant,,,Chilean Restaurant,4
+colombian_restaurant,eat_and_drink,restaurant,latin_american_restaurant,colombian_restaurant,,,Colombian Restaurant,4
+costa_rican_restaurant,eat_and_drink,restaurant,latin_american_restaurant,costa_rican_restaurant,,,Costa Rican Restaurant,4
+cuban_restaurant,eat_and_drink,restaurant,latin_american_restaurant,cuban_restaurant,,,Cuban Restaurant,4
+ecuadorian_restaurant,eat_and_drink,restaurant,latin_american_restaurant,ecuadorian_restaurant,,,Ecuadorian Restaurant,4
+guatemalan_restaurant,eat_and_drink,restaurant,latin_american_restaurant,guatemalan_restaurant,,,Guatemalan Restaurant,4
+honduran_restaurant,eat_and_drink,restaurant,latin_american_restaurant,honduran_restaurant,,,Honduran Restaurant,4
+mexican_restaurant,eat_and_drink,restaurant,latin_american_restaurant,mexican_restaurant,,,Mexican Restaurant,4
+nicaraguan_restaurant,eat_and_drink,restaurant,latin_american_restaurant,nicaraguan_restaurant,,,Nicaraguan Restaurant,4
+panamanian_restaurant,eat_and_drink,restaurant,latin_american_restaurant,panamanian_restaurant,,,Panamanian Restaurant,4
+paraguayan_restaurant,eat_and_drink,restaurant,latin_american_restaurant,paraguayan_restaurant,,,Paraguayan Restaurant,4
+peruvian_restaurant,eat_and_drink,restaurant,latin_american_restaurant,peruvian_restaurant,,,Peruvian Restaurant,4
+puerto_rican_restaurant,eat_and_drink,restaurant,latin_american_restaurant,puerto_rican_restaurant,,,Puerto Rican Restaurant,4
+salvadoran_restaurant,eat_and_drink,restaurant,latin_american_restaurant,salvadoran_restaurant,,,Salvadoran Restaurant,4
+texmex_restaurant,eat_and_drink,restaurant,latin_american_restaurant,texmex_restaurant,,,Texmex Restaurant,4
+uruguayan_restaurant,eat_and_drink,restaurant,latin_american_restaurant,uruguayan_restaurant,,,Uruguayan Restaurant,4
+venezuelan_restaurant,eat_and_drink,restaurant,latin_american_restaurant,venezuelan_restaurant,,,Venezuelan Restaurant,4
+latin_american_restaurant,eat_and_drink,restaurant,latin_american_restaurant,,,,Latin American Restaurant,3
+live_and_raw_food_restaurant,eat_and_drink,restaurant,live_and_raw_food_restaurant,,,,Live And Raw Food Restaurant,3
+meat_restaurant,eat_and_drink,restaurant,meat_restaurant,,,,Meat Restaurant,3
+meatball_restaurant,eat_and_drink,restaurant,meatball_restaurant,,,,Meatball Restaurant,3
+greek_restaurant,eat_and_drink,restaurant,mediterranean_restaurant,greek_restaurant,,,Greek Restaurant,4
+mediterranean_restaurant,eat_and_drink,restaurant,mediterranean_restaurant,,,,Mediterranean Restaurant,3
+armenian_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,armenian_restaurant,,,Armenian Restaurant,4
+azerbaijani_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,azerbaijani_restaurant,,,Azerbaijani Restaurant,4
+egyptian_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,egyptian_restaurant,,,Egyptian Restaurant,4
+georgian_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,georgian_restaurant,,,Georgian Restaurant,4
+israeli_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,israeli_restaurant,,,Israeli Restaurant,4
+kofta_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,kofta_restaurant,,,Kofta Restaurant,4
+kurdish_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,kurdish_restaurant,,,Kurdish Restaurant,4
+lebanese_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,lebanese_restaurant,,,Lebanese Restaurant,4
+persian_iranian_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,persian_iranian_restaurant,,,Persian Iranian Restaurant,4
+syrian_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,syrian_restaurant,,,Syrian Restaurant,4
+turkish_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,turkish_restaurant,,,Turkish Restaurant,4
+middle_eastern_restaurant,eat_and_drink,restaurant,middle_eastern_restaurant,,,,Middle Eastern Restaurant,3
+molecular_gastronomy_restaurant,eat_and_drink,restaurant,molecular_gastronomy_restaurant,,,,Molecular Gastronomy Restaurant,3
+nasi_restaurant,eat_and_drink,restaurant,nasi_restaurant,,,,Nasi Restaurant,3
+oriental_restaurant,eat_and_drink,restaurant,oriental_restaurant,,,,Oriental Restaurant,3
+pakistani_restaurant,eat_and_drink,restaurant,pakistani_restaurant,,,,Pakistani Restaurant,3
+piadina_restaurant,eat_and_drink,restaurant,piadina_restaurant,,,,Piadina Restaurant,3
+pigs_trotters_restaurant,eat_and_drink,restaurant,pigs_trotters_restaurant,,,,Pigs Trotters Restaurant,3
+pizza_restaurant,eat_and_drink,restaurant,pizza_restaurant,,,,Pizza Restaurant,3
+poke_restaurant,eat_and_drink,restaurant,poke_restaurant,,,,Poke Restaurant,3
+polish_restaurant,eat_and_drink,restaurant,polish_restaurant,,,,Polish Restaurant,3
+polynesian_restaurant,eat_and_drink,restaurant,polynesian_restaurant,,,,Polynesian Restaurant,3
+pop_up_restaurant,eat_and_drink,restaurant,pop_up_restaurant,,,,Pop Up Restaurant,3
+portuguese_restaurant,eat_and_drink,restaurant,portuguese_restaurant,,,,Portuguese Restaurant,3
+potato_restaurant,eat_and_drink,restaurant,potato_restaurant,,,,Potato Restaurant,3
+poutinerie_restaurant,eat_and_drink,restaurant,poutinerie_restaurant,,,,Poutinerie Restaurant,3
+rotisserie_chicken_restaurant,eat_and_drink,restaurant,rotisserie_chicken_restaurant,,,,Rotisserie Chicken Restaurant,3
+russian_restaurant,eat_and_drink,restaurant,russian_restaurant,,,,Russian Restaurant,3
+salad_bar,eat_and_drink,restaurant,salad_bar,,,,Salad Bar,3
+danish_restaurant,eat_and_drink,restaurant,scandinavian_restaurant,danish_restaurant,,,Danish Restaurant,4
+norwegian_restaurant,eat_and_drink,restaurant,scandinavian_restaurant,norwegian_restaurant,,,Norwegian Restaurant,4
+scandinavian_restaurant,eat_and_drink,restaurant,scandinavian_restaurant,,,,Scandinavian Restaurant,3
+schnitzel_restaurant,eat_and_drink,restaurant,schnitzel_restaurant,,,,Schnitzel Restaurant,3
+scottish_restaurant,eat_and_drink,restaurant,scottish_restaurant,,,,Scottish Restaurant,3
+seafood_restaurant,eat_and_drink,restaurant,seafood_restaurant,,,,Seafood Restaurant,3
+serbo_croatian_restaurant,eat_and_drink,restaurant,serbo_croatian_restaurant,,,,Serbo Croatian Restaurant,3
+slovakian_restaurant,eat_and_drink,restaurant,slovakian_restaurant,,,,Slovakian Restaurant,3
+soul_food,eat_and_drink,restaurant,soul_food,,,,Soul Food,3
+soup_restaurant,eat_and_drink,restaurant,soup_restaurant,,,,Soup Restaurant,3
+southern_restaurant,eat_and_drink,restaurant,southern_restaurant,,,,Southern Restaurant,3
+spanish_restaurant,eat_and_drink,restaurant,spanish_restaurant,,,,Spanish Restaurant,3
+sri_lankan_restaurant,eat_and_drink,restaurant,sri_lankan_restaurant,,,,Sri Lankan Restaurant,3
+steakhouse,eat_and_drink,restaurant,steakhouse,,,,Steakhouse,3
+supper_club,eat_and_drink,restaurant,supper_club,,,,Supper Club,3
+swiss_restaurant,eat_and_drink,restaurant,swiss_restaurant,,,,Swiss Restaurant,3
+taco_restaurant,eat_and_drink,restaurant,taco_restaurant,,,,Taco Restaurant,3
+tapas_bar,eat_and_drink,restaurant,tapas_bar,,,,Tapas Bar,3
+theme_restaurant,eat_and_drink,restaurant,theme_restaurant,,,,Theme Restaurant,3
+uzbek_restaurant,eat_and_drink,restaurant,uzbek_restaurant,,,,Uzbek Restaurant,3
+vegan_restaurant,eat_and_drink,restaurant,vegan_restaurant,,,,Vegan Restaurant,3
+vegetarian_restaurant,eat_and_drink,restaurant,vegetarian_restaurant,,,,Vegetarian Restaurant,3
+venison_restaurant,eat_and_drink,restaurant,venison_restaurant,,,,Venison Restaurant,3
+waffle_restaurant,eat_and_drink,restaurant,waffle_restaurant,,,,Waffle Restaurant,3
+wild_game_meats_restaurant,eat_and_drink,restaurant,wild_game_meats_restaurant,,,,Wild Game Meats Restaurant,3
+wok_restaurant,eat_and_drink,restaurant,wok_restaurant,,,,Wok Restaurant,3
+wrap_restaurant,eat_and_drink,restaurant,wrap_restaurant,,,,Wrap Restaurant,3
+restaurant,eat_and_drink,restaurant,,,,,Restaurant,2
+eat_and_drink,eat_and_drink,,,,,,Eat And Drink,1
+adult_education,education,adult_education,,,,,Adult Education,2
+board_of_education_offices,education,board_of_education_offices,,,,,Board Of Education Offices,2
+campus_building,education,campus_building,,,,,Campus Building,2
+college_counseling,education,college_counseling,,,,,College Counseling,2
+architecture_schools,education,college_university,architecture_schools,,,,Architecture Schools,3
+business_schools,education,college_university,business_schools,,,,Business Schools,3
+engineering_schools,education,college_university,engineering_schools,,,,Engineering Schools,3
+law_schools,education,college_university,law_schools,,,,Law Schools,3
+dentistry_schools,education,college_university,medical_sciences_schools,dentistry_schools,,,Dentistry Schools,4
+pharmacy_schools,education,college_university,medical_sciences_schools,pharmacy_schools,,,Pharmacy Schools,4
+veterinary_schools,education,college_university,medical_sciences_schools,veterinary_schools,,,Veterinary Schools,4
+medical_sciences_schools,education,college_university,medical_sciences_schools,,,,Medical Sciences Schools,3
+science_schools,education,college_university,science_schools,,,,Science Schools,3
+college_university,education,college_university,,,,,College University,2
+educational_camp,education,educational_camp,,,,,Educational Camp,2
+educational_research_institute,education,educational_research_institute,,,,,Educational Research Institute,2
+archaeological_services,education,educational_services,archaeological_services,,,,Archaeological Services,3
+educational_services,education,educational_services,,,,,Educational Services,2
+private_tutor,education,private_tutor,,,,,Private Tutor,2
+charter_school,education,school,charter_school,,,,Charter School,3
+elementary_school,education,school,elementary_school,,,,Elementary School,3
+high_school,education,school,high_school,,,,High School,3
+middle_school,education,school,middle_school,,,,Middle School,3
+montessori_school,education,school,montessori_school,,,,Montessori School,3
+preschool,education,school,preschool,,,,Preschool,3
+private_school,education,school,private_school,,,,Private School,3
+public_school,education,school,public_school,,,,Public School,3
+religious_school,education,school,religious_school,,,,Religious School,3
+waldorf_school,education,school,waldorf_school,,,,Waldorf School,3
+school,education,school,,,,,School,2
+school_district_offices,education,school_district_offices,,,,,School District Offices,2
+art_school,education,specialty_school,art_school,,,,Art School,3
+bartending_school,education,specialty_school,bartending_school,,,,Bartending School,3
+cheerleading,education,specialty_school,cheerleading,,,,Cheerleading,3
+childbirth_education,education,specialty_school,childbirth_education,,,,Childbirth Education,3
+circus_school,education,specialty_school,circus_school,,,,Circus School,3
+computer_coaching,education,specialty_school,computer_coaching,,,,Computer Coaching,3
+cooking_school,education,specialty_school,cooking_school,,,,Cooking School,3
+cosmetology_school,education,specialty_school,cosmetology_school,,,,Cosmetology School,3
+cpr_classes,education,specialty_school,cpr_classes,,,,Cpr Classes,3
+drama_school,education,specialty_school,drama_school,,,,Drama School,3
+driving_school,education,specialty_school,driving_school,,,,Driving School,3
+dui_school,education,specialty_school,dui_school,,,,Dui School,3
+firearm_training,education,specialty_school,firearm_training,,,,Firearm Training,3
+first_aid_class,education,specialty_school,first_aid_class,,,,First Aid Class,3
+flight_school,education,specialty_school,flight_school,,,,Flight School,3
+food_safety_training,education,specialty_school,food_safety_training,,,,Food Safety Training,3
+language_school,education,specialty_school,language_school,,,,Language School,3
+massage_school,education,specialty_school,massage_school,,,,Massage School,3
+medical_school,education,specialty_school,medical_school,,,,Medical School,3
+music_school,education,specialty_school,music_school,,,,Music School,3
+nursing_school,education,specialty_school,nursing_school,,,,Nursing School,3
+parenting_classes,education,specialty_school,parenting_classes,,,,Parenting Classes,3
+photography_classes,education,specialty_school,photography_classes,,,,Photography Classes,3
+speech_training,education,specialty_school,speech_training,,,,Speech Training,3
+sports_school,education,specialty_school,sports_school,,,,Sports School,3
+traffic_school,education,specialty_school,traffic_school,,,,Traffic School,3
+vocational_and_technical_school,education,specialty_school,vocational_and_technical_school,,,,Vocational And Technical School,3
+specialty_school,education,specialty_school,,,,,Specialty School,2
+student_union,education,student_union,,,,,Student Union,2
+cheese_tasting_classes,education,tasting_classes,cheese_tasting_classes,,,,Cheese Tasting Classes,3
+wine_tasting_classes,education,tasting_classes,wine_tasting_classes,,,,Wine Tasting Classes,3
+tasting_classes,education,tasting_classes,,,,,Tasting Classes,2
+test_preparation,education,test_preparation,,,,,Test Preparation,2
+civil_examinations_academy,education,tutoring_center,civil_examinations_academy,,,,Civil Examinations Academy,3
+tutoring_center,education,tutoring_center,,,,,Tutoring Center,2
+education,education,,,,,,Education,1
+accountant,financial_service,accountant,,,,,Accountant,2
+atms,financial_service,atms,,,,,Atms,2
+banks,financial_service,bank_credit_union,banks,,,,Banks,3
+credit_union,financial_service,bank_credit_union,credit_union,,,,Credit Union,3
+bank_credit_union,financial_service,bank_credit_union,,,,,Bank Credit Union,2
+business_brokers,financial_service,brokers,business_brokers,,,,Business Brokers,3
+stock_and_bond_brokers,financial_service,brokers,stock_and_bond_brokers,,,,Stock And Bond Brokers,3
+brokers,financial_service,brokers,,,,,Brokers,2
+business_banking_service,financial_service,business_banking_service,,,,,Business Banking Service,2
+business_financing,financial_service,business_financing,,,,,Business Financing,2
+check_cashing_payday_loans,financial_service,check_cashing_payday_loans,,,,,Check Cashing Payday Loans,2
+coin_dealers,financial_service,coin_dealers,,,,,Coin Dealers,2
+collection_agencies,financial_service,collection_agencies,,,,,Collection Agencies,2
+credit_and_debt_counseling,financial_service,credit_and_debt_counseling,,,,,Credit And Debt Counseling,2
+currency_exchange,financial_service,currency_exchange,,,,,Currency Exchange,2
+debt_relief_services,financial_service,debt_relief_services,,,,,Debt Relief Services,2
+financial_advising,financial_service,financial_advising,,,,,Financial Advising,2
+holding_companies,financial_service,holding_companies,,,,,Holding Companies,2
+auto_loan_provider,financial_service,installment_loans,auto_loan_provider,,,,Auto Loan Provider,3
+mortgage_lender,financial_service,installment_loans,mortgage_lender,,,,Mortgage Lender,3
+installment_loans,financial_service,installment_loans,,,,,Installment Loans,2
+auto_insurance,financial_service,insurance_agency,auto_insurance,,,,Auto Insurance,3
+farm_insurance,financial_service,insurance_agency,farm_insurance,,,,Farm Insurance,3
+fidelity_and_surety_bonds,financial_service,insurance_agency,fidelity_and_surety_bonds,,,,Fidelity And Surety Bonds,3
+home_and_rental_insurance,financial_service,insurance_agency,home_and_rental_insurance,,,,Home And Rental Insurance,3
+life_insurance,financial_service,insurance_agency,life_insurance,,,,Life Insurance,3
+insurance_agency,financial_service,insurance_agency,,,,,Insurance Agency,2
+investing,financial_service,investing,,,,,Investing,2
+investment_management_company,financial_service,investment_management_company,,,,,Investment Management Company,2
+money_transfer_services,financial_service,money_transfer_services,,,,,Money Transfer Services,2
+tax_services,financial_service,tax_services,,,,,Tax Services,2
+trusts,financial_service,trusts,,,,,Trusts,2
+financial_service,financial_service,,,,,,Financial Service,1
+abortion_clinic,health_and_medical,abortion_clinic,,,,,Abortion Clinic,2
+alcohol_and_drug_treatment_centers,health_and_medical,abuse_and_addiction_treatment,alcohol_and_drug_treatment_centers,,,,Alcohol And Drug Treatment Centers,3
+crisis_intervention_services,health_and_medical,abuse_and_addiction_treatment,crisis_intervention_services,,,,Crisis Intervention Services,3
+eating_disorder_treatment_centers,health_and_medical,abuse_and_addiction_treatment,eating_disorder_treatment_centers,,,,Eating Disorder Treatment Centers,3
+abuse_and_addiction_treatment,health_and_medical,abuse_and_addiction_treatment,,,,,Abuse And Addiction Treatment,2
+acupuncture,health_and_medical,acupuncture,,,,,Acupuncture,2
+aesthetician,health_and_medical,aesthetician,,,,,Aesthetician,2
+alcohol_and_drug_treatment_center,health_and_medical,alcohol_and_drug_treatment_center,,,,,Alcohol And Drug Treatment Center,2
+alternative_medicine,health_and_medical,alternative_medicine,,,,,Alternative Medicine,2
+ambulance_and_ems_services,health_and_medical,ambulance_and_ems_services,,,,,Ambulance And Ems Services,2
+animal_assisted_therapy,health_and_medical,animal_assisted_therapy,,,,,Animal Assisted Therapy,2
+assisted_living_facility,health_and_medical,assisted_living_facility,,,,,Assisted Living Facility,2
+ayurveda,health_and_medical,ayurveda,,,,,Ayurveda,2
+behavior_analyst,health_and_medical,behavior_analyst,,,,,Behavior Analyst,2
+blood_and_plasma_donation_center,health_and_medical,blood_and_plasma_donation_center,,,,,Blood And Plasma Donation Center,2
+body_contouring,health_and_medical,body_contouring,,,,,Body Contouring,2
+cancer_treatment_center,health_and_medical,cancer_treatment_center,,,,,Cancer Treatment Center,2
+cannabis_clinic,health_and_medical,cannabis_clinic,,,,,Cannabis Clinic,2
+cannabis_collective,health_and_medical,cannabis_collective,,,,,Cannabis Collective,2
+childrens_hospital,health_and_medical,childrens_hospital,,,,,Childrens Hospital,2
+chiropractor,health_and_medical,chiropractor,,,,,Chiropractor,2
+colonics,health_and_medical,colonics,,,,,Colonics,2
+community_health_center,health_and_medical,community_health_center,,,,,Community Health Center,2
+concierge_medicine,health_and_medical,concierge_medicine,,,,,Concierge Medicine,2
+family_counselor,health_and_medical,counseling_and_mental_health,family_counselor,,,,Family Counselor,3
+marriage_or_relationship_counselor,health_and_medical,counseling_and_mental_health,marriage_or_relationship_counselor,,,,Marriage Or Relationship Counselor,3
+psychoanalyst,health_and_medical,counseling_and_mental_health,psychoanalyst,,,,Psychoanalyst,3
+psychologist,health_and_medical,counseling_and_mental_health,psychologist,,,,Psychologist,3
+psychotherapist,health_and_medical,counseling_and_mental_health,psychotherapist,,,,Psychotherapist,3
+sex_therapist,health_and_medical,counseling_and_mental_health,sex_therapist,,,,Sex Therapist,3
+sophrologist,health_and_medical,counseling_and_mental_health,sophrologist,,,,Sophrologist,3
+sports_psychologist,health_and_medical,counseling_and_mental_health,sports_psychologist,,,,Sports Psychologist,3
+stress_management_services,health_and_medical,counseling_and_mental_health,stress_management_services,,,,Stress Management Services,3
+suicide_prevention_services,health_and_medical,counseling_and_mental_health,suicide_prevention_services,,,,Suicide Prevention Services,3
+counseling_and_mental_health,health_and_medical,counseling_and_mental_health,,,,,Counseling And Mental Health,2
+cryotherapy,health_and_medical,cryotherapy,,,,,Cryotherapy,2
+mobile_clinic,health_and_medical,dental_hygienist,mobile_clinic,,,,Mobile Clinic,3
+storefront_clinic,health_and_medical,dental_hygienist,storefront_clinic,,,,Storefront Clinic,3
+dental_hygienist,health_and_medical,dental_hygienist,,,,,Dental Hygienist,2
+cosmetic_dentist,health_and_medical,dentist,cosmetic_dentist,,,,Cosmetic Dentist,3
+endodontist,health_and_medical,dentist,endodontist,,,,Endodontist,3
+general_dentistry,health_and_medical,dentist,general_dentistry,,,,General Dentistry,3
+oral_surgeon,health_and_medical,dentist,oral_surgeon,,,,Oral Surgeon,3
+orthodontist,health_and_medical,dentist,orthodontist,,,,Orthodontist,3
+pediatric_dentist,health_and_medical,dentist,pediatric_dentist,,,,Pediatric Dentist,3
+periodontist,health_and_medical,dentist,periodontist,,,,Periodontist,3
+dentist,health_and_medical,dentist,,,,,Dentist,2
+diagnostic_imaging,health_and_medical,diagnostic_services,diagnostic_imaging,,,,Diagnostic Imaging,3
+laboratory_testing,health_and_medical,diagnostic_services,laboratory_testing,,,,Laboratory Testing,3
+diagnostic_services,health_and_medical,diagnostic_services,,,,,Diagnostic Services,2
+dialysis_clinic,health_and_medical,dialysis_clinic,,,,,Dialysis Clinic,2
+dietitian,health_and_medical,dietitian,,,,,Dietitian,2
+allergist,health_and_medical,doctor,allergist,,,,Allergist,3
+anesthesiologist,health_and_medical,doctor,anesthesiologist,,,,Anesthesiologist,3
+audiologist,health_and_medical,doctor,audiologist,,,,Audiologist,3
+cardiologist,health_and_medical,doctor,cardiologist,,,,Cardiologist,3
+cosmetic_surgeon,health_and_medical,doctor,cosmetic_surgeon,,,,Cosmetic Surgeon,3
+dermatologist,health_and_medical,doctor,dermatologist,,,,Dermatologist,3
+ear_nose_and_throat,health_and_medical,doctor,ear_nose_and_throat,,,,Ear Nose And Throat,3
+emergency_medicine,health_and_medical,doctor,emergency_medicine,,,,Emergency Medicine,3
+endocrinologist,health_and_medical,doctor,endocrinologist,,,,Endocrinologist,3
+endoscopist,health_and_medical,doctor,endoscopist,,,,Endoscopist,3
+family_practice,health_and_medical,doctor,family_practice,,,,Family Practice,3
+fertility,health_and_medical,doctor,fertility,,,,Fertility,3
+gastroenterologist,health_and_medical,doctor,gastroenterologist,,,,Gastroenterologist,3
+geneticist,health_and_medical,doctor,geneticist,,,,Geneticist,3
+geriatric_psychiatry,health_and_medical,doctor,geriatric_medicine,geriatric_psychiatry,,,Geriatric Psychiatry,4
+geriatric_medicine,health_and_medical,doctor,geriatric_medicine,,,,Geriatric Medicine,3
+gerontologist,health_and_medical,doctor,gerontologist,,,,Gerontologist,3
+hepatologist,health_and_medical,doctor,hepatologist,,,,Hepatologist,3
+homeopathic_medicine,health_and_medical,doctor,homeopathic_medicine,,,,Homeopathic Medicine,3
+hospitalist,health_and_medical,doctor,hospitalist,,,,Hospitalist,3
+immunodermatologist,health_and_medical,doctor,immunodermatologist,,,,Immunodermatologist,3
+infectious_disease_specialist,health_and_medical,doctor,infectious_disease_specialist,,,,Infectious Disease Specialist,3
+hematology,health_and_medical,doctor,internal_medicine,hematology,,,Hematology,4
+internal_medicine,health_and_medical,doctor,internal_medicine,,,,Internal Medicine,3
+naturopathic_holistic,health_and_medical,doctor,naturopathic_holistic,,,,Naturopathic Holistic,3
+nephrologist,health_and_medical,doctor,nephrologist,,,,Nephrologist,3
+neurologist,health_and_medical,doctor,neurologist,,,,Neurologist,3
+neuropathologist,health_and_medical,doctor,neuropathologist,,,,Neuropathologist,3
+neurotologist,health_and_medical,doctor,neurotologist,,,,Neurotologist,3
+obstetrician_and_gynecologist,health_and_medical,doctor,obstetrician_and_gynecologist,,,,Obstetrician And Gynecologist,3
+oncologist,health_and_medical,doctor,oncologist,,,,Oncologist,3
+retina_specialist,health_and_medical,doctor,ophthalmologist,retina_specialist,,,Retina Specialist,4
+ophthalmologist,health_and_medical,doctor,ophthalmologist,,,,Ophthalmologist,3
+orthopedist,health_and_medical,doctor,orthopedist,,,,Orthopedist,3
+osteopathic_physician,health_and_medical,doctor,osteopathic_physician,,,,Osteopathic Physician,3
+otologist,health_and_medical,doctor,otologist,,,,Otologist,3
+pain_management,health_and_medical,doctor,pain_management,,,,Pain Management,3
+pathologist,health_and_medical,doctor,pathologist,,,,Pathologist,3
+pediatric_anesthesiology,health_and_medical,doctor,pediatrician,pediatric_anesthesiology,,,Pediatric Anesthesiology,4
+pediatric_cardiology,health_and_medical,doctor,pediatrician,pediatric_cardiology,,,Pediatric Cardiology,4
+pediatric_endocrinology,health_and_medical,doctor,pediatrician,pediatric_endocrinology,,,Pediatric Endocrinology,4
+pediatric_gastroenterology,health_and_medical,doctor,pediatrician,pediatric_gastroenterology,,,Pediatric Gastroenterology,4
+pediatric_infectious_disease,health_and_medical,doctor,pediatrician,pediatric_infectious_disease,,,Pediatric Infectious Disease,4
+pediatric_nephrology,health_and_medical,doctor,pediatrician,pediatric_nephrology,,,Pediatric Nephrology,4
+pediatric_neurology,health_and_medical,doctor,pediatrician,pediatric_neurology,,,Pediatric Neurology,4
+pediatric_oncology,health_and_medical,doctor,pediatrician,pediatric_oncology,,,Pediatric Oncology,4
+pediatric_orthopedic_surgery,health_and_medical,doctor,pediatrician,pediatric_orthopedic_surgery,,,Pediatric Orthopedic Surgery,4
+pediatric_pulmonology,health_and_medical,doctor,pediatrician,pediatric_pulmonology,,,Pediatric Pulmonology,4
+pediatric_radiology,health_and_medical,doctor,pediatrician,pediatric_radiology,,,Pediatric Radiology,4
+pediatric_surgery,health_and_medical,doctor,pediatrician,pediatric_surgery,,,Pediatric Surgery,4
+pediatrician,health_and_medical,doctor,pediatrician,,,,Pediatrician,3
+phlebologist,health_and_medical,doctor,phlebologist,,,,Phlebologist,3
+physician_assistant,health_and_medical,doctor,physician_assistant,,,,Physician Assistant,3
+plastic_surgeon,health_and_medical,doctor,plastic_surgeon,,,,Plastic Surgeon,3
+podiatrist,health_and_medical,doctor,podiatrist,,,,Podiatrist,3
+preventive_medicine,health_and_medical,doctor,preventive_medicine,,,,Preventive Medicine,3
+proctologist,health_and_medical,doctor,proctologist,,,,Proctologist,3
+child_psychiatrist,health_and_medical,doctor,psychiatrist,child_psychiatrist,,,Child Psychiatrist,4
+psychiatrist,health_and_medical,doctor,psychiatrist,,,,Psychiatrist,3
+pulmonologist,health_and_medical,doctor,pulmonologist,,,,Pulmonologist,3
+radiologist,health_and_medical,doctor,radiologist,,,,Radiologist,3
+rheumatologist,health_and_medical,doctor,rheumatologist,,,,Rheumatologist,3
+spine_surgeon,health_and_medical,doctor,spine_surgeon,,,,Spine Surgeon,3
+sports_medicine,health_and_medical,doctor,sports_medicine,,,,Sports Medicine,3
+cardiovascular_and_thoracic_surgeon,health_and_medical,doctor,surgeon,cardiovascular_and_thoracic_surgeon,,,Cardiovascular And Thoracic Surgeon,4
+surgeon,health_and_medical,doctor,surgeon,,,,Surgeon,3
+tattoo_removal,health_and_medical,doctor,tattoo_removal,,,,Tattoo Removal,3
+toxicologist,health_and_medical,doctor,toxicologist,,,,Toxicologist,3
+tropical_medicine,health_and_medical,doctor,tropical_medicine,,,,Tropical Medicine,3
+undersea_hyperbaric_medicine,health_and_medical,doctor,undersea_hyperbaric_medicine,,,,Undersea Hyperbaric Medicine,3
+urologist,health_and_medical,doctor,urologist,,,,Urologist,3
+vascular_medicine,health_and_medical,doctor,vascular_medicine,,,,Vascular Medicine,3
+doctor,health_and_medical,doctor,,,,,Doctor,2
+doula,health_and_medical,doula,,,,,Doula,2
+emergency_room,health_and_medical,emergency_room,,,,,Emergency Room,2
+environmental_medicine,health_and_medical,environmental_medicine,,,,,Environmental Medicine,2
+eye_care_clinic,health_and_medical,eye_care_clinic,,,,,Eye Care Clinic,2
+float_spa,health_and_medical,float_spa,,,,,Float Spa,2
+halfway_house,health_and_medical,halfway_house,,,,,Halfway House,2
+halotherapy,health_and_medical,halotherapy,,,,,Halotherapy,2
+health_and_wellness_club,health_and_medical,health_and_wellness_club,,,,,Health And Wellness Club,2
+health_coach,health_and_medical,health_coach,,,,,Health Coach,2
+health_department,health_and_medical,health_department,,,,,Health Department,2
+health_insurance_office,health_and_medical,health_insurance_office,,,,,Health Insurance Office,2
+hospice,health_and_medical,hospice,,,,,Hospice,2
+hospital,health_and_medical,hospital,,,,,Hospital,2
+hydrotherapy,health_and_medical,hydrotherapy,,,,,Hydrotherapy,2
+hypnosis_hypnotherapy,health_and_medical,hypnosis_hypnotherapy,,,,,Hypnosis Hypnotherapy,2
+iv_hydration,health_and_medical,iv_hydration,,,,,Iv Hydration,2
+lactation_services,health_and_medical,lactation_services,,,,,Lactation Services,2
+laser_eye_surgery_lasik,health_and_medical,laser_eye_surgery_lasik,,,,,Laser Eye Surgery Lasik,2
+lice_treatment,health_and_medical,lice_treatment,,,,,Lice Treatment,2
+massage_therapy,health_and_medical,massage_therapy,,,,,Massage Therapy,2
+maternity_centers,health_and_medical,maternity_centers,,,,,Maternity Centers,2
+medical_cannabis_referral,health_and_medical,medical_cannabis_referral,,,,,Medical Cannabis Referral,2
+bulk_billing,health_and_medical,medical_center,bulk_billing,,,,Bulk Billing,3
+osteopath,health_and_medical,medical_center,osteopath,,,,Osteopath,3
+walk_in_clinic,health_and_medical,medical_center,walk_in_clinic,,,,Walk In Clinic,3
+medical_center,health_and_medical,medical_center,,,,,Medical Center,2
+medical_service_organizations,health_and_medical,medical_service_organizations,,,,,Medical Service Organizations,2
+medical_transportation,health_and_medical,medical_transportation,,,,,Medical Transportation,2
+memory_care,health_and_medical,memory_care,,,,,Memory Care,2
+midwife,health_and_medical,midwife,,,,,Midwife,2
+nurse_practitioner,health_and_medical,nurse_practitioner,,,,,Nurse Practitioner,2
+nutritionist,health_and_medical,nutritionist,,,,,Nutritionist,2
+occupational_medicine,health_and_medical,occupational_medicine,,,,,Occupational Medicine,2
+occupational_therapy,health_and_medical,occupational_therapy,,,,,Occupational Therapy,2
+optometrist,health_and_medical,optometrist,,,,,Optometrist,2
+organ_and_tissue_donor_service,health_and_medical,organ_and_tissue_donor_service,,,,,Organ And Tissue Donor Service,2
+orthotics,health_and_medical,orthotics,,,,,Orthotics,2
+oxygen_bar,health_and_medical,oxygen_bar,,,,,Oxygen Bar,2
+paternity_tests_and_services,health_and_medical,paternity_tests_and_services,,,,,Paternity Tests And Services,2
+home_health_care,health_and_medical,personal_care_service,home_health_care,,,,Home Health Care,3
+personal_care_service,health_and_medical,personal_care_service,,,,,Personal Care Service,2
+physical_therapy,health_and_medical,physical_therapy,,,,,Physical Therapy,2
+placenta_encapsulation_service,health_and_medical,placenta_encapsulation_service,,,,,Placenta Encapsulation Service,2
+podiatry,health_and_medical,podiatry,,,,,Podiatry,2
+prenatal_perinatal_care,health_and_medical,prenatal_perinatal_care,,,,,Prenatal Perinatal Care,2
+prosthetics,health_and_medical,prosthetics,,,,,Prosthetics,2
+prosthodontist,health_and_medical,prosthodontist,,,,,Prosthodontist,2
+psychomotor_therapist,health_and_medical,psychomotor_therapist,,,,,Psychomotor Therapist,2
+public_health_clinic,health_and_medical,public_health_clinic,,,,,Public Health Clinic,2
+reflexology,health_and_medical,reflexology,,,,,Reflexology,2
+addiction_rehabilitation_center,health_and_medical,rehabilitation_center,addiction_rehabilitation_center,,,,Addiction Rehabilitation Center,3
+rehabilitation_center,health_and_medical,rehabilitation_center,,,,,Rehabilitation Center,2
+reiki,health_and_medical,reiki,,,,,Reiki,2
+sauna,health_and_medical,sauna,,,,,Sauna,2
+skilled_nursing,health_and_medical,skilled_nursing,,,,,Skilled Nursing,2
+sleep_specialist,health_and_medical,sleep_specialist,,,,,Sleep Specialist,2
+speech_therapist,health_and_medical,speech_therapist,,,,,Speech Therapist,2
+sperm_clinic,health_and_medical,sperm_clinic,,,,,Sperm Clinic,2
+surgical_center,health_and_medical,surgical_center,,,,,Surgical Center,2
+tui_na,health_and_medical,traditional_chinese_medicine,tui_na,,,,Tui Na,3
+traditional_chinese_medicine,health_and_medical,traditional_chinese_medicine,,,,,Traditional Chinese Medicine,2
+ultrasound_imaging_center,health_and_medical,ultrasound_imaging_center,,,,,Ultrasound Imaging Center,2
+urgent_care_clinic,health_and_medical,urgent_care_clinic,,,,,Urgent Care Clinic,2
+weight_loss_center,health_and_medical,weight_loss_center,,,,,Weight Loss Center,2
+wellness_program,health_and_medical,wellness_program,,,,,Wellness Program,2
+womens_health_clinic,health_and_medical,womens_health_clinic,,,,,Womens Health Clinic,2
+health_and_medical,health_and_medical,,,,,,Health And Medical,1
+artificial_turf,home_service,artificial_turf,,,,,Artificial Turf,2
+bathroom_remodeling,home_service,bathroom_remodeling,,,,,Bathroom Remodeling,2
+bathtub_and_sink_repairs,home_service,bathtub_and_sink_repairs,,,,,Bathtub And Sink Repairs,2
+cabinet_sales_service,home_service,cabinet_sales_service,,,,,Cabinet Sales Service,2
+carpenter,home_service,carpenter,,,,,Carpenter,2
+carpet_cleaning,home_service,carpet_cleaning,,,,,Carpet Cleaning,2
+carpet_installation,home_service,carpet_installation,,,,,Carpet Installation,2
+ceiling_service,home_service,ceiling_and_roofing_repair_and_service,ceiling_service,,,,Ceiling Service,3
+roofing,home_service,ceiling_and_roofing_repair_and_service,roofing,,,,Roofing,3
+ceiling_and_roofing_repair_and_service,home_service,ceiling_and_roofing_repair_and_service,,,,,Ceiling And Roofing Repair And Service,2
+childproofing,home_service,childproofing,,,,,Childproofing,2
+chimney_sweep,home_service,chimney_service,chimney_sweep,,,,Chimney Sweep,3
+chimney_service,home_service,chimney_service,,,,,Chimney Service,2
+closet_remodeling,home_service,closet_remodeling,,,,,Closet Remodeling,2
+altering_and_remodeling_contractor,home_service,contractor,altering_and_remodeling_contractor,,,,Altering And Remodeling Contractor,3
+building_contractor,home_service,contractor,building_contractor,,,,Building Contractor,3
+flooring_contractors,home_service,contractor,flooring_contractors,,,,Flooring Contractors,3
+paving_contractor,home_service,contractor,paving_contractor,,,,Paving Contractor,3
+contractor,home_service,contractor,,,,,Contractor,2
+countertop_installation,home_service,countertop_installation,,,,,Countertop Installation,2
+fire_and_water_damage_restoration,home_service,damage_restoration,fire_and_water_damage_restoration,,,,Fire And Water Damage Restoration,3
+damage_restoration,home_service,damage_restoration,,,,,Damage Restoration,2
+deck_and_railing_sales_service,home_service,deck_and_railing_sales_service,,,,,Deck And Railing Sales Service,2
+demolition_service,home_service,demolition_service,,,,,Demolition Service,2
+door_sales_service,home_service,door_sales_service,,,,,Door Sales Service,2
+drywall_services,home_service,drywall_services,,,,,Drywall Services,2
+electrician,home_service,electrician,,,,,Electrician,2
+excavation_service,home_service,excavation_service,,,,,Excavation Service,2
+exterior_design,home_service,exterior_design,,,,,Exterior Design,2
+fence_and_gate_sales_service,home_service,fence_and_gate_sales_service,,,,,Fence And Gate Sales Service,2
+fire_protection_service,home_service,fire_protection_service,,,,,Fire Protection Service,2
+fireplace_service,home_service,fireplace_service,,,,,Fireplace Service,2
+firewood,home_service,firewood,,,,,Firewood,2
+foundation_repair,home_service,foundation_repair,,,,,Foundation Repair,2
+furniture_assembly,home_service,furniture_assembly,,,,,Furniture Assembly,2
+garage_door_service,home_service,garage_door_service,,,,,Garage Door Service,2
+glass_and_mirror_sales_service,home_service,glass_and_mirror_sales_service,,,,,Glass And Mirror Sales Service,2
+grout_service,home_service,grout_service,,,,,Grout Service,2
+gutter_service,home_service,gutter_service,,,,,Gutter Service,2
+handyman,home_service,handyman,,,,,Handyman,2
+holiday_decorating,home_service,holiday_decorating,,,,,Holiday Decorating,2
+home_automation,home_service,home_automation,,,,,Home Automation,2
+home_cleaning,home_service,home_cleaning,,,,,Home Cleaning,2
+home_energy_auditor,home_service,home_energy_auditor,,,,,Home Energy Auditor,2
+home_inspector,home_service,home_inspector,,,,,Home Inspector,2
+home_network_installation,home_service,home_network_installation,,,,,Home Network Installation,2
+home_security,home_service,home_security,,,,,Home Security,2
+home_window_tinting,home_service,home_window_tinting,,,,,Home Window Tinting,2
+house_sitting,home_service,house_sitting,,,,,House Sitting,2
+hvac_services,home_service,hvac_services,,,,,Hvac Services,2
+insulation_installation,home_service,insulation_installation,,,,,Insulation Installation,2
+interior_design,home_service,interior_design,,,,,Interior Design,2
+irrigation,home_service,irrigation,,,,,Irrigation,2
+key_and_locksmith,home_service,key_and_locksmith,,,,,Key And Locksmith,2
+kitchen_remodeling,home_service,kitchen_remodeling,,,,,Kitchen Remodeling,2
+gardener,home_service,landscaping,gardener,,,,Gardener,3
+landscape_architect,home_service,landscaping,landscape_architect,,,,Landscape Architect,3
+lawn_service,home_service,landscaping,lawn_service,,,,Lawn Service,3
+tree_services,home_service,landscaping,tree_services,,,,Tree Services,3
+landscaping,home_service,landscaping,,,,,Landscaping,2
+lighting_fixtures_and_equipment,home_service,lighting_fixtures_and_equipment,,,,,Lighting Fixtures And Equipment,2
+masonry_concrete,home_service,masonry_concrete,,,,,Masonry Concrete,2
+mobile_home_repair,home_service,mobile_home_repair,,,,,Mobile Home Repair,2
+movers,home_service,movers,,,,,Movers,2
+packing_services,home_service,packing_services,,,,,Packing Services,2
+painting,home_service,painting,,,,,Painting,2
+patio_covers,home_service,patio_covers,,,,,Patio Covers,2
+plasterer,home_service,plasterer,,,,,Plasterer,2
+backflow_services,home_service,plumbing,backflow_services,,,,Backflow Services,3
+plumbing,home_service,plumbing,,,,,Plumbing,2
+pool_and_hot_tub_services,home_service,pool_and_hot_tub_services,,,,,Pool And Hot Tub Services,2
+pool_cleaning,home_service,pool_cleaning,,,,,Pool Cleaning,2
+pressure_washing,home_service,pressure_washing,,,,,Pressure Washing,2
+refinishing_services,home_service,refinishing_services,,,,,Refinishing Services,2
+security_systems,home_service,security_systems,,,,,Security Systems,2
+shades_and_blinds,home_service,shades_and_blinds,,,,,Shades And Blinds,2
+shutters,home_service,shutters,,,,,Shutters,2
+siding,home_service,siding,,,,,Siding,2
+solar_installation,home_service,solar_installation,,,,,Solar Installation,2
+solar_panel_cleaning,home_service,solar_panel_cleaning,,,,,Solar Panel Cleaning,2
+structural_engineer,home_service,structural_engineer,,,,,Structural Engineer,2
+stucco_services,home_service,stucco_services,,,,,Stucco Services,2
+television_service_providers,home_service,television_service_providers,,,,,Television Service Providers,2
+tiling,home_service,tiling,,,,,Tiling,2
+wallpaper_installers,home_service,wallpaper_installers,,,,,Wallpaper Installers,2
+washer_and_dryer_repair_service,home_service,washer_and_dryer_repair_service,,,,,Washer And Dryer Repair Service,2
+water_heater_installation_repair,home_service,water_heater_installation_repair,,,,,Water Heater Installation Repair,2
+water_purification_services,home_service,water_purification_services,,,,,Water Purification Services,2
+waterproofing,home_service,waterproofing,,,,,Waterproofing,2
+window_washing,home_service,window_washing,,,,,Window Washing,2
+skylight_installation,home_service,windows_installation,skylight_installation,,,,Skylight Installation,3
+windows_installation,home_service,windows_installation,,,,,Windows Installation,2
+home_service,home_service,,,,,,Home Service,1
+movie_critic,mass_media,media_critic,movie_critic,,,,Movie Critic,3
+music_critic,mass_media,media_critic,music_critic,,,,Music Critic,3
+video_game_critic,mass_media,media_critic,video_game_critic,,,,Video Game Critic,3
+media_critic,mass_media,media_critic,,,,,Media Critic,2
+animation_studio,mass_media,media_news_company,animation_studio,,,,Animation Studio,3
+book_magazine_distribution,mass_media,media_news_company,book_magazine_distribution,,,,Book Magazine Distribution,3
+broadcasting_media_production,mass_media,media_news_company,broadcasting_media_production,,,,Broadcasting Media Production,3
+game_publisher,mass_media,media_news_company,game_publisher,,,,Game Publisher,3
+media_agency,mass_media,media_news_company,media_agency,,,,Media Agency,3
+movie_television_studio,mass_media,media_news_company,movie_television_studio,,,,Movie Television Studio,3
+music_production,mass_media,media_news_company,music_production,,,,Music Production,3
+radio_station,mass_media,media_news_company,radio_station,,,,Radio Station,3
+social_media_company,mass_media,media_news_company,social_media_company,,,,Social Media Company,3
+television_station,mass_media,media_news_company,television_station,,,,Television Station,3
+topic_publisher,mass_media,media_news_company,topic_publisher,,,,Topic Publisher,3
+weather_forecast_services,mass_media,media_news_company,weather_forecast_services,,,,Weather Forecast Services,3
+media_news_company,mass_media,media_news_company,,,,,Media News Company,2
+media_news_website,mass_media,media_news_website,,,,,Media News Website,2
+art_restoration,mass_media,media_restoration_service,art_restoration,,,,Art Restoration,3
+media_restoration_service,mass_media,media_restoration_service,,,,,Media Restoration Service,2
+print_media,mass_media,print_media,,,,,Print Media,2
+theatrical_productions,mass_media,theatrical_productions,,,,,Theatrical Productions,2
+mass_media,mass_media,,,,,,Mass Media,1
+animal_rescue_service,pets,animal_rescue_service,,,,,Animal Rescue Service,2
+animal_shelter,pets,animal_shelter,,,,,Animal Shelter,2
+horse_boarding,pets,horse_boarding,,,,,Horse Boarding,2
+pet_adoption,pets,pet_adoption,,,,,Pet Adoption,2
+animal_hospital,pets,pet_services,animal_hospital,,,,Animal Hospital,3
+animal_physical_therapy,pets,pet_services,animal_physical_therapy,,,,Animal Physical Therapy,3
+aquarium_services,pets,pet_services,aquarium_services,,,,Aquarium Services,3
+dog_walkers,pets,pet_services,dog_walkers,,,,Dog Walkers,3
+emergency_pet_hospital,pets,pet_services,emergency_pet_hospital,,,,Emergency Pet Hospital,3
+farrier_services,pets,pet_services,farrier_services,,,,Farrier Services,3
+holistic_animal_care,pets,pet_services,holistic_animal_care,,,,Holistic Animal Care,3
+pet_breeder,pets,pet_services,pet_breeder,,,,Pet Breeder,3
+pet_cemetery_and_crematorium_services,pets,pet_services,pet_cemetery_and_crematorium_services,,,,Pet Cemetery And Crematorium Services,3
+pet_groomer,pets,pet_services,pet_groomer,,,,Pet Groomer,3
+pet_hospice,pets,pet_services,pet_hospice,,,,Pet Hospice,3
+pet_insurance,pets,pet_services,pet_insurance,,,,Pet Insurance,3
+pet_photography,pets,pet_services,pet_photography,,,,Pet Photography,3
+pet_boarding,pets,pet_services,pet_sitting,pet_boarding,,,Pet Boarding,4
+pet_sitting,pets,pet_services,pet_sitting,,,,Pet Sitting,3
+dog_trainer,pets,pet_services,pet_training,dog_trainer,,,Dog Trainer,4
+horse_trainer,pets,pet_services,pet_training,horse_trainer,,,Horse Trainer,4
+pet_training,pets,pet_services,pet_training,,,,Pet Training,3
+pet_transportation,pets,pet_services,pet_transportation,,,,Pet Transportation,3
+pet_waste_removal,pets,pet_services,pet_waste_removal,,,,Pet Waste Removal,3
+pet_services,pets,pet_services,,,,,Pet Services,2
+veterinarian,pets,veterinarian,,,,,Veterinarian,2
+pets,pets,,,,,,Pets,1
+corporate_entertainment_services,private_establishments_and_corporates,corporate_entertainment_services,,,,,Corporate Entertainment Services,2
+corporate_gift_supplier,private_establishments_and_corporates,corporate_gift_supplier,,,,,Corporate Gift Supplier,2
+corporate_office,private_establishments_and_corporates,corporate_office,,,,,Corporate Office,2
+private_equity_firm,private_establishments_and_corporates,private_equity_firm,,,,,Private Equity Firm,2
+private_establishments_and_corporates,private_establishments_and_corporates,,,,,,Private Establishments And Corporates,1
+3d_printing_service,professional_services,3d_printing_service,,,,,3D Printing Service,2
+acoustical_consultant,professional_services,acoustical_consultant,,,,,Acoustical Consultant,2
+adoption_services,professional_services,adoption_services,,,,,Adoption Services,2
+advertising_agency,professional_services,advertising_agency,,,,,Advertising Agency,2
+after_school_program,professional_services,after_school_program,,,,,After School Program,2
+air_duct_cleaning_service,professional_services,air_duct_cleaning_service,,,,,Air Duct Cleaning Service,2
+antenna_service,professional_services,antenna_service,,,,,Antenna Service,2
+appliance_repair_service,professional_services,appliance_repair_service,,,,,Appliance Repair Service,2
+appraisal_services,professional_services,appraisal_services,,,,,Appraisal Services,2
+architect,professional_services,architect,,,,,Architect,2
+architectural_designer,professional_services,architectural_designer,,,,,Architectural Designer,2
+art_restoration_service,professional_services,art_restoration_service,,,,,Art Restoration Service,2
+awning_supplier,professional_services,awning_supplier,,,,,Awning Supplier,2
+bail_bonds_service,professional_services,bail_bonds_service,,,,,Bail Bonds Service,2
+bank_equipment_service,professional_services,bank_equipment_service,,,,,Bank Equipment Service,2
+bike_repair_maintenance,professional_services,bike_repair_maintenance,,,,,Bike Repair Maintenance,2
+billing_services,professional_services,billing_services,,,,,Billing Services,2
+bookbinding,professional_services,bookbinding,,,,,Bookbinding,2
+bookkeeper,professional_services,bookkeeper,,,,,Bookkeeper,2
+bus_rentals,professional_services,bus_rentals,,,,,Bus Rentals,2
+business_consulting,professional_services,business_consulting,,,,,Business Consulting,2
+calligraphy,professional_services,calligraphy,,,,,Calligraphy,2
+car_broker,professional_services,car_broker,,,,,Car Broker,2
+career_counseling,professional_services,career_counseling,,,,,Career Counseling,2
+carpet_dyeing,professional_services,carpet_dyeing,,,,,Carpet Dyeing,2
+cemeteries,professional_services,cemeteries,,,,,Cemeteries,2
+certification_agency,professional_services,certification_agency,,,,,Certification Agency,2
+day_care_preschool,professional_services,child_care_and_day_care,day_care_preschool,,,,Day Care Preschool,3
+child_care_and_day_care,professional_services,child_care_and_day_care,,,,,Child Care And Day Care,2
+industrial_cleaning_services,professional_services,cleaning_services,industrial_cleaning_services,,,,Industrial Cleaning Services,3
+janitorial_services,professional_services,cleaning_services,janitorial_services,,,,Janitorial Services,3
+office_cleaning,professional_services,cleaning_services,office_cleaning,,,,Office Cleaning,3
+cleaning_services,professional_services,cleaning_services,,,,,Cleaning Services,2
+clock_repair_service,professional_services,clock_repair_service,,,,,Clock Repair Service,2
+commercial_printer,professional_services,commercial_printer,,,,,Commercial Printer,2
+commercial_refrigeration,professional_services,commercial_refrigeration,,,,,Commercial Refrigeration,2
+commissioned_artist,professional_services,commissioned_artist,,,,,Commissioned Artist,2
+community_book_boxes,professional_services,community_book_boxes,,,,,Community Book Boxes,2
+community_gardens,professional_services,community_gardens,,,,,Community Gardens,2
+computer_hardware_company,professional_services,computer_hardware_company,,,,,Computer Hardware Company,2
+blueprinters,professional_services,construction_services,blueprinters,,,,Blueprinters,3
+construction_management,professional_services,construction_services,construction_management,,,,Construction Management,3
+civil_engineers,professional_services,construction_services,engineering_services,civil_engineers,,,Civil Engineers,4
+instrumentation_engineers,professional_services,construction_services,engineering_services,instrumentation_engineers,,,Instrumentation Engineers,4
+mechanical_engineers,professional_services,construction_services,engineering_services,mechanical_engineers,,,Mechanical Engineers,4
+engineering_services,professional_services,construction_services,engineering_services,,,,Engineering Services,3
+inspection_services,professional_services,construction_services,inspection_services,,,,Inspection Services,3
+blacksmiths,professional_services,construction_services,metal_materials_and_experts,blacksmiths,,,Blacksmiths,4
+ironworkers,professional_services,construction_services,metal_materials_and_experts,ironworkers,,,Ironworkers,4
+welders,professional_services,construction_services,metal_materials_and_experts,welders,,,Welders,4
+metal_materials_and_experts,professional_services,construction_services,metal_materials_and_experts,,,,Metal Materials And Experts,3
+road_contractor,professional_services,construction_services,road_contractor,,,,Road Contractor,3
+gravel_professionals,professional_services,construction_services,stone_and_masonry,gravel_professionals,,,Gravel Professionals,4
+lime_professionals,professional_services,construction_services,stone_and_masonry,lime_professionals,,,Lime Professionals,4
+marble_and_granite_professionals,professional_services,construction_services,stone_and_masonry,marble_and_granite_professionals,,,Marble And Granite Professionals,4
+masonry_contractors,professional_services,construction_services,stone_and_masonry,masonry_contractors,,,Masonry Contractors,4
+stone_and_masonry,professional_services,construction_services,stone_and_masonry,,,,Stone And Masonry,3
+wind_energy,professional_services,construction_services,wind_energy,,,,Wind Energy,3
+construction_services,professional_services,construction_services,,,,,Construction Services,2
+copywriting_service,professional_services,copywriting_service,,,,,Copywriting Service,2
+courier_and_delivery_services,professional_services,courier_and_delivery_services,,,,,Courier And Delivery Services,2
+crane_services,professional_services,crane_services,,,,,Crane Services,2
+customs_broker,professional_services,customs_broker,,,,,Customs Broker,2
+delegated_driver_service,professional_services,delegated_driver_service,,,,,Delegated Driver Service,2
+diamond_dealer,professional_services,diamond_dealer,,,,,Diamond Dealer,2
+digitizing_services,professional_services,digitizing_services,,,,,Digitizing Services,2
+donation_center,professional_services,donation_center,,,,,Donation Center,2
+duplication_services,professional_services,duplication_services,,,,,Duplication Services,2
+e_commerce_service,professional_services,e_commerce_service,,,,,E Commerce Service,2
+editorial_services,professional_services,editorial_services,,,,,Editorial Services,2
+elder_care_planning,professional_services,elder_care_planning,,,,,Elder Care Planning,2
+electrical_consultant,professional_services,electrical_consultant,,,,,Electrical Consultant,2
+electronics_repair_shop,professional_services,electronics_repair_shop,,,,,Electronics Repair Shop,2
+elevator_service,professional_services,elevator_service,,,,,Elevator Service,2
+emergency_service,professional_services,emergency_service,,,,,Emergency Service,2
+temp_agency,professional_services,employment_agencies,temp_agency,,,,Temp Agency,3
+employment_agencies,professional_services,employment_agencies,,,,,Employment Agencies,2
+engraving,professional_services,engraving,,,,,Engraving,2
+environmental_abatement_services,professional_services,environmental_abatement_services,,,,,Environmental Abatement Services,2
+environmental_testing,professional_services,environmental_testing,,,,,Environmental Testing,2
+balloon_services,professional_services,event_planning,balloon_services,,,,Balloon Services,3
+bartender,professional_services,event_planning,bartender,,,,Bartender,3
+boat_charter,professional_services,event_planning,boat_charter,,,,Boat Charter,3
+caricature,professional_services,event_planning,caricature,,,,Caricature,3
+caterer,professional_services,event_planning,caterer,,,,Caterer,3
+clown,professional_services,event_planning,clown,,,,Clown,3
+dj_service,professional_services,event_planning,dj_service,,,,Dj Service,3
+event_technology_service,professional_services,event_planning,event_technology_service,,,,Event Technology Service,3
+face_painting,professional_services,event_planning,face_painting,,,,Face Painting,3
+floral_designer,professional_services,event_planning,floral_designer,,,,Floral Designer,3
+game_truck_rental,professional_services,event_planning,game_truck_rental,,,,Game Truck Rental,3
+golf_cart_rental,professional_services,event_planning,golf_cart_rental,,,,Golf Cart Rental,3
+henna_artist,professional_services,event_planning,henna_artist,,,,Henna Artist,3
+kids_recreation_and_party,professional_services,event_planning,kids_recreation_and_party,,,,Kids Recreation And Party,3
+magician,professional_services,event_planning,magician,,,,Magician,3
+mohel,professional_services,event_planning,mohel,,,,Mohel,3
+musician,professional_services,event_planning,musician,,,,Musician,3
+officiating_services,professional_services,event_planning,officiating_services,,,,Officiating Services,3
+party_and_event_planning,professional_services,event_planning,party_and_event_planning,,,,Party And Event Planning,3
+party_bike_rental,professional_services,event_planning,party_bike_rental,,,,Party Bike Rental,3
+party_bus_rental,professional_services,event_planning,party_bus_rental,,,,Party Bus Rental,3
+party_character,professional_services,event_planning,party_character,,,,Party Character,3
+audiovisual_equipment_rental,professional_services,event_planning,party_equipment_rental,audiovisual_equipment_rental,,,Audiovisual Equipment Rental,4
+bounce_house_rental,professional_services,event_planning,party_equipment_rental,bounce_house_rental,,,Bounce House Rental,4
+karaoke_rental,professional_services,event_planning,party_equipment_rental,karaoke_rental,,,Karaoke Rental,4
+party_equipment_rental,professional_services,event_planning,party_equipment_rental,,,,Party Equipment Rental,3
+personal_chef,professional_services,event_planning,personal_chef,,,,Personal Chef,3
+photo_booth_rental,professional_services,event_planning,photo_booth_rental,,,,Photo Booth Rental,3
+boudoir_photography,professional_services,event_planning,photographer,boudoir_photography,,,Boudoir Photography,4
+event_photography,professional_services,event_planning,photographer,event_photography,,,Event Photography,4
+session_photography,professional_services,event_planning,photographer,session_photography,,,Session Photography,4
+photographer,professional_services,event_planning,photographer,,,,Photographer,3
+silent_disco,professional_services,event_planning,silent_disco,,,,Silent Disco,3
+sommelier_service,professional_services,event_planning,sommelier_service,,,,Sommelier Service,3
+team_building_activity,professional_services,event_planning,team_building_activity,,,,Team Building Activity,3
+trivia_host,professional_services,event_planning,trivia_host,,,,Trivia Host,3
+valet_service,professional_services,event_planning,valet_service,,,,Valet Service,3
+venue_and_event_space,professional_services,event_planning,venue_and_event_space,,,,Venue And Event Space,3
+videographer,professional_services,event_planning,videographer,,,,Videographer,3
+wedding_chapel,professional_services,event_planning,wedding_chapel,,,,Wedding Chapel,3
+wedding_planning,professional_services,event_planning,wedding_planning,,,,Wedding Planning,3
+event_planning,professional_services,event_planning,,,,,Event Planning,2
+farm_equipment_repair_service,professional_services,farm_equipment_repair_service,,,,,Farm Equipment Repair Service,2
+feng_shui,professional_services,feng_shui,,,,,Feng Shui,2
+fingerprinting_service,professional_services,fingerprinting_service,,,,,Fingerprinting Service,2
+food_and_beverage_consultant,professional_services,food_and_beverage_consultant,,,,,Food And Beverage Consultant,2
+forestry_service,professional_services,forestry_service,,,,,Forestry Service,2
+fortune_telling_service,professional_services,fortune_telling_service,,,,,Fortune Telling Service,2
+cremation_services,professional_services,funeral_services_and_cemeteries,cremation_services,,,,Cremation Services,3
+mortuary_services,professional_services,funeral_services_and_cemeteries,mortuary_services,,,,Mortuary Services,3
+funeral_services_and_cemeteries,professional_services,funeral_services_and_cemeteries,,,,,Funeral Services And Cemeteries,2
+furniture_rental_service,professional_services,furniture_rental_service,,,,,Furniture Rental Service,2
+furniture_repair,professional_services,furniture_repair,,,,,Furniture Repair,2
+furniture_reupholstery,professional_services,furniture_reupholstery,,,,,Furniture Reupholstery,2
+genealogists,professional_services,genealogists,,,,,Genealogists,2
+generator_installation_repair,professional_services,generator_installation_repair,,,,,Generator Installation Repair,2
+goldsmith,professional_services,goldsmith,,,,,Goldsmith,2
+graphic_designer,professional_services,graphic_designer,,,,,Graphic Designer,2
+gunsmith,professional_services,gunsmith,,,,,Gunsmith,2
+hazardous_waste_disposal,professional_services,hazardous_waste_disposal,,,,,Hazardous Waste Disposal,2
+hydraulic_repair_service,professional_services,hydraulic_repair_service,,,,,Hydraulic Repair Service,2
+hydro_jetting,professional_services,hydro_jetting,,,,,Hydro Jetting,2
+ice_supplier,professional_services,ice_supplier,,,,,Ice Supplier,2
+immigration_assistance_services,professional_services,immigration_assistance_services,,,,,Immigration Assistance Services,2
+indoor_landscaping,professional_services,indoor_landscaping,,,,,Indoor Landscaping,2
+internet_marketing_service,professional_services,internet_marketing_service,,,,,Internet Marketing Service,2
+web_hosting_service,professional_services,internet_service_provider,web_hosting_service,,,,Web Hosting Service,3
+internet_service_provider,professional_services,internet_service_provider,,,,,Internet Service Provider,2
+data_recovery,professional_services,it_service_and_computer_repair,data_recovery,,,,Data Recovery,3
+it_consultant,professional_services,it_service_and_computer_repair,it_consultant,,,,It Consultant,3
+it_support_and_service,professional_services,it_service_and_computer_repair,it_support_and_service,,,,It Support And Service,3
+mobile_phone_repair,professional_services,it_service_and_computer_repair,mobile_phone_repair,,,,Mobile Phone Repair,3
+telecommunications,professional_services,it_service_and_computer_repair,telecommunications,,,,Telecommunications,3
+it_service_and_computer_repair,professional_services,it_service_and_computer_repair,,,,,It Service And Computer Repair,2
+jewelry_repair_service,professional_services,jewelry_repair_service,,,,,Jewelry Repair Service,2
+dumpster_rentals,professional_services,junk_removal_and_hauling,dumpster_rentals,,,,Dumpster Rentals,3
+junk_removal_and_hauling,professional_services,junk_removal_and_hauling,,,,,Junk Removal And Hauling,2
+junkyard,professional_services,junkyard,,,,,Junkyard,2
+knife_sharpening,professional_services,knife_sharpening,,,,,Knife Sharpening,2
+laboratory,professional_services,laboratory,,,,,Laboratory,2
+dry_cleaning,professional_services,laundry_services,dry_cleaning,,,,Dry Cleaning,3
+laundromat,professional_services,laundry_services,laundromat,,,,Laundromat,3
+laundry_services,professional_services,laundry_services,,,,,Laundry Services,2
+lawn_mower_repair_service,professional_services,lawn_mower_repair_service,,,,,Lawn Mower Repair Service,2
+appellate_practice_lawyers,professional_services,lawyer,appellate_practice_lawyers,,,,Appellate Practice Lawyers,3
+bankruptcy_law,professional_services,lawyer,bankruptcy_law,,,,Bankruptcy Law,3
+business_law,professional_services,lawyer,business_law,,,,Business Law,3
+civil_rights_lawyers,professional_services,lawyer,civil_rights_lawyers,,,,Civil Rights Lawyers,3
+contract_law,professional_services,lawyer,contract_law,,,,Contract Law,3
+criminal_defense_law,professional_services,lawyer,criminal_defense_law,,,,Criminal Defense Law,3
+disability_law,professional_services,lawyer,disability_law,,,,Disability Law,3
+divorce_and_family_law,professional_services,lawyer,divorce_and_family_law,,,,Divorce And Family Law,3
+dui_law,professional_services,lawyer,dui_law,,,,Dui Law,3
+employment_law,professional_services,lawyer,employment_law,,,,Employment Law,3
+entertainment_law,professional_services,lawyer,entertainment_law,,,,Entertainment Law,3
+wills_trusts_and_probate,professional_services,lawyer,estate_planning_law,wills_trusts_and_probate,,,Wills Trusts And Probate,4
+estate_planning_law,professional_services,lawyer,estate_planning_law,,,,Estate Planning Law,3
+general_litigation,professional_services,lawyer,general_litigation,,,,General Litigation,3
+immigration_law,professional_services,lawyer,immigration_law,,,,Immigration Law,3
+ip_and_internet_law,professional_services,lawyer,ip_and_internet_law,,,,Ip And Internet Law,3
+medical_law,professional_services,lawyer,medical_law,,,,Medical Law,3
+paralegal_services,professional_services,lawyer,paralegal_services,,,,Paralegal Services,3
+personal_injury_law,professional_services,lawyer,personal_injury_law,,,,Personal Injury Law,3
+real_estate_law,professional_services,lawyer,real_estate_law,,,,Real Estate Law,3
+social_security_law,professional_services,lawyer,social_security_law,,,,Social Security Law,3
+tax_law,professional_services,lawyer,tax_law,,,,Tax Law,3
+traffic_ticketing_law,professional_services,lawyer,traffic_ticketing_law,,,,Traffic Ticketing Law,3
+workers_compensation_law,professional_services,lawyer,workers_compensation_law,,,,Workers Compensation Law,3
+lawyer,professional_services,lawyer,,,,,Lawyer,2
+court_reporter,professional_services,legal_services,court_reporter,,,,Court Reporter,3
+process_servers,professional_services,legal_services,process_servers,,,,Process Servers,3
+legal_services,professional_services,legal_services,,,,,Legal Services,2
+life_coach,professional_services,life_coach,,,,,Life Coach,2
+lottery_ticket,professional_services,lottery_ticket,,,,,Lottery Ticket,2
+machine_and_tool_rentals,professional_services,machine_and_tool_rentals,,,,,Machine And Tool Rentals,2
+machine_shop,professional_services,machine_shop,,,,,Machine Shop,2
+mailbox_center,professional_services,mailbox_center,,,,,Mailbox Center,2
+marketing_agency,professional_services,marketing_agency,,,,,Marketing Agency,2
+matchmaker,professional_services,matchmaker,,,,,Matchmaker,2
+mediator,professional_services,mediator,,,,,Mediator,2
+merchandising_service,professional_services,merchandising_service,,,,,Merchandising Service,2
+metal_detector_services,professional_services,metal_detector_services,,,,,Metal Detector Services,2
+misting_system_services,professional_services,misting_system_services,,,,,Misting System Services,2
+mobility_equipment_services,professional_services,mobility_equipment_services,,,,,Mobility Equipment Services,2
+mooring_service,professional_services,mooring_service,,,,,Mooring Service,2
+music_production_services,professional_services,music_production_services,,,,,Music Production Services,2
+piano_services,professional_services,musical_instrument_services,piano_services,,,,Piano Services,3
+vocal_coach,professional_services,musical_instrument_services,vocal_coach,,,,Vocal Coach,3
+musical_instrument_services,professional_services,musical_instrument_services,,,,,Musical Instrument Services,2
+nanny_services,professional_services,nanny_services,,,,,Nanny Services,2
+notary_public,professional_services,notary_public,,,,,Notary Public,2
+package_locker,professional_services,package_locker,,,,,Package Locker,2
+packaging_contractors_and_service,professional_services,packaging_contractors_and_service,,,,,Packaging Contractors And Service,2
+patent_law,professional_services,patent_law,,,,,Patent Law,2
+payroll_services,professional_services,payroll_services,,,,,Payroll Services,2
+personal_assistant,professional_services,personal_assistant,,,,,Personal Assistant,2
+pest_control_service,professional_services,pest_control_service,,,,,Pest Control Service,2
+powder_coating_service,professional_services,powder_coating_service,,,,,Powder Coating Service,2
+printing_services,professional_services,printing_services,,,,,Printing Services,2
+private_investigation,professional_services,private_investigation,,,,,Private Investigation,2
+product_design,professional_services,product_design,,,,,Product Design,2
+propane_supplier,professional_services,propane_supplier,,,,,Propane Supplier,2
+public_adjuster,professional_services,public_adjuster,,,,,Public Adjuster,2
+public_relations,professional_services,public_relations,,,,,Public Relations,2
+record_label,professional_services,record_label,,,,,Record Label,2
+recording_and_rehearsal_studio,professional_services,recording_and_rehearsal_studio,,,,,Recording And Rehearsal Studio,2
+recycling_center,professional_services,recycling_center,,,,,Recycling Center,2
+sandblasting_service,professional_services,sandblasting_service,,,,,Sandblasting Service,2
+screen_printing_t_shirt_printing,professional_services,screen_printing_t_shirt_printing,,,,,Screen Printing T Shirt Printing,2
+security_services,professional_services,security_services,,,,,Security Services,2
+septic_services,professional_services,septic_services,,,,,Septic Services,2
+gents_tailor,professional_services,sewing_and_alterations,gents_tailor,,,,Gents Tailor,3
+sewing_and_alterations,professional_services,sewing_and_alterations,,,,,Sewing And Alterations,2
+shipping_center,professional_services,shipping_center,,,,,Shipping Center,2
+shoe_repair,professional_services,shoe_repair,,,,,Shoe Repair,2
+shoe_shining_service,professional_services,shoe_shining_service,,,,,Shoe Shining Service,2
+shredding_services,professional_services,shredding_services,,,,,Shredding Services,2
+sign_making,professional_services,sign_making,,,,,Sign Making,2
+snow_removal_service,professional_services,snow_removal_service,,,,,Snow Removal Service,2
+snuggle_service,professional_services,snuggle_service,,,,,Snuggle Service,2
+social_media_agency,professional_services,social_media_agency,,,,,Social Media Agency,2
+software_development,professional_services,software_development,,,,,Software Development,2
+boat_storage_facility,professional_services,storage_facility,rv_and_boat_storage_facility,boat_storage_facility,,,Boat Storage Facility,4
+rv_storage_facility,professional_services,storage_facility,rv_and_boat_storage_facility,rv_storage_facility,,,Rv Storage Facility,4
+rv_and_boat_storage_facility,professional_services,storage_facility,rv_and_boat_storage_facility,,,,Rv And Boat Storage Facility,3
+self_storage_facility,professional_services,storage_facility,self_storage_facility,,,,Self Storage Facility,3
+storage_facility,professional_services,storage_facility,,,,,Storage Facility,2
+talent_agency,professional_services,talent_agency,,,,,Talent Agency,2
+taxidermist,professional_services,taxidermist,,,,,Taxidermist,2
+telephone_services,professional_services,telephone_services,,,,,Telephone Services,2
+tenant_and_eviction_law,professional_services,tenant_and_eviction_law,,,,,Tenant And Eviction Law,2
+tent_house_supplier,professional_services,tent_house_supplier,,,,,Tent House Supplier,2
+translation_services,professional_services,translation_services,,,,,Translation Services,2
+tv_mounting,professional_services,tv_mounting,,,,,Tv Mounting,2
+typing_services,professional_services,typing_services,,,,,Typing Services,2
+electricity_supplier,professional_services,utility_service,electricity_supplier,,,,Electricity Supplier,3
+garbage_collection_service,professional_services,utility_service,garbage_collection_service,,,,Garbage Collection Service,3
+natural_gas_supplier,professional_services,utility_service,natural_gas_supplier,,,,Natural Gas Supplier,3
+public_phones,professional_services,utility_service,public_phones,,,,Public Phones,3
+public_restrooms,professional_services,utility_service,public_restrooms,,,,Public Restrooms,3
+water_supplier,professional_services,utility_service,water_supplier,,,,Water Supplier,3
+utility_service,professional_services,utility_service,,,,,Utility Service,2
+video_film_production,professional_services,video_film_production,,,,,Video Film Production,2
+watch_repair_service,professional_services,watch_repair_service,,,,,Watch Repair Service,2
+water_delivery,professional_services,water_delivery,,,,,Water Delivery,2
+web_designer,professional_services,web_designer,,,,,Web Designer,2
+well_drilling,professional_services,well_drilling,,,,,Well Drilling,2
+wildlife_control,professional_services,wildlife_control,,,,,Wildlife Control,2
+writing_service,professional_services,writing_service,,,,,Writing Service,2
+professional_services,professional_services,,,,,,Professional Services,1
+armed_forces_branch,public_service_and_government,armed_forces_branch,,,,,Armed Forces Branch,2
+central_government_office,public_service_and_government,central_government_office,,,,,Central Government Office,2
+chambers_of_commerce,public_service_and_government,chambers_of_commerce,,,,,Chambers Of Commerce,2
+children_hall,public_service_and_government,children_hall,,,,,Children Hall,2
+civic_center,public_service_and_government,civic_center,,,,,Civic Center,2
+community_center,public_service_and_government,community_center,,,,,Community Center,2
+disability_services_and_support_organization,public_service_and_government,community_services,disability_services_and_support_organization,,,,Disability Services And Support Organization,3
+community_services_non_profits,public_service_and_government,community_services,,,,,Community Services Non Profits,
+courthouse,public_service_and_government,courthouse,,,,,Courthouse,2
+department_of_motor_vehicles,public_service_and_government,department_of_motor_vehicles,,,,,Department Of Motor Vehicles,2
+department_of_social_service,public_service_and_government,department_of_social_service,,,,,Department Of Social Service,2
+embassy,public_service_and_government,embassy,,,,,Embassy,2
+family_service_center,public_service_and_government,family_service_center,,,,,Family Service Center,2
+federal_government_offices,public_service_and_government,federal_government_offices,,,,,Federal Government Offices,2
+fire_department,public_service_and_government,fire_department,,,,,Fire Department,2
+social_security_services,public_service_and_government,government_services,social_security_services,,,,Social Security Services,3
+government_services,public_service_and_government,government_services,,,,,Government Services,2
+immigration_and_naturalization,public_service_and_government,immigration_and_naturalization,,,,,Immigration And Naturalization,2
+juvenile_detention_center,public_service_and_government,jail_and_prison,juvenile_detention_center,,,,Juvenile Detention Center,3
+jail_and_prison,public_service_and_government,jail_and_prison,,,,,Jail And Prison,2
+law_enforcement,public_service_and_government,law_enforcement,,,,,Law Enforcement,2
+library,public_service_and_government,library,,,,,Library,2
+local_and_state_government_offices,public_service_and_government,local_and_state_government_offices,,,,,Local And State Government Offices,2
+low_income_housing,public_service_and_government,low_income_housing,,,,,Low Income Housing,2
+national_security_services,public_service_and_government,national_security_services,,,,,National Security Services,2
+office_of_vital_records,public_service_and_government,office_of_vital_records,,,,,Office Of Vital Records,2
+agriculture_association,public_service_and_government,organization,agriculture_association,,,,Agriculture Association,3
+environmental_conservation_organization,public_service_and_government,organization,environmental_conservation_organization,,,,Environmental Conservation Organization,3
+home_organization,public_service_and_government,organization,home_organization,,,,Home Organization,3
+labor_union,public_service_and_government,organization,labor_union,,,,Labor Union,3
+non_governmental_association,public_service_and_government,organization,non_governmental_association,,,,Non Governmental Association,3
+political_organization,public_service_and_government,organization,political_organization,,,,Political Organization,3
+private_association,public_service_and_government,organization,private_association,,,,Private Association,3
+public_and_government_association,public_service_and_government,organization,public_and_government_association,,,,Public And Government Association,3
+charity_organization,public_service_and_government,organization,social_service_organizations,charity_organization,,,Charity Organization,4
+child_protection_service,public_service_and_government,organization,social_service_organizations,child_protection_service,,,Child Protection Service,4
+food_banks,public_service_and_government,organization,social_service_organizations,food_banks,,,Food Banks,4
+foster_care_services,public_service_and_government,organization,social_service_organizations,foster_care_services,,,Foster Care Services,4
+gay_and_lesbian_services_organization,public_service_and_government,organization,social_service_organizations,gay_and_lesbian_services_organization,,,Gay And Lesbian Services Organization,4
+homeless_shelter,public_service_and_government,organization,social_service_organizations,homeless_shelter,,,Homeless Shelter,4
+housing_authorities,public_service_and_government,organization,social_service_organizations,housing_authorities,,,Housing Authorities,4
+senior_citizen_services,public_service_and_government,organization,social_service_organizations,senior_citizen_services,,,Senior Citizen Services,4
+social_and_human_services,public_service_and_government,organization,social_service_organizations,social_and_human_services,,,Social And Human Services,4
+social_welfare_center,public_service_and_government,organization,social_service_organizations,social_welfare_center,,,Social Welfare Center,4
+volunteer_association,public_service_and_government,organization,social_service_organizations,volunteer_association,,,Volunteer Association,4
+youth_organizations,public_service_and_government,organization,social_service_organizations,youth_organizations,,,Youth Organizations,4
+social_service_organizations,public_service_and_government,organization,social_service_organizations,,,,Social Service Organizations,3
+organization,public_service_and_government,organization,,,,,Organization,2
+pension,public_service_and_government,pension,,,,,Pension,2
+police_department,public_service_and_government,police_department,,,,,Police Department,2
+political_party_office,public_service_and_government,political_party_office,,,,,Political Party Office,2
+shipping_collection_services,public_service_and_government,post_office,shipping_collection_services,,,,Shipping Collection Services,3
+post_office,public_service_and_government,post_office,,,,,Post Office,2
+public_toilet,public_service_and_government,public_toilet,,,,,Public Toilet,2
+electric_utility_provider,public_service_and_government,public_utility_company,electric_utility_provider,,,,Electric Utility Provider,3
+energy_company,public_service_and_government,public_utility_company,energy_company,,,,Energy Company,3
+public_utility_company,public_service_and_government,public_utility_company,,,,,Public Utility Company,2
+railway_service,public_service_and_government,railway_service,,,,,Railway Service,2
+registry_office,public_service_and_government,registry_office,,,,,Registry Office,2
+retirement_home,public_service_and_government,retirement_home,,,,,Retirement Home,2
+scout_hall,public_service_and_government,scout_hall,,,,,Scout Hall,2
+tax_office,public_service_and_government,tax_office,,,,,Tax Office,2
+town_hall,public_service_and_government,town_hall,,,,,Town Hall,2
+unemployment_office,public_service_and_government,unemployment_office,,,,,Unemployment Office,2
+weather_station,public_service_and_government,weather_station,,,,,Weather Station,2
+public_service_and_government,public_service_and_government,,,,,,Public Service And Government,1
+apartments,real_estate,apartments,,,,,Apartments,2
+art_space_rental,real_estate,art_space_rental,,,,,Art Space Rental,2
+home_developer,real_estate,builders,home_developer,,,,Home Developer,3
+builders,real_estate,builders,,,,,Builders,2
+commercial_real_estate,real_estate,commercial_real_estate,,,,,Commercial Real Estate,2
+condominium,real_estate,condominium,,,,,Condominium,2
+display_home_center,real_estate,display_home_center,,,,,Display Home Center,2
+estate_liquidation,real_estate,estate_liquidation,,,,,Estate Liquidation,2
+holiday_park,real_estate,holiday_park,,,,,Holiday Park,2
+home_staging,real_estate,home_staging,,,,,Home Staging,2
+homeowner_association,real_estate,homeowner_association,,,,,Homeowner Association,2
+housing_cooperative,real_estate,housing_cooperative,,,,,Housing Cooperative,2
+kitchen_incubator,real_estate,kitchen_incubator,,,,,Kitchen Incubator,2
+mobile_home_dealer,real_estate,mobile_home_dealer,,,,,Mobile Home Dealer,2
+mobile_home_park,real_estate,mobile_home_park,,,,,Mobile Home Park,2
+mortgage_broker,real_estate,mortgage_broker,,,,,Mortgage Broker,2
+property_management,real_estate,property_management,,,,,Property Management,2
+apartment_agent,real_estate,real_estate_agent,apartment_agent,,,,Apartment Agent,3
+real_estate_agent,real_estate,real_estate_agent,,,,,Real Estate Agent,2
+real_estate_investment,real_estate,real_estate_investment,,,,,Real Estate Investment,2
+escrow_services,real_estate,real_estate_service,escrow_services,,,,Escrow Services,3
+land_surveying,real_estate,real_estate_service,land_surveying,,,,Land Surveying,3
+real_estate_photography,real_estate,real_estate_service,real_estate_photography,,,,Real Estate Photography,3
+rental_services,real_estate,real_estate_service,rental_services,,,,Rental Services,3
+real_estate_service,real_estate,real_estate_service,,,,,Real Estate Service,2
+shared_office_space,real_estate,shared_office_space,,,,,Shared Office Space,2
+university_housing,real_estate,university_housing,,,,,University Housing,2
+real_estate,real_estate,,,,,,Real Estate,1
+buddhist_temple,religious_organization,buddhist_temple,,,,,Buddhist Temple,2
+anglican_church,religious_organization,church_cathedral,anglican_church,,,,Anglican Church,3
+baptist_church,religious_organization,church_cathedral,baptist_church,,,,Baptist Church,3
+catholic_church,religious_organization,church_cathedral,catholic_church,,,,Catholic Church,3
+episcopal_church,religious_organization,church_cathedral,episcopal_church,,,,Episcopal Church,3
+evangelical_church,religious_organization,church_cathedral,evangelical_church,,,,Evangelical Church,3
+jehovahs_witness_kingdom_hall,religious_organization,church_cathedral,jehovahs_witness_kingdom_hall,,,,Jehovahs Witness Kingdom Hall,3
+pentecostal_church,religious_organization,church_cathedral,pentecostal_church,,,,Pentecostal Church,3
+church_cathedral,religious_organization,church_cathedral,,,,,Church Cathedral,2
+convents_and_monasteries,religious_organization,convents_and_monasteries,,,,,Convents And Monasteries,2
+hindu_temple,religious_organization,hindu_temple,,,,,Hindu Temple,2
+mission,religious_organization,mission,,,,,Mission,2
+mosque,religious_organization,mosque,,,,,Mosque,2
+religious_destination,religious_organization,religious_destination,,,,,Religious Destination,2
+shinto_shrines,religious_organization,shinto_shrines,,,,,Shinto Shrines,2
+sikh_temple,religious_organization,sikh_temple,,,,,Sikh Temple,2
+synagogue,religious_organization,synagogue,,,,,Synagogue,2
+temple,religious_organization,temple,,,,,Temple,2
+religious_organization,religious_organization,,,,,,Religious Organization,1
+auto_parts_and_supply_store,retail,auto_parts_and_supply_store,,,,,Auto Parts And Supply Store,2
+beverage_store,retail,beverage_store,,,,,Beverage Store,2
+boat_parts_and_supply_store,retail,boat_parts_and_supply_store,,,,,Boat Parts And Supply Store,2
+carpet_store,retail,carpet_store,,,,,Carpet Store,2
+distillery,retail,distillery,,,,,Distillery,2
+drugstore,retail,drugstore,,,,,Drugstore,2
+flooring_store,retail,flooring_store,,,,,Flooring Store,2
+back_shop,retail,food,back_shop,,,,Back Shop,3
+bagel_shop,retail,food,bagel_shop,,,,Bagel Shop,3
+flatbread,retail,food,bakery,flatbread,,,Flatbread,4
+bakery,retail,food,bakery,,,,Bakery,3
+beer_wine_and_spirits,retail,food,beer_wine_and_spirits,,,,Beer Wine And Spirits,3
+box_lunch_supplier,retail,food,box_lunch_supplier,,,,Box Lunch Supplier,3
+butcher_shop,retail,food,butcher_shop,,,,Butcher Shop,3
+japanese_confectionery_shop,retail,food,candy_store,japanese_confectionery_shop,,,Japanese Confectionery Shop,4
+candy_store,retail,food,candy_store,,,,Candy Store,3
+cheese_shop,retail,food,cheese_shop,,,,Cheese Shop,3
+chocolatier,retail,food,chocolatier,,,,Chocolatier,3
+coffee_and_tea_supplies,retail,food,coffee_and_tea_supplies,,,,Coffee And Tea Supplies,3
+csa_farm,retail,food,csa_farm,,,,Csa Farm,3
+desserts,retail,food,desserts,,,,Desserts,3
+donuts,retail,food,donuts,,,,Donuts,3
+fishmonger,retail,food,fishmonger,,,,Fishmonger,3
+pizza_delivery_service,retail,food,food_delivery_service,pizza_delivery_service,,,Pizza Delivery Service,4
+food_delivery_service,retail,food,food_delivery_service,,,,Food Delivery Service,3
+food_stand,retail,food,food_stand,,,,Food Stand,3
+food_truck,retail,food,food_truck,,,,Food Truck,3
+friterie,retail,food,friterie,,,,Friterie,3
+fruits_and_vegetables,retail,food,fruits_and_vegetables,,,,Fruits And Vegetables,3
+health_food_store,retail,food,health_food_store,,,,Health Food Store,3
+frozen_yoghurt_shop,retail,food,ice_cream_and_frozen_yoghurt,frozen_yoghurt_shop,,,Frozen Yoghurt Shop,4
+gelato,retail,food,ice_cream_and_frozen_yoghurt,gelato,,,Gelato,4
+ice_cream_shop,retail,food,ice_cream_and_frozen_yoghurt,ice_cream_shop,,,Ice Cream Shop,4
+shaved_ice_shop,retail,food,ice_cream_and_frozen_yoghurt,shaved_ice_shop,,,Shaved Ice Shop,4
+shaved_snow_shop,retail,food,ice_cream_and_frozen_yoghurt,shaved_snow_shop,,,Shaved Snow Shop,4
+ice_cream_and_frozen_yoghurt,retail,food,ice_cream_and_frozen_yoghurt,,,,Ice Cream And Frozen Yoghurt,3
+imported_food,retail,food,imported_food,,,,Imported Food,3
+kiosk,retail,food,kiosk,,,,Kiosk,3
+liquor_store,retail,food,liquor_store,,,,Liquor Store,3
+mulled_wine,retail,food,mulled_wine,,,,Mulled Wine,3
+chimney_cake_shop,retail,food,patisserie_cake_shop,chimney_cake_shop,,,Chimney Cake Shop,4
+cupcake_shop,retail,food,patisserie_cake_shop,cupcake_shop,,,Cupcake Shop,4
+custom_cakes_shop,retail,food,patisserie_cake_shop,custom_cakes_shop,,,Custom Cakes Shop,4
+patisserie_cake_shop,retail,food,patisserie_cake_shop,,,,Patisserie Cake Shop,3
+pie_shop,retail,food,pie_shop,,,,Pie Shop,3
+pretzels,retail,food,pretzels,,,,Pretzels,3
+sandwich_shop,retail,food,sandwich_shop,,,,Sandwich Shop,3
+smokehouse,retail,food,smokehouse,,,,Smokehouse,3
+delicatessen,retail,food,specialty_foods,delicatessen,,,Delicatessen,4
+frozen_foods,retail,food,specialty_foods,frozen_foods,,,Frozen Foods,4
+indian_sweets_shop,retail,food,specialty_foods,indian_sweets_shop,,,Indian Sweets Shop,4
+macarons,retail,food,specialty_foods,macarons,,,Macarons,4
+pasta_shop,retail,food,specialty_foods,pasta_shop,,,Pasta Shop,4
+specialty_foods,retail,food,specialty_foods,,,,Specialty Foods,3
+street_vendor,retail,food,street_vendor,,,,Street Vendor,3
+wine_tasting_room,retail,food,winery,wine_tasting_room,,,Wine Tasting Room,4
+winery,retail,food,winery,,,,Winery,3
+food,retail,food,,,,,Food,2
+health_market,retail,health_market,,,,,Health Market,2
+hearing_aid_provider,retail,hearing_aid_provider,,,,,Hearing Aid Provider,2
+herb_and_spice_shop,retail,herb_and_spice_shop,,,,,Herb And Spice Shop,2
+honey_farm_shop,retail,honey_farm_shop,,,,,Honey Farm Shop,2
+meat_shop,retail,meat_shop,,,,,Meat Shop,2
+olive_oil,retail,olive_oil,,,,,Olive Oil,2
+party_supply,retail,party_supply,,,,,Party Supply,2
+pharmacy,retail,pharmacy,,,,,Pharmacy,2
+popcorn_shop,retail,popcorn_shop,,,,,Popcorn Shop,2
+seafood_market,retail,seafood_market,,,,,Seafood Market,2
+adult_store,retail,shopping,adult_store,,,,Adult Store,3
+agricultural_seed_store,retail,shopping,agricultural_seed_store,,,,Agricultural Seed Store,3
+antique_store,retail,shopping,antique_store,,,,Antique Store,3
+army_and_navy_store,retail,shopping,army_and_navy_store,,,,Army And Navy Store,3
+art_supply_store,retail,shopping,arts_and_crafts,art_supply_store,,,Art Supply Store,4
+atelier,retail,shopping,arts_and_crafts,atelier,,,Atelier,4
+cooking_classes,retail,shopping,arts_and_crafts,cooking_classes,,,Cooking Classes,4
+costume_store,retail,shopping,arts_and_crafts,costume_store,,,Costume Store,4
+craft_shop,retail,shopping,arts_and_crafts,craft_shop,,,Craft Shop,4
+embroidery_and_crochet,retail,shopping,arts_and_crafts,embroidery_and_crochet,,,Embroidery And Crochet,4
+fabric_store,retail,shopping,arts_and_crafts,fabric_store,,,Fabric Store,4
+framing_store,retail,shopping,arts_and_crafts,framing_store,,,Framing Store,4
+handicraft_shop,retail,shopping,arts_and_crafts,handicraft_shop,,,Handicraft Shop,4
+paint_your_own_pottery,retail,shopping,arts_and_crafts,paint_your_own_pottery,,,Paint Your Own Pottery,4
+arts_and_crafts,retail,shopping,arts_and_crafts,,,,Arts And Crafts,3
+car_auction,retail,shopping,auction_house,car_auction,,,Car Auction,4
+auction_house,retail,shopping,auction_house,,,,Auction House,3
+audio_visual_equipment_store,retail,shopping,audio_visual_equipment_store,,,,Audio Visual Equipment Store,3
+baby_gear_and_furniture,retail,shopping,baby_gear_and_furniture,,,,Baby Gear And Furniture,3
+battery_store,retail,shopping,battery_store,,,,Battery Store,3
+bazaars,retail,shopping,bazaars,,,,Bazaars,3
+academic_bookstore,retail,shopping,books_mags_music_and_video,academic_bookstore,,,Academic Bookstore,4
+bookstore,retail,shopping,books_mags_music_and_video,bookstore,,,Bookstore,4
+comic_books_store,retail,shopping,books_mags_music_and_video,comic_books_store,,,Comic Books Store,4
+music_and_dvd_store,retail,shopping,books_mags_music_and_video,music_and_dvd_store,,,Music And Dvd Store,4
+newspaper_and_magazines_store,retail,shopping,books_mags_music_and_video,newspaper_and_magazines_store,,,Newspaper And Magazines Store,4
+video_and_video_game_rentals,retail,shopping,books_mags_music_and_video,video_and_video_game_rentals,,,Video And Video Game Rentals,4
+video_game_store,retail,shopping,books_mags_music_and_video,video_game_store,,,Video Game Store,4
+vinyl_record_store,retail,shopping,books_mags_music_and_video,vinyl_record_store,,,Vinyl Record Store,4
+books_mags_music_and_video,retail,shopping,books_mags_music_and_video,,,,Books Mags Music And Video,3
+boutique,retail,shopping,boutique,,,,Boutique,3
+brewing_supply_store,retail,shopping,brewing_supply_store,,,,Brewing Supply Store,3
+bridal_shop,retail,shopping,bridal_shop,,,,Bridal Shop,3
+lumber_store,retail,shopping,building_supply_store,lumber_store,,,Lumber Store,4
+building_supply_store,retail,shopping,building_supply_store,,,,Building Supply Store,3
+cannabis_dispensary,retail,shopping,cannabis_dispensary,,,,Cannabis Dispensary,3
+cards_and_stationery_store,retail,shopping,cards_and_stationery_store,,,,Cards And Stationery Store,3
+computer_store,retail,shopping,computer_store,,,,Computer Store,3
+concept_shop,retail,shopping,concept_shop,,,,Concept Shop,3
+convenience_store,retail,shopping,convenience_store,,,,Convenience Store,3
+hair_supply_stores,retail,shopping,cosmetic_and_beauty_supplies,hair_supply_stores,,,Hair Supply Stores,4
+cosmetic_and_beauty_supplies,retail,shopping,cosmetic_and_beauty_supplies,,,,Cosmetic And Beauty Supplies,3
+custom_clothing,retail,shopping,custom_clothing,,,,Custom Clothing,3
+customized_merchandise,retail,shopping,customized_merchandise,,,,Customized Merchandise,3
+department_store,retail,shopping,department_store,,,,Department Store,3
+discount_store,retail,shopping,discount_store,,,,Discount Store,3
+do_it_yourself_store,retail,shopping,do_it_yourself_store,,,,Do It Yourself Store,3
+drone_store,retail,shopping,drone_store,,,,Drone Store,3
+duty_free_shop,retail,shopping,duty_free_shop,,,,Duty Free Shop,3
+e_cigarette_store,retail,shopping,e_cigarette_store,,,,E Cigarette Store,3
+educational_supply_store,retail,shopping,educational_supply_store,,,,Educational Supply Store,3
+electronics,retail,shopping,electronics,,,,Electronics,3
+sunglasses_store,retail,shopping,eyewear_and_optician,sunglasses_store,,,Sunglasses Store,4
+eyewear_and_optician,retail,shopping,eyewear_and_optician,,,,Eyewear And Optician,3
+farmers_market,retail,shopping,farmers_market,,,,Farmers Market,3
+forklift_dealer,retail,shopping,farming_equipment_store,forklift_dealer,,,Forklift Dealer,4
+farming_equipment_store,retail,shopping,farming_equipment_store,,,,Farming Equipment Store,3
+ceremonial_clothing,retail,shopping,fashion,clothing_store,ceremonial_clothing,,Ceremonial Clothing,5
+childrens_clothing_store,retail,shopping,fashion,clothing_store,childrens_clothing_store,,Childrens Clothing Store,5
+clothing_rental,retail,shopping,fashion,clothing_store,clothing_rental,,Clothing Rental,5
+denim_wear_store,retail,shopping,fashion,clothing_store,denim_wear_store,,Denim Wear Store,5
+designer_clothing,retail,shopping,fashion,clothing_store,designer_clothing,,Designer Clothing,5
+formal_wear_store,retail,shopping,fashion,clothing_store,formal_wear_store,,Formal Wear Store,5
+fur_clothing,retail,shopping,fashion,clothing_store,fur_clothing,,Fur Clothing,5
+lingerie_store,retail,shopping,fashion,clothing_store,lingerie_store,,Lingerie Store,5
+maternity_wear,retail,shopping,fashion,clothing_store,maternity_wear,,Maternity Wear,5
+mens_clothing_store,retail,shopping,fashion,clothing_store,mens_clothing_store,,Mens Clothing Store,5
+t_shirt_store,retail,shopping,fashion,clothing_store,t_shirt_store,,T Shirt Store,5
+custom_t_shirt_store,retail,shopping,fashion,clothing_store,t_shirt_store,,Custom T Shirt Store,
+traditional_clothing,retail,shopping,fashion,clothing_store,traditional_clothing,,Traditional Clothing,5
+womens_clothing_store,retail,shopping,fashion,clothing_store,womens_clothing_store,,Womens Clothing Store,5
+clothing_store,retail,shopping,fashion,clothing_store,,,Clothing Store,4
+handbag_stores,retail,shopping,fashion,fashion_accessories_store,handbag_stores,,Handbag Stores,5
+fashion_accessories_store,retail,shopping,fashion,fashion_accessories_store,,,Fashion Accessories Store,4
+hat_shop,retail,shopping,fashion,hat_shop,,,Hat Shop,4
+leather_goods,retail,shopping,fashion,leather_goods,,,Leather Goods,4
+plus_size_clothing,retail,shopping,fashion,plus_size_clothing,,,Plus Size Clothing,4
+saree_shop,retail,shopping,fashion,saree_shop,,,Saree Shop,4
+orthopedic_shoe_store,retail,shopping,fashion,shoe_store,orthopedic_shoe_store,,Orthopedic Shoe Store,5
+shoe_store,retail,shopping,fashion,shoe_store,,,Shoe Store,4
+sleepwear,retail,shopping,fashion,sleepwear,,,Sleepwear,4
+stocking,retail,shopping,fashion,stocking,,,Stocking,4
+used_vintage_and_consignment,retail,shopping,fashion,used_vintage_and_consignment,,,Used Vintage And Consignment,4
+fashion,retail,shopping,fashion,,,,Fashion,3
+firework_retailer,retail,shopping,firework_retailer,,,,Firework Retailer,3
+fitness_exercise_equipment,retail,shopping,fitness_exercise_equipment,,,,Fitness Exercise Equipment,3
+flea_market,retail,shopping,flea_market,,,,Flea Market,3
+flower_markets,retail,shopping,flower_markets,,,,Flower Markets,3
+florist,retail,shopping,flowers_and_gifts_shop,florist,,,Florist,4
+gift_shop,retail,shopping,flowers_and_gifts_shop,gift_shop,,,Gift Shop,4
+flowers_and_gifts_shop,retail,shopping,flowers_and_gifts_shop,,,,Flowers And Gifts Shop,3
+gemstone_and_mineral,retail,shopping,gemstone_and_mineral,,,,Gemstone And Mineral,3
+gold_buyer,retail,shopping,gold_buyer,,,,Gold Buyer,3
+asian_grocery_store,retail,shopping,grocery_store,asian_grocery_store,,,Asian Grocery Store,4
+dairy_stores,retail,shopping,grocery_store,dairy_stores,,,Dairy Stores,4
+ethical_grocery,retail,shopping,grocery_store,ethical_grocery,,,Ethical Grocery,4
+indian_grocery_store,retail,shopping,grocery_store,indian_grocery_store,,,Indian Grocery Store,4
+japanese_grocery_store,retail,shopping,grocery_store,japanese_grocery_store,,,Japanese Grocery Store,4
+korean_grocery_store,retail,shopping,grocery_store,korean_grocery_store,,,Korean Grocery Store,4
+kosher_grocery_store,retail,shopping,grocery_store,kosher_grocery_store,,,Kosher Grocery Store,4
+mexican_grocery_store,retail,shopping,grocery_store,mexican_grocery_store,,,Mexican Grocery Store,4
+organic_grocery_store,retail,shopping,grocery_store,organic_grocery_store,,,Organic Grocery Store,4
+rice_shop,retail,shopping,grocery_store,rice_shop,,,Rice Shop,4
+russian_grocery_store,retail,shopping,grocery_store,russian_grocery_store,,,Russian Grocery Store,4
+specialty_grocery_store,retail,shopping,grocery_store,specialty_grocery_store,,,Specialty Grocery Store,4
+grocery_store,retail,shopping,grocery_store,,,,Grocery Store,3
+guitar_store,retail,shopping,guitar_store,,,,Guitar Store,3
+gun_and_ammo,retail,shopping,gun_and_ammo,,,,Gun And Ammo,3
+herbal_shop,retail,shopping,herbal_shop,,,,Herbal Shop,3
+hobby_shop,retail,shopping,hobby_shop,,,,Hobby Shop,3
+appliance_store,retail,shopping,home_and_garden,appliance_store,,,Appliance Store,4
+bedding_and_bath_stores,retail,shopping,home_and_garden,bedding_and_bath_stores,,,Bedding And Bath Stores,4
+candle_store,retail,shopping,home_and_garden,candle_store,,,Candle Store,4
+christmas_trees,retail,shopping,home_and_garden,christmas_trees,,,Christmas Trees,4
+electrical_supply_store,retail,shopping,home_and_garden,electrical_supply_store,,,Electrical Supply Store,4
+furniture_accessory_store,retail,shopping,home_and_garden,furniture_accessory_store,,,Furniture Accessory Store,4
+furniture_store,retail,shopping,home_and_garden,furniture_store,,,Furniture Store,4
+grilling_equipment,retail,shopping,home_and_garden,grilling_equipment,,,Grilling Equipment,4
+welding_supply_store,retail,shopping,home_and_garden,hardware_store,welding_supply_store,,Welding Supply Store,5
+hardware_store,retail,shopping,home_and_garden,hardware_store,,,Hardware Store,4
+holiday_decor,retail,shopping,home_and_garden,holiday_decor,,,Holiday Decor,4
+home_decor,retail,shopping,home_and_garden,home_decor,,,Home Decor,4
+home_goods_store,retail,shopping,home_and_garden,home_goods_store,,,Home Goods Store,4
+home_improvement_store,retail,shopping,home_and_garden,home_improvement_store,,,Home Improvement Store,4
+hot_tubs_and_pools,retail,shopping,home_and_garden,hot_tubs_and_pools,,,Hot Tubs And Pools,4
+bathroom_fixture_stores,retail,shopping,home_and_garden,kitchen_and_bath,bathroom_fixture_stores,,Bathroom Fixture Stores,5
+kitchen_supply_store,retail,shopping,home_and_garden,kitchen_and_bath,kitchen_supply_store,,Kitchen Supply Store,5
+kitchen_and_bath,retail,shopping,home_and_garden,kitchen_and_bath,,,Kitchen And Bath,4
+lawn_mower_store,retail,shopping,home_and_garden,lawn_mower_store,,,Lawn Mower Store,4
+lighting_store,retail,shopping,home_and_garden,lighting_store,,,Lighting Store,4
+linen,retail,shopping,home_and_garden,linen,,,Linen,4
+mattress_store,retail,shopping,home_and_garden,mattress_store,,,Mattress Store,4
+hydroponic_gardening,retail,shopping,home_and_garden,nursery_and_gardening,hydroponic_gardening,,Hydroponic Gardening,5
+nursery_and_gardening,retail,shopping,home_and_garden,nursery_and_gardening,,,Nursery And Gardening,4
+outdoor_furniture_store,retail,shopping,home_and_garden,outdoor_furniture_store,,,Outdoor Furniture Store,4
+paint_store,retail,shopping,home_and_garden,paint_store,,,Paint Store,4
+playground_equipment_supplier,retail,shopping,home_and_garden,playground_equipment_supplier,,,Playground Equipment Supplier,4
+pumpkin_patch,retail,shopping,home_and_garden,pumpkin_patch,,,Pumpkin Patch,4
+rug_store,retail,shopping,home_and_garden,rug_store,,,Rug Store,4
+tableware_supplier,retail,shopping,home_and_garden,tableware_supplier,,,Tableware Supplier,4
+tile_store,retail,shopping,home_and_garden,tile_store,,,Tile Store,4
+wallpaper_store,retail,shopping,home_and_garden,wallpaper_store,,,Wallpaper Store,4
+window_treatment_store,retail,shopping,home_and_garden,window_treatment_store,,,Window Treatment Store,4
+woodworking_supply_store,retail,shopping,home_and_garden,woodworking_supply_store,,,Woodworking Supply Store,4
+home_and_garden,retail,shopping,home_and_garden,,,,Home And Garden,3
+home_theater_systems_stores,retail,shopping,home_theater_systems_stores,,,,Home Theater Systems Stores,3
+horse_equipment_shop,retail,shopping,horse_equipment_shop,,,,Horse Equipment Shop,3
+international_grocery_store,retail,shopping,international_grocery_store,,,,International Grocery Store,3
+jewelry_store,retail,shopping,jewelry_store,,,,Jewelry Store,3
+knitting_supply,retail,shopping,knitting_supply,,,,Knitting Supply,3
+livestock_feed_and_supply_store,retail,shopping,livestock_feed_and_supply_store,,,,Livestock Feed And Supply Store,3
+luggage_store,retail,shopping,luggage_store,,,,Luggage Store,3
+market_stall,retail,shopping,market_stall,,,,Market Stall,3
+dental_supply_store,retail,shopping,medical_supply,dental_supply_store,,,Dental Supply Store,4
+hearing_aids,retail,shopping,medical_supply,hearing_aids,,,Hearing Aids,4
+medical_supply,retail,shopping,medical_supply,,,,Medical Supply,3
+military_surplus_store,retail,shopping,military_surplus_store,,,,Military Surplus Store,3
+mobile_phone_accessories,retail,shopping,mobile_phone_accessories,,,,Mobile Phone Accessories,3
+mobile_phone_store,retail,shopping,mobile_phone_store,,,,Mobile Phone Store,3
+musical_instrument_store,retail,shopping,musical_instrument_store,,,,Musical Instrument Store,3
+night_market,retail,shopping,night_market,,,,Night Market,3
+office_equipment,retail,shopping,office_equipment,,,,Office Equipment,3
+online_shop,retail,shopping,online_shop,,,,Online Shop,3
+outlet_store,retail,shopping,outlet_store,,,,Outlet Store,3
+packing_supply,retail,shopping,packing_supply,,,,Packing Supply,3
+pawn_shop,retail,shopping,pawn_shop,,,,Pawn Shop,3
+pen_store,retail,shopping,pen_store,,,,Pen Store,3
+perfume_store,retail,shopping,perfume_store,,,,Perfume Store,3
+personal_shopper,retail,shopping,personal_shopper,,,,Personal Shopper,3
+aquatic_pet_store,retail,shopping,pet_store,aquatic_pet_store,,,Aquatic Pet Store,4
+bird_shop,retail,shopping,pet_store,bird_shop,,,Bird Shop,4
+reptile_shop,retail,shopping,pet_store,reptile_shop,,,Reptile Shop,4
+pet_store,retail,shopping,pet_store,,,,Pet Store,3
+photography_store_and_services,retail,shopping,photography_store_and_services,,,,Photography Store And Services,3
+piano_store,retail,shopping,piano_store,,,,Piano Store,3
+pool_and_billiards,retail,shopping,pool_and_billiards,,,,Pool And Billiards,3
+pop_up_shop,retail,shopping,pop_up_shop,,,,Pop Up Shop,3
+props,retail,shopping,props,,,,Props,3
+public_market,retail,shopping,public_market,,,,Public Market,3
+religious_items,retail,shopping,religious_items,,,,Religious Items,3
+rental_kiosks,retail,shopping,rental_kiosks,,,,Rental Kiosks,3
+safe_store,retail,shopping,safe_store,,,,Safe Store,3
+safety_equipment,retail,shopping,safety_equipment,,,,Safety Equipment,3
+shopping_center,retail,shopping,shopping_center,,,,Shopping Center,3
+shopping_passage,retail,shopping,shopping_passage,,,,Shopping Passage,3
+souvenir_shop,retail,shopping,souvenir_shop,,,,Souvenir Shop,3
+spiritual_shop,retail,shopping,spiritual_shop,,,,Spiritual Shop,3
+archery_shop,retail,shopping,sporting_goods,archery_shop,,,Archery Shop,4
+bicycle_shop,retail,shopping,sporting_goods,bicycle_shop,,,Bicycle Shop,4
+dive_shop,retail,shopping,sporting_goods,dive_shop,,,Dive Shop,4
+golf_equipment,retail,shopping,sporting_goods,golf_equipment,,,Golf Equipment,4
+hockey_equipment,retail,shopping,sporting_goods,hockey_equipment,,,Hockey Equipment,4
+hunting_and_fishing_supplies,retail,shopping,sporting_goods,hunting_and_fishing_supplies,,,Hunting And Fishing Supplies,4
+outdoor_gear,retail,shopping,sporting_goods,outdoor_gear,,,Outdoor Gear,4
+skate_shop,retail,shopping,sporting_goods,skate_shop,,,Skate Shop,4
+ski_and_snowboard_shop,retail,shopping,sporting_goods,ski_and_snowboard_shop,,,Ski And Snowboard Shop,4
+dance_wear,retail,shopping,sporting_goods,sports_wear,dance_wear,,Dance Wear,5
+sports_wear,retail,shopping,sporting_goods,sports_wear,,,Sports Wear,4
+surf_shop,retail,shopping,sporting_goods,surf_shop,,,Surf Shop,4
+swimwear_store,retail,shopping,sporting_goods,swimwear_store,,,Swimwear Store,4
+sporting_goods,retail,shopping,sporting_goods,,,,Sporting Goods,3
+supermarket,retail,shopping,supermarket,,,,Supermarket,3
+superstore,retail,shopping,superstore,,,,Superstore,3
+tabletop_games,retail,shopping,tabletop_games,,,,Tabletop Games,3
+thrift_store,retail,shopping,thrift_store,,,,Thrift Store,3
+tobacco_shop,retail,shopping,tobacco_shop,,,,Tobacco Shop,3
+toy_store,retail,shopping,toy_store,,,,Toy Store,3
+trophy_shop,retail,shopping,trophy_shop,,,,Trophy Shop,3
+uniform_store,retail,shopping,uniform_store,,,,Uniform Store,3
+used_bookstore,retail,shopping,used_bookstore,,,,Used Bookstore,3
+vitamins_and_supplements,retail,shopping,vitamins_and_supplements,,,,Vitamins And Supplements,3
+watch_store,retail,shopping,watch_store,,,,Watch Store,3
+wholesale_store,retail,shopping,wholesale_store,,,,Wholesale Store,3
+wig_store,retail,shopping,wig_store,,,,Wig Store,3
+shopping,retail,shopping,,,,,Shopping,2
+tire_repair_shop,retail,tire_shop,tire_repair_shop,,,,Tire Repair Shop,3
+tire_shop,retail,tire_shop,,,,,Tire Shop,2
+water_store,retail,water_store,,,,,Water Store,2
+retail,retail,,,,,,Retail,1
+bridge,structure_and_geography,bridge,,,,,Bridge,2
+canal,structure_and_geography,canal,,,,,Canal,2
+dam,structure_and_geography,dam,,,,,Dam,2
+desert,structure_and_geography,desert,,,,,Desert,2
+forest,structure_and_geography,forest,,,,,Forest,2
+geologic_formation,structure_and_geography,geologic_formation,,,,,Geologic Formation,2
+island,structure_and_geography,island,,,,,Island,2
+mountain,structure_and_geography,mountain,,,,,Mountain,2
+natural_hot_springs,structure_and_geography,natural_hot_springs,,,,,Natural Hot Springs,2
+nature_reserve,structure_and_geography,nature_reserve,,,,,Nature Reserve,2
+pier,structure_and_geography,pier,,,,,Pier,2
+public_plaza,structure_and_geography,public_plaza,,,,,Public Plaza,2
+quay,structure_and_geography,quay,,,,,Quay,2
+river,structure_and_geography,river,,,,,River,2
+skyscraper,structure_and_geography,skyscraper,,,,,Skyscraper,2
+tower,structure_and_geography,tower,,,,,Tower,2
+weir,structure_and_geography,weir,,,,,Weir,2
+structure_and_geography,structure_and_geography,,,,,,Structure And Geography,1
+agriturismo,travel,agriturismo,,,,,Agriturismo,2
+airline_ticket_agency,travel,airline_ticket_agency,,,,,Airline Ticket Agency,2
+airport_terminal,travel,airport,airport_terminal,,,,Airport Terminal,3
+balloon_ports,travel,airport,balloon_ports,,,,Balloon Ports,3
+domestic_airports,travel,airport,domestic_airports,,,,Domestic Airports,3
+gliderports,travel,airport,gliderports,,,,Gliderports,3
+heliports,travel,airport,heliports,,,,Heliports,3
+major_airports,travel,airport,major_airports,,,,Major Airports,3
+seaplane_bases,travel,airport,seaplane_bases,,,,Seaplane Bases,3
+ultralight_airports,travel,airport,ultralight_airports,,,,Ultralight Airports,3
+airport,travel,airport,,,,,Airport,2
+bus_ticket_agency,travel,bus_ticket_agency,,,,,Bus Ticket Agency,2
+country_house,travel,country_house,,,,,Country House,2
+houseboat,travel,houseboat,,,,,Houseboat,2
+railway_ticket_agent,travel,railway_ticket_agent,,,,,Railway Ticket Agent,2
+car_rental_agency,travel,rental_service,car_rental_agency,,,,Car Rental Agency,3
+motorcycle_rentals,travel,rental_service,motorcycle_rentals,,,,Motorcycle Rentals,3
+rv_rentals,travel,rental_service,rv_rentals,,,,Rv Rentals,3
+trailer_rentals,travel,rental_service,trailer_rentals,,,,Trailer Rentals,3
+truck_rentals,travel,rental_service,truck_rentals,,,,Truck Rentals,3
+rental_service,travel,rental_service,,,,,Rental Service,2
+rest_stop,travel,rest_stop,,,,,Rest Stop,2
+rest_areas,travel,road_structures_and_services,rest_areas,,,,Rest Areas,3
+toll_stations,travel,road_structures_and_services,toll_stations,,,,Toll Stations,3
+road_structures_and_services,travel,road_structures_and_services,,,,,Road Structures And Services,2
+ryokan,travel,ryokan,,,,,Ryokan,2
+self_catering_accommodation,travel,self_catering_accommodation,,,,,Self Catering Accommodation,2
+ski_resort,travel,ski_resort,,,,,Ski Resort,2
+aerial_tours,travel,tours,aerial_tours,,,,Aerial Tours,3
+architectural_tours,travel,tours,architectural_tours,,,,Architectural Tours,3
+art_tours,travel,tours,art_tours,,,,Art Tours,3
+beer_tours,travel,tours,beer_tours,,,,Beer Tours,3
+bike_tours,travel,tours,bike_tours,,,,Bike Tours,3
+boat_tours,travel,tours,boat_tours,,,,Boat Tours,3
+bus_tours,travel,tours,bus_tours,,,,Bus Tours,3
+cannabis_tour,travel,tours,cannabis_tour,,,,Cannabis Tour,3
+food_tours,travel,tours,food_tours,,,,Food Tours,3
+historical_tours,travel,tours,historical_tours,,,,Historical Tours,3
+scooter_tours,travel,tours,scooter_tours,,,,Scooter Tours,3
+walking_tours,travel,tours,walking_tours,,,,Walking Tours,3
+whale_watching_tours,travel,tours,whale_watching_tours,,,,Whale Watching Tours,3
+wine_tours,travel,tours,wine_tours,,,,Wine Tours,3
+tours,travel,tours,,,,,Tours,2
+airlines,travel,transportation,airlines,,,,Airlines,3
+airport_shuttles,travel,transportation,airport_shuttles,,,,Airport Shuttles,3
+bicycle_sharing_location,travel,transportation,bicycle_sharing_location,,,,Bicycle Sharing Location,3
+bike_parking,travel,transportation,bike_parking,,,,Bike Parking,3
+bike_sharing,travel,transportation,bike_sharing,,,,Bike Sharing,3
+bus_service,travel,transportation,bus_service,,,,Bus Service,3
+bus_station,travel,transportation,bus_station,,,,Bus Station,3
+cable_car_service,travel,transportation,cable_car_service,,,,Cable Car Service,3
+car_sharing,travel,transportation,car_sharing,,,,Car Sharing,3
+coach_bus,travel,transportation,coach_bus,,,,Coach Bus,3
+ferry_service,travel,transportation,ferry_service,,,,Ferry Service,3
+light_rail_and_subway_stations,travel,transportation,light_rail_and_subway_stations,,,,Light Rail And Subway Stations,3
+limo_services,travel,transportation,limo_services,,,,Limo Services,3
+metro_station,travel,transportation,metro_station,,,,Metro Station,3
+motorcycle_parking,travel,transportation,motorcycle_parking,,,,Motorcycle Parking,3
+park_and_rides,travel,transportation,park_and_rides,,,,Park And Rides,3
+parking,travel,transportation,parking,,,,Parking,3
+pedicab_service,travel,transportation,pedicab_service,,,,Pedicab Service,3
+private_jet_charters,travel,transportation,private_jet_charters,,,,Private Jet Charters,3
+public_transportation,travel,transportation,public_transportation,,,,Public Transportation,3
+ride_sharing,travel,transportation,ride_sharing,,,,Ride Sharing,3
+taxi_rank,travel,transportation,taxi_rank,,,,Taxi Rank,3
+taxi_service,travel,transportation,taxi_service,,,,Taxi Service,3
+town_car_service,travel,transportation,town_car_service,,,,Town Car Service,3
+train_station,travel,transportation,trains,train_station,,,Train Station,4
+trains,travel,transportation,trains,,,,Trains,3
+transport_interchange,travel,transportation,transport_interchange,,,,Transport Interchange,3
+water_taxi,travel,transportation,water_taxi,,,,Water Taxi,3
+transportation,travel,transportation,,,,,Transportation,2
+luggage_storage,travel,travel_services,luggage_storage,,,,Luggage Storage,3
+visa_agent,travel,travel_services,passport_and_visa_services,visa_agent,,,Visa Agent,4
+passport_and_visa_services,travel,travel_services,passport_and_visa_services,,,,Passport And Visa Services,3
+sightseeing_tour_agency,travel,travel_services,travel_agents,sightseeing_tour_agency,,,Sightseeing Tour Agency,4
+travel_agents,travel,travel_services,travel_agents,,,,Travel Agents,3
+visitor_center,travel,travel_services,visitor_center,,,,Visitor Center,3
+travel_services,travel,travel_services,,,,,Travel Services,2
+vacation_rental_agents,travel,vacation_rental_agents,,,,,Vacation Rental Agents,2
+travel,travel,,,,,,Travel,1
