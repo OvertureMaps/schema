@@ -8,7 +8,7 @@ properties:
   theme: divisions
   type: division
   version: 0
-  subtype: borough
+  subtype: macrohood
   local_type:
     en: borough
   names:
@@ -26,7 +26,7 @@ properties:
         subtype: locality
         name: New York City
       - division_id: example:division:borough:bronx
-        subtype: borough
+        subtype: macrohood
         name: The Bronx
     - - division_id: example:division:country:us
         subtype: country
@@ -38,6 +38,6 @@ properties:
         subtype: county
         name: Bronx County
       - division_id: example:division:borough:bronx
-        subtype: borough
+        subtype: macrohood
         name: The Bronx
   parent_division_id: example:division:locality:nyc   # Parent from default hierarchy.

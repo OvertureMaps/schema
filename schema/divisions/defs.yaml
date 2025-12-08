@@ -18,16 +18,10 @@ description: Common schema definitions for divisions theme
                         # for defence, passport control, etc., e.g.
                         # Puerto Rico.
 
-        - macroregion   # A bundle of regions, e.g. England, Scotland,
-                        # Île-de-France. These exist mainly in Europe.
-
         - region        # A state, province, region, etc. Largest
                         # sub-country administrative unit in most
                         # countries, except those that have dependencies
                         # or macro-regions.
-
-        - macrocounty   # A bundle of counties, e.g. Inverness. These
-                        # exist mainly in Europe.
 
         - county        # Largest sub-region administrative unit in most
                         # countries, unless they have macrocounties.
@@ -41,9 +35,6 @@ description: Common schema definitions for divisions theme
 
         - locality      # A populated place that may or may not have its
                         # own administrative authority.
-
-        - borough       # A local government unit subordinate to a
-                        # locality.
 
         - macrohood     # A super-neighborhood that contains smaller
                         # divisions of type neighborhood, e.g. BoCaCa
@@ -63,7 +54,7 @@ description: Common schema definitions for divisions theme
         each subsequent entry, if any, being a division that is a direct
         child of the previous entry; and the last entry representing
         the division that contains the hierarchy.
-  
+
         For example, a hierarchy for the United States is simply
         [United States]. A hierarchy for the U.S. state of New Hampshire
         would be [United States, New Hampshire], and a hierarchy for the
