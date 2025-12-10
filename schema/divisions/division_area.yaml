@@ -22,10 +22,17 @@ properties:     # JSON Schema: Top-level object properties.
       - "$ref": https://geojson.org/schema/MultiPolygon.json
   properties:   # GeoJSON: top-level object 'properties' property.
     unevaluatedProperties: false
-    required: [names, subtype, class, country, division_id, is_land, is_territorial]
     allOf:
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
+      - if:
+          properties:
+            subtype: { enum: [geographical_region] }
+        then:
+          required: [names, subtype, class, division_id, is_land, is_territorial]
+          not: { required: [country] }
+        else:
+          required: [names, subtype, class, country, division_id, is_land, is_territorial]
     anyOf:
       - properties:
           is_land:
