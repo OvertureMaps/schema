@@ -1,0 +1,17 @@
+---
+# Counterexample to test Pydantic validation of rail_flags with non-rail subtype
+# This should trigger line 206 in segment models: raise ValueError(f"rail_flags property not allowed for subtype '{subtype}', only for 'rail'")
+id: bad-rail-flags-wrong-subtype
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road  # This is road subtype, but we're using rail_flags
+  rail_flags:
+    - values: [is_bridge]
+  ext_expected_errors:
+    - "oneOf failed, none matched"

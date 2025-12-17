@@ -1,0 +1,244 @@
+{
+  "$defs": {
+    "AddressLevel": {
+      "additionalProperties": false,
+      "description": "A sub-country addressing unit, such as a region, city, or neighborhood, that is less specific\nthan a street name and not a postal code.\n\nIn the following address, the terms `Montr\u00e9al` and `QC` are address levels:\n\n```\n3998 Rue De Bullion, Montr\u00e9al, QC H2W 2E4\n```\n\nThe number of address levels per address is country-dependent.\n\nOther addressing systems may use the terms \"administrative level\" or \"admin level\"  for the\nsame concept. We have chosen the term \"address level\" to communicate the fact that in some\ncountries and regions, address levels do not necessarily correspond to administrative units.",
+      "properties": {
+        "value": {
+          "description": "String with no leading/trailing whitespace",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "title": "AddressLevel",
+      "type": "object"
+    },
+    "SourceItem": {
+      "additionalProperties": false,
+      "description": "Specifies the source of the data used for a feature or one of its properties.",
+      "properties": {
+        "between": {
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SourceItem applies to.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence value from the source dataset.\n\nThis is a value between 0.0 and 1.0 and is particularly relevant for ML-derived data.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "description": "Name of the dataset where the source data can be found.",
+          "title": "Dataset",
+          "type": "string"
+        },
+        "license": {
+          "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "License",
+          "type": "string"
+        },
+        "property": {
+          "description": "A JSON Pointer identifying the property (field) that this source information applies to.\n\nThe root document value `\"\"` indicates that this source information applies to the\nentire feature, excepting properties (fields) for which a dedicated source information\nrecord exists.\n\nAny other JSON Pointer apart from `\"\"` indicates that this source record provides\ndedicated source information for the property at the path in the JSON Pointer. As an\nexample, the value `\"/names/common/en\"` indicates that the source information applies to\nthe English common name of a named feature, while the value `\"/geometry\"` indicates that\nit applies to the feature geometry.",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Identifies the specific record within the source dataset where the source data can\nbe found.\n\nThe format of record identifiers is dataset-specific.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "Last update time of the source data record.",
+          "format": "date-time",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourceItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Addresses are structured labels for the geographic locations where businesses and individuals\nreside.\n\nWhile address formats around the world have some general points in common, the specifics vary\nextensively from place to place. The rules for dividing an address up into parts or fields vary,\nas do the names of those parts or fields.\n\nThe address schema uses a simplified approach to capture the common structure of addresses\nworldwide while accommodating local variance. The schema is heavily based on the OpenAddresses\n(www.openaddresses.io) project.\n\nFor sub-country administrative levels (and non-administrative levels such as neighborhoods), the\nschema provides the `address_levels` field. This is where the names of cities and towns,\nprovinces, state, and regions, and similar addressing units are found.",
+  "properties": {
+    "bbox": {
+      "description": "An optional bounding box for the feature",
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
+    "geometry": {
+      "description": "Position of the address. Addresses are point geometries.",
+      "properties": {
+        "bbox": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "type": "array"
+        },
+        "coordinates": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 2,
+          "type": "array"
+        },
+        "type": {
+          "const": "Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "title": "Geometry",
+      "type": "object"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
+        }
+      },
+      "properties": {
+        "address_levels": {
+          "description": "Names of the sub-country addressing areas the address belongs to, including the city\nor locality, in descending order of generality.\n\nThe list is sorted so that the highest, or most general, level comes first (*e.g.*,\nregion) and the lowest, or most particular level, comes last (*e.g.*, city or town).\n\nThe number of items in this list and their meaning is country-dependent. For\nexample, in the United States, we expect two items: the state, and the locality or\nmunicipality within the state. Other countries might have as few as one, or even\nthree or more.\n\nWhen a specific level that is required for a country is not known. most likely\nbecause the data provider has not supplied it and we have not derived it from\nanother source, the list item corresponding to that level must be present, but its\n`value` field should be omitted.",
+          "items": {
+            "$ref": "#/$defs/AddressLevel"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Address Levels",
+          "type": "array"
+        },
+        "country": {
+          "description": "The country the address belongs to, as an ISO 3166-1 alpha-2 country code.",
+          "maxLength": 2,
+          "minLength": 2,
+          "pattern": "^[A-Z]{2}$",
+          "title": "Country",
+          "type": "string"
+        },
+        "number": {
+          "description": "The house number.\n\nThis field does not necessarily contain an integer or even a number. Values such as\n\"74B\", \"189 1/2\", and \"208.5\", where the non-integer or non-number part is part of\nthe house number, not a unit number, are in common use.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Number",
+          "type": "string"
+        },
+        "postal_city": {
+          "description": "The postal authority designated city name, if applicable.\n\nIn some countries or regions, a mailing address may need to specify a different city\nname than the city that actually contains the address coordinates. This optional\nfield can be used to specify the alternate city name to use.\n\nFor example:\n\n- The postal city for the US address *716 East County Road, Winchester, Indiana*\n  is Ridgeville.\n- The postal city for the Slovenian address *Tomaj 71, 6221 Tomaj, Slovenia* is\n  Dutovlje.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Postal City",
+          "type": "string"
+        },
+        "postcode": {
+          "description": "The postal code.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Postcode",
+          "type": "string"
+        },
+        "sources": {
+          "description": "Information about the source data used to assemble the feature.",
+          "items": {
+            "$ref": "#/$defs/SourceItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "street": {
+          "description": "The street name.\n\nThe street name can include a type (*e.g.*, \"Street\" or \"St\", \"Boulevard\" or \"Blvd\",\n*etc.*) and a directional (*e.g.*, \"NW\" or \"Northwest\", \"S\" or \"Sud\"). Both type and\ndirectional, if present, may be either a prefix or a suffix to the primary name.\nThey may either be fully spelled-out or abbreviated.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Street",
+          "type": "string"
+        },
+        "theme": {
+          "const": "addresses",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "address",
+          "title": "Type",
+          "type": "string"
+        },
+        "unit": {
+          "description": "The secondary address unit designator.\n\nIn the case where the primary street address is divided into secondary units, which\nmay be apartments, floors, or even buildings if the primary street address is a\ncampus, this field names the specific secondary unit being addressed.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Unit",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "theme",
+        "type",
+        "version",
+        "country"
+      ],
+      "type": "object"
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "id",
+    "geometry",
+    "properties"
+  ],
+  "title": "address",
+  "type": "object"
+}

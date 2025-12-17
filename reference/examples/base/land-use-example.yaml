@@ -1,0 +1,22 @@
+---
+id: "overture:land_use:example:1"
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[-83.8710175, 10.3469578], [-83.8700924, 10.3470179], [-83.870043, 10.3462819], [-83.8709681, 10.3462218], [-83.8710175, 10.3469578]]]
+properties:
+  theme: base
+  type: land_use
+  subtype: recreation
+  class: pitch
+  surface: recreation_grass
+  source_tags:
+    leisure: pitch
+    sport: soccer
+  names:
+    primary: Plaza Deportes Finca Tres
+  sources:
+    - record_id: w509487233@1
+      property: ""
+      dataset: OpenStreetMap
+  version: 0

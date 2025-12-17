@@ -1,0 +1,70 @@
+# uv workspace configuration
+
+[project]
+license = "MIT"
+name = "overture-schema-workspace"
+requires-python = ">=3.10"
+version = "0.0.0"
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+ignore = [
+    "E501", # line too long
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
+]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade,
+    "ANN", # flake8-annotations
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/*.py" = ["ANN401"]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+disallow_untyped_defs = true
+explicit_package_bases = true
+files = "packages/**/*.py"
+namespace_packages = true
+plugins = ["pydantic.mypy"]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+
+[dependency-groups]
+dev = [
+    "mypy>=1.17.0",
+    "pdoc>=15.0.4",
+    "pydocstyle>=6.3.0",
+    "pytest>=8.4.1",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.12.4",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "packages/overture-schema-addresses-theme/tests",
+    "packages/overture-schema-annex/tests",
+    "packages/overture-schema-base-theme/tests",
+    "packages/overture-schema-buildings-theme/tests",
+    "packages/overture-schema-core/tests",
+    "packages/overture-schema-divisions-theme/tests",
+    "packages/overture-schema-places-theme/tests",
+    "packages/overture-schema-system/tests",
+    "packages/overture-schema-transportation-theme/tests",
+    "packages/overture-schema/tests",
+]

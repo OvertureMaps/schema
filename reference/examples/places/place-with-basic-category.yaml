@@ -1,0 +1,40 @@
+---
+id: overture:places:place:66
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  basic_category: casual_eatery
+  categories:
+    primary: gas_station_sushi
+    alternate:
+      - just_for_fun
+  confidence: 0.9
+  websites:
+    - https://www.example.com/
+  emails:
+    - info@example.com
+  socials:
+    - https://www.twitter.com/example/
+  phones:
+    - +32 1207
+  brand:
+    names:
+      primary: 11-7
+    wikidata: Q1000
+  addresses:
+    - freeform: "1 Wasserman Way"
+      locality: "District 11"
+  # Overture properties
+  theme: places
+  type: place
+  version: 1
+  names:
+    primary: 11-7
+    common:
+      en: Eleven Seven
+    rules:
+      - variant: short
+        value: MSPOI
+  operating_status: open

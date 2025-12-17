@@ -1,0 +1,28 @@
+[project]
+dependencies = ["overture-schema-core", "pydantic>=2.0"]
+description = "Add your description here"
+dynamic = ["version"]
+license = "MIT"
+name = "overture-schema-annex"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.uv.sources]
+overture-schema-core = { workspace = true }
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.hatch.version]
+path = "src/overture/schema/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/overture"]
+
+[project.entry-points."overture.models"]
+"annex:sources" = "overture.schema.annex:Sources"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

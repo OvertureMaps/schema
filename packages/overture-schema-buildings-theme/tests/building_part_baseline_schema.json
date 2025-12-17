@@ -1,0 +1,544 @@
+{
+  "$defs": {
+    "FacadeMaterial": {
+      "description": "The outer surface material of building facade.",
+      "enum": [
+        "brick",
+        "cement_block",
+        "clay",
+        "concrete",
+        "glass",
+        "metal",
+        "plaster",
+        "plastic",
+        "stone",
+        "timber_framing",
+        "wood"
+      ],
+      "title": "FacadeMaterial",
+      "type": "string"
+    },
+    "NameRule": {
+      "additionalProperties": false,
+      "description": "A rule that can be evaluated to determine the name in advanced scenarios.\n\nName rules are used for cases where the primary name is not sufficient; the common name is not\nthe right fit for the use case and another variant is needed; or where the name only applies in\ncertain specific circumstances.\n\nExamples might include:\n- An official, alternate, or short name.\n- A name that only applies to part of a linear path like a road segment (geometric range\n  scoping).\n- A name that only applies to the left or right side of a linear path like a road segment (side\n  scoping).\n- A name that is only accepted by some political perspectives.",
+      "properties": {
+        "between": {
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing NameRule applies to.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "language": {
+          "description": "The language in which the name `value` is specified, if known, as an IETF BCP 47\nlanguage tag.",
+          "pattern": "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$",
+          "title": "Language",
+          "type": "string"
+        },
+        "perspectives": {
+          "$ref": "#/$defs/Perspectives",
+          "description": "Political perspectives from which a named feature is viewed."
+        },
+        "side": {
+          "$ref": "#/$defs/Side",
+          "description": "The side, either left or right, that the containing NameRule applies to."
+        },
+        "value": {
+          "description": "The actual name value.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Value",
+          "type": "string"
+        },
+        "variant": {
+          "$ref": "#/$defs/NameVariant",
+          "description": "The name variant for this name rule."
+        }
+      },
+      "required": [
+        "value",
+        "variant"
+      ],
+      "title": "NameRule",
+      "type": "object"
+    },
+    "NameVariant": {
+      "description": "Name variant used in a `NameRule`.",
+      "enum": [
+        "common",
+        "official",
+        "alternate",
+        "short"
+      ],
+      "title": "NameVariant",
+      "type": "string"
+    },
+    "Names": {
+      "additionalProperties": false,
+      "description": "Multilingual names container.",
+      "properties": {
+        "common": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$": {
+              "description": "String with no leading/trailing whitespace",
+              "pattern": "^(\\S.*)?\\S$",
+              "type": "string"
+            }
+          },
+          "propertyNames": {
+            "description": "IETF BCP-47 language tag"
+          },
+          "title": "Common",
+          "type": "object"
+        },
+        "primary": {
+          "description": "The most commonly used name.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Primary",
+          "type": "string"
+        },
+        "rules": {
+          "description": "Rules for names that cannot be specified in the simple common names property. These rules can cover other name variants such as official, alternate, and short; and they can optionally include geometric scoping (linear referencing) and side-of-road scoping for complex cases.",
+          "items": {
+            "$ref": "#/$defs/NameRule"
+          },
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "primary"
+      ],
+      "title": "Names",
+      "type": "object"
+    },
+    "PerspectiveMode": {
+      "description": "Perspective mode for disputed names.",
+      "enum": [
+        "accepted_by",
+        "disputed_by"
+      ],
+      "title": "PerspectiveMode",
+      "type": "string"
+    },
+    "Perspectives": {
+      "additionalProperties": false,
+      "description": "Political perspectives container.",
+      "properties": {
+        "countries": {
+          "description": "Countries holding the given mode of perspective.",
+          "items": {
+            "description": "ISO 3166-1 alpha-2 country code",
+            "maxLength": 2,
+            "minLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Countries",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "mode": {
+          "$ref": "#/$defs/PerspectiveMode",
+          "description": "Whether the perspective holder accepts or disputes this name."
+        }
+      },
+      "required": [
+        "mode",
+        "countries"
+      ],
+      "title": "Perspectives",
+      "type": "object"
+    },
+    "RoofMaterial": {
+      "description": "The outermost material of the roof.",
+      "enum": [
+        "concrete",
+        "copper",
+        "eternit",
+        "glass",
+        "grass",
+        "gravel",
+        "metal",
+        "plastic",
+        "roof_tiles",
+        "slate",
+        "solar_panels",
+        "tar_paper",
+        "thatch",
+        "wood"
+      ],
+      "title": "RoofMaterial",
+      "type": "string"
+    },
+    "RoofOrientation": {
+      "description": "Orientation of the roof shape relative to the footprint shape.\n\nThe members of this enumeration, `\"across\"` and `\"along\"`, are borrowed from the OpenStreetMap\n`roof:orientation=*` tag and have the same meanings as they do in OSM.",
+      "enum": [
+        "across",
+        "along"
+      ],
+      "title": "RoofOrientation",
+      "type": "string"
+    },
+    "RoofShape": {
+      "description": "The shape of the roof.",
+      "enum": [
+        "dome",
+        "flat",
+        "gabled",
+        "gambrel",
+        "half_hipped",
+        "hipped",
+        "mansard",
+        "onion",
+        "pyramidal",
+        "round",
+        "saltbox",
+        "sawtooth",
+        "skillion",
+        "spherical"
+      ],
+      "title": "RoofShape",
+      "type": "string"
+    },
+    "Side": {
+      "description": "The side, left or right, on which something appears relative to a facing or heading direction\n(*e.g.*, the side of a road relative to the road orientation), or relative to the direction of\ntravel of a person or vehicle.",
+      "enum": [
+        "left",
+        "right"
+      ],
+      "title": "Side",
+      "type": "string"
+    },
+    "SourceItem": {
+      "additionalProperties": false,
+      "description": "Specifies the source of the data used for a feature or one of its properties.",
+      "properties": {
+        "between": {
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SourceItem applies to.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence value from the source dataset.\n\nThis is a value between 0.0 and 1.0 and is particularly relevant for ML-derived data.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "description": "Name of the dataset where the source data can be found.",
+          "title": "Dataset",
+          "type": "string"
+        },
+        "license": {
+          "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "License",
+          "type": "string"
+        },
+        "property": {
+          "description": "A JSON Pointer identifying the property (field) that this source information applies to.\n\nThe root document value `\"\"` indicates that this source information applies to the\nentire feature, excepting properties (fields) for which a dedicated source information\nrecord exists.\n\nAny other JSON Pointer apart from `\"\"` indicates that this source record provides\ndedicated source information for the property at the path in the JSON Pointer. As an\nexample, the value `\"/names/common/en\"` indicates that the source information applies to\nthe English common name of a named feature, while the value `\"/geometry\"` indicates that\nit applies to the feature geometry.",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Identifies the specific record within the source dataset where the source data can\nbe found.\n\nThe format of record identifiers is dataset-specific.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "Last update time of the source data record.",
+          "format": "date-time",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourceItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Building parts represent parts of larger building features. They allow buildings to be modeled\nin rich detail suitable for creating realistic 3D models.\n\nEvery building part is associated with a parent `Building` feature via the `building_id` field.\nIn addition, a building part has a footprint geometry and may include additional details such as\nits height, the number of floors, and the color and material of its facade and roof.\n\nBuilding parts can float or be stacked on top of each other. The `min_height`, `min_floor`,\n`height`, and `num_floors`, fields can be used to arrange the parts correctly along the\nvertical dimension.",
+  "properties": {
+    "bbox": {
+      "description": "An optional bounding box for the feature",
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
+    "geometry": {
+      "description": "The footprint or roofprint of the building part.",
+      "oneOf": [
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "items": {
+                  "items": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 3,
+                    "minItems": 2,
+                    "type": "array"
+                  },
+                  "minItems": 4,
+                  "type": "array"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "type": {
+              "const": "MultiPolygon",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "bbox": {
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "type": "array"
+            },
+            "coordinates": {
+              "items": {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "maxItems": 3,
+                  "minItems": 2,
+                  "type": "array"
+                },
+                "minItems": 4,
+                "type": "array"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "type": {
+              "const": "Polygon",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "type": "object"
+        }
+      ],
+      "title": "Geometry"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
+        }
+      },
+      "properties": {
+        "building_id": {
+          "description": "The building to which this part belongs",
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Building Id",
+          "type": "string"
+        },
+        "facade_color": {
+          "description": "Facade color in `#rgb` or `#rrggbb` hex notation",
+          "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$",
+          "title": "Facade Color",
+          "type": "string"
+        },
+        "facade_material": {
+          "$ref": "#/$defs/FacadeMaterial",
+          "description": "Outer surface material of the facade"
+        },
+        "height": {
+          "description": "Height of the building or part in meters.\n\nThis is the distance from the lowest point to the highest point.",
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "number"
+        },
+        "is_underground": {
+          "description": "Whether the entire building or part is completely below ground.\n\nThe underground flag is useful for display purposes. Buildings and building parts\nthat are entirely below ground can be styled differently or omitted from the\nrendered image.\n\nThis flag is conceptually different from the `level` field, which indicates\nrelative z-ordering and, notably, can be negative even if the building is entirely\nabove-ground.",
+          "title": "Is Underground",
+          "type": "boolean"
+        },
+        "level": {
+          "default": 0,
+          "description": "Z-order of the feature where 0 is visual level",
+          "maximum": 32767,
+          "minimum": -32768,
+          "title": "Level",
+          "type": "integer"
+        },
+        "min_floor": {
+          "description": "Start floor of this building or part.\n\nIf present, this value indicates that the building or part is \"floating\" and its\nbottom-most floor is above ground level, usually because it is part of a larger\nbuilding in which some parts do reach down to ground level. An example is a building\nthat has an entry road or driveway at ground level into an interior courtyard, where\npart of the building bridges above the entry road. This property may sometimes be\npopulated when `min_height` is missing and in these cases can be used as a proxy for\n`min_height`.",
+          "exclusiveMinimum": 0,
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "title": "Min Floor",
+          "type": "integer"
+        },
+        "min_height": {
+          "description": "Altitude above ground where the bottom of the building or building part starts.\n\nIf present, this value indicates that the lowest part of the building or building\npart starts is above ground level.",
+          "title": "Min Height",
+          "type": "number"
+        },
+        "names": {
+          "$ref": "#/$defs/Names"
+        },
+        "num_floors": {
+          "description": "Number of above-ground floors of the building or part.",
+          "exclusiveMinimum": 0,
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "title": "Num Floors",
+          "type": "integer"
+        },
+        "num_floors_underground": {
+          "description": "Number of below-ground floors of the building or part.",
+          "exclusiveMinimum": 0,
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "title": "Num Floors Underground",
+          "type": "integer"
+        },
+        "roof_color": {
+          "description": "The roof color in `#rgb` or `#rrggbb` hex notation",
+          "pattern": "^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$",
+          "title": "Roof Color",
+          "type": "string"
+        },
+        "roof_direction": {
+          "description": "Bearing of the roof ridge line in degrees",
+          "exclusiveMaximum": 360,
+          "minimum": 0,
+          "title": "Roof Direction",
+          "type": "number"
+        },
+        "roof_height": {
+          "description": "Height of the roof in meters.\n\nThis is the distance from the base of the roof to its highest point.",
+          "title": "Roof Height",
+          "type": "number"
+        },
+        "roof_material": {
+          "$ref": "#/$defs/RoofMaterial",
+          "description": "Outer surface material of the roof"
+        },
+        "roof_orientation": {
+          "$ref": "#/$defs/RoofOrientation",
+          "description": "Orientation of the roof shape relative to the footprint shape"
+        },
+        "roof_shape": {
+          "$ref": "#/$defs/RoofShape",
+          "description": "Shape of the roof"
+        },
+        "sources": {
+          "description": "Information about the source data used to assemble the feature.",
+          "items": {
+            "$ref": "#/$defs/SourceItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "theme": {
+          "const": "buildings",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "building_part",
+          "title": "Type",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "theme",
+        "type",
+        "version",
+        "building_id"
+      ],
+      "type": "object"
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "id",
+    "geometry",
+    "properties"
+  ],
+  "title": "BuildingPart",
+  "type": "object"
+}

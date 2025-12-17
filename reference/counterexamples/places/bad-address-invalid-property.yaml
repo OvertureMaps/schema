@@ -1,0 +1,23 @@
+---
+id: overture:places:place:1
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  ext_expected_errors:
+    - "additional properties 'region2' not allowed"
+  theme: places
+  type: place
+  version: 0
+  names:
+    primary: Fancy POI with invalid address property (region2)
+  categories:
+    primary: some_category
+  addresses:
+    - freeform: "770 Broadway, Floor 8"
+      locality: "New York"
+    - freeform: "770 Broadway, #802"
+      locality: "New York"
+      region2: "US-NY"
+      country: "US"

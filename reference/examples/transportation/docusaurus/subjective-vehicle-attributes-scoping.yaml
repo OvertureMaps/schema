@@ -1,0 +1,23 @@
+---
+id: overture:transportation:example:subjective-vehicle-attributes-scoping
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-123.12791513926058, 49.287502049554945]
+    - [-123.12795068403449, 49.287522915661725]
+    - [-123.12797769806272, 49.28756882106529]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: residential
+  access_restrictions:
+    - access_type: denied
+      when:
+        vehicle:
+          - dimension: weight
+            comparison: greater_than
+            value: 23
+            unit: 't'

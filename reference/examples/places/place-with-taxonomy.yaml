@@ -1,0 +1,55 @@
+---
+id: overture:places:place:77
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-97.7431, 30.2672]
+properties:
+  basic_category: casual_eatery
+  taxonomy:
+    primary: gas_station_sushi
+    hierarchy:
+      - food_and_drink
+      - restaurant
+      - casual_eatery
+      - gas_station_sushi
+    alternates:
+      - gas_station
+      - sushi_restaurant
+  categories:
+    primary: gas_station_sushi
+    alternate:
+      - gas_station
+      - sushi_restaurant
+  confidence: 0.85
+  websites:
+    - https://www.buckysgas.example.com/
+  emails:
+    - sushi@buckysgas.example.com
+  socials:
+    - https://www.instagram.com/buckyssushi
+  phones:
+    - +1 512-555-0123
+  brand:
+    names:
+      primary: Bucky's Gas & Sushi
+    wikidata: Q9999999
+  addresses:
+    - freeform: "4200 South Congress Ave"
+      locality: "Austin"
+      region: "US-TX"
+      postcode: "78745"
+      country: "US"
+  # Overture properties
+  theme: places
+  type: place
+  version: 1
+  names:
+    primary: Bucky's Gas & Sushi
+    common:
+      en: Bucky's Gas and Sushi
+      es: Gasolinera y Sushi de Bucky
+    rules:
+      - variant: short
+        value: Bucky's
+  operating_status: open

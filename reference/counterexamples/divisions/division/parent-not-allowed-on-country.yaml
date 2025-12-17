@@ -1,0 +1,21 @@
+---
+id: counterexample:division:parent-not-allowed-on-country
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 1]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: country
+  names:
+    primary: A country division that has a parent ID, which is not allowed
+  country: ZZ
+  hierarchies:
+    - - division_id: counterexample:division:parent-not-allowed-on-country
+        subtype: country
+        name: A country division that has a parent ID, which is not allowed
+  parent_division_id: counterexample:division:some-parent-division
+  ext_expected_errors:
+    - "[S#/$defs/Division/properties/properties/allOf/0/then]: not failed"

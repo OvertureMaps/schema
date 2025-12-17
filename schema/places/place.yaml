@@ -44,12 +44,41 @@ properties:
       basic_category:
         description: >-
           The basic level category of a place. At present this is a mapping of the categories.primary entry to a new, simplified name. This mapping can be 1:1 or M:1 from the
-          existing primary.categories entry. If the entry is currently empty in categories.primary, this entry will be empty. 
+          existing categories.primary entry. If the entry is currently empty in categories.primary, this entry will be empty.
           This type of categorization is a cognitive science model that is relevant for taxonomy and ontology development that shows the most broadest and general
-          category name that is most often found in the middle of a general-to-specific hierarchy, with generalization proceeding upward and specialization proceeding downward. 
-          The full list of basic level categories is available at:(todo)
+          category name that is most often found in the middle of a general-to-specific hierarchy, with generalization proceeding upward and specialization proceeding downward.
+          The full list of basic level categories is available at https://docs.overturemaps.org/guides/places/
         type: string
         "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
+      taxonomy:
+        description: >-
+          A new representation of the place's category within the Overture taxonomy.
+          Provides the primary classification, full hierarchy path, and alternate categories.
+        type: object
+        required: [primary, hierarchy]
+        properties:
+          primary:
+            description: >-
+              The most specific category for this place within the taxonomy hierarchy.
+            "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
+          hierarchy:
+            description: >-
+              The full taxonomy path from the most general to most specific category,
+              represented as an ordered array (e.g., [food_and_drink, restaurant, casual_eatery, gas_station_sushi]).
+            type: array
+            items:
+              "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
+            uniqueItems: true
+            minItems: 1
+          alternates:
+            description: >-
+              Additional categories that apply to this place but are not the primary classification.
+              Useful for places that fit multiple categories (e.g., a restaurant that also sells clothing apparel).
+            type: array
+            items:
+              "$ref": "./defs.yaml#/$defs/typeDefinitions/category"
+            uniqueItems: true
+            minItems: 1
       confidence:
         description: The confidence of the existence of the place. It's a number between 0 and 1. 0 means that we're sure that the place doesn't exist (anymore). 1 means that we're sure that the place exists. If there's no value for the confidence, it means that we don't have any confidence information. Places with operating_status set to 'closed' will have a confidence score of 0
         type: number
@@ -104,7 +133,7 @@ properties:
         minItems: 1
       operating_status:
         description: >-
-          Indicates the operating status of a place, can be one of ["open", "permanently_closed", "temporarily_closed"]. 
+          Indicates the operating status of a place, can be one of ["open", "permanently_closed", "temporarily_closed"].
           This is not an indication of 'opening hours' or that the place is open/closed at the current time-of-day or day-of-week.
         type: string
         enum: ["open", "permanently_closed", "temporarily_closed"]

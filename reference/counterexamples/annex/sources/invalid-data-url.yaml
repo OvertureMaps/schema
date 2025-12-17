@@ -1,0 +1,17 @@
+datasets:
+  - source_name: Example Broken URLs
+    source_dataset_name: address_points
+    data_url: not-a-valid-url
+    data_url_archived: https://web.archive.org/web/2024/not-a-valid-url
+    license_url: not-a-valid-url/license
+    license_url_archived: https://web.archive.org/web/2024/not-a-valid-url/license
+    license_type: CC-BY-4.0
+    license_text: Broken feed license text
+    license_attribution: Example Broken URLs
+    coverage_bbox:
+      - -123.0
+      - 45.0
+      - -122.5
+      - 45.4
+license_priority:
+  CC-BY-4.0: 1

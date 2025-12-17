@@ -1,0 +1,175 @@
+{
+  "$defs": {
+    "SourceItem": {
+      "additionalProperties": false,
+      "description": "Specifies the source of the data used for a feature or one of its properties.",
+      "properties": {
+        "between": {
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SourceItem applies to.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence value from the source dataset.\n\nThis is a value between 0.0 and 1.0 and is particularly relevant for ML-derived data.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "description": "Name of the dataset where the source data can be found.",
+          "title": "Dataset",
+          "type": "string"
+        },
+        "license": {
+          "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "License",
+          "type": "string"
+        },
+        "property": {
+          "description": "A JSON Pointer identifying the property (field) that this source information applies to.\n\nThe root document value `\"\"` indicates that this source information applies to the\nentire feature, excepting properties (fields) for which a dedicated source information\nrecord exists.\n\nAny other JSON Pointer apart from `\"\"` indicates that this source record provides\ndedicated source information for the property at the path in the JSON Pointer. As an\nexample, the value `\"/names/common/en\"` indicates that the source information applies to\nthe English common name of a named feature, while the value `\"/geometry\"` indicates that\nit applies to the feature geometry.",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Identifies the specific record within the source dataset where the source data can\nbe found.\n\nThe format of record identifiers is dataset-specific.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "Last update time of the source data record.",
+          "format": "date-time",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourceItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Connectors create physical connections between segments.\n\nConnectors are compatible with GeoJSON Point features.",
+  "properties": {
+    "bbox": {
+      "description": "An optional bounding box for the feature",
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
+    "geometry": {
+      "description": "Position of the connector",
+      "properties": {
+        "bbox": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "type": "array"
+        },
+        "coordinates": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 2,
+          "type": "array"
+        },
+        "type": {
+          "const": "Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "title": "Geometry",
+      "type": "object"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
+        }
+      },
+      "properties": {
+        "sources": {
+          "description": "Information about the source data used to assemble the feature.",
+          "items": {
+            "$ref": "#/$defs/SourceItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "theme": {
+          "const": "transportation",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "connector",
+          "title": "Type",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "theme",
+        "type",
+        "version"
+      ],
+      "type": "object"
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "id",
+    "geometry",
+    "properties"
+  ],
+  "title": "connector",
+  "type": "object"
+}

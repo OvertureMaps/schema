@@ -1,0 +1,549 @@
+{
+  "$defs": {
+    "Address": {
+      "additionalProperties": false,
+      "description": "An address associated with a place.",
+      "properties": {
+        "country": {
+          "description": "ISO 3166-1 alpha-2 country code",
+          "maxLength": 2,
+          "minLength": 2,
+          "pattern": "^[A-Z]{2}$",
+          "title": "Country",
+          "type": "string"
+        },
+        "freeform": {
+          "description": "Free-form address that contains street name, house number and other address info",
+          "title": "Freeform",
+          "type": "string"
+        },
+        "locality": {
+          "description": "City, town, or neighborhood component of the place address",
+          "title": "Locality",
+          "type": "string"
+        },
+        "postcode": {
+          "description": "Postal code component of the place address",
+          "title": "Postcode",
+          "type": "string"
+        },
+        "region": {
+          "description": "ISO 3166-2 subdivision code",
+          "maxLength": 6,
+          "minLength": 4,
+          "pattern": "^[A-Z]{2}-[A-Z0-9]{1,3}$",
+          "title": "Region",
+          "type": "string"
+        }
+      },
+      "title": "Address",
+      "type": "object"
+    },
+    "Brand": {
+      "additionalProperties": false,
+      "description": "A brand associated with a place.\n\nA location with multiple brands is modeled as multiple separate places, each with its own brand.",
+      "properties": {
+        "names": {
+          "$ref": "#/$defs/Names"
+        },
+        "wikidata": {
+          "description": "Wikidata identifier (Q followed by digits)",
+          "pattern": "^Q\\d+$",
+          "title": "Wikidata",
+          "type": "string"
+        }
+      },
+      "title": "Brand",
+      "type": "object"
+    },
+    "Categories": {
+      "additionalProperties": false,
+      "description": "Categories a place belongs to.\n\nComplete list is available on GitHub: https://github.com/OvertureMaps/schema/blob/main/docs/schema/concepts/by-theme/places/overture_categories.csv",
+      "properties": {
+        "alternate": {
+          "description": "Alternate categories of the place.\n\nSome places might fit into two categories, e.g., a book store and a coffee shop. In\nthese cases, the primary category can be augmented with additional categories.",
+          "items": {
+            "description": "Category in snake_case format",
+            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "title": "Alternate",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "primary": {
+          "description": "The primary or main category of the place.",
+          "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+          "title": "Primary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "primary"
+      ],
+      "title": "Categories",
+      "type": "object"
+    },
+    "NameRule": {
+      "additionalProperties": false,
+      "description": "A rule that can be evaluated to determine the name in advanced scenarios.\n\nName rules are used for cases where the primary name is not sufficient; the common name is not\nthe right fit for the use case and another variant is needed; or where the name only applies in\ncertain specific circumstances.\n\nExamples might include:\n- An official, alternate, or short name.\n- A name that only applies to part of a linear path like a road segment (geometric range\n  scoping).\n- A name that only applies to the left or right side of a linear path like a road segment (side\n  scoping).\n- A name that is only accepted by some political perspectives.",
+      "properties": {
+        "between": {
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing NameRule applies to.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "language": {
+          "description": "The language in which the name `value` is specified, if known, as an IETF BCP 47\nlanguage tag.",
+          "pattern": "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$",
+          "title": "Language",
+          "type": "string"
+        },
+        "perspectives": {
+          "$ref": "#/$defs/Perspectives",
+          "description": "Political perspectives from which a named feature is viewed."
+        },
+        "side": {
+          "$ref": "#/$defs/Side",
+          "description": "The side, either left or right, that the containing NameRule applies to."
+        },
+        "value": {
+          "description": "The actual name value.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Value",
+          "type": "string"
+        },
+        "variant": {
+          "$ref": "#/$defs/NameVariant",
+          "description": "The name variant for this name rule."
+        }
+      },
+      "required": [
+        "value",
+        "variant"
+      ],
+      "title": "NameRule",
+      "type": "object"
+    },
+    "NameVariant": {
+      "description": "Name variant used in a `NameRule`.",
+      "enum": [
+        "common",
+        "official",
+        "alternate",
+        "short"
+      ],
+      "title": "NameVariant",
+      "type": "string"
+    },
+    "Names": {
+      "additionalProperties": false,
+      "description": "Multilingual names container.",
+      "properties": {
+        "common": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$": {
+              "description": "String with no leading/trailing whitespace",
+              "pattern": "^(\\S.*)?\\S$",
+              "type": "string"
+            }
+          },
+          "propertyNames": {
+            "description": "IETF BCP-47 language tag"
+          },
+          "title": "Common",
+          "type": "object"
+        },
+        "primary": {
+          "description": "The most commonly used name.",
+          "minLength": 1,
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "Primary",
+          "type": "string"
+        },
+        "rules": {
+          "description": "Rules for names that cannot be specified in the simple common names property. These rules can cover other name variants such as official, alternate, and short; and they can optionally include geometric scoping (linear referencing) and side-of-road scoping for complex cases.",
+          "items": {
+            "$ref": "#/$defs/NameRule"
+          },
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "primary"
+      ],
+      "title": "Names",
+      "type": "object"
+    },
+    "OperatingStatus": {
+      "description": "General indication of whether a place is: in continued operation, in a temporary operating\nhiatus, or closed permanently.\n\nOperating status should not be confused with opening hours or operating hours. In particular,\nthe status `\"open\"` does not mean the place is open *right now*, it means that in general the\nplace is continuing to operate normally, as opposed to being in an operating hiatus\n(`\"temporarily_closed\"`) or shuttered (`\"permanently_closed\"`).",
+      "enum": [
+        "open",
+        "permanently_closed",
+        "temporarily_closed"
+      ],
+      "title": "OperatingStatus",
+      "type": "string"
+    },
+    "PerspectiveMode": {
+      "description": "Perspective mode for disputed names.",
+      "enum": [
+        "accepted_by",
+        "disputed_by"
+      ],
+      "title": "PerspectiveMode",
+      "type": "string"
+    },
+    "Perspectives": {
+      "additionalProperties": false,
+      "description": "Political perspectives container.",
+      "properties": {
+        "countries": {
+          "description": "Countries holding the given mode of perspective.",
+          "items": {
+            "description": "ISO 3166-1 alpha-2 country code",
+            "maxLength": 2,
+            "minLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Countries",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "mode": {
+          "$ref": "#/$defs/PerspectiveMode",
+          "description": "Whether the perspective holder accepts or disputes this name."
+        }
+      },
+      "required": [
+        "mode",
+        "countries"
+      ],
+      "title": "Perspectives",
+      "type": "object"
+    },
+    "Side": {
+      "description": "The side, left or right, on which something appears relative to a facing or heading direction\n(*e.g.*, the side of a road relative to the road orientation), or relative to the direction of\ntravel of a person or vehicle.",
+      "enum": [
+        "left",
+        "right"
+      ],
+      "title": "Side",
+      "type": "string"
+    },
+    "SourceItem": {
+      "additionalProperties": false,
+      "description": "Specifies the source of the data used for a feature or one of its properties.",
+      "properties": {
+        "between": {
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SourceItem applies to.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Confidence value from the source dataset.\n\nThis is a value between 0.0 and 1.0 and is particularly relevant for ML-derived data.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "dataset": {
+          "description": "Name of the dataset where the source data can be found.",
+          "title": "Dataset",
+          "type": "string"
+        },
+        "license": {
+          "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
+          "pattern": "^(\\S.*)?\\S$",
+          "title": "License",
+          "type": "string"
+        },
+        "property": {
+          "description": "A JSON Pointer identifying the property (field) that this source information applies to.\n\nThe root document value `\"\"` indicates that this source information applies to the\nentire feature, excepting properties (fields) for which a dedicated source information\nrecord exists.\n\nAny other JSON Pointer apart from `\"\"` indicates that this source record provides\ndedicated source information for the property at the path in the JSON Pointer. As an\nexample, the value `\"/names/common/en\"` indicates that the source information applies to\nthe English common name of a named feature, while the value `\"/geometry\"` indicates that\nit applies to the feature geometry.",
+          "title": "Property",
+          "type": "string"
+        },
+        "record_id": {
+          "description": "Identifies the specific record within the source dataset where the source data can\nbe found.\n\nThe format of record identifiers is dataset-specific.",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "update_time": {
+          "description": "Last update time of the source data record.",
+          "format": "date-time",
+          "title": "Update Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "dataset"
+      ],
+      "title": "SourceItem",
+      "type": "object"
+    },
+    "Taxonomy": {
+      "additionalProperties": false,
+      "description": "A structured representation of the place's category within the Overture taxonomy.\n\nProvides the primary classification, full hierarchy path, and alternate categories.",
+      "properties": {
+        "alternates": {
+          "description": "Unordered list of additional categories that are known for this\nplace but that are not part of the primary category hierarchy.\n\nAlternate categories allow a more complete picture of the place\nto be surfaced when it fits multiple unconnected branches in the\ntaxonomy. For example a gas station that also sells groceries\nmight have primary category of \"gas_station\" with an alternate\nof \"grocery_store\".\n\nAlternate categories are not part of the primary hierarchy or\nanother alternate category's hierarchy.\nIn other words, if a category is a parent in the hierarchy of another category,\nthat category can't be a primary or alternate category itself.\n\nNote as well that this field is an unordered list of extra\ncategories and does not represent a hierarchy.",
+          "items": {
+            "description": "Category in snake_case format",
+            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Alternates",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "hierarchy": {
+          "description": "The full primary hierarchy of categories known for this place, ordered from most general to most specific.\nAn example hierarchy might be: `[\"food_and_drink\", \"restaurant\", \"casual_eatery\", \"gas_station_sushi\"]`.\n\nThe rightmost, or most specific, value in the `hierarchy` must always be equal to the `primary` field.\nThe basic level category of the place will typically be found in the middle of the primary hierarchy.\nThe primary hierarchy does not include any of the alternate categories found in the `alternates` field.",
+          "items": {
+            "description": "Category in snake_case format",
+            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Hierarchy",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "primary": {
+          "description": "\nThe primary, or most specific, category known about this place.\n\nThe `primary` category value must always equal the last or rightmost entry in the `hierarchy` field.\n",
+          "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+          "title": "Primary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "primary",
+        "hierarchy"
+      ],
+      "title": "Taxonomy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Places are point representations of real-world facilities, businesses, services, or amenities.",
+  "properties": {
+    "bbox": {
+      "description": "An optional bounding box for the feature",
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Bbox",
+      "type": "array"
+    },
+    "geometry": {
+      "description": "Position of the place. Places are point geometries.",
+      "properties": {
+        "bbox": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "type": "array"
+        },
+        "coordinates": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 2,
+          "type": "array"
+        },
+        "type": {
+          "const": "Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "title": "Geometry",
+      "type": "object"
+    },
+    "id": {
+      "description": "A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if\u2014and-only-if the feature represents an entity that is part of GERS.",
+      "minLength": 1,
+      "pattern": "^\\S+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": false,
+      "not": {
+        "required": [
+          "id",
+          "bbox",
+          "geometry"
+        ]
+      },
+      "patternProperties": {
+        "^ext_.*$": {
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
+        }
+      },
+      "properties": {
+        "addresses": {
+          "description": "The address or addresses of the place",
+          "items": {
+            "$ref": "#/$defs/Address"
+          },
+          "minItems": 1,
+          "title": "Addresses",
+          "type": "array"
+        },
+        "basic_category": {
+          "description": "The basic level category of a place.\n\nThis field classifies places into categories at a level that most people find\nintuitive. The full list of possible values it may hold can be found at (TODO).\n\nThe basic level category, or simply basic category, is based on a cognitive science\nmodel use in taxonomy and ontology development. The idea is to provide the category\nname at the level of generality that is preferred by humans in learning and memory\ntasks. This category to be roughly in the middle of the general-to-specific category\nhierarchy.\n\nThe full list of basic level categories is available at https://docs.overturemaps.org/guides/places/",
+          "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+          "title": "Basic Category",
+          "type": "string"
+        },
+        "brand": {
+          "$ref": "#/$defs/Brand",
+          "description": "The brand associated with the place."
+        },
+        "categories": {
+          "$ref": "#/$defs/Categories"
+        },
+        "confidence": {
+          "description": "A score between 0 and 1 indicating how confident we are that the place exists.\n\nA confidence score of 0 indicates that we are certain the place doesn't exist\nanymore and will always be paired with an `operating_status` of\n`\"permanently_closed\"`.\n\nA confidence score of 1 indicates that we are certain the place does exist.\n\nIf there is no value for confidence, it means we don't have enough information on\nwhich to estimate our confidence level.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "emails": {
+          "description": "The email addresses of the place.",
+          "items": {
+            "format": "email",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Emails",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "names": {
+          "$ref": "#/$defs/Names"
+        },
+        "operating_status": {
+          "$ref": "#/$defs/OperatingStatus",
+          "description": "An indication of whether a place is: in continued operation, in a temporary\noperating hiatus, or closed permanently.\n\nThis is not an indication of opening hours or that the place is open/closed at the\ncurrent time-of-day or day-of-week.\n\nWhen `operating_status` is `\"permanently_closed\"`, the `confidence` field will be\nset to 0."
+        },
+        "phones": {
+          "description": "The phone numbers of the place.",
+          "items": {
+            "description": "International phone number (+ followed by country code and number)",
+            "pattern": "^\\+\\d{1,3}[\\s\\-\\(\\)0-9]+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Phones",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "socials": {
+          "description": "The social media URLs of the place.",
+          "items": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Socials",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "sources": {
+          "description": "Information about the source data used to assemble the feature.",
+          "items": {
+            "$ref": "#/$defs/SourceItem"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "taxonomy": {
+          "$ref": "#/$defs/Taxonomy"
+        },
+        "theme": {
+          "const": "places",
+          "title": "Theme",
+          "type": "string"
+        },
+        "type": {
+          "const": "place",
+          "title": "Type",
+          "type": "string"
+        },
+        "version": {
+          "description": "",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Version",
+          "type": "integer"
+        },
+        "websites": {
+          "description": "The websites of the place.",
+          "items": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Websites",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "theme",
+        "type",
+        "version",
+        "operating_status"
+      ],
+      "type": "object"
+    },
+    "type": {
+      "const": "Feature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "id",
+    "geometry",
+    "properties"
+  ],
+  "title": "place",
+  "type": "object"
+}

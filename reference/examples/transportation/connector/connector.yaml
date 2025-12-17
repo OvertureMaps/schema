@@ -1,0 +1,14 @@
+---
+id: overture:transportation:connector:789
+type: Feature
+geometry:
+  type: Point
+  coordinates: [0, 0]
+properties:
+  # Custom user properties.
+  ext_baz: I am a custom user property...
+  # Overture properties
+  theme: transportation
+  type: connector
+  version: 0
+#

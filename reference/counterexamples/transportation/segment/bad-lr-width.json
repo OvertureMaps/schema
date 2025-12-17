@@ -1,0 +1,27 @@
+{
+  "id": "segment with missing value for one of ranges",
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [[0, 1], [1, 1]]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "version": 26,
+    "subtype": "road",
+    "class": "primary",
+    "width_rules": [
+      {
+        "between" : [0, 0.5],
+        "value" : 1.5
+      },
+      {
+        "between" : [0.5, 1.0]
+      }
+    ],
+    "ext_expected_errors": [
+      "propertyContainers/widthRulesContainer/items/required]: missing property 'value'"
+    ]
+  }
+}
