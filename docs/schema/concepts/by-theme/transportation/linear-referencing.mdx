@@ -32,7 +32,7 @@ Both distances must be computed on the WGS84 ellipsoid—not planar distance on 
 **Apache Sedona (SQL):**
 
 ```sql
-SELECT ST_LENGTHSPHEROID(segment_geom) AS segment_length_m
+SELECT ST_LENGTHSPHEROID(ST_GEOMFROMWKB(geometry)) AS segment_length_m
 FROM segments;
 ```
 
@@ -40,8 +40,10 @@ FROM segments;
 
 ```python
 from pyproj import Geod
+from shapely import wkb
 
 geod = Geod(ellps="WGS84")
+line_geometry = wkb.loads(geometry)  # geometry is WKB bytes
 segment_length = geod.geometry_length(line_geometry)  # meters
 ```
 
