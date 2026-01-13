@@ -2,9 +2,7 @@
 title: Linear Referencing
 ---
 
-Linear referencing allows properties to apply to portions of a segment
-without splitting the geometry. This promotes shape stability and reduces
-versioning when only part of a road changes.
+Linear referencing allows properties to apply to portions of a segment without splitting the geometry. This promotes shape stability and reduces versioning when only part of a road changes.
 
 ## Linear reference values
 
@@ -17,32 +15,30 @@ A linear reference is a **normalized position** from `0.0` (start of segment) to
 | `at` | Single point location | `at: 0.3` — 30% along segment |
 | `between` | Range along segment | `between: [0.2, 0.7]` — 20% to 70% |
 
+When `between` is not provided (null), the attribute applies to the full segment.
+
 ## Calculation method
 
-Linear references use **WGS84 geodetic distance** in meters:
+Overture computes linear references using **WGS84 geodetic distance** in meters:
 
 ```
 linear_ref = geodetic_distance_from_start / total_geodetic_length
 ```
 
-Both distances must be computed on the WGS84 ellipsoid—not planar distance on raw lon/lat coordinates.
+Both distances must be computed on the WGS84 ellipsoid—not planar distance on raw lon/lat coordinates. Other approaches exist (e.g., projected coordinates), but geodetic distance provides consistent accuracy globally.
 
 ### Example: Apache Sedona
 
 ```sql
--- Correct: geodetic distance using Sedona's geography functions
-SELECT
-  ST_LineLocatePoint(
-    ST_SetSRID(segment_geom, 4326)::geography,
-    ST_SetSRID(point_geom, 4326)::geography
-  ) as linear_ref
+SELECT ST_LENGTHSPHEROID(segment_geom) AS segment_length_m
 FROM segments;
 ```
 
+**Warning:** Functions like `ST_LINELOCATEPOINT` can produce incorrect results on geometries that cross over themselves in 2D (curved on-ramps, mountain switchbacks, cul-de-sacs). These functions may pick the wrong location when the line passes over itself—even though the geometry is valid because crossings occur at different elevations or positions along the segment.
+
 ### Reference implementation
 
-The [transportation-splitter](https://github.com/OvertureMaps/transportation-splitter)
-uses `pyproj.Geod(ellps="WGS84")` for geodetic calculations:
+The [transportation-splitter](https://github.com/OvertureMaps/transportation-splitter) uses `pyproj.Geod(ellps="WGS84")` for geodetic calculations:
 
 ```python
 from pyproj import Geod
@@ -53,16 +49,10 @@ segment_length = geod.geometry_length(line_geometry)  # meters
 
 ## Why geodetic distance matters
 
-Using planar distance (treating lon/lat as Cartesian x/y) produces incorrect linear references,
-especially at high latitudes or for long segments. For a 10 km east-west segment at 60°N latitude,
-planar calculations can underestimate length by ~50%.
+Using planar distance (treating lon/lat as Cartesian x/y) produces incorrect linear references, especially at high latitudes or for long segments. For a 10 km east-west segment at 60°N latitude, planar calculations can underestimate length by ~50%.
 
-If a consumer calculates linear references using planar distance while Overture uses geodetic distance,
-connector positions will be misaligned—potentially causing routing failures.
+If a consumer calculates linear references using planar distance while Overture uses geodetic distance, connector positions will be misaligned—potentially causing routing failures.
 
 ## Edge cases
 
-For very short segments (< 1m), floating-point precision may be limited.
-Treat `at ≈ 0.0` or `at ≈ 1.0` as equivalent to endpoints.
-When a connector doesn't fall exactly on the geometry, the linear reference
-corresponds to the closest point on the segment.
+For very short segments (< 1m), floating-point precision may be limited. Treat `at ≈ 0.0` or `at ≈ 1.0` as equivalent to endpoints. When a connector doesn't fall exactly on the geometry, the linear reference corresponds to the closest point on the segment.
