@@ -27,18 +27,16 @@ linear_ref = geodetic_distance_from_start / total_geodetic_length
 
 Both distances must be computed on the WGS84 ellipsoid—not planar distance on raw lon/lat coordinates. Other approaches exist (e.g., projected coordinates), but geodetic distance provides consistent accuracy globally.
 
-### Example: Apache Sedona
+### Examples
+
+**Apache Sedona (SQL):**
 
 ```sql
 SELECT ST_LENGTHSPHEROID(segment_geom) AS segment_length_m
 FROM segments;
 ```
 
-**Warning:** Functions like `ST_LINELOCATEPOINT` can produce incorrect results on geometries that cross over themselves in 2D (curved on-ramps, mountain switchbacks, cul-de-sacs). These functions may pick the wrong location when the line passes over itself—even though the geometry is valid because crossings occur at different elevations or positions along the segment.
-
-### Reference implementation
-
-The [transportation-splitter](https://github.com/OvertureMaps/transportation-splitter) uses `pyproj.Geod(ellps="WGS84")` for geodetic calculations:
+**pyproj (Python):**
 
 ```python
 from pyproj import Geod
@@ -47,11 +45,15 @@ geod = Geod(ellps="WGS84")
 segment_length = geod.geometry_length(line_geometry)  # meters
 ```
 
+See the [transportation-splitter](https://github.com/OvertureMaps/transportation-splitter) for a complete implementation.
+
+**Warning:** Functions like `ST_LINELOCATEPOINT` can produce incorrect results on geometries that cross over themselves in 2D (curved on-ramps, mountain switchbacks, cul-de-sacs). These functions may pick the wrong location when the line passes over itself—even though the geometry is valid because crossings occur at different elevations or positions along the segment.
+
 ## Why geodetic distance matters
 
 Using planar distance (treating lon/lat as Cartesian x/y) produces incorrect linear references, especially at high latitudes or for long segments. For a 10 km east-west segment at 60°N latitude, planar calculations can underestimate length by ~50%.
 
-If a consumer calculates linear references using planar distance while Overture uses geodetic distance, connector positions will be misaligned—potentially causing routing failures.
+If a consumer calculates linear references using planar distance while Overture uses geodetic distance, connector positions will be misaligned—potentially causing visual discrepancies on rendered maps or routing failures.
 
 ## Edge cases
 
