@@ -123,12 +123,7 @@ or similar entities within the same principal subdivision, but will not be
 present on boundaries between different principal subdivisions or countries.""",
         ),
     ] = None
-    admin_level: Annotated[
-        AdminLevel | None,
-        Field(
-            description="Integer representing the shared administrative level of the divisions on either side of this boundary.",
-        ),
-    ] = None
+    admin_level: AdminLevel = None
     is_disputed: Annotated[
         bool | None,
         Field(

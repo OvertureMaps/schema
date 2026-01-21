@@ -8,7 +8,15 @@ from overture.schema.system.field_constraint import UniqueItemsConstraint
 
 from .models import HierarchyItem
 
-AdminLevel = NewType("AdminLevel", uint8)
+AdminLevel = NewType(
+    "AdminLevel",
+    Annotated[
+        uint8 | None,
+        Field(
+            description="Integer representing the division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
+        ),
+    ],
+)
 
 Hierarchy = NewType(
     "Hierarchy",

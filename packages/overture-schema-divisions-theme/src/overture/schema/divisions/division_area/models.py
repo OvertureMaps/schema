@@ -104,9 +104,4 @@ class DivisionArea(
             description="ISO 3166-2 principal subdivision code of the division this area belongs to.",
         ),
     ] = None
-    admin_level: Annotated[
-        AdminLevel | None,
-        Field(
-            description="Integer representing this division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
-        ),
-    ] = None
+    admin_level: AdminLevel = None

@@ -369,7 +369,6 @@
       },
       "properties": {
         "admin_level": {
-          "description": "Integer representing the shared administrative level of the divisions on either side of this boundary.",
           "maximum": 255,
           "minimum": 0,
           "title": "Admin Level",
