@@ -2,9 +2,8 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
-from overture.schema.system.primitive import uint8
-
 from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.primitive import uint8
 
 from .models import HierarchyItem
 
