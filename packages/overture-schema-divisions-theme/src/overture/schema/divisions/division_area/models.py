@@ -104,4 +104,4 @@ class DivisionArea(
             description="ISO 3166-2 principal subdivision code of the division this area belongs to.",
         ),
     ] = None
-    admin_level: AdminLevel = None
+    admin_level: AdminLevel | None = None

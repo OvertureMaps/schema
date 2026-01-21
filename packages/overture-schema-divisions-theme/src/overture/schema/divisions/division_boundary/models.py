@@ -123,7 +123,7 @@ or similar entities within the same principal subdivision, but will not be
 present on boundaries between different principal subdivisions or countries.""",
         ),
     ] = None
-    admin_level: AdminLevel = None
+    admin_level: AdminLevel | None = None
     is_disputed: Annotated[
         bool | None,
         Field(

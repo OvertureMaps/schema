@@ -124,7 +124,7 @@ Not allowed for top-level divisions (countries) and required for all other divis
 The default parent division is the parent division as seen from the default political perspective, if there is one, and is otherwise chosen somewhat arbitrarily. The hierarchies property can be used to inspect the exhaustive list of parent divisions.""",
         ),
     ] = None
-    admin_level: AdminLevel = None
+    admin_level: AdminLevel | None = None
 
     # Optional
 

@@ -10,7 +10,7 @@ from .models import HierarchyItem
 AdminLevel = NewType(
     "AdminLevel",
     Annotated[
-        uint8 | None,
+        uint8,
         Field(
             description="Integer representing the division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
         ),
