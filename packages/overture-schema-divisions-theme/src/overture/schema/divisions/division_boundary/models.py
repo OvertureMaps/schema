@@ -19,13 +19,13 @@ from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
-    int32,
 )
 from overture.schema.system.ref import Id, Reference, Relationship
 from overture.schema.system.string import CountryCodeAlpha2, RegionCode
 
 from ..division import Division
 from ..enums import IS_COUNTRY, PlaceType
+from ..types import AdminLevel
 from .enums import BoundaryClass
 
 
@@ -124,9 +124,8 @@ present on boundaries between different principal subdivisions or countries.""",
         ),
     ] = None
     admin_level: Annotated[
-        int32 | None,
+        AdminLevel | None,
         Field(
-            ge=0,
             description="Integer representing the shared administrative level of the divisions on either side of this boundary.",
         ),
     ] = None

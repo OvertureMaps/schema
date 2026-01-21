@@ -33,7 +33,7 @@ from overture.schema.system.string import CountryCodeAlpha2, RegionCode, Wikidat
 
 from ..enums import IS_COUNTRY, DivisionClass, PlaceType
 from ..models import CapitalOfDivisionItem
-from ..types import Hierarchy
+from ..types import AdminLevel, Hierarchy
 
 
 @no_extra_fields
@@ -125,9 +125,8 @@ The default parent division is the parent division as seen from the default poli
         ),
     ] = None
     admin_level: Annotated[
-        int32 | None,
+        AdminLevel | None,
         Field(
-            ge=0,
             description="Integer representing this division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
         ),
     ] = None

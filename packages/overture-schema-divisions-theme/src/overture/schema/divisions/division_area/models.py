@@ -20,13 +20,13 @@ from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
-    int32,
 )
 from overture.schema.system.ref import Id, Reference, Relationship
 from overture.schema.system.string import CountryCodeAlpha2, RegionCode
 
 from ..division.models import Division
 from ..enums import PlaceType
+from ..types import AdminLevel
 from .enums import AreaClass
 
 
@@ -105,9 +105,8 @@ class DivisionArea(
         ),
     ] = None
     admin_level: Annotated[
-        int32 | None,
+        AdminLevel | None,
         Field(
-            ge=0,
             description="Integer representing this division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
         ),
     ] = None

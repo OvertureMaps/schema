@@ -2,9 +2,13 @@ from typing import Annotated, NewType
 
 from pydantic import Field
 
+from overture.schema.system.primitive import uint8
+
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 
 from .models import HierarchyItem
+
+AdminLevel = NewType("AdminLevel", uint8)
 
 Hierarchy = NewType(
     "Hierarchy",
