@@ -12,3 +12,4 @@ properties:
   division_id: counterexample:division_boundary:some-division
   is_territorial: false
   country: ZZ
+  admin_level: 0

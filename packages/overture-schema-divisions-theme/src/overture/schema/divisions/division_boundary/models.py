@@ -10,6 +10,7 @@ from overture.schema.core import (
 from overture.schema.core.models import Perspectives
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (
+    FieldEqCondition,
     forbid_if,
     radio_group,
     require_if,
@@ -24,11 +25,18 @@ from overture.schema.system.string import CountryCodeAlpha2, RegionCode
 
 from ..division import Division
 from ..enums import IS_COUNTRY, PlaceType
+from ..types import AdminLevel
 from .enums import BoundaryClass
 
 
 @forbid_if(["country"], IS_COUNTRY)
 @require_if(["country"], ~IS_COUNTRY)
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTRY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.DEPENDENCY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROREGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.REGION))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.MACROCOUNTY))
+@require_if(["admin_level"], FieldEqCondition("subtype", PlaceType.COUNTY))
 @radio_group("is_land", "is_territorial")
 class DivisionBoundary(
     OvertureFeature[Literal["divisions"], Literal["division_boundary"]]
@@ -115,6 +123,7 @@ or similar entities within the same principal subdivision, but will not be
 present on boundaries between different principal subdivisions or countries.""",
         ),
     ] = None
+    admin_level: AdminLevel | None = None
     is_disputed: Annotated[
         bool | None,
         Field(

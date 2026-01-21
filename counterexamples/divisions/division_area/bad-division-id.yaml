@@ -14,5 +14,6 @@ properties:
   names:
     primary: A division area with an invalid division ID property.
   country: ZZ
+  admin_level: 0
   ext_expected_errors:
     - "'abc ' does not match pattern"

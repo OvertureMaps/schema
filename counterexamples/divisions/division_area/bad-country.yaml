@@ -14,6 +14,7 @@ properties:
   names:
     primary: A division area with an invalid country property.
   country: ZZZ
+  admin_level: 0
   ext_expected_errors:
     - "maxLength: got 3, want 2"
     - "'ZZZ' does not match pattern"

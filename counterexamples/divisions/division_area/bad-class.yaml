@@ -14,5 +14,6 @@ properties:
   names:
     primary: A division area with an invalid class property.
   country: ZZ
+  admin_level: 0
   ext_expected_errors:
     - "value must be one of 'land', 'maritime'"
