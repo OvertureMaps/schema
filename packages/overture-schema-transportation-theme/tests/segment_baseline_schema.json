@@ -2212,5 +2212,6 @@
     {
       "$ref": "#/$defs/WaterSegment"
     }
-  ]
+  ],
+  "title": "Segment"
 }

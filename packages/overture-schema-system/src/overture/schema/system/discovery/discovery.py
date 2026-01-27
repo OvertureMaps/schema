@@ -17,6 +17,7 @@ from overture.schema.system.discovery.types import (
     TagProviderDict,
     TagProviderKey,
 )
+from overture.schema.system.extensions import create_extended_model
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ log = logging.getLogger(__name__)
 _RESERVED_TAGS: dict[str, set[str]] = {
     "overture": {"overture-schema-core"},
     "feature": {"overture-schema-system"},
+    "extension": {"overture-schema-system"},
 }
 # Namespaces that are reserved and can only be set by specific packages.
 _RESERVED_NAMESPACES: dict[str, set[str]] = {
@@ -190,9 +192,31 @@ def discover_models(
                 models[key] = model_class
             except Exception as e:
                 log.warning(f"Could not load model {model.name}: {e}")
+        models = apply_extensions(models)
     except Exception as e:
         log.warning(f"Could not discover entry points: {e}")
     return models
+
+
+def apply_extensions(models: ModelDict) -> ModelDict:
+    """Apply discovered extension models to their target feature models.
+
+    Parameters
+    ----------
+    models : ModelDict
+        All discovered models.
+
+    Returns
+    -------
+    ModelDict
+        Models with extensions applied to any ``"feature"``-tagged models.
+    """
+    updated_models = models.copy()
+    extensions = filter_models(updated_models, tags=("extension",))
+    for key, model_cls in models.items():
+        if "feature" in key.tags:
+            updated_models[key] = create_extended_model(model_cls, extensions)
+    return updated_models
 
 
 def filter_models(

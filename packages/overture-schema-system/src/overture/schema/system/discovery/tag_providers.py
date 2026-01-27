@@ -3,8 +3,33 @@
 from pydantic import BaseModel
 
 from overture.schema.system.discovery.types import ModelKey
+from overture.schema.system.extensions import extends_classes
 from overture.schema.system.feature import Feature
 from overture.schema.system.typing_util import collect_types
+
+
+def extension_provider(
+    model_class: type[BaseModel], key: ModelKey, tags: set[str]
+) -> set[str]:
+    """Add the ``"extension"`` tag if the model uses the ``@extends`` decorator.
+
+    Parameters
+    ----------
+    model_class : type[BaseModel]
+        Model class to inspect.
+    key : ModelKey
+        Key identifying the model.
+    tags : set[str]
+        Current tags; may be extended.
+
+    Returns
+    -------
+    set[str]
+        Updated tags, with ``"extension"`` added if applicable.
+    """
+    if extends_classes(model_class):
+        tags.add("extension")
+    return tags
 
 
 def feature_provider(

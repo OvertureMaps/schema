@@ -58,3 +58,4 @@ per-file-ignores = {"__init__.py" = ["F401"]}
 
 [project.entry-points."overture.tag_providers"]
 feature = "overture.schema.system.discovery.tag_providers:feature_provider"
+extension = "overture.schema.system.discovery.tag_providers:extension_provider"

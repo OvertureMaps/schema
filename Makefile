@@ -47,7 +47,7 @@ mypy-only:
 	@find packages -maxdepth 1 -type d -name "overture-schema*" \
 		| sort \
 		| sed 's|-theme$$||' \
-		| tr - . \
+		| sed 's/-/./1; s/-/./1; s/-/./1; s/\-/_/g' \
 		| sed 's|^packages/|-p |' \
 		| xargs uv run mypy --no-error-summary
 	@for d in packages/*/tests; do find "$$d" -name "*.py" | sort | xargs uv run mypy --no-error-summary || exit 1; done

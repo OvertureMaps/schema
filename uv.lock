@@ -21,6 +21,8 @@ members = [
     "overture-schema-codegen",
     "overture-schema-core",
     "overture-schema-divisions-theme",
+    "overture-schema-extensions-capacity",
+    "overture-schema-extensions-operating-hours",
     "overture-schema-places-theme",
     "overture-schema-system",
     "overture-schema-transportation-theme",
@@ -853,6 +855,38 @@ dependencies = [
 requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
+    { name = "pydantic", specifier = ">=2.0" },
+]
+
+[[package]]
+name = "overture-schema-extensions-capacity"
+source = { editable = "packages/overture-schema-extensions-capacity" }
+dependencies = [
+    { name = "overture-schema-core" },
+    { name = "overture-schema-places-theme" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-places-theme", editable = "packages/overture-schema-places-theme" },
+    { name = "pydantic", specifier = ">=2.0" },
+]
+
+[[package]]
+name = "overture-schema-extensions-operating-hours"
+source = { editable = "packages/overture-schema-extensions-operating-hours" }
+dependencies = [
+    { name = "overture-schema-core" },
+    { name = "overture-schema-places-theme" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-places-theme", editable = "packages/overture-schema-places-theme" },
     { name = "pydantic", specifier = ">=2.0" },
 ]
 

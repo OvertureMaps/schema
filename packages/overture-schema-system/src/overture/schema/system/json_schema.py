@@ -188,6 +188,8 @@ class _Kind(str, Enum):
     def of(thing: Any) -> Union["_Kind", None]:
         if isinstance(thing, type) and issubclass(thing, BaseModel):
             return _Kind.BASE_MODEL
+        if hasattr(thing, "__supertype__"):
+            return _Kind.of(thing.__supertype__)
         else:
             match get_origin(thing):
                 case a if a is Annotated:

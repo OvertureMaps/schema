@@ -133,7 +133,8 @@ Segment = Annotated[
     Field(
         discriminator=Feature.field_discriminator(
             "subtype", RoadSegment, RailSegment, WaterSegment
-        )
+        ),
+        title="Segment",
     ),
 ]
 

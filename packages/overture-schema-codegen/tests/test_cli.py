@@ -56,8 +56,8 @@ class TestCliGenerate:
         )
 
         assert result.exit_code == 0
-        assert "Building" in result.output
-        assert "Place" not in result.output
+        assert "# Building" in result.output
+        assert "# Place" not in result.output
 
     def test_generate_markdown_feature_at_theme_level(
         self, cli_runner: CliRunner, tmp_path: Path
