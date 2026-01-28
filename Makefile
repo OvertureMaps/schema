@@ -2,6 +2,8 @@
 
 default: test-all
 
+install: uv-sync
+
 uv-sync:
 	@uv sync --all-packages 2> /dev/null
 
