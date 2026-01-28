@@ -5,7 +5,7 @@ default: test-all
 uv-sync:
 	@uv sync --all-packages 2> /dev/null
 
-check: test doctest
+check: test doctest check-versions
 	@uv run ruff check -q packages/
 	@$(MAKE) mypy
 	@uv run ruff format --check packages/
@@ -44,6 +44,13 @@ mypy: uv-sync
 		| sed 's|^packages/|-p |' \
 		| xargs uv run mypy --no-error-summary
 	@uv run mypy --no-error-summary packages/*/tests/*.py
+
+check-versions:
+	@find packages -maxdepth 1 -type d -name "overture-schema*" \
+		| sort \
+		| tr - . \
+		| sed 's|^packages/||' \
+		| xargs uv run python -c 'import semver, sys; from importlib import metadata; [print(m, semver.VersionInfo.parse(metadata.version(m))) for m in sys.argv[1:]]'
 
 reset-baseline-schemas:
 	@find . -name \*_baseline_schema.json -delete
