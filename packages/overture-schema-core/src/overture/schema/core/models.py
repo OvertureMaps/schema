@@ -12,7 +12,6 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 from typing_extensions import Self
 
-from overture.schema.core.sources import Sources
 from overture.schema.system.feature import Feature
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
@@ -25,6 +24,7 @@ from overture.schema.system.string import (
 )
 
 from .enums import PerspectiveMode
+from .sources import Sources
 from .types import (
     FeatureVersion,
     Level,
