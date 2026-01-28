@@ -53,6 +53,7 @@ dev = [
     "pytest>=8.4.1",
     "pytest-cov>=7.0.0",
     "ruff>=0.12.4",
+    "semver>=3.0.4"
 ]
 
 [tool.pytest.ini_options]
