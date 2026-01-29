@@ -1,0 +1,15 @@
+name: Check Python package version numbers
+
+on:
+  pull_request_target:
+    paths:
+      - '**/pyproject.toml'
+      - 'packages/**/__about__.py'
+
+jobs:
+  check:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/reusable/check-python-package-versions.yaml'
+    with:
+      before_commit: ${{ github.event.pull_request.base.sha }}
+      after_commit: ${{ github.event.pull_request.head.sha }}

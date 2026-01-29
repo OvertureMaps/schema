@@ -1,4 +1,4 @@
-name: Check Pydantic models
+name: Check Python package code
 
 on:
   pull_request_target:
