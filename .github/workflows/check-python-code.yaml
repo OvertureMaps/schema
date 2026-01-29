@@ -6,6 +6,12 @@ on:
       - 'packages/**'
       - 'pyproject.toml'
       - 'uv.lock'
+  push:
+    branches: [main, dev]
+    paths:
+      - 'packages/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
 
 jobs:
   check:
