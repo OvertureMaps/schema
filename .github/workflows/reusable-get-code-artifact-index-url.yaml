@@ -54,4 +54,4 @@ jobs:
             --domain-owner ${{ inputs.account_id }} \
             --query authorizationToken \
             --output text)
-          echo "https://aws:${AUTH_TOKEN}@$${{ inputs.domain }}-${{ inputs.account_id }}.d.codeartifact.${{ inputs.aws_region }}.amazonaws.com/simple/" >> $GITHUB_OUTPUT
+          echo "index_url=https://aws:${AUTH_TOKEN}@$${{ inputs.domain }}-${{ inputs.account_id }}.d.codeartifact.${{ inputs.aws_region }}.amazonaws.com/" >> $GITHUB_OUTPUT
