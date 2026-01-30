@@ -44,7 +44,7 @@ jobs:
         with:
           aws-region: ${{ inputs.aws_region }}
           role-to-assume: arn:aws:iam::${{ inputs.account_id }}:role/${{ inputs.role_name }}
-          role-session-name: GitHubActions_${{github.workflow}}_${{github.job}}_${{github.run_id}}
+          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
 
       - name: Get CodeArtifact authorization token
         id: get-code-artifact-auth-token
