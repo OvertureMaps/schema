@@ -1,7 +1,5 @@
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
-# TEMP COMMENT - DO NOT MERGE THE COMMIT WITH THIS CHANGE IN IT!
-
 from collections.abc import Generator
 from functools import reduce
 from operator import or_

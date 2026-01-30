@@ -1,5 +1,7 @@
 # uv workspace configuration
 
+# TEMP change to trigger Python package version check workflow
+
 [project]
 license = "MIT"
 name = "overture-schema-workspace"
