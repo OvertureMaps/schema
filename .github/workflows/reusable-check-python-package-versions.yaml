@@ -52,6 +52,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.after_commit }}
+          clean: true
 
       - name: Sync code after change to make packages visible to Python
         run: uv sync --all-packages
