@@ -1,4 +1,4 @@
-name: Check Python package versions
+name: "[REUSABLE] Check Python package versions"
 
 on:
   workflow_call:

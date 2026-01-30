@@ -1,4 +1,4 @@
-name: Get CodeArtifact Python package index URL
+name: "[REUSABLE] Get CodeArtifact Python package index URL"
 
 on:
   workflow_call:
