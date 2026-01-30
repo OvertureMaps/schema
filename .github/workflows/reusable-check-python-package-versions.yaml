@@ -42,6 +42,9 @@ jobs:
         with:
           ref: ${{ inputs.before_commit }}
 
+      - name: Sync code before change to make packages visible to Python
+        run: uv sync --all-packages
+
       - name: Capture package versions before change
         run: uv run python ./.github/workflows/scripts/package-versions.py collect > /tmp/package-versions-before.json
 
@@ -50,12 +53,15 @@ jobs:
         with:
           ref: ${{ inputs.after_commit }}
 
+      - name: Sync code after change to make packages visible to Python
+        run: uv sync --all-packages
+
       - name: Capture package versions after change
         run: uv run python ./.github/workflows/scripts/package-versions.py collect > /tmp/package-versions-after.json
 
       - name: Compare package versions before and after change
         run: |
-          uv run python scripts/package-versions.py compare \
+          uv run python ./.github/workflows/scripts/package-versions.py compare \
             /tmp/package-versions-before.json \
             /tmp/package-versions-after.json \
             >/tmp/package-version-diff.json
