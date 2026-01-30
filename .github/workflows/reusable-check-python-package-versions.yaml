@@ -18,7 +18,7 @@ on:
 
 jobs:
   get-index-url:
-    uses: ./.github/workflows/reusable/get-code-artifact-index-url.yaml
+    uses: ./.github/workflows/reusable-get-code-artifact-index-url.yaml
 
   check-python-package-versions:
     needs: get-index-url
