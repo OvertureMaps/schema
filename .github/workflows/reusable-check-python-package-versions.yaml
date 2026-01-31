@@ -49,13 +49,12 @@ jobs:
         run: uv run python ./.github/workflows/scripts/package-versions.py collect > /tmp/package-versions-before.json
 
       - name: Check out code after change
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.after_commit }}
-          clean: true
 
       - name: Sync code after change to make packages visible to Python
-        run: uv sync --all-packages
+        run: uv sync --all-packages --refresh
 
       - name: Capture package versions after change
         run: uv run python ./.github/workflows/scripts/package-versions.py collect > /tmp/package-versions-after.json
