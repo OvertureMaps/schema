@@ -45,12 +45,5 @@ mypy: uv-sync
 		| xargs uv run mypy --no-error-summary
 	@uv run mypy --no-error-summary packages/*/tests/*.py
 
-check-versions:
-	@find packages -maxdepth 1 -type d -name "overture-schema*" \
-		| sort \
-		| tr - . \
-		| sed 's|^packages/||' \
-		| xargs uv run python -c 'import semver, sys; from importlib import metadata; [print(m, semver.VersionInfo.parse(metadata.version(m))) for m in sys.argv[1:]]'
-
 reset-baseline-schemas:
 	@find . -name \*_baseline_schema.json -delete
