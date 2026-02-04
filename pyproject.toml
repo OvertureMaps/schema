@@ -50,8 +50,10 @@ dev = [
     "mypy>=1.17.0",
     "pdoc>=15.0.4",
     "pydocstyle>=6.3.0",
+    "pyarrow>=14.0",
     "pytest>=8.4.1",
     "pytest-cov>=7.0.0",
+    "pytest-subtests>=0.14.0",
     "ruff>=0.12.4",
 ]
 
@@ -61,6 +63,7 @@ pythonpath = [
     "packages/overture-schema-annex/tests",
     "packages/overture-schema-base-theme/tests",
     "packages/overture-schema-buildings-theme/tests",
+    "packages/overture-schema-cli/tests",
     "packages/overture-schema-core/tests",
     "packages/overture-schema-divisions-theme/tests",
     "packages/overture-schema-places-theme/tests",

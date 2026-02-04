@@ -767,6 +767,146 @@ def json_schema_command(
         raise click.UsageError(str(e)) from e
 
 
+def resolve_single_type(
+    namespace: str | None,
+    theme_name: str | None,
+    type_name: str,
+) -> type[BaseModel]:
+    """Resolve CLI options to a single model type.
+
+    Args
+    ----
+        namespace: Namespace to filter by (e.g., "overture", "annex")
+        theme_name: Theme name (e.g., "buildings")
+        type_name: Type name (e.g., "building")
+
+    Returns
+    -------
+        Single Pydantic model class
+
+    Raises
+    ------
+        ValueError: If no model or multiple models match
+    """
+    all_models = discover_models(namespace=namespace)
+
+    matching = [
+        (key, model)
+        for key, model in all_models.items()
+        if key.type == type_name and (theme_name is None or key.theme == theme_name)
+    ]
+
+    if not matching:
+        msg = f"No model found for type '{type_name}'"
+        if theme_name:
+            msg += f" in theme '{theme_name}'"
+        raise ValueError(msg)
+
+    if len(matching) > 1:
+        themes = [k.theme for k, _ in matching]
+        raise ValueError(
+            f"Multiple models found for type '{type_name}': {themes}. "
+            "Specify --theme to disambiguate."
+        )
+
+    return matching[0][1]
+
+
+@cli.command("parquet-schema")
+@click.option(
+    "--theme",
+    help="Theme to generate schema for (e.g., buildings, places)",
+)
+@click.option(
+    "--type",
+    "type_name",
+    required=True,
+    help="Specific type to generate schema for (e.g., building, segment)",
+)
+@click.option(
+    "--namespace",
+    help="Namespace to filter by (e.g., overture, annex)",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["parquet", "text"]),
+    default="parquet",
+    help="Output format: 'parquet' for empty .parquet file, 'text' for schema description",
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(path_type=Path),
+    help="Output file path (required for parquet format)",
+)
+def parquet_schema_command(
+    theme: str | None,
+    type_name: str,
+    namespace: str | None,
+    output_format: str,
+    output: Path | None,
+) -> None:
+    r"""Generate Parquet schema for an Overture Maps type.
+
+    Outputs an empty Parquet file or text schema representation that can be used
+    to compare against existing Parquet files or for documentation purposes.
+
+    Requires pyarrow. Install with: pip install overture-schema-cli[parquet]
+
+    \b
+    Examples:
+      # Generate empty Parquet file for building type
+      $ overture-schema parquet-schema --theme buildings --type building -o building.parquet
+    \b
+      # Print schema as text
+      $ overture-schema parquet-schema --theme buildings --type building --format text
+    \b
+      # Transportation segment
+      $ overture-schema parquet-schema --theme transportation --type segment -o segment.parquet
+    """
+    # Check for pyarrow availability
+    try:
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+    except ImportError:
+        raise click.UsageError(
+            "pyarrow is required for this command. "
+            "Install with: pip install overture-schema-cli[parquet]"
+        ) from None
+
+    # Import conversion module
+    from .arrow_schema import pydantic_model_to_arrow_schema
+
+    # Resolve to single model
+    try:
+        model_class = resolve_single_type(namespace, theme, type_name)
+    except ValueError as e:
+        raise click.UsageError(str(e)) from e
+
+    # Convert to Arrow schema
+    arrow_schema = pydantic_model_to_arrow_schema(model_class)
+
+    # Output based on format
+    if output_format == "text":
+        # Print schema to stdout
+        print(arrow_schema.to_string())
+        if output:
+            with open(output, "w") as f:
+                f.write(arrow_schema.to_string())
+            stdout.print(f"Schema written to {output}")
+    else:  # parquet format
+        if not output:
+            raise click.UsageError("--output is required when using parquet format")
+
+        # Write empty Parquet file with schema
+        empty_table = pa.table(
+            {field.name: pa.array([], type=field.type) for field in arrow_schema}
+        )
+        pq.write_table(empty_table, output)
+        stdout.print(f"✓ Wrote Parquet schema to {output}")
+
+
 def dump_namespace(
     theme_types: dict[str | None, list[tuple[ModelKey, type[BaseModel]]]],
 ) -> None:
