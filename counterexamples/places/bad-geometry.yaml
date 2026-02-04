@@ -8,5 +8,3 @@ properties:
   theme: places
   type: place
   version: 0
-  categories:
-    primary: a_category
