@@ -1,12 +1,14 @@
 """
-Pydantic to PyArrow schema conversion for Overture models.
+Pydantic to PyArrow schema conversion and comparison for Overture models.
 
 This module provides functions to convert Pydantic models to PyArrow schemas,
-enabling generation of empty Parquet files with correct schema definitions.
+enabling generation of empty Parquet files with correct schema definitions,
+and to compare Arrow schemas for compatibility checking.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from enum import Enum
 from types import NoneType, UnionType
 from typing import TYPE_CHECKING, Annotated, Any, Union, get_args, get_origin
@@ -431,3 +433,231 @@ def pydantic_model_to_arrow_schema(
             schema_metadata[b"model_module"] = model.__module__.encode()
 
     return pa.schema(fields, metadata=schema_metadata if schema_metadata else None)
+
+
+# ---------------------------------------------------------------------------
+# Schema comparison
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class FieldDiff:
+    """A single difference found when comparing two schema fields."""
+
+    path: str
+    kind: str  # "missing", "extra", "type_mismatch", "nullability"
+    expected: str | None = None
+    actual: str | None = None
+
+
+@dataclass
+class SchemaDiff:
+    """Complete result of comparing two Arrow schemas."""
+
+    missing_fields: list[FieldDiff] = field(default_factory=list)
+    extra_fields: list[FieldDiff] = field(default_factory=list)
+    type_mismatches: list[FieldDiff] = field(default_factory=list)
+    nullability_issues: list[FieldDiff] = field(default_factory=list)
+
+    @property
+    def is_compatible(self) -> bool:
+        """True if no missing fields, type mismatches, or nullability issues."""
+        return (
+            not self.missing_fields
+            and not self.type_mismatches
+            and not self.nullability_issues
+        )
+
+    @property
+    def is_exact_match(self) -> bool:
+        """True if compatible and no extra fields."""
+        return self.is_compatible and not self.extra_fields
+
+
+def _describe_type(arrow_type: "pa.DataType") -> str:
+    """Return a concise, human-readable description of an Arrow data type."""
+    import pyarrow as pa
+
+    if isinstance(arrow_type, pa.StructType):
+        return f"struct<{arrow_type.num_fields} fields>"
+    if isinstance(arrow_type, pa.ListType):
+        return f"list<{_describe_type(arrow_type.value_type)}>"
+    if isinstance(arrow_type, pa.MapType):
+        return f"map<{_describe_type(arrow_type.key_type)}, {_describe_type(arrow_type.item_type)}>"
+    return str(arrow_type)
+
+
+def _compare_types(
+    expected_type: "pa.DataType",
+    actual_type: "pa.DataType",
+    path: str,
+    expected_nullable: bool,
+    actual_nullable: bool,
+) -> list[FieldDiff]:
+    """Recursively compare two Arrow data types, returning all differences."""
+    import pyarrow as pa
+
+    diffs: list[FieldDiff] = []
+
+    # Required in expected but nullable in actual is a problem
+    if not expected_nullable and actual_nullable:
+        diffs.append(FieldDiff(
+            path=path,
+            kind="nullability",
+            expected="non-nullable (required)",
+            actual="nullable",
+        ))
+
+    # Both structs: compare children recursively
+    if isinstance(expected_type, pa.StructType) and isinstance(actual_type, pa.StructType):
+        actual_children: dict[str, pa.Field] = {}
+        for i in range(actual_type.num_fields):
+            f = actual_type.field(i)
+            actual_children[f.name] = f
+
+        for i in range(expected_type.num_fields):
+            ef = expected_type.field(i)
+            child_path = f"{path}.{ef.name}"
+            if ef.name not in actual_children:
+                diffs.append(FieldDiff(
+                    path=child_path,
+                    kind="missing",
+                    expected=_describe_type(ef.type),
+                ))
+            else:
+                af = actual_children[ef.name]
+                diffs.extend(_compare_types(
+                    ef.type, af.type, child_path, ef.nullable, af.nullable,
+                ))
+
+        # Extra children within structs
+        expected_child_names = {
+            expected_type.field(i).name for i in range(expected_type.num_fields)
+        }
+        for name, af in actual_children.items():
+            if name not in expected_child_names:
+                diffs.append(FieldDiff(
+                    path=f"{path}.{name}",
+                    kind="extra",
+                    actual=_describe_type(af.type),
+                ))
+
+        return diffs
+
+    # Both lists: compare element types
+    if isinstance(expected_type, pa.ListType) and isinstance(actual_type, pa.ListType):
+        diffs.extend(_compare_types(
+            expected_type.value_type,
+            actual_type.value_type,
+            f"{path}.item",
+            expected_type.value_field.nullable,
+            actual_type.value_field.nullable,
+        ))
+        return diffs
+
+    # Both maps: compare key and value types
+    if isinstance(expected_type, pa.MapType) and isinstance(actual_type, pa.MapType):
+        diffs.extend(_compare_types(
+            expected_type.key_type,
+            actual_type.key_type,
+            f"{path}.key",
+            expected_type.key_field.nullable,
+            actual_type.key_field.nullable,
+        ))
+        diffs.extend(_compare_types(
+            expected_type.item_type,
+            actual_type.item_type,
+            f"{path}.value",
+            expected_type.item_field.nullable,
+            actual_type.item_field.nullable,
+        ))
+        return diffs
+
+    # Primitive / category-mismatch comparison
+    if expected_type != actual_type:
+        diffs.append(FieldDiff(
+            path=path,
+            kind="type_mismatch",
+            expected=_describe_type(expected_type),
+            actual=_describe_type(actual_type),
+        ))
+
+    return diffs
+
+
+def compare_schemas(
+    expected: "pa.Schema",
+    actual: "pa.Schema",
+    *,
+    ignore_fields: set[str] | None = None,
+) -> SchemaDiff:
+    """Compare an expected Arrow schema against an actual (file) schema.
+
+    Parameters
+    ----------
+    expected : pa.Schema
+        The schema generated from the Pydantic model.
+    actual : pa.Schema
+        The schema read from a Parquet file.
+    ignore_fields : set[str] | None
+        Top-level field names to skip entirely during comparison.
+
+    Returns
+    -------
+    SchemaDiff
+        Complete diff result.
+    """
+    ignore = ignore_fields or set()
+    missing: list[FieldDiff] = []
+    extra: list[FieldDiff] = []
+    type_mismatches: list[FieldDiff] = []
+    nullability_issues: list[FieldDiff] = []
+
+    actual_fields_by_name = {f.name: f for f in actual}
+
+    for expected_field in expected:
+        name = expected_field.name
+        if name in ignore:
+            continue
+        if name not in actual_fields_by_name:
+            missing.append(FieldDiff(
+                path=name,
+                kind="missing",
+                expected=_describe_type(expected_field.type),
+            ))
+            continue
+
+        actual_field = actual_fields_by_name[name]
+        for d in _compare_types(
+            expected_field.type,
+            actual_field.type,
+            path=name,
+            expected_nullable=expected_field.nullable,
+            actual_nullable=actual_field.nullable,
+        ):
+            if d.kind == "nullability":
+                nullability_issues.append(d)
+            elif d.kind == "missing":
+                missing.append(d)
+            elif d.kind == "extra":
+                extra.append(d)
+            else:
+                type_mismatches.append(d)
+
+    expected_field_names = set(expected.names)
+    for actual_field in actual:
+        if actual_field.name in ignore:
+            continue
+        if actual_field.name not in expected_field_names:
+            extra.append(FieldDiff(
+                path=actual_field.name,
+                kind="extra",
+                actual=_describe_type(actual_field.type),
+            ))
+
+    return SchemaDiff(
+        missing_fields=missing,
+        extra_fields=extra,
+        type_mismatches=type_mismatches,
+        nullability_issues=nullability_issues,
+    )

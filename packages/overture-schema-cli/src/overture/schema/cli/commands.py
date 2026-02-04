@@ -899,12 +899,169 @@ def parquet_schema_command(
         if not output:
             raise click.UsageError("--output is required when using parquet format")
 
-        # Write empty Parquet file with schema
+        # Write empty Parquet file with schema (preserve nullability)
         empty_table = pa.table(
-            {field.name: pa.array([], type=field.type) for field in arrow_schema}
+            {field.name: pa.array([], type=field.type) for field in arrow_schema},
+            schema=arrow_schema,
         )
         pq.write_table(empty_table, output)
         stdout.print(f"✓ Wrote Parquet schema to {output}")
+
+
+@cli.command("check-schema")
+@click.argument("filename", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--theme",
+    help="Theme to check against (e.g., buildings, places)",
+)
+@click.option(
+    "--type",
+    "type_name",
+    required=True,
+    help="Specific type to check against (e.g., building, segment)",
+)
+@click.option(
+    "--namespace",
+    help="Namespace to filter by (e.g., overture, annex)",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    default=False,
+    help="Require exact match: no extra fields allowed",
+)
+@click.option(
+    "--ignore",
+    "ignore_fields",
+    multiple=True,
+    help="Field name to skip during comparison (repeatable)",
+)
+def check_schema_command(
+    filename: Path,
+    theme: str | None,
+    type_name: str,
+    namespace: str | None,
+    strict: bool,
+    ignore_fields: tuple[str, ...],
+) -> None:
+    r"""Check whether a Parquet file's schema matches an Overture type.
+
+    Reads schema metadata from FILENAME (no row data loaded) and compares it
+    against the expected Arrow schema generated from the specified type.
+
+    By default, performs a subset check: the file must have all expected fields
+    with compatible types. Extra columns in the file are allowed.
+
+    With --strict, requires an exact match with no extra or missing fields.
+
+    Use --ignore to skip specific fields (e.g., fields added later in your
+    pipeline).
+
+    Requires pyarrow. Install with: pip install overture-schema-cli[parquet]
+
+    \b
+    Examples:
+      # Check a building Parquet file (subset mode)
+      $ overture-schema check-schema buildings.parquet --theme buildings --type building
+    \b
+      # Strict check (no extra fields allowed)
+      $ overture-schema check-schema data.parquet --type place --strict
+    \b
+      # Skip version and bbox fields
+      $ overture-schema check-schema data.parquet --type building --ignore version --ignore bbox
+    """
+    try:
+        import pyarrow.parquet as pq
+    except ImportError:
+        raise click.UsageError(
+            "pyarrow is required for this command. "
+            "Install with: pip install overture-schema-cli[parquet]"
+        ) from None
+
+    from .arrow_schema import compare_schemas, pydantic_model_to_arrow_schema
+
+    # Resolve to single model
+    try:
+        model_class = resolve_single_type(namespace, theme, type_name)
+    except ValueError as e:
+        raise click.UsageError(str(e)) from e
+
+    # Generate expected schema
+    expected_schema = pydantic_model_to_arrow_schema(model_class)
+
+    # Read actual schema (metadata only, no data loaded)
+    try:
+        actual_schema = pq.read_schema(filename)
+    except Exception as e:
+        raise click.UsageError(f"Failed to read Parquet file '{filename}': {e}") from e
+
+    # Compare
+    diff = compare_schemas(
+        expected_schema, actual_schema, ignore_fields=set(ignore_fields),
+    )
+    passed = diff.is_exact_match if strict else diff.is_compatible
+
+    # Output
+    _print_schema_diff(diff, strict=strict, filename=filename, type_name=type_name)
+
+    if not passed:
+        sys.exit(1)
+
+
+def _print_schema_diff(
+    diff: "SchemaDiff",  # noqa: F821
+    *,
+    strict: bool,
+    filename: Path,
+    type_name: str,
+) -> None:
+    """Print a human-readable schema diff."""
+    passed = diff.is_exact_match if strict else diff.is_compatible
+    mode = "strict" if strict else "subset"
+
+    if passed:
+        stdout.print(f"✓ Schema of '{filename}' matches type '{type_name}' ({mode} check)")
+        if diff.extra_fields and not strict:
+            stdout.print(
+                f"  [dim]{len(diff.extra_fields)} extra field(s) in file "
+                f"(OK in subset mode)[/dim]"
+            )
+        return
+
+    stderr.print(f"✗ Schema mismatch: '{filename}' vs type '{type_name}'")
+    stderr.print()
+
+    if diff.missing_fields:
+        stderr.print(f"[bold red]Missing fields ({len(diff.missing_fields)}):[/bold red]")
+        for f in diff.missing_fields:
+            stderr.print(f"  [red]- {f.path}[/red]  (expected: {f.expected})")
+        stderr.print()
+
+    if diff.type_mismatches:
+        stderr.print(
+            f"[bold yellow]Type mismatches ({len(diff.type_mismatches)}):[/bold yellow]"
+        )
+        for f in diff.type_mismatches:
+            stderr.print(f"  [yellow]~ {f.path}[/yellow]")
+            stderr.print(f"      expected: {f.expected}")
+            stderr.print(f"      actual:   {f.actual}")
+        stderr.print()
+
+    if diff.nullability_issues:
+        stderr.print(
+            f"[bold yellow]Nullability issues ({len(diff.nullability_issues)}):[/bold yellow]"
+        )
+        for f in diff.nullability_issues:
+            stderr.print(f"  [yellow]~ {f.path}[/yellow]")
+            stderr.print(f"      expected: {f.expected}")
+            stderr.print(f"      actual:   {f.actual}")
+        stderr.print()
+
+    if strict and diff.extra_fields:
+        stderr.print(f"[bold blue]Extra fields ({len(diff.extra_fields)}):[/bold blue]")
+        for f in diff.extra_fields:
+            stderr.print(f"  [blue]+ {f.path}[/blue]  (type: {f.actual})")
+        stderr.print()
 
 
 def dump_namespace(
