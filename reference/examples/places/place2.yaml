@@ -16,8 +16,6 @@ properties:
     names:
       primary: Example
     wikidata: Q1000
-  categories:
-    primary: some_category
   emails:
     - info@example.com
   phones:
