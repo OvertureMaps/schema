@@ -71,3 +71,9 @@ pythonpath = [
     "packages/overture-schema-transportation-theme/tests",
     "packages/overture-schema/tests",
 ]
+
+[[tool.uv.index]]
+name = "overture"
+url = "https://overture-pypi-505071440022.d.codeartifact.us-west-2.amazonaws.com/pypi/overture/simple/"
+publish-url = "https://overture-pypi-505071440022.d.codeartifact.us-west-2.amazonaws.com/pypi/overture/"
+explicit = true
