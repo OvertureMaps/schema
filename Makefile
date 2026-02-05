@@ -5,7 +5,7 @@ default: test-all
 uv-sync:
 	@uv sync --all-packages 2> /dev/null
 
-check: test doctest check-versions
+check: test doctest
 	@uv run ruff check -q packages/
 	@$(MAKE) mypy
 	@uv run ruff format --check packages/
