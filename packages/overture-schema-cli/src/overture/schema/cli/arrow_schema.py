@@ -8,7 +8,6 @@ and to compare Arrow schemas for compatibility checking.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from enum import Enum
 from types import NoneType, UnionType
 from typing import TYPE_CHECKING, Annotated, Any, Union, get_args, get_origin
@@ -16,21 +15,19 @@ from typing import TYPE_CHECKING, Annotated, Any, Union, get_args, get_origin
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
+from .format_adapters import FieldDiff, SchemaDiff
+
 if TYPE_CHECKING:
     import pyarrow as pa
 
+# Re-export for backwards compatibility
+__all__ = ["FieldDiff", "SchemaDiff", "compare_schemas", "pydantic_model_to_arrow_schema"]
 
-# Mapping from Overture primitive type names to PyArrow type constructors
-_PRIMITIVE_TYPE_MAP: dict[str, str] = {
-    "int8": "int8",
-    "int16": "int16",
-    "int32": "int32",
-    "int64": "int64",
-    "uint8": "uint8",
-    "uint16": "uint16",
-    "uint32": "uint32",
-    "float32": "float32",
-    "float64": "float64",
+
+_PRIMITIVE_TYPES: set[str] = {
+    "int8", "int16", "int32", "int64",
+    "uint8", "uint16", "uint32",
+    "float32", "float64",
 }
 
 
@@ -173,9 +170,8 @@ def pydantic_to_arrow_type(
 
     # Check for NewType primitives (int8, int32, float64, etc.)
     newtype_name = _get_newtype_name(tp)
-    if newtype_name and newtype_name in _PRIMITIVE_TYPE_MAP:
-        arrow_type_name = _PRIMITIVE_TYPE_MAP[newtype_name]
-        return getattr(pa, arrow_type_name)()
+    if newtype_name and newtype_name in _PRIMITIVE_TYPES:
+        return getattr(pa, newtype_name)()
 
     # If it's a NewType but not a known primitive, unwrap it
     if _is_newtype(tp):
@@ -191,10 +187,10 @@ def pydantic_to_arrow_type(
     if tp is BBox or (isinstance(tp, type) and issubclass(tp, BBox)):
         return pa.struct(
             [
-                pa.field("xmin", pa.float64()),
-                pa.field("ymin", pa.float64()),
-                pa.field("xmax", pa.float64()),
-                pa.field("ymax", pa.float64()),
+                pa.field("xmin", pa.float32()),
+                pa.field("ymin", pa.float32()),
+                pa.field("xmax", pa.float32()),
+                pa.field("ymax", pa.float32()),
             ]
         )
 
@@ -438,40 +434,6 @@ def pydantic_model_to_arrow_schema(
 # ---------------------------------------------------------------------------
 # Schema comparison
 # ---------------------------------------------------------------------------
-
-
-@dataclass
-class FieldDiff:
-    """A single difference found when comparing two schema fields."""
-
-    path: str
-    kind: str  # "missing", "extra", "type_mismatch", "nullability"
-    expected: str | None = None
-    actual: str | None = None
-
-
-@dataclass
-class SchemaDiff:
-    """Complete result of comparing two Arrow schemas."""
-
-    missing_fields: list[FieldDiff] = field(default_factory=list)
-    extra_fields: list[FieldDiff] = field(default_factory=list)
-    type_mismatches: list[FieldDiff] = field(default_factory=list)
-    nullability_issues: list[FieldDiff] = field(default_factory=list)
-
-    @property
-    def is_compatible(self) -> bool:
-        """True if no missing fields, type mismatches, or nullability issues."""
-        return (
-            not self.missing_fields
-            and not self.type_mismatches
-            and not self.nullability_issues
-        )
-
-    @property
-    def is_exact_match(self) -> bool:
-        """True if compatible and no extra fields."""
-        return self.is_compatible and not self.extra_fields
 
 
 def _describe_type(arrow_type: "pa.DataType") -> str:

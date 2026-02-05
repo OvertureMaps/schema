@@ -905,10 +905,10 @@ def parquet_schema_command(
             schema=arrow_schema,
         )
         pq.write_table(empty_table, output)
-        stdout.print(f"✓ Wrote Parquet schema to {output}")
+        stdout.print(f"Wrote Parquet schema to {output}")
 
 
-@cli.command("check-schema")
+@cli.command("validate-schema")
 @click.argument("filename", type=click.Path(exists=True, path_type=Path))
 @click.option(
     "--theme",
@@ -936,13 +936,29 @@ def parquet_schema_command(
     multiple=True,
     help="Field name to skip during comparison (repeatable)",
 )
-def check_schema_command(
+@click.option(
+    "--skip-check",
+    "skip_checks",
+    multiple=True,
+    type=click.Choice(["missing", "extra", "type-mismatch", "nullability"]),
+    help="Difference category to exclude from pass/fail (repeatable)",
+)
+@click.option(
+    "-o", "--output",
+    "output",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Write diff to a file (.csv or .parquet)",
+)
+def validate_schema_command(
     filename: Path,
     theme: str | None,
     type_name: str,
     namespace: str | None,
     strict: bool,
     ignore_fields: tuple[str, ...],
+    skip_checks: tuple[str, ...],
+    output: Path | None,
 ) -> None:
     r"""Check whether a Parquet file's schema matches an Overture type.
 
@@ -955,30 +971,32 @@ def check_schema_command(
     With --strict, requires an exact match with no extra or missing fields.
 
     Use --ignore to skip specific fields (e.g., fields added later in your
-    pipeline).
+    pipeline). Use --skip-check to exclude entire difference categories from
+    the pass/fail decision (they are still printed).
 
     Requires pyarrow. Install with: pip install overture-schema-cli[parquet]
 
     \b
     Examples:
       # Check a building Parquet file (subset mode)
-      $ overture-schema check-schema buildings.parquet --theme buildings --type building
+      $ overture-schema validate-schema buildings.parquet --theme buildings --type building
     \b
       # Strict check (no extra fields allowed)
-      $ overture-schema check-schema data.parquet --type place --strict
+      $ overture-schema validate-schema data.parquet --type place --strict
     \b
       # Skip version and bbox fields
-      $ overture-schema check-schema data.parquet --type building --ignore version --ignore bbox
+      $ overture-schema validate-schema data.parquet --type building --ignore version --ignore bbox
+    \b
+      # Check everything except nullability differences
+      $ overture-schema validate-schema data.parquet --type division --skip-check nullability
     """
-    try:
-        import pyarrow.parquet as pq
-    except ImportError:
-        raise click.UsageError(
-            "pyarrow is required for this command. "
-            "Install with: pip install overture-schema-cli[parquet]"
-        ) from None
+    from .format_adapters import FormatValidator
 
-    from .arrow_schema import compare_schemas, pydantic_model_to_arrow_schema
+    # Get validator for file format
+    try:
+        validator = FormatValidator.for_file(filename)
+    except ValueError as e:
+        raise click.UsageError(str(e)) from e
 
     # Resolve to single model
     try:
@@ -986,41 +1004,77 @@ def check_schema_command(
     except ValueError as e:
         raise click.UsageError(str(e)) from e
 
-    # Generate expected schema
-    expected_schema = pydantic_model_to_arrow_schema(model_class)
-
-    # Read actual schema (metadata only, no data loaded)
+    # Validate file against model
     try:
-        actual_schema = pq.read_schema(filename)
+        diff = validator.validate(filename, model_class, ignore_fields=set(ignore_fields))
+    except ImportError:
+        raise click.UsageError(
+            "pyarrow is required for this command. "
+            "Install with: pip install overture-schema-cli[parquet]"
+        ) from None
     except Exception as e:
-        raise click.UsageError(f"Failed to read Parquet file '{filename}': {e}") from e
-
-    # Compare
-    diff = compare_schemas(
-        expected_schema, actual_schema, ignore_fields=set(ignore_fields),
-    )
-    passed = diff.is_exact_match if strict else diff.is_compatible
+        raise click.UsageError(f"Failed to read file '{filename}': {e}") from e
+    skipped = set(skip_checks)
+    ok = diff.passed(strict=strict, skip=skipped)
 
     # Output
-    _print_schema_diff(diff, strict=strict, filename=filename, type_name=type_name)
+    _print_schema_diff(diff, strict=strict, skip=skipped, filename=filename, type_name=type_name)
 
-    if not passed:
+    if output is not None:
+        _write_diff(diff, output)
+
+    if not ok:
         sys.exit(1)
+
+
+def _write_diff(diff: "SchemaDiff", output: Path) -> None:  # noqa: F821
+    """Write schema diff rows to a CSV or Parquet file."""
+    rows = diff.to_rows()
+    suffix = output.suffix.lower()
+
+    if suffix == ".csv":
+        import csv
+
+        with open(output, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=["path", "kind", "expected", "actual"])
+            writer.writeheader()
+            writer.writerows(rows)
+        stdout.print(f"Wrote {len(rows)} diff(s) to {output}")
+
+    elif suffix == ".parquet":
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+
+        table = pa.table({
+            "path": [r["path"] for r in rows],
+            "kind": [r["kind"] for r in rows],
+            "expected": [r["expected"] for r in rows],
+            "actual": [r["actual"] for r in rows],
+        })
+        pq.write_table(table, output)
+        stdout.print(f"Wrote {len(rows)} diff(s) to {output}")
+
+    else:
+        raise click.UsageError(
+            f"Unsupported output format '{suffix}'. Use .csv or .parquet"
+        )
 
 
 def _print_schema_diff(
     diff: "SchemaDiff",  # noqa: F821
     *,
     strict: bool,
+    skip: set[str] | None = None,
     filename: Path,
     type_name: str,
 ) -> None:
     """Print a human-readable schema diff."""
-    passed = diff.is_exact_match if strict else diff.is_compatible
+    skip = skip or set()
+    ok = diff.passed(strict=strict, skip=skip)
     mode = "strict" if strict else "subset"
 
-    if passed:
-        stdout.print(f"✓ Schema of '{filename}' matches type '{type_name}' ({mode} check)")
+    if ok:
+        stdout.print(f"SUCCESS, schema of '{filename}' matches type '{type_name}' ({mode} check)")
         if diff.extra_fields and not strict:
             stdout.print(
                 f"  [dim]{len(diff.extra_fields)} extra field(s) in file "
@@ -1028,40 +1082,46 @@ def _print_schema_diff(
             )
         return
 
-    stderr.print(f"✗ Schema mismatch: '{filename}' vs type '{type_name}'")
-    stderr.print()
+    out = stderr
+
+    out.print(f"FAILURE, schema mismatch: '{filename}' vs type '{type_name}'")
+    out.print()
 
     if diff.missing_fields:
-        stderr.print(f"[bold red]Missing fields ({len(diff.missing_fields)}):[/bold red]")
+        skipped = " [dim](skipped)[/dim]" if "missing" in skip else ""
+        out.print(f"[bold red]Missing fields ({len(diff.missing_fields)}):{skipped}[/bold red]")
         for f in diff.missing_fields:
-            stderr.print(f"  [red]- {f.path}[/red]  (expected: {f.expected})")
-        stderr.print()
+            out.print(f"  [red]- {f.path}[/red]  (expected: {f.expected})")
+        out.print()
 
     if diff.type_mismatches:
-        stderr.print(
-            f"[bold yellow]Type mismatches ({len(diff.type_mismatches)}):[/bold yellow]"
+        skipped = " [dim](skipped)[/dim]" if "type-mismatch" in skip else ""
+        out.print(
+            f"[bold yellow]Type mismatches ({len(diff.type_mismatches)}):{skipped}[/bold yellow]"
         )
         for f in diff.type_mismatches:
-            stderr.print(f"  [yellow]~ {f.path}[/yellow]")
-            stderr.print(f"      expected: {f.expected}")
-            stderr.print(f"      actual:   {f.actual}")
-        stderr.print()
+            out.print(f"  [yellow]~ {f.path}[/yellow]")
+            out.print(f"      expected: {f.expected}")
+            out.print(f"      actual:   {f.actual}")
+        out.print()
 
     if diff.nullability_issues:
-        stderr.print(
-            f"[bold yellow]Nullability issues ({len(diff.nullability_issues)}):[/bold yellow]"
+        skipped = " [dim](skipped)[/dim]" if "nullability" in skip else ""
+        out.print(
+            f"[bold yellow]Nullability issues ({len(diff.nullability_issues)}):{skipped}[/bold yellow]"
         )
         for f in diff.nullability_issues:
-            stderr.print(f"  [yellow]~ {f.path}[/yellow]")
-            stderr.print(f"      expected: {f.expected}")
-            stderr.print(f"      actual:   {f.actual}")
-        stderr.print()
+            out.print(f"  [yellow]~ {f.path}[/yellow]")
+            out.print(f"      expected: {f.expected}")
+            out.print(f"      actual:   {f.actual}")
+        out.print()
 
     if strict and diff.extra_fields:
-        stderr.print(f"[bold blue]Extra fields ({len(diff.extra_fields)}):[/bold blue]")
+        skipped = " [dim](skipped)[/dim]" if "extra" in skip else ""
+        out.print(f"[bold blue]Extra fields ({len(diff.extra_fields)}):{skipped}[/bold blue]")
         for f in diff.extra_fields:
-            stderr.print(f"  [blue]+ {f.path}[/blue]  (type: {f.actual})")
-        stderr.print()
+            out.print(f"  [blue]+ {f.path}[/blue]  (type: {f.actual})")
+        out.print()
 
 
 def dump_namespace(

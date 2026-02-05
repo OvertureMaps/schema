@@ -67,16 +67,16 @@ class TestArrowSchemaConversion:
         assert pydantic_to_arrow_type(Geometry) == pa.binary()
 
     def test_bbox_to_struct(self) -> None:
-        """Test BBox converts to struct with four float64 fields."""
+        """Test BBox converts to struct with four float32 fields."""
         from overture.schema.system.primitive import BBox
 
         arrow_type = pydantic_to_arrow_type(BBox)
         expected = pa.struct(
             [
-                pa.field("xmin", pa.float64()),
-                pa.field("ymin", pa.float64()),
-                pa.field("xmax", pa.float64()),
-                pa.field("ymax", pa.float64()),
+                pa.field("xmin", pa.float32()),
+                pa.field("ymin", pa.float32()),
+                pa.field("xmax", pa.float32()),
+                pa.field("ymax", pa.float32()),
             ]
         )
         assert arrow_type == expected
@@ -497,7 +497,7 @@ class TestSchemaComparison:
 
 
 class TestCheckSchemaCommand:
-    """Tests for the check-schema CLI command."""
+    """Tests for the validate-schema CLI command."""
 
     @pytest.fixture
     def cli_runner(self) -> CliRunner:
@@ -518,7 +518,7 @@ class TestCheckSchemaCommand:
     def test_matching_schema_passes(self, cli_runner: CliRunner, building_parquet: Path) -> None:
         """A file generated from the same model should pass subset check."""
         result = cli_runner.invoke(cli, [
-            "check-schema", str(building_parquet),
+            "validate-schema", str(building_parquet),
             "--theme", "buildings", "--type", "building",
         ])
         assert result.exit_code == 0
@@ -526,7 +526,7 @@ class TestCheckSchemaCommand:
     def test_matching_schema_strict_passes(self, cli_runner: CliRunner, building_parquet: Path) -> None:
         """A file generated from the same model should pass strict check."""
         result = cli_runner.invoke(cli, [
-            "check-schema", str(building_parquet),
+            "validate-schema", str(building_parquet),
             "--theme", "buildings", "--type", "building", "--strict",
         ])
         assert result.exit_code == 0
@@ -546,7 +546,7 @@ class TestCheckSchemaCommand:
         pq.write_table(table, "extended.parquet")
 
         result = cli_runner.invoke(cli, [
-            "check-schema", "extended.parquet",
+            "validate-schema", "extended.parquet",
             "--theme", "buildings", "--type", "building",
         ])
         assert result.exit_code == 0
@@ -565,7 +565,7 @@ class TestCheckSchemaCommand:
         pq.write_table(table, "extended.parquet")
 
         result = cli_runner.invoke(cli, [
-            "check-schema", "extended.parquet",
+            "validate-schema", "extended.parquet",
             "--theme", "buildings", "--type", "building", "--strict",
         ])
         assert result.exit_code != 0
@@ -582,7 +582,7 @@ class TestCheckSchemaCommand:
         pq.write_table(table, "partial.parquet")
 
         result = cli_runner.invoke(cli, [
-            "check-schema", "partial.parquet",
+            "validate-schema", "partial.parquet",
             "--theme", "buildings", "--type", "building",
         ])
         assert result.exit_code != 0
@@ -590,7 +590,7 @@ class TestCheckSchemaCommand:
     def test_invalid_type_fails(self, cli_runner: CliRunner, building_parquet: Path) -> None:
         """Invalid --type gives clear error."""
         result = cli_runner.invoke(cli, [
-            "check-schema", str(building_parquet), "--type", "nonexistent_type",
+            "validate-schema", str(building_parquet), "--type", "nonexistent_type",
         ])
         assert result.exit_code != 0
         assert "No model found" in result.output
@@ -598,7 +598,7 @@ class TestCheckSchemaCommand:
     def test_exit_code_zero_on_match(self, cli_runner: CliRunner, building_parquet: Path) -> None:
         """Exit code is 0 when schema matches."""
         result = cli_runner.invoke(cli, [
-            "check-schema", str(building_parquet),
+            "validate-schema", str(building_parquet),
             "--theme", "buildings", "--type", "building",
         ])
         assert result.exit_code == 0
@@ -610,7 +610,7 @@ class TestCheckSchemaCommand:
         pq.write_table(table, "wrong.parquet")
 
         result = cli_runner.invoke(cli, [
-            "check-schema", "wrong.parquet",
+            "validate-schema", "wrong.parquet",
             "--theme", "buildings", "--type", "building",
         ])
         assert result.exit_code != 0
@@ -630,7 +630,7 @@ class TestCheckSchemaCommand:
         pq.write_table(table, "no_version_bbox.parquet")
 
         result = cli_runner.invoke(cli, [
-            "check-schema", "no_version_bbox.parquet",
+            "validate-schema", "no_version_bbox.parquet",
             "--theme", "buildings", "--type", "building",
             "--ignore", "version", "--ignore", "bbox",
         ])
@@ -650,7 +650,7 @@ class TestCheckSchemaCommand:
         pq.write_table(table, "no_version_bbox.parquet")
 
         result = cli_runner.invoke(cli, [
-            "check-schema", "no_version_bbox.parquet",
+            "validate-schema", "no_version_bbox.parquet",
             "--theme", "buildings", "--type", "building",
         ])
         assert result.exit_code != 0
