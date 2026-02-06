@@ -909,7 +909,7 @@ def parquet_schema_command(
 
 
 @cli.command("validate-schema")
-@click.argument("filename", type=click.Path(exists=True, path_type=Path))
+@click.argument("filename")
 @click.option(
     "--theme",
     help="Theme to check against (e.g., buildings, places)",
@@ -951,7 +951,7 @@ def parquet_schema_command(
     help="Write diff to a file (.csv or .parquet)",
 )
 def validate_schema_command(
-    filename: Path,
+    filename: str,
     theme: str | None,
     type_name: str,
     namespace: str | None,
@@ -962,6 +962,7 @@ def validate_schema_command(
 ) -> None:
     r"""Check whether a Parquet file's schema matches an Overture type.
 
+    FILENAME can be a local path or a remote URI (s3://, gs://, etc.).
     Reads schema metadata from FILENAME (no row data loaded) and compares it
     against the expected Arrow schema generated from the specified type.
 
@@ -980,6 +981,9 @@ def validate_schema_command(
     Examples:
       # Check a building Parquet file (subset mode)
       $ overture-schema validate-schema buildings.parquet --theme buildings --type building
+    \b
+      # Check a file from S3
+      $ overture-schema validate-schema s3://bucket/path/to/file.parquet --type building
     \b
       # Strict check (no extra fields allowed)
       $ overture-schema validate-schema data.parquet --type place --strict

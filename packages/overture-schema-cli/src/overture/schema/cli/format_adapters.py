@@ -7,13 +7,17 @@ indicating any mismatches.
 
 from __future__ import annotations
 
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
+
+# Type alias for paths that can be local files or remote URIs
+FilePath = str | os.PathLike[str]
 
 
 # ---------------------------------------------------------------------------
@@ -92,13 +96,30 @@ class SchemaDiff:
 # ---------------------------------------------------------------------------
 
 
+def _get_file_extension(path: FilePath) -> str:
+    """Extract file extension from a local path or remote URI.
+    """
+    path_str = str(path)
+    parsed = urlparse(path_str)
+
+    # For URIs with a scheme (s3://, gs://, etc.), use the path component
+    if parsed.scheme and parsed.scheme not in ("", "file"):
+        file_path = parsed.path
+    else:
+        file_path = path_str
+
+    # Extract extension from the path portion
+    _, ext = os.path.splitext(file_path)
+    return ext.lower()
+
+
 class FormatValidator(ABC):
     """Base class for format-specific schema validators."""
 
     @abstractmethod
     def validate(
         self,
-        path: Path,
+        path: FilePath,
         model: type["BaseModel"],
         *,
         ignore_fields: set[str] | None = None,
@@ -108,8 +129,8 @@ class FormatValidator(ABC):
 
         Parameters
         ----------
-        path : Path
-            Path to the file to validate
+        path : FilePath
+            Path to the file (local path or remote URI like s3://)
         model : type[BaseModel]
             Pydantic model class defining the expected schema
         ignore_fields : set[str] | None
@@ -123,12 +144,13 @@ class FormatValidator(ABC):
         pass
 
     @classmethod
-    def for_file(cls, path: Path) -> "FormatValidator":
-        """Select appropriate validator based on file extension."""
+    def for_file(cls, path: FilePath) -> "FormatValidator":
+        """Select appropriate validator based on file extension.
+        """
         validators: dict[str, type[FormatValidator]] = {
             ".parquet": ParquetValidator,
         }
-        suffix = path.suffix.lower()
+        suffix = _get_file_extension(path)
         if suffix not in validators:
             supported = ", ".join(sorted(validators.keys()))
             raise ValueError(
@@ -138,12 +160,15 @@ class FormatValidator(ABC):
 
 
 class ParquetValidator(FormatValidator):
-    """Validator for Parquet files."""
+    """Validator for Parquet files.
+
+    Supports both local paths and remote URIs (s3://, gs://, etc.).
+    """
 
     def validate(
         self,
-        path: Path,
-        model: type["BaseModel"],
+        path: FilePath,
+        model: type[BaseModel],
         *,
         ignore_fields: set[str] | None = None,
     ) -> SchemaDiff:
@@ -155,7 +180,7 @@ class ParquetValidator(FormatValidator):
         expected_schema = pydantic_model_to_arrow_schema(model)
 
         # Read actual schema from file
-        actual_schema = pq.read_schema(path)
+        actual_schema = pq.read_schema(str(path))
 
         # Compare
         return compare_schemas(expected_schema, actual_schema, ignore_fields=ignore_fields)

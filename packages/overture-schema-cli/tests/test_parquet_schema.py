@@ -16,6 +16,7 @@ from overture.schema.cli.arrow_schema import (
     pydantic_to_arrow_type,
 )
 from overture.schema.cli.commands import cli
+from overture.schema.cli.format_adapters import _get_file_extension
 
 
 class TestArrowSchemaConversion:
@@ -654,3 +655,47 @@ class TestCheckSchemaCommand:
             "--theme", "buildings", "--type", "building",
         ])
         assert result.exit_code != 0
+
+
+class TestFileExtensionParsing:
+    """Tests for _get_file_extension with local paths and remote URIs."""
+
+    def test_local_path_string(self) -> None:
+        """Local path as string returns correct extension."""
+        assert _get_file_extension("data/file.parquet") == ".parquet"
+        assert _get_file_extension("/absolute/path/file.parquet") == ".parquet"
+
+    def test_local_path_object(self) -> None:
+        """Local Path object returns correct extension."""
+        from pathlib import Path
+        assert _get_file_extension(Path("data/file.parquet")) == ".parquet"
+
+    def test_s3_uri(self) -> None:
+        """S3 URI returns correct extension."""
+        uri = "s3://bucket/path/to/file.parquet"
+        assert _get_file_extension(uri) == ".parquet"
+
+    def test_s3_uri_with_partition(self) -> None:
+        """S3 URI with partition path returns correct extension."""
+        uri = "s3://overturemaps-us-west-2/release/2026-01-21.0/theme=addresses/type=address/part-00000.zstd.parquet"
+        assert _get_file_extension(uri) == ".parquet"
+
+    def test_gs_uri(self) -> None:
+        """Google Cloud Storage URI returns correct extension."""
+        uri = "gs://bucket/path/to/file.parquet"
+        assert _get_file_extension(uri) == ".parquet"
+
+    def test_file_uri(self) -> None:
+        """file:// URI returns correct extension."""
+        uri = "file:///home/user/data.parquet"
+        assert _get_file_extension(uri) == ".parquet"
+
+    def test_unsupported_extension(self) -> None:
+        """Unsupported extension is returned as-is."""
+        assert _get_file_extension("s3://bucket/file.csv") == ".csv"
+        assert _get_file_extension("data.json") == ".json"
+
+    def test_no_extension(self) -> None:
+        """Path with no extension returns empty string."""
+        assert _get_file_extension("s3://bucket/noext") == ""
+        assert _get_file_extension("/path/to/noext") == ""
