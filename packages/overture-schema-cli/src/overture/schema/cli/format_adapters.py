@@ -146,13 +146,16 @@ class FormatValidator(ABC):
     @classmethod
     def for_file(cls, path: FilePath) -> "FormatValidator":
         """Select appropriate validator based on file extension.
+
+        Directories (no extension) default to Parquet for dataset support.
         """
         validators: dict[str, type[FormatValidator]] = {
             ".parquet": ParquetValidator,
+            "": ParquetValidator,  # directories default to parquet
         }
         suffix = _get_file_extension(path)
         if suffix not in validators:
-            supported = ", ".join(sorted(validators.keys()))
+            supported = ", ".join(sorted(k for k in validators.keys() if k))
             raise ValueError(
                 f"Unsupported file format '{suffix}'. Supported: {supported}"
             )
@@ -179,8 +182,10 @@ class ParquetValidator(FormatValidator):
         # Convert model to Arrow schema
         expected_schema = pydantic_model_to_arrow_schema(model)
 
-        # Read actual schema from file
-        actual_schema = pq.read_schema(str(path))
+        # Read actual schema from file/directory/dataset
+        # ParquetDataset handles single files, directories, and partitioned datasets
+        dataset = pq.ParquetDataset(str(path))
+        actual_schema = dataset.schema
 
         # Compare
         return compare_schemas(expected_schema, actual_schema, ignore_fields=ignore_fields)
