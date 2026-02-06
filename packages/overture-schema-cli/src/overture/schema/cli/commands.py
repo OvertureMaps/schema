@@ -1170,7 +1170,18 @@ def dump_namespace(
 
 
 @cli.command("list-types")
-def list_types() -> None:
+@click.option(
+    "--theme",
+    multiple=True,
+    help="Filter by theme (e.g., buildings, transportation). Can be repeated.",
+    default=(),
+)
+@click.option(
+    "--simple",
+    is_flag=True,
+    help="Simple output: just list type names without descriptions",
+)
+def list_types(theme: tuple[str, ...], simple: bool) -> None:
     r"""List all available types grouped by theme with descriptions.
 
     Displays all registered Overture Maps types organized by theme,
@@ -1180,15 +1191,26 @@ def list_types() -> None:
     Examples:
       # List all types
       $ overture-schema list-types
+    \b
+      # List only buildings types
+      $ overture-schema list-types --theme buildings
+    \b
+      # List buildings and places, simple output
+      $ overture-schema list-types --theme buildings --theme places --simple
     """
     try:
         models = discover_models()
+        theme_filter = set(theme) if theme else None
 
         # Group models by namespace and theme
         namespaces: dict[
             str, dict[str | None, list[tuple[ModelKey, type[BaseModel]]]]
         ] = {}
         for key, model_class in models.items():
+            # Filter by theme if specified
+            if theme_filter and key.theme not in theme_filter:
+                continue
+
             if key.namespace not in namespaces:
                 namespaces[key.namespace] = {}
             if key.theme not in namespaces[key.namespace]:
@@ -1198,19 +1220,29 @@ def list_types() -> None:
 
         # display Overture themes first
         if "overture" in namespaces:
-            stdout.print("[bold red]OVERTURE THEMES[/bold red]", justify="center")
-            stdout.print()
 
-            dump_namespace(namespaces["overture"])
+            if simple:
+                for theme in sorted(namespaces["overture"].keys(), key=lambda x: (x is None, x)):
+                    for key, _ in sorted(namespaces["overture"][theme], key=lambda x: x[0].type):
+                        stdout.print(f"{key.type}")
+            else:
+                stdout.print("[bold red]OVERTURE THEMES[/bold red]", justify="center")
+                stdout.print()
+                dump_namespace(namespaces["overture"])
+                stdout.print("[bold red]ADDITIONAL TYPES[/bold red]", justify="center")
+                stdout.print()
 
-            stdout.print("[bold red]ADDITIONAL TYPES[/bold red]", justify="center")
-            stdout.print()
 
         for namespace in sorted(namespaces.keys()):
             if namespace == "overture":
                 continue
 
-            stdout.print(f"[bold blue]{namespace.upper()}[/bold blue]")
+            if simple:
+                for theme in sorted(namespaces[namespace].keys(), key=lambda x: (x is None, x)):
+                    for key, _ in sorted(namespaces[namespace][theme], key=lambda x: x[0].type):
+                        stdout.print(f"{key.type}")
+            else:
+                stdout.print(f"[bold blue]{namespace.upper()}[/bold blue]")
             dump_namespace(namespaces[namespace])
 
     except Exception as e:
