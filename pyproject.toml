@@ -56,6 +56,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+verbosity_subtests = 0
 pythonpath = [
     "packages/overture-schema-addresses-theme/tests",
     "packages/overture-schema-annex/tests",
