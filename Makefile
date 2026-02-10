@@ -14,7 +14,7 @@ test-all: uv-sync
 	@uv run pytest -W error packages/
 
 test: uv-sync
-	@uv run pytest -W error packages/ -x
+	@uv run pytest -W error packages/ -x -q --tb=short
 
 test-only:
 	@uv run pytest -W error packages/ -x
