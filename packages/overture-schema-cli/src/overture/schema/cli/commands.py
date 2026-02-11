@@ -1024,8 +1024,7 @@ def validate_schema_command(
     # Output
     _print_schema_diff(diff, strict=strict, skip=skipped, filename=filename, type_name=type_name)
 
-    if output is not None:
-        _write_diff(diff, output)
+    _write_diff(diff, output)
 
     if not ok:
         sys.exit(1)

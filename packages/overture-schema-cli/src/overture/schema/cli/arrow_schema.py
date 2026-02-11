@@ -23,14 +23,6 @@ if TYPE_CHECKING:
 # Re-export for backwards compatibility
 __all__ = ["FieldDiff", "SchemaDiff", "compare_schemas", "pydantic_model_to_arrow_schema"]
 
-
-_PRIMITIVE_TYPES: set[str] = {
-    "int8", "int16", "int32", "int64",
-    "uint8", "uint16", "uint32",
-    "float32", "float64",
-}
-
-
 def _is_newtype(tp: Any) -> bool:
     """Check if a type is a NewType."""
     return callable(tp) and hasattr(tp, "__supertype__")
@@ -170,13 +162,16 @@ def pydantic_to_arrow_type(
 
     # Check for NewType primitives (int8, int32, float64, etc.)
     newtype_name = _get_newtype_name(tp)
-    if newtype_name and newtype_name in _PRIMITIVE_TYPES:
+    if newtype_name and newtype_name in {
+        "int8", "int16", "int32", "int64",
+        "uint8", "uint16", "uint32",
+        "float32", "float64",
+    }:
         return getattr(pa, newtype_name)()
 
     # If it's a NewType but not a known primitive, unwrap it
     if _is_newtype(tp):
         tp = tp.__supertype__
-        # Recurse with the unwrapped type
         return pydantic_to_arrow_type(tp, field_info)
 
     # Geometry -> binary (WKB encoding)
@@ -184,6 +179,7 @@ def pydantic_to_arrow_type(
         return pa.binary()
 
     # BBox -> struct
+    # BBoxes are floats, not doubles -- this is intentional; we don't need sub-meter precision + we save a ton of space in our files
     if tp is BBox or (isinstance(tp, type) and issubclass(tp, BBox)):
         return pa.struct(
             [

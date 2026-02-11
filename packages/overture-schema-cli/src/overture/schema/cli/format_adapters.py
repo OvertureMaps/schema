@@ -151,6 +151,7 @@ class FormatValidator(ABC):
         """
         validators: dict[str, type[FormatValidator]] = {
             ".parquet": ParquetValidator,
+            ".geoparquet": ParquetValidator,
             "": ParquetValidator,  # directories default to parquet
         }
         suffix = _get_file_extension(path)
