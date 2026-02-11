@@ -14,7 +14,7 @@ from overture.schema.system.model_constraint import (
 
 
 @pytest.mark.parametrize("field_names", [[], (), ["foo"], ("bar",)])
-def test_error_not_enough_field_names(field_names: list[str]):
+def test_error_not_enough_field_names(field_names: list[str]) -> None:
     with pytest.raises(
         ValueError, match="`field_names` must contain at least two items"
     ):
@@ -108,7 +108,7 @@ def test_valid_model_instance(field_names: list[str]) -> None:
 def test_model_json_schema_no_model_config() -> None:
     @radio_group("foo", "baz", "qux")
     class TestModel(BaseModel):
-        foo: bool = Field(default=None, alias="bar")
+        foo: bool | None = Field(default=None, alias="bar")
         baz: bool
         qux: bool = Field(alias="corge")
 

@@ -19,7 +19,7 @@ from overture.schema.system.model_constraint import (
 )
 
 
-def test_many_constraints():
+def test_many_constraints() -> None:
     @forbid_if(["corge", "garply"], FieldEqCondition("qux", "hello"))
     @min_fields_set(3)
     @no_extra_fields
