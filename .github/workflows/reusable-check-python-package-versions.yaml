@@ -121,7 +121,7 @@ jobs:
       - name: Get CodeArtifact index URL
         id: get-code-artifact-index-url
         run: |
-          echo 'index_url=<<EOF' >> $GITHUB_OUTPUT
+          echo 'index_url<<EOF' >> $GITHUB_OUTPUT
           ./.github/workflows/scripts/get-code-artifact-index-url.sh \
             "${{ inputs.aws_account_id }}" "${{ inputs.aws_region }}" \
             "${{ inputs.domain }}" "${{ inputs.repository }}" >> $GITHUB_OUTPUT
