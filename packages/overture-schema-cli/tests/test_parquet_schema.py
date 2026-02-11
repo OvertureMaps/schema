@@ -1,5 +1,6 @@
 """Tests for parquet-schema command and arrow conversion."""
 
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -9,14 +10,14 @@ from click.testing import CliRunner
 pa = pytest.importorskip("pyarrow")
 pq = pytest.importorskip("pyarrow.parquet")
 
-from overture.schema.cli.arrow_schema import (
+from overture.schema.cli.arrow_schema import (  # noqa: E402
     _describe_type,
     compare_schemas,
     pydantic_model_to_arrow_schema,
     pydantic_to_arrow_type,
 )
-from overture.schema.cli.commands import cli
-from overture.schema.cli.format_adapters import _get_file_extension
+from overture.schema.cli.commands import cli  # noqa: E402
+from overture.schema.cli.format_adapters import _get_file_extension  # noqa: E402
 
 
 class TestArrowSchemaConversion:
@@ -165,7 +166,7 @@ class TestParquetSchemaCommand:
     """Tests for the parquet-schema CLI command."""
 
     @pytest.fixture
-    def cli_runner(self) -> CliRunner:
+    def cli_runner(self) -> Iterator[CliRunner]:
         """Provide a CliRunner within an isolated filesystem."""
         runner = CliRunner()
         with runner.isolated_filesystem():
@@ -457,6 +458,7 @@ class TestSchemaComparison:
         diff = compare_schemas(expected, actual)
         assert not diff.is_compatible
         assert len(diff.type_mismatches) == 1
+        assert diff.type_mismatches[0].expected is not None
         assert "struct" in diff.type_mismatches[0].expected
 
     def test_describe_type_primitives(self) -> None:
@@ -548,7 +550,7 @@ class TestCheckSchemaCommand:
     """Tests for the validate-schema CLI command."""
 
     @pytest.fixture
-    def cli_runner(self) -> CliRunner:
+    def cli_runner(self) -> Iterator[CliRunner]:
         """Provide a CliRunner within an isolated filesystem."""
         runner = CliRunner()
         with runner.isolated_filesystem():
@@ -721,7 +723,6 @@ class TestCheckSchemaCommand:
 
     def test_exit_code_nonzero_on_mismatch(self, cli_runner: CliRunner) -> None:
         """Exit code is non-zero when schema doesn't match."""
-        schema = pa.schema([pa.field("wrong", pa.utf8())])
         table = pa.table({"wrong": pa.array([], type=pa.utf8())})
         pq.write_table(table, "wrong.parquet")
 

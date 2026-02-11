@@ -27,6 +27,7 @@ from .error_formatting import (
     group_errors_by_discriminator,
     select_most_likely_errors,
 )
+from .format_adapters import SchemaDiff
 from .output import rewrap
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
 from .types import ErrorLocation, ModelDict, UnionType
@@ -1035,7 +1036,7 @@ def validate_schema_command(
         sys.exit(1)
 
 
-def _write_diff(diff: "SchemaDiff", output: Path) -> None:  # noqa: F821
+def _write_diff(diff: SchemaDiff, output: Path | None) -> None:
     """Write schema diff rows to a CSV or Parquet file."""
     if output is None:
         return
@@ -1075,11 +1076,11 @@ def _write_diff(diff: "SchemaDiff", output: Path) -> None:  # noqa: F821
 
 
 def _print_schema_diff(
-    diff: "SchemaDiff",  # noqa: F821
+    diff: SchemaDiff,
     *,
     strict: bool,
     skip: set[str] | None = None,
-    filename: Path,
+    filename: str | Path,
     type_name: str,
 ) -> None:
     """Print a human-readable schema diff."""
@@ -1237,11 +1238,11 @@ def list_types(theme: tuple[str, ...], simple: bool) -> None:
         # display Overture themes first
         if "overture" in namespaces:
             if simple:
-                for theme in sorted(
+                for t in sorted(
                     namespaces["overture"].keys(), key=lambda x: (x is None, x)
                 ):
                     for key, _ in sorted(
-                        namespaces["overture"][theme], key=lambda x: x[0].type
+                        namespaces["overture"][t], key=lambda x: x[0].type
                     ):
                         stdout.print(f"{key.type}")
             else:
@@ -1256,11 +1257,11 @@ def list_types(theme: tuple[str, ...], simple: bool) -> None:
                 continue
 
             if simple:
-                for theme in sorted(
+                for t in sorted(
                     namespaces[namespace].keys(), key=lambda x: (x is None, x)
                 ):
                     for key, _ in sorted(
-                        namespaces[namespace][theme], key=lambda x: x[0].type
+                        namespaces[namespace][t], key=lambda x: x[0].type
                     ):
                         stdout.print(f"{key.type}")
             else:
