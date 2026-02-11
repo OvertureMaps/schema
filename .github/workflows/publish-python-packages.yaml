@@ -20,71 +20,30 @@ jobs:
       after_commit: ${{ github.event.after }}
 
   get-index-url:
-    if: github.event.repository.full_name == github.repository
     uses: ./.github/workflows/reusable-get-code-artifact-index-url.yaml
     with:
       role_name: GithubActions_Schema_CodeArtifact_Publish
 
   publish:
     needs: [check, get-index-url]
-    if: github.event.repository.full_name == github.repository
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.check.outputs.changed_packages) }}
     steps:
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Check out code before change
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.before_commit }}
-
-      - name: Capture package versions before change
-        run: uv run python ./.github/workflows/scripts/package-versions.py collect > /tmp/package-versions-before.json
-
-      - name: Check out code after change
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.after_commit }}
-
-      - name: Capture package versions after change
-        run: uv run python ./.github/workflows/scripts/package-versions.py collect > /tmp/package-versions-after.json
-
-      - name: Compare package versions before and after change
-        run: |
-          uv run python ./.github/workflows/scripts/package-versions.py compare \
-            /tmp/package-versions-before.json \
-            /tmp/package-versions-after.json \
-            >/tmp/package-version-diff.json
-
-      - name: Print changed versions
-        run: cat /tmp/package-version-diff.json
-
       - name: Publish changed packages to PyPI
         run: |
-          jq -c '.[]' /tmp/package-version-diff.json | while read -r entry; do
-            package=$(echo "$entry" | jq -r '.package')
-            after=$(echo "$entry" | jq -r '.after')
-            echo "Publishing $package version $after to PyPI [${{ needs.get-index-url.outputs.index_url }}]..."
-            uv build --package "$package"
-            wheel="dist/${package//-/_}-${after}-py3-none-any.whl"
-            if [ ! -f "$wheel" ]; then
-              echo "    Wheel file [$wheel] not found. Aborting!"
-              exit 1
-            fi
-            tarball="dist/${package//-/_}-${after}.tar.gz"
-            if [ ! -f "$tarball" ]; then
-              echo "    Source tarball file [$tarball] not found. Aborting!"
-              exit 1
-            fi
-            uv publish "$wheel" "$tarball" --publish-url "${{ needs.get-index-url.outputs.index_url }}"
-          done
+          printf 'Publishing package %s version %s to PyPI (previous version %s)...' "${{ matrix.package }}" "${{ matrix.before }}" "${{ matrix.after }}"
+          uv build --package "${{ matrix.package }}"
+          wheel="dist/${{ matrix.package //-/_ }}-${{ matrix.after }}-py3-none-any.whl"
+          if [ ! -f "$wheel" ]; then
+            echo "    Wheel file [$wheel] not found. Aborting!"
+            exit 1
+          fi
+          tarball="dist/${{ matrix.package //-/_ }}-${{ matrix.after }}.tar.gz"
+          if [ ! -f "$tarball" ]; then
+            echo "    Source tarball file [$tarball] not found. Aborting!"
+            exit 1
+          fi
+          uv publish "$wheel" "$tarball" --publish-url "${{ needs.get-index-url.outputs.index_url }}"

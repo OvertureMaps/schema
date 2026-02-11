@@ -15,6 +15,13 @@ on:
             PR or the latest commit in a push.
         type: string
         required: true
+    outputs:
+      changed_packages:
+        description: >-
+          A JSON array of packages with changed versions, including package name, old version, and
+          new version, in the format: `[ {"package": "p1", "before": "v1", "after": "v2"}, ... ]`
+        value: ${{ jobs.check-python-package-versions.outputs.changed_packages }}
+
 
 jobs:
   get-index-url:
@@ -23,6 +30,8 @@ jobs:
   check-python-package-versions:
     needs: get-index-url
     runs-on: ubuntu-latest
+    outputs:
+      changed_packages: ${{ steps.save-changes.outputs.changed_packages }}
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -68,6 +77,13 @@ jobs:
 
       - name: Print changed versions
         run: cat /tmp/package-version-diff.json
+
+      - name: Save changed versions as output
+        id: save-changes
+        run: |
+          echo 'changed_packages<<EOF' >> $GITHUB_OUTPUT
+          cat /tmp/package-version-diff.json >> $GITHUB_OUTPUT
+          echo EOF >> $GITHUB_OUTPUT
 
       - name: Fail if any of the new versions already exist in the repo
         run: |
