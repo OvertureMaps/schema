@@ -37,7 +37,7 @@ jobs:
         with:
           version: latest
 
-       -name: Check out code
+      - name: Check out code
         uses: actions/checkout@v4
 
       - name: Sync code to make packages visible to Python
