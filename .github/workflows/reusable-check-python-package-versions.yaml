@@ -53,7 +53,6 @@ on:
 
 jobs:
   check-python-package-versions:
-    needs: get-index-url
     runs-on: ubuntu-latest
     outputs:
       changed_packages: ${{ steps.save-changes.outputs.changed_packages }}

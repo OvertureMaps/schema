@@ -47,7 +47,7 @@ jobs:
       after_commit: ${{ github.event.after }}
 
   publish:
-    needs: [check, get-index-url]
+    needs: [check]
     if: github.event.repository.full_name == github.repository && needs.check.outputs.num_changed_packages > 0
     runs-on: ubuntu-latest
     strategy:
