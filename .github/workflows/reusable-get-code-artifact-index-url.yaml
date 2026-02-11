@@ -29,14 +29,14 @@ on:
         required: false
         default: overture
     outputs:
-      index_url:
-        description: The CodeArtifact Python index URL
-        value: ${{ jobs.get-code-artifact-index-url.outputs.index_url }}
+      secrets:
+        description: The CodeArtifact Python index URL with embedded authentication token
+        value: ${{ jobs.get-code-artifact-index-url.secrets.index_url }}
 
 jobs:
   get-code-artifact-index-url:
     runs-on: ubuntu-latest
-    outputs:
+    secrets:
       index_url: ${{ steps.get-code-artifact-index-url.outputs.index_url }}
     steps:
       - name: Configure AWS credentials
