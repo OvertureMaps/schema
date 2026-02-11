@@ -7,16 +7,6 @@ on:
       - '**/pyproject.toml'
       - 'packages/**/__about__.py'
     inputs:
-      aws_account_id:
-        description: The AWS account ID that owns the CodeArtifact domain
-        type: string
-        required: false
-        default: 505071440022
-      aws_region:
-        description: The AWS region where the CodeArtifact repository is hosted
-        type: string
-        required: false
-        default: us-west-2
       aws_iam_role_name:
         description: The name of the IAM role to assume for accessing CodeArtifact
         type: string
@@ -32,7 +22,6 @@ on:
         type: string
         required: false
         default: overture
-
 
 permissions:
   id-token: write
@@ -65,13 +54,19 @@ jobs:
       - name: Sync code to make packages visible to Python
         run: uv sync --all-packages
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ inputs.aws_region }}
+          role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
+          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
+
       - name: Get CodeArtifact index URL
         id: get-code-artifact-index-url
         run: |
           echo 'index_url<<EOF' >> $GITHUB_OUTPUT
           ./.github/workflows/scripts/get-code-artifact-index-url.sh \
-            "${{ inputs.aws_account_id }}" "${{ inputs.aws_region }}" \
-            "${{ inputs.domain }}" "${{ inputs.repository }}" >> $GITHUB_OUTPUT
+            505071440022 us-west-2  overture-pypi overture >> $GITHUB_OUTPUT
           echo EOF >> $GITHUB_OUTPUT
 
       - name: Publish package ${{ matrix.package }} version ${{ matrix.after }} to PyPI
