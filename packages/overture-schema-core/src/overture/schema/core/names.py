@@ -110,7 +110,7 @@ CommonNames = NewType(
         Field(json_schema_extra={"additionalProperties": False}),
     ],
 )
-"""A mapping from language to the most commonly used or recognized name in that language."""
+CommonNames.__doc__ = """A mapping from language to the most commonly used or recognized name in that language."""
 
 
 class NameVariant(str, DocumentedEnum):
