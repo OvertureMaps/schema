@@ -7,6 +7,10 @@ on:
       - '**/pyproject.toml'
       - 'packages/**/__about__.py'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   check:
     if: github.event.pull_request.head.repo.full_name == github.repository
