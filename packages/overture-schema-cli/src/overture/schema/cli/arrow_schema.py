@@ -21,7 +21,13 @@ if TYPE_CHECKING:
     import pyarrow as pa
 
 # Re-export for backwards compatibility
-__all__ = ["FieldDiff", "SchemaDiff", "compare_schemas", "pydantic_model_to_arrow_schema"]
+__all__ = [
+    "FieldDiff",
+    "SchemaDiff",
+    "compare_schemas",
+    "pydantic_model_to_arrow_schema",
+]
+
 
 def _is_newtype(tp: Any) -> bool:
     """Check if a type is a NewType."""
@@ -124,7 +130,7 @@ def _unwrap_missing(tp: Any) -> tuple[bool, Any]:
 def pydantic_to_arrow_type(
     tp: Any,
     field_info: FieldInfo | None = None,
-) -> "pa.DataType":
+) -> pa.DataType:
     """
     Convert a Python/Pydantic type annotation to a PyArrow data type.
 
@@ -163,9 +169,15 @@ def pydantic_to_arrow_type(
     # Check for NewType primitives (int8, int32, float64, etc.)
     newtype_name = _get_newtype_name(tp)
     if newtype_name and newtype_name in {
-        "int8", "int16", "int32", "int64",
-        "uint8", "uint16", "uint32",
-        "float32", "float64",
+        "int8",
+        "int16",
+        "int32",
+        "int64",
+        "uint8",
+        "uint16",
+        "uint32",
+        "float32",
+        "float64",
     }:
         return getattr(pa, newtype_name)()
 
@@ -235,7 +247,7 @@ def pydantic_to_arrow_type(
     return pa.utf8()
 
 
-def _model_to_struct_type(model: type[BaseModel]) -> "pa.DataType":
+def _model_to_struct_type(model: type[BaseModel]) -> pa.DataType:
     """
     Convert a Pydantic model to a PyArrow struct type.
 
@@ -270,7 +282,9 @@ def _model_to_struct_type(model: type[BaseModel]) -> "pa.DataType":
         # Handle aliased fields (e.g., class_ -> class)
         output_name = field_info.alias if field_info.alias else field_name
 
-        fields.append(pa.field(output_name, arrow_type, nullable=nullable, metadata=metadata))
+        fields.append(
+            pa.field(output_name, arrow_type, nullable=nullable, metadata=metadata)
+        )
 
     return pa.struct(fields)
 
@@ -353,7 +367,7 @@ def _extract_model_from_union(tp: Any) -> type[BaseModel] | None:
 def pydantic_model_to_arrow_schema(
     model: type[BaseModel] | Any,
     include_version_metadata: bool = True,
-) -> "pa.Schema":
+) -> pa.Schema:
     """
     Convert a Pydantic model class to a PyArrow schema.
 
@@ -407,7 +421,9 @@ def pydantic_model_to_arrow_schema(
         # Handle aliased fields
         output_name = field_info.alias if field_info.alias else field_name
 
-        fields.append(pa.field(output_name, arrow_type, nullable=nullable, metadata=metadata))
+        fields.append(
+            pa.field(output_name, arrow_type, nullable=nullable, metadata=metadata)
+        )
 
     # Build schema metadata
     schema_metadata: dict[bytes, bytes] = {}
@@ -432,7 +448,7 @@ def pydantic_model_to_arrow_schema(
 # ---------------------------------------------------------------------------
 
 
-def _describe_type(arrow_type: "pa.DataType") -> str:
+def _describe_type(arrow_type: pa.DataType) -> str:
     """Return a concise, human-readable description of an Arrow data type."""
     import pyarrow as pa
 
@@ -446,8 +462,8 @@ def _describe_type(arrow_type: "pa.DataType") -> str:
 
 
 def _compare_types(
-    expected_type: "pa.DataType",
-    actual_type: "pa.DataType",
+    expected_type: pa.DataType,
+    actual_type: pa.DataType,
     path: str,
     expected_nullable: bool,
     actual_nullable: bool,
@@ -459,15 +475,19 @@ def _compare_types(
 
     # Required in expected but nullable in actual is a problem
     if not expected_nullable and actual_nullable:
-        diffs.append(FieldDiff(
-            path=path,
-            kind="nullability",
-            expected="non-nullable (required)",
-            actual="nullable",
-        ))
+        diffs.append(
+            FieldDiff(
+                path=path,
+                kind="nullability",
+                expected="non-nullable (required)",
+                actual="nullable",
+            )
+        )
 
     # Both structs: compare children recursively
-    if isinstance(expected_type, pa.StructType) and isinstance(actual_type, pa.StructType):
+    if isinstance(expected_type, pa.StructType) and isinstance(
+        actual_type, pa.StructType
+    ):
         actual_children: dict[str, pa.Field] = {}
         for i in range(actual_type.num_fields):
             f = actual_type.field(i)
@@ -477,16 +497,24 @@ def _compare_types(
             ef = expected_type.field(i)
             child_path = f"{path}.{ef.name}"
             if ef.name not in actual_children:
-                diffs.append(FieldDiff(
-                    path=child_path,
-                    kind="missing",
-                    expected=_describe_type(ef.type),
-                ))
+                diffs.append(
+                    FieldDiff(
+                        path=child_path,
+                        kind="missing",
+                        expected=_describe_type(ef.type),
+                    )
+                )
             else:
                 af = actual_children[ef.name]
-                diffs.extend(_compare_types(
-                    ef.type, af.type, child_path, ef.nullable, af.nullable,
-                ))
+                diffs.extend(
+                    _compare_types(
+                        ef.type,
+                        af.type,
+                        child_path,
+                        ef.nullable,
+                        af.nullable,
+                    )
+                )
 
         # Extra children within structs
         expected_child_names = {
@@ -494,58 +522,68 @@ def _compare_types(
         }
         for name, af in actual_children.items():
             if name not in expected_child_names:
-                diffs.append(FieldDiff(
-                    path=f"{path}.{name}",
-                    kind="extra",
-                    actual=_describe_type(af.type),
-                ))
+                diffs.append(
+                    FieldDiff(
+                        path=f"{path}.{name}",
+                        kind="extra",
+                        actual=_describe_type(af.type),
+                    )
+                )
 
         return diffs
 
     # Both lists: compare element types
     if isinstance(expected_type, pa.ListType) and isinstance(actual_type, pa.ListType):
-        diffs.extend(_compare_types(
-            expected_type.value_type,
-            actual_type.value_type,
-            f"{path}.item",
-            expected_type.value_field.nullable,
-            actual_type.value_field.nullable,
-        ))
+        diffs.extend(
+            _compare_types(
+                expected_type.value_type,
+                actual_type.value_type,
+                f"{path}.item",
+                expected_type.value_field.nullable,
+                actual_type.value_field.nullable,
+            )
+        )
         return diffs
 
     # Both maps: compare key and value types
     if isinstance(expected_type, pa.MapType) and isinstance(actual_type, pa.MapType):
-        diffs.extend(_compare_types(
-            expected_type.key_type,
-            actual_type.key_type,
-            f"{path}.key",
-            expected_type.key_field.nullable,
-            actual_type.key_field.nullable,
-        ))
-        diffs.extend(_compare_types(
-            expected_type.item_type,
-            actual_type.item_type,
-            f"{path}.value",
-            expected_type.item_field.nullable,
-            actual_type.item_field.nullable,
-        ))
+        diffs.extend(
+            _compare_types(
+                expected_type.key_type,
+                actual_type.key_type,
+                f"{path}.key",
+                expected_type.key_field.nullable,
+                actual_type.key_field.nullable,
+            )
+        )
+        diffs.extend(
+            _compare_types(
+                expected_type.item_type,
+                actual_type.item_type,
+                f"{path}.value",
+                expected_type.item_field.nullable,
+                actual_type.item_field.nullable,
+            )
+        )
         return diffs
 
     # Primitive / category-mismatch comparison
     if expected_type != actual_type:
-        diffs.append(FieldDiff(
-            path=path,
-            kind="type_mismatch",
-            expected=_describe_type(expected_type),
-            actual=_describe_type(actual_type),
-        ))
+        diffs.append(
+            FieldDiff(
+                path=path,
+                kind="type_mismatch",
+                expected=_describe_type(expected_type),
+                actual=_describe_type(actual_type),
+            )
+        )
 
     return diffs
 
 
 def compare_schemas(
-    expected: "pa.Schema",
-    actual: "pa.Schema",
+    expected: pa.Schema,
+    actual: pa.Schema,
     *,
     ignore_fields: set[str] | None = None,
 ) -> SchemaDiff:
@@ -578,11 +616,13 @@ def compare_schemas(
         if name in ignore:
             continue
         if name not in actual_fields_by_name:
-            missing.append(FieldDiff(
-                path=name,
-                kind="missing",
-                expected=_describe_type(expected_field.type),
-            ))
+            missing.append(
+                FieldDiff(
+                    path=name,
+                    kind="missing",
+                    expected=_describe_type(expected_field.type),
+                )
+            )
             continue
 
         actual_field = actual_fields_by_name[name]
@@ -607,11 +647,13 @@ def compare_schemas(
         if actual_field.name in ignore:
             continue
         if actual_field.name not in expected_field_names:
-            extra.append(FieldDiff(
-                path=actual_field.name,
-                kind="extra",
-                actual=_describe_type(actual_field.type),
-            ))
+            extra.append(
+                FieldDiff(
+                    path=actual_field.name,
+                    kind="extra",
+                    actual=_describe_type(actual_field.type),
+                )
+            )
 
     return SchemaDiff(
         missing_fields=missing,

@@ -175,7 +175,15 @@ class TestParquetSchemaCommand:
         """Test parquet-schema with text format outputs schema description."""
         result = cli_runner.invoke(
             cli,
-            ["parquet-schema", "--theme", "buildings", "--type", "building", "--format", "text"],
+            [
+                "parquet-schema",
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+                "--format",
+                "text",
+            ],
         )
         assert result.exit_code == 0
         assert "id:" in result.output
@@ -249,7 +257,16 @@ class TestParquetSchemaCommand:
         # This test assumes there might be types with same name in different themes
         # If not, the test will just verify the happy path works
         result = cli_runner.invoke(
-            cli, ["parquet-schema", "--theme", "buildings", "--type", "building", "--format", "text"]
+            cli,
+            [
+                "parquet-schema",
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+                "--format",
+                "text",
+            ],
         )
         # Should succeed with theme specified
         assert result.exit_code == 0
@@ -295,23 +312,29 @@ class TestSchemaComparison:
 
     def test_identical_schemas_match(self) -> None:
         """Two identical schemas should produce no diffs."""
-        schema = pa.schema([
-            pa.field("id", pa.utf8(), nullable=False),
-            pa.field("value", pa.int64()),
-        ])
+        schema = pa.schema(
+            [
+                pa.field("id", pa.utf8(), nullable=False),
+                pa.field("value", pa.int64()),
+            ]
+        )
         diff = compare_schemas(schema, schema)
         assert diff.is_compatible
         assert diff.is_exact_match
 
     def test_missing_field_detected(self) -> None:
         """A field in expected but not in actual is reported as missing."""
-        expected = pa.schema([
-            pa.field("id", pa.utf8()),
-            pa.field("name", pa.utf8()),
-        ])
-        actual = pa.schema([
-            pa.field("id", pa.utf8()),
-        ])
+        expected = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+                pa.field("name", pa.utf8()),
+            ]
+        )
+        actual = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+            ]
+        )
         diff = compare_schemas(expected, actual)
         assert not diff.is_compatible
         assert len(diff.missing_fields) == 1
@@ -319,13 +342,17 @@ class TestSchemaComparison:
 
     def test_extra_field_subset_compatible(self) -> None:
         """Extra fields are tracked but is_compatible still returns True."""
-        expected = pa.schema([
-            pa.field("id", pa.utf8()),
-        ])
-        actual = pa.schema([
-            pa.field("id", pa.utf8()),
-            pa.field("extra", pa.int64()),
-        ])
+        expected = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+            ]
+        )
+        actual = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+                pa.field("extra", pa.int64()),
+            ]
+        )
         diff = compare_schemas(expected, actual)
         assert diff.is_compatible
         assert not diff.is_exact_match
@@ -362,10 +389,12 @@ class TestSchemaComparison:
 
     def test_nested_struct_comparison(self) -> None:
         """Fields within nested structs are compared recursively."""
-        struct_type = pa.struct([
-            pa.field("x", pa.float64()),
-            pa.field("y", pa.float64()),
-        ])
+        struct_type = pa.struct(
+            [
+                pa.field("x", pa.float64()),
+                pa.field("y", pa.float64()),
+            ]
+        )
         expected = pa.schema([pa.field("point", struct_type)])
         actual = pa.schema([pa.field("point", struct_type)])
         diff = compare_schemas(expected, actual)
@@ -373,13 +402,17 @@ class TestSchemaComparison:
 
     def test_nested_struct_missing_child(self) -> None:
         """Missing child in nested struct reported with dotted path."""
-        expected_struct = pa.struct([
-            pa.field("x", pa.float64()),
-            pa.field("y", pa.float64()),
-        ])
-        actual_struct = pa.struct([
-            pa.field("x", pa.float64()),
-        ])
+        expected_struct = pa.struct(
+            [
+                pa.field("x", pa.float64()),
+                pa.field("y", pa.float64()),
+            ]
+        )
+        actual_struct = pa.struct(
+            [
+                pa.field("x", pa.float64()),
+            ]
+        )
         expected = pa.schema([pa.field("point", expected_struct)])
         actual = pa.schema([pa.field("point", actual_struct)])
         diff = compare_schemas(expected, actual)
@@ -435,24 +468,30 @@ class TestSchemaComparison:
 
     def test_describe_type_complex(self) -> None:
         """_describe_type returns readable strings for struct/list/map."""
-        struct_type = pa.struct([
-            pa.field("a", pa.utf8()),
-            pa.field("b", pa.int64()),
-        ])
+        struct_type = pa.struct(
+            [
+                pa.field("a", pa.utf8()),
+                pa.field("b", pa.int64()),
+            ]
+        )
         assert _describe_type(struct_type) == "struct<2 fields>"
         assert _describe_type(pa.list_(pa.utf8())) == "list<string>"
         assert _describe_type(pa.map_(pa.utf8(), pa.int64())) == "map<string, int64>"
 
     def test_ignore_missing_field(self) -> None:
         """Ignored fields are not reported as missing."""
-        expected = pa.schema([
-            pa.field("id", pa.utf8()),
-            pa.field("version", pa.int32()),
-            pa.field("bbox", pa.binary()),
-        ])
-        actual = pa.schema([
-            pa.field("id", pa.utf8()),
-        ])
+        expected = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+                pa.field("version", pa.int32()),
+                pa.field("bbox", pa.binary()),
+            ]
+        )
+        actual = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+            ]
+        )
         diff = compare_schemas(expected, actual, ignore_fields={"version", "bbox"})
         assert diff.is_compatible
         assert diff.is_exact_match
@@ -460,13 +499,17 @@ class TestSchemaComparison:
 
     def test_ignore_extra_field(self) -> None:
         """Ignored fields are not reported as extra."""
-        expected = pa.schema([
-            pa.field("id", pa.utf8()),
-        ])
-        actual = pa.schema([
-            pa.field("id", pa.utf8()),
-            pa.field("version", pa.int32()),
-        ])
+        expected = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+            ]
+        )
+        actual = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+                pa.field("version", pa.int32()),
+            ]
+        )
         diff = compare_schemas(expected, actual, ignore_fields={"version"})
         assert diff.is_compatible
         assert diff.is_exact_match
@@ -474,14 +517,18 @@ class TestSchemaComparison:
 
     def test_ignore_does_not_affect_other_fields(self) -> None:
         """Ignoring one field does not affect checks on other fields."""
-        expected = pa.schema([
-            pa.field("id", pa.utf8()),
-            pa.field("version", pa.int32()),
-            pa.field("name", pa.utf8()),
-        ])
-        actual = pa.schema([
-            pa.field("id", pa.utf8()),
-        ])
+        expected = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+                pa.field("version", pa.int32()),
+                pa.field("name", pa.utf8()),
+            ]
+        )
+        actual = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+            ]
+        )
         diff = compare_schemas(expected, actual, ignore_fields={"version"})
         assert not diff.is_compatible
         assert len(diff.missing_fields) == 1
@@ -510,26 +557,53 @@ class TestCheckSchemaCommand:
     @pytest.fixture
     def building_parquet(self, cli_runner: CliRunner) -> Path:
         """Create a valid building Parquet file for testing."""
-        cli_runner.invoke(cli, [
-            "parquet-schema", "--theme", "buildings",
-            "--type", "building", "-o", "building.parquet",
-        ])
+        cli_runner.invoke(
+            cli,
+            [
+                "parquet-schema",
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+                "-o",
+                "building.parquet",
+            ],
+        )
         return Path("building.parquet")
 
-    def test_matching_schema_passes(self, cli_runner: CliRunner, building_parquet: Path) -> None:
+    def test_matching_schema_passes(
+        self, cli_runner: CliRunner, building_parquet: Path
+    ) -> None:
         """A file generated from the same model should pass subset check."""
-        result = cli_runner.invoke(cli, [
-            "validate-schema", str(building_parquet),
-            "--theme", "buildings", "--type", "building",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                str(building_parquet),
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+            ],
+        )
         assert result.exit_code == 0
 
-    def test_matching_schema_strict_passes(self, cli_runner: CliRunner, building_parquet: Path) -> None:
+    def test_matching_schema_strict_passes(
+        self, cli_runner: CliRunner, building_parquet: Path
+    ) -> None:
         """A file generated from the same model should pass strict check."""
-        result = cli_runner.invoke(cli, [
-            "validate-schema", str(building_parquet),
-            "--theme", "buildings", "--type", "building", "--strict",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                str(building_parquet),
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+                "--strict",
+            ],
+        )
         assert result.exit_code == 0
 
     def test_extra_columns_subset_passes(self, cli_runner: CliRunner) -> None:
@@ -546,10 +620,17 @@ class TestCheckSchemaCommand:
         )
         pq.write_table(table, "extended.parquet")
 
-        result = cli_runner.invoke(cli, [
-            "validate-schema", "extended.parquet",
-            "--theme", "buildings", "--type", "building",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                "extended.parquet",
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+            ],
+        )
         assert result.exit_code == 0
 
     def test_extra_columns_strict_fails(self, cli_runner: CliRunner) -> None:
@@ -565,43 +646,77 @@ class TestCheckSchemaCommand:
         )
         pq.write_table(table, "extended.parquet")
 
-        result = cli_runner.invoke(cli, [
-            "validate-schema", "extended.parquet",
-            "--theme", "buildings", "--type", "building", "--strict",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                "extended.parquet",
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+                "--strict",
+            ],
+        )
         assert result.exit_code != 0
 
     def test_missing_field_fails(self, cli_runner: CliRunner) -> None:
         """File missing required fields fails check."""
-        schema = pa.schema([
-            pa.field("id", pa.utf8()),
-            pa.field("geometry", pa.binary()),
-        ])
+        schema = pa.schema(
+            [
+                pa.field("id", pa.utf8()),
+                pa.field("geometry", pa.binary()),
+            ]
+        )
         table = pa.table(
             {f.name: pa.array([], type=f.type) for f in schema},
         )
         pq.write_table(table, "partial.parquet")
 
-        result = cli_runner.invoke(cli, [
-            "validate-schema", "partial.parquet",
-            "--theme", "buildings", "--type", "building",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                "partial.parquet",
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+            ],
+        )
         assert result.exit_code != 0
 
-    def test_invalid_type_fails(self, cli_runner: CliRunner, building_parquet: Path) -> None:
+    def test_invalid_type_fails(
+        self, cli_runner: CliRunner, building_parquet: Path
+    ) -> None:
         """Invalid --type gives clear error."""
-        result = cli_runner.invoke(cli, [
-            "validate-schema", str(building_parquet), "--type", "nonexistent_type",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                str(building_parquet),
+                "--type",
+                "nonexistent_type",
+            ],
+        )
         assert result.exit_code != 0
         assert "No model found" in result.output
 
-    def test_exit_code_zero_on_match(self, cli_runner: CliRunner, building_parquet: Path) -> None:
+    def test_exit_code_zero_on_match(
+        self, cli_runner: CliRunner, building_parquet: Path
+    ) -> None:
         """Exit code is 0 when schema matches."""
-        result = cli_runner.invoke(cli, [
-            "validate-schema", str(building_parquet),
-            "--theme", "buildings", "--type", "building",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                str(building_parquet),
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+            ],
+        )
         assert result.exit_code == 0
 
     def test_exit_code_nonzero_on_mismatch(self, cli_runner: CliRunner) -> None:
@@ -610,10 +725,17 @@ class TestCheckSchemaCommand:
         table = pa.table({"wrong": pa.array([], type=pa.utf8())})
         pq.write_table(table, "wrong.parquet")
 
-        result = cli_runner.invoke(cli, [
-            "validate-schema", "wrong.parquet",
-            "--theme", "buildings", "--type", "building",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                "wrong.parquet",
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+            ],
+        )
         assert result.exit_code != 0
 
     def test_ignore_missing_fields_passes(self, cli_runner: CliRunner) -> None:
@@ -630,11 +752,21 @@ class TestCheckSchemaCommand:
         )
         pq.write_table(table, "no_version_bbox.parquet")
 
-        result = cli_runner.invoke(cli, [
-            "validate-schema", "no_version_bbox.parquet",
-            "--theme", "buildings", "--type", "building",
-            "--ignore", "version", "--ignore", "bbox",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                "no_version_bbox.parquet",
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+                "--ignore",
+                "version",
+                "--ignore",
+                "bbox",
+            ],
+        )
         assert result.exit_code == 0
 
     def test_ignore_without_flag_still_fails(self, cli_runner: CliRunner) -> None:
@@ -650,10 +782,17 @@ class TestCheckSchemaCommand:
         )
         pq.write_table(table, "no_version_bbox.parquet")
 
-        result = cli_runner.invoke(cli, [
-            "validate-schema", "no_version_bbox.parquet",
-            "--theme", "buildings", "--type", "building",
-        ])
+        result = cli_runner.invoke(
+            cli,
+            [
+                "validate-schema",
+                "no_version_bbox.parquet",
+                "--theme",
+                "buildings",
+                "--type",
+                "building",
+            ],
+        )
         assert result.exit_code != 0
 
 
@@ -668,6 +807,7 @@ class TestFileExtensionParsing:
     def test_local_path_object(self) -> None:
         """Local Path object returns correct extension."""
         from pathlib import Path
+
         assert _get_file_extension(Path("data/file.parquet")) == ".parquet"
 
     def test_s3_uri(self) -> None:

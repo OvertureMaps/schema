@@ -76,17 +76,17 @@ class SchemaDiff:
         }
         if strict:
             checks["extra"] = self.extra_fields
-        return all(
-            not diffs for name, diffs in checks.items() if name not in skip
-        )
+        return all(not diffs for name, diffs in checks.items() if name not in skip)
 
     def to_rows(self) -> list[dict[str, str | None]]:
         """Flatten all diffs into a list of row dicts for tabular export."""
         return [
             {"path": d.path, "kind": d.kind, "expected": d.expected, "actual": d.actual}
             for d in (
-                self.missing_fields + self.extra_fields
-                + self.type_mismatches + self.nullability_issues
+                self.missing_fields
+                + self.extra_fields
+                + self.type_mismatches
+                + self.nullability_issues
             )
         ]
 
@@ -97,8 +97,7 @@ class SchemaDiff:
 
 
 def _get_file_extension(path: FilePath) -> str:
-    """Extract file extension from a local path or remote URI.
-    """
+    """Extract file extension from a local path or remote URI."""
     path_str = str(path)
     parsed = urlparse(path_str)
 
@@ -120,7 +119,7 @@ class FormatValidator(ABC):
     def validate(
         self,
         path: FilePath,
-        model: type["BaseModel"],
+        model: type[BaseModel],
         *,
         ignore_fields: set[str] | None = None,
     ) -> SchemaDiff:
@@ -144,7 +143,7 @@ class FormatValidator(ABC):
         pass
 
     @classmethod
-    def for_file(cls, path: FilePath) -> "FormatValidator":
+    def for_file(cls, path: FilePath) -> FormatValidator:
         """Select appropriate validator based on file extension.
 
         Directories (no extension) default to Parquet for dataset support.
@@ -189,4 +188,6 @@ class ParquetValidator(FormatValidator):
         actual_schema = dataset.schema
 
         # Compare
-        return compare_schemas(expected_schema, actual_schema, ignore_fields=ignore_fields)
+        return compare_schemas(
+            expected_schema, actual_schema, ignore_fields=ignore_fields
+        )

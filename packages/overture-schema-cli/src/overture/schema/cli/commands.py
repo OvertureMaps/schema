@@ -944,7 +944,8 @@ def parquet_schema_command(
     help="Difference category to exclude from pass/fail (repeatable)",
 )
 @click.option(
-    "-o", "--output",
+    "-o",
+    "--output",
     "output",
     type=click.Path(path_type=Path),
     default=None,
@@ -1010,7 +1011,9 @@ def validate_schema_command(
 
     # Validate file against model
     try:
-        diff = validator.validate(filename, model_class, ignore_fields=set(ignore_fields))
+        diff = validator.validate(
+            filename, model_class, ignore_fields=set(ignore_fields)
+        )
     except ImportError:
         raise click.UsageError(
             "pyarrow is required for this command. "
@@ -1022,7 +1025,9 @@ def validate_schema_command(
     ok = diff.passed(strict=strict, skip=skipped)
 
     # Output
-    _print_schema_diff(diff, strict=strict, skip=skipped, filename=filename, type_name=type_name)
+    _print_schema_diff(
+        diff, strict=strict, skip=skipped, filename=filename, type_name=type_name
+    )
 
     _write_diff(diff, output)
 
@@ -1041,7 +1046,9 @@ def _write_diff(diff: "SchemaDiff", output: Path) -> None:  # noqa: F821
         import csv
 
         with open(output, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=["path", "kind", "expected", "actual"])
+            writer = csv.DictWriter(
+                f, fieldnames=["path", "kind", "expected", "actual"]
+            )
             writer.writeheader()
             writer.writerows(rows)
         stdout.print(f"Wrote {len(rows)} diff(s) to {output}")
@@ -1050,12 +1057,14 @@ def _write_diff(diff: "SchemaDiff", output: Path) -> None:  # noqa: F821
         import pyarrow as pa
         import pyarrow.parquet as pq
 
-        table = pa.table({
-            "path": [r["path"] for r in rows],
-            "kind": [r["kind"] for r in rows],
-            "expected": [r["expected"] for r in rows],
-            "actual": [r["actual"] for r in rows],
-        })
+        table = pa.table(
+            {
+                "path": [r["path"] for r in rows],
+                "kind": [r["kind"] for r in rows],
+                "expected": [r["expected"] for r in rows],
+                "actual": [r["actual"] for r in rows],
+            }
+        )
         pq.write_table(table, output)
         stdout.print(f"Wrote {len(rows)} diff(s) to {output}")
 
@@ -1079,7 +1088,9 @@ def _print_schema_diff(
     mode = "strict" if strict else "subset"
 
     if ok:
-        stdout.print(f"SUCCESS, schema of '{filename}' matches type '{type_name}' ({mode} check)")
+        stdout.print(
+            f"SUCCESS, schema of '{filename}' matches type '{type_name}' ({mode} check)"
+        )
         if diff.extra_fields and not strict:
             stdout.print(
                 f"  [dim]{len(diff.extra_fields)} extra field(s) in file "
@@ -1094,7 +1105,9 @@ def _print_schema_diff(
 
     if diff.missing_fields:
         skipped = " [dim](skipped)[/dim]" if "missing" in skip else ""
-        out.print(f"[bold red]Missing fields ({len(diff.missing_fields)}):{skipped}[/bold red]")
+        out.print(
+            f"[bold red]Missing fields ({len(diff.missing_fields)}):{skipped}[/bold red]"
+        )
         for f in diff.missing_fields:
             out.print(f"  [red]- {f.path}[/red]  (expected: {f.expected})")
         out.print()
@@ -1123,7 +1136,9 @@ def _print_schema_diff(
 
     if strict and diff.extra_fields:
         skipped = " [dim](skipped)[/dim]" if "extra" in skip else ""
-        out.print(f"[bold blue]Extra fields ({len(diff.extra_fields)}):{skipped}[/bold blue]")
+        out.print(
+            f"[bold blue]Extra fields ({len(diff.extra_fields)}):{skipped}[/bold blue]"
+        )
         for f in diff.extra_fields:
             out.print(f"  [blue]+ {f.path}[/blue]  (type: {f.actual})")
         out.print()
@@ -1221,10 +1236,13 @@ def list_types(theme: tuple[str, ...], simple: bool) -> None:
 
         # display Overture themes first
         if "overture" in namespaces:
-
             if simple:
-                for theme in sorted(namespaces["overture"].keys(), key=lambda x: (x is None, x)):
-                    for key, _ in sorted(namespaces["overture"][theme], key=lambda x: x[0].type):
+                for theme in sorted(
+                    namespaces["overture"].keys(), key=lambda x: (x is None, x)
+                ):
+                    for key, _ in sorted(
+                        namespaces["overture"][theme], key=lambda x: x[0].type
+                    ):
                         stdout.print(f"{key.type}")
             else:
                 stdout.print("[bold red]OVERTURE THEMES[/bold red]", justify="center")
@@ -1233,14 +1251,17 @@ def list_types(theme: tuple[str, ...], simple: bool) -> None:
                 stdout.print("[bold red]ADDITIONAL TYPES[/bold red]", justify="center")
                 stdout.print()
 
-
         for namespace in sorted(namespaces.keys()):
             if namespace == "overture":
                 continue
 
             if simple:
-                for theme in sorted(namespaces[namespace].keys(), key=lambda x: (x is None, x)):
-                    for key, _ in sorted(namespaces[namespace][theme], key=lambda x: x[0].type):
+                for theme in sorted(
+                    namespaces[namespace].keys(), key=lambda x: (x is None, x)
+                ):
+                    for key, _ in sorted(
+                        namespaces[namespace][theme], key=lambda x: x[0].type
+                    ):
                         stdout.print(f"{key.type}")
             else:
                 stdout.print(f"[bold blue]{namespace.upper()}[/bold blue]")
