@@ -46,8 +46,8 @@ jobs:
           role-to-assume: arn:aws:iam::${{ inputs.account_id }}:role/${{ inputs.role_name }}
           role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
 
-      - name: Get CodeArtifact authorization token
-        id: get-code-artifact-auth-token
+      - name: Get CodeArtifact index URL
+        id: get-code-artifact-index-url
         run: |
           AUTH_TOKEN=$(aws codeartifact get-authorization-token \
             --domain ${{ inputs.domain }} \
