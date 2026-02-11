@@ -76,7 +76,7 @@ jobs:
 
       - name: Publish package ${{ matrix.package }} version ${{ matrix.after }} to PyPI
         run: |
-          echo TODO: TEMP: VERIFY: "${{ steps.get-code-artifact-index-url.index_url }}" TODO DELETE THIS DO NOT MERGE
+          echo TODO: TEMP: VERIFY: "${{ steps.get-code-artifact-index-url.outputs.index_url }}" TODO DELETE THIS DO NOT MERGE
           package="${{ matrix.package }}"
           before="${{ matrix.before }}"
           after="${{ matrix.after }}"
@@ -92,4 +92,4 @@ jobs:
             echo "    Source tarball file [$tarball] not found. Aborting!"
             exit 1
           fi
-          uv publish "$wheel" "$tarball" --publish-url "${{ steps.get-code-artifact-index-url.index_url }}"
+          uv publish "$wheel" "$tarball" --publish-url "${{ steps.get-code-artifact-index-url.outputs.index_url }}"
