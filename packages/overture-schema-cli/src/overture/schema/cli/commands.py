@@ -1032,6 +1032,8 @@ def validate_schema_command(
 
 def _write_diff(diff: "SchemaDiff", output: Path) -> None:  # noqa: F821
     """Write schema diff rows to a CSV or Parquet file."""
+    if output is None:
+        return
     rows = diff.to_rows()
     suffix = output.suffix.lower()
 
