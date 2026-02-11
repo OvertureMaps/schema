@@ -6,6 +6,33 @@ on:
     paths:
       - '**/pyproject.toml'
       - 'packages/**/__about__.py'
+    inputs:
+      aws_account_id:
+        description: The AWS account ID that owns the CodeArtifact domain
+        type: string
+        required: false
+        default: 505071440022
+      aws_region:
+        description: The AWS region where the CodeArtifact repository is hosted
+        type: string
+        required: false
+        default: us-west-2
+      aws_iam_role_name:
+        description: The name of the IAM role to assume for accessing CodeArtifact
+        type: string
+        required: false
+        default: GithubActions_Schema_CodeArtifact_Publish
+      domain:
+        description: The CodeArtifact domain name
+        type: string
+        required: false
+        default: overture-pypi
+      repository:
+        description: The CodeArtifact repository name
+        type: string
+        required: false
+        default: overture
+
 
 permissions:
   id-token: write
@@ -18,11 +45,6 @@ jobs:
     with:
       before_commit: ${{ github.event.before }}
       after_commit: ${{ github.event.after }}
-
-  get-index-url:
-    uses: ./.github/workflows/reusable-get-code-artifact-index-url.yaml
-    with:
-      role_name: GithubActions_Schema_CodeArtifact_Publish
 
   publish:
     needs: [check, get-index-url]
@@ -43,8 +65,18 @@ jobs:
       - name: Sync code to make packages visible to Python
         run: uv sync --all-packages
 
+      - name: Get CodeArtifact index URL
+        id: get-code-artifact-index-url
+        run: |
+          echo 'index_url=<<EOF' >> $GITHUB_OUTPUT
+          ./.github/workflows/scripts/get-code-artifact-index-url.sh \
+            "${{ inputs.aws_account_id }}" "${{ inputs.aws_region }}" \
+            "${{ inputs.domain }}" "${{ inputs.repository }}" >> $GITHUB_OUTPUT
+          echo EOF >> $GITHUB_OUTPUT
+
       - name: Publish package ${{ matrix.package }} version ${{ matrix.after }} to PyPI
         run: |
+          echo TODO: TEMP: VERIFY: "${{ steps.get-code-artifact-index-url.index_url }}" TODO DELETE THIS DO NOT MERGE
           package="${{ matrix.package }}"
           before="${{ matrix.before }}"
           after="${{ matrix.after }}"
@@ -60,5 +92,4 @@ jobs:
             echo "    Source tarball file [$tarball] not found. Aborting!"
             exit 1
           fi
-          printf "TODO: DELETE THIS temporary %s\n" "${{ needs.get-index-url.secrets.index_url }}"
-          uv publish "$wheel" "$tarball" --publish-url "${{ needs.get-index-url.secrets.index_url }}"
+          uv publish "$wheel" "$tarball" --publish-url "${{ steps.get-code-artifact-index-url.index_url }}"
