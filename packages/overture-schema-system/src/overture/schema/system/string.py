@@ -35,7 +35,7 @@ CountryCodeAlpha2 = NewType(
         Field(description="An ISO 3166-1 alpha-2 country code"),
     ],
 )  # type: ignore [type-arg]
-"""
+CountryCodeAlpha2.__doc__ = """
 An ISO-3166-1 alpha-2 country code.
 """
 
@@ -49,7 +49,7 @@ HexColor = NewType(
         ),
     ],
 )  # type: ignore [type-arg]
-"""
+HexColor.__doc__ = """
 A color represented as an #RRGGBB or #RGB hexadecimal string.
 
 For example:
@@ -67,7 +67,7 @@ JsonPointer = NewType(
         Field(description="A JSON Pointer (as described in RFC-6901)"),
     ],
 )  # type: ignore [type-arg]
-"""
+JsonPointer.__doc__ = """
 A JSON Pointer
 
 As described in `the JSON Pointer specification, RFC-6901`_.
@@ -91,7 +91,7 @@ LanguageTag = NewType(
         ),
     ],
 )  # type: ignore [type-arg]
-"""
+LanguageTag.__doc__ = """
 A BCP-47 language tag.
 
 As described in `Tags for Identifying Languages, BCP-47`_.
@@ -114,7 +114,7 @@ NoWhitespaceString = NewType(
         Field(description="A string that contains no whitespace characters"),
     ],
 )  # type: ignore [type-arg]
-"""
+NoWhitespaceString.__doc__ = """
 A string that contains no whitespace characters.
 """
 
@@ -124,7 +124,7 @@ PhoneNumber = NewType(
         str, PhoneNumberConstraint(), Field(description="An international phone number")
     ],
 )  # type: ignore [type-arg]
-"""
+PhoneNumber.__doc__ = """
 An international phone number.
 """
 
@@ -136,12 +136,12 @@ RegionCode = NewType(
         Field(description="An ISO 3166-2 principal subdivision code"),
     ],
 )  # type: ignore [type-arg]
-"""
+RegionCode.__doc__ = """
 An ISO 3166-2 principal subdivision code.
 """
 
 SnakeCaseString = NewType("SnakeCaseString", Annotated[str, SnakeCaseConstraint()])
-"""
+SnakeCaseString.__doc__ = """
 A string that looks like a snake case identifier, like a Python variable name (*e.g.*, `foo_bar`).
 """
 
@@ -155,7 +155,7 @@ StrippedString = NewType(
         ),
     ],
 )  # type: ignore [type-arg]
-"""
+StrippedString.__doc__ = """
 A string without leading or trailing whitespace.
 """
 
@@ -167,7 +167,7 @@ WikidataId = NewType(
         Field(description="A wikidata ID, as found on https://www.wikidata.org/"),
     ],
 )  # type: ignore [type-arg]
-"""
+WikidataId.__doc__ = """
 A wikidata ID, as found on https://www.wikidata.org/.
 
 - `"Q42"`
