@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Annotated, Any, Literal, cast
 
 import pytest
+from _pytest.subtests import Subtests
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -15,7 +16,6 @@ from pydantic import (
     create_model,
 )
 from pydantic.json_schema import JsonSchemaValue, JsonValue
-from pytest_subtests import SubTests
 from util import assert_subset
 
 from overture.schema.system.feature import Feature, _FieldLevel, _maybe_refactor_schema
@@ -37,7 +37,7 @@ from overture.schema.system.primitive import (
 
 class TestFieldDiscriminator:
     @pytest.mark.parametrize("field", ["hello", "type", "properties"])
-    def test_validation_success_simple(self, field: str, subtests: SubTests) -> None:
+    def test_validation_success_simple(self, field: str, subtests: Subtests) -> None:
         """
         Test the discriminated union success case for a discriminator that is a simple string.
 
@@ -150,7 +150,7 @@ class TestFieldDiscriminator:
                 actual = tap.validate_python(expect)
                 assert expect == actual
 
-    def test_validation_success_convert(self, subtests: SubTests) -> None:
+    def test_validation_success_convert(self, subtests: Subtests) -> None:
         """
         Test the discriminated union success case where the discriminator value is of a variety of
         types.
@@ -226,7 +226,7 @@ class TestFieldDiscriminator:
                     model1_actual = tap.validate_python(model1_expect)
                     assert model1_expect == model1_actual
 
-    def test_validation_success_missing_discriminator(self, subtests: SubTests) -> None:
+    def test_validation_success_missing_discriminator(self, subtests: Subtests) -> None:
         """
         Tests a union of discriminated unions against an input that doesn't contain the
         contain the discriminator field of the first union, but does contain the discriminator field
