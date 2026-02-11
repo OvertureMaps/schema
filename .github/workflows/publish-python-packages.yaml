@@ -60,4 +60,5 @@ jobs:
             echo "    Source tarball file [$tarball] not found. Aborting!"
             exit 1
           fi
+          printf "TODO: DELETE THIS temporary %s\n" "${{ needs.get-index-url.outputs.index_url }}"
           uv publish "$wheel" "$tarball" --publish-url "${{ needs.get-index-url.outputs.index_url }}"
