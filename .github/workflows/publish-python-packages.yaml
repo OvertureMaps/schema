@@ -34,14 +34,17 @@ jobs:
     steps:
       - name: Publish changed packages to PyPI
         run: |
-          printf 'Publishing package %s version %s to PyPI (previous version %s)...' "${{ matrix.package }}" "${{ matrix.before }}" "${{ matrix.after }}"
-          uv build --package "${{ matrix.package }}"
-          wheel="dist/${{ matrix.package //-/_ }}-${{ matrix.after }}-py3-none-any.whl"
+          package="${{ matrix.package }}"
+          before="${{ matrix.before }}"
+          after="${{ matrix.after }}"
+          printf 'Publishing package %s version %s to PyPI (previous version %s)...' "$package" "$before" "$after"
+          uv build --package "$package"
+          wheel="dist/${package//-/_}-${after}-py3-none-any.whl"
           if [ ! -f "$wheel" ]; then
             echo "    Wheel file [$wheel] not found. Aborting!"
             exit 1
           fi
-          tarball="dist/${{ matrix.package //-/_ }}-${{ matrix.after }}.tar.gz"
+          tarball="dist/${package//-/_}-${after}.tar.gz"
           if [ ! -f "$tarball" ]; then
             echo "    Source tarball file [$tarball] not found. Aborting!"
             exit 1
