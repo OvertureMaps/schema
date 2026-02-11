@@ -37,6 +37,12 @@ jobs:
         with:
           version: latest
 
+       -name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Sync code to make packages visible to Python
+        run: uv sync --all-packages
+
       - name: Publish package ${{ matrix.package }} version ${{ matrix.after }} to PyPI
         run: |
           package="${{ matrix.package }}"
