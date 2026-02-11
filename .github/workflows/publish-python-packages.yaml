@@ -26,7 +26,7 @@ jobs:
 
   publish:
     needs: [check, get-index-url]
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.repository.full_name == github.repository && needs.check.outputs.num_changed_packages > 0
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -37,7 +37,7 @@ jobs:
           package="${{ matrix.package }}"
           before="${{ matrix.before }}"
           after="${{ matrix.after }}"
-          printf 'Publishing package %s version %s to PyPI (previous version %s)...' "$package" "$before" "$after"
+          printf 'Publishing package %s version %s to PyPI (previous version %s)...\n' "$package" "$before" "$after"
           uv build --package "$package"
           wheel="dist/${package//-/_}-${after}-py3-none-any.whl"
           if [ ! -f "$wheel" ]; then

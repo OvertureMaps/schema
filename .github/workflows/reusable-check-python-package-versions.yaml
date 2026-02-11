@@ -21,6 +21,9 @@ on:
           A JSON array of packages with changed versions, including package name, old version, and
           new version, in the format: `[ {"package": "p1", "before": "v1", "after": "v2"}, ... ]`
         value: ${{ jobs.check-python-package-versions.outputs.changed_packages }}
+      num_changed_packages:
+        description: The number of packages with changed versions
+        value: ${{ jobs.check-python-package-versions.outputs.num_changed_packages }}
 
 
 jobs:
@@ -32,6 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed_packages: ${{ steps.save-changes.outputs.changed_packages }}
+      num_changed_packages: ${{ steps.save-changes.outputs.num_changed_packages }}
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -84,6 +88,7 @@ jobs:
           echo 'changed_packages<<EOF' >> $GITHUB_OUTPUT
           cat /tmp/package-version-diff.json >> $GITHUB_OUTPUT
           echo EOF >> $GITHUB_OUTPUT
+          printf 'num_changed_packages=%s\n' "$(jq -c '. | length' /tmp/package-version-diff.json)" >> $GITHUB_OUTPUT
 
       - name: Fail if any of the new versions already exist in the repo
         run: |
