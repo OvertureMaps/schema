@@ -10,13 +10,13 @@ on:
 jobs:
   check:
     if: github.event.pull_request.head.repo.full_name == github.repository
-    uses: ./.github/workflows/reusable/check-python-package-versions.yaml'
+    uses: ./.github/workflows/reusable-check-python-package-versions.yaml'
     with:
       before_commit: ${{ github.event.before }}
       after_commit: ${{ github.event.after }}
 
   get-index-url:
-    uses: ./.github/workflows/reusable/get-code-artifact-index-url.yaml
+    uses: ./.github/workflows/reusable-get-code-artifact-index-url.yaml
     with:
       role_name: GithubActions_Schema_CodeArtifact_Publish
 
