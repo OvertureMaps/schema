@@ -18,7 +18,7 @@ Id = NewType(
         ),
     ],
 )
-"""
+Id.__doc__ = """
 A unique identifier.
 """
 
