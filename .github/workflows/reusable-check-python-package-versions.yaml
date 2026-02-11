@@ -112,7 +112,7 @@ jobs:
           printf 'num_changed_packages=%s\n' "$(jq -c '. | length' /tmp/package-version-diff.json)" >> $GITHUB_OUTPUT
 
       - name: Configure AWS credentials
-        if: {{ steps.save-changes.outputs.num_changed_packages != '0' }}
+        if: steps.save-changes.outputs.num_changed_packages > 0
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ inputs.aws_region }}
@@ -121,7 +121,7 @@ jobs:
 
       - name: Get CodeArtifact index URL
         id: get-code-artifact-index-url
-        if: {{ steps.save-changes.outputs.num_changed_packages != '0' }}
+        if: steps.save-changes.outputs.num_changed_packages > 0
         run: |
           echo 'index_url<<EOF' >> $GITHUB_OUTPUT
           ./.github/workflows/scripts/get-code-artifact-index-url.sh \
@@ -130,7 +130,7 @@ jobs:
           echo EOF >> $GITHUB_OUTPUT
 
       - name: Fail if any of the new versions already exist in the repo
-        if: {{ steps.save-changes.outputs.num_changed_packages != '0' }}
+        if: steps.save-changes.outputs.num_changed_packages > 0
         run: |
           echo TODO: TEMP: VERIFY: "${{ steps.get-code-artifact-index-url.outputs.index_url }}" TODO DELETE THIS DO NOT MERGE
           jq -c '.[]' /tmp/package-version-diff.json | while read -r entry; do
