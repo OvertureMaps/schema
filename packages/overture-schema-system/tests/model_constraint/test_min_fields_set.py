@@ -3,6 +3,7 @@ from typing import cast
 
 import pytest
 from pydantic import BaseModel, ConfigDict
+from pydantic.json_schema import JsonDict
 from util import assert_subset
 
 from overture.schema.system import create_model
@@ -195,7 +196,7 @@ def test_model_json_schema_no_model_config() -> None:
 
 
 def test_model_json_schema_already_set_same() -> None:
-    expect = {"minProperties": 3, "hello": "world"}
+    expect: JsonDict = {"minProperties": 3, "hello": "world"}
 
     @min_fields_set(3)
     class TestModel(BaseModel):
@@ -211,7 +212,7 @@ def test_model_json_schema_already_set_same() -> None:
 
 
 def test_model_json_schema_error_already_set_different() -> None:
-    expect = {"minProperties": 1, "hello": "world"}
+    expect: JsonDict = {"minProperties": 1, "hello": "world"}
 
     with pytest.raises(
         RuntimeError,

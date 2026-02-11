@@ -181,7 +181,7 @@ class TestScoped:
         when_field_info = SingleScoped.model_fields["when"]
         assert when_field_info.is_required() == required
 
-        when_class = SingleScoped.When
+        when_class = SingleScoped.When  # type: ignore[attr-defined]
         assert issubclass(when_class, BaseModel)
         assert len(when_class.model_fields) == 1
 
@@ -200,7 +200,7 @@ class TestScoped:
         when_field_info = MultiScopedWhenAllFieldsOptional.model_fields["when"]
         assert not when_field_info.is_required()
 
-        when_class = MultiScopedWhenAllFieldsOptional.When
+        when_class = MultiScopedWhenAllFieldsOptional.When  # type: ignore[attr-defined]
         assert issubclass(when_class, BaseModel)
         assert len(when_class.model_fields) == 2
 
@@ -229,7 +229,7 @@ class TestScoped:
         when_field_info = MultiScopedWhenSomeFieldsRequired.model_fields["when"]
         assert when_field_info.is_required()
 
-        when_class = MultiScopedWhenSomeFieldsRequired.When
+        when_class = MultiScopedWhenSomeFieldsRequired.When  # type: ignore[attr-defined]
         assert issubclass(when_class, BaseModel)
         assert len(when_class.model_fields) == 3
 
@@ -270,7 +270,7 @@ class TestScoped:
         when_field_info = Complex.model_fields["when"]
         assert when_field_info.is_required()
 
-        when_class = Complex.When
+        when_class = Complex.When  # type: ignore[attr-defined]
         assert issubclass(when_class, BaseModel)
         assert len(when_class.model_fields) == 3
 

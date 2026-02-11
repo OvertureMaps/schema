@@ -43,7 +43,7 @@ mypy: uv-sync
 		| tr - . \
 		| sed 's|^packages/|-p |' \
 		| xargs uv run mypy --no-error-summary
-	@uv run mypy --no-error-summary packages/*/tests/*.py
+	@for d in packages/*/tests; do find "$$d" -name "*.py" | sort | xargs uv run mypy --no-error-summary || exit 1; done
 
 reset-baseline-schemas:
 	@find . -name \*_baseline_schema.json -delete

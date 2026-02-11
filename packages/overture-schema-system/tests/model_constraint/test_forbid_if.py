@@ -16,7 +16,7 @@ from overture.schema.system.model_constraint import (
 
 
 @pytest.mark.parametrize("field_names", [[], ()])
-def test_error_not_enough_field_names(field_names: list[str]):
+def test_error_not_enough_field_names(field_names: list[str]) -> None:
     with pytest.raises(ValueError, match="`field_names` cannot be empty, but it is"):
         forbid_if(field_names, FieldEqCondition("foo", 42))
 

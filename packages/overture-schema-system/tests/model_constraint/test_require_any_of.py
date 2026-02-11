@@ -25,7 +25,9 @@ def test_error_duplicate_field_names(field_names: list[str]) -> None:
 
 
 def test_error_invalid_model_class() -> None:
-    expect = "specifies one or more fields that are not in the model class `TestModel`: foo, bar"
+    expect = (
+        r"specifies one or more fields that are not in the model class `\w+`: foo, bar"
+    )
 
     with pytest.raises(TypeError, match=expect):
 
@@ -35,10 +37,10 @@ def test_error_invalid_model_class() -> None:
 
     with pytest.raises(TypeError, match=expect):
 
-        class TestModel(BaseModel):
+        class TestModel2(BaseModel):
             baz: int
 
-        RequireAnyOfConstraint("foo", "bar").validate_class(TestModel)
+        RequireAnyOfConstraint("foo", "bar").validate_class(TestModel2)
 
 
 def test_error_invalid_model_instance() -> None:

@@ -9,7 +9,7 @@ from overture.schema.system.model_constraint import (
 
 
 def test_error_invalid_model_class() -> None:
-    expect_pattern = r"can't apply `@?\w+` to model class `TestModel`: existing `model_config\['extra'\]` is already set to '\w+'"
+    expect_pattern = r"can't apply `@?\w+` to model class `\w+`: existing `model_config\['extra'\]` is already set to '\w+'"
 
     with pytest.raises(TypeError, match=expect_pattern):
 
@@ -19,10 +19,10 @@ def test_error_invalid_model_class() -> None:
 
     with pytest.raises(TypeError, match=expect_pattern):
 
-        class TestModel(BaseModel):
+        class TestModelAllow(BaseModel):
             model_config = ConfigDict(extra="allow")
 
-        NoExtraFieldsConstraint().validate_class(TestModel)
+        NoExtraFieldsConstraint().validate_class(TestModelAllow)
 
 
 @pytest.mark.parametrize(
