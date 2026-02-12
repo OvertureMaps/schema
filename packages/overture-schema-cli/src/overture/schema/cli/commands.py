@@ -941,8 +941,15 @@ def parquet_schema_command(
     "--skip-check",
     "skip_checks",
     multiple=True,
-    type=click.Choice(["missing", "extra", "type-mismatch", "nullability"]),
+    type=click.Choice(["missing", "extra", "type-mismatch"]),
     help="Difference category to exclude from pass/fail (repeatable)",
+)
+@click.option(
+    "--check-nullability",
+    "check_nullability",
+    is_flag=True,
+    default=False,
+    help="Include nullability differences in pass/fail (off by default; most Parquet writers ignore nullable metadata)",
 )
 @click.option(
     "-o",
@@ -960,6 +967,7 @@ def validate_schema_command(
     strict: bool,
     ignore_fields: tuple[str, ...],
     skip_checks: tuple[str, ...],
+    check_nullability: bool,
     output: Path | None,
 ) -> None:
     r"""Check whether a Parquet file's schema matches an Overture type.
@@ -993,8 +1001,8 @@ def validate_schema_command(
       # Skip version and bbox fields
       $ overture-schema validate-schema data.parquet --type building --ignore version --ignore bbox
     \b
-      # Check everything except nullability differences
-      $ overture-schema validate-schema data.parquet --type division --skip-check nullability
+      # Also check nullability differences (off by default)
+      $ overture-schema validate-schema data.parquet --type division --check-nullability
     """
     from .format_adapters import FormatValidator
 
@@ -1023,6 +1031,8 @@ def validate_schema_command(
     except Exception as e:
         raise click.UsageError(f"Failed to read file '{filename}': {e}") from e
     skipped = set(skip_checks)
+    if not check_nullability:
+        skipped.add("nullability")
     ok = diff.passed(strict=strict, skip=skipped)
 
     # Output
@@ -1104,19 +1114,15 @@ def _print_schema_diff(
     out.print(f"FAILURE, schema mismatch: '{filename}' vs type '{type_name}'")
     out.print()
 
-    if diff.missing_fields:
-        skipped = " [dim](skipped)[/dim]" if "missing" in skip else ""
-        out.print(
-            f"[bold red]Missing fields ({len(diff.missing_fields)}):{skipped}[/bold red]"
-        )
+    if diff.missing_fields and "missing" not in skip:
+        out.print(f"[bold red]Missing fields ({len(diff.missing_fields)}):[/bold red]")
         for f in diff.missing_fields:
             out.print(f"  [red]- {f.path}[/red]  (expected: {f.expected})")
         out.print()
 
-    if diff.type_mismatches:
-        skipped = " [dim](skipped)[/dim]" if "type-mismatch" in skip else ""
+    if diff.type_mismatches and "type-mismatch" not in skip:
         out.print(
-            f"[bold yellow]Type mismatches ({len(diff.type_mismatches)}):{skipped}[/bold yellow]"
+            f"[bold yellow]Type mismatches ({len(diff.type_mismatches)}):[/bold yellow]"
         )
         for f in diff.type_mismatches:
             out.print(f"  [yellow]~ {f.path}[/yellow]")
@@ -1124,10 +1130,9 @@ def _print_schema_diff(
             out.print(f"      actual:   {f.actual}")
         out.print()
 
-    if diff.nullability_issues:
-        skipped = " [dim](skipped)[/dim]" if "nullability" in skip else ""
+    if diff.nullability_issues and "nullability" not in skip:
         out.print(
-            f"[bold yellow]Nullability issues ({len(diff.nullability_issues)}):{skipped}[/bold yellow]"
+            f"[bold yellow]Nullability issues ({len(diff.nullability_issues)}):[/bold yellow]"
         )
         for f in diff.nullability_issues:
             out.print(f"  [yellow]~ {f.path}[/yellow]")
@@ -1135,11 +1140,8 @@ def _print_schema_diff(
             out.print(f"      actual:   {f.actual}")
         out.print()
 
-    if strict and diff.extra_fields:
-        skipped = " [dim](skipped)[/dim]" if "extra" in skip else ""
-        out.print(
-            f"[bold blue]Extra fields ({len(diff.extra_fields)}):{skipped}[/bold blue]"
-        )
+    if strict and diff.extra_fields and "extra" not in skip:
+        out.print(f"[bold blue]Extra fields ({len(diff.extra_fields)}):[/bold blue]")
         for f in diff.extra_fields:
             out.print(f"  [blue]+ {f.path}[/blue]  (type: {f.actual})")
         out.print()

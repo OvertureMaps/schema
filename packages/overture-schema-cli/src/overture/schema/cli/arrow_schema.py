@@ -239,6 +239,12 @@ def pydantic_to_arrow_type(
             return pa.map_(key_type, value_type)
         return pa.map_(pa.utf8(), pa.utf8())  # Fallback
 
+    # Handle Union[Model, Model, ...] -> struct (use first model)
+    if get_origin(tp) is Union or isinstance(tp, UnionType):
+        extracted = _extract_model_from_union(tp)
+        if extracted is not None:
+            return _model_to_struct_type(extracted)
+
     # Handle Pydantic BaseModel -> struct
     if isinstance(tp, type) and issubclass(tp, BaseModel):
         return _model_to_struct_type(tp)
