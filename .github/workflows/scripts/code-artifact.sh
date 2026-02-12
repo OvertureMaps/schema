@@ -44,15 +44,11 @@ case "$subcommand" in
       >&2 echo "Usage: $0 $subcommand <aws_account_id> <aws_region> <domain> <repository>"
       exit 1
     fi
-    readonly aws_account_id="$2"
-    readonly aws_region="$3"
-    readonly domain="$4"
-    readonly repository="$5"
 
     if [ "$subcommand" = "index-url" ]; then
-      repo_url "" "$aws_account_id" "$aws_region" "$domain" "$repository" "simple/"
+      repo_url "" "$2" "$3" "$4" "$5" "simple/"
     else
-      repo_url $(token) "$aws_account_id" "$aws_region" "$domain" "$repository" ""
+      repo_url $(token) "$2" "$3" "$4" "$5" ""
     fi
     ;;
 
