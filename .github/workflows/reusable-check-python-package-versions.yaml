@@ -124,7 +124,7 @@ jobs:
         if: steps.save-changes.outputs.num_changed_packages > 0
         run: |
           echo 'index_url<<EOF' >> $GITHUB_OUTPUT
-          ./.github/workflows/scripts/code-artifact.sh index-url-with-token \
+          ./.github/workflows/scripts/code-artifact.sh index-url \
             "${{ inputs.aws_account_id }}" "${{ inputs.aws_region }}" \
             "${{ inputs.domain }}" "${{ inputs.repository }}" >> $GITHUB_OUTPUT
           echo EOF >> $GITHUB_OUTPUT
