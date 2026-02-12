@@ -75,7 +75,7 @@ jobs:
 
       - name: Publish package ${{ matrix.package }} version ${{ matrix.after }} to PyPI
         run: |
-          echo TODO: TEMP: VERIFY: "${{ steps.get-code-artifact-params.outputs.token }}" ... "${{ steps.get-code-artifact-params.outputs.publish_url }}" TODO DELETE THIS DO NOT MERGE
+          echo TODO: TEMP: VERIFY: ... "${{ steps.get-code-artifact-params.outputs.publish_url }}" ... "${{ steps.get-code-artifact-params.outputs.token }}" TODO DELETE THIS DO NOT MERGE
           package="${{ matrix.package }}"
           before="${{ matrix.before }}"
           after="${{ matrix.after }}"
@@ -92,5 +92,5 @@ jobs:
             exit 1
           fi
           uv publish "$wheel" "$tarball" \
-            -u aws -t "${{ steps.get-code-artifact-params.outputs.token }}" \
+             -t "${{ steps.get-code-artifact-params.outputs.token }}" \
             --publish-url "${{ steps.get-code-artifact-params.outputs.publish_url }}"
