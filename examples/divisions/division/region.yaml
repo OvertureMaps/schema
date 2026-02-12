@@ -26,5 +26,6 @@ properties:
       - division_id: example:division:region:us-ny
         subtype: region
         name: New York
+  admin_level: 1
   capital_division_ids: [ example:division:locality:albany ]
   parent_division_id: example:division:country:us

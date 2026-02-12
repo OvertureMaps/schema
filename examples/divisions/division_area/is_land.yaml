@@ -305,6 +305,7 @@ properties:
   is_land: true
   is_territorial: false
   country: US
+  admin_level: 0
   version: 0
   class: land
   division_id: example:division:country:us

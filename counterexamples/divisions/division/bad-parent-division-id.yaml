@@ -21,6 +21,7 @@ properties:
         name: A division with an invalid parent division ID
   norms:
     driving_side: right
+  admin_level: 1
   parent_division_id: " "
   ext_expected_errors:
     - "' ' does not match pattern"

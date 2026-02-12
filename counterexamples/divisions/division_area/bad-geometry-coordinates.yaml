@@ -14,5 +14,6 @@ properties:
   names:
     primary: A division area with invalid geometry coordinates.
   country: ZZ
+  admin_level: 0
   ext_expected_errors:
     - got number, want array

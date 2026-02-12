@@ -12,6 +12,7 @@ properties:
   is_territorial: false
   is_land: true
   subtype: macrocounty
+  admin_level: 2
   country: "XX"
   ext_expected_errors:
     - "missing property 'division_ids'"

@@ -18,5 +18,6 @@ properties:
         name: A division with an invalid geometry type.
   norms:
     driving_side: left
+  admin_level: 0
   ext_expected_errors:
     - "value must be 'Point'"

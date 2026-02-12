@@ -20,5 +20,6 @@ properties:
       - division_id: counterexample:division:parent-required-on-sub-country
         subtype: region
         name: A sub-country division that lacks a parent ID
+  admin_level: 1
   ext_expected_errors:
     - "missing property 'parent_division_id'"

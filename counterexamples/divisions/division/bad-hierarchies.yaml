@@ -20,6 +20,7 @@ properties:
       - division_id: counterexample:division:bad-hierarchies-county
         name: bar
     - []
+  admin_level: 2
   norms:
     driving_side: left
   ext_expected_errors:

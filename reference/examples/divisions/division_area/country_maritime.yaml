@@ -86,3 +86,4 @@ properties:
     common:
       en: Finland
   country: FI
+  admin_level: 0
