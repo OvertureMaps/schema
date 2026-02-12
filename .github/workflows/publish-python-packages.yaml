@@ -61,17 +61,21 @@ jobs:
           role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
           role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
 
-      - name: Get CodeArtifact index URL
-        id: get-code-artifact-index-url
+      - name: Get CodeArtifact publish URL
+        id: get-code-artifact-params
         run: |
-          echo 'index_url<<EOF' >> $GITHUB_OUTPUT
-          ./.github/workflows/scripts/get-code-artifact-index-url.sh \
-            505071440022 us-west-2  overture-pypi overture >> $GITHUB_OUTPUT
+          echo 'token<<EOF' >> $GITHUB_OUTPUT
+          ./.github/workflows/scripts/code-artifact.sh token \
+            505071440022 us-west-2 overture-pypi >> $GITHUB_OUTPUT
+          echo EOF >> $GITHUB_OUTPUT
+          echo 'publish_url<<EOF' >> $GITHUB_OUTPUT
+          ./.github/workflows/scripts/code-artifact.sh publish-url \
+            505071440022 us-west-2 overture-pypi overture >> $GITHUB_OUTPUT
           echo EOF >> $GITHUB_OUTPUT
 
       - name: Publish package ${{ matrix.package }} version ${{ matrix.after }} to PyPI
         run: |
-          echo TODO: TEMP: VERIFY: "${{ steps.get-code-artifact-index-url.outputs.index_url }}" TODO DELETE THIS DO NOT MERGE
+          echo TODO: TEMP: VERIFY: "${{ steps.get-code-artifact-params.outputs.token }}" ... "${{ steps.get-code-artifact-params.outputs.publish_url }}" TODO DELETE THIS DO NOT MERGE
           package="${{ matrix.package }}"
           before="${{ matrix.before }}"
           after="${{ matrix.after }}"
@@ -87,4 +91,6 @@ jobs:
             echo "    Source tarball file [$tarball] not found. Aborting!"
             exit 1
           fi
-          uv publish "$wheel" "$tarball" --publish-url "${{ steps.get-code-artifact-index-url.outputs.index_url }}"
+          uv publish "$wheel" "$tarball" \
+            -u aws -t "${{ steps.get-code-artifact-params.outputs.token }}" \
+            --publish-url "${{ steps.get-code-artifact-params.outputs.publish_url }}"
