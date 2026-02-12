@@ -239,11 +239,11 @@ def pydantic_to_arrow_type(
             return pa.map_(key_type, value_type)
         return pa.map_(pa.utf8(), pa.utf8())  # Fallback
 
-    # Handle Union[Model, Model, ...] -> struct (use first model)
+    # Handle Union[Model, Model, ...] -> merge all struct types
     if get_origin(tp) is Union or isinstance(tp, UnionType):
-        extracted = _extract_model_from_union(tp)
-        if extracted is not None:
-            return _model_to_struct_type(extracted)
+        models = _extract_models_from_union(tp)
+        if models:
+            return _merge_struct_types([_model_to_struct_type(m) for m in models])
 
     # Handle Pydantic BaseModel -> struct
     if isinstance(tp, type) and issubclass(tp, BaseModel):
@@ -368,6 +368,124 @@ def _extract_model_from_union(tp: Any) -> type[BaseModel] | None:
                 return unwrapped
 
     return None
+
+
+def _extract_models_from_union(tp: Any) -> list[type[BaseModel]]:
+    """
+    If the type is a Union of BaseModels, extract all of them.
+
+    Returns an empty list if the type is not a Union or doesn't contain BaseModels.
+    """
+    if isinstance(tp, type) and issubclass(tp, BaseModel):
+        return [tp]
+
+    inner, _ = _unwrap_annotated(tp)
+    models: list[type[BaseModel]] = []
+    origin = get_origin(inner)
+    if origin is Union or origin is UnionType:
+        for arg in get_args(inner):
+            unwrapped, _ = _unwrap_annotated(arg)
+            if isinstance(unwrapped, type) and issubclass(unwrapped, BaseModel):
+                models.append(unwrapped)
+    return models
+
+
+def _promote_arrow_types(a: pa.DataType, b: pa.DataType) -> pa.DataType:
+    """
+    Promote two Arrow types to their common supertype.
+
+    For numeric types, returns the wider type. When mixing integers and floats,
+    returns float64 (matching Spark's type promotion behavior when writing Parquet).
+    """
+    import pyarrow as pa
+
+    if a == b:
+        return a
+
+    if pa.types.is_integer(a) and pa.types.is_integer(b):
+        a_unsigned = pa.types.is_unsigned_integer(a)
+        b_unsigned = pa.types.is_unsigned_integer(b)
+        int_rank = {
+            pa.uint8(): 0,
+            pa.uint16(): 1,
+            pa.uint32(): 2,
+            pa.uint64(): 3,
+            pa.int8(): 0,
+            pa.int16(): 1,
+            pa.int32(): 2,
+            pa.int64(): 3,
+        }
+        if a_unsigned == b_unsigned:
+            # Same signedness: pick wider
+            return a if int_rank.get(a, 0) >= int_rank.get(b, 0) else b
+        # Mixed signedness: result must be signed and wide enough to hold the
+        # unsigned type's full range, so promote unsigned one step up in width.
+        uint_to_min_signed = {
+            pa.uint8(): pa.int16(),
+            pa.uint16(): pa.int32(),
+            pa.uint32(): pa.int64(),
+        }
+        unsigned_t = a if a_unsigned else b
+        signed_t = b if a_unsigned else a
+        if unsigned_t not in uint_to_min_signed:
+            raise TypeError(
+                f"Cannot promote {a} and {b}: no signed integer type can represent all uint64 values."
+            )
+        min_signed = uint_to_min_signed[unsigned_t]
+        signed_rank = {pa.int8(): 0, pa.int16(): 1, pa.int32(): 2, pa.int64(): 3}
+        return (
+            min_signed
+            if signed_rank[min_signed] >= signed_rank.get(signed_t, 0)
+            else signed_t
+        )
+
+    if pa.types.is_integer(a) or pa.types.is_integer(b):
+        # int + float -> float64
+        return pa.float64()
+
+    if pa.types.is_floating(a) and pa.types.is_floating(b):
+        return pa.float64() if pa.float64() in (a, b) else pa.float32()
+
+    return a  # fallback: keep first type
+
+
+def _merge_struct_types(struct_types: list[pa.StructType]) -> pa.DataType:
+    """
+    Merge a list of Arrow struct types into one.
+
+    Fields present in all variants keep their promoted type. Fields absent from
+    some variants are included as nullable — matching how Spark flattens
+    discriminated unions when writing Parquet files.
+    """
+    import pyarrow as pa
+
+    if len(struct_types) == 1:
+        return struct_types[0]
+
+    field_types: dict[str, list[pa.DataType]] = {}
+    field_nullable: dict[str, bool] = {}
+    field_order: list[str] = []
+    for st in struct_types:
+        for i in range(st.num_fields):
+            f = st.field(i)
+            if f.name not in field_types:
+                field_order.append(f.name)
+                field_types[f.name] = []
+                field_nullable[f.name] = False
+            field_types[f.name].append(f.type)
+            if f.nullable:
+                field_nullable[f.name] = True
+
+    n = len(struct_types)
+    fields: list[pa.Field] = []
+    for name in field_order:
+        types = field_types[name]
+        promoted = types[0]
+        for t in types[1:]:
+            promoted = _promote_arrow_types(promoted, t)
+        nullable = field_nullable[name] or len(types) < n
+        fields.append(pa.field(name, promoted, nullable=nullable))
+    return pa.struct(fields)
 
 
 def pydantic_model_to_arrow_schema(

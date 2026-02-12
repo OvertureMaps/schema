@@ -12,6 +12,9 @@ pq = pytest.importorskip("pyarrow.parquet")
 
 from overture.schema.cli.arrow_schema import (  # noqa: E402
     _describe_type,
+    _extract_models_from_union,
+    _merge_struct_types,
+    _promote_arrow_types,
     compare_schemas,
     pydantic_model_to_arrow_schema,
     pydantic_to_arrow_type,
@@ -306,6 +309,167 @@ class TestParquetSchemaCommand:
             ],
         )
         assert result.exit_code == 0
+
+
+class TestPromoteArrowTypes:
+    """Tests for _promote_arrow_types numeric type promotion."""
+
+    def test_identical_types_unchanged(self) -> None:
+        assert _promote_arrow_types(pa.int32(), pa.int32()) == pa.int32()
+        assert _promote_arrow_types(pa.float64(), pa.float64()) == pa.float64()
+        assert _promote_arrow_types(pa.uint8(), pa.uint8()) == pa.uint8()
+
+    def test_signed_integers_pick_wider(self) -> None:
+        assert _promote_arrow_types(pa.int8(), pa.int32()) == pa.int32()
+        assert _promote_arrow_types(pa.int32(), pa.int16()) == pa.int32()
+        assert _promote_arrow_types(pa.int16(), pa.int64()) == pa.int64()
+
+    def test_unsigned_integers_pick_wider(self) -> None:
+        assert _promote_arrow_types(pa.uint8(), pa.uint32()) == pa.uint32()
+        assert _promote_arrow_types(pa.uint32(), pa.uint16()) == pa.uint32()
+
+    def test_mixed_signedness_promotes_correctly(self) -> None:
+        # uint8 (0-255) needs at least int16 (-32768..32767)
+        assert _promote_arrow_types(pa.uint8(), pa.int8()) == pa.int16()
+        assert _promote_arrow_types(pa.int8(), pa.uint8()) == pa.int16()
+        # uint8 + int32: int32 already wide enough
+        assert _promote_arrow_types(pa.uint8(), pa.int32()) == pa.int32()
+        # uint16 (0-65535) needs at least int32
+        assert _promote_arrow_types(pa.uint16(), pa.int16()) == pa.int32()
+        assert _promote_arrow_types(pa.uint16(), pa.int64()) == pa.int64()
+        # uint32 (0-4B) needs at least int64
+        assert _promote_arrow_types(pa.uint32(), pa.int32()) == pa.int64()
+        assert _promote_arrow_types(pa.uint32(), pa.int8()) == pa.int64()
+
+    def test_uint64_mixed_raises(self) -> None:
+        with pytest.raises(TypeError, match="uint64"):
+            _promote_arrow_types(pa.uint64(), pa.int32())
+        with pytest.raises(TypeError, match="uint64"):
+            _promote_arrow_types(pa.int8(), pa.uint64())
+
+    def test_int_plus_float_gives_float64(self) -> None:
+        assert _promote_arrow_types(pa.int32(), pa.float32()) == pa.float64()
+        assert _promote_arrow_types(pa.float64(), pa.uint8()) == pa.float64()
+        assert _promote_arrow_types(pa.int64(), pa.float64()) == pa.float64()
+
+    def test_float_plus_float_picks_wider(self) -> None:
+        assert _promote_arrow_types(pa.float32(), pa.float64()) == pa.float64()
+        assert _promote_arrow_types(pa.float64(), pa.float32()) == pa.float64()
+
+    def test_non_numeric_fallback(self) -> None:
+        assert _promote_arrow_types(pa.utf8(), pa.binary()) == pa.utf8()
+
+
+class TestMergeStructTypes:
+    """Tests for _merge_struct_types merging union variant structs."""
+
+    def test_single_struct_returned_as_is(self) -> None:
+        st = pa.struct([pa.field("a", pa.int32()), pa.field("b", pa.utf8())])
+        assert _merge_struct_types([st]) == st
+
+    def test_identical_structs_merged(self) -> None:
+        st = pa.struct([pa.field("x", pa.float64()), pa.field("y", pa.float64())])
+        merged = _merge_struct_types([st, st])
+        assert merged == st
+
+    def test_shared_field_promoted(self) -> None:
+        """Shared field with different types gets promoted."""
+        s1 = pa.struct([pa.field("value", pa.int32())])
+        s2 = pa.struct([pa.field("value", pa.int64())])
+        merged = _merge_struct_types([s1, s2])
+        assert merged.field("value").type == pa.int64()
+
+    def test_missing_field_becomes_nullable(self) -> None:
+        """Field absent from some variants becomes nullable."""
+        s1 = pa.struct(
+            [
+                pa.field("a", pa.utf8(), nullable=False),
+                pa.field("b", pa.int32(), nullable=False),
+            ]
+        )
+        s2 = pa.struct([pa.field("a", pa.utf8(), nullable=False)])
+        merged = _merge_struct_types([s1, s2])
+        assert merged.field("a").nullable is False
+        assert merged.field("b").nullable is True
+
+    def test_nullable_field_stays_nullable(self) -> None:
+        """A field nullable in any variant stays nullable after merge."""
+        s1 = pa.struct([pa.field("x", pa.int32(), nullable=True)])
+        s2 = pa.struct([pa.field("x", pa.int32(), nullable=False)])
+        merged = _merge_struct_types([s1, s2])
+        assert merged.field("x").nullable is True
+
+    def test_field_order_preserved(self) -> None:
+        """Fields appear in the order they're first encountered."""
+        s1 = pa.struct([pa.field("x", pa.int32()), pa.field("y", pa.int32())])
+        s2 = pa.struct([pa.field("z", pa.int32()), pa.field("x", pa.int32())])
+        merged = _merge_struct_types([s1, s2])
+        names = [merged.field(i).name for i in range(merged.num_fields)]
+        assert names == ["x", "y", "z"]
+
+
+class TestExtractModelsFromUnion:
+    """Tests for _extract_models_from_union."""
+
+    def test_single_model_returns_list(self) -> None:
+        from pydantic import BaseModel
+
+        class M(BaseModel):
+            x: int
+
+        assert _extract_models_from_union(M) == [M]
+
+    def test_union_extracts_all(self) -> None:
+        from typing import Annotated
+
+        from pydantic import BaseModel, Field
+
+        class A(BaseModel):
+            a: int
+
+        class B(BaseModel):
+            b: str
+
+        result = _extract_models_from_union(A | B)
+        assert len(result) == 2
+        assert result[0] is A
+        assert result[1] is B
+
+        # Also test with Annotated wrapping
+        result = _extract_models_from_union(Annotated[A | B, Field()])
+        assert len(result) == 2
+        assert result[0] is A
+        assert result[1] is B
+
+    def test_non_model_union_returns_empty(self) -> None:
+        assert _extract_models_from_union(str | int) == []
+
+
+class TestVehicleSelectorMerge:
+    """Integration test: VehicleSelector union produces a correctly merged struct."""
+
+    def test_vehicle_selector_value_is_float64(self) -> None:
+        from overture.schema.core.scoping.vehicle import VehicleSelector
+
+        arrow_type = pydantic_to_arrow_type(VehicleSelector)
+        assert isinstance(arrow_type, pa.StructType)
+        value_field = arrow_type.field("value")
+        assert value_field.type == pa.float64()
+
+    def test_vehicle_selector_unit_is_nullable(self) -> None:
+        from overture.schema.core.scoping.vehicle import VehicleSelector
+
+        arrow_type = pydantic_to_arrow_type(VehicleSelector)
+        unit_field = arrow_type.field("unit")
+        assert unit_field.nullable is True
+
+    def test_vehicle_selector_common_fields_not_nullable(self) -> None:
+        from overture.schema.core.scoping.vehicle import VehicleSelector
+
+        arrow_type = pydantic_to_arrow_type(VehicleSelector)
+        assert arrow_type.field("dimension").nullable is False
+        assert arrow_type.field("comparison").nullable is False
+        assert arrow_type.field("value").nullable is False
 
 
 class TestSchemaComparison:
