@@ -5,39 +5,57 @@ string labels declared by package authors and derived by tag providers. Tags
 become the filtering and grouping mechanism for model discovery, driven by
 package authors rather than central coordination.
 
-Theme remains a first-class structural field. It maps to data partitioning and
-entry point naming, distinct from tags which are descriptive metadata.
+Theme becomes a tag (`overture:theme=buildings`), not a structural field.
+`system` provides generic key-based grouping without understanding what
+"theme" means. Any package can declare theme tags (or any other structured
+tag) without special support in the discovery layer.
 
-## Phase 1: Basic Tagging
+## Phase 1: Structured Tags
 
 Replace namespace with tags, move discovery to `system`, update CLI.
 
+### Tag Format
+
+Tags are strings following the pattern `[namespace:]key[=value]`:
+
+- **Plain**: `overture`, `draft`
+- **Namespaced**: `system:extension` -- `:` separates ownership/reservation
+- **Namespaced k/v**: `overture:theme=buildings`, `codegen:schema_root=overture.schema`
+
+`:` signals ownership/reservation. `=` signals a dimension with a value
+(groupable via `--group-by`). One level of each -- no nested colons or
+multiple `=` signs.
+
 ### Data Model
 
-`ModelKey` drops `namespace`, gains `tags`:
+`ModelKey` drops `namespace` and `theme`, gains `name`:
 
 ```python
 @dataclass(frozen=True, slots=True)
 class ModelKey:
-    theme: str | None
-    type: str
-    tags: frozenset[str]
-    class_name: str
+    name: str              # friendly name from entry point key
+    class_name: str        # entry point value (module:Class)
+    tags: frozenset[str]   # plain and structured tags
 ```
+
+No `namespace` field, no `theme` field. Both are tags.
+
+`name` is the entry point key (before any `#` suffix). It serves as the
+model's friendly identifier in CLI output and codegen path generation.
 
 ### Entry Point Format
 
-Names change from `namespace:theme:type` to `theme:type` (or just `type` for
-non-themed models), with optional `#tag1,tag2` suffix. The group remains
+Entry point keys are `name` or `name#tag1,tag2`. No `theme:type` prefix --
+theme is a package-level keyword. The entry point group remains
 `overture.models`.
 
 ```toml
 [project]
-keywords = ["some-org-tag"]
+keywords = ["overture:theme=buildings"]
 
 [project.entry-points."overture.models"]
-"buildings:building" = "overture.schema.buildings:Building"
-"buildings:building_part#draft" = "overture.schema.buildings:BuildingPart"
+building = "overture.schema.buildings:Building"
+"building_part#draft" = "overture.schema.buildings:BuildingPart"
 ```
 
 A model's tags are the union of:
@@ -45,6 +63,7 @@ A model's tags are the union of:
 - `[project].keywords` from the distribution metadata (read via
   `entry_point.dist.metadata["Keywords"]`)
 - Per-model `#` tags from the entry point name
+- Tag providers (Phase 2)
 
 Note: `[project].keywords` is also used for PyPI search, so schema tags and
 PyPI keywords share a namespace. This was considered and accepted -- in
@@ -54,9 +73,35 @@ needed.
 
 ### Tag Prefix Reservation
 
-The `system:` prefix is reserved for tag providers. Discovery rejects
-author-declared tags (keywords and `#`) that start with `system:`. Static
-sources containing `system:*` tags produce an error (or warning + discard).
+The `system:` prefix is reserved for tag providers registered by
+`overture-schema-system`. Discovery rejects author-declared tags (keywords
+and `#`) that start with `system:`. Static sources containing `system:*` tags
+produce an error (or warning + discard).
+
+All other prefixes are convention-based with no enforcement.
+
+### Tag Parsing Helpers
+
+`system` provides utilities for working with structured tags:
+
+```python
+def tags_by_key(tags: frozenset[str], key: str) -> set[str]:
+    """Extract values for k/v tags with the given key.
+
+    tags_by_key(frozenset({"overture:theme=buildings", "overture", "draft"}), "overture:theme")
+    -> {"buildings"}
+    """
+
+def tags_by_namespace(tags: frozenset[str], namespace: str) -> set[str]:
+    """Extract tag bodies within a namespace.
+
+    tags_by_namespace(frozenset({"system:extension", "overture"}), "system")
+    -> {"extension"}
+    """
+```
+
+`tags_by_key` is the primitive that CLI `--group-by` and codegen path
+generation build on. Both live in `system` alongside `ModelKey`.
 
 ### Discovery
 
@@ -72,51 +117,61 @@ intersect the filter set are included. When `None`, all models are returned.
 Implementation:
 
 1. Iterate `overture.models` entry points
-2. Split name on `#` to separate `theme:type` from per-model tags
-3. Split the prefix on `:` -- one part = type only (theme is `None`), two
-   parts = theme + type
-4. Load the model class via `entry_point.load()`
-5. Read `entry_point.dist.metadata["Keywords"]` for package-level tags
-6. Union package tags and per-model tags, rejecting any `system:*` tags
-7. Build `ModelKey` with `frozenset` tags
+2. Split name on `#` to separate `name` from per-model tags
+3. Load the model class via `entry_point.load()`
+4. Read `entry_point.dist.metadata["Keywords"]` for package-level tags
+5. Union package tags and per-model tags, rejecting any `system:*` tags
+6. Run tag providers (Phase 2)
+7. Build `ModelKey(name=name, class_name=entry_point.value, tags=frozenset(tags))`
 
 ### CLI
 
-`--namespace` and `--overture-types` are removed. `--tag` (repeatable) replaces
-them. `--theme` and `--type` remain.
+`--namespace`, `--overture-types`, and `--theme` are removed. Replaced by:
+
+- `--tag <tag>` (repeatable, OR within tags, AND across other dimensions)
+- `--group-by <key>` -- group output by values of matching `[ns:]key=*` tags
 
 Repeated `--tag` flags use OR: `--tag foo --tag bar` matches models with
-either tag. Repeated `--theme` flags also use OR. Filters compose as AND
-across dimensions: `--tag foo --theme buildings` takes the OR result from tags
-and intersects it with the OR result from themes.
+either tag.
 
-`list-types` groups by theme and displays tags per model:
+`list-types` with `--group-by` groups by the specified tag key and displays
+tags per model:
 
 ```
+$ overture-schema list-types --group-by overture:theme
+
 buildings
   building          overture
   building_part     overture, draft
+
 places
   place             overture
-transportation
-  connector         overture
-  segment           overture
-(unthemed)
+
+(ungrouped)
   sources           overture
 ```
 
+Models without a matching tag appear in "(ungrouped)".
+
+`--group-by` is generic: `--group-by acme:category` works if packages use
+`acme:category=widgets` tags. Default behavior (no `--group-by`): flat list
+with tags column.
+
 ### Migration
 
-Existing `namespace:theme:type` entry points become `theme:type` (or `type`).
-The `namespace` field is removed from `ModelKey`. The `overture` namespace
-does not need replacement as a keyword or `#` tag -- Phase 2 introduces a tag
-provider in `core` that derives the `overture` tag from `OvertureFeature`
-inheritance. The `annex` namespace has no equivalent; annex packages either
-declare their own keywords or rely on tag providers.
+Existing `namespace:theme:type` entry points become `name` (just the type
+name). The `namespace` and `theme` fields are removed from `ModelKey`. Theme
+moves to `overture:theme=X` in `[project].keywords` on each theme package.
+
+The `overture` namespace does not need replacement as a keyword or `#` tag --
+Phase 2 introduces a tag provider in `core` that derives the `overture` tag
+from `OvertureFeature` inheritance. The `annex` namespace has no equivalent;
+annex packages either declare their own keywords or rely on tag providers.
 
 ### What Moves
 
 - `discover_models`, `ModelKey` move to `overture.schema.system.discovery`
+- Tag parsing helpers (`tags_by_key`, `tags_by_namespace`) live in `system`
 - CLI imports from `system` directly
 
 ---
@@ -194,6 +249,10 @@ def overture_provider(
     return tags
 ```
 
+This provider does NOT add `overture:theme=X` -- theme comes from package
+keywords. The provider adds only the flat `overture` tag based on
+inheritance.
+
 Theme packages do not need `"overture"` in `[project].keywords`. The tag is
 derived from `OvertureFeature` inheritance by this provider.
 
@@ -246,9 +305,9 @@ def extension_provider(
 ```
 
 Package authors register extensions as regular `overture.models` entry points.
-Extensions follow the same naming rules as other models: `theme:type` for
-themed extensions, or just `type` for unthemed ones. The `system:extension`
-tag is derived automatically; authors never declare it.
+Extensions follow the same naming rules as other models: `name` or
+`name#tag1,tag2`. The `system:extension` tag is derived automatically; authors
+never declare it.
 
 ### Extension Discovery Helper
 
@@ -277,6 +336,8 @@ The CLI treats `system:extension` as a presentation hint:
 they extend. Core models show a compact cross-reference to available extensions.
 
 ```
+$ overture-schema list-types --group-by overture:theme
+
 buildings
   building              overture
     + capacity, operating-hours
@@ -297,7 +358,7 @@ extensions
 after the model's own fields.
 
 ```
-building (buildings)    overture
+building    overture, overture:theme=buildings
 
   Fields:
     geometry    Geometry
@@ -376,3 +437,66 @@ is TBD.
 - **Organizational policy**: a company publishes their own manifest package
   with their own approved set (including approved extensions).
 - **CLI filtering**: `--tag approved` shows only certified models.
+
+---
+
+## Appendix: Codegen Path Generation
+
+Two strategies depending on whether a type has an entry point.
+
+### Feature Models (have entry points and tags)
+
+`tags_by_key(key.tags, "overture:theme")` provides the theme directory
+(omitted if absent). `to_snake_case(spec.name)` provides the subdirectory and
+filename.
+
+```
+{theme}/{slug}/{slug}.md       # with theme tag
+{slug}/{slug}.md               # without theme tag
+```
+
+No module path involved for features.
+
+### Supplementary Types (no entry points)
+
+Module prefix stripping replaces theme-tag matching for path generation.
+
+**`schema_root` resolution** (checked in order):
+
+1. **Explicit tag**: `codegen:schema_root=overture.schema` in package keywords
+2. **Tag provider**: `core` registers a provider that adds
+   `codegen:schema_root=overture.schema` to models from Overture packages
+3. **Heuristic**: compute common prefix of module paths across the entry
+   point group (the `compute_schema_root()` fallback)
+
+**Path algorithm** for any type:
+
+1. Resolve `schema_root` for the type's distribution
+2. Get `__module__`, strip `{schema_root}.` prefix
+3. Walk remaining components, keep only packages
+   (`hasattr(mod, '__path__')`) -- drops file-level modules
+4. Result is the directory path
+
+| `__module__` | Root | After strip | Pkg-filtered | Path |
+|---|---|---|---|---|
+| `o.s.divisions.division.models` | `overture.schema` | `divisions.division.models` | `divisions.division` | `divisions/division/` |
+| `acme.widgets.places.models` | `acme.widgets` | `places.models` | `places` | `places/` |
+| `acme.widgets.places.restaurants.types` | `acme.widgets` | `places.restaurants.types` | `places.restaurants` | `places/restaurants/` |
+
+Then the existing nesting logic decides: single-feature reference nests under
+that feature; multi-feature reference stays at theme/intermediate level.
+
+### Core/System Types
+
+Uses the same `schema_root` + package-filter algorithm. With
+`schema_root=overture.schema`, a type in `overture.schema.core.cartography`
+yields path `core/` (if `cartography` is a file) or `core/cartography/`
+(if promoted to a package).
+
+The hardcoded `_SUBSYSTEM_MAP` exists because file-level modules lose
+path significance when filtered. Promoting meaningful modules (like
+`cartography.py`) to packages eliminates the map -- a code organization
+change noted as follow-up work.
+
+`compute_schema_root()` and `_SCHEMA_PREFIX` are replaced by the
+`schema_root` tag.
