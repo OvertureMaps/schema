@@ -46,7 +46,7 @@ case "$subcommand" in
     fi
 
     if [ "$subcommand" = "index-url" ]; then
-      repo_url "$(token)" "$2" "$3" "$4" "$5" "simple/"
+      repo_url "$(token "$2" "$3" "$4")" "$2" "$3" "$4" "$5" "simple/"
     else
       repo_url "" "$2" "$3" "$4" "$5" ""
     fi
