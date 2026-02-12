@@ -26,7 +26,7 @@ function repo_url() {
   local -r repository="$5"
   local -r suffix="$6"
 
-  printf "https://%s%s-%s.d.codeartifact.%s.amazonaws.com/pypi/%s/%s\n" \
+  printf "https://%s%s-%s.d.codeartifact.%s.amazonaws.com/pypi/%s%s\n" \
     "$credentials" "$domain" "$aws_account_id" "$aws_region" "$repository" "$suffix"
 }
 
@@ -46,7 +46,7 @@ case "$subcommand" in
     fi
 
     if [ "$subcommand" = "index-url" ]; then
-      repo_url "$(token "$2" "$3" "$4")" "$2" "$3" "$4" "$5" "simple/"
+      repo_url "$(token "$2" "$3" "$4")" "$2" "$3" "$4" "$5" "/simple/"
     else
       repo_url "" "$2" "$3" "$4" "$5" ""
     fi
