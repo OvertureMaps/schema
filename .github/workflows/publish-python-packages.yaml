@@ -57,7 +57,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ inputs.aws_region }}
+          aws-region: us-west-2
           role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
           role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
 
