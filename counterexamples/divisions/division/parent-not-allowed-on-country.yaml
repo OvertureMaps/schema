@@ -16,6 +16,7 @@ properties:
     - - division_id: counterexample:division:parent-not-allowed-on-country
         subtype: country
         name: A country division that has a parent ID, which is not allowed
+  admin_level: 0
   parent_division_id: counterexample:division:some-parent-division
   ext_expected_errors:
     - "[S#/properties/properties/allOf/3/then]: not failed"

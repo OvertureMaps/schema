@@ -79,6 +79,7 @@ properties:
   is_territorial: true
   is_land: false
   country: FI
+  admin_level: 0
   version: 0
   class: land
   division_id: example:division:country:fi

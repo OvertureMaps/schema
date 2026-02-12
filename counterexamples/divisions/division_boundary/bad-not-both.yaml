@@ -9,6 +9,7 @@ properties:
   type: division_boundary
   version: 1
   subtype: country
+  admin_level: 0
   is_land: true
   is_territorial: true
   class: land

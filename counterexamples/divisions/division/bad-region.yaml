@@ -20,6 +20,7 @@ properties:
       - division_id: counterexample:division:bad-region
         subtype: region
         name: A division with an invalid ISO 3166-2 primary subdivision code ('region')
+  admin_level: 1
   parent_division_id: counterexample:division:some-parent-division
   ext_expected_errors:
     - "minLength: got 3, want 4"
