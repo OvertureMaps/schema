@@ -1,0 +1,13 @@
+---
+title: Taxonomy Browser
+description: Browse and explore the Overture Places taxonomy hierarchy
+---
+
+import TaxonomyBrowser from '@site/src/components/taxonomyBrowser';
+import taxonomyCsv from '!!raw-loader!./overture-taxonomy-feb.csv';
+
+# Taxonomy Browser
+
+Explore and compare Point of Interest classification systems.
+
+<TaxonomyBrowser csvData={taxonomyCsv} />

@@ -1,0 +1,286 @@
+.taxonomy-browser {
+  display: flex;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 6px;
+  min-height: 600px;
+  background: var(--ifm-background-color);
+  font-family: var(--ifm-font-family-base);
+}
+
+.taxonomy-browser-left {
+  flex: 1;
+  border-right: 1px solid var(--ifm-color-emphasis-200);
+  display: flex;
+  flex-direction: column;
+  max-width: 50%;
+}
+
+.taxonomy-browser-right {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Header with tabs */
+.taxonomy-browser-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px 8px;
+}
+
+.taxonomy-browser-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.taxonomy-tab {
+  padding: 6px 14px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.85em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--ifm-font-family-base);
+}
+
+.taxonomy-tab:hover {
+  background: var(--ifm-color-emphasis-100);
+  color: var(--ifm-font-color-base);
+}
+
+.taxonomy-tab--active {
+  background: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+  color: #fff;
+}
+
+.taxonomy-tab--active:hover {
+  background: var(--ifm-color-primary-dark);
+  color: #fff;
+}
+
+.taxonomy-browser-cat-count {
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.9em;
+}
+
+/* Search */
+.taxonomy-browser-search {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 0 16px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  font-size: 0.95em;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.taxonomy-browser-search:focus {
+  border-color: var(--ifm-color-primary);
+}
+
+.taxonomy-browser-search::placeholder {
+  color: var(--ifm-color-emphasis-500);
+}
+
+/* Tree */
+.taxonomy-browser-tree {
+  flex: 1;
+  overflow-y: auto;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  padding: 4px 0;
+}
+
+.taxonomy-tree-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  user-select: none;
+  line-height: 1.4;
+}
+
+.taxonomy-tree-item:hover {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.taxonomy-tree-item--selected {
+  background: var(--ifm-color-emphasis-200);
+}
+
+.taxonomy-tree-item--selected:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+.taxonomy-tree-chevron {
+  width: 16px;
+  font-size: 0.75em;
+  color: var(--ifm-color-emphasis-500);
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.taxonomy-tree-name {
+  flex: 1;
+  font-size: 0.93em;
+}
+
+.taxonomy-tree-count {
+  color: var(--ifm-color-emphasis-500);
+  font-size: 0.85em;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.taxonomy-tree-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ifm-color-emphasis-500);
+  font-size: 0.9em;
+}
+
+/* Detail panel - empty state */
+.taxonomy-detail-empty {
+  text-align: center;
+  color: var(--ifm-color-emphasis-500);
+  margin-top: 180px;
+}
+
+.taxonomy-detail-empty h3 {
+  font-size: 1.2em;
+  margin-bottom: 8px;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.taxonomy-detail-empty p {
+  font-size: 0.9em;
+  max-width: 280px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Detail panel - selected */
+.taxonomy-detail {
+  width: 100%;
+}
+
+/* Breadcrumb */
+.taxonomy-detail-breadcrumb {
+  margin-bottom: 4px;
+  font-size: 0.9em;
+  display: inline;
+}
+
+.taxonomy-detail-crumb {
+  color: var(--ifm-color-primary);
+  font-weight: 500;
+}
+
+.taxonomy-detail-arrow {
+  color: var(--ifm-font-color-base);
+  font-weight: 700;
+  font-size: 1.1em;
+  margin: 0 2px;
+}
+
+.taxonomy-detail-name {
+  font-size: 1.8em;
+  font-weight: 600;
+  margin: 4px 0 12px;
+}
+
+/* Level + Basic Category on same line */
+.taxonomy-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.taxonomy-detail-level {
+  background: var(--ifm-color-emphasis-200);
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.taxonomy-detail-basic-inline {
+  font-size: 0.9em;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.taxonomy-detail-basic-inline code {
+  font-size: 0.9em;
+}
+
+.taxonomy-detail-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--ifm-color-primary-lightest);
+  color: var(--ifm-color-primary-darkest);
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+/* POI count row */
+.taxonomy-detail-poi-row {
+  margin-top: 12px;
+  font-size: 0.95em;
+}
+
+.taxonomy-detail-pct {
+  color: var(--ifm-color-emphasis-500);
+  font-size: 0.9em;
+}
+
+/* Cross-reference section (old/new taxonomy comparison) */
+.taxonomy-detail-crossref {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.taxonomy-detail-crossref h4 {
+  font-size: 0.95em;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.taxonomy-detail-crossref-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+}
+
+.taxonomy-detail-crossref-label {
+  color: var(--ifm-color-emphasis-600);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.taxonomy-detail-crossref-row code {
+  font-size: 0.9em;
+}
+
+.taxonomy-detail-crossref-note {
+  font-size: 0.9em;
+  color: var(--ifm-color-emphasis-500);
+  font-style: italic;
+  margin: 0;
+}
