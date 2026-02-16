@@ -191,14 +191,14 @@ def pydantic_to_arrow_type(
         return pa.binary()
 
     # BBox -> struct
-    # BBoxes are floats, not doubles -- this is intentional; we don't need sub-meter precision + we save a ton of space in our files
+    # BBoxes are doubles in order to work around a Trino bug in Athena https://github.com/trinodb/trino/issues/21754
     if tp is BBox or (isinstance(tp, type) and issubclass(tp, BBox)):
         return pa.struct(
             [
-                pa.field("xmin", pa.float32()),
-                pa.field("ymin", pa.float32()),
-                pa.field("xmax", pa.float32()),
-                pa.field("ymax", pa.float32()),
+                pa.field("xmin", pa.float64()),
+                pa.field("ymin", pa.float64()),
+                pa.field("xmax", pa.float64()),
+                pa.field("ymax", pa.float64()),
             ]
         )
 

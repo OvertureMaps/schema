@@ -78,10 +78,10 @@ class TestArrowSchemaConversion:
         arrow_type = pydantic_to_arrow_type(BBox)
         expected = pa.struct(
             [
-                pa.field("xmin", pa.float32()),
-                pa.field("ymin", pa.float32()),
-                pa.field("xmax", pa.float32()),
-                pa.field("ymax", pa.float32()),
+                pa.field("xmin", pa.float64()),
+                pa.field("ymin", pa.float64()),
+                pa.field("xmax", pa.float64()),
+                pa.field("ymax", pa.float64()),
             ]
         )
         assert arrow_type == expected
