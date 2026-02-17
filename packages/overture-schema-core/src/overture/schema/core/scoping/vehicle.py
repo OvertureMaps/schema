@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from overture.schema.core.unit import LengthUnit, WeightUnit
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import float32, uint8
+from overture.schema.system.primitive import float64, uint8
 
 
 class VehicleDimension(str, Enum):
@@ -57,7 +57,7 @@ class VehicleHeightSelector(BaseModel):
     dimension: Literal[VehicleDimension.HEIGHT]
     comparison: VehicleRelation
     value: Annotated[
-        float32,
+        float64,
         Field(
             ge=0, description="Vehicle height selection threshold in the given `unit`"
         ),
@@ -74,7 +74,7 @@ class VehicleLengthSelector(BaseModel):
     dimension: Literal[VehicleDimension.LENGTH]
     comparison: VehicleRelation
     value: Annotated[
-        float32,
+        float64,
         Field(
             ge=0, description="Vehicle length selection threshold in the given `unit`"
         ),
@@ -91,7 +91,7 @@ class VehicleWeightSelector(BaseModel):
     dimension: Literal[VehicleDimension.WEIGHT]
     comparison: VehicleRelation
     value: Annotated[
-        float32,
+        float64,
         Field(
             ge=0, description="Vehicle weight selection threshold in the given `unit`"
         ),
@@ -108,7 +108,7 @@ class VehicleWidthSelector(BaseModel):
     dimension: Literal[VehicleDimension.WIDTH]
     comparison: VehicleRelation
     value: Annotated[
-        float32,
+        float64,
         Field(
             ge=0, description="Vehicle width selection threshold in the given `unit`"
         ),
