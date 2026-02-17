@@ -4,12 +4,12 @@ from pydantic import (
     Field,
 )
 
-from overture.schema.system.primitive import float32, int32
+from overture.schema.system.primitive import float64, int32
 
 ConfidenceScore = NewType(
     "ConfidenceScore",
     Annotated[
-        float32,
+        float64,
         Field(description="Confidence score between 0.0 and 1.0", ge=0.0, le=1.0),
     ],
 )
