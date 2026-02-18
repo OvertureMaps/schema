@@ -1,30 +1,204 @@
 # Tags: Extensible Model Grouping via Entry Points
 
-Replace the hardcoded `namespace` concept (`"overture"`, `"annex"`) with tags --
-string labels declared by package authors and derived by tag providers. Tags
-become the filtering and grouping mechanism for model discovery, driven by
-package authors rather than central coordination.
+Move model discovery into `system`, eliminating assumptions about Overture in
+the process. Replace the hardcoded `namespace` concept (`"overture"`, `"annex"`)
+and the `ModelKind` classifier with tags -- string labels derived by tag
+providers. Tags become the filtering, grouping, and classification mechanism
+for model discovery, driven by introspection and package metadata rather than
+central coordination.
 
-Theme becomes a tag (`overture:theme=buildings`), not a structural field.
-`system` provides generic key-based grouping without understanding what
-"theme" means. Any package can declare theme tags (or any other structured
-tag) without special support in the discovery layer.
+`system` provides generic tag-based grouping without understanding what any
+particular tag means. Any package can register tag providers that classify
+models without special support in the discovery layer.
 
-## Phase 1: Structured Tags
+## Purpose
 
-Replace namespace with tags, move discovery to `system`, update CLI.
+Tags serve three roles:
 
-### Tag Format
+- **CLI filtering**: select subsets of models for output and codegen
+  (`--tag overture`, `--tag draft`)
+- **Classification and endorsement**: distinguish features from extensions,
+  mark models as vetted or approved by an authority
+- **Marketplace taxonomy**: browse and classify models and extensions in a
+  future extension catalog
 
-Tags are strings following the pattern `[namespace:]key[=value]`:
+These roles overlap -- a tag like `overture:theme=buildings` serves both
+filtering and taxonomy. The design accommodates this overlap through
+structured tags that encode both ownership and dimension (see Tag Format).
 
-- **Plain**: `overture`, `draft`
-- **Namespaced**: `system:extension` -- `:` separates ownership/reservation
-- **Namespaced k/v**: `overture:theme=buildings`, `codegen:schema_root=overture.schema`
+## Generalizing the Classifier
 
-`:` signals ownership/reservation. `=` signals a dimension with a value
-(groupable via `--group-by`). One level of each -- no nested colons or
-multiple `=` signs.
+The `pydantic-extensions` branch introduces `ModelKind`, an enum that
+classifies models by introspecting their type hierarchy:
+
+```python
+class ModelKind(str, Enum):
+    OVERTURE_MODEL = "overture_model"
+    EXTENSION_MODEL = "extension_model"
+    BASE_MODEL = "base_model"
+```
+
+`ModelKind.of()` inspects a model and returns a fixed classification.
+`discover_models` then hardcodes how each kind maps to namespace and theme:
+
+```python
+match ModelKind.of(model_class):
+    case ModelKind.OVERTURE_MODEL:
+        ns = "overture"
+        theme = get_args(first_class.model_fields["theme"].annotation)[0]
+    case ModelKind.EXTENSION_MODEL:
+        ns = "extensions"
+    case ModelKind.BASE_MODEL:
+        ns = "annex"
+```
+
+This works for the current set of three categories but embeds assumptions
+that limit extensibility:
+
+- **Closed classification set.** Adding a new kind requires changing the enum
+  and every `match` statement that consumes it. Third-party packages cannot
+  introduce new classifications.
+- **Overture-specific logic in discovery.** `OVERTURE_MODEL` detection depends
+  on `OvertureFeature`, which lives in `core`. Discovery in `system` should
+  not import from `core`.
+- **Classification and discovery are coupled.** The `match` block maps kinds
+  to structural fields (`namespace`, `theme`). The mapping is implicit and
+  changes when the data model changes.
+
+Tags generalize this. A tag provider does the same introspection work as
+`ModelKind.of()` but returns tags instead of enum values:
+
+| `ModelKind` | Equivalent tags | Provider location |
+|---|---|---|
+| `OVERTURE_MODEL` | `feature`, `overture` | `system`, `core` |
+| `EXTENSION_MODEL` | `system:extension` | `system` |
+| `BASE_MODEL` | *(no tag -- it's the default)* | -- |
+
+The `feature` tag comes from `Feature` inheritance (checked in `system`).
+The `overture` tag comes from `OvertureFeature` inheritance (checked in
+`core`). These are separate providers because the concepts live in separate
+packages -- `system` knows about `Feature` but not `OvertureFeature`.
+
+The classification becomes open: any package can register a tag provider that
+adds new classifications without modifying `system` or `core`. Discovery
+consumes tags generically -- it does not understand what any tag means.
+
+Theme stops being a structural field derived from model annotations inside
+discovery. It becomes a tag (`overture:theme=buildings`) produced by a
+provider in `core` that reads the model's `theme` field. Discovery sees
+theme tags the same way it sees any other tag.
+
+---
+
+## Tag Format
+
+Tags are strings following the pattern `[prefix:]key[=value]`:
+
+- **Plain**: `overture`, `draft`, `feature`
+- **Prefixed**: `system:extension` -- `:` separates ownership
+- **Prefixed k/v**: `overture:theme=buildings`
+
+`:` signals ownership and enables prefix reservation (see Privileged Packages
+and Tag Reservation). `=` signals a dimension with a value (groupable via
+`--group-by`). One level of each -- no nested colons or multiple `=` signs.
+
+### Tag Limits
+
+To prevent unbounded tag proliferation, tag providers should add O(1) tags
+per model -- classifications and dimensional values, not open-ended lists.
+Discovery warns when a model accumulates more than 16 tags after all
+providers run. This is a diagnostic guard, not a hard limit; it catches
+runaway providers without constraining legitimate use.
+
+---
+
+## Privileged Packages and Tag Reservation
+
+### Prefix Reservation
+
+Prefixed tags (`prefix:*`) are owned by specific packages. A privilege table
+in `system` maps prefixes to the packages authorized to produce them:
+
+```python
+# overture.schema.system.privileges
+RESERVED_PREFIXES: dict[str, set[str]] = {
+    "system": {"overture-schema-system"},
+    "overture": {"overture-schema-core"},
+}
+```
+
+Discovery enforces this: when a tag provider adds a prefixed tag, the
+provider's `entry_point.dist.name` must appear in the authorized set for
+that prefix. Violations produce a warning and the tag is discarded.
+
+The table is maintained in `system` and updated as the ecosystem grows. New
+packages claim prefixes by submitting changes to this table.
+
+### Plain Tag Reservation
+
+Specific plain tags (no colon) can also be reserved:
+
+```python
+RESERVED_TAGS: dict[str, set[str]] = {
+    "overture": {"overture-schema-core"},
+    "feature": {"overture-schema-system"},
+}
+```
+
+Same enforcement: only authorized packages may produce these tags via tag
+providers. Unauthorized providers that attempt to add reserved tags see a
+warning and discard.
+
+This is the less-preferred mechanism. Reserving individual strings does not
+scale -- every new reserved word requires an update to the table. Prefix
+reservation (`overture:*` owned by `overture-schema-core`) covers open-ended
+families of tags without per-tag coordination. Plain tag reservation handles
+the small set of broad classifications where a prefix would add noise
+without information.
+
+### Why Prefix-Based Reservation
+
+The alternative is flat reservation only -- reserve specific strings
+(`overture`, `feature`, `extension`, `buildings`, `theme`) without prefix
+semantics. Flat tags keep the `key=value` dimension, and they're shorter.
+But making the prefix opaque has costs:
+
+**Structured tags encode relationships that flat tags cannot.** With
+`overture:theme=buildings`, `--group-by overture:theme` extracts the
+dimension and groups by its values. With flat tags `theme` and `buildings`,
+grouping requires sniffing for pairings -- "does this model have both
+`theme` and `buildings`?" -- and the pairing is implicit. A model tagged
+`theme`, `buildings`, `residential` is ambiguous: are `buildings` and
+`residential` both theme values, or is `residential` a separate
+classification?
+
+**Tags serve both endorsement and discovery.** A flat `buildings` tag in a
+marketplace context is ambiguous: does it mean "this package relates to
+buildings" (taxonomy) or "this package is the endorsed buildings schema"
+(endorsement)? `overture:theme=buildings` unambiguously signals taxonomy;
+endorsement lives in a separate tag (`approved`).
+
+**Multi-ecosystem support requires disambiguation.** When multiple
+ecosystems share the discovery mechanism, prefixes prevent collision:
+`overture:theme=buildings` and `acme:theme=industrial` coexist cleanly.
+Flat `buildings` and `industrial` need external context to distinguish
+their purpose.
+
+**`system` benefits from prefixed tags internally.** `system:extension`
+encodes both the authority (`system`) and the classification (`extension`).
+If `system` uses prefixed tags but the external convention is flat, you have
+two tag systems.
+
+Prefix-based reservation is the primary mechanism. Flat reservation handles
+the small set of unambiguous, high-frequency classifications where a prefix
+would be pure noise (`overture`, `feature`).
+
+---
+
+## Phase 1: Tag Providers and Discovery
+
+Tag providers are the mechanism from the start, not a later addition.
+Discovery loads models, runs tag providers to derive tags, then filters.
 
 ### Data Model
 
@@ -33,52 +207,119 @@ multiple `=` signs.
 ```python
 @dataclass(frozen=True, slots=True)
 class ModelKey:
-    name: str              # friendly name from entry point key
+    name: str              # entry point name
     class_name: str        # entry point value (module:Class)
     tags: frozenset[str]   # plain and structured tags
 ```
 
-No `namespace` field, no `theme` field. Both are tags.
+No `namespace` field, no `theme` field. Both are expressed as tags.
 
-`name` is the entry point key (before any `#` suffix). It serves as the
-model's friendly identifier in CLI output and codegen path generation.
+`name` is the `overture.models` entry point name. It serves as an identifier
+for the package maintainer. CLI output and codegen paths use the class name
+and module path (introspectable from the entry point value), not the entry
+point key. Since `overture.models` keys have no functional role in the
+system, the `name#tag1,tag2` syntax discussed in Deferred: Package Keywords
+as Tag Source remains viable -- the `#` suffix would not affect any consumer.
+
+(By contrast, `overture.tag_providers` entry point names carry rc.d-style
+numeric prefixes that determine provider execution order -- see Provider
+Mechanism.)
 
 ### Entry Point Format
 
-Entry point keys are `name` or `name#tag1,tag2`. No `theme:type` prefix --
-theme is a package-level keyword. The entry point group remains
+Entry point keys are the model's name. The entry point group remains
 `overture.models`.
 
 ```toml
-[project]
-keywords = ["overture:theme=buildings"]
-
 [project.entry-points."overture.models"]
 building = "overture.schema.buildings:Building"
-"building_part#draft" = "overture.schema.buildings:BuildingPart"
+building_part = "overture.schema.buildings:BuildingPart"
 ```
 
-A model's tags are the union of:
+Tags come from tag providers. Providers can introspect model classes,
+package metadata, and entry point attributes to derive tags (see Deferred:
+Package Keywords as Tag Source for an example).
 
-- `[project].keywords` from the distribution metadata (read via
-  `entry_point.dist.metadata["Keywords"]`)
-- Per-model `#` tags from the entry point name
-- Tag providers (Phase 2)
+### Provider Mechanism
 
-Note: `[project].keywords` is also used for PyPI search, so schema tags and
-PyPI keywords share a namespace. This was considered and accepted -- in
-practice, schema-relevant keywords and PyPI discoverability keywords overlap
-naturally, and the `#` per-model mechanism covers cases where finer control is
-needed.
+A new entry point group `overture.tag_providers` registers callables. The
+entry point name determines execution order using rc.d-style numeric prefixes
+(`10_feature`, `50_overture`, `90_approved`).
 
-### Tag Prefix Reservation
+Provider signature:
 
-The `system:` prefix is reserved for tag providers registered by
-`overture-schema-system`. Discovery rejects author-declared tags (keywords
-and `#`) that start with `system:`. Static sources containing `system:*` tags
-produce an error (or warning + discard).
+```python
+(model_class: type[BaseModel], key: ModelKey, tags: set[str]) -> set[str]
+```
 
-All other prefixes are convention-based with no enforcement.
+Providers receive the accumulated tag set and return a (potentially modified)
+set. Tags accumulate across providers: each provider sees the result of all
+prior providers. The caller copies the set before passing it to each provider
+and diffs the copy against the return value to detect additions and removals.
+Providers can remove tags added by earlier providers.
+
+Only providers from packages authorized in the privilege table may add
+reserved tags or prefixed tags. Discovery enforces this by checking
+`entry_point.dist.name` against the privilege table after each provider runs.
+
+**Ordering**: numeric prefixes on entry point names determine execution order.
+Published guidance defines priority ranges:
+
+- 0-19: structural tags (`feature`, `system:extension` in Phase 2)
+- 20-49: derived classifications (`overture`)
+- 50-79: taxonomy tags (`overture:theme=buildings`)
+- 80-99: approval/policy tags (`approved`)
+
+Ranges are illustrative -- actual boundaries TBD.
+
+### Built-in Tag Providers
+
+**`feature` provider** (in `system`, priority 10):
+
+Classifies models that derive from `Feature` (`overture.schema.system.feature`).
+This is the generic base class for all feature models; `OvertureFeature`
+extends it in `core`.
+
+```toml
+# packages/overture-schema-system/pyproject.toml
+[project.entry-points."overture.tag_providers"]
+"10_feature" = "overture.schema.system.tags:feature_provider"
+```
+
+```python
+from overture.schema.system.feature import Feature
+
+def feature_provider(
+    model_class: type[BaseModel], key: ModelKey, tags: set[str]
+) -> set[str]:
+    if isinstance(model_class, type) and issubclass(model_class, Feature):
+        tags.add("feature")
+    return tags
+```
+
+**`overture` provider** (in `core`, priority 50):
+
+Classifies models that derive from `OvertureFeature`.
+
+```toml
+# packages/overture-schema-core/pyproject.toml
+[project.entry-points."overture.tag_providers"]
+"50_overture" = "overture.schema.core.tags:overture_provider"
+```
+
+```python
+from overture.schema.core import OvertureFeature
+
+def overture_provider(
+    model_class: type[BaseModel], key: ModelKey, tags: set[str]
+) -> set[str]:
+    if isinstance(model_class, type) and issubclass(model_class, OvertureFeature):
+        tags.add("overture")
+    return tags
+```
+
+This provider does NOT add `overture:theme=X` -- theme is a separate
+provider (also in `core`) that reads the model's `theme` field annotation.
 
 ### Tag Parsing Helpers
 
@@ -111,25 +352,28 @@ generation build on. Both live in `system` alongside `ModelKey`.
 def discover_models(tags: set[str] | None = None) -> dict[ModelKey, type[BaseModel]]:
 ```
 
-When `tags` is provided, any-match semantics apply: models whose effective tags
-intersect the filter set are included. When `None`, all models are returned.
+When `tags` is provided, any-match semantics apply: models whose effective
+tags intersect the filter set are included. When `None`, all models are
+returned.
 
 Implementation:
 
 1. Iterate `overture.models` entry points
-2. Split name on `#` to separate `name` from per-model tags
-3. Load the model class via `entry_point.load()`
-4. Read `entry_point.dist.metadata["Keywords"]` for package-level tags
-5. Union package tags and per-model tags, rejecting any `system:*` tags
-6. Run tag providers (Phase 2)
-7. Build `ModelKey(name=name, class_name=entry_point.value, tags=frozenset(tags))`
+2. Load the model class via `entry_point.load()`
+3. Load all `overture.tag_providers` entry points, sorted by key
+4. For each model, run each provider in order: copy the current tag set,
+   call the provider, diff the result, enforce the privilege table
+5. Warn if a model exceeds 16 tags
+6. Freeze final `set[str]` into `frozenset[str]` on `ModelKey`, apply
+   filter, return
 
 ### CLI
 
 `--namespace`, `--overture-types`, and `--theme` are removed. Replaced by:
 
-- `--tag <tag>` (repeatable, OR within tags, AND across other dimensions)
-- `--group-by <key>` -- group output by values of matching `[ns:]key=*` tags
+- `--tag <tag>` (repeatable, OR semantics)
+- `--group-by <key>` -- group output by values of matching
+  `[prefix:]key=*` tags
 
 Repeated `--tag` flags use OR: `--tag foo --tag bar` matches models with
 either tag.
@@ -141,11 +385,11 @@ tags per model:
 $ overture-schema list-types --group-by overture:theme
 
 buildings
-  building          overture
-  building_part     overture, draft
+  building          overture, feature
+  building_part     overture, feature, draft
 
 places
-  place             overture
+  place             overture, feature
 
 (ungrouped)
   sources           overture
@@ -153,112 +397,31 @@ places
 
 Models without a matching tag appear in "(ungrouped)".
 
-`--group-by` is generic: `--group-by acme:category` works if packages use
-`acme:category=widgets` tags. Default behavior (no `--group-by`): flat list
-with tags column.
+`--group-by` is generic: `--group-by acme:category` works if packages
+register tag providers that produce `acme:category=widgets` tags. Default
+behavior (no `--group-by`): flat list with tags column.
 
 ### Migration
 
-Existing `namespace:theme:type` entry points become `name` (just the type
-name). The `namespace` and `theme` fields are removed from `ModelKey`. Theme
-moves to `overture:theme=X` in `[project].keywords` on each theme package.
-
-The `overture` namespace does not need replacement as a keyword or `#` tag --
-Phase 2 introduces a tag provider in `core` that derives the `overture` tag
-from `OvertureFeature` inheritance. The `annex` namespace has no equivalent;
-annex packages either declare their own keywords or rely on tag providers.
+Existing `namespace:theme:type` entry points become just the type name. The
+`namespace` and `theme` fields are removed from `ModelKey`. Theme moves to a
+tag provider in `core` that reads model field annotations. The `overture`
+namespace becomes a derived tag from `OvertureFeature` inheritance. The
+`annex` namespace has no equivalent; annex packages either register their
+own tag providers or rely on generic classification.
 
 ### What Moves
 
 - `discover_models`, `ModelKey` move to `overture.schema.system.discovery`
+- Tag provider infrastructure, privilege table live in `system`
+- `feature` provider lives in `system` (`extension` provider added in Phase 2)
+- `overture` and theme providers live in `core`
 - Tag parsing helpers (`tags_by_key`, `tags_by_namespace`) live in `system`
 - CLI imports from `system` directly
 
 ---
 
-## Phase 2: Tag Providers
-
-Derived tags from model introspection. The `overture` tag (currently a hardcoded
-namespace) becomes a derived tag produced by a provider in `core`.
-
-### Provider Mechanism
-
-A new entry point group `overture.tag_providers` registers callables. The entry
-point key is informational (describes the provider's purpose) and not
-interpreted by discovery.
-
-Provider signature:
-
-```python
-(model_class: type[BaseModel], key: ModelKey, tags: set[str]) -> set[str]
-```
-
-Providers receive the accumulated tag set and return a tag set (either the
-same object mutated or a new set). Tags accumulate across providers: each
-provider sees the result of all prior providers plus the static tags. The
-caller copies the set before passing it to each provider and diffs the copy
-against the return value to detect additions and removals. Providers can
-remove static tags (from keywords and `#`) and tags added by earlier
-providers.
-
-**Unresolved: provider ordering.** Since providers chain, execution order
-affects results. Leading candidate: alphabetical by entry point name with
-rc.d-style numeric prefixes (`10_extensions`, `50_overture`, `90_approved`).
-Since the entry point key is informational, providers self-register their
-ordering. Published guidance would define what the priority ranges mean (e.g.,
-0-19 for structural tags, 20-49 for derived tags, 50-79 for classification,
-80-99 for approval/policy). Ranges are illustrative -- actual boundaries TBD.
-
-Providers run after static tag resolution, before filtering. Only tag
-providers registered by `overture-schema-system` may add `system:`-prefixed
-tags. Discovery enforces this by checking `entry_point.dist.name` before
-accepting `system:` additions. This is a convention boundary, not a security
-mechanism -- any package could name itself `overture-schema-system`. It
-prevents accidental `system:` claims from third-party providers and
-ecosystem-specific packages (like `core`).
-
-### Two-Phase Discovery
-
-With tag providers, `discover_models` becomes:
-
-1. **Load phase**: load models, resolve static tags (keywords + `#`)
-2. **Enrich phase**: load all `overture.tag_providers` entry points, run each
-   provider (passing a copy of the current tags), diff input/output to detect
-   changes, enforce `system:` prefix rules
-3. Freeze final `set[str]` tags into `frozenset[str]` on `ModelKey`, apply
-   filter, return
-
-### The `overture` Tag Provider
-
-Lives in `core`, registered as an entry point:
-
-```toml
-# packages/overture-schema-core/pyproject.toml
-[project.entry-points."overture.tag_providers"]
-overture = "overture.schema.core.tags:overture_provider"
-```
-
-```python
-from overture.schema.core import OvertureFeature
-
-def overture_provider(
-    model_class: type[BaseModel], key: ModelKey, tags: set[str]
-) -> set[str]:
-    if isinstance(model_class, type) and issubclass(model_class, OvertureFeature):
-        tags.add("overture")
-    return tags
-```
-
-This provider does NOT add `overture:theme=X` -- theme comes from package
-keywords. The provider adds only the flat `overture` tag based on
-inheritance.
-
-Theme packages do not need `"overture"` in `[project].keywords`. The tag is
-derived from `OvertureFeature` inheritance by this provider.
-
----
-
-## Phase 3: Extension Support
+## Phase 2: Extension Support
 
 Layer extension registration and discovery onto the tagging system. The
 extension mechanism itself (how extensions modify or compose with base models)
@@ -292,7 +455,7 @@ Lives in `system`, registered as an entry point:
 ```toml
 # packages/overture-schema-system/pyproject.toml
 [project.entry-points."overture.tag_providers"]
-extensions = "overture.schema.system.tags:extension_provider"
+"15_extensions" = "overture.schema.system.tags:extension_provider"
 ```
 
 ```python
@@ -305,9 +468,7 @@ def extension_provider(
 ```
 
 Package authors register extensions as regular `overture.models` entry points.
-Extensions follow the same naming rules as other models: `name` or
-`name#tag1,tag2`. The `system:extension` tag is derived automatically; authors
-never declare it.
+The `system:extension` tag is derived automatically; authors never declare it.
 
 ### Extension Discovery Helper
 
@@ -339,12 +500,12 @@ they extend. Core models show a compact cross-reference to available extensions.
 $ overture-schema list-types --group-by overture:theme
 
 buildings
-  building              overture
+  building              overture, feature
     + capacity, operating-hours
-  building_part         overture, draft
+  building_part         overture, feature, draft
 
 places
-  place                 overture
+  place                 overture, feature
     + operating-hours
 
 extensions
@@ -358,7 +519,7 @@ extensions
 after the model's own fields.
 
 ```
-building    overture, overture:theme=buildings
+building    overture, feature, overture:theme=buildings
 
   Fields:
     geometry    Geometry
@@ -375,7 +536,7 @@ field definitions.
 
 ---
 
-## Phase 4: Manifest-Driven Approval (Sketch)
+## Phase 3: Manifest-Driven Approval (Sketch)
 
 A tag provider that checks models against a curated manifest, enabling
 organizations to certify which models (and extensions) they endorse.
@@ -395,7 +556,7 @@ It registers a tag provider:
 ```toml
 # packages/overture-schema-official-extensions/pyproject.toml
 [project.entry-points."overture.tag_providers"]
-approved = "overture.schema.official_extensions:approved_provider"
+"90_approved" = "overture.schema.official_extensions:approved_provider"
 ```
 
 The manifest can match against class names (entry point values), entry point
@@ -440,63 +601,67 @@ is TBD.
 
 ---
 
-## Appendix: Codegen Path Generation
+## Deferred: Package Keywords as Tag Source
 
-Two strategies depending on whether a type has an entry point.
+Package keywords (`[project].keywords` in `pyproject.toml`) are a natural
+source of tags -- they're part of Python distribution metadata and appear in
+PyPI search. The initial design derives all tags from tag providers, but a
+provider could surface keywords as tags:
 
-### Feature Models (have entry points and tags)
-
-`tags_by_key(key.tags, "overture:theme")` provides the theme directory
-(omitted if absent). `to_snake_case(spec.name)` provides the subdirectory and
-filename.
-
+```python
+def keyword_provider(
+    model_class: type[BaseModel], key: ModelKey, tags: set[str]
+) -> set[str]:
+    # Requires access to distribution metadata via entry point or enriched key
+    dist = _get_distribution(key)
+    for kw in dist.metadata.get_all("Keyword", []):
+        kw = kw.strip()
+        if kw and not _is_reserved(kw):
+            tags.add(kw)
+    return tags
 ```
-{theme}/{slug}/{slug}.md       # with theme tag
-{slug}/{slug}.md               # without theme tag
-```
 
-No module path involved for features.
+This is deferred because tag providers handle the initial use cases
+(classification, theme, extensions) without requiring package authors to
+declare keywords. Keywords become useful when:
 
-### Supplementary Types (no entry points)
+- Third-party packages want to self-declare tags without writing a provider
+- A catalog needs author-supplied taxonomy tags beyond what introspection
+  can derive
 
-Module prefix stripping replaces theme-tag matching for path generation.
+The provider above needs access to distribution metadata through `ModelKey`
+or a separate context object -- the current `ModelKey` does not carry this.
+Adding it is straightforward when the need arises.
 
-**`schema_root` resolution** (checked in order):
+Note: `[project].keywords` is also used for PyPI search, so schema tags and
+PyPI keywords share a namespace. In practice, schema-relevant keywords and
+PyPI discoverability keywords overlap naturally.
 
-1. **Explicit tag**: `codegen:schema_root=overture.schema` in package keywords
-2. **Tag provider**: `core` registers a provider that adds
-   `codegen:schema_root=overture.schema` to models from Overture packages
-3. **Heuristic**: compute common prefix of module paths across the entry
-   point group (the `compute_schema_root()` fallback)
+---
 
-**Path algorithm** for any type:
+## Security Roadmap
 
-1. Resolve `schema_root` for the type's distribution
-2. Get `__module__`, strip `{schema_root}.` prefix
-3. Walk remaining components, keep only packages
-   (`hasattr(mod, '__path__')`) -- drops file-level modules
-4. Result is the directory path
+The privilege model is convention-based. The privilege table checks
+`entry_point.dist.name`, which any package can spoof by naming itself
+`overture-schema-system`. This prevents accidental claims, not adversarial
+ones.
 
-| `__module__` | Root | After strip | Pkg-filtered | Path |
-|---|---|---|---|---|
-| `o.s.divisions.division.models` | `overture.schema` | `divisions.division.models` | `divisions.division` | `divisions/division/` |
-| `acme.widgets.places.models` | `acme.widgets` | `places.models` | `places` | `places/` |
-| `acme.widgets.places.restaurants.types` | `acme.widgets` | `places.restaurants.types` | `places.restaurants` | `places/restaurants/` |
+This is acceptable for the current stage. The Python packaging ecosystem
+provides a path to stronger guarantees when needed:
 
-Then the existing nesting logic decides: single-feature reference nests under
-that feature; multi-feature reference stays at theme/intermediate level.
+- **Trusted Publishers** (PyPI): ties package uploads to specific CI/CD
+  identities (GitHub Actions OIDC), preventing unauthorized releases of
+  known package names. Already available on PyPI.
+- **Provenance attestations** (PEP 740): Sigstore-based build provenance
+  lets consumers verify that a package was built from a specific source
+  repository by a specific workflow. PyPI supports this today for packages
+  using Trusted Publishers.
+- **Repository-based classification**: `[project.urls]` metadata carries
+  source repository URLs. A future tag provider could use verified
+  provenance to classify packages by origin repository -- e.g., packages
+  built from the `OvertureMaps/schema` repo get `core` status, packages
+  from `OvertureMaps/schema-extensions` get `vetted` status.
 
-### Core/System Types
-
-Uses the same `schema_root` + package-filter algorithm. With
-`schema_root=overture.schema`, a type in `overture.schema.core.cartography`
-yields path `core/` (if `cartography` is a file) or `core/cartography/`
-(if promoted to a package).
-
-The hardcoded `_SUBSYSTEM_MAP` exists because file-level modules lose
-path significance when filtered. Promoting meaningful modules (like
-`cartography.py`) to packages eliminates the map -- a code organization
-change noted as follow-up work.
-
-`compute_schema_root()` and `_SCHEMA_PREFIX` are replaced by the
-`schema_root` tag.
+The privilege table's interface stays the same as enforcement strengthens;
+only the verification backend changes. Convention-based enforcement upgrades
+to cryptographic enforcement without changing tag semantics.
