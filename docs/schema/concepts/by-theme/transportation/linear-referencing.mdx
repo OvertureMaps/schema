@@ -1,0 +1,62 @@
+---
+title: Linear referencing
+---
+
+Linear referencing allows properties to apply to portions of a segment without splitting the geometry. This promotes shape stability and reduces versioning when only part of a road changes.
+
+## Linear reference values
+
+A linear reference is a **normalized position** from `0.0` (start of segment) to `1.0` (end of segment).
+
+## `at` vs `between`
+
+| Property | Purpose | Example |
+|----------|---------|---------|
+| `at` | Single point location | `at: 0.3` — 30% along segment |
+| `between` | Range along segment | `between: [0.2, 0.7]` — 20% to 70% |
+
+When `between` is not provided (or is null), the attribute applies to the full segment.
+
+## Calculation method
+
+Overture computes linear references using **WGS84 geodetic distance** in meters:
+
+```
+linear_ref = geodetic_distance_along_segment_from_start / total_geodetic_length
+```
+
+Both distances must be computed on the WGS84 ellipsoid—not planar distance on raw lon/lat coordinates. Other approaches exist (e.g., projected coordinates), but geodetic distance provides consistent accuracy globally.
+
+### Examples
+
+**Apache Sedona (SQL):**
+
+```sql
+SELECT ST_LENGTHSPHEROID(ST_GEOMFROMWKB(geometry)) AS segment_length_m
+FROM segments;
+```
+
+**pyproj (Python):**
+
+```python
+from pyproj import Geod
+from shapely import wkb
+
+geod = Geod(ellps="WGS84")
+line_geometry = wkb.loads(geometry)  # geometry is WKB bytes
+segment_length = geod.geometry_length(line_geometry)  # meters
+```
+
+See the [transportation-splitter](https://github.com/OvertureMaps/transportation-splitter) for a complete implementation.
+
+**Warning:** Functions like `ST_LINELOCATEPOINT` can produce incorrect results on geometries that cross over or near themselves in 2D (curved on-ramps, mountain switchbacks, cul-de-sacs). These functions may pick the wrong location when the line passes over or close to itself—even though the geometry is valid because crossings occur at different elevations or positions along the segment. Note that Overture [disallows self-intersecting segments](/schema/concepts/by-theme/transportation/shape-connectivity#loops) in its own data.
+
+## Why geodetic distance matters
+
+Using planar distance (treating lon/lat as Cartesian x/y) can produce incorrect linear references, especially at high latitudes or for long segments. For a 10 km east-west segment at 60°N latitude, planar calculations can underestimate length by ~50%. Some map projections (e.g., EPSG:3857) yield reasonable results for short, straight segments, but accuracy degrades with segment length and curvature.
+
+If a consumer calculates linear references differently than Overture, attribution or connector positions may be misaligned—potentially causing visual discrepancies on rendered maps or routing failures.
+
+## Edge cases
+
+For very short segments (< 1m), floating-point precision may be limited. Treat `at ≈ 0.0` or `at ≈ 1.0` as equivalent to endpoints. When a connector doesn't fall exactly on the geometry, the linear reference corresponds to the closest point on the segment.
