@@ -4,10 +4,104 @@ description: Browse and explore the Overture Places taxonomy hierarchy
 ---
 
 import TaxonomyBrowser from '@site/src/components/taxonomyBrowser';
-import taxonomyCsv from '!!raw-loader!./overture-taxonomy-feb.csv';
+import originalCsv from '!!raw-loader!./csv/2025-04-01-Original-Taxonomy.csv';
+import basicLevelCsv from '!!raw-loader!./csv/2025-09-29-Basic-Level-Category.csv';
+import decemberCsv from '!!raw-loader!./csv/2025-12-05-Categories-Hierarchies.csv';
+import februaryCsv from '!!raw-loader!./csv/2026-02-15-categories-hierarchies.csv';
+import originalCountsCsv from '!!raw-loader!./csv/2025-04-01-counts.csv';
+import basicLevelCountsCsv from '!!raw-loader!./csv/2025-10-22-counts.csv';
+import decemberCountsCsv from '!!raw-loader!./csv/2025-12-05-counts.csv';
 
 # Taxonomy Browser
 
 Explore and compare Point of Interest classification systems.
 
-<TaxonomyBrowser csvData={taxonomyCsv} />
+<TaxonomyBrowser releases={[
+  {
+    id: 'original',
+    label: 'April (Original Taxonomy)',
+    releaseUrl: 'https://docs.overturemaps.org/blog/2025/04/23/release-notes/',
+    note: "April's release was used as the basis for the taxonomy project.",
+    tags: [
+      { label: '23 April 2025', title: 'Date' },
+      { label: '2025-04-23.0', title: 'Data version' },
+      { label: 'v1.8.0', title: 'Schema version' },
+    ],
+    dataCsv: originalCsv,
+    countsCsv: originalCountsCsv,
+    hierarchyFields: ['theme', 'category', 'sub_category', 'speciality'],
+    codeField: 'category_key',
+    fieldNames: ['category_key', 'theme', 'category', 'sub_category', 'speciality'],
+    basicCategoryField: null,
+    displayFields: [
+      { field: 'category_key', label: 'Category Key' },
+    ],
+  },
+  {
+    id: 'basicLevel',
+    label: 'October (Basic Level Category Addition)',
+    releaseUrl: 'https://docs.overturemaps.org/blog/2025/10/22/release-notes/',
+    tags: [
+      { label: '22 October 2025', title: 'Date' },
+      { label: '2025-10-22.0', title: 'Data version' },
+      { label: 'v1.13.0', title: 'Schema version' },
+    ],
+    dataCsv: basicLevelCsv,
+    countsCsv: basicLevelCountsCsv,
+    hierarchyField: 'overture_hierarchy',
+    codeField: 'overture_label',
+    fieldNames: ['basic_hierarchy', 'basic_label', 'modified', 'remove_from_v1', 'match_type', 'overture_label', 'overture_hierarchy'],
+    basicCategoryField: 'basic_label',
+    displayFields: [
+      { field: 'match_type', label: 'Match Type' },
+      { field: 'modified', label: 'Modified' },
+      { field: 'remove_from_v1', label: 'Removed from V1' },
+    ],
+  },
+  {
+    id: 'december',
+    label: 'December (New Hierarchy Addition)',
+    releaseUrl: 'https://docs.overturemaps.org/blog/2025/12/17/release-notes/',
+    tags: [
+      { label: '17 December 2025', title: 'Date' },
+      { label: '2025-12-17.0', title: 'Data version' },
+      { label: 'v1.15.0', title: 'Schema version' },
+    ],
+    dataCsv: decemberCsv,
+    countsCsv: decemberCountsCsv,
+    hierarchyField: 'new_primary_hierarchy',
+    codeField: 'new_primary_category',
+    fieldNames: ['new_primary_category', 'new_primary_hierarchy', 'basic_level_category', 'old_primary_category', 'old_primary_hierarchy'],
+    basicCategoryField: 'basic_level_category',
+    matchColumn: 'old_primary_category',
+    matchType: 'original',
+    displayFields: null
+  },
+  {
+    id: 'february',
+    label: 'February (Bug Fixes, Simplified Basic)',
+    releaseUrl: 'https://docs.overturemaps.org/blog/2025/12/17/release-notes/',
+    enabled: false,
+    tags: [
+      { label: '15 February 2026', title: 'Date' },
+      { label: '2025-12-17.0', title: 'Data version' },
+      { label: 'v1.15.0', title: 'Schema version' },
+    ],
+    dataCsv: februaryCsv,
+    countsCsv: null,
+    hierarchyField: 'new_primary_hierarchy',
+    codeField: 'new_primary_category',
+    fieldNames: ['group', 'level', 'is_basic', 'new_primary_hierarchy', 'new_primary_category', 'new_display_name', 'basic_level_category', 'old_primary_hierarchy', 'old_primary_category', 'added', 'renamed', 'removed', 'redirect_to'],
+    basicCategoryField: 'basic_level_category',
+    matchColumn: 'old_primary_category',
+    matchType: 'new',
+    displayFields: [
+      { field: 'new_display_name', label: 'Display Name' },
+      { field: 'is_basic', label: 'Is Basic' },
+      { field: 'added', label: 'Added' },
+      { field: 'renamed', label: 'Renamed' },
+      { field: 'removed', label: 'Removed' },
+      { field: 'redirect_to', label: 'Redirect To' },
+    ],
+  },
+]} />

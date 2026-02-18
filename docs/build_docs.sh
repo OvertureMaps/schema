@@ -17,6 +17,7 @@ ln -s $(pwd)/components/taxonomyBrowser.js $(pwd)/docusaurus/src/components/taxo
 ln -s $(pwd)/css/taxonomyBrowser.css $(pwd)/docusaurus/src/css/taxonomyBrowser.css
 ln -s $(pwd)/guides/places/taxonomy-browser.mdx $(pwd)/docusaurus/docs/guides/places/taxonomy-browser.mdx
 ln -s $(pwd)/guides/places/overture-taxonomy-feb.csv $(pwd)/docusaurus/docs/guides/places/overture-taxonomy-feb.csv
+ln -s $(pwd)/guides/places/csv $(pwd)/docusaurus/docs/guides/places/csv
 
 echo "Adding taxonomy browser to sidebar"
 sed -i '' "s|'guides/places/taxonomy',|'guides/places/taxonomy',\n            'guides/places/taxonomy-browser',|" $(pwd)/docusaurus/sidebars.js

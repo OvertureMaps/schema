@@ -2,7 +2,7 @@
   display: flex;
   border: 1px solid var(--ifm-color-emphasis-200);
   border-radius: 6px;
-  min-height: 600px;
+  height: 700px;
   background: var(--ifm-background-color);
   font-family: var(--ifm-font-family-base);
 }
@@ -21,53 +21,89 @@
   align-items: flex-start;
   justify-content: center;
   padding: 24px;
+  overflow-y: auto;
 }
 
-/* Header with tabs */
+/* Header with release dropdown */
 .taxonomy-browser-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 12px 16px 8px;
+  gap: 10px;
 }
 
-.taxonomy-browser-tabs {
-  display: flex;
-  gap: 4px;
+.taxonomy-browser-header-label {
+  font-size: 0.78em;
+  font-weight: 500;
+  color: var(--ifm-color-emphasis-500);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.taxonomy-tab {
-  padding: 6px 14px;
+.taxonomy-browser-select {
+  flex: 1;
+  padding: 8px 12px;
   border: 1px solid var(--ifm-color-emphasis-300);
   border-radius: 4px;
-  background: transparent;
-  color: var(--ifm-color-emphasis-600);
-  font-size: 0.85em;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  font-size: 0.9em;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
   font-family: var(--ifm-font-family-base);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: auto;
 }
 
-.taxonomy-tab:hover {
-  background: var(--ifm-color-emphasis-100);
+.taxonomy-browser-select:focus {
+  border-color: var(--ifm-color-primary);
+}
+
+/* Info rows (left panel, between dropdown and search) */
+.taxonomy-info-rows {
+  padding: 0 16px 8px;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  margin-top: 4px;
+}
+
+.taxonomy-info-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  padding: 8px 0 0;
+}
+
+.taxonomy-info-cell {
+  text-align: center;
+}
+
+.taxonomy-info-label {
+  font-size: 0.72em;
+  color: var(--ifm-color-emphasis-500);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.taxonomy-info-value {
+  font-size: 0.8em;
   color: var(--ifm-font-color-base);
 }
 
-.taxonomy-tab--active {
-  background: var(--ifm-color-primary);
-  border-color: var(--ifm-color-primary);
-  color: #fff;
+.taxonomy-info-value a {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
 }
 
-.taxonomy-tab--active:hover {
-  background: var(--ifm-color-primary-dark);
-  color: #fff;
+.taxonomy-info-value a:hover {
+  text-decoration: underline;
 }
 
-.taxonomy-browser-cat-count {
+.taxonomy-section-note {
+  font-size: 0.85em;
   color: var(--ifm-color-emphasis-600);
-  font-size: 0.9em;
+  font-style: italic;
+  margin: 6px 0 8px;
 }
 
 /* Search */
@@ -75,7 +111,7 @@
   display: block;
   width: calc(100% - 32px);
   margin: 0 16px 8px;
-  padding: 10px 12px;
+  padding: 14px 12px;
   border: 1px solid var(--ifm-color-emphasis-300);
   border-radius: 4px;
   font-size: 0.95em;
@@ -137,7 +173,7 @@
 }
 
 .taxonomy-tree-count {
-  color: var(--ifm-color-emphasis-500);
+  color: var(--ifm-color-emphasis-700);
   font-size: 0.85em;
   margin-left: 12px;
   flex-shrink: 0;
@@ -283,4 +319,270 @@
   color: var(--ifm-color-emphasis-500);
   font-style: italic;
   margin: 0;
+}
+
+/* Mappings table - grey style (Basic Level) */
+.taxonomy-mappings-grey-table {
+  width: 100%;
+  margin-top: 12px;
+  border-collapse: collapse;
+  font-size: 0.8em;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 4px;
+  color: var(--ifm-color-emphasis-500);
+}
+
+.taxonomy-mappings-grey-table th {
+  padding: 4px 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9em;
+  background: var(--ifm-color-emphasis-100);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  border-right: 1px solid var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-500);
+}
+
+.taxonomy-mappings-grey-table th:last-child {
+  border-right: none;
+}
+
+.taxonomy-mappings-grey-table td {
+  padding: 4px 8px;
+  text-align: center;
+  border-bottom: 1px solid var(--ifm-color-emphasis-100);
+  border-right: 1px solid var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-500);
+}
+
+.taxonomy-mappings-grey-table td:last-child {
+  border-right: none;
+}
+
+.taxonomy-mappings-grey-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Mappings table (Tab 2) */
+.taxonomy-mappings-table {
+  margin-top: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 4px;
+}
+
+.taxonomy-mappings-header {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--ifm-color-emphasis-100);
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-700);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  position: sticky;
+  top: 0;
+}
+
+.taxonomy-mappings-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 0.85em;
+  border-bottom: 1px solid var(--ifm-color-emphasis-100);
+  align-items: baseline;
+}
+
+.taxonomy-mappings-row:last-child {
+  border-bottom: none;
+}
+
+.taxonomy-mappings-row code {
+  font-size: 0.9em;
+  word-break: break-word;
+}
+
+.taxonomy-mappings-hierarchy {
+  font-size: 0.85em;
+}
+
+.taxonomy-mappings-hierarchy .taxonomy-detail-breadcrumb {
+  margin-bottom: 0;
+}
+
+/* Match type badges */
+.taxonomy-match-exact {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  font-weight: 600;
+  background: #d4edda;
+  color: #155724;
+}
+
+.taxonomy-match-close {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  font-weight: 600;
+  background: #fff3cd;
+  color: #856404;
+}
+
+.taxonomy-match-narrower {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  font-weight: 600;
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* Cross-reference groups (Tab 3) */
+.taxonomy-detail-crossref-group {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--ifm-color-emphasis-100);
+}
+
+.taxonomy-detail-crossref-group:last-child {
+  border-bottom: none;
+}
+
+/* Collapsible sections in detail panel */
+.taxonomy-detail-sections {
+  margin-top: 16px;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  padding-top: 8px;
+}
+
+.taxonomy-collapsible {
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.taxonomy-collapsible:last-child {
+  border-bottom: none;
+}
+
+.taxonomy-collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 4px;
+  border: none;
+  background: transparent;
+  color: var(--ifm-font-color-base);
+  font-size: 1.1em;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: var(--ifm-font-family-base);
+  transition: color 0.15s;
+}
+
+.taxonomy-collapsible-header:hover {
+  color: var(--ifm-color-primary);
+}
+
+.taxonomy-no-match-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 3px;
+  font-size: 0.75em;
+  font-weight: 400;
+  background: #f8d7da;
+  color: #721c24;
+  margin-left: 4px;
+}
+
+.taxonomy-collapsible-chevron {
+  font-size: 0.75em;
+  color: var(--ifm-color-emphasis-500);
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.taxonomy-collapsible-content {
+  padding: 0 4px 12px 20px;
+}
+
+.taxonomy-section-body {
+  font-size: 0.9em;
+}
+
+/* Key:value pairs (inside section content) */
+.taxonomy-kv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.taxonomy-kv-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  padding: 4px 0;
+}
+
+.taxonomy-kv-label {
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.9em;
+  font-weight: 400;
+  width: 120px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.taxonomy-kv-label::after {
+  content: ':';
+  margin-right: 12px;
+}
+
+.taxonomy-kv-value {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.9em;
+}
+
+.taxonomy-kv-value--selected {
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+}
+
+/* Percentile tags */
+.taxonomy-pct-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.taxonomy-pct-top {
+  background: #d4edda;
+  color: #155724;
+}
+
+.taxonomy-pct-bottom {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Change indicators (↑/↓ percentages in summary table) */
+.taxonomy-change-up {
+  color: #1a8a3f;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.taxonomy-change-down {
+  color: #c0392b;
+  font-size: 0.85em;
+  font-weight: 600;
 }
