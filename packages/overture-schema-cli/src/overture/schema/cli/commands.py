@@ -4,6 +4,7 @@ import builtins
 import json
 import sys
 from collections import Counter, defaultdict
+from importlib.metadata import entry_points
 from pathlib import Path
 from typing import cast
 
@@ -130,6 +131,24 @@ def cli() -> None:
       $ overture-schema validate --theme buildings data.json
     """
     pass
+
+
+def load_plugins(group: click.Group) -> None:
+    """Load plugin subcommands from entry points.
+
+    Iterates the ``overture.schema.cli`` entry point group. Each entry point
+    should resolve to a ``click.Command`` or ``click.Group``. Broken plugins
+    emit a warning to stderr and are skipped. Names that collide with
+    already-registered commands are skipped.
+    """
+    for ep in entry_points(group="overture.schema.cli"):
+        if ep.name in group.commands:
+            continue
+        try:
+            cmd = ep.load()
+            group.add_command(cmd, ep.name)
+        except Exception as e:
+            click.echo(f"Warning: failed to load plugin '{ep.name}': {e}", err=True)
 
 
 def load_input(filename: Path) -> tuple[dict | list, str]:
@@ -698,6 +717,12 @@ def list_types() -> None:
 
     except Exception as e:
         click.echo(f"Error listing types: {e}", err=True)
+
+
+# Load plugin subcommands from entry points.
+# Built-in commands are already registered via @cli.command() decorators above,
+# so load_plugins skips names that collide with built-ins.
+load_plugins(cli)
 
 
 if __name__ == "__main__":
