@@ -1,6 +1,7 @@
 [project]
 dependencies = [
     "overture-schema-core",
+    "overture-schema-system",
     "pydantic>=2.0",
 ]
 description = "Overture Maps transportation theme with shared structures and connector and segment types"
@@ -12,6 +13,7 @@ requires-python = ">=3.10"
 
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
+overture-schema-system = { workspace = true }
 
 
 [build-system]
