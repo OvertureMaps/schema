@@ -1,8 +1,14 @@
 """Model discovery system for Overture schema registry."""
 
+from __future__ import annotations
+
 import importlib.metadata
 import logging
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, TypeAlias
+
+if TYPE_CHECKING:
+    from .union import UnionType
 
 from pydantic import BaseModel
 
@@ -32,9 +38,13 @@ class ModelKey:
     class_name: str
 
 
+# Type alias for dict of discovered models
+ModelDict: TypeAlias = dict[ModelKey, type[BaseModel]]
+
+
 def discover_models(
     namespace: str | None = None,
-) -> dict[ModelKey, type[BaseModel]]:
+) -> ModelDict:
     """Discover all registered Overture models via entry points.
 
     Parameters
@@ -132,3 +142,93 @@ def get_registered_model(
         ):
             return model_class
     return None
+
+
+def filter_models(
+    use_overture_types: bool,
+    namespace: str | None,
+    theme_names: tuple[str, ...],
+    type_names: tuple[str, ...],
+) -> ModelDict:
+    """Filter discovered models by namespace, theme, and type.
+
+    Parameters
+    ----------
+    use_overture_types : bool
+        If True, return only models from the "overture" namespace.
+    namespace : str | None
+        Namespace to filter by (e.g., "overture", "annex").
+        Overridden by use_overture_types.
+    theme_names : tuple[str, ...]
+        Theme names to filter by.
+    type_names : tuple[str, ...]
+        Type names to filter by.
+
+    Returns
+    -------
+    ModelDict
+        Filtered models matching the criteria.
+
+    Raises
+    ------
+    ValueError
+        If no models match the specified criteria.
+
+    """
+    effective_namespace = "overture" if use_overture_types else namespace
+    all_models = discover_models(namespace=effective_namespace)
+
+    if use_overture_types:
+        filtered = all_models
+    elif theme_names and not type_names:
+        filtered = {k: v for k, v in all_models.items() if k.theme in theme_names}
+    elif type_names and not theme_names:
+        filtered = {k: v for k, v in all_models.items() if k.type in type_names}
+    elif type_names and theme_names:
+        filtered = {
+            k: v
+            for k, v in all_models.items()
+            if k.theme in theme_names and k.type in type_names
+        }
+    else:
+        filtered = all_models
+
+    if not filtered:
+        raise ValueError("No models found matching the specified criteria")
+
+    return filtered
+
+
+def resolve_types(
+    use_overture_types: bool,
+    namespace: str | None,
+    theme_names: tuple[str, ...],
+    type_names: tuple[str, ...],
+) -> UnionType:
+    """Filter models and build a union type for validation or schema generation.
+
+    Convenience function combining filter_models() and
+    create_union_type_from_models().
+
+    Parameters
+    ----------
+    use_overture_types : bool
+        If True, return only models from the "overture" namespace.
+    namespace : str | None
+        Namespace to filter by (e.g., "overture", "annex").
+    theme_names : tuple[str, ...]
+        Theme names to filter by.
+    type_names : tuple[str, ...]
+        Type names to filter by.
+
+    Returns
+    -------
+    UnionType
+        Union type suitable for TypeAdapter
+
+    """
+    # Deferred to keep discovery independent of union at import time
+    from .union import create_union_type_from_models
+
+    filtered = filter_models(use_overture_types, namespace, theme_names, type_names)
+    return create_union_type_from_models(filtered)

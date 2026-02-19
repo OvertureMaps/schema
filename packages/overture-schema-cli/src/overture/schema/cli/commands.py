@@ -4,20 +4,17 @@ import builtins
 import json
 import sys
 from collections import Counter, defaultdict
-from functools import reduce
-from operator import or_
 from pathlib import Path
-from typing import Annotated, Any, Literal, cast, get_args, get_origin
+from typing import cast
 
 import click
 import yaml
-from pydantic import BaseModel, Field, Tag, TypeAdapter, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 from rich.console import Console
 from yamlcore import CoreLoader  # type: ignore
 
-from overture.schema.core import OvertureFeature
+from overture.schema.core import UnionType, resolve_types
 from overture.schema.core.discovery import ModelKey, discover_models
-from overture.schema.system.feature import Feature
 from overture.schema.system.json_schema import json_schema
 
 from .docstrings import get_model_docstring, get_theme_module_docstring
@@ -29,7 +26,7 @@ from .error_formatting import (
 )
 from .output import rewrap
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
-from .types import ErrorLocation, ModelDict, UnionType
+from .types import ErrorLocation
 
 # Console instances for rich output
 stdout = Console(highlight=False)
@@ -39,100 +36,6 @@ stderr = Console(highlight=False, file=sys.stderr)
 def _is_geojson_feature(data: dict) -> bool:
     """Check if data is in GeoJSON Feature format."""
     return data.get("type") == "Feature" and "properties" in data
-
-
-def _can_discriminate(model_class: object) -> bool:
-    """Check if a model can participate in a discriminated union.
-
-    Returns True if the model is an OvertureFeature with a single literal 'type' value.
-    """
-    if not (isinstance(model_class, type) and issubclass(model_class, OvertureFeature)):
-        return False
-
-    return _type_literal(cast(type[OvertureFeature], model_class)) is not None
-
-
-def _type_literal(feature_class: type[OvertureFeature]) -> str | None:
-    """Extract the literal value from an OvertureFeature's 'type' field.
-
-    Returns the literal type value, or None if not a single literal.
-    """
-    if "type" not in feature_class.model_fields:
-        return None
-
-    type_annotation = feature_class.model_fields["type"].annotation
-
-    # Unwrap Annotated if present
-    while get_origin(type_annotation) is Annotated:
-        type_annotation = get_args(type_annotation)[0]
-
-    # Check if it's a Literal with a single value
-    if get_origin(type_annotation) is Literal:
-        args = get_args(type_annotation)
-        if len(args) == 1 and isinstance(args[0], str):
-            return args[0]
-
-    return None
-
-
-def _discriminated_union(feature_classes: tuple[type[OvertureFeature], ...]) -> Any:  # noqa: ANN401
-    """Create a discriminated union of Overture features on the 'type' field."""
-    if not feature_classes:
-        return None
-    elif len(feature_classes) == 1:
-        # Single model doesn't need a discriminated union
-        return feature_classes[0]
-
-    return Annotated[
-        reduce(
-            or_,
-            (Annotated[f, Tag(cast(str, _type_literal(f)))] for f in feature_classes),
-        ),
-        Field(discriminator=Feature.field_discriminator("type", *feature_classes)),
-    ]
-
-
-def create_union_type_from_models(
-    models: ModelDict,
-) -> UnionType:
-    """Create a union type from a dict of models.
-
-    Uses discriminated unions for OvertureFeatures when possible for better performance.
-
-    Args
-    ----
-        models: Dict mapping ModelKey to Pydantic model classes
-
-    Returns
-    -------
-        Union type suitable for TypeAdapter
-    """
-    if not models:
-        raise ValueError("No models provided")
-
-    model_list = list(models.values())
-
-    # Separate models that can be discriminated from those that cannot
-    discriminated_models = tuple(
-        cast(type[OvertureFeature], m) for m in model_list if _can_discriminate(m)
-    )
-    discriminated_union = _discriminated_union(discriminated_models)
-
-    non_discriminated_models = [m for m in model_list if not _can_discriminate(m)]
-    # Use None only if list is empty, otherwise build union
-    non_discriminated_union = (
-        reduce(or_, non_discriminated_models) if non_discriminated_models else None
-    )
-
-    # Combine discriminated and non-discriminated unions
-    if discriminated_union and non_discriminated_union:
-        return discriminated_union | non_discriminated_union
-    elif discriminated_union:
-        return discriminated_union
-    elif non_discriminated_union:
-        return non_discriminated_union
-    else:
-        raise RuntimeError("No valid models found")
 
 
 def validate_feature(data: dict, model_type: UnionType) -> BaseModel:
@@ -186,65 +89,6 @@ def validate_features(data: list, model_type: UnionType) -> list[BaseModel]:
         # Use validate_json to trigger the model's GeoJSON handling
         return cast(list[BaseModel], adapter.validate_json(json.dumps(data)))
     return cast(list[BaseModel], adapter.validate_python(data))
-
-
-def resolve_types(
-    use_overture_types: bool,
-    namespace: str | None,
-    theme_names: tuple[str, ...],
-    type_names: tuple[str, ...],
-) -> UnionType:
-    """Resolve CLI options into a model type suitable for parse_feature.
-
-    Args
-    ----
-        use_overture_types: Boolean from --overture-types flag
-        namespace: Namespace to filter by (e.g., "overture", "annex")
-        theme_names: List of theme names from --theme option
-        type_names: List of type names from --type option
-
-    Returns
-    -------
-        Model type suitable for passing to parse_feature
-    """
-    # Determine effective namespace
-    effective_namespace = "overture" if use_overture_types else namespace
-
-    # Discover models once with the appropriate namespace
-    all_models = discover_models(namespace=effective_namespace)
-
-    # Filter models based on CLI options
-    filtered_models: ModelDict = {}
-
-    if use_overture_types:
-        filtered_models = all_models
-
-    elif theme_names and not type_names:
-        # Theme-only mode: all types in specified themes
-        for key, model_class in all_models.items():
-            if key.theme in theme_names:
-                filtered_models[key] = model_class
-
-    elif type_names and not theme_names:
-        # Type-only mode: find matching types across all themes
-        for key, model_class in all_models.items():
-            if key.type in type_names:
-                filtered_models[key] = model_class
-
-    elif type_names and theme_names:
-        # Both specified: find matching types within specified themes
-        for key, model_class in all_models.items():
-            if key.theme in theme_names and key.type in type_names:
-                filtered_models[key] = model_class
-
-    else:
-        # No filters specified - use all models
-        filtered_models = all_models
-
-    if not filtered_models:
-        raise ValueError("No models found matching the specified criteria")
-
-    return create_union_type_from_models(filtered_models)
 
 
 def get_source_name(filename: Path) -> str:
