@@ -48,7 +48,7 @@ def group_errors_by_discriminator(
         >>> from typing import Annotated, Union
         >>> from pydantic import Field
         >>> from overture.schema.buildings import Building, BuildingPart
-        >>> from overture.schema.cli.type_analysis import introspect_union
+        >>> from overture.schema.validation.type_analysis import introspect_union
         >>> BuildingUnion = Annotated[
         ...     Union[Building, BuildingPart],
         ...     Field(discriminator='type')
