@@ -75,3 +75,36 @@ class TestPluginLoadingIntegration:
         assert result.exit_code == 0
         assert "list-types" in result.output
         assert "json-schema" in result.output
+
+
+class TestPluginLoadingWithValidation:
+    """Integration tests with overture-schema-validation installed."""
+
+    def test_validate_appears_in_help(self) -> None:
+        """validate subcommand appears in --help when validation package is installed."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ["--help"])
+        assert result.exit_code == 0
+        assert "validate" in result.output
+
+    def test_validate_works_end_to_end(self) -> None:
+        """overture-schema validate works end-to-end via plugin loading."""
+        import json
+
+        feature = {
+            "id": "test",
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
+            },
+            "properties": {"theme": "buildings", "type": "building", "version": 0},
+        }
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open("test.json", "w") as f:
+                json.dump(feature, f)
+            result = runner.invoke(cli, ["validate", "test.json"])
+            assert result.exit_code == 0
+            assert "Successfully validated" in result.output
