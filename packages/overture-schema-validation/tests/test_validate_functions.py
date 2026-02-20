@@ -1,4 +1,4 @@
-"""Tests for CLI helper functions (load_input, perform_validation)."""
+"""Tests for validation helper functions (load_input, perform_validation)."""
 
 import json
 from pathlib import Path
@@ -7,7 +7,8 @@ import pytest
 import yaml
 from click.exceptions import UsageError
 from conftest import build_feature
-from overture.schema.cli.commands import load_input, perform_validation, resolve_types
+from overture.schema.core.discovery import resolve_types
+from overture.schema.validation.commands import load_input, perform_validation
 from pydantic import ValidationError
 
 
@@ -15,7 +16,7 @@ class TestLoadInput:
     """Tests for load_input function.
 
     Note: Happy-path file and stdin loading are covered by integration tests
-    in test_cli_commands.py. These tests focus on error cases and edge cases.
+    in test_validate_command.py. These tests focus on error cases and edge cases.
     """
 
     def test_load_input_file_not_found(self) -> None:
@@ -197,7 +198,7 @@ class TestPerformValidation:
     """Tests for perform_validation function.
 
     Note: Happy-path validation (single features, lists, FeatureCollections, flat format)
-    is covered by integration tests in test_cli_commands.py. These tests focus on edge
+    is covered by integration tests in test_validate_command.py. These tests focus on edge
     cases and validation logic specific to the function.
     """
 

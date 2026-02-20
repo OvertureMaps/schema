@@ -22,7 +22,6 @@ from .error_formatting import (
     group_errors_by_discriminator,
     select_most_likely_errors,
 )
-from .output import rewrap
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
 from .types import ErrorLocation
 

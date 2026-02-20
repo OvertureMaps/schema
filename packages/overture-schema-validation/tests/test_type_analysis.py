@@ -3,7 +3,7 @@
 from typing import Annotated, Literal
 
 import pytest
-from overture.schema.cli.type_analysis import (
+from overture.schema.validation.type_analysis import (
     StructuralTuple,
     create_structural_tuple,
     extract_discriminator_path,
