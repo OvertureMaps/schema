@@ -1,14 +1,16 @@
 """Type introspection and structural analysis for union types."""
 
 import inspect
+import types
 from dataclasses import dataclass
-from typing import Annotated as AnnotatedType
-from typing import Any, Literal, get_args, get_origin
+from typing import Annotated, Any, Literal, Union, get_args, get_origin
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
 from .types import ErrorLocation, ValidationErrorDict
+
+KNOWN_DISCRIMINATOR_FIELDS = ("type", "theme", "subtype")
 
 # Type aliases for structural tuple elements
 StructuralElement = Literal["list_index", "union", "model", "discriminator", "field"]
@@ -47,18 +49,21 @@ def _process_union_member(
     member_origin = get_origin(member)
 
     # Case 1: Annotated type (might contain nested union or Tag)
-    if member_origin is AnnotatedType:
+    if member_origin is Annotated:
         member_args = get_args(member)
         if not member_args:
             return
 
         # Check for discriminator in annotations
         has_discriminator = any(
-            isinstance(metadata, FieldInfo) and hasattr(metadata, "discriminator")
+            isinstance(metadata, FieldInfo)
+            and getattr(metadata, "discriminator", None) is not None
             for metadata in member_args[1:]
         )
 
-        if has_discriminator or get_origin(member_args[0]) is not None:
+        inner_origin = get_origin(member_args[0])
+        is_nested_union = inner_origin is types.UnionType or inner_origin is Union
+        if has_discriminator or is_nested_union:
             # Nested union (with or without discriminator)
             nested_metadata = introspect_union(member)
             nested_unions[str(member)] = nested_metadata
@@ -77,10 +82,11 @@ def _process_union_member(
         model_name_to_model[member.__name__] = member
 
         # Extract discriminator values from known discriminator fields only
-        # Restrict to known discriminator names to avoid false positives from other Literal fields
-        discriminator_fields = ("type", "theme", "subtype")
+        # (avoids false positives from other Literal fields).
+        # A model may have multiple discriminator fields (e.g., both `type`
+        # and `theme`), so register all of them.
         for field_name, field_info in member.model_fields.items():
-            if field_name not in discriminator_fields:
+            if field_name not in KNOWN_DISCRIMINATOR_FIELDS:
                 continue
             annotation = field_info.annotation
             if get_origin(annotation) is Literal:
@@ -152,7 +158,7 @@ def introspect_union(union_type: Any) -> UnionMetadata:  # noqa: ANN401
     actual_union = union_type
 
     # Unwrap Annotated ONLY if the top level is Annotated
-    if origin is AnnotatedType:
+    if origin is Annotated:
         # This is Annotated[Union[...], ...]
         args = get_args(union_type)
         if args:
@@ -160,10 +166,8 @@ def introspect_union(union_type: Any) -> UnionMetadata:  # noqa: ANN401
             actual_union = args[0]
             # Look for Field with discriminator in metadata
             for metadata in args[1:]:
-                if isinstance(metadata, FieldInfo) and hasattr(
-                    metadata, "discriminator"
-                ):
-                    disc = metadata.discriminator
+                if isinstance(metadata, FieldInfo):
+                    disc = getattr(metadata, "discriminator", None)
                     # discriminator can be a string or Discriminator object
                     discriminator_field = str(disc) if disc is not None else None
                     break

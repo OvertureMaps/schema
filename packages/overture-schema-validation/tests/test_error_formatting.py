@@ -7,8 +7,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 from overture.schema.cli.commands import cli
+from overture.schema.validation.data_display import format_path
 from overture.schema.validation.error_formatting import (
-    format_path,
     group_errors_by_discriminator,
     select_most_likely_errors,
 )
@@ -199,7 +199,7 @@ class TestFormatPath:
     @pytest.mark.parametrize(
         "filtered_loc,expected_output",
         [
-            pytest.param([], "(root)", id="empty_path"),
+            pytest.param([], "", id="empty_path"),
             pytest.param(["id"], "id", id="single_field"),
             pytest.param(["properties", "name"], "properties.name", id="nested_field"),
             pytest.param([0], "[0]", id="list_index"),

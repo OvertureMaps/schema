@@ -11,8 +11,6 @@ from overture.schema.system.feature import Feature
 from .discovery import ModelDict
 from .models import OvertureFeature
 
-# Type alias for union types created from Pydantic models
-# This represents either a single model or a discriminated union of models
 UnionType: TypeAlias = type[BaseModel] | Any
 
 
@@ -58,10 +56,17 @@ def _discriminated_union(feature_classes: tuple[type[OvertureFeature], ...]) -> 
         # Single model doesn't need a discriminated union
         return feature_classes[0]
 
+    def _tag(f: type[OvertureFeature]) -> str:
+        literal = _type_literal(f)
+        assert literal is not None, (
+            f"{f.__name__} passed _can_discriminate but has no type literal"
+        )
+        return literal
+
     return Annotated[
         reduce(
             or_,
-            (Annotated[f, Tag(cast(str, _type_literal(f)))] for f in feature_classes),
+            (Annotated[f, Tag(_tag(f))] for f in feature_classes),
         ),
         Field(discriminator=Feature.field_discriminator("type", *feature_classes)),
     ]
@@ -93,26 +98,27 @@ def create_union_type_from_models(
     if not models:
         raise ValueError("No models provided")
 
-    model_list = list(models.values())
+    # Partition models in a single pass
+    discriminated_list: list[type[OvertureFeature]] = []
+    non_discriminated_list: list[type[BaseModel]] = []
+    for m in models.values():
+        if _can_discriminate(m):
+            discriminated_list.append(cast(type[OvertureFeature], m))
+        else:
+            non_discriminated_list.append(m)
 
-    # Separate models that can be discriminated from those that cannot
-    discriminated_models = tuple(
-        cast(type[OvertureFeature], m) for m in model_list if _can_discriminate(m)
-    )
-    discriminated_union = _discriminated_union(discriminated_models)
-
-    non_discriminated_models = [m for m in model_list if not _can_discriminate(m)]
-    # Use None only if list is empty, otherwise build union
+    discriminated_union = _discriminated_union(tuple(discriminated_list))
     non_discriminated_union = (
-        reduce(or_, non_discriminated_models) if non_discriminated_models else None
+        reduce(or_, non_discriminated_list) if non_discriminated_list else None
     )
 
-    # Combine discriminated and non-discriminated unions
-    if discriminated_union and non_discriminated_union:
+    # Combine discriminated and non-discriminated unions.
+    # At least one is non-None because models is verified non-empty above
+    # and every model lands in exactly one partition.
+    assert discriminated_union is not None or non_discriminated_union is not None
+    if discriminated_union is not None and non_discriminated_union is not None:
         return discriminated_union | non_discriminated_union
-    elif discriminated_union:
+    elif discriminated_union is not None:
         return discriminated_union
-    elif non_discriminated_union:
-        return non_discriminated_union
     else:
-        raise RuntimeError("No valid models found")
+        return non_discriminated_union  # type: ignore[return-value]

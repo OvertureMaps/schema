@@ -195,7 +195,7 @@ class TestValidateCommand:
         )
         # UsageError exits with code 2
         assert result.exit_code == 2
-        assert "No models found matching the specified criteria" in result.output
+        assert "No models found matching" in result.output
 
     def test_validate_with_nonexistent_type_raises_error(
         self,
@@ -211,7 +211,7 @@ class TestValidateCommand:
         )
         # UsageError exits with code 2
         assert result.exit_code == 2
-        assert "No models found matching the specified criteria" in result.output
+        assert "No models found matching" in result.output
 
     def test_validate_with_valid_theme_invalid_type_raises_error(
         self,
@@ -227,7 +227,7 @@ class TestValidateCommand:
         )
         # UsageError exits with code 2
         assert result.exit_code == 2
-        assert "No models found matching the specified criteria" in result.output
+        assert "No models found matching" in result.output
 
 
 class TestShowFieldOption:

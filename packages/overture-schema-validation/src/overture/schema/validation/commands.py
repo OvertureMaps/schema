@@ -1,11 +1,11 @@
 """Validation command for overture-schema CLI."""
 
-import builtins
+import io
 import json
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import cast
+from typing import NoReturn, cast
 
 import click
 import yaml
@@ -25,7 +25,6 @@ from .error_formatting import (
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
 from .types import ErrorLocation
 
-# Console instances for rich output
 stdout = Console(highlight=False)
 stderr = Console(highlight=False, file=sys.stderr)
 
@@ -136,8 +135,6 @@ def load_input(filename: Path) -> tuple[dict | list, str]:
                 pass
 
         # Parse as single YAML/JSON document
-        import io
-
         data = yaml.load(io.StringIO(content), Loader=CoreLoader)
         return data, "<stdin>"
 
@@ -191,12 +188,12 @@ def perform_validation(data: dict | list, model_type: UnionType) -> None:
 
 
 def compute_collection_statistics(
-    item_types: dict[int, builtins.type[BaseModel] | None],
+    item_types: dict[int, type[BaseModel] | None],
     filtered_errors: list,
 ) -> tuple[
     int,
-    Counter[builtins.type[BaseModel] | None],
-    dict[builtins.type[BaseModel], set[int]],
+    Counter[type[BaseModel] | None],
+    dict[type[BaseModel], set[int]],
 ]:
     """Compute validation statistics for heterogeneous collections.
 
@@ -213,21 +210,19 @@ def compute_collection_statistics(
         Tuple of (items_without_errors, type_counts, items_with_errors_by_type)
     """
     # Compute statistics: group items by type
-    type_counts: Counter[builtins.type[BaseModel] | None] = Counter(item_types.values())
+    type_counts: Counter[type[BaseModel] | None] = Counter(item_types.values())
 
     # Determine total number of items (max index + 1, or count from data)
     max_index = max(item_types.keys()) if item_types else -1
     total_items = max_index + 1
 
     # Count items with errors per type
-    items_with_errors_by_type: dict[builtins.type[BaseModel], set[int]] = {}
+    items_with_errors_by_type: dict[type[BaseModel], set[int]] = defaultdict(set)
     for err in filtered_errors:
         idx = get_item_index(err["loc"])
         if idx is not None and idx in item_types:
             model_type_cls = item_types[idx]
             if model_type_cls is not None:
-                if model_type_cls not in items_with_errors_by_type:
-                    items_with_errors_by_type[model_type_cls] = set()
                 items_with_errors_by_type[model_type_cls].add(idx)
 
     # Count items without any errors
@@ -244,8 +239,8 @@ def compute_collection_statistics(
 
 def print_collection_statistics(
     items_without_errors: int,
-    type_counts: Counter[builtins.type[BaseModel] | None],
-    items_with_errors_by_type: dict[builtins.type[BaseModel], set[int]],
+    type_counts: Counter[type[BaseModel] | None],
+    items_with_errors_by_type: dict[type[BaseModel], set[int]],
     stderr: Console,
 ) -> None:
     """Print validation statistics for heterogeneous collections.
@@ -406,12 +401,10 @@ def handle_validation_error(
                     item_type=error_item_type,
                     show_item_type=is_heterogeneous,
                     structural_cache=structural_cache,
-                    original_data=original_data,
-                    show_feature_data=False,
                 )
 
 
-def handle_generic_error(e: Exception, filename: Path, error_type: str) -> None:
+def handle_generic_error(e: Exception, filename: Path, error_type: str) -> NoReturn:
     """Handle generic errors during validation.
 
     Args
@@ -500,20 +493,18 @@ def validate(
     """
     # Resolve model type first (errors here are ValueErrors, not ValidationErrors)
     try:
-        model_type = resolve_types(overture_types, namespace, theme, types)
+        effective_namespace = "overture" if overture_types else namespace
+        model_type = resolve_types(effective_namespace, theme, types)
     except ValueError as e:
         handle_generic_error(e, filename, "value")
-        return
 
     # Load input (errors here are YAMLErrors or ValueErrors, not ValidationErrors)
     try:
         data, source_name = load_input(filename)
     except yaml.YAMLError as e:
         handle_generic_error(e, filename, "yaml")
-        return
     except KeyError as e:
         handle_generic_error(e, filename, "key")
-        return
 
     # Perform validation (now model_type and data are guaranteed to be defined)
     try:

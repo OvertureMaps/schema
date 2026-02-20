@@ -2,6 +2,7 @@
 
 import json
 import sys
+from collections import defaultdict
 from importlib.metadata import entry_points
 
 import click
@@ -14,7 +15,6 @@ from overture.schema.system.json_schema import json_schema
 from .docstrings import get_model_docstring, get_theme_module_docstring
 from .output import rewrap
 
-# Console instances for rich output
 stdout = Console(highlight=False)
 stderr = Console(highlight=False, file=sys.stderr)
 
@@ -111,7 +111,8 @@ def json_schema_command(
       $ overture-schema json-schema --overture-types
     """
     try:
-        model_type = resolve_types(overture_types, namespace, theme, types)
+        effective_namespace = "overture" if overture_types else namespace
+        model_type = resolve_types(effective_namespace, theme, types)
         schema = json_schema(model_type)
         # Use plain print for JSON output to avoid Rich formatting
         print(json.dumps(schema, indent=2, sort_keys=True))
@@ -146,7 +147,6 @@ def dump_namespace(
 
             stdout.print()
 
-        # Add types to the tree
         sorted_types = sorted(theme_types[theme], key=lambda x: x[0].type)
         for key, model_class in sorted_types:
             stdout.print(
@@ -172,40 +172,31 @@ def list_types() -> None:
       # List all types
       $ overture-schema list-types
     """
-    try:
-        models = discover_models()
+    models = discover_models()
 
-        # Group models by namespace and theme
-        namespaces: dict[
-            str, dict[str | None, list[tuple[ModelKey, type[BaseModel]]]]
-        ] = {}
-        for key, model_class in models.items():
-            if key.namespace not in namespaces:
-                namespaces[key.namespace] = {}
-            if key.theme not in namespaces[key.namespace]:
-                namespaces[key.namespace][key.theme] = []
+    # Group models by namespace and theme
+    namespaces: dict[str, dict[str | None, list[tuple[ModelKey, type[BaseModel]]]]] = (
+        defaultdict(lambda: defaultdict(list))
+    )
+    for key, model_class in models.items():
+        namespaces[key.namespace][key.theme].append((key, model_class))
 
-            namespaces[key.namespace][key.theme].append((key, model_class))
+    # Display Overture themes first
+    if "overture" in namespaces:
+        stdout.print("[bold red]OVERTURE THEMES[/bold red]", justify="center")
+        stdout.print()
 
-        # display Overture themes first
-        if "overture" in namespaces:
-            stdout.print("[bold red]OVERTURE THEMES[/bold red]", justify="center")
-            stdout.print()
+        dump_namespace(namespaces["overture"])
 
-            dump_namespace(namespaces["overture"])
+        stdout.print("[bold red]ADDITIONAL TYPES[/bold red]", justify="center")
+        stdout.print()
 
-            stdout.print("[bold red]ADDITIONAL TYPES[/bold red]", justify="center")
-            stdout.print()
+    for namespace in sorted(namespaces.keys()):
+        if namespace == "overture":
+            continue
 
-        for namespace in sorted(namespaces.keys()):
-            if namespace == "overture":
-                continue
-
-            stdout.print(f"[bold blue]{namespace.upper()}[/bold blue]")
-            dump_namespace(namespaces[namespace])
-
-    except Exception as e:
-        click.echo(f"Error listing types: {e}", err=True)
+        stdout.print(f"[bold blue]{namespace.upper()}[/bold blue]")
+        dump_namespace(namespaces[namespace])
 
 
 # Load plugin subcommands from entry points.

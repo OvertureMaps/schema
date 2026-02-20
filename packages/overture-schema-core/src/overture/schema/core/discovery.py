@@ -38,7 +38,6 @@ class ModelKey:
     class_name: str
 
 
-# Type alias for dict of discovered models
 ModelDict: TypeAlias = dict[ModelKey, type[BaseModel]]
 
 
@@ -109,56 +108,17 @@ def discover_models(
     return models
 
 
-def get_registered_model(
-    namespace: str, feature_type: str, theme: str | None = None
-) -> type[BaseModel] | None:
-    """Get the Pydantic model for a namespace/theme/type combination.
-
-    This uses setuptools entry points for registration.
-
-    Parameters
-    ----------
-    namespace : str
-        The namespace (e.g., "overture", "annex")
-    feature_type : str
-        The type name
-    theme : str | None, optional
-        The theme name (optional)
-
-    Returns
-    -------
-    type[BaseModel] | None
-        The model class if found, None otherwise.
-
-    """
-    # Check all discovered models for a match
-    models = discover_models(namespace=namespace)
-    # Need to find by namespace/theme/type, not exact key match
-    for key, model_class in models.items():
-        if (
-            key.namespace == namespace
-            and key.theme == theme
-            and key.type == feature_type
-        ):
-            return model_class
-    return None
-
-
 def filter_models(
-    use_overture_types: bool,
-    namespace: str | None,
-    theme_names: tuple[str, ...],
-    type_names: tuple[str, ...],
+    namespace: str | None = None,
+    theme_names: tuple[str, ...] = (),
+    type_names: tuple[str, ...] = (),
 ) -> ModelDict:
     """Filter discovered models by namespace, theme, and type.
 
     Parameters
     ----------
-    use_overture_types : bool
-        If True, return only models from the "overture" namespace.
     namespace : str | None
         Namespace to filter by (e.g., "overture", "annex").
-        Overridden by use_overture_types.
     theme_names : tuple[str, ...]
         Theme names to filter by.
     type_names : tuple[str, ...]
@@ -175,35 +135,33 @@ def filter_models(
         If no models match the specified criteria.
 
     """
-    effective_namespace = "overture" if use_overture_types else namespace
-    all_models = discover_models(namespace=effective_namespace)
+    all_models = discover_models(namespace=namespace)
 
-    if use_overture_types:
-        filtered = all_models
-    elif theme_names and not type_names:
-        filtered = {k: v for k, v in all_models.items() if k.theme in theme_names}
-    elif type_names and not theme_names:
-        filtered = {k: v for k, v in all_models.items() if k.type in type_names}
-    elif type_names and theme_names:
-        filtered = {
-            k: v
-            for k, v in all_models.items()
-            if k.theme in theme_names and k.type in type_names
-        }
-    else:
-        filtered = all_models
+    filtered = {
+        k: v
+        for k, v in all_models.items()
+        if (not theme_names or k.theme in theme_names)
+        and (not type_names or k.type in type_names)
+    }
 
     if not filtered:
-        raise ValueError("No models found matching the specified criteria")
+        parts = []
+        if namespace:
+            parts.append(f"namespace={namespace!r}")
+        if theme_names:
+            parts.append(f"themes={theme_names!r}")
+        if type_names:
+            parts.append(f"types={type_names!r}")
+        criteria = ", ".join(parts) if parts else "no filters"
+        raise ValueError(f"No models found matching {criteria}")
 
     return filtered
 
 
 def resolve_types(
-    use_overture_types: bool,
-    namespace: str | None,
-    theme_names: tuple[str, ...],
-    type_names: tuple[str, ...],
+    namespace: str | None = None,
+    theme_names: tuple[str, ...] = (),
+    type_names: tuple[str, ...] = (),
 ) -> UnionType:
     """Filter models and build a union type for validation or schema generation.
 
@@ -212,8 +170,6 @@ def resolve_types(
 
     Parameters
     ----------
-    use_overture_types : bool
-        If True, return only models from the "overture" namespace.
     namespace : str | None
         Namespace to filter by (e.g., "overture", "annex").
     theme_names : tuple[str, ...]
@@ -230,5 +186,5 @@ def resolve_types(
     # Deferred to keep discovery independent of union at import time
     from .union import create_union_type_from_models
 
-    filtered = filter_models(use_overture_types, namespace, theme_names, type_names)
+    filtered = filter_models(namespace, theme_names, type_names)
     return create_union_type_from_models(filtered)

@@ -1,7 +1,9 @@
 """Data display utilities for verbose error output."""
 
+from collections import defaultdict
 from typing import Any
 
+from rich import box
 from rich.panel import Panel
 from rich.table import Table
 
@@ -10,7 +12,7 @@ DEFAULT_FIELD_VALUE_MAX_LENGTH = 50
 DEFAULT_CONTEXT_SIZE = 1
 
 
-def _format_nested_path(error_path: list[str | int]) -> str:
+def format_path(error_path: list[str | int]) -> str:
     """Format error path as displayable nested key.
 
     Converts paths like ["sources", 0, "confidence"] into "sources[0].confidence".
@@ -26,15 +28,10 @@ def _format_nested_path(error_path: list[str | int]) -> str:
     parts: list[str] = []
     for element in error_path:
         if isinstance(element, str):
-            # Add dot separator before field names (except first, and not right after opening)
-            if parts and not parts[-1].endswith("]"):
-                parts.append(".")
-            elif parts and parts[-1].endswith("]"):
-                # Add dot after array index before field name
+            if parts:
                 parts.append(".")
             parts.append(element)
         elif isinstance(element, int):
-            # Add array index in brackets
             parts.append(f"[{element}]")
     return "".join(parts)
 
@@ -141,14 +138,6 @@ def _select_context_for_array_index_error(
     -------
         Dict of selected fields showing context around the array
     """
-    # Find the path up to the last string field (the array field itself)
-    array_field_path: list[str | int] = []
-    for element in error_path:
-        array_field_path.append(element)
-        if isinstance(element, str):
-            # Keep going until we hit an int, but remember the last string position
-            pass
-
     # Find the last string element's index
     last_string_idx = -1
     for i, element in enumerate(error_path):
@@ -182,7 +171,7 @@ def _select_context_for_array_index_error(
     selected: dict[str, Any] = {}
 
     # Format the full path including the array index
-    full_path_str = _format_nested_path(error_path)
+    full_path_str = format_path(error_path)
 
     if isinstance(current, dict):
         # Get array value and the specific item
@@ -207,7 +196,7 @@ def _select_context_for_array_index_error(
         if len(array_path) > 1:
             # Navigate to parent to get sibling fields
             parent_path = array_path[:-1]
-            prefix = _format_nested_path(parent_path)
+            prefix = format_path(parent_path)
             parent_fields = list(current.keys())
 
             if array_field_name in parent_fields:
@@ -389,7 +378,7 @@ def select_context_fields(
         nested_end = min(len(parent_fields), nested_target_index + context_size + 1)
 
         # Build path prefix once for reuse (without trailing dot)
-        prefix_str = _format_nested_path(parent_path)
+        prefix_str = format_path(parent_path)
 
         # Add nested elision marker at start if needed
         if nested_start > 0 and context_size > 0:
@@ -454,7 +443,7 @@ def select_context_fields(
                     selected[field_name] = current
                 else:
                     # Build nested key with array indices: ["sources", 0, "confidence"] -> "sources[0].confidence"
-                    nested_key = _format_nested_path(error_path)
+                    nested_key = format_path(error_path)
                     selected[nested_key] = current
             else:
                 selected[field_name] = feature[field_name]
@@ -611,7 +600,7 @@ def create_feature_display(
     table.add_column("Error")
 
     # Build mapping from field display name to error messages
-    error_map: dict[str, list[str]] = {}
+    error_map: dict[str, list[str]] = defaultdict(list)
     for error_path, error_msg in errors:
         # Determine which field has the error (use first string in path)
         error_field: str | None = None
@@ -620,24 +609,15 @@ def create_feature_display(
                 error_field = element
                 break
 
-        # Skip if no field name found (shouldn't happen in practice)
         if error_field is None:
             continue
 
-        # Format nested path for display
-        if len(error_path) > 1:
-            # Special case: geometry is opaque, don't show nested path
-            if error_field == "geometry":
-                error_field_display = "geometry"
-            else:
-                # Handle nested paths like ["sources", 0, "confidence"] -> "sources[0].confidence"
-                error_field_display = _format_nested_path(error_path)
+        # Format nested path for display (geometry is opaque -- don't expand)
+        if len(error_path) > 1 and error_field != "geometry":
+            error_field_display = format_path(error_path)
         else:
             error_field_display = error_field
 
-        # Add to error map
-        if error_field_display not in error_map:
-            error_map[error_field_display] = []
         error_map[error_field_display].append(error_msg)
 
     # Add rows for each field
@@ -668,9 +648,6 @@ def create_feature_display(
             field_name_styled = f"[cyan]{field_name}[/cyan]"
             value_styled = f"[dim]{formatted_value}[/dim]"
             table.add_row(field_name_styled, value_styled, "", "")
-
-    # Wrap table in a Panel with rounded borders
-    from rich import box
 
     # Add title: "Validation Failed" for single features, or item info for collections
     if item_index is not None:

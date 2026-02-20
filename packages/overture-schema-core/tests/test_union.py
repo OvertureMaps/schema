@@ -10,12 +10,12 @@ class TestCreateUnionType:
     """Tests for create_union_type_from_models."""
 
     def test_creates_type_from_single_theme(self) -> None:
-        models = filter_models(False, None, ("buildings",), ())
+        models = filter_models(theme_names=("buildings",))
         result = create_union_type_from_models(models)
         assert result is not None
 
     def test_creates_type_from_multiple_themes(self) -> None:
-        models = filter_models(False, None, ("buildings", "places"), ())
+        models = filter_models(theme_names=("buildings", "places"))
         result = create_union_type_from_models(models)
         assert result is not None
 
@@ -24,6 +24,6 @@ class TestCreateUnionType:
             create_union_type_from_models({})
 
     def test_single_model_returns_class_directly(self) -> None:
-        models = filter_models(False, None, ("buildings",), ("building",))
+        models = filter_models(theme_names=("buildings",), type_names=("building",))
         result = create_union_type_from_models(models)
         assert isinstance(result, type) and issubclass(result, BaseModel)
