@@ -679,9 +679,7 @@ dependencies = [
     { name = "click" },
     { name = "overture-schema-core" },
     { name = "pydantic" },
-    { name = "pyyaml" },
     { name = "rich" },
-    { name = "yamlcore" },
 ]
 
 [package.dev-dependencies]
@@ -696,9 +694,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.0" },
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "pydantic", specifier = ">=2.0" },
-    { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "rich", specifier = ">=13.0" },
-    { name = "yamlcore", specifier = ">=0.0.4" },
 ]
 
 [package.metadata.requires-dev]
