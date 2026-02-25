@@ -1,0 +1,10 @@
+{% if used_by %}
+
+## Used By
+
+{% for entry in used_by -%}
+{% if entry.link %}- [`{{ entry.name }}`]({{ entry.link }})
+{% else %}- `{{ entry.name }}`
+{% endif %}
+{% endfor %}
+{% endif %}

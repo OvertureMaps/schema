@@ -1,0 +1,6 @@
+# SimpleKind
+
+## Values
+
+- `small`
+- `large`

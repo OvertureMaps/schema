@@ -1,10 +1,21 @@
 """Shared pytest fixtures for overture-schema-codegen tests."""
 
+import overture.schema.system.primitive as _system_primitive
 import pytest
+from click.testing import CliRunner
 from codegen_test_support import find_model_class
+from overture.schema.codegen.markdown_renderer import (
+    render_geometry_from_values,
+    render_primitives_from_specs,
+)
 from overture.schema.codegen.model_extraction import extract_model
+from overture.schema.codegen.primitive_extraction import (
+    extract_primitives,
+    partition_primitive_and_geometry_names,
+)
 from overture.schema.codegen.specs import ModelSpec
 from overture.schema.core.discovery import discover_models
+from overture.schema.system.primitive import GeometryType
 from pydantic import BaseModel
 
 
@@ -20,6 +31,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 @pytest.fixture
 def update_golden(request: pytest.FixtureRequest) -> bool:
     return bool(request.config.getoption("--update-golden"))
+
+
+@pytest.fixture
+def cli_runner() -> CliRunner:
+    """Provide a Click CLI test runner."""
+    return CliRunner()
 
 
 @pytest.fixture
@@ -50,3 +67,18 @@ def place_class(all_discovered_models: dict) -> type[BaseModel]:
 def division_class(all_discovered_models: dict) -> type[BaseModel]:
     """Get the Division model class."""
     return find_model_class("Division", all_discovered_models)
+
+
+@pytest.fixture(scope="module")
+def primitives_markdown() -> str:
+    """Render the primitives.md page from the system primitive module."""
+    primitive_names, _ = partition_primitive_and_geometry_names(_system_primitive)
+    return render_primitives_from_specs(
+        extract_primitives(primitive_names, _system_primitive)
+    )
+
+
+@pytest.fixture(scope="module")
+def geometry_markdown() -> str:
+    """Render the geometry.md page from system GeometryType values."""
+    return render_geometry_from_values([m.value for m in GeometryType])
