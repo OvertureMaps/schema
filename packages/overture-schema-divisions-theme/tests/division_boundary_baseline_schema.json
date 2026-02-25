@@ -370,8 +370,8 @@
       "properties": {
         "admin_level": {
           "description": "Integer representing the division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
-          "maximum": 255,
-          "minimum": 0,
+          "maximum": 2147483647,
+          "minimum": -2147483648,
           "title": "Admin Level",
           "type": "integer"
         },
