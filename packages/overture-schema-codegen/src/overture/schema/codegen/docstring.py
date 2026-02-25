@@ -29,11 +29,11 @@ def clean_docstring(doc: str | None) -> str | None:
     return cleaned or None
 
 
-def first_docstring_line(doc: str | None) -> str:
-    """Return the first line of a docstring, or empty string."""
+def first_docstring_line(doc: str | None) -> str | None:
+    """Return the first line of a docstring, or None if absent."""
     cleaned = clean_docstring(doc)
     if not cleaned:
-        return ""
+        return None
     return cleaned.split("\n")[0]
 
 
