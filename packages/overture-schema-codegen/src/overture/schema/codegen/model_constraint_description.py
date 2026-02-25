@@ -188,7 +188,7 @@ def _analyze_constraints(
     for group_items in groups.values():
         first_idx = group_items[0][0]
         group_constraints = [c for _, c in group_items]
-        all_fields = frozenset[str]().union(
+        all_fields: frozenset[str] = frozenset().union(
             *(_affected_field_names(c) for c in group_constraints)
         )
         if len(group_constraints) == 1:

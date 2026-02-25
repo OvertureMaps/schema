@@ -14,6 +14,8 @@ import pytest
 from overture.schema.codegen.model_extraction import extract_model
 from overture.schema.codegen.specs import (
     AnnotatedField,
+    EnumMemberSpec,
+    EnumSpec,
     FieldSpec,
     ModelSpec,
     UnionSpec,
@@ -245,9 +247,24 @@ def make_union_spec(
     )
 
 
+def find_model_class(name: str, models: dict[object, object]) -> type[BaseModel]:
+    """Find a discovered model class by name."""
+    matches = [v for v in models.values() if getattr(v, "__name__", None) == name]
+    assert matches, f"{name} model not found"
+    match = matches[0]
+    assert isinstance(match, type)
+    assert issubclass(match, BaseModel)
+    return match
+
+
 def find_field(spec: ModelSpec, name: str) -> FieldSpec:
     """Find a field by name in a ModelSpec, raising if missing."""
     return next(f for f in spec.fields if f.name == name)
+
+
+def find_member(spec: EnumSpec, name: str) -> EnumMemberSpec:
+    """Find a member by name in an EnumSpec, raising if missing."""
+    return next(m for m in spec.members if m.name == name)
 
 
 def assert_literal_field(

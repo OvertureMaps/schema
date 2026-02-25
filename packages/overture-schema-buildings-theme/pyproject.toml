@@ -37,3 +37,81 @@ packages = ["src/overture"]
 [project.entry-points."overture.models"]
 "overture:buildings:building" = "overture.schema.buildings:Building"
 "overture:buildings:building_part" = "overture.schema.buildings:BuildingPart"
+
+[[examples.Building]]
+id = "148f35b1-7bc1-4180-9280-10d39b13883b"
+geometry = "POLYGON ((-176.6435004 -43.9938042, -176.6435738 -43.9937107, -176.6437726 -43.9937913, -176.6436992 -43.9938849, -176.6435004 -43.9938042))"
+version = 1
+level = "null"
+subtype = "null"
+class = "null"
+height = "null"
+names = "null"
+has_parts = false
+is_underground = false
+num_floors = "null"
+num_floors_underground = "null"
+min_height = "null"
+min_floor = "null"
+facade_color = "null"
+facade_material = "null"
+roof_material = "null"
+roof_shape = "null"
+roof_direction = "null"
+roof_orientation = "null"
+roof_color = "null"
+roof_height = "null"
+theme = "buildings"
+type = "building"
+
+[examples.Building.bbox]
+xmin = -176.643798828125
+xmax = -176.64349365234375
+ymin = -43.9938850402832
+ymax = -43.993709564208984
+
+[[examples.Building.sources]]
+property = ""
+dataset = "OpenStreetMap"
+record_id = "w519166507@1"
+update_time = "2017-08-27T21:39:50.000Z"
+confidence = "null"
+between = "null"
+
+[[examples.BuildingPart]]
+id = "19412d64-51ac-3d6a-ac2f-8a8c8b91bb60"
+geometry = "POLYGON ((-73.2462509 -39.8108937, -73.2462755 -39.8109047, -73.246291 -39.8109182, -73.2463022 -39.8109382, -73.2463039 -39.810959, -73.2462962 -39.81098, -73.2462796 -39.8109977, -73.2462674 -39.8110052, -73.2462281 -39.8110153, -73.2461998 -39.811013, -73.2461743 -39.8110034, -73.2461566 -39.8109898, -73.246144 -39.8109702, -73.2461418 -39.8109427, -73.2461511 -39.8109221, -73.2461669 -39.8109066, -73.2461908 -39.8108947, -73.2462184 -39.8108898, -73.2462509 -39.8108937))"
+version = 0
+level = 3
+height = "null"
+names = "null"
+is_underground = false
+num_floors = "null"
+num_floors_underground = "null"
+min_height = "null"
+min_floor = "null"
+facade_color = "null"
+facade_material = "null"
+roof_material = "null"
+roof_shape = "null"
+roof_direction = "null"
+roof_orientation = "null"
+roof_color = "null"
+roof_height = "null"
+building_id = "bd663bd4-1844-4d7d-a400-114de051cf49"
+theme = "buildings"
+type = "building_part"
+
+[examples.BuildingPart.bbox]
+xmin = -73.24630737304688
+xmax = -73.24613952636719
+ymin = -39.81101608276367
+ymax = -39.81088638305664
+
+[[examples.BuildingPart.sources]]
+property = ""
+dataset = "OpenStreetMap"
+record_id = "w223076787@2"
+update_time = "2014-10-31T22:55:36.000Z"
+confidence = "null"
+between = "null"

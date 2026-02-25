@@ -1,6 +1,5 @@
 """Tests for type placement module."""
 
-from collections.abc import Sequence
 from pathlib import PurePosixPath
 
 import overture.schema.system.primitive as _system_primitive
@@ -170,7 +169,7 @@ class TestPlacementWithUnionSpec:
             entry_point="test.package:TestUnion",
         )
 
-        feature_specs: Sequence[FeatureSpec] = [union_spec]
+        feature_specs: list[FeatureSpec] = [union_spec]
         all_specs = collect_all_supplementary_types(feature_specs)
         registry = build_placement_registry(
             feature_specs, all_specs, [], [], "test.package"

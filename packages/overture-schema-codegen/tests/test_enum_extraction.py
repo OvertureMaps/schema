@@ -2,14 +2,10 @@
 
 from enum import Enum
 
+from codegen_test_support import find_member
 from overture.schema.codegen.enum_extraction import extract_enum
 from overture.schema.codegen.specs import EnumMemberSpec, EnumSpec
 from overture.schema.system.doc import DocumentedEnum
-
-
-def find_member(spec: EnumSpec, name: str) -> EnumMemberSpec:
-    """Find a member by name in an EnumSpec, raising if missing."""
-    return next(m for m in spec.members if m.name == name)
 
 
 class TestEnumMemberSpec:
