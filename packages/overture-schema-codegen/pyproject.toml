@@ -1,0 +1,29 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[project]
+dependencies = [
+    "click>=8.0",
+    "jinja2>=3.0",
+    "overture-schema-core",
+    "overture-schema-system",
+    "tomli>=2.0; python_version < '3.11'",
+]
+description = "Code generator that produces documentation and code from Pydantic models"
+dynamic = ["version"]
+license = "MIT"
+name = "overture-schema-codegen"
+
+[project.scripts]
+overture-codegen = "overture.schema.codegen.cli:main"
+
+[tool.uv.sources]
+overture-schema-core = { workspace = true }
+overture-schema-system = { workspace = true }
+
+[tool.hatch.version]
+path = "src/overture/schema/codegen/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/overture"]
