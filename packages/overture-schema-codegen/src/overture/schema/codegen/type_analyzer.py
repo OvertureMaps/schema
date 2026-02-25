@@ -1,4 +1,4 @@
-"""Type analysis for Pydantic models."""
+"""Iterative type unwrapping for Pydantic model annotations."""
 
 from __future__ import annotations
 

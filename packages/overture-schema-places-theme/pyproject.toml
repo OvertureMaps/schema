@@ -36,3 +36,60 @@ packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
 "overture:places:place" = "overture.schema.places:Place"
+ 
+[[examples.Place]]
+id = "99003ee6-e75b-4dd6-8a8a-53a5a716c50d"
+geometry = "POINT (-150.46875 -79.1713346)"
+version = 1
+confidence = 0.7337175792507205
+websites = [
+  "https://www.superhotel.co.jp/s_hotels/beppu/"
+]
+socials = [
+  "https://www.facebook.com/107663894904826"
+]
+emails = "null"
+phones = [
+  "+81977009000"
+]
+operating_status = "open"
+theme = "places"
+type = "place"
+
+[examples.Place.bbox]
+xmin = -150.46875
+xmax = -150.46875
+ymin = -79.17134094238281
+ymax = -79.17133331298828
+
+[[examples.Place.sources]]
+property = ""
+dataset = "meta"
+record_id = "107663894904826"
+update_time = "2025-06-30T07:00:00.000Z"
+confidence = 0.7337175792507205
+between = "null"
+
+[examples.Place.names]
+primary = "スーパーホテル別府駅前"
+common = "null"
+rules = "null"
+
+[examples.Place.categories]
+primary = "hotel"
+alternate = "null"
+
+[examples.Place.brand]
+wikidata = "null"
+
+[examples.Place.brand.names]
+primary = "SUPER HOTEL"
+common = "null"
+rules = "null"
+
+[[examples.Place.addresses]]
+freeform = "秋田県横手市駅前町１３−８"
+locality = "横手市"
+postcode = "013-0036"
+region = "null"
+country = "JP"

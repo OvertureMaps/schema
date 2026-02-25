@@ -53,7 +53,7 @@ def _merge_field_metadata(type_info: TypeInfo, field_info: FieldInfo) -> TypeInf
 
 
 def _is_field_required(field_info: FieldInfo, type_info: TypeInfo) -> bool:
-    """A field is required when it has no default and is not Optional."""
+    """Determine whether a field is required (no default and not Optional)."""
     has_default = (
         field_info.default is not PydanticUndefined
         or field_info.default_factory is not None
@@ -79,9 +79,7 @@ def _class_order(model_class: type[BaseModel]) -> list[type]:
         return [
             cls
             for cls in reversed(model_class.__mro__)
-            if isinstance(cls, type)
-            and issubclass(cls, BaseModel)
-            and cls is not BaseModel
+            if issubclass(cls, BaseModel) and cls is not BaseModel
         ]
 
     primary = _class_order(bases[0])
