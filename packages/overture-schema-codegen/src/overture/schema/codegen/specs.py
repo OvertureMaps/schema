@@ -133,7 +133,7 @@ class PrimitiveSpec:
     """Extracted specification for a numeric primitive type."""
 
     name: str
-    description: str
+    description: str | None
     bounds: Interval = field(default_factory=Interval)
     float_bits: int | None = None
 
