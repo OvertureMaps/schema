@@ -11,7 +11,7 @@ from .enum_extraction import extract_enum
 from .model_extraction import extract_model
 from .newtype_extraction import extract_newtype
 from .specs import FeatureSpec, FieldSpec, ModelSpec, SupplementarySpec
-from .type_analyzer import TypeInfo, TypeKind, analyze_type, is_newtype
+from .type_analyzer import TypeInfo, TypeKind, analyze_type, is_newtype, walk_type_info
 from .type_registry import is_semantic_newtype
 
 __all__ = ["collect_all_supplementary_types"]
@@ -59,39 +59,40 @@ def collect_all_supplementary_types(
             break
 
     def _collect_from_type_info(ti: TypeInfo) -> None:
-        """Collect supplementary types from a single TypeInfo."""
-        if ti.kind == TypeKind.UNION:
-            if not ti.union_members:
-                return
-            # Walk each member's fields for supplementary types.
-            # Members that are also top-level feature specs are skipped
-            # by the feature_names guard in _collect_from_model.
-            for member_cls in ti.union_members:
-                member_spec = extract_model(member_cls)
-                _collect_from_model(member_spec)
-            return
-        if ti.kind == TypeKind.ENUM and ti.source_type is not None:
-            name = ti.source_type.__name__
-            if name not in all_specs:
-                all_specs[name] = extract_enum(ti.source_type)
+        """Collect supplementary types from a single TypeInfo.
 
-        # Semantic NewTypes always get extracted, including intermediate
-        # NewTypes in the wrapping chain (e.g., Id wraps NoWhitespaceString
-        # wraps str — both Id and NoWhitespaceString get pages).
-        if (
-            ti.newtype_ref is not None
-            and ti.newtype_name is not None
-            and is_semantic_newtype(ti)
-            and ti.newtype_name not in all_specs
-        ):
-            all_specs[ti.newtype_name] = extract_newtype(ti.newtype_ref)
-            _collect_inner_newtypes(ti.newtype_ref)
+        Uses walk_type_info for dict key/value recursion. Handles all
+        TypeKind variants without early returns so newtype extraction
+        and dict recursion apply regardless of kind.
+        """
 
-        # Dict key/value types can also reference supplementary types
-        if ti.dict_key_type is not None:
-            _collect_from_type_info(ti.dict_key_type)
-        if ti.dict_value_type is not None:
-            _collect_from_type_info(ti.dict_value_type)
+        def _visit(node: TypeInfo) -> None:
+            if node.kind == TypeKind.UNION and node.union_members:
+                # Walk each member's fields for supplementary types.
+                # Members that are also top-level feature specs are skipped
+                # by the feature_names guard in _collect_from_model.
+                for member_cls in node.union_members:
+                    member_spec = extract_model(member_cls)
+                    _collect_from_model(member_spec)
+
+            if node.kind == TypeKind.ENUM and node.source_type is not None:
+                name = node.source_type.__name__
+                if name not in all_specs:
+                    all_specs[name] = extract_enum(node.source_type)
+
+            # Semantic NewTypes always get extracted, including intermediate
+            # NewTypes in the wrapping chain (e.g., Id wraps NoWhitespaceString
+            # wraps str — both Id and NoWhitespaceString get pages).
+            if (
+                node.newtype_ref is not None
+                and node.newtype_name is not None
+                and is_semantic_newtype(node)
+                and node.newtype_name not in all_specs
+            ):
+                all_specs[node.newtype_name] = extract_newtype(node.newtype_ref)
+                _collect_inner_newtypes(node.newtype_ref)
+
+        walk_type_info(ti, _visit)
 
     def _collect_from_fields(fields: list[FieldSpec]) -> None:
         # A single field can match multiple conditions (e.g., Sources is both

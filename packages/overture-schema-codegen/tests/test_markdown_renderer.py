@@ -241,11 +241,8 @@ class TestRenderFeatureFieldTable:
         spec = extract_model(ModelWithRequired)
         result = render_feature(spec)
 
-        # Should have backtick-quoted field name
         assert "| `name` |" in result
-        # Type should be string without optional
-        assert "| `string` |" in result or "string" in result
-        # Description should be present
+        assert "| `string` |" in result
         assert "The name" in result
 
     def test_renders_optional_field(self) -> None:
@@ -975,6 +972,25 @@ class TestFormatExampleValue:
         assert _format_example_value([1, 2, 3]) == "`[1, 2, 3]`"
         assert _format_example_value(["a", "b"]) == "`[a, b]`"
         assert _format_example_value([]) == "`[]`"
+
+    def test_long_list_truncated(self) -> None:
+        """Lists longer than truncation limit are truncated with ellipsis."""
+        long_list = list(range(200))
+        result = _format_example_value(long_list)
+        assert result.startswith("`[0, 1, 2,")
+        assert result.endswith("...`")
+        # Content between backticks is at most 103 chars (100 + "...")
+        inner = result[1:-1]  # strip backticks
+        assert len(inner) <= 103
+
+    def test_long_dict_truncated(self) -> None:
+        """Dicts longer than truncation limit are truncated with ellipsis."""
+        long_dict = {f"key_{i}": f"value_{i}" for i in range(50)}
+        result = _format_example_value(long_dict)
+        assert result.startswith("`{key_0:")
+        assert result.endswith("...`")
+        inner = result[1:-1]
+        assert len(inner) <= 103
 
     def test_pipe_character_not_escaped_in_backticks(self) -> None:
         """Pipe characters need no escaping inside backticks."""
