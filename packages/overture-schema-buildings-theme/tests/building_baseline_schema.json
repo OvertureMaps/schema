@@ -392,7 +392,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Buildings are man-made structures with roofs that exists permanently in one place.\n\nA building's geometry represents the two-dimensional footprint of the building as viewed from\ndirectly above, looking down. Fields such as `height` and `num_floors` allow the\nthree-dimensional shape to be approximated. Some buildings, identified by the `has_parts` field,\nhave associated `BuildingPart` features which can be used to generate a more representative 3D\nmodel of the building.",
+  "description": "Buildings are man-made structures with roofs that exist permanently in one place.\n\nA building's geometry represents the two-dimensional footprint of the building as viewed from\ndirectly above, looking down. Fields such as `height` and `num_floors` allow the\nthree-dimensional shape to be approximated. Some buildings, identified by the `has_parts` field,\nhave associated `BuildingPart` features which can be used to generate a more representative 3D\nmodel of the building.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
