@@ -31,7 +31,7 @@ class LinkContext:
 
 
 def _is_normalized(path: PurePosixPath) -> bool:
-    """True when the path contains no '..' or '.' components (except root '.')."""
+    """Check whether the path contains no '..' or '.' components (except root '.')."""
     return ".." not in path.parts and path.parts.count(".") <= 1
 
 
@@ -41,8 +41,12 @@ def relative_link(source: PurePosixPath, target: PurePosixPath) -> str:
     Both paths must be normalized (no ``..`` components) and relative
     to the same output root.
     """
-    assert _is_normalized(source), f"Source path not normalized: {source}"
-    assert _is_normalized(target), f"Target path not normalized: {target}"
+    if not _is_normalized(source):
+        msg = f"Source path not normalized: {source}"
+        raise ValueError(msg)
+    if not _is_normalized(target):
+        msg = f"Target path not normalized: {target}"
+        raise ValueError(msg)
     source_dir = source.parent
     # Count how many levels up from source_dir to common ancestor,
     # then descend to target. PurePosixPath doesn't have os.path.relpath,
