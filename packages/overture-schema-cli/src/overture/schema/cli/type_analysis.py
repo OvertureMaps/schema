@@ -31,14 +31,14 @@ class UnionMetadata:
     nested_unions: dict[str, "UnionMetadata"]
 
 
-def _extract_literal_value(model: type[BaseModel], field_name: str) -> object | None:
-    """Extract the single Literal value from a model field, if present."""
+def _extract_literal_value(model: type[BaseModel], field_name: str) -> str | None:
+    """Extract the single Literal value from a model field as a string, if present."""
     field_info = model.model_fields.get(field_name)
     if field_info is None or field_info.annotation is None:
         return None
     if get_origin(field_info.annotation) is Literal:
         args = get_args(field_info.annotation)
-        return args[0] if args else None
+        return str(args[0]) if args else None
     return None
 
 
@@ -78,12 +78,14 @@ def _process_union_member(
             nested_metadata = introspect_union(member)
             nested_unions[str(member)] = nested_metadata
             discriminator_to_model.update(nested_metadata.discriminator_to_model)
-            # Extract parent discriminator values from nested leaf models
+            # The nested union's discriminator_to_model uses the nested discriminator
+            # field (e.g. "subtype"). Re-extract using the parent discriminator field
+            # (e.g. "type") so leaf models are also reachable by the parent's values.
             if discriminator_field is not None:
                 for model in nested_metadata.model_name_to_model.values():
                     value = _extract_literal_value(model, discriminator_field)
                     if value is not None:
-                        discriminator_to_model[str(value)] = model
+                        discriminator_to_model[value] = model
             return
 
         # Unwrap Annotated to get the actual type (e.g., Annotated[Building, Tag('building')])
@@ -104,7 +106,7 @@ def _process_union_member(
         if discriminator_field is not None:
             value = _extract_literal_value(member, discriminator_field)
             if value is not None:
-                discriminator_to_model[str(value)] = member
+                discriminator_to_model[value] = member
 
 
 def introspect_union(union_type: Any) -> UnionMetadata:  # noqa: ANN401
