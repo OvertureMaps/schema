@@ -283,6 +283,72 @@ class TestIntrospectUnion:
             assert literal_value not in metadata.discriminator_to_model
 
 
+class TestDiscriminatorDiscovery:
+    """Tests for runtime discriminator field discovery (not hardcoded)."""
+
+    def test_nonstandard_discriminator_field_name(self) -> None:
+        """Discriminator field not named type/theme/subtype is discovered at runtime."""
+
+        class Cat(BaseModel):
+            kind: Literal["cat"]
+            indoor: bool
+
+        class Dog(BaseModel):
+            kind: Literal["dog"]
+            breed: str
+
+        UnionType = Annotated[Cat | Dog, Field(discriminator="kind")]
+        metadata = introspect_union(UnionType)
+
+        assert metadata.is_discriminated is True
+        assert metadata.discriminator_field == "kind"
+        assert metadata.discriminator_to_model["cat"] == Cat
+        assert metadata.discriminator_to_model["dog"] == Dog
+
+    def test_non_discriminator_literal_fields_excluded(self) -> None:
+        """Literal fields that aren't the discriminator are not in the mapping."""
+
+        class Building(BaseModel):
+            type: Literal["building"]
+            status: Literal["active"]
+
+        class Place(BaseModel):
+            type: Literal["place"]
+            status: Literal["active"]
+
+        UnionType = Annotated[Building | Place, Field(discriminator="type")]
+        metadata = introspect_union(UnionType)
+
+        assert "building" in metadata.discriminator_to_model
+        assert "place" in metadata.discriminator_to_model
+        assert "active" not in metadata.discriminator_to_model
+
+    def test_callable_discriminator_extracts_field_name(self) -> None:
+        """Callable discriminators (Feature.field_discriminator) are supported."""
+        from pydantic import Discriminator
+
+        class ModelA(BaseModel):
+            kind: Literal["a"]
+
+        class ModelB(BaseModel):
+            kind: Literal["b"]
+
+        def get_kind(data: object) -> str | None:
+            return data.get("kind") if isinstance(data, dict) else None
+
+        get_kind._field_name = "kind"  # type: ignore[attr-defined]
+
+        UnionType = Annotated[
+            ModelA | ModelB, Field(discriminator=Discriminator(get_kind))
+        ]
+        metadata = introspect_union(UnionType)
+
+        assert metadata.is_discriminated is True
+        assert metadata.discriminator_field == "kind"
+        assert metadata.discriminator_to_model["a"] == ModelA
+        assert metadata.discriminator_to_model["b"] == ModelB
+
+
 class TestStructuralTupleCaching:
     """Tests for structural tuple caching functionality."""
 
