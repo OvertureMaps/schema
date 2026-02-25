@@ -1,0 +1,13 @@
+# {{ enum.name }}
+{% if enum.description %}
+
+{{ enum.description | linkify_urls }}
+{% endif %}
+
+## Values
+
+{% for member in enum.members -%}
+- `{{ member.value }}`{% if member.description %} - {{ member.description }}{% endif %}
+
+{% endfor %}
+{% include '_used_by.md.jinja2' %}
