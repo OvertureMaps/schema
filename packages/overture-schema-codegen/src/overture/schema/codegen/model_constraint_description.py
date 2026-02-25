@@ -100,7 +100,8 @@ def _as_field_eq(constraint: _ConditionalConstraint) -> FieldEqCondition:
     rejects non-FieldEqCondition conditions.
     """
     cond = constraint.condition
-    assert isinstance(cond, FieldEqCondition)
+    if not isinstance(cond, FieldEqCondition):
+        raise TypeError(f"Expected FieldEqCondition, got {type(cond).__name__}")
     return cond
 
 
