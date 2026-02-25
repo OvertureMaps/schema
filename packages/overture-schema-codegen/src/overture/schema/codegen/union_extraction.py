@@ -133,18 +133,12 @@ def extract_union(
             if fs.name in shared_field_names:
                 continue
             key = (fs.name, _type_identity(fs.type_info))
-            if key in seen:
-                existing = seen[key]
-                existing_sources = existing.variant_sources or ()
-                seen[key] = AnnotatedField(
-                    field_spec=fs,
-                    variant_sources=(*existing_sources, member_cls.__name__),
-                )
-            else:
-                seen[key] = AnnotatedField(
-                    field_spec=fs,
-                    variant_sources=(member_cls.__name__,),
-                )
+            existing = seen.get(key)
+            prior_sources = existing.variant_sources or () if existing else ()
+            seen[key] = AnnotatedField(
+                field_spec=fs,
+                variant_sources=(*prior_sources, member_cls.__name__),
+            )
 
     annotated_fields.extend(seen.values())
 
