@@ -38,3 +38,36 @@ testpaths = ["tests"]
 
 [project.entry-points."overture.models"]
 "overture:addresses:address" = "overture.schema.addresses:Address"
+
+[[examples.Address]]
+id = "416ab01c-d836-4c4f-aedc-2f30941ce94d"
+geometry = "POINT (-176.5637854 -43.9471955)"
+country = "NZ"
+postcode = "null"
+street = "Tikitiki Hill Road"
+number = "54"
+unit = "null"
+postal_city = "null"
+version = 1
+theme = "addresses"
+type = "address"
+
+[examples.Address.bbox]
+xmin = -176.56381225585938
+xmax = -176.56378173828125
+ymin = -43.94719696044922
+ymax = -43.94718933105469
+
+[[examples.Address.address_levels]]
+value = "Chatham Islands"
+
+[[examples.Address.address_levels]]
+value = "Chatham Island"
+
+[[examples.Address.sources]]
+property = ""
+dataset = "OpenAddresses/LINZ"
+record_id = "null"
+update_time = "null"
+confidence = "null"
+between = "null"
