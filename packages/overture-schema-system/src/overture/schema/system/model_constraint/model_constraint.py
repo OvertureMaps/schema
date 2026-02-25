@@ -56,10 +56,6 @@ class ModelConstraint:
             )
         self.__name = name
 
-    def __validate_instance(self, model_instance: BaseModel) -> BaseModel:
-        self.validate_instance(model_instance)
-        return model_instance
-
     @property
     def name(self) -> str:
         """Returns the name of the constraint, e.g. "FooConstraint" or "@foo"."""
@@ -126,6 +122,15 @@ class ModelConstraint:
         metadata = Metadata.retrieve_from(model_class, Metadata()).copy()  # type: ignore[union-attr]
         model_constraints = (*ModelConstraint.get_model_constraints(model_class), self)
         metadata[_MODEL_CONSTRAINT_KEY] = model_constraints
+        # Capture the constraint in a closure rather than passing a bound method.
+        # Some Pydantic versions unwrap bound methods passed through __validators__
+        # and rebind `self` to the model instance, breaking the dispatch.
+        constraint = self
+
+        def _after_validator(model_instance: BaseModel) -> BaseModel:
+            constraint.validate_instance(model_instance)
+            return model_instance
+
         new_model_class = create_model(
             model_class.__name__,
             __config__=config,
@@ -135,7 +140,7 @@ class ModelConstraint:
             __validators__={
                 self.name: cast(
                     Callable[..., Any],
-                    model_validator(mode="after")(self.__validate_instance),
+                    model_validator(mode="after")(_after_validator),
                 )
             },
             __metadata__=metadata,
