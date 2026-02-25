@@ -21,11 +21,15 @@ overture-schema-core = { workspace = true }
 build-backend = "hatchling.build"
 requires = ["hatchling"]
 
+[project.optional-dependencies]
+parquet = ["pyarrow>=14.0"]
+
 [dependency-groups]
 dev = [
     "pytest>=7.0",
     "ruff",
     "mypy",
+    "pyarrow>=14.0",
 ]
 
 [tool.hatch.version]

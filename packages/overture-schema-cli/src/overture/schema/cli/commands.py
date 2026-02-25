@@ -27,6 +27,7 @@ from .error_formatting import (
     group_errors_by_discriminator,
     select_most_likely_errors,
 )
+from .format_adapters import SchemaDiff
 from .output import rewrap
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
 from .types import ErrorLocation, ModelDict, UnionType
@@ -767,6 +768,385 @@ def json_schema_command(
         raise click.UsageError(str(e)) from e
 
 
+def resolve_single_type(
+    namespace: str | None,
+    theme_name: str | None,
+    type_name: str,
+) -> type[BaseModel]:
+    """Resolve CLI options to a single model type.
+
+    Args
+    ----
+        namespace: Namespace to filter by (e.g., "overture", "annex")
+        theme_name: Theme name (e.g., "buildings")
+        type_name: Type name (e.g., "building")
+
+    Returns
+    -------
+        Single Pydantic model class
+
+    Raises
+    ------
+        ValueError: If no model or multiple models match
+    """
+    all_models = discover_models(namespace=namespace)
+
+    matching = [
+        (key, model)
+        for key, model in all_models.items()
+        if key.type == type_name and (theme_name is None or key.theme == theme_name)
+    ]
+
+    if not matching:
+        msg = f"No model found for type '{type_name}'"
+        if theme_name:
+            msg += f" in theme '{theme_name}'"
+        raise ValueError(msg)
+
+    if len(matching) > 1:
+        themes = [k.theme for k, _ in matching]
+        raise ValueError(
+            f"Multiple models found for type '{type_name}': {themes}. "
+            "Specify --theme to disambiguate."
+        )
+
+    return matching[0][1]
+
+
+@cli.command("parquet-schema")
+@click.option(
+    "--theme",
+    help="Theme to generate schema for (e.g., buildings, places)",
+)
+@click.option(
+    "--type",
+    "type_name",
+    required=True,
+    help="Specific type to generate schema for (e.g., building, segment)",
+)
+@click.option(
+    "--namespace",
+    help="Namespace to filter by (e.g., overture, annex)",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["parquet", "text"]),
+    default="parquet",
+    help="Output format: 'parquet' for empty .parquet file, 'text' for schema description",
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(path_type=Path),
+    help="Output file path (required for parquet format)",
+)
+def parquet_schema_command(
+    theme: str | None,
+    type_name: str,
+    namespace: str | None,
+    output_format: str,
+    output: Path | None,
+) -> None:
+    r"""Generate Parquet schema for an Overture Maps type.
+
+    Outputs an empty Parquet file or text schema representation that can be used
+    to compare against existing Parquet files or for documentation purposes.
+
+    Requires pyarrow. Install with: pip install overture-schema-cli[parquet]
+
+    \b
+    Examples:
+      # Generate empty Parquet file for building type
+      $ overture-schema parquet-schema --theme buildings --type building -o building.parquet
+    \b
+      # Print schema as text
+      $ overture-schema parquet-schema --theme buildings --type building --format text
+    \b
+      # Transportation segment
+      $ overture-schema parquet-schema --theme transportation --type segment -o segment.parquet
+    """
+    # Check for pyarrow availability
+    try:
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+    except ImportError:
+        raise click.UsageError(
+            "pyarrow is required for this command. "
+            "Install with: pip install overture-schema-cli[parquet]"
+        ) from None
+
+    # Import conversion module
+    from .arrow_schema import pydantic_model_to_arrow_schema
+
+    # Resolve to single model
+    try:
+        model_class = resolve_single_type(namespace, theme, type_name)
+    except ValueError as e:
+        raise click.UsageError(str(e)) from e
+
+    # Convert to Arrow schema
+    arrow_schema = pydantic_model_to_arrow_schema(model_class)
+
+    # Output based on format
+    if output_format == "text":
+        # Print schema to stdout
+        print(arrow_schema.to_string())
+        if output:
+            with open(output, "w") as f:
+                f.write(arrow_schema.to_string())
+            stdout.print(f"Schema written to {output}")
+    else:  # parquet format
+        if not output:
+            raise click.UsageError("--output is required when using parquet format")
+
+        # Write empty Parquet file with schema (preserve nullability)
+        empty_table = pa.table(
+            {field.name: pa.array([], type=field.type) for field in arrow_schema},
+            schema=arrow_schema,
+        )
+        pq.write_table(empty_table, output)
+        stdout.print(f"Wrote Parquet schema to {output}")
+
+
+@cli.command("validate-schema")
+@click.argument("filename")
+@click.option(
+    "--theme",
+    help="Theme to check against (e.g., buildings, places)",
+)
+@click.option(
+    "--type",
+    "type_name",
+    required=True,
+    help="Specific type to check against (e.g., building, segment)",
+)
+@click.option(
+    "--namespace",
+    help="Namespace to filter by (e.g., overture, annex)",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    default=False,
+    help="Require exact match: no extra fields allowed",
+)
+@click.option(
+    "--ignore",
+    "ignore_fields",
+    multiple=True,
+    help="Field name to skip during comparison (repeatable)",
+)
+@click.option(
+    "--skip-check",
+    "skip_checks",
+    multiple=True,
+    type=click.Choice(["missing", "extra", "type-mismatch"]),
+    help="Difference category to exclude from pass/fail (repeatable)",
+)
+@click.option(
+    "--check-nullability",
+    "check_nullability",
+    is_flag=True,
+    default=False,
+    help="Include nullability differences in pass/fail (off by default; most Parquet writers ignore nullable metadata)",
+)
+@click.option(
+    "-o",
+    "--output",
+    "output",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Write diff to a file (.csv or .parquet)",
+)
+def validate_schema_command(
+    filename: str,
+    theme: str | None,
+    type_name: str,
+    namespace: str | None,
+    strict: bool,
+    ignore_fields: tuple[str, ...],
+    skip_checks: tuple[str, ...],
+    check_nullability: bool,
+    output: Path | None,
+) -> None:
+    r"""Check whether a Parquet file's schema matches an Overture type.
+
+    FILENAME can be a local path or a remote URI (s3://, gs://, etc.).
+    Reads schema metadata from FILENAME (no row data loaded) and compares it
+    against the expected Arrow schema generated from the specified type.
+
+    By default, performs a subset check: the file must have all expected fields
+    with compatible types. Extra columns in the file are allowed.
+
+    With --strict, requires an exact match with no extra or missing fields.
+
+    Use --ignore to skip specific fields (e.g., fields added later in your
+    pipeline). Use --skip-check to exclude entire difference categories from
+    the pass/fail decision (they are still printed).
+
+    Requires pyarrow. Install with: pip install overture-schema-cli[parquet]
+
+    \b
+    Examples:
+      # Check a building Parquet file (subset mode)
+      $ overture-schema validate-schema buildings.parquet --theme buildings --type building
+    \b
+      # Check a file from S3
+      $ overture-schema validate-schema s3://bucket/path/to/file.parquet --type building
+    \b
+      # Strict check (no extra fields allowed)
+      $ overture-schema validate-schema data.parquet --type place --strict
+    \b
+      # Skip version and bbox fields
+      $ overture-schema validate-schema data.parquet --type building --ignore version --ignore bbox
+    \b
+      # Also check nullability differences (off by default)
+      $ overture-schema validate-schema data.parquet --type division --check-nullability
+    """
+    from .format_adapters import FormatValidator
+
+    # Get validator for file format
+    try:
+        validator = FormatValidator.for_file(filename)
+    except ValueError as e:
+        raise click.UsageError(str(e)) from e
+
+    # Resolve to single model
+    try:
+        model_class = resolve_single_type(namespace, theme, type_name)
+    except ValueError as e:
+        raise click.UsageError(str(e)) from e
+
+    # Validate file against model
+    try:
+        diff = validator.validate(
+            filename, model_class, ignore_fields=set(ignore_fields)
+        )
+    except ImportError:
+        raise click.UsageError(
+            "pyarrow is required for this command. "
+            "Install with: pip install overture-schema-cli[parquet]"
+        ) from None
+    except Exception as e:
+        raise click.UsageError(f"Failed to read file '{filename}': {e}") from e
+    skipped = set(skip_checks)
+    if not check_nullability:
+        skipped.add("nullability")
+    ok = diff.passed(strict=strict, skip=skipped)
+
+    # Output
+    _print_schema_diff(
+        diff, strict=strict, skip=skipped, filename=filename, type_name=type_name
+    )
+
+    _write_diff(diff, output)
+
+    if not ok:
+        sys.exit(1)
+
+
+def _write_diff(diff: SchemaDiff, output: Path | None) -> None:
+    """Write schema diff rows to a CSV or Parquet file."""
+    if output is None:
+        return
+    rows = diff.to_rows()
+    suffix = output.suffix.lower()
+
+    if suffix == ".csv":
+        import csv
+
+        with open(output, "w", newline="") as f:
+            writer = csv.DictWriter(
+                f, fieldnames=["path", "kind", "expected", "actual"]
+            )
+            writer.writeheader()
+            writer.writerows(rows)
+        stdout.print(f"Wrote {len(rows)} diff(s) to {output}")
+
+    elif suffix == ".parquet":
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+
+        table = pa.table(
+            {
+                "path": [r["path"] for r in rows],
+                "kind": [r["kind"] for r in rows],
+                "expected": [r["expected"] for r in rows],
+                "actual": [r["actual"] for r in rows],
+            }
+        )
+        pq.write_table(table, output)
+        stdout.print(f"Wrote {len(rows)} diff(s) to {output}")
+
+    else:
+        raise click.UsageError(
+            f"Unsupported output format '{suffix}'. Use .csv or .parquet"
+        )
+
+
+def _print_schema_diff(
+    diff: SchemaDiff,
+    *,
+    strict: bool,
+    skip: set[str] | None = None,
+    filename: str | Path,
+    type_name: str,
+) -> None:
+    """Print a human-readable schema diff."""
+    skip = skip or set()
+    ok = diff.passed(strict=strict, skip=skip)
+    mode = "strict" if strict else "subset"
+
+    if ok:
+        stdout.print(
+            f"SUCCESS, schema of '{filename}' matches type '{type_name}' ({mode} check)"
+        )
+        if diff.extra_fields and not strict:
+            stdout.print(
+                f"  [dim]{len(diff.extra_fields)} extra field(s) in file "
+                f"(OK in subset mode)[/dim]"
+            )
+        return
+
+    out = stderr
+
+    out.print(f"FAILURE, schema mismatch: '{filename}' vs type '{type_name}'")
+    out.print()
+
+    if diff.missing_fields and "missing" not in skip:
+        out.print(f"[bold red]Missing fields ({len(diff.missing_fields)}):[/bold red]")
+        for f in diff.missing_fields:
+            out.print(f"  [red]- {f.path}[/red]  (expected: {f.expected})")
+        out.print()
+
+    if diff.type_mismatches and "type-mismatch" not in skip:
+        out.print(
+            f"[bold yellow]Type mismatches ({len(diff.type_mismatches)}):[/bold yellow]"
+        )
+        for f in diff.type_mismatches:
+            out.print(f"  [yellow]~ {f.path}[/yellow]")
+            out.print(f"      expected: {f.expected}")
+            out.print(f"      actual:   {f.actual}")
+        out.print()
+
+    if diff.nullability_issues and "nullability" not in skip:
+        out.print(
+            f"[bold yellow]Nullability issues ({len(diff.nullability_issues)}):[/bold yellow]"
+        )
+        for f in diff.nullability_issues:
+            out.print(f"  [yellow]~ {f.path}[/yellow]")
+            out.print(f"      expected: {f.expected}")
+            out.print(f"      actual:   {f.actual}")
+        out.print()
+
+    if strict and diff.extra_fields and "extra" not in skip:
+        out.print(f"[bold blue]Extra fields ({len(diff.extra_fields)}):[/bold blue]")
+        for f in diff.extra_fields:
+            out.print(f"  [blue]+ {f.path}[/blue]  (type: {f.actual})")
+        out.print()
+
+
 def dump_namespace(
     theme_types: dict[str | None, list[tuple[ModelKey, type[BaseModel]]]],
 ) -> None:
@@ -809,7 +1189,18 @@ def dump_namespace(
 
 
 @cli.command("list-types")
-def list_types() -> None:
+@click.option(
+    "--theme",
+    multiple=True,
+    help="Filter by theme (e.g., buildings, transportation). Can be repeated.",
+    default=(),
+)
+@click.option(
+    "--simple",
+    is_flag=True,
+    help="Simple output: just list type names without descriptions",
+)
+def list_types(theme: tuple[str, ...], simple: bool) -> None:
     r"""List all available types grouped by theme with descriptions.
 
     Displays all registered Overture Maps types organized by theme,
@@ -819,15 +1210,26 @@ def list_types() -> None:
     Examples:
       # List all types
       $ overture-schema list-types
+    \b
+      # List only buildings types
+      $ overture-schema list-types --theme buildings
+    \b
+      # List buildings and places, simple output
+      $ overture-schema list-types --theme buildings --theme places --simple
     """
     try:
         models = discover_models()
+        theme_filter = set(theme) if theme else None
 
         # Group models by namespace and theme
         namespaces: dict[
             str, dict[str | None, list[tuple[ModelKey, type[BaseModel]]]]
         ] = {}
         for key, model_class in models.items():
+            # Filter by theme if specified
+            if theme_filter and key.theme not in theme_filter:
+                continue
+
             if key.namespace not in namespaces:
                 namespaces[key.namespace] = {}
             if key.theme not in namespaces[key.namespace]:
@@ -837,19 +1239,35 @@ def list_types() -> None:
 
         # display Overture themes first
         if "overture" in namespaces:
-            stdout.print("[bold red]OVERTURE THEMES[/bold red]", justify="center")
-            stdout.print()
-
-            dump_namespace(namespaces["overture"])
-
-            stdout.print("[bold red]ADDITIONAL TYPES[/bold red]", justify="center")
-            stdout.print()
+            if simple:
+                for t in sorted(
+                    namespaces["overture"].keys(), key=lambda x: (x is None, x)
+                ):
+                    for key, _ in sorted(
+                        namespaces["overture"][t], key=lambda x: x[0].type
+                    ):
+                        stdout.print(f"{key.type}")
+            else:
+                stdout.print("[bold red]OVERTURE THEMES[/bold red]", justify="center")
+                stdout.print()
+                dump_namespace(namespaces["overture"])
+                stdout.print("[bold red]ADDITIONAL TYPES[/bold red]", justify="center")
+                stdout.print()
 
         for namespace in sorted(namespaces.keys()):
             if namespace == "overture":
                 continue
 
-            stdout.print(f"[bold blue]{namespace.upper()}[/bold blue]")
+            if simple:
+                for t in sorted(
+                    namespaces[namespace].keys(), key=lambda x: (x is None, x)
+                ):
+                    for key, _ in sorted(
+                        namespaces[namespace][t], key=lambda x: x[0].type
+                    ):
+                        stdout.print(f"{key.type}")
+            else:
+                stdout.print(f"[bold blue]{namespace.upper()}[/bold blue]")
             dump_namespace(namespaces[namespace])
 
     except Exception as e:
