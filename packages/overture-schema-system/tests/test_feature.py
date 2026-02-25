@@ -332,6 +332,18 @@ class TestFieldDiscriminator:
         ):
             tap.validate_json(json.dumps(data))
 
+    def test_field_discriminator_attaches_field_name(self) -> None:
+        """The callable returned by field_discriminator carries _field_name for introspection."""
+
+        class A(Feature):
+            kind: Literal["a"]
+
+        class B(Feature):
+            kind: Literal["b"]
+
+        disc = Feature.field_discriminator("kind", A, B)
+        assert disc.discriminator._field_name == "kind"  # type: ignore[union-attr]
+
     def test_error_field_not_str(self) -> None:
         with pytest.raises(
             TypeError, match="`field` must be a `str`, but 42 has type `int`"
