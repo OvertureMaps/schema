@@ -10,10 +10,10 @@ def subset_conflicts(
 
     Parameters
     ----------
-    a : dict[str, object]
+    a : Mapping[str, object]
         Candidate subset of `b`
-    b : dict[str, object]
-        Candidate supserset of `a`
+    b : Mapping[str, object]
+        Candidate superset of `a`
 
     Returns
     -------
