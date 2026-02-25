@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import types
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Annotated, Any, Literal, Union, get_args, get_origin
@@ -21,6 +22,7 @@ __all__ = [
     "analyze_type",
     "is_newtype",
     "single_literal_value",
+    "walk_type_info",
 ]
 
 
@@ -64,6 +66,20 @@ class TypeInfo:
     newtype_ref: object | None = None
     union_members: tuple[type[BaseModel], ...] | None = None
     description: str | None = None
+
+
+def walk_type_info(ti: TypeInfo, visitor: Callable[[TypeInfo], None]) -> None:
+    """Call *visitor* on *ti*, then recurse into dict key/value types.
+
+    Captures the shared recursive descent pattern used by type collection
+    and reverse reference computation. Union members are ``type`` objects
+    (not ``TypeInfo``), so callers handle them directly.
+    """
+    visitor(ti)
+    if ti.dict_key_type is not None:
+        walk_type_info(ti.dict_key_type, visitor)
+    if ti.dict_value_type is not None:
+        walk_type_info(ti.dict_value_type, visitor)
 
 
 def is_newtype(annotation: object) -> bool:

@@ -1,0 +1,17 @@
+# {{ newtype.name }}
+{% if newtype.description %}
+
+{{ newtype.description | linkify_urls }}
+{% endif %}
+
+Underlying type: {{ underlying_type }}
+{% if constraints %}
+
+## Constraints
+
+{% for c in constraints -%}
+- {{ c.display }}{% if c.source_link %} (from [`{{ c.source }}`]({{ c.source_link }})){% endif %}
+
+{% endfor %}
+{% endif %}
+{% include '_used_by.md.jinja2' %}

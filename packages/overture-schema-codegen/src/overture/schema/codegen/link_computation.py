@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
+from .case_conversion import slug_filename
+
 __all__ = ["LinkContext", "relative_link"]
 
 
@@ -18,6 +20,14 @@ class LinkContext:
         if name in self.registry:
             return relative_link(self.page_path, self.registry[name])
         return None
+
+    def resolve_link_or_slug(self, name: str) -> str:
+        """Resolve *name* to a relative link, falling back to a slug filename.
+
+        Always returns a usable link string. Use when the caller needs a
+        link regardless of whether the type has a registered page.
+        """
+        return self.resolve_link(name) or slug_filename(name)
 
 
 def _is_normalized(path: PurePosixPath) -> bool:
