@@ -10,6 +10,7 @@ from overture.schema.codegen.type_analyzer import (
     TypeKind,
     UnsupportedUnionError,
     analyze_type,
+    single_literal_value,
 )
 from overture.schema.system.primitive import float64, int32
 from overture.schema.system.ref import Id
@@ -565,3 +566,27 @@ class TestAnalyzeTypeUnion:
         )
         assert result.kind == TypeKind.UNION
         assert result.is_optional is True
+
+
+class TestSingleLiteralValue:
+    """Tests for single_literal_value extraction."""
+
+    def test_single_value_literal(self) -> None:
+        """Literal["x"] returns the literal value."""
+        assert single_literal_value(Literal["x"]) == "x"
+
+    def test_single_int_literal(self) -> None:
+        """Literal[42] returns the integer value."""
+        assert single_literal_value(Literal[42]) == 42
+
+    def test_multi_value_literal_returns_none(self) -> None:
+        """Multi-value Literal returns None (no single default)."""
+        assert single_literal_value(Literal["a", "b"]) is None
+
+    def test_non_literal_returns_none(self) -> None:
+        """Non-Literal types return None."""
+        assert single_literal_value(str) is None
+
+    def test_unsupported_type_returns_none(self) -> None:
+        """Types that raise during analysis return None."""
+        assert single_literal_value("not a type") is None
