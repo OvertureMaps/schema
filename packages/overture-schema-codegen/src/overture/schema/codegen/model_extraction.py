@@ -164,9 +164,7 @@ def expand_model_tree(
     """
     if cache is None:
         cache = {}
-    if spec.source_type is not None:
-        # Only ModelSpec has non-None source_type; UnionSpec.source_type is always None
-        assert isinstance(spec, ModelSpec)
+    if isinstance(spec, ModelSpec) and spec.source_type is not None:
         cache[spec.source_type] = spec
     ancestors = frozenset({spec.source_type}) if spec.source_type else frozenset()
     _expand_fields(spec.fields, cache, ancestors)

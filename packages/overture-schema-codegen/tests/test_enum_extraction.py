@@ -7,6 +7,11 @@ from overture.schema.codegen.specs import EnumMemberSpec, EnumSpec
 from overture.schema.system.doc import DocumentedEnum
 
 
+def find_member(spec: EnumSpec, name: str) -> EnumMemberSpec:
+    """Find a member by name in an EnumSpec, raising if missing."""
+    return next(m for m in spec.members if m.name == name)
+
+
 class TestEnumMemberSpec:
     """Tests for EnumMemberSpec dataclass."""
 
@@ -66,11 +71,11 @@ class TestExtractEnumSimple:
         assert len(result.members) == 3
 
         # Check member extraction
-        flat = next(m for m in result.members if m.name == "FLAT")
+        flat = find_member(result, "FLAT")
         assert flat.value == "flat"
         assert flat.description is None
 
-        gabled = next(m for m in result.members if m.name == "GABLED")
+        gabled = find_member(result, "GABLED")
         assert gabled.value == "gabled"
 
     def test_enum_without_docstring(self) -> None:
@@ -104,11 +109,11 @@ class TestExtractEnumDocumented:
         assert result.description == "The side on which something appears."
         assert len(result.members) == 2
 
-        left = next(m for m in result.members if m.name == "LEFT")
+        left = find_member(result, "LEFT")
         assert left.value == "left"
         assert left.description == "On the left side"
 
-        right = next(m for m in result.members if m.name == "RIGHT")
+        right = find_member(result, "RIGHT")
         assert right.value == "right"
         assert right.description == "On the right side"
 
@@ -124,11 +129,11 @@ class TestExtractEnumDocumented:
 
         result = extract_enum(ConnectionState)
 
-        connected = next(m for m in result.members if m.name == "CONNECTED")
+        connected = find_member(result, "CONNECTED")
         assert connected.value == "connected"
         assert connected.description is None
 
-        quiescing = next(m for m in result.members if m.name == "QUIESCING")
+        quiescing = find_member(result, "QUIESCING")
         assert quiescing.value == "quiescing"
         assert quiescing.description == "Gracefully shutting down"
 

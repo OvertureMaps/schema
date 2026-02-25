@@ -505,11 +505,11 @@ class TestAnalyzeTypeErrors:
             analyze_type(list)
 
 
-class _UnionModelA(BaseModel):
+class UnionModelA(BaseModel):
     x: int
 
 
-class _UnionModelB(BaseModel):
+class UnionModelB(BaseModel):
     y: str
 
 
@@ -518,19 +518,19 @@ class TestAnalyzeTypeUnion:
 
     def test_all_model_union_returns_union_kind(self) -> None:
         """Annotated[Union of BaseModel subclasses] returns TypeKind.UNION."""
-        union_type = Annotated[_UnionModelA | _UnionModelB, Field(description="test")]
+        union_type = Annotated[UnionModelA | UnionModelB, Field(description="test")]
         result = analyze_type(union_type)
 
         assert result.kind == TypeKind.UNION
         assert result.union_members is not None
         assert len(result.union_members) == 2
-        assert _UnionModelA in result.union_members
-        assert _UnionModelB in result.union_members
+        assert UnionModelA in result.union_members
+        assert UnionModelB in result.union_members
 
     def test_annotated_wrapped_members_unwrapped(self) -> None:
         """Union members wrapped in Annotated[X, Tag(...)] are unwrapped."""
         union_type = Annotated[
-            Annotated[_UnionModelA, Tag("a")] | Annotated[_UnionModelB, Tag("b")],
+            Annotated[UnionModelA, Tag("a")] | Annotated[UnionModelB, Tag("b")],
             Field(description="disc"),
         ]
         result = analyze_type(union_type)
@@ -538,13 +538,13 @@ class TestAnalyzeTypeUnion:
         assert result.kind == TypeKind.UNION
         assert result.union_members is not None
         assert len(result.union_members) == 2
-        assert _UnionModelA in result.union_members
-        assert _UnionModelB in result.union_members
+        assert UnionModelA in result.union_members
+        assert UnionModelB in result.union_members
 
     def test_mixed_model_nonmodel_union_still_raises(self) -> None:
         """Union of model + non-model types still raises UnsupportedUnionError."""
         with pytest.raises(UnsupportedUnionError):
-            analyze_type(_UnionModelA | str)
+            analyze_type(UnionModelA | str)
 
     def test_non_model_multi_union_still_raises(self) -> None:
         """Multi-type union of non-models still raises UnsupportedUnionError."""
@@ -554,14 +554,14 @@ class TestAnalyzeTypeUnion:
     def test_union_base_type_is_first_member_name(self) -> None:
         """UNION TypeInfo base_type is the first member's class name."""
         result = analyze_type(
-            Annotated[_UnionModelA | _UnionModelB, Field(description="test")]
+            Annotated[UnionModelA | UnionModelB, Field(description="test")]
         )
-        assert result.base_type == "_UnionModelA"
+        assert result.base_type == "UnionModelA"
 
     def test_optional_union_sets_is_optional(self) -> None:
         """Union with None among model members sets is_optional."""
         result = analyze_type(
-            Annotated[_UnionModelA | _UnionModelB, Field(description="test")] | None
+            Annotated[UnionModelA | UnionModelB, Field(description="test")] | None
         )
         assert result.kind == TypeKind.UNION
         assert result.is_optional is True

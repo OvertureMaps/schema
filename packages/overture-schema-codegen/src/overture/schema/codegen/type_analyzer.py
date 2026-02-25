@@ -97,14 +97,14 @@ class _UnwrapState:
     is_dict: bool = False
     dict_key_type: TypeInfo | None = None
     dict_value_type: TypeInfo | None = None
-    _constraints: list[ConstraintSource] = field(default_factory=list)
+    constraints: list[ConstraintSource] = field(default_factory=list)
     outermost_newtype_name: str | None = None
     outermost_newtype_ref: object | None = None
     last_newtype_name: str | None = None
     description: str | None = None
 
     def add_constraint(self, source: str | None, constraint: object) -> None:
-        self._constraints.append(ConstraintSource(source, constraint))
+        self.constraints.append(ConstraintSource(source, constraint))
 
     def build_type_info(
         self,
@@ -123,7 +123,7 @@ class _UnwrapState:
             is_dict=self.is_dict,
             dict_key_type=self.dict_key_type,
             dict_value_type=self.dict_value_type,
-            constraints=tuple(self._constraints),
+            constraints=tuple(self.constraints),
             literal_value=literal_value,
             source_type=source_type,
             newtype_name=self.outermost_newtype_name,

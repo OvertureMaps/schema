@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from codegen_test_support import STR_TYPE, make_union_spec
+from overture.schema.codegen.model_extraction import extract_model
 from overture.schema.codegen.specs import (
     AnnotatedField,
     FeatureSpec,
@@ -22,8 +23,6 @@ class TestFeatureSpecProtocol:
 
         class Simple(BaseModel):
             name: str
-
-        from overture.schema.codegen.model_extraction import extract_model
 
         spec = extract_model(Simple)
         # Protocol compliance check
