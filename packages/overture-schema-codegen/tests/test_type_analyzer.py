@@ -88,14 +88,6 @@ class TestAnalyzeTypeOptional:
         assert result.is_optional is True
         assert result.is_list is False
 
-    def test_type_with_literal_alternative(self) -> None:
-        """str | Literal[""] filters out the Literal and analyzes the concrete type."""
-        result = analyze_type(str | Literal[""])
-
-        assert result.base_type == "str"
-        assert result.kind == TypeKind.PRIMITIVE
-        assert result.is_optional is False
-
     def test_type_with_literal_and_none(self) -> None:
         """str | Literal[""] | None filters Literal and marks optional."""
         result = analyze_type(str | Literal[""] | None)
@@ -112,6 +104,18 @@ class TestAnalyzeTypeOptional:
         assert result.kind == TypeKind.PRIMITIVE
         assert result.is_optional is True
         assert result.is_list is False
+
+
+class TestAnalyzeTypeUnionLiteralFiltering:
+    """Tests for filtering Literal arms out of unions."""
+
+    def test_type_with_literal_alternative(self) -> None:
+        """str | Literal[""] filters out the Literal and analyzes the concrete type."""
+        result = analyze_type(str | Literal[""])
+
+        assert result.base_type == "str"
+        assert result.kind == TypeKind.PRIMITIVE
+        assert result.is_optional is False
 
 
 class TestAnalyzeTypeList:
