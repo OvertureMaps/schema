@@ -123,10 +123,10 @@ _PARAGRAPH_BREAK_RE = re.compile(r"\n(?:[ \t]*\n)+")
 
 
 def _unwrap_paragraphs(text: str) -> str:
-    """Unwrap hard-wrapped lines within paragraphs, preserving paragraph breaks.
+    r"""Unwrap hard-wrapped lines within paragraphs, preserving paragraph breaks.
 
     Splits on blank lines (paragraph boundaries), replaces single newlines
-    within each paragraph with spaces, then rejoins with ``\\n\\n``.
+    within each paragraph with spaces, then rejoins with ``\n\n``.
     Matches markdown's treatment of newlines within paragraphs.
     """
     paragraphs = _PARAGRAPH_BREAK_RE.split(text)
@@ -146,11 +146,18 @@ def _sanitize_for_table_cell(text: str) -> str:
     return text.replace("|", "\\|")
 
 
+def _truncate(text: str) -> str:
+    """Truncate text to ``_EXAMPLE_TRUNCATION_LIMIT`` chars, adding ellipsis."""
+    if len(text) > _EXAMPLE_TRUNCATION_LIMIT:
+        return text[:_EXAMPLE_TRUNCATION_LIMIT] + "..."
+    return text
+
+
 def _format_example_value(value: object) -> str:
     """Format an example value for display in a markdown Column | Value table.
 
     All non-empty values render in backticks for consistent monospace
-    formatting. Long strings are truncated before wrapping.
+    formatting. Long representations are truncated before wrapping.
     """
     if value is None:
         return "`null`"
@@ -161,17 +168,15 @@ def _format_example_value(value: object) -> str:
     if isinstance(value, str):
         if value == "":
             return ""
-        if len(value) > _EXAMPLE_TRUNCATION_LIMIT:
-            value = value[:_EXAMPLE_TRUNCATION_LIMIT] + "..."
-        return f"`{value}`"
+        return f"`{_truncate(value)}`"
 
     if isinstance(value, list):
         items = ", ".join(str(item) for item in value)
-        return f"`[{items}]`"
+        return f"`{_truncate(f'[{items}]')}`"
 
     if isinstance(value, dict):
         pairs = ", ".join(f"{k}: {v}" for k, v in value.items())
-        return f"`{{{pairs}}}`"
+        return f"`{_truncate(f'{{{pairs}}}')}`"
 
     return f"`{value}`"
 
@@ -308,10 +313,14 @@ def _expand_model_fields(
 def _short_variant_name(class_name: str, union_name: str) -> str:
     """Strip common suffix to produce short variant name.
 
-    Examples:
-        RoadSegment, Segment -> Road
-        WaterSegment, Segment -> Water
-        Building, Building -> Building
+    Examples
+    --------
+    >>> _short_variant_name("RoadSegment", "Segment")
+    'Road'
+    >>> _short_variant_name("WaterSegment", "Segment")
+    'Water'
+    >>> _short_variant_name("Building", "Building")
+    'Building'
     """
     if class_name.endswith(union_name):
         short = class_name[: -len(union_name)]
@@ -492,7 +501,7 @@ def render_newtype(
 _INT64_MIN = -(2**63)
 _INT64_MAX = 2**63 - 1
 
-_Bound = int | float | None
+_NumericBound = int | float | None
 
 # IEEE 754 precision by bit width — formatting knowledge, not schema data.
 _FLOAT_PRECISION: dict[int, str] = {32: "~7 decimal digits", 64: "~15 decimal digits"}
@@ -522,10 +531,10 @@ def _format_interval(bounds: Interval) -> str:
     """
     # Interval fields are typed as Supports* protocols; narrow to numeric
     # since we only encounter int/float constraints from the schema.
-    ge = cast(_Bound, bounds.ge)
-    gt = cast(_Bound, bounds.gt)
-    le = cast(_Bound, bounds.le)
-    lt = cast(_Bound, bounds.lt)
+    ge = cast(_NumericBound, bounds.ge)
+    gt = cast(_NumericBound, bounds.gt)
+    le = cast(_NumericBound, bounds.le)
+    lt = cast(_NumericBound, bounds.lt)
 
     # Both bounds inclusive: compact "lower to upper" form
     if ge is not None and le is not None:
