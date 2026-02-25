@@ -16,16 +16,6 @@ from .type_analyzer import TypeInfo, TypeKind, analyze_type, single_literal_valu
 __all__ = ["extract_discriminator", "extract_union"]
 
 
-def _extract_annotated_description(annotation: object) -> str | None:
-    """Extract description from Annotated metadata (FieldInfo)."""
-    if get_origin(annotation) is not Annotated:
-        return None
-    for metadata in get_args(annotation)[1:]:
-        if isinstance(metadata, FieldInfo) and metadata.description:
-            return metadata.description
-    return None
-
-
 def _find_common_base(members: list[type[BaseModel]]) -> type[BaseModel]:
     """Find the most-derived common BaseModel ancestor of all members."""
     filtered_mros = [
@@ -44,11 +34,6 @@ def _find_common_base(members: list[type[BaseModel]]) -> type[BaseModel]:
         return max(mro.index(cls) for mro in filtered_mros)
 
     return min(common, key=max_mro_index)
-
-
-def _discriminator_field_from_metadata(field_info: FieldInfo) -> str | None:
-    """Extract a discriminator field name from a FieldInfo's discriminator."""
-    return resolve_discriminator_field_name(field_info.discriminator)
 
 
 def _find_field_by_alias(model: type[BaseModel], alias: str) -> FieldInfo | None:
@@ -73,7 +58,7 @@ def extract_discriminator(
     disc_field_name: str | None = None
     for metadata in get_args(annotation)[1:]:
         if isinstance(metadata, FieldInfo):
-            disc_field_name = _discriminator_field_from_metadata(metadata)
+            disc_field_name = resolve_discriminator_field_name(metadata.discriminator)
             if disc_field_name is not None:
                 break
 
@@ -146,7 +131,7 @@ def extract_union(
 
     return UnionSpec(
         name=name,
-        description=_extract_annotated_description(annotation),
+        description=ti.description,
         annotated_fields=annotated_fields,
         members=members,
         discriminator_field=disc_field,
