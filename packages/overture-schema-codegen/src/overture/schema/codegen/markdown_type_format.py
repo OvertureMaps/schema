@@ -58,8 +58,9 @@ def _markdown_type_name(ti: TypeInfo) -> str:
 
 def format_dict_type(ti: TypeInfo) -> str:
     """Format a dict TypeInfo as bare ``map<K, V>`` using resolved markdown names."""
-    assert ti.dict_key_type is not None
-    assert ti.dict_value_type is not None
+    if ti.dict_key_type is None or ti.dict_value_type is None:
+        msg = f"format_dict_type requires dict key/value types, got {ti}"
+        raise ValueError(msg)
     key = _markdown_type_name(ti.dict_key_type)
     value = _markdown_type_name(ti.dict_value_type)
     return f"map<{key}, {value}>"

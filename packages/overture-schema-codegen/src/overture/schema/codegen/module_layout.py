@@ -11,7 +11,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import PurePosixPath
 
 __all__ = [
-    "ROOT_DIR",
+    "OUTPUT_ROOT",
     "compute_output_dir",
     "compute_schema_root",
     "entry_point_class",
@@ -21,7 +21,7 @@ __all__ = [
     "output_dir_for_entry_point",
 ]
 
-ROOT_DIR = PurePosixPath(".")
+OUTPUT_ROOT = PurePosixPath(".")
 
 
 def _split_entry_point(entry_point_path: str) -> tuple[str, str]:
@@ -139,12 +139,12 @@ def compute_output_dir(
     """
     relpath = module_relpath(module, schema_root)
     if not relpath:
-        return ROOT_DIR
+        return OUTPUT_ROOT
 
     parts = relpath.split(".")
     if not is_package_module(module, module_registry):
         parts = parts[:-1]
 
     if not parts:
-        return ROOT_DIR
+        return OUTPUT_ROOT
     return PurePosixPath(*parts)
