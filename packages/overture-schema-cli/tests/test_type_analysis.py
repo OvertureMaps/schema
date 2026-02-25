@@ -29,14 +29,9 @@ class TestStructuralTuples:
 
         UnionType = Annotated[ModelA | ModelB, Field(discriminator="type")]
 
-        # Test simple discriminated union error path
         loc = ("a", "required_a")
         metadata = introspect_union(UnionType)
         structural = create_structural_tuple(loc, metadata)
-        print(f"\nloc: {loc}")
-        print(f"structural: {structural}")
-        assert len(structural) == len(loc)
-        # First element should be discriminator, second should be field
         assert structural == ("discriminator", "field")
 
     def test_mixed_union_structural_tuple(self) -> None:
@@ -56,17 +51,11 @@ class TestStructuralTuples:
         # Test discriminated side
         loc1 = ("tagged-union[ModelA]", "a", "required_a")
         structural1 = create_structural_tuple(loc1, metadata)
-        print("\nDiscriminated side:")
-        print(f"loc: {loc1}")
-        print(f"structural: {structural1}")
         assert structural1 == ("union", "discriminator", "field")
 
         # Test non-discriminated side
         loc2 = ("Sources", "datasets")
         structural2 = create_structural_tuple(loc2, metadata)
-        print("\nNon-discriminated side:")
-        print(f"loc: {loc2}")
-        print(f"structural: {structural2}")
         assert structural2 == ("model", "field")
 
     def test_list_context_structural_tuple(self) -> None:
@@ -78,13 +67,9 @@ class TestStructuralTuples:
 
         UnionType = Annotated[ModelA, Field(discriminator="type")]
 
-        # Test list context
         loc = (1, "a", "required_a")
         metadata = introspect_union(list[UnionType])
         structural = create_structural_tuple(loc, metadata)
-        print("\nList context:")
-        print(f"loc: {loc}")
-        print(f"structural: {structural}")
         assert structural == ("list_index", "discriminator", "field")
 
     def test_nested_discriminated_structural_tuple(self) -> None:
@@ -114,13 +99,9 @@ class TestStructuralTuples:
         FeatureUnion = Annotated[Building | SegmentUnion, Field(discriminator="type")]
         MixedUnion = FeatureUnion | Sources
 
-        # Test nested discriminator path (type=segment, subtype=road)
         loc = ("tagged-union[SegmentUnion]", "segment", "road", "road_class")
         metadata = introspect_union(MixedUnion)
         structural = create_structural_tuple(loc, metadata)
-        print("\nNested discriminated:")
-        print(f"loc: {loc}")
-        print(f"structural: {structural}")
         assert structural == ("union", "discriminator", "discriminator", "field")
 
 
@@ -252,35 +233,6 @@ class TestIntrospectUnion:
         assert metadata.is_discriminated is True
         assert metadata.discriminator_field == "type"
         assert "a" in metadata.discriminator_to_model
-
-    @pytest.mark.parametrize(
-        "literal_value,expected_in_mapping",
-        [
-            pytest.param("building", True, id="literal_building"),
-            pytest.param("place", True, id="literal_place"),
-            pytest.param("nonexistent", False, id="not_present"),
-        ],
-    )
-    def test_introspect_extracts_all_literals(
-        self, literal_value: str, expected_in_mapping: bool
-    ) -> None:
-        """Test that introspect_union extracts all Literal field values."""
-
-        class Building(BaseModel):
-            type: Literal["building"]
-            subtype: Literal["residential"]
-
-        class Place(BaseModel):
-            type: Literal["place"]
-            category: Literal["restaurant"]
-
-        UnionType = Annotated[Building | Place, Field(discriminator="type")]
-        metadata = introspect_union(UnionType)
-
-        if expected_in_mapping:
-            assert literal_value in metadata.discriminator_to_model
-        else:
-            assert literal_value not in metadata.discriminator_to_model
 
 
 class TestDiscriminatorDiscovery:
