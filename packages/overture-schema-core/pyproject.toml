@@ -4,6 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "overture-schema-core"
+maintainers = [
+    {name = "Dana Bauer", email = "dana@overturemaps.org"},
+    {name = "Seth Fitzsimmons"},
+    {name = "Vic Schappert"},
+    {name = "Jennings Anderson", email = "jenningsa@meta.com"},
+]
+keywords = ["schema", "pydantic", "overture", "geospatial", "validation"]
 dynamic = ["version"]
 description = "Core schemas for Overture Maps"
 license = "MIT"
@@ -12,6 +19,11 @@ dependencies = [
     "pydantic>=2.0",
     "shapely>=2.1.1",
 ]
+
+[project.urls]
+Homepage = "https://overturemaps.org"
+Source = "https://github.com/OvertureMaps/schema"
+Issues = "https://github.com/OvertureMaps/schema/issues"
 
 [tool.uv.sources]
 overture-schema-system = { workspace = true }
