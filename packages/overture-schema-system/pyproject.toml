@@ -4,6 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "overture-schema-system"
+maintainers = [
+    {name = "Dana Bauer", email = "dana@overturemaps.org"},
+    {name = "Seth Fitzsimmons"},
+    {name = "Vic Schappert"},
+    {name = "Jennings Anderson", email = "jenningsa@meta.com"},
+]
+keywords = ["schema", "pydantic", "overture", "geospatial", "validation"]
 dynamic = ["version"]
 description = "Foundational types at the base of the Overture Maps schema system"
 readme = "README.md"
@@ -13,6 +20,11 @@ dependencies = [
     "pydantic>=2.0.0",
     "shapely>=2.0.0",
 ]
+
+[project.urls]
+Homepage = "https://overturemaps.org"
+Source = "https://github.com/OvertureMaps/schema"
+Issues = "https://github.com/OvertureMaps/schema/issues"
 
 [dependency-groups]
 dev = [

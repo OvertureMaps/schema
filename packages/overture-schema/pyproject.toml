@@ -1,4 +1,11 @@
 [project]
+maintainers = [
+    {name = "Dana Bauer", email = "dana@overturemaps.org"},
+    {name = "Seth Fitzsimmons"},
+    {name = "Vic Schappert"},
+    {name = "Jennings Anderson", email = "jenningsa@meta.com"},
+]
+keywords = ["schema", "pydantic", "overture", "geospatial", "validation"]
 dependencies = [
     "overture-schema-addresses-theme",
     "overture-schema-base-theme",
