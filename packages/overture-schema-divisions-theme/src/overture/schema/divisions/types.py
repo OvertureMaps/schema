@@ -13,6 +13,8 @@ AdminLevel = NewType(
         int32,
         Field(
             description="Integer representing the division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
+            ge=0,
+            le=16,
         ),
     ],
 )
