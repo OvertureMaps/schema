@@ -273,7 +273,7 @@ def assert_literal_field(
     """Assert a field is a single-value Literal with the expected value."""
     field = find_field(spec, field_name)
     assert field.type_info.kind == TypeKind.LITERAL
-    assert field.type_info.literal_value == expected_value
+    assert field.type_info.literal_values == (expected_value,)
 
 
 def flat_specs_from_discovery(
