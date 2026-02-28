@@ -60,7 +60,7 @@ class TypeInfo:
     dict_key_type: TypeInfo | None = None
     dict_value_type: TypeInfo | None = None
     constraints: tuple[ConstraintSource, ...] = ()
-    literal_value: object | None = None
+    literal_values: tuple[object, ...] | None = None
     source_type: type | None = None
     newtype_name: str | None = None
     newtype_ref: object | None = None
@@ -127,7 +127,7 @@ class _UnwrapState:
         *,
         base_type: str,
         kind: TypeKind,
-        literal_value: object | None = None,
+        literal_values: tuple[object, ...] | None = None,
         source_type: type | None = None,
         union_members: tuple[type[BaseModel], ...] | None = None,
     ) -> TypeInfo:
@@ -140,7 +140,7 @@ class _UnwrapState:
             dict_key_type=self.dict_key_type,
             dict_value_type=self.dict_value_type,
             constraints=tuple(self.constraints),
-            literal_value=literal_value,
+            literal_values=literal_values,
             source_type=source_type,
             newtype_name=self.outermost_newtype_name,
             newtype_ref=self.outermost_newtype_ref,
@@ -271,18 +271,13 @@ def _classify_terminal(annotation: object, state: _UnwrapState) -> TypeInfo:
             kind=TypeKind.PRIMITIVE,
         )
 
-    # Literal types (e.g., Literal["value"])
+    # Literal types (e.g., Literal["value"] or Literal["a", "b"])
     if get_origin(annotation) is Literal:
         args = get_args(annotation)
-        # Only expose literal_value for single-value Literals, which
-        # represent fixed constants (theme="buildings"). Multi-value
-        # Literals (Literal["a", "b"]) are enum-like and have no
-        # single default.
-        value = args[0] if len(args) == 1 else None
         return state.build_type_info(
             base_type="Literal",
             kind=TypeKind.LITERAL,
-            literal_value=value,
+            literal_values=tuple(args),
         )
 
     if not isinstance(annotation, type):
@@ -315,12 +310,18 @@ def single_literal_value(annotation: object) -> object | None:
     """Extract a single literal value from a type annotation, or None.
 
     Delegates to analyze_type for all unwrapping, then checks
-    whether the result is a single-value Literal.
+    whether the result is a single-value Literal. Multi-value
+    Literals return None — callers needing all values should use
+    ``analyze_type`` and read ``literal_values`` directly.
     """
     try:
         ti = analyze_type(annotation)
     except (TypeError, UnsupportedUnionError):
         return None
-    if ti.kind == TypeKind.LITERAL:
-        return ti.literal_value
+    if (
+        ti.kind == TypeKind.LITERAL
+        and ti.literal_values
+        and len(ti.literal_values) == 1
+    ):
+        return ti.literal_values[0]
     return None
