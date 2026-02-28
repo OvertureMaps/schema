@@ -90,8 +90,10 @@ def format_type(
     ti = field.type_info
     qualifiers: list[str] = []
 
-    if ti.kind == TypeKind.LITERAL and ti.literal_value is not None:
-        return f'`"{ti.literal_value}"`'
+    if ti.kind == TypeKind.LITERAL and ti.literal_values:
+        if len(ti.literal_values) == 1:
+            return f'`"{ti.literal_values[0]}"`'
+        return r" \| ".join(f'`"{v}"`' for v in ti.literal_values)
 
     link_name = _linked_type_name(ti)
 
