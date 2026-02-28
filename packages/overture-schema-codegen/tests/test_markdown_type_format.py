@@ -42,6 +42,11 @@ class TestFormatType:
         field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
         assert format_type(field) == '`"places"`'
 
+    def test_multi_value_literal_renders_comma_separated(self) -> None:
+        ti = analyze_type(Literal["a", "b", "c"])
+        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        assert format_type(field) == '`"a"` \\| `"b"` \\| `"c"`'
+
     def test_enum_without_context_renders_as_code(self) -> None:
         class Color(str, Enum):
             RED = "red"

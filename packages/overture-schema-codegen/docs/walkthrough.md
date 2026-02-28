@@ -3,7 +3,7 @@
 Pydantic's serialization machinery destroys the vocabulary that documentation needs. The
 codegen recovers it.
 
-Consider the transportation schema's `Segment` type -- a discriminated union of
+Consider the transportation theme's `Segment` type -- a discriminated union of
 `RoadSegment`, `RailSegment`, and `WaterSegment`. All three share fields inherited from
 `TransportationSegment`. Each adds variant-specific fields. The discriminator field
 `subtype` carries a `Literal` value (`"road"`, `"rail"`, `"water"`) that selects the

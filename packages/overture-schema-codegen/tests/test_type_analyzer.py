@@ -20,6 +20,7 @@ from overture.schema.system.string import (
     SnakeCaseString,
 )
 from pydantic import BaseModel, Field, Tag
+from typing_extensions import Sentinel
 
 
 @pytest.fixture()
@@ -56,8 +57,6 @@ class TestAnalyzeTypeSentinel:
 
     @pytest.fixture()
     def missing_sentinel(self) -> object:
-        from typing_extensions import Sentinel
-
         return Sentinel("MISSING")
 
     def test_sentinel_filtered_from_union(self, missing_sentinel: object) -> None:
@@ -199,26 +198,33 @@ class TestAnalyzeTypeAnnotated:
 class TestAnalyzeTypeLiteral:
     """Tests for Literal type analysis."""
 
-    def test_literal_string_extracts_value(self) -> None:
-        """Literal["value"] returns TypeInfo with literal_value="value"."""
+    def test_literal_string_extracts_values(self) -> None:
+        """Literal["active"] stores the value in literal_values tuple."""
         result = analyze_type(Literal["active"])
 
         assert result.kind == TypeKind.LITERAL
-        assert result.literal_value == "active"
+        assert result.literal_values == ("active",)
 
-    def test_literal_int_extracts_value(self) -> None:
-        """Literal[42] returns TypeInfo with literal_value=42."""
+    def test_literal_int_extracts_values(self) -> None:
+        """Literal[42] stores the value in literal_values tuple."""
         result = analyze_type(Literal[42])
 
         assert result.kind == TypeKind.LITERAL
-        assert result.literal_value == 42
+        assert result.literal_values == (42,)
 
-    def test_optional_literal_extracts_value(self) -> None:
+    def test_multi_value_literal_stores_all_args(self) -> None:
+        """Literal["a", "b"] stores all args in literal_values tuple."""
+        result = analyze_type(Literal["a", "b"])
+
+        assert result.kind == TypeKind.LITERAL
+        assert result.literal_values == ("a", "b")
+
+    def test_optional_literal_extracts_values(self) -> None:
         """Optional[Literal["x"]] unwraps to Literal with is_optional set."""
         result = analyze_type(Literal["x"] | None)
 
         assert result.kind == TypeKind.LITERAL
-        assert result.literal_value == "x"
+        assert result.literal_values == ("x",)
         assert result.is_optional is True
 
 
@@ -569,7 +575,7 @@ class TestAnalyzeTypeUnion:
 
 
 class TestSingleLiteralValue:
-    """Tests for single_literal_value extraction."""
+    """Tests for single_literal_value convenience accessor."""
 
     def test_single_value_literal(self) -> None:
         """Literal["x"] returns the literal value."""

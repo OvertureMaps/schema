@@ -22,6 +22,7 @@ from overture.schema.codegen.specs import (
     SupplementarySpec,
 )
 from overture.schema.codegen.type_collection import collect_all_supplementary_types
+from pydantic import BaseModel
 
 _PRIMITIVE_NAMES, _GEOMETRY_NAMES = partition_primitive_and_geometry_names(
     _system_primitive
@@ -144,7 +145,6 @@ class TestPlacementWithUnionSpec:
 
     def test_union_spec_gets_placement(self) -> None:
         """UnionSpec is placed alongside ModelSpec in the registry."""
-        from pydantic import BaseModel
 
         class Base(BaseModel):
             name: str
