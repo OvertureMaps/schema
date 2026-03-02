@@ -1,11 +1,7 @@
 [project]
 maintainers = [
-    {name = "Dana Bauer", email = "dana@overturemaps.org"},
-    {name = "Seth Fitzsimmons"},
-    {name = "Vic Schappert"},
-    {name = "Jennings Anderson", email = "jenningsa@meta.com"},
+    {name = "Overture Maps Schema Working Group"},
 ]
-keywords = ["schema", "pydantic", "overture", "geospatial", "validation"]
 dependencies = [
     "overture-schema-core",
     "overture-schema-system",
