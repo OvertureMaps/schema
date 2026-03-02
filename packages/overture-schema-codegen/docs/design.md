@@ -119,13 +119,14 @@ layers in a fixed order, accumulating information into an `_UnwrapState`:
 3. **Union**: Filters out `None` (marks optional), `Sentinel`, and `Literal` sentinel
    arms. If multiple concrete `BaseModel` arms remain, classifies as `UNION`; otherwise
    continues with the single remaining arm
-4. **list / dict**: Sets collection flags, continues into element types
+4. **list / dict**: Increments `list_depth` for each `list[...]` layer, sets dict flags,
+   continues into element types
 5. **Terminal**: Classifies as `PRIMITIVE`, `LITERAL`, `ENUM`, `MODEL`, or `UNION`
 
 The result is `TypeInfo` -- a flat dataclass that fully describes the unwrapped type:
-classification (`TypeKind`), optional/list/dict flags, accumulated constraints with
-provenance, NewType names, source type, literal values, and (for UNION kind) the tuple
-of concrete `BaseModel` member types. Dict types carry recursively analyzed `TypeInfo`
+classification (`TypeKind`), optional/dict flags, `list_depth` (count of `list[...]`
+layers), accumulated constraints with provenance, NewType names, source type, literal
+values, and (for UNION kind) the tuple of concrete `BaseModel` member types. Dict types carry recursively analyzed `TypeInfo`
 for their key and value types.
 
 Multi-depth `Annotated` layers (common in practice, since NewTypes wrap `Annotated`
