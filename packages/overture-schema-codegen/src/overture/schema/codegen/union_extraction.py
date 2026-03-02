@@ -76,13 +76,13 @@ def extract_discriminator(
     return disc_field_name, mapping or None
 
 
-_TypeIdentity = tuple[str, TypeKind, bool, bool]
+_TypeIdentity = tuple[str, TypeKind, bool, int]
 _FieldKey = tuple[str, _TypeIdentity]
 
 
 def _type_identity(ti: TypeInfo) -> _TypeIdentity:
     """Stable identity for dedup — excludes source_type which can vary across members."""
-    return (ti.base_type, ti.kind, ti.is_optional, ti.is_list)
+    return (ti.base_type, ti.kind, ti.is_optional, ti.list_depth)
 
 
 def extract_union(

@@ -132,9 +132,9 @@ class TestResolveTypeName:
         defaults.update(kwargs)
         return TypeInfo(**defaults)  # type: ignore[arg-type]
 
-    def test_ignores_is_list(self) -> None:
-        """resolve_type_name returns the base type regardless of is_list."""
-        ti = self._make_type_info(is_list=True)
+    def test_ignores_list_depth(self) -> None:
+        """resolve_type_name returns the base type regardless of list_depth."""
+        ti = self._make_type_info(list_depth=1)
         assert resolve_type_name(ti, "markdown") == "string"
 
     def test_ignores_is_optional(self) -> None:

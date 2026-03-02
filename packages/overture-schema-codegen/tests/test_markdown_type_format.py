@@ -72,6 +72,11 @@ class TestFormatType:
         field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
         assert format_type(field) == "`list<string>`"
 
+    def test_nested_list_of_primitives(self) -> None:
+        ti = analyze_type(list[list[str]])
+        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        assert format_type(field) == "`list<list<string>>`"
+
     def test_registered_primitive_not_linked(self) -> None:
         ti = analyze_type(int32)
         field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
@@ -135,7 +140,7 @@ class TestFormatUnionType:
         ti = TypeInfo(
             base_type="_ModelA",
             kind=TypeKind.UNION,
-            is_list=True,
+            list_depth=1,
             union_members=(_ModelA, _ModelB),
         )
         result = format_type(_make_union_field(ti))
