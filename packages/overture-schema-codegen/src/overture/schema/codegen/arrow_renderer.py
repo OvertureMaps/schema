@@ -90,9 +90,8 @@ def type_info_to_arrow(
             )
         key_type = type_info_to_arrow(type_info.dict_key_type, ancestors)
         value_type = type_info_to_arrow(type_info.dict_value_type, ancestors)
-        return pa.map_(key_type, value_type)
-
-    if type_info.kind == TypeKind.UNION:
+        arrow_type = pa.map_(key_type, value_type)
+    elif type_info.kind == TypeKind.UNION:
         if not type_info.union_members:
             raise ValueError(f"Union TypeInfo has no members: {type_info.base_type}")
         arrow_type = merge_model_variants(type_info.union_members)
@@ -117,8 +116,8 @@ def type_info_to_arrow(
             )
             arrow_type = _DEFAULT_ARROW_TYPE
 
-    if type_info.is_list:
-        return pa.list_(arrow_type)
+    for _ in range(type_info.list_depth):
+        arrow_type = pa.list_(arrow_type)
 
     return arrow_type
 

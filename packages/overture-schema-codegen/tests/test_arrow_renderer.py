@@ -133,8 +133,10 @@ class TestTypeInfoToArrowLists:
         [
             (list[str], pa.list_(pa.utf8())),
             (list[int32], pa.list_(pa.int32())),
+            (list[list[str]], pa.list_(pa.list_(pa.utf8()))),
+            (list[dict[str, int32]], pa.list_(pa.map_(pa.utf8(), pa.int32()))),
         ],
-        ids=["str", "int32"],
+        ids=["str", "int32", "nested_list", "list_of_dict"],
     )
     def test_list_mapping(self, annotation: object, expected: pa.DataType) -> None:
         assert _arrow_type_for(annotation) == expected
@@ -468,3 +470,17 @@ class TestArrowRealModels:
             result = union_spec_to_arrow_schema(spec)
             assert isinstance(result, pa.Schema)
             assert len(result) > 0
+
+    def test_division_hierarchies_nested_list(self, division_class: type) -> None:
+        """Division.hierarchies produces list<list<struct<...>>>."""
+        spec = extract_model(division_class)
+        schema = model_spec_to_arrow_schema(spec)
+        hierarchies_type = schema.field("hierarchies").type
+
+        assert isinstance(hierarchies_type, pa.ListType)
+        inner_list = hierarchies_type.value_type
+        assert isinstance(inner_list, pa.ListType)
+        assert isinstance(inner_list.value_type, pa.StructType)
+        assert inner_list.value_type.get_field_index("division_id") >= 0
+        assert inner_list.value_type.get_field_index("subtype") >= 0
+        assert inner_list.value_type.get_field_index("name") >= 0
