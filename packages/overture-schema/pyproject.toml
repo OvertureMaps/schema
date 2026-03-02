@@ -21,6 +21,11 @@ name = "overture-schema"
 readme = "README.md"
 requires-python = ">=3.10"
 
+[project.urls]
+Homepage = "https://overturemaps.org"
+Source = "https://github.com/OvertureMaps/schema"
+Issues = "https://github.com/OvertureMaps/schema/issues"
+
 [tool.uv.sources]
 overture-schema-addresses-theme = { workspace = true }
 overture-schema-base-theme = { workspace = true }
