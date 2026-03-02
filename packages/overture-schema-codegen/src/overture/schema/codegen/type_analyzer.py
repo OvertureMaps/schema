@@ -55,7 +55,7 @@ class TypeInfo:
     base_type: str
     kind: TypeKind
     is_optional: bool = False
-    is_list: bool = False
+    list_depth: int = 0
     is_dict: bool = False
     dict_key_type: TypeInfo | None = None
     dict_value_type: TypeInfo | None = None
@@ -66,6 +66,11 @@ class TypeInfo:
     newtype_ref: object | None = None
     union_members: tuple[type[BaseModel], ...] | None = None
     description: str | None = None
+
+    @property
+    def is_list(self) -> bool:
+        """Whether this type has any list wrapping."""
+        return self.list_depth > 0
 
 
 def walk_type_info(ti: TypeInfo, visitor: Callable[[TypeInfo], None]) -> None:
@@ -109,7 +114,7 @@ class _UnwrapState:
     """
 
     is_optional: bool = False
-    is_list: bool = False
+    list_depth: int = 0
     is_dict: bool = False
     dict_key_type: TypeInfo | None = None
     dict_value_type: TypeInfo | None = None
@@ -135,7 +140,7 @@ class _UnwrapState:
             base_type=base_type,
             kind=kind,
             is_optional=self.is_optional,
-            is_list=self.is_list,
+            list_depth=self.list_depth,
             is_dict=self.is_dict,
             dict_key_type=self.dict_key_type,
             dict_value_type=self.dict_value_type,
@@ -238,7 +243,7 @@ def analyze_type(annotation: object) -> TypeInfo:
             args = get_args(annotation)
             if not args:
                 raise TypeError("Bare list without type argument is not supported")
-            state.is_list = True
+            state.list_depth += 1
             annotation = args[0]
             continue
 

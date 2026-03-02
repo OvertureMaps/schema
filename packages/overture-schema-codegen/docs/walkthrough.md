@@ -142,7 +142,8 @@ immediately with the member tuple. Non-BaseModel multi-type unions raise
 The `Literal` filtering has a guard: when a union contains *only* Literal arms (like
 `Optional[Literal["x"]]`), the function keeps them rather than filtering everything out.
 
-**list/dict** sets collection flags and continues into element types. Dict is the one
+**list/dict** increments `list_depth` for each `list[...]` layer (so `list[list[str]]`
+records depth 2), sets dict flags, and continues into element types. Dict is the one
 case where `analyze_type` recurses -- it calls itself for key and value types, storing
 the results as nested `TypeInfo` objects.
 
@@ -183,8 +184,9 @@ rendering.
 
 ### _UnwrapState
 
-The accumulator dataclass carries state across iterations: optional/list/dict flags, the
-constraint list, both NewType name slots, and the captured description. Its
+The accumulator dataclass carries state across iterations: optional/dict flags,
+`list_depth` (incremented per `list[...]` layer), the constraint list, both NewType name
+slots, and the captured description. Its
 `build_type_info` method assembles the final `TypeInfo` from accumulated state, freezing
 the constraint list into a tuple.
 
@@ -345,7 +347,7 @@ base. These become shared `AnnotatedField` entries with `variant_sources=None`.
 
 Then it extracts each member: `RoadSegment`, `RailSegment`, `WaterSegment`. Fields not
 in the shared set are variant-specific, deduplicated by `(name, type_identity)` where
-`type_identity` captures `base_type`, `kind`, `is_optional`, and `is_list`. If
+`type_identity` captures `base_type`, `kind`, `is_optional`, and `list_depth`. If
 `RoadSegment` and `WaterSegment` both define a `width` field with the same type
 identity, the `AnnotatedField` accumulates both class names:
 `variant_sources=("RoadSegment", "WaterSegment")`. Fields unique to one member get a
@@ -504,8 +506,9 @@ provenance rather than direct field reference.
 `format_type` handles the full range of field types. Single-value Literals render as
 `"value"` in backticks. Semantic NewTypes and enums/models get markdown links via
 `_resolve_type_link`, which checks the `LinkContext` registry and falls back to plain
-code spans. Lists of linked types wrap with `` `list<` `` broken-backtick syntax when
-the inner type carries a link. Dict types render as `` `map<K, V>` ``. Qualifiers
+code spans. Lists wrap `list_depth` times. Linked inner types use broken-backtick syntax
+(`` `list<` `` ... `` `>` ``) built as a single wrapper to avoid adjacent backticks that
+CommonMark would interpret as multi-backtick code span delimiters. Dict types render as `` `map<K, V>` ``. Qualifiers
 (optional, list, map) append in parentheses.
 
 Union members format independently -- each gets its own link resolution, joined with
@@ -538,8 +541,9 @@ spans.
 
 `render_feature` dispatches on spec type. `ModelSpec` gets `_expand_model_fields`, which
 walks the pre-populated `FieldSpec.model` tree and produces dot-notation rows.
-`sources[0].dataset` appears as a single row in the flat field table, with the list
-suffix `[]` appended to list-of-model fields. Expansion stops at fields marked with
+`sources[0].dataset` appears as a single row in the flat field table, with `[]`
+appended per nesting level to list-of-model fields (so a doubly-nested list gets
+`[][]`). Expansion stops at fields marked with
 `starts_cycle`.
 
 `UnionSpec` gets `_expand_union_fields`, which adds italic variant tags to

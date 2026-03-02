@@ -245,13 +245,13 @@ def _annotate_field_constraints(
 
 
 def _expandable_list_suffix(field_spec: FieldSpec) -> str:
-    """Return ``"[]"`` when a field has a list-of-model that will be expanded inline."""
+    """Return ``"[]"`` per nesting level for list-of-model fields expanded inline."""
     if (
         field_spec.type_info.is_list
         and field_spec.model
         and not field_spec.starts_cycle
     ):
-        return "[]"
+        return "[]" * field_spec.type_info.list_depth
     return ""
 
 
@@ -282,7 +282,7 @@ def _annotate_top_level_constraints(
         name = row["name"]
         if "." in name:
             continue
-        field_name = name.removesuffix("[]")
+        field_name = name.split("[")[0]
         if field_name in constraint_notes:
             _annotate_constraint_notes(row, constraint_notes[field_name])
 
