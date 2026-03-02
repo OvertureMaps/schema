@@ -32,9 +32,19 @@ def _resolve_type_link(type_name: str, ctx: LinkContext | None = None) -> str:
     return f"`{type_name}`"
 
 
-def _wrap_list(inner: str) -> str:
-    """Wrap an inner type string in list<...> markdown syntax."""
-    return f"`list<`{inner}`>`"
+def _wrap_list_n(inner: str, depth: int) -> str:
+    """Wrap an inner type string in ``list<...>`` markdown syntax *depth* times.
+
+    Builds a single broken-backtick wrapper rather than nesting iteratively.
+    Iterative nesting creates adjacent backticks (`````) that CommonMark
+    interprets as multi-backtick code span delimiters.
+    """
+    return f"`{'list<' * depth}`{inner}`{'>' * depth}`"
+
+
+def _plain_list_type(base: str, depth: int) -> str:
+    """Format a plain (unlinked) list type string for *depth* nesting levels."""
+    return f"`{'list<' * depth}{base}{'>' * depth}`"
 
 
 def _linked_type_name(ti: TypeInfo) -> str | None:
@@ -112,11 +122,11 @@ def format_type(
         if ti.is_list and link_name == ti.newtype_name:
             qualifiers.append("list")
         elif ti.is_list:
-            display = _wrap_list(display)
+            display = _wrap_list_n(display, ti.list_depth)
     else:
         base = resolve_type_name(ti, "markdown")
         if ti.is_list:
-            display = f"`list<{base}>`"
+            display = _plain_list_type(base, ti.list_depth)
         else:
             display = f"`{base}`"
 
@@ -182,10 +192,10 @@ def format_underlying_type(ti: TypeInfo, ctx: LinkContext | None = None) -> str:
         if href:
             linked = _code_link(link_name, href)
             if ti.is_list:
-                return _wrap_list(linked)
+                return _wrap_list_n(linked, ti.list_depth)
             return linked
 
     base = link_name or resolve_type_name(ti, "markdown")
     if ti.is_list:
-        return f"`list<{base}>`"
+        return _plain_list_type(base, ti.list_depth)
     return f"`{base}`"

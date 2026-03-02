@@ -130,6 +130,14 @@ class TestAnalyzeTypeList:
         assert result.is_optional is False
         assert result.is_list is True
 
+    def test_nested_list_sets_depth_2(self) -> None:
+        """list[list[str]] records two levels of nesting."""
+        result = analyze_type(list[list[str]])
+
+        assert result.list_depth == 2
+        assert result.base_type == "str"
+        assert result.kind == TypeKind.PRIMITIVE
+
 
 class TestAnalyzeTypeComposite:
     """Tests for composite/nested type analysis."""
@@ -339,6 +347,20 @@ class TestNewtypeWrappingList:
 
         assert result.newtype_name is None
         assert result.is_list is True
+
+    def test_newtype_wrapping_list_of_models(self) -> None:
+        """list[NewType wrapping list[Model]] records depth 2."""
+
+        class _Item(BaseModel):
+            name: str
+
+        Inner = NewType("Inner", Annotated[list[_Item], Field(min_length=1)])
+        result = analyze_type(list[Inner])
+
+        assert result.list_depth == 2
+        assert result.base_type == "Inner"
+        assert result.kind == TypeKind.MODEL
+        assert result.source_type is _Item
 
 
 class TestConstraintProvenance:
