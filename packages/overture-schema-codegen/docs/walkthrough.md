@@ -377,7 +377,7 @@ Two modules convert constraint objects into human-readable text.
 `field_constraint_description.py` pattern-matches constraint types. `Interval` renders
 as `lower <= x <= upper` using Unicode comparison operators. Single-bound constraints
 (`Ge`, `Gt`, `Le`, `Lt`) render as `>= value` or `< value`. Length constraints
-(`MinLen`, `MaxLen`) render as `minimum length: N`. `GeometryTypeConstraint` lists
+(`MinLen`, `MaxLen`) render as plain prose (e.g. "Minimum length: 1"). `GeometryTypeConstraint` lists
 allowed geometry types by name, converting snake_case values to PascalCase. `Reference`
 describes the relationship and target model, using an optional `link_fn` to produce
 markdown links.
