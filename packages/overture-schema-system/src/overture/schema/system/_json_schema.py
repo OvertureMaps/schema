@@ -331,6 +331,30 @@ def try_move(key: str, src: JsonSchemaValue, dst: JsonSchemaValue) -> None:
         pass
 
 
+def required_non_null(aliases: list[str]) -> JsonSchemaValue:
+    """
+    Build a JSON Schema requiring listed fields to be present and non-null.
+
+    Combines ``"required"`` (field key must exist) with a per-field property
+    constraint ``{"not": {"type": "null"}}`` (value must not be null).
+
+    Parameters
+    ----------
+    aliases : list[str]
+        Non-empty list of field aliases (JSON property names) to constrain
+
+    Returns
+    -------
+    JsonSchemaValue
+        Schema requiring each alias to be present and non-null
+    """
+    _verify_operands_not_empty(str, aliases)
+    return {
+        "required": aliases,
+        "properties": {a: {"not": {"type": "null"}} for a in aliases},
+    }
+
+
 T = TypeVar("T", JsonSchemaValue, str)
 
 

@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic.json_schema import JsonDict
 from util import assert_subset
 
+from overture.schema.system._json_schema import required_non_null
 from overture.schema.system.model_constraint import (
     ModelConstraint,
     RequireAnyOfConstraint,
@@ -43,7 +44,8 @@ def test_error_invalid_model_class() -> None:
         RequireAnyOfConstraint("foo", "bar").validate_class(TestModel2)
 
 
-def test_error_invalid_model_instance() -> None:
+@pytest.mark.parametrize("kwargs", [{}, {"foo": None, "bar": None}])
+def test_error_no_non_null_value(kwargs: dict[str, object]) -> None:
     @require_any_of("foo", "bar")
     class TestModel(BaseModel):
         foo: int | None = None
@@ -51,9 +53,9 @@ def test_error_invalid_model_instance() -> None:
 
     with pytest.raises(
         ValidationError,
-        match="at least one of these fields must be explicitly set, but none are: foo, bar",
+        match="at least one of these fields must have a non-null value, but none do: foo, bar",
     ):
-        TestModel()
+        TestModel(**kwargs)
 
 
 @pytest.mark.parametrize("foo,bar", [(42, "hello"), (42, None), (None, "hello")])
@@ -73,7 +75,12 @@ def test_model_json_schema_no_model_config() -> None:
         bar: str | None = Field(default=None, alias="baz")
 
     actual = TestModel.model_json_schema()
-    expect = {"anyOf": [{"required": ["foo"]}, {"required": ["baz"]}]}
+    expect = {
+        "anyOf": [
+            required_non_null(["foo"]),
+            required_non_null(["baz"]),
+        ]
+    }
     assert expect == TestModel.model_config["json_schema_extra"]
     assert_subset(expect, actual, "expect", "actual")
 
@@ -81,13 +88,26 @@ def test_model_json_schema_no_model_config() -> None:
 @pytest.mark.parametrize(
     "base_json_schema,expect",
     [
-        (None, {"anyOf": [{"required": ["foo"]}, {"required": ["baz"]}]}),
+        (
+            None,
+            {
+                "anyOf": [
+                    required_non_null(["foo"]),
+                    required_non_null(["baz"]),
+                ]
+            },
+        ),
         (
             {"anyOf": "anything"},
             {
                 "allOf": [
                     {"anyOf": "anything"},
-                    {"anyOf": [{"required": ["foo"]}, {"required": ["baz"]}]},
+                    {
+                        "anyOf": [
+                            required_non_null(["foo"]),
+                            required_non_null(["baz"]),
+                        ]
+                    },
                 ]
             },
         ),

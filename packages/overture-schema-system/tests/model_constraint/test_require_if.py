@@ -6,6 +6,7 @@ from pydantic.json_schema import JsonDict
 from util import assert_subset
 
 from overture.schema.system import create_model
+from overture.schema.system._json_schema import required_non_null
 from overture.schema.system.model_constraint import (
     Condition,
     FieldEqCondition,
@@ -78,7 +79,7 @@ def test_error_invalid_model_instance(constraint: RequireIfConstraint) -> None:
     constraint.validate_class(TestModel)
     with pytest.raises(
         ValueError,
-        match="at least one field is missing an explicit value when it should have one:",
+        match="at least one field is missing a non-null value when it should have one:",
     ):
         constraint.validate_instance(model_instance)
 
@@ -117,6 +118,20 @@ def test_valid_model_instance_condition_false(field_names: list[str]) -> None:
     constraint.validate_instance(TestModel(bar=41, baz=42))
 
 
+def test_error_fields_explicitly_none_when_condition_true() -> None:
+    class TestModel(BaseModel):
+        foo: int | None = None
+        bar: int | None = None
+        baz: int
+
+    constraint = RequireIfConstraint(["foo", "bar"], FieldEqCondition("baz", 42))
+    with pytest.raises(
+        ValueError,
+        match="at least one field is missing a non-null value when it should have one",
+    ):
+        constraint.validate_instance(TestModel(foo=None, bar=None, baz=42))
+
+
 def test_model_json_schema_no_model_config() -> None:
     @require_if(["foo", "baz"], FieldEqCondition("qux", 42))
     class TestModel(BaseModel):
@@ -127,7 +142,7 @@ def test_model_json_schema_no_model_config() -> None:
     actual = TestModel.model_json_schema()
     expect = {
         "if": {"properties": {"corge": {"const": 42}}},
-        "then": {"required": ["bar", "baz"]},
+        "then": required_non_null(["bar", "baz"]),
     }
     assert expect == TestModel.model_config["json_schema_extra"]
     assert_subset(expect, actual, "expect", "actual")
@@ -140,7 +155,7 @@ def test_model_json_schema_no_model_config() -> None:
             None,
             {
                 "if": {"not": {"properties": {"qux": {"const": 42}}}},
-                "then": {"required": ["foo", "baz"]},
+                "then": required_non_null(["foo", "baz"]),
             },
         ),
         (
@@ -148,7 +163,7 @@ def test_model_json_schema_no_model_config() -> None:
             {
                 "random": "value",
                 "if": {"not": {"properties": {"qux": {"const": 42}}}},
-                "then": {"required": ["foo", "baz"]},
+                "then": required_non_null(["foo", "baz"]),
             },
         ),
         (
@@ -158,7 +173,7 @@ def test_model_json_schema_no_model_config() -> None:
                     {"if": 123},
                     {
                         "if": {"not": {"properties": {"qux": {"const": 42}}}},
-                        "then": {"required": ["foo", "baz"]},
+                        "then": required_non_null(["foo", "baz"]),
                     },
                 ]
             },

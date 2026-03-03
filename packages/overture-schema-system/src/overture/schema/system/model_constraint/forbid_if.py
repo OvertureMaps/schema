@@ -1,6 +1,6 @@
 """
-Prohibit every field in a group of fields from having a value explicitly set, but only if a
-condition is true.
+Prohibit every field in a group of fields from having a non-null value, but only if a condition
+is true.
 """
 
 from collections.abc import Callable
@@ -8,7 +8,7 @@ from collections.abc import Callable
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 
-from .._json_schema import get_static_json_schema_extra, put_if
+from .._json_schema import get_static_json_schema_extra, put_if, required_non_null
 from .model_constraint import (
     Condition,
     OptionalFieldGroupConstraint,
@@ -22,12 +22,13 @@ def forbid_if(
 ) -> Callable[[type[BaseModel]], type[BaseModel]]:
     """
     Decorate a Pydantic model class with a constraint forbidding any of the named fields from
-    holding an explicitly-assigned value, but only if a field value condition is true.
+    holding a non-null value, but only if a field value condition is true.
 
     To ensure parity between Python and JSON Schema validation, a field's value must be explicitly
-    set to violate the constraint. This means in particular that fields whose value was set by
-    Pydantic using a default value do not count as having a set value, and fields containing the
-    value `None`, if this value was explicitly set rather than being inherited by default, do count.
+    set to a non-null value to violate the constraint. This means in particular that fields whose
+    value was set by Pydantic using a default value do not count as violating the prohibition, and
+    fields containing the value `None`, even if explicitly set, do not count as violating the
+    prohibition.
 
     Parameters
     ----------
@@ -56,11 +57,13 @@ def forbid_if(
     MyModel(foo='something', bar=42, baz='qux')
     >>> MyModel(foo='special value')                    # validates OK because bar/baz are omitted
     MyModel(foo='special value', bar=None, baz=None)
+    >>> MyModel(foo='special value', bar=None)          # validates OK because None doesn't violate
+    MyModel(foo='special value', bar=None, baz=None)
     >>>
     >>> try:
     ...     MyModel(foo='special value', bar=42)
     ... except ValidationError as e:
-    ...     assert 'at least one field has an explicit value when it should not: bar' in str(e)
+    ...     assert 'at least one field has a non-null value when it should not: bar' in str(e)
     ...     print('Validation failed')
     Validation failed
     """
@@ -123,12 +126,14 @@ class ForbidIfConstraint(OptionalFieldGroupConstraint):
             return
 
         present_fields = [
-            f for f in self.field_names if f in model_instance.model_fields_set
+            f
+            for f in self.field_names
+            if self._field_has_non_null_value(model_instance, f)
         ]
 
         if present_fields:
             raise ValueError(
-                f"at least one field has an explicit value when it should not: {', '.join(present_fields)} - "
+                f"at least one field has a non-null value when it should not: {', '.join(present_fields)} - "
                 f"these field value(s) are forbidden because {self.__condition} is true "
                 f"(`{self.name}`)"
             )
@@ -139,12 +144,9 @@ class ForbidIfConstraint(OptionalFieldGroupConstraint):
 
         json_schema = get_static_json_schema_extra(config)
 
+        aliases = [apply_alias(model_class, f) for f in self.field_names]
         put_if(
             json_schema,
             self.__condition.json_schema(model_class),
-            {
-                "not": {
-                    "required": [apply_alias(model_class, f) for f in self.field_names]
-                }
-            },
+            {"not": required_non_null(aliases)},
         )

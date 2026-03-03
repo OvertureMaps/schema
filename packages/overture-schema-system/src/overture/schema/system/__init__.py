@@ -122,15 +122,19 @@ MyModel(foo=42, bar='hello')
 MyModel(foo=42, bar=None)
 >>> MyModel(bar="hello")            # validates OK
 MyModel(foo=None, bar='hello')
->>> MyModel(foo=None, bar=None)     # validates OK because foo and bar are explicitly set to `None`
-MyModel(foo=None, bar=None)
 >>>
 >>> try:
 ...     MyModel()
 ... except ValidationError as e:
-...    assert "at least one of these fields must be explicitly set, but none are: foo, bar" in str(e)
-...    print("Validation failed")
-Validation failed
+...    assert "at least one of these fields must have a non-null value, but none do: foo, bar" in str(e)
+...    print("Validation failed (no fields set)")
+Validation failed (no fields set)
+>>> try:
+...     MyModel(foo=None, bar=None)
+... except ValidationError as e:
+...    assert "at least one of these fields must have a non-null value, but none do: foo, bar" in str(e)
+...    print("Validation failed (all fields None)")
+Validation failed (all fields None)
 
 Describe a foreign key relationship between two models where one model has a field that contains the
 unique identifier of another model.
