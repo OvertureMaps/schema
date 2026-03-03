@@ -93,7 +93,7 @@ def _extract_field_rules(
     *,
     column_prefix: str,
     parent_is_optional: bool,
-    parent_is_list: bool = False,
+    list_columns: list[str] | None = None,
 ) -> list[Rule]:
     """Extract rules for a single field, recursing into nested BaseModel fields."""
     column = f"{column_prefix}{field_name}" if column_prefix else field_name
@@ -104,11 +104,17 @@ def _extract_field_rules(
         raw_annotation
     )
 
-    # When the current field is a list element's child, or itself a list,
-    # checks on its values should use each_item.  not_null is special: it
-    # checks the column/list existence, so only uses parent_is_list.
-    each_item_for_value = is_list or parent_is_list
-    each_item_for_null = parent_is_list
+    # Two categories of list_columns for rules:
+    # - lc_container: list-level checks (not_null, min/max_length from model
+    #   metadata, unique, geometry_type) — uses the parent list boundary only
+    # - lc_element: element-level checks (numeric, enum/in, literal, pattern,
+    #   is_type, min/max_length from effective_kwargs inner type) — adds this
+    #   column as an additional list boundary when is_list
+    lc_container = list_columns or None
+    if is_list:
+        lc_element = (list_columns or []) + [column]
+    else:
+        lc_element = list_columns or None
 
     # Merge model-level Field() metadata into the picture. Model-level metadata
     # (from field_info.metadata) takes priority over NewType chain metadata.
@@ -122,7 +128,8 @@ def _extract_field_rules(
     is_required = field_info.is_required() and not is_nullable
     if is_required and not parent_is_optional:
         rules.append(
-            _rule(dataset, column, "not_null", CheckType.NOT_NULL, each_item=each_item_for_null)
+            _rule(dataset, column, "not_null", CheckType.NOT_NULL,
+                  list_columns=lc_container)
         )
     elif is_required and parent_is_optional:
         rules.append(
@@ -131,13 +138,14 @@ def _extract_field_rules(
                 column,
                 "not_null",
                 CheckType.NOT_NULL,
-                each_item=each_item_for_null,
+                list_columns=lc_container,
                 when=Condition(column=column_prefix.rstrip("."), check=CheckType.NOT_NULL),
             )
         )
 
     # ---- numeric range rules ----
-    rules += _numeric_rules(dataset, column, effective_kwargs, each_item=each_item_for_value)
+    rules += _numeric_rules(dataset, column, effective_kwargs,
+                            list_columns=lc_element)
 
     # ---- MinLen / MaxLen from model metadata ----
     for obj in model_metadata:
@@ -145,14 +153,14 @@ def _extract_field_rules(
             rules.append(
                 _rule(
                     dataset, column, "min_length", CheckType.MIN_LENGTH,
-                    value=obj.min_length, each_item=each_item_for_value,
+                    value=obj.min_length, list_columns=lc_container,
                 )
             )
         elif isinstance(obj, annotated_types.MaxLen):
             rules.append(
                 _rule(
                     dataset, column, "max_length", CheckType.MAX_LENGTH,
-                    value=obj.max_length, each_item=each_item_for_value,
+                    value=obj.max_length, list_columns=lc_container,
                 )
             )
 
@@ -163,7 +171,7 @@ def _extract_field_rules(
         rules.append(
             _rule(
                 dataset, column, "min_length", CheckType.MIN_LENGTH,
-                value=effective_kwargs["min_length"], each_item=each_item_for_value,
+                value=effective_kwargs["min_length"], list_columns=lc_element,
             )
         )
     if "max_length" in effective_kwargs and not any(
@@ -172,7 +180,7 @@ def _extract_field_rules(
         rules.append(
             _rule(
                 dataset, column, "max_length", CheckType.MAX_LENGTH,
-                value=effective_kwargs["max_length"], each_item=each_item_for_value,
+                value=effective_kwargs["max_length"], list_columns=lc_element,
             )
         )
 
@@ -183,7 +191,7 @@ def _extract_field_rules(
                 rules.append(
                     _rule(
                         dataset, column, "type", CheckType.IS_TYPE,
-                        value="boolean", each_item=each_item_for_value,
+                        value="boolean", list_columns=lc_element,
                     )
                 )
 
@@ -198,7 +206,7 @@ def _extract_field_rules(
                 "valid",
                 CheckType.IN,
                 value=sorted_values,
-                each_item=each_item_for_value,
+                list_columns=lc_element,
             )
         )
 
@@ -209,14 +217,14 @@ def _extract_field_rules(
             rules.append(
                 _rule(
                     dataset, column, "literal", CheckType.EQ,
-                    value=lit_args[0], each_item=each_item_for_value,
+                    value=lit_args[0], list_columns=lc_element,
                 )
             )
         elif len(lit_args) > 1:
             rules.append(
                 _rule(
                     dataset, column, "valid", CheckType.IN,
-                    value=sorted(lit_args), each_item=each_item_for_value,
+                    value=sorted(lit_args), list_columns=lc_element,
                 )
             )
 
@@ -243,7 +251,7 @@ def _extract_field_rules(
                 rules.append(
                     _rule(
                         dataset, column, "pattern", CheckType.PATTERN,
-                        value=r"^(\S.*)?\S$", each_item=each_item_for_value,
+                        value=r"^(\S.*)?\S$", list_columns=lc_element,
                     )
                 )
         elif _is_pattern_constraint(obj):
@@ -253,7 +261,7 @@ def _extract_field_rules(
                 rules.append(
                     _rule(
                         dataset, column, "pattern", CheckType.PATTERN,
-                        value=obj.pattern.pattern, each_item=each_item_for_value,
+                        value=obj.pattern.pattern, list_columns=lc_element,
                     )
                 )
 
@@ -268,6 +276,9 @@ def _extract_field_rules(
     # ---- Nested BaseModel → recurse ----
     if isinstance(base_type, type) and issubclass(base_type, BaseModel) and not _is_enum_type(base_type):
         nested_is_optional = is_nullable or parent_is_optional
+        # Build list_columns for children: if this field is itself a list,
+        # add this column to the list boundary chain.
+        child_list_columns = (list_columns or []) + [column] if is_list else list_columns
         for nested_name, nested_info in base_type.model_fields.items():
             if nested_name in _SKIPPED_FIELDS or nested_name.startswith("ext_"):
                 continue
@@ -277,7 +288,7 @@ def _extract_field_rules(
                 nested_info,
                 column_prefix=f"{column}.",
                 parent_is_optional=nested_is_optional,
-                parent_is_list=is_list or parent_is_list,
+                list_columns=child_list_columns,
             )
 
     return rules
@@ -544,7 +555,8 @@ def _extract_numeric_kwargs(metadata: list[Any]) -> dict[str, Any]:
 
 
 def _numeric_rules(
-    dataset: str, column: str, kwargs: dict[str, Any], each_item: bool = False,
+    dataset: str, column: str, kwargs: dict[str, Any],
+    list_columns: list[str] | None = None,
 ) -> list[Rule]:
     """Generate numeric comparison rules from kwargs dict."""
     rules: list[Rule] = []
@@ -556,7 +568,8 @@ def _numeric_rules(
     # between: only when both ge and le are present and no gt/lt
     if ge is not None and le is not None and gt is None and lt is None:
         rules.append(
-            _rule(dataset, column, "range", CheckType.BETWEEN, value=[ge, le], each_item=each_item)
+            _rule(dataset, column, "range", CheckType.BETWEEN, value=[ge, le],
+                  list_columns=list_columns)
         )
     else:
         if ge is not None:
@@ -564,17 +577,21 @@ def _numeric_rules(
                 suffix = "non_negative"
             else:
                 suffix = "lower"
-            rules.append(_rule(dataset, column, suffix, CheckType.GTE, value=ge, each_item=each_item))
+            rules.append(_rule(dataset, column, suffix, CheckType.GTE, value=ge,
+                               list_columns=list_columns))
         if le is not None:
-            rules.append(_rule(dataset, column, "upper", CheckType.LTE, value=le, each_item=each_item))
+            rules.append(_rule(dataset, column, "upper", CheckType.LTE, value=le,
+                               list_columns=list_columns))
         if gt is not None:
             if gt == 0:
                 suffix = "positive"
             else:
                 suffix = "lower"
-            rules.append(_rule(dataset, column, suffix, CheckType.GT, value=gt, each_item=each_item))
+            rules.append(_rule(dataset, column, suffix, CheckType.GT, value=gt,
+                               list_columns=list_columns))
         if lt is not None:
-            rules.append(_rule(dataset, column, "upper", CheckType.LT, value=lt, each_item=each_item))
+            rules.append(_rule(dataset, column, "upper", CheckType.LT, value=lt,
+                               list_columns=list_columns))
 
     return rules
 
@@ -590,7 +607,7 @@ def _rule(
     suffix: str,
     check: CheckType,
     value: Any = None,
-    each_item: bool = False,
+    list_columns: list[str] | None = None,
     when: Condition | None = None,
 ) -> Rule:
     """Create a Rule with a standardised name."""
@@ -599,7 +616,7 @@ def _rule(
         column=column,
         check=check,
         value=value,
-        each_item=each_item or None,
+        list_columns=list_columns,
         when=when,
         severity=Severity.ERROR,
     )

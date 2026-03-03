@@ -71,27 +71,6 @@ _MULTI_FIELD_CHECKS: frozenset[CheckType] = frozenset(
     }
 )
 
-# Checks that allow the each_item modifier
-_EACH_ITEM_CHECKS: frozenset[CheckType] = frozenset(
-    {
-        CheckType.GT,
-        CheckType.GTE,
-        CheckType.LT,
-        CheckType.LTE,
-        CheckType.EQ,
-        CheckType.NEQ,
-        CheckType.BETWEEN,
-        CheckType.IN,
-        CheckType.NOT_IN,
-        CheckType.NOT_NULL,
-        CheckType.IS_NULL,
-        CheckType.PATTERN,
-        CheckType.IS_TYPE,
-        CheckType.MIN_LENGTH,
-        CheckType.MAX_LENGTH,
-    }
-)
-
 # Checks allowed inside a when condition
 _WHEN_CHECKS: frozenset[CheckType] = frozenset(
     {
@@ -142,7 +121,7 @@ class Rule(BaseModel):
     check: CheckType
     value: Any = None
     other_column: str | None = None
-    each_item: bool | None = None
+    list_columns: list[str] | None = None
     when: Condition | None = None
     severity: Severity
     description: str | None = None
@@ -199,10 +178,10 @@ class Rule(BaseModel):
             )
             raise ValueError(msg)
 
-        # each_item
-        if self.each_item and self.check not in _EACH_ITEM_CHECKS:
+        # list_columns
+        if self.list_columns is not None and is_multi:
             msg = (
-                f"'each_item' is not valid for check "
+                f"'list_columns' is not valid for multi-field check "
                 f"'{self.check.value}'"
             )
             raise ValueError(msg)

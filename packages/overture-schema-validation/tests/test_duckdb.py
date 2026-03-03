@@ -29,7 +29,7 @@ def _rule(
     columns: list[str] | None = None,
     value=None,
     other_column: str | None = None,
-    each_item: bool | None = None,
+    list_columns: list[str] | None = None,
     when: Condition | None = None,
     severity: Severity = Severity.ERROR,
     name: str = "test.rule",
@@ -41,7 +41,7 @@ def _rule(
         check=check,
         value=value,
         other_column=other_column,
-        each_item=each_item,
+        list_columns=list_columns,
         when=when,
         severity=severity,
     )
@@ -276,58 +276,161 @@ def test_compile_unique_scalar():
 
 
 def test_compile_unique_list():
-    # Sibling rule with each_item=True triggers list heuristic
+    # Sibling rule with list_columns triggers list heuristic
     rules = [
-        _rule(CheckType.NOT_NULL, each_item=True, name="r1"),
+        _rule(CheckType.NOT_NULL, list_columns=["col"], name="r1"),
         _rule(CheckType.UNIQUE, name="u1"),
     ]
     sql = compile(_spec(rules), "f.parquet")
     assert "list_distinct" in sql
 
 
-# --- each_item ---
+# --- list_columns ---
 
 
-def test_compile_each_item_not_null():
+def test_compile_list_columns_not_null():
     sql = compile(
-        _spec([_rule(CheckType.NOT_NULL, each_item=True)]), "f.parquet"
+        _spec([_rule(CheckType.NOT_NULL, list_columns=["col"])]), "f.parquet"
     )
     assert "list_filter" in sql
-    assert "x IS NULL" in sql
+    assert "x0 IS NULL" in sql
 
 
-def test_compile_each_item_is_null():
+def test_compile_list_columns_is_null():
     sql = compile(
-        _spec([_rule(CheckType.IS_NULL, each_item=True)]), "f.parquet"
+        _spec([_rule(CheckType.IS_NULL, list_columns=["col"])]), "f.parquet"
     )
     assert "list_filter" in sql
-    assert "x IS NOT NULL" in sql
+    assert "x0 IS NOT NULL" in sql
 
 
-def test_compile_each_item_gt():
+def test_compile_list_columns_gt():
     sql = compile(
-        _spec([_rule(CheckType.GT, value=0, each_item=True)]), "f.parquet"
+        _spec([_rule(CheckType.GT, value=0, list_columns=["col"])]), "f.parquet"
     )
     assert "list_filter" in sql
-    assert "x IS NOT NULL AND NOT (x > 0)" in sql
+    assert "x0 IS NOT NULL AND NOT (x0 > 0)" in sql
 
 
-def test_compile_each_item_in():
+def test_compile_list_columns_in():
     sql = compile(
-        _spec([_rule(CheckType.IN, value=["a", "b"], each_item=True)]),
+        _spec([_rule(CheckType.IN, value=["a", "b"], list_columns=["col"])]),
         "f.parquet",
     )
     assert "list_filter" in sql
-    assert "x IN ('a', 'b')" in sql
+    assert "x0 IN ('a', 'b')" in sql
 
 
-def test_compile_each_item_pattern():
+def test_compile_list_columns_pattern():
     sql = compile(
-        _spec([_rule(CheckType.PATTERN, value="^\\d+$", each_item=True)]),
+        _spec([_rule(CheckType.PATTERN, value="^\\d+$", list_columns=["col"])]),
         "f.parquet",
     )
     assert "list_filter" in sql
-    assert "regexp_matches(x" in sql
+    assert "regexp_matches(x0" in sql
+
+
+# --- list_columns with struct access (list-of-structs) ---
+
+
+def test_compile_list_columns_struct_not_null():
+    """list_columns with struct access inside list_filter."""
+    sql = compile(
+        _spec([_rule(CheckType.NOT_NULL, column="items.value",
+                      list_columns=["items"])]),
+        "f.parquet",
+    )
+    assert 'list_filter("items"' in sql
+    assert 'x0."value" IS NULL' in sql
+    assert '"items" IS NOT NULL' in sql
+
+
+def test_compile_list_columns_struct_gt():
+    """list_columns with a value check uses struct access."""
+    sql = compile(
+        _spec([_rule(CheckType.GT, column="items.score", value=0,
+                      list_columns=["items"])]),
+        "f.parquet",
+    )
+    assert 'list_filter("items"' in sql
+    assert 'x0."score" IS NOT NULL AND NOT (x0."score" > 0)' in sql
+
+
+def test_compile_list_columns_struct_nested():
+    """Deeply nested struct path works: items.details.name -> x0."details"."name"."""
+    sql = compile(
+        _spec([_rule(CheckType.NOT_NULL, column="items.details.name",
+                      list_columns=["items"])]),
+        "f.parquet",
+    )
+    assert 'list_filter("items"' in sql
+    assert 'x0."details"."name" IS NULL' in sql
+
+
+def test_compile_list_columns_struct_in():
+    """list_columns with IN check uses struct access."""
+    sql = compile(
+        _spec([_rule(CheckType.IN, column="items.tag", value=["a", "b"],
+                      list_columns=["items"])]),
+        "f.parquet",
+    )
+    assert 'list_filter("items"' in sql
+    assert "x0.\"tag\" IN ('a', 'b')" in sql
+
+
+def test_compile_list_columns_struct_dot_source():
+    """list_columns with dot-notation source column."""
+    sql = compile(
+        _spec([_rule(CheckType.NOT_NULL, column="names.rules.value",
+                      list_columns=["names.rules"])]),
+        "f.parquet",
+    )
+    assert 'list_filter("names"."rules"' in sql
+    assert 'x0."value" IS NULL' in sql
+
+
+def test_compile_list_columns_when_folded_into_lambda():
+    """when condition referencing a field inside the list gets folded into list_filter."""
+    cond = Condition(column="items.parent", check=CheckType.NOT_NULL)
+    sql = compile(
+        _spec([_rule(CheckType.NOT_NULL, column="items.parent.child",
+                      list_columns=["items"],
+                      when=cond)]),
+        "f.parquet",
+    )
+    # The when must be inside the lambda, not as an outer WHERE clause
+    assert '"items"."parent" IS NOT NULL' not in sql
+    assert 'x0."parent" IS NOT NULL AND x0."parent"."child" IS NULL' in sql
+    assert 'list_filter("items"' in sql
+
+
+def test_compile_list_columns_when_on_source_skipped():
+    """when condition checking the source column itself is redundant and skipped."""
+    cond = Condition(column="items", check=CheckType.NOT_NULL)
+    sql = compile(
+        _spec([_rule(CheckType.NOT_NULL, column="items.value",
+                      list_columns=["items"],
+                      when=cond)]),
+        "f.parquet",
+    )
+    # The when is redundant — source_col IS NOT NULL is already in the predicate
+    # Should not appear as a separate outer guard
+    where_idx = sql.index("WHERE")
+    where_clause = sql[where_idx:]
+    # Only one "items" IS NOT NULL (from the predicate), no duplicate outer guard
+    assert where_clause.count('"items" IS NOT NULL') == 1
+
+
+def test_compile_list_columns_nested_lists():
+    """Nested list_columns produces nested list_filter for ["a", "a.b"]."""
+    sql = compile(
+        _spec([_rule(CheckType.PATTERN, column="a.b", value="^\\d+$",
+                      list_columns=["a", "a.b"])]),
+        "f.parquet",
+    )
+    assert 'list_filter("a"' in sql
+    assert "list_filter(x0" in sql
+    assert "regexp_matches(x1" in sql
 
 
 # --- when conditions ---
@@ -509,7 +612,7 @@ def test_validate_when_conditional(conn, parquet_path):
     assert report.results[0].violating_ids == ["b"]
 
 
-def test_validate_each_item_list(conn, parquet_path):
+def test_validate_list_columns_list(conn, parquet_path):
     from overture.schema.validation.duckdb import validate
 
     path = parquet_path(
@@ -521,7 +624,7 @@ def test_validate_each_item_list(conn, parquet_path):
         "SELECT 'c' AS id, [5, 6] AS vals"
     )
     spec = _spec(
-        [_rule(CheckType.GT, column="vals", value=0, each_item=True)]
+        [_rule(CheckType.GT, column="vals", value=0, list_columns=["vals"])]
     )
     report = validate(spec, path, conn)
     assert report.results[0].violation_count == 1

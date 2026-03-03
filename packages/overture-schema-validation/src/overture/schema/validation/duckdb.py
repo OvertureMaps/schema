@@ -154,75 +154,143 @@ def _check_expr(
 
 
 def _is_list_column(rule: Rule, all_rules: list[Rule]) -> bool:
-    """Heuristic: if any sibling rule on the same column has each_item=True,
-    treat the column as a list column."""
+    """Heuristic: if any sibling rule on the same column has list_columns
+    whose last element equals this rule's column, treat it as a list column."""
     if rule.column is None:
         return False
     return any(
-        r.column == rule.column and r.each_item
+        r.list_columns and r.list_columns[-1] == rule.column
         for r in all_rules
         if r is not rule
     )
 
 
-def _violation_predicate(rule: Rule, all_rules: list[Rule]) -> str:
-    """Build the WHERE clause predicate that selects *violating* rows."""
+def _single_violation(
+    check: CheckType,
+    expr: str,
+    value: Any = None,
+    other_column: str | None = None,
+) -> str:
+    """Return the violation expression for a single check against *expr*.
+
+    Reusable for both scalar and nested-list paths.
+    """
+    if check == CheckType.NOT_NULL:
+        return f"{expr} IS NULL"
+    if check == CheckType.IS_NULL:
+        return f"{expr} IS NOT NULL"
+    if check == CheckType.NEQ:
+        return f"{expr} IS NOT NULL AND {expr} = {_sql_literal(value)}"
+    if check == CheckType.UNIQUE:
+        return f"{expr} IS NOT NULL AND len({expr}) != len(list_distinct({expr}))"
+    if check in (CheckType.COLUMN_LT, CheckType.COLUMN_LTE, CheckType.COLUMN_EQ):
+        other = _quote_col(other_column)  # type: ignore[arg-type]
+        positive = _check_expr(check, expr, value, other_column)
+        return f"{expr} IS NOT NULL AND {other} IS NOT NULL AND NOT ({positive})"
+    # Default: positive check negated
+    positive = _check_expr(check, expr, value, other_column)
+    return f"{expr} IS NOT NULL AND NOT ({positive})"
+
+
+def _nested_list_violation(rule: Rule) -> str:
+    """Build the violation predicate for a rule with list_columns set.
+
+    Handles arbitrary nesting depth by wrapping with list_filter from
+    inside out.
+    """
+    sources = rule.list_columns  # type: ignore[assignment]
+    n = len(sources)
+    column = rule.column  # type: ignore[assignment]
+
+    # Determine innermost expression
+    if column == sources[-1]:
+        # Check targets each element of the innermost list
+        field_expr = f"x{n - 1}"
+    else:
+        # Check targets a struct field accessed from the innermost lambda var
+        # e.g. column="items.value", sources=["items"] → x0."value"
+        suffix = column[len(sources[-1]) + 1:]
+        parts = suffix.split(".")
+        field_expr = f"x{n - 1}." + ".".join(f'"{p}"' for p in parts)
+
+    # Build the innermost violation
+    inner = _single_violation(rule.check, field_expr, rule.value, rule.other_column)
+
+    # Fold when condition into the innermost lambda if the when column is
+    # inside any of the list sources
+    when_folded = False
+    if rule.when is not None:
+        when_col = rule.when.column
+        for src in sources:
+            if when_col.startswith(src + ".") or when_col == src:
+                when_folded = True
+                if when_col == src:
+                    # Redundant — the source IS NOT NULL guard handles it
+                    break
+                # Find which lambda depth this when column belongs to
+                src_idx = sources.index(src)
+                when_suffix = when_col[len(src) + 1:]
+                when_parts = when_suffix.split(".")
+                when_expr = f"x{src_idx}." + ".".join(f'"{p}"' for p in when_parts)
+                if rule.when.check == CheckType.NOT_NULL:
+                    when_pred = f"{when_expr} IS NOT NULL"
+                elif rule.when.check == CheckType.IS_NULL:
+                    when_pred = f"{when_expr} IS NULL"
+                else:
+                    when_pred = _check_expr(rule.when.check, when_expr, rule.when.value)
+                inner = f"{when_pred} AND {inner}"
+                break
+
+    # Wrap with list_filter from inside out
+    result = inner
+    for i in range(n - 1, -1, -1):
+        if i == 0:
+            source_expr = _quote_col(sources[0])
+        else:
+            # Access from previous lambda variable into the struct field
+            # e.g. sources=["a", "a.b"] → x0."b"
+            prev_suffix = sources[i][len(sources[i - 1]) + 1:]
+            prev_parts = prev_suffix.split(".")
+            source_expr = f"x{i - 1}." + ".".join(f'"{p}"' for p in prev_parts)
+        result = (
+            f"{source_expr} IS NOT NULL AND "
+            f"len(list_filter({source_expr}, x{i} -> {result})) > 0"
+        )
+
+    return result, when_folded  # type: ignore[return-value]
+
+
+def _violation_predicate(rule: Rule, all_rules: list[Rule]) -> tuple[str, bool]:
+    """Build the WHERE clause predicate that selects *violating* rows.
+
+    Returns (predicate_sql, when_folded) where when_folded indicates
+    whether the when condition was folded into a list_filter lambda.
+    """
     check = rule.check
     col = _quote_col(rule.column) if rule.column else None
 
     # --- Multi-field checks ---
     if check == CheckType.ANY_OF:
         parts = [f"{_quote_col(c)} IS NULL" for c in rule.columns]  # type: ignore[union-attr]
-        return " AND ".join(parts)
+        return " AND ".join(parts), False
 
     if check == CheckType.EXACTLY_ONE_OF:
         cases = [
             f"CASE WHEN {_quote_col(c)} IS NOT NULL THEN 1 ELSE 0 END"
             for c in rule.columns  # type: ignore[union-attr]
         ]
-        return f"({' + '.join(cases)}) != 1"
+        return f"({' + '.join(cases)}) != 1", False
 
-    # --- Unique ---
+    # --- Nested list iteration ---
+    if rule.list_columns:
+        return _nested_list_violation(rule)
+
+    # --- Unique (scalar fallback) ---
     if check == CheckType.UNIQUE:
-        # Handled specially in _rule_select; this shouldn't be called directly
-        # for unique, but provide a fallback for list columns
-        return f"len({col}) != len(list_distinct({col}))"
+        return f"len({col}) != len(list_distinct({col}))", False
 
-    # --- each_item ---
-    if rule.each_item:
-        x = "x"
-        if check == CheckType.NOT_NULL:
-            inner_violation = f"{x} IS NULL"
-        elif check == CheckType.IS_NULL:
-            inner_violation = f"{x} IS NOT NULL"
-        else:
-            positive = _check_expr(check, x, rule.value, rule.other_column)
-            inner_violation = f"{x} IS NOT NULL AND NOT ({positive})"
-        return (
-            f"{col} IS NOT NULL AND "
-            f"len(list_filter({col}, {x} -> {inner_violation})) > 0"
-        )
-
-    # --- not_null / is_null ---
-    if check == CheckType.NOT_NULL:
-        return f"{col} IS NULL"
-
-    if check == CheckType.IS_NULL:
-        return f"{col} IS NOT NULL"
-
-    # --- neq special case (simpler negation) ---
-    if check == CheckType.NEQ:
-        return f"{col} IS NOT NULL AND {col} = {_sql_literal(rule.value)}"
-
-    # --- column comparison checks ---
-    if check in (CheckType.COLUMN_LT, CheckType.COLUMN_LTE, CheckType.COLUMN_EQ):
-        other = _quote_col(rule.other_column)  # type: ignore[arg-type]
-        positive = _check_expr(check, col, rule.value, rule.other_column)  # type: ignore[arg-type]
-        return f"{col} IS NOT NULL AND {other} IS NOT NULL AND NOT ({positive})"
-
-    # --- All other scalar checks ---
-    positive = _check_expr(check, col, rule.value, rule.other_column)  # type: ignore[arg-type]
-    return f"{col} IS NOT NULL AND NOT ({positive})"
+    # --- Scalar checks ---
+    return _single_violation(check, col, rule.value, rule.other_column), False  # type: ignore[arg-type]
 
 
 # ---------------------------------------------------------------------------
@@ -253,17 +321,17 @@ def _rule_select(
     all_rules: list[Rule],
 ) -> str:
     """Generate the complete SELECT statement for one rule."""
-    if rule.check == CheckType.UNIQUE:
+    if rule.check == CheckType.UNIQUE and not rule.list_columns:
         return _unique_select(rule, id_column, all_rules)
 
     id_col = _quote_col(id_column)
     name = _escape_sql(rule.name)
     severity = rule.severity.value
 
-    predicate = _violation_predicate(rule, all_rules)
+    predicate, when_folded = _violation_predicate(rule, all_rules)
 
     when_clause = ""
-    if rule.when is not None:
+    if rule.when is not None and not when_folded:
         when_pred = _when_sql(rule.when)
         when_clause = f"({when_pred}) AND "
 

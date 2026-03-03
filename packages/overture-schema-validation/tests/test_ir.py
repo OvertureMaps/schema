@@ -361,39 +361,28 @@ def test_exactly_one_of_with_fewer_than_two_columns() -> None:
         )
 
 
-def test_each_item_with_unique() -> None:
-    with pytest.raises(ValidationError, match="each_item"):
-        Rule(
-            name="bad",
-            column="col",
-            check=CheckType.UNIQUE,
-            each_item=True,
-            severity=Severity.ERROR,
-        )
-
-
-def test_each_item_with_min_length() -> None:
+def test_list_columns_with_min_length() -> None:
     r = Rule(
         name="ok",
         column="col",
         check=CheckType.MIN_LENGTH,
         value=1,
-        each_item=True,
+        list_columns=["parent"],
         severity=Severity.ERROR,
     )
-    assert r.each_item is True
+    assert r.list_columns == ["parent"]
 
 
-def test_each_item_with_max_length() -> None:
+def test_list_columns_with_max_length() -> None:
     r = Rule(
         name="ok",
         column="col",
         check=CheckType.MAX_LENGTH,
         value=5,
-        each_item=True,
+        list_columns=["parent"],
         severity=Severity.ERROR,
     )
-    assert r.each_item is True
+    assert r.list_columns == ["parent"]
 
 
 def test_column_lt_without_other_column() -> None:
@@ -449,37 +438,24 @@ def test_no_column_no_columns() -> None:
         )
 
 
-def test_each_item_with_column_lt() -> None:
-    with pytest.raises(ValidationError, match="each_item"):
-        Rule(
-            name="bad",
-            column="a",
-            check=CheckType.COLUMN_LT,
-            other_column="b",
-            each_item=True,
-            severity=Severity.ERROR,
-        )
-
-
-def test_each_item_with_geometry_type() -> None:
-    with pytest.raises(ValidationError, match="each_item"):
-        Rule(
-            name="bad",
-            column="geom",
-            check=CheckType.GEOMETRY_TYPE,
-            value=["Point"],
-            each_item=True,
-            severity=Severity.ERROR,
-        )
-
-
-def test_each_item_with_exactly_one_of() -> None:
-    with pytest.raises(ValidationError):
+def test_list_columns_on_multi_field_rejected() -> None:
+    with pytest.raises(ValidationError, match="list_columns"):
         Rule(
             name="bad",
             columns=["a", "b"],
             check=CheckType.EXACTLY_ONE_OF,
-            each_item=True,
+            list_columns=["parent"],
+            severity=Severity.ERROR,
+        )
+
+
+def test_list_columns_on_any_of_rejected() -> None:
+    with pytest.raises(ValidationError, match="list_columns"):
+        Rule(
+            name="bad",
+            columns=["a", "b"],
+            check=CheckType.ANY_OF,
+            list_columns=["parent"],
             severity=Severity.ERROR,
         )
 
@@ -512,16 +488,16 @@ def test_in_rule() -> None:
     assert r.check == CheckType.IN
 
 
-def test_in_each_item_rule() -> None:
-    r = Rule(**_make_rule(check="in", value=["a", "b"], each_item=True))
-    assert r.each_item is True
+def test_in_list_columns_rule() -> None:
+    r = Rule(**_make_rule(check="in", value=["a", "b"], list_columns=["col"]))
+    assert r.list_columns == ["col"]
 
 
-def test_pattern_each_item_rule() -> None:
+def test_pattern_list_columns_rule() -> None:
     r = Rule(
-        **_make_rule(check="pattern", value="^[A-Z]{2}$", each_item=True)
+        **_make_rule(check="pattern", value="^[A-Z]{2}$", list_columns=["col"])
     )
-    assert r.each_item is True
+    assert r.list_columns == ["col"]
 
 
 def test_column_lt_rule() -> None:

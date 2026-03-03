@@ -70,7 +70,7 @@ Each rule specifies a single validation check on one or more columns.
 | `check` | CheckType | yes | One of the 22 check types |
 | `value` | scalar, list, or null | conditional | Check parameter |
 | `other_column` | string | conditional | Second column (column comparison checks) |
-| `each_item` | boolean | no (default false) | Apply check per list element |
+| `list_columns` | list of string | no | Ordered list-boundary columns for nested list iteration |
 | `when` | Condition | no | Predicate guard |
 | `severity` | `error` or `warning` | yes | Severity level |
 | `description` | string | no | Human-readable explanation |
@@ -83,7 +83,7 @@ Each rule specifies a single validation check on one or more columns.
 | `columns` | `exactly_one_of`, `any_of` | `column` is set |
 | `value` | all scalar/list checks | `not_null`, `is_null`, `unique`, multi-field checks |
 | `other_column` | `column_lt`, `column_lte`, `column_eq` | all other checks |
-| `each_item` | never (optional) | check is `unique`, `min_length`, `max_length`, or multi-field |
+| `list_columns` | never (optional) | check is `exactly_one_of` or `any_of` |
 
 ### Nested Column Access
 
@@ -218,14 +218,14 @@ Violation: `col NOT IN (...)`
   severity: error
 ```
 
-With `each_item: true`, every list element must be in the set:
+With `list_columns`, every list element must be in the set:
 
 ```yaml
 - name: road_flag_rule.values.items_valid
   column: values
   check: in
   value: [is_link, is_toll, is_bridge]
-  each_item: true
+  list_columns: [values]
   severity: error
 ```
 
@@ -346,14 +346,14 @@ Violation: `NOT REGEXP_MATCHES(col, value)`
   severity: error
 ```
 
-With `each_item: true`:
+With `list_columns`:
 
 ```yaml
 - name: place.phones.item_format
   column: phones
   check: pattern
   value: '^\+\d{1,3}[\s\-\(\)0-9]+$'
-  each_item: true
+  list_columns: [phones]
   severity: error
 ```
 
@@ -459,33 +459,58 @@ Violation: all listed columns are null
 
 ---
 
-## 5. `each_item` Modifier
+## 5. List Column Iteration (`list_columns`)
 
-When `each_item: true`, the check is applied to **every element** of a list column rather than to the column value as a whole.
+When `list_columns` is set, the backend must iterate through the specified list boundaries to evaluate the check on nested elements.
 
-### Valid checks with `each_item`
+### Semantics
 
-`gt`, `gte`, `lt`, `lte`, `eq`, `neq`, `between`, `in`, `not_in`, `not_null`, `is_null`, `pattern`, `is_type`
+`list_columns` is an ordered list of column paths. Each entry is a column that is a `LIST(...)` type requiring iteration. The backend wraps the check in nested `list_filter` calls from outside in.
 
-### Invalid checks with `each_item`
+- If `column == list_columns[-1]`, the check targets **each element** of the innermost list
+- Otherwise, the check targets a struct field accessed from the innermost lambda variable
 
-`unique`, `min_length`, `max_length` (these already operate on the list as a whole), `column_*`, `geometry_type`, `exactly_one_of`, `any_of`
-
-### Example
+### Example 1: Simple list
 
 ```yaml
-- name: perspectives.countries.item_format
-  column: perspectives.countries
+- name: place.phones.item_format
+  column: phones
   check: pattern
-  value: '^[A-Z]{2}$'
-  each_item: true
+  value: '^\+\d{1,3}[\s\-\(\)0-9]+$'
+  list_columns: [phones]
   severity: error
-  description: "Each country code must be ISO 3166-1 alpha-2"
 ```
 
-Backend hints:
-- DuckDB: `list_apply(col, x -> ...)` or `UNNEST` + filter
-- Spark: `exists(col, x -> ...)` for violations
+Here `column == list_columns[-1]`, so the pattern check applies to each element of the `phones` list.
+
+### Example 2: List of structs
+
+```yaml
+- name: division.names.rules.value.not_null
+  column: names.rules.value
+  check: not_null
+  list_columns: [names.rules]
+  severity: error
+```
+
+Here `column != list_columns[-1]`, so the backend iterates over `names.rules` and checks the `value` field of each struct element.
+
+### Example 3: Nested list in struct in list
+
+```yaml
+- name: division.names.rules.perspectives.countries.pattern
+  column: names.rules.perspectives.countries
+  check: pattern
+  value: '^[A-Z]{2}$'
+  list_columns: [names.rules, names.rules.perspectives.countries]
+  severity: error
+```
+
+Here `column == list_columns[-1]`, so the backend generates nested `list_filter` calls — the outer one iterates `names.rules`, and the inner one iterates `perspectives.countries` within each struct, checking each country code element.
+
+### Not allowed with
+
+`list_columns` must not be set on multi-field checks (`exactly_one_of`, `any_of`).
 
 ---
 
@@ -740,28 +765,28 @@ datasets:
 
 ## Appendix: Check Reference Table
 
-| Check | Value type | `column` | `columns` | `other_column` | `each_item` | Violation condition |
+| Check | Value type | `column` | `columns` | `other_column` | `list_columns` | Violation condition |
 |---|---|---|---|---|---|---|
-| `gt` | scalar | required | — | — | allowed | `col <= value` |
-| `gte` | scalar | required | — | — | allowed | `col < value` |
-| `lt` | scalar | required | — | — | allowed | `col >= value` |
-| `lte` | scalar | required | — | — | allowed | `col > value` |
-| `eq` | scalar | required | — | — | allowed | `col != value` |
-| `neq` | scalar | required | — | — | allowed | `col == value` |
-| `between` | [min, max] | required | — | — | allowed | `col < min OR col > max` |
-| `in` | list | required | — | — | allowed | `col NOT IN (...)` |
-| `not_in` | list | required | — | — | allowed | `col IN (...)` |
-| `not_null` | — | required | — | — | allowed | `col IS NULL` |
-| `is_null` | — | required | — | — | allowed | `col IS NOT NULL` |
-| `unique` | — | required | — | — | **no** | duplicate values exist |
-| `min_length` | int | required | — | — | **no** | `LENGTH(col) < value` |
-| `max_length` | int | required | — | — | **no** | `LENGTH(col) > value` |
-| `pattern` | regex str | required | — | — | allowed | `col !~ value` |
-| `is_type` | type name | required | — | — | allowed | type check fails |
-| `column_lt` | — | required | — | required | **no** | `col >= other_column` |
-| `column_lte` | — | required | — | required | **no** | `col > other_column` |
-| `column_eq` | — | required | — | required | **no** | `col != other_column` |
-| `geometry_type` | list of types | required | — | — | **no** | geom type not in list |
+| `gt` | scalar | required | — | — | optional | `col <= value` |
+| `gte` | scalar | required | — | — | optional | `col < value` |
+| `lt` | scalar | required | — | — | optional | `col >= value` |
+| `lte` | scalar | required | — | — | optional | `col > value` |
+| `eq` | scalar | required | — | — | optional | `col != value` |
+| `neq` | scalar | required | — | — | optional | `col == value` |
+| `between` | [min, max] | required | — | — | optional | `col < min OR col > max` |
+| `in` | list | required | — | — | optional | `col NOT IN (...)` |
+| `not_in` | list | required | — | — | optional | `col IN (...)` |
+| `not_null` | — | required | — | — | optional | `col IS NULL` |
+| `is_null` | — | required | — | — | optional | `col IS NOT NULL` |
+| `unique` | — | required | — | — | optional | duplicate values exist |
+| `min_length` | int | required | — | — | optional | `LENGTH(col) < value` |
+| `max_length` | int | required | — | — | optional | `LENGTH(col) > value` |
+| `pattern` | regex str | required | — | — | optional | `col !~ value` |
+| `is_type` | type name | required | — | — | optional | type check fails |
+| `column_lt` | — | required | — | required | optional | `col >= other_column` |
+| `column_lte` | — | required | — | required | optional | `col > other_column` |
+| `column_eq` | — | required | — | required | optional | `col != other_column` |
+| `geometry_type` | list of types | required | — | — | optional | geom type not in list |
 | `exactly_one_of` | — | — | required | — | **no** | 0 or 2+ non-null |
 | `any_of` | — | — | required | — | **no** | all null |
 

@@ -161,16 +161,16 @@ def test_field_enum_in_rule() -> None:
     in_rules = [r for r in rules if r.check == CheckType.IN]
     assert len(in_rules) == 1
     assert in_rules[0].value == ["blue", "green", "red"]
-    assert not in_rules[0].each_item
+    assert in_rules[0].list_columns is None
 
 
-def test_field_list_enum_each_item() -> None:
-    """list[Enum] produces an 'in' rule with each_item=True."""
+def test_field_list_enum_list_columns() -> None:
+    """list[Enum] produces an 'in' rule with list_columns=["tags"]."""
     field_info = InlineModel.model_fields["tags"]
     rules = _extract_field_rules("test", "tags", field_info, column_prefix="", parent_is_optional=False)
     in_rules = [r for r in rules if r.check == CheckType.IN]
     assert len(in_rules) == 1
-    assert in_rules[0].each_item is True
+    assert in_rules[0].list_columns == ["tags"]
 
 
 def test_field_strict_bool_is_type() -> None:
@@ -226,48 +226,48 @@ def test_field_nested_optional_parent_when_guard() -> None:
     assert not_null_rules[0].when.check == CheckType.NOT_NULL
 
 
-def test_field_list_of_structs_each_item_not_null() -> None:
-    """Required fields inside list[Struct] get each_item=True on not_null."""
+def test_field_list_of_structs_list_columns_not_null() -> None:
+    """Required fields inside list[Struct] get list_columns=["items"]."""
     field_info = InlineModel.model_fields["items"]
     rules = _extract_field_rules("test", "items", field_info, column_prefix="", parent_is_optional=False)
     nn_rules = [r for r in rules if r.check == CheckType.NOT_NULL and r.column == "items.value"]
     assert len(nn_rules) == 1
-    assert nn_rules[0].each_item is True
+    assert nn_rules[0].list_columns == ["items"]
 
 
-def test_field_list_of_structs_each_item_min_length() -> None:
-    """min_length inside list[Struct] gets each_item=True."""
+def test_field_list_of_structs_list_columns_min_length() -> None:
+    """min_length inside list[Struct] gets list_columns=["items"]."""
     field_info = InlineModel.model_fields["items"]
     rules = _extract_field_rules("test", "items", field_info, column_prefix="", parent_is_optional=False)
     ml_rules = [r for r in rules if r.check == CheckType.MIN_LENGTH and r.column == "items.value"]
     assert len(ml_rules) == 1
-    assert ml_rules[0].each_item is True
+    assert ml_rules[0].list_columns == ["items"]
 
 
-def test_field_list_of_structs_each_item_numeric() -> None:
-    """Numeric constraints inside list[Struct] get each_item=True."""
+def test_field_list_of_structs_list_columns_numeric() -> None:
+    """Numeric constraints inside list[Struct] get list_columns=["items"]."""
     field_info = InlineModel.model_fields["items"]
     rules = _extract_field_rules("test", "items", field_info, column_prefix="", parent_is_optional=False)
     gte_rules = [r for r in rules if r.check == CheckType.GTE and r.column == "items.score"]
     assert len(gte_rules) == 1
-    assert gte_rules[0].each_item is True
+    assert gte_rules[0].list_columns == ["items"]
 
 
-def test_field_list_of_structs_each_item_enum() -> None:
-    """Enum in inside list[Struct] gets each_item=True."""
+def test_field_list_of_structs_list_columns_enum() -> None:
+    """Enum in inside list[Struct] gets list_columns=["items"]."""
     field_info = InlineModel.model_fields["items"]
     rules = _extract_field_rules("test", "items", field_info, column_prefix="", parent_is_optional=False)
     in_rules = [r for r in rules if r.check == CheckType.IN and r.column == "items.tag"]
     assert len(in_rules) == 1
-    assert in_rules[0].each_item is True
+    assert in_rules[0].list_columns == ["items"]
 
 
-def test_field_non_list_struct_no_each_item() -> None:
-    """Scalar nested struct fields do NOT get each_item=True."""
+def test_field_non_list_struct_no_list_columns() -> None:
+    """Scalar nested struct fields do NOT get list_columns."""
     field_info = InlineModel.model_fields["nested"]
     rules = _extract_field_rules("test", "nested", field_info, column_prefix="", parent_is_optional=False)
     for r in rules:
-        assert not r.each_item, f"Rule {r.name} should not have each_item"
+        assert r.list_columns is None, f"Rule {r.name} should not have list_columns"
 
 
 def test_field_geometry_type_constraint() -> None:
