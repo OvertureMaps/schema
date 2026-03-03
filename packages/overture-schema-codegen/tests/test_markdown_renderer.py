@@ -8,6 +8,8 @@ from typing import Annotated, Literal, NewType
 import pytest
 from annotated_types import Ge, Interval
 from codegen_test_support import (
+    EMAIL_STR_SPEC,
+    HTTP_URL_SPEC,
     STR_TYPE,
     CommonNames,
     FeatureBase,
@@ -32,6 +34,7 @@ from overture.schema.codegen.markdown_renderer import (
     render_feature,
     render_newtype,
     render_primitives_from_specs,
+    render_pydantic_type,
 )
 from overture.schema.codegen.model_extraction import expand_model_tree, extract_model
 from overture.schema.codegen.newtype_extraction import extract_newtype
@@ -1392,3 +1395,39 @@ class TestUsedByRendering:
         result = render_fn(spec_factory(), used_by=[])
 
         assert "## Used By" not in result
+
+
+class TestRenderPydanticType:
+    """Tests for render_pydantic_type."""
+
+    def test_heading_is_pascal_case(self) -> None:
+        result = render_pydantic_type(HTTP_URL_SPEC)
+        assert result.startswith("# HttpUrl\n")
+
+    def test_description_rendered(self) -> None:
+        result = render_pydantic_type(HTTP_URL_SPEC)
+        assert "A type that will accept any http or https URL." in result
+
+    def test_no_description_omits_paragraph(self) -> None:
+        result = render_pydantic_type(EMAIL_STR_SPEC)
+        lines = result.strip().split("\n")
+        assert lines[0] == "# EmailStr"
+
+    def test_pydantic_docs_link(self) -> None:
+        result = render_pydantic_type(HTTP_URL_SPEC)
+        assert (
+            "https://docs.pydantic.dev/latest/api/networks/#pydantic.networks.HttpUrl"
+            in result
+        )
+
+    def test_used_by_section(self) -> None:
+        place_cls = type("Place", (), {})
+        place_id = TypeIdentity(place_cls, "Place")
+        used_by = [UsedByEntry(place_id, UsedByKind.MODEL)]
+        ctx = LinkContext(
+            page_path=PurePosixPath("pydantic/networks/http_url.md"),
+            registry={place_id: PurePosixPath("places/place/place.md")},
+        )
+        result = render_pydantic_type(HTTP_URL_SPEC, link_ctx=ctx, used_by=used_by)
+        assert "## Used By" in result
+        assert "Place" in result

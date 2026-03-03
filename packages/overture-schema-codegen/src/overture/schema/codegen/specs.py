@@ -22,10 +22,13 @@ __all__ = [
     "ModelSpec",
     "NewTypeSpec",
     "PrimitiveSpec",
+    "PydanticTypeSpec",
     "SupplementarySpec",
     "TypeIdentity",
     "filter_model_classes",
     "is_model_class",
+    "is_pydantic_sourced",
+    "is_pydantic_type",
     "is_union_alias",
 ]
 
@@ -59,8 +62,8 @@ class TypeIdentity:
 class _SourceTypeIdentityMixin:
     """Mixin providing ``identity`` from ``source_type`` and ``name``.
 
-    Shared by EnumSpec, ModelSpec, and NewTypeSpec -- each has a
-    ``source_type`` (the Python class/callable) and a ``name``.
+    Shared by EnumSpec, ModelSpec, NewTypeSpec, and PydanticTypeSpec --
+    each has a ``source_type`` (the Python class/callable) and a ``name``.
     UnionSpec uses ``source_annotation`` instead, so it defines its
     own ``identity``.
     """
@@ -190,12 +193,44 @@ class PrimitiveSpec:
     float_bits: int | None = None
 
 
-SupplementarySpec = EnumSpec | NewTypeSpec | ModelSpec
+@dataclass
+class PydanticTypeSpec(_SourceTypeIdentityMixin):
+    """Specification for a Pydantic built-in type (HttpUrl, EmailStr, etc.)."""
+
+    name: str
+    description: str | None
+    source_type: type
+    source_module: str
+
+    @property
+    def docs_url(self) -> str:
+        """Pydantic documentation URL for this type."""
+        return (
+            f"https://docs.pydantic.dev/latest/api/{self.source_module}"
+            f"/#pydantic.{self.source_module}.{self.name}"
+        )
+
+
+SupplementarySpec = EnumSpec | NewTypeSpec | ModelSpec | PydanticTypeSpec
 """Non-feature types referenced by feature models.
 
 Excludes PrimitiveSpec and geometry types, which are extracted
 separately via dedicated functions.
 """
+
+
+def is_pydantic_sourced(source_type: type | None) -> bool:
+    """Check whether *source_type* originates from the ``pydantic`` package."""
+    return getattr(source_type, "__module__", "").startswith("pydantic")
+
+
+def is_pydantic_type(ti: TypeInfo) -> bool:
+    """Check whether a TypeInfo represents a Pydantic built-in type."""
+    return (
+        ti.kind == TypeKind.PRIMITIVE
+        and ti.source_type is not None
+        and is_pydantic_sourced(ti.source_type)
+    )
 
 
 def is_model_class(obj: object) -> TypeGuard[type[BaseModel]]:

@@ -13,7 +13,7 @@ from overture.schema.codegen.markdown_type_format import (
 from overture.schema.codegen.specs import FieldSpec, TypeIdentity
 from overture.schema.codegen.type_analyzer import TypeInfo, TypeKind, analyze_type
 from overture.schema.system.primitive import int32
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 
 class _ModelA(BaseModel):
@@ -177,6 +177,67 @@ class TestFormatUnionType:
         assert "`_ModelB`" in result
         # _ModelB should NOT be linked
         assert "[`_ModelB`]" not in result
+
+
+class TestPydanticTypeLinking:
+    """Tests for PRIMITIVE types with pages getting linked."""
+
+    def test_pydantic_type_linked_when_in_registry(self) -> None:
+        ti = analyze_type(HttpUrl)
+        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        ctx = LinkContext(
+            page_path=PurePosixPath("places/place/place.md"),
+            registry={
+                TypeIdentity(HttpUrl, "HttpUrl"): PurePosixPath(
+                    "pydantic/networks/http_url.md"
+                )
+            },
+        )
+        result = format_type(field, ctx)
+        assert "[`HttpUrl`]" in result
+        assert "pydantic/networks/http_url.md" in result
+
+    def test_pydantic_type_unlinked_without_registry_entry(self) -> None:
+        ti = analyze_type(HttpUrl)
+        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        ctx = LinkContext(
+            page_path=PurePosixPath("places/place/place.md"),
+            registry={},
+        )
+        result = format_type(field, ctx)
+        assert result == "`HttpUrl`"
+        assert "[" not in result
+
+    def test_list_of_pydantic_type_linked(self) -> None:
+        ti = analyze_type(list[HttpUrl])
+        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        ctx = LinkContext(
+            page_path=PurePosixPath("places/place/place.md"),
+            registry={
+                TypeIdentity(HttpUrl, "HttpUrl"): PurePosixPath(
+                    "pydantic/networks/http_url.md"
+                )
+            },
+        )
+        result = format_type(field, ctx)
+        assert "HttpUrl" in result
+        assert "pydantic/networks/http_url.md" in result
+
+    def test_registered_primitive_links_to_aggregate_page(self) -> None:
+        """int32 links to the primitives aggregate page when in registry."""
+        ti = analyze_type(int32)
+        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        ctx = LinkContext(
+            page_path=PurePosixPath("places/place/place.md"),
+            registry={
+                TypeIdentity(int32, "int32"): PurePosixPath(
+                    "system/primitive/primitives.md"
+                )
+            },
+        )
+        result = format_type(field, ctx)
+        assert "[`int32`]" in result
+        assert "system/primitive/primitives.md" in result
 
 
 class TestFormatUnderlyingUnionType:

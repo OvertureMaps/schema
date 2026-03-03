@@ -13,6 +13,7 @@ from typing import Annotated, Generic, Literal, NewType, TypeVar
 
 import pytest
 from overture.schema.codegen.model_extraction import extract_model
+from overture.schema.codegen.pydantic_extraction import extract_pydantic_type
 from overture.schema.codegen.specs import (
     AnnotatedField,
     EnumMemberSpec,
@@ -37,7 +38,7 @@ from overture.schema.system.primitive import (
 )
 from overture.schema.system.ref import Id, Identified, Reference, Relationship
 from overture.schema.system.string import HexColor, LanguageTag, StrippedString
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field, HttpUrl
 
 STR_TYPE = TypeInfo(base_type="str", kind=TypeKind.PRIMITIVE)
 
@@ -194,6 +195,17 @@ class FeatureWithDict(
     )
     tags: dict[str, str] | None = Field(None, description="Arbitrary tags")
     metadata: dict[str, int] = Field(description="Numeric metadata")
+
+
+class FeatureWithUrl(FeatureBase[Literal["test"], Literal["linked"]]):
+    """A feature with Pydantic URL and email fields."""
+
+    website: HttpUrl | None = None
+    emails: list[EmailStr] | None = None
+
+
+HTTP_URL_SPEC = extract_pydantic_type(HttpUrl)
+EMAIL_STR_SPEC = extract_pydantic_type(EmailStr)
 
 
 class SegmentBase(BaseModel):
