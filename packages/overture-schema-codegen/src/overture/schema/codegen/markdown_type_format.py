@@ -62,6 +62,26 @@ def _linked_type_identity(ti: TypeInfo) -> TypeIdentity | None:
     return None
 
 
+def _try_primitive_link(
+    ti: TypeInfo, display_name: str, ctx: LinkContext | None
+) -> str | None:
+    """Try to link a PRIMITIVE type to its page via registry lookup.
+
+    Registered primitives (int32, Geometry) and Pydantic types (HttpUrl)
+    can have pages in the registry. Uses the type registry display name
+    (e.g. ``geometry`` not ``Geometry``) for the link text.
+    """
+    if ti.kind != TypeKind.PRIMITIVE or not ctx:
+        return None
+    candidate = ti.newtype_ref or ti.source_type
+    if candidate is None:
+        return None
+    href = ctx.resolve_link(TypeIdentity(candidate, display_name))
+    if href:
+        return _code_link(display_name, href)
+    return None
+
+
 def _markdown_type_name(ti: TypeInfo) -> str:
     """Return the markdown display name for a type.
 
@@ -129,7 +149,12 @@ def format_type(
             display = _wrap_list_n(display, ti.list_depth)
     else:
         base = resolve_type_name(ti, "markdown")
-        if ti.is_list:
+        link = _try_primitive_link(ti, base, ctx)
+        if link and ti.is_list:
+            display = _wrap_list_n(link, ti.list_depth)
+        elif link:
+            display = link
+        elif ti.is_list:
             display = _plain_list_type(base, ti.list_depth)
         else:
             display = f"`{base}`"

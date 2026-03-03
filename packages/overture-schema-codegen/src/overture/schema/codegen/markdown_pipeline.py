@@ -21,6 +21,7 @@ from .markdown_renderer import (
     render_geometry_from_values,
     render_newtype,
     render_primitives_from_specs,
+    render_pydantic_type,
 )
 from .model_extraction import expand_model_tree
 from .path_assignment import (
@@ -39,6 +40,7 @@ from .specs import (
     FeatureSpec,
     ModelSpec,
     NewTypeSpec,
+    PydanticTypeSpec,
     SupplementarySpec,
     TypeIdentity,
     UnionSpec,
@@ -88,7 +90,7 @@ def _render_supplement(
     registry: dict[TypeIdentity, PurePosixPath],
     reverse_refs: dict[TypeIdentity, list[UsedByEntry]],
 ) -> RenderedPage:
-    """Render a single supplementary page (enum, NewType, or sub-model)."""
+    """Render a single supplementary type page."""
     output_path = resolve_output_path(tid, registry)
     ctx = LinkContext(output_path, registry)
     used_by = reverse_refs.get(tid)
@@ -99,6 +101,8 @@ def _render_supplement(
         content = render_newtype(spec, ctx, used_by=used_by)
     elif isinstance(spec, ModelSpec):
         content = render_feature(spec, ctx, used_by=used_by)
+    elif isinstance(spec, PydanticTypeSpec):
+        content = render_pydantic_type(spec, link_ctx=ctx, used_by=used_by)
     else:
         raise TypeError(f"Unhandled SupplementarySpec variant: {type(spec).__name__}")
 
