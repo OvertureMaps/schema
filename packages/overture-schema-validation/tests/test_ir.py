@@ -207,63 +207,64 @@ def _make_rule(**kwargs: Any) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-class TestYamlRoundTrip:
-    def test_empty_spec_round_trip(self) -> None:
-        spec = ValidationSpec(version="1", datasets=[])
-        dumped = yaml.dump(
-            spec.model_dump(mode="json"), default_flow_style=False
-        )
-        loaded = yaml.safe_load(dumped)
-        spec2 = ValidationSpec(**loaded)
-        assert spec == spec2
+def test_yaml_empty_spec_round_trip() -> None:
+    spec = ValidationSpec(version="1", datasets=[])
+    dumped = yaml.dump(
+        spec.model_dump(mode="json"), default_flow_style=False
+    )
+    loaded = yaml.safe_load(dumped)
+    spec2 = ValidationSpec(**loaded)
+    assert spec == spec2
 
-    def test_single_rule_round_trip(self) -> None:
-        rule = Rule(
-            name="test.not_null",
-            column="id",
-            check=CheckType.NOT_NULL,
-            severity=Severity.ERROR,
-            description="ID required",
-        )
-        spec = ValidationSpec(
-            version="1",
-            datasets=[
-                DatasetSpec(name="Test", id_column="id", rules=[rule])
-            ],
-        )
-        dumped = yaml.dump(
-            spec.model_dump(mode="json"), default_flow_style=False
-        )
-        loaded = yaml.safe_load(dumped)
-        spec2 = ValidationSpec(**loaded)
-        assert spec2.version == "1"
-        assert len(spec2.datasets) == 1
-        assert len(spec2.datasets[0].rules) == 1
-        assert spec2.datasets[0].rules[0].name == "test.not_null"
-        assert spec2.datasets[0].rules[0].check == CheckType.NOT_NULL
 
-    def test_conditional_rule_round_trip(self) -> None:
-        rule = Rule(
-            name="test.conditional",
-            column="parent_id",
-            check=CheckType.NOT_NULL,
-            severity=Severity.ERROR,
-            when=Condition(column="subtype", check=CheckType.NEQ, value="country"),
-        )
-        spec = ValidationSpec(
-            version="1",
-            datasets=[DatasetSpec(name="Test", rules=[rule])],
-        )
-        dumped = yaml.dump(
-            spec.model_dump(mode="json"), default_flow_style=False
-        )
-        loaded = yaml.safe_load(dumped)
-        spec2 = ValidationSpec(**loaded)
-        w = spec2.datasets[0].rules[0].when
-        assert w is not None
-        assert w.column == "subtype"
-        assert w.check == CheckType.NEQ
-        assert w.value == "country"
+def test_yaml_single_rule_round_trip() -> None:
+    rule = Rule(
+        name="test.not_null",
+        column="id",
+        check=CheckType.NOT_NULL,
+        severity=Severity.ERROR,
+        description="ID required",
+    )
+    spec = ValidationSpec(
+        version="1",
+        datasets=[
+            DatasetSpec(name="Test", id_column="id", rules=[rule])
+        ],
+    )
+    dumped = yaml.dump(
+        spec.model_dump(mode="json"), default_flow_style=False
+    )
+    loaded = yaml.safe_load(dumped)
+    spec2 = ValidationSpec(**loaded)
+    assert spec2.version == "1"
+    assert len(spec2.datasets) == 1
+    assert len(spec2.datasets[0].rules) == 1
+    assert spec2.datasets[0].rules[0].name == "test.not_null"
+    assert spec2.datasets[0].rules[0].check == CheckType.NOT_NULL
+
+
+def test_yaml_conditional_rule_round_trip() -> None:
+    rule = Rule(
+        name="test.conditional",
+        column="parent_id",
+        check=CheckType.NOT_NULL,
+        severity=Severity.ERROR,
+        when=Condition(column="subtype", check=CheckType.NEQ, value="country"),
+    )
+    spec = ValidationSpec(
+        version="1",
+        datasets=[DatasetSpec(name="Test", rules=[rule])],
+    )
+    dumped = yaml.dump(
+        spec.model_dump(mode="json"), default_flow_style=False
+    )
+    loaded = yaml.safe_load(dumped)
+    spec2 = ValidationSpec(**loaded)
+    w = spec2.datasets[0].rules[0].when
+    assert w is not None
+    assert w.column == "subtype"
+    assert w.check == CheckType.NEQ
+    assert w.value == "country"
 
 
 # ---------------------------------------------------------------------------
@@ -271,54 +272,56 @@ class TestYamlRoundTrip:
 # ---------------------------------------------------------------------------
 
 
-class TestBuildingExample:
-    def test_parse_building_yaml(self) -> None:
-        data = yaml.safe_load(BUILDING_YAML)
-        spec = ValidationSpec(**data)
-        assert spec.version == "1"
-        assert len(spec.datasets) == 1
+def test_parse_building_yaml() -> None:
+    data = yaml.safe_load(BUILDING_YAML)
+    spec = ValidationSpec(**data)
+    assert spec.version == "1"
+    assert len(spec.datasets) == 1
 
-        ds = spec.datasets[0]
-        assert ds.name == "Building"
-        assert ds.source_model == "overture.schema.buildings.building.Building"
-        assert ds.id_column == "id"
-        assert len(ds.rules) == 22
+    ds = spec.datasets[0]
+    assert ds.name == "Building"
+    assert ds.source_model == "overture.schema.buildings.building.Building"
+    assert ds.id_column == "id"
+    assert len(ds.rules) == 22
 
-    def test_building_rules_have_names(self) -> None:
-        data = yaml.safe_load(BUILDING_YAML)
-        spec = ValidationSpec(**data)
-        names = [r.name for r in spec.datasets[0].rules]
-        assert len(names) == len(set(names)), "Rule names must be unique"
-        assert all(n.startswith("building.") for n in names)
 
-    def test_building_conditional_rules(self) -> None:
-        data = yaml.safe_load(BUILDING_YAML)
-        spec = ValidationSpec(**data)
-        conditional = [r for r in spec.datasets[0].rules if r.when is not None]
-        assert len(conditional) == 2
-        for r in conditional:
-            assert r.when is not None
-            assert r.when.column == "names"
-            assert r.when.check == CheckType.NOT_NULL
+def test_building_rules_have_names() -> None:
+    data = yaml.safe_load(BUILDING_YAML)
+    spec = ValidationSpec(**data)
+    names = [r.name for r in spec.datasets[0].rules]
+    assert len(names) == len(set(names)), "Rule names must be unique"
+    assert all(n.startswith("building.") for n in names)
 
-    def test_building_check_types_used(self) -> None:
-        data = yaml.safe_load(BUILDING_YAML)
-        spec = ValidationSpec(**data)
-        checks_used = {r.check for r in spec.datasets[0].rules}
-        expected = {
-            CheckType.NOT_NULL,
-            CheckType.MIN_LENGTH,
-            CheckType.PATTERN,
-            CheckType.UNIQUE,
-            CheckType.GTE,
-            CheckType.GEOMETRY_TYPE,
-            CheckType.BETWEEN,
-            CheckType.GT,
-            CheckType.LT,
-            CheckType.IN,
-            CheckType.IS_TYPE,
-        }
-        assert checks_used == expected
+
+def test_building_conditional_rules() -> None:
+    data = yaml.safe_load(BUILDING_YAML)
+    spec = ValidationSpec(**data)
+    conditional = [r for r in spec.datasets[0].rules if r.when is not None]
+    assert len(conditional) == 2
+    for r in conditional:
+        assert r.when is not None
+        assert r.when.column == "names"
+        assert r.when.check == CheckType.NOT_NULL
+
+
+def test_building_check_types_used() -> None:
+    data = yaml.safe_load(BUILDING_YAML)
+    spec = ValidationSpec(**data)
+    checks_used = {r.check for r in spec.datasets[0].rules}
+    expected = {
+        CheckType.NOT_NULL,
+        CheckType.MIN_LENGTH,
+        CheckType.PATTERN,
+        CheckType.UNIQUE,
+        CheckType.GTE,
+        CheckType.GEOMETRY_TYPE,
+        CheckType.BETWEEN,
+        CheckType.GT,
+        CheckType.LT,
+        CheckType.IN,
+        CheckType.IS_TYPE,
+    }
+    assert checks_used == expected
 
 
 # ---------------------------------------------------------------------------
@@ -326,147 +329,159 @@ class TestBuildingExample:
 # ---------------------------------------------------------------------------
 
 
-class TestStructuralValidation:
-    def test_column_and_columns_both_set(self) -> None:
-        """column + columns both set should fail."""
-        with pytest.raises(ValidationError):
-            Rule(
-                name="bad",
-                column="a",
-                columns=["a", "b"],
-                check=CheckType.NOT_NULL,
-                severity=Severity.ERROR,
-            )
+def test_column_and_columns_both_set() -> None:
+    """column + columns both set should fail."""
+    with pytest.raises(ValidationError):
+        Rule(
+            name="bad",
+            column="a",
+            columns=["a", "b"],
+            check=CheckType.NOT_NULL,
+            severity=Severity.ERROR,
+        )
 
-    def test_exactly_one_of_with_column_instead_of_columns(self) -> None:
-        with pytest.raises(ValidationError, match="uses 'columns'"):
-            Rule(
-                name="bad",
-                column="a",
-                check=CheckType.EXACTLY_ONE_OF,
-                severity=Severity.ERROR,
-            )
 
-    def test_exactly_one_of_with_fewer_than_two_columns(self) -> None:
-        with pytest.raises(ValidationError, match=">= 2 entries"):
-            Rule(
-                name="bad",
-                columns=["a"],
-                check=CheckType.EXACTLY_ONE_OF,
-                severity=Severity.ERROR,
-            )
+def test_exactly_one_of_with_column_instead_of_columns() -> None:
+    with pytest.raises(ValidationError, match="uses 'columns'"):
+        Rule(
+            name="bad",
+            column="a",
+            check=CheckType.EXACTLY_ONE_OF,
+            severity=Severity.ERROR,
+        )
 
-    def test_each_item_with_unique(self) -> None:
-        with pytest.raises(ValidationError, match="each_item"):
-            Rule(
-                name="bad",
-                column="col",
-                check=CheckType.UNIQUE,
-                each_item=True,
-                severity=Severity.ERROR,
-            )
 
-    def test_each_item_with_min_length(self) -> None:
-        with pytest.raises(ValidationError, match="each_item"):
-            Rule(
-                name="bad",
-                column="col",
-                check=CheckType.MIN_LENGTH,
-                value=1,
-                each_item=True,
-                severity=Severity.ERROR,
-            )
+def test_exactly_one_of_with_fewer_than_two_columns() -> None:
+    with pytest.raises(ValidationError, match=">= 2 entries"):
+        Rule(
+            name="bad",
+            columns=["a"],
+            check=CheckType.EXACTLY_ONE_OF,
+            severity=Severity.ERROR,
+        )
 
-    def test_each_item_with_max_length(self) -> None:
-        with pytest.raises(ValidationError, match="each_item"):
-            Rule(
-                name="bad",
-                column="col",
-                check=CheckType.MAX_LENGTH,
-                value=5,
-                each_item=True,
-                severity=Severity.ERROR,
-            )
 
-    def test_column_lt_without_other_column(self) -> None:
-        with pytest.raises(ValidationError, match="other_column"):
-            Rule(
-                name="bad",
-                column="a",
-                check=CheckType.COLUMN_LT,
-                severity=Severity.ERROR,
-            )
+def test_each_item_with_unique() -> None:
+    with pytest.raises(ValidationError, match="each_item"):
+        Rule(
+            name="bad",
+            column="col",
+            check=CheckType.UNIQUE,
+            each_item=True,
+            severity=Severity.ERROR,
+        )
 
-    def test_other_column_on_non_column_check(self) -> None:
-        with pytest.raises(ValidationError, match="other_column"):
-            Rule(
-                name="bad",
-                column="a",
-                check=CheckType.GT,
-                value=0,
-                other_column="b",
-                severity=Severity.ERROR,
-            )
 
-    def test_gt_without_value(self) -> None:
-        with pytest.raises(ValidationError, match="requires a value"):
-            Rule(
-                name="bad",
-                column="a",
-                check=CheckType.GT,
-                severity=Severity.ERROR,
-            )
+def test_each_item_with_min_length() -> None:
+    with pytest.raises(ValidationError, match="each_item"):
+        Rule(
+            name="bad",
+            column="col",
+            check=CheckType.MIN_LENGTH,
+            value=1,
+            each_item=True,
+            severity=Severity.ERROR,
+        )
 
-    def test_not_null_with_value(self) -> None:
-        with pytest.raises(ValidationError, match="must not have a value"):
-            Rule(
-                name="bad",
-                column="a",
-                check=CheckType.NOT_NULL,
-                value=42,
-                severity=Severity.ERROR,
-            )
 
-    def test_no_column_no_columns(self) -> None:
-        with pytest.raises(ValidationError, match="requires 'column'"):
-            Rule(
-                name="bad",
-                check=CheckType.GT,
-                value=0,
-                severity=Severity.ERROR,
-            )
+def test_each_item_with_max_length() -> None:
+    with pytest.raises(ValidationError, match="each_item"):
+        Rule(
+            name="bad",
+            column="col",
+            check=CheckType.MAX_LENGTH,
+            value=5,
+            each_item=True,
+            severity=Severity.ERROR,
+        )
 
-    def test_each_item_with_column_lt(self) -> None:
-        with pytest.raises(ValidationError, match="each_item"):
-            Rule(
-                name="bad",
-                column="a",
-                check=CheckType.COLUMN_LT,
-                other_column="b",
-                each_item=True,
-                severity=Severity.ERROR,
-            )
 
-    def test_each_item_with_geometry_type(self) -> None:
-        with pytest.raises(ValidationError, match="each_item"):
-            Rule(
-                name="bad",
-                column="geom",
-                check=CheckType.GEOMETRY_TYPE,
-                value=["Point"],
-                each_item=True,
-                severity=Severity.ERROR,
-            )
+def test_column_lt_without_other_column() -> None:
+    with pytest.raises(ValidationError, match="other_column"):
+        Rule(
+            name="bad",
+            column="a",
+            check=CheckType.COLUMN_LT,
+            severity=Severity.ERROR,
+        )
 
-    def test_each_item_with_exactly_one_of(self) -> None:
-        with pytest.raises(ValidationError):
-            Rule(
-                name="bad",
-                columns=["a", "b"],
-                check=CheckType.EXACTLY_ONE_OF,
-                each_item=True,
-                severity=Severity.ERROR,
-            )
+
+def test_other_column_on_non_column_check() -> None:
+    with pytest.raises(ValidationError, match="other_column"):
+        Rule(
+            name="bad",
+            column="a",
+            check=CheckType.GT,
+            value=0,
+            other_column="b",
+            severity=Severity.ERROR,
+        )
+
+
+def test_gt_without_value() -> None:
+    with pytest.raises(ValidationError, match="requires a value"):
+        Rule(
+            name="bad",
+            column="a",
+            check=CheckType.GT,
+            severity=Severity.ERROR,
+        )
+
+
+def test_not_null_with_value() -> None:
+    with pytest.raises(ValidationError, match="must not have a value"):
+        Rule(
+            name="bad",
+            column="a",
+            check=CheckType.NOT_NULL,
+            value=42,
+            severity=Severity.ERROR,
+        )
+
+
+def test_no_column_no_columns() -> None:
+    with pytest.raises(ValidationError, match="requires 'column'"):
+        Rule(
+            name="bad",
+            check=CheckType.GT,
+            value=0,
+            severity=Severity.ERROR,
+        )
+
+
+def test_each_item_with_column_lt() -> None:
+    with pytest.raises(ValidationError, match="each_item"):
+        Rule(
+            name="bad",
+            column="a",
+            check=CheckType.COLUMN_LT,
+            other_column="b",
+            each_item=True,
+            severity=Severity.ERROR,
+        )
+
+
+def test_each_item_with_geometry_type() -> None:
+    with pytest.raises(ValidationError, match="each_item"):
+        Rule(
+            name="bad",
+            column="geom",
+            check=CheckType.GEOMETRY_TYPE,
+            value=["Point"],
+            each_item=True,
+            severity=Severity.ERROR,
+        )
+
+
+def test_each_item_with_exactly_one_of() -> None:
+    with pytest.raises(ValidationError):
+        Rule(
+            name="bad",
+            columns=["a", "b"],
+            check=CheckType.EXACTLY_ONE_OF,
+            each_item=True,
+            severity=Severity.ERROR,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -474,111 +489,127 @@ class TestStructuralValidation:
 # ---------------------------------------------------------------------------
 
 
-class TestValidRules:
-    def test_not_null_rule(self) -> None:
-        r = Rule(**_make_rule(check="not_null"))
-        assert r.check == CheckType.NOT_NULL
-        assert r.value is None
+def test_not_null_rule() -> None:
+    r = Rule(**_make_rule(check="not_null"))
+    assert r.check == CheckType.NOT_NULL
+    assert r.value is None
 
-    def test_gt_rule(self) -> None:
-        r = Rule(**_make_rule(check="gt", value=0))
-        assert r.check == CheckType.GT
-        assert r.value == 0
 
-    def test_between_rule(self) -> None:
-        r = Rule(**_make_rule(check="between", value=[0, 100]))
-        assert r.check == CheckType.BETWEEN
-        assert r.value == [0, 100]
+def test_gt_rule() -> None:
+    r = Rule(**_make_rule(check="gt", value=0))
+    assert r.check == CheckType.GT
+    assert r.value == 0
 
-    def test_in_rule(self) -> None:
-        r = Rule(**_make_rule(check="in", value=["a", "b", "c"]))
-        assert r.check == CheckType.IN
 
-    def test_in_each_item_rule(self) -> None:
-        r = Rule(**_make_rule(check="in", value=["a", "b"], each_item=True))
-        assert r.each_item is True
+def test_between_rule() -> None:
+    r = Rule(**_make_rule(check="between", value=[0, 100]))
+    assert r.check == CheckType.BETWEEN
+    assert r.value == [0, 100]
 
-    def test_pattern_each_item_rule(self) -> None:
-        r = Rule(
-            **_make_rule(check="pattern", value="^[A-Z]{2}$", each_item=True)
+
+def test_in_rule() -> None:
+    r = Rule(**_make_rule(check="in", value=["a", "b", "c"]))
+    assert r.check == CheckType.IN
+
+
+def test_in_each_item_rule() -> None:
+    r = Rule(**_make_rule(check="in", value=["a", "b"], each_item=True))
+    assert r.each_item is True
+
+
+def test_pattern_each_item_rule() -> None:
+    r = Rule(
+        **_make_rule(check="pattern", value="^[A-Z]{2}$", each_item=True)
+    )
+    assert r.each_item is True
+
+
+def test_column_lt_rule() -> None:
+    r = Rule(
+        **_make_rule(
+            check="column_lt", other_column="b", value=None
         )
-        assert r.each_item is True
+    )
+    assert r.check == CheckType.COLUMN_LT
+    assert r.other_column == "b"
 
-    def test_column_lt_rule(self) -> None:
-        r = Rule(
-            **_make_rule(
-                check="column_lt", other_column="b", value=None
-            )
+
+def test_column_lte_rule() -> None:
+    r = Rule(
+        **_make_rule(check="column_lte", other_column="b", value=None)
+    )
+    assert r.check == CheckType.COLUMN_LTE
+
+
+def test_column_eq_rule() -> None:
+    r = Rule(
+        **_make_rule(check="column_eq", other_column="b", value=None)
+    )
+    assert r.check == CheckType.COLUMN_EQ
+
+
+def test_geometry_type_rule() -> None:
+    r = Rule(
+        **_make_rule(check="geometry_type", value=["Point", "MultiPoint"])
+    )
+    assert r.check == CheckType.GEOMETRY_TYPE
+
+
+def test_exactly_one_of_rule() -> None:
+    r = Rule(
+        name="test.radio",
+        columns=["a", "b", "c"],
+        check=CheckType.EXACTLY_ONE_OF,
+        severity=Severity.ERROR,
+    )
+    assert r.columns == ["a", "b", "c"]
+    assert r.column is None
+
+
+def test_any_of_rule() -> None:
+    r = Rule(
+        name="test.any",
+        columns=["x", "y"],
+        check=CheckType.ANY_OF,
+        severity=Severity.ERROR,
+    )
+    assert r.columns == ["x", "y"]
+
+
+def test_unique_rule() -> None:
+    r = Rule(**_make_rule(check="unique"))
+    assert r.check == CheckType.UNIQUE
+
+
+def test_min_length_rule() -> None:
+    r = Rule(**_make_rule(check="min_length", value=1))
+    assert r.check == CheckType.MIN_LENGTH
+
+
+def test_max_length_rule() -> None:
+    r = Rule(**_make_rule(check="max_length", value=10))
+    assert r.check == CheckType.MAX_LENGTH
+
+
+def test_is_type_rule() -> None:
+    r = Rule(**_make_rule(check="is_type", value="boolean"))
+    assert r.check == CheckType.IS_TYPE
+
+
+def test_rule_with_when() -> None:
+    r = Rule(
+        **_make_rule(
+            check="not_null",
+            when={"column": "status", "check": "eq", "value": "active"},
         )
-        assert r.check == CheckType.COLUMN_LT
-        assert r.other_column == "b"
+    )
+    assert r.when is not None
+    assert r.when.check == CheckType.EQ
 
-    def test_column_lte_rule(self) -> None:
-        r = Rule(
-            **_make_rule(check="column_lte", other_column="b", value=None)
-        )
-        assert r.check == CheckType.COLUMN_LTE
 
-    def test_column_eq_rule(self) -> None:
-        r = Rule(
-            **_make_rule(check="column_eq", other_column="b", value=None)
-        )
-        assert r.check == CheckType.COLUMN_EQ
-
-    def test_geometry_type_rule(self) -> None:
-        r = Rule(
-            **_make_rule(check="geometry_type", value=["Point", "MultiPoint"])
-        )
-        assert r.check == CheckType.GEOMETRY_TYPE
-
-    def test_exactly_one_of_rule(self) -> None:
-        r = Rule(
-            name="test.radio",
-            columns=["a", "b", "c"],
-            check=CheckType.EXACTLY_ONE_OF,
-            severity=Severity.ERROR,
-        )
-        assert r.columns == ["a", "b", "c"]
-        assert r.column is None
-
-    def test_any_of_rule(self) -> None:
-        r = Rule(
-            name="test.any",
-            columns=["x", "y"],
-            check=CheckType.ANY_OF,
-            severity=Severity.ERROR,
-        )
-        assert r.columns == ["x", "y"]
-
-    def test_unique_rule(self) -> None:
-        r = Rule(**_make_rule(check="unique"))
-        assert r.check == CheckType.UNIQUE
-
-    def test_min_length_rule(self) -> None:
-        r = Rule(**_make_rule(check="min_length", value=1))
-        assert r.check == CheckType.MIN_LENGTH
-
-    def test_max_length_rule(self) -> None:
-        r = Rule(**_make_rule(check="max_length", value=10))
-        assert r.check == CheckType.MAX_LENGTH
-
-    def test_is_type_rule(self) -> None:
-        r = Rule(**_make_rule(check="is_type", value="boolean"))
-        assert r.check == CheckType.IS_TYPE
-
-    def test_rule_with_when(self) -> None:
-        r = Rule(
-            **_make_rule(
-                check="not_null",
-                when={"column": "status", "check": "eq", "value": "active"},
-            )
-        )
-        assert r.when is not None
-        assert r.when.check == CheckType.EQ
-
-    def test_nested_column_dot_notation(self) -> None:
-        r = Rule(**_make_rule(column="cartography.min_zoom", check="gte", value=0))
-        assert r.column == "cartography.min_zoom"
+def test_nested_column_dot_notation() -> None:
+    r = Rule(**_make_rule(column="cartography.min_zoom", check="gte", value=0))
+    assert r.column == "cartography.min_zoom"
 
 
 # ---------------------------------------------------------------------------
@@ -586,47 +617,55 @@ class TestValidRules:
 # ---------------------------------------------------------------------------
 
 
-class TestConditionValidation:
-    def test_condition_rejects_unique(self) -> None:
-        with pytest.raises(ValidationError, match="not allowed"):
-            Condition(column="id", check=CheckType.UNIQUE)
+def test_condition_rejects_unique() -> None:
+    with pytest.raises(ValidationError, match="not allowed"):
+        Condition(column="id", check=CheckType.UNIQUE)
 
-    def test_condition_rejects_exactly_one_of(self) -> None:
-        with pytest.raises(ValidationError, match="not allowed"):
-            Condition(column="id", check=CheckType.EXACTLY_ONE_OF)
 
-    def test_condition_rejects_any_of(self) -> None:
-        with pytest.raises(ValidationError, match="not allowed"):
-            Condition(column="id", check=CheckType.ANY_OF)
+def test_condition_rejects_exactly_one_of() -> None:
+    with pytest.raises(ValidationError, match="not allowed"):
+        Condition(column="id", check=CheckType.EXACTLY_ONE_OF)
 
-    def test_condition_rejects_column_lt(self) -> None:
-        with pytest.raises(ValidationError, match="not allowed"):
-            Condition(column="a", check=CheckType.COLUMN_LT)
 
-    def test_condition_rejects_column_lte(self) -> None:
-        with pytest.raises(ValidationError, match="not allowed"):
-            Condition(column="a", check=CheckType.COLUMN_LTE)
+def test_condition_rejects_any_of() -> None:
+    with pytest.raises(ValidationError, match="not allowed"):
+        Condition(column="id", check=CheckType.ANY_OF)
 
-    def test_condition_rejects_column_eq(self) -> None:
-        with pytest.raises(ValidationError, match="not allowed"):
-            Condition(column="a", check=CheckType.COLUMN_EQ)
 
-    def test_condition_rejects_geometry_type(self) -> None:
-        with pytest.raises(ValidationError, match="not allowed"):
-            Condition(column="geom", check=CheckType.GEOMETRY_TYPE)
+def test_condition_rejects_column_lt() -> None:
+    with pytest.raises(ValidationError, match="not allowed"):
+        Condition(column="a", check=CheckType.COLUMN_LT)
 
-    def test_condition_requires_value_for_eq(self) -> None:
-        with pytest.raises(ValidationError, match="requires a value"):
-            Condition(column="a", check=CheckType.EQ)
 
-    def test_condition_not_null_no_value(self) -> None:
-        c = Condition(column="a", check=CheckType.NOT_NULL)
-        assert c.value is None
+def test_condition_rejects_column_lte() -> None:
+    with pytest.raises(ValidationError, match="not allowed"):
+        Condition(column="a", check=CheckType.COLUMN_LTE)
 
-    def test_condition_in_with_value(self) -> None:
-        c = Condition(column="status", check=CheckType.IN, value=["a", "b"])
-        assert c.check == CheckType.IN
-        assert c.value == ["a", "b"]
+
+def test_condition_rejects_column_eq() -> None:
+    with pytest.raises(ValidationError, match="not allowed"):
+        Condition(column="a", check=CheckType.COLUMN_EQ)
+
+
+def test_condition_rejects_geometry_type() -> None:
+    with pytest.raises(ValidationError, match="not allowed"):
+        Condition(column="geom", check=CheckType.GEOMETRY_TYPE)
+
+
+def test_condition_requires_value_for_eq() -> None:
+    with pytest.raises(ValidationError, match="requires a value"):
+        Condition(column="a", check=CheckType.EQ)
+
+
+def test_condition_not_null_no_value() -> None:
+    c = Condition(column="a", check=CheckType.NOT_NULL)
+    assert c.value is None
+
+
+def test_condition_in_with_value() -> None:
+    c = Condition(column="status", check=CheckType.IN, value=["a", "b"])
+    assert c.check == CheckType.IN
+    assert c.value == ["a", "b"]
 
 
 # ---------------------------------------------------------------------------
@@ -634,55 +673,56 @@ class TestConditionValidation:
 # ---------------------------------------------------------------------------
 
 
-class TestReportModels:
-    def test_rule_result(self) -> None:
-        r = RuleResult(
-            rule_name="test.check",
-            description="Test",
-            violating_ids=["id1", "id2"],
-            violation_count=2,
-            severity=Severity.ERROR,
-        )
-        assert r.violation_count == 2
-        assert len(r.violating_ids) == 2
+def test_rule_result() -> None:
+    r = RuleResult(
+        rule_name="test.check",
+        description="Test",
+        violating_ids=["id1", "id2"],
+        violation_count=2,
+        severity=Severity.ERROR,
+    )
+    assert r.violation_count == 2
+    assert len(r.violating_ids) == 2
 
-    def test_validation_report(self) -> None:
-        report = ValidationReport(
-            dataset="Test",
-            total_rows=100,
-            results=[
-                RuleResult(
-                    rule_name="test.check",
-                    violation_count=5,
-                    severity=Severity.WARNING,
-                )
-            ],
-        )
-        assert report.total_rows == 100
-        assert len(report.results) == 1
-        assert report.results[0].severity == Severity.WARNING
 
-    def test_report_yaml_round_trip(self) -> None:
-        report = ValidationReport(
-            dataset="Building",
-            total_rows=1000,
-            results=[
-                RuleResult(
-                    rule_name="building.id.not_null",
-                    description="ID required",
-                    violating_ids=["abc", "def"],
-                    violation_count=2,
-                    severity=Severity.ERROR,
-                ),
-            ],
-        )
-        dumped = yaml.dump(
-            report.model_dump(mode="json"), default_flow_style=False
-        )
-        loaded = yaml.safe_load(dumped)
-        report2 = ValidationReport(**loaded)
-        assert report2.dataset == "Building"
-        assert report2.results[0].violation_count == 2
+def test_validation_report() -> None:
+    report = ValidationReport(
+        dataset="Test",
+        total_rows=100,
+        results=[
+            RuleResult(
+                rule_name="test.check",
+                violation_count=5,
+                severity=Severity.WARNING,
+            )
+        ],
+    )
+    assert report.total_rows == 100
+    assert len(report.results) == 1
+    assert report.results[0].severity == Severity.WARNING
+
+
+def test_report_yaml_round_trip() -> None:
+    report = ValidationReport(
+        dataset="Building",
+        total_rows=1000,
+        results=[
+            RuleResult(
+                rule_name="building.id.not_null",
+                description="ID required",
+                violating_ids=["abc", "def"],
+                violation_count=2,
+                severity=Severity.ERROR,
+            ),
+        ],
+    )
+    dumped = yaml.dump(
+        report.model_dump(mode="json"), default_flow_style=False
+    )
+    loaded = yaml.safe_load(dumped)
+    report2 = ValidationReport(**loaded)
+    assert report2.dataset == "Building"
+    assert report2.results[0].violation_count == 2
 
 
 # ---------------------------------------------------------------------------
@@ -690,15 +730,16 @@ class TestReportModels:
 # ---------------------------------------------------------------------------
 
 
-class TestEnums:
-    def test_check_type_count(self) -> None:
-        assert len(CheckType) == 22
+def test_check_type_count() -> None:
+    assert len(CheckType) == 22
 
-    def test_severity_values(self) -> None:
-        assert Severity.ERROR.value == "error"
-        assert Severity.WARNING.value == "warning"
 
-    def test_check_type_string_coercion(self) -> None:
-        r = Rule(**_make_rule(check="gt", value=0))
-        assert r.check == CheckType.GT
-        assert r.check.value == "gt"
+def test_severity_values() -> None:
+    assert Severity.ERROR.value == "error"
+    assert Severity.WARNING.value == "warning"
+
+
+def test_check_type_string_coercion() -> None:
+    r = Rule(**_make_rule(check="gt", value=0))
+    assert r.check == CheckType.GT
+    assert r.check.value == "gt"
