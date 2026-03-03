@@ -87,6 +87,8 @@ _EACH_ITEM_CHECKS: frozenset[CheckType] = frozenset(
         CheckType.IS_NULL,
         CheckType.PATTERN,
         CheckType.IS_TYPE,
+        CheckType.MIN_LENGTH,
+        CheckType.MAX_LENGTH,
     }
 )
 

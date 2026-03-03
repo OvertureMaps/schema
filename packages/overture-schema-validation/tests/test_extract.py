@@ -36,6 +36,12 @@ class InlineNested(BaseModel):
     label: str | None = None
 
 
+class InlineListItem(BaseModel):
+    value: Annotated[str, Field(min_length=1)]
+    score: int = Field(ge=0)
+    tag: Color | None = None
+
+
 class InlineModel(BaseModel):
     theme: Literal["test"] = "test"
     type: Literal["inline"]
@@ -46,6 +52,7 @@ class InlineModel(BaseModel):
     flag: Annotated[bool | None, Field(strict=True)] = None
     nested: InlineNested | None = None
     optional_str: str | None = None
+    items: list[InlineListItem] | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -217,6 +224,50 @@ def test_field_nested_optional_parent_when_guard() -> None:
     assert not_null_rules[0].when is not None
     assert not_null_rules[0].when.column == "nested"
     assert not_null_rules[0].when.check == CheckType.NOT_NULL
+
+
+def test_field_list_of_structs_each_item_not_null() -> None:
+    """Required fields inside list[Struct] get each_item=True on not_null."""
+    field_info = InlineModel.model_fields["items"]
+    rules = _extract_field_rules("test", "items", field_info, column_prefix="", parent_is_optional=False)
+    nn_rules = [r for r in rules if r.check == CheckType.NOT_NULL and r.column == "items.value"]
+    assert len(nn_rules) == 1
+    assert nn_rules[0].each_item is True
+
+
+def test_field_list_of_structs_each_item_min_length() -> None:
+    """min_length inside list[Struct] gets each_item=True."""
+    field_info = InlineModel.model_fields["items"]
+    rules = _extract_field_rules("test", "items", field_info, column_prefix="", parent_is_optional=False)
+    ml_rules = [r for r in rules if r.check == CheckType.MIN_LENGTH and r.column == "items.value"]
+    assert len(ml_rules) == 1
+    assert ml_rules[0].each_item is True
+
+
+def test_field_list_of_structs_each_item_numeric() -> None:
+    """Numeric constraints inside list[Struct] get each_item=True."""
+    field_info = InlineModel.model_fields["items"]
+    rules = _extract_field_rules("test", "items", field_info, column_prefix="", parent_is_optional=False)
+    gte_rules = [r for r in rules if r.check == CheckType.GTE and r.column == "items.score"]
+    assert len(gte_rules) == 1
+    assert gte_rules[0].each_item is True
+
+
+def test_field_list_of_structs_each_item_enum() -> None:
+    """Enum in inside list[Struct] gets each_item=True."""
+    field_info = InlineModel.model_fields["items"]
+    rules = _extract_field_rules("test", "items", field_info, column_prefix="", parent_is_optional=False)
+    in_rules = [r for r in rules if r.check == CheckType.IN and r.column == "items.tag"]
+    assert len(in_rules) == 1
+    assert in_rules[0].each_item is True
+
+
+def test_field_non_list_struct_no_each_item() -> None:
+    """Scalar nested struct fields do NOT get each_item=True."""
+    field_info = InlineModel.model_fields["nested"]
+    rules = _extract_field_rules("test", "nested", field_info, column_prefix="", parent_is_optional=False)
+    for r in rules:
+        assert not r.each_item, f"Rule {r.name} should not have each_item"
 
 
 def test_field_geometry_type_constraint() -> None:
