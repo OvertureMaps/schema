@@ -10,7 +10,15 @@ from typing import Annotated, get_args, get_origin
 from .enum_extraction import extract_enum
 from .model_extraction import extract_model
 from .newtype_extraction import extract_newtype
-from .specs import FeatureSpec, FieldSpec, ModelSpec, SupplementarySpec, TypeIdentity
+from .pydantic_extraction import extract_pydantic_type
+from .specs import (
+    FeatureSpec,
+    FieldSpec,
+    ModelSpec,
+    SupplementarySpec,
+    TypeIdentity,
+    is_pydantic_type,
+)
 from .type_analyzer import TypeInfo, TypeKind, analyze_type, is_newtype, walk_type_info
 from .type_registry import is_semantic_newtype
 
@@ -105,6 +113,12 @@ def collect_all_supplementary_types(
                 )
                 if newly_registered:
                     _collect_inner_newtypes(node.newtype_ref)
+
+            if is_pydantic_type(node):
+                assert node.source_type is not None  # guaranteed by is_pydantic_type
+                pid = TypeIdentity.of(node.source_type)
+                if pid not in all_specs:
+                    all_specs[pid] = extract_pydantic_type(node.source_type)
 
         walk_type_info(ti, _visit)
 

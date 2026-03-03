@@ -29,6 +29,7 @@ from .specs import (
     ModelSpec,
     NewTypeSpec,
     PrimitiveSpec,
+    PydanticTypeSpec,
     TypeIdentity,
     UnionSpec,
 )
@@ -42,6 +43,7 @@ __all__ = [
     "render_geometry_from_values",
     "render_newtype",
     "render_primitives_from_specs",
+    "render_pydantic_type",
 ]
 
 
@@ -492,6 +494,19 @@ def render_newtype(
         newtype=newtype_spec,
         underlying_type=underlying,
         constraints=constraints,
+        used_by=_build_used_by_context(used_by, link_ctx),
+    )
+
+
+def render_pydantic_type(
+    spec: PydanticTypeSpec,
+    link_ctx: LinkContext | None = None,
+    used_by: list[UsedByEntry] | None = None,
+) -> str:
+    """Render a PydanticTypeSpec as Markdown documentation."""
+    template = _get_jinja_env().get_template("pydantic_type.md.jinja2")
+    return template.render(
+        pydantic_type=spec,
         used_by=_build_used_by_context(used_by, link_ctx),
     )
 

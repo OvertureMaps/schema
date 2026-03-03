@@ -6,12 +6,17 @@ the installed Overture schema packages.
 
 import pytest
 from codegen_test_support import assert_literal_field
+from overture.schema.codegen.markdown_pipeline import generate_markdown_pages
 from overture.schema.codegen.markdown_renderer import render_feature
 from overture.schema.codegen.model_extraction import extract_model
+from overture.schema.codegen.module_layout import entry_point_class
 from overture.schema.codegen.specs import (
+    FeatureSpec,
     ModelSpec,
     UnionSpec,
     filter_model_classes,
+    is_model_class,
+    is_union_alias,
 )
 from overture.schema.codegen.type_analyzer import TypeKind
 from overture.schema.codegen.union_extraction import extract_union
@@ -227,3 +232,48 @@ class TestSegmentUnionExtraction:
         # Verify common base has expected fields
         assert "geometry" in segment_spec.common_base.model_fields
         assert "id" in segment_spec.common_base.model_fields
+
+
+class TestPydanticTypePages:
+    """End-to-end: pipeline produces pages for referenced Pydantic built-in types."""
+
+    _SCHEMA_ROOT = "overture.schema"
+
+    @pytest.fixture(scope="class")
+    def pages(self) -> list:
+        """Generate all pages from real discovered models."""
+        models = discover_models()
+        feature_specs: list[FeatureSpec] = []
+        for key, entry in models.items():
+            if is_model_class(entry):
+                feature_specs.append(extract_model(entry, entry_point=key.entry_point))
+            elif is_union_alias(entry):
+                feature_specs.append(
+                    extract_union(
+                        entry_point_class(key.entry_point),
+                        entry,
+                        entry_point=key.entry_point,
+                    )
+                )
+        return generate_markdown_pages(feature_specs, self._SCHEMA_ROOT)
+
+    def test_http_url_page_exists(self, pages: list) -> None:
+        """Pipeline produces a page for HttpUrl under pydantic/networks/."""
+        paths = {str(p.path) for p in pages}
+        assert any("pydantic/networks/http_url" in path for path in paths)
+
+    def test_email_str_page_exists(self, pages: list) -> None:
+        """Pipeline produces a page for EmailStr under pydantic/networks/."""
+        paths = {str(p.path) for p in pages}
+        assert any("pydantic/networks/email_str" in path for path in paths)
+
+    def test_http_url_page_content(self, pages: list) -> None:
+        """HttpUrl page has expected heading and Pydantic docs link."""
+        page = next(p for p in pages if "pydantic/networks/http_url" in str(p.path))
+        assert "# HttpUrl" in page.content
+        assert "docs.pydantic.dev" in page.content
+
+    def test_place_links_to_http_url(self, pages: list) -> None:
+        """Place feature page links to the HttpUrl type page."""
+        place_page = next(p for p in pages if p.path.stem == "place" and p.is_feature)
+        assert "HttpUrl" in place_page.content

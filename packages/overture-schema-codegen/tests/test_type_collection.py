@@ -3,6 +3,7 @@
 from codegen_test_support import (
     FeatureWithAddress,
     FeatureWithSources,
+    FeatureWithUrl,
     Instrument,
     has_name,
     lookup_by_name,
@@ -12,6 +13,7 @@ from overture.schema.codegen.specs import (
     EnumSpec,
     ModelSpec,
     NewTypeSpec,
+    PydanticTypeSpec,
     SupplementarySpec,
     TypeIdentity,
 )
@@ -28,38 +30,36 @@ def _make_feature_with_sub_model(sub_model: type) -> type[BaseModel]:
     )
 
 
+def _expanded_supplementary(model_class: type) -> dict[TypeIdentity, SupplementarySpec]:
+    spec = extract_model(model_class)
+    expand_model_tree(spec)
+    return collect_all_supplementary_types([spec])
+
+
 class TestCollectAllSupplementarySpecs:
     """Tests for collect_all_supplementary_types returning specs from expanded trees."""
 
-    @staticmethod
-    def _expanded_supplementary(
-        model_class: type,
-    ) -> dict[TypeIdentity, SupplementarySpec]:
-        spec = extract_model(model_class)
-        expand_model_tree(spec)
-        return collect_all_supplementary_types([spec])
-
     def test_returns_enum_specs(self) -> None:
-        result = self._expanded_supplementary(Instrument)
+        result = _expanded_supplementary(Instrument)
 
         assert has_name(result, "InstrumentFamily")
         assert isinstance(lookup_by_name(result, "InstrumentFamily"), EnumSpec)
 
     def test_returns_newtype_specs(self) -> None:
-        result = self._expanded_supplementary(Instrument)
+        result = _expanded_supplementary(Instrument)
 
         assert has_name(result, "HexColor")
         assert isinstance(lookup_by_name(result, "HexColor"), NewTypeSpec)
 
     def test_returns_model_specs_from_expanded_tree(self) -> None:
-        result = self._expanded_supplementary(FeatureWithAddress)
+        result = _expanded_supplementary(FeatureWithAddress)
 
         assert has_name(result, "Address")
         assert isinstance(lookup_by_name(result, "Address"), ModelSpec)
 
     def test_collects_transitive_types(self) -> None:
         """Types referenced by sub-models are also collected."""
-        result = self._expanded_supplementary(FeatureWithSources)
+        result = _expanded_supplementary(FeatureWithSources)
 
         # Sources is a semantic NewType; SourceItem is a sub-model
         # referenced transitively via the expanded tree
@@ -83,3 +83,25 @@ class TestCollectAllSupplementarySpecs:
             spec for tid, spec in result.items() if tid.name == "Address"
         ]
         assert len(address_entries) == 2
+
+
+class TestCollectPydanticTypes:
+    """Tests for Pydantic built-in type collection."""
+
+    def test_collects_pydantic_type_from_field(self) -> None:
+        """Pydantic types referenced in fields are collected."""
+        result = _expanded_supplementary(FeatureWithUrl)
+        assert has_name(result, "HttpUrl")
+        assert isinstance(lookup_by_name(result, "HttpUrl"), PydanticTypeSpec)
+
+    def test_collects_pydantic_type_inside_list(self) -> None:
+        """Pydantic types wrapped in list[] are collected."""
+        result = _expanded_supplementary(FeatureWithUrl)
+        assert has_name(result, "EmailStr")
+        assert isinstance(lookup_by_name(result, "EmailStr"), PydanticTypeSpec)
+
+    def test_does_not_collect_builtin_primitives(self) -> None:
+        """Plain primitives like str are not collected as PydanticTypeSpec."""
+        result = _expanded_supplementary(FeatureWithUrl)
+        assert not has_name(result, "str")
+        assert not has_name(result, "int")
