@@ -563,7 +563,7 @@ def _rule(
         column=column,
         check=check,
         value=value,
-        each_item=each_item,
+        each_item=each_item or None,
         when=when,
         severity=Severity.ERROR,
     )

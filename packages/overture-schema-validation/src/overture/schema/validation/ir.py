@@ -140,7 +140,7 @@ class Rule(BaseModel):
     check: CheckType
     value: Any = None
     other_column: str | None = None
-    each_item: bool = False
+    each_item: bool | None = None
     when: Condition | None = None
     severity: Severity
     description: str | None = None
