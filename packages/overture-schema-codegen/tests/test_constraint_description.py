@@ -340,12 +340,10 @@ class TestDescribeFieldConstraint:
         assert describe_field_constraint(Lt(lt=100)) == "`< 100`"
 
     def test_min_len(self) -> None:
-        assert describe_field_constraint(MinLen(min_length=1)) == "`minimum length: 1`"
+        assert describe_field_constraint(MinLen(min_length=1)) == "Minimum length: 1"
 
     def test_max_len(self) -> None:
-        assert (
-            describe_field_constraint(MaxLen(max_length=10)) == "`maximum length: 10`"
-        )
+        assert describe_field_constraint(MaxLen(max_length=10)) == "Maximum length: 10"
 
     def test_interval_closed(self) -> None:
         assert describe_field_constraint(Interval(ge=0, le=100)) == "`0 ≤ x ≤ 100`"

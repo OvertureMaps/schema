@@ -324,7 +324,7 @@ class StrippedConstraint(StringConstraint):
 
 
 class PhoneNumberConstraint(StringConstraint):
-    """Constraint for international phone numbers."""
+    """Allows only international phone numbers."""
 
     def __init__(self) -> None:
         self.pattern = re.compile(r"^\+\d{1,3}[\s\-\(\)0-9]+$")
@@ -359,7 +359,7 @@ class PhoneNumberConstraint(StringConstraint):
 
 
 class RegionCodeConstraint(StringConstraint):
-    """ISO 3166-2 principal subdivision code constraint."""
+    """Allows only ISO 3166-2 principal subdivision codes."""
 
     def __init__(self) -> None:
         self.pattern = re.compile(r"^[A-Z]{2}-[A-Z0-9]{1,3}$")
@@ -392,7 +392,7 @@ class RegionCodeConstraint(StringConstraint):
 
 
 class WikidataIdConstraint(StringConstraint):
-    """Constraint for Wikidata identifiers (Q followed by digits)."""
+    """Allows only Wikidata identifiers (Q followed by digits)."""
 
     def __init__(self) -> None:
         self.pattern = re.compile(r"^Q\d+$")
