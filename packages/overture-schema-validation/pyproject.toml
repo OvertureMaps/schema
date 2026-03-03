@@ -10,6 +10,7 @@ license = "MIT"
 dependencies = [
     "pydantic>=2.0",
     "pyyaml>=6.0",
+    "click>=8.0",
     "overture-schema-core",
     "overture-schema-system",
 ]
@@ -23,3 +24,6 @@ path = "src/overture/schema/validation/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]
+
+[project.scripts]
+overture-schema-rules = "overture.schema.validation.cli:cli"

@@ -897,6 +897,7 @@ requires-dist = [
 name = "overture-schema-validation"
 source = { editable = "packages/overture-schema-validation" }
 dependencies = [
+    { name = "click" },
     { name = "overture-schema-core" },
     { name = "overture-schema-system" },
     { name = "pydantic" },
@@ -905,6 +906,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.0" },
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.0" },
