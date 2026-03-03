@@ -15,6 +15,7 @@ from overture.schema.system.primitive import GeometryTypeConstraint
 from overture.schema.system.ref import Reference
 
 from .docstring import first_docstring_line
+from .specs import TypeIdentity
 from .type_analyzer import ConstraintSource
 
 __all__ = [
@@ -77,11 +78,11 @@ def _geometry_type_label(value: str) -> str:
 
 def describe_field_constraint(
     constraint: object,
-    link_fn: Callable[[str], str] | None = None,
+    link_fn: Callable[[TypeIdentity], str] | None = None,
 ) -> str:
     """Return a display string for a field-level constraint object.
 
-    *link_fn* resolves a type name to a markdown link string (e.g.
+    *link_fn* resolves a TypeIdentity to a markdown link string (e.g.
     `` [`Name`](path) ``). When None, names render as inline code.
     """
     if isinstance(constraint, GeometryTypeConstraint):
@@ -92,8 +93,9 @@ def describe_field_constraint(
     if isinstance(constraint, Reference):
         rel_value: str = constraint.relationship.value  # type: ignore[assignment]
         rel_label = rel_value.replace("_", " ")
-        target = constraint.relatee.__name__
-        target_str = link_fn(target) if link_fn else f"`{target}`"
+        target = constraint.relatee
+        target_id = TypeIdentity.of(target)
+        target_str = link_fn(target_id) if link_fn else f"`{target.__name__}`"
         return f"References {target_str} ({rel_label})"
     if isinstance(constraint, Interval):
         desc = _describe_interval(constraint)
@@ -137,7 +139,7 @@ def constraint_pattern(constraint: object) -> str | None:
 
 def constraint_display_text(
     cs: ConstraintSource,
-    link_fn: Callable[[str], str] | None = None,
+    link_fn: Callable[[TypeIdentity], str] | None = None,
 ) -> str:
     """Build display text for a constraint, combining description/pattern when available."""
     description = _constraint_class_description(cs.constraint)

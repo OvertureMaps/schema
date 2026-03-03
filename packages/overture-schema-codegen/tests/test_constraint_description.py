@@ -2,11 +2,14 @@
 
 from annotated_types import Ge, Gt, Interval, Le, Lt, MaxLen, MinLen
 from overture.schema.codegen.field_constraint_description import (
+    constraint_display_text,
     describe_field_constraint,
 )
 from overture.schema.codegen.model_constraint_description import (
     analyze_model_constraints,
 )
+from overture.schema.codegen.specs import TypeIdentity
+from overture.schema.codegen.type_analyzer import ConstraintSource
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     ForbidIfConstraint,
@@ -398,3 +401,60 @@ class TestDescribeFieldConstraint:
         assert (
             describe_field_constraint(constraint) == "References `Other` (connects to)"
         )
+
+    def test_reference_link_fn_receives_type_identity(self) -> None:
+        """link_fn callback receives TypeIdentity wrapping the relatee class."""
+
+        class Target(Identified):
+            pass
+
+        received: list[TypeIdentity] = []
+
+        def link_fn(tid: TypeIdentity) -> str:
+            received.append(tid)
+            return f"[`{tid.name}`](link)"
+
+        constraint = Reference(Relationship.BELONGS_TO, Target)
+        result = describe_field_constraint(constraint, link_fn=link_fn)
+
+        assert len(received) == 1
+        assert received[0].obj is Target
+        assert received[0].name == "Target"
+        assert result == "References [`Target`](link) (belongs to)"
+
+    def test_reference_link_fn_used_in_output(self) -> None:
+        """link_fn return value appears verbatim in the description."""
+
+        class Target(Identified):
+            pass
+
+        constraint = Reference(Relationship.CONNECTS_TO, Target)
+        result = describe_field_constraint(
+            constraint, link_fn=lambda tid: f"[`{tid.name}`](path/to/target)"
+        )
+        assert result == "References [`Target`](path/to/target) (connects to)"
+
+
+class TestConstraintDisplayText:
+    """constraint_display_text forwards link_fn to describe_field_constraint."""
+
+    def test_link_fn_forwarded_to_reference_constraint(self) -> None:
+        """link_fn is forwarded when constraint is a Reference."""
+
+        class Target(Identified):
+            pass
+
+        constraint = Reference(Relationship.BELONGS_TO, Target)
+        cs = ConstraintSource(source_ref=None, source_name=None, constraint=constraint)
+
+        received: list[TypeIdentity] = []
+
+        def link_fn(tid: TypeIdentity) -> str:
+            received.append(tid)
+            return f"[`{tid.name}`](link)"
+
+        result = constraint_display_text(cs, link_fn=link_fn)
+
+        assert len(received) == 1
+        assert received[0].obj is Target
+        assert result == "References [`Target`](link) (belongs to)"

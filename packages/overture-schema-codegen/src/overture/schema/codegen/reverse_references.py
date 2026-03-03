@@ -12,6 +12,7 @@ from .specs import (
     ModelSpec,
     NewTypeSpec,
     SupplementarySpec,
+    TypeIdentity,
     UnionSpec,
 )
 from .type_analyzer import TypeInfo, TypeKind, walk_type_info
@@ -34,108 +35,128 @@ class UsedByKind(Enum):
 class UsedByEntry:
     """A single 'used by' entry pointing to a referrer."""
 
-    name: str
+    identity: TypeIdentity
     kind: UsedByKind
 
 
 def compute_reverse_references(
     feature_specs: Sequence[FeatureSpec],
-    all_specs: Mapping[str, SupplementarySpec],
-) -> dict[str, list[UsedByEntry]]:
+    all_specs: Mapping[TypeIdentity, SupplementarySpec],
+) -> dict[TypeIdentity, list[UsedByEntry]]:
     """Compute reverse references from types to their referrers.
 
-    Returns a dict mapping type names to lists of UsedByEntry, sorted with
+    Returns a dict mapping TypeIdentity to lists of UsedByEntry, sorted with
     models before NewTypes, alphabetical within each group.
 
     Parameters
     ----------
     feature_specs : Sequence[FeatureSpec]
         Feature-level specs (ModelSpec or UnionSpec).
-    all_specs : Mapping[str, SupplementarySpec]
+    all_specs : Mapping[TypeIdentity, SupplementarySpec]
         Supplementary types (enums, newtypes, sub-models).
 
     Returns
     -------
-    dict[str, list[UsedByEntry]]
-        Dict mapping type names to sorted lists of UsedByEntry.
+    dict[TypeIdentity, list[UsedByEntry]]
+        Dict mapping TypeIdentity to sorted lists of UsedByEntry.
     """
     # Track references with sets to deduplicate
-    references: dict[str, set[UsedByEntry]] = {}
+    references: dict[TypeIdentity, set[UsedByEntry]] = {}
 
-    def add_reference(target: str, referrer_name: str, kind: UsedByKind) -> None:
+    def add_reference(
+        target: TypeIdentity, referrer: TypeIdentity, kind: UsedByKind
+    ) -> None:
         """Add a reference from referrer to target, with deduplication."""
-        if target == referrer_name or target not in all_specs:
+        if target == referrer or target not in all_specs:
             return
-        references.setdefault(target, set()).add(UsedByEntry(referrer_name, kind))
+        references.setdefault(target, set()).add(UsedByEntry(referrer, kind))
 
     def collect_from_type_info(
-        ti: TypeInfo, referrer_name: str, referrer_kind: UsedByKind
+        ti: TypeInfo, referrer: TypeIdentity, referrer_kind: UsedByKind
     ) -> None:
         """Collect references from a TypeInfo."""
 
         def _visit(node: TypeInfo) -> None:
-            if node.newtype_name is not None:
-                add_reference(node.newtype_name, referrer_name, referrer_kind)
+            if node.newtype_ref is not None and node.newtype_name is not None:
+                add_reference(
+                    TypeIdentity(node.newtype_ref, node.newtype_name),
+                    referrer,
+                    referrer_kind,
+                )
 
             if (
                 node.kind in (TypeKind.ENUM, TypeKind.MODEL)
                 and node.source_type is not None
             ):
-                add_reference(node.source_type.__name__, referrer_name, referrer_kind)
+                add_reference(
+                    TypeIdentity.of(node.source_type),
+                    referrer,
+                    referrer_kind,
+                )
 
             if node.union_members is not None:
                 for member_cls in node.union_members:
-                    add_reference(member_cls.__name__, referrer_name, referrer_kind)
+                    add_reference(
+                        TypeIdentity.of(member_cls),
+                        referrer,
+                        referrer_kind,
+                    )
 
         walk_type_info(ti, _visit)
 
     def collect_from_fields(
-        fields: list[FieldSpec], referrer_name: str, referrer_kind: UsedByKind
+        fields: list[FieldSpec], referrer: TypeIdentity, referrer_kind: UsedByKind
     ) -> None:
         """Collect references from model fields."""
         for field_spec in fields:
-            collect_from_type_info(field_spec.type_info, referrer_name, referrer_kind)
+            collect_from_type_info(field_spec.type_info, referrer, referrer_kind)
 
-    def collect_from_model_spec(spec: ModelSpec) -> None:
+    def collect_from_model_spec(spec: ModelSpec, referrer: TypeIdentity) -> None:
         """Collect references from a ModelSpec."""
-        collect_from_fields(spec.fields, spec.name, UsedByKind.MODEL)
+        collect_from_fields(spec.fields, referrer, UsedByKind.MODEL)
 
     def collect_from_union_spec(spec: UnionSpec) -> None:
         """Collect references from a UnionSpec."""
+        referrer = spec.identity
         # Union features reference their members
         for member_cls in spec.members:
-            add_reference(member_cls.__name__, spec.name, UsedByKind.MODEL)
+            add_reference(
+                TypeIdentity.of(member_cls),
+                referrer,
+                UsedByKind.MODEL,
+            )
         # Also walk fields for other supplementary types
-        collect_from_fields(spec.fields, spec.name, UsedByKind.MODEL)
+        collect_from_fields(spec.fields, referrer, UsedByKind.MODEL)
 
-    def collect_from_newtype_spec(spec: NewTypeSpec, referrer_name: str) -> None:
+    def collect_from_newtype_spec(spec: NewTypeSpec, referrer: TypeIdentity) -> None:
         """Collect references from a NewTypeSpec."""
-        collect_from_type_info(spec.type_info, referrer_name, UsedByKind.NEWTYPE)
+        collect_from_type_info(spec.type_info, referrer, UsedByKind.NEWTYPE)
 
         # Collect inherited NewTypes from constraint sources
         for cs in spec.type_info.constraints:
-            if cs.source is not None:
-                add_reference(cs.source, referrer_name, UsedByKind.NEWTYPE)
+            if cs.source_ref is not None and cs.source_name is not None:
+                ref_id = TypeIdentity(cs.source_ref, cs.source_name)
+                add_reference(ref_id, referrer, UsedByKind.NEWTYPE)
 
     # Collect from features
     for spec in feature_specs:
         if isinstance(spec, ModelSpec):
-            collect_from_model_spec(spec)
+            collect_from_model_spec(spec, spec.identity)
         elif isinstance(spec, UnionSpec):
             collect_from_union_spec(spec)
 
     # Collect from supplementary specs (NewTypes and sub-models reference
     # other types; enums do not, so they need no processing here)
-    for name, supp_spec in all_specs.items():
+    for tid, supp_spec in all_specs.items():
         if isinstance(supp_spec, NewTypeSpec):
-            collect_from_newtype_spec(supp_spec, name)
+            collect_from_newtype_spec(supp_spec, tid)
         elif isinstance(supp_spec, ModelSpec):
-            collect_from_model_spec(supp_spec)
+            collect_from_model_spec(supp_spec, tid)
 
     # Sort sets into lists
-    result: dict[str, list[UsedByEntry]] = {}
+    result: dict[TypeIdentity, list[UsedByEntry]] = {}
     for target, ref_set in references.items():
-        entries = sorted(ref_set, key=lambda e: (e.kind.value, e.name))
+        entries = sorted(ref_set, key=lambda e: (e.kind.value, e.identity.name))
         result[target] = entries
 
     return result

@@ -44,7 +44,8 @@ class TypeKind(Enum):
 class ConstraintSource:
     """A constraint paired with the NewType that contributed it."""
 
-    source: str | None
+    source_ref: object | None
+    source_name: str | None
     constraint: object
 
 
@@ -105,12 +106,13 @@ def _is_union(origin: object) -> bool:
 class _UnwrapState:
     """Accumulated state from iterative type unwrapping.
 
-    Tracks two NewType names during unwrapping:
+    Tracks NewType names and refs during unwrapping:
     - ``outermost_newtype_name`` / ``outermost_newtype_ref``: the first
       NewType encountered, exposed as ``TypeInfo.newtype_name`` / ``newtype_ref``.
-    - ``last_newtype_name``: the most recently entered NewType, used both
-      as constraint provenance (which NewType contributed each constraint)
-      and as the resolved ``base_type`` for the terminal type.
+    - ``last_newtype_name``: the most recently entered NewType name, used
+      as the resolved ``base_type`` for the terminal type.
+    - ``last_newtype_ref``: the most recently entered NewType callable,
+      used as constraint provenance (which NewType contributed each constraint).
     """
 
     is_optional: bool = False
@@ -122,10 +124,13 @@ class _UnwrapState:
     outermost_newtype_name: str | None = None
     outermost_newtype_ref: object | None = None
     last_newtype_name: str | None = None
+    last_newtype_ref: object | None = None
     description: str | None = None
 
-    def add_constraint(self, source: str | None, constraint: object) -> None:
-        self.constraints.append(ConstraintSource(source, constraint))
+    def add_constraint(self, constraint: object) -> None:
+        self.constraints.append(
+            ConstraintSource(self.last_newtype_ref, self.last_newtype_name, constraint)
+        )
 
     def build_type_info(
         self,
@@ -169,6 +174,7 @@ def analyze_type(annotation: object) -> TypeInfo:
         if is_newtype(annotation):
             name = annotation.__name__  # type: ignore[attr-defined]
             state.last_newtype_name = name
+            state.last_newtype_ref = annotation
             if state.outermost_newtype_name is None:
                 state.outermost_newtype_name = name
                 state.outermost_newtype_ref = annotation
@@ -184,9 +190,9 @@ def analyze_type(annotation: object) -> TypeInfo:
                     if c.description is not None and state.description is None:
                         state.description = clean_docstring(c.description)
                     for m in c.metadata:
-                        state.add_constraint(state.last_newtype_name, m)
+                        state.add_constraint(m)
                 else:
-                    state.add_constraint(state.last_newtype_name, c)
+                    state.add_constraint(c)
             continue
 
         # Handle union types (X | None or Optional[X])

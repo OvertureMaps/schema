@@ -23,10 +23,55 @@ __all__ = [
     "NewTypeSpec",
     "PrimitiveSpec",
     "SupplementarySpec",
+    "TypeIdentity",
     "filter_model_classes",
     "is_model_class",
     "is_union_alias",
 ]
+
+
+@dataclass(frozen=True, eq=False)
+class TypeIdentity:
+    """Unique identity for a type in the codegen system.
+
+    Pairs a unique Python object (class, NewType callable, or union
+    annotation) with its display name. Equality and hashing delegate
+    to ``obj`` identity so registry lookups work regardless of how
+    the display name was derived.
+    """
+
+    obj: object
+    name: str
+
+    @classmethod
+    def of(cls, obj: object) -> TypeIdentity:
+        """Derive a TypeIdentity from a named object (class, NewType, etc.)."""
+        assert obj is not None
+        return cls(obj, obj.__name__)  # type: ignore[attr-defined]
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, TypeIdentity) and self.obj is other.obj
+
+    def __hash__(self) -> int:
+        return id(self.obj)
+
+
+class _SourceTypeIdentityMixin:
+    """Mixin providing ``identity`` from ``source_type`` and ``name``.
+
+    Shared by EnumSpec, ModelSpec, and NewTypeSpec -- each has a
+    ``source_type`` (the Python class/callable) and a ``name``.
+    UnionSpec uses ``source_annotation`` instead, so it defines its
+    own ``identity``.
+    """
+
+    source_type: object | None
+    name: str
+
+    @property
+    def identity(self) -> TypeIdentity:
+        assert self.source_type is not None
+        return TypeIdentity(self.source_type, self.name)
 
 
 @dataclass
@@ -39,7 +84,7 @@ class EnumMemberSpec:
 
 
 @dataclass
-class EnumSpec:
+class EnumSpec(_SourceTypeIdentityMixin):
     """Specification for an Enum class."""
 
     name: str
@@ -73,9 +118,12 @@ class FeatureSpec(Protocol):
     @property
     def fields(self) -> list[FieldSpec]: ...
 
+    @property
+    def identity(self) -> TypeIdentity: ...
+
 
 @dataclass
-class ModelSpec:
+class ModelSpec(_SourceTypeIdentityMixin):
     """Specification for a Pydantic model."""
 
     name: str
@@ -117,9 +165,13 @@ class UnionSpec:
         """Plain field list for tree expansion and supplementary collection."""
         return [af.field_spec for af in self.annotated_fields]
 
+    @property
+    def identity(self) -> TypeIdentity:
+        return TypeIdentity(self.source_annotation, self.name)
+
 
 @dataclass
-class NewTypeSpec:
+class NewTypeSpec(_SourceTypeIdentityMixin):
     """Specification for a NewType."""
 
     name: str

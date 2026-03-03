@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import PurePosixPath
 
 from .case_conversion import slug_filename
+from .specs import TypeIdentity
 
 __all__ = ["LinkContext", "relative_link"]
 
@@ -13,21 +14,21 @@ class LinkContext:
     """Placement context for resolving cross-directory markdown links."""
 
     page_path: PurePosixPath
-    registry: dict[str, PurePosixPath]
+    registry: dict[TypeIdentity, PurePosixPath]
 
-    def resolve_link(self, name: str) -> str | None:
-        """Resolve *name* to a relative link if it exists in the registry."""
-        if name in self.registry:
-            return relative_link(self.page_path, self.registry[name])
+    def resolve_link(self, identity: TypeIdentity) -> str | None:
+        """Resolve *identity* to a relative link if it exists in the registry."""
+        if identity in self.registry:
+            return relative_link(self.page_path, self.registry[identity])
         return None
 
-    def resolve_link_or_slug(self, name: str) -> str:
-        """Resolve *name* to a relative link, falling back to a slug filename.
+    def resolve_link_or_slug(self, identity: TypeIdentity) -> str:
+        """Resolve *identity* to a relative link, falling back to a slug filename.
 
         Always returns a usable link string. Use when the caller needs a
         link regardless of whether the type has a registered page.
         """
-        return self.resolve_link(name) or slug_filename(name)
+        return self.resolve_link(identity) or slug_filename(identity.name)
 
 
 def _is_normalized(path: PurePosixPath) -> bool:
