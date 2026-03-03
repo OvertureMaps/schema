@@ -154,7 +154,7 @@ def test_field_enum_in_rule() -> None:
     in_rules = [r for r in rules if r.check == CheckType.IN]
     assert len(in_rules) == 1
     assert in_rules[0].value == ["blue", "green", "red"]
-    assert in_rules[0].each_item is False
+    assert not in_rules[0].each_item
 
 
 def test_field_list_enum_each_item() -> None:
