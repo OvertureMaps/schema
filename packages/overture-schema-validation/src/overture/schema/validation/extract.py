@@ -239,7 +239,8 @@ def _extract_field_rules(
                 seen_constraint_types.add(type_name)
                 geo_values = [t.geo_json_type for t in obj.allowed_types]
                 rules.append(
-                    _rule(dataset, column, "type", CheckType.GEOMETRY_TYPE, value=geo_values)
+                    _rule(dataset, column, "type", CheckType.GEOMETRY_TYPE,
+                          value=geo_values, list_columns=lc_container)
                 )
 
     # ---- PatternConstraint / StrippedConstraint ----
@@ -271,7 +272,8 @@ def _extract_field_rules(
             type_name = type(obj).__name__
             if type_name not in seen_constraint_types:
                 seen_constraint_types.add(type_name)
-                rules.append(_rule(dataset, column, "unique", CheckType.UNIQUE))
+                rules.append(_rule(dataset, column, "unique", CheckType.UNIQUE,
+                                   list_columns=lc_container))
 
     # ---- Nested BaseModel → recurse ----
     if isinstance(base_type, type) and issubclass(base_type, BaseModel) and not _is_enum_type(base_type):
