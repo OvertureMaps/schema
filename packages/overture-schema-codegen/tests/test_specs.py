@@ -2,13 +2,22 @@
 
 from typing import Annotated
 
-from codegen_test_support import STR_TYPE, make_union_spec
+import pytest
+from codegen_test_support import (
+    STR_TYPE,
+    InstrumentFamily,
+    SimpleModel,
+    make_union_spec,
+)
 from overture.schema.codegen.model_extraction import extract_model
 from overture.schema.codegen.specs import (
     AnnotatedField,
+    EnumSpec,
     FeatureSpec,
     FieldSpec,
     ModelSpec,
+    NewTypeSpec,
+    TypeIdentity,
     is_union_alias,
 )
 from overture.schema.codegen.type_analyzer import TypeInfo, TypeKind
@@ -223,3 +232,74 @@ class TestUnionSpec:
             ],
         )
         assert spec.fields == [fs1, fs2]
+
+
+class TestTypeIdentity:
+    def test_frozen(self) -> None:
+        ti = TypeIdentity(obj=int, name="int")
+        with pytest.raises(AttributeError):
+            ti.obj = str  # type: ignore[misc]
+
+    def test_same_obj_equal(self) -> None:
+        a = TypeIdentity(obj=int, name="int")
+        b = TypeIdentity(obj=int, name="integer")
+        assert a == b
+
+    def test_same_obj_same_hash(self) -> None:
+        a = TypeIdentity(obj=int, name="int")
+        b = TypeIdentity(obj=int, name="integer")
+        assert hash(a) == hash(b)
+
+    def test_different_obj_not_equal(self) -> None:
+        a = TypeIdentity(obj=int, name="int")
+        b = TypeIdentity(obj=str, name="int")
+        assert a != b
+
+    def test_works_as_dict_key(self) -> None:
+        ti = TypeIdentity(obj=int, name="int")
+        d = {ti: "value"}
+        assert d[TypeIdentity(obj=int, name="different")] == "value"
+
+    def test_not_equal_to_non_identity(self) -> None:
+        ti = TypeIdentity(obj=int, name="int")
+        non_identity_type: object = int
+        non_identity_str: object = "int"
+        assert ti != non_identity_type
+        assert ti != non_identity_str
+
+
+class TestSpecIdentity:
+    def test_model_spec_identity(self) -> None:
+        spec = ModelSpec(name="Foo", description=None, source_type=SimpleModel)
+        ident = spec.identity
+        assert isinstance(ident, TypeIdentity)
+        assert ident.obj is SimpleModel
+        assert ident.name == "Foo"
+
+    def test_enum_spec_identity(self) -> None:
+        spec = EnumSpec(name="Color", description=None, source_type=InstrumentFamily)
+        ident = spec.identity
+        assert ident.obj is InstrumentFamily
+        assert ident.name == "Color"
+
+    def test_newtype_spec_identity(self) -> None:
+        from overture.schema.system.primitive import int32
+
+        spec = NewTypeSpec(
+            name="int32", description=None, type_info=STR_TYPE, source_type=int32
+        )
+        ident = spec.identity
+        assert ident.obj is int32
+        assert ident.name == "int32"
+
+    def test_union_spec_identity(self) -> None:
+        sentinel = object()
+        spec = make_union_spec("TestUnion", source_annotation=sentinel)
+        ident = spec.identity
+        assert ident.obj is sentinel
+        assert ident.name == "TestUnion"
+
+    def test_model_spec_satisfies_feature_protocol_with_identity(self) -> None:
+        spec = ModelSpec(name="Foo", description=None, source_type=SimpleModel)
+        feature: FeatureSpec = spec
+        assert feature.identity.obj is SimpleModel

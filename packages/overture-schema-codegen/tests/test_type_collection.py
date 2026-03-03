@@ -1,14 +1,31 @@
 """Tests for type collection module."""
 
-from codegen_test_support import FeatureWithAddress, FeatureWithSources, Instrument
+from codegen_test_support import (
+    FeatureWithAddress,
+    FeatureWithSources,
+    Instrument,
+    has_name,
+    lookup_by_name,
+)
 from overture.schema.codegen.model_extraction import expand_model_tree, extract_model
 from overture.schema.codegen.specs import (
     EnumSpec,
     ModelSpec,
     NewTypeSpec,
     SupplementarySpec,
+    TypeIdentity,
 )
 from overture.schema.codegen.type_collection import collect_all_supplementary_types
+from pydantic import BaseModel
+
+
+def _make_feature_with_sub_model(sub_model: type) -> type[BaseModel]:
+    """Build a feature class whose only field references sub_model."""
+    return type(
+        f"FeatureWith{sub_model.__name__}",
+        (BaseModel,),
+        {"__annotations__": {"sub": sub_model}, "sub": None},
+    )
 
 
 class TestCollectAllSupplementarySpecs:
@@ -17,7 +34,7 @@ class TestCollectAllSupplementarySpecs:
     @staticmethod
     def _expanded_supplementary(
         model_class: type,
-    ) -> dict[str, SupplementarySpec]:
+    ) -> dict[TypeIdentity, SupplementarySpec]:
         spec = extract_model(model_class)
         expand_model_tree(spec)
         return collect_all_supplementary_types([spec])
@@ -25,20 +42,20 @@ class TestCollectAllSupplementarySpecs:
     def test_returns_enum_specs(self) -> None:
         result = self._expanded_supplementary(Instrument)
 
-        assert "InstrumentFamily" in result
-        assert isinstance(result["InstrumentFamily"], EnumSpec)
+        assert has_name(result, "InstrumentFamily")
+        assert isinstance(lookup_by_name(result, "InstrumentFamily"), EnumSpec)
 
     def test_returns_newtype_specs(self) -> None:
         result = self._expanded_supplementary(Instrument)
 
-        assert "HexColor" in result
-        assert isinstance(result["HexColor"], NewTypeSpec)
+        assert has_name(result, "HexColor")
+        assert isinstance(lookup_by_name(result, "HexColor"), NewTypeSpec)
 
     def test_returns_model_specs_from_expanded_tree(self) -> None:
         result = self._expanded_supplementary(FeatureWithAddress)
 
-        assert "Address" in result
-        assert isinstance(result["Address"], ModelSpec)
+        assert has_name(result, "Address")
+        assert isinstance(lookup_by_name(result, "Address"), ModelSpec)
 
     def test_collects_transitive_types(self) -> None:
         """Types referenced by sub-models are also collected."""
@@ -46,5 +63,23 @@ class TestCollectAllSupplementarySpecs:
 
         # Sources is a semantic NewType; SourceItem is a sub-model
         # referenced transitively via the expanded tree
-        assert "Sources" in result
-        assert "SourceItem" in result
+        assert has_name(result, "Sources")
+        assert has_name(result, "SourceItem")
+
+    def test_same_name_different_types_both_collected(self) -> None:
+        """Two types with the same __name__ from different modules are both collected."""
+        ModelA = type("Address", (BaseModel,), {"__annotations__": {"x": str}})
+        ModelB = type("Address", (BaseModel,), {"__annotations__": {"y": int}})
+
+        outer_a = extract_model(_make_feature_with_sub_model(ModelA))
+        expand_model_tree(outer_a)
+
+        outer_b = extract_model(_make_feature_with_sub_model(ModelB))
+        expand_model_tree(outer_b)
+
+        result = collect_all_supplementary_types([outer_a, outer_b])
+
+        address_entries = [
+            spec for tid, spec in result.items() if tid.name == "Address"
+        ]
+        assert len(address_entries) == 2

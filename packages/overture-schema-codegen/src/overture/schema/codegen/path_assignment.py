@@ -9,7 +9,7 @@ from pathlib import PurePosixPath
 
 from .case_conversion import slug_filename
 from .module_layout import compute_output_dir, output_dir_for_entry_point
-from .specs import FeatureSpec, SupplementarySpec
+from .specs import FeatureSpec, SupplementarySpec, TypeIdentity
 
 __all__ = [
     "GEOMETRY_PAGE",
@@ -25,55 +25,57 @@ GEOMETRY_PAGE = PurePosixPath("system/primitive/geometry.md")
 
 def build_placement_registry(
     feature_specs: Sequence[FeatureSpec],
-    all_specs: dict[str, SupplementarySpec],
-    primitive_names: list[str],
-    geometry_names: list[str],
+    all_specs: dict[TypeIdentity, SupplementarySpec],
+    primitive_names: list[TypeIdentity],
+    geometry_names: list[TypeIdentity],
     schema_root: str,
-) -> dict[str, PurePosixPath]:
-    """Build a mapping from type names to output file paths.
+) -> dict[TypeIdentity, PurePosixPath]:
+    """Build a mapping from TypeIdentity to output file paths.
 
     Uses module-mirrored output directories: output paths derive from
     the source Python module path relative to schema_root.
     """
-    registry: dict[str, PurePosixPath] = _aggregate_page_entries(
+    registry: dict[TypeIdentity, PurePosixPath] = _aggregate_page_entries(
         primitive_names, geometry_names
     )
 
     feature_dirs: set[PurePosixPath] = set()
     for spec in feature_specs:
         spec_dir = output_dir_for_entry_point(spec.entry_point, schema_root)
-        registry[spec.name] = _md_path(spec_dir, spec.name)
+        registry[spec.identity] = _md_path(spec_dir, spec.name)
         feature_dirs.add(spec_dir)
 
-    for name, supp_spec in all_specs.items():
-        if name in registry:
+    for tid, supp_spec in all_specs.items():
+        if tid in registry:
             continue
         source_module = getattr(supp_spec.source_type, "__module__", None)
         if source_module is None:
             continue
         output_dir = compute_output_dir(source_module, schema_root)
         output_dir = _nest_under_types(output_dir, feature_dirs)
-        registry[name] = _md_path(output_dir, name)
+        registry[tid] = _md_path(output_dir, tid.name)
 
     return registry
 
 
 def resolve_output_path(
-    type_name: str,
-    registry: dict[str, PurePosixPath] | None,
+    identity: TypeIdentity,
+    registry: dict[TypeIdentity, PurePosixPath] | None,
 ) -> PurePosixPath:
     """Look up a type's output path from the registry, with flat-file fallback."""
-    if registry is not None and type_name in registry:
-        return registry[type_name]
-    return PurePosixPath(slug_filename(type_name))
+    if registry is not None and identity in registry:
+        return registry[identity]
+    return PurePosixPath(slug_filename(identity.name))
 
 
 def _aggregate_page_entries(
-    primitive_names: list[str],
-    geometry_names: list[str],
-) -> dict[str, PurePosixPath]:
+    primitive_names: list[TypeIdentity],
+    geometry_names: list[TypeIdentity],
+) -> dict[TypeIdentity, PurePosixPath]:
     """Pre-populate registry entries for types documented on aggregate pages."""
-    entries: dict[str, PurePosixPath] = dict.fromkeys(primitive_names, PRIMITIVES_PAGE)
+    entries: dict[TypeIdentity, PurePosixPath] = dict.fromkeys(
+        primitive_names, PRIMITIVES_PAGE
+    )
     entries.update(dict.fromkeys(geometry_names, GEOMETRY_PAGE))
     return entries
 

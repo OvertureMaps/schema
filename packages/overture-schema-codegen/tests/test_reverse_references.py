@@ -9,6 +9,8 @@ from codegen_test_support import (
     RoadSegment,
     TreeNode,
     Venue,
+    has_name,
+    lookup_by_name,
     make_union_spec,
 )
 from overture.schema.codegen.model_extraction import expand_model_tree, extract_model
@@ -17,6 +19,7 @@ from overture.schema.codegen.reverse_references import (
     UsedByKind,
     compute_reverse_references,
 )
+from overture.schema.codegen.specs import TypeIdentity
 from overture.schema.codegen.type_collection import collect_all_supplementary_types
 from overture.schema.system.ref import Id
 from overture.schema.system.string import NoWhitespaceString
@@ -41,33 +44,34 @@ def test_model_referencing_type_produces_used_by_entry(
     expand_model_tree(model_spec)
     all_specs = collect_all_supplementary_types([model_spec])
 
-    assert target_name in all_specs
+    assert has_name(all_specs, target_name)
 
     result = compute_reverse_references([model_spec], all_specs)
 
-    assert target_name in result
-    entries = result[target_name]
+    entries = lookup_by_name(result, target_name)
     assert len(entries) == 1
-    assert entries[0].name == model_name
+    assert entries[0].identity.name == model_name
     assert entries[0].kind == UsedByKind.MODEL
 
 
 def test_newtype_inheriting_from_newtype_produces_used_by_entry() -> None:
     """NewType inheriting constraints from another NewType produces a 'used by' entry."""
     # Id wraps NoWhitespaceString, which is also a NewType
-    # When we extract Id, its constraints include ConstraintSource(source="NoWhitespaceString", ...)
+    # When we extract Id, its constraints include ConstraintSource(source_ref=NoWhitespaceString, ...)
     id_spec = extract_newtype(Id)
     nws_spec = extract_newtype(NoWhitespaceString)
 
-    all_specs = {"Id": id_spec, "NoWhitespaceString": nws_spec}
+    all_specs = {
+        TypeIdentity(Id, "Id"): id_spec,
+        TypeIdentity(NoWhitespaceString, "NoWhitespaceString"): nws_spec,
+    }
 
     result = compute_reverse_references([], all_specs)
 
     # NoWhitespaceString should have a used_by entry from Id
-    assert "NoWhitespaceString" in result
-    entries = result["NoWhitespaceString"]
+    entries = lookup_by_name(result, "NoWhitespaceString")
     assert len(entries) == 1
-    assert entries[0].name == "Id"
+    assert entries[0].identity.name == "Id"
     assert entries[0].kind == UsedByKind.NEWTYPE
 
 
@@ -84,14 +88,13 @@ def test_union_members_have_used_by_entries() -> None:
     # Extract the member
     road_spec = extract_model(RoadSegment)
     expand_model_tree(road_spec)
-    all_specs = {"RoadSegment": road_spec}
+    all_specs = {TypeIdentity(RoadSegment, "RoadSegment"): road_spec}
 
     result = compute_reverse_references([union_spec], all_specs)
 
-    assert "RoadSegment" in result
-    entries = result["RoadSegment"]
+    entries = lookup_by_name(result, "RoadSegment")
     assert len(entries) == 1
-    assert entries[0].name == "TestSegment"
+    assert entries[0].identity.name == "TestSegment"
     assert entries[0].kind == UsedByKind.MODEL
 
 
@@ -101,12 +104,13 @@ def test_self_references_filtered_out() -> None:
     expand_model_tree(tree_spec)
 
     # Manually add TreeNode to all_specs to test self-reference filtering
-    all_specs = {"TreeNode": tree_spec}
+    all_specs = {TypeIdentity(TreeNode, "TreeNode"): tree_spec}
 
     result = compute_reverse_references([tree_spec], all_specs)
 
     # TreeNode should not appear in result since it only references itself
-    assert "TreeNode" not in result
+    with pytest.raises(KeyError):
+        lookup_by_name(result, "TreeNode")
 
 
 def test_deduplication_same_type_multiple_fields() -> None:
@@ -117,15 +121,14 @@ def test_deduplication_same_type_multiple_fields() -> None:
     expand_model_tree(venue_spec)
     all_specs = collect_all_supplementary_types([instrument_spec, venue_spec])
 
-    assert "Id" in all_specs
+    assert has_name(all_specs, "Id")
 
     result = compute_reverse_references([instrument_spec, venue_spec], all_specs)
 
-    assert "Id" in result
-    entries = result["Id"]
+    entries = lookup_by_name(result, "Id")
     # Both Instrument and Venue reference Id
     assert len(entries) == 2
-    names = {e.name for e in entries}
+    names = {e.identity.name for e in entries}
     assert names == {"Instrument", "Venue"}
     # All should be MODELs
     assert all(e.kind == UsedByKind.MODEL for e in entries)
@@ -147,19 +150,19 @@ def test_sorting_models_before_newtypes() -> None:
 
     # Add the CustomId NewType which references Id
     custom_id_spec = extract_newtype(CustomId)
-    all_specs["CustomId"] = custom_id_spec
+    all_specs[TypeIdentity(CustomId, "CustomId")] = custom_id_spec
 
     result = compute_reverse_references([instrument_spec, venue_spec], all_specs)
 
     # Id should have entries from both Instrument and Venue (MODELs) and CustomId (NEWTYPE)
-    entries = result["Id"]
+    entries = lookup_by_name(result, "Id")
     assert len(entries) == 3
 
     # Check sorting: MODELs first, then NEWTYPE
     # Within MODELs: alphabetical (Instrument, Venue)
     assert entries[0].kind == UsedByKind.MODEL
-    assert entries[0].name == "Instrument"
+    assert entries[0].identity.name == "Instrument"
     assert entries[1].kind == UsedByKind.MODEL
-    assert entries[1].name == "Venue"
+    assert entries[1].identity.name == "Venue"
     assert entries[2].kind == UsedByKind.NEWTYPE
-    assert entries[2].name == "CustomId"
+    assert entries[2].identity.name == "CustomId"

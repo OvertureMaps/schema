@@ -13,7 +13,9 @@ from codegen_test_support import (
     FeatureBase,
     FeatureWithAddress,
     FeatureWithSources,
+    Instrument,
     SimpleModel,
+    SourceItem,
     Sources,
     TreeNode,
     Venue,
@@ -40,6 +42,7 @@ from overture.schema.codegen.specs import (
     EnumSpec,
     FieldSpec,
     PrimitiveSpec,
+    TypeIdentity,
 )
 from overture.schema.codegen.type_analyzer import ConstraintSource
 from overture.schema.system.field_constraint import (
@@ -50,7 +53,7 @@ from overture.schema.system.field_constraint import (
 from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.primitive import int32
 from overture.schema.system.ref import Id
-from overture.schema.system.string import HexColor
+from overture.schema.system.string import HexColor, NoWhitespaceString
 from pydantic import BaseModel, Field
 
 _FLAT_MEMBER = EnumMemberSpec(name="FLAT", value="flat", description=None)
@@ -598,7 +601,11 @@ class TestRenderFeatureFieldConstraints:
         expand_model_tree(spec)
         ctx = LinkContext(
             page_path=PurePosixPath("music/venue.md"),
-            registry={"Instrument": PurePosixPath("music/instrument.md")},
+            registry={
+                TypeIdentity(Instrument, "Instrument"): PurePosixPath(
+                    "music/instrument.md"
+                )
+            },
         )
         result = render_feature(spec, link_ctx=ctx)
 
@@ -805,10 +812,14 @@ class TestPlacementAwareLinks:
 
         spec = extract_model(ModelWithColor)
         page_path = PurePosixPath("buildings/building/building.md")
-        registry = {
-            "HexColor": PurePosixPath("types/strings/hex_color.md"),
-        }
-        ctx = LinkContext(page_path, registry)
+        ctx = LinkContext(
+            page_path,
+            {
+                TypeIdentity(HexColor, "HexColor"): PurePosixPath(
+                    "types/strings/hex_color.md"
+                )
+            },
+        )
 
         result = render_feature(spec, link_ctx=ctx)
 
@@ -827,10 +838,14 @@ class TestPlacementAwareLinks:
 
         spec = extract_model(ModelWithRoof)
         page_path = PurePosixPath("buildings/building/building.md")
-        registry = {
-            "RoofShape": PurePosixPath("buildings/roof_shape.md"),
-        }
-        ctx = LinkContext(page_path, registry)
+        ctx = LinkContext(
+            page_path,
+            {
+                TypeIdentity(RoofShape, "RoofShape"): PurePosixPath(
+                    "buildings/roof_shape.md"
+                )
+            },
+        )
 
         result = render_feature(spec, link_ctx=ctx)
 
@@ -849,10 +864,14 @@ class TestPlacementAwareLinks:
 
         spec = extract_model(ModelWithClass)
         page_path = PurePosixPath("buildings/building/building.md")
-        registry = {
-            "BuildingClass": PurePosixPath("buildings/building/building_class.md"),
-        }
-        ctx = LinkContext(page_path, registry)
+        ctx = LinkContext(
+            page_path,
+            {
+                TypeIdentity(BuildingClass, "BuildingClass"): PurePosixPath(
+                    "buildings/building/building_class.md"
+                )
+            },
+        )
 
         result = render_feature(spec, link_ctx=ctx)
 
@@ -876,10 +895,14 @@ class TestPlacementAwareLinks:
         """NewType header links underlying model type through placement registry."""
         spec = extract_newtype(Sources)
         page_path = PurePosixPath("types/references/sources.md")
-        registry = {
-            "SourceItem": PurePosixPath("types/references/source_item.md"),
-        }
-        ctx = LinkContext(page_path, registry)
+        ctx = LinkContext(
+            page_path,
+            {
+                TypeIdentity(SourceItem, "SourceItem"): PurePosixPath(
+                    "types/references/source_item.md"
+                )
+            },
+        )
 
         result = render_newtype(spec, link_ctx=ctx)
 
@@ -889,8 +912,7 @@ class TestPlacementAwareLinks:
         """Underlying type stays backtick-only when missing from registry."""
         spec = extract_newtype(Sources)
         page_path = PurePosixPath("types/references/sources.md")
-        registry: dict[str, PurePosixPath] = {}
-        ctx = LinkContext(page_path, registry)
+        ctx = LinkContext(page_path, {})
 
         result = render_newtype(spec, link_ctx=ctx)
 
@@ -902,7 +924,7 @@ class TestPlacementAwareLinks:
         spec = extract_newtype(Id)
         page_path = PurePosixPath("types/references/id.md")
         registry = {
-            "NoWhitespaceString": PurePosixPath(
+            TypeIdentity(NoWhitespaceString, "NoWhitespaceString"): PurePosixPath(
                 "types/strings/no_whitespace_string.md"
             ),
         }
@@ -1212,37 +1234,45 @@ class TestFormatConstraintDisplay:
 
     def test_description_and_pattern(self) -> None:
         """Constraint with docstring and pattern renders both."""
-        cs = ConstraintSource(source=None, constraint=CountryCodeAlpha2Constraint())
-        result = _format_constraint(cs, "CountryCodeAlpha2")
+        cs = ConstraintSource(
+            source_ref=None, source_name=None, constraint=CountryCodeAlpha2Constraint()
+        )
+        result = _format_constraint(cs, None)
         assert "Allows only ISO 3166-1 alpha-2 country codes." in result.display
         assert "`CountryCodeAlpha2Constraint`" in result.display
         assert "pattern: `^[A-Z]{2}$`" in result.display
 
     def test_description_without_pattern(self) -> None:
         """Constraint with docstring but no pattern renders description only."""
-        cs = ConstraintSource(source=None, constraint=JsonPointerConstraint())
-        result = _format_constraint(cs, "JsonPointer")
+        cs = ConstraintSource(
+            source_ref=None, source_name=None, constraint=JsonPointerConstraint()
+        )
+        result = _format_constraint(cs, None)
         assert "Allows only valid JSON Pointer values (RFC 6901)." in result.display
         assert "`JsonPointerConstraint`" in result.display
         assert "pattern" not in result.display
 
     def test_no_description_falls_through(self) -> None:
         """Plain string metadata has no docstring and falls through."""
-        cs = ConstraintSource(source=None, constraint="plain string metadata")
-        result = _format_constraint(cs, "SomeType")
+        cs = ConstraintSource(
+            source_ref=None, source_name=None, constraint="plain string metadata"
+        )
+        result = _format_constraint(cs, None)
         assert result.display == "`plain string metadata`"
 
     def test_annotated_types_uses_operator_notation_not_docstring(self) -> None:
         """annotated-types constraints use operator notation, not their __doc__."""
-        cs = ConstraintSource(source=None, constraint=Ge(ge=0))
-        result = _format_constraint(cs, "SomeType")
+        cs = ConstraintSource(source_ref=None, source_name=None, constraint=Ge(ge=0))
+        result = _format_constraint(cs, None)
         assert result.display == "`≥ 0`"
         assert "Ge(ge=x)" not in result.display
 
     def test_constraint_class_not_linked(self) -> None:
         """Constraint class name stays in backticks (no pages generated for constraints)."""
-        cs = ConstraintSource(source=None, constraint=CountryCodeAlpha2Constraint())
-        result = _format_constraint(cs, "CountryCodeAlpha2")
+        cs = ConstraintSource(
+            source_ref=None, source_name=None, constraint=CountryCodeAlpha2Constraint()
+        )
+        result = _format_constraint(cs, None)
         assert "`CountryCodeAlpha2Constraint`" in result.display
         assert "[`CountryCodeAlpha2Constraint`](" not in result.display
 
@@ -1276,9 +1306,16 @@ class TestUsedByRendering:
         render_fn: Callable[..., str],
     ) -> None:
         """Without LinkContext, 'Used By' entries render as inline code."""
+        _building = object()
+        _building_id = object()
         used_by = [
-            UsedByEntry(name="Building", kind=UsedByKind.MODEL),
-            UsedByEntry(name="BuildingId", kind=UsedByKind.NEWTYPE),
+            UsedByEntry(
+                identity=TypeIdentity(_building, "Building"), kind=UsedByKind.MODEL
+            ),
+            UsedByEntry(
+                identity=TypeIdentity(_building_id, "BuildingId"),
+                kind=UsedByKind.NEWTYPE,
+            ),
         ]
 
         result = render_fn(spec_factory(), used_by=used_by)
@@ -1321,11 +1358,13 @@ class TestUsedByRendering:
         expected_link: str,
     ) -> None:
         """Used-by entries resolve links through placement registry."""
+        _building = object()
+        _building_identity = TypeIdentity(_building, "Building")
         registry = {
-            "Building": PurePosixPath("buildings/building/building.md"),
+            _building_identity: PurePosixPath("buildings/building/building.md"),
         }
         ctx = LinkContext(page_path, registry)
-        used_by = [UsedByEntry(name="Building", kind=UsedByKind.MODEL)]
+        used_by = [UsedByEntry(identity=_building_identity, kind=UsedByKind.MODEL)]
 
         result = render_fn(spec_factory(), link_ctx=ctx, used_by=used_by)
 
