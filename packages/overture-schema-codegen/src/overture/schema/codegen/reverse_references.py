@@ -14,6 +14,7 @@ from .specs import (
     SupplementarySpec,
     TypeIdentity,
     UnionSpec,
+    is_pydantic_type,
 )
 from .type_analyzer import TypeInfo, TypeKind, walk_type_info
 
@@ -92,6 +93,11 @@ def compute_reverse_references(
                     TypeIdentity.of(node.source_type),
                     referrer,
                     referrer_kind,
+                )
+
+            if is_pydantic_type(node):
+                add_reference(
+                    TypeIdentity.of(node.source_type), referrer, referrer_kind
                 )
 
             if node.union_members is not None:

@@ -4,6 +4,8 @@ from pathlib import PurePosixPath
 
 import overture.schema.system.primitive as _system_primitive
 from codegen_test_support import (
+    EMAIL_STR_SPEC,
+    HTTP_URL_SPEC,
     STR_TYPE,
     flat_specs_from_discovery,
     lookup_by_name,
@@ -205,4 +207,39 @@ class TestLinkContextWithTypeIdentity:
         assert (
             ctx.resolve_link(TypeIdentity(obj_b, "Address"))
             == "../addresses/address.md"
+        )
+
+
+class TestPydanticTypePlacement:
+    """Tests for placement of Pydantic built-in types."""
+
+    def test_pydantic_type_placed_under_module_dir(self) -> None:
+        registry = build_placement_registry(
+            feature_specs=[],
+            all_specs={HTTP_URL_SPEC.identity: HTTP_URL_SPEC},
+            primitive_names=[],
+            geometry_names=[],
+            schema_root="overture.schema",
+        )
+        assert lookup_by_name(registry, "HttpUrl") == PurePosixPath(
+            "pydantic/networks/http_url.md"
+        )
+
+    def test_multiple_pydantic_types_same_module(self) -> None:
+        specs: dict[TypeIdentity, SupplementarySpec] = {
+            HTTP_URL_SPEC.identity: HTTP_URL_SPEC,
+            EMAIL_STR_SPEC.identity: EMAIL_STR_SPEC,
+        }
+        registry = build_placement_registry(
+            feature_specs=[],
+            all_specs=specs,
+            primitive_names=[],
+            geometry_names=[],
+            schema_root="overture.schema",
+        )
+        assert lookup_by_name(registry, "HttpUrl") == PurePosixPath(
+            "pydantic/networks/http_url.md"
+        )
+        assert lookup_by_name(registry, "EmailStr") == PurePosixPath(
+            "pydantic/networks/email_str.md"
         )

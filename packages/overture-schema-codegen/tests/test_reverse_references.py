@@ -5,6 +5,7 @@ from typing import NewType
 import pytest
 from codegen_test_support import (
     FeatureWithAddress,
+    FeatureWithUrl,
     Instrument,
     RoadSegment,
     TreeNode,
@@ -19,7 +20,7 @@ from overture.schema.codegen.reverse_references import (
     UsedByKind,
     compute_reverse_references,
 )
-from overture.schema.codegen.specs import TypeIdentity
+from overture.schema.codegen.specs import PydanticTypeSpec, TypeIdentity
 from overture.schema.codegen.type_collection import collect_all_supplementary_types
 from overture.schema.system.ref import Id
 from overture.schema.system.string import NoWhitespaceString
@@ -132,6 +133,21 @@ def test_deduplication_same_type_multiple_fields() -> None:
     assert names == {"Instrument", "Venue"}
     # All should be MODELs
     assert all(e.kind == UsedByKind.MODEL for e in entries)
+
+
+def test_pydantic_type_has_used_by_from_feature() -> None:
+    """Pydantic type in all_specs gets used-by entries from features referencing it."""
+    model_spec = extract_model(FeatureWithUrl, entry_point="FeatureWithUrl")
+    expand_model_tree(model_spec)
+    all_specs = collect_all_supplementary_types([model_spec])
+
+    assert has_name(all_specs, "HttpUrl")
+    assert isinstance(lookup_by_name(all_specs, "HttpUrl"), PydanticTypeSpec)
+
+    result = compute_reverse_references([model_spec], all_specs)
+
+    entries = lookup_by_name(result, "HttpUrl")
+    assert any(e.identity.name == "FeatureWithUrl" for e in entries)
 
 
 def test_sorting_models_before_newtypes() -> None:

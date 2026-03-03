@@ -9,7 +9,7 @@ from pathlib import PurePosixPath
 
 from .case_conversion import slug_filename
 from .module_layout import compute_output_dir, output_dir_for_entry_point
-from .specs import FeatureSpec, SupplementarySpec, TypeIdentity
+from .specs import FeatureSpec, PydanticTypeSpec, SupplementarySpec, TypeIdentity
 
 __all__ = [
     "GEOMETRY_PAGE",
@@ -47,6 +47,13 @@ def build_placement_registry(
 
     for tid, supp_spec in all_specs.items():
         if tid in registry:
+            continue
+        if isinstance(supp_spec, PydanticTypeSpec):
+            registry[tid] = (
+                PurePosixPath("pydantic")
+                / supp_spec.source_module
+                / slug_filename(tid.name)
+            )
             continue
         source_module = getattr(supp_spec.source_type, "__module__", None)
         if source_module is None:
