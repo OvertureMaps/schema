@@ -35,8 +35,9 @@ def extract(model_class: type[BaseModel], dataset_name: str | None = None) -> Da
     for field_name, field_info in model_class.model_fields.items():
         if field_name in _SKIPPED_FIELDS or field_name.startswith("ext_"):
             continue
+        col_name = field_info.alias or field_name
         rules += _extract_field_rules(
-            dataset_name, field_name, field_info, column_prefix="", parent_is_optional=False
+            dataset_name, col_name, field_info, column_prefix="", parent_is_optional=False
         )
 
     rules += _extract_model_constraint_rules(model_class, dataset_name)
@@ -284,9 +285,10 @@ def _extract_field_rules(
         for nested_name, nested_info in base_type.model_fields.items():
             if nested_name in _SKIPPED_FIELDS or nested_name.startswith("ext_"):
                 continue
+            nested_col_name = nested_info.alias or nested_name
             rules += _extract_field_rules(
                 dataset,
-                nested_name,
+                nested_col_name,
                 nested_info,
                 column_prefix=f"{column}.",
                 parent_is_optional=nested_is_optional,
