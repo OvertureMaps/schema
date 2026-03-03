@@ -5,6 +5,7 @@ Provides reusable model fixtures and helpers. Pytest fixtures are in conftest.py
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from difflib import unified_diff
 from enum import Enum
 from pathlib import Path
@@ -18,6 +19,7 @@ from overture.schema.codegen.specs import (
     EnumSpec,
     FieldSpec,
     ModelSpec,
+    TypeIdentity,
     UnionSpec,
     is_model_class,
 )
@@ -265,6 +267,22 @@ def find_field(spec: ModelSpec, name: str) -> FieldSpec:
 def find_member(spec: EnumSpec, name: str) -> EnumMemberSpec:
     """Find a member by name in an EnumSpec, raising if missing."""
     return next(m for m in spec.members if m.name == name)
+
+
+T = TypeVar("T")
+
+
+def lookup_by_name(mapping: dict[TypeIdentity, T], name: str) -> T:
+    """Look up a value in a TypeIdentity-keyed dict by name, raising KeyError if absent."""
+    for tid, value in mapping.items():
+        if tid.name == name:
+            return value
+    raise KeyError(name)
+
+
+def has_name(mapping: Mapping[TypeIdentity, object], name: str) -> bool:
+    """Check whether a TypeIdentity-keyed mapping contains a key with the given name."""
+    return any(tid.name == name for tid in mapping)
 
 
 def assert_literal_field(

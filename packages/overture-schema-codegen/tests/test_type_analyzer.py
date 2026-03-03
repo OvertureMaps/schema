@@ -17,6 +17,7 @@ from overture.schema.system.ref import Id
 from overture.schema.system.string import (
     HexColor,
     NoWhitespaceConstraint,
+    NoWhitespaceString,
     SnakeCaseString,
 )
 from pydantic import BaseModel, Field, Tag
@@ -165,7 +166,7 @@ class TestAnalyzeTypeComposite:
         assert result.base_type == "str"
         assert result.is_optional is True
         assert len(result.constraints) == 1
-        assert result.constraints[0].source is None
+        assert result.constraints[0].source_ref is None
         assert result.constraints[0].constraint == "description"
 
     def test_annotated_list_str(self) -> None:
@@ -175,7 +176,7 @@ class TestAnalyzeTypeComposite:
         assert result.base_type == "str"
         assert result.is_list is True
         assert len(result.constraints) == 1
-        assert result.constraints[0].source is None
+        assert result.constraints[0].source_ref is None
 
 
 class TestAnalyzeTypeAnnotated:
@@ -189,7 +190,7 @@ class TestAnalyzeTypeAnnotated:
         assert result.kind == TypeKind.PRIMITIVE
         assert len(result.constraints) == 1
         cs = result.constraints[0]
-        assert cs.source is None
+        assert cs.source_ref is None
         assert isinstance(cs.constraint, Ge)
         assert cs.constraint.ge == 0
 
@@ -199,7 +200,7 @@ class TestAnalyzeTypeAnnotated:
 
         assert result.base_type == "str"
         assert len(result.constraints) == 1
-        assert result.constraints[0].source is None
+        assert result.constraints[0].source_ref is None
         assert result.constraints[0].constraint == "just a description"
 
 
@@ -368,34 +369,43 @@ class TestConstraintProvenance:
 
     def test_nested_newtype_flattens_constraints(self, id_type_info: TypeInfo) -> None:
         """Id -> NoWhitespaceString -> str flattens all constraints with sources."""
-        sources = {cs.source for cs in id_type_info.constraints}
-        assert "Id" in sources
-        assert "NoWhitespaceString" in sources
+        source_names = {
+            cs.source_name for cs in id_type_info.constraints if cs.source_name
+        }
+        assert "Id" in source_names
+        assert "NoWhitespaceString" in source_names
 
     def test_nested_newtype_includes_inner_constraints(
         self, id_type_info: TypeInfo
     ) -> None:
         """Inner NewType constraints are collected with provenance."""
         nws_constraints = [
-            cs for cs in id_type_info.constraints if cs.source == "NoWhitespaceString"
+            cs for cs in id_type_info.constraints if cs.source_ref is NoWhitespaceString
         ]
         constraint_types = {type(cs.constraint) for cs in nws_constraints}
         assert NoWhitespaceConstraint in constraint_types
 
     def test_direct_annotation_has_none_source(self) -> None:
-        """Constraints from direct Annotated (no NewType) have source=None."""
+        """Constraints from direct Annotated (no NewType) have source_ref=None."""
         result = analyze_type(Annotated[str, "direct"])
 
         assert len(result.constraints) == 1
-        assert result.constraints[0].source is None
+        assert result.constraints[0].source_ref is None
         assert result.constraints[0].constraint == "direct"
 
     def test_single_newtype_constraints_attributed(
         self, hex_color_type_info: TypeInfo
     ) -> None:
-        """HexColor constraints are attributed to HexColor."""
-        assert all(cs.source == "HexColor" for cs in hex_color_type_info.constraints)
+        """HexColor constraints are attributed to the HexColor callable."""
+        assert all(cs.source_ref is HexColor for cs in hex_color_type_info.constraints)
         assert len(hex_color_type_info.constraints) > 0
+
+    def test_source_ref_is_newtype_callable(
+        self, hex_color_type_info: TypeInfo
+    ) -> None:
+        """source_ref is the actual NewType callable, not a string."""
+        cs = hex_color_type_info.constraints[0]
+        assert cs.source_ref is HexColor
 
     def test_constraint_preserves_original_object(
         self, hex_color_type_info: TypeInfo

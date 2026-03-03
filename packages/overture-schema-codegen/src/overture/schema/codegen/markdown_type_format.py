@@ -5,11 +5,16 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 from .link_computation import LinkContext
-from .specs import FieldSpec
+from .specs import FieldSpec, TypeIdentity
 from .type_analyzer import TypeInfo, TypeKind
 from .type_registry import is_semantic_newtype, resolve_type_name
 
-__all__ = ["format_dict_type", "format_type", "format_underlying_type"]
+__all__ = [
+    "format_dict_type",
+    "format_type",
+    "format_underlying_type",
+    "resolve_type_link",
+]
 
 
 def _code_link(name: str, href: str) -> str:
@@ -17,8 +22,8 @@ def _code_link(name: str, href: str) -> str:
     return f"[`{name}`]({href})"
 
 
-def _resolve_type_link(type_name: str, ctx: LinkContext | None = None) -> str:
-    """Resolve a type name to a linked code span or plain code span.
+def resolve_type_link(identity: TypeIdentity, ctx: LinkContext | None = None) -> str:
+    """Resolve a TypeIdentity to a linked code span or plain code span.
 
     When *ctx* is provided, links only to types in the registry (types
     without pages render as inline code). Without context, renders as
@@ -26,10 +31,10 @@ def _resolve_type_link(type_name: str, ctx: LinkContext | None = None) -> str:
     compute correct relative paths.
     """
     if ctx:
-        href = ctx.resolve_link(type_name)
+        href = ctx.resolve_link(identity)
         if href:
-            return _code_link(type_name, href)
-    return f"`{type_name}`"
+            return _code_link(identity.name, href)
+    return f"`{identity.name}`"
 
 
 def _wrap_list_n(inner: str, depth: int) -> str:
@@ -47,12 +52,13 @@ def _plain_list_type(base: str, depth: int) -> str:
     return f"`{'list<' * depth}{base}{'>' * depth}`"
 
 
-def _linked_type_name(ti: TypeInfo) -> str | None:
-    """Return the name to use for a markdown link, or None for non-linked types."""
-    if is_semantic_newtype(ti):
-        return ti.newtype_name
-    if ti.kind in (TypeKind.ENUM, TypeKind.MODEL):
-        return ti.base_type
+def _linked_type_identity(ti: TypeInfo) -> TypeIdentity | None:
+    """Return the TypeIdentity to use for a markdown link, or None for non-linked types."""
+    if is_semantic_newtype(ti) and ti.newtype_ref is not None:
+        assert ti.newtype_name is not None  # guaranteed by is_semantic_newtype
+        return TypeIdentity(ti.newtype_ref, ti.newtype_name)
+    if ti.kind in (TypeKind.ENUM, TypeKind.MODEL) and ti.source_type is not None:
+        return TypeIdentity(ti.source_type, ti.base_type)
     return None
 
 
@@ -87,9 +93,7 @@ def _format_union_members(
     while others render as plain code spans. *separator* is inserted between
     members (default is ``\\|`` for table-cell safety).
     """
-    return separator.join(
-        _resolve_type_link(member.__name__, ctx) for member in members
-    )
+    return separator.join(resolve_type_link(TypeIdentity.of(m), ctx) for m in members)
 
 
 def format_type(
@@ -105,21 +109,21 @@ def format_type(
             return f'`"{ti.literal_values[0]}"`'
         return r" \| ".join(f'`"{v}"`' for v in ti.literal_values)
 
-    link_name = _linked_type_name(ti)
+    identity = _linked_type_identity(ti)
 
     if ti.kind == TypeKind.UNION and ti.union_members:
         display = _format_union_members(ti.union_members, ctx)
         if ti.is_list:
             qualifiers.append("list")
     elif ti.is_dict:
-        if link_name:
-            display = _resolve_type_link(link_name, ctx)
+        if identity:
+            display = resolve_type_link(identity, ctx)
             qualifiers.append("map")
         else:
             display = f"`{format_dict_type(ti)}`"
-    elif link_name:
-        display = _resolve_type_link(link_name, ctx)
-        if ti.is_list and link_name == ti.newtype_name:
+    elif identity:
+        display = resolve_type_link(identity, ctx)
+        if ti.is_list and identity.name == ti.newtype_name:
             qualifiers.append("list")
         elif ti.is_list:
             display = _wrap_list_n(display, ti.list_depth)
@@ -149,11 +153,11 @@ def _linked_or_backticked(ti: TypeInfo, ctx: LinkContext | None) -> tuple[str, b
     ready for broken-backtick container syntax. When False, it is a raw
     name that the caller embeds inside backticks.
     """
-    link_name = _linked_type_name(ti)
-    if link_name and ctx:
-        href = ctx.resolve_link(link_name)
+    identity = _linked_type_identity(ti)
+    if identity and ctx:
+        href = ctx.resolve_link(identity)
         if href:
-            return _code_link(link_name, href), True
+            return _code_link(identity.name, href), True
     return _markdown_type_name(ti), False
 
 
@@ -178,24 +182,22 @@ def format_underlying_type(ti: TypeInfo, ctx: LinkContext | None = None) -> str:
             return f"`map<`{key_str}`,`{val_str}`>`"
         return f"`map<{key_str}, {val_str}>`"
 
-    # Only link enums and models — skip is_semantic_newtype to avoid
+    # Only link enums and models -- skip is_semantic_newtype to avoid
     # self-linking (this TypeInfo belongs to the NewType being rendered).
-    # Use source_type.__name__ rather than base_type: base_type may be
-    # the outermost NewType name when only one NewType wraps a class.
-    link_name = (
-        ti.source_type.__name__
+    identity = (
+        TypeIdentity.of(ti.source_type)
         if ti.kind in (TypeKind.ENUM, TypeKind.MODEL) and ti.source_type
         else None
     )
-    if link_name and ctx:
-        href = ctx.resolve_link(link_name)
+    if identity and ctx:
+        href = ctx.resolve_link(identity)
         if href:
-            linked = _code_link(link_name, href)
+            linked = _code_link(identity.name, href)
             if ti.is_list:
                 return _wrap_list_n(linked, ti.list_depth)
             return linked
 
-    base = link_name or resolve_type_name(ti, "markdown")
+    base = identity.name if identity else resolve_type_name(ti, "markdown")
     if ti.is_list:
         return _plain_list_type(base, ti.list_depth)
     return f"`{base}`"

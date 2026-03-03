@@ -10,7 +10,7 @@ from typing import Annotated, get_args, get_origin
 from .enum_extraction import extract_enum
 from .model_extraction import extract_model
 from .newtype_extraction import extract_newtype
-from .specs import FeatureSpec, FieldSpec, ModelSpec, SupplementarySpec
+from .specs import FeatureSpec, FieldSpec, ModelSpec, SupplementarySpec, TypeIdentity
 from .type_analyzer import TypeInfo, TypeKind, analyze_type, is_newtype, walk_type_info
 from .type_registry import is_semantic_newtype
 
@@ -19,24 +19,36 @@ __all__ = ["collect_all_supplementary_types"]
 
 def collect_all_supplementary_types(
     feature_specs: Sequence[FeatureSpec],
-) -> dict[str, SupplementarySpec]:
+) -> dict[TypeIdentity, SupplementarySpec]:
     """Collect supplementary types by walking expanded feature trees.
 
     Requires that expand_model_tree has been called on all feature specs
     first. Walks FieldSpec.model references for sub-models (already
     extracted), and extracts enums and NewTypes on first encounter.
 
-    Returns a dict mapping type names to extracted specs.
+    Returns a dict mapping TypeIdentity to extracted specs. Two types
+    with the same class name from different modules are keyed separately.
     """
-    feature_names = {spec.name for spec in feature_specs}
-    all_specs: dict[str, SupplementarySpec] = {}
-    visited_models: set[str] = set()
+    feature_objs: set[object] = {spec.identity.obj for spec in feature_specs}
+    all_specs: dict[TypeIdentity, SupplementarySpec] = {}
+    visited_models: set[object] = set()
+
+    def _register_newtype(newtype_ref: object, name: str) -> bool:
+        """Register a NewType if not already present. Returns True if registered."""
+        nt_id = TypeIdentity(newtype_ref, name)
+        if nt_id in all_specs:
+            return False
+        all_specs[nt_id] = extract_newtype(newtype_ref)
+        return True
 
     def _collect_from_model(model_spec: ModelSpec) -> None:
-        if model_spec.name in visited_models or model_spec.name in feature_names:
+        if (
+            model_spec.source_type in visited_models
+            or model_spec.source_type in feature_objs
+        ):
             return
-        visited_models.add(model_spec.name)
-        all_specs[model_spec.name] = model_spec
+        visited_models.add(model_spec.source_type)
+        all_specs[model_spec.identity] = model_spec
         _collect_from_fields(model_spec.fields)
 
     def _collect_inner_newtypes(newtype_ref: object) -> None:
@@ -49,11 +61,11 @@ def collect_all_supplementary_types(
             if is_newtype(annotation):
                 inner_ti = analyze_type(annotation)
                 if (
-                    inner_ti.newtype_name is not None
+                    inner_ti.newtype_ref is not None
+                    and inner_ti.newtype_name is not None
                     and is_semantic_newtype(inner_ti)
-                    and inner_ti.newtype_name not in all_specs
                 ):
-                    all_specs[inner_ti.newtype_name] = extract_newtype(annotation)
+                    _register_newtype(inner_ti.newtype_ref, inner_ti.newtype_name)
                 annotation = getattr(annotation, "__supertype__", None)
                 continue
             break
@@ -70,27 +82,29 @@ def collect_all_supplementary_types(
             if node.kind == TypeKind.UNION and node.union_members:
                 # Walk each member's fields for supplementary types.
                 # Members that are also top-level feature specs are skipped
-                # by the feature_names guard in _collect_from_model.
+                # by the feature_objs guard in _collect_from_model.
                 for member_cls in node.union_members:
                     member_spec = extract_model(member_cls)
                     _collect_from_model(member_spec)
 
             if node.kind == TypeKind.ENUM and node.source_type is not None:
-                name = node.source_type.__name__
-                if name not in all_specs:
-                    all_specs[name] = extract_enum(node.source_type)
+                enum_id = TypeIdentity.of(node.source_type)
+                if enum_id not in all_specs:
+                    all_specs[enum_id] = extract_enum(node.source_type)
 
             # Semantic NewTypes always get extracted, including intermediate
             # NewTypes in the wrapping chain (e.g., Id wraps NoWhitespaceString
-            # wraps str — both Id and NoWhitespaceString get pages).
+            # wraps str -- both Id and NoWhitespaceString get pages).
             if (
                 node.newtype_ref is not None
                 and node.newtype_name is not None
                 and is_semantic_newtype(node)
-                and node.newtype_name not in all_specs
             ):
-                all_specs[node.newtype_name] = extract_newtype(node.newtype_ref)
-                _collect_inner_newtypes(node.newtype_ref)
+                newly_registered = _register_newtype(
+                    node.newtype_ref, node.newtype_name
+                )
+                if newly_registered:
+                    _collect_inner_newtypes(node.newtype_ref)
 
         walk_type_info(ti, _visit)
 

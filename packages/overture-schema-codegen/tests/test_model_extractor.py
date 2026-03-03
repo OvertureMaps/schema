@@ -464,7 +464,7 @@ class TestFieldInfoMetadataConstraints:
         assert GeometryTypeConstraint in constraint_types
 
     def test_geometry_type_constraint_has_null_source(self) -> None:
-        """Constraints from field_info.metadata have source=None (not from a NewType)."""
+        """Constraints from field_info.metadata have source_ref=None (not from a NewType)."""
         spec = extract_model(Venue)
         geometry_field = find_field(spec, "geometry")
 
@@ -474,7 +474,7 @@ class TestFieldInfoMetadataConstraints:
             if isinstance(cs.constraint, GeometryTypeConstraint)
         ]
         assert len(geo_constraints) == 1
-        assert geo_constraints[0].source is None
+        assert geo_constraints[0].source_ref is None
 
     def test_metadata_constraints_not_duplicated(self) -> None:
         """Fields where Pydantic preserves Annotated don't get duplicate constraints.

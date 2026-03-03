@@ -31,6 +31,7 @@ from overture.schema.codegen.reverse_references import (
     UsedByEntry,
     compute_reverse_references,
 )
+from overture.schema.codegen.specs import TypeIdentity
 from overture.schema.codegen.type_collection import collect_all_supplementary_types
 from pydantic import BaseModel
 
@@ -59,7 +60,7 @@ NEWTYPE_CASES = [
 
 
 @pytest.fixture(scope="module")
-def reverse_refs() -> dict[str, list[UsedByEntry]]:
+def reverse_refs() -> dict[TypeIdentity, list[UsedByEntry]]:
     """Compute reverse references for all test models."""
     feature_specs = []
     for model_class, _ in FEATURE_CASES:
@@ -81,11 +82,11 @@ def test_feature_golden(
     model_class: type[BaseModel],
     golden_filename: str,
     update_golden: bool,
-    reverse_refs: dict[str, list[UsedByEntry]],
+    reverse_refs: dict[TypeIdentity, list[UsedByEntry]],
 ) -> None:
     spec = extract_model(model_class)
     expand_model_tree(spec)
-    used_by = reverse_refs.get(spec.name)
+    used_by = reverse_refs.get(spec.identity)
     actual = render_feature(spec, used_by=used_by)
     assert_golden(actual, GOLDEN_DIR / golden_filename, update=update_golden)
 
@@ -99,10 +100,10 @@ def test_enum_golden(
     enum_class: type[Enum],
     golden_filename: str,
     update_golden: bool,
-    reverse_refs: dict[str, list[UsedByEntry]],
+    reverse_refs: dict[TypeIdentity, list[UsedByEntry]],
 ) -> None:
     spec = extract_enum(enum_class)
-    used_by = reverse_refs.get(spec.name)
+    used_by = reverse_refs.get(spec.identity)
     actual = render_enum(spec, used_by=used_by)
     assert_golden(actual, GOLDEN_DIR / golden_filename, update=update_golden)
 
@@ -116,9 +117,9 @@ def test_newtype_golden(
     newtype_callable: object,
     golden_filename: str,
     update_golden: bool,
-    reverse_refs: dict[str, list[UsedByEntry]],
+    reverse_refs: dict[TypeIdentity, list[UsedByEntry]],
 ) -> None:
     spec = extract_newtype(newtype_callable)
-    used_by = reverse_refs.get(spec.name)
+    used_by = reverse_refs.get(spec.identity)
     actual = render_newtype(spec, used_by=used_by)
     assert_golden(actual, GOLDEN_DIR / golden_filename, update=update_golden)

@@ -48,7 +48,7 @@ def _merge_field_metadata(type_info: TypeInfo, field_info: FieldInfo) -> TypeInf
     """
     if not field_info.metadata:
         return type_info
-    extra = tuple(ConstraintSource(None, m) for m in field_info.metadata)
+    extra = tuple(ConstraintSource(None, None, m) for m in field_info.metadata)
     return dataclasses.replace(type_info, constraints=type_info.constraints + extra)
 
 

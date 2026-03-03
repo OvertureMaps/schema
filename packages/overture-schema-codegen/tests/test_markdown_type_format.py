@@ -10,7 +10,7 @@ from overture.schema.codegen.markdown_type_format import (
     format_type,
     format_underlying_type,
 )
-from overture.schema.codegen.specs import FieldSpec
+from overture.schema.codegen.specs import FieldSpec, TypeIdentity
 from overture.schema.codegen.type_analyzer import TypeInfo, TypeKind, analyze_type
 from overture.schema.system.primitive import int32
 from pydantic import BaseModel
@@ -63,7 +63,9 @@ class TestFormatType:
         field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
         ctx = LinkContext(
             page_path=PurePosixPath("buildings/building/building.md"),
-            registry={"Color": PurePosixPath("types/enums/color.md")},
+            registry={
+                TypeIdentity(Color, "Color"): PurePosixPath("types/enums/color.md")
+            },
         )
         assert format_type(field, ctx) == "[`Color`](../../types/enums/color.md)"
 
@@ -121,8 +123,12 @@ class TestFormatUnionType:
         ctx = LinkContext(
             page_path=PurePosixPath("theme/feature/feature.md"),
             registry={
-                "_ModelA": PurePosixPath("theme/feature/types/model_a.md"),
-                "_ModelB": PurePosixPath("theme/feature/types/model_b.md"),
+                TypeIdentity(_ModelA, "_ModelA"): PurePosixPath(
+                    "theme/feature/types/model_a.md"
+                ),
+                TypeIdentity(_ModelB, "_ModelB"): PurePosixPath(
+                    "theme/feature/types/model_b.md"
+                ),
             },
         )
         result = format_type(_make_union_field(ti), ctx)
@@ -160,7 +166,11 @@ class TestFormatUnionType:
         ti = analyze_type(_ModelA | _ModelB)
         ctx = LinkContext(
             page_path=PurePosixPath("theme/feature/feature.md"),
-            registry={"_ModelA": PurePosixPath("theme/feature/types/model_a.md")},
+            registry={
+                TypeIdentity(_ModelA, "_ModelA"): PurePosixPath(
+                    "theme/feature/types/model_a.md"
+                )
+            },
         )
         result = format_type(_make_union_field(ti), ctx)
         assert "[`_ModelA`](types/model_a.md)" in result
@@ -182,8 +192,12 @@ class TestFormatUnderlyingUnionType:
         ctx = LinkContext(
             page_path=PurePosixPath("types/my_union.md"),
             registry={
-                "_ModelA": PurePosixPath("theme/feature/types/model_a.md"),
-                "_ModelB": PurePosixPath("theme/feature/types/model_b.md"),
+                TypeIdentity(_ModelA, "_ModelA"): PurePosixPath(
+                    "theme/feature/types/model_a.md"
+                ),
+                TypeIdentity(_ModelB, "_ModelB"): PurePosixPath(
+                    "theme/feature/types/model_b.md"
+                ),
             },
         )
         result = format_underlying_type(ti, ctx)
