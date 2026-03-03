@@ -106,9 +106,9 @@ def describe_field_constraint(
         if result is not None:
             return result
     if isinstance(constraint, MinLen):
-        return f"`minimum length: {constraint.min_length}`"
+        return f"Minimum length: {constraint.min_length}"
     if isinstance(constraint, MaxLen):
-        return f"`maximum length: {constraint.max_length}`"
+        return f"Maximum length: {constraint.max_length}"
 
     if _is_opaque_constraint(constraint):
         return f"`{type(constraint).__name__}`"

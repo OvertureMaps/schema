@@ -17,4 +17,4 @@ by how sound is produced.
 | `num_strings` | `int32` (optional) | |
 | `family` | `InstrumentFamily` (optional) | |
 | `color` | `HexColor` (optional) | Body color |
-| `tags` | `list<string>` (optional) | *Ensures all items in a collection are unique. (`UniqueItemsConstraint`)* |
+| `tags` | `list<string>` (optional) | *All items must be unique. (`UniqueItemsConstraint`)* |
