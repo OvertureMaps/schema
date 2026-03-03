@@ -15,6 +15,9 @@ dependencies = [
     "overture-schema-system",
 ]
 
+[project.optional-dependencies]
+duckdb = ["duckdb>=1.0"]
+
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
 overture-schema-system = { workspace = true }
