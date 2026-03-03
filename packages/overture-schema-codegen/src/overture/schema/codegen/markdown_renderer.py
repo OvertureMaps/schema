@@ -14,7 +14,11 @@ from typing_extensions import NotRequired
 from .example_loader import ExampleRecord
 from .field_constraint_description import constraint_display_text
 from .link_computation import LinkContext
-from .markdown_type_format import format_type, format_underlying_type
+from .markdown_type_format import (
+    format_type,
+    format_underlying_type,
+    resolve_type_link,
+)
 from .model_constraint_description import analyze_model_constraints
 from .reverse_references import UsedByEntry
 from .specs import (
@@ -25,6 +29,7 @@ from .specs import (
     ModelSpec,
     NewTypeSpec,
     PrimitiveSpec,
+    TypeIdentity,
     UnionSpec,
 )
 from .type_analyzer import (
@@ -40,7 +45,7 @@ __all__ = [
 ]
 
 
-_LinkFn = Callable[[str], str]
+_LinkFn = Callable[[TypeIdentity], str]
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates" / "markdown"
 
@@ -209,20 +214,12 @@ def _annotate_constraint_notes(
 
 
 def _link_fn_from_ctx(ctx: LinkContext | None) -> _LinkFn:
-    r"""Build a name-to-markdown-link resolver from a LinkContext.
+    r"""Build a TypeIdentity-to-markdown-link resolver from a LinkContext.
 
-    Returns a function that resolves a type name to ``[`Name`](href)``
-    when the name has a page in the registry, or plain ``\`Name\``` otherwise.
+    Returns a function that resolves a TypeIdentity to ``[`Name`](href)``
+    when the identity has a page in the registry, or plain ``\`Name\``` otherwise.
     """
-
-    def resolve(name: str) -> str:
-        if ctx:
-            href = ctx.resolve_link(name)
-            if href:
-                return f"[`{name}`]({href})"
-        return f"`{name}`"
-
-    return resolve
+    return functools.partial(resolve_type_link, ctx=ctx)
 
 
 def _annotate_field_constraints(
@@ -238,7 +235,7 @@ def _annotate_field_constraints(
     notes = [
         constraint_display_text(cs, link_fn=link_fn)
         for cs in field.type_info.constraints
-        if cs.source is None
+        if cs.source_ref is None
     ]
     if notes:
         _annotate_constraint_notes(row, notes)
@@ -437,19 +434,20 @@ class _NewTypeConstraintRow:
 
 def _format_constraint(
     cs: ConstraintSource,
-    newtype_name: str,
+    newtype_ref: object,
     ctx: LinkContext | None = None,
 ) -> _NewTypeConstraintRow:
     """Format a ConstraintSource for display in a NewType page."""
     display = constraint_display_text(cs)
 
-    if not cs.source or cs.source == newtype_name:
+    if cs.source_ref is None or cs.source_ref is newtype_ref:
         return _NewTypeConstraintRow(display=display)
 
-    source = cs.source
-    source_link = ctx.resolve_link(source) if ctx else None
+    assert cs.source_name is not None  # source_ref and source_name are set together
+    source_identity = TypeIdentity(cs.source_ref, cs.source_name)
+    source_link = ctx.resolve_link(source_identity) if ctx else None
     return _NewTypeConstraintRow(
-        display=display, source=source, source_link=source_link
+        display=display, source=cs.source_name, source_link=source_link
     )
 
 
@@ -469,8 +467,8 @@ def _build_used_by_context(
         return None
     return [
         {
-            "name": entry.name,
-            "link": link_ctx.resolve_link(entry.name) if link_ctx else None,
+            "name": entry.identity.name,
+            "link": link_ctx.resolve_link(entry.identity) if link_ctx else None,
         }
         for entry in used_by
     ]
@@ -486,7 +484,8 @@ def render_newtype(
     ti = newtype_spec.type_info
     underlying = format_underlying_type(ti, link_ctx)
     constraints = [
-        _format_constraint(cs, newtype_spec.name, link_ctx) for cs in ti.constraints
+        _format_constraint(cs, newtype_spec.source_type, link_ctx)
+        for cs in ti.constraints
     ]
 
     return template.render(

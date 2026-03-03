@@ -73,9 +73,7 @@ def division_class(all_discovered_models: dict) -> type[BaseModel]:
 def primitives_markdown() -> str:
     """Render the primitives.md page from the system primitive module."""
     primitive_names, _ = partition_primitive_and_geometry_names(_system_primitive)
-    return render_primitives_from_specs(
-        extract_primitives(primitive_names, _system_primitive)
-    )
+    return render_primitives_from_specs(extract_primitives(primitive_names))
 
 
 @pytest.fixture(scope="module")

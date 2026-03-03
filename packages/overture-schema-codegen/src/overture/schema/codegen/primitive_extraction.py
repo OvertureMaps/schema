@@ -4,7 +4,7 @@ from annotated_types import Interval
 
 from .docstring import first_docstring_line
 from .newtype_extraction import extract_newtype
-from .specs import PrimitiveSpec
+from .specs import PrimitiveSpec, TypeIdentity
 from .type_analyzer import TypeInfo, is_newtype
 
 __all__ = [
@@ -42,24 +42,18 @@ def extract_numeric_bounds(type_info: TypeInfo) -> Interval:
 
 
 def extract_primitives(
-    primitive_names: list[str],
-    primitive_module: object,
+    primitive_ids: list[TypeIdentity],
 ) -> list[PrimitiveSpec]:
-    """Extract specifications for numeric primitive types.
-
-    Resolves each name against the given module, extracts its NewType
-    spec, docstring, and numeric bounds.
-    """
+    """Extract specifications for numeric primitive types."""
     specs: list[PrimitiveSpec] = []
-    for name in primitive_names:
-        obj = getattr(primitive_module, name)
-        newtype_spec = extract_newtype(obj)
+    for tid in primitive_ids:
+        newtype_spec = extract_newtype(tid.obj)
         bounds = extract_numeric_bounds(newtype_spec.type_info)
-        description = first_docstring_line(getattr(obj, "__doc__", None))
-        float_bits = _extract_float_bits(name)
+        description = first_docstring_line(getattr(tid.obj, "__doc__", None))
+        float_bits = _extract_float_bits(tid.name)
         specs.append(
             PrimitiveSpec(
-                name=name,
+                name=tid.name,
                 description=description,
                 bounds=bounds,
                 float_bits=float_bits,
@@ -81,21 +75,21 @@ def _extract_float_bits(name: str) -> int | None:
 
 def partition_primitive_and_geometry_names(
     primitive_module: object,
-) -> tuple[list[str], list[str]]:
-    """Discover primitive and geometry type names from a module's exports.
+) -> tuple[list[TypeIdentity], list[TypeIdentity]]:
+    """Discover primitive and geometry types from a module's exports.
 
     NewType exports are numeric primitives.
     Non-constraint class/enum exports are geometry types.
     """
     module_all: list[str] = getattr(primitive_module, "__all__", [])
-    primitives: list[str] = []
-    geometries: list[str] = []
+    primitives: list[TypeIdentity] = []
+    geometries: list[TypeIdentity] = []
 
     for name in module_all:
         obj = getattr(primitive_module, name)
         if is_newtype(obj):
-            primitives.append(name)
+            primitives.append(TypeIdentity(obj, name))
         elif isinstance(obj, type) and not name.endswith("Constraint"):
-            geometries.append(name)
+            geometries.append(TypeIdentity(obj, name))
 
     return primitives, geometries

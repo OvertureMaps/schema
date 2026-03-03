@@ -2,11 +2,49 @@
 
 from typing import Annotated, NewType
 
+import overture.schema.system.primitive as _system_primitive
 from overture.schema.codegen.newtype_extraction import extract_newtype
-from overture.schema.codegen.primitive_extraction import extract_numeric_bounds
+from overture.schema.codegen.primitive_extraction import (
+    extract_numeric_bounds,
+    extract_primitives,
+    partition_primitive_and_geometry_names,
+)
+from overture.schema.codegen.specs import TypeIdentity
 from overture.schema.codegen.type_analyzer import analyze_type
 from overture.schema.system.primitive import float32, int32, int64, uint8
 from pydantic import Field
+
+
+class TestPartitionPrimitiveAndGeometryNames:
+    """Tests for partition_primitive_and_geometry_names function."""
+
+    def test_returns_type_identities(self) -> None:
+        prims, geoms = partition_primitive_and_geometry_names(_system_primitive)
+        assert all(isinstance(p, TypeIdentity) for p in prims)
+        assert all(isinstance(g, TypeIdentity) for g in geoms)
+
+    def test_identity_obj_is_actual_callable(self) -> None:
+        prims, _ = partition_primitive_and_geometry_names(_system_primitive)
+        int32_id = next(p for p in prims if p.name == "int32")
+        assert int32_id.obj is _system_primitive.int32
+
+
+class TestExtractPrimitives:
+    """Tests for extract_primitives function."""
+
+    def test_accepts_type_identities(self) -> None:
+        prims, _ = partition_primitive_and_geometry_names(_system_primitive)
+        specs = extract_primitives(prims)
+        assert len(specs) > 0
+        names = [s.name for s in specs]
+        assert "int32" in names
+
+    def test_extracts_bounds(self) -> None:
+        prims, _ = partition_primitive_and_geometry_names(_system_primitive)
+        specs = extract_primitives(prims)
+        int32_spec = next(s for s in specs if s.name == "int32")
+        assert int32_spec.bounds.ge == -(2**31)
+        assert int32_spec.bounds.le == 2**31 - 1
 
 
 class TestExtractNumericBounds:

@@ -3,8 +3,13 @@
 from pathlib import PurePosixPath
 
 import overture.schema.system.primitive as _system_primitive
-from codegen_test_support import STR_TYPE, flat_specs_from_discovery, make_union_spec
-from overture.schema.codegen.link_computation import relative_link
+from codegen_test_support import (
+    STR_TYPE,
+    flat_specs_from_discovery,
+    lookup_by_name,
+    make_union_spec,
+)
+from overture.schema.codegen.link_computation import LinkContext, relative_link
 from overture.schema.codegen.model_extraction import expand_model_tree
 from overture.schema.codegen.path_assignment import (
     GEOMETRY_PAGE,
@@ -20,6 +25,7 @@ from overture.schema.codegen.specs import (
     FieldSpec,
     ModelSpec,
     SupplementarySpec,
+    TypeIdentity,
 )
 from overture.schema.codegen.type_collection import collect_all_supplementary_types
 from pydantic import BaseModel
@@ -33,7 +39,7 @@ _SCHEMA_ROOT = "overture.schema"
 
 def _build_registry(
     feature_specs: list[ModelSpec],
-) -> tuple[dict[str, PurePosixPath], dict[str, SupplementarySpec]]:
+) -> tuple[dict[TypeIdentity, PurePosixPath], dict[TypeIdentity, SupplementarySpec]]:
     """Build placement registry with standard aggregate names."""
     cache: dict[type, ModelSpec] = {}
     for spec in feature_specs:
@@ -77,16 +83,21 @@ class TestBuildPlacementRegistry:
         specs = flat_specs_from_discovery("buildings")
         registry, _ = _build_registry(specs)
 
-        assert registry["Building"] == PurePosixPath("buildings/building.md")
-        assert registry["BuildingPart"] == PurePosixPath("buildings/building_part.md")
+        assert lookup_by_name(registry, "Building") == PurePosixPath(
+            "buildings/building.md"
+        )
+        assert lookup_by_name(registry, "BuildingPart") == PurePosixPath(
+            "buildings/building_part.md"
+        )
 
     def test_shared_types_mirror_source_modules(self) -> None:
         """Core/system types land in directories matching their module path."""
         specs = flat_specs_from_discovery("buildings")
         registry, _ = _build_registry(specs)
 
-        if "Names" in registry:
-            assert str(registry["Names"]).startswith("core/")
+        names = {tid.name for tid in registry}
+        if "Names" in names:
+            assert str(lookup_by_name(registry, "Names")).startswith("core/")
 
     def test_no_duplicate_paths(self) -> None:
         """No two individual types share an output path."""
@@ -113,7 +124,7 @@ class TestBuildPlacementRegistry:
         registry, _ = _build_registry(specs)
 
         # BuildingClass is a supplementary type from the buildings module
-        assert registry["BuildingClass"] == PurePosixPath(
+        assert lookup_by_name(registry, "BuildingClass") == PurePosixPath(
             "buildings/types/building_class.md"
         )
 
@@ -124,7 +135,7 @@ class TestBuildPlacementRegistry:
 
         # AreaClass is from overture.schema.divisions.division_area.enums,
         # a subdirectory of the divisions feature directory.
-        assert registry["AreaClass"] == PurePosixPath(
+        assert lookup_by_name(registry, "AreaClass") == PurePosixPath(
             "divisions/types/division_area/area_class.md"
         )
 
@@ -134,8 +145,9 @@ class TestBuildPlacementRegistry:
         registry, _ = _build_registry(specs)
 
         # Names is from overture.schema.core -- no features there, no nesting
-        if "Names" in registry:
-            path = str(registry["Names"])
+        names = {tid.name for tid in registry}
+        if "Names" in names:
+            path = str(lookup_by_name(registry, "Names"))
             assert path.startswith("core/")
             assert "/types/" not in path
 
@@ -174,4 +186,23 @@ class TestPlacementWithUnionSpec:
         registry = build_placement_registry(
             feature_specs, all_specs, [], [], "test.package"
         )
-        assert "TestUnion" in registry
+        assert any(tid.name == "TestUnion" for tid in registry)
+
+
+class TestLinkContextWithTypeIdentity:
+    """Tests for LinkContext using TypeIdentity keys."""
+
+    def test_same_name_different_identity_separate_paths(self) -> None:
+        """Two types with the same name but different objects resolve to different paths."""
+        obj_a = type("Address", (), {})
+        obj_b = type("Address", (), {})
+        registry = {
+            TypeIdentity(obj_a, "Address"): PurePosixPath("places/types/address.md"),
+            TypeIdentity(obj_b, "Address"): PurePosixPath("addresses/address.md"),
+        }
+        ctx = LinkContext(page_path=PurePosixPath("places/place.md"), registry=registry)
+        assert ctx.resolve_link(TypeIdentity(obj_a, "Address")) == "types/address.md"
+        assert (
+            ctx.resolve_link(TypeIdentity(obj_b, "Address"))
+            == "../addresses/address.md"
+        )

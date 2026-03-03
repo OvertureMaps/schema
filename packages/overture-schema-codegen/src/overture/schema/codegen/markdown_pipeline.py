@@ -40,6 +40,7 @@ from .specs import (
     ModelSpec,
     NewTypeSpec,
     SupplementarySpec,
+    TypeIdentity,
     UnionSpec,
 )
 from .type_collection import collect_all_supplementary_types
@@ -82,15 +83,15 @@ def _load_model_examples(
 
 
 def _render_supplement(
-    name: str,
+    tid: TypeIdentity,
     spec: SupplementarySpec,
-    registry: dict[str, PurePosixPath],
-    reverse_refs: dict[str, list[UsedByEntry]],
+    registry: dict[TypeIdentity, PurePosixPath],
+    reverse_refs: dict[TypeIdentity, list[UsedByEntry]],
 ) -> RenderedPage:
     """Render a single supplementary page (enum, NewType, or sub-model)."""
-    output_path = resolve_output_path(name, registry)
+    output_path = resolve_output_path(tid, registry)
     ctx = LinkContext(output_path, registry)
-    used_by = reverse_refs.get(name)
+    used_by = reverse_refs.get(tid)
 
     if isinstance(spec, EnumSpec):
         content = render_enum(spec, link_ctx=ctx, used_by=used_by)
@@ -131,21 +132,19 @@ def generate_markdown_pages(
     pages: list[RenderedPage] = []
 
     for spec in feature_specs:
-        output_path = registry[spec.name]
+        output_path = registry[spec.identity]
         ctx = LinkContext(output_path, registry)
         examples = _load_model_examples(spec)
-        used_by = reverse_refs.get(spec.name)
+        used_by = reverse_refs.get(spec.identity)
         content = render_feature(spec, link_ctx=ctx, examples=examples, used_by=used_by)
         pages.append(RenderedPage(content=content, path=output_path, is_feature=True))
 
-    for name, supp_spec in all_specs.items():
-        pages.append(_render_supplement(name, supp_spec, registry, reverse_refs))
+    for tid, supp_spec in all_specs.items():
+        pages.append(_render_supplement(tid, supp_spec, registry, reverse_refs))
 
     pages.append(
         RenderedPage(
-            content=render_primitives_from_specs(
-                extract_primitives(primitive_names, _system_primitive)
-            ),
+            content=render_primitives_from_specs(extract_primitives(primitive_names)),
             path=PRIMITIVES_PAGE,
         )
     )
