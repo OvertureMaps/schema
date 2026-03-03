@@ -275,12 +275,11 @@ def test_compile_exactly_one_of():
 def test_compile_unique_scalar():
     rules = [_rule(CheckType.UNIQUE, name="u1")]
     sql = compile(_spec(rules), "f.parquet")
-    assert "COUNT(*) OVER (PARTITION BY" in sql
-    assert "_u0 > 1" in sql
+    assert "list_distinct" in sql
 
 
 def test_compile_unique_list():
-    # Sibling rule with list_columns triggers list heuristic
+    # Unique checks intra-row list uniqueness via list_distinct
     rules = [
         _rule(CheckType.NOT_NULL, list_columns=["col"], name="r1"),
         _rule(CheckType.UNIQUE, name="u1"),
@@ -563,19 +562,22 @@ def test_validate_not_in_check(conn, parquet_path):
     assert report.results[0].violating_ids == ["a"]
 
 
-def test_validate_unique_scalar(conn, parquet_path):
+def test_validate_unique_list_intra_row(conn, parquet_path):
     from overture.schema.validation.duckdb import validate
 
     path = parquet_path(
-        "CREATE TABLE _tbl AS SELECT * FROM (VALUES "
-        "('a', 'x'), ('b', 'y'), ('c', 'x'), ('d', 'z')"
-        ") AS t(id, code)"
+        "CREATE TABLE _tbl AS "
+        "SELECT 'a' AS id, ['x', 'y', 'z'] AS code "
+        "UNION ALL "
+        "SELECT 'b' AS id, ['x', 'x', 'y'] AS code "
+        "UNION ALL "
+        "SELECT 'c' AS id, ['p', 'q'] AS code"
     )
     spec = _spec([_rule(CheckType.UNIQUE, column="code")])
     report = validate(spec, path, conn)
     result = report.results[0]
-    assert result.violation_count == 2
-    assert set(result.violating_ids) == {"a", "c"}
+    assert result.violation_count == 1
+    assert result.violating_ids == ["b"]
 
 
 def test_validate_pattern(conn, parquet_path):

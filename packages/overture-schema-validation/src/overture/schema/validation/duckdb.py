@@ -153,18 +153,6 @@ def _check_expr(
 # ---------------------------------------------------------------------------
 
 
-def _is_list_column(rule: Rule, all_rules: list[Rule]) -> bool:
-    """Heuristic: if any sibling rule on the same column has list_columns
-    whose last element equals this rule's column, treat it as a list column."""
-    if rule.column is None:
-        return False
-    return any(
-        r.list_columns and r.list_columns[-1] == rule.column
-        for r in all_rules
-        if r is not rule
-    )
-
-
 def _single_violation(
     check: CheckType,
     expr: str,
@@ -315,28 +303,8 @@ def _when_sql(condition: Condition) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _rule_predicate_expr(
-    rule: Rule,
-    all_rules: list[Rule],
-    unique_col_map: dict[str, str],
-) -> str:
-    """Return the boolean violation expression for a single rule.
-
-    The expression is used as a column in the checked subquery.  For
-    scalar unique rules, it references a pre-computed window count alias
-    from *unique_col_map*.
-    """
-    # Scalar unique — reference pre-computed window count
-    if rule.name in unique_col_map:
-        col = _quote_col(rule.column)  # type: ignore[arg-type]
-        cnt_alias = unique_col_map[rule.name]
-        base = f"{col} IS NOT NULL AND {cnt_alias} > 1"
-        if rule.when:
-            when_pred = _when_sql(rule.when)
-            return f"{when_pred} AND {base}"
-        return base
-
-    # Everything else — use existing _violation_predicate
+def _rule_predicate_expr(rule: Rule, all_rules: list[Rule]) -> str:
+    """Return the boolean violation expression for a single rule."""
     predicate, when_folded = _violation_predicate(rule, all_rules)
 
     if rule.when and not when_folded:
@@ -370,42 +338,9 @@ def compile(spec: DatasetSpec, parquet_path: str) -> str:
             f"NULL AS severity WHERE FALSE"
         )
 
-    # Identify scalar unique rules (unique, no list_columns, not list heuristic)
-    scalar_uniques = []
-    for rule in spec.rules:
-        if (
-            rule.check == CheckType.UNIQUE
-            and not rule.list_columns
-            and not _is_list_column(rule, spec.rules)
-        ):
-            scalar_uniques.append(rule)
-
-    # Build window expressions for scalar unique rules
-    unique_col_map: dict[str, str] = {}
-    window_exprs: list[str] = []
-    for i, rule in enumerate(scalar_uniques):
-        alias = f"_u{i}"
-        col = _quote_col(rule.column)  # type: ignore[arg-type]
-        if rule.when:
-            when_pred = _when_sql(rule.when)
-            window_exprs.append(
-                f"SUM(CASE WHEN {when_pred} AND {col} IS NOT NULL "
-                f"THEN 1 ELSE 0 END) OVER (PARTITION BY {col}) AS {alias}"
-            )
-        else:
-            window_exprs.append(
-                f"COUNT(*) OVER (PARTITION BY {col}) AS {alias}"
-            )
-        unique_col_map[rule.name] = alias
-
-    # Build src CTE
-    window_clause = ""
-    if window_exprs:
-        window_clause = "\n        , " + "\n        , ".join(window_exprs)
     cte = (
         f"WITH src AS MATERIALIZED (\n"
-        f"    SELECT *{window_clause}\n"
-        f"    FROM read_parquet('{path}')\n"
+        f"    SELECT * FROM read_parquet('{path}')\n"
         f")"
     )
 
@@ -415,7 +350,7 @@ def compile(spec: DatasetSpec, parquet_path: str) -> str:
     meta_values: list[str] = []
     for i, rule in enumerate(spec.rules):
         alias = f"_r{i}"
-        expr = _rule_predicate_expr(rule, spec.rules, unique_col_map)
+        expr = _rule_predicate_expr(rule, spec.rules)
         columns.append(f"        , ({expr}) AS {alias}")
         name = _escape_sql(rule.name)
         severity = rule.severity.value
