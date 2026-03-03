@@ -315,76 +315,35 @@ def _when_sql(condition: Condition) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _rule_select(
+def _rule_predicate_expr(
     rule: Rule,
-    id_column: str,
     all_rules: list[Rule],
+    unique_col_map: dict[str, str],
 ) -> str:
-    """Generate the complete SELECT statement for one rule."""
-    if rule.check == CheckType.UNIQUE and not rule.list_columns:
-        return _unique_select(rule, id_column, all_rules)
+    """Return the boolean violation expression for a single rule.
 
-    id_col = _quote_col(id_column)
-    name = _escape_sql(rule.name)
-    severity = rule.severity.value
+    The expression is used as a column in the checked subquery.  For
+    scalar unique rules, it references a pre-computed window count alias
+    from *unique_col_map*.
+    """
+    # Scalar unique — reference pre-computed window count
+    if rule.name in unique_col_map:
+        col = _quote_col(rule.column)  # type: ignore[arg-type]
+        cnt_alias = unique_col_map[rule.name]
+        base = f"{col} IS NOT NULL AND {cnt_alias} > 1"
+        if rule.when:
+            when_pred = _when_sql(rule.when)
+            return f"{when_pred} AND {base}"
+        return base
 
+    # Everything else — use existing _violation_predicate
     predicate, when_folded = _violation_predicate(rule, all_rules)
 
-    when_clause = ""
-    if rule.when is not None and not when_folded:
+    if rule.when and not when_folded:
         when_pred = _when_sql(rule.when)
-        when_clause = f"({when_pred}) AND "
+        return f"({when_pred}) AND ({predicate})"
 
-    return (
-        f"SELECT {id_col} AS id, '{name}' AS rule_name, "
-        f"'{severity}' AS severity\n"
-        f"FROM src\n"
-        f"WHERE {when_clause}{predicate}"
-    )
-
-
-def _unique_select(
-    rule: Rule,
-    id_column: str,
-    all_rules: list[Rule],
-) -> str:
-    """Generate SELECT for unique check — scalar or list variant."""
-    col = _quote_col(rule.column)  # type: ignore[arg-type]
-    id_col = _quote_col(id_column)
-    name = _escape_sql(rule.name)
-    severity = rule.severity.value
-
-    # Determine if list column
-    is_list = _is_list_column(rule, all_rules)
-
-    when_clause = ""
-    when_where = ""
-    if rule.when is not None:
-        when_pred = _when_sql(rule.when)
-        when_clause = f"({when_pred}) AND "
-        when_where = f"({when_pred}) AND "
-
-    if is_list:
-        # Intra-row uniqueness for list columns
-        predicate = f"{col} IS NOT NULL AND len({col}) != len(list_distinct({col}))"
-        return (
-            f"SELECT {id_col} AS id, '{name}' AS rule_name, "
-            f"'{severity}' AS severity\n"
-            f"FROM src\n"
-            f"WHERE {when_clause}{predicate}"
-        )
-
-    # Scalar: cross-row uniqueness using window function
-    return (
-        f"SELECT id, rule_name, severity FROM (\n"
-        f"  SELECT {id_col} AS id, '{name}' AS rule_name, "
-        f"'{severity}' AS severity,\n"
-        f"    COUNT(*) OVER (PARTITION BY {col}) AS _cnt\n"
-        f"  FROM src\n"
-        f"  WHERE {when_where}{col} IS NOT NULL\n"
-        f") _uq\n"
-        f"WHERE _cnt > 1"
-    )
+    return predicate
 
 
 # ---------------------------------------------------------------------------
@@ -398,26 +357,91 @@ def compile(spec: DatasetSpec, parquet_path: str) -> str:
     Returns SQL that finds all rule violations. No duckdb dependency needed.
     """
     path = _escape_sql(parquet_path)
-    cte = (
-        f"WITH src AS MATERIALIZED (\n"
-        f"    SELECT * FROM read_parquet('{path}')\n"
-        f")"
-    )
 
     if not spec.rules:
+        cte = (
+            f"WITH src AS MATERIALIZED (\n"
+            f"    SELECT * FROM read_parquet('{path}')\n"
+            f")"
+        )
         return (
             f"{cte}\n"
             f"SELECT NULL AS id, NULL AS rule_name, "
             f"NULL AS severity WHERE FALSE"
         )
 
-    selects = [
-        _rule_select(rule, spec.id_column, spec.rules)
-        for rule in spec.rules
-    ]
+    # Identify scalar unique rules (unique, no list_columns, not list heuristic)
+    scalar_uniques = []
+    for rule in spec.rules:
+        if (
+            rule.check == CheckType.UNIQUE
+            and not rule.list_columns
+            and not _is_list_column(rule, spec.rules)
+        ):
+            scalar_uniques.append(rule)
 
-    body = "\nUNION ALL\n".join(selects)
-    return f"{cte}\n{body}"
+    # Build window expressions for scalar unique rules
+    unique_col_map: dict[str, str] = {}
+    window_exprs: list[str] = []
+    for i, rule in enumerate(scalar_uniques):
+        alias = f"_u{i}"
+        col = _quote_col(rule.column)  # type: ignore[arg-type]
+        if rule.when:
+            when_pred = _when_sql(rule.when)
+            window_exprs.append(
+                f"SUM(CASE WHEN {when_pred} AND {col} IS NOT NULL "
+                f"THEN 1 ELSE 0 END) OVER (PARTITION BY {col}) AS {alias}"
+            )
+        else:
+            window_exprs.append(
+                f"COUNT(*) OVER (PARTITION BY {col}) AS {alias}"
+            )
+        unique_col_map[rule.name] = alias
+
+    # Build src CTE
+    window_clause = ""
+    if window_exprs:
+        window_clause = "\n        , " + "\n        , ".join(window_exprs)
+    cte = (
+        f"WITH src AS MATERIALIZED (\n"
+        f"    SELECT *{window_clause}\n"
+        f"    FROM read_parquet('{path}')\n"
+        f")"
+    )
+
+    # Build per-rule boolean columns and metadata VALUES
+    id_col = _quote_col(spec.id_column)
+    columns: list[str] = []
+    meta_values: list[str] = []
+    for i, rule in enumerate(spec.rules):
+        alias = f"_r{i}"
+        expr = _rule_predicate_expr(rule, spec.rules, unique_col_map)
+        columns.append(f"        , ({expr}) AS {alias}")
+        name = _escape_sql(rule.name)
+        severity = rule.severity.value
+        meta_values.append(f"    ('{alias}', '{name}', '{severity}')")
+
+    col_list = "\n".join(columns)
+    aliases = ", ".join(f"_r{i}" for i in range(len(spec.rules)))
+    meta = ",\n".join(meta_values)
+
+    return (
+        f"{cte}\n"
+        f"SELECT u.{id_col} AS id, _meta.rule_name, _meta.severity\n"
+        f"FROM (\n"
+        f"    SELECT {id_col}, _violated, _idx FROM (\n"
+        f"        SELECT {id_col}\n"
+        f"{col_list}\n"
+        f"        FROM src\n"
+        f"    )\n"
+        f"    UNPIVOT (_violated FOR _idx IN ({aliases}))\n"
+        f"    WHERE _violated\n"
+        f") u\n"
+        f"JOIN (VALUES\n"
+        f"{meta}\n"
+        f") AS _meta(_idx, rule_name, severity)\n"
+        f"USING (_idx)"
+    )
 
 
 def validate(

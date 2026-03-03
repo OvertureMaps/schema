@@ -67,13 +67,17 @@ def test_compile_empty_rules():
     assert "NULL AS rule_name" in sql
 
 
-def test_compile_union_all_multiple_rules():
+def test_compile_unpivot_structure():
     rules = [
         _rule(CheckType.NOT_NULL, name="r1"),
         _rule(CheckType.IS_NULL, name="r2"),
     ]
     sql = compile(_spec(rules), "/data/test.parquet")
-    assert sql.count("UNION ALL") == 1
+    assert "UNPIVOT" in sql
+    assert "_meta" in sql
+    assert "UNION ALL" not in sql
+    assert "_r0" in sql
+    assert "_r1" in sql
 
 
 def test_compile_parquet_path_escaping():
@@ -94,7 +98,7 @@ def test_compile_severity_in_output():
         _spec([_rule(CheckType.NOT_NULL, severity=Severity.WARNING)]),
         "f.parquet",
     )
-    assert "'warning' AS severity" in sql
+    assert "'warning'" in sql
 
 
 def test_compile_value_with_quotes():
@@ -272,7 +276,7 @@ def test_compile_unique_scalar():
     rules = [_rule(CheckType.UNIQUE, name="u1")]
     sql = compile(_spec(rules), "f.parquet")
     assert "COUNT(*) OVER (PARTITION BY" in sql
-    assert "_cnt > 1" in sql
+    assert "_u0 > 1" in sql
 
 
 def test_compile_unique_list():
@@ -414,11 +418,8 @@ def test_compile_list_columns_when_on_source_skipped():
         "f.parquet",
     )
     # The when is redundant — source_col IS NOT NULL is already in the predicate
-    # Should not appear as a separate outer guard
-    where_idx = sql.index("WHERE")
-    where_clause = sql[where_idx:]
-    # Only one "items" IS NOT NULL (from the predicate), no duplicate outer guard
-    assert where_clause.count('"items" IS NOT NULL') == 1
+    # Should not appear as a separate outer guard — only one occurrence total
+    assert sql.count('"items" IS NOT NULL') == 1
 
 
 def test_compile_list_columns_nested_lists():
