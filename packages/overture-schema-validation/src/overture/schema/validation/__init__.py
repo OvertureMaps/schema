@@ -1,3 +1,4 @@
+from .extract import extract, extract_all
 from .ir import CheckType, Condition, DatasetSpec, Rule, Severity, ValidationSpec
 from .report import RuleResult, ValidationReport
 
@@ -10,4 +11,6 @@ __all__ = [
     "Severity",
     "ValidationReport",
     "ValidationSpec",
+    "extract",
+    "extract_all",
 ]

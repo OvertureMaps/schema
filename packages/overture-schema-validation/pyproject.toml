@@ -10,7 +10,13 @@ license = "MIT"
 dependencies = [
     "pydantic>=2.0",
     "pyyaml>=6.0",
+    "overture-schema-core",
+    "overture-schema-system",
 ]
+
+[tool.uv.sources]
+overture-schema-core = { workspace = true }
+overture-schema-system = { workspace = true }
 
 [tool.hatch.version]
 path = "src/overture/schema/validation/__about__.py"

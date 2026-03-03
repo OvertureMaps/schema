@@ -897,12 +897,16 @@ requires-dist = [
 name = "overture-schema-validation"
 source = { editable = "packages/overture-schema-validation" }
 dependencies = [
+    { name = "overture-schema-core" },
+    { name = "overture-schema-system" },
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pyyaml", specifier = ">=6.0" },
 ]
