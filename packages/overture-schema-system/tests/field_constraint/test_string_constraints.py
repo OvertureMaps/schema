@@ -311,8 +311,7 @@ class TestStringConstraints:
         for color in invalid_colors:
             with pytest.raises(ValidationError) as exc_info:
                 TestModel(color=color)
-            # Just check that validation fails - message may vary
-            assert len(exc_info.value.errors()) > 0
+            assert "Invalid hexadecimal color format" in str(exc_info.value)
 
     def test_no_whitespace_constraint_valid(self) -> None:
         """Test NoWhitespaceConstraint with valid strings (no whitespace)."""
@@ -349,8 +348,7 @@ class TestStringConstraints:
         for ident in invalid_identifiers:
             with pytest.raises(ValidationError) as exc_info:
                 TestModel(identifier=ident)
-            # Just check that validation fails - message may vary
-            assert len(exc_info.value.errors()) > 0
+            assert "cannot contain whitespace" in str(exc_info.value)
 
 
 class TestJsonSchemaGeneration:
