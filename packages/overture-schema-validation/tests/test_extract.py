@@ -723,7 +723,7 @@ def test_extract_not_null() -> None:
 
 def test_extract_gt() -> None:
     class M(BaseId):
-        col: int | None = Field(default=None, gt=4)
+        col: int | None = Field(gt=4)
 
     result = extract(M, dataset_name="test")
     expected = _expected(
@@ -743,7 +743,7 @@ def test_extract_gt() -> None:
 
 def test_extract_gte() -> None:
     class M(BaseId):
-        col: int | None = Field(default=None, ge=5)
+        col: int | None = Field(ge=5)
 
     result = extract(M, dataset_name="test")
     expected = _expected(
@@ -763,7 +763,7 @@ def test_extract_gte() -> None:
 
 def test_extract_lt() -> None:
     class M(BaseId):
-        col: float | None = Field(default=None, lt=10.0)
+        col: float | None = Field(lt=10.0)
 
     result = extract(M, dataset_name="test")
     expected = _expected(
@@ -783,7 +783,7 @@ def test_extract_lt() -> None:
 
 def test_extract_lte() -> None:
     class M(BaseId):
-        col: int | None = Field(default=None, le=10)
+        col: int | None = Field(le=10)
 
     result = extract(M, dataset_name="test")
     expected = _expected(
@@ -823,7 +823,7 @@ def test_extract_eq() -> None:
 
 def test_extract_between() -> None:
     class M(BaseId):
-        col: int | None = Field(default=None, ge=0, le=100)
+        col: int | None = Field(ge=0, le=100)
 
     result = extract(M, dataset_name="test")
     expected = _expected(
@@ -863,7 +863,7 @@ def test_extract_in() -> None:
 
 def test_extract_min_length() -> None:
     class M(BaseId):
-        col: str | None = Field(default=None, min_length=3)
+        col: str | None = Field(min_length=3)
 
     result = extract(M, dataset_name="test")
     expected = _expected(
@@ -883,7 +883,7 @@ def test_extract_min_length() -> None:
 
 def test_extract_max_length() -> None:
     class M(BaseId):
-        col: str | None = Field(default=None, max_length=50)
+        col: str | None = Field(max_length=50)
 
     result = extract(M, dataset_name="test")
     expected = _expected(
