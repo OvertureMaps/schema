@@ -29,38 +29,33 @@ class TestFormatType:
 
     def test_plain_str_renders_as_string(self) -> None:
         ti = analyze_type(str)
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
-        assert format_type(field) == "`string`"
+        assert format_type(_make_field(ti)) == "`string`"
 
     def test_optional_adds_qualifier(self) -> None:
         ti = analyze_type(str | None)
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=False)
-        assert format_type(field) == "`string` (optional)"
+        assert format_type(_make_field(ti, is_required=False)) == "`string` (optional)"
 
     def test_literal_renders_as_quoted_value(self) -> None:
         ti = analyze_type(Literal["places"])
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
-        assert format_type(field) == '`"places"`'
+        assert format_type(_make_field(ti)) == '`"places"`'
 
     def test_multi_value_literal_renders_comma_separated(self) -> None:
         ti = analyze_type(Literal["a", "b", "c"])
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
-        assert format_type(field) == '`"a"` \\| `"b"` \\| `"c"`'
+        assert format_type(_make_field(ti)) == '`"a"` \\| `"b"` \\| `"c"`'
 
     def test_enum_without_context_renders_as_code(self) -> None:
         class Color(str, Enum):
             RED = "red"
 
         ti = analyze_type(Color)
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
-        assert format_type(field) == "`Color`"
+        assert format_type(_make_field(ti)) == "`Color`"
 
     def test_enum_with_link_context(self) -> None:
         class Color(str, Enum):
             RED = "red"
 
         ti = analyze_type(Color)
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        field = _make_field(ti)
         ctx = LinkContext(
             page_path=PurePosixPath("buildings/building/building.md"),
             registry={
@@ -71,18 +66,15 @@ class TestFormatType:
 
     def test_list_of_primitives(self) -> None:
         ti = analyze_type(list[str])
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
-        assert format_type(field) == "`list<string>`"
+        assert format_type(_make_field(ti)) == "`list<string>`"
 
     def test_nested_list_of_primitives(self) -> None:
         ti = analyze_type(list[list[str]])
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
-        assert format_type(field) == "`list<list<string>>`"
+        assert format_type(_make_field(ti)) == "`list<list<string>>`"
 
     def test_registered_primitive_not_linked(self) -> None:
         ti = analyze_type(int32)
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
-        result = format_type(field)
+        result = format_type(_make_field(ti))
         assert result == "`int32`"
         assert "](int32.md)" not in result
 
@@ -102,9 +94,11 @@ class TestFormatDictType:
         assert result == "map<MyKey, int64>"
 
 
-def _make_union_field(ti: TypeInfo, *, is_required: bool = True) -> FieldSpec:
-    """Build a FieldSpec wrapping a union TypeInfo for test convenience."""
-    return FieldSpec(name="x", type_info=ti, description=None, is_required=is_required)
+def _make_field(
+    ti: TypeInfo, *, name: str = "x", is_required: bool = True
+) -> FieldSpec:
+    """Build a FieldSpec for test convenience."""
+    return FieldSpec(name=name, type_info=ti, description=None, is_required=is_required)
 
 
 class TestFormatUnionType:
@@ -112,7 +106,7 @@ class TestFormatUnionType:
 
     def test_union_renders_all_members(self) -> None:
         ti = analyze_type(_ModelA | _ModelB)
-        result = format_type(_make_union_field(ti))
+        result = format_type(_make_field(ti))
         assert "`_ModelA`" in result
         assert "`_ModelB`" in result
         # Pipe separator escaped for table cells
@@ -131,13 +125,13 @@ class TestFormatUnionType:
                 ),
             },
         )
-        result = format_type(_make_union_field(ti), ctx)
+        result = format_type(_make_field(ti), ctx)
         assert "[`_ModelA`](types/model_a.md)" in result
         assert "[`_ModelB`](types/model_b.md)" in result
 
     def test_optional_union_adds_qualifier(self) -> None:
         ti = analyze_type(_ModelA | _ModelB | None)
-        result = format_type(_make_union_field(ti, is_required=False))
+        result = format_type(_make_field(ti, is_required=False))
         assert "(optional)" in result
         assert "`_ModelA`" in result
         assert "`_ModelB`" in result
@@ -149,14 +143,14 @@ class TestFormatUnionType:
             list_depth=1,
             union_members=(_ModelA, _ModelB),
         )
-        result = format_type(_make_union_field(ti))
+        result = format_type(_make_field(ti))
         assert "(list)" in result
         assert "`_ModelA`" in result
         assert "`_ModelB`" in result
 
     def test_union_members_unlinked_without_context(self) -> None:
         ti = analyze_type(_ModelA | _ModelB)
-        result = format_type(_make_union_field(ti))
+        result = format_type(_make_field(ti))
         # No markdown links without context
         assert "]()" not in result
         assert "[`" not in result
@@ -172,7 +166,7 @@ class TestFormatUnionType:
                 )
             },
         )
-        result = format_type(_make_union_field(ti), ctx)
+        result = format_type(_make_field(ti), ctx)
         assert "[`_ModelA`](types/model_a.md)" in result
         assert "`_ModelB`" in result
         # _ModelB should NOT be linked
@@ -184,7 +178,7 @@ class TestPydanticTypeLinking:
 
     def test_pydantic_type_linked_when_in_registry(self) -> None:
         ti = analyze_type(HttpUrl)
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        field = _make_field(ti)
         ctx = LinkContext(
             page_path=PurePosixPath("places/place/place.md"),
             registry={
@@ -199,7 +193,7 @@ class TestPydanticTypeLinking:
 
     def test_pydantic_type_unlinked_without_registry_entry(self) -> None:
         ti = analyze_type(HttpUrl)
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        field = _make_field(ti)
         ctx = LinkContext(
             page_path=PurePosixPath("places/place/place.md"),
             registry={},
@@ -210,7 +204,7 @@ class TestPydanticTypeLinking:
 
     def test_list_of_pydantic_type_linked(self) -> None:
         ti = analyze_type(list[HttpUrl])
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        field = _make_field(ti)
         ctx = LinkContext(
             page_path=PurePosixPath("places/place/place.md"),
             registry={
@@ -226,7 +220,7 @@ class TestPydanticTypeLinking:
     def test_registered_primitive_links_to_aggregate_page(self) -> None:
         """int32 links to the primitives aggregate page when in registry."""
         ti = analyze_type(int32)
-        field = FieldSpec(name="x", type_info=ti, description=None, is_required=True)
+        field = _make_field(ti)
         ctx = LinkContext(
             page_path=PurePosixPath("places/place/place.md"),
             registry={
@@ -238,6 +232,59 @@ class TestPydanticTypeLinking:
         result = format_type(field, ctx)
         assert "[`int32`]" in result
         assert "system/primitive/primitives.md" in result
+
+
+class TestListOfSemanticNewtype:
+    """Tests for list[SemanticNewType] rendering.
+
+    When a scalar NewType appears inside list[], the type renders as
+    list<NewTypeName> rather than NewTypeName (list). The (list) qualifier
+    is reserved for NewTypes that internally wrap a list.
+    """
+
+    def test_list_of_scalar_newtype_renders_list_syntax(self) -> None:
+        """list[ScalarNewType] renders as list<Name>, not Name (list)."""
+        ScalarNT = NewType("ScalarNT", str)
+        ti = analyze_type(list[ScalarNT])
+        result = format_type(_make_field(ti))
+        assert "list<" in result
+        assert "ScalarNT" in result
+        assert "(list)" not in result
+
+    def test_newtype_wrapping_list_renders_qualifier(self) -> None:
+        """NewType wrapping list[X] renders as Name (list)."""
+        ListNT = NewType("ListNT", list[str])
+        ti = analyze_type(ListNT)
+        result = format_type(_make_field(ti))
+        assert "(list)" in result
+        assert "ListNT" in result
+
+    def test_list_of_scalar_newtype_with_link(self) -> None:
+        """list[ScalarNewType] with link context renders linked list<Name>."""
+        ScalarNT = NewType("ScalarNT", str)
+        ti = analyze_type(list[ScalarNT])
+        field = _make_field(ti)
+        ctx = LinkContext(
+            page_path=PurePosixPath("places/place/place.md"),
+            registry={
+                TypeIdentity(ScalarNT, "ScalarNT"): PurePosixPath("system/scalar_nt.md")
+            },
+        )
+        result = format_type(field, ctx)
+        assert "list<" in result
+        assert "ScalarNT" in result
+        assert "system/scalar_nt.md" in result
+        assert "(list)" not in result
+
+    def test_nested_list_of_scalar_newtype_renders_nested_list_syntax(self) -> None:
+        """list[list[ScalarNewType]] renders as list<list<Name>>."""
+        ScalarNT = NewType("ScalarNT", str)
+        ti = analyze_type(list[list[ScalarNT]])
+        result = format_type(_make_field(ti))
+        assert "list<" in result
+        assert "list<`" in result or "`list<list<" in result
+        assert "ScalarNT" in result
+        assert "(list)" not in result
 
 
 class TestFormatUnderlyingUnionType:

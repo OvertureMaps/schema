@@ -122,9 +122,11 @@ The function runs a single `while True` loop that peels layers in fixed order. E
 iteration handles one wrapper:
 
 **NewType** records names at two levels. The first NewType encountered becomes
-`outermost_newtype_name` (the user-facing identity, e.g. "FeatureVersion"). Subsequent
-NewTypes update `last_newtype_name` (the innermost, used for constraint provenance and
-as the terminal `base_type`). The loop unwraps via `__supertype__` and continues.
+`outermost_newtype_name` (the user-facing identity, e.g. "FeatureVersion") and snapshots
+the current `list_depth` into `newtype_outer_list_depth` -- capturing how many list
+layers appeared before the NewType boundary. Subsequent NewTypes update
+`last_newtype_name` (the innermost, used for constraint provenance and as the terminal
+`base_type`). The loop unwraps via `__supertype__` and continues.
 
 **Annotated** collects every metadata object as a `ConstraintSource`, tagging each with
 whichever NewType was most recently entered. This is how constraint provenance survives:
@@ -168,7 +170,8 @@ member separately.
 int32)` where `int32 = NewType("int32", Annotated[int, Field(ge=0, le=2147483647)])`.
 
 Iteration 1 sees `FeatureVersion`. It's a NewType -- record
-`outermost_newtype_name="FeatureVersion"`, unwrap to `int32`, continue. Iteration 2 sees
+`outermost_newtype_name="FeatureVersion"`, snapshot `newtype_outer_list_depth=0` (no list
+layers yet), unwrap to `int32`, continue. Iteration 2 sees
 `int32`. Also a NewType -- update `last_newtype_name="int32"`, unwrap to `Annotated[int,
 Field(ge=0, ...)]`, continue. Iteration 3 sees `Annotated`. Collect
 `ConstraintSource(source="int32", constraint=<Field metadata>)`, unwrap to `int`. The
@@ -185,10 +188,10 @@ rendering.
 ### _UnwrapState
 
 The accumulator dataclass carries state across iterations: optional/dict flags,
-`list_depth` (incremented per `list[...]` layer), the constraint list, both NewType name
-slots, and the captured description. Its
-`build_type_info` method assembles the final `TypeInfo` from accumulated state, freezing
-the constraint list into a tuple.
+`list_depth` (incremented per `list[...]` layer), `newtype_outer_list_depth` (snapshotted
+from `list_depth` when the first NewType is entered), the constraint list, both NewType
+name slots, and the captured description. Its `build_type_info` method assembles the
+final `TypeInfo` from accumulated state, freezing the constraint list into a tuple.
 
 ### walk_type_info
 
@@ -506,10 +509,16 @@ provenance rather than direct field reference.
 `format_type` handles the full range of field types. Single-value Literals render as
 `"value"` in backticks. Semantic NewTypes and enums/models get markdown links via
 `_resolve_type_link`, which checks the `LinkContext` registry and falls back to plain
-code spans. Lists wrap `list_depth` times. Linked inner types use broken-backtick syntax
-(`` `list<` `` ... `` `>` ``) built as a single wrapper to avoid adjacent backticks that
-CommonMark would interpret as multi-backtick code span delimiters. Dict types render as `` `map<K, V>` ``. Qualifiers
-(optional, list, map) append in parentheses.
+code spans. For types with a linked identity (semantic NewTypes, enums, models), list
+rendering depends on where the list layers sit relative to the NewType boundary.
+`newtype_outer_list_depth > 0` means the list wraps the NewType (`list[PhoneNumber]`) and
+renders as `list<PhoneNumber>`. `is_list` with `newtype_name` set means the NewType
+wraps a list internally (`Sources` wrapping `list[SourceItem]`) and renders with a
+`(list)` qualifier. Non-NewType identities (enums, models) use `list<X>` syntax. Linked
+inner types use broken-backtick syntax (`` `list<` `` ... `` `>` ``) built as a single
+wrapper to avoid adjacent backticks that CommonMark would interpret as multi-backtick
+code span delimiters. Dict types render as `` `map<K, V>` ``. Qualifiers (optional, list,
+map) append in parentheses.
 
 Union members format independently -- each gets its own link resolution, joined with
 pipe separators escaped for table-cell safety.
