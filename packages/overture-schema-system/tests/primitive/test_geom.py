@@ -5,8 +5,8 @@ from itertools import chain, combinations
 from typing import Annotated, Any
 
 import pytest
+from _pytest.subtests import Subtests
 from pydantic import BaseModel, ValidationError
-from pytest_subtests import SubTests
 from shapely import wkt
 
 from overture.schema.system.primitive import (
@@ -275,7 +275,7 @@ TEST_GEOMETRY_TYPE_CASE_SUBSETS = tuple(
 
 @pytest.mark.parametrize("geometry_type_case_subset", TEST_GEOMETRY_TYPE_CASE_SUBSETS)
 def test_geometry_type_constraint_on_allowed_geometry(
-    geometry_type_case_subset: tuple[GeometryTypeCase, ...], subtests: SubTests
+    geometry_type_case_subset: tuple[GeometryTypeCase, ...], subtests: Subtests
 ) -> None:
     allowed_types = tuple(g.geometry_type for g in geometry_type_case_subset)
 
@@ -291,7 +291,7 @@ def test_geometry_type_constraint_on_allowed_geometry(
 
 @pytest.mark.parametrize("geometry_type_case_subset", TEST_GEOMETRY_TYPE_CASE_SUBSETS)
 def test_geometry_type_constraint_on_disallowed_geometry(
-    geometry_type_case_subset: tuple[GeometryTypeCase, ...], subtests: SubTests
+    geometry_type_case_subset: tuple[GeometryTypeCase, ...], subtests: Subtests
 ) -> None:
     allowed_types = tuple(g.geometry_type for g in geometry_type_case_subset)
 
@@ -313,7 +313,7 @@ def test_geometry_type_constraint_on_disallowed_geometry(
 
 @pytest.mark.parametrize("geometry_type_case_subset", TEST_GEOMETRY_TYPE_CASE_SUBSETS)
 def test_geometry_type_constraint_on_geometry_counterexamples(
-    geometry_type_case_subset: tuple[GeometryTypeCase, ...], subtests: SubTests
+    geometry_type_case_subset: tuple[GeometryTypeCase, ...], subtests: Subtests
 ) -> None:
     allowed_types = tuple(g.geometry_type for g in geometry_type_case_subset)
 
