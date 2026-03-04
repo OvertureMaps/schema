@@ -976,7 +976,8 @@ class TestFormatExampleValue:
 
         long = "x" * 150
         result = _format_example_value(long)
-        assert result == f"`{'x' * 100}...`"
+        assert result == f"`{'x' * 97}...`"
+        assert len(result) == 100 + 2  # 100 content + 2 backticks
 
     def test_integer_has_backticks(self) -> None:
         """Integers render with backticks."""
@@ -1004,9 +1005,8 @@ class TestFormatExampleValue:
         result = _format_example_value(long_list)
         assert result.startswith("`[0, 1, 2,")
         assert result.endswith("...`")
-        # Content between backticks is at most 103 chars (100 + "...")
         inner = result[1:-1]  # strip backticks
-        assert len(inner) <= 103
+        assert len(inner) <= 100
 
     def test_long_dict_truncated(self) -> None:
         """Dicts longer than truncation limit are truncated with ellipsis."""
@@ -1015,7 +1015,7 @@ class TestFormatExampleValue:
         assert result.startswith("`{key_0:")
         assert result.endswith("...`")
         inner = result[1:-1]
-        assert len(inner) <= 103
+        assert len(inner) <= 100
 
     def test_pipe_character_not_escaped_in_backticks(self) -> None:
         """Pipe characters need no escaping inside backticks."""

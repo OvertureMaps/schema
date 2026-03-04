@@ -156,7 +156,7 @@ def _sanitize_for_table_cell(text: str) -> str:
 def _truncate(text: str) -> str:
     """Truncate text to ``_EXAMPLE_TRUNCATION_LIMIT`` chars, adding ellipsis."""
     if len(text) > _EXAMPLE_TRUNCATION_LIMIT:
-        return text[:_EXAMPLE_TRUNCATION_LIMIT] + "..."
+        return text[: _EXAMPLE_TRUNCATION_LIMIT - 3] + "..."
     return text
 
 
