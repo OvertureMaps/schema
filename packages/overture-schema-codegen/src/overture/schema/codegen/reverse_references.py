@@ -159,10 +159,15 @@ def compute_reverse_references(
         elif isinstance(supp_spec, ModelSpec):
             collect_from_model_spec(supp_spec, tid)
 
-    # Sort sets into lists
+    # Sort into deterministic lists. (kind, name) handles the common case;
+    # module breaks ties when two referrers share the same display name
+    # (e.g. identically-named types from different themes/modules).
     result: dict[TypeIdentity, list[UsedByEntry]] = {}
     for target, ref_set in references.items():
-        entries = sorted(ref_set, key=lambda e: (e.kind.value, e.identity.name))
+        entries = sorted(
+            ref_set,
+            key=lambda e: (e.kind.value, e.identity.name, e.identity.module),
+        )
         result[target] = entries
 
     return result

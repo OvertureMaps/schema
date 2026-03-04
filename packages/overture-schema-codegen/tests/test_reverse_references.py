@@ -1,5 +1,6 @@
 """Tests for reverse reference computation."""
 
+from enum import Enum as PyEnum
 from typing import NewType
 
 import pytest
@@ -14,6 +15,7 @@ from codegen_test_support import (
     lookup_by_name,
     make_union_spec,
 )
+from overture.schema.codegen.enum_extraction import extract_enum
 from overture.schema.codegen.model_extraction import expand_model_tree, extract_model
 from overture.schema.codegen.newtype_extraction import extract_newtype
 from overture.schema.codegen.reverse_references import (
@@ -24,6 +26,7 @@ from overture.schema.codegen.specs import PydanticTypeSpec, TypeIdentity
 from overture.schema.codegen.type_collection import collect_all_supplementary_types
 from overture.schema.system.ref import Id
 from overture.schema.system.string import NoWhitespaceString
+from pydantic import BaseModel
 
 
 @pytest.mark.parametrize(
@@ -148,6 +151,41 @@ def test_pydantic_type_has_used_by_from_feature() -> None:
 
     entries = lookup_by_name(result, "HttpUrl")
     assert any(e.identity.name == "FeatureWithUrl" for e in entries)
+
+
+def test_sort_tiebreaker_uses_module_for_same_name_referrers() -> None:
+    """Referrers with the same name sort deterministically by module."""
+
+    # Two model classes named "Feature" from different modules.
+    class SharedEnum(PyEnum):
+        A = "a"
+
+    class FeatureAlpha(BaseModel):
+        value: SharedEnum
+
+    class FeatureBeta(BaseModel):
+        value: SharedEnum
+
+    FeatureAlpha.__name__ = "Feature"
+    FeatureAlpha.__module__ = "alpha.models"
+    FeatureBeta.__name__ = "Feature"
+    FeatureBeta.__module__ = "beta.models"
+
+    spec_a = extract_model(FeatureAlpha, entry_point="Feature")
+    spec_b = extract_model(FeatureBeta, entry_point="Feature")
+    expand_model_tree(spec_a)
+    expand_model_tree(spec_b)
+
+    enum_id = TypeIdentity(SharedEnum, "SharedEnum")
+    all_specs = {enum_id: extract_enum(SharedEnum)}
+
+    result = compute_reverse_references([spec_a, spec_b], all_specs)
+
+    entries = lookup_by_name(result, "SharedEnum")
+    assert len(entries) == 2
+    # Both named "Feature" — module provides the tiebreaker
+    modules = [e.identity.module for e in entries]
+    assert modules == ["alpha.models", "beta.models"]
 
 
 def test_sorting_models_before_newtypes() -> None:
