@@ -57,6 +57,7 @@ class TypeInfo:
     kind: TypeKind
     is_optional: bool = False
     list_depth: int = 0
+    newtype_outer_list_depth: int = 0
     is_dict: bool = False
     dict_key_type: TypeInfo | None = None
     dict_value_type: TypeInfo | None = None
@@ -113,10 +114,13 @@ class _UnwrapState:
       as the resolved ``base_type`` for the terminal type.
     - ``last_newtype_ref``: the most recently entered NewType callable,
       used as constraint provenance (which NewType contributed each constraint).
+    - ``newtype_outer_list_depth``: list layers accumulated before entering
+      the outermost NewType boundary.
     """
 
     is_optional: bool = False
     list_depth: int = 0
+    newtype_outer_list_depth: int = 0
     is_dict: bool = False
     dict_key_type: TypeInfo | None = None
     dict_value_type: TypeInfo | None = None
@@ -146,6 +150,7 @@ class _UnwrapState:
             kind=kind,
             is_optional=self.is_optional,
             list_depth=self.list_depth,
+            newtype_outer_list_depth=self.newtype_outer_list_depth,
             is_dict=self.is_dict,
             dict_key_type=self.dict_key_type,
             dict_value_type=self.dict_value_type,
@@ -176,6 +181,7 @@ def analyze_type(annotation: object) -> TypeInfo:
             state.last_newtype_name = name
             state.last_newtype_ref = annotation
             if state.outermost_newtype_name is None:
+                state.newtype_outer_list_depth = state.list_depth
                 state.outermost_newtype_name = name
                 state.outermost_newtype_ref = annotation
             annotation = annotation.__supertype__  # type: ignore[attr-defined]

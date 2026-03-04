@@ -143,11 +143,21 @@ def format_type(
             display = f"`{format_dict_type(ti)}`"
     elif identity:
         display = resolve_type_link(identity, ctx)
-        if ti.is_list and identity.name == ti.newtype_name:
+        # List layers outside a NewType wrap with list<> syntax (e.g., list[PhoneNumber]
+        # renders as list<PhoneNumber>). List layers inside a NewType use a (list)
+        # qualifier instead (e.g., Sources wrapping list[SourceItem] renders as
+        # Sources (list)), since the list-ness is an implementation detail of the type.
+        if ti.newtype_outer_list_depth > 0:
+            assert ti.is_list  # outer list layers are a subset of total list layers
+            display = _wrap_list_n(display, ti.newtype_outer_list_depth)
+        elif ti.is_list and ti.newtype_name is not None:  # list is inside the NewType
             qualifiers.append("list")
         elif ti.is_list:
             display = _wrap_list_n(display, ti.list_depth)
     else:
+        # Fallback: types without a linked identity. Registered primitives (int32,
+        # Geometry) and Pydantic types (HttpUrl) may still link to aggregate pages
+        # via the placement registry. Unregistered primitives render as plain code.
         base = resolve_type_name(ti, "markdown")
         link = _try_primitive_link(ti, base, ctx)
         if link and ti.is_list:
