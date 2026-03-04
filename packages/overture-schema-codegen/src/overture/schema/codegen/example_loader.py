@@ -139,7 +139,7 @@ def validate_example(
     return denulled
 
 
-_DEFAULT_SKIP_KEYS: frozenset[str] = frozenset({"bbox"})
+_DEFAULT_SKIP_KEYS: frozenset[str] = frozenset()
 
 
 def _flatten_value(prefix: str, value: object) -> list[tuple[str, Any]]:
