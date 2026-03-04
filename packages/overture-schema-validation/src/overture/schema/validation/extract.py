@@ -217,7 +217,7 @@ def _extract_field_rules(
         if len(lit_args) == 1:
             rules.append(
                 _rule(
-                    dataset, column, "literal", CheckType.EQ,
+                    dataset, column, CheckType.EQ.value, CheckType.EQ,
                     value=lit_args[0], list_columns=lc_element,
                 )
             )
@@ -577,24 +577,16 @@ def _numeric_rules(
         )
     else:
         if ge is not None:
-            if ge == 0:
-                suffix = "non_negative"
-            else:
-                suffix = "lower"
-            rules.append(_rule(dataset, column, suffix, CheckType.GTE, value=ge,
+            rules.append(_rule(dataset, column, CheckType.GTE.value, CheckType.GTE, value=ge,
                                list_columns=list_columns))
         if le is not None:
-            rules.append(_rule(dataset, column, "upper", CheckType.LTE, value=le,
+            rules.append(_rule(dataset, column, CheckType.LTE.value, CheckType.LTE, value=le,
                                list_columns=list_columns))
         if gt is not None:
-            if gt == 0:
-                suffix = "positive"
-            else:
-                suffix = "lower"
-            rules.append(_rule(dataset, column, suffix, CheckType.GT, value=gt,
+            rules.append(_rule(dataset, column, CheckType.GT.value, CheckType.GT, value=gt,
                                list_columns=list_columns))
         if lt is not None:
-            rules.append(_rule(dataset, column, "upper", CheckType.LT, value=lt,
+            rules.append(_rule(dataset, column, CheckType.LT.value, CheckType.LT, value=lt,
                                list_columns=list_columns))
 
     return rules

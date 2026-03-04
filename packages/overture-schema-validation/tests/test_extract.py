@@ -682,7 +682,7 @@ def test_extract_all_each_dataset_has_rules() -> None:
 # COLUMN_EQ. These are valid IR checks but only created via manual IR/YAML.
 
 
-def _expected(model, rules):
+def _expected(model, rules) -> DatasetSpec:
     """Build expected DatasetSpec for a model extracted with dataset_name='test'."""
     _ID = Rule(
         name="test.id.not_null",
@@ -730,7 +730,7 @@ def test_extract_gt() -> None:
         M,
         [
             Rule(
-                name="test.col.lower",
+                name="test.col.gt",
                 column="col",
                 check=CheckType.GT,
                 value=4,
@@ -750,7 +750,7 @@ def test_extract_gte() -> None:
         M,
         [
             Rule(
-                name="test.col.lower",
+                name="test.col.gte",
                 column="col",
                 check=CheckType.GTE,
                 value=5,
@@ -770,7 +770,7 @@ def test_extract_lt() -> None:
         M,
         [
             Rule(
-                name="test.col.upper",
+                name="test.col.lt",
                 column="col",
                 check=CheckType.LT,
                 value=10.0,
@@ -790,7 +790,7 @@ def test_extract_lte() -> None:
         M,
         [
             Rule(
-                name="test.col.upper",
+                name="test.col.lte",
                 column="col",
                 check=CheckType.LTE,
                 value=10,
@@ -810,7 +810,7 @@ def test_extract_eq() -> None:
         M,
         [
             Rule(
-                name="test.col.literal",
+                name="test.col.eq",
                 column="col",
                 check=CheckType.EQ,
                 value="x",
