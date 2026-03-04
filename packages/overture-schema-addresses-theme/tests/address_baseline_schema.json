@@ -7,7 +7,7 @@
         "value": {
           "description": "String with no leading/trailing whitespace",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Value",
           "type": "string"
         }
@@ -45,7 +45,7 @@
         },
         "license": {
           "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "License",
           "type": "string"
         },
@@ -160,21 +160,21 @@
         "number": {
           "description": "The house number.\n\nThis field does not necessarily contain an integer or even a number. Values such as\n\"74B\", \"189 1/2\", and \"208.5\", where the non-integer or non-number part is part of\nthe house number, not a unit number, are in common use.",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Number",
           "type": "string"
         },
         "postal_city": {
           "description": "The postal authority designated city name, if applicable.\n\nIn some countries or regions, a mailing address may need to specify a different city\nname than the city that actually contains the address coordinates. This optional\nfield can be used to specify the alternate city name to use.\n\nFor example:\n\n- The postal city for the US address *716 East County Road, Winchester, Indiana*\n  is Ridgeville.\n- The postal city for the Slovenian address *Tomaj 71, 6221 Tomaj, Slovenia* is\n  Dutovlje.",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Postal City",
           "type": "string"
         },
         "postcode": {
           "description": "The postal code.",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Postcode",
           "type": "string"
         },
@@ -191,7 +191,7 @@
         "street": {
           "description": "The street name.\n\nThe street name can include a type (*e.g.*, \"Street\" or \"St\", \"Boulevard\" or \"Blvd\",\n*etc.*) and a directional (*e.g.*, \"NW\" or \"Northwest\", \"S\" or \"Sud\"). Both type and\ndirectional, if present, may be either a prefix or a suffix to the primary name.\nThey may either be fully spelled-out or abbreviated.",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Street",
           "type": "string"
         },
@@ -208,7 +208,7 @@
         "unit": {
           "description": "The secondary address unit designator.\n\nIn the case where the primary street address is divided into secondary units, which\nmay be apartments, floors, or even buildings if the primary street address is a\ncampus, this field names the specific secondary unit being addressed.",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Unit",
           "type": "string"
         },
