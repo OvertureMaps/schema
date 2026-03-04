@@ -210,7 +210,7 @@ def _annotate_constraint_notes(
     """Append italic constraint descriptions to a field's description cell."""
     formatted = "<br/>".join(f"*{note}*" for note in notes)
     if row["description"]:
-        row["description"] = f"{row['description']}<br/>{formatted}"
+        row["description"] = f"{row['description']}<br/><br/>{formatted}"
     else:
         row["description"] = formatted
 
