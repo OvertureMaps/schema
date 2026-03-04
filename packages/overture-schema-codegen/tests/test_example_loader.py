@@ -50,21 +50,20 @@ class TestFlattenExample:
             ("sources[0].record_id", "w123"),
         ]
 
-    def test_skip_bbox_at_top_level(self) -> None:
-        """Skip bbox field at top level."""
+    def test_bbox_flattened_at_top_level(self) -> None:
+        """Bbox fields are flattened like any other nested dict."""
         raw = {
             "id": "123",
             "bbox": {"xmin": -176.6, "xmax": -176.64},
             "version": 1,
         }
         result = flatten_example(raw)
-        assert result == [("id", "123"), ("version", 1)]
-
-    def test_nested_bbox_not_skipped(self) -> None:
-        """Nested bbox fields are not skipped."""
-        raw = {"outer": {"bbox": {"xmin": 1.0}}}
-        result = flatten_example(raw)
-        assert result == [("outer.bbox.xmin", 1.0)]
+        assert result == [
+            ("id", "123"),
+            ("bbox.xmin", -176.6),
+            ("bbox.xmax", -176.64),
+            ("version", 1),
+        ]
 
     def test_plain_list_kept_as_value(self) -> None:
         """Plain lists (non-dict items) are kept as values."""
@@ -390,7 +389,7 @@ class TestLoadExamples:
             names: dict[str, object]
             sources: list[dict[str, object]]
 
-        field_names = ["id", "names", "sources", "version"]
+        field_names = ["id", "bbox", "names", "sources", "version"]
         result = load_examples(MockModel, "Building", field_names)
 
         assert len(result) == 1
@@ -399,6 +398,8 @@ class TestLoadExamples:
 
         assert record.rows == [
             ("id", "123"),
+            ("bbox.xmin", 1.0),
+            ("bbox.xmax", 2.0),
             ("names.primary", "Tower"),
             ("sources[0].dataset", "OSM"),
             ("sources[0].record_id", "w456"),
