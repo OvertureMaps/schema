@@ -58,6 +58,11 @@ class TypeIdentity:
     def __hash__(self) -> int:
         return id(self.obj)
 
+    @property
+    def module(self) -> str:
+        """Source module of the underlying object, or empty string."""
+        return getattr(self.obj, "__module__", "")
+
 
 class _SourceTypeIdentityMixin:
     """Mixin providing ``identity`` from ``source_type`` and ``name``.
