@@ -323,26 +323,22 @@ def compile(spec: DatasetSpec, parquet_path: str) -> str:
     """Compile a DatasetSpec into a self-contained DuckDB SQL query.
 
     Returns SQL that finds all rule violations. No duckdb dependency needed.
+    The query uses a ``$1`` parameter for the parquet path.
     """
     path = _escape_sql(parquet_path)
 
+    cte = (
+        f"WITH src AS (\n"
+        f"    SELECT * FROM read_parquet($1)\n"
+        f")"
+    )
+
     if not spec.rules:
-        cte = (
-            f"WITH src AS MATERIALIZED (\n"
-            f"    SELECT * FROM read_parquet('{path}')\n"
-            f")"
-        )
         return (
             f"{cte}\n"
             f"SELECT NULL AS id, NULL AS rule_name, "
             f"NULL AS severity WHERE FALSE"
         )
-
-    cte = (
-        f"WITH src AS MATERIALIZED (\n"
-        f"    SELECT * FROM read_parquet('{path}')\n"
-        f")"
-    )
 
     # Build per-rule boolean columns and metadata VALUES
     id_col = _quote_col(spec.id_column)
@@ -409,12 +405,11 @@ def validate(
 
     # Execute the compiled query
     sql = compile(spec, parquet_path)
-    violations_raw = conn.execute(sql).fetchall()
+    violations_raw = conn.execute(sql, [parquet_path]).fetchall()
 
     # Get total row count
-    path = _escape_sql(parquet_path)
     total_rows: int = conn.execute(
-        f"SELECT COUNT(*) FROM read_parquet('{path}')"
+        "SELECT COUNT(*) FROM read_parquet($1)", [parquet_path]
     ).fetchone()[0]
 
     # Group violations by rule_name, preserving order and deduplicating IDs

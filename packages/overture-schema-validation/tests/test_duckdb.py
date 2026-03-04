@@ -56,8 +56,8 @@ def _rule(
 
 def test_compile_cte_structure():
     sql = compile(_spec([_rule(CheckType.NOT_NULL)]), "/data/test.parquet")
-    assert "WITH src AS MATERIALIZED" in sql
-    assert "read_parquet('/data/test.parquet')" in sql
+    assert "WITH src AS (" in sql
+    assert "read_parquet($1)" in sql
 
 
 def test_compile_empty_rules():
@@ -80,9 +80,10 @@ def test_compile_unpivot_structure():
     assert "_r1" in sql
 
 
-def test_compile_parquet_path_escaping():
+def test_compile_parquet_path_is_parameterized():
     sql = compile(_spec([_rule(CheckType.NOT_NULL)]), "/data/it's a file.parquet")
-    assert "it''s a file.parquet" in sql
+    assert "read_parquet($1)" in sql
+    assert "it's" not in sql
 
 
 def test_compile_dot_notation_column():
