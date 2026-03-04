@@ -375,6 +375,23 @@ class TestJsonSchemaGeneration:
         # Check descriptions
         assert "IETF BCP-47 language tag" in props["language"].get("description", "")
 
+    def test_stripped_constraint_json_schema_pattern(self) -> None:
+        """StrippedConstraint's JSON schema pattern accepts empty string
+        and rejects leading/trailing whitespace."""
+        import re
+
+        class TestModel(BaseModel):
+            text: Annotated[str, StrippedConstraint()]
+
+        schema = TestModel.model_json_schema()
+        pattern = re.compile(schema["properties"]["text"]["pattern"])
+
+        assert pattern.match("") is not None
+        assert pattern.match("a") is not None
+        assert pattern.match("a b c") is not None
+        assert pattern.match(" leading") is None
+        assert pattern.match("trailing ") is None
+
 
 class TestErrorHandling:
     """Test error handling and validation context."""
