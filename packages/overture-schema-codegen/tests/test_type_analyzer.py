@@ -350,7 +350,7 @@ class TestNewtypeWrappingList:
         assert result.is_list is True
 
     def test_newtype_wrapping_list_of_models(self) -> None:
-        """list[NewType wrapping list[Model]] records depth 2."""
+        """list[NewType wrapping list[Model]] records depth 2, outer depth 1."""
 
         class _Item(BaseModel):
             name: str
@@ -359,9 +359,55 @@ class TestNewtypeWrappingList:
         result = analyze_type(list[Inner])
 
         assert result.list_depth == 2
+        assert result.newtype_outer_list_depth == 1
         assert result.base_type == "Inner"
         assert result.kind == TypeKind.MODEL
         assert result.source_type is _Item
+
+
+class TestNewtypeOuterListDepth:
+    """Tests for newtype_outer_list_depth tracking."""
+
+    def test_list_of_scalar_newtype_has_outer_depth(self) -> None:
+        """list[ScalarNewType] records the list layer as outside the NewType."""
+        ScalarNT = NewType("ScalarNT", str)
+        result = analyze_type(list[ScalarNT])
+
+        assert result.newtype_outer_list_depth == 1
+        assert result.list_depth == 1
+
+    def test_newtype_wrapping_list_has_zero_outer_depth(self) -> None:
+        """NewType wrapping list[X] records no list layers outside the NewType."""
+        ListNT = NewType("ListNT", Annotated[list[str], Field(min_length=1)])
+        result = analyze_type(ListNT)
+
+        assert result.newtype_outer_list_depth == 0
+        assert result.list_depth == 1
+
+    @pytest.mark.parametrize(
+        "annotation",
+        [
+            list[str],  # list without NewType
+            int32,  # scalar NewType
+            str,  # plain type
+        ],
+        ids=["plain_list", "scalar_newtype", "plain_type"],
+    )
+    def test_zero_outer_depth_without_newtype_boundary(
+        self, annotation: object
+    ) -> None:
+        """Types without a NewType inside a list have newtype_outer_list_depth=0."""
+        result = analyze_type(annotation)
+
+        assert result.newtype_outer_list_depth == 0
+
+    def test_nested_list_of_scalar_newtype_has_outer_depth_2(self) -> None:
+        """list[list[ScalarNewType]] records two outer list layers."""
+        ScalarNT = NewType("ScalarNT", str)
+        result = analyze_type(list[list[ScalarNT]])
+
+        assert result.newtype_outer_list_depth == 2
+        assert result.list_depth == 2
 
 
 class TestConstraintProvenance:

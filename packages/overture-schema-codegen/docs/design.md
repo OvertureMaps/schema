@@ -125,9 +125,10 @@ layers in a fixed order, accumulating information into an `_UnwrapState`:
 
 The result is `TypeInfo` -- a flat dataclass that fully describes the unwrapped type:
 classification (`TypeKind`), optional/dict flags, `list_depth` (count of `list[...]`
-layers), accumulated constraints with provenance, NewType names, source type, literal
-values, and (for UNION kind) the tuple of concrete `BaseModel` member types. Dict types carry recursively analyzed `TypeInfo`
-for their key and value types.
+layers), `newtype_outer_list_depth` (list layers outside the outermost NewType boundary),
+accumulated constraints with provenance, NewType names, source type, literal values, and
+(for UNION kind) the tuple of concrete `BaseModel` member types. Dict types carry
+recursively analyzed `TypeInfo` for their key and value types.
 
 Multi-depth `Annotated` layers (common in practice, since NewTypes wrap `Annotated`
 types that wrap further NewTypes) are handled naturally by the loop -- each iteration
