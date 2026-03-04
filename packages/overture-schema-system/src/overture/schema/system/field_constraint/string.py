@@ -223,7 +223,7 @@ class StrippedConstraint(StringConstraint):
         self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
     ) -> dict[str, Any]:
         json_schema = handler(core_schema)
-        json_schema["pattern"] = r"^(\S.*)?\S$"
+        json_schema["pattern"] = r"^(\S(.*\S)?)?$"
         json_schema["description"] = "String with no leading/trailing whitespace"
         return json_schema
 

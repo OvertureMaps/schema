@@ -58,7 +58,7 @@ def test_feature_json_schema() -> None:
                     "property": {"type": "string"},
                     "dataset": {"type": "string"},
                     "license": {
-                        "pattern": "^(\\S.*)?\\S$",
+                        "pattern": "^(\\S(.*\\S)?)?$",
                         "type": "string",
                     },
                     "record_id": {"type": "string"},
