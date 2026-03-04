@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from typing import Annotated, get_args, get_origin
 
 from .enum_extraction import extract_enum
-from .model_extraction import extract_model
+from .model_extraction import expand_model_tree, extract_model
 from .newtype_extraction import extract_newtype
 from .pydantic_extraction import extract_pydantic_type
 from .specs import (
@@ -93,6 +93,7 @@ def collect_all_supplementary_types(
                 # by the feature_objs guard in _collect_from_model.
                 for member_cls in node.union_members:
                     member_spec = extract_model(member_cls)
+                    expand_model_tree(member_spec)
                     _collect_from_model(member_spec)
 
             if node.kind == TypeKind.ENUM and node.source_type is not None:

@@ -5,6 +5,7 @@ from codegen_test_support import (
     FeatureWithSources,
     FeatureWithUrl,
     Instrument,
+    TestSegmentWithSubModel,
     has_name,
     lookup_by_name,
 )
@@ -83,6 +84,21 @@ class TestCollectAllSupplementarySpecs:
             spec for tid, spec in result.items() if tid.name == "Address"
         ]
         assert len(address_entries) == 2
+
+
+class TestCollectUnionMemberSubModels:
+    """Tests for union members with nested sub-model fields."""
+
+    def test_union_member_with_sub_model_collects_sub_model(self) -> None:
+        """Sub-models inside union members are collected without RuntimeError."""
+
+        class FeatureWithUnionSubModel(BaseModel):
+            segment: TestSegmentWithSubModel
+
+        result = _expanded_supplementary(FeatureWithUnionSubModel)
+
+        assert has_name(result, "ContactInfo")
+        assert isinstance(lookup_by_name(result, "ContactInfo"), ModelSpec)
 
 
 class TestCollectPydanticTypes:
