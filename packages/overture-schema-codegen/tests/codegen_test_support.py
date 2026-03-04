@@ -237,6 +237,26 @@ TestSegment = Annotated[
 ]
 
 
+class ContactInfo(BaseModel):
+    """Contact information for a venue."""
+
+    email: str = Field(description="Email address")
+    phone: str | None = Field(None, description="Phone number")
+
+
+class VenueWithContact(SegmentBase):
+    """A segment variant with a nested sub-model field."""
+
+    subtype: Literal["venue"]
+    contact: ContactInfo
+
+
+TestSegmentWithSubModel = Annotated[
+    RoadSegment | VenueWithContact,
+    Field(description="Test segment union with sub-model member"),
+]
+
+
 def make_union_spec(
     name: str = "TestUnion",
     *,
