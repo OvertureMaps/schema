@@ -996,7 +996,7 @@ class TestFormatExampleValue:
         """Lists render as backtick-wrapped comma-separated values."""
 
         assert _format_example_value([1, 2, 3]) == "`[1, 2, 3]`"
-        assert _format_example_value(["a", "b"]) == "`[a, b]`"
+        assert _format_example_value(["a", "b"]) == "`['a', 'b']`"
         assert _format_example_value([]) == "`[]`"
 
     def test_long_list_truncated(self) -> None:

@@ -178,7 +178,7 @@ def _format_example_value(value: object) -> str:
         return f"`{_truncate(value)}`"
 
     if isinstance(value, list):
-        items = ", ".join(str(item) for item in value)
+        items = ", ".join(repr(item) for item in value)
         return f"`{_truncate(f'[{items}]')}`"
 
     if isinstance(value, dict):
