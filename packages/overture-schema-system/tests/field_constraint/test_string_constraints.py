@@ -425,7 +425,7 @@ class TestErrorHandling:
         assert error.error_count() >= 1
 
     def test_snake_case_constraint_valid(self) -> None:
-        """Test CategoryPatternConstraint with valid snake_case patterns."""
+        """Test SnakeCaseConstraint with valid snake_case patterns."""
 
         class TestModel(BaseModel):
             category: Annotated[str, SnakeCaseConstraint()]
@@ -443,7 +443,7 @@ class TestErrorHandling:
             assert model.category == cat
 
     def test_snake_case_constraint_invalid(self) -> None:
-        """Test CategoryPatternConstraint with invalid category patterns."""
+        """Test SnakeCaseConstraint with invalid category patterns."""
 
         class TestModel(BaseModel):
             category: Annotated[str, SnakeCaseConstraint()]
@@ -459,3 +459,59 @@ class TestErrorHandling:
             with pytest.raises(ValidationError) as exc_info:
                 TestModel(category=cat)
             assert "Invalid category format" in str(exc_info.value)
+
+
+class TestPatternConstraintHierarchy:
+    """Test that pattern-based constraints extend PatternConstraint."""
+
+    @pytest.mark.parametrize(
+        "constraint_cls",
+        [
+            CountryCodeAlpha2Constraint,
+            HexColorConstraint,
+            LanguageTagConstraint,
+            NoWhitespaceConstraint,
+            SnakeCaseConstraint,
+            PhoneNumberConstraint,
+            RegionCodeConstraint,
+            WikidataIdConstraint,
+        ],
+    )
+    def test_pattern_constraints_are_pattern_constraint_instances(
+        self, constraint_cls: type
+    ) -> None:
+        assert isinstance(constraint_cls(), PatternConstraint)
+
+    def test_pattern_constraint_with_description_kwargs(self) -> None:
+        """Bare PatternConstraint with description/length kwargs emits correct JSON schema."""
+        constraint = PatternConstraint(
+            r"^[A-Z]{2}$",
+            "Must be 2 uppercase letters",
+            description="Two letter code",
+            min_length=2,
+            max_length=2,
+        )
+
+        class TestModel(BaseModel):
+            code: Annotated[str, constraint]
+
+        schema = TestModel.model_json_schema()
+        props = schema["properties"]["code"]
+        assert props["pattern"] == "^[A-Z]{2}$"
+        assert props["description"] == "Two letter code"
+        assert props["minLength"] == 2
+        assert props["maxLength"] == 2
+
+    def test_pattern_constraint_without_optional_kwargs(self) -> None:
+        """Bare PatternConstraint without optional kwargs omits them from JSON schema."""
+        constraint = PatternConstraint(r"^[A-Z]+$", "Must be uppercase")
+
+        class TestModel(BaseModel):
+            code: Annotated[str, constraint]
+
+        schema = TestModel.model_json_schema()
+        props = schema["properties"]["code"]
+        assert props["pattern"] == "^[A-Z]+$"
+        assert "description" not in props
+        assert "minLength" not in props
+        assert "maxLength" not in props
