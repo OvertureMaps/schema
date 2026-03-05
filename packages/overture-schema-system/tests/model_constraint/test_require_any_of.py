@@ -53,7 +53,7 @@ def test_error_no_non_null_value(kwargs: dict[str, object]) -> None:
 
     with pytest.raises(
         ValidationError,
-        match="at least one of these fields must have a non-null value, but none do: foo, bar",
+        match="at least one of these fields must be set to a value other than None, but none are: foo, bar",
     ):
         TestModel(**kwargs)
 

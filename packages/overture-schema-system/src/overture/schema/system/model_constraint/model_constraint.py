@@ -335,7 +335,7 @@ class OptionalFieldGroupConstraint(FieldGroupConstraint):
         super().__init__(name, field_names)
 
     @staticmethod
-    def _field_has_non_null_value(model_instance: BaseModel, field_name: str) -> bool:
+    def _field_has_non_none_value(model_instance: BaseModel, field_name: str) -> bool:
         return (
             field_name in model_instance.model_fields_set
             and getattr(model_instance, field_name) is not None

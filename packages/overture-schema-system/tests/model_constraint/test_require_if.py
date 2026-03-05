@@ -79,7 +79,7 @@ def test_error_invalid_model_instance(constraint: RequireIfConstraint) -> None:
     constraint.validate_class(TestModel)
     with pytest.raises(
         ValueError,
-        match="at least one field is missing a non-null value when it should have one:",
+        match="at least one field is not set to a value other than None:",
     ):
         constraint.validate_instance(model_instance)
 
@@ -127,7 +127,7 @@ def test_error_fields_explicitly_none_when_condition_true() -> None:
     constraint = RequireIfConstraint(["foo", "bar"], FieldEqCondition("baz", 42))
     with pytest.raises(
         ValueError,
-        match="at least one field is missing a non-null value when it should have one",
+        match="at least one field is not set to a value other than None",
     ):
         constraint.validate_instance(TestModel(foo=None, bar=None, baz=42))
 

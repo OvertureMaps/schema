@@ -78,7 +78,8 @@ def test_error_invalid_model_instance(constraint: ForbidIfConstraint) -> None:
 
     constraint.validate_class(TestModel)
     with pytest.raises(
-        ValueError, match="at least one field has a non-null value when it should not"
+        ValueError,
+        match="at least one field is set to a value other than None when it must not be",
     ):
         constraint.validate_instance(model_instance)
 
@@ -115,7 +116,6 @@ def test_valid_model_instance_fields_explicitly_none_when_condition_true() -> No
         baz: int
 
     constraint = ForbidIfConstraint(["foo", "bar"], FieldEqCondition("baz", 42))
-    # foo and bar are explicitly set to None, but None doesn't count as a value
     constraint.validate_instance(TestModel(foo=None, bar=None, baz=42))
 
 
