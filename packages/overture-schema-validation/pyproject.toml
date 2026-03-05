@@ -29,4 +29,4 @@ path = "src/overture/schema/validation/__about__.py"
 packages = ["src/overture"]
 
 [project.scripts]
-overture-schema-rules = "overture.schema.validation.cli:cli"
+overture-schema-validation = "overture.schema.validation.cli:cli"

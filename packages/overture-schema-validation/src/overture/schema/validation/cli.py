@@ -1,4 +1,4 @@
-"""CLI entry point for extracting validation rules from Overture schema models."""
+"""CLI entry point for Overture schema validation tools."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from overture.schema.core.discovery import ModelKey, discover_models
 
 from .extract import extract
-from .ir import DatasetSpec, ValidationSpec
+from .ir import CheckType, DatasetSpec, ValidationSpec
 
 
 def _filter_models(
@@ -51,7 +51,12 @@ def _dump_yaml(data: dict) -> str:
     return yaml.dump(data, default_flow_style=False, sort_keys=False)
 
 
-@click.command("overture-schema-rules")
+@click.group("overture-schema-validation")
+def cli() -> None:
+    """Overture schema validation tools."""
+
+
+@cli.command("extract")
 @click.option("--namespace", default=None, help="Namespace filter (e.g. overture, annex).")
 @click.option("--theme", "themes", multiple=True, help="Theme filter (repeatable).")
 @click.option("--type", "types", multiple=True, help="Type filter (repeatable).")
@@ -63,7 +68,7 @@ def _dump_yaml(data: dict) -> str:
     help="Write one YAML file per dataset to this directory instead of stdout.",
 )
 @click.option("--list", "-l", "list_types", is_flag=True, help="List available types and exit.")
-def cli(
+def extract_cmd(
     namespace: str | None,
     themes: tuple[str, ...],
     types: tuple[str, ...],
@@ -105,3 +110,77 @@ def cli(
             _dump_yaml(spec.model_dump(mode="json", exclude_none=True)),
             nl=False,
         )
+
+
+@cli.command("validate")
+@click.option("--type", "type_name", required=True, help="Feature type to validate.")
+@click.option("--theme", default=None, help="Theme filter.")
+@click.option(
+    "--input",
+    "-i",
+    "input_path",
+    required=True,
+    help="Input parquet path (supports glob).",
+)
+@click.option(
+    "--output",
+    "-o",
+    "output_path",
+    required=True,
+    type=click.Path(path_type=Path),
+    help="Output parquet path for violations.",
+)
+def validate_cmd(
+    type_name: str,
+    theme: str | None,
+    input_path: str,
+    output_path: Path,
+) -> None:
+    """Validate parquet data against schema rules."""
+    try:
+        import duckdb
+    except ImportError:
+        click.echo(
+            "duckdb is required for the validate command. "
+            "Install it with: pip install overture-schema-validation[duckdb]",
+            err=True,
+        )
+        raise SystemExit(1)
+
+    from .duckdb import compile
+
+    themes = (theme,) if theme else ()
+    models = _filter_models(namespace=None, themes=themes, types=(type_name,))
+
+    if len(models) == 0:
+        click.echo(f"No model matched type '{type_name}'.", err=True)
+        raise SystemExit(1)
+    if len(models) > 1:
+        matched = ", ".join(
+            f"{k.namespace}:{k.theme}:{k.type}" for k in models
+        )
+        click.echo(
+            f"Multiple models matched type '{type_name}': {matched}. "
+            "Use --theme to disambiguate.",
+            err=True,
+        )
+        raise SystemExit(1)
+
+    model_class = next(iter(models.values()))
+    spec = extract(model_class)
+    sql = compile(spec, input_path)
+
+    conn = duckdb.connect()
+    if any(r.check == CheckType.GEOMETRY_TYPE for r in spec.rules):
+        conn.execute("INSTALL spatial; LOAD spatial;")
+
+    conn.execute(
+        f"COPY ({sql}) TO '{output_path}' (FORMAT PARQUET)",
+        [input_path],
+    )
+
+    count = conn.execute(
+        f"SELECT count(*) FROM '{output_path}'"
+    ).fetchone()[0]
+
+    click.echo(f"{count} violation(s) written to {output_path}", err=True)
