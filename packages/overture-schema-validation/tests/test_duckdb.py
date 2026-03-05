@@ -64,7 +64,7 @@ def test_compile_empty_rules():
     sql = compile(_spec([]), "/data/test.parquet")
     assert "WHERE FALSE" in sql
     assert "NULL AS id" in sql
-    assert "NULL AS rule_name" in sql
+    assert "NULL AS name" in sql
 
 
 def test_compile_unpivot_structure():
@@ -498,11 +498,8 @@ def test_validate_not_null_violations(conn, parquet_path):
     )
     spec = _spec([_rule(CheckType.NOT_NULL, column="val")])
     report = validate(spec, path, conn)
-    assert report.total_rows == 4
-    assert len(report.results) == 1
-    result = report.results[0]
-    assert result.violation_count == 2
-    assert set(result.violating_ids) == {"b", "d"}
+    assert len(report.results) == 2
+    assert {r.violating_id for r in report.results} == {"b", "d"}
 
 
 def test_validate_numeric_range(conn, parquet_path):
@@ -520,15 +517,10 @@ def test_validate_numeric_range(conn, parquet_path):
         ]
     )
     report = validate(spec, path, conn)
-    assert report.total_rows == 4
-    # gte violation: c (-1)
-    gte_result = report.results[0]
-    assert gte_result.violation_count == 1
-    assert gte_result.violating_ids == ["c"]
-    # lte violation: b (15)
-    lte_result = report.results[1]
-    assert lte_result.violation_count == 1
-    assert lte_result.violating_ids == ["b"]
+    gte_violations = [r.violating_id for r in report.results if r.name == "r.gte"]
+    assert gte_violations == ["c"]
+    lte_violations = [r.violating_id for r in report.results if r.name == "r.lte"]
+    assert lte_violations == ["b"]
 
 
 def test_validate_in_check(conn, parquet_path):
@@ -543,8 +535,8 @@ def test_validate_in_check(conn, parquet_path):
         [_rule(CheckType.IN, column="color", value=["red", "blue", "green"])]
     )
     report = validate(spec, path, conn)
-    assert report.results[0].violation_count == 1
-    assert report.results[0].violating_ids == ["d"]
+    assert len(report.results) == 1
+    assert report.results[0].violating_id == "d"
 
 
 def test_validate_not_in_check(conn, parquet_path):
@@ -559,8 +551,8 @@ def test_validate_not_in_check(conn, parquet_path):
         [_rule(CheckType.NOT_IN, column="role", value=["admin"])]
     )
     report = validate(spec, path, conn)
-    assert report.results[0].violation_count == 1
-    assert report.results[0].violating_ids == ["a"]
+    assert len(report.results) == 1
+    assert report.results[0].violating_id == "a"
 
 
 def test_validate_unique_list_intra_row(conn, parquet_path):
@@ -576,9 +568,8 @@ def test_validate_unique_list_intra_row(conn, parquet_path):
     )
     spec = _spec([_rule(CheckType.UNIQUE, column="code")])
     report = validate(spec, path, conn)
-    result = report.results[0]
-    assert result.violation_count == 1
-    assert result.violating_ids == ["b"]
+    assert len(report.results) == 1
+    assert report.results[0].violating_id == "b"
 
 
 def test_validate_pattern(conn, parquet_path):
@@ -593,8 +584,8 @@ def test_validate_pattern(conn, parquet_path):
         [_rule(CheckType.PATTERN, column="val", value="^[A-Z]+$")]
     )
     report = validate(spec, path, conn)
-    assert report.results[0].violation_count == 2
-    assert set(report.results[0].violating_ids) == {"b", "c"}
+    assert len(report.results) == 2
+    assert {r.violating_id for r in report.results} == {"b", "c"}
 
 
 def test_validate_when_conditional(conn, parquet_path):
@@ -612,8 +603,8 @@ def test_validate_when_conditional(conn, parquet_path):
     )
     report = validate(spec, path, conn)
     # Only US rows are checked; b is the violation
-    assert report.results[0].violation_count == 1
-    assert report.results[0].violating_ids == ["b"]
+    assert len(report.results) == 1
+    assert report.results[0].violating_id == "b"
 
 
 def test_validate_list_columns_list(conn, parquet_path):
@@ -631,8 +622,8 @@ def test_validate_list_columns_list(conn, parquet_path):
         [_rule(CheckType.GT, column="vals", value=0, list_columns=["vals"])]
     )
     report = validate(spec, path, conn)
-    assert report.results[0].violation_count == 1
-    assert report.results[0].violating_ids == ["b"]
+    assert len(report.results) == 1
+    assert report.results[0].violating_id == "b"
 
 
 def test_validate_exactly_one_of(conn, parquet_path):
@@ -655,8 +646,8 @@ def test_validate_exactly_one_of(conn, parquet_path):
     )
     report = validate(spec, path, conn)
     # c has both, d has neither — both violate
-    assert report.results[0].violation_count == 2
-    assert set(report.results[0].violating_ids) == {"c", "d"}
+    assert len(report.results) == 2
+    assert {r.violating_id for r in report.results} == {"c", "d"}
 
 
 def test_validate_any_of(conn, parquet_path):
@@ -678,8 +669,8 @@ def test_validate_any_of(conn, parquet_path):
         ]
     )
     report = validate(spec, path, conn)
-    assert report.results[0].violation_count == 1
-    assert report.results[0].violating_ids == ["b"]
+    assert len(report.results) == 1
+    assert report.results[0].violating_id == "b"
 
 
 def test_validate_column_lt(conn, parquet_path):
@@ -695,8 +686,8 @@ def test_validate_column_lt(conn, parquet_path):
     )
     report = validate(spec, path, conn)
     # b: 5 < 3 fails, c: 2 < 2 fails
-    assert report.results[0].violation_count == 2
-    assert set(report.results[0].violating_ids) == {"b", "c"}
+    assert len(report.results) == 2
+    assert {r.violating_id for r in report.results} == {"b", "c"}
 
 
 def test_validate_zero_violations(conn, parquet_path):
@@ -709,8 +700,7 @@ def test_validate_zero_violations(conn, parquet_path):
     )
     spec = _spec([_rule(CheckType.NOT_NULL, column="val")])
     report = validate(spec, path, conn)
-    assert report.results[0].violation_count == 0
-    assert report.results[0].violating_ids == []
+    assert len(report.results) == 0
 
 
 def test_validate_custom_id_column(conn, parquet_path):
@@ -726,7 +716,8 @@ def test_validate_custom_id_column(conn, parquet_path):
         id_column="fid",
     )
     report = validate(spec, path, conn)
-    assert report.results[0].violating_ids == [100]
+    assert len(report.results) == 1
+    assert report.results[0].violating_id == 100
 
 
 def test_validate_multiple_rules_combined(conn, parquet_path):
@@ -745,13 +736,12 @@ def test_validate_multiple_rules_combined(conn, parquet_path):
         ]
     )
     report = validate(spec, path, conn)
-    assert len(report.results) == 3
-    # not_null: b violates
-    assert report.results[0].violating_ids == ["b"]
-    # lte: b violates (15)
-    assert report.results[1].violating_ids == ["b"]
-    # min_length: c violates ("hi" has len 2)
-    assert report.results[2].violating_ids == ["c"]
+    nn = [r.violating_id for r in report.results if r.name == "r.nn"]
+    lte = [r.violating_id for r in report.results if r.name == "r.lte"]
+    ml = [r.violating_id for r in report.results if r.name == "r.ml"]
+    assert nn == ["b"]
+    assert lte == ["b"]
+    assert ml == ["c"]
 
 
 def test_validate_no_conn(parquet_path):
@@ -765,7 +755,7 @@ def test_validate_no_conn(parquet_path):
     )
     spec = _spec([_rule(CheckType.NOT_NULL, column="val")])
     report = validate(spec, path)
-    assert report.results[0].violation_count == 1
+    assert len(report.results) == 1
 
 
 def test_validate_report_metadata(conn, parquet_path):
@@ -773,7 +763,7 @@ def test_validate_report_metadata(conn, parquet_path):
 
     path = parquet_path(
         "CREATE TABLE _tbl AS SELECT * FROM (VALUES "
-        "('a', 1), ('b', 2)"
+        "('a', 1), ('b', NULL)"
         ") AS t(id, val)"
     )
     spec = _spec(
@@ -782,6 +772,6 @@ def test_validate_report_metadata(conn, parquet_path):
     )
     report = validate(spec, path, conn)
     assert report.dataset == "MyDataset"
-    assert report.total_rows == 2
-    assert report.results[0].rule_name == "my.rule"
+    assert len(report.results) == 1
+    assert report.results[0].name == "my.rule"
     assert report.results[0].severity == Severity.ERROR

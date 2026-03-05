@@ -6,7 +6,6 @@ them against Parquet files, returning a ``ValidationReport``.
 
 from __future__ import annotations
 
-from collections import defaultdict
 from typing import Any
 
 from .ir import CheckType, Condition, DatasetSpec, Rule, Severity
@@ -336,7 +335,7 @@ def compile(spec: DatasetSpec, parquet_path: str) -> str:
     if not spec.rules:
         return (
             f"{cte}\n"
-            f"SELECT NULL AS id, NULL AS rule_name, "
+            f"SELECT NULL AS id, NULL AS name, "
             f"NULL AS severity WHERE FALSE"
         )
 
@@ -358,7 +357,7 @@ def compile(spec: DatasetSpec, parquet_path: str) -> str:
 
     return (
         f"{cte}\n"
-        f"SELECT u.{id_col} AS id, _meta.rule_name, _meta.severity\n"
+        f"SELECT u.{id_col} AS id, _meta.name, _meta.severity\n"
         f"FROM (\n"
         f"    SELECT {id_col}, _violated, _idx FROM (\n"
         f"        SELECT {id_col}\n"
@@ -370,7 +369,7 @@ def compile(spec: DatasetSpec, parquet_path: str) -> str:
         f") u\n"
         f"JOIN (VALUES\n"
         f"{meta}\n"
-        f") AS _meta(_idx, rule_name, severity)\n"
+        f") AS _meta(_idx, name, severity)\n"
         f"USING (_idx)"
     )
 
@@ -407,38 +406,17 @@ def validate(
     sql = compile(spec, parquet_path)
     violations_raw = conn.execute(sql, [parquet_path]).fetchall()
 
-    # Get total row count
-    total_rows: int = conn.execute(
-        "SELECT COUNT(*) FROM read_parquet($1)", [parquet_path]
-    ).fetchone()[0]
-
-    # Group violations by rule_name, preserving order and deduplicating IDs
-    violations_by_rule: dict[str, list[Any]] = defaultdict(list)
-    seen_ids: dict[str, set[Any]] = defaultdict(set)
-    for row_id, rule_name, _severity in violations_raw:
-        if row_id not in seen_ids[rule_name]:
-            seen_ids[rule_name].add(row_id)
-            violations_by_rule[rule_name].append(row_id)
-
-    # Build rule name -> Rule lookup for metadata
-    rule_lookup: dict[str, Rule] = {r.name: r for r in spec.rules}
-
-    # Build results in rule order
-    results: list[RuleResult] = []
-    for rule in spec.rules:
-        ids = violations_by_rule.get(rule.name, [])
-        results.append(
-            RuleResult(
-                rule_name=rule.name,
-                description=rule.description,
-                violating_ids=ids,
-                violation_count=len(ids),
-                severity=rule.severity,
-            )
+    # Each row is a single violation: (id, name, severity)
+    results: list[RuleResult] = [
+        RuleResult(
+            name=name,
+            violating_id=row_id,
+            severity=Severity(severity),
         )
+        for row_id, name, severity in violations_raw
+    ]
 
     return ValidationReport(
         dataset=spec.name,
-        total_rows=total_rows,
         results=results,
     )

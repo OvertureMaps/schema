@@ -579,17 +579,14 @@ Backend adapters produce a `ValidationReport` after evaluating rules against a d
 | Field | Type | Description |
 |---|---|---|
 | `dataset` | string | Name of the dataset that was validated |
-| `total_rows` | integer | Total number of rows in the dataset |
-| `results` | list of RuleResult | One entry per evaluated rule |
+| `results` | list of RuleResult | One entry per violation |
 
 ### RuleResult
 
 | Field | Type | Description |
 |---|---|---|
-| `rule_name` | string | Name of the rule (matches `Rule.name`) |
-| `description` | string or null | Rule description |
-| `violating_ids` | list | IDs of rows that violated the rule |
-| `violation_count` | integer | Number of violations |
+| `name` | string | Name of the rule (matches `Rule.name`) |
+| `violating_id` | any | ID of the row that violated the rule |
 | `severity` | `error` or `warning` | Severity of the rule |
 
 ---

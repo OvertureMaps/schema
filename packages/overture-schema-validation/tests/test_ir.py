@@ -651,29 +651,25 @@ def test_condition_in_with_value() -> None:
 
 def test_rule_result() -> None:
     r = RuleResult(
-        rule_name="test.check",
-        description="Test",
-        violating_ids=["id1", "id2"],
-        violation_count=2,
+        name="test.check",
+        violating_id="id1",
         severity=Severity.ERROR,
     )
-    assert r.violation_count == 2
-    assert len(r.violating_ids) == 2
+    assert r.name == "test.check"
+    assert r.violating_id == "id1"
 
 
 def test_validation_report() -> None:
     report = ValidationReport(
         dataset="Test",
-        total_rows=100,
         results=[
             RuleResult(
-                rule_name="test.check",
-                violation_count=5,
+                name="test.check",
+                violating_id="id1",
                 severity=Severity.WARNING,
             )
         ],
     )
-    assert report.total_rows == 100
     assert len(report.results) == 1
     assert report.results[0].severity == Severity.WARNING
 
@@ -681,13 +677,15 @@ def test_validation_report() -> None:
 def test_report_yaml_round_trip() -> None:
     report = ValidationReport(
         dataset="Building",
-        total_rows=1000,
         results=[
             RuleResult(
-                rule_name="building.id.not_null",
-                description="ID required",
-                violating_ids=["abc", "def"],
-                violation_count=2,
+                name="building.id.not_null",
+                violating_id="abc",
+                severity=Severity.ERROR,
+            ),
+            RuleResult(
+                name="building.id.not_null",
+                violating_id="def",
                 severity=Severity.ERROR,
             ),
         ],
@@ -698,7 +696,8 @@ def test_report_yaml_round_trip() -> None:
     loaded = yaml.safe_load(dumped)
     report2 = ValidationReport(**loaded)
     assert report2.dataset == "Building"
-    assert report2.results[0].violation_count == 2
+    assert len(report2.results) == 2
+    assert report2.results[0].name == "building.id.not_null"
 
 
 # ---------------------------------------------------------------------------

@@ -31,11 +31,12 @@ def _assert_violations(
     report: ValidationReport, expected: dict[str, list[int]]
 ) -> None:
     """Assert that only the expected rules have violations, with matching IDs."""
-    actual = {
-        r.rule_name: sorted(r.violating_ids) for r in report.results if r.violating_ids
-    }
+    actual: dict[str, list] = {}
+    for r in report.results:
+        actual.setdefault(r.name, []).append(r.violating_id)
+    actual_sorted = {k: sorted(v) for k, v in actual.items()}
     expected_sorted = {k: sorted(v) for k, v in expected.items()}
-    assert actual == expected_sorted
+    assert actual_sorted == expected_sorted
 
 
 @pytest.mark.parametrize("key", CASES)
@@ -46,5 +47,4 @@ def test_check_type(key: str, tmp_path: Path) -> None:
         rules=case.rules,
     )
     report = _run(spec, case.create_sql, tmp_path)
-    assert report.total_rows == case.total_rows
     _assert_violations(report, case.violations)

@@ -10,12 +10,10 @@ from .ir import Severity
 
 
 class RuleResult(BaseModel):
-    """Result of evaluating a single validation rule."""
+    """A single rule violation for one row."""
 
-    rule_name: str
-    description: str | None = None
-    violating_ids: list[Any] = []
-    violation_count: int = 0
+    name: str
+    violating_id: Any
     severity: Severity
 
 
@@ -23,5 +21,4 @@ class ValidationReport(BaseModel):
     """Aggregate report for a dataset validation run."""
 
     dataset: str
-    total_rows: int
     results: list[RuleResult]

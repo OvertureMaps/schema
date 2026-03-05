@@ -42,7 +42,6 @@ class CheckTypeCase:
     rules: list[Rule]
     create_sql: str
     violations: dict[str, list[str]]
-    total_rows: int = 3
     extra_rules: list[Rule] = field(default_factory=list)
 
     @property
