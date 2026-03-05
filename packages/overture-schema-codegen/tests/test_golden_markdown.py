@@ -19,20 +19,25 @@ from codegen_test_support import (
     Widget,
     assert_golden,
 )
-from overture.schema.codegen.enum_extraction import extract_enum
-from overture.schema.codegen.markdown_renderer import (
+from overture.schema.codegen.extraction.enum_extraction import extract_enum
+from overture.schema.codegen.extraction.model_extraction import (
+    expand_model_tree,
+    extract_model,
+)
+from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
+from overture.schema.codegen.extraction.specs import TypeIdentity
+from overture.schema.codegen.layout.type_collection import (
+    collect_all_supplementary_types,
+)
+from overture.schema.codegen.markdown.renderer import (
     render_enum,
     render_feature,
     render_newtype,
 )
-from overture.schema.codegen.model_extraction import expand_model_tree, extract_model
-from overture.schema.codegen.newtype_extraction import extract_newtype
-from overture.schema.codegen.reverse_references import (
+from overture.schema.codegen.markdown.reverse_references import (
     UsedByEntry,
     compute_reverse_references,
 )
-from overture.schema.codegen.specs import TypeIdentity
-from overture.schema.codegen.type_collection import collect_all_supplementary_types
 from pydantic import BaseModel
 
 GOLDEN_DIR = Path(__file__).parent / "golden" / "markdown"

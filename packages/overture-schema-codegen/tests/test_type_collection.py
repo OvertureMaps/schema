@@ -9,8 +9,11 @@ from codegen_test_support import (
     has_name,
     lookup_by_name,
 )
-from overture.schema.codegen.model_extraction import expand_model_tree, extract_model
-from overture.schema.codegen.specs import (
+from overture.schema.codegen.extraction.model_extraction import (
+    expand_model_tree,
+    extract_model,
+)
+from overture.schema.codegen.extraction.specs import (
     EnumSpec,
     ModelSpec,
     NewTypeSpec,
@@ -18,7 +21,9 @@ from overture.schema.codegen.specs import (
     SupplementarySpec,
     TypeIdentity,
 )
-from overture.schema.codegen.type_collection import collect_all_supplementary_types
+from overture.schema.codegen.layout.type_collection import (
+    collect_all_supplementary_types,
+)
 from pydantic import BaseModel
 
 

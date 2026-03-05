@@ -1,7 +1,7 @@
 """Tests for Pydantic type extraction."""
 
-from overture.schema.codegen.pydantic_extraction import extract_pydantic_type
-from overture.schema.codegen.specs import PydanticTypeSpec
+from overture.schema.codegen.extraction.pydantic_extraction import extract_pydantic_type
+from overture.schema.codegen.extraction.specs import PydanticTypeSpec
 from pydantic import EmailStr, HttpUrl
 
 

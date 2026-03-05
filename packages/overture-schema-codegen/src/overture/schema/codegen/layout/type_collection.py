@@ -7,11 +7,11 @@ and extracts enums and NewTypes on first encounter.
 from collections.abc import Sequence
 from typing import Annotated, get_args, get_origin
 
-from .enum_extraction import extract_enum
-from .model_extraction import expand_model_tree, extract_model
-from .newtype_extraction import extract_newtype
-from .pydantic_extraction import extract_pydantic_type
-from .specs import (
+from ..extraction.enum_extraction import extract_enum
+from ..extraction.model_extraction import expand_model_tree, extract_model
+from ..extraction.newtype_extraction import extract_newtype
+from ..extraction.pydantic_extraction import extract_pydantic_type
+from ..extraction.specs import (
     FeatureSpec,
     FieldSpec,
     ModelSpec,
@@ -19,8 +19,14 @@ from .specs import (
     TypeIdentity,
     is_pydantic_type,
 )
-from .type_analyzer import TypeInfo, TypeKind, analyze_type, is_newtype, walk_type_info
-from .type_registry import is_semantic_newtype
+from ..extraction.type_analyzer import (
+    TypeInfo,
+    TypeKind,
+    analyze_type,
+    is_newtype,
+    walk_type_info,
+)
+from ..extraction.type_registry import is_semantic_newtype
 
 __all__ = ["collect_all_supplementary_types"]
 

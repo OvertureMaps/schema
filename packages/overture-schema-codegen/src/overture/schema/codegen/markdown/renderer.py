@@ -12,17 +12,10 @@ from annotated_types import Interval
 from jinja2 import Environment, FileSystemLoader
 from typing_extensions import NotRequired
 
-from .example_loader import ExampleRecord
-from .field_constraint_description import constraint_display_text
-from .link_computation import LinkContext
-from .markdown_type_format import (
-    format_type,
-    format_underlying_type,
-    resolve_type_link,
-)
-from .model_constraint_description import analyze_model_constraints
-from .reverse_references import UsedByEntry
-from .specs import (
+from ..extraction.examples import ExampleRecord
+from ..extraction.field_constraints import constraint_display_text
+from ..extraction.model_constraints import analyze_model_constraints
+from ..extraction.specs import (
     AnnotatedField,
     EnumSpec,
     FeatureSpec,
@@ -34,8 +27,15 @@ from .specs import (
     TypeIdentity,
     UnionSpec,
 )
-from .type_analyzer import (
+from ..extraction.type_analyzer import (
     ConstraintSource,
+)
+from .link_computation import LinkContext
+from .reverse_references import UsedByEntry
+from .type_format import (
+    format_type,
+    format_underlying_type,
+    resolve_type_link,
 )
 
 __all__ = [
@@ -50,7 +50,7 @@ __all__ = [
 
 _LinkFn = Callable[[TypeIdentity], str]
 
-_TEMPLATES_DIR = Path(__file__).parent / "templates" / "markdown"
+_TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 _BARE_URL_RE = re.compile(
     r"(?<!\]\()"  # not preceded by ](  (already a Markdown link target)

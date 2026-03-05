@@ -5,7 +5,7 @@ from typing import Annotated, Any, Literal, NewType, Optional
 
 import pytest
 from annotated_types import Ge
-from overture.schema.codegen.type_analyzer import (
+from overture.schema.codegen.extraction.type_analyzer import (
     TypeInfo,
     TypeKind,
     UnsupportedUnionError,

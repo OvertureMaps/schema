@@ -8,8 +8,8 @@ from codegen_test_support import (
     TestSegment,
     WaterSegment,
 )
-from overture.schema.codegen.specs import FieldSpec, UnionSpec
-from overture.schema.codegen.union_extraction import extract_union
+from overture.schema.codegen.extraction.specs import FieldSpec, UnionSpec
+from overture.schema.codegen.extraction.union_extraction import extract_union
 
 
 class TestExtractUnion:

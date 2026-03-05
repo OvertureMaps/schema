@@ -67,13 +67,13 @@ module structure. Link computation and reverse references enable cross-page navi
 Jinja2 templates for feature pages (with field tables, constraint sections, and
 examples), enum pages, NewType pages, and aggregate primitive/geometry reference pages.
 
-`markdown_pipeline.py` orchestrates the full pipeline without I/O, returning
+`markdown/pipeline.py` orchestrates the full pipeline without I/O, returning
 `list[RenderedPage]`. The CLI writes files to disk with Docusaurus frontmatter.
 
 ## Programmatic use
 
 ```python
-from overture.schema.codegen.type_analyzer import analyze_type, TypeKind
+from overture.schema.codegen.extraction.type_analyzer import analyze_type, TypeKind
 
 info = analyze_type(some_annotation)
 assert info.kind == TypeKind.PRIMITIVE
