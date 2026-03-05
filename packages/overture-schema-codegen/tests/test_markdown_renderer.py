@@ -996,7 +996,7 @@ class TestFormatExampleValue:
         """Lists render as backtick-wrapped comma-separated values."""
 
         assert _format_example_value([1, 2, 3]) == "`[1, 2, 3]`"
-        assert _format_example_value(["a", "b"]) == "`['a', 'b']`"
+        assert _format_example_value(["a", "b"]) == '`["a", "b"]`'
         assert _format_example_value([]) == "`[]`"
 
     def test_long_list_truncated(self) -> None:
@@ -1012,7 +1012,7 @@ class TestFormatExampleValue:
         """Dicts longer than truncation limit are truncated with ellipsis."""
         long_dict = {f"key_{i}": f"value_{i}" for i in range(50)}
         result = _format_example_value(long_dict)
-        assert result.startswith("`{key_0:")
+        assert result.startswith('`{"key_0":')
         assert result.endswith("...`")
         inner = result[1:-1]
         assert len(inner) <= 100

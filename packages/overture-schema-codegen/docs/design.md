@@ -240,6 +240,12 @@ Loads example data from theme `pyproject.toml` files, validates against Pydantic
 and flattens to dot-notation rows for display in feature pages. Also provides a starting
 point for generated test data.
 
+`collect_dict_paths` walks the `FieldSpec` tree to identify dict-typed fields (like
+`tags: dict[str, str]`), returning their dot-paths as a `frozenset`. `flatten_example`
+checks this set before recursing into dicts -- paths in the set are kept as leaf values
+rather than being split into dot-notation rows. The pipeline computes `dict_paths` from
+`spec.fields` and threads it through `load_examples`.
+
 ## Extension Points
 
 **Adding a new output target** (Arrow schemas next, PySpark expressions after): Add a

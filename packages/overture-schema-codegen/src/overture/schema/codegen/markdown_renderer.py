@@ -1,6 +1,7 @@
 """Markdown renderer for Pydantic model documentation."""
 
 import functools
+import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -178,11 +179,11 @@ def _format_example_value(value: object) -> str:
         return f"`{_truncate(value)}`"
 
     if isinstance(value, list):
-        items = ", ".join(repr(item) for item in value)
+        items = ", ".join(json.dumps(item) for item in value)
         return f"`{_truncate(f'[{items}]')}`"
 
     if isinstance(value, dict):
-        pairs = ", ".join(f"{k}: {v}" for k, v in value.items())
+        pairs = ", ".join(f"{json.dumps(k)}: {json.dumps(v)}" for k, v in value.items())
         return f"`{_truncate(f'{{{pairs}}}')}`"
 
     return f"`{value}`"
