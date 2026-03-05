@@ -1,8 +1,8 @@
 """Tests for type registry."""
 
 import pytest
-from overture.schema.codegen.type_analyzer import TypeInfo, TypeKind
-from overture.schema.codegen.type_registry import (
+from overture.schema.codegen.extraction.type_analyzer import TypeInfo, TypeKind
+from overture.schema.codegen.extraction.type_registry import (
     PRIMITIVE_TYPES,
     TypeMapping,
     get_type_mapping,

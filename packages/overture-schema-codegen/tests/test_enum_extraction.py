@@ -3,8 +3,8 @@
 from enum import Enum
 
 from codegen_test_support import find_member
-from overture.schema.codegen.enum_extraction import extract_enum
-from overture.schema.codegen.specs import EnumMemberSpec, EnumSpec
+from overture.schema.codegen.extraction.enum_extraction import extract_enum
+from overture.schema.codegen.extraction.specs import EnumMemberSpec, EnumSpec
 from overture.schema.system.doc import DocumentedEnum
 
 

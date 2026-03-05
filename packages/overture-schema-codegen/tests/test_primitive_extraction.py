@@ -3,14 +3,14 @@
 from typing import Annotated, NewType
 
 import overture.schema.system.primitive as _system_primitive
-from overture.schema.codegen.newtype_extraction import extract_newtype
-from overture.schema.codegen.primitive_extraction import (
+from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
+from overture.schema.codegen.extraction.primitive_extraction import (
     extract_numeric_bounds,
     extract_primitives,
     partition_primitive_and_geometry_names,
 )
-from overture.schema.codegen.specs import TypeIdentity
-from overture.schema.codegen.type_analyzer import analyze_type
+from overture.schema.codegen.extraction.specs import TypeIdentity
+from overture.schema.codegen.extraction.type_analyzer import analyze_type
 from overture.schema.system.primitive import float32, int32, int64, uint8
 from pydantic import Field
 

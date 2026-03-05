@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from ..extraction.specs import FieldSpec, TypeIdentity
+from ..extraction.type_analyzer import TypeInfo, TypeKind
+from ..extraction.type_registry import is_semantic_newtype, resolve_type_name
 from .link_computation import LinkContext
-from .specs import FieldSpec, TypeIdentity
-from .type_analyzer import TypeInfo, TypeKind
-from .type_registry import is_semantic_newtype, resolve_type_name
 
 __all__ = [
     "format_dict_type",

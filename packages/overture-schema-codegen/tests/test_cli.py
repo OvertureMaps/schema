@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 from overture.schema.codegen.cli import cli
-from overture.schema.codegen.specs import ModelSpec
+from overture.schema.codegen.extraction.specs import ModelSpec
 
 
 class TestCliList:

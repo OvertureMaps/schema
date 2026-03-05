@@ -3,8 +3,8 @@
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
-from .case_conversion import slug_filename
-from .specs import TypeIdentity
+from ..extraction.case_conversion import slug_filename
+from ..extraction.specs import TypeIdentity
 
 __all__ = ["LinkContext", "relative_link"]
 
