@@ -9,7 +9,7 @@ from textwrap import dedent
 from typing import Annotated, Literal
 
 import pytest
-from overture.schema.codegen.example_loader import (
+from overture.schema.codegen.extraction.examples import (
     ExampleRecord,
     _denull,
     _inject_literal_fields,
@@ -21,8 +21,8 @@ from overture.schema.codegen.example_loader import (
     resolve_pyproject_path,
     validate_example,
 )
-from overture.schema.codegen.specs import FieldSpec, ModelSpec
-from overture.schema.codegen.type_analyzer import TypeInfo, TypeKind
+from overture.schema.codegen.extraction.specs import FieldSpec, ModelSpec
+from overture.schema.codegen.extraction.type_analyzer import TypeInfo, TypeKind
 from pydantic import BaseModel, ConfigDict, Field, Tag, ValidationError
 
 

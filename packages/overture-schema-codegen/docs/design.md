@@ -60,7 +60,7 @@ Extraction           TypeInfo, FieldSpec, ModelSpec, EnumSpec, ...
 Discovery            discover_models() from overture-schema-core
 ```
 
-`markdown_pipeline.py` orchestrates the pipeline without I/O: it expands feature trees,
+`markdown/pipeline.py` orchestrates the pipeline without I/O: it expands feature trees,
 collects supplementary types, builds placement registries, computes reverse references,
 and calls renderers -- returning `RenderedPage` objects. The CLI (`cli.py`) is a thin
 Click wrapper that calls `generate_markdown_pages()` and writes files to disk.
@@ -74,26 +74,26 @@ graph TD
     DM -->|"dict[ModelKey, type]"| EX
 
     subgraph Extraction
-        EX["type_analyzer / extractors"]
+        EX["extraction/type_analyzer / extractors"]
         EX -->|"ModelSpec, UnionSpec"| TREE["expand_model_tree()"]
     end
 
     TREE -->|"FeatureSpec[]"| OL
 
     subgraph "Output Layout"
-        OL["type_collection"]
-        OL -->|"SupplementarySpec{}"| PA["path_assignment"]
-        PA -->|"dict[str, Path]"| LC["link_computation"]
-        RR["reverse_references"]
+        OL["layout/type_collection"]
+        OL -->|"SupplementarySpec{}"| PA["markdown/path_assignment"]
+        PA -->|"dict[str, Path]"| LC["markdown/link_computation"]
+        RR["markdown/reverse_references"]
     end
 
     subgraph Rendering
-        R["markdown_renderer"]
-        TR["type_registry"] -.->|"type name resolution"| R
+        R["markdown/renderer"]
+        TR["extraction/type_registry"] -.->|"type name resolution"| R
     end
 
     subgraph Orchestration
-        MP["markdown_pipeline"]
+        MP["markdown/pipeline"]
     end
 
     OL --> MP
@@ -139,12 +139,12 @@ NewType active at that depth.
 
 Extraction is split by entity kind:
 
-- `model_extraction.py`: Pydantic model -> `ModelSpec` (fields in MRO-aware
+- `extraction/model_extraction.py`: Pydantic model -> `ModelSpec` (fields in MRO-aware
   documentation order, alias-resolved names, model-level constraints)
-- `enum_extraction.py`: Enum class -> `EnumSpec`
-- `newtype_extraction.py`: NewType -> `NewTypeSpec`
-- `union_extraction.py`: Discriminated union alias -> `UnionSpec`
-- `primitive_extraction.py`: Numeric primitives -> `PrimitiveSpec`
+- `extraction/enum_extraction.py`: Enum class -> `EnumSpec`
+- `extraction/newtype_extraction.py`: NewType -> `NewTypeSpec`
+- `extraction/union_extraction.py`: Discriminated union alias -> `UnionSpec`
+- `extraction/primitive_extraction.py`: Numeric primitives -> `PrimitiveSpec`
 
 Each calls `analyze_type()` for field types. Tree expansion (`expand_model_tree()`)
 walks MODEL-kind fields to populate nested model references, with a shared cache and
@@ -212,7 +212,7 @@ syntax. Extraction and the type registry carry no presentation logic.
 
 ### Type registry
 
-`type_registry.py` maps type names to per-target string representations via
+`extraction/type_registry.py` maps type names to per-target string representations via
 `TypeMapping`. `format_type_string()` wraps the resolved name with list/optional
 qualifiers. `is_semantic_newtype()` distinguishes NewTypes that deserve their own
 identity (like `FeatureVersion` wrapping `int32`) from pass-through aliases to
@@ -223,12 +223,12 @@ registered primitives.
 Jinja2 templates for feature, enum, NewType, primitives, and geometry pages.
 `render_feature()` expands MODEL-kind fields inline with dot-notation (e.g.,
 `sources[].dataset`), stopping at cycle boundaries. `format_type()` in
-`markdown_type_format.py` converts `TypeInfo` into link-aware display strings using
+`markdown/type_format.py` converts `TypeInfo` into link-aware display strings using
 `LinkContext`.
 
 ### Constraint prose
 
-`field_constraint_description.py` and `model_constraint_description.py` convert
+`extraction/field_constraints.py` and `extraction/model_constraints.py` convert
 constraint objects into human-readable descriptions. Field constraints produce inline
 text. Model constraints produce section-level descriptions and per-field notes, with
 consolidation for related conditional constraints (`require_if` / `forbid_if` grouped by
@@ -249,13 +249,13 @@ rather than being split into dot-notation rows. The pipeline computes `dict_path
 ## Extension Points
 
 **Adding a new output target** (Arrow schemas next, PySpark expressions after): Add a
-column to `TypeMapping` in `type_registry.py` for type-name resolution. Write a new
-renderer module that consumes specs and the type registry. The extraction layer and
+column to `TypeMapping` in `extraction/type_registry.py` for type-name resolution. Write
+a new renderer module that consumes specs and the type registry. The extraction layer and
 output layout are target-independent.
 
-**Adding a new type kind**: Add a variant to `TypeKind` in `type_analyzer.py`. Handle it
-in the terminal classification of `analyze_type()`. Add an extraction function and spec
-dataclass if needed. Update renderers to handle the new kind.
+**Adding a new type kind**: Add a variant to `TypeKind` in `extraction/type_analyzer.py`.
+Handle it in the terminal classification of `analyze_type()`. Add an extraction function
+and spec dataclass if needed. Update renderers to handle the new kind.
 
 **Adding a new constraint type**: The iterative unwrapper collects it automatically (any
 `Annotated` metadata becomes a `ConstraintSource`). Add a case to

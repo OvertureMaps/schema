@@ -3,7 +3,7 @@
 from pathlib import PurePosixPath
 
 import pytest
-from overture.schema.codegen.module_layout import (
+from overture.schema.codegen.layout.module_layout import (
     compute_output_dir,
     compute_schema_root,
     entry_point_class,

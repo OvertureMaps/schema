@@ -4,16 +4,16 @@ import overture.schema.system.primitive as _system_primitive
 import pytest
 from click.testing import CliRunner
 from codegen_test_support import find_model_class
-from overture.schema.codegen.markdown_renderer import (
-    render_geometry_from_values,
-    render_primitives_from_specs,
-)
-from overture.schema.codegen.model_extraction import extract_model
-from overture.schema.codegen.primitive_extraction import (
+from overture.schema.codegen.extraction.model_extraction import extract_model
+from overture.schema.codegen.extraction.primitive_extraction import (
     extract_primitives,
     partition_primitive_and_geometry_names,
 )
-from overture.schema.codegen.specs import ModelSpec
+from overture.schema.codegen.extraction.specs import ModelSpec
+from overture.schema.codegen.markdown.renderer import (
+    render_geometry_from_values,
+    render_primitives_from_specs,
+)
 from overture.schema.core.discovery import discover_models
 from overture.schema.system.primitive import GeometryType
 from pydantic import BaseModel

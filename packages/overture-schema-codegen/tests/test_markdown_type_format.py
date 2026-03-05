@@ -4,14 +4,18 @@ from enum import Enum
 from pathlib import PurePosixPath
 from typing import Literal, NewType
 
-from overture.schema.codegen.link_computation import LinkContext
-from overture.schema.codegen.markdown_type_format import (
+from overture.schema.codegen.extraction.specs import FieldSpec, TypeIdentity
+from overture.schema.codegen.extraction.type_analyzer import (
+    TypeInfo,
+    TypeKind,
+    analyze_type,
+)
+from overture.schema.codegen.markdown.link_computation import LinkContext
+from overture.schema.codegen.markdown.type_format import (
     format_dict_type,
     format_type,
     format_underlying_type,
 )
-from overture.schema.codegen.specs import FieldSpec, TypeIdentity
-from overture.schema.codegen.type_analyzer import TypeInfo, TypeKind, analyze_type
 from overture.schema.system.primitive import int32
 from pydantic import BaseModel, HttpUrl
 

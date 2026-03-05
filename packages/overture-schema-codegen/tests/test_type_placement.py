@@ -11,17 +11,11 @@ from codegen_test_support import (
     lookup_by_name,
     make_union_spec,
 )
-from overture.schema.codegen.link_computation import LinkContext, relative_link
-from overture.schema.codegen.model_extraction import expand_model_tree
-from overture.schema.codegen.path_assignment import (
-    GEOMETRY_PAGE,
-    PRIMITIVES_PAGE,
-    build_placement_registry,
-)
-from overture.schema.codegen.primitive_extraction import (
+from overture.schema.codegen.extraction.model_extraction import expand_model_tree
+from overture.schema.codegen.extraction.primitive_extraction import (
     partition_primitive_and_geometry_names,
 )
-from overture.schema.codegen.specs import (
+from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
     FeatureSpec,
     FieldSpec,
@@ -29,7 +23,15 @@ from overture.schema.codegen.specs import (
     SupplementarySpec,
     TypeIdentity,
 )
-from overture.schema.codegen.type_collection import collect_all_supplementary_types
+from overture.schema.codegen.layout.type_collection import (
+    collect_all_supplementary_types,
+)
+from overture.schema.codegen.markdown.link_computation import LinkContext, relative_link
+from overture.schema.codegen.markdown.path_assignment import (
+    GEOMETRY_PAGE,
+    PRIMITIVES_PAGE,
+    build_placement_registry,
+)
 from pydantic import BaseModel
 
 _PRIMITIVE_NAMES, _GEOMETRY_NAMES = partition_primitive_and_geometry_names(

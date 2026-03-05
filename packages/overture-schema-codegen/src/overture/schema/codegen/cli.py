@@ -8,20 +8,20 @@ import click
 
 from overture.schema.core.discovery import discover_models
 
-from .markdown_pipeline import generate_markdown_pages
-from .model_extraction import extract_model
-from .module_layout import (
+from .extraction.model_extraction import extract_model
+from .extraction.specs import (
+    FeatureSpec,
+    is_model_class,
+    is_union_alias,
+)
+from .extraction.union_extraction import extract_union
+from .layout.module_layout import (
     OUTPUT_ROOT,
     compute_schema_root,
     entry_point_class,
     entry_point_module,
 )
-from .specs import (
-    FeatureSpec,
-    is_model_class,
-    is_union_alias,
-)
-from .union_extraction import extract_union
+from .markdown.pipeline import generate_markdown_pages
 
 log = logging.getLogger(__name__)
 

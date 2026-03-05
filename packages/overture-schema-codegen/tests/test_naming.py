@@ -1,7 +1,7 @@
 """Tests for PascalCase to snake_case conversion."""
 
 import pytest
-from overture.schema.codegen.case_conversion import to_snake_case
+from overture.schema.codegen.extraction.case_conversion import to_snake_case
 
 
 class TestToSnakeCase:

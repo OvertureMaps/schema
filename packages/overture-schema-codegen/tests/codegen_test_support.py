@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Annotated, Generic, Literal, NewType, TypeVar
 
 import pytest
-from overture.schema.codegen.model_extraction import extract_model
-from overture.schema.codegen.pydantic_extraction import extract_pydantic_type
-from overture.schema.codegen.specs import (
+from overture.schema.codegen.extraction.model_extraction import extract_model
+from overture.schema.codegen.extraction.pydantic_extraction import extract_pydantic_type
+from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
     EnumMemberSpec,
     EnumSpec,
@@ -24,7 +24,7 @@ from overture.schema.codegen.specs import (
     UnionSpec,
     is_model_class,
 )
-from overture.schema.codegen.type_analyzer import TypeInfo, TypeKind
+from overture.schema.codegen.extraction.type_analyzer import TypeInfo, TypeKind
 from overture.schema.core.discovery import discover_models
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
