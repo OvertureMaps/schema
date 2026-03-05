@@ -124,6 +124,10 @@ def _check_expr(
         return f"len({expr}) >= {_sql_literal(value)}"
     if check == CheckType.MAX_LENGTH:
         return f"len({expr}) <= {_sql_literal(value)}"
+    if check == CheckType.MIN_LIST_LENGTH:
+        return f"len({expr}) >= {_sql_literal(value)}"
+    if check == CheckType.MAX_LIST_LENGTH:
+        return f"len({expr}) <= {_sql_literal(value)}"
     if check == CheckType.IS_TYPE:
         types = _TYPE_MAP.get(value, [value])
         type_list = ", ".join(f"'{t}'" for t in types)

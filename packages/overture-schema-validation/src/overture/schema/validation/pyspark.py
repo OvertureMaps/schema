@@ -144,6 +144,12 @@ def _check_violation(
     if check == CheckType.MAX_LENGTH:
         return col.isNotNull() & ~(F.length(col) <= value)
 
+    if check == CheckType.MIN_LIST_LENGTH:
+        return col.isNotNull() & ~(F.size(col) >= value)
+
+    if check == CheckType.MAX_LIST_LENGTH:
+        return col.isNotNull() & ~(F.size(col) <= value)
+
     if check == CheckType.UNIQUE:
         return col.isNotNull() & (F.size(col) != F.size(F.array_distinct(col)))
 

@@ -26,6 +26,8 @@ class CheckType(str, Enum):
     UNIQUE = "unique"
     MIN_LENGTH = "min_length"
     MAX_LENGTH = "max_length"
+    MIN_LIST_LENGTH = "min_list_length"
+    MAX_LIST_LENGTH = "max_list_length"
     PATTERN = "pattern"
     IS_TYPE = "is_type"
     COLUMN_LT = "column_lt"

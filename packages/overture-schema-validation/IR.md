@@ -67,7 +67,7 @@ Each rule specifies a single validation check on one or more columns.
 | `name` | string | yes | Unique dot-path identifier |
 | `column` | string | conditional | Target column (dot notation for nested) |
 | `columns` | list of string | conditional | Target columns (multi-field checks only) |
-| `check` | CheckType | yes | One of the 22 check types |
+| `check` | CheckType | yes | One of the 24 check types |
 | `value` | scalar, list, or null | conditional | Check parameter |
 | `other_column` | string | conditional | Second column (column comparison checks) |
 | `list_columns` | list of string | no | Ordered list-boundary columns for nested list iteration |
@@ -108,7 +108,7 @@ A `when` clause is a single predicate. No nesting allowed.
 
 ## 4. Check Vocabulary
 
-The IR defines a closed set of 22 check types. All backend adapters must support every check type.
+The IR defines a closed set of 24 check types. All backend adapters must support every check type.
 
 ### 4.1 Scalar Comparison Checks
 
@@ -304,13 +304,13 @@ On a **list column**: per-row check within each row's list.
   severity: error
 ```
 
-### 4.6 Length Checks
+### 4.6 String Length Checks
 
-Apply to strings (character length) or lists (element count).
+Apply to strings (character length).
 
 #### `min_length`
 
-Violation: `LENGTH(col) < value` (strings) or `ARRAY_LENGTH(col) < value` (lists)
+Violation: `LENGTH(col) < value`
 
 ```yaml
 - name: overture.id.min_length
@@ -322,12 +322,40 @@ Violation: `LENGTH(col) < value` (strings) or `ARRAY_LENGTH(col) < value` (lists
 
 #### `max_length`
 
-Violation: `LENGTH(col) > value` (strings) or `ARRAY_LENGTH(col) > value` (lists)
+Violation: `LENGTH(col) > value`
 
 ```yaml
-- name: address.levels.max_length
-  column: address_levels
+- name: example.name.max_length
+  column: name
   check: max_length
+  value: 255
+  severity: error
+```
+
+### 4.6a List Length Checks
+
+Apply to arrays/lists (element count).
+
+#### `min_list_length`
+
+Violation: `ARRAY_LENGTH(col) < value`
+
+```yaml
+- name: place.phones.min_list_length
+  column: phones
+  check: min_list_length
+  value: 1
+  severity: error
+```
+
+#### `max_list_length`
+
+Violation: `ARRAY_LENGTH(col) > value`
+
+```yaml
+- name: address.levels.max_list_length
+  column: address_levels
+  check: max_list_length
   value: 5
   severity: error
 ```
@@ -776,8 +804,10 @@ datasets:
 | `not_null` | — | required | — | — | optional | `col IS NULL` |
 | `is_null` | — | required | — | — | optional | `col IS NOT NULL` |
 | `unique` | — | required | — | — | optional | duplicate values exist |
-| `min_length` | int | required | — | — | optional | `LENGTH(col) < value` |
-| `max_length` | int | required | — | — | optional | `LENGTH(col) > value` |
+| `min_length` | int | required | — | — | optional | `LENGTH(col) < value` (strings) |
+| `max_length` | int | required | — | — | optional | `LENGTH(col) > value` (strings) |
+| `min_list_length` | int | required | — | — | optional | `ARRAY_LENGTH(col) < value` (lists) |
+| `max_list_length` | int | required | — | — | optional | `ARRAY_LENGTH(col) > value` (lists) |
 | `pattern` | regex str | required | — | — | optional | `col !~ value` |
 | `is_type` | type name | required | — | — | optional | type check fails |
 | `column_lt` | — | required | — | required | optional | `col >= other_column` |
@@ -787,4 +817,4 @@ datasets:
 | `exactly_one_of` | — | — | required | — | **no** | 0 or 2+ non-null |
 | `any_of` | — | — | required | — | **no** | all null |
 
-**22 check types total.**
+**24 check types total.**

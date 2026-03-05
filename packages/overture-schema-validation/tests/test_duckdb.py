@@ -191,6 +191,16 @@ def test_compile_max_length():
     assert "NOT (len(\"col\") <= 100)" in sql
 
 
+def test_compile_min_list_length():
+    sql = compile(_spec([_rule(CheckType.MIN_LIST_LENGTH, value=2)]), "f.parquet")
+    assert "NOT (len(\"col\") >= 2)" in sql
+
+
+def test_compile_max_list_length():
+    sql = compile(_spec([_rule(CheckType.MAX_LIST_LENGTH, value=3)]), "f.parquet")
+    assert "NOT (len(\"col\") <= 3)" in sql
+
+
 def test_compile_is_type():
     sql = compile(_spec([_rule(CheckType.IS_TYPE, value="integer")]), "f.parquet")
     assert "typeof" in sql

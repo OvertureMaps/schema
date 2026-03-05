@@ -59,16 +59,8 @@ def _assert_violations(
     assert actual_sorted == expected_sorted
 
 
-_SKIP = {
-    "min_length": "F.length() does not support array columns in PySpark",
-    "max_length": "F.length() does not support array columns in PySpark",
-}
-
-
 @pytest.mark.parametrize("key", CASES)
 def test_check_type(key: str, spark: SparkSession) -> None:
-    if key in _SKIP:
-        pytest.skip(_SKIP[key])
     case = CASES[key]
     spec = DatasetSpec(
         name="test",

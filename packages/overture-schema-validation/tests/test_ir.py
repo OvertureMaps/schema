@@ -365,7 +365,7 @@ def test_list_columns_with_min_length() -> None:
     r = Rule(
         name="ok",
         column="col",
-        check=CheckType.MIN_LENGTH,
+        check=CheckType.MIN_LIST_LENGTH,
         value=1,
         list_columns=["parent"],
         severity=Severity.ERROR,
@@ -377,7 +377,7 @@ def test_list_columns_with_max_length() -> None:
     r = Rule(
         name="ok",
         column="col",
-        check=CheckType.MAX_LENGTH,
+        check=CheckType.MAX_LIST_LENGTH,
         value=5,
         list_columns=["parent"],
         severity=Severity.ERROR,
@@ -567,6 +567,16 @@ def test_max_length_rule() -> None:
     assert r.check == CheckType.MAX_LENGTH
 
 
+def test_min_list_length_rule() -> None:
+    r = Rule(**_make_rule(check="min_list_length", value=1))
+    assert r.check == CheckType.MIN_LIST_LENGTH
+
+
+def test_max_list_length_rule() -> None:
+    r = Rule(**_make_rule(check="max_list_length", value=5))
+    assert r.check == CheckType.MAX_LIST_LENGTH
+
+
 def test_is_type_rule() -> None:
     r = Rule(**_make_rule(check="is_type", value="boolean"))
     assert r.check == CheckType.IS_TYPE
@@ -706,7 +716,7 @@ def test_report_yaml_round_trip() -> None:
 
 
 def test_check_type_count() -> None:
-    assert len(CheckType) == 22
+    assert len(CheckType) == 24
 
 
 def test_severity_values() -> None:

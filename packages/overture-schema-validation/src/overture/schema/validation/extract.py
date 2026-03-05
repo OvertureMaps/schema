@@ -151,19 +151,35 @@ def _extract_field_rules(
     # ---- MinLen / MaxLen from model metadata ----
     for obj in model_metadata:
         if isinstance(obj, annotated_types.MinLen):
-            rules.append(
-                _rule(
-                    dataset, column, "min_length", CheckType.MIN_LENGTH,
-                    value=obj.min_length, list_columns=lc_container,
+            if is_list:
+                rules.append(
+                    _rule(
+                        dataset, column, "min_list_length", CheckType.MIN_LIST_LENGTH,
+                        value=obj.min_length, list_columns=lc_container,
+                    )
                 )
-            )
+            else:
+                rules.append(
+                    _rule(
+                        dataset, column, "min_length", CheckType.MIN_LENGTH,
+                        value=obj.min_length, list_columns=lc_container,
+                    )
+                )
         elif isinstance(obj, annotated_types.MaxLen):
-            rules.append(
-                _rule(
-                    dataset, column, "max_length", CheckType.MAX_LENGTH,
-                    value=obj.max_length, list_columns=lc_container,
+            if is_list:
+                rules.append(
+                    _rule(
+                        dataset, column, "max_list_length", CheckType.MAX_LIST_LENGTH,
+                        value=obj.max_length, list_columns=lc_container,
+                    )
                 )
-            )
+            else:
+                rules.append(
+                    _rule(
+                        dataset, column, "max_length", CheckType.MAX_LENGTH,
+                        value=obj.max_length, list_columns=lc_container,
+                    )
+                )
 
     # Also check effective kwargs for min_length / max_length (from Field())
     if "min_length" in effective_kwargs and not any(

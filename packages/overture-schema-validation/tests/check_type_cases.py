@@ -30,6 +30,8 @@ from overture.schema.validation.ir import (
 )
 from pydantic import BaseModel, Field
 
+import annotated_types
+
 
 class BaseId(BaseModel):
     id: str
@@ -135,6 +137,14 @@ class MinLengthModel(BaseId):
 
 class MaxLengthModel(BaseId):
     col: str | None = Field(max_length=5)
+
+
+class MinListLengthModel(BaseId):
+    col: Annotated[list[str] | None, annotated_types.MinLen(2)] = None
+
+
+class MaxListLengthModel(BaseId):
+    col: Annotated[list[str] | None, annotated_types.MaxLen(3)] = None
 
 
 class IsTypeModel(BaseId):
@@ -345,6 +355,40 @@ CASES: dict[str, CheckTypeCase] = {
             rows=[("a", "abc"), ("b", "abcdef"), ("c", None)],
         ),
         violations={"test.col.max_length": ["b"]},
+    ),
+    "min_list_length": CheckTypeCase(
+        model=MinListLengthModel,
+        rules=[
+            Rule(
+                name="test.col.min_list_length",
+                column="col",
+                check=CheckType.MIN_LIST_LENGTH,
+                value=2,
+                severity=Severity.ERROR,
+            ),
+        ],
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", ["x", "y"]), ("b", ["x"]), ("c", None)],
+        ),
+        violations={"test.col.min_list_length": ["b"]},
+    ),
+    "max_list_length": CheckTypeCase(
+        model=MaxListLengthModel,
+        rules=[
+            Rule(
+                name="test.col.max_list_length",
+                column="col",
+                check=CheckType.MAX_LIST_LENGTH,
+                value=3,
+                severity=Severity.ERROR,
+            ),
+        ],
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", ["x", "y"]), ("b", ["x", "y", "z", "w"]), ("c", None)],
+        ),
+        violations={"test.col.max_list_length": ["b"]},
     ),
     "is_type": CheckTypeCase(
         model=IsTypeModel,
