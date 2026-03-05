@@ -7,9 +7,14 @@ the source Python module path relative to schema_root.
 from collections.abc import Sequence
 from pathlib import PurePosixPath
 
-from .case_conversion import slug_filename
-from .module_layout import compute_output_dir, output_dir_for_entry_point
-from .specs import FeatureSpec, PydanticTypeSpec, SupplementarySpec, TypeIdentity
+from ..extraction.case_conversion import slug_filename
+from ..extraction.specs import (
+    FeatureSpec,
+    PydanticTypeSpec,
+    SupplementarySpec,
+    TypeIdentity,
+)
+from ..layout.module_layout import compute_output_dir, output_dir_for_entry_point
 
 __all__ = [
     "GEOMETRY_PAGE",

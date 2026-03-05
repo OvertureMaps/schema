@@ -6,11 +6,8 @@ the installed Overture schema packages.
 
 import pytest
 from codegen_test_support import assert_literal_field
-from overture.schema.codegen.markdown_pipeline import generate_markdown_pages
-from overture.schema.codegen.markdown_renderer import render_feature
-from overture.schema.codegen.model_extraction import extract_model
-from overture.schema.codegen.module_layout import entry_point_class
-from overture.schema.codegen.specs import (
+from overture.schema.codegen.extraction.model_extraction import extract_model
+from overture.schema.codegen.extraction.specs import (
     FeatureSpec,
     ModelSpec,
     UnionSpec,
@@ -18,8 +15,11 @@ from overture.schema.codegen.specs import (
     is_model_class,
     is_union_alias,
 )
-from overture.schema.codegen.type_analyzer import TypeKind
-from overture.schema.codegen.union_extraction import extract_union
+from overture.schema.codegen.extraction.type_analyzer import TypeKind
+from overture.schema.codegen.extraction.union_extraction import extract_union
+from overture.schema.codegen.layout.module_layout import entry_point_class
+from overture.schema.codegen.markdown.pipeline import generate_markdown_pages
+from overture.schema.codegen.markdown.renderer import render_feature
 from overture.schema.core.discovery import discover_models
 from overture.schema.transportation import Segment
 from overture.schema.transportation.segment.models import RoadSegment

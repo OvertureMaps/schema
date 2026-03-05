@@ -3,8 +3,8 @@
 from typing import Annotated, NewType
 
 from codegen_test_support import STR_TYPE
-from overture.schema.codegen.newtype_extraction import extract_newtype
-from overture.schema.codegen.specs import NewTypeSpec
+from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
+from overture.schema.codegen.extraction.specs import NewTypeSpec
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.ref import Id
 from overture.schema.system.string import HexColor

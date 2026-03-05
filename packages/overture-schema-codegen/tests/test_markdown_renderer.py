@@ -23,9 +23,23 @@ from codegen_test_support import (
     Venue,
     make_union_spec,
 )
-from overture.schema.codegen.example_loader import ExampleRecord
-from overture.schema.codegen.link_computation import LinkContext
-from overture.schema.codegen.markdown_renderer import (
+from overture.schema.codegen.extraction.examples import ExampleRecord
+from overture.schema.codegen.extraction.model_extraction import (
+    expand_model_tree,
+    extract_model,
+)
+from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
+from overture.schema.codegen.extraction.specs import (
+    AnnotatedField,
+    EnumMemberSpec,
+    EnumSpec,
+    FieldSpec,
+    PrimitiveSpec,
+    TypeIdentity,
+)
+from overture.schema.codegen.extraction.type_analyzer import ConstraintSource
+from overture.schema.codegen.markdown.link_computation import LinkContext
+from overture.schema.codegen.markdown.renderer import (
     _format_constraint,
     _format_example_value,
     _linkify_bare_urls,
@@ -36,18 +50,7 @@ from overture.schema.codegen.markdown_renderer import (
     render_primitives_from_specs,
     render_pydantic_type,
 )
-from overture.schema.codegen.model_extraction import expand_model_tree, extract_model
-from overture.schema.codegen.newtype_extraction import extract_newtype
-from overture.schema.codegen.reverse_references import UsedByEntry, UsedByKind
-from overture.schema.codegen.specs import (
-    AnnotatedField,
-    EnumMemberSpec,
-    EnumSpec,
-    FieldSpec,
-    PrimitiveSpec,
-    TypeIdentity,
-)
-from overture.schema.codegen.type_analyzer import ConstraintSource
+from overture.schema.codegen.markdown.reverse_references import UsedByEntry, UsedByKind
 from overture.schema.system.field_constraint import (
     CountryCodeAlpha2Constraint,
     JsonPointerConstraint,

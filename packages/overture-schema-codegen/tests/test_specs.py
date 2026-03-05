@@ -9,8 +9,8 @@ from codegen_test_support import (
     SimpleModel,
     make_union_spec,
 )
-from overture.schema.codegen.model_extraction import extract_model
-from overture.schema.codegen.specs import (
+from overture.schema.codegen.extraction.model_extraction import extract_model
+from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
     EnumSpec,
     FeatureSpec,
@@ -20,7 +20,7 @@ from overture.schema.codegen.specs import (
     TypeIdentity,
     is_union_alias,
 )
-from overture.schema.codegen.type_analyzer import TypeInfo, TypeKind
+from overture.schema.codegen.extraction.type_analyzer import TypeInfo, TypeKind
 from pydantic import BaseModel, Field
 
 

@@ -1,15 +1,15 @@
 """Tests for constraint description (model-level and field-level)."""
 
 from annotated_types import Ge, Gt, Interval, Le, Lt, MaxLen, MinLen
-from overture.schema.codegen.field_constraint_description import (
+from overture.schema.codegen.extraction.field_constraints import (
     constraint_display_text,
     describe_field_constraint,
 )
-from overture.schema.codegen.model_constraint_description import (
+from overture.schema.codegen.extraction.model_constraints import (
     analyze_model_constraints,
 )
-from overture.schema.codegen.specs import TypeIdentity
-from overture.schema.codegen.type_analyzer import ConstraintSource
+from overture.schema.codegen.extraction.specs import TypeIdentity
+from overture.schema.codegen.extraction.type_analyzer import ConstraintSource
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     ForbidIfConstraint,

@@ -71,7 +71,7 @@ unions. From that point forward both model features and union features satisfy t
 
 Two modules with no internal dependencies. Both serve multiple layers.
 
-### case_conversion.py
+### extraction/case_conversion.py
 
 Converts PascalCase to snake_case with two compiled regexes. `_ACRONYM_BOUNDARY` inserts
 an underscore between an uppercase run and a capitalized word start: `HTMLParser`
@@ -87,7 +87,7 @@ the system passes through this function.
 'hex_color.md'
 ```
 
-### docstring.py
+### extraction/docstring.py
 
 Distinguishes author-written docstrings from auto-generated ones. Both `Enum` and
 `NewType` produce default docstrings that vary across Python versions. Rather than
@@ -202,7 +202,7 @@ handle them directly.
 
 ## 4. Data structures
 
-`specs.py` defines the vocabulary shared between extraction and rendering. Every spec is
+`extraction/specs.py` defines the vocabulary shared between extraction and rendering. Every spec is
 a dataclass with no methods beyond field access and, in `UnionSpec`'s case, one cached
 property.
 
@@ -240,7 +240,7 @@ individual ones.
 
 ### Classification functions
 
-Three functions at the bottom of `specs.py` classify discovery results. `is_model_class`
+Three functions at the bottom of `extraction/specs.py` classify discovery results. `is_model_class`
 is a `TypeGuard` that checks `isinstance(obj, type) and issubclass(obj, BaseModel)`.
 `is_union_alias` calls `analyze_type` and checks for `UNION` kind -- the only place
 outside the type analyzer that touches Python type annotations. `filter_model_classes`
@@ -377,7 +377,7 @@ Two modules convert constraint objects into human-readable text.
 
 ### Field constraints
 
-`field_constraint_description.py` pattern-matches constraint types. `Interval` renders
+`extraction/field_constraints.py` pattern-matches constraint types. `Interval` renders
 as `lower <= x <= upper` using Unicode comparison operators. Single-bound constraints
 (`Ge`, `Gt`, `Le`, `Lt`) render as `>= value` or `< value`. Length constraints
 (`MinLen`, `MaxLen`) render as plain prose (e.g. "Minimum length: 1"). `GeometryTypeConstraint` lists
@@ -396,7 +396,7 @@ docstring, class name, and pattern. Otherwise it delegates to
 
 ### Model constraints
 
-`model_constraint_description.py` handles model-level constraints from decorators.
+`extraction/model_constraints.py` handles model-level constraints from decorators.
 `analyze_model_constraints` returns two things in one pass: a list of section-level
 descriptions and a dict mapping field names to the constraint descriptions that
 reference them.
@@ -504,7 +504,7 @@ provenance rather than direct field reference.
 
 ## 13. Markdown type formatting
 
-`markdown_type_format.py` converts `TypeInfo` into display strings for markdown output.
+`markdown/type_format.py` converts `TypeInfo` into display strings for markdown output.
 
 `format_type` handles the full range of field types. Single-value Literals render as
 `"value"` in backticks. Semantic NewTypes and enums/models get markdown links via
@@ -530,11 +530,11 @@ function uses `source_type.__name__` rather than `base_type` for link resolution
 
 ## 14. Markdown rendering
 
-`markdown_renderer.py` is the template driver.
+`markdown/renderer.py` is the template driver.
 
 ### Templates
 
-Six Jinja2 templates in `templates/markdown/`. `feature.md.jinja2` renders a field table
+Six Jinja2 templates in `markdown/templates/`. `feature.md.jinja2` renders a field table
 with Name, Type, and Description columns, an optional Constraints section, an optional
 Examples section, and a "Used By" partial. `enum.md.jinja2` renders a bullet list of
 values. `newtype.md.jinja2` shows underlying type and constraints with provenance links.
@@ -629,7 +629,7 @@ skip rather than failing the pipeline.
 
 ### The pipeline
 
-`generate_markdown_pages` in `markdown_pipeline.py` is the "main" function. It takes
+`generate_markdown_pages` in `markdown/pipeline.py` is the "main" function. It takes
 feature specs and a schema root, returns rendered pages without touching the filesystem.
 Eight steps:
 

@@ -15,15 +15,20 @@ from codegen_test_support import (
     lookup_by_name,
     make_union_spec,
 )
-from overture.schema.codegen.enum_extraction import extract_enum
-from overture.schema.codegen.model_extraction import expand_model_tree, extract_model
-from overture.schema.codegen.newtype_extraction import extract_newtype
-from overture.schema.codegen.reverse_references import (
+from overture.schema.codegen.extraction.enum_extraction import extract_enum
+from overture.schema.codegen.extraction.model_extraction import (
+    expand_model_tree,
+    extract_model,
+)
+from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
+from overture.schema.codegen.extraction.specs import PydanticTypeSpec, TypeIdentity
+from overture.schema.codegen.layout.type_collection import (
+    collect_all_supplementary_types,
+)
+from overture.schema.codegen.markdown.reverse_references import (
     UsedByKind,
     compute_reverse_references,
 )
-from overture.schema.codegen.specs import PydanticTypeSpec, TypeIdentity
-from overture.schema.codegen.type_collection import collect_all_supplementary_types
 from overture.schema.system.ref import Id
 from overture.schema.system.string import NoWhitespaceString
 from pydantic import BaseModel

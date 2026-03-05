@@ -13,29 +13,13 @@ from pathlib import PurePosixPath
 import overture.schema.system.primitive as _system_primitive
 from overture.schema.system.primitive import GeometryType
 
-from .example_loader import ExampleRecord, collect_dict_paths, load_examples
-from .link_computation import LinkContext
-from .markdown_renderer import (
-    render_enum,
-    render_feature,
-    render_geometry_from_values,
-    render_newtype,
-    render_primitives_from_specs,
-    render_pydantic_type,
-)
-from .model_extraction import expand_model_tree
-from .path_assignment import (
-    GEOMETRY_PAGE,
-    PRIMITIVES_PAGE,
-    build_placement_registry,
-    resolve_output_path,
-)
-from .primitive_extraction import (
+from ..extraction.examples import ExampleRecord, collect_dict_paths, load_examples
+from ..extraction.model_extraction import expand_model_tree
+from ..extraction.primitive_extraction import (
     extract_primitives,
     partition_primitive_and_geometry_names,
 )
-from .reverse_references import UsedByEntry, compute_reverse_references
-from .specs import (
+from ..extraction.specs import (
     EnumSpec,
     FeatureSpec,
     ModelSpec,
@@ -45,7 +29,23 @@ from .specs import (
     TypeIdentity,
     UnionSpec,
 )
-from .type_collection import collect_all_supplementary_types
+from ..layout.type_collection import collect_all_supplementary_types
+from .link_computation import LinkContext
+from .path_assignment import (
+    GEOMETRY_PAGE,
+    PRIMITIVES_PAGE,
+    build_placement_registry,
+    resolve_output_path,
+)
+from .renderer import (
+    render_enum,
+    render_feature,
+    render_geometry_from_values,
+    render_newtype,
+    render_primitives_from_specs,
+    render_pydantic_type,
+)
+from .reverse_references import UsedByEntry, compute_reverse_references
 
 __all__ = ["RenderedPage", "generate_markdown_pages"]
 

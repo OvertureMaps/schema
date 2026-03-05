@@ -6,7 +6,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 
-from .specs import (
+from ..extraction.specs import (
     FeatureSpec,
     FieldSpec,
     ModelSpec,
@@ -16,7 +16,7 @@ from .specs import (
     UnionSpec,
     is_pydantic_type,
 )
-from .type_analyzer import TypeInfo, TypeKind, walk_type_info
+from ..extraction.type_analyzer import TypeInfo, TypeKind, walk_type_info
 
 __all__ = [
     "UsedByEntry",

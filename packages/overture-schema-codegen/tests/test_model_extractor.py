@@ -12,8 +12,11 @@ from codegen_test_support import (
     assert_literal_field,
     find_field,
 )
-from overture.schema.codegen.model_extraction import expand_model_tree, extract_model
-from overture.schema.codegen.specs import ModelSpec
+from overture.schema.codegen.extraction.model_extraction import (
+    expand_model_tree,
+    extract_model,
+)
+from overture.schema.codegen.extraction.specs import ModelSpec
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
