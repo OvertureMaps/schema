@@ -318,6 +318,18 @@ def _rule_predicate_expr(rule: Rule, all_rules: list[Rule]) -> str:
 # ---------------------------------------------------------------------------
 
 
+def connect():
+    """Create a DuckDB connection with settings required for validation.
+
+    Disables geoparquet conversion so geometry columns stay as binary.
+    """
+    import duckdb as _duckdb
+
+    conn = _duckdb.connect()
+    conn.execute("SET enable_geoparquet_conversion = false")
+    return conn
+
+
 def compile(spec: DatasetSpec, parquet_path: str) -> str:
     """Compile a DatasetSpec into a self-contained DuckDB SQL query.
 
@@ -377,17 +389,8 @@ def validate(
     none provided. Installs/loads the spatial extension if
     ``geometry_type`` rules are present.
     """
-    try:
-        import duckdb as _duckdb
-    except ImportError as exc:
-        msg = (
-            "duckdb is required for validate(). "
-            "Install it with: pip install overture-schema-validation[duckdb]"
-        )
-        raise ImportError(msg) from exc
-
     if conn is None:
-        conn = _duckdb.connect()
+        conn = connect()
 
     # Install/load spatial extension if needed
     has_geom = any(r.check == CheckType.GEOMETRY_TYPE for r in spec.rules)

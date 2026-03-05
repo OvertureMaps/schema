@@ -173,7 +173,7 @@ def validate_cmd(
 def _validate_duckdb(spec, input_path: str, output_path: Path) -> None:
     """Run validation using the DuckDB engine."""
     try:
-        import duckdb
+        from .duckdb import compile, connect
     except ImportError:
         click.echo(
             "duckdb is required for the validate command with --engine duckdb. "
@@ -182,11 +182,9 @@ def _validate_duckdb(spec, input_path: str, output_path: Path) -> None:
         )
         raise SystemExit(1)
 
-    from .duckdb import compile
-
     sql = compile(spec, input_path)
 
-    conn = duckdb.connect()
+    conn = connect()
     if any(r.check == CheckType.GEOMETRY_TYPE for r in spec.rules):
         conn.execute("INSTALL spatial; LOAD spatial;")
 
@@ -205,7 +203,7 @@ def _validate_duckdb(spec, input_path: str, output_path: Path) -> None:
 def _validate_pyspark(spec, input_path: str, output_path: Path) -> None:
     """Run validation using the PySpark engine."""
     try:
-        from pyspark.sql import SparkSession
+        from .pyspark import create_spark_session, validate_df
     except ImportError:
         click.echo(
             "pyspark is required for the validate command with --engine pyspark. "
@@ -214,9 +212,18 @@ def _validate_pyspark(spec, input_path: str, output_path: Path) -> None:
         )
         raise SystemExit(1)
 
-    from .pyspark import validate_df
-
-    spark = SparkSession.builder.appName("overture-validation").getOrCreate()
+    try:
+        spark = create_spark_session()
+    except Exception as exc:
+        if "getSubject is not supported" in str(exc):
+            click.echo(
+                "PySpark 3.5 requires Java 17 or 21. Your current Java version "
+                "is not compatible. Set JAVA_HOME to a supported JDK, e.g.:\n"
+                "  export JAVA_HOME=$(/usr/libexec/java_home -v 17)",
+                err=True,
+            )
+            raise SystemExit(1)
+        raise
     df = spark.read.parquet(input_path)
     violations = validate_df(spec, df, spark)
     violations.write.mode("overwrite").parquet(str(output_path))

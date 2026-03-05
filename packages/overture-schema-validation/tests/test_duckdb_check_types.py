@@ -13,6 +13,8 @@ from overture.schema.validation.report import ValidationReport
 
 duckdb = pytest.importorskip("duckdb")
 
+from overture.schema.validation.duckdb import connect as duckdb_connect
+
 
 def _sql_value(value: Any, col_type: type | None) -> str:
     """Convert a Python value to a DuckDB SQL literal."""
@@ -81,12 +83,12 @@ def _run(spec: DatasetSpec, case, tmp_path: Path) -> ValidationReport:
     )
 
     path = str(tmp_path / "test.parquet")
-    c = duckdb.connect()
+    c = duckdb_connect()
     if has_blob:
         c.execute("INSTALL spatial; LOAD spatial;")
     c.execute(sql)
     c.execute(f"COPY _tbl TO '{path}' (FORMAT PARQUET)")
-    return validate(spec, path, duckdb.connect())
+    return validate(spec, path, duckdb_connect())
 
 
 def _assert_violations(

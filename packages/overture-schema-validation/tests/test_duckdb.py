@@ -468,10 +468,12 @@ def test_compile_when_in():
 
 duckdb = pytest.importorskip("duckdb")
 
+from overture.schema.validation.duckdb import connect as duckdb_connect
+
 
 @pytest.fixture()
 def conn():
-    return duckdb.connect()
+    return duckdb_connect()
 
 
 @pytest.fixture()
@@ -480,7 +482,7 @@ def parquet_path(tmp_path):
 
     def _create(create_sql: str, filename: str = "test.parquet") -> str:
         path = str(tmp_path / filename)
-        c = duckdb.connect()
+        c = duckdb_connect()
         c.execute(create_sql)
         c.execute(f"COPY _tbl TO '{path}' (FORMAT PARQUET)")
         return path
@@ -688,6 +690,29 @@ def test_validate_column_lt(conn, parquet_path):
     # b: 5 < 3 fails, c: 2 < 2 fails
     assert len(report.results) == 2
     assert {r.violating_id for r in report.results} == {"b", "c"}
+
+
+def test_validate_geometry_type(tmp_path):
+    from overture.schema.validation.duckdb import validate
+
+    path = str(tmp_path / "geom.parquet")
+    c = duckdb_connect()
+    c.execute("INSTALL spatial; LOAD spatial;")
+    c.execute(
+        "CREATE TABLE _tbl AS "
+        "SELECT 'a' AS id, ST_AsWKB(ST_Point(0, 0))::BLOB AS geometry "
+        "UNION ALL SELECT 'b', ST_AsWKB(ST_GeomFromText("
+        "'POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))'))::BLOB "
+        "UNION ALL SELECT 'c', ST_AsWKB(ST_Point(1, 1))::BLOB"
+    )
+    c.execute(f"COPY _tbl TO '{path}' (FORMAT PARQUET)")
+
+    spec = _spec(
+        [_rule(CheckType.GEOMETRY_TYPE, column="geometry", value=["Point"])]
+    )
+    report = validate(spec, path)
+    assert len(report.results) == 1
+    assert report.results[0].violating_id == "b"
 
 
 def test_validate_zero_violations(conn, parquet_path):

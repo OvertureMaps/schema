@@ -16,13 +16,13 @@ from .report import RuleResult, ValidationReport
 # ---------------------------------------------------------------------------
 
 _GEOM_TYPE_MAP: dict[str, str] = {
-    "Point": "POINT",
-    "MultiPoint": "MULTIPOINT",
-    "LineString": "LINESTRING",
-    "MultiLineString": "MULTILINESTRING",
-    "Polygon": "POLYGON",
-    "MultiPolygon": "MULTIPOLYGON",
-    "GeometryCollection": "GEOMETRYCOLLECTION",
+    "Point": "ST_Point",
+    "MultiPoint": "ST_MultiPoint",
+    "LineString": "ST_LineString",
+    "MultiLineString": "ST_MultiLineString",
+    "Polygon": "ST_Polygon",
+    "MultiPolygon": "ST_MultiPolygon",
+    "GeometryCollection": "ST_GeometryCollection",
 }
 
 # ---------------------------------------------------------------------------
@@ -411,16 +411,14 @@ def validate_df(spec: DatasetSpec, df, spark=None):
     """Validate a Spark DataFrame against a DatasetSpec.
 
     Returns a violations DataFrame with columns: (id, name, severity).
+
+    The session should have been created via :func:`create_spark_session`
+    so that Sedona UDFs are available for ``GEOMETRY_TYPE`` checks.
     """
     from pyspark.sql import functions as F
 
     if not spec.rules:
         return df.sparkSession.createDataFrame([], "id STRING, name STRING, severity STRING")
-
-    # Register Sedona if geometry rules present
-    has_geom = any(r.check == CheckType.GEOMETRY_TYPE for r in spec.rules)
-    if has_geom:
-        _register_sedona(spark or df.sparkSession)
 
     id_col = spec.id_column
 
@@ -487,20 +485,49 @@ def validate(spec: DatasetSpec, df, spark=None) -> ValidationReport:
     )
 
 
-def _register_sedona(spark) -> None:
-    """Register Sedona UDFs with the Spark session."""
+def create_spark_session(app_name: str = "overture-validation", **config):
+    """Create a SparkSession with Sedona pre-configured.
+
+    Uses ``SedonaContext.builder()`` to ensure Sedona JARs are on the
+    classpath and Sedona UDFs are registered.  Any extra keyword arguments
+    are forwarded as Spark config options.
+
+    Parameters
+    ----------
+    app_name
+        Spark application name.
+    **config
+        Additional Spark configuration key-value pairs
+        (e.g. ``master="local[1]"``).
+    """
     try:
         from sedona.spark import SedonaContext
+    except ImportError as exc:
+        msg = (
+            "apache-sedona is required for the PySpark backend. "
+            "Install it with: pip install overture-schema-validation[pyspark]"
+        )
+        raise ImportError(msg) from exc
 
-        SedonaContext.create(spark)
-    except ImportError:
-        try:
-            from sedona.register import SedonaRegistrator
+    from importlib.metadata import version
 
-            SedonaRegistrator.registerAll(spark)
-        except ImportError as exc:
-            msg = (
-                "apache-sedona is required for geometry_type checks. "
-                "Install it with: pip install overture-schema-validation[pyspark]"
-            )
-            raise ImportError(msg) from exc
+    sedona_version = version("apache-sedona")
+    from pyspark import __version__ as spark_version
+
+    spark_major_minor = ".".join(spark_version.split(".")[:2])
+
+    packages = (
+        f"org.apache.sedona:sedona-spark-shaded-{spark_major_minor}_2.12:{sedona_version},"
+        f"org.datasyslab:geotools-wrapper:{sedona_version}-33.1"
+    )
+
+    builder = (
+        SedonaContext.builder()
+        .appName(app_name)
+        .config("spark.jars.packages", packages)
+    )
+    for key, value in config.items():
+        builder = builder.config(key, value)
+
+    spark = builder.getOrCreate()
+    return SedonaContext.create(spark)

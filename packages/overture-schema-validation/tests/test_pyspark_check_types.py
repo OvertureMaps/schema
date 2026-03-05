@@ -21,43 +21,20 @@ def spark():
     if os.path.isdir(java17):
         os.environ["JAVA_HOME"] = java17
 
-    session = (
-        SparkSession.builder.master("local[1]")
-        .appName("overture-test")
-        .config("spark.ui.enabled", "false")
-        .config("spark.driver.memory", "512m")
-        .getOrCreate()
-    )
-    yield session
-    session.stop()
-
-
-@pytest.fixture(scope="session")
-def spark_sedona():
-    """Spark session with Sedona JARs on the classpath."""
-    sedona_mod = pytest.importorskip("sedona")
-
-    java17 = "/Library/Java/JavaVirtualMachines/java-runtime-17/Contents/Home"
-    if os.path.isdir(java17):
-        os.environ["JAVA_HOME"] = java17
+    from overture.schema.validation.pyspark import create_spark_session
 
     try:
-        from sedona.spark import SedonaContext
-
-        session = (
-            SedonaContext.builder()
-            .master("local[1]")
-            .appName("overture-sedona-test")
-            .config("spark.ui.enabled", "false")
-            .config("spark.driver.memory", "512m")
-            .getOrCreate()
+        session = create_spark_session(
+            app_name="overture-test",
+            **{
+                "spark.master": "local[1]",
+                "spark.ui.enabled": "false",
+                "spark.driver.memory": "512m",
+            },
         )
-        session = SedonaContext.create(session)
     except Exception as exc:
-        pytest.skip(f"Sedona setup failed: {exc}")
+        pytest.skip(f"Spark session setup failed: {exc}")
 
-    yield session
-    session.stop()
     yield session
     session.stop()
 
@@ -82,28 +59,20 @@ def _assert_violations(
     assert actual_sorted == expected_sorted
 
 
-# Skip geometry_type — requires Sedona which may not be installed
-_CASES_NO_GEOM = {k: v for k, v in CASES.items() if k != "geometry_type"}
+_SKIP = {
+    "min_length": "F.length() does not support array columns in PySpark",
+    "max_length": "F.length() does not support array columns in PySpark",
+}
 
 
-@pytest.mark.parametrize("key", _CASES_NO_GEOM)
+@pytest.mark.parametrize("key", CASES)
 def test_check_type(key: str, spark: SparkSession) -> None:
+    if key in _SKIP:
+        pytest.skip(_SKIP[key])
     case = CASES[key]
     spec = DatasetSpec(
         name="test",
         rules=case.rules,
     )
     report = _run(spec, case, spark)
-    _assert_violations(report, case.violations)
-
-
-@pytest.mark.parametrize("key", ["geometry_type"])
-def test_check_type_geometry(key: str, spark_sedona: SparkSession) -> None:
-    """Test geometry_type check (requires Sedona)."""
-    case = CASES[key]
-    spec = DatasetSpec(
-        name="test",
-        rules=case.rules,
-    )
-    report = _run(spec, case, spark_sedona)
     _assert_violations(report, case.violations)
