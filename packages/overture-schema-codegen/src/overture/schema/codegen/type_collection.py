@@ -87,6 +87,9 @@ def collect_all_supplementary_types(
         """
 
         def _visit(node: TypeInfo) -> None:
+            # UNION, ENUM, and pydantic (PRIMITIVE) are mutually exclusive
+            # by TypeKind. NewType extraction is orthogonal -- a node can be
+            # a NewType-wrapped ENUM, for instance.
             if node.kind == TypeKind.UNION and node.union_members:
                 # Walk each member's fields for supplementary types.
                 # Members that are also top-level feature specs are skipped
@@ -95,11 +98,15 @@ def collect_all_supplementary_types(
                     member_spec = extract_model(member_cls)
                     expand_model_tree(member_spec)
                     _collect_from_model(member_spec)
-
-            if node.kind == TypeKind.ENUM and node.source_type is not None:
+            elif node.kind == TypeKind.ENUM and node.source_type is not None:
                 enum_id = TypeIdentity.of(node.source_type)
                 if enum_id not in all_specs:
                     all_specs[enum_id] = extract_enum(node.source_type)
+            elif is_pydantic_type(node):
+                assert node.source_type is not None  # guaranteed by is_pydantic_type
+                pid = TypeIdentity.of(node.source_type)
+                if pid not in all_specs:
+                    all_specs[pid] = extract_pydantic_type(node.source_type)
 
             # Semantic NewTypes always get extracted, including intermediate
             # NewTypes in the wrapping chain (e.g., Id wraps NoWhitespaceString
@@ -114,12 +121,6 @@ def collect_all_supplementary_types(
                 )
                 if newly_registered:
                     _collect_inner_newtypes(node.newtype_ref)
-
-            if is_pydantic_type(node):
-                assert node.source_type is not None  # guaranteed by is_pydantic_type
-                pid = TypeIdentity.of(node.source_type)
-                if pid not in all_specs:
-                    all_specs[pid] = extract_pydantic_type(node.source_type)
 
         walk_type_info(ti, _visit)
 

@@ -13,6 +13,7 @@ from overture.schema.codegen.example_loader import (
     ExampleRecord,
     _denull,
     _inject_literal_fields,
+    collect_dict_paths,
     flatten_example,
     load_examples,
     load_examples_from_toml,
@@ -20,6 +21,8 @@ from overture.schema.codegen.example_loader import (
     resolve_pyproject_path,
     validate_example,
 )
+from overture.schema.codegen.specs import FieldSpec, ModelSpec
+from overture.schema.codegen.type_analyzer import TypeInfo, TypeKind
 from pydantic import BaseModel, ConfigDict, Field, Tag, ValidationError
 
 
@@ -115,6 +118,54 @@ class TestFlattenExample:
             ("sources[0].confidence", 0.9),
             ("sources[1].dataset", "MSFT"),
             ("sources[1].confidence", 0.8),
+        ]
+
+    def test_dict_field_kept_as_leaf(self) -> None:
+        """Dict values at dict_paths are kept as leaf values."""
+        raw = {
+            "name": "test",
+            "tags": {"color": "red", "size": "large"},
+        }
+        result = flatten_example(raw, dict_paths=frozenset({"tags"}))
+        assert result == [
+            ("name", "test"),
+            ("tags", {"color": "red", "size": "large"}),
+        ]
+
+    def test_nested_dict_path_kept_as_leaf(self) -> None:
+        """Dict values at nested dict_paths are kept as leaf values."""
+        raw = {
+            "names": {
+                "primary": "Tower",
+                "common": {"en": "Tower", "fr": "Tour"},
+            },
+        }
+        result = flatten_example(raw, dict_paths=frozenset({"names.common"}))
+        assert result == [
+            ("names.primary", "Tower"),
+            ("names.common", {"en": "Tower", "fr": "Tour"}),
+        ]
+
+    def test_empty_dict_paths_preserves_behavior(self) -> None:
+        """Empty dict_paths (default) recurses all dicts as before."""
+        raw = {"tags": {"color": "red"}}
+        result = flatten_example(raw)
+        assert result == [("tags.color", "red")]
+
+    def test_dict_inside_list_kept_as_leaf(self) -> None:
+        """Dict at indexed path matches schema path in dict_paths."""
+        raw = {
+            "items": [
+                {"name": "a", "tags": {"color": "red"}},
+                {"name": "b", "tags": {"size": "large"}},
+            ],
+        }
+        result = flatten_example(raw, dict_paths=frozenset({"items[].tags"}))
+        assert result == [
+            ("items[0].name", "a"),
+            ("items[0].tags", {"color": "red"}),
+            ("items[1].name", "b"),
+            ("items[1].tags", {"size": "large"}),
         ]
 
 
@@ -466,6 +517,40 @@ class TestLoadExamples:
             and str(mock_project.pyproject) in record.message
             for record in caplog.records
         )
+
+    def test_dict_paths_keep_dicts_as_leaves(self, mock_project: MockProject) -> None:
+        """Dict fields listed in dict_paths stay as leaf values."""
+        mock_project.write_pyproject(
+            dedent("""
+                [project]
+                name = "test"
+
+                [[examples.MockModel]]
+                name = "Tower"
+
+                [examples.MockModel.tags]
+                color = "red"
+                size = "large"
+            """)
+        )
+
+        class MockModel(BaseModel):
+            __module__ = mock_project.mod_name
+            name: str
+            tags: dict[str, str]
+
+        result = load_examples(
+            MockModel,
+            "MockModel",
+            ["name", "tags"],
+            dict_paths=frozenset({"tags"}),
+        )
+
+        assert len(result) == 1
+        assert result[0].rows == [
+            ("name", "Tower"),
+            ("tags", {"color": "red", "size": "large"}),
+        ]
 
     def test_denulled_values_in_output(self, mock_project: MockProject) -> None:
         """Flattened output contains None not "null" strings."""
@@ -820,3 +905,102 @@ class TestIntegration:
                 model_fields=TransportationSegment.model_fields,
             )
             assert isinstance(validated, dict), f"Example {idx}: Expected dict result"
+
+
+def _field(
+    name: str,
+    *,
+    kind: TypeKind = TypeKind.PRIMITIVE,
+    base_type: str = "str",
+    is_dict: bool = False,
+    list_depth: int = 0,
+    is_required: bool = True,
+    model: ModelSpec | None = None,
+    starts_cycle: bool = False,
+) -> FieldSpec:
+    """Build a FieldSpec with sensible defaults for testing."""
+    return FieldSpec(
+        name=name,
+        type_info=TypeInfo(
+            base_type=base_type, kind=kind, is_dict=is_dict, list_depth=list_depth
+        ),
+        description=None,
+        is_required=is_required,
+        model=model,
+        starts_cycle=starts_cycle,
+    )
+
+
+class TestCollectDictPaths:
+    """Tests for collect_dict_paths."""
+
+    def test_no_dict_fields(self) -> None:
+        """Model with only primitive fields returns empty set."""
+        fields = [_field("name")]
+        assert collect_dict_paths(fields) == frozenset()
+
+    def test_top_level_dict_field(self) -> None:
+        """Dict field at top level is collected."""
+        fields = [
+            _field("name"),
+            _field("tags", is_dict=True, is_required=False),
+        ]
+        assert collect_dict_paths(fields) == frozenset({"tags"})
+
+    def test_nested_dict_in_sub_model(self) -> None:
+        """Dict field inside a sub-model produces dotted path."""
+        inner_fields = [
+            _field("primary"),
+            _field("common", is_dict=True, is_required=False),
+        ]
+        inner_model = ModelSpec(name="Names", description=None, fields=inner_fields)
+        fields = [
+            _field("names", kind=TypeKind.MODEL, base_type="Names", model=inner_model)
+        ]
+        assert collect_dict_paths(fields) == frozenset({"names.common"})
+
+    def test_list_of_model_with_dict(self) -> None:
+        """Dict inside list-of-model uses [] in path."""
+        inner_fields = [_field("tags", is_dict=True, is_required=False)]
+        inner_model = ModelSpec(name="Item", description=None, fields=inner_fields)
+        fields = [
+            _field(
+                "items",
+                kind=TypeKind.MODEL,
+                base_type="Item",
+                list_depth=1,
+                model=inner_model,
+            ),
+        ]
+        assert collect_dict_paths(fields) == frozenset({"items[].tags"})
+
+    def test_nested_list_depth(self) -> None:
+        """list[list[Model]] produces [][] in path."""
+        inner_fields = [_field("tags", is_dict=True)]
+        inner_model = ModelSpec(name="Item", description=None, fields=inner_fields)
+        fields = [
+            _field(
+                "items",
+                kind=TypeKind.MODEL,
+                base_type="Item",
+                list_depth=2,
+                model=inner_model,
+            ),
+        ]
+        assert collect_dict_paths(fields) == frozenset({"items[][].tags"})
+
+    def test_cycle_stops_recursion(self) -> None:
+        """Fields with starts_cycle=True are not recursed into."""
+        inner_fields = [_field("data", is_dict=True, is_required=False)]
+        inner_model = ModelSpec(name="Node", description=None, fields=inner_fields)
+        fields = [
+            _field(
+                "child",
+                kind=TypeKind.MODEL,
+                base_type="Node",
+                is_required=False,
+                model=inner_model,
+                starts_cycle=True,
+            ),
+        ]
+        assert collect_dict_paths(fields) == frozenset()

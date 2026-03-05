@@ -609,8 +609,15 @@ non-selected variant arms. `_strip_null_unknown_fields` removes null-valued fiel
 in the common base's field set, so the selected arm's validator accepts the data without
 choking on fields that belong to sibling variants.
 
+`collect_dict_paths` walks the `FieldSpec` tree to identify dict-typed fields (like
+`tags: dict[str, str]`), returning their dot-paths as a `frozenset`. Schema-notation
+paths use empty brackets (`items[].tags`) while runtime paths carry indices
+(`items[0].tags`); `_normalize_path` strips indices before membership checks.
+
 `flatten_example` converts nested dicts to dot-notation. Nested dicts become
-`parent.child`, lists of dicts become `parent[0].child`. `order_example_rows` sorts by
+`parent.child`, lists of dicts become `parent[0].child`. Dicts at paths in `dict_paths`
+are kept as leaf values -- a `tags` field typed as `dict[str, str]` renders as a whole
+map rather than being split into `tags.color`, `tags.size`. `order_example_rows` sorts by
 field position in the documentation's field order using a stable sort, so sub-fields
 maintain their original relative order.
 
@@ -732,8 +739,9 @@ sources appear on the source NewType's page instead.
 
 The example loader finds `pyproject.toml` in the transportation theme package, reads
 `[examples.Segment]`, validates each example against the union alias (injecting literal
-fields, stripping null fields from non-selected arms), flattens to dot-notation, and
-orders by field position.
+fields, stripping null fields from non-selected arms), computes `dict_paths` from
+`spec.fields` to identify dict-typed fields, flattens to dot-notation (keeping dict-typed
+fields as leaf values), and orders by field position.
 
 The Jinja2 template assembles the field table, optional constraints section, examples,
 and "Used By" partial into markdown.
