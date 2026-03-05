@@ -85,6 +85,8 @@ def compute_reverse_references(
                     referrer_kind,
                 )
 
+            # ENUM, MODEL, pydantic (PRIMITIVE), and UNION are mutually
+            # exclusive by TypeKind.
             if (
                 node.kind in (TypeKind.ENUM, TypeKind.MODEL)
                 and node.source_type is not None
@@ -94,13 +96,11 @@ def compute_reverse_references(
                     referrer,
                     referrer_kind,
                 )
-
-            if is_pydantic_type(node):
+            elif is_pydantic_type(node):
                 add_reference(
                     TypeIdentity.of(node.source_type), referrer, referrer_kind
                 )
-
-            if node.union_members is not None:
+            elif node.union_members is not None:
                 for member_cls in node.union_members:
                     add_reference(
                         TypeIdentity.of(member_cls),

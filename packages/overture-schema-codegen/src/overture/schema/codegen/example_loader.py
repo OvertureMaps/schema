@@ -1,6 +1,7 @@
 """Load and process example data from theme pyproject.toml files."""
 
 import logging
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,11 +11,12 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 from pydantic.fields import FieldInfo
 
 from .model_extraction import resolve_field_alias
+from .specs import FieldSpec
 from .type_analyzer import single_literal_value
 
 log = logging.getLogger(__name__)
 
-__all__ = ["ExampleRecord", "load_examples", "validate_example"]
+__all__ = ["ExampleRecord", "collect_dict_paths", "load_examples", "validate_example"]
 
 # tomllib is stdlib from 3.11+; tomli is the backport for 3.10.
 try:
@@ -140,19 +142,63 @@ def validate_example(
 
 
 _DEFAULT_SKIP_KEYS: frozenset[str] = frozenset()
+_DEFAULT_DICT_PATHS: frozenset[str] = frozenset()
+
+_INDEXED_BRACKET = re.compile(r"\[\d+\]")
 
 
-def _flatten_value(prefix: str, value: object) -> list[tuple[str, Any]]:
+def _normalize_path(path: str) -> str:
+    """Replace indexed brackets with empty brackets for dict_paths matching.
+
+    ``collect_dict_paths`` produces schema-notation paths like
+    ``items[].tags``, while ``_flatten_value`` builds runtime paths like
+    ``items[0].tags``. Normalizing before membership testing makes them
+    comparable.
+    """
+    return _INDEXED_BRACKET.sub("[]", path)
+
+
+def collect_dict_paths(fields: list[FieldSpec], prefix: str = "") -> frozenset[str]:
+    """Collect dot-paths of dict-typed fields from a FieldSpec tree.
+
+    Walks the ``FieldSpec.model`` tree (same structure the renderer walks
+    for inline expansion) and returns paths where ``type_info.is_dict``
+    is True. These paths tell ``flatten_example`` which dicts are maps
+    (keep as leaf) vs. models (recurse into).
+
+    Parameters
+    ----------
+    fields : list[FieldSpec]
+        Fields to walk.
+    prefix : str
+        Dot-notation prefix accumulated from parent fields.
+    """
+    paths: set[str] = set()
+    for f in fields:
+        path = f"{prefix}{f.name}" if prefix else f.name
+        if f.type_info.is_dict:
+            paths.add(path)
+        elif f.model and not f.starts_cycle:
+            suffix = "[]" * f.type_info.list_depth if f.type_info.is_list else ""
+            paths |= collect_dict_paths(f.model.fields, f"{path}{suffix}.")
+    return frozenset(paths)
+
+
+def _flatten_value(
+    prefix: str, value: object, dict_paths: frozenset[str]
+) -> list[tuple[str, Any]]:
     """Recursively flatten a value into dot/bracket-notation rows."""
     if isinstance(value, dict):
+        if _normalize_path(prefix) in dict_paths:
+            return [(prefix, value)]
         result: list[tuple[str, Any]] = []
         for k, v in value.items():
-            result.extend(_flatten_value(f"{prefix}.{k}", v))
+            result.extend(_flatten_value(f"{prefix}.{k}", v, dict_paths))
         return result
     if isinstance(value, list) and value and isinstance(value[0], (dict, list)):
         result = []
         for i, item in enumerate(value):
-            result.extend(_flatten_value(f"{prefix}[{i}]", item))
+            result.extend(_flatten_value(f"{prefix}[{i}]", item, dict_paths))
         return result
     return [(prefix, value)]
 
@@ -161,6 +207,7 @@ def flatten_example(
     raw: dict[str, Any],
     *,
     skip_keys: frozenset[str] = _DEFAULT_SKIP_KEYS,
+    dict_paths: frozenset[str] = _DEFAULT_DICT_PATHS,
 ) -> list[tuple[str, Any]]:
     """Flatten nested example dict to dot-notation key-value pairs.
 
@@ -168,12 +215,16 @@ def flatten_example(
     ``"parent[0].child"``; lists of lists of dicts use double-index
     notation ``"parent[0][1].child"``. Keys in *skip_keys* are dropped
     at the top level only. Plain lists are kept as values.
+
+    Dicts at paths in *dict_paths* are kept as leaf values instead of
+    being recursed into. Use ``collect_dict_paths`` to compute this set
+    from a FieldSpec tree.
     """
     result: list[tuple[str, Any]] = []
     for key, value in raw.items():
         if key in skip_keys:
             continue
-        result.extend(_flatten_value(key, value))
+        result.extend(_flatten_value(key, value, dict_paths))
     return result
 
 
@@ -257,6 +308,7 @@ def load_examples(
     *,
     pyproject_source: type | None = None,
     model_fields: dict[str, FieldInfo] | None = None,
+    dict_paths: frozenset[str] = _DEFAULT_DICT_PATHS,
 ) -> list[ExampleRecord]:
     """Load examples for a model, flattened and ordered by *field_names*.
 
@@ -278,6 +330,9 @@ def load_examples(
     model_fields : dict[str, FieldInfo] or None
         Field info dict for Literal injection. If None, infers
         from validation_type if it's a BaseModel class.
+    dict_paths : frozenset[str]
+        Dot-paths of dict-typed fields to keep as leaf values.
+        Use ``collect_dict_paths`` to compute from a FieldSpec tree.
     """
     source_type = pyproject_source if pyproject_source is not None else validation_type
     if not isinstance(source_type, type):
@@ -308,7 +363,7 @@ def load_examples(
                 e,
             )
             continue
-        flat_rows = flatten_example(denulled)
+        flat_rows = flatten_example(denulled, dict_paths=dict_paths)
         ordered_rows = order_example_rows(flat_rows, field_names)
         records.append(ExampleRecord(rows=ordered_rows))
 

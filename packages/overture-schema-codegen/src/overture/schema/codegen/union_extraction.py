@@ -76,12 +76,12 @@ def extract_discriminator(
     return disc_field_name, mapping or None
 
 
-_TypeIdentity = tuple[str, TypeKind, bool, int]
-_FieldKey = tuple[str, _TypeIdentity]
+_TypeShape = tuple[str, TypeKind, bool, int]
+_FieldKey = tuple[str, _TypeShape]
 
 
-def _type_identity(ti: TypeInfo) -> _TypeIdentity:
-    """Stable identity for dedup — excludes source_type which can vary across members."""
+def _type_shape(ti: TypeInfo) -> _TypeShape:
+    """Structural shape for dedup -- excludes source_type which varies across members."""
     return (ti.base_type, ti.kind, ti.is_optional, ti.list_depth)
 
 
@@ -117,7 +117,7 @@ def extract_union(
         for fs in member_spec.fields:
             if fs.name in shared_field_names:
                 continue
-            key = (fs.name, _type_identity(fs.type_info))
+            key = (fs.name, _type_shape(fs.type_info))
             existing = seen.get(key)
             prior_sources = existing.variant_sources or () if existing else ()
             seen[key] = AnnotatedField(
