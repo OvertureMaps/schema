@@ -33,6 +33,63 @@ wheels = [
 ]
 
 [[package]]
+name = "apache-sedona"
+version = "1.8.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "shapely" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bd/10/59513c39bd3af6454c242f256d3b2ad41d4ab6ba2d361872b01646a4a0ac/apache_sedona-1.8.1.tar.gz", hash = "sha256:f6c7a1fd3ff392eea55e3e5ca269b035b1286017d61f129cf4bcf7f0f3faad31", size = 170200, upload-time = "2026-01-09T06:16:30.499Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/d4/4cc529a478a4ae058e84d4fff312a50bfbded2a2637b2b524cdafc469383/apache_sedona-1.8.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:92b2996e304c387248f77c424ed56b92a51ad48ee20c98478700aa8708218bd7", size = 288662, upload-time = "2026-01-09T06:15:19.352Z" },
+    { url = "https://files.pythonhosted.org/packages/89/fa/0ff2f619067b03be50f98184b77a5029098d96277dc851143efde7523e94/apache_sedona-1.8.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:14ffe848bb14f59547d2aeaaa06d23bc8fd2b7bb744baff74d04acde4b79d8a7", size = 288937, upload-time = "2026-01-09T06:15:21.119Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/0a/ab386d5e05b962168832f417877637bb203b24bd3c066337c4f22212f480/apache_sedona-1.8.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:0f5b7000e7178418da69bd3f595fdf85b12420a5c109e69693d062e83be3fccc", size = 332089, upload-time = "2026-01-09T06:15:22.59Z" },
+    { url = "https://files.pythonhosted.org/packages/b9/33/2dc3121c7021e576e4e4657f27bcdb9c5cf8f9c70f6dd253bb18bf3db9ac/apache_sedona-1.8.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7003c2dea38a2ef2f6c99544162f48af33e8eed0fe3b71c51a9fb8830e69243a", size = 331227, upload-time = "2026-01-09T06:15:23.943Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/0c/639d5969acaf4e0d8842c434917f027b5e65d9841e2a681a333694acfb43/apache_sedona-1.8.1-cp310-cp310-win_amd64.whl", hash = "sha256:b2220de3860469853ad95a6716f3755093eb10d41c6d883bf9db55888b73535d", size = 286904, upload-time = "2026-01-09T06:15:25.46Z" },
+    { url = "https://files.pythonhosted.org/packages/64/6e/306efcef50d26852918277b2665bd8bd485273a77c7052c36dcb8baba6db/apache_sedona-1.8.1-cp310-cp310-win_arm64.whl", hash = "sha256:4faae17196917374dfc418e847c2a05220937eefc63ac7cd68346c3bb92e49c9", size = 284761, upload-time = "2026-01-09T06:15:26.802Z" },
+    { url = "https://files.pythonhosted.org/packages/60/1d/603a30499569a2a564d8e1419f872a42e41f17405fac46d90860b92363e2/apache_sedona-1.8.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:ce65d7bf75977cca9435345150c01656b5620b663ebdcd1a902676258ce4abbe", size = 288669, upload-time = "2026-01-09T06:15:28.53Z" },
+    { url = "https://files.pythonhosted.org/packages/86/36/150071e1d859f50d7ca947ce103a56011f061e942564287a4365c34891a6/apache_sedona-1.8.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:432f56dc2c554806878b77c9459bd9e9aadc58107fa29df7c442da1e057aa5bf", size = 288939, upload-time = "2026-01-09T06:15:30.052Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/f5/e3dff92a30fd3efa42695a310ce739794380992e484eb65f2ea654b8c3d4/apache_sedona-1.8.1-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:9621b015efe63cf2bf06e6d583ef740def8e00fa81e149f9a6156fb823d23784", size = 332185, upload-time = "2026-01-09T06:15:32.241Z" },
+    { url = "https://files.pythonhosted.org/packages/1e/51/f3ab04c58d738ed8dcb190f8a30f0a2492f98f4a478e9abd5062ca2cc8a6/apache_sedona-1.8.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:cd86b55f9dd279de5d9c58cd2302655adc80b1527761ea263cb22bd82ad79a54", size = 331312, upload-time = "2026-01-09T06:15:34.365Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/67/bdaeec65e6dc3e26101746ce941414872c7db51712f10507e76c6c2091e4/apache_sedona-1.8.1-cp311-cp311-win_amd64.whl", hash = "sha256:9e2934e727e25e1b827c0c08a11f088b3d71799c7c5b25a6d42afaa3154b5118", size = 286901, upload-time = "2026-01-09T06:15:35.706Z" },
+    { url = "https://files.pythonhosted.org/packages/3b/14/385fe1629305c375a9ebbb31e6ffaeebe437dde8d35ae720fd62ff3dba9a/apache_sedona-1.8.1-cp311-cp311-win_arm64.whl", hash = "sha256:50fe81bbbf056a599a7b2c64fa335838a973127b77bf36aa6b9f43d73dba201f", size = 284759, upload-time = "2026-01-09T06:15:37.395Z" },
+    { url = "https://files.pythonhosted.org/packages/87/fe/be90b1416e6f324e3077dcad924f9283de96458ee2d0e0260b385bb7f197/apache_sedona-1.8.1-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:36f73d55f6f3f458699fd7bd2cc99a603862463abab1000ac7784ce869d3deac", size = 288700, upload-time = "2026-01-09T06:15:39.155Z" },
+    { url = "https://files.pythonhosted.org/packages/71/d4/db750e6bc53f8a222bf3ef96bf8ffb6cb98046c5ce420f306ee78828b136/apache_sedona-1.8.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:af6aa8699fde6a82b3feed1acfbdd8aa021288facbaa938c894be874956216de", size = 288952, upload-time = "2026-01-09T06:15:40.755Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/b8/21a49dc6fbf9b712f4b9628683a1af006a884b4194826c03385a256cc3eb/apache_sedona-1.8.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:477df57f0986236457ea2d883851b9eb62cb139a66fde99e0fbb45b65c63cb54", size = 332535, upload-time = "2026-01-09T06:15:42.271Z" },
+    { url = "https://files.pythonhosted.org/packages/bd/bc/f875f126d230177dafffade844ecf7830e67e35e23870f5522fe93fa1ba5/apache_sedona-1.8.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d0853a40da14e636581e99dc4f36af9fe5ae220da762464d183daa62d5b7bc0d", size = 331891, upload-time = "2026-01-09T06:15:43.761Z" },
+    { url = "https://files.pythonhosted.org/packages/78/f7/2ae451f8fc887a79e024635e24541929f89b02526006b83cf1e4725857cd/apache_sedona-1.8.1-cp312-cp312-win_amd64.whl", hash = "sha256:47b2a3b89981bc04944604642b6c56d3cd19b5e2f08e4c16c6a1d0e8de2a4ea7", size = 286916, upload-time = "2026-01-09T06:15:45.411Z" },
+    { url = "https://files.pythonhosted.org/packages/13/99/d4fb874a4857a3eadae00beb278cbb1e9269c450a9ee3bbe4acb920ee9ea/apache_sedona-1.8.1-cp312-cp312-win_arm64.whl", hash = "sha256:32527389e528b6eae062881309245fbb243936374367bf4a4eadfe486feff2b8", size = 284767, upload-time = "2026-01-09T06:15:46.701Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/5c/91af34e4fdeeb37840f912d865ab4320a2e1b71381a824a04a1d45cfa6b4/apache_sedona-1.8.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:22a1e6bbb3fbcd446ec1e205058f085ce5628d2f1d97ec3afd0fc38e2dd65471", size = 288704, upload-time = "2026-01-09T06:15:48.306Z" },
+    { url = "https://files.pythonhosted.org/packages/36/f9/566f1508dcda0d9382f6fb3d6e6870fa3aa03f49e525865544926ecd2ec7/apache_sedona-1.8.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:e0c00c96a2cf85afa145e16820da7cc69365d356300a2d02521d2968d4daa81f", size = 288951, upload-time = "2026-01-09T06:15:49.744Z" },
+    { url = "https://files.pythonhosted.org/packages/08/46/14d938978de3cbbf5ca132cabc5f60c5811a1623721619afa9fcf53a7bf7/apache_sedona-1.8.1-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:1b9008793bf3bb8336e51aad84fa4625dd6f838674fa8e81d04e1c8eded4c578", size = 332579, upload-time = "2026-01-09T06:15:51.226Z" },
+    { url = "https://files.pythonhosted.org/packages/61/bb/21d97ea53bca82f82748ba636fedde557e30e0ddfd822b0124c0babc2f3b/apache_sedona-1.8.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:cb33b1f60e1a114d19bd50146520223d64c47bda2112c151197a2d288b9ac5be", size = 331902, upload-time = "2026-01-09T06:15:52.725Z" },
+    { url = "https://files.pythonhosted.org/packages/cb/85/8031cebaa443c705c799b3d6390aee73416a4ac8ad4ea0d37f21130431f5/apache_sedona-1.8.1-cp313-cp313-win_amd64.whl", hash = "sha256:913727c2d1cad099d9c43487aecf268c699d3ca5806dca4561bd9624f634ebda", size = 286918, upload-time = "2026-01-09T06:15:53.993Z" },
+    { url = "https://files.pythonhosted.org/packages/34/20/39816924001630230670df59d9ae4f45fd177723569855a10db95fe9415e/apache_sedona-1.8.1-cp313-cp313-win_arm64.whl", hash = "sha256:80ff5b2e94360ba8f80a225290341f85b8b478a49b38c99b3159a1bd7a287537", size = 284760, upload-time = "2026-01-09T06:15:55.274Z" },
+    { url = "https://files.pythonhosted.org/packages/54/9a/c203e859a3d89134a6200ea0252d566129f895f96f4bcb7e5784c72d70fd/apache_sedona-1.8.1-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:8f94ca8ddb90f692231124a212d5f101e41931119ba071cb9b0131aef113572b", size = 288785, upload-time = "2026-01-09T06:15:56.927Z" },
+    { url = "https://files.pythonhosted.org/packages/39/34/2af7d7d1e981d6271630d35fd3841bca25a3fccf34ff91b2e2d8e33feae4/apache_sedona-1.8.1-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:a8a4eb797afc53c450a2b02b6752eb24bf35f097a64dfc233b85e5d34dea0c08", size = 288962, upload-time = "2026-01-09T06:15:58.163Z" },
+    { url = "https://files.pythonhosted.org/packages/94/5f/ceb9799102a1ef8661ed9e8284b90af21e7993b3c06fd7627c789f3d5e24/apache_sedona-1.8.1-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:880ab7e304071e847b84b55f0dab18cc45c38a6cad8c1b41717d45ece67b5322", size = 332578, upload-time = "2026-01-09T06:15:59.573Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/fd/1acc038ffe451279ffe403983d31e3e7b2c4f986d5c341c2be4e08669e85/apache_sedona-1.8.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d2f91145ee7501f428b50ac2e60d5271564c7050fb34948e94ff3be8d06a7efc", size = 331868, upload-time = "2026-01-09T06:16:01.513Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/e5/2bb4494e94c5dd55d72bbe60df59980689f110a2c28c52531458f4f54fec/apache_sedona-1.8.1-cp314-cp314-win_amd64.whl", hash = "sha256:e2ef75bf8bdecf693ed24a0628ffa9ab7534880b37c687acdff37504664d28e4", size = 287024, upload-time = "2026-01-09T06:16:02.788Z" },
+    { url = "https://files.pythonhosted.org/packages/7c/25/9a6006f7361a071e09e6cfd1d669770b6f9e0e51814ed955fa27ed109127/apache_sedona-1.8.1-cp314-cp314-win_arm64.whl", hash = "sha256:dc07c0581959f41bf12af2b674ce6a219c91fdc3632479a2fbedba5674e1dae8", size = 284743, upload-time = "2026-01-09T06:16:04.286Z" },
+    { url = "https://files.pythonhosted.org/packages/70/2d/e756a4b31548ba24042e11c332eb90b387c11dc4fd8cfbe8a36ec60b0f17/apache_sedona-1.8.1-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:1b3dc43c324740ea28ad06f386993daf9779ab1e00b844bac02359f1b4237536", size = 288860, upload-time = "2026-01-09T06:16:05.917Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/0a/770197239011dbfb807034b4bdb6d85882a6ad9cdb9b3a991fc6fa4eb172/apache_sedona-1.8.1-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:8230fa06dbac56ffb3eb100920a23e113c674a74beb7f17ed50f390dd0173fee", size = 289014, upload-time = "2026-01-09T06:16:07.593Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/97/8e463c44da60afeacb4d827b2b87365b0e2e0d57275cb1a044465b1752c6/apache_sedona-1.8.1-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:628751595c95dcb4b133794604ed59a9b0edbfa63f3187b2632a1d40fde23d57", size = 334553, upload-time = "2026-01-09T06:16:08.849Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/93/0c79ddc92db1e7f27d92b8f59842afa4ebadfecf3cbf2f7986bc32c96155/apache_sedona-1.8.1-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:8f1fef2267a31a0c70a85256d7305307e37a3203cef3258c85d6cc3da9d39be9", size = 333507, upload-time = "2026-01-09T06:16:10.278Z" },
+    { url = "https://files.pythonhosted.org/packages/62/01/48870d1e9fa2e9add368555c9afcb52e741b367098edeadcc47590217373/apache_sedona-1.8.1-cp314-cp314t-win_amd64.whl", hash = "sha256:c258f4236633a25e1a6054cb257064f234e4e813adff44a20e88409fe4f028ec", size = 287175, upload-time = "2026-01-09T06:16:12.011Z" },
+    { url = "https://files.pythonhosted.org/packages/94/10/7489a18bc6a34c89a15f7d0defc82e1850222e4ed8732299b1a3d64879a2/apache_sedona-1.8.1-cp314-cp314t-win_arm64.whl", hash = "sha256:60a8413c0bddc12ebb3c12149510636ca464501b41708a541cca38844384180b", size = 284890, upload-time = "2026-01-09T06:16:13.573Z" },
+]
+
+[[package]]
+name = "attrs"
+version = "25.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6b/5c/685e6633917e101e5dcb62b9dd76946cbb57c26e133bae9e0cd36033c0a9/attrs-25.4.0.tar.gz", hash = "sha256:16d5969b87f0859ef33a48b35d55ac1be6e42ae49d5e853b597db70c35c57e11", size = 934251, upload-time = "2025-10-06T13:54:44.725Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3a/2a/7cc015f5b9f5db42b7d48157e23356022889fc354a2813c15934b7cb5c0e/attrs-25.4.0-py3-none-any.whl", hash = "sha256:adcf7e2a1fb3b36ac48d97835bb6d8ade15b8dcce26aba8bf1d14847b57a3373", size = 67615, upload-time = "2025-10-06T13:54:43.17Z" },
+]
+
+[[package]]
 name = "click"
 version = "8.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -950,17 +1007,23 @@ dependencies = [
 duckdb = [
     { name = "duckdb" },
 ]
+pyspark = [
+    { name = "apache-sedona" },
+    { name = "pyspark" },
+]
 
 [package.metadata]
 requires-dist = [
+    { name = "apache-sedona", marker = "extra == 'pyspark'", specifier = ">=1.6" },
     { name = "click", specifier = ">=8.0" },
     { name = "duckdb", marker = "extra == 'duckdb'", specifier = ">=1.0" },
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.0" },
+    { name = "pyspark", marker = "extra == 'pyspark'", specifier = ">=3.5,<4.0" },
     { name = "pyyaml", specifier = ">=6.0" },
 ]
-provides-extras = ["duckdb"]
+provides-extras = ["duckdb", "pyspark"]
 
 [[package]]
 name = "overture-schema-workspace"
@@ -1038,6 +1101,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e5/69/882ee5c9d017149285cab114ebeab373308ef0f874fcdac9beb90e0ac4da/ply-3.11.tar.gz", hash = "sha256:00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3", size = 159130, upload-time = "2018-02-15T19:01:31.097Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a3/58/35da89ee790598a0700ea49b2a66594140f44dec458c07e8e3d4979137fc/ply-3.11-py2.py3-none-any.whl", hash = "sha256:096f9b8350b65ebd2fd1346b12452efe5b9607f7482813ffca50c22722a807ce", size = 49567, upload-time = "2018-02-15T19:01:27.172Z" },
+]
+
+[[package]]
+name = "py4j"
+version = "0.10.9.9"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/38/31/0b210511177070c8d5d3059556194352e5753602fa64b85b7ab81ec1a009/py4j-0.10.9.9.tar.gz", hash = "sha256:f694cad19efa5bd1dee4f3e5270eb406613c974394035e5bfc4ec1aba870b879", size = 761089, upload-time = "2025-01-15T03:53:18.624Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/db/ea0203e495be491c85af87b66e37acfd3bf756fd985f87e46fc5e3bf022c/py4j-0.10.9.9-py2.py3-none-any.whl", hash = "sha256:c7c26e4158defb37b0bb124933163641a2ff6e3a3913f7811b0ddbe07ed61533", size = 203008, upload-time = "2025-01-15T03:53:15.648Z" },
 ]
 
 [[package]]
@@ -1198,6 +1270,15 @@ sdist = { url = "https://files.pythonhosted.org/packages/b0/77/a5b8c569bf593b014
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217, upload-time = "2025-06-21T13:39:07.939Z" },
 ]
+
+[[package]]
+name = "pyspark"
+version = "3.5.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "py4j" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/80/5a/3806f44eb47387e8af803508cdd6bbc0df784febf4dc010700be04a1ff89/pyspark-3.5.8.tar.gz", hash = "sha256:54cca0767b21b40e3953ad1d30f8601c53abf9cbda763653289cdcfcac52313c", size = 317817299, upload-time = "2026-01-15T11:46:14.487Z" }
 
 [[package]]
 name = "pytest"

@@ -196,7 +196,7 @@ def _nested_list_violation(rule: Rule) -> str:
     else:
         # Check targets a struct field accessed from the innermost lambda var
         # e.g. column="items.value", sources=["items"] → x0."value"
-        suffix = column[len(sources[-1]) + 1:]
+        suffix = column[len(sources[-1]) + 1 :]
         parts = suffix.split(".")
         field_expr = f"x{n - 1}." + ".".join(f'"{p}"' for p in parts)
 
@@ -216,7 +216,7 @@ def _nested_list_violation(rule: Rule) -> str:
                     break
                 # Find which lambda depth this when column belongs to
                 src_idx = sources.index(src)
-                when_suffix = when_col[len(src) + 1:]
+                when_suffix = when_col[len(src) + 1 :]
                 when_parts = when_suffix.split(".")
                 when_expr = f"x{src_idx}." + ".".join(f'"{p}"' for p in when_parts)
                 if rule.when.check == CheckType.NOT_NULL:
@@ -236,7 +236,7 @@ def _nested_list_violation(rule: Rule) -> str:
         else:
             # Access from previous lambda variable into the struct field
             # e.g. sources=["a", "a.b"] → x0."b"
-            prev_suffix = sources[i][len(sources[i - 1]) + 1:]
+            prev_suffix = sources[i][len(sources[i - 1]) + 1 :]
             prev_parts = prev_suffix.split(".")
             source_expr = f"x{i - 1}." + ".".join(f'"{p}"' for p in prev_parts)
         result = (
@@ -326,18 +326,10 @@ def compile(spec: DatasetSpec, parquet_path: str) -> str:
     """
     path = _escape_sql(parquet_path)
 
-    cte = (
-        f"WITH src AS (\n"
-        f"    SELECT * FROM read_parquet($1)\n"
-        f")"
-    )
+    cte = f"WITH src AS (\n    SELECT * FROM read_parquet($1)\n)"
 
     if not spec.rules:
-        return (
-            f"{cte}\n"
-            f"SELECT NULL AS id, NULL AS name, "
-            f"NULL AS severity WHERE FALSE"
-        )
+        return f"{cte}\nSELECT NULL AS id, NULL AS name, NULL AS severity WHERE FALSE"
 
     # Build per-rule boolean columns and metadata VALUES
     id_col = _quote_col(spec.id_column)

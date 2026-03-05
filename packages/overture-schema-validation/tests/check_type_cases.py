@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import struct
 from dataclasses import dataclass, field
 from typing import Annotated, Literal
 
@@ -34,13 +35,26 @@ class BaseId(BaseModel):
     id: str
 
 
+# ---------------------------------------------------------------------------
+# ExampleData — backend-agnostic test data
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ExampleData:
+    """Backend-agnostic tabular data: column names + rows of Python values."""
+
+    columns: list[str]
+    rows: list[tuple]
+
+
 @dataclass
 class CheckTypeCase:
     """A single per-CheckType test case."""
 
     model: type[BaseModel]
     rules: list[Rule]
-    create_sql: str
+    data: ExampleData
     violations: dict[str, list[str]]
     extra_rules: list[Rule] = field(default_factory=list)
 
@@ -58,6 +72,24 @@ class CheckTypeCase:
             id_column="id",
             rules=[_ID] + self.extra_rules + self.rules,
         )
+
+
+# ---------------------------------------------------------------------------
+# WKB helpers for geometry_type test data
+# ---------------------------------------------------------------------------
+
+
+def _wkb_point(x: float, y: float) -> bytes:
+    """Encode a WKB Point (little-endian, 2D)."""
+    return struct.pack("<bI", 1, 1) + struct.pack("<dd", x, y)
+
+
+def _wkb_polygon(ring: list[tuple[float, float]]) -> bytes:
+    """Encode a WKB Polygon with a single ring (little-endian, 2D)."""
+    buf = struct.pack("<bII", 1, 3, 1) + struct.pack("<I", len(ring))
+    for x, y in ring:
+        buf += struct.pack("<dd", x, y)
+    return buf
 
 
 # ---------------------------------------------------------------------------
@@ -155,11 +187,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 'x'), ('b', NULL), ('c', 'y')
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", "x"), ("b", None), ("c", "y")],
+        ),
         violations={"test.col.not_null": ["b"]},
     ),
     "gt": CheckTypeCase(
@@ -173,11 +204,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 5), ('b', 3), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", 5), ("b", 3), ("c", None)],
+        ),
         violations={"test.col.gt": ["b"]},
     ),
     "gte": CheckTypeCase(
@@ -191,11 +221,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 5), ('b', 4), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", 5), ("b", 4), ("c", None)],
+        ),
         violations={"test.col.gte": ["b"]},
     ),
     "lt": CheckTypeCase(
@@ -209,11 +238,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 5.0), ('b', 15.0), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", 5.0), ("b", 15.0), ("c", None)],
+        ),
         violations={"test.col.lt": ["b"]},
     ),
     "lte": CheckTypeCase(
@@ -227,11 +255,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 10), ('b', 11), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", 10), ("b", 11), ("c", None)],
+        ),
         violations={"test.col.lte": ["b"]},
     ),
     "eq": CheckTypeCase(
@@ -245,11 +272,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 'x'), ('b', 'y'), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", "x"), ("b", "y"), ("c", None)],
+        ),
         violations={"test.col.eq": ["b"]},
     ),
     "between": CheckTypeCase(
@@ -263,11 +289,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 50), ('b', 101), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", 50), ("b", 101), ("c", None)],
+        ),
         violations={"test.col.range": ["b"]},
     ),
     "in": CheckTypeCase(
@@ -281,11 +306,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 'b'), ('b', 'z'), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", "b"), ("b", "z"), ("c", None)],
+        ),
         violations={"test.col.valid": ["b"]},
     ),
     "min_length": CheckTypeCase(
@@ -299,11 +323,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 'abc'), ('b', 'ab'), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", "abc"), ("b", "ab"), ("c", None)],
+        ),
         violations={"test.col.min_length": ["b"]},
     ),
     "max_length": CheckTypeCase(
@@ -317,11 +340,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 'abc'), ('b', 'abcdef'), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", "abc"), ("b", "abcdef"), ("c", None)],
+        ),
         violations={"test.col.max_length": ["b"]},
     ),
     "is_type": CheckTypeCase(
@@ -335,11 +357,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 1), ('b', 0), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", 1), ("b", 0), ("c", None)],
+        ),
         violations={"test.col.type": ["a", "b"]},
     ),
     "unique": CheckTypeCase(
@@ -352,12 +373,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS
-            SELECT 'a' AS id, ['x', 'y'] AS col
-            UNION ALL SELECT 'b', ['x', 'x']
-            UNION ALL SELECT 'c', NULL
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", ["x", "y"]), ("b", ["x", "x"]), ("c", None)],
+        ),
         violations={"test.col.unique": ["b"]},
     ),
     "pattern": CheckTypeCase(
@@ -371,11 +390,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 'US'), ('b', 'usa'), ('c', NULL)
-            ) AS t(id, col)
-        """,
+        data=ExampleData(
+            columns=["id", "col"],
+            rows=[("a", "US"), ("b", "usa"), ("c", None)],
+        ),
         violations={"test.col.pattern": ["b"]},
     ),
     "geometry_type": CheckTypeCase(
@@ -397,14 +415,14 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            INSTALL spatial;
-            LOAD spatial;
-            CREATE TABLE _tbl AS
-            SELECT 'a' AS id, ST_AsWKB(ST_Point(0, 0))::BLOB AS geometry
-            UNION ALL SELECT 'b', ST_AsWKB(ST_GeomFromText('POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))'))::BLOB
-            UNION ALL SELECT 'c', ST_AsWKB(ST_Point(1, 1))::BLOB
-        """,
+        data=ExampleData(
+            columns=["id", "geometry"],
+            rows=[
+                ("a", _wkb_point(0, 0)),
+                ("b", _wkb_polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])),
+                ("c", _wkb_point(1, 1)),
+            ],
+        ),
         violations={"test.geometry.type": ["b"]},
     ),
     "is_null": CheckTypeCase(
@@ -426,11 +444,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 'x', NULL), ('b', 'x', 'val'), ('c', 'y', 'val')
-            ) AS t(id, flag, col)
-        """,
+        data=ExampleData(
+            columns=["id", "flag", "col"],
+            rows=[("a", "x", None), ("b", "x", "val"), ("c", "y", "val")],
+        ),
         violations={"test.col.forbidden_when": ["b"]},
     ),
     "exactly_one_of": CheckTypeCase(
@@ -443,12 +460,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS
-            SELECT 'a' AS id, true AS a, CAST(NULL AS BOOLEAN) AS b
-            UNION ALL SELECT 'b', true, true
-            UNION ALL SELECT 'c', CAST(NULL AS BOOLEAN), true
-        """,
+        data=ExampleData(
+            columns=["id", "a", "b"],
+            rows=[("a", True, None), ("b", True, True), ("c", None, True)],
+        ),
         violations={"test.a_b.exactly_one_of": ["b"]},
     ),
     "any_of": CheckTypeCase(
@@ -461,11 +476,10 @@ CASES: dict[str, CheckTypeCase] = {
                 severity=Severity.ERROR,
             ),
         ],
-        create_sql="""
-            CREATE TABLE _tbl AS SELECT * FROM (VALUES
-                ('a', 'x', NULL), ('b', NULL, NULL), ('c', NULL, 'y')
-            ) AS t(id, a, b)
-        """,
+        data=ExampleData(
+            columns=["id", "a", "b"],
+            rows=[("a", "x", None), ("b", None, None), ("c", None, "y")],
+        ),
         violations={"test.a_b.any_of": ["b"]},
     ),
 }

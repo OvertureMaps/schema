@@ -130,25 +130,20 @@ def extract_cmd(
     type=click.Path(path_type=Path),
     help="Output parquet path for violations.",
 )
+@click.option(
+    "--engine",
+    type=click.Choice(["duckdb", "pyspark"]),
+    default="duckdb",
+    help="Validation engine.",
+)
 def validate_cmd(
     type_name: str,
     theme: str | None,
     input_path: str,
     output_path: Path,
+    engine: str,
 ) -> None:
     """Validate parquet data against schema rules."""
-    try:
-        import duckdb
-    except ImportError:
-        click.echo(
-            "duckdb is required for the validate command. "
-            "Install it with: pip install overture-schema-validation[duckdb]",
-            err=True,
-        )
-        raise SystemExit(1)
-
-    from .duckdb import compile
-
     themes = (theme,) if theme else ()
     models = _filter_models(namespace=None, themes=themes, types=(type_name,))
 
@@ -168,6 +163,27 @@ def validate_cmd(
 
     model_class = next(iter(models.values()))
     spec = extract(model_class)
+
+    if engine == "pyspark":
+        _validate_pyspark(spec, input_path, output_path)
+    else:
+        _validate_duckdb(spec, input_path, output_path)
+
+
+def _validate_duckdb(spec, input_path: str, output_path: Path) -> None:
+    """Run validation using the DuckDB engine."""
+    try:
+        import duckdb
+    except ImportError:
+        click.echo(
+            "duckdb is required for the validate command with --engine duckdb. "
+            "Install it with: pip install overture-schema-validation[duckdb]",
+            err=True,
+        )
+        raise SystemExit(1)
+
+    from .duckdb import compile
+
     sql = compile(spec, input_path)
 
     conn = duckdb.connect()
@@ -184,3 +200,26 @@ def validate_cmd(
     ).fetchone()[0]
 
     click.echo(f"{count} violation(s) written to {output_path}", err=True)
+
+
+def _validate_pyspark(spec, input_path: str, output_path: Path) -> None:
+    """Run validation using the PySpark engine."""
+    try:
+        from pyspark.sql import SparkSession
+    except ImportError:
+        click.echo(
+            "pyspark is required for the validate command with --engine pyspark. "
+            "Install it with: pip install overture-schema-validation[pyspark]",
+            err=True,
+        )
+        raise SystemExit(1)
+
+    from .pyspark import validate_df
+
+    spark = SparkSession.builder.appName("overture-validation").getOrCreate()
+    df = spark.read.parquet(input_path)
+    violations = validate_df(spec, df, spark)
+    violations.write.mode("overwrite").parquet(str(output_path))
+    count = violations.count()
+    click.echo(f"{count} violation(s) written to {output_path}", err=True)
+    spark.stop()
