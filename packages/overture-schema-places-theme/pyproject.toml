@@ -35,7 +35,10 @@ packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
 "overture:places:place" = "overture.schema.places:Place"
- 
+
+[project.entry-points.pytest11]
+overture_baselines = "overture.schema.system.testing.plugin"
+
 [[examples.Place]]
 id = "99003ee6-e75b-4dd6-8a8a-53a5a716c50d"
 geometry = "POINT (-150.46875 -79.1713346)"

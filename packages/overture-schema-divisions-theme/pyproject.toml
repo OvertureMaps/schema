@@ -37,7 +37,10 @@ packages = ["src/overture"]
 "overture:divisions:division" = "overture.schema.divisions:Division"
 "overture:divisions:division_area" = "overture.schema.divisions:DivisionArea"
 "overture:divisions:division_boundary" = "overture.schema.divisions:DivisionBoundary"
- 
+
+[project.entry-points.pytest11]
+overture_baselines = "overture.schema.system.testing.plugin"
+
 [[examples.Division]]
 id = "350e85f6-68ba-4114-9906-c2844815988b"
 geometry = "POINT (-175.2551522 -21.1353686)"

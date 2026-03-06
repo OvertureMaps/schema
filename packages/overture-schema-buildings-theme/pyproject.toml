@@ -38,6 +38,9 @@ packages = ["src/overture"]
 "overture:buildings:building" = "overture.schema.buildings:Building"
 "overture:buildings:building_part" = "overture.schema.buildings:BuildingPart"
 
+[project.entry-points.pytest11]
+overture_baselines = "overture.schema.system.testing.plugin"
+
 [[examples.Building]]
 id = "148f35b1-7bc1-4180-9280-10d39b13883b"
 geometry = "POLYGON ((-176.6435004 -43.9938042, -176.6435738 -43.9937107, -176.6437726 -43.9937913, -176.6436992 -43.9938849, -176.6435004 -43.9938042))"
