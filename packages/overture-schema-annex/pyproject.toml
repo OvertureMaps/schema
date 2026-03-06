@@ -2,7 +2,7 @@
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
-dependencies = ["overture-schema-core", "pydantic>=2.12.0"]
+dependencies = ["overture-schema-core", "overture-schema-system", "pydantic>=2.12.0"]
 description = "Add your description here"
 dynamic = ["version"]
 license = "MIT"
@@ -12,6 +12,7 @@ requires-python = ">=3.10"
 
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
+overture-schema-system = { workspace = true }
 
 [project.urls]
 Homepage = "https://overturemaps.org"
@@ -30,6 +31,9 @@ packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
 "annex:sources" = "overture.schema.annex:Sources"
+
+[project.entry-points.pytest11]
+overture_baselines = "overture.schema.system.testing.plugin"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

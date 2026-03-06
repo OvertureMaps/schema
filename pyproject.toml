@@ -58,7 +58,9 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-verbosity_subtests = 0
+markers = [
+    "baseline: golden file baseline tests",
+]
 pythonpath = [
     "packages/overture-schema-addresses-theme/tests",
     "packages/overture-schema-annex/tests",
@@ -73,3 +75,4 @@ pythonpath = [
     "packages/overture-schema-transportation-theme/tests",
     "packages/overture-schema/tests",
 ]
+verbosity_subtests = 0

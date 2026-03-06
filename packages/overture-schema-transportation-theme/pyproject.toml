@@ -37,7 +37,10 @@ packages = ["src/overture"]
 [project.entry-points."overture.models"]
 "overture:transportation:connector" = "overture.schema.transportation:Connector"
 "overture:transportation:segment" = "overture.schema.transportation:Segment"
- 
+
+[project.entry-points.pytest11]
+overture_baselines = "overture.schema.system.testing.plugin"
+
 [[examples.Connector]]
 id = "39542bee-230f-4b91-b7e5-a9b58e0c59b1"
 geometry = "POINT (-176.5472979 -43.9679472)"

@@ -115,3 +115,65 @@ class ParkBench(Identified):
 - **DocumentedEnum** -- base class for enumerations whose members carry their own docstrings, enabling code generation tools to produce documented output.
 - **Metadata** -- internal key-value store used by model constraints to attach data to classes.
 - **JSON Schema** -- schema generator that treats `T | None = None` as "omit when unset" rather than Pydantic's default "nullable with null default." Also handles unions of models.
+
+## Baseline Testing
+
+`overture.schema.system.testing` provides a pytest plugin for golden-file baseline tests of generated JSON Schemas. Implementers building feature packages use it to detect unintended schema drift.
+
+### Helpers
+
+- `assert_golden(actual, golden_path, *, update)` -- compare a string against a golden file. On mismatch, raises `AssertionError` with a unified diff. When `update=True`, writes `actual` to `golden_path` instead of comparing.
+- `assert_json_schema_golden(model_or_union, golden_path, *, update)` -- generate the JSON Schema for a Pydantic model (or discriminated union type alias) via `overture.schema.system.json_schema` and delegate to `assert_golden`.
+
+### Opting In
+
+Activation is opt-in so the `--update-baselines` flag does not pollute pytest runs of packages that do not declare it. Add the plugin to your package's `pyproject.toml`:
+
+```toml
+[project.entry-points.pytest11]
+overture_baselines = "overture.schema.system.testing.plugin"
+```
+
+The plugin registers:
+
+- `--update-baselines` -- pytest CLI flag.
+- `update_baselines` -- bool fixture, true when the flag is passed.
+
+### Writing a Baseline Test
+
+```python
+from pathlib import Path
+
+import pytest
+from overture.schema.system.testing import assert_json_schema_golden
+
+from yourpackage import Mountain  # the model you're locking down
+
+GOLDEN = Path(__file__).parent / "mountain_baseline_schema.json"
+
+
+@pytest.mark.baseline
+def test_mountain_json_schema(update_baselines: bool) -> None:
+    assert_json_schema_golden(Mountain, GOLDEN, update=update_baselines)
+```
+
+Convention: the golden file lives next to the test, named `<feature>_baseline_schema.json`.
+
+Mark each baseline test with `@pytest.mark.baseline` so it can be selected or skipped via `pytest -m baseline` / `pytest -m "not baseline"`. Register the marker in your pyproject:
+
+```toml
+[tool.pytest.ini_options]
+markers = [
+    "baseline: golden file baseline tests",
+]
+```
+
+### Updating Baselines
+
+After an intentional schema change:
+
+```bash
+pytest -m baseline --update-baselines
+```
+
+Inspect `git diff` on the regenerated golden files to confirm the changes are intended before committing.

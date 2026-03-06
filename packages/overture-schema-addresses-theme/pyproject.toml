@@ -4,6 +4,7 @@ maintainers = [
 ]
 dependencies = [
     "overture-schema-core",
+    "overture-schema-system",
     "pydantic>=2.12.0",
 ]
 description = "Overture Maps addresses theme models and structures"
@@ -20,6 +21,7 @@ Issues = "https://github.com/OvertureMaps/schema/issues"
 
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
+overture-schema-system = { workspace = true }
 
 
 [build-system]
@@ -38,6 +40,9 @@ testpaths = ["tests"]
 
 [project.entry-points."overture.models"]
 "overture:addresses:address" = "overture.schema.addresses:Address"
+
+[project.entry-points.pytest11]
+overture_baselines = "overture.schema.system.testing.plugin"
 
 [[examples.Address]]
 id = "416ab01c-d836-4c4f-aedc-2f30941ce94d"

@@ -1,4 +1,4 @@
-.PHONY: default uv-sync check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only reset-baseline-schemas
+.PHONY: default uv-sync check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only update-baselines
 
 default: test-all
 
@@ -56,5 +56,5 @@ lint-only:
 	@uv run ruff check -q packages/
 	@uv run ruff format --check packages/
 
-reset-baseline-schemas:
-	@find . -name \*_baseline_schema.json -delete
+update-baselines:
+	@uv run pytest --update-baselines -m baseline -q packages/
