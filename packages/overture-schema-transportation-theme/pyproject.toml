@@ -1,6 +1,10 @@
 [project]
+maintainers = [
+    {name = "Overture Maps Schema Working Group"},
+]
 dependencies = [
     "overture-schema-core",
+    "overture-schema-system",
     "pydantic>=2.0",
 ]
 description = "Overture Maps transportation theme with shared structures and connector and segment types"
@@ -10,8 +14,14 @@ name = "overture-schema-transportation-theme"
 readme = "README.md"
 requires-python = ">=3.10"
 
+[project.urls]
+Homepage = "https://overturemaps.org"
+Source = "https://github.com/OvertureMaps/schema"
+Issues = "https://github.com/OvertureMaps/schema/issues"
+
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
+overture-schema-system = { workspace = true }
 
 
 [build-system]

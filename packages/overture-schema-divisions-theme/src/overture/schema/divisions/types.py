@@ -3,16 +3,18 @@ from typing import Annotated, NewType
 from pydantic import Field
 
 from overture.schema.system.field_constraint import UniqueItemsConstraint
-from overture.schema.system.primitive import uint8
+from overture.schema.system.primitive import int32
 
 from .models import HierarchyItem
 
 AdminLevel = NewType(
     "AdminLevel",
     Annotated[
-        uint8,
+        int32,
         Field(
             description="Integer representing the division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
+            ge=0,
+            le=16,
         ),
     ],
 )
