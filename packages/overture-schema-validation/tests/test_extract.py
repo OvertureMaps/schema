@@ -586,6 +586,72 @@ def test_extract_building_version_gte_0(building_spec) -> None:
     assert gte_rules[0].value == 0
 
 
+def test_extract_building_sources_min_list_length(building_spec) -> None:
+    """sources should have a min_list_length=1 rule (list must have >= 1 item)."""
+    rules = [
+        r
+        for r in building_spec.rules
+        if r.column == "sources" and r.check == CheckType.MIN_LIST_LENGTH
+    ]
+    assert len(rules) == 1
+    assert rules[0].value == 1
+
+
+def test_extract_building_sources_unique(building_spec) -> None:
+    """sources should have a unique rule (items must be unique)."""
+    rules = [
+        r
+        for r in building_spec.rules
+        if r.column == "sources" and r.check == CheckType.UNIQUE
+    ]
+    assert len(rules) == 1
+
+
+def test_extract_building_sources_property_not_null(building_spec) -> None:
+    """sources.property should have a not_null rule with list_columns=["sources"]."""
+    rules = [
+        r
+        for r in building_spec.rules
+        if r.column == "sources.property" and r.check == CheckType.NOT_NULL
+    ]
+    assert len(rules) == 1
+    assert rules[0].list_columns == ["sources"]
+
+
+def test_extract_building_sources_dataset_not_null(building_spec) -> None:
+    """sources.dataset should have a not_null rule with list_columns=["sources"]."""
+    rules = [
+        r
+        for r in building_spec.rules
+        if r.column == "sources.dataset" and r.check == CheckType.NOT_NULL
+    ]
+    assert len(rules) == 1
+    assert rules[0].list_columns == ["sources"]
+
+
+def test_extract_building_sources_license_pattern(building_spec) -> None:
+    """sources.license should have a pattern rule (stripped string) with list_columns=["sources"]."""
+    rules = [
+        r
+        for r in building_spec.rules
+        if r.column == "sources.license" and r.check == CheckType.PATTERN
+    ]
+    assert len(rules) == 1
+    assert rules[0].list_columns == ["sources"]
+
+
+def test_extract_building_sources_confidence_range(building_spec) -> None:
+    """sources.confidence should have a between [0.0, 1.0] rule with list_columns=["sources"]."""
+    rules = [
+        r
+        for r in building_spec.rules
+        if r.column == "sources.confidence" and r.check == CheckType.BETWEEN
+    ]
+    assert len(rules) == 1
+    assert rules[0].value == [0.0, 1.0]
+    assert rules[0].list_columns == ["sources"]
+
+
 # ---------------------------------------------------------------------------
 # Integration: extract(Division)
 # ---------------------------------------------------------------------------

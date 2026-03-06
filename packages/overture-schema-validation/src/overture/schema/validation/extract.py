@@ -13,7 +13,7 @@ from pydantic.types import Strict
 from .ir import CheckType, Condition, DatasetSpec, Rule, Severity, ValidationSpec
 
 # Fields to skip during extraction — they are structural, not data-validation targets.
-_SKIPPED_FIELDS: frozenset[str] = frozenset({"theme", "type", "bbox", "sources"})
+_SKIPPED_FIELDS: frozenset[str] = frozenset({"theme", "type", "bbox"})
 
 # Storage primitive NewType names whose constraints should be skipped in favor of
 # domain-level constraints layered on top of them.
@@ -185,21 +185,37 @@ def _extract_field_rules(
     if "min_length" in effective_kwargs and not any(
         isinstance(obj, annotated_types.MinLen) for obj in model_metadata
     ):
-        rules.append(
-            _rule(
-                dataset, column, "min_length", CheckType.MIN_LENGTH,
-                value=effective_kwargs["min_length"], list_columns=lc_element,
+        if is_list:
+            rules.append(
+                _rule(
+                    dataset, column, "min_list_length", CheckType.MIN_LIST_LENGTH,
+                    value=effective_kwargs["min_length"], list_columns=lc_container,
+                )
             )
-        )
+        else:
+            rules.append(
+                _rule(
+                    dataset, column, "min_length", CheckType.MIN_LENGTH,
+                    value=effective_kwargs["min_length"], list_columns=lc_element,
+                )
+            )
     if "max_length" in effective_kwargs and not any(
         isinstance(obj, annotated_types.MaxLen) for obj in model_metadata
     ):
-        rules.append(
-            _rule(
-                dataset, column, "max_length", CheckType.MAX_LENGTH,
-                value=effective_kwargs["max_length"], list_columns=lc_element,
+        if is_list:
+            rules.append(
+                _rule(
+                    dataset, column, "max_list_length", CheckType.MAX_LIST_LENGTH,
+                    value=effective_kwargs["max_length"], list_columns=lc_container,
+                )
             )
-        )
+        else:
+            rules.append(
+                _rule(
+                    dataset, column, "max_length", CheckType.MAX_LENGTH,
+                    value=effective_kwargs["max_length"], list_columns=lc_element,
+                )
+            )
 
     # ---- Strict bool → is_type "boolean" ----
     for obj in model_metadata:
@@ -485,6 +501,18 @@ def _collect_constraints(
         pass  # just traversing
     # Actually resolve the base by walking all the way down
     base = _resolve_base_type(annotation)
+
+    # Detect list hidden inside NewType / Annotated (e.g. Sources = NewType(..., list[SourceItem]))
+    if not is_list:
+        base_origin = get_origin(base)
+        if base_origin is list:
+            base_args = get_args(base)
+            if base_args:
+                is_list = True
+                inner = base_args[0]
+                inner, inner_nullable = _strip_optional(inner)
+                is_nullable = is_nullable or inner_nullable
+                base = _resolve_base_type(inner)
 
     return base, all_metadata, domain_kwargs, is_nullable, is_list
 
