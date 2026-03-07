@@ -1,0 +1,412 @@
+version: '1'
+datasets:
+- name: building
+  source_model: overture.schema.buildings.building.Building
+  id_column: id
+  rules:
+  - name: building.id.not_null
+    column: id
+    check: not_null
+    severity: error
+  - name: building.id.min_length
+    column: id
+    check: min_length
+    value: 1
+    severity: error
+  - name: building.id.pattern
+    column: id
+    check: pattern
+    value: ^\S+$
+    severity: error
+  - name: building.geometry.not_null
+    column: geometry
+    check: not_null
+    severity: error
+  - name: building.geometry.type
+    column: geometry
+    check: geometry_type
+    value:
+    - MultiPolygon
+    - Polygon
+    severity: error
+  - name: building.version.not_null
+    column: version
+    check: not_null
+    severity: error
+  - name: building.version.gte
+    column: version
+    check: gte
+    value: 0
+    severity: error
+  - name: building.sources.min_list_length
+    column: sources
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: building.sources.unique
+    column: sources
+    check: unique
+    severity: error
+  - name: building.sources.property.not_null
+    column: sources.property
+    check: not_null
+    list_columns: &id001
+    - sources
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: building.sources.dataset.not_null
+    column: sources.dataset
+    check: not_null
+    list_columns: *id001
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: building.sources.license.pattern
+    column: sources.license
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns:
+    - sources
+    severity: error
+  - name: building.sources.confidence.range
+    column: sources.confidence
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - sources
+    severity: error
+  - name: building.subtype.valid
+    column: subtype
+    check: in
+    value:
+    - agricultural
+    - civic
+    - commercial
+    - education
+    - entertainment
+    - industrial
+    - medical
+    - military
+    - outbuilding
+    - religious
+    - residential
+    - service
+    - transportation
+    severity: error
+  - name: building.class.valid
+    column: class
+    check: in
+    value:
+    - agricultural
+    - allotment_house
+    - apartments
+    - barn
+    - beach_hut
+    - boathouse
+    - bridge_structure
+    - bungalow
+    - bunker
+    - cabin
+    - carport
+    - cathedral
+    - chapel
+    - church
+    - civic
+    - college
+    - commercial
+    - cowshed
+    - detached
+    - digester
+    - dormitory
+    - dwelling_house
+    - factory
+    - farm
+    - farm_auxiliary
+    - fire_station
+    - garage
+    - garages
+    - ger
+    - glasshouse
+    - government
+    - grandstand
+    - greenhouse
+    - guardhouse
+    - hangar
+    - hospital
+    - hotel
+    - house
+    - houseboat
+    - hut
+    - industrial
+    - kindergarten
+    - kiosk
+    - library
+    - manufacture
+    - military
+    - monastery
+    - mosque
+    - office
+    - outbuilding
+    - parking
+    - pavilion
+    - post_office
+    - presbytery
+    - public
+    - religious
+    - residential
+    - retail
+    - roof
+    - school
+    - semi
+    - semidetached_house
+    - service
+    - shed
+    - shrine
+    - silo
+    - slurry_tank
+    - sports_centre
+    - sports_hall
+    - stable
+    - stadium
+    - static_caravan
+    - stilt_house
+    - storage_tank
+    - sty
+    - supermarket
+    - synagogue
+    - temple
+    - terrace
+    - toilets
+    - train_station
+    - transformer_tower
+    - transportation
+    - trullo
+    - university
+    - warehouse
+    - wayside_shrine
+    severity: error
+  - name: building.names.primary.not_null
+    column: names.primary
+    check: not_null
+    when:
+      column: names
+      check: not_null
+    severity: error
+  - name: building.names.primary.min_length
+    column: names.primary
+    check: min_length
+    value: 1
+    severity: error
+  - name: building.names.primary.pattern
+    column: names.primary
+    check: pattern
+    value: ^(\S.*)?\S$
+    severity: error
+  - name: building.names.rules.value.not_null
+    column: names.rules.value
+    check: not_null
+    list_columns: &id003
+    - names.rules
+    when:
+      column: names.rules
+      check: not_null
+    severity: error
+  - name: building.names.rules.value.min_length
+    column: names.rules.value
+    check: min_length
+    value: 1
+    list_columns: &id002
+    - names.rules
+    severity: error
+  - name: building.names.rules.value.pattern
+    column: names.rules.value
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id002
+    severity: error
+  - name: building.names.rules.variant.not_null
+    column: names.rules.variant
+    check: not_null
+    list_columns: *id003
+    when:
+      column: names.rules
+      check: not_null
+    severity: error
+  - name: building.names.rules.variant.valid
+    column: names.rules.variant
+    check: in
+    value:
+    - alternate
+    - common
+    - official
+    - short
+    list_columns:
+    - names.rules
+    severity: error
+  - name: building.names.rules.language.pattern
+    column: names.rules.language
+    check: pattern
+    value: ^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$
+    list_columns:
+    - names.rules
+    severity: error
+  - name: building.names.rules.perspectives.mode.not_null
+    column: names.rules.perspectives.mode
+    check: not_null
+    list_columns: &id004
+    - names.rules
+    when:
+      column: names.rules.perspectives
+      check: not_null
+    severity: error
+  - name: building.names.rules.perspectives.mode.valid
+    column: names.rules.perspectives.mode
+    check: in
+    value:
+    - accepted_by
+    - disputed_by
+    list_columns:
+    - names.rules
+    severity: error
+  - name: building.names.rules.perspectives.countries.not_null
+    column: names.rules.perspectives.countries
+    check: not_null
+    list_columns: *id004
+    when:
+      column: names.rules.perspectives
+      check: not_null
+    severity: error
+  - name: building.names.rules.perspectives.countries.min_list_length
+    column: names.rules.perspectives.countries
+    check: min_list_length
+    value: 1
+    list_columns: *id004
+    severity: error
+  - name: building.names.rules.perspectives.countries.pattern
+    column: names.rules.perspectives.countries
+    check: pattern
+    value: ^[A-Z]{2}$
+    list_columns:
+    - names.rules
+    - names.rules.perspectives.countries
+    severity: error
+  - name: building.names.rules.perspectives.countries.unique
+    column: names.rules.perspectives.countries
+    check: unique
+    list_columns: *id004
+    severity: error
+  - name: building.names.rules.side.valid
+    column: names.rules.side
+    check: in
+    value:
+    - left
+    - right
+    list_columns:
+    - names.rules
+    severity: error
+  - name: building.height.positive
+    column: height
+    check: gt
+    value: 0
+    severity: error
+  - name: building.num_floors.positive
+    column: num_floors
+    check: gt
+    value: 0
+    severity: error
+  - name: building.num_floors_underground.positive
+    column: num_floors_underground
+    check: gt
+    value: 0
+    severity: error
+  - name: building.min_floor.positive
+    column: min_floor
+    check: gt
+    value: 0
+    severity: error
+  - name: building.facade_color.pattern
+    column: facade_color
+    check: pattern
+    value: ^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$
+    severity: error
+  - name: building.facade_material.valid
+    column: facade_material
+    check: in
+    value:
+    - brick
+    - cement_block
+    - clay
+    - concrete
+    - glass
+    - metal
+    - plaster
+    - plastic
+    - stone
+    - timber_framing
+    - wood
+    severity: error
+  - name: building.roof_material.valid
+    column: roof_material
+    check: in
+    value:
+    - concrete
+    - copper
+    - eternit
+    - glass
+    - grass
+    - gravel
+    - metal
+    - plastic
+    - roof_tiles
+    - slate
+    - solar_panels
+    - tar_paper
+    - thatch
+    - wood
+    severity: error
+  - name: building.roof_shape.valid
+    column: roof_shape
+    check: in
+    value:
+    - dome
+    - flat
+    - gabled
+    - gambrel
+    - half_hipped
+    - hipped
+    - mansard
+    - onion
+    - pyramidal
+    - round
+    - saltbox
+    - sawtooth
+    - skillion
+    - spherical
+    severity: error
+  - name: building.roof_direction.gte
+    column: roof_direction
+    check: gte
+    value: 0
+    severity: error
+  - name: building.roof_direction.lt
+    column: roof_direction
+    check: lt
+    value: 360
+    severity: error
+  - name: building.roof_orientation.valid
+    column: roof_orientation
+    check: in
+    value:
+    - across
+    - along
+    severity: error
+  - name: building.roof_color.pattern
+    column: roof_color
+    check: pattern
+    value: ^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$
+    severity: error

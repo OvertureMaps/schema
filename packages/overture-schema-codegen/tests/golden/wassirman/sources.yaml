@@ -1,0 +1,103 @@
+version: '1'
+datasets:
+- name: sources
+  source_model: overture.schema.annex.models.Sources
+  id_column: id
+  rules:
+  - name: sources.datasets.not_null
+    column: datasets
+    check: not_null
+    severity: error
+  - name: sources.datasets.source_name.not_null
+    column: datasets.source_name
+    check: not_null
+    list_columns: &id001
+    - datasets
+    severity: error
+  - name: sources.datasets.source_dataset_name.not_null
+    column: datasets.source_dataset_name
+    check: not_null
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.data_url.not_null
+    column: datasets.data_url
+    check: not_null
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.data_url_archived.not_null
+    column: datasets.data_url_archived
+    check: not_null
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.license_url.not_null
+    column: datasets.license_url
+    check: not_null
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.license_url_archived.not_null
+    column: datasets.license_url_archived
+    check: not_null
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.license_type.not_null
+    column: datasets.license_type
+    check: not_null
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.license_text.not_null
+    column: datasets.license_text
+    check: not_null
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.license_attribution.not_null
+    column: datasets.license_attribution
+    check: not_null
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.coverage_bbox.not_null
+    column: datasets.coverage_bbox
+    check: not_null
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.coverage_bbox.min_list_length
+    column: datasets.coverage_bbox
+    check: min_list_length
+    value: 4
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.coverage_bbox.max_list_length
+    column: datasets.coverage_bbox
+    check: max_list_length
+    value: 4
+    list_columns: *id001
+    severity: error
+  - name: sources.datasets.countries.pattern
+    column: datasets.countries
+    check: pattern
+    value: ^[A-Z]{2}$
+    list_columns:
+    - datasets
+    - datasets.countries
+    severity: error
+  - name: sources.datasets.build_source.valid
+    column: datasets.build_source
+    check: in
+    value:
+    - OpenAddresses
+    - tf-data-platform
+    list_columns:
+    - datasets
+    severity: error
+  - name: sources.datasets.update_type.valid
+    column: datasets.update_type
+    check: in
+    value:
+    - continuous
+    - manual
+    list_columns:
+    - datasets
+    severity: error
+  - name: sources.license_priority.not_null
+    column: license_priority
+    check: not_null
+    severity: error

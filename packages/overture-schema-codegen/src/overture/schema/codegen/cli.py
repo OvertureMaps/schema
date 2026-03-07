@@ -22,12 +22,14 @@ from .layout.module_layout import (
     entry_point_module,
 )
 from .markdown.pipeline import generate_markdown_pages
+from .wassirman.ir import ValidationIR
+from .wassirman.pipeline import generate_validation_ir
 
 log = logging.getLogger(__name__)
 
 __all__ = ["cli"]
 
-_OUTPUT_FORMATS = ("markdown",)
+_OUTPUT_FORMATS = ("markdown", "wassirman")
 
 _FEATURE_FRONTMATTER = "---\nsidebar_position: 1\n---\n\n"
 
@@ -120,7 +122,26 @@ def generate(
                 )
             )
 
-    _generate_markdown(feature_specs, schema_root, output_dir)
+    if output_format == "markdown":
+        _generate_markdown(feature_specs, schema_root, output_dir)
+    elif output_format == "wassirman":
+        _generate_wassirman(feature_specs, output_dir)
+
+
+def _generate_wassirman(
+    feature_specs: list[FeatureSpec],
+    output_dir: Path | None,
+) -> None:
+    """Generate validation IR as YAML."""
+    ir = generate_validation_ir(feature_specs)
+    if output_dir:
+        for dataset in ir.datasets:
+            file_path = output_dir / f"{dataset.name}.yaml"
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            single_ir = ValidationIR(datasets=[dataset])
+            file_path.write_text(single_ir.to_yaml())
+    else:
+        click.echo(ir.to_yaml())
 
 
 def _generate_markdown(

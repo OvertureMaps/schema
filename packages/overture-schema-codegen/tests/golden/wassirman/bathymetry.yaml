@@ -1,0 +1,112 @@
+version: '1'
+datasets:
+- name: bathymetry
+  source_model: overture.schema.base.bathymetry.Bathymetry
+  id_column: id
+  rules:
+  - name: bathymetry.id.not_null
+    column: id
+    check: not_null
+    severity: error
+  - name: bathymetry.id.min_length
+    column: id
+    check: min_length
+    value: 1
+    severity: error
+  - name: bathymetry.id.pattern
+    column: id
+    check: pattern
+    value: ^\S+$
+    severity: error
+  - name: bathymetry.geometry.not_null
+    column: geometry
+    check: not_null
+    severity: error
+  - name: bathymetry.geometry.type
+    column: geometry
+    check: geometry_type
+    value:
+    - MultiPolygon
+    - Polygon
+    severity: error
+  - name: bathymetry.version.not_null
+    column: version
+    check: not_null
+    severity: error
+  - name: bathymetry.version.gte
+    column: version
+    check: gte
+    value: 0
+    severity: error
+  - name: bathymetry.sources.min_list_length
+    column: sources
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: bathymetry.sources.unique
+    column: sources
+    check: unique
+    severity: error
+  - name: bathymetry.sources.property.not_null
+    column: sources.property
+    check: not_null
+    list_columns: &id001
+    - sources
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: bathymetry.sources.dataset.not_null
+    column: sources.dataset
+    check: not_null
+    list_columns: *id001
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: bathymetry.sources.license.pattern
+    column: sources.license
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns:
+    - sources
+    severity: error
+  - name: bathymetry.sources.confidence.range
+    column: sources.confidence
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - sources
+    severity: error
+  - name: bathymetry.depth.not_null
+    column: depth
+    check: not_null
+    severity: error
+  - name: bathymetry.depth.gte
+    column: depth
+    check: gte
+    value: 0
+    severity: error
+  - name: bathymetry.cartography.prominence.range
+    column: cartography.prominence
+    check: between
+    value:
+    - 1
+    - 100
+    severity: error
+  - name: bathymetry.cartography.min_zoom.range
+    column: cartography.min_zoom
+    check: between
+    value:
+    - 0
+    - 23
+    severity: error
+  - name: bathymetry.cartography.max_zoom.range
+    column: cartography.max_zoom
+    check: between
+    value:
+    - 0
+    - 23
+    severity: error

@@ -1,0 +1,163 @@
+version: '1'
+datasets:
+- name: address
+  source_model: overture.schema.addresses.address.Address
+  id_column: id
+  rules:
+  - name: address.id.not_null
+    column: id
+    check: not_null
+    severity: error
+  - name: address.id.min_length
+    column: id
+    check: min_length
+    value: 1
+    severity: error
+  - name: address.id.pattern
+    column: id
+    check: pattern
+    value: ^\S+$
+    severity: error
+  - name: address.geometry.not_null
+    column: geometry
+    check: not_null
+    severity: error
+  - name: address.geometry.type
+    column: geometry
+    check: geometry_type
+    value:
+    - Point
+    severity: error
+  - name: address.version.not_null
+    column: version
+    check: not_null
+    severity: error
+  - name: address.version.gte
+    column: version
+    check: gte
+    value: 0
+    severity: error
+  - name: address.sources.min_list_length
+    column: sources
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: address.sources.unique
+    column: sources
+    check: unique
+    severity: error
+  - name: address.sources.property.not_null
+    column: sources.property
+    check: not_null
+    list_columns: &id001
+    - sources
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: address.sources.dataset.not_null
+    column: sources.dataset
+    check: not_null
+    list_columns: *id001
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: address.sources.license.pattern
+    column: sources.license
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns:
+    - sources
+    severity: error
+  - name: address.sources.confidence.range
+    column: sources.confidence
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - sources
+    severity: error
+  - name: address.address_levels.min_list_length
+    column: address_levels
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: address.address_levels.max_list_length
+    column: address_levels
+    check: max_list_length
+    value: 5
+    severity: error
+  - name: address.address_levels.value.min_length
+    column: address_levels.value
+    check: min_length
+    value: 1
+    list_columns: &id002
+    - address_levels
+    severity: error
+  - name: address.address_levels.value.pattern
+    column: address_levels.value
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id002
+    severity: error
+  - name: address.country.not_null
+    column: country
+    check: not_null
+    severity: error
+  - name: address.country.pattern
+    column: country
+    check: pattern
+    value: ^[A-Z]{2}$
+    severity: error
+  - name: address.number.min_length
+    column: number
+    check: min_length
+    value: 1
+    severity: error
+  - name: address.number.pattern
+    column: number
+    check: pattern
+    value: ^(\S.*)?\S$
+    severity: error
+  - name: address.postal_city.min_length
+    column: postal_city
+    check: min_length
+    value: 1
+    severity: error
+  - name: address.postal_city.pattern
+    column: postal_city
+    check: pattern
+    value: ^(\S.*)?\S$
+    severity: error
+  - name: address.postcode.min_length
+    column: postcode
+    check: min_length
+    value: 1
+    severity: error
+  - name: address.postcode.pattern
+    column: postcode
+    check: pattern
+    value: ^(\S.*)?\S$
+    severity: error
+  - name: address.street.min_length
+    column: street
+    check: min_length
+    value: 1
+    severity: error
+  - name: address.street.pattern
+    column: street
+    check: pattern
+    value: ^(\S.*)?\S$
+    severity: error
+  - name: address.unit.min_length
+    column: unit
+    check: min_length
+    value: 1
+    severity: error
+  - name: address.unit.pattern
+    column: unit
+    check: pattern
+    value: ^(\S.*)?\S$
+    severity: error

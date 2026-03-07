@@ -1,0 +1,81 @@
+version: '1'
+datasets:
+- name: connector
+  source_model: overture.schema.transportation.connector.models.Connector
+  id_column: id
+  rules:
+  - name: connector.id.not_null
+    column: id
+    check: not_null
+    severity: error
+  - name: connector.id.min_length
+    column: id
+    check: min_length
+    value: 1
+    severity: error
+  - name: connector.id.pattern
+    column: id
+    check: pattern
+    value: ^\S+$
+    severity: error
+  - name: connector.geometry.not_null
+    column: geometry
+    check: not_null
+    severity: error
+  - name: connector.geometry.type
+    column: geometry
+    check: geometry_type
+    value:
+    - Point
+    severity: error
+  - name: connector.version.not_null
+    column: version
+    check: not_null
+    severity: error
+  - name: connector.version.gte
+    column: version
+    check: gte
+    value: 0
+    severity: error
+  - name: connector.sources.min_list_length
+    column: sources
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: connector.sources.unique
+    column: sources
+    check: unique
+    severity: error
+  - name: connector.sources.property.not_null
+    column: sources.property
+    check: not_null
+    list_columns: &id001
+    - sources
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: connector.sources.dataset.not_null
+    column: sources.dataset
+    check: not_null
+    list_columns: *id001
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: connector.sources.license.pattern
+    column: sources.license
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns:
+    - sources
+    severity: error
+  - name: connector.sources.confidence.range
+    column: sources.confidence
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - sources
+    severity: error

@@ -1,0 +1,393 @@
+version: '1'
+datasets:
+- name: land_use
+  source_model: overture.schema.base.land_use.LandUse
+  id_column: id
+  rules:
+  - name: land_use.id.not_null
+    column: id
+    check: not_null
+    severity: error
+  - name: land_use.id.min_length
+    column: id
+    check: min_length
+    value: 1
+    severity: error
+  - name: land_use.id.pattern
+    column: id
+    check: pattern
+    value: ^\S+$
+    severity: error
+  - name: land_use.geometry.not_null
+    column: geometry
+    check: not_null
+    severity: error
+  - name: land_use.geometry.type
+    column: geometry
+    check: geometry_type
+    value:
+    - LineString
+    - MultiPolygon
+    - Point
+    - Polygon
+    severity: error
+  - name: land_use.version.not_null
+    column: version
+    check: not_null
+    severity: error
+  - name: land_use.version.gte
+    column: version
+    check: gte
+    value: 0
+    severity: error
+  - name: land_use.sources.min_list_length
+    column: sources
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: land_use.sources.unique
+    column: sources
+    check: unique
+    severity: error
+  - name: land_use.sources.property.not_null
+    column: sources.property
+    check: not_null
+    list_columns: &id001
+    - sources
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: land_use.sources.dataset.not_null
+    column: sources.dataset
+    check: not_null
+    list_columns: *id001
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: land_use.sources.license.pattern
+    column: sources.license
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns:
+    - sources
+    severity: error
+  - name: land_use.sources.confidence.range
+    column: sources.confidence
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - sources
+    severity: error
+  - name: land_use.class.not_null
+    column: class
+    check: not_null
+    severity: error
+  - name: land_use.class.valid
+    column: class
+    check: in
+    value:
+    - aboriginal_land
+    - airfield
+    - allotments
+    - animal_keeping
+    - aquaculture
+    - barracks
+    - base
+    - beach_resort
+    - brownfield
+    - bunker
+    - camp_site
+    - cemetery
+    - clinic
+    - college
+    - commercial
+    - connection
+    - construction
+    - danger_area
+    - doctors
+    - dog_park
+    - downhill
+    - driving_range
+    - driving_school
+    - education
+    - environmental
+    - fairway
+    - farmland
+    - farmyard
+    - fatbike
+    - flowerbed
+    - forest
+    - garages
+    - garden
+    - golf_course
+    - grass
+    - grave_yard
+    - green
+    - greenfield
+    - greenhouse_horticulture
+    - highway
+    - hike
+    - hospital
+    - ice_skate
+    - industrial
+    - institutional
+    - kindergarten
+    - landfill
+    - lateral_water_hazard
+    - logging
+    - marina
+    - meadow
+    - military
+    - military_hospital
+    - military_school
+    - music_school
+    - national_park
+    - natural_monument
+    - nature_reserve
+    - naval_base
+    - nordic
+    - nuclear_explosion_site
+    - obstacle_course
+    - orchard
+    - park
+    - peat_cutting
+    - pedestrian
+    - pitch
+    - plant_nursery
+    - playground
+    - plaza
+    - protected
+    - protected_landscape_seascape
+    - quarry
+    - railway
+    - range
+    - recreation_ground
+    - religious
+    - residential
+    - resort
+    - retail
+    - rough
+    - salt_pond
+    - school
+    - schoolyard
+    - ski_jump
+    - skitour
+    - sled
+    - sleigh
+    - snow_park
+    - species_management_area
+    - stadium
+    - state_park
+    - static_caravan
+    - strict_nature_reserve
+    - tee
+    - theme_park
+    - track
+    - traffic_island
+    - training_area
+    - trench
+    - university
+    - village_green
+    - vineyard
+    - water_hazard
+    - water_park
+    - wilderness_area
+    - winter_sports
+    - works
+    - zoo
+    severity: error
+  - name: land_use.subtype.not_null
+    column: subtype
+    check: not_null
+    severity: error
+  - name: land_use.subtype.valid
+    column: subtype
+    check: in
+    value:
+    - agriculture
+    - aquaculture
+    - campground
+    - cemetery
+    - construction
+    - developed
+    - education
+    - entertainment
+    - golf
+    - grass
+    - horticulture
+    - landfill
+    - managed
+    - medical
+    - military
+    - park
+    - pedestrian
+    - protected
+    - recreation
+    - religious
+    - residential
+    - resource_extraction
+    - transportation
+    - winter_sports
+    severity: error
+  - name: land_use.elevation.lte
+    column: elevation
+    check: lte
+    value: 9000
+    severity: error
+  - name: land_use.surface.valid
+    column: surface
+    check: in
+    value:
+    - asphalt
+    - cobblestone
+    - compacted
+    - concrete
+    - concrete_plates
+    - dirt
+    - earth
+    - fine_gravel
+    - grass
+    - gravel
+    - ground
+    - paved
+    - paving_stones
+    - pebblestone
+    - recreation_grass
+    - recreation_paved
+    - recreation_sand
+    - rubber
+    - sand
+    - sett
+    - tartan
+    - unpaved
+    - wood
+    - woodchips
+    severity: error
+  - name: land_use.names.primary.not_null
+    column: names.primary
+    check: not_null
+    when:
+      column: names
+      check: not_null
+    severity: error
+  - name: land_use.names.primary.min_length
+    column: names.primary
+    check: min_length
+    value: 1
+    severity: error
+  - name: land_use.names.primary.pattern
+    column: names.primary
+    check: pattern
+    value: ^(\S.*)?\S$
+    severity: error
+  - name: land_use.names.rules.value.not_null
+    column: names.rules.value
+    check: not_null
+    list_columns: &id003
+    - names.rules
+    when:
+      column: names.rules
+      check: not_null
+    severity: error
+  - name: land_use.names.rules.value.min_length
+    column: names.rules.value
+    check: min_length
+    value: 1
+    list_columns: &id002
+    - names.rules
+    severity: error
+  - name: land_use.names.rules.value.pattern
+    column: names.rules.value
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id002
+    severity: error
+  - name: land_use.names.rules.variant.not_null
+    column: names.rules.variant
+    check: not_null
+    list_columns: *id003
+    when:
+      column: names.rules
+      check: not_null
+    severity: error
+  - name: land_use.names.rules.variant.valid
+    column: names.rules.variant
+    check: in
+    value:
+    - alternate
+    - common
+    - official
+    - short
+    list_columns:
+    - names.rules
+    severity: error
+  - name: land_use.names.rules.language.pattern
+    column: names.rules.language
+    check: pattern
+    value: ^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$
+    list_columns:
+    - names.rules
+    severity: error
+  - name: land_use.names.rules.perspectives.mode.not_null
+    column: names.rules.perspectives.mode
+    check: not_null
+    list_columns: &id004
+    - names.rules
+    when:
+      column: names.rules.perspectives
+      check: not_null
+    severity: error
+  - name: land_use.names.rules.perspectives.mode.valid
+    column: names.rules.perspectives.mode
+    check: in
+    value:
+    - accepted_by
+    - disputed_by
+    list_columns:
+    - names.rules
+    severity: error
+  - name: land_use.names.rules.perspectives.countries.not_null
+    column: names.rules.perspectives.countries
+    check: not_null
+    list_columns: *id004
+    when:
+      column: names.rules.perspectives
+      check: not_null
+    severity: error
+  - name: land_use.names.rules.perspectives.countries.min_list_length
+    column: names.rules.perspectives.countries
+    check: min_list_length
+    value: 1
+    list_columns: *id004
+    severity: error
+  - name: land_use.names.rules.perspectives.countries.pattern
+    column: names.rules.perspectives.countries
+    check: pattern
+    value: ^[A-Z]{2}$
+    list_columns:
+    - names.rules
+    - names.rules.perspectives.countries
+    severity: error
+  - name: land_use.names.rules.perspectives.countries.unique
+    column: names.rules.perspectives.countries
+    check: unique
+    list_columns: *id004
+    severity: error
+  - name: land_use.names.rules.side.valid
+    column: names.rules.side
+    check: in
+    value:
+    - left
+    - right
+    list_columns:
+    - names.rules
+    severity: error
+  - name: land_use.wikidata.pattern
+    column: wikidata
+    check: pattern
+    value: ^Q\d+$
+    severity: error

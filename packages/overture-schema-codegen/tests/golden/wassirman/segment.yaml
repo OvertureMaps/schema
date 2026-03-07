@@ -1,0 +1,1198 @@
+version: '1'
+datasets:
+- name: segment
+  source_model: Segment
+  id_column: id
+  rules:
+  - name: segment.id.not_null
+    column: id
+    check: not_null
+    severity: error
+  - name: segment.id.min_length
+    column: id
+    check: min_length
+    value: 1
+    severity: error
+  - name: segment.id.pattern
+    column: id
+    check: pattern
+    value: ^\S+$
+    severity: error
+  - name: segment.geometry.not_null
+    column: geometry
+    check: not_null
+    severity: error
+  - name: segment.geometry.type
+    column: geometry
+    check: geometry_type
+    value:
+    - LineString
+    severity: error
+  - name: segment.version.not_null
+    column: version
+    check: not_null
+    severity: error
+  - name: segment.version.gte
+    column: version
+    check: gte
+    value: 0
+    severity: error
+  - name: segment.sources.min_list_length
+    column: sources
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: segment.sources.unique
+    column: sources
+    check: unique
+    severity: error
+  - name: segment.sources.property.not_null
+    column: sources.property
+    check: not_null
+    list_columns: &id001
+    - sources
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: segment.sources.dataset.not_null
+    column: sources.dataset
+    check: not_null
+    list_columns: *id001
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: segment.sources.license.pattern
+    column: sources.license
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns:
+    - sources
+    severity: error
+  - name: segment.sources.confidence.range
+    column: sources.confidence
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - sources
+    severity: error
+  - name: segment.subtype.not_null
+    column: subtype
+    check: not_null
+    severity: error
+  - name: segment.subtype.valid
+    column: subtype
+    check: in
+    value:
+    - rail
+    - road
+    - water
+    severity: error
+  - name: segment.access_restrictions.min_list_length
+    column: access_restrictions
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: segment.access_restrictions.unique
+    column: access_restrictions
+    check: unique
+    severity: error
+  - name: segment.access_restrictions.access_type.not_null
+    column: access_restrictions.access_type
+    check: not_null
+    list_columns:
+    - access_restrictions
+    when:
+      column: access_restrictions
+      check: not_null
+    severity: error
+  - name: segment.access_restrictions.access_type.valid
+    column: access_restrictions.access_type
+    check: in
+    value:
+    - allowed
+    - denied
+    - designated
+    list_columns:
+    - access_restrictions
+    severity: error
+  - name: segment.access_restrictions.when.heading.valid
+    column: access_restrictions.when.heading
+    check: in
+    value:
+    - backward
+    - forward
+    list_columns:
+    - access_restrictions
+    severity: error
+  - name: segment.access_restrictions.when.mode.min_list_length
+    column: access_restrictions.when.mode
+    check: min_list_length
+    value: 1
+    list_columns: &id002
+    - access_restrictions
+    severity: error
+  - name: segment.access_restrictions.when.mode.valid
+    column: access_restrictions.when.mode
+    check: in
+    value:
+    - bicycle
+    - bus
+    - car
+    - emergency
+    - foot
+    - hgv
+    - hov
+    - motor_vehicle
+    - motorcycle
+    - truck
+    - vehicle
+    list_columns:
+    - access_restrictions
+    - access_restrictions.when.mode
+    severity: error
+  - name: segment.access_restrictions.when.mode.unique
+    column: access_restrictions.when.mode
+    check: unique
+    list_columns: *id002
+    severity: error
+  - name: segment.access_restrictions.when.using.min_list_length
+    column: access_restrictions.when.using
+    check: min_list_length
+    value: 1
+    list_columns: *id002
+    severity: error
+  - name: segment.access_restrictions.when.using.valid
+    column: access_restrictions.when.using
+    check: in
+    value:
+    - as_customer
+    - at_destination
+    - for_forestry
+    - to_deliver
+    - to_farm
+    list_columns:
+    - access_restrictions
+    - access_restrictions.when.using
+    severity: error
+  - name: segment.access_restrictions.when.using.unique
+    column: access_restrictions.when.using
+    check: unique
+    list_columns: *id002
+    severity: error
+  - name: segment.access_restrictions.when.recognized.min_list_length
+    column: access_restrictions.when.recognized
+    check: min_list_length
+    value: 1
+    list_columns: *id002
+    severity: error
+  - name: segment.access_restrictions.when.recognized.valid
+    column: access_restrictions.when.recognized
+    check: in
+    value:
+    - as_disabled
+    - as_employee
+    - as_permitted
+    - as_private
+    - as_student
+    list_columns:
+    - access_restrictions
+    - access_restrictions.when.recognized
+    severity: error
+  - name: segment.access_restrictions.when.recognized.unique
+    column: access_restrictions.when.recognized
+    check: unique
+    list_columns: *id002
+    severity: error
+  - name: segment.access_restrictions.when.vehicle.min_list_length
+    column: access_restrictions.when.vehicle
+    check: min_list_length
+    value: 1
+    list_columns: *id002
+    severity: error
+  - name: segment.access_restrictions.when.vehicle.unique
+    column: access_restrictions.when.vehicle
+    check: unique
+    list_columns: *id002
+    severity: error
+  - name: segment.connectors.min_list_length
+    column: connectors
+    check: min_list_length
+    value: 2
+    severity: error
+  - name: segment.connectors.unique
+    column: connectors
+    check: unique
+    severity: error
+  - name: segment.connectors.connector_id.not_null
+    column: connectors.connector_id
+    check: not_null
+    list_columns:
+    - connectors
+    when:
+      column: connectors
+      check: not_null
+    severity: error
+  - name: segment.connectors.connector_id.min_length
+    column: connectors.connector_id
+    check: min_length
+    value: 1
+    list_columns: &id003
+    - connectors
+    severity: error
+  - name: segment.connectors.connector_id.pattern
+    column: connectors.connector_id
+    check: pattern
+    value: ^\S+$
+    list_columns: *id003
+    severity: error
+  - name: segment.connectors.at.range
+    column: connectors.at
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - connectors
+    severity: error
+  - name: segment.level_rules.value.not_null
+    column: level_rules.value
+    check: not_null
+    list_columns:
+    - level_rules
+    when:
+      column: level_rules
+      check: not_null
+    severity: error
+  - name: segment.routes.name.min_length
+    column: routes.name
+    check: min_length
+    value: 1
+    list_columns: &id004
+    - routes
+    severity: error
+  - name: segment.routes.name.pattern
+    column: routes.name
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id004
+    severity: error
+  - name: segment.routes.network.min_length
+    column: routes.network
+    check: min_length
+    value: 1
+    list_columns: &id005
+    - routes
+    severity: error
+  - name: segment.routes.network.pattern
+    column: routes.network
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id005
+    severity: error
+  - name: segment.routes.ref.min_length
+    column: routes.ref
+    check: min_length
+    value: 1
+    list_columns: &id006
+    - routes
+    severity: error
+  - name: segment.routes.ref.pattern
+    column: routes.ref
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id006
+    severity: error
+  - name: segment.routes.symbol.min_length
+    column: routes.symbol
+    check: min_length
+    value: 1
+    list_columns: &id007
+    - routes
+    severity: error
+  - name: segment.routes.symbol.pattern
+    column: routes.symbol
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id007
+    severity: error
+  - name: segment.routes.wikidata.pattern
+    column: routes.wikidata
+    check: pattern
+    value: ^Q\d+$
+    list_columns:
+    - routes
+    severity: error
+  - name: segment.subclass_rules.value.not_null
+    column: subclass_rules.value
+    check: not_null
+    list_columns:
+    - subclass_rules
+    when:
+      column: subclass_rules
+      check: not_null
+    severity: error
+  - name: segment.subclass_rules.value.valid
+    column: subclass_rules.value
+    check: in
+    value:
+    - alley
+    - crosswalk
+    - cycle_crossing
+    - driveway
+    - link
+    - parking_aisle
+    - sidewalk
+    list_columns:
+    - subclass_rules
+    severity: error
+  - name: segment.names.primary.not_null
+    column: names.primary
+    check: not_null
+    when:
+      column: names
+      check: not_null
+    severity: error
+  - name: segment.names.primary.min_length
+    column: names.primary
+    check: min_length
+    value: 1
+    severity: error
+  - name: segment.names.primary.pattern
+    column: names.primary
+    check: pattern
+    value: ^(\S.*)?\S$
+    severity: error
+  - name: segment.names.rules.value.not_null
+    column: names.rules.value
+    check: not_null
+    list_columns: &id009
+    - names.rules
+    when:
+      column: names.rules
+      check: not_null
+    severity: error
+  - name: segment.names.rules.value.min_length
+    column: names.rules.value
+    check: min_length
+    value: 1
+    list_columns: &id008
+    - names.rules
+    severity: error
+  - name: segment.names.rules.value.pattern
+    column: names.rules.value
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id008
+    severity: error
+  - name: segment.names.rules.variant.not_null
+    column: names.rules.variant
+    check: not_null
+    list_columns: *id009
+    when:
+      column: names.rules
+      check: not_null
+    severity: error
+  - name: segment.names.rules.variant.valid
+    column: names.rules.variant
+    check: in
+    value:
+    - alternate
+    - common
+    - official
+    - short
+    list_columns:
+    - names.rules
+    severity: error
+  - name: segment.names.rules.language.pattern
+    column: names.rules.language
+    check: pattern
+    value: ^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$
+    list_columns:
+    - names.rules
+    severity: error
+  - name: segment.names.rules.perspectives.mode.not_null
+    column: names.rules.perspectives.mode
+    check: not_null
+    list_columns: &id010
+    - names.rules
+    when:
+      column: names.rules.perspectives
+      check: not_null
+    severity: error
+  - name: segment.names.rules.perspectives.mode.valid
+    column: names.rules.perspectives.mode
+    check: in
+    value:
+    - accepted_by
+    - disputed_by
+    list_columns:
+    - names.rules
+    severity: error
+  - name: segment.names.rules.perspectives.countries.not_null
+    column: names.rules.perspectives.countries
+    check: not_null
+    list_columns: *id010
+    when:
+      column: names.rules.perspectives
+      check: not_null
+    severity: error
+  - name: segment.names.rules.perspectives.countries.min_list_length
+    column: names.rules.perspectives.countries
+    check: min_list_length
+    value: 1
+    list_columns: *id010
+    severity: error
+  - name: segment.names.rules.perspectives.countries.pattern
+    column: names.rules.perspectives.countries
+    check: pattern
+    value: ^[A-Z]{2}$
+    list_columns:
+    - names.rules
+    - names.rules.perspectives.countries
+    severity: error
+  - name: segment.names.rules.perspectives.countries.unique
+    column: names.rules.perspectives.countries
+    check: unique
+    list_columns: *id010
+    severity: error
+  - name: segment.names.rules.side.valid
+    column: names.rules.side
+    check: in
+    value:
+    - left
+    - right
+    list_columns:
+    - names.rules
+    severity: error
+  - name: segment.class.not_null
+    column: class
+    check: not_null
+    severity: error
+  - name: segment.class.valid
+    column: class
+    check: in
+    value:
+    - bridleway
+    - cycleway
+    - footway
+    - living_street
+    - motorway
+    - path
+    - pedestrian
+    - primary
+    - residential
+    - secondary
+    - service
+    - steps
+    - tertiary
+    - track
+    - trunk
+    - unclassified
+    - unknown
+    severity: error
+  - name: segment.destinations.from_connector_id.not_null
+    column: destinations.from_connector_id
+    check: not_null
+    list_columns: &id012
+    - destinations
+    when:
+      column: destinations
+      check: not_null
+    severity: error
+  - name: segment.destinations.from_connector_id.min_length
+    column: destinations.from_connector_id
+    check: min_length
+    value: 1
+    list_columns: &id011
+    - destinations
+    severity: error
+  - name: segment.destinations.from_connector_id.pattern
+    column: destinations.from_connector_id
+    check: pattern
+    value: ^\S+$
+    list_columns: *id011
+    severity: error
+  - name: segment.destinations.to_connector_id.not_null
+    column: destinations.to_connector_id
+    check: not_null
+    list_columns: *id012
+    when:
+      column: destinations
+      check: not_null
+    severity: error
+  - name: segment.destinations.to_connector_id.min_length
+    column: destinations.to_connector_id
+    check: min_length
+    value: 1
+    list_columns: &id013
+    - destinations
+    severity: error
+  - name: segment.destinations.to_connector_id.pattern
+    column: destinations.to_connector_id
+    check: pattern
+    value: ^\S+$
+    list_columns: *id013
+    severity: error
+  - name: segment.destinations.to_segment_id.not_null
+    column: destinations.to_segment_id
+    check: not_null
+    list_columns: *id012
+    when:
+      column: destinations
+      check: not_null
+    severity: error
+  - name: segment.destinations.to_segment_id.min_length
+    column: destinations.to_segment_id
+    check: min_length
+    value: 1
+    list_columns: &id014
+    - destinations
+    severity: error
+  - name: segment.destinations.to_segment_id.pattern
+    column: destinations.to_segment_id
+    check: pattern
+    value: ^\S+$
+    list_columns: *id014
+    severity: error
+  - name: segment.destinations.final_heading.not_null
+    column: destinations.final_heading
+    check: not_null
+    list_columns: *id012
+    when:
+      column: destinations
+      check: not_null
+    severity: error
+  - name: segment.destinations.final_heading.valid
+    column: destinations.final_heading
+    check: in
+    value:
+    - backward
+    - forward
+    list_columns:
+    - destinations
+    severity: error
+  - name: segment.destinations.labels.min_list_length
+    column: destinations.labels
+    check: min_list_length
+    value: 1
+    list_columns: *id012
+    severity: error
+  - name: segment.destinations.labels.unique
+    column: destinations.labels
+    check: unique
+    list_columns: *id012
+    severity: error
+  - name: segment.destinations.labels.value.not_null
+    column: destinations.labels.value
+    check: not_null
+    list_columns:
+    - destinations
+    - destinations.labels
+    when:
+      column: destinations.labels
+      check: not_null
+    severity: error
+  - name: segment.destinations.labels.value.min_length
+    column: destinations.labels.value
+    check: min_length
+    value: 1
+    list_columns: &id015
+    - destinations
+    - destinations.labels
+    severity: error
+  - name: segment.destinations.labels.value.pattern
+    column: destinations.labels.value
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id015
+    severity: error
+  - name: segment.destinations.symbols.valid
+    column: destinations.symbols
+    check: in
+    value:
+    - airport
+    - bus
+    - camp_site
+    - center
+    - ferry
+    - food
+    - fuel
+    - fuel_diesel
+    - hospital
+    - industrial
+    - info
+    - interchange
+    - lodging
+    - motorroad
+    - motorway
+    - parking
+    - rest_area
+    - restrooms
+    - train_station
+    - viewpoint
+    list_columns:
+    - destinations
+    - destinations.symbols
+    severity: error
+  - name: segment.destinations.symbols.unique
+    column: destinations.symbols
+    check: unique
+    list_columns: *id012
+    severity: error
+  - name: segment.destinations.when.heading.not_null
+    column: destinations.when.heading
+    check: not_null
+    list_columns:
+    - destinations
+    when:
+      column: destinations.when
+      check: not_null
+    severity: error
+  - name: segment.destinations.when.heading.valid
+    column: destinations.when.heading
+    check: in
+    value:
+    - backward
+    - forward
+    list_columns:
+    - destinations
+    severity: error
+  - name: segment.prohibited_transitions.sequence.not_null
+    column: prohibited_transitions.sequence
+    check: not_null
+    list_columns: &id016
+    - prohibited_transitions
+    when:
+      column: prohibited_transitions
+      check: not_null
+    severity: error
+  - name: segment.prohibited_transitions.sequence.min_list_length
+    column: prohibited_transitions.sequence
+    check: min_list_length
+    value: 1
+    list_columns: *id016
+    severity: error
+  - name: segment.prohibited_transitions.sequence.unique
+    column: prohibited_transitions.sequence
+    check: unique
+    list_columns: *id016
+    severity: error
+  - name: segment.prohibited_transitions.sequence.connector_id.not_null
+    column: prohibited_transitions.sequence.connector_id
+    check: not_null
+    list_columns: &id018
+    - prohibited_transitions
+    - prohibited_transitions.sequence
+    when:
+      column: prohibited_transitions
+      check: not_null
+    severity: error
+  - name: segment.prohibited_transitions.sequence.connector_id.min_length
+    column: prohibited_transitions.sequence.connector_id
+    check: min_length
+    value: 1
+    list_columns: &id017
+    - prohibited_transitions
+    - prohibited_transitions.sequence
+    severity: error
+  - name: segment.prohibited_transitions.sequence.connector_id.pattern
+    column: prohibited_transitions.sequence.connector_id
+    check: pattern
+    value: ^\S+$
+    list_columns: *id017
+    severity: error
+  - name: segment.prohibited_transitions.sequence.segment_id.not_null
+    column: prohibited_transitions.sequence.segment_id
+    check: not_null
+    list_columns: *id018
+    when:
+      column: prohibited_transitions
+      check: not_null
+    severity: error
+  - name: segment.prohibited_transitions.sequence.segment_id.min_length
+    column: prohibited_transitions.sequence.segment_id
+    check: min_length
+    value: 1
+    list_columns: &id019
+    - prohibited_transitions
+    - prohibited_transitions.sequence
+    severity: error
+  - name: segment.prohibited_transitions.sequence.segment_id.pattern
+    column: prohibited_transitions.sequence.segment_id
+    check: pattern
+    value: ^\S+$
+    list_columns: *id019
+    severity: error
+  - name: segment.prohibited_transitions.final_heading.not_null
+    column: prohibited_transitions.final_heading
+    check: not_null
+    list_columns: *id016
+    when:
+      column: prohibited_transitions
+      check: not_null
+    severity: error
+  - name: segment.prohibited_transitions.final_heading.valid
+    column: prohibited_transitions.final_heading
+    check: in
+    value:
+    - backward
+    - forward
+    list_columns:
+    - prohibited_transitions
+    severity: error
+  - name: segment.prohibited_transitions.when.heading.valid
+    column: prohibited_transitions.when.heading
+    check: in
+    value:
+    - backward
+    - forward
+    list_columns:
+    - prohibited_transitions
+    severity: error
+  - name: segment.prohibited_transitions.when.mode.min_list_length
+    column: prohibited_transitions.when.mode
+    check: min_list_length
+    value: 1
+    list_columns: &id020
+    - prohibited_transitions
+    severity: error
+  - name: segment.prohibited_transitions.when.mode.valid
+    column: prohibited_transitions.when.mode
+    check: in
+    value:
+    - bicycle
+    - bus
+    - car
+    - emergency
+    - foot
+    - hgv
+    - hov
+    - motor_vehicle
+    - motorcycle
+    - truck
+    - vehicle
+    list_columns:
+    - prohibited_transitions
+    - prohibited_transitions.when.mode
+    severity: error
+  - name: segment.prohibited_transitions.when.mode.unique
+    column: prohibited_transitions.when.mode
+    check: unique
+    list_columns: *id020
+    severity: error
+  - name: segment.prohibited_transitions.when.using.min_list_length
+    column: prohibited_transitions.when.using
+    check: min_list_length
+    value: 1
+    list_columns: *id020
+    severity: error
+  - name: segment.prohibited_transitions.when.using.valid
+    column: prohibited_transitions.when.using
+    check: in
+    value:
+    - as_customer
+    - at_destination
+    - for_forestry
+    - to_deliver
+    - to_farm
+    list_columns:
+    - prohibited_transitions
+    - prohibited_transitions.when.using
+    severity: error
+  - name: segment.prohibited_transitions.when.using.unique
+    column: prohibited_transitions.when.using
+    check: unique
+    list_columns: *id020
+    severity: error
+  - name: segment.prohibited_transitions.when.recognized.min_list_length
+    column: prohibited_transitions.when.recognized
+    check: min_list_length
+    value: 1
+    list_columns: *id020
+    severity: error
+  - name: segment.prohibited_transitions.when.recognized.valid
+    column: prohibited_transitions.when.recognized
+    check: in
+    value:
+    - as_disabled
+    - as_employee
+    - as_permitted
+    - as_private
+    - as_student
+    list_columns:
+    - prohibited_transitions
+    - prohibited_transitions.when.recognized
+    severity: error
+  - name: segment.prohibited_transitions.when.recognized.unique
+    column: prohibited_transitions.when.recognized
+    check: unique
+    list_columns: *id020
+    severity: error
+  - name: segment.prohibited_transitions.when.vehicle.min_list_length
+    column: prohibited_transitions.when.vehicle
+    check: min_list_length
+    value: 1
+    list_columns: *id020
+    severity: error
+  - name: segment.prohibited_transitions.when.vehicle.unique
+    column: prohibited_transitions.when.vehicle
+    check: unique
+    list_columns: *id020
+    severity: error
+  - name: segment.road_flags.min_list_length
+    column: road_flags
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: segment.road_flags.unique
+    column: road_flags
+    check: unique
+    severity: error
+  - name: segment.road_flags.values.not_null
+    column: road_flags.values
+    check: not_null
+    list_columns: &id021
+    - road_flags
+    when:
+      column: road_flags
+      check: not_null
+    severity: error
+  - name: segment.road_flags.values.min_list_length
+    column: road_flags.values
+    check: min_list_length
+    value: 1
+    list_columns: *id021
+    severity: error
+  - name: segment.road_flags.values.valid
+    column: road_flags.values
+    check: in
+    value:
+    - is_abandoned
+    - is_bridge
+    - is_covered
+    - is_indoor
+    - is_link
+    - is_tunnel
+    - is_under_construction
+    list_columns:
+    - road_flags
+    - road_flags.values
+    severity: error
+  - name: segment.road_flags.values.unique
+    column: road_flags.values
+    check: unique
+    list_columns: *id021
+    severity: error
+  - name: segment.road_surface.min_list_length
+    column: road_surface
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: segment.road_surface.unique
+    column: road_surface
+    check: unique
+    severity: error
+  - name: segment.road_surface.value.not_null
+    column: road_surface.value
+    check: not_null
+    list_columns:
+    - road_surface
+    when:
+      column: road_surface
+      check: not_null
+    severity: error
+  - name: segment.road_surface.value.valid
+    column: road_surface.value
+    check: in
+    value:
+    - dirt
+    - gravel
+    - metal
+    - paved
+    - paving_stones
+    - unknown
+    - unpaved
+    list_columns:
+    - road_surface
+    severity: error
+  - name: segment.speed_limits.min_list_length
+    column: speed_limits
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: segment.speed_limits.unique
+    column: speed_limits
+    check: unique
+    severity: error
+  - name: segment.speed_limits.max_speed.value.not_null
+    column: speed_limits.max_speed.value
+    check: not_null
+    list_columns: &id022
+    - speed_limits
+    when:
+      column: speed_limits.max_speed
+      check: not_null
+    severity: error
+  - name: segment.speed_limits.max_speed.value.range
+    column: speed_limits.max_speed.value
+    check: between
+    value:
+    - 1
+    - 350
+    list_columns:
+    - speed_limits
+    severity: error
+  - name: segment.speed_limits.max_speed.unit.not_null
+    column: speed_limits.max_speed.unit
+    check: not_null
+    list_columns: *id022
+    when:
+      column: speed_limits.max_speed
+      check: not_null
+    severity: error
+  - name: segment.speed_limits.max_speed.unit.valid
+    column: speed_limits.max_speed.unit
+    check: in
+    value:
+    - km/h
+    - mph
+    list_columns:
+    - speed_limits
+    severity: error
+  - name: segment.speed_limits.min_speed.value.not_null
+    column: speed_limits.min_speed.value
+    check: not_null
+    list_columns: &id023
+    - speed_limits
+    when:
+      column: speed_limits.min_speed
+      check: not_null
+    severity: error
+  - name: segment.speed_limits.min_speed.value.range
+    column: speed_limits.min_speed.value
+    check: between
+    value:
+    - 1
+    - 350
+    list_columns:
+    - speed_limits
+    severity: error
+  - name: segment.speed_limits.min_speed.unit.not_null
+    column: speed_limits.min_speed.unit
+    check: not_null
+    list_columns: *id023
+    when:
+      column: speed_limits.min_speed
+      check: not_null
+    severity: error
+  - name: segment.speed_limits.min_speed.unit.valid
+    column: speed_limits.min_speed.unit
+    check: in
+    value:
+    - km/h
+    - mph
+    list_columns:
+    - speed_limits
+    severity: error
+  - name: segment.speed_limits.when.heading.valid
+    column: speed_limits.when.heading
+    check: in
+    value:
+    - backward
+    - forward
+    list_columns:
+    - speed_limits
+    severity: error
+  - name: segment.speed_limits.when.mode.min_list_length
+    column: speed_limits.when.mode
+    check: min_list_length
+    value: 1
+    list_columns: &id024
+    - speed_limits
+    severity: error
+  - name: segment.speed_limits.when.mode.valid
+    column: speed_limits.when.mode
+    check: in
+    value:
+    - bicycle
+    - bus
+    - car
+    - emergency
+    - foot
+    - hgv
+    - hov
+    - motor_vehicle
+    - motorcycle
+    - truck
+    - vehicle
+    list_columns:
+    - speed_limits
+    - speed_limits.when.mode
+    severity: error
+  - name: segment.speed_limits.when.mode.unique
+    column: speed_limits.when.mode
+    check: unique
+    list_columns: *id024
+    severity: error
+  - name: segment.speed_limits.when.using.min_list_length
+    column: speed_limits.when.using
+    check: min_list_length
+    value: 1
+    list_columns: *id024
+    severity: error
+  - name: segment.speed_limits.when.using.valid
+    column: speed_limits.when.using
+    check: in
+    value:
+    - as_customer
+    - at_destination
+    - for_forestry
+    - to_deliver
+    - to_farm
+    list_columns:
+    - speed_limits
+    - speed_limits.when.using
+    severity: error
+  - name: segment.speed_limits.when.using.unique
+    column: speed_limits.when.using
+    check: unique
+    list_columns: *id024
+    severity: error
+  - name: segment.speed_limits.when.recognized.min_list_length
+    column: speed_limits.when.recognized
+    check: min_list_length
+    value: 1
+    list_columns: *id024
+    severity: error
+  - name: segment.speed_limits.when.recognized.valid
+    column: speed_limits.when.recognized
+    check: in
+    value:
+    - as_disabled
+    - as_employee
+    - as_permitted
+    - as_private
+    - as_student
+    list_columns:
+    - speed_limits
+    - speed_limits.when.recognized
+    severity: error
+  - name: segment.speed_limits.when.recognized.unique
+    column: speed_limits.when.recognized
+    check: unique
+    list_columns: *id024
+    severity: error
+  - name: segment.speed_limits.when.vehicle.min_list_length
+    column: speed_limits.when.vehicle
+    check: min_list_length
+    value: 1
+    list_columns: *id024
+    severity: error
+  - name: segment.speed_limits.when.vehicle.unique
+    column: speed_limits.when.vehicle
+    check: unique
+    list_columns: *id024
+    severity: error
+  - name: segment.subclass.valid
+    column: subclass
+    check: in
+    value:
+    - alley
+    - crosswalk
+    - cycle_crossing
+    - driveway
+    - link
+    - parking_aisle
+    - sidewalk
+    severity: error
+  - name: segment.width_rules.min_list_length
+    column: width_rules
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: segment.width_rules.unique
+    column: width_rules
+    check: unique
+    severity: error
+  - name: segment.width_rules.value.not_null
+    column: width_rules.value
+    check: not_null
+    list_columns:
+    - width_rules
+    when:
+      column: width_rules
+      check: not_null
+    severity: error
+  - name: segment.width_rules.value.positive
+    column: width_rules.value
+    check: gt
+    value: 0
+    list_columns:
+    - width_rules
+    severity: error
+  - name: segment.class.not_null
+    column: class
+    check: not_null
+    severity: error
+  - name: segment.class.valid
+    column: class
+    check: in
+    value:
+    - funicular
+    - light_rail
+    - monorail
+    - narrow_gauge
+    - standard_gauge
+    - subway
+    - tram
+    - unknown
+    severity: error
+  - name: segment.rail_flags.min_list_length
+    column: rail_flags
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: segment.rail_flags.unique
+    column: rail_flags
+    check: unique
+    severity: error
+  - name: segment.rail_flags.values.not_null
+    column: rail_flags.values
+    check: not_null
+    list_columns: &id025
+    - rail_flags
+    when:
+      column: rail_flags
+      check: not_null
+    severity: error
+  - name: segment.rail_flags.values.min_list_length
+    column: rail_flags.values
+    check: min_list_length
+    value: 1
+    list_columns: *id025
+    severity: error
+  - name: segment.rail_flags.values.valid
+    column: rail_flags.values
+    check: in
+    value:
+    - is_abandoned
+    - is_bridge
+    - is_covered
+    - is_disused
+    - is_freight
+    - is_passenger
+    - is_tunnel
+    - is_under_construction
+    list_columns:
+    - rail_flags
+    - rail_flags.values
+    severity: error
+  - name: segment.rail_flags.values.unique
+    column: rail_flags.values
+    check: unique
+    list_columns: *id025
+    severity: error

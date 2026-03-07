@@ -1,0 +1,122 @@
+version: '1'
+datasets:
+- name: land_cover
+  source_model: overture.schema.base.land_cover.LandCover
+  id_column: id
+  rules:
+  - name: land_cover.id.not_null
+    column: id
+    check: not_null
+    severity: error
+  - name: land_cover.id.min_length
+    column: id
+    check: min_length
+    value: 1
+    severity: error
+  - name: land_cover.id.pattern
+    column: id
+    check: pattern
+    value: ^\S+$
+    severity: error
+  - name: land_cover.geometry.not_null
+    column: geometry
+    check: not_null
+    severity: error
+  - name: land_cover.geometry.type
+    column: geometry
+    check: geometry_type
+    value:
+    - MultiPolygon
+    - Polygon
+    severity: error
+  - name: land_cover.version.not_null
+    column: version
+    check: not_null
+    severity: error
+  - name: land_cover.version.gte
+    column: version
+    check: gte
+    value: 0
+    severity: error
+  - name: land_cover.sources.min_list_length
+    column: sources
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: land_cover.sources.unique
+    column: sources
+    check: unique
+    severity: error
+  - name: land_cover.sources.property.not_null
+    column: sources.property
+    check: not_null
+    list_columns: &id001
+    - sources
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: land_cover.sources.dataset.not_null
+    column: sources.dataset
+    check: not_null
+    list_columns: *id001
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: land_cover.sources.license.pattern
+    column: sources.license
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns:
+    - sources
+    severity: error
+  - name: land_cover.sources.confidence.range
+    column: sources.confidence
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - sources
+    severity: error
+  - name: land_cover.subtype.not_null
+    column: subtype
+    check: not_null
+    severity: error
+  - name: land_cover.subtype.valid
+    column: subtype
+    check: in
+    value:
+    - barren
+    - crop
+    - forest
+    - grass
+    - mangrove
+    - moss
+    - shrub
+    - snow
+    - urban
+    - wetland
+    severity: error
+  - name: land_cover.cartography.prominence.range
+    column: cartography.prominence
+    check: between
+    value:
+    - 1
+    - 100
+    severity: error
+  - name: land_cover.cartography.min_zoom.range
+    column: cartography.min_zoom
+    check: between
+    value:
+    - 0
+    - 23
+    severity: error
+  - name: land_cover.cartography.max_zoom.range
+    column: cartography.max_zoom
+    check: between
+    value:
+    - 0
+    - 23
+    severity: error

@@ -9,6 +9,7 @@ __all__ = [
     "PRIMITIVE_TYPES",
     "get_type_mapping",
     "is_semantic_newtype",
+    "is_storage_primitive_source",
     "resolve_type_name",
 ]
 
@@ -80,6 +81,27 @@ def get_type_mapping(type_name: str) -> TypeMapping | None:
         The TypeMapping for the type, or None if not found.
     """
     return PRIMITIVE_TYPES.get(type_name)
+
+
+def is_storage_primitive_source(source_name: str | None) -> bool:
+    """Whether a ConstraintSource name refers to a registered storage primitive.
+
+    Used by validation renderers to filter out storage-level constraints
+    (e.g., int32 range) in favor of domain-level constraints.
+
+    Parameters
+    ----------
+    source_name
+        The NewType or primitive name to check, or None.
+
+    Returns
+    -------
+    bool
+        True if source_name is a key in PRIMITIVE_TYPES.
+    """
+    if source_name is None:
+        return False
+    return source_name in PRIMITIVE_TYPES
 
 
 def resolve_type_name(type_info: TypeInfo, target: str) -> str:

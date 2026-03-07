@@ -1,0 +1,265 @@
+version: '1'
+datasets:
+- name: water
+  source_model: overture.schema.base.water.Water
+  id_column: id
+  rules:
+  - name: water.id.not_null
+    column: id
+    check: not_null
+    severity: error
+  - name: water.id.min_length
+    column: id
+    check: min_length
+    value: 1
+    severity: error
+  - name: water.id.pattern
+    column: id
+    check: pattern
+    value: ^\S+$
+    severity: error
+  - name: water.geometry.not_null
+    column: geometry
+    check: not_null
+    severity: error
+  - name: water.geometry.type
+    column: geometry
+    check: geometry_type
+    value:
+    - LineString
+    - MultiPolygon
+    - Point
+    - Polygon
+    severity: error
+  - name: water.version.not_null
+    column: version
+    check: not_null
+    severity: error
+  - name: water.version.gte
+    column: version
+    check: gte
+    value: 0
+    severity: error
+  - name: water.sources.min_list_length
+    column: sources
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: water.sources.unique
+    column: sources
+    check: unique
+    severity: error
+  - name: water.sources.property.not_null
+    column: sources.property
+    check: not_null
+    list_columns: &id001
+    - sources
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: water.sources.dataset.not_null
+    column: sources.dataset
+    check: not_null
+    list_columns: *id001
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: water.sources.license.pattern
+    column: sources.license
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns:
+    - sources
+    severity: error
+  - name: water.sources.confidence.range
+    column: sources.confidence
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - sources
+    severity: error
+  - name: water.class.valid
+    column: class
+    check: in
+    value:
+    - basin
+    - bay
+    - blowhole
+    - canal
+    - cape
+    - ditch
+    - dock
+    - drain
+    - fairway
+    - fish_pass
+    - fishpond
+    - geyser
+    - hot_spring
+    - lagoon
+    - lake
+    - moat
+    - ocean
+    - oxbow
+    - pond
+    - reflecting_pool
+    - reservoir
+    - river
+    - salt_pond
+    - sea
+    - sewage
+    - shoal
+    - spring
+    - strait
+    - stream
+    - swimming_pool
+    - tidal_channel
+    - wastewater
+    - water
+    - water_storage
+    - waterfall
+    severity: error
+  - name: water.subtype.valid
+    column: subtype
+    check: in
+    value:
+    - canal
+    - human_made
+    - lake
+    - ocean
+    - physical
+    - pond
+    - reservoir
+    - river
+    - spring
+    - stream
+    - wastewater
+    - water
+    severity: error
+  - name: water.names.primary.not_null
+    column: names.primary
+    check: not_null
+    when:
+      column: names
+      check: not_null
+    severity: error
+  - name: water.names.primary.min_length
+    column: names.primary
+    check: min_length
+    value: 1
+    severity: error
+  - name: water.names.primary.pattern
+    column: names.primary
+    check: pattern
+    value: ^(\S.*)?\S$
+    severity: error
+  - name: water.names.rules.value.not_null
+    column: names.rules.value
+    check: not_null
+    list_columns: &id003
+    - names.rules
+    when:
+      column: names.rules
+      check: not_null
+    severity: error
+  - name: water.names.rules.value.min_length
+    column: names.rules.value
+    check: min_length
+    value: 1
+    list_columns: &id002
+    - names.rules
+    severity: error
+  - name: water.names.rules.value.pattern
+    column: names.rules.value
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns: *id002
+    severity: error
+  - name: water.names.rules.variant.not_null
+    column: names.rules.variant
+    check: not_null
+    list_columns: *id003
+    when:
+      column: names.rules
+      check: not_null
+    severity: error
+  - name: water.names.rules.variant.valid
+    column: names.rules.variant
+    check: in
+    value:
+    - alternate
+    - common
+    - official
+    - short
+    list_columns:
+    - names.rules
+    severity: error
+  - name: water.names.rules.language.pattern
+    column: names.rules.language
+    check: pattern
+    value: ^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$
+    list_columns:
+    - names.rules
+    severity: error
+  - name: water.names.rules.perspectives.mode.not_null
+    column: names.rules.perspectives.mode
+    check: not_null
+    list_columns: &id004
+    - names.rules
+    when:
+      column: names.rules.perspectives
+      check: not_null
+    severity: error
+  - name: water.names.rules.perspectives.mode.valid
+    column: names.rules.perspectives.mode
+    check: in
+    value:
+    - accepted_by
+    - disputed_by
+    list_columns:
+    - names.rules
+    severity: error
+  - name: water.names.rules.perspectives.countries.not_null
+    column: names.rules.perspectives.countries
+    check: not_null
+    list_columns: *id004
+    when:
+      column: names.rules.perspectives
+      check: not_null
+    severity: error
+  - name: water.names.rules.perspectives.countries.min_list_length
+    column: names.rules.perspectives.countries
+    check: min_list_length
+    value: 1
+    list_columns: *id004
+    severity: error
+  - name: water.names.rules.perspectives.countries.pattern
+    column: names.rules.perspectives.countries
+    check: pattern
+    value: ^[A-Z]{2}$
+    list_columns:
+    - names.rules
+    - names.rules.perspectives.countries
+    severity: error
+  - name: water.names.rules.perspectives.countries.unique
+    column: names.rules.perspectives.countries
+    check: unique
+    list_columns: *id004
+    severity: error
+  - name: water.names.rules.side.valid
+    column: names.rules.side
+    check: in
+    value:
+    - left
+    - right
+    list_columns:
+    - names.rules
+    severity: error
+  - name: water.wikidata.pattern
+    column: wikidata
+    check: pattern
+    value: ^Q\d+$
+    severity: error

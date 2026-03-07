@@ -6,6 +6,7 @@ from overture.schema.codegen.extraction.type_registry import (
     PRIMITIVE_TYPES,
     TypeMapping,
     get_type_mapping,
+    is_storage_primitive_source,
     resolve_type_name,
 )
 
@@ -141,3 +142,23 @@ class TestResolveTypeName:
         """resolve_type_name returns the base type regardless of is_optional."""
         ti = self._make_type_info(is_optional=True)
         assert resolve_type_name(ti, "markdown") == "string"
+
+
+class TestIsStoragePrimitiveSource:
+    def test_int32_is_storage_primitive(self) -> None:
+        assert is_storage_primitive_source("int32") is True
+
+    def test_int64_is_storage_primitive(self) -> None:
+        assert is_storage_primitive_source("int64") is True
+
+    def test_float64_is_storage_primitive(self) -> None:
+        assert is_storage_primitive_source("float64") is True
+
+    def test_str_is_storage_primitive(self) -> None:
+        assert is_storage_primitive_source("str") is True
+
+    def test_semantic_newtype_is_not(self) -> None:
+        assert is_storage_primitive_source("HexColor") is False
+
+    def test_none_is_not(self) -> None:
+        assert is_storage_primitive_source(None) is False

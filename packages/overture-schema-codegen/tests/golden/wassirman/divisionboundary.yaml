@@ -1,0 +1,268 @@
+version: '1'
+datasets:
+- name: division_boundary
+  source_model: overture.schema.divisions.division_boundary.models.DivisionBoundary
+  id_column: id
+  rules:
+  - name: division_boundary.id.not_null
+    column: id
+    check: not_null
+    severity: error
+  - name: division_boundary.id.min_length
+    column: id
+    check: min_length
+    value: 1
+    severity: error
+  - name: division_boundary.id.pattern
+    column: id
+    check: pattern
+    value: ^\S+$
+    severity: error
+  - name: division_boundary.geometry.not_null
+    column: geometry
+    check: not_null
+    severity: error
+  - name: division_boundary.geometry.type
+    column: geometry
+    check: geometry_type
+    value:
+    - LineString
+    - MultiLineString
+    severity: error
+  - name: division_boundary.version.not_null
+    column: version
+    check: not_null
+    severity: error
+  - name: division_boundary.version.gte
+    column: version
+    check: gte
+    value: 0
+    severity: error
+  - name: division_boundary.sources.min_list_length
+    column: sources
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: division_boundary.sources.unique
+    column: sources
+    check: unique
+    severity: error
+  - name: division_boundary.sources.property.not_null
+    column: sources.property
+    check: not_null
+    list_columns: &id001
+    - sources
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: division_boundary.sources.dataset.not_null
+    column: sources.dataset
+    check: not_null
+    list_columns: *id001
+    when:
+      column: sources
+      check: not_null
+    severity: error
+  - name: division_boundary.sources.license.pattern
+    column: sources.license
+    check: pattern
+    value: ^(\S.*)?\S$
+    list_columns:
+    - sources
+    severity: error
+  - name: division_boundary.sources.confidence.range
+    column: sources.confidence
+    check: between
+    value:
+    - 0.0
+    - 1.0
+    list_columns:
+    - sources
+    severity: error
+  - name: division_boundary.subtype.not_null
+    column: subtype
+    check: not_null
+    severity: error
+  - name: division_boundary.subtype.valid
+    column: subtype
+    check: in
+    value:
+    - borough
+    - country
+    - county
+    - dependency
+    - localadmin
+    - locality
+    - macrocounty
+    - macrohood
+    - macroregion
+    - microhood
+    - neighborhood
+    - region
+    severity: error
+  - name: division_boundary.class.not_null
+    column: class
+    check: not_null
+    severity: error
+  - name: division_boundary.class.valid
+    column: class
+    check: in
+    value:
+    - land
+    - maritime
+    severity: error
+  - name: division_boundary.division_ids.not_null
+    column: division_ids
+    check: not_null
+    severity: error
+  - name: division_boundary.division_ids.min_list_length
+    column: division_ids
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: division_boundary.division_ids.min_list_length
+    column: division_ids
+    check: min_list_length
+    value: 2
+    severity: error
+  - name: division_boundary.division_ids.max_list_length
+    column: division_ids
+    check: max_list_length
+    value: 2
+    severity: error
+  - name: division_boundary.division_ids.pattern
+    column: division_ids
+    check: pattern
+    value: ^\S+$
+    list_columns:
+    - division_ids
+    severity: error
+  - name: division_boundary.division_ids.unique
+    column: division_ids
+    check: unique
+    severity: error
+  - name: division_boundary.country.pattern
+    column: country
+    check: pattern
+    value: ^[A-Z]{2}$
+    severity: error
+  - name: division_boundary.region.pattern
+    column: region
+    check: pattern
+    value: ^[A-Z]{2}-[A-Z0-9]{1,3}$
+    severity: error
+  - name: division_boundary.admin_level.range
+    column: admin_level
+    check: between
+    value:
+    - 0
+    - 16
+    severity: error
+  - name: division_boundary.perspectives.mode.not_null
+    column: perspectives.mode
+    check: not_null
+    when:
+      column: perspectives
+      check: not_null
+    severity: error
+  - name: division_boundary.perspectives.mode.valid
+    column: perspectives.mode
+    check: in
+    value:
+    - accepted_by
+    - disputed_by
+    severity: error
+  - name: division_boundary.perspectives.countries.not_null
+    column: perspectives.countries
+    check: not_null
+    when:
+      column: perspectives
+      check: not_null
+    severity: error
+  - name: division_boundary.perspectives.countries.min_list_length
+    column: perspectives.countries
+    check: min_list_length
+    value: 1
+    severity: error
+  - name: division_boundary.perspectives.countries.pattern
+    column: perspectives.countries
+    check: pattern
+    value: ^[A-Z]{2}$
+    list_columns:
+    - perspectives.countries
+    severity: error
+  - name: division_boundary.perspectives.countries.unique
+    column: perspectives.countries
+    check: unique
+    severity: error
+  - name: division_boundary.exactly_one_of
+    columns:
+    - is_land
+    - is_territorial
+    check: exactly_one_of
+    severity: error
+  - name: division_boundary.admin_level.required_when
+    column: admin_level
+    check: not_null
+    when:
+      column: subtype
+      check: eq
+      value: county
+    severity: error
+  - name: division_boundary.admin_level.required_when
+    column: admin_level
+    check: not_null
+    when:
+      column: subtype
+      check: eq
+      value: macrocounty
+    severity: error
+  - name: division_boundary.admin_level.required_when
+    column: admin_level
+    check: not_null
+    when:
+      column: subtype
+      check: eq
+      value: region
+    severity: error
+  - name: division_boundary.admin_level.required_when
+    column: admin_level
+    check: not_null
+    when:
+      column: subtype
+      check: eq
+      value: macroregion
+    severity: error
+  - name: division_boundary.admin_level.required_when
+    column: admin_level
+    check: not_null
+    when:
+      column: subtype
+      check: eq
+      value: dependency
+    severity: error
+  - name: division_boundary.admin_level.required_when
+    column: admin_level
+    check: not_null
+    when:
+      column: subtype
+      check: eq
+      value: country
+    severity: error
+  - name: division_boundary.country.required_when
+    column: country
+    check: not_null
+    when:
+      column: subtype
+      check: neq
+      value: country
+    severity: error
+  - name: division_boundary.country.forbidden_when
+    column: country
+    check: is_null
+    when:
+      column: subtype
+      check: eq
+      value: country
+    severity: error
