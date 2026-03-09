@@ -1,7 +1,6 @@
 import re
-from collections.abc import Iterator
 from dataclasses import dataclass
-from itertools import chain, combinations
+from itertools import combinations
 from typing import Annotated, Any
 
 import pytest
@@ -261,16 +260,21 @@ TEST_GEOMETRY_TYPE_CASES: tuple[GeometryTypeCase, ...] = (
 )
 
 
-def powerset(
-    iterable: tuple[GeometryTypeCase, ...],
-) -> Iterator[tuple[GeometryTypeCase, ...]]:
-    s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+def _representative_subsets(
+    cases: tuple[GeometryTypeCase, ...],
+) -> tuple[tuple[GeometryTypeCase, ...], ...]:
+    """Select subsets that cover the constraint behavior without combinatorial explosion.
+
+    Singletons test each type accepted/rejected individually. Pairs test
+    composition. The full set tests unconstrained acceptance.
+    """
+    singletons = [(c,) for c in cases]
+    pairs = list(combinations(cases, 2))
+    full = [cases]
+    return tuple(singletons + pairs + full)
 
 
-TEST_GEOMETRY_TYPE_CASE_SUBSETS = tuple(
-    s for s in powerset(TEST_GEOMETRY_TYPE_CASES) if len(s) > 0
-)
+TEST_GEOMETRY_TYPE_CASE_SUBSETS = _representative_subsets(TEST_GEOMETRY_TYPE_CASES)
 
 
 @pytest.mark.parametrize("geometry_type_case_subset", TEST_GEOMETRY_TYPE_CASE_SUBSETS)
