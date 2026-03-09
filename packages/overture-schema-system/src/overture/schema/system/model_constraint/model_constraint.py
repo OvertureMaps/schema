@@ -339,6 +339,13 @@ class OptionalFieldGroupConstraint(FieldGroupConstraint):
     def __init__(self, name: str | None, field_names: tuple[str, ...]):
         super().__init__(name, field_names)
 
+    @staticmethod
+    def _field_has_non_none_value(model_instance: BaseModel, field_name: str) -> bool:
+        return (
+            field_name in model_instance.model_fields_set
+            and getattr(model_instance, field_name) is not None
+        )
+
     @override
     def validate_class(self, model_class: type[BaseModel]) -> None:
         super().validate_class(model_class)

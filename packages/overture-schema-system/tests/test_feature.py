@@ -1510,8 +1510,14 @@ class TestJsonSchema:
                 "properties": {
                     "required": ["baz"],
                     "anyOf": [
-                        {"required": ["foo"]},
-                        {"required": ["bar"]},
+                        {
+                            "required": ["foo"],
+                            "properties": {"foo": {"not": {"type": "null"}}},
+                        },
+                        {
+                            "required": ["bar"],
+                            "properties": {"bar": {"not": {"type": "null"}}},
+                        },
                     ],
                     "if": {
                         "properties": {
@@ -1521,7 +1527,10 @@ class TestJsonSchema:
                         },
                     },
                     "then": {
-                        "not": {"required": ["bar"]},
+                        "not": {
+                            "required": ["bar"],
+                            "properties": {"bar": {"not": {"type": "null"}}},
+                        },
                     },
                 },
             },
@@ -1556,12 +1565,18 @@ class TestJsonSchema:
                 "properties",
             ],
             "anyOf": [
-                {"required": ["bbox"]},
+                {
+                    "required": ["bbox"],
+                    "properties": {"bbox": {"not": {"type": "null"}}},
+                },
                 {
                     "properties": {
                         "properties": {
                             "type": "object",
-                            "required": ["foo"],
+                            "properties": {
+                                "foo": {"not": {"type": "null"}},
+                                "properties": {"type": "object", "required": ["foo"]},
+                            },
                         }
                     },
                 },
@@ -1569,7 +1584,13 @@ class TestJsonSchema:
                     "properties": {
                         "properties": {
                             "type": "object",
-                            "required": ["garply"],
+                            "properties": {
+                                "garply": {"not": {"type": "null"}},
+                                "properties": {
+                                    "type": "object",
+                                    "required": ["garply"],
+                                },
+                            },
                         },
                     },
                 },
@@ -1591,9 +1612,17 @@ class TestJsonSchema:
                     "then": {
                         "required": ["id"],
                         "properties": {
+                            "id": {"not": {"type": "null"}},
                             "properties": {
                                 "type": "object",
-                                "required": ["foo", "qux"],
+                                "properties": {
+                                    "foo": {"not": {"type": "null"}},
+                                    "qux": {"not": {"type": "null"}},
+                                    "properties": {
+                                        "type": "object",
+                                        "required": ["foo", "qux"],
+                                    },
+                                },
                             },
                         },
                     },
@@ -1616,7 +1645,14 @@ class TestJsonSchema:
                             "properties": {
                                 "properties": {
                                     "type": "object",
-                                    "required": ["foo", "type"],
+                                    "properties": {
+                                        "foo": {"not": {"type": "null"}},
+                                        "type": {"not": {"type": "null"}},
+                                        "properties": {
+                                            "type": "object",
+                                            "required": ["foo", "type"],
+                                        },
+                                    },
                                 }
                             }
                         },

@@ -100,11 +100,25 @@
       "additionalProperties": false,
       "anyOf": [
         {
+          "properties": {
+            "labels": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "labels"
           ]
         },
         {
+          "properties": {
+            "symbols": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "symbols"
           ]
@@ -1194,11 +1208,25 @@
       "additionalProperties": false,
       "anyOf": [
         {
+          "properties": {
+            "max_speed": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "max_speed"
           ]
         },
         {
+          "properties": {
+            "min_speed": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "min_speed"
           ]
@@ -1715,31 +1743,73 @@
       "additionalProperties": false,
       "anyOf": [
         {
+          "properties": {
+            "heading": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "heading"
           ]
         },
         {
+          "properties": {
+            "during": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "during"
           ]
         },
         {
+          "properties": {
+            "mode": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "mode"
           ]
         },
         {
+          "properties": {
+            "using": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "using"
           ]
         },
         {
+          "properties": {
+            "recognized": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "recognized"
           ]
         },
         {
+          "properties": {
+            "vehicle": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "vehicle"
           ]
@@ -1836,31 +1906,73 @@
       "additionalProperties": false,
       "anyOf": [
         {
+          "properties": {
+            "heading": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "heading"
           ]
         },
         {
+          "properties": {
+            "during": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "during"
           ]
         },
         {
+          "properties": {
+            "mode": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "mode"
           ]
         },
         {
+          "properties": {
+            "using": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "using"
           ]
         },
         {
+          "properties": {
+            "recognized": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "recognized"
           ]
         },
         {
+          "properties": {
+            "vehicle": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "vehicle"
           ]
@@ -1942,31 +2054,73 @@
       "additionalProperties": false,
       "anyOf": [
         {
+          "properties": {
+            "heading": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "heading"
           ]
         },
         {
+          "properties": {
+            "during": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "during"
           ]
         },
         {
+          "properties": {
+            "mode": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "mode"
           ]
         },
         {
+          "properties": {
+            "using": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "using"
           ]
         },
         {
+          "properties": {
+            "recognized": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "recognized"
           ]
         },
         {
+          "properties": {
+            "vehicle": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
           "required": [
             "vehicle"
           ]

@@ -401,6 +401,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -415,6 +422,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -429,6 +443,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -443,6 +464,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -457,6 +485,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -471,6 +506,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -487,6 +529,13 @@
             }
           },
           "then": {
+            "properties": {
+              "parent_division_id": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "parent_division_id"
             ]
@@ -502,6 +551,13 @@
           },
           "then": {
             "not": {
+              "properties": {
+                "parent_division_id": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
               "required": [
                 "parent_division_id"
               ]
