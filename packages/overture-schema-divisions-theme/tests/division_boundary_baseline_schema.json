@@ -231,6 +231,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -245,6 +252,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -259,6 +273,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -273,6 +294,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -287,6 +315,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -301,6 +336,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -317,6 +359,13 @@
             }
           },
           "then": {
+            "properties": {
+              "country": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "country"
             ]
@@ -332,6 +381,13 @@
           },
           "then": {
             "not": {
+              "properties": {
+                "country": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
               "required": [
                 "country"
               ]
