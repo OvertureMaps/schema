@@ -196,7 +196,7 @@ def mock_project(tmp_path: Path) -> Iterator[MockProject]:
 
     Yields a MockProject with root, pyproject path, and mod_name.
     Writes a minimal pyproject.toml by default; tests can overwrite via
-    ``project.write_pyproject()``.
+    `project.write_pyproject()`.
     """
     root = tmp_path / "project"
     root.mkdir()

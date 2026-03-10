@@ -51,9 +51,9 @@ class TestAnalyzeTypePrimitives:
 class TestAnalyzeTypeSentinel:
     """Tests for Sentinel type filtering in unions.
 
-    Pydantic uses ``typing_extensions.Sentinel`` instances (like ``<MISSING>``)
+    Pydantic uses `typing_extensions.Sentinel` instances (like `<MISSING>`)
     in union types for optional fields. The type analyzer filters these out
-    alongside ``None`` when processing unions.
+    alongside `None` when processing unions.
     """
 
     @pytest.fixture()

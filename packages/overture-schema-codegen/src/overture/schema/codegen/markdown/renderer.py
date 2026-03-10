@@ -65,10 +65,10 @@ _CODE_SPAN_RE = re.compile(r"(`+)(.+?)\1")
 def _linkify_bare_urls(text: str) -> str:
     """Wrap bare URLs in Markdown link syntax.
 
-    Turns ``www.example.com`` into ``[www.example.com](https://www.example.com)``
-    and ``https://example.com`` into ``[https://example.com](https://example.com)``.
-    URLs already inside ``[text](url)`` or backtick code spans are left
-    untouched. Trailing sentence punctuation (``.``, ``,``, etc.) is excluded
+    Turns `www.example.com` into `[www.example.com](https://www.example.com)`
+    and `https://example.com` into `[https://example.com](https://example.com)`.
+    URLs already inside `[text](url)` or backtick code spans are left
+    untouched. Trailing sentence punctuation (`.`, `,`, etc.) is excluded
     from the link.
 
     Two-pass approach: extract code spans first, linkify the remaining
@@ -118,7 +118,7 @@ _EXAMPLE_TRUNCATION_LIMIT = 100
 class _FieldRow(TypedDict):
     """Template context for a single field table row.
 
-    ``pre_formatted`` indicates the ``name`` already contains backticks
+    `pre_formatted` indicates the `name` already contains backticks
     and variant tags, so the template should render it verbatim.
     """
 
@@ -135,7 +135,7 @@ def _unwrap_paragraphs(text: str) -> str:
     r"""Unwrap hard-wrapped lines within paragraphs, preserving paragraph breaks.
 
     Splits on blank lines (paragraph boundaries), replaces single newlines
-    within each paragraph with spaces, then rejoins with ``\n\n``.
+    within each paragraph with spaces, then rejoins with `\n\n`.
     Matches markdown's treatment of newlines within paragraphs.
     """
     paragraphs = _PARAGRAPH_BREAK_RE.split(text)
@@ -146,8 +146,8 @@ def _sanitize_for_table_cell(text: str) -> str:
     """Sanitize text for embedding in a markdown table cell.
 
     Unwraps within-paragraph newlines to spaces, then converts paragraph
-    breaks to ``<br/><br/>``. Escapes pipe characters for table safety.
-    Uses ``<br/>`` (not ``<br>``) for MDX/Docusaurus compatibility.
+    breaks to `<br/><br/>`. Escapes pipe characters for table safety.
+    Uses `<br/>` (not `<br>`) for MDX/Docusaurus compatibility.
     """
     text = text.strip()
     text = _unwrap_paragraphs(text)
@@ -156,7 +156,7 @@ def _sanitize_for_table_cell(text: str) -> str:
 
 
 def _truncate(text: str) -> str:
-    """Truncate text to ``_EXAMPLE_TRUNCATION_LIMIT`` chars, adding ellipsis."""
+    """Truncate text to `_EXAMPLE_TRUNCATION_LIMIT` chars, adding ellipsis."""
     if len(text) > _EXAMPLE_TRUNCATION_LIMIT:
         return text[: _EXAMPLE_TRUNCATION_LIMIT - 3] + "..."
     return text
@@ -255,7 +255,7 @@ def _annotate_field_constraints(
 
 
 def _expandable_list_suffix(field_spec: FieldSpec) -> str:
-    """Return ``"[]"`` per nesting level for list-of-model fields expanded inline."""
+    """Return `"[]"` per nesting level for list-of-model fields expanded inline."""
     if (
         field_spec.type_info.is_list
         and field_spec.model
@@ -340,7 +340,7 @@ def _short_variant_name(class_name: str, union_name: str) -> str:
 
 
 def _variant_tag(annotated: AnnotatedField, union_name: str) -> str | None:
-    """Return an italic variant tag like ``*(Road, Water)*``, or None for shared fields."""
+    """Return an italic variant tag like `*(Road, Water)*`, or None for shared fields."""
     if annotated.variant_sources is None:
         return None
     short_names = [
@@ -535,7 +535,7 @@ _FLOAT_PRECISION: dict[int, str] = {32: "~7 decimal digits", 64: "~15 decimal di
 def _format_bound(value: int | float) -> str:
     """Format a numeric bound for display.
 
-    Uses ``2^63`` notation for int64-scale values to avoid unreadable
+    Uses `2^63` notation for int64-scale values to avoid unreadable
     numbers; otherwise formats with thousands separators for ints.
     """
     if value == _INT64_MIN:
@@ -550,7 +550,7 @@ def _format_bound(value: int | float) -> str:
 def _format_interval(bounds: Interval) -> str:
     """Format an Interval as a range string, or empty if unconstrained.
 
-    Two inclusive bounds render as ``lower to upper``. All other
+    Two inclusive bounds render as `lower to upper`. All other
     combinations use explicit comparison operators so the
     inclusivity/exclusivity is unambiguous.
     """
