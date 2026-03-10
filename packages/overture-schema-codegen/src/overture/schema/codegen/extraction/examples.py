@@ -41,10 +41,10 @@ def _inject_literal_fields(
 ) -> dict[str, Any]:
     """Inject single-value Literal field defaults missing from *data*.
 
-    Inspects *model_fields_dict* for fields with single-value ``Literal``
+    Inspects *model_fields_dict* for fields with single-value `Literal`
     annotations. For each field missing from *data*, injects the literal
-    value using the field's ``validation_alias`` (if set), falling back
-    to ``alias``, then to the field name.
+    value using the field's `validation_alias` (if set), falling back
+    to `alias`, then to the field name.
 
     Returns a new dict; the original is not mutated.
     """
@@ -149,11 +149,11 @@ def order_example_rows(
 
 
 def _structured_fields(value: object) -> list[tuple[str, Any]] | None:
-    """Extract named fields from ``__slots__``-based types like BBox.
+    """Extract named fields from `__slots__`-based types like BBox.
 
-    Returns a list of ``(name, value)`` pairs for types that expose
-    public properties backed by private slots (``_name`` -> ``name``).
-    Returns ``None`` for types without this pattern.
+    Returns a list of `(name, value)` pairs for types that expose
+    public properties backed by private slots (`_name` -> `name`).
+    Returns `None` for types without this pattern.
     """
     cls = type(value)
     slots = getattr(cls, "__slots__", ())
@@ -238,9 +238,9 @@ def augment_missing_fields(
 ) -> list[tuple[str, Any]]:
     """Add (name, None) entries for fields absent from *rows*.
 
-    Compares base field names (via ``extract_base_field``) against
+    Compares base field names (via `extract_base_field`) against
     *field_names*. Fields in *field_names* not represented in *rows*
-    are appended as ``(name, None)``. Handles dot-notation and bracket-
+    are appended as `(name, None)`. Handles dot-notation and bracket-
     notation keys correctly.
 
     Parameters
@@ -267,7 +267,7 @@ def load_examples_from_toml(
     pyproject_path: Path,
     model_name: str,
 ) -> list[dict[str, Any]]:
-    """Load ``[examples.<model_name>]`` from a pyproject.toml file."""
+    """Load `[examples.<model_name>]` from a pyproject.toml file."""
     with pyproject_path.open("rb") as f:
         data = tomllib.load(f)
 

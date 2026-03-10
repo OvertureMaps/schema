@@ -95,10 +95,10 @@ def _aggregate_page_entries(
 def _nest_under_types(
     output_dir: PurePosixPath, feature_dirs: set[PurePosixPath]
 ) -> PurePosixPath:
-    """Insert ``types/`` after the feature directory portion.
+    """Insert `types/` after the feature directory portion.
 
     If *output_dir* equals or is a subdirectory of a feature directory,
-    returns a path with ``types/`` inserted after the feature directory.
+    returns a path with `types/` inserted after the feature directory.
     Otherwise returns *output_dir* unchanged.
     """
     for fd in sorted(feature_dirs, key=lambda p: len(p.parts), reverse=True):

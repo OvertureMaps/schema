@@ -79,8 +79,8 @@ def walk_type_info(ti: TypeInfo, visitor: Callable[[TypeInfo], None]) -> None:
     """Call *visitor* on *ti*, then recurse into dict key/value types.
 
     Captures the shared recursive descent pattern used by type collection
-    and reverse reference computation. Union members are ``type`` objects
-    (not ``TypeInfo``), so callers handle them directly.
+    and reverse reference computation. Union members are `type` objects
+    (not `TypeInfo`), so callers handle them directly.
     """
     visitor(ti)
     if ti.dict_key_type is not None:
@@ -108,13 +108,13 @@ class _UnwrapState:
     """Accumulated state from iterative type unwrapping.
 
     Tracks NewType names and refs during unwrapping:
-    - ``outermost_newtype_name`` / ``outermost_newtype_ref``: the first
-      NewType encountered, exposed as ``TypeInfo.newtype_name`` / ``newtype_ref``.
-    - ``last_newtype_name``: the most recently entered NewType name, used
-      as the resolved ``base_type`` for the terminal type.
-    - ``last_newtype_ref``: the most recently entered NewType callable,
+    - `outermost_newtype_name` / `outermost_newtype_ref`: the first
+      NewType encountered, exposed as `TypeInfo.newtype_name` / `newtype_ref`.
+    - `last_newtype_name`: the most recently entered NewType name, used
+      as the resolved `base_type` for the terminal type.
+    - `last_newtype_ref`: the most recently entered NewType callable,
       used as constraint provenance (which NewType contributed each constraint).
-    - ``newtype_outer_list_depth``: list layers accumulated before entering
+    - `newtype_outer_list_depth`: list layers accumulated before entering
       the outermost NewType boundary.
     """
 
@@ -329,7 +329,7 @@ def single_literal_value(annotation: object) -> object | None:
     Delegates to analyze_type for all unwrapping, then checks
     whether the result is a single-value Literal. Multi-value
     Literals return None — callers needing all values should use
-    ``analyze_type`` and read ``literal_values`` directly.
+    `analyze_type` and read `literal_values` directly.
     """
     try:
         ti = analyze_type(annotation)
