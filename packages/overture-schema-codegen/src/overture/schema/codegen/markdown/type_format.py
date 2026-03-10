@@ -18,7 +18,7 @@ __all__ = [
 
 
 def _code_link(name: str, href: str) -> str:
-    """Format a markdown link with inline-code text: [``name``](href)."""
+    """Format a markdown link with inline-code text: [`name`](href)."""
     return f"[`{name}`]({href})"
 
 
@@ -38,10 +38,10 @@ def resolve_type_link(identity: TypeIdentity, ctx: LinkContext | None = None) ->
 
 
 def _wrap_list_n(inner: str, depth: int) -> str:
-    """Wrap an inner type string in ``list<...>`` markdown syntax *depth* times.
+    """Wrap an inner type string in `list<...>` markdown syntax *depth* times.
 
     Builds a single broken-backtick wrapper rather than nesting iteratively.
-    Iterative nesting creates adjacent backticks (`````) that CommonMark
+    Iterative nesting creates adjacent backticks that CommonMark
     interprets as multi-backtick code span delimiters.
     """
     return f"`{'list<' * depth}`{inner}`{'>' * depth}`"
@@ -69,7 +69,7 @@ def _try_primitive_link(
 
     Registered primitives (int32, Geometry) and Pydantic types (HttpUrl)
     can have pages in the registry. Uses the type registry display name
-    (e.g. ``geometry`` not ``Geometry``) for the link text.
+    (e.g. `geometry` not `Geometry`) for the link text.
     """
     if ti.kind != TypeKind.PRIMITIVE or not ctx:
         return None
@@ -85,15 +85,15 @@ def _try_primitive_link(
 def _markdown_type_name(ti: TypeInfo) -> str:
     """Return the markdown display name for a type.
 
-    Uses the semantic NewType name when present (e.g. ``LanguageTag``),
-    otherwise falls back to the resolved markdown type (e.g. ``string``).
+    Uses the semantic NewType name when present (e.g. `LanguageTag`),
+    otherwise falls back to the resolved markdown type (e.g. `string`).
     """
     name = ti.newtype_name if is_semantic_newtype(ti) else None
     return name or resolve_type_name(ti, "markdown")
 
 
 def format_dict_type(ti: TypeInfo) -> str:
-    """Format a dict TypeInfo as bare ``map<K, V>`` using resolved markdown names."""
+    """Format a dict TypeInfo as bare `map<K, V>` using resolved markdown names."""
     if ti.dict_key_type is None or ti.dict_value_type is None:
         msg = f"format_dict_type requires dict key/value types, got {ti}"
         raise ValueError(msg)
@@ -111,7 +111,7 @@ def _format_union_members(
 
     Each member is resolved independently so members with pages get linked
     while others render as plain code spans. *separator* is inserted between
-    members (default is ``\|`` for table-cell safety).
+    members (default is `\|` for table-cell safety).
     """
     return separator.join(resolve_type_link(TypeIdentity.of(m), ctx) for m in members)
 
@@ -184,7 +184,7 @@ def _linked_or_backticked(ti: TypeInfo, ctx: LinkContext | None) -> tuple[str, b
     need broken-backtick formatting (interleaving backtick runs with
     linked text).
 
-    When ``has_link`` is True, ``formatted_string`` is a markdown link
+    When `has_link` is True, `formatted_string` is a markdown link
     ready for broken-backtick container syntax. When False, it is a raw
     name that the caller embeds inside backticks.
     """

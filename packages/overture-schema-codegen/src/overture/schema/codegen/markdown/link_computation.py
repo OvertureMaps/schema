@@ -39,7 +39,7 @@ def _is_normalized(path: PurePosixPath) -> bool:
 def relative_link(source: PurePosixPath, target: PurePosixPath) -> str:
     """Compute a relative path from source file to target file.
 
-    Both paths must be normalized (no ``..`` components) and relative
+    Both paths must be normalized (no `..` components) and relative
     to the same output root.
     """
     if not _is_normalized(source):

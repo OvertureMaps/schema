@@ -35,10 +35,10 @@ def resolve_discriminator_field_name(discriminator: object) -> str | None:
 
     Handles the three forms a discriminator can take:
     - A plain string (used directly as the field name).
-    - A ``pydantic.Discriminator`` whose ``.discriminator`` attribute is a string.
-    - A ``pydantic.Discriminator`` whose ``.discriminator`` is a callable
-      produced by ``Feature.field_discriminator``, which stores the field name
-      as ``_field_name`` on the callable.
+    - A `pydantic.Discriminator` whose `.discriminator` attribute is a string.
+    - A `pydantic.Discriminator` whose `.discriminator` is a callable
+      produced by `Feature.field_discriminator`, which stores the field name
+      as `_field_name` on the callable.
 
     Returns None if *discriminator* is None or its field name cannot be
     determined.
@@ -234,7 +234,7 @@ class Feature(BaseModel):
         -------
         Discriminator
             Discriminator that enables discriminated unions that include features.
-            The inner callable carries a ``_field_name`` attribute set to *field*,
+            The inner callable carries a `_field_name` attribute set to *field*,
             allowing introspection code to recover the discriminator field name
             without hardcoding it.
 

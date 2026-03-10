@@ -25,7 +25,7 @@ OUTPUT_ROOT = PurePosixPath(".")
 
 
 def _split_entry_point(entry_point_path: str) -> tuple[str, str]:
-    """Split ``"module.path:ClassName"`` into its two parts.
+    """Split `"module.path:ClassName"` into its two parts.
 
     >>> _split_entry_point("overture.schema.buildings:Building")
     ('overture.schema.buildings', 'Building')
@@ -98,7 +98,7 @@ def is_package_module(
 ) -> bool:
     """Check whether a module is a package (directory) or a file module.
 
-    Packages have ``__path__``; file modules do not (PEP 302).
+    Packages have `__path__`; file modules do not (PEP 302).
     """
     registry: Mapping[str, object] = (
         module_registry if module_registry is not None else sys.modules
@@ -134,7 +134,7 @@ def compute_output_dir(
     """Compute output directory for a module, mirroring package structure.
 
     File modules drop their last component (the .py filename).
-    Packages keep all components. Returns ``PurePosixPath(".")`` for
+    Packages keep all components. Returns `PurePosixPath(".")` for
     the root directory.
     """
     relpath = module_relpath(module, schema_root)

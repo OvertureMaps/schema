@@ -39,7 +39,7 @@ class TypeIdentity:
 
     Pairs a unique Python object (class, NewType callable, or union
     annotation) with its display name. Equality and hashing delegate
-    to ``obj`` identity so registry lookups work regardless of how
+    to `obj` identity so registry lookups work regardless of how
     the display name was derived.
     """
 
@@ -65,12 +65,12 @@ class TypeIdentity:
 
 
 class _SourceTypeIdentityMixin:
-    """Mixin providing ``identity`` from ``source_type`` and ``name``.
+    """Mixin providing `identity` from `source_type` and `name`.
 
     Shared by EnumSpec, ModelSpec, NewTypeSpec, and PydanticTypeSpec --
-    each has a ``source_type`` (the Python class/callable) and a ``name``.
-    UnionSpec uses ``source_annotation`` instead, so it defines its
-    own ``identity``.
+    each has a `source_type` (the Python class/callable) and a `name`.
+    UnionSpec uses `source_annotation` instead, so it defines its
+    own `identity`.
     """
 
     source_type: object | None
@@ -225,7 +225,7 @@ separately via dedicated functions.
 
 
 def is_pydantic_sourced(source_type: type | None) -> bool:
-    """Check whether *source_type* originates from the ``pydantic`` package."""
+    """Check whether *source_type* originates from the `pydantic` package."""
     return getattr(source_type, "__module__", "").startswith("pydantic")
 
 

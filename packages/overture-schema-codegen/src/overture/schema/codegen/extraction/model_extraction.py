@@ -24,7 +24,7 @@ __all__ = [
 def resolve_field_alias(field_name: str, field_info: FieldInfo) -> str:
     """Return the data-dict key for a Pydantic field.
 
-    Prefers ``validation_alias``, falls back to ``alias``, then the
+    Prefers `validation_alias`, falls back to `alias`, then the
     Python field name. Only string aliases are supported; AliasPath
     and AliasChoices are ignored.
     """
@@ -153,10 +153,10 @@ def expand_model_tree(
 ) -> FeatureSpec:
     """Populate model references on MODEL-kind fields, recursively.
 
-    Walks *spec*'s fields and sets ``field.model`` for fields whose type
+    Walks *spec*'s fields and sets `field.model` for fields whose type
     is a Pydantic model. Uses *cache* to reuse already-extracted ModelSpecs
     and detect shared references. Marks fields whose model creates a cycle
-    in the ancestor chain with ``starts_cycle=True``.
+    in the ancestor chain with `starts_cycle=True`.
 
     Mutates *spec* in place and returns it.
     """
