@@ -107,8 +107,9 @@ def validate_example(
     known_keys = _known_field_keys(model_fields)
     preprocessed = _inject_literal_fields(model_fields, raw)
     preprocessed = _strip_null_unknown_fields(preprocessed, known_keys)
-    result: BaseModel = TypeAdapter(validation_type).validate_python(preprocessed)
-    assert isinstance(result, BaseModel)
+    result: object = TypeAdapter(validation_type).validate_python(preprocessed)
+    if not isinstance(result, BaseModel):
+        raise TypeError(f"Expected BaseModel instance, got {type(result).__name__}")
     return result
 
 

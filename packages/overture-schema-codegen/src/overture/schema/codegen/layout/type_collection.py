@@ -109,7 +109,10 @@ def collect_all_supplementary_types(
                 if enum_id not in all_specs:
                     all_specs[enum_id] = extract_enum(node.source_type)
             elif is_pydantic_type(node):
-                assert node.source_type is not None  # guaranteed by is_pydantic_type
+                if node.source_type is None:
+                    raise TypeError(
+                        "is_pydantic_type returned True but source_type is None"
+                    )
                 pid = TypeIdentity.of(node.source_type)
                 if pid not in all_specs:
                     all_specs[pid] = extract_pydantic_type(node.source_type)

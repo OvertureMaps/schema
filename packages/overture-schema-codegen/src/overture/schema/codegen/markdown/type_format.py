@@ -54,8 +54,11 @@ def _plain_list_type(base: str, depth: int) -> str:
 
 def _linked_type_identity(ti: TypeInfo) -> TypeIdentity | None:
     """Return the TypeIdentity to use for a markdown link, or None for non-linked types."""
-    if is_semantic_newtype(ti) and ti.newtype_ref is not None:
-        assert ti.newtype_name is not None  # guaranteed by is_semantic_newtype
+    if (
+        is_semantic_newtype(ti)
+        and ti.newtype_ref is not None
+        and ti.newtype_name is not None
+    ):
         return TypeIdentity(ti.newtype_ref, ti.newtype_name)
     if ti.kind in (TypeKind.ENUM, TypeKind.MODEL) and ti.source_type is not None:
         return TypeIdentity(ti.source_type, ti.base_type)
@@ -148,7 +151,6 @@ def format_type(
         # qualifier instead (e.g., Sources wrapping list[SourceItem] renders as
         # Sources (list)), since the list-ness is an implementation detail of the type.
         if ti.newtype_outer_list_depth > 0:
-            assert ti.is_list  # outer list layers are a subset of total list layers
             display = _wrap_list_n(display, ti.newtype_outer_list_depth)
         elif ti.is_list and ti.newtype_name is not None:  # list is inside the NewType
             qualifiers.append("list")

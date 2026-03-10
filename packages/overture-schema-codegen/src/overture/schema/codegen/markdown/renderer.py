@@ -174,9 +174,6 @@ def _format_example_value(value: object) -> str:
     if isinstance(value, bool):
         return "`true`" if value else "`false`"
 
-    if isinstance(value, datetime.datetime):
-        return f"`{value.isoformat()}`"
-
     if isinstance(value, datetime.date):
         return f"`{value.isoformat()}`"
 
@@ -456,7 +453,9 @@ def _format_constraint(
     if cs.source_ref is None or cs.source_ref is newtype_ref:
         return _NewTypeConstraintRow(display=display)
 
-    assert cs.source_name is not None  # source_ref and source_name are set together
+    # source_ref and source_name are always set together
+    if cs.source_name is None:
+        return _NewTypeConstraintRow(display=display)
     source_identity = TypeIdentity(cs.source_ref, cs.source_name)
     source_link = ctx.resolve_link(source_identity) if ctx else None
     return _NewTypeConstraintRow(
