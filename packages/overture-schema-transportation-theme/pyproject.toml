@@ -54,10 +54,6 @@ ymax = -43.96794128417969
 [[examples.Connector.sources]]
 property = ""
 dataset = "OpenStreetMap"
-record_id = "null"
-update_time = "null"
-confidence = "null"
-between = "null"
 
 [[examples.Segment]]
 id = "1bc62f3b-08b5-42b8-89fe-36f685f60455"
@@ -65,17 +61,6 @@ geometry = "LINESTRING (-176.5636191 -43.954404, -176.5643637 -43.9538145, -176.
 version = 1
 subtype = "road"
 class = "residential"
-routes = "null"
-subclass_rules = "null"
-access_restrictions = "null"
-level_rules = "null"
-destinations = "null"
-prohibited_transitions = "null"
-road_flags = "null"
-speed_limits = "null"
-width_rules = "null"
-subclass = "null"
-rail_flags = "null"
 theme = "transportation"
 type = "segment"
 
@@ -90,20 +75,13 @@ property = ""
 dataset = "OpenStreetMap"
 record_id = "w53435546@6"
 update_time = "2021-05-03T06:37:03Z"
-confidence = "null"
-between = "null"
 
 [examples.Segment.names]
 primary = "Meteorological Lane"
-common = "null"
 
 [[examples.Segment.names.rules]]
 variant = "common"
-language = "null"
-perspectives = "null"
 value = "Meteorological Lane"
-between = "null"
-side = "null"
 
 [[examples.Segment.connectors]]
 connector_id = "15b2c131-9137-4add-88c6-2acd3fa61355"
@@ -119,4 +97,3 @@ at = 1.0
 
 [[examples.Segment.road_surface]]
 value = "gravel"
-between = "null"

@@ -45,9 +45,7 @@ country = "TO"
 version = 1
 subtype = "locality"
 class = "village"
-wikidata = "null"
 region = "TO-04"
-perspectives = "null"
 hierarchies = [
   [
     {division_id = "fef8748b-0c91-46ad-9f2d-976d8d2de3e9", subtype = "country", name = "Tonga"},
@@ -57,10 +55,7 @@ hierarchies = [
   ],
 ]
 parent_division_id = "8730f0cc-d436-4f11-a7d3-49085813ef44"
-norms = "null"
 population = 534
-capital_division_ids = "null"
-capital_of_divisions = "null"
 theme = "divisions"
 type = "division"
 
@@ -75,26 +70,16 @@ property = ""
 dataset = "OpenStreetMap"
 record_id = "n3173231082@4"
 update_time = "2014-12-18T09:17:03Z"
-confidence = "null"
-between = "null"
 
 [examples.Division.cartography]
 prominence = 29
-min_zoom = "null"
-max_zoom = "null"
-sort_key = "null"
 
 [examples.Division.names]
 primary = "Sia'atoutai"
-common = "null"
 
 [[examples.Division.names.rules]]
 variant = "alternate"
-language = "null"
-perspectives = "null"
 value = "Nafualu"
-between = "null"
-side = "null"
 
 [examples.Division.local_type]
 en = "village"
@@ -124,13 +109,9 @@ property = ""
 dataset = "OpenStreetMap"
 record_id = "r7247527@3"
 update_time = "2020-12-30T18:41:56Z"
-confidence = "null"
-between = "null"
 
 [examples.DivisionArea.names]
 primary = "ʻEua"
-common = "null"
-rules = "null"
 
 [[examples.DivisionBoundary]]
 id = "2bdf68e4-860d-3d8c-a472-ccf439a5302a"
@@ -145,9 +126,7 @@ division_ids = [
   "ae266459-63a4-4508-8295-0101e27d039b",
   "d4a6873d-885a-4f2a-bc0f-37e9d9e874e4"
 ]
-region = "null"
 is_disputed = false
-perspectives = "null"
 theme = "divisions"
 type = "division_boundary"
 
@@ -162,13 +141,9 @@ property = ""
 dataset = "OpenStreetMap"
 record_id = "r6063055@9"
 update_time = "2023-07-20T00:28:40Z"
-confidence = "null"
-between = "null"
 
 [[examples.DivisionBoundary.sources]]
 property = ""
 dataset = "OpenStreetMap"
 record_id = "r6063063@12"
 update_time = "2023-07-20T00:28:40Z"
-confidence = "null"
-between = "null"

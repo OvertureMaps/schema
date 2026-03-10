@@ -1,5 +1,6 @@
 """Markdown renderer for Pydantic model documentation."""
 
+import datetime
 import functools
 import json
 import re
@@ -173,20 +174,29 @@ def _format_example_value(value: object) -> str:
     if isinstance(value, bool):
         return "`true`" if value else "`false`"
 
+    if isinstance(value, datetime.datetime):
+        return f"`{value.isoformat()}`"
+
+    if isinstance(value, datetime.date):
+        return f"`{value.isoformat()}`"
+
     if isinstance(value, str):
         if value == "":
             return ""
         return f"`{_truncate(value)}`"
 
     if isinstance(value, list):
-        items = ", ".join(json.dumps(item) for item in value)
+        items = ", ".join(json.dumps(item, default=str) for item in value)
         return f"`{_truncate(f'[{items}]')}`"
 
     if isinstance(value, dict):
-        pairs = ", ".join(f"{json.dumps(k)}: {json.dumps(v)}" for k, v in value.items())
+        pairs = ", ".join(
+            f"{json.dumps(k, default=str)}: {json.dumps(v, default=str)}"
+            for k, v in value.items()
+        )
         return f"`{_truncate(f'{{{pairs}}}')}`"
 
-    return f"`{value}`"
+    return f"`{_truncate(str(value))}`"
 
 
 def _field_template_context(

@@ -213,10 +213,10 @@ syntax. Extraction and the type registry carry no presentation logic.
 ### Type registry
 
 `extraction/type_registry.py` maps type names to per-target string representations via
-`TypeMapping`. `format_type_string()` wraps the resolved name with list/optional
-qualifiers. `is_semantic_newtype()` distinguishes NewTypes that deserve their own
-identity (like `FeatureVersion` wrapping `int32`) from pass-through aliases to
-registered primitives.
+`TypeMapping`. `resolve_type_name()` looks up the registry and returns the display
+string for a given target. `is_semantic_newtype()` distinguishes NewTypes that deserve
+their own identity (like `FeatureVersion` wrapping `int32`) from pass-through aliases
+to registered primitives.
 
 ### Markdown renderer
 
@@ -240,11 +240,12 @@ Loads example data from theme `pyproject.toml` files, validates against Pydantic
 and flattens to dot-notation rows for display in feature pages. Also provides a starting
 point for generated test data.
 
-`collect_dict_paths` walks the `FieldSpec` tree to identify dict-typed fields (like
-`tags: dict[str, str]`), returning their dot-paths as a `frozenset`. `flatten_example`
-checks this set before recursing into dicts -- paths in the set are kept as leaf values
-rather than being split into dot-notation rows. The pipeline computes `dict_paths` from
-`spec.fields` and threads it through `load_examples`.
+`validate_example` returns a Pydantic model instance. `flatten_model_instance` walks the
+instance recursively using `isinstance(value, BaseModel)` to distinguish model fields
+(recurse with dot notation) from dict fields (keep as leaf values). This eliminates the
+need for external schema information -- the model instance itself encodes the type
+structure. `augment_missing_fields` appends `(name, None)` entries for union cross-arm
+fields absent from the concrete variant instance.
 
 ## Extension Points
 
