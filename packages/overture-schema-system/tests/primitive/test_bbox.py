@@ -195,6 +195,7 @@ def test_pydantic_json() -> None:
     [
         ((1, 2, 3, 4), BBox(xmin=1, ymin=2, xmax=3, ymax=4)),
         (BBox(0, -1, -2, 3), BBox(0, -1, -2, 3)),
+        ({"xmin": -1, "ymin": -2, "xmax": 1, "ymax": 2}, BBox(-1, -2, 1, 2)),
     ],
 )
 def test_pydantic_validation_success(input: Any, expect: BBox) -> None:
