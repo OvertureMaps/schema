@@ -31,7 +31,7 @@ GEOMETRY_PAGE = PurePosixPath("system/primitive/geometry.md")
 def build_placement_registry(
     feature_specs: Sequence[FeatureSpec],
     all_specs: dict[TypeIdentity, SupplementarySpec],
-    primitive_names: list[TypeIdentity],
+    numeric_names: list[TypeIdentity],
     geometry_names: list[TypeIdentity],
     schema_root: str,
 ) -> dict[TypeIdentity, PurePosixPath]:
@@ -41,7 +41,7 @@ def build_placement_registry(
     the source Python module path relative to schema_root.
     """
     registry: dict[TypeIdentity, PurePosixPath] = _aggregate_page_entries(
-        primitive_names, geometry_names
+        numeric_names, geometry_names
     )
 
     feature_dirs: set[PurePosixPath] = set()
@@ -81,12 +81,12 @@ def resolve_output_path(
 
 
 def _aggregate_page_entries(
-    primitive_names: list[TypeIdentity],
+    numeric_names: list[TypeIdentity],
     geometry_names: list[TypeIdentity],
 ) -> dict[TypeIdentity, PurePosixPath]:
     """Pre-populate registry entries for types documented on aggregate pages."""
     entries: dict[TypeIdentity, PurePosixPath] = dict.fromkeys(
-        primitive_names, PRIMITIVES_PAGE
+        numeric_names, PRIMITIVES_PAGE
     )
     entries.update(dict.fromkeys(geometry_names, GEOMETRY_PAGE))
     return entries

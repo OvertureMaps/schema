@@ -5,11 +5,11 @@ import pytest
 from click.testing import CliRunner
 from codegen_test_support import find_model_class
 from overture.schema.codegen.extraction.model_extraction import extract_model
-from overture.schema.codegen.extraction.primitive_extraction import (
-    extract_primitives,
-    partition_primitive_and_geometry_names,
-)
+from overture.schema.codegen.extraction.numeric_extraction import extract_numerics
 from overture.schema.codegen.extraction.specs import ModelSpec
+from overture.schema.codegen.markdown.pipeline import (
+    partition_numeric_and_geometry_types,
+)
 from overture.schema.codegen.markdown.renderer import (
     render_geometry_from_values,
     render_primitives_from_specs,
@@ -72,8 +72,8 @@ def division_class(all_discovered_models: dict) -> type[BaseModel]:
 @pytest.fixture(scope="module")
 def primitives_markdown() -> str:
     """Render the primitives.md page from the system primitive module."""
-    primitive_names, _ = partition_primitive_and_geometry_names(_system_primitive)
-    return render_primitives_from_specs(extract_primitives(primitive_names))
+    numeric_names, _ = partition_numeric_and_geometry_types(_system_primitive)
+    return render_primitives_from_specs(extract_numerics(numeric_names))
 
 
 @pytest.fixture(scope="module")

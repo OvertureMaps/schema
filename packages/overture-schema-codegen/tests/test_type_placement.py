@@ -12,9 +12,6 @@ from codegen_test_support import (
     make_union_spec,
 )
 from overture.schema.codegen.extraction.model_extraction import expand_model_tree
-from overture.schema.codegen.extraction.primitive_extraction import (
-    partition_primitive_and_geometry_names,
-)
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
     FeatureSpec,
@@ -32,9 +29,12 @@ from overture.schema.codegen.markdown.path_assignment import (
     PRIMITIVES_PAGE,
     build_placement_registry,
 )
+from overture.schema.codegen.markdown.pipeline import (
+    partition_numeric_and_geometry_types,
+)
 from pydantic import BaseModel
 
-_PRIMITIVE_NAMES, _GEOMETRY_NAMES = partition_primitive_and_geometry_names(
+_NUMERIC_NAMES, _GEOMETRY_NAMES = partition_numeric_and_geometry_types(
     _system_primitive
 )
 
@@ -50,7 +50,7 @@ def _build_registry(
         expand_model_tree(spec, cache)
     all_specs = collect_all_supplementary_types(feature_specs)
     registry = build_placement_registry(
-        feature_specs, all_specs, _PRIMITIVE_NAMES, _GEOMETRY_NAMES, _SCHEMA_ROOT
+        feature_specs, all_specs, _NUMERIC_NAMES, _GEOMETRY_NAMES, _SCHEMA_ROOT
     )
     return registry, all_specs
 
@@ -219,7 +219,7 @@ class TestPydanticTypePlacement:
         registry = build_placement_registry(
             feature_specs=[],
             all_specs={HTTP_URL_SPEC.identity: HTTP_URL_SPEC},
-            primitive_names=[],
+            numeric_names=[],
             geometry_names=[],
             schema_root="overture.schema",
         )
@@ -235,7 +235,7 @@ class TestPydanticTypePlacement:
         registry = build_placement_registry(
             feature_specs=[],
             all_specs=specs,
-            primitive_names=[],
+            numeric_names=[],
             geometry_names=[],
             schema_root="overture.schema",
         )

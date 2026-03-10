@@ -230,11 +230,11 @@ dispatch, and example loading all operate on `FeatureSpec` without knowing which
 concrete type they hold.
 
 **EnumSpec** and **EnumMemberSpec** serve enums. **NewTypeSpec** serves NewTypes.
-**PrimitiveSpec** serves numeric primitives with an `Interval` for bounds and optional
+**NumericSpec** serves numeric primitives with an `Interval` for bounds and optional
 `float_bits`.
 
 **SupplementarySpec** is the union type alias `EnumSpec | NewTypeSpec | ModelSpec` --
-the set of non-feature types that need their own output pages. `PrimitiveSpec` and
+the set of non-feature types that need their own output pages. `NumericSpec` and
 geometry types are excluded because they render on aggregate pages rather than
 individual ones.
 
@@ -363,10 +363,10 @@ member for single-value `Literal` fields on the discriminator.
 
 ### Primitive extraction
 
-`partition_primitive_and_geometry_names` reads a module's `__all__` exports. NewType
+`partition_numeric_and_geometry_types` reads a module's `__all__` exports. NewType
 exports are numeric primitives; non-constraint class exports are geometry types.
 
-`extract_primitives` builds `PrimitiveSpec` objects. For each primitive name it resolves
+`extract_numerics` builds `NumericSpec` objects. For each primitive name it resolves
 the object from the module, calls `extract_newtype` for the type analysis, then extracts
 numeric bounds from constraints. `extract_numeric_bounds` scans constraint objects for
 `ge`/`gt`/`le`/`lt` attributes and packs them into an `Interval`.
@@ -713,7 +713,7 @@ two NewType layers and an `Annotated` layer, producing a `TypeInfo` with
 `FieldSpec.model` references. The shared cache ensures sub-models referenced by multiple
 features (like `Sources`) extract once. Union-kind fields skip inline expansion.
 
-**Layout.** `partition_primitive_and_geometry_names` reads the system module's exports.
+**Layout.** `partition_numeric_and_geometry_types` reads the system module's exports.
 `collect_all_supplementary_types` walks Segment's expanded fields and discovers
 referenced enums (like `Subtype`), semantic NewTypes (like `Id`, `Sources`), and
 sub-models. The walk follows `FieldSpec.model` references down the tree, and for

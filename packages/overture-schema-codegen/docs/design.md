@@ -144,7 +144,7 @@ Extraction is split by entity kind:
 - `extraction/enum_extraction.py`: Enum class -> `EnumSpec`
 - `extraction/newtype_extraction.py`: NewType -> `NewTypeSpec`
 - `extraction/union_extraction.py`: Discriminated union alias -> `UnionSpec`
-- `extraction/primitive_extraction.py`: Numeric primitives -> `PrimitiveSpec`
+- `extraction/numeric_extraction.py`: Numeric types -> `NumericSpec`
 
 Each calls `analyze_type()` for field types. Tree expansion (`expand_model_tree()`)
 walks MODEL-kind fields to populate nested model references, with a shared cache and

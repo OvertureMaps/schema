@@ -23,7 +23,7 @@ from ..extraction.specs import (
     FieldSpec,
     ModelSpec,
     NewTypeSpec,
-    PrimitiveSpec,
+    NumericSpec,
     PydanticTypeSpec,
     TypeIdentity,
     UnionSpec,
@@ -587,8 +587,8 @@ def _bit_width_key(name: str) -> tuple[str, int]:
     return (prefix, int(digits) if digits else 0)
 
 
-def render_primitives_from_specs(specs: list[PrimitiveSpec]) -> str:
-    """Render the primitives.md page from pre-extracted PrimitiveSpecs."""
+def render_primitives_from_specs(specs: list[NumericSpec]) -> str:
+    """Render the primitives.md page from pre-extracted NumericSpecs."""
     template = _get_jinja_env().get_template("primitives.md.jinja2")
 
     signed_ints: list[dict[str, str | None]] = []
