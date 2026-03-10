@@ -55,7 +55,7 @@ the same pipeline.
 function -- a single iterative loop that peels NewType, Annotated, Union, and container
 wrappers, accumulating constraints tagged with the NewType that contributed them.
 Domain-specific extractors (`model_extraction`, `union_extraction`, `enum_extraction`,
-`newtype_extraction`, `primitive_extraction`) call `analyze_type()` for field types and
+`newtype_extraction`, `numeric_extraction`) call `analyze_type()` for field types and
 produce spec dataclasses.
 
 **Output Layout** determines what artifacts to generate and where they go. Supplementary

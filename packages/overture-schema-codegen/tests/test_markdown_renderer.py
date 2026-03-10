@@ -34,7 +34,7 @@ from overture.schema.codegen.extraction.specs import (
     EnumMemberSpec,
     EnumSpec,
     FieldSpec,
-    PrimitiveSpec,
+    NumericSpec,
     TypeIdentity,
 )
 from overture.schema.codegen.extraction.type_analyzer import ConstraintSource
@@ -1167,7 +1167,7 @@ class TestRenderPrimitivesPage:
     def test_pipe_in_description_escaped(self) -> None:
         """Pipe characters in primitive descriptions are escaped."""
         specs = [
-            PrimitiveSpec(
+            NumericSpec(
                 name="int8",
                 description="Range: -128 | 127",
                 bounds=Interval(ge=-128, le=127),
