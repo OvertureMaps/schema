@@ -28,7 +28,7 @@ __all__ = [
 # annotated_types constraint attribute (Ge, Gt, Le, Lt, Interval) to its
 # mathematical symbol for prose rendering.
 #
-# primitive_extraction.py has its own _BOUND_ATTRS for numeric extraction. The
+# numeric_extraction.py has its own _BOUND_ATTRS for numeric extraction. The
 # duplication is deliberate: these modules use the same attribute names for
 # unrelated purposes (display formatting vs. numeric bound extraction), and
 # coupling them for four string literals adds a dependency without value.

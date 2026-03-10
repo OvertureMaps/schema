@@ -21,7 +21,7 @@ __all__ = [
     "FieldSpec",
     "ModelSpec",
     "NewTypeSpec",
-    "PrimitiveSpec",
+    "NumericSpec",
     "PydanticTypeSpec",
     "SupplementarySpec",
     "TypeIdentity",
@@ -189,8 +189,8 @@ class NewTypeSpec(_SourceTypeIdentityMixin):
 
 
 @dataclass
-class PrimitiveSpec:
-    """Extracted specification for a numeric primitive type."""
+class NumericSpec:
+    """Extracted specification for a numeric type."""
 
     name: str
     description: str | None
@@ -219,7 +219,7 @@ class PydanticTypeSpec(_SourceTypeIdentityMixin):
 SupplementarySpec = EnumSpec | NewTypeSpec | ModelSpec | PydanticTypeSpec
 """Non-feature types referenced by feature models.
 
-Excludes PrimitiveSpec and geometry types, which are extracted
+Excludes NumericSpec and geometry types, which are extracted
 separately via dedicated functions.
 """
 

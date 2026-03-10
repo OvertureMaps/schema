@@ -15,10 +15,7 @@ from overture.schema.system.primitive import GeometryType
 
 from ..extraction.examples import ExampleRecord, load_examples
 from ..extraction.model_extraction import expand_model_tree
-from ..extraction.primitive_extraction import (
-    extract_primitives,
-    partition_primitive_and_geometry_names,
-)
+from ..extraction.numeric_extraction import extract_numerics
 from ..extraction.specs import (
     EnumSpec,
     FeatureSpec,
@@ -29,6 +26,7 @@ from ..extraction.specs import (
     TypeIdentity,
     UnionSpec,
 )
+from ..extraction.type_analyzer import is_newtype
 from ..layout.type_collection import collect_all_supplementary_types
 from .link_computation import LinkContext
 from .path_assignment import (
@@ -47,7 +45,11 @@ from .renderer import (
 )
 from .reverse_references import UsedByEntry, compute_reverse_references
 
-__all__ = ["RenderedPage", "generate_markdown_pages"]
+__all__ = [
+    "RenderedPage",
+    "generate_markdown_pages",
+    "partition_numeric_and_geometry_types",
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -109,6 +111,28 @@ def _render_supplement(
     return RenderedPage(content=content, path=output_path)
 
 
+def partition_numeric_and_geometry_types(
+    types_module: object,
+) -> tuple[list[TypeIdentity], list[TypeIdentity]]:
+    """Discover numeric and geometry types from a module's exports.
+
+    NewType exports are numeric types.
+    Non-constraint class/enum exports are geometry types.
+    """
+    module_all: list[str] = getattr(types_module, "__all__", [])
+    numerics: list[TypeIdentity] = []
+    geometries: list[TypeIdentity] = []
+
+    for name in module_all:
+        obj = getattr(types_module, name)
+        if is_newtype(obj):
+            numerics.append(TypeIdentity(obj, name))
+        elif isinstance(obj, type) and not name.endswith("Constraint"):
+            geometries.append(TypeIdentity(obj, name))
+
+    return numerics, geometries
+
+
 def generate_markdown_pages(
     feature_specs: Sequence[FeatureSpec],
     schema_root: str,
@@ -123,12 +147,12 @@ def generate_markdown_pages(
     for spec in feature_specs:
         expand_model_tree(spec, cache)
 
-    primitive_names, geometry_names = partition_primitive_and_geometry_names(
+    numeric_names, geometry_names = partition_numeric_and_geometry_types(
         _system_primitive
     )
     all_specs = collect_all_supplementary_types(feature_specs)
     registry = build_placement_registry(
-        feature_specs, all_specs, primitive_names, geometry_names, schema_root
+        feature_specs, all_specs, numeric_names, geometry_names, schema_root
     )
 
     reverse_refs = compute_reverse_references(feature_specs, all_specs)
@@ -148,7 +172,7 @@ def generate_markdown_pages(
 
     pages.append(
         RenderedPage(
-            content=render_primitives_from_specs(extract_primitives(primitive_names)),
+            content=render_primitives_from_specs(extract_numerics(numeric_names)),
             path=PRIMITIVES_PAGE,
         )
     )
