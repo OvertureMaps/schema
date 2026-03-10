@@ -1,7 +1,6 @@
-"""Load and process example data from theme pyproject.toml files."""
+"""Load, validate, and flatten example data for schema documentation."""
 
 import logging
-import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -11,12 +10,17 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 from pydantic.fields import FieldInfo
 
 from .model_extraction import resolve_field_alias
-from .specs import FieldSpec
 from .type_analyzer import single_literal_value
 
 log = logging.getLogger(__name__)
 
-__all__ = ["ExampleRecord", "collect_dict_paths", "load_examples", "validate_example"]
+__all__ = [
+    "ExampleRecord",
+    "augment_missing_fields",
+    "flatten_model_instance",
+    "load_examples",
+    "validate_example",
+]
 
 # tomllib is stdlib from 3.11+; tomli is the backport for 3.10.
 try:
@@ -58,30 +62,6 @@ def _inject_literal_fields(
     return result
 
 
-def _denull_value(value: object) -> object:
-    """Convert a single value, replacing ``"null"`` strings with ``None``."""
-    if value == "null":
-        return None
-    if isinstance(value, dict):
-        return _denull(value)
-    if isinstance(value, list):
-        return [_denull_value(item) for item in value]
-    return value
-
-
-def _denull(data: dict[str, Any]) -> dict[str, Any]:
-    """Convert ``"null"`` sentinel strings to ``None``.
-
-    TOML has no null literal, so example data uses the string ``"null"``
-    as a stand-in.  This recursively walks *data* (including nested dicts,
-    lists of dicts, and plain lists) and replaces every ``"null"`` value
-    with ``None``.
-
-    Returns a new dict; the original is not mutated.
-    """
-    return {key: _denull_value(value) for key, value in data.items()}
-
-
 def _known_field_keys(model_fields_dict: dict[str, FieldInfo]) -> frozenset[str]:
     """Alias-resolved field keys from a model_fields dict."""
     return frozenset(
@@ -110,24 +90,14 @@ def validate_example(
     raw: dict[str, Any],
     *,
     model_fields: dict[str, FieldInfo] | None = None,
-) -> dict[str, Any]:
+) -> BaseModel:
     """Validate example data against a model or union type.
 
-    Uses TypeAdapter for validation, supporting both concrete models
-    and discriminated union aliases.
-
-    Preprocesses *raw* data by:
-    1. Converting "null" strings to None
-    2. Injecting missing Literal fields for validation (if model_fields provided)
-    3. Stripping null-valued fields not in *model_fields* (handles
-       flat-schema examples from discriminated unions where fields from
-       non-selected arms appear as nulls)
-
-    Returns the denulled dict (not the preprocessed one with injected
-    literals). Lets ValidationError propagate on validation failure.
+    Returns the validated model instance. Preprocesses *raw* data by:
+    1. Injecting missing Literal fields for validation (if model_fields provided)
+    2. Stripping null-valued fields not in *model_fields* (handles
+       flat-schema examples from discriminated unions)
     """
-    denulled = _denull(raw)
-
     if model_fields is None:
         if isinstance(validation_type, type) and issubclass(validation_type, BaseModel):
             model_fields = validation_type.model_fields
@@ -135,96 +105,10 @@ def validate_example(
             model_fields = {}
 
     known_keys = _known_field_keys(model_fields)
-    preprocessed = _inject_literal_fields(model_fields, denulled)
+    preprocessed = _inject_literal_fields(model_fields, raw)
     preprocessed = _strip_null_unknown_fields(preprocessed, known_keys)
-    TypeAdapter(validation_type).validate_python(preprocessed)
-    return denulled
-
-
-_DEFAULT_SKIP_KEYS: frozenset[str] = frozenset()
-_DEFAULT_DICT_PATHS: frozenset[str] = frozenset()
-
-_INDEXED_BRACKET = re.compile(r"\[\d+\]")
-
-
-def _normalize_path(path: str) -> str:
-    """Replace indexed brackets with empty brackets for dict_paths matching.
-
-    ``collect_dict_paths`` produces schema-notation paths like
-    ``items[].tags``, while ``_flatten_value`` builds runtime paths like
-    ``items[0].tags``. Normalizing before membership testing makes them
-    comparable.
-    """
-    return _INDEXED_BRACKET.sub("[]", path)
-
-
-def collect_dict_paths(fields: list[FieldSpec], prefix: str = "") -> frozenset[str]:
-    """Collect dot-paths of dict-typed fields from a FieldSpec tree.
-
-    Walks the ``FieldSpec.model`` tree (same structure the renderer walks
-    for inline expansion) and returns paths where ``type_info.is_dict``
-    is True. These paths tell ``flatten_example`` which dicts are maps
-    (keep as leaf) vs. models (recurse into).
-
-    Parameters
-    ----------
-    fields : list[FieldSpec]
-        Fields to walk.
-    prefix : str
-        Dot-notation prefix accumulated from parent fields.
-    """
-    paths: set[str] = set()
-    for f in fields:
-        path = f"{prefix}{f.name}" if prefix else f.name
-        if f.type_info.is_dict:
-            paths.add(path)
-        elif f.model and not f.starts_cycle:
-            suffix = "[]" * f.type_info.list_depth if f.type_info.is_list else ""
-            paths |= collect_dict_paths(f.model.fields, f"{path}{suffix}.")
-    return frozenset(paths)
-
-
-def _flatten_value(
-    prefix: str, value: object, dict_paths: frozenset[str]
-) -> list[tuple[str, Any]]:
-    """Recursively flatten a value into dot/bracket-notation rows."""
-    if isinstance(value, dict):
-        if _normalize_path(prefix) in dict_paths:
-            return [(prefix, value)]
-        result: list[tuple[str, Any]] = []
-        for k, v in value.items():
-            result.extend(_flatten_value(f"{prefix}.{k}", v, dict_paths))
-        return result
-    if isinstance(value, list) and value and isinstance(value[0], (dict, list)):
-        result = []
-        for i, item in enumerate(value):
-            result.extend(_flatten_value(f"{prefix}[{i}]", item, dict_paths))
-        return result
-    return [(prefix, value)]
-
-
-def flatten_example(
-    raw: dict[str, Any],
-    *,
-    skip_keys: frozenset[str] = _DEFAULT_SKIP_KEYS,
-    dict_paths: frozenset[str] = _DEFAULT_DICT_PATHS,
-) -> list[tuple[str, Any]]:
-    """Flatten nested example dict to dot-notation key-value pairs.
-
-    Nested dicts become ``"parent.child"``; lists of dicts become
-    ``"parent[0].child"``; lists of lists of dicts use double-index
-    notation ``"parent[0][1].child"``. Keys in *skip_keys* are dropped
-    at the top level only. Plain lists are kept as values.
-
-    Dicts at paths in *dict_paths* are kept as leaf values instead of
-    being recursed into. Use ``collect_dict_paths`` to compute this set
-    from a FieldSpec tree.
-    """
-    result: list[tuple[str, Any]] = []
-    for key, value in raw.items():
-        if key in skip_keys:
-            continue
-        result.extend(_flatten_value(key, value, dict_paths))
+    result: BaseModel = TypeAdapter(validation_type).validate_python(preprocessed)
+    assert isinstance(result, BaseModel)
     return result
 
 
@@ -262,6 +146,121 @@ def order_example_rows(
         return position.get(extract_base_field(row[0]), sentinel)
 
     return sorted(flat_rows, key=sort_key)
+
+
+def _structured_fields(value: object) -> list[tuple[str, Any]] | None:
+    """Extract named fields from ``__slots__``-based types like BBox.
+
+    Returns a list of ``(name, value)`` pairs for types that expose
+    public properties backed by private slots (``_name`` -> ``name``).
+    Returns ``None`` for types without this pattern.
+    """
+    cls = type(value)
+    slots = getattr(cls, "__slots__", ())
+    if not slots:
+        return None
+    fields: list[tuple[str, Any]] = []
+    for slot in slots:
+        attr = slot.lstrip("_")
+        if attr != slot and isinstance(getattr(cls, attr, None), property):
+            fields.append((attr, getattr(value, attr)))
+    return fields if len(fields) >= 2 else None
+
+
+def _needs_recursion(items: list[Any]) -> bool:
+    """Check whether list items contain models or nested lists."""
+    return bool(items) and isinstance(items[0], (BaseModel, list))
+
+
+def _flatten_list_items(key: str, items: list[Any]) -> list[tuple[str, Any]]:
+    """Flatten list items, recursing into BaseModel and nested list items.
+
+    Returns the list as a single leaf value when no items need recursion.
+    Pydantic model fields produce homogeneous lists, so the first item's
+    type determines the flattening strategy.
+    """
+    if not _needs_recursion(items):
+        return [(key, items)]
+    rows: list[tuple[str, Any]] = []
+    for i, item in enumerate(items):
+        if isinstance(item, BaseModel):
+            rows.extend(flatten_model_instance(item, f"{key}[{i}]."))
+        elif isinstance(item, list):
+            rows.extend(_flatten_list_items(f"{key}[{i}]", item))
+        else:
+            rows.append((f"{key}[{i}]", item))
+    return rows
+
+
+def flatten_model_instance(
+    instance: BaseModel,
+    prefix: str = "",
+) -> list[tuple[str, Any]]:
+    """Flatten a Pydantic model instance to dot-notation key-value pairs.
+
+    Walks model fields recursively. BaseModel values recurse with dot
+    notation, lists of BaseModel recurse with bracket notation, and
+    everything else (dicts, primitives, None) is a leaf value.
+
+    Parameters
+    ----------
+    instance
+        The Pydantic model instance to flatten.
+    prefix
+        Dot-notation prefix accumulated from parent fields.
+
+    Returns
+    -------
+    list[tuple[str, Any]]
+        Flattened key-value pairs in field declaration order.
+    """
+    rows: list[tuple[str, Any]] = []
+    for field_name, field_info in type(instance).model_fields.items():
+        key = resolve_field_alias(field_name, field_info)
+        value = getattr(instance, field_name)
+        full_key = f"{prefix}{key}" if prefix else key
+
+        if isinstance(value, BaseModel):
+            rows.extend(flatten_model_instance(value, f"{full_key}."))
+        elif isinstance(value, list):
+            rows.extend(_flatten_list_items(full_key, value))
+        elif (sub_fields := _structured_fields(value)) is not None:
+            for name, v in sub_fields:
+                rows.append((f"{full_key}.{name}", v))
+        else:
+            rows.append((full_key, value))
+    return rows
+
+
+def augment_missing_fields(
+    rows: list[tuple[str, Any]],
+    field_names: list[str],
+) -> list[tuple[str, Any]]:
+    """Add (name, None) entries for fields absent from *rows*.
+
+    Compares base field names (via ``extract_base_field``) against
+    *field_names*. Fields in *field_names* not represented in *rows*
+    are appended as ``(name, None)``. Handles dot-notation and bracket-
+    notation keys correctly.
+
+    Parameters
+    ----------
+    rows
+        Flattened key-value pairs from a concrete model instance.
+    field_names
+        Merged field name list from the union spec.
+
+    Returns
+    -------
+    list[tuple[str, Any]]
+        Original rows with (name, None) entries appended for absent fields.
+    """
+    present = {extract_base_field(key) for key, _ in rows}
+    augmented = list(rows)
+    for name in field_names:
+        if name not in present:
+            augmented.append((name, None))
+    return augmented
 
 
 def load_examples_from_toml(
@@ -308,7 +307,6 @@ def load_examples(
     *,
     pyproject_source: type | None = None,
     model_fields: dict[str, FieldInfo] | None = None,
-    dict_paths: frozenset[str] = _DEFAULT_DICT_PATHS,
 ) -> list[ExampleRecord]:
     """Load examples for a model, flattened and ordered by *field_names*.
 
@@ -330,9 +328,6 @@ def load_examples(
     model_fields : dict[str, FieldInfo] or None
         Field info dict for Literal injection. If None, infers
         from validation_type if it's a BaseModel class.
-    dict_paths : frozenset[str]
-        Dot-paths of dict-typed fields to keep as leaf values.
-        Use ``collect_dict_paths`` to compute from a FieldSpec tree.
     """
     source_type = pyproject_source if pyproject_source is not None else validation_type
     if not isinstance(source_type, type):
@@ -354,7 +349,7 @@ def load_examples(
     records = []
     for raw in raw_examples:
         try:
-            denulled = validate_example(validation_type, raw, model_fields=model_fields)
+            instance = validate_example(validation_type, raw, model_fields=model_fields)
         except ValidationError as e:
             log.warning(
                 "Skipping invalid example for %s in %s: %s",
@@ -363,7 +358,8 @@ def load_examples(
                 e,
             )
             continue
-        flat_rows = flatten_example(denulled, dict_paths=dict_paths)
+        flat_rows = flatten_model_instance(instance)
+        flat_rows = augment_missing_fields(flat_rows, field_names)
         ordered_rows = order_example_rows(flat_rows, field_names)
         records.append(ExampleRecord(rows=ordered_rows))
 

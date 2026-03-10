@@ -594,36 +594,36 @@ schema.
 `resolve_pyproject_path` walks up from a model's module file to find `pyproject.toml`.
 `load_examples_from_toml` reads the `[examples.ModelName]` TOML section.
 
-Validation requires three preprocessing steps that handle TOML's limitations and
-flat-schema conventions.
-
-TOML has no null literal, so examples use the string `"null"` as a stand-in. `_denull`
-replaces these recursively, walking nested dicts and lists.
+Validation requires two preprocessing steps that handle flat-schema conventions.
 
 Literal fields (like `theme="buildings"`) are omitted from examples since they carry
 constant values. `_inject_literal_fields` adds them back before validation by scanning
 `model_fields` for single-value `Literal` annotations via `single_literal_value`.
 
-Discriminated union examples from flat parquet schemas include null fields from
+Discriminated union examples from flat Parquet schemas include null fields from
 non-selected variant arms. `_strip_null_unknown_fields` removes null-valued fields not
 in the common base's field set, so the selected arm's validator accepts the data without
 choking on fields that belong to sibling variants.
 
-`collect_dict_paths` walks the `FieldSpec` tree to identify dict-typed fields (like
-`tags: dict[str, str]`), returning their dot-paths as a `frozenset`. Schema-notation
-paths use empty brackets (`items[].tags`) while runtime paths carry indices
-(`items[0].tags`); `_normalize_path` strips indices before membership checks.
+`validate_example` returns a Pydantic model instance. `flatten_model_instance` walks the
+instance recursively using `isinstance(value, BaseModel)` to distinguish model fields
+(recurse with dot notation) from dict fields (keep as leaf values). Lists of models
+use bracket notation (`sources[0].dataset`), nested lists use double-index notation
+(`hierarchies[0][1].name`). The model instance itself encodes the type structure,
+eliminating the need for external schema information.
 
-`flatten_example` converts nested dicts to dot-notation. Nested dicts become
-`parent.child`, lists of dicts become `parent[0].child`. Dicts at paths in `dict_paths`
-are kept as leaf values -- a `tags` field typed as `dict[str, str]` renders as a whole
-map rather than being split into `tags.color`, `tags.size`. `order_example_rows` sorts by
-field position in the documentation's field order using a stable sort, so sub-fields
-maintain their original relative order.
+For discriminated unions, the concrete variant instance lacks fields from other arms.
+`augment_missing_fields` compares base field names against the union's merged field list
+and appends `(name, None)` for absent fields, matching the flat Parquet schema where all
+variant columns exist.
+
+`order_example_rows` sorts by field position in the documentation's field order using a
+stable sort, so sub-fields maintain their original relative order.
 
 `load_examples` orchestrates the full flow: find the pyproject.toml, load the TOML
-section, validate each example, flatten, and order. Invalid examples log a warning and
-skip rather than failing the pipeline.
+section, validate each example, flatten via `flatten_model_instance`, augment missing
+fields, and order. Invalid examples log a warning and skip rather than failing the
+pipeline.
 
 ## 16. Orchestration and CLI
 
@@ -739,9 +739,9 @@ sources appear on the source NewType's page instead.
 
 The example loader finds `pyproject.toml` in the transportation theme package, reads
 `[examples.Segment]`, validates each example against the union alias (injecting literal
-fields, stripping null fields from non-selected arms), computes `dict_paths` from
-`spec.fields` to identify dict-typed fields, flattens to dot-notation (keeping dict-typed
-fields as leaf values), and orders by field position.
+fields, stripping null fields from non-selected arms), flattens the model instance to
+dot-notation via `flatten_model_instance`, augments missing cross-arm fields, and orders
+by field position.
 
 The Jinja2 template assembles the field table, optional constraints section, examples,
 and "Used By" partial into markdown.

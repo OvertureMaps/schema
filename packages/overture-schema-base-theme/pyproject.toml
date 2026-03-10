@@ -60,25 +60,16 @@ ymax = -75.64299774169922
 property = ""
 dataset = "ETOPO/GLOBathy"
 record_id = "2024-12-09T00:00:00.000Z"
-update_time = "null"
-confidence = "null"
-between = "null"
 
 [examples.Bathymetry.cartography]
-prominence = "null"
-min_zoom = "null"
-max_zoom = "null"
 sort_key = 12
 
 [[examples.Infrastructure]]
 id = "e9e3d506-89c0-3473-8cee-5e5ac6596d6c"
 geometry = "POINT (-179.9999994 -82.42408)"
 version = 0
-level = "null"
 subtype = "pedestrian"
 class = "information"
-height = "null"
-surface = "null"
 wikidata = "Q800558"
 theme = "base"
 type = "infrastructure"
@@ -94,13 +85,9 @@ property = ""
 dataset = "OpenStreetMap"
 record_id = "n7674174803@2"
 update_time = "2023-04-07T17:37:48.000Z"
-confidence = "null"
-between = "null"
 
 [examples.Infrastructure.names]
 primary = "1306 km to South Pole"
-common = "null"
-rules = "null"
 
 [examples.Infrastructure.source_tags]
 description = "1036 km to South Pole."
@@ -114,12 +101,9 @@ wikipedia = "en:South Pole Traverse"
 id = "70fc3596-a987-3fea-820c-c016c0a2f0da"
 geometry = "POINT (-178.7 -85.45)"
 version = 0
-level = "null"
 subtype = "physical"
 class = "cliff"
-surface = "null"
 wikidata = "Q5282342"
-elevation = "null"
 theme = "base"
 type = "land"
 
@@ -134,13 +118,9 @@ property = ""
 dataset = "OpenStreetMap"
 record_id = "n11693475112@1"
 update_time = "2024-03-05T09:23:39.000Z"
-confidence = "null"
-between = "null"
 
 [examples.Land.names]
 primary = "Dismal Buttress"
-common = "null"
-rules = "null"
 
 [examples.Land.source_tags]
 natural = "cliff"
@@ -164,13 +144,9 @@ ymax = 65.96218872070312
 [[examples.LandCover.sources]]
 property = ""
 dataset = "ESA WorldCover"
-record_id = "null"
 update_time = "2024-11-07T00:00:00.000Z"
-confidence = "null"
-between = "null"
 
 [examples.LandCover.cartography]
-prominence = "null"
 min_zoom = 8
 max_zoom = 15
 sort_key = 3
@@ -179,12 +155,8 @@ sort_key = 3
 id = "1e1f6095-5bd2-3fdb-a422-41351b848e9d"
 geometry = "POLYGON ((-176.5623454 -43.9567812, -176.5627644 -43.9561272, -176.5626898 -43.9557432, -176.5624297 -43.9553592, -176.562679 -43.9551603, -176.5629058 -43.9552064, -176.5631441 -43.9551769, -176.5632428 -43.9550676, -176.5633066 -43.9548702, -176.5634402 -43.9548071, -176.5639052 -43.9546682, -176.5642479 -43.9544118, -176.5647302 -43.9542142, -176.5651547 -43.954277, -176.5658293 -43.9545243, -176.5659454 -43.9543521, -176.566934 -43.9547987, -176.5669179 -43.955018, -176.5682465 -43.9553205, -176.5671004 -43.9579593, -176.5662034 -43.9600044, -176.5655366 -43.9597247, -176.5646109 -43.9595326, -176.564467 -43.9592563, -176.5639885 -43.9589226, -176.5637013 -43.9586925, -176.563223 -43.9586237, -176.5623454 -43.9567812))"
 version = 0
-level = "null"
 subtype = "golf"
 class = "golf_course"
-surface = "null"
-wikidata = "null"
-elevation = "null"
 theme = "base"
 type = "land_use"
 
@@ -199,13 +171,9 @@ property = ""
 dataset = "OpenStreetMap"
 record_id = "w56117029@3"
 update_time = "2010-04-24T22:35:13.000Z"
-confidence = "null"
-between = "null"
 
 [examples.LandUse.names]
 primary = "Chatham Islands Golf Club"
-common = "null"
-rules = "null"
 
 [examples.LandUse.source_tags]
 "LINZ:source_version" = "V16"
@@ -217,12 +185,9 @@ source_ref = "http://www.linz.govt.nz/topography/topo-maps/"
 id = "6bbb5fe5-bf26-3efa-b120-0a7079b60840"
 geometry = "POINT (-177.031799 -84.934793)"
 version = 0
-level = "null"
 subtype = "physical"
 class = "cape"
 wikidata = "Q33140589"
-is_salt = "null"
-is_intermittent = "null"
 theme = "base"
 type = "water"
 
@@ -237,13 +202,9 @@ property = ""
 dataset = "OpenStreetMap"
 record_id = "n11109190647@2"
 update_time = "2024-02-11T05:52:05.000Z"
-confidence = "null"
-between = "null"
 
 [examples.Water.names]
 primary = "Thanksgiving Point"
-common = "null"
-rules = "null"
 
 [examples.Water.source_tags]
 natural = "cape"

@@ -1,4 +1,4 @@
-"""Tests for example_loader module."""
+"""Tests for examples module."""
 
 import logging
 import sys
@@ -11,162 +11,16 @@ from typing import Annotated, Literal
 import pytest
 from overture.schema.codegen.extraction.examples import (
     ExampleRecord,
-    _denull,
     _inject_literal_fields,
-    collect_dict_paths,
-    flatten_example,
+    augment_missing_fields,
+    flatten_model_instance,
     load_examples,
     load_examples_from_toml,
     order_example_rows,
     resolve_pyproject_path,
     validate_example,
 )
-from overture.schema.codegen.extraction.specs import FieldSpec, ModelSpec
-from overture.schema.codegen.extraction.type_analyzer import TypeInfo, TypeKind
 from pydantic import BaseModel, ConfigDict, Field, Tag, ValidationError
-
-
-class TestFlattenExample:
-    """Tests for flatten_example function."""
-
-    def test_simple_fields(self) -> None:
-        """Flatten simple key-value pairs."""
-        raw = {"id": "123", "version": 1, "name": "test"}
-        result = flatten_example(raw)
-        assert result == [("id", "123"), ("version", 1), ("name", "test")]
-
-    def test_nested_dict(self) -> None:
-        """Flatten nested dict to dot notation."""
-        raw = {"names": {"primary": "foo", "common": {"en": "bar"}}}
-        result = flatten_example(raw)
-        assert result == [
-            ("names.primary", "foo"),
-            ("names.common.en", "bar"),
-        ]
-
-    def test_list_of_dicts(self) -> None:
-        """Flatten list of dicts with array notation."""
-        raw = {"sources": [{"dataset": "OSM", "record_id": "w123"}]}
-        result = flatten_example(raw)
-        assert result == [
-            ("sources[0].dataset", "OSM"),
-            ("sources[0].record_id", "w123"),
-        ]
-
-    def test_bbox_flattened_at_top_level(self) -> None:
-        """Bbox fields are flattened like any other nested dict."""
-        raw = {
-            "id": "123",
-            "bbox": {"xmin": -176.6, "xmax": -176.64},
-            "version": 1,
-        }
-        result = flatten_example(raw)
-        assert result == [
-            ("id", "123"),
-            ("bbox.xmin", -176.6),
-            ("bbox.xmax", -176.64),
-            ("version", 1),
-        ]
-
-    def test_plain_list_kept_as_value(self) -> None:
-        """Plain lists (non-dict items) are kept as values."""
-        raw = {"phones": ["+1234", "+5678"]}
-        result = flatten_example(raw)
-        assert result == [("phones", ["+1234", "+5678"])]
-
-    def test_empty_dict(self) -> None:
-        """Empty dict produces empty list."""
-        raw: dict[str, object] = {}
-        result = flatten_example(raw)
-        assert result == []
-
-    def test_empty_list(self) -> None:
-        """Empty list is kept as value."""
-        raw: dict[str, object] = {"tags": []}
-        result = flatten_example(raw)
-        assert result == [("tags", [])]
-
-    def test_list_of_list_of_dicts(self) -> None:
-        """Flatten list[list[dict]] with double-index notation."""
-        raw = {
-            "hierarchies": [
-                [
-                    {"division_id": "aaa", "name": "Country"},
-                    {"division_id": "bbb", "name": "Region"},
-                ],
-            ]
-        }
-        result = flatten_example(raw)
-        assert result == [
-            ("hierarchies[0][0].division_id", "aaa"),
-            ("hierarchies[0][0].name", "Country"),
-            ("hierarchies[0][1].division_id", "bbb"),
-            ("hierarchies[0][1].name", "Region"),
-        ]
-
-    def test_multiple_list_items(self) -> None:
-        """Handle multiple items in list of dicts."""
-        raw = {
-            "sources": [
-                {"dataset": "OSM", "confidence": 0.9},
-                {"dataset": "MSFT", "confidence": 0.8},
-            ]
-        }
-        result = flatten_example(raw)
-        assert result == [
-            ("sources[0].dataset", "OSM"),
-            ("sources[0].confidence", 0.9),
-            ("sources[1].dataset", "MSFT"),
-            ("sources[1].confidence", 0.8),
-        ]
-
-    def test_dict_field_kept_as_leaf(self) -> None:
-        """Dict values at dict_paths are kept as leaf values."""
-        raw = {
-            "name": "test",
-            "tags": {"color": "red", "size": "large"},
-        }
-        result = flatten_example(raw, dict_paths=frozenset({"tags"}))
-        assert result == [
-            ("name", "test"),
-            ("tags", {"color": "red", "size": "large"}),
-        ]
-
-    def test_nested_dict_path_kept_as_leaf(self) -> None:
-        """Dict values at nested dict_paths are kept as leaf values."""
-        raw = {
-            "names": {
-                "primary": "Tower",
-                "common": {"en": "Tower", "fr": "Tour"},
-            },
-        }
-        result = flatten_example(raw, dict_paths=frozenset({"names.common"}))
-        assert result == [
-            ("names.primary", "Tower"),
-            ("names.common", {"en": "Tower", "fr": "Tour"}),
-        ]
-
-    def test_empty_dict_paths_preserves_behavior(self) -> None:
-        """Empty dict_paths (default) recurses all dicts as before."""
-        raw = {"tags": {"color": "red"}}
-        result = flatten_example(raw)
-        assert result == [("tags.color", "red")]
-
-    def test_dict_inside_list_kept_as_leaf(self) -> None:
-        """Dict at indexed path matches schema path in dict_paths."""
-        raw = {
-            "items": [
-                {"name": "a", "tags": {"color": "red"}},
-                {"name": "b", "tags": {"size": "large"}},
-            ],
-        }
-        result = flatten_example(raw, dict_paths=frozenset({"items[].tags"}))
-        assert result == [
-            ("items[0].name", "a"),
-            ("items[0].tags", {"color": "red"}),
-            ("items[1].name", "b"),
-            ("items[1].tags", {"size": "large"}),
-        ]
 
 
 class TestOrderExampleRows:
@@ -420,8 +274,10 @@ class TestLoadExamples:
 
                 [[examples.Building]]
                 version = 1
-                names = { primary = "Tower" }
                 id = "123"
+
+                [examples.Building.names]
+                primary = "Tower"
 
                 [examples.Building.bbox]
                 xmin = 1.0
@@ -433,12 +289,27 @@ class TestLoadExamples:
             """)
         )
 
+        class Names(BaseModel):
+            primary: str
+            secondary: str | None = None
+
+        class Bbox(BaseModel):
+            xmin: float
+            xmax: float
+            ymin: float | None = None
+            ymax: float | None = None
+
+        class Source(BaseModel):
+            dataset: str
+            record_id: str
+
         class MockModel(BaseModel):
             __module__ = mock_project.mod_name
             id: str
             version: int
-            names: dict[str, object]
-            sources: list[dict[str, object]]
+            bbox: Bbox | None = None
+            names: Names | None = None
+            sources: list[Source] = []
 
         field_names = ["id", "bbox", "names", "sources", "version"]
         result = load_examples(MockModel, "Building", field_names)
@@ -451,7 +322,10 @@ class TestLoadExamples:
             ("id", "123"),
             ("bbox.xmin", 1.0),
             ("bbox.xmax", 2.0),
+            ("bbox.ymin", None),
+            ("bbox.ymax", None),
             ("names.primary", "Tower"),
+            ("names.secondary", None),
             ("sources[0].dataset", "OSM"),
             ("sources[0].record_id", "w456"),
             ("version", 1),
@@ -518,8 +392,8 @@ class TestLoadExamples:
             for record in caplog.records
         )
 
-    def test_dict_paths_keep_dicts_as_leaves(self, mock_project: MockProject) -> None:
-        """Dict fields listed in dict_paths stay as leaf values."""
+    def test_dict_field_kept_as_leaf(self, mock_project: MockProject) -> None:
+        """Dict fields are kept as leaf values without dict_paths."""
         mock_project.write_pyproject(
             dedent("""
                 [project]
@@ -539,90 +413,13 @@ class TestLoadExamples:
             name: str
             tags: dict[str, str]
 
-        result = load_examples(
-            MockModel,
-            "MockModel",
-            ["name", "tags"],
-            dict_paths=frozenset({"tags"}),
-        )
+        result = load_examples(MockModel, "MockModel", ["name", "tags"])
 
         assert len(result) == 1
         assert result[0].rows == [
             ("name", "Tower"),
             ("tags", {"color": "red", "size": "large"}),
         ]
-
-    def test_denulled_values_in_output(self, mock_project: MockProject) -> None:
-        """Flattened output contains None not "null" strings."""
-        mock_project.write_pyproject(
-            dedent("""
-                [project]
-                name = "test"
-
-                [[examples.MockModel]]
-                name = "test"
-                value = "null"
-            """)
-        )
-
-        class MockModel(BaseModel):
-            __module__ = mock_project.mod_name
-            name: str
-            value: int | None
-
-        result = load_examples(MockModel, "MockModel", ["name", "value"])
-
-        assert len(result) == 1
-        assert result[0].rows == [("name", "test"), ("value", None)]
-
-
-class TestDenull:
-    """Tests for _denull function."""
-
-    def test_converts_null_string_to_none(self) -> None:
-        """Top-level "null" strings become None."""
-        assert _denull({"a": "null"}) == {"a": None}
-
-    def test_nested_dict(self) -> None:
-        """Recurse into nested dicts."""
-        data = {"a": {"b": "null"}}
-        assert _denull(data) == {"a": {"b": None}}
-
-    def test_list_of_dicts(self) -> None:
-        """Recurse into dicts inside lists."""
-        data = {"items": [{"x": "null"}]}
-        assert _denull(data) == {"items": [{"x": None}]}
-
-    def test_mixed_types_unchanged(self) -> None:
-        """Non-"null" strings, ints, bools, and plain lists pass through."""
-        data = {
-            "name": "hello",
-            "count": 42,
-            "flag": True,
-            "tags": ["a", "b"],
-            "score": 3.14,
-        }
-        assert _denull(data) == data
-
-    def test_no_mutation(self) -> None:
-        """Original dict is not modified."""
-        original = {"a": "null", "b": {"c": "null"}}
-        _denull(original)
-        assert original == {"a": "null", "b": {"c": "null"}}
-
-    def test_empty_dict(self) -> None:
-        """Empty dict returns empty dict."""
-        assert _denull({}) == {}
-
-    def test_deeply_nested(self) -> None:
-        """Handle multiple levels of nesting."""
-        data = {"a": {"b": {"c": "null"}}}
-        assert _denull(data) == {"a": {"b": {"c": None}}}
-
-    def test_null_strings_in_plain_list(self) -> None:
-        """Convert "null" strings inside plain lists."""
-        data = {"tags": ["a", "null", "b"]}
-        assert _denull(data) == {"tags": ["a", None, "b"]}
 
 
 class TestInjectLiteralFields:
@@ -733,8 +530,8 @@ class TestInjectLiteralFields:
 class TestValidateExample:
     """Tests for validate_example function."""
 
-    def test_valid_data_passes(self) -> None:
-        """Valid data is validated and denulled dict returned."""
+    def test_valid_data_returns_instance(self) -> None:
+        """Valid data returns a model instance."""
 
         class MockModel(BaseModel):
             name: str
@@ -742,7 +539,9 @@ class TestValidateExample:
 
         raw = {"name": "test", "count": 42}
         result = validate_example(MockModel, raw)
-        assert result == {"name": "test", "count": 42}
+        assert isinstance(result, MockModel)
+        assert result.name == "test"
+        assert result.count == 42
 
     def test_invalid_data_raises_validation_error(self) -> None:
         """Invalid data raises ValidationError."""
@@ -754,17 +553,6 @@ class TestValidateExample:
         with pytest.raises(ValidationError):
             validate_example(MockModel, raw)
 
-    def test_denulled_dict_returned(self) -> None:
-        """Denulled dict is returned, not raw or preprocessed."""
-
-        class MockModel(BaseModel):
-            name: str
-            value: int | None
-
-        raw = {"name": "test", "value": "null"}
-        result = validate_example(MockModel, raw)
-        assert result == {"name": "test", "value": None}
-
     def test_literals_injected_before_validation(self) -> None:
         """Missing Literal fields are injected before validation."""
 
@@ -774,8 +562,25 @@ class TestValidateExample:
 
         raw = {"name": "Tower"}
         result = validate_example(MockModel, raw)
-        # Returned dict is denulled, NOT preprocessed (no injected literals)
-        assert result == {"name": "Tower"}
+        assert isinstance(result, MockModel)
+        assert result.theme == "buildings"
+        assert result.name == "Tower"
+
+
+class _Dog(BaseModel):
+    kind: Literal["dog"]
+    bark: str
+
+
+class _Cat(BaseModel):
+    kind: Literal["cat"]
+    purr: bool
+
+
+_PetUnion = Annotated[
+    Annotated[_Dog, Tag("dog")] | Annotated[_Cat, Tag("cat")],
+    Field(discriminator="kind"),
+]
 
 
 class TestValidateExampleWithUnion:
@@ -783,50 +588,24 @@ class TestValidateExampleWithUnion:
 
     def test_validates_union_via_type_adapter(self) -> None:
         """TypeAdapter validates against a discriminated union."""
-
-        class Dog(BaseModel):
-            kind: Literal["dog"]
-            bark: str
-
-        class Cat(BaseModel):
-            kind: Literal["cat"]
-            purr: bool
-
-        PetUnion = Annotated[
-            Annotated[Dog, Tag("dog")] | Annotated[Cat, Tag("cat")],
-            Field(discriminator="kind"),
-        ]
-
         raw = {"kind": "dog", "bark": "woof"}
-        result = validate_example(PetUnion, raw, model_fields=Dog.model_fields)
-        assert result == {"kind": "dog", "bark": "woof"}
+        result = validate_example(_PetUnion, raw, model_fields=_Dog.model_fields)
+        assert isinstance(result, _Dog)
+        assert result.kind == "dog"
+        assert result.bark == "woof"
 
     def test_invalid_union_example_raises(self) -> None:
         """Invalid data against union raises ValidationError."""
-
-        class Dog(BaseModel):
-            kind: Literal["dog"]
-            bark: str
-
-        class Cat(BaseModel):
-            kind: Literal["cat"]
-            purr: bool
-
-        PetUnion = Annotated[
-            Annotated[Dog, Tag("dog")] | Annotated[Cat, Tag("cat")],
-            Field(discriminator="kind"),
-        ]
-
         raw = {"kind": "dog", "bark": 42}  # bark should be str
         with pytest.raises(ValidationError):
-            validate_example(PetUnion, raw, model_fields=Dog.model_fields)
+            validate_example(_PetUnion, raw, model_fields=_Dog.model_fields)
 
-    def test_null_cross_arm_fields_accepted(self) -> None:
-        """Null fields from other union arms are accepted in flat-schema examples.
+    def test_null_cross_arm_fields_stripped_for_validation(self) -> None:
+        """Null fields from other union arms are stripped before validation.
 
         Parquet files have columns for all union arms. A road segment row
-        includes ``rail_flags=null`` because the column exists in the table.
-        Validation should accept these cross-arm nulls.
+        includes rail_flags=null because the column exists. Preprocessing
+        strips these so extra='forbid' models accept the data.
         """
 
         class _Base(BaseModel):
@@ -848,15 +627,11 @@ class TestValidateExampleWithUnion:
         ]
 
         # Flat schema: Dog example includes Cat's "purr" field as null
-        raw = {"kind": "dog", "name": "Rex", "bark": "woof", "purr": "null"}
+        raw = {"kind": "dog", "name": "Rex", "bark": "woof", "purr": None}
         result = validate_example(PetUnion, raw, model_fields=_Base.model_fields)
-        # Returned dict preserves the original denulled data
-        assert result == {
-            "kind": "dog",
-            "name": "Rex",
-            "bark": "woof",
-            "purr": None,
-        }
+        assert isinstance(result, Dog)
+        assert result.name == "Rex"
+        assert result.bark == "woof"
 
 
 class TestIntegration:
@@ -868,19 +643,17 @@ class TestIntegration:
 
         from overture.schema.buildings.building import Building  # noqa: PLC0415
 
-        # Find the pyproject.toml for the Building model
         pyproject_path = resolve_pyproject_path(Building)
         assert pyproject_path is not None, "Could not find pyproject.toml for Building"
 
-        # Load raw examples from TOML
         raw_examples = load_examples_from_toml(pyproject_path, "Building")
         assert len(raw_examples) > 0, "No Building examples found in pyproject.toml"
 
-        # Validate each example
         for idx, raw_example in enumerate(raw_examples):
-            # Should not raise ValidationError
             validated = validate_example(Building, raw_example)
-            assert isinstance(validated, dict), f"Example {idx}: Expected dict result"
+            assert isinstance(validated, BaseModel), (
+                f"Example {idx}: Expected BaseModel"
+            )
 
     def test_real_segment_examples_validate(self) -> None:
         """Validate real Segment examples (discriminated union with cross-arm fields)."""
@@ -904,103 +677,256 @@ class TestIntegration:
                 raw_example,
                 model_fields=TransportationSegment.model_fields,
             )
-            assert isinstance(validated, dict), f"Example {idx}: Expected dict result"
+            assert isinstance(validated, BaseModel), (
+                f"Example {idx}: Expected BaseModel"
+            )
 
 
-def _field(
-    name: str,
-    *,
-    kind: TypeKind = TypeKind.PRIMITIVE,
-    base_type: str = "str",
-    is_dict: bool = False,
-    list_depth: int = 0,
-    is_required: bool = True,
-    model: ModelSpec | None = None,
-    starts_cycle: bool = False,
-) -> FieldSpec:
-    """Build a FieldSpec with sensible defaults for testing."""
-    return FieldSpec(
-        name=name,
-        type_info=TypeInfo(
-            base_type=base_type, kind=kind, is_dict=is_dict, list_depth=list_depth
-        ),
-        description=None,
-        is_required=is_required,
-        model=model,
-        starts_cycle=starts_cycle,
-    )
+class TestAugmentMissingFields:
+    """Tests for augment_missing_fields function."""
 
+    def test_no_missing_fields(self) -> None:
+        """All fields present, nothing augmented."""
+        rows = [("id", "123"), ("name", "test")]
+        result = augment_missing_fields(rows, ["id", "name"])
+        assert result == [("id", "123"), ("name", "test")]
 
-class TestCollectDictPaths:
-    """Tests for collect_dict_paths."""
+    def test_missing_top_level_field(self) -> None:
+        """Missing field added as (name, None)."""
+        rows = [("id", "123")]
+        result = augment_missing_fields(rows, ["id", "name", "level"])
+        assert result == [("id", "123"), ("name", None), ("level", None)]
 
-    def test_no_dict_fields(self) -> None:
-        """Model with only primitive fields returns empty set."""
-        fields = [_field("name")]
-        assert collect_dict_paths(fields) == frozenset()
+    def test_dotted_field_counts_as_present(self) -> None:
+        """A dotted key like 'names.primary' counts 'names' as present."""
+        rows = [("id", "123"), ("names.primary", "foo")]
+        result = augment_missing_fields(rows, ["id", "names"])
+        assert result == [("id", "123"), ("names.primary", "foo")]
 
-    def test_top_level_dict_field(self) -> None:
-        """Dict field at top level is collected."""
-        fields = [
-            _field("name"),
-            _field("tags", is_dict=True, is_required=False),
+    def test_indexed_field_counts_as_present(self) -> None:
+        """A bracketed key like 'sources[0].dataset' counts 'sources' as present."""
+        rows = [("id", "123"), ("sources[0].dataset", "OSM")]
+        result = augment_missing_fields(rows, ["id", "sources"])
+        assert result == [("id", "123"), ("sources[0].dataset", "OSM")]
+
+    def test_union_cross_arm_fields_added(self) -> None:
+        """Fields from other union arms are added as None."""
+        rows = [
+            ("kind", "dog"),
+            ("name", "Rex"),
+            ("bark", "woof"),
         ]
-        assert collect_dict_paths(fields) == frozenset({"tags"})
+        field_names = ["kind", "name", "bark", "purr"]
+        result = augment_missing_fields(rows, field_names)
+        assert result == [
+            ("kind", "dog"),
+            ("name", "Rex"),
+            ("bark", "woof"),
+            ("purr", None),
+        ]
 
-    def test_nested_dict_in_sub_model(self) -> None:
-        """Dict field inside a sub-model produces dotted path."""
-        inner_fields = [
-            _field("primary"),
-            _field("common", is_dict=True, is_required=False),
-        ]
-        inner_model = ModelSpec(name="Names", description=None, fields=inner_fields)
-        fields = [
-            _field("names", kind=TypeKind.MODEL, base_type="Names", model=inner_model)
-        ]
-        assert collect_dict_paths(fields) == frozenset({"names.common"})
 
-    def test_list_of_model_with_dict(self) -> None:
-        """Dict inside list-of-model uses [] in path."""
-        inner_fields = [_field("tags", is_dict=True, is_required=False)]
-        inner_model = ModelSpec(name="Item", description=None, fields=inner_fields)
-        fields = [
-            _field(
-                "items",
-                kind=TypeKind.MODEL,
-                base_type="Item",
-                list_depth=1,
-                model=inner_model,
-            ),
-        ]
-        assert collect_dict_paths(fields) == frozenset({"items[].tags"})
+class TestFlattenModelInstance:
+    """Tests for flatten_model_instance function."""
 
-    def test_nested_list_depth(self) -> None:
-        """list[list[Model]] produces [][] in path."""
-        inner_fields = [_field("tags", is_dict=True)]
-        inner_model = ModelSpec(name="Item", description=None, fields=inner_fields)
-        fields = [
-            _field(
-                "items",
-                kind=TypeKind.MODEL,
-                base_type="Item",
-                list_depth=2,
-                model=inner_model,
-            ),
-        ]
-        assert collect_dict_paths(fields) == frozenset({"items[][].tags"})
+    def test_simple_fields(self) -> None:
+        """Flatten simple model fields."""
 
-    def test_cycle_stops_recursion(self) -> None:
-        """Fields with starts_cycle=True are not recursed into."""
-        inner_fields = [_field("data", is_dict=True, is_required=False)]
-        inner_model = ModelSpec(name="Node", description=None, fields=inner_fields)
-        fields = [
-            _field(
-                "child",
-                kind=TypeKind.MODEL,
-                base_type="Node",
-                is_required=False,
-                model=inner_model,
-                starts_cycle=True,
-            ),
+        class Simple(BaseModel):
+            id: str
+            version: int
+
+        instance = Simple(id="123", version=1)
+        result = flatten_model_instance(instance)
+        assert result == [("id", "123"), ("version", 1)]
+
+    def test_nested_model(self) -> None:
+        """Nested BaseModel fields use dot notation."""
+
+        class Inner(BaseModel):
+            primary: str
+            secondary: str | None = None
+
+        class Outer(BaseModel):
+            name: str
+            names: Inner
+
+        instance = Outer(name="test", names=Inner(primary="foo"))
+        result = flatten_model_instance(instance)
+        assert result == [
+            ("name", "test"),
+            ("names.primary", "foo"),
+            ("names.secondary", None),
         ]
-        assert collect_dict_paths(fields) == frozenset()
+
+    def test_list_of_models(self) -> None:
+        """List of BaseModel uses bracket notation."""
+
+        class Source(BaseModel):
+            dataset: str
+            record_id: str
+
+        class Feature(BaseModel):
+            id: str
+            sources: list[Source]
+
+        instance = Feature(
+            id="123",
+            sources=[
+                Source(dataset="OSM", record_id="w123"),
+                Source(dataset="MSFT", record_id="w456"),
+            ],
+        )
+        result = flatten_model_instance(instance)
+        assert result == [
+            ("id", "123"),
+            ("sources[0].dataset", "OSM"),
+            ("sources[0].record_id", "w123"),
+            ("sources[1].dataset", "MSFT"),
+            ("sources[1].record_id", "w456"),
+        ]
+
+    def test_dict_field_kept_as_leaf(self) -> None:
+        """Dict-typed fields are leaf values, not recursed."""
+
+        class Tagged(BaseModel):
+            name: str
+            tags: dict[str, str]
+
+        instance = Tagged(name="test", tags={"color": "red", "size": "large"})
+        result = flatten_model_instance(instance)
+        assert result == [
+            ("name", "test"),
+            ("tags", {"color": "red", "size": "large"}),
+        ]
+
+    def test_none_defaulted_fields_appear(self) -> None:
+        """Fields with None defaults still appear in output."""
+
+        class WithDefaults(BaseModel):
+            name: str
+            level: int | None = None
+            height: float | None = None
+
+        instance = WithDefaults(name="test")
+        result = flatten_model_instance(instance)
+        assert result == [
+            ("name", "test"),
+            ("level", None),
+            ("height", None),
+        ]
+
+    def test_plain_list_kept_as_leaf(self) -> None:
+        """Plain list of primitives is a single leaf value."""
+
+        class WithList(BaseModel):
+            phones: list[str]
+
+        instance = WithList(phones=["+1234", "+5678"])
+        result = flatten_model_instance(instance)
+        assert result == [("phones", ["+1234", "+5678"])]
+
+    def test_empty_list_kept_as_leaf(self) -> None:
+        """Empty list is a leaf value."""
+
+        class WithList(BaseModel):
+            tags: list[str] = []
+
+        instance = WithList()
+        result = flatten_model_instance(instance)
+        assert result == [("tags", [])]
+
+    def test_nested_list_of_lists_of_models(self) -> None:
+        """list[list[Model]] uses double-index notation."""
+
+        class Node(BaseModel):
+            division_id: str
+            name: str
+
+        class Feature(BaseModel):
+            hierarchies: list[list[Node]]
+
+        instance = Feature(
+            hierarchies=[
+                [
+                    Node(division_id="aaa", name="Country"),
+                    Node(division_id="bbb", name="Region"),
+                ],
+            ]
+        )
+        result = flatten_model_instance(instance)
+        assert result == [
+            ("hierarchies[0][0].division_id", "aaa"),
+            ("hierarchies[0][0].name", "Country"),
+            ("hierarchies[0][1].division_id", "bbb"),
+            ("hierarchies[0][1].name", "Region"),
+        ]
+
+    def test_none_model_field_is_leaf(self) -> None:
+        """A model-typed field with None value is a leaf, not recursed."""
+
+        class Inner(BaseModel):
+            value: str
+
+        class Outer(BaseModel):
+            name: str
+            inner: Inner | None = None
+
+        instance = Outer(name="test")
+        result = flatten_model_instance(instance)
+        assert result == [("name", "test"), ("inner", None)]
+
+    def test_field_alias(self) -> None:
+        """Field with validation_alias uses the alias as key."""
+
+        class Aliased(BaseModel):
+            class_: Literal["building"] = Field(validation_alias="class")
+            name: str
+
+        instance = Aliased.model_validate({"class": "building", "name": "Tower"})
+        result = flatten_model_instance(instance)
+        assert result == [("class", "building"), ("name", "Tower")]
+
+    def test_slots_based_field_flattened(self) -> None:
+        """Non-BaseModel types with __slots__ and properties are flattened."""
+        from overture.schema.system.primitive import BBox  # noqa: PLC0415
+
+        class WithBBox(BaseModel):
+            id: str
+            bbox: BBox | None = None
+
+        instance = WithBBox(id="123", bbox=BBox(xmin=1.0, ymin=2.0, xmax=3.0, ymax=4.0))
+        result = flatten_model_instance(instance)
+        assert result == [
+            ("id", "123"),
+            ("bbox.xmin", 1.0),
+            ("bbox.ymin", 2.0),
+            ("bbox.xmax", 3.0),
+            ("bbox.ymax", 4.0),
+        ]
+
+    def test_none_slots_based_field_is_leaf(self) -> None:
+        """A slots-based field with None value is a leaf."""
+        from overture.schema.system.primitive import BBox  # noqa: PLC0415
+
+        class WithBBox(BaseModel):
+            id: str
+            bbox: BBox | None = None
+
+        instance = WithBBox(id="123")
+        result = flatten_model_instance(instance)
+        assert result == [("id", "123"), ("bbox", None)]
+
+    def test_single_slot_wrapper_is_leaf(self) -> None:
+        """Single-slot types (wrappers like Geometry) are leaf values."""
+        from overture.schema.system.primitive import Geometry  # noqa: PLC0415
+        from shapely.geometry import Point  # noqa: PLC0415
+
+        class WithGeom(BaseModel):
+            id: str
+            geometry: Geometry
+
+        geom = Geometry(Point(1, 2))
+        instance = WithGeom(id="123", geometry=geom)
+        result = flatten_model_instance(instance)
+        assert result == [("id", "123"), ("geometry", geom)]
