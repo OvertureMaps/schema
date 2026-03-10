@@ -18,6 +18,8 @@ __all__ = ["extract_discriminator", "extract_union"]
 
 def _find_common_base(members: list[type[BaseModel]]) -> type[BaseModel]:
     """Find the most-derived common BaseModel ancestor of all members."""
+    if not members:
+        raise ValueError("Cannot find common base of empty members list")
     filtered_mros = [
         [c for c in cls.__mro__ if is_model_class(c) and c is not BaseModel]
         for cls in members

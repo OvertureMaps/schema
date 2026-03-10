@@ -34,7 +34,7 @@ class _ConstraintEntry:
     field_names: frozenset[str]
 
 
-def _format_field_list(names: tuple[str, ...]) -> str:
+def _backtick_join(names: tuple[str, ...]) -> str:
     """Format field names as backtick-quoted, comma-separated list."""
     return ", ".join(f"`{n}`" for n in names)
 
@@ -73,7 +73,7 @@ def _describe_condition(condition: object) -> str:
 
 def _describe_conditional(constraint: _ConditionalConstraint) -> str:
     """Describe a require_if or forbid_if constraint."""
-    fields = _format_field_list(constraint.field_names)
+    fields = _backtick_join(constraint.field_names)
     verb = _conditional_verb(constraint)
     cond = _describe_condition(constraint.condition)
     return f"{fields} {_plural_verb(constraint.field_names)} {verb} when {cond}"
@@ -110,7 +110,7 @@ def _describe_consolidated(
 ) -> str:
     """Describe a group of consolidated conditional constraints."""
     first = constraints[0]
-    fields = _format_field_list(first.field_names)
+    fields = _backtick_join(first.field_names)
     verb = _conditional_verb(first)
     cond_field = _as_field_eq(first).field_name
     values = ", ".join(f"`{_as_field_eq(c).value}`" for c in constraints)
@@ -151,11 +151,9 @@ def _describe_one(constraint: ModelConstraint) -> str | None:
     if isinstance(constraint, NoExtraFieldsConstraint):
         return None
     if isinstance(constraint, RequireAnyOfConstraint):
-        return (
-            f"At least one of {_format_field_list(constraint.field_names)} must be set"
-        )
+        return f"At least one of {_backtick_join(constraint.field_names)} must be set"
     if isinstance(constraint, RadioGroupConstraint):
-        return f"Exactly one of {_format_field_list(constraint.field_names)} must be `true`"
+        return f"Exactly one of {_backtick_join(constraint.field_names)} must be `true`"
     if isinstance(constraint, MinFieldsSetConstraint):
         return f"At least {constraint.count} fields must be set"
     if isinstance(constraint, (RequireIfConstraint, ForbidIfConstraint)):
