@@ -20,7 +20,7 @@ from overture.schema.codegen.extraction.union_extraction import extract_union
 from overture.schema.codegen.layout.module_layout import entry_point_class
 from overture.schema.codegen.markdown.pipeline import generate_markdown_pages
 from overture.schema.codegen.markdown.renderer import render_feature
-from overture.schema.core.discovery import discover_models
+from overture.schema.system.discovery import discover_models
 from overture.schema.transportation import Segment
 from overture.schema.transportation.segment.models import RoadSegment
 from pydantic import BaseModel

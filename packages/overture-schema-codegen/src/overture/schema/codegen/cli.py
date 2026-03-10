@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 
 import click
 
-from overture.schema.core.discovery import discover_models
+from overture.schema.system.discovery import discover_models, tags_by_key
 
 from .extraction.model_extraction import extract_model
 from .extraction.specs import (
@@ -45,6 +45,11 @@ def _write_output(
     else:
         click.echo(content)
         click.echo()  # separate entries with a blank line in stdout mode
+
+
+def _find_theme(tags: frozenset[str]) -> str | None:
+    """Find the theme tag in a set of tags, if any."""
+    return next(iter(tags_by_key(tags, "overture:theme")),None)
 
 
 @click.group()
@@ -99,7 +104,7 @@ def generate(
     schema_root = compute_schema_root(module_paths)
 
     models = (
-        {k: v for k, v in all_models.items() if k.theme in theme}
+        {k: v for k, v in all_models.items() if _find_theme(k.tags) in theme}
         if theme
         else all_models
     )

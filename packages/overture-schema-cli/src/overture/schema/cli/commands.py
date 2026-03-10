@@ -14,21 +14,20 @@ import click
 import yaml
 from pydantic import BaseModel, Field, Tag, TypeAdapter, ValidationError
 from rich.console import Console
+from rich.text import Text
 from yamlcore import CoreLoader  # type: ignore
 
 from overture.schema.core import OvertureFeature
-from overture.schema.core.discovery import ModelKey, discover_models
+from overture.schema.system.discovery import ModelKey, discover_models, tags_by_key
 from overture.schema.system.feature import Feature
 from overture.schema.system.json_schema import json_schema
 
-from .docstrings import get_model_docstring, get_theme_module_docstring
 from .error_formatting import (
     format_validation_error,
     format_validation_errors_verbose,
     group_errors_by_discriminator,
     select_most_likely_errors,
 )
-from .output import rewrap
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
 from .types import ErrorLocation, ModelDict, UnionType
 
@@ -208,34 +207,40 @@ def resolve_types(
     -------
         Model type suitable for passing to parse_feature
     """
-    # Determine effective namespace
-    effective_namespace = "overture" if use_overture_types else namespace
-
     # Discover models once with the appropriate namespace
-    all_models = discover_models(namespace=effective_namespace)
+    all_models = discover_models()
 
     # Filter models based on CLI options
     filtered_models: ModelDict = {}
 
+    if namespace and namespace != "overture":
+        filtered_models = {
+            key: model_class
+            for key, model_class in all_models.items()
+            if namespace in key.tags
+        }
+
     if use_overture_types:
-        filtered_models = all_models
+        for key, model_class in all_models.items():
+            if tags_by_key(key.tags, "overture:theme"):
+                filtered_models[key] = model_class
 
     elif theme_names and not type_names:
         # Theme-only mode: all types in specified themes
         for key, model_class in all_models.items():
-            if key.theme in theme_names:
+            if next(iter(tags_by_key(key.tags, "overture:theme")),None) in theme_names:
                 filtered_models[key] = model_class
 
     elif type_names and not theme_names:
         # Type-only mode: find matching types across all themes
         for key, model_class in all_models.items():
-            if key.type in type_names:
+            if key.name in type_names and tags_by_key(key.tags, "overture:theme"):
                 filtered_models[key] = model_class
 
     elif type_names and theme_names:
         # Both specified: find matching types within specified themes
         for key, model_class in all_models.items():
-            if key.theme in theme_names and key.type in type_names:
+            if key.name in type_names and next(iter(tags_by_key(key.tags, "overture:theme")),None) in theme_names:
                 filtered_models[key] = model_class
 
     else:
@@ -766,49 +771,28 @@ def json_schema_command(
         raise click.UsageError(str(e)) from e
 
 
-def dump_namespace(
-    theme_types: dict[str | None, list[tuple[ModelKey, type[BaseModel]]]],
-) -> None:
-    """Print all themes and types for a namespace.
-
-    Displays themes in alphabetical order with their types and docstrings.
-    Each type includes its model class name and description.
-
-    Args
-    ----
-    theme_types : dict[str | None, list[tuple[ModelKey, type[BaseModel]]]]
-        Dict mapping theme name to list of (ModelKey, model_class) tuples
-    """
-    for theme in sorted(theme_types.keys(), key=lambda x: (x is None, x)):
-        if theme:
-            stdout.print(
-                f"[bold green underline]{theme.upper()}[/bold green underline]"
-            )
-
-            theme_docstring = get_theme_module_docstring(theme)
-            if theme_docstring:
-                stdout.print(
-                    rewrap(theme_docstring, stdout, padding_right=4), style="dim"
-                )
-
-            stdout.print()
-
-        # Add types to the tree
-        sorted_types = sorted(theme_types[theme], key=lambda x: x[0].type)
-        for key, model_class in sorted_types:
-            stdout.print(
-                f"  [bright_black]→[/bright_black] [bold cyan]{key.type}[/bold cyan] [dim magenta]({key.entry_point})[/dim magenta]"
-            )
-            docstring = get_model_docstring(model_class)
-            if docstring:
-                stdout.print(
-                    rewrap(docstring, stdout, indent=4, padding_right=12), style="dim"
-                )
-            stdout.print()
-
-
 @cli.command("list-types")
-def list_types() -> None:
+@click.option(
+    "--tag",
+    "tags",
+    multiple=True,
+    help="Filter types by tag (e.g., overture:theme=addresses)",
+)
+@click.option(
+    "--exclude-tag",
+    "excluded_tags",
+    multiple=True,
+    help="Filter types by tag (e.g., overture:theme=base)",
+)
+@click.option(
+    "--group-by",
+    help="Group types by tag prefix (e.g., 'overture:theme')",
+)
+def list_types(
+    tags: tuple[str, ...],
+    excluded_tags: tuple[str, ...],
+    group_by: str | None
+) -> None:
     r"""List all available types grouped by theme with descriptions.
 
     Displays all registered Overture Maps types organized by theme,
@@ -821,35 +805,51 @@ def list_types() -> None:
     """
     try:
         models = discover_models()
+        filters = []
 
-        # Group models by namespace and theme
-        namespaces: dict[
-            str, dict[str | None, list[tuple[ModelKey, type[BaseModel]]]]
-        ] = {}
-        for key, model_class in models.items():
-            if key.namespace not in namespaces:
-                namespaces[key.namespace] = {}
-            if key.theme not in namespaces[key.namespace]:
-                namespaces[key.namespace][key.theme] = []
+        if tags:
+            filters.append(lambda key: all(tag in key.tags for tag in tags))
+        if excluded_tags:
+            filters.append(lambda key: not any(tag in key.tags for tag in excluded_tags))
 
-            namespaces[key.namespace][key.theme].append((key, model_class))
+        if filters:
+            models = {
+                key: model
+                for key, model in models.items()
+                if all(f(key) for f in filters)
+            }
 
-        # display Overture themes first
-        if "overture" in namespaces:
-            stdout.print("[bold red]OVERTURE THEMES[/bold red]", justify="center")
-            stdout.print()
+        if group_by:
+            grouped_models: dict[str, set[ModelKey]] = {}
 
-            dump_namespace(namespaces["overture"])
+            for key, model_class in models.items():
+                if groups := tags_by_key(key.tags, group_by):
+                    for group in groups:
+                        grouped_models.setdefault(group, set()).add(key)
 
-            stdout.print("[bold red]ADDITIONAL TYPES[/bold red]", justify="center")
-            stdout.print()
+            padding = max((len(key.name) for keys in grouped_models.values() for key in keys), default=0) + 2
 
-        for namespace in sorted(namespaces.keys()):
-            if namespace == "overture":
-                continue
+            for group, keys in sorted(grouped_models.items()):
+                stdout.print(f"[green bold]{group_by}={group} ({len(keys)})[/green bold]")
+                for key in sorted(keys, key=lambda k: k.name):
+                    model = Text()
+                    model.append("→ ", style="bright_black")
+                    model.append(key.name, style="bold cyan")
+                    model.pad_right(max(1, padding - len(key.name)))
+                    model.append_text(Text().append("  ".join(sorted(key.tags))))
+                    stdout.print(model)
+                stdout.print()
 
-            stdout.print(f"[bold blue]{namespace.upper()}[/bold blue]")
-            dump_namespace(namespaces[namespace])
+        else:
+            padding = max((len(key.name) for key in models.keys()), default=0) + 2
+
+            for key in sorted(models.keys(), key=lambda k: k.name):
+                model = Text()
+                model.append(key.name, style="bold cyan")
+                model.pad_right(max(1, padding - len(key.name)))
+                model.append_text(Text().append("  ".join(sorted(key.tags))))
+                stdout.print(model)
+
 
     except Exception as e:
         click.echo(f"Error listing types: {e}", err=True)

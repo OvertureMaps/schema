@@ -5,7 +5,7 @@ from typing import Any, TypeAlias
 from pydantic import BaseModel
 from pydantic_core import ErrorDetails
 
-from overture.schema.core.discovery import ModelKey
+from overture.schema.system.discovery import ModelKey
 
 # Type alias for union types created from Pydantic models
 # This represents either a single model or a discriminated union of models

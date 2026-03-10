@@ -151,26 +151,26 @@ Registration is done in the `[project.entry-points."overture.models"]` section:
 
 ```toml
 [project.entry-points."overture.models"]
-"buildings.building" = "overture.schema.buildings.building.models:Building"
-"buildings.building_part" = "overture.schema.buildings.building_part.models:BuildingPart"
+building = "overture.schema.buildings.building.models:Building"
+building_part = "overture.schema.buildings.building_part.models:BuildingPart"
 ```
 
 The discovery system provides programmatic access to registered models:
 
 ```python
-from overture.schema.core.discovery import discover_models, get_registered_model
+from overture.schema.system.discovery import discover_models, get_registered_model
 
 # Discover all registered models
 all_models = discover_models()
 # Returns:
 # {
-#   ("buildings", "building"): BuildingModel,
-#   ("places", "place"): PlaceModel,
+#   ("building", "acme:Building", {"building_tag"}): BuildingModel,
+#   ("place", "acme:Place", {"place_tag"}): PlaceModel, 
 # ...
 # }
 
-# Get a specific model by theme and type
-building_model = get_registered_model("buildings", "building")
+# Get a specific model by type
+building_model = get_registered_model("building")
 if building_model:
     # Use the model class
     building = building_model.model_validate(building_data)

@@ -35,8 +35,8 @@ path = "src/overture/schema/buildings/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"overture:buildings:building" = "overture.schema.buildings:Building"
-"overture:buildings:building_part" = "overture.schema.buildings:BuildingPart"
+building = "overture.schema.buildings:Building"
+building_part = "overture.schema.buildings:BuildingPart"
 
 [[examples.Building]]
 id = "148f35b1-7bc1-4180-9280-10d39b13883b"
