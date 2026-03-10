@@ -49,8 +49,10 @@ class TypeIdentity:
     @classmethod
     def of(cls, obj: object) -> TypeIdentity:
         """Derive a TypeIdentity from a named object (class, NewType, etc.)."""
-        assert obj is not None
-        return cls(obj, obj.__name__)  # type: ignore[attr-defined]
+        name = getattr(obj, "__name__", None)
+        if name is None:
+            raise TypeError(f"Cannot derive TypeIdentity from {obj!r}: no __name__")
+        return cls(obj, name)
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, TypeIdentity) and self.obj is other.obj
@@ -78,7 +80,8 @@ class _SourceTypeIdentityMixin:
 
     @property
     def identity(self) -> TypeIdentity:
-        assert self.source_type is not None
+        if self.source_type is None:
+            raise ValueError(f"Cannot derive identity for {self.name}: no source_type")
         return TypeIdentity(self.source_type, self.name)
 
 

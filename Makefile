@@ -17,7 +17,7 @@ test: uv-sync
 	@uv run pytest -W error packages/ -x -q --tb=short
 
 test-only:
-	@uv run pytest -W error packages/ -x
+	@uv run pytest -W error packages/ -x -q --tb=short
 
 coverage: uv-sync
 	@uv run pytest packages/ --cov overture.schema --cov-report=term --cov-report=html && open htmlcov/index.html
