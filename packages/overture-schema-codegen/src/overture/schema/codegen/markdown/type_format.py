@@ -107,11 +107,11 @@ def _format_union_members(
     ctx: LinkContext | None,
     separator: str = r" \| ",
 ) -> str:
-    """Format union members as individually linked/backticked names.
+    r"""Format union members as individually linked/backticked names.
 
     Each member is resolved independently so members with pages get linked
     while others render as plain code spans. *separator* is inserted between
-    members (default is ``\\|`` for table-cell safety).
+    members (default is ``\|`` for table-cell safety).
     """
     return separator.join(resolve_type_link(TypeIdentity.of(m), ctx) for m in members)
 

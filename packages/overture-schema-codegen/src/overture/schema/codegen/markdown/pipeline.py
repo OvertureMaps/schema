@@ -13,7 +13,7 @@ from pathlib import PurePosixPath
 import overture.schema.system.primitive as _system_primitive
 from overture.schema.system.primitive import GeometryType
 
-from ..extraction.examples import ExampleRecord, collect_dict_paths, load_examples
+from ..extraction.examples import ExampleRecord, load_examples
 from ..extraction.model_extraction import expand_model_tree
 from ..extraction.primitive_extraction import (
     extract_primitives,
@@ -74,14 +74,12 @@ def _load_model_examples(
     if not pyproject_source:
         return None
     field_names = [f.name for f in spec.fields]
-    dict_paths = collect_dict_paths(spec.fields)
     examples = load_examples(
         validation_type,
         spec.name,
         field_names,
         pyproject_source=pyproject_source,
         model_fields=model_fields,
-        dict_paths=dict_paths,
     )
     return examples or None
 

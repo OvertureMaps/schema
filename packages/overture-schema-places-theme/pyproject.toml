@@ -48,7 +48,6 @@ websites = [
 socials = [
   "https://www.facebook.com/107663894904826"
 ]
-emails = "null"
 phones = [
   "+81977009000"
 ]
@@ -68,28 +67,20 @@ dataset = "meta"
 record_id = "107663894904826"
 update_time = "2025-06-30T07:00:00.000Z"
 confidence = 0.7337175792507205
-between = "null"
 
 [examples.Place.names]
 primary = "スーパーホテル別府駅前"
-common = "null"
-rules = "null"
 
 [examples.Place.categories]
 primary = "hotel"
-alternate = "null"
 
 [examples.Place.brand]
-wikidata = "null"
 
 [examples.Place.brand.names]
 primary = "SUPER HOTEL"
-common = "null"
-rules = "null"
 
 [[examples.Place.addresses]]
 freeform = "秋田県横手市駅前町１３−８"
 locality = "横手市"
 postcode = "013-0036"
-region = "null"
 country = "JP"
