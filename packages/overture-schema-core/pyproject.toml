@@ -36,3 +36,8 @@ dev = [
     "types-pyyaml>=6.0.12.20250516",
     "types-shapely>=2.1.0.20250710",
 ]
+
+[project.entry-points."overture.tag_providers"]
+overture  = "overture.schema.core.tag_providers:overture_provider"
+authority = "overture.schema.core.tag_providers:authority_provider"
+theme     = "overture.schema.core.tag_providers:theme_provider"

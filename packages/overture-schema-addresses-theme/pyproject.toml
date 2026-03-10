@@ -39,7 +39,7 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [project.entry-points."overture.models"]
-"overture:addresses:address" = "overture.schema.addresses:Address"
+address = "overture.schema.addresses:Address"
 
 [project.entry-points.pytest11]
 overture_baselines = "overture.schema.system.testing.plugin"
