@@ -19,6 +19,7 @@ members = [
     "overture-schema-places-theme",
     "overture-schema-system",
     "overture-schema-transportation-theme",
+    "overture-schema-validation",
     "overture-schema-workspace",
 ]
 
@@ -755,9 +756,7 @@ dependencies = [
     { name = "overture-schema-core" },
     { name = "overture-schema-system" },
     { name = "pydantic" },
-    { name = "pyyaml" },
     { name = "rich" },
-    { name = "yamlcore" },
 ]
 
 [package.dev-dependencies]
@@ -773,9 +772,7 @@ requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.0" },
-    { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "rich", specifier = ">=13.0" },
-    { name = "yamlcore", specifier = ">=0.0.4" },
 ]
 
 [package.metadata.requires-dev]
@@ -890,6 +887,42 @@ requires-dist = [
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.0" },
+]
+
+[[package]]
+name = "overture-schema-validation"
+source = { editable = "packages/overture-schema-validation" }
+dependencies = [
+    { name = "click" },
+    { name = "overture-schema-core" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "rich" },
+    { name = "yamlcore" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click", specifier = ">=8.0" },
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "pydantic", specifier = ">=2.0" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "rich", specifier = ">=13.0" },
+    { name = "yamlcore", specifier = ">=0.0.4" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy" },
+    { name = "pytest", specifier = ">=7.0" },
+    { name = "ruff" },
 ]
 
 [[package]]

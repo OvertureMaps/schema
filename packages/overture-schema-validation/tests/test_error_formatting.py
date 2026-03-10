@@ -7,12 +7,12 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 from overture.schema.cli.commands import cli
-from overture.schema.cli.error_formatting import (
-    format_path,
+from overture.schema.validation.data_display import format_path
+from overture.schema.validation.error_formatting import (
     group_errors_by_discriminator,
     select_most_likely_errors,
 )
-from overture.schema.cli.type_analysis import introspect_union
+from overture.schema.validation.type_analysis import introspect_union
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 from rich.console import Console
 
@@ -134,7 +134,7 @@ properties:
         buffer = StringIO()
         captured_console = Console(file=buffer, force_terminal=False)
 
-        with patch("overture.schema.cli.commands.stderr", captured_console):
+        with patch("overture.schema.validation.commands.stderr", captured_console):
             result = cli_runner.invoke(cli, ["validate", filename])
 
         assert result.exit_code == 1
@@ -181,7 +181,7 @@ properties:
         buffer = StringIO()
         captured_console = Console(file=buffer, force_terminal=False)
 
-        with patch("overture.schema.cli.commands.stderr", captured_console):
+        with patch("overture.schema.validation.commands.stderr", captured_console):
             result = cli_runner.invoke(cli, ["validate", filename])
 
         assert result.exit_code == 1
@@ -199,7 +199,7 @@ class TestFormatPath:
     @pytest.mark.parametrize(
         "filtered_loc,expected_output",
         [
-            pytest.param([], "(root)", id="empty_path"),
+            pytest.param([], "", id="empty_path"),
             pytest.param(["id"], "id", id="single_field"),
             pytest.param(["properties", "name"], "properties.name", id="nested_field"),
             pytest.param([0], "[0]", id="list_index"),

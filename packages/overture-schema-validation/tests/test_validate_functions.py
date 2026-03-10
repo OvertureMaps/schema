@@ -1,4 +1,4 @@
-"""Tests for CLI helper functions (load_input, perform_validation)."""
+"""Tests for validation helper functions (load_input, perform_validation)."""
 
 import json
 from pathlib import Path
@@ -7,7 +7,8 @@ import pytest
 import yaml
 from click.exceptions import UsageError
 from conftest import build_feature
-from overture.schema.cli.commands import load_input, perform_validation, resolve_types
+from overture.schema.core.discovery import resolve_types
+from overture.schema.validation.commands import load_input, perform_validation
 from pydantic import ValidationError
 
 
@@ -15,7 +16,7 @@ class TestLoadInput:
     """Tests for load_input function.
 
     Note: Happy-path file and stdin loading are covered by integration tests
-    in test_cli_commands.py. These tests focus on error cases and edge cases.
+    in test_validate_command.py. These tests focus on error cases and edge cases.
     """
 
     def test_load_input_file_not_found(self) -> None:
@@ -197,14 +198,14 @@ class TestPerformValidation:
     """Tests for perform_validation function.
 
     Note: Happy-path validation (single features, lists, FeatureCollections, flat format)
-    is covered by integration tests in test_cli_commands.py. These tests focus on edge
+    is covered by integration tests in test_validate_command.py. These tests focus on edge
     cases and validation logic specific to the function.
     """
 
     def test_perform_validation_raises_for_invalid_single_feature(self) -> None:
         """Test that perform_validation raises ValidationError for single invalid feature."""
         data = build_feature(id=None)  # Missing required 'id'
-        model_type = resolve_types(False, None, ("buildings",), ())
+        model_type = resolve_types(theme_names=("buildings",))
 
         with pytest.raises(ValidationError) as exc_info:
             perform_validation(data, model_type)
@@ -219,7 +220,7 @@ class TestPerformValidation:
             id=None, coordinates=[[[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]]
         )
         data = [feature1, feature2]
-        model_type = resolve_types(False, None, ("buildings",), ())
+        model_type = resolve_types(theme_names=("buildings",))
 
         with pytest.raises(ValidationError) as exc_info:
             perform_validation(data, model_type)
@@ -231,7 +232,7 @@ class TestPerformValidation:
     def test_perform_validation_empty_list(self) -> None:
         """Test validating an empty list (edge case)."""
         data: list[dict[str, object]] = []
-        model_type = resolve_types(False, None, ("buildings",), ())
+        model_type = resolve_types(theme_names=("buildings",))
 
         # Should not raise
         perform_validation(data, model_type)
@@ -239,7 +240,7 @@ class TestPerformValidation:
     def test_perform_validation_empty_feature_collection(self) -> None:
         """Test validating an empty FeatureCollection (edge case)."""
         data = {"type": "FeatureCollection", "features": []}
-        model_type = resolve_types(False, None, ("buildings",), ())
+        model_type = resolve_types(theme_names=("buildings",))
 
         # Should not raise
         perform_validation(data, model_type)
@@ -249,10 +250,10 @@ class TestPerformValidation:
         data = build_feature(theme="buildings", type="building")
 
         # Should work with buildings theme
-        buildings_type = resolve_types(False, None, ("buildings",), ())
+        buildings_type = resolve_types(theme_names=("buildings",))
         perform_validation(data, buildings_type)
 
         # Should fail with wrong theme
-        places_type = resolve_types(False, None, ("places",), ())
+        places_type = resolve_types(theme_names=("places",))
         with pytest.raises(ValidationError):
             perform_validation(data, places_type)
