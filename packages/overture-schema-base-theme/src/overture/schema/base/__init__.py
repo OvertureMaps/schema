@@ -11,7 +11,6 @@ from ._common import (
     Depth,
     Elevation,
     Height,
-    SourcedFromOpenStreetMap,
     SourceTags,
     SurfaceMaterial,
 )
@@ -22,7 +21,6 @@ from .land_cover import LandCover, LandCoverSubtype
 from .land_use import LandUse, LandUseClass, LandUseSubtype
 from .water import Water, WaterClass, WaterSubtype
 
-# Only the theme's feature type classes should be available for `import *`.
 __all__ = [
     "Bathymetry",
     "Depth",
@@ -30,14 +28,15 @@ __all__ = [
     "Height",
     "Infrastructure",
     "InfrastructureClass",
-    "InfrastructureSubType",
+    "InfrastructureSubtype",
     "Land",
     "LandClass",
     "LandCover",
     "LandCoverSubtype",
     "LandSubtype",
     "LandUse",
-    "SourcedFromOpenStreetMap",
+    "LandUseClass",
+    "LandUseSubtype"
     "SourceTags",
     "SurfaceMaterial",
     "Water",
