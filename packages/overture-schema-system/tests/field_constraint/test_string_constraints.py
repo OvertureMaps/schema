@@ -72,6 +72,12 @@ PATTERN_CONSTRAINT_CASES = [
         ["Restaurant", "gas-station", "shopping mall", "category!"],
         "Invalid category format",
     ),
+    (
+        StrippedConstraint,
+        ["hello", "hello world", "text with internal spaces", ""],
+        [" hello", "hello ", "\thello", "hello\n", " hello world "],
+        "leading or trailing whitespace",
+    ),
 ]
 
 
@@ -174,22 +180,9 @@ class TestStringConstraints:
                 TestModel(pointer=ptr)
             assert "JSON Pointer must start" in str(exc_info.value)
 
-    def test_whitespace_constraint_valid(self) -> None:
-        class TestModel(BaseModel):
-            text: Annotated[str, StrippedConstraint()]
-
-        for text in ["hello", "hello world", "text with internal spaces", ""]:
-            model = TestModel(text=text)
-            assert model.text == text
-
-    def test_whitespace_constraint_invalid(self) -> None:
-        class TestModel(BaseModel):
-            text: Annotated[str, StrippedConstraint()]
-
-        for text in [" hello", "hello ", "\thello", "hello\n", " hello world "]:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(text=text)
-            assert "cannot have leading or trailing whitespace" in str(exc_info.value)
+    def test_stripped_constraint_pattern_string(self) -> None:
+        """Codegen extracts the regex via constraint.pattern.pattern."""
+        assert StrippedConstraint().pattern.pattern == r"^(\S(.*\S)?)?\Z"
 
 
 class TestJsonSchemaGeneration:
@@ -294,6 +287,7 @@ class TestPatternConstraintHierarchy:
             SnakeCaseConstraint,
             PhoneNumberConstraint,
             RegionCodeConstraint,
+            StrippedConstraint,
             WikidataIdConstraint,
         ],
     )

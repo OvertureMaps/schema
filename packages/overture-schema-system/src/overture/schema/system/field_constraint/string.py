@@ -208,23 +208,27 @@ class SnakeCaseConstraint(PatternConstraint):
         )
 
 
-class StrippedConstraint(StringConstraint):
-    """Allows only strings that have no leading/trailing whitespace."""
+class StrippedConstraint(PatternConstraint):
+    r"""Allows only strings that have no leading/trailing whitespace.
 
-    def validate(self, value: str, info: ValidationInfo) -> None:
-        if value != value.strip():
-            self._raise_validation_error(
-                value,
-                info,
-                f"String cannot have leading or trailing whitespace: {repr(value)}",
-            )
+    Uses ``\Z`` (absolute end-of-string) instead of ``$`` because
+    Python's ``$`` matches before a trailing ``\n``. ECMA regex (used by
+    JSON Schema) treats ``$`` as absolute end-of-string, so the JSON
+    schema output swaps ``\Z`` back to ``$``.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            pattern=r"^(\S(.*\S)?)?\Z",
+            error_message="String cannot have leading or trailing whitespace: {value}",
+            description="String with no leading/trailing whitespace",
+        )
 
     def __get_pydantic_json_schema__(
         self, core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
     ) -> dict[str, Any]:
-        json_schema = handler(core_schema)
-        json_schema["pattern"] = r"^(\S(.*\S)?)?$"
-        json_schema["description"] = "String with no leading/trailing whitespace"
+        json_schema = super().__get_pydantic_json_schema__(core_schema, handler)
+        json_schema["pattern"] = self.pattern.pattern.replace(r"\Z", "$")
         return json_schema
 
 
