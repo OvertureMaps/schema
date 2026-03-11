@@ -44,7 +44,8 @@
       "description": "A brand associated with a place.\n\nA location with multiple brands is modeled as multiple separate places, each with its own brand.",
       "properties": {
         "names": {
-          "$ref": "#/$defs/Names"
+          "$ref": "#/$defs/Names",
+          "description": "All known names by which the feature is called"
         },
         "wikidata": {
           "description": "Wikidata identifier (Q followed by digits)",
@@ -450,7 +451,8 @@
           "uniqueItems": true
         },
         "names": {
-          "$ref": "#/$defs/Names"
+          "$ref": "#/$defs/Names",
+          "description": "All known names by which the feature is called"
         },
         "operating_status": {
           "$ref": "#/$defs/OperatingStatus",

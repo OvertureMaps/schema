@@ -214,7 +214,7 @@
       "properties": {
         "cartography": {
           "$ref": "#/$defs/CartographicHints",
-          "title": "cartography"
+          "description": "Cartographic hints useful when including the feature in maps"
         },
         "depth": {
           "description": "Depth below surface level of the feature in meters.",

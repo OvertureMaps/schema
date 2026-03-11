@@ -231,7 +231,7 @@
       "properties": {
         "cartography": {
           "$ref": "#/$defs/CartographicHints",
-          "title": "cartography"
+          "description": "Cartographic hints useful when including the feature in maps"
         },
         "sources": {
           "description": "Information about the source data used to assemble the feature.",

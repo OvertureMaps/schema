@@ -469,7 +469,8 @@
           "type": "integer"
         },
         "names": {
-          "$ref": "#/$defs/Names"
+          "$ref": "#/$defs/Names",
+          "description": "All known names by which the feature is called"
         },
         "source_tags": {
           "additionalProperties": true,
