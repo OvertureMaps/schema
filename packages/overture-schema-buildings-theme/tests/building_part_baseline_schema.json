@@ -444,7 +444,8 @@
           "type": "number"
         },
         "names": {
-          "$ref": "#/$defs/Names"
+          "$ref": "#/$defs/Names",
+          "description": "All known names by which the feature is called"
         },
         "num_floors": {
           "description": "Number of above-ground floors of the building or part.",

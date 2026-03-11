@@ -106,4 +106,9 @@ class CartographicallyHinted(BaseModel):
     Properties for adding cartographic hints to a model.
     """
 
-    cartography: Annotated[CartographicHints | None, Field(title="cartography")] = None
+    cartography: Annotated[
+        CartographicHints | None,
+        Field(
+            description="Cartographic hints useful when including the feature in maps"
+        ),
+    ] = None
