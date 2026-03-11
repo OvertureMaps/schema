@@ -63,7 +63,7 @@ def compare(before_file: str, after_file: str):
             return 0
         elif package in ["overture-schema-core"]:
             return 1
-        elif re.fullmatch(r'overture-schema-.*-theme', package) or package in ["overture-schema", "overture-schema-cli", "overture-schema-annex"]:
+        elif re.fullmatch(r'overture-schema-.*-theme', package) or package in ["overture-schema", "overture-schema-cli", "overture-schema-codegen", "overture-schema-annex"]:
             return 2
         else:
             raise ValueError(f"Unknown package for level computation: {package}")
