@@ -224,4 +224,7 @@ class Names(BaseModel):
 class Named(BaseModel):
     """Properties defining the names of a model."""
 
-    names: Names | None = None
+    names: Annotated[
+        Names | None,
+        Field(description="All known names by which the feature is called"),
+    ] = None

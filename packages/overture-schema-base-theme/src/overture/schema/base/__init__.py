@@ -36,7 +36,7 @@ __all__ = [
     "LandSubtype",
     "LandUse",
     "LandUseClass",
-    "LandUseSubtype"
+    "LandUseSubtype",
     "SourceTags",
     "SurfaceMaterial",
     "Water",

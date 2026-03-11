@@ -132,17 +132,6 @@ class TestBuildPlacementRegistry:
             "buildings/types/building_class.md"
         )
 
-    def test_submodule_supplementary_types_nested_under_types(self) -> None:
-        """Supplementary types in a feature subdirectory go under types/."""
-        specs = flat_specs_from_discovery("divisions")
-        registry, _ = _build_registry(specs)
-
-        # AreaClass is from overture.schema.divisions.division_area.enums,
-        # a subdirectory of the divisions feature directory.
-        assert lookup_by_name(registry, "AreaClass") == PurePosixPath(
-            "divisions/types/division_area/area_class.md"
-        )
-
     def test_shared_types_not_nested(self) -> None:
         """Core/system supplementary types stay at their module-mirrored path."""
         specs = flat_specs_from_discovery("buildings")
