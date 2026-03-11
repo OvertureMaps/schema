@@ -66,15 +66,15 @@ jobs:
         with:
           version: latest
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: .python-version
-
       - name: Check out code before change
         uses: actions/checkout@v6
         with:
           ref: ${{ inputs.before_commit }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
 
       - name: Sync code before change to make packages visible to Python
         run: uv sync --all-packages
