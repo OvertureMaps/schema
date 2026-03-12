@@ -1,0 +1,113 @@
+---
+name: Schema PR Preview
+run-name: Build and deploy schema reference preview for PR #${{ github.event.number }}
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out schema repo
+        uses: actions/checkout@v6
+
+      - name: Check out docs repo
+        uses: actions/checkout@v6
+        with:
+          repository: OvertureMaps/docs
+          path: _docs
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: _docs/package.json
+
+      - name: Configure sustainable npm
+        uses: lowlydba/sustainable-npm@ed089bd92235c2af803a951fba2bd42c59fbcd73 # v2.0.0
+
+      - name: Install NPM dependencies
+        working-directory: _docs
+        run: npm ci --omit=dev
+
+      - name: Generate schema markdown docs
+        uses: ./.github/actions/generate-schema-docs
+        with:
+          output-dir: ${{ github.workspace }}/_docs/docs/schema/reference
+
+      - name: Build Docusaurus site
+        working-directory: _docs
+        env:
+          DOCUSAURUS_URL: https://staging.overturemaps.org/
+          DOCUSAURUS_BASE_URL: /schema/pr/${{ github.event.number }}/
+          SCHEMA_PREVIEW: 'true'
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-artifact
+          path: _docs/build
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+      pull-requests: write
+    env:
+      AWS_ROLE_ARN: arn:aws:iam::763944545891:role/pages-staging-oidc-overturemaps
+      AWS_REGION: us-west-2
+    environment:
+      name: staging
+      url: https://staging.overturemaps.org/schema/pr/${{ github.event.number }}/schema/
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: build-artifact
+          path: build
+
+      - name: Copy to S3
+        run: |
+          aws s3 sync --delete build \
+            s3://overture-managed-staging-usw2/gh-pages/schema/pr/${{ github.event.number }}/
+
+      - name: Bust the cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E1KP2IN0H2RGGT \
+            --paths "/schema/pr/${{ github.event.number }}/*"
+
+      - name: Get deploy timestamp
+        id: timestamp
+        run: echo "time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            ## 🗺️ Schema reference preview is live!
+
+            Your schema changes are deployed and ready to review in a preview environment.
+            You can view the generated documentation and test out the new schema features:
+
+            **[→ Open preview](https://staging.overturemaps.org/schema/pr/${{ github.event.number }}/schema/)**
+
+            > [!NOTE]
+            > This preview & comment update automatically with each push to this PR.
+
+            <sub>Last updated: ${{ steps.timestamp.outputs.time }} (${{ github.sha }})</sub>
