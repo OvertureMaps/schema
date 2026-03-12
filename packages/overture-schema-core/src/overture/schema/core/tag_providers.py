@@ -52,9 +52,7 @@ def theme_provider(
 
 
 def _matches_manifest(key: ModelKey) -> bool:
-    if key.entry_point in APPROVED:
-        return True
-    return False
+    return key.entry_point in APPROVED:
 
 
 def _reduce_types(tp: Any) -> set[type]:
