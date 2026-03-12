@@ -1,0 +1,31 @@
+---
+name: Generate Schema Docs
+description: >
+  Run the overture-codegen tool to generate markdown documentation
+  from the Pydantic schema models in this repository.
+
+inputs:
+  output-dir:
+    description: 'Path to write generated markdown into (absolute, or relative to GITHUB_WORKSPACE)'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: .python-version
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+
+    - name: Install schema packages
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: uv sync
+
+    - name: Generate markdown docs
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: uv run overture-codegen generate --format markdown --output-dir "${{ inputs.output-dir }}"
