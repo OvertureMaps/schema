@@ -19,7 +19,7 @@ on:
         description: The AWS account ID that owns the CodeArtifact domain
         type: string
         required: false
-        default: 505071440022
+        default: '505071440022'
       aws_region:
         description: The AWS region where the CodeArtifact repository is hosted
         type: string

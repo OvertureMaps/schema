@@ -1,0 +1,39 @@
+---
+name: Schema PR Preview Cleanup
+run-name: Clean up schema reference preview for PR #${{ github.event.number }}
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    env:
+      AWS_ROLE_ARN: arn:aws:iam::763944545891:role/pages-staging-oidc-overturemaps
+      AWS_REGION: us-west-2
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # No flags to ignore "not found" errors, so we use "|| true" to prevent failure if the path doesn't exist
+      - name: Delete from S3
+        run: |
+          aws s3 rm --recursive \
+            s3://overture-managed-staging-usw2/gh-pages/schema/pr/${{ github.event.number }}/ || true
+
+      - name: Bust the cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E1KP2IN0H2RGGT \
+            --paths "/schema/pr/${{ github.event.number }}/*" || true
