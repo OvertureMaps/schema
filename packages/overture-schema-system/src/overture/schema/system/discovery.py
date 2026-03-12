@@ -24,7 +24,7 @@ TAG_RE = re.compile(rf"^(?:{TAG}|{NAMESPACE_TAG})$")
 
 @dataclass(frozen=True, slots=True)
 class ModelKey:
-    """Key identifying a registered model by namespace, theme, and type.
+    """Key identifying a registered model by name, entry point, and tags.
 
     Attributes
     ----------
