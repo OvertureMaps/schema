@@ -76,7 +76,7 @@ def generate_tags(
             filtered_tags = _filter_tags(added_tags, provider_key.package_name)
             tags.update(filtered_tags)
         except Exception as e:
-            print(
+            logger.warning(
                 f"Error in tag provider {provider.__name__} for model {key.name}: {e}"
             )
 
