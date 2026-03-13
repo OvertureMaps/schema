@@ -9,10 +9,16 @@ on:
 permissions:
   contents: read
 
+env:
+  STAGING_URL: https://staging.overturemaps.org
+  PREVIEW_PATH: /schema/pr/${{ github.event.number }}
+
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      DOCS_PATH: _docs
     steps:
       - name: Check out schema repo
         uses: actions/checkout@v6
@@ -21,38 +27,38 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: OvertureMaps/docs
-          path: _docs
+          path: ${{ env.DOCS_PATH }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version-file: _docs/package.json
+          node-version-file: ${{ env.DOCS_PATH }}/package.json
 
       - name: Configure sustainable npm
         uses: lowlydba/sustainable-npm@ed089bd92235c2af803a951fba2bd42c59fbcd73 # v2.0.0
 
       - name: Install NPM dependencies
-        working-directory: _docs
+        working-directory: ${{ env.DOCS_PATH }}
         run: npm ci --omit=dev
 
       - name: Generate schema markdown docs
         uses: ./.github/actions/generate-schema-docs
         with:
-          output-dir: ${{ github.workspace }}/_docs/docs/schema/reference
+          output-dir: ${{ github.workspace }}/${{ env.DOCS_PATH }}/docs/schema/reference
 
       - name: Build Docusaurus site
-        working-directory: _docs
-        env:
-          DOCUSAURUS_URL: https://staging.overturemaps.org/
-          DOCUSAURUS_BASE_URL: /schema/pr/${{ github.event.number }}/
-          SCHEMA_PREVIEW: 'true'
+        working-directory: ${{ env.DOCS_PATH }}
         run: npm run build
+        env:
+          DOCUSAURUS_URL: ${{ env.STAGING_URL }}/
+          DOCUSAURUS_BASE_URL: ${{ env.PREVIEW_PATH }}/
+          SCHEMA_PREVIEW: 'true'
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
           name: build-artifact
-          path: _docs/build
+          path: ${{ env.DOCS_PATH }}/build
 
   deploy:
     name: Deploy
@@ -66,7 +72,7 @@ jobs:
       AWS_REGION: us-west-2
     environment:
       name: staging
-      url: https://staging.overturemaps.org/schema/pr/${{ github.event.number }}/schema/
+      url: ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/
 
     steps:
       - name: Configure AWS credentials
@@ -84,13 +90,13 @@ jobs:
       - name: Copy to S3
         run: |
           aws s3 sync --delete build \
-            s3://overture-managed-staging-usw2/gh-pages/schema/pr/${{ github.event.number }}/
+            s3://overture-managed-staging-usw2/gh-pages${{ env.PREVIEW_PATH }}/
 
       - name: Bust the cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id E1KP2IN0H2RGGT \
-            --paths "/schema/pr/${{ github.event.number }}/*"
+            --paths "${{ env.PREVIEW_PATH }}/*"
 
       - name: Get deploy timestamp
         id: timestamp
@@ -105,7 +111,7 @@ jobs:
             Your schema changes are deployed and ready to review in a preview environment.
             You can view the generated documentation and test out the new schema features:
 
-            **[→ Open preview](https://staging.overturemaps.org/schema/pr/${{ github.event.number }}/schema/)**
+            **[→ Open preview](${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/)**
 
             > [!NOTE]
             > This preview & comment update automatically with each push to this PR.
