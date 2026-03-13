@@ -46,6 +46,7 @@ jobs:
         uses: ./.github/actions/generate-schema-docs
         with:
           output-dir: ${{ github.workspace }}/${{ env.DOCS_PATH }}/docs/schema/reference
+          skip-checkout: 'true' # Repo is already checked out at root, and action defaults to looking there
 
       - name: Build Docusaurus site
         working-directory: ${{ env.DOCS_PATH }}
