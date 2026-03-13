@@ -12,6 +12,7 @@ permissions:
 env:
   STAGING_URL: https://staging.overturemaps.org
   PREVIEW_PATH: /schema/pr/${{ github.event.number }}
+  SCHEMA_PREVIEW: 'true'
 
 jobs:
   build:
@@ -55,7 +56,7 @@ jobs:
         env:
           DOCUSAURUS_URL: ${{ env.STAGING_URL }}/
           DOCUSAURUS_BASE_URL: ${{ env.PREVIEW_PATH }}/
-          SCHEMA_PREVIEW: 'true'
+          SCHEMA_PREVIEW: ${{ env.SCHEMA_PREVIEW }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
@@ -75,7 +76,7 @@ jobs:
       AWS_REGION: us-west-2
     environment:
       name: staging
-      url: ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/
+      url: ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html
 
     steps:
       - name: Configure AWS credentials
@@ -106,7 +107,7 @@ jobs:
         run: echo "time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # v3.0.2
         with:
           message: |
             ## 🗺️ Schema reference preview is live!
@@ -114,9 +115,10 @@ jobs:
             Your schema changes are deployed and ready to review in a preview environment.
             You can view the generated documentation and test out the new schema features:
 
-            **[→ Open preview](${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/)**
+            **[→ Open preview](${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html)**
 
             > [!NOTE]
+            > **Build scope:** `SCHEMA_PREVIEW=${{ env.SCHEMA_PREVIEW }}` — only schema reference docs are included in this build.
             > This preview & comment update automatically with each push to this PR.
 
             <sub>Last updated: ${{ steps.timestamp.outputs.time }} (${{ github.sha }})</sub>
