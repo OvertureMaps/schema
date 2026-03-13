@@ -115,8 +115,9 @@ jobs:
             | | |
             |---|---|
             | **Preview** | ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html |
-            | **Build scope** | Schema reference only (`SCHEMA_PREVIEW=${{ env.SCHEMA_PREVIEW }}`) |
-            | **Updated** | ${{ steps.timestamp.outputs.time }} (`${{ github.sha }}`) |
+            | **Build scope** | `SCHEMA_PREVIEW=${{ env.SCHEMA_PREVIEW }}` |
+            | **Updated** | ${{ steps.timestamp.outputs.time }} |
+            | **Commit** | [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) |
 
             > [!NOTE]
             > This preview updates automatically with each push to this PR.
