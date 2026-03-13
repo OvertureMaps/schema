@@ -38,7 +38,7 @@ runs:
     - name: Install schema packages
       shell: bash
       working-directory: ${{ inputs.schema-path }}
-      run: uv sync
+      run: uv sync --all-packages
 
     - name: Generate markdown docs
       shell: bash
