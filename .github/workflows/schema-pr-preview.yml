@@ -93,7 +93,7 @@ jobs:
 
       - name: Copy to S3
         run: |
-          aws s3 sync --delete build \
+          aws s3 sync --delete --quiet build \
             s3://overture-managed-staging-usw2/gh-pages${{ env.PREVIEW_PATH }}/
 
       - name: Bust the cache
