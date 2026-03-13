@@ -110,11 +110,11 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # v3.0.2
         with:
           message: |
-            ## 🗺️ Schema reference preview is live!
+            ## 🗺️ Schema reference docs preview is live!
 
             | | |
             |---|---|
-            | **Preview** | [→ Open preview](${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html) |
+            | **Preview** | ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html |
             | **Build scope** | Schema reference only (`SCHEMA_PREVIEW=${{ env.SCHEMA_PREVIEW }}`) |
             | **Updated** | ${{ steps.timestamp.outputs.time }} (`${{ github.sha }}`) |
 
