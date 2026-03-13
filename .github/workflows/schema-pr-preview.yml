@@ -112,13 +112,11 @@ jobs:
           message: |
             ## 🗺️ Schema reference preview is live!
 
-            Your schema changes are deployed and ready to review in a preview environment.
-            You can view the generated documentation and test out the new schema features:
-
-            **[→ Open preview](${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html)**
+            | | |
+            |---|---|
+            | **Preview** | [→ Open preview](${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html) |
+            | **Build scope** | Schema reference only (`SCHEMA_PREVIEW=${{ env.SCHEMA_PREVIEW }}`) |
+            | **Updated** | ${{ steps.timestamp.outputs.time }} (`${{ github.sha }}`) |
 
             > [!NOTE]
-            > **Build scope:** `SCHEMA_PREVIEW=${{ env.SCHEMA_PREVIEW }}` — only schema reference docs are included in this build.
-            > This preview & comment update automatically with each push to this PR.
-
-            <sub>Last updated: ${{ steps.timestamp.outputs.time }} (${{ github.sha }})</sub>
+            > This preview updates automatically with each push to this PR.
