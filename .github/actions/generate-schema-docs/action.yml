@@ -35,12 +35,10 @@ runs:
     - name: Install uv
       uses: astral-sh/setup-uv@v7
 
-    - name: Install schema packages
+    - name: Install overture-codegen
       shell: bash
-      working-directory: ${{ inputs.schema-path }}
-      run: uv sync --package overture-schema-codegen
+      run: uv tool install ${{ inputs.schema-path }}/packages/overture-schema-codegen
 
     - name: Generate markdown docs
       shell: bash
-      working-directory: ${{ inputs.schema-path }}
-      run: uv run overture-codegen generate --format markdown --output-dir "${{ inputs.output-dir }}"
+      run: overture-codegen generate --format markdown --output-dir "${{ inputs.output-dir }}"
