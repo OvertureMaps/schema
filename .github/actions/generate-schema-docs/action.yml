@@ -37,7 +37,7 @@ runs:
 
     - name: Install overture-codegen
       shell: bash
-      run: uv tool install ${{ inputs.schema-path }}/packages/overture-schema-codegen
+      run: uv tool install ${{ github.workspace }}/${{ inputs.schema-path }}/packages/overture-schema-codegen
 
     - name: Generate markdown docs
       shell: bash
