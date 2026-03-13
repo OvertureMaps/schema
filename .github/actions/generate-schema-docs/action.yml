@@ -38,7 +38,7 @@ runs:
     - name: Install schema packages
       shell: bash
       working-directory: ${{ inputs.schema-path }}
-      run: uv sync --all-packages
+      run: uv sync --package overture-schema-codegen
 
     - name: Generate markdown docs
       shell: bash
