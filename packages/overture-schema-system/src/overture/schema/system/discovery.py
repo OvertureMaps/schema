@@ -73,7 +73,7 @@ def generate_tags(
     for provider_key, provider in providers.items():
         try:
             added_tags = provider(model_class, key, tags.copy()).difference(tags)
-            filtered_tags = _filter_tags(added_tags, provider_key.package_name)
+            filtered_tags = _filter_tags(added_tags, provider_key)
             tags.update(filtered_tags)
         except Exception as e:
             logger.warning(
@@ -83,17 +83,17 @@ def generate_tags(
     return tags
 
 
-def _filter_tags(tags: set[str], package: str) -> set[str]:
-    reserved_namespaces = tuple(
-        f"{namespace}:"
-        for namespace, reserved_packages in RESERVED_TAGS.items()
-        if package not in reserved_packages
+def _filter_tags(tags: set[str], provider: TagProviderKey) -> set[str]:
+    reserved_tags = tuple(
+        tag
+        for tag, dist in RESERVED_TAGS.items()
+        if provider.package_name not in dist
     )
 
     return {
         tag
         for tag in tags
-        if TAG_RE.match(tag) and not tag.startswith(reserved_namespaces)
+        if TAG_RE.match(tag) and not tag in reserved_tags
     }
 
 
@@ -155,11 +155,7 @@ def discover_models(
                 key = ModelKey(
                     name=model.name,
                     entry_point=model.value,
-                    tags=(
-                        frozenset(_distribution_tags(model.dist))
-                        if model.dist
-                        else frozenset()
-                    ),
+                    tags=frozenset(),
                 )
 
                 try:
@@ -181,17 +177,6 @@ def discover_models(
         logger.warning("Could not discover entry points: %s", e)
 
     return models
-
-
-def _distribution_tags(dist: importlib.metadata.Distribution) -> set[str]:
-    """Extract tags from the distribution metadata."""
-    tags = set()
-    if dist.name:
-        tags.add("dist:name=" + dist.name)
-    if dist.version:
-        tags.add("dist:version=" + dist.version)
-
-    return tags
 
 
 def get_registered_model(feature_type: str) -> type[BaseModel] | None:
@@ -244,7 +229,7 @@ def feature_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
     if any(issubclass(tp, Feature) for tp in _extract_types(model_class)):
-        tags.add("system:feature")
+        tags.add("feature")
     return tags
 
 

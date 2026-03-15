@@ -21,6 +21,7 @@ APPROVED = {
     "overture.schema.places:Place",
     "overture.schema.transportation:Connector",
     "overture.schema.transportation:Segment",
+    "overture.schema.annex:Sources",
 }
 
 
@@ -28,15 +29,7 @@ def authority_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
     if _matches_manifest(key):
-        tags.add("overture:official")
-    return tags
-
-
-def overture_provider(
-    model_class: type[BaseModel], key: ModelKey, tags: set[str]
-) -> set[str]:
-    if any(issubclass(tp, OvertureFeature) for tp in _reduce_types(model_class)):
-        tags.add("overture:feature")
+        tags.add("overture")
     return tags
 
 
@@ -52,7 +45,7 @@ def theme_provider(
 
 
 def _matches_manifest(key: ModelKey) -> bool:
-    return key.entry_point in APPROVED:
+    return key.entry_point in APPROVED
 
 
 def _reduce_types(tp: Any) -> set[type]:
