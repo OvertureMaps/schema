@@ -44,7 +44,7 @@ jobs:
         run: npm ci --omit=dev
 
       - name: Generate schema markdown docs
-        uses: ./.github/actions/generate-schema-docs
+        uses: OvertureMaps/workflows/.github/actions/generate-schema-docs@main
         with:
           output-dir: ${{ github.workspace }}/${{ env.DOCS_PATH }}/docs/schema/reference
           schema-path: .
@@ -66,7 +66,7 @@ jobs:
 
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: build
     permissions:
       id-token: write
