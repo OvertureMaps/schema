@@ -1,8 +1,8 @@
-from typing import Any, get_origin, Annotated, get_args, Union, Literal
+from typing import Annotated, Any, Literal, Union, get_args, get_origin
 
-from overture.schema.core import OvertureFeature
 from pydantic import BaseModel
 
+from overture.schema.core import OvertureFeature
 from overture.schema.system.discovery import ModelKey
 
 APPROVED = {
@@ -36,7 +36,7 @@ def authority_provider(
 def theme_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
-    for tp in _reduce_types(model_class):
+    for tp in _extract_types(model_class):
         if issubclass(tp, OvertureFeature):
             tags.add(
                 "overture:theme=" + get_args(tp.model_fields["theme"].annotation)[0]
@@ -48,10 +48,10 @@ def _matches_manifest(key: ModelKey) -> bool:
     return key.entry_point in APPROVED
 
 
-def _reduce_types(tp: Any) -> set[type]:
+def _extract_types(tp: Any) -> set[type]:  # noqa: ANN401
     result: set[type] = set()
 
-    def visit(t: Any) -> None:
+    def visit(t: Any) -> None:  # noqa: ANN401
         origin = get_origin(t)
         if origin is Annotated:
             visit(get_args(t)[0])

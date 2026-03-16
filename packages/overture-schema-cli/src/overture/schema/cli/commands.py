@@ -228,7 +228,7 @@ def resolve_types(
     elif theme_names and not type_names:
         # Theme-only mode: all types in specified themes
         for key, model_class in all_models.items():
-            if next(iter(tags_by_key(key.tags, "overture:theme")),None) in theme_names:
+            if next(iter(tags_by_key(key.tags, "overture:theme")), None) in theme_names:
                 filtered_models[key] = model_class
 
     elif type_names and not theme_names:
@@ -240,7 +240,11 @@ def resolve_types(
     elif type_names and theme_names:
         # Both specified: find matching types within specified themes
         for key, model_class in all_models.items():
-            if key.name in type_names and next(iter(tags_by_key(key.tags, "overture:theme")),None) in theme_names:
+            if (
+                key.name in type_names
+                and next(iter(tags_by_key(key.tags, "overture:theme")), None)
+                in theme_names
+            ):
                 filtered_models[key] = model_class
 
     else:
@@ -789,9 +793,7 @@ def json_schema_command(
     help="Group types by tag prefix (e.g., 'overture:theme')",
 )
 def list_types(
-    tags: tuple[str, ...],
-    excluded_tags: tuple[str, ...],
-    group_by: str | None
+    tags: tuple[str, ...], excluded_tags: tuple[str, ...], group_by: str | None
 ) -> None:
     r"""List all available types grouped by theme with descriptions.
 
@@ -810,7 +812,9 @@ def list_types(
         if tags:
             filters.append(lambda key: all(tag in key.tags for tag in tags))
         if excluded_tags:
-            filters.append(lambda key: not any(tag in key.tags for tag in excluded_tags))
+            filters.append(
+                lambda key: not any(tag in key.tags for tag in excluded_tags)
+            )
 
         if filters:
             models = {
@@ -822,15 +826,23 @@ def list_types(
         if group_by:
             grouped_models: dict[str, set[ModelKey]] = {}
 
-            for key, model_class in models.items():
+            for key in models.keys():
                 if groups := tags_by_key(key.tags, group_by):
                     for group in groups:
                         grouped_models.setdefault(group, set()).add(key)
 
-            padding = max((len(key.name) for keys in grouped_models.values() for key in keys), default=0) + 2
+            padding = (
+                max(
+                    (len(key.name) for keys in grouped_models.values() for key in keys),
+                    default=0,
+                )
+                + 2
+            )
 
             for group, keys in sorted(grouped_models.items()):
-                stdout.print(f"[green bold]{group_by}={group} ({len(keys)})[/green bold]")
+                stdout.print(
+                    f"[green bold]{group_by}={group} ({len(keys)})[/green bold]"
+                )
                 for key in sorted(keys, key=lambda k: k.name):
                     model = Text()
                     model.append("→ ", style="bright_black")
@@ -849,7 +861,6 @@ def list_types(
                 model.pad_right(max(1, padding - len(key.name)))
                 model.append_text(Text().append("  ".join(sorted(key.tags))))
                 stdout.print(model)
-
 
     except Exception as e:
         click.echo(f"Error listing types: {e}", err=True)
