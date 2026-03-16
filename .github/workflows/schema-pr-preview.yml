@@ -15,9 +15,20 @@ env:
   SCHEMA_PREVIEW: 'true'
 
 jobs:
+  check-fork:
+    name: Check fork
+    runs-on: ubuntu-slim
+    steps:
+      - name: Staging deploy is not supported for fork PRs
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "::warning title=Staging deploy not supported for fork PRs::Staging previews are only available for PRs from branches within this repository, not forks. Please open your PR from a branch in OvertureMaps/schema instead."
+          exit 1
+
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: check-fork
     env:
       DOCS_PATH: _docs
     steps:
@@ -67,7 +78,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-slim
-    needs: build
+    needs: [check-fork, build]
     permissions:
       id-token: write
       pull-requests: write
