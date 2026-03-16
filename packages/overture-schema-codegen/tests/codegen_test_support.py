@@ -303,7 +303,7 @@ def find_member(spec: EnumSpec, name: str) -> EnumMemberSpec:
 
 def find_theme(tags: frozenset[str]) -> str | None:
     """Extract the theme from a set of tags, if present."""
-    return next(iter(tags_by_key(tags, "overture:theme")),None)
+    return next(iter(tags_by_key(tags, "overture:theme")), None)
 
 
 T = TypeVar("T")

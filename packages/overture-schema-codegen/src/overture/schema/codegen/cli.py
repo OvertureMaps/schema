@@ -49,7 +49,7 @@ def _write_output(
 
 def _find_theme(tags: frozenset[str]) -> str | None:
     """Find the theme tag in a set of tags, if any."""
-    return next(iter(tags_by_key(tags, "overture:theme")),None)
+    return next(iter(tags_by_key(tags, "overture:theme")), None)
 
 
 @click.group()

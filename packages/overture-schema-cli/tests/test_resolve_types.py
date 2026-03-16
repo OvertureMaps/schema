@@ -128,7 +128,10 @@ class TestResolveTypes:
         from overture.schema.system.discovery import discover_models
 
         models = discover_models()
-        actual_themes = {next(iter(tags_by_key(key.tags, "overture:theme")),None) for key in models.keys()}
+        actual_themes = {
+            next(iter(tags_by_key(key.tags, "overture:theme")), None)
+            for key in models.keys()
+        }
 
         # Check that we have at least the expected themes (may have more)
         assert expected_themes.issubset(actual_themes), (

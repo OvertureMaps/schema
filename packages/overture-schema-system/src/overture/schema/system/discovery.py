@@ -3,8 +3,9 @@
 import importlib.metadata
 import logging
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, replace
-from typing import get_args, Literal, Union, get_origin, Annotated, Any, Callable
+from typing import Annotated, Any, Literal, Union, get_args, get_origin
 
 from pydantic import BaseModel
 
@@ -38,7 +39,7 @@ class ModelKey:
     """
 
     name: str  # friendly name from entry point key
-    entry_point : str # The entry point value in "module:Class" format
+    entry_point: str  # The entry point value in "module:Class" format
     tags: frozenset[str]  # plain and structured tags
 
 
@@ -85,16 +86,10 @@ def generate_tags(
 
 def _filter_tags(tags: set[str], provider: TagProviderKey) -> set[str]:
     reserved_tags = tuple(
-        tag
-        for tag, dist in RESERVED_TAGS.items()
-        if provider.package_name not in dist
+        tag for tag, dist in RESERVED_TAGS.items() if provider.package_name not in dist
     )
 
-    return {
-        tag
-        for tag in tags
-        if TAG_RE.match(tag) and not tag in reserved_tags
-    }
+    return {tag for tag in tags if TAG_RE.match(tag) and tag not in reserved_tags}
 
 
 def discover_tag_providers(
@@ -104,7 +99,6 @@ def discover_tag_providers(
 
     try:
         for tag_provider in importlib.metadata.entry_points(group=tag_providers_group):
-
             try:
                 tag_provider_class = tag_provider.load()
 
@@ -148,7 +142,6 @@ def discover_models(
 
     try:
         for model in importlib.metadata.entry_points(group=model_group):
-
             try:
                 model_class = model.load()
 
@@ -233,10 +226,10 @@ def feature_provider(
     return tags
 
 
-def _extract_types(tp: Any) -> set[type]:
+def _extract_types(tp: Any) -> set[type]:  # noqa: ANN401
     result: set[type] = set()
 
-    def visit(t: Any) -> None:
+    def visit(t: Any) -> None:  # noqa: ANN401
         origin = get_origin(t)
         if origin is Annotated:
             visit(get_args(t)[0])
