@@ -113,9 +113,11 @@ jobs:
             --distribution-id E1KP2IN0H2RGGT \
             --paths "${{ env.PREVIEW_PATH }}/*"
 
-      - name: Get deploy timestamp
-        id: timestamp
-        run: echo "time=$(date -u +'%b %d, %Y %H:%M UTC')" >> $GITHUB_OUTPUT
+      - name: Gather metadata for PR comment
+        id: deploy-metadata
+        run: |
+          echo "time=$(date -u +'%b %d, %Y %H:%M UTC')" >> $GITHUB_OUTPUT
+          echo "short-sha=$(echo '${{ github.event.pull_request.head.sha }}' | cut -c1-7)" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
         uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # v3.0.2
@@ -123,12 +125,11 @@ jobs:
           message: |
             ## 🗺️ Schema reference docs preview is live!
 
-            | | |
-            |---|---|
-            | **Preview** | ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html |
-            | **Build scope** | `SCHEMA_PREVIEW=${{ env.SCHEMA_PREVIEW }}` |
-            | **Updated** | ${{ steps.timestamp.outputs.time }} |
-            | **Commit** | [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) |
+            |                  |                                                                    |
+            |------------------|--------------------------------------------------------------------|
+            | 🌍 **Preview**   | ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html |
+            | 🕐 **Updated**   | ${{ steps.deploy-metadata.outputs.time }} |
+            | 📝 **Commit**    | [${{ steps.deploy-metadata.outputs.short-sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}) |
 
             > [!NOTE]
-            > This preview updates automatically with each push to this PR.
+            > ♻️ This preview updates automatically with each push to this PR.
