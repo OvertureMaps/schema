@@ -23,10 +23,9 @@ jobs:
         if: github.event.pull_request.head.repo.full_name != github.repository
         run: |
           echo "::warning title=Staging deploy not supported for fork PRs::Staging previews are only available for PRs from branches within this repository, not forks. Please open your PR from a branch in OvertureMaps/schema instead."
-          exit 1
-
   build:
     name: Build
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     needs: check-fork
     env:
