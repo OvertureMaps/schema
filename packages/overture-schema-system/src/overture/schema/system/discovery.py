@@ -172,6 +172,29 @@ def discover_models(
     return models
 
 
+def filter_models(
+    models: dict[ModelKey, type[BaseModel]],
+    tags: tuple[str, ...] = (),
+    excluded_tags: tuple[str, ...] = (),
+    type_names: tuple[str, ...] = (),
+) -> dict[ModelKey, type[BaseModel]]:
+    """Filter models to those that contain all required tags."""
+    filters = []
+
+    if tags:
+        filters.append(lambda key: all(tag in key.tags for tag in tags))
+    if excluded_tags:
+        filters.append(lambda key: not any(tag in key.tags for tag in excluded_tags))
+    if type_names:
+        filters.append(lambda key: key.name in type_names)
+
+    if filters:
+        models = {
+            key: model for key, model in models.items() if all(f(key) for f in filters)
+        }
+    return models
+
+
 def get_registered_model(feature_type: str) -> type[BaseModel] | None:
     """Get the Pydantic model for a type.
 
