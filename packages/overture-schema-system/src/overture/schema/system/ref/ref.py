@@ -23,7 +23,14 @@ class Relationship(Enum):
 
     BELONGS_TO = "belongs_to", "The relator belongs to the relatee"
     BOUNDARY_OF = "boundary_of", "The relator is a boundary of the relatee"
+    CAPITAL_OF = "capital_of", "The relator is a capital of the relatee"
+    CAPITALLED_BY = "capitalled_by", "The relator has the relatee as its capital"
+    CHILD_OF = "child_of", "The relator is a child of the relatee"
     CONNECTS_TO = "connects_to", "The relator connects to the relatee"
+    DESCENDANT_OF = (
+        "descendant_of",
+        "The relator is a hierarchical descendant of the relatee",
+    )
 
 
 @dataclass(frozen=True, slots=True)

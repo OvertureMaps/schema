@@ -1,11 +1,31 @@
 {
   "$defs": {
     "BoundaryClass": {
+      "description": "The kind of boundary: land or maritime.",
       "enum": [
         "land",
         "maritime"
       ],
       "title": "BoundaryClass",
+      "type": "string"
+    },
+    "DivisionSubtype": {
+      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g., country,\nregion, locality, etc.) similar to a Who's on First placetype.",
+      "enum": [
+        "country",
+        "dependency",
+        "macroregion",
+        "region",
+        "macrocounty",
+        "county",
+        "localadmin",
+        "locality",
+        "borough",
+        "macrohood",
+        "neighborhood",
+        "microhood"
+      ],
+      "title": "DivisionSubtype",
       "type": "string"
     },
     "PerspectiveMode": {
@@ -46,25 +66,6 @@
       ],
       "title": "Perspectives",
       "type": "object"
-    },
-    "PlaceType": {
-      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g., country,\nregion, locality, etc.) similar to a Who's on First placetype.",
-      "enum": [
-        "country",
-        "dependency",
-        "macroregion",
-        "region",
-        "macrocounty",
-        "county",
-        "localadmin",
-        "locality",
-        "borough",
-        "macrohood",
-        "neighborhood",
-        "microhood"
-      ],
-      "title": "PlaceType",
-      "type": "string"
     },
     "SourceItem": {
       "additionalProperties": false,
@@ -425,7 +426,7 @@
       },
       "properties": {
         "admin_level": {
-          "description": "Integer representing the division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
+          "description": "Integer representing the division's position in its country's administrative\nhierarchy, where lower numbers correspond to higher level administrative units.",
           "maximum": 16,
           "minimum": 0,
           "title": "Admin Level",
@@ -435,7 +436,7 @@
           "$ref": "#/$defs/BoundaryClass"
         },
         "country": {
-          "description": "ISO 3166-1 alpha-2 country code of the country or country-like\nentity that both sides of the boundary share.\n\nThis property will be present on boundaries between two regions, counties,\nor similar entities within the same country, but will not be present on boundaries\nbetween two countries or country-like entities.",
+          "description": "ISO 3166-1 alpha-2 country code of the country or country-like entity that\nboth sides of the boundary share.\n\nThis property will be present on boundaries between two regions, counties,\nor similar entities within the same country, but will not be present on\nboundaries between two countries or country-like entities.",
           "maxLength": 2,
           "minLength": 2,
           "pattern": "^[A-Z]{2}$",
@@ -443,7 +444,7 @@
           "type": "string"
         },
         "division_ids": {
-          "description": "Identifies the two divisions to the left and right, respectively, of the boundary line. The left- and right-hand sides of the boundary are considered from the perspective of a person standing on the line facing in the direction in which the geometry is oriented, i.e. facing toward the end of the line.\n\nThe first array element is the Overture ID of the left division. The second element is the Overture ID of the right division.",
+          "description": "Identifies the two divisions to the left and right, respectively, of the\nboundary line. The left- and right-hand sides of the boundary are considered\nfrom the perspective of a person standing on the line facing in the direction\nin which the geometry is oriented, i.e. facing toward the end of the line.\n\nThe first array element is the Overture ID of the left division. The second\nelement is the Overture ID of the right division.",
           "items": {
             "description": "A unique identifier",
             "minLength": 1,
@@ -457,26 +458,26 @@
           "uniqueItems": true
         },
         "is_disputed": {
-          "description": "Indicator if there are entities disputing this division boundary.\nInformation about entities disputing this boundary should be included in perspectives\nproperty.\n\nThis property should also be true if boundary between two entities is unclear\nand this is \"best guess\". So having it true and no perspectives gives map creators\nreason not to fully trust the boundary, but use it if they have no other.",
+          "description": "Flag indicating whether this boundary is either disputed outright or is a \"best\nguess\" in a case where the boundary between two divisions is unclear.\n\nIf the boundary is disputed outright, this flag is true and the entities disputing\nit are listed in the `perspectives` property. If the boundary is simply a \"best\nguess\", this flag is true but no disputing entities are listed in `perspectives`.",
           "title": "Is Disputed",
           "type": "boolean"
         },
         "is_land": {
-          "description": "A boolean to indicate whether or not the feature geometry represents the\nland-clipped, non-maritime boundary. The geometry can be used for map\nrendering, cartographic display, and similar purposes.",
+          "description": "Flag indicating whether or not the feature geometry represents the land-clipped,\nnon-maritime boundary. The geometry can be used for map rendering, cartographic\ndisplay, and similar purposes.",
           "title": "Is Land",
           "type": "boolean"
         },
         "is_territorial": {
-          "description": "A boolean to indicate whether or not the feature geometry represents\nOverture's best approximation of this place's maritime boundary. For\ncoastal places, this would tend to include the water area. The geometry\ncan be used for data processing, reverse-geocoding, and similar purposes.",
+          "description": "Flag indicating whether or not the feature geometry represents Overture's best\napproximation of the division's territorial boundary. For coastal places, this will\ntend to include the water area. The geometry can be used for data processing,\nreverse-geocoding, and similar purposes.",
           "title": "Is Territorial",
           "type": "boolean"
         },
         "perspectives": {
           "$ref": "#/$defs/Perspectives",
-          "description": "Political perspectives from which this division boundary is considered to be an accurate representation.\n\nIf this property is absent, then this boundary is not known to be disputed from any political perspective. Consequently, there is only one boundary feature representing the entire real world entity.\n\nIf this property is present, it means the boundary represents one of several alternative perspectives on the same real-world entity.\n\nThere are two modes of perspective:\n\n  1. `accepted_by` means the representation of the boundary is accepted by the listed entities and would be included on a map drawn from their perspective.\n\n  2. `disputed_by` means the representation of the boundary is disputed by the listed entities and would be excluded from a map drawn from their perspective.\n\nWhen drawing a map from the perspective of a given country, one would start by gathering all the undisputed boundary (with no `perspectives` property), and then adding to that first all boundary explicitly accepted by the country, and second all boundary not explicitly disputed by the country."
+          "description": "Political perspectives from which this division boundary is considered to be\nan accurate representation.\n\nIf this property is absent, then this boundary is not known to be disputed\nfrom any political perspective. Consequently, there is only one boundary\nfeature representing the entire real world entity.\n\nIf this property is present, it means the boundary represents one of several\nalternative perspectives on the same real-world entity.\n\nThere are two modes of perspective:\n\n1. `accepted_by` means the representation of the boundary is accepted by the\n   listed entities and would be included on a map drawn from their perspective.\n\n2. `disputed_by` means the representation of the boundary is disputed by the\n   listed entities and would be excluded from a map drawn from their\n   perspective.\n\nWhen drawing a map from the perspective of a given country, one would start by\ngathering all the undisputed boundaries (those with no `perspectives` value); and\nthen adding to that: first, all boundaries explicitly accepted by the country, and\nsecond, all boundaries not explicitly disputed by the country."
         },
         "region": {
-          "description": "ISO 3166-2 principal subdivision code of the subdivision-like\nentity that both sides of the boundary share.\n\nThis property will be present on boundaries between two counties, localadmins\nor similar entities within the same principal subdivision, but will not be\npresent on boundaries between different principal subdivisions or countries.",
+          "description": "ISO 3166-2 principal subdivision code of the subdivision-like entity that\nboth sides of the boundary share.\n\nThis property will be present on boundaries between two counties, localadmins\nor similar entities within the same principal subdivision, but will not be\npresent on boundaries between different principal subdivisions or countries.",
           "maxLength": 6,
           "minLength": 4,
           "pattern": "^[A-Z]{2}-[A-Z0-9]{1,3}$",
@@ -494,7 +495,8 @@
           "uniqueItems": true
         },
         "subtype": {
-          "$ref": "#/$defs/PlaceType"
+          "$ref": "#/$defs/DivisionSubtype",
+          "description": "A broad classification of the divisions this boundary separates (e.g., country,\nregion, locality, etc.)."
         },
         "theme": {
           "const": "divisions",

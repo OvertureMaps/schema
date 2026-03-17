@@ -1,12 +1,31 @@
 {
   "$defs": {
     "AreaClass": {
-      "description": "Area and boundary class designations.",
+      "description": "Further classification of a division area that is more specific than its `subtype`.\n\nA division area's `class` adds detail to the broad classification found in `DivisionSubtype`.",
       "enum": [
         "land",
         "maritime"
       ],
       "title": "AreaClass",
+      "type": "string"
+    },
+    "DivisionSubtype": {
+      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g., country,\nregion, locality, etc.) similar to a Who's on First placetype.",
+      "enum": [
+        "country",
+        "dependency",
+        "macroregion",
+        "region",
+        "macrocounty",
+        "county",
+        "localadmin",
+        "locality",
+        "borough",
+        "macrohood",
+        "neighborhood",
+        "microhood"
+      ],
+      "title": "DivisionSubtype",
       "type": "string"
     },
     "NameRule": {
@@ -149,25 +168,6 @@
       "title": "Perspectives",
       "type": "object"
     },
-    "PlaceType": {
-      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g., country,\nregion, locality, etc.) similar to a Who's on First placetype.",
-      "enum": [
-        "country",
-        "dependency",
-        "macroregion",
-        "region",
-        "macrocounty",
-        "county",
-        "localadmin",
-        "locality",
-        "borough",
-        "macrohood",
-        "neighborhood",
-        "microhood"
-      ],
-      "title": "PlaceType",
-      "type": "string"
-    },
     "Side": {
       "description": "The side, left or right, on which something appears relative to a facing or heading direction\n(*e.g.*, the side of a road relative to the road orientation), or relative to the direction of\ntravel of a person or vehicle.",
       "enum": [
@@ -237,7 +237,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Division areas are polygons that represent the land or maritime area covered by a\ndivision.\n\nEach division area belongs to a division which it references by ID, and for which\nthe division area provides an area polygon. For ease of use, every division area\nrepeats the subtype, names, country, and region properties of the division it\nbelongs to.",
+  "description": "Division areas are polygon features that represent the land or maritime area covered by a\ndivision.\n\nEach division area belongs to a division which it references by ID, and for which the division\narea provides an area polygon. For ease of use, every division area repeats the subtype, names,\ncountry, and region properties of the division it belongs to.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -250,7 +250,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "The area covered by the division with which this area feature is associated",
+      "description": "The area covered by the division with which this area feature is\nassociated.",
       "oneOf": [
         {
           "properties": {
@@ -498,14 +498,15 @@
       },
       "properties": {
         "admin_level": {
-          "description": "Integer representing the division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
+          "description": "Integer representing the division's position in its country's administrative\nhierarchy, where lower numbers correspond to higher level administrative units.",
           "maximum": 16,
           "minimum": 0,
           "title": "Admin Level",
           "type": "integer"
         },
         "class": {
-          "$ref": "#/$defs/AreaClass"
+          "$ref": "#/$defs/AreaClass",
+          "description": "A more specific classification of the division area than is provided by `subtype`."
         },
         "country": {
           "description": "ISO 3166-1 alpha-2 country code of the division this area belongs to.",
@@ -523,17 +524,18 @@
           "type": "string"
         },
         "is_land": {
-          "description": "A boolean to indicate whether or not the feature geometry represents the land-clipped, non-maritime boundary. The geometry can be used for map rendering, cartographic display, and similar purposes.",
+          "description": "Flag indicating whether or not the feature geometry represents the land-clipped,\nnon-maritime boundary. The geometry can be used for map rendering, cartographic\ndisplay, and similar purposes.",
           "title": "Is Land",
           "type": "boolean"
         },
         "is_territorial": {
-          "description": "A boolean to indicate whether or not the feature geometry represents Overture's best approximation of this place's maritime boundary. For coastal places, this would tend to include the water area. The geometry can be used for data processing, reverse-geocoding, and similar purposes.",
+          "description": "Flag indicating whether or not the feature geometry represents Overture's best\napproximation of the division's territorial boundary. For coastal places, this will\ntend to include the water area. The geometry can be used for data processing,\nreverse-geocoding, and similar purposes.",
           "title": "Is Territorial",
           "type": "boolean"
         },
         "names": {
-          "$ref": "#/$defs/Names"
+          "$ref": "#/$defs/Names",
+          "description": "All known names by which the owning division is called"
         },
         "region": {
           "description": "ISO 3166-2 principal subdivision code of the division this area belongs to.",
@@ -554,7 +556,8 @@
           "uniqueItems": true
         },
         "subtype": {
-          "$ref": "#/$defs/PlaceType"
+          "$ref": "#/$defs/DivisionSubtype",
+          "description": "A broad classification of the division this area belongs to (e.g., country, region,\nlocality, etc.).\n\nThis value is the same as the owning division's `subtype`."
         },
         "theme": {
           "const": "divisions",

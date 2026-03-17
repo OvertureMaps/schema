@@ -619,7 +619,8 @@
               "type": "array"
             },
             "names": {
-              "$ref": "#/$defs/Names"
+              "$ref": "#/$defs/Names",
+              "description": "All known names by which the feature is called"
             },
             "rail_flags": {
               "description": "Set of boolean attributes applicable to railways. May be specified either as a single flag array of flag values, or as an array of flag rules.",
@@ -896,7 +897,8 @@
               "type": "array"
             },
             "names": {
-              "$ref": "#/$defs/Names"
+              "$ref": "#/$defs/Names",
+              "description": "All known names by which the feature is called"
             },
             "prohibited_transitions": {
               "description": "Rules preventing transitions from this segment to another segment.",
@@ -1625,7 +1627,8 @@
               "type": "array"
             },
             "names": {
-              "$ref": "#/$defs/Names"
+              "$ref": "#/$defs/Names",
+              "description": "All known names by which the feature is called"
             },
             "routes": {
               "description": "Routes this segment belongs to",
