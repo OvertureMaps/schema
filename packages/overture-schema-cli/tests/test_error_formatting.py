@@ -40,7 +40,9 @@ properties:
   version: 0
 """)
 
-        result = cli_runner.invoke(cli, ["validate", "--theme", "buildings", filename])
+        result = cli_runner.invoke(
+            cli, ["validate", "--tag", "overture:theme=buildings", filename]
+        )
 
         assert result.exit_code == 1
 

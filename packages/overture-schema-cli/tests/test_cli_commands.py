@@ -16,8 +16,8 @@ class TestListTypesCommand:
         """Test the list-types command."""
         result = cli_runner.invoke(cli, ["list-types"])
         assert result.exit_code == 0
-        # Should show theme names
-        assert "BUILDINGS" in result.output or "buildings" in result.output
+        # Should show theme tag
+        assert "overture:theme=buildings" in result.output
         # Should show type names
         assert "building" in result.output
 
@@ -33,7 +33,9 @@ class TestJsonSchemaCommand:
 
     def test_json_schema_generates_valid_output(self, cli_runner: CliRunner) -> None:
         """Test that json-schema command generates valid JSON."""
-        result = cli_runner.invoke(cli, ["json-schema", "--theme", "buildings"])
+        result = cli_runner.invoke(
+            cli, ["json-schema", "--tag", "overture:theme=buildings"]
+        )
         assert result.exit_code == 0
 
         # Should be valid JSON
@@ -57,7 +59,7 @@ class TestValidateCommand:
         flat_feature = build_feature(geojson_format=False)
         flat_json = json.dumps(flat_feature)
         result = cli_runner.invoke(
-            cli, ["validate", "--theme", "buildings", "-"], input=flat_json
+            cli, ["validate", "--tag", "overture:theme=buildings", "-"], input=flat_json
         )
         assert result.exit_code == 0
         assert "Successfully validated <stdin>" in result.output
@@ -222,7 +224,7 @@ class TestValidateCommand:
         # Try to validate with a nonexistent theme
         result = cli_runner.invoke(
             cli,
-            ["validate", "--theme", "nonexistent_theme", "-"],
+            ["validate", "--tag", "overture:theme=nonexistent_theme", "-"],
             input=building_feature_yaml_content,
         )
         # UsageError exits with code 2
@@ -254,7 +256,7 @@ class TestValidateCommand:
         # Try to validate buildings theme with a type that doesn't exist in that theme
         result = cli_runner.invoke(
             cli,
-            ["validate", "--theme", "buildings", "--type", "segment", "-"],
+            ["validate", "--tag", "overture:theme=buildings", "--type", "segment", "-"],
             input=building_feature_yaml_content,
         )
         # UsageError exits with code 2

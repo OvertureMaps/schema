@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 
 import click
 
-from overture.schema.system.discovery import discover_models, tags_by_key
+from overture.schema.system.discovery import discover_models, filter_models
 
 from .extraction.model_extraction import extract_model
 from .extraction.specs import (
@@ -47,11 +47,6 @@ def _write_output(
         click.echo()  # separate entries with a blank line in stdout mode
 
 
-def _find_theme(tags: frozenset[str]) -> str | None:
-    """Find the theme tag in a set of tags, if any."""
-    return next(iter(tags_by_key(tags, "overture:theme")), None)
-
-
 @click.group()
 def cli() -> None:
     """Overture Schema code generator.
@@ -81,9 +76,16 @@ def list_models() -> None:
     help="Output format",
 )
 @click.option(
-    "--theme",
+    "--tag",
+    "tags",
     multiple=True,
-    help="Filter to specific theme(s); repeatable (e.g., --theme buildings --theme places)",
+    help="Tag(s) to include; repeatable (e.g., --tag feature --tag overture)",
+)
+@click.option(
+    "--exclude-tag",
+    "excluded_tags",
+    multiple=True,
+    help="Tag(s) to exclude; repeatable (e.g., --exclude-tag draft --exclude-tag overture:theme=base)",
 )
 @click.option(
     "--output-dir",
@@ -93,21 +95,18 @@ def list_models() -> None:
 )
 def generate(
     output_format: str,
-    theme: tuple[str, ...],
+    tags: tuple[str, ...],
+    excluded_tags: tuple[str, ...],
     output_dir: Path | None,
 ) -> None:
     """Generate code/docs from discovered models."""
     all_models = discover_models()
 
-    # Schema root from ALL entry points (before theme filter).
+    # Schema root from ALL entry points (before tag filters).
     module_paths = [entry_point_module(k.entry_point) for k in all_models]
     schema_root = compute_schema_root(module_paths)
 
-    models = (
-        {k: v for k, v in all_models.items() if _find_theme(k.tags) in theme}
-        if theme
-        else all_models
-    )
+    models = filter_models(all_models, tags=tags, excluded_tags=excluded_tags)
 
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
