@@ -37,7 +37,7 @@ def theme_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
     for tp in _extract_types(model_class):
-        if issubclass(tp, OvertureFeature):
+        if isinstance(tp, type) and issubclass(tp, OvertureFeature):
             tags.add(
                 "overture:theme=" + get_args(tp.model_fields["theme"].annotation)[0]
             )
