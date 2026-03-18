@@ -5,7 +5,7 @@ import logging
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from typing import Annotated, Any, Literal, Union, get_args, get_origin
+from typing import Annotated, Any, Literal, TypeAlias, Union, get_args, get_origin
 
 from pydantic import BaseModel
 
@@ -18,6 +18,11 @@ RESERVED_TAGS: dict[str, set[str]] = {
     "overture": {"overture-schema-core"},
     "feature": {"overture-schema-system"},
 }
+RESERVED_NAMESPACES: dict[str, set[str]] = {
+    "overture": {"overture-schema-core"},
+    "system": {"overture-schema-system"},
+}
+
 TAG = r"[a-z0-9][a-z0-9_-]*"
 NAMESPACE_TAG = r"[a-z0-9]+:[a-z0-9]+(?:=[a-z0-9_.-]+)?"
 TAG_RE = re.compile(rf"^(?:{TAG}|{NAMESPACE_TAG})$")
@@ -61,13 +66,19 @@ class TagProviderKey:
     package_name: str  # distribution package name
 
 
-TagProvider = Callable[[type[BaseModel], ModelKey, set[str]], set[str]]
+TagProvider: TypeAlias = Callable[[type[BaseModel], ModelKey, set[str]], set[str]]
+
+ModelDict: TypeAlias = dict[ModelKey, type[BaseModel]]
+
+TagProviderDict: TypeAlias = dict[TagProviderKey, TagProvider]
+
+ModelKeyFilter: TypeAlias = Callable[[ModelKey], bool]
 
 
 def generate_tags(
     model_class: type[BaseModel],
     key: ModelKey,
-    providers: dict[TagProviderKey, TagProvider],
+    providers: TagProviderDict,
 ) -> set[str]:
     tags: set[str] = set()
 
@@ -85,16 +96,53 @@ def generate_tags(
 
 
 def _filter_tags(tags: set[str], provider: TagProviderKey) -> set[str]:
-    reserved_tags = tuple(
-        tag for tag, dist in RESERVED_TAGS.items() if provider.package_name not in dist
-    )
+    """Filter tags, removing invalid, reserved, or namespace-restricted tags for a provider."""
+    filtered_tags: set[str] = set()
+    reserved_tags: set[str] = {
+        tag for tag, pkgs in RESERVED_TAGS.items() if provider.package_name not in pkgs
+    }
+    reserved_namespaces: set[str] = {
+        ns
+        for ns, pkgs in RESERVED_NAMESPACES.items()
+        if provider.package_name not in pkgs
+    }
 
-    return {tag for tag in tags if TAG_RE.match(tag) and tag not in reserved_tags}
+    for tag in tags:
+        # Validate tag format
+        if not TAG_RE.fullmatch(tag):
+            logger.debug(
+                f"Tag provider '{provider.name}' (package '{provider.package_name}') attempted to set '{tag}' as tag. "
+                f"This tag does not match the required format."
+            )
+            continue
+
+        # Reserved tag check
+        if tag in reserved_tags:
+            allowed_pkgs = RESERVED_TAGS.get(tag, set())
+            logger.debug(
+                f"Tag provider '{provider.name}' (package '{provider.package_name}') attempted to set reserved tag '{tag}'. "
+                f"This tag can only be set by packages from: {allowed_pkgs}."
+            )
+            continue
+
+        # Reserved namespace check
+        tag_ns = namespace(tag)
+        if tag_ns and tag_ns in reserved_namespaces:
+            allowed_pkgs = RESERVED_NAMESPACES.get(tag_ns, set())
+            logger.debug(
+                f"Tag provider '{provider.name}' (package '{provider.package_name}') attempted to set tag '{tag}' in reserved namespace '{tag_ns}'. "
+                f"This namespace can only be set by packages from: {allowed_pkgs}."
+            )
+            continue
+
+        filtered_tags.add(tag)
+
+    return filtered_tags
 
 
 def discover_tag_providers(
     tag_providers_group: str = "overture.tag_providers",
-) -> dict[TagProviderKey, TagProvider]:
+) -> TagProviderDict:
     tag_providers = {}
 
     try:
@@ -123,7 +171,7 @@ def discover_tag_providers(
 
 def discover_models(
     model_group: str = "overture.models",
-) -> dict[ModelKey, type[BaseModel]]:
+) -> ModelDict:
     """Discover all registered Overture models via entry points.
 
     Parameters
@@ -173,13 +221,13 @@ def discover_models(
 
 
 def filter_models(
-    models: dict[ModelKey, type[BaseModel]],
+    models: ModelDict,
     tags: tuple[str, ...] = (),
     excluded_tags: tuple[str, ...] = (),
     type_names: tuple[str, ...] = (),
-) -> dict[ModelKey, type[BaseModel]]:
+) -> ModelDict:
     """Filter models to those that contain all required tags."""
-    filters = []
+    filters: list[ModelKeyFilter] = []
 
     if tags:
         filters.append(lambda key: all(tag in key.tags for tag in tags))
@@ -221,6 +269,15 @@ def get_registered_model(feature_type: str) -> type[BaseModel] | None:
     return None
 
 
+def namespace(tag: str) -> str:
+    """Extract the namespace from a tag, or return an empty string if there is no namespace."""
+    if not TAG_RE.fullmatch(tag):
+        raise ValueError(f"Invalid tag format: {tag}")
+    if ":" in tag:
+        return tag.split(":")[0]
+    return ""
+
+
 def tags_by_key(tags: frozenset[str] | set[str], key: str) -> set[str]:
     """Extract values for k/v tags with the given key.
 
@@ -244,7 +301,10 @@ def tags_by_namespace(tags: frozenset[str] | set[str], namespace: str) -> set[st
 def feature_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
-    if any(issubclass(tp, Feature) for tp in _extract_types(model_class)):
+    if any(
+        isinstance(tp, type) and issubclass(tp, Feature)
+        for tp in _extract_types(model_class)
+    ):
         tags.add("feature")
     return tags
 
