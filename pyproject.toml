@@ -9,7 +9,6 @@ version = "0.0.0"
 [tool.uv.workspace]
 members = ["packages/*"]
 
-
 [tool.ruff]
 line-length = 88
 target-version = "py310"
