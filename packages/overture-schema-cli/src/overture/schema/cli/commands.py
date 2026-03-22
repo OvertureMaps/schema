@@ -1,6 +1,7 @@
 """Click-based CLI for overture-schema package."""
 
 import builtins
+import io
 import json
 import sys
 from collections import Counter, defaultdict
@@ -322,8 +323,6 @@ def load_input(filename: Path) -> tuple[dict | list, str]:
                 pass
 
         # Parse as single YAML/JSON document
-        import io
-
         data = yaml.load(io.StringIO(content), Loader=CoreLoader)
         return data, "<stdin>"
 

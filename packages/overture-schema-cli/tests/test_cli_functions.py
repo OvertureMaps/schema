@@ -1,5 +1,6 @@
 """Tests for CLI helper functions (load_input, perform_validation)."""
 
+import io
 import json
 from pathlib import Path
 
@@ -175,8 +176,6 @@ class TestLoadInput:
         JSONL format is commonly used for streaming GeoJSON features where each line
         is a complete JSON object/feature.
         """
-        import io
-
         feature1 = build_feature(id="test1")
         feature2 = build_feature(id="test2")
         jsonl_input = f"{json.dumps(feature1)}\n{json.dumps(feature2)}\n"
