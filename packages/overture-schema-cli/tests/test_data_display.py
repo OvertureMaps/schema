@@ -10,6 +10,7 @@ from overture.schema.cli.data_display import (
     select_context_fields,
 )
 from rich.console import Console
+from rich.panel import Panel
 
 
 class TestExtractFeatureData:
@@ -291,8 +292,6 @@ class TestCreateFeatureDisplay:
         result = create_feature_display(fields, errors)
 
         # Verify result is a Panel
-        from rich.panel import Panel
-
         assert isinstance(result, Panel)
 
     def test_includes_error_annotation(self) -> None:
