@@ -10,7 +10,7 @@ from overture.schema.cli.type_analysis import (
     get_or_create_structural_tuple,
     introspect_union,
 )
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Discriminator, Field
 
 
 class TestStructuralTuples:
@@ -277,7 +277,6 @@ class TestDiscriminatorDiscovery:
 
     def test_callable_discriminator_extracts_field_name(self) -> None:
         """Callable discriminators (Feature.field_discriminator) are supported."""
-        from pydantic import Discriminator
 
         class ModelA(BaseModel):
             kind: Literal["a"]
