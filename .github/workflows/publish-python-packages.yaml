@@ -50,7 +50,7 @@ jobs:
           version: latest
 
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Sync code to make packages visible to Python
         run: uv sync --all-packages
