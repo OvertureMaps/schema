@@ -1,10 +1,14 @@
 ---
 name: Schema PR Preview
-run-name: Deploy schema docs preview for #${{ github.event.number }}
+run-name: Deploy schema docs preview for PR #${{ github.event.number }}
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+
+concurrency:
+  group: schema-pr-preview-${{ github.event.number }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

@@ -1,6 +1,6 @@
 ---
 name: Schema PR Preview Cleanup
-run-name: Clean up schema reference preview for PR #${{ github.event.number }}
+run-name: Cleanup schema docs preview for PR #${{ github.event.number }}
 
 on:
   pull_request:
