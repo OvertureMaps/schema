@@ -1,6 +1,6 @@
 ---
 name: Schema PR Preview
-run-name: Build and deploy schema reference preview for PR #${{ github.event.number }}
+run-name: Deploy schema docs preview for #${{ github.event.number }}
 
 on:
   pull_request:
@@ -39,7 +39,7 @@ jobs:
         with:
           repository: OvertureMaps/docs
           path: ${{ env.DOCS_PATH }}
-          ref: jmccall-schema-docs-builds # TODO: Remove before merging
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -129,6 +129,7 @@ jobs:
             | 🌍 **Preview**   | ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html |
             | 🕐 **Updated**   | ${{ steps.deploy-metadata.outputs.time }} |
             | 📝 **Commit**    | [${{ steps.deploy-metadata.outputs.short-sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}) |
+            | 🔧 **env SCHEMA_PREVIEW** | `${{ env.SCHEMA_PREVIEW }}` |
 
             > [!NOTE]
             > ♻️ This preview updates automatically with each push to this PR.
