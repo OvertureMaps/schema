@@ -30,7 +30,7 @@ jobs:
       # No flags to ignore "not found" errors, so we use "|| true" to prevent failure if the path doesn't exist
       - name: Delete from S3
         run: |
-          aws s3 rm --recursive \
+          aws s3 rm --recursive --quiet \
             s3://overture-managed-staging-usw2/gh-pages/schema/pr/${{ github.event.number }}/ || true
 
       - name: Bust the cache
