@@ -33,6 +33,8 @@ jobs:
     steps:
       - name: Check out schema repo
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Check out docs repo
         uses: actions/checkout@v6
@@ -46,8 +48,8 @@ jobs:
         with:
           node-version-file: ${{ env.DOCS_PATH }}/package.json
 
-      - name: Configure sustainable npm
-        uses: lowlydba/sustainable-npm@ed089bd92235c2af803a951fba2bd42c59fbcd73 # v2.0.0
+      # Configure npm for faster CI context installs
+      - uses: lowlydba/sustainable-npm@31d51025884f424f58f22e4e6578178bb4e79632 # v3.0.0
 
       - name: Install NPM dependencies
         working-directory: ${{ env.DOCS_PATH }}
