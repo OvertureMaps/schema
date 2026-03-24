@@ -58,3 +58,12 @@ lint-only:
 
 reset-baseline-schemas:
 	@find . -name \*_baseline_schema.json -delete
+
+
+mkdocs-serve: uv-sync
+	@uv pip install mkdocs mkdocstrings[python] mkdocs-material griffe-pydantic mkdocs-awesome-pages-plugin
+	@uv run python docs/scripts/doc.py mkdocs
+
+zensical-serve: uv-sync
+	@uv pip install zensical mkdocstrings[python] griffe-pydantic mkdocs-awesome-pages-plugin
+	@uv run python docs/scripts/doc.py zensical
