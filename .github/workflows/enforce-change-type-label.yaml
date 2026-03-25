@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Require exactly one change type label
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const allChangeTypeLabels = new Set([
