@@ -1,34 +1,20 @@
 import textwrap
 from typing import Annotated, Generic, TypeVar
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    GetJsonSchemaHandler,
-    model_validator,
-)
+from overture.schema.system.feature import Feature
+from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.primitive import BBox, Geometry
+from overture.schema.system.ref import Id, Identified
+from overture.schema.system.string import CountryCodeAlpha2
+from pydantic import BaseModel, ConfigDict, Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 from typing_extensions import Self
 
-from overture.schema.system.feature import Feature
-from overture.schema.system.field_constraint import UniqueItemsConstraint
-from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import (
-    Geometry,
-)
-from overture.schema.system.ref import Id, Identified
-from overture.schema.system.string import (
-    CountryCodeAlpha2,
-)
-
 from .enums import PerspectiveMode
 from .sources import Sources
-from .types import (
-    FeatureVersion,
-    Level,
-)
+from .types import FeatureVersion, Level
 
 ThemeT = TypeVar("ThemeT", bound=str)
 TypeT = TypeVar("TypeT", bound=str)
@@ -49,6 +35,7 @@ class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
     # this is an enum in the JSON Schema, but that prevents OvertureFeature from being extended
     type: TypeT
     geometry: Geometry
+    bbox: BBox
     version: FeatureVersion
 
     # Optional
@@ -86,12 +73,14 @@ class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
         properties_object_schema = json_schema["properties"]["properties"]
         properties_object_schema["patternProperties"] = {
             "^ext_.*$": {
-                "description": textwrap.dedent("""
+                "description": textwrap.dedent(
+                    """
                     Additional top-level properties are allowed if prefixed by `ext_`.
 
                     This feature is a on a deprecation path and will be removed once the schema is
                     fully migrated to Pydantic.
-                """).strip(),
+                """
+                ).strip(),
             }
         }
         properties_object_schema["additionalProperties"] = False
