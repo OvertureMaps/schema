@@ -54,10 +54,8 @@ from overture.schema.system.string import (
     NoWhitespaceString,
     StrippedString,
 )
-from overture.schema.core.types import (
-    ConfidenceScore,
-    LanguageTag,
-)
+from overture.schema.core.types import ConfidenceScore
+from overture.schema.system.string import LanguageTag
 
 # Numeric primitives (use these instead of int/float)
 from overture.schema.system.primitive import (
@@ -182,7 +180,7 @@ from typing import Literal
 from overture.schema.core import OvertureFeature
 from overture.schema.core.models import Stacked
 from overture.schema.core.names import Named
-from overture.schema.system.primitives import float64
+from overture.schema.system.primitive import float64
 
 class Building(OvertureFeature[Literal["buildings"], Literal["building"]], Named, Stacked):
     # Gets fields from Feature: id, theme, type, geometry, etc.
@@ -506,17 +504,33 @@ class Building(OvertureFeature):
 
 Add documentation to describe what the enum and its values mean. In Python, you do this with **docstrings** - text enclosed in triple quotes `"""` that describes what something does:
 
-TODO: DocumentedEnum
+Use `DocumentedEnum` from `overture.schema.system.doc` when enum members need their own descriptions for code generation and documentation tooling. Each member takes a `(value, description)` tuple:
 
 ```python
-class VehicleType(str, Enum):
+from overture.schema.system.doc import DocumentedEnum
+
+class VehicleType(str, DocumentedEnum):
     """Types of vehicles for transportation."""
 
-    CAR = "car"  # Standard passenger vehicle
-    TRUCK = "truck"  # Commercial freight vehicle
-    BICYCLE = "bicycle"  # Human-powered two-wheeler
-    MOTORCYCLE = "motorcycle"  # Motorized two-wheeler
+    CAR = ("car", "Standard passenger vehicle")
+    TRUCK = ("truck", "Commercial freight vehicle")
+    BICYCLE = ("bicycle", "Human-powered two-wheeler")
+    MOTORCYCLE = ("motorcycle", "Motorized two-wheeler")
 ```
+
+Members without descriptions use the plain value form -- documentation is optional per-member:
+
+```python
+class ConnectionState(str, DocumentedEnum):
+    CONNECTED = "connected"
+    DISCONNECTED = "disconnected"
+    QUIESCING = (
+        "quiescing",
+        "Gracefully shutting down, rejecting new requests but completing existing ones",
+    )
+```
+
+Use `DocumentedEnum` over plain `str, Enum` when the enum members' semantics aren't obvious from their names and downstream tools (code generators, documentation renderers) need access to member-level descriptions. Use plain `str, Enum` for self-explanatory values.
 
 #### Why str, Enum?
 
@@ -560,7 +574,7 @@ class DivisionArea(OvertureFeature[Literal["divisions"], Literal["division_area"
     ] = None
 ```
 
-**Available relationship types (see [Relationship](packages/overture-schema-core/src/overture/schema/core/ref.py)):**
+**Available relationship types (see [Relationship](packages/overture-schema-system/src/overture/schema/system/ref/ref.py)):**
 
 - **`BELONGS_TO`**: The referencing feature belongs to the referenced feature (division area belongs to division)
 - **`CONNECTS_TO`**: The referencing feature connects to the referenced feature (segment connects to connector)
@@ -627,7 +641,7 @@ class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
 
 #### Best Practices
 
-**1. Always Use Reference Annotations**
+##### Always Use Reference Annotations
 
 Include `Reference` annotations for semantic clarity and documentation:
 
@@ -643,7 +657,7 @@ division_id: Annotated[
 division_id: Id
 ```
 
-**2. Choose the Right Pattern**
+##### Choose the Right Pattern
 
 - **Simple relationships** → Direct references (foreign keys)
 - **Relationships with metadata** → Separate association features
@@ -938,7 +952,7 @@ Organize code by scope and avoid circular imports:
 
 **Cross-theme shared**: `overture-schema-core` package
 
-- Used by multiple themes (e.g., `LanguageTag`, `CountryCode`, `OvertureFeature`)
+- Used by multiple themes (e.g., `OvertureFeature`, `Names`, `Sources`, `Scope`)
 
 **Theme-level shared**: Theme package root (e.g., `overture-schema-transportation-theme/src/overture/schema/transportation/`)
 
@@ -1110,7 +1124,7 @@ JSON Schema containers become **mixin classes** in Pydantic that you inherit fro
 ```python models.py
 from typing import Annotated
 from pydantic import BaseModel, Field
-from overture.schema.model_constraints import no_extra
+from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.primitive import int8, float64
 
 @no_extra_fields

@@ -88,9 +88,11 @@ This workspace contains the following packages:
 
 - **`overture-schema`** - Main entrypoint package that aggregates all types for
   convenient usage
-- **`overture-schema-core`** - Base classes, geometry models, and common structures
-  shared across all themes
-- **`overture-schema-system`** - Foundational system of primitive types and constraints
+- **`overture-schema-core`** - Overture-specific models shared across themes: base
+  feature class, scoping framework, names, sources, and cartographic hints
+- **`overture-schema-system`** - Portable primitive types, constraints, and a
+  GeoJSON-aware base model for building Pydantic schemas that serialize to
+  JSON, Parquet, and Spark
 
 ### Theme Packages
 
