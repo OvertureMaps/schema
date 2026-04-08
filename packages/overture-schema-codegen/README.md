@@ -22,7 +22,7 @@ renderers, not extraction logic.
 overture-codegen generate --format markdown --output-dir docs/schema/reference
 
 # Generate for a single theme
-overture-codegen generate --format markdown --theme buildings --output-dir out/
+overture-codegen generate --format markdown --tag overture:theme=buildings --output-dir out/
 
 # List discovered models
 overture-codegen list

@@ -22,8 +22,9 @@ from overture.schema.system.discovery import (
     ModelKey,
     discover_models,
     filter_models,
-    tags_by_key,
 )
+from overture.schema.system.discovery.tag import get_values_for_key
+from overture.schema.system.discovery.types import ModelDict
 from overture.schema.system.feature import Feature
 from overture.schema.system.json_schema import json_schema
 
@@ -34,7 +35,7 @@ from .error_formatting import (
     select_most_likely_errors,
 )
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
-from .types import ErrorLocation, ModelDict, UnionType
+from .types import ErrorLocation, UnionType
 
 # Console instances for rich output
 stdout = Console(highlight=False)
@@ -214,7 +215,9 @@ def resolve_types(
     models: ModelDict = discover_models()
 
     # Filter models based on CLI options
-    models = filter_models(models, tags, excluded_tags, type_names)
+    models = filter_models(
+        models, tags=tags, excluded_tags=excluded_tags, type_names=type_names
+    )
 
     if not models:
         raise ValueError("No models found matching the specified criteria")
@@ -749,14 +752,14 @@ def json_schema_command(
 )
 @click.option(
     "--group-by",
-    help="Group types by tag prefix (e.g., 'overture:theme')",
+    help="Group types by tag key (e.g., 'overture:theme')",
 )
 def list_types(
     tags: tuple[str, ...], excluded_tags: tuple[str, ...], group_by: str | None
 ) -> None:
-    r"""List all available types grouped by theme with descriptions.
+    r"""List all available types.
 
-    Displays all registered Overture Maps types and can organized by grouping.
+    Displays all registered models and can be organized by grouping.
 
     \b
     Examples:
@@ -772,7 +775,7 @@ def list_types(
             grouped_models: dict[str, set[ModelKey]] = {}
 
             for key in models.keys():
-                if groups := tags_by_key(key.tags, group_by):
+                if groups := get_values_for_key(key.tags, group_by):
                     for group in groups:
                         grouped_models.setdefault(group, set()).add(key)
 
@@ -793,7 +796,7 @@ def list_types(
                     model.append("→ ", style="bright_black")
                     model.append(key.name, style="bold cyan")
                     model.pad_right(max(1, padding - len(key.name)))
-                    model.append_text(Text().append("  ".join(sorted(key.tags))))
+                    model.append("  ".join(sorted(key.tags)))
                     stdout.print(model)
                 stdout.print()
 
@@ -804,7 +807,7 @@ def list_types(
                 model = Text()
                 model.append(key.name, style="bold cyan")
                 model.pad_right(max(1, padding - len(key.name)))
-                model.append_text(Text().append("  ".join(sorted(key.tags))))
+                model.append("  ".join(sorted(key.tags)))
                 stdout.print(model)
 
     except Exception as e:

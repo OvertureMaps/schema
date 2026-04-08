@@ -11,7 +11,6 @@ from .commands import (
 )
 from .types import (
     ErrorLocation,
-    ModelDict,
     UnionType,
     ValidationErrorDict,
 )
@@ -25,7 +24,6 @@ __all__ = [
     "perform_validation",
     "resolve_types",
     "ErrorLocation",
-    "ModelDict",
     "UnionType",
     "ValidationErrorDict",
 ]

@@ -25,7 +25,8 @@ from overture.schema.codegen.extraction.specs import (
     is_model_class,
 )
 from overture.schema.codegen.extraction.type_analyzer import TypeInfo, TypeKind
-from overture.schema.system.discovery import discover_models, tags_by_key
+from overture.schema.system.discovery import discover_models, filter_models
+from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import require_any_of
@@ -303,7 +304,7 @@ def find_member(spec: EnumSpec, name: str) -> EnumMemberSpec:
 
 def find_theme(tags: frozenset[str]) -> str | None:
     """Extract the theme from a set of tags, if present."""
-    return next(iter(tags_by_key(tags, "overture:theme")), None)
+    return next(iter(get_values_for_key(tags, "overture:theme")), None)
 
 
 T = TypeVar("T")
@@ -337,7 +338,7 @@ def flat_specs_from_discovery(
     """Build a flat list of ModelSpecs from discovery, with entry_point set."""
     models = discover_models()
     if theme:
-        models = {k: v for k, v in models.items() if find_theme(k.tags) == theme}
+        models = filter_models(models, tags=(f"overture:theme={theme}",))
     result = []
     for key, cls in models.items():
         if not is_model_class(cls):
