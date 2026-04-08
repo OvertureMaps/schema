@@ -1,9 +1,10 @@
-from typing import Annotated, Any, Literal, Union, get_args, get_origin
+from typing import get_args
 
 from pydantic import BaseModel
 
 from overture.schema.core import OvertureFeature
 from overture.schema.system.discovery import ModelKey
+from overture.schema.system.typing_util import collect_types
 
 APPROVED = {
     "overture.schema.addresses:Address",
@@ -28,6 +29,22 @@ APPROVED = {
 def authority_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
+    """Add the ``"overture"`` tag if the model originates from an approved Overture package.
+
+    Parameters
+    ----------
+    model_class : type[BaseModel]
+        Model class to inspect.
+    key : ModelKey
+        Key identifying the model.
+    tags : set[str]
+        Current tags; may be extended.
+
+    Returns
+    -------
+    set[str]
+        Updated tags, with ``"overture"`` added if applicable.
+    """
     if _matches_manifest(key):
         tags.add("overture")
     return tags
@@ -36,8 +53,24 @@ def authority_provider(
 def theme_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
-    for tp in _extract_types(model_class):
-        if isinstance(tp, type) and issubclass(tp, OvertureFeature):
+    """Add the ``"overture:theme={theme}"`` tag if the model is a subclass of OvertureFeature.
+
+    Parameters
+    ----------
+    model_class : type[BaseModel]
+        Model class to inspect.
+    key : ModelKey
+        Key identifying the model.
+    tags : set[str]
+        Current tags; may be extended.
+
+    Returns
+    -------
+    set[str]
+        Updated tags, with ``"overture:theme={theme}"`` added if applicable.
+    """
+    for tp in collect_types(model_class):
+        if issubclass(tp, OvertureFeature):
             tags.add(
                 "overture:theme=" + get_args(tp.model_fields["theme"].annotation)[0]
             )
@@ -46,34 +79,3 @@ def theme_provider(
 
 def _matches_manifest(key: ModelKey) -> bool:
     return key.entry_point in APPROVED
-
-
-def _extract_types(tp: Any) -> set[type]:  # noqa: ANN401
-    result: set[type] = set()
-
-    def visit(t: Any) -> None:  # noqa: ANN401
-        origin = get_origin(t)
-        if origin is Annotated:
-            visit(get_args(t)[0])
-            return
-
-        if hasattr(t, "__supertype__"):
-            visit(t.__supertype__)
-            return
-
-        origin = get_origin(t)
-
-        if origin is Union:
-            for arg in get_args(t):
-                visit(arg)
-            return
-
-        if origin is Literal:
-            for val in get_args(t):
-                result.add(type(val))
-            return
-
-        result.add(t)
-
-    visit(tp)
-    return result

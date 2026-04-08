@@ -164,9 +164,9 @@ from overture.schema.system.discovery import discover_models, get_registered_mod
 all_models = discover_models()
 # Returns:
 # {
-#   ("building", "acme:Building", {"building_tag"}): BuildingModel,
-#   ("place", "acme:Place", {"place_tag"}): PlaceModel, 
-# ...
+#   ModelKey(name="building", entry_point="overture.schema.buildings:Building", tags=frozenset({"feature", "overture", "overture:theme=buildings"})): BuildingModel,
+#   ModelKey(name="place",    entry_point="overture.schema.places:Place",       tags=frozenset({"feature", "overture", "overture:theme=places"})): PlaceModel,
+#   ...
 # }
 
 # Get a specific model by type

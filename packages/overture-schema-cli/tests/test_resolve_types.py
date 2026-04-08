@@ -1,7 +1,7 @@
 """Parametrized tests for resolve_types function."""
 
 from typing import get_args
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from overture.schema.cli.commands import resolve_types
@@ -157,7 +157,7 @@ class TestResolveTypes:
             # Exclude 'overture:theme=buildings' tag
             union = resolve_types((), ("overture:theme=buildings",), ())
             # Should not include Building model
-            assert not any(issubclass(model, Mock) for model in get_args(union))
+            assert not any(issubclass(model, Building) for model in get_args(union))
 
     def test_resolve_types_no_filters_returns_all(self) -> None:
         with patch(

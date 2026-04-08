@@ -1,12 +1,9 @@
 import pytest
 from pydantic import BaseModel
 
-from overture.schema.system.discovery import (
-    ModelKey,
-    TagProviderKey,
-    _filter_tags,
-    feature_provider,
-)
+from overture.schema.system.discovery.discovery import _filter_tags
+from overture.schema.system.discovery.tag_providers import feature_provider
+from overture.schema.system.discovery.types import ModelKey, TagProviderKey
 from overture.schema.system.feature import Feature
 
 

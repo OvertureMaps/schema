@@ -1,0 +1,257 @@
+"""Model discovery system for Overture schema registry."""
+
+import importlib.metadata
+import logging
+from dataclasses import replace
+
+from pydantic import BaseModel
+
+from overture.schema.system.discovery.tag import (
+    get_namespace,
+    is_valid_tag,
+)
+from overture.schema.system.discovery.types import (
+    ModelDict,
+    ModelKey,
+    ModelKeyFilter,
+    TagProviderDict,
+    TagProviderKey,
+)
+
+log = logging.getLogger(__name__)
+
+# Tags that are reserved and can only be set by specific packages.
+_RESERVED_TAGS: dict[str, set[str]] = {
+    "overture": {"overture-schema-core"},
+    "feature": {"overture-schema-system"},
+}
+# Namespaces that are reserved and can only be set by specific packages.
+_RESERVED_NAMESPACES: dict[str, set[str]] = {
+    "overture": {"overture-schema-core"},
+    "system": {"overture-schema-system"},
+}
+
+
+def generate_tags(
+    model_class: type[BaseModel],
+    key: ModelKey,
+    providers: TagProviderDict,
+) -> set[str]:
+    """Generate tags for a model class using tag providers.
+
+    Each provider is called in turn indeterministically; tags it adds are filtered for
+    validity and permission before being included. Provider errors are caught and
+    logged as warnings rather than propagated.
+
+    Parameters
+    ----------
+    model_class : type[BaseModel]
+        Model class to generate tags for.
+    key : ModelKey
+        Key identifying the model.
+    providers : TagProviderDict
+        Tag providers to invoke.
+
+    Returns
+    -------
+    set[str]
+        Tags generated for the model.
+    """
+    tags: set[str] = set()
+    for provider_key, provider in providers.items():
+        try:
+            added_tags = provider(model_class, key, tags.copy()).difference(tags)
+            filtered_tags = _filter_tags(added_tags, provider_key)
+            tags.update(filtered_tags)
+        except Exception as e:
+            log.warning(
+                f"Error in tag provider {provider.__name__} for model {key.name}: {e}"
+            )
+    return tags
+
+
+def _filter_tags(tags: set[str], provider: TagProviderKey) -> set[str]:
+    """Filter tags that cannot be used by the provider, including invalid tags,
+    reserved tags, and tags using a reserved namespace.
+
+    Parameters
+    ----------
+    tags : set[str]
+        Tags to filter.
+    provider : TagProviderKey
+        Provider attempting to set the tags.
+
+    Returns
+    -------
+    set[str]
+        Permitted tags.
+    """
+    filtered_tags: set[str] = set()
+    reserved_tags: set[str] = {
+        tag for tag, pkgs in _RESERVED_TAGS.items() if provider.package_name not in pkgs
+    }
+    reserved_namespaces: set[str] = {
+        ns
+        for ns, pkgs in _RESERVED_NAMESPACES.items()
+        if provider.package_name not in pkgs
+    }
+    for tag in tags:
+        if not is_valid_tag(tag):
+            log.debug(
+                f"Tag provider '{provider.name}' (package '{provider.package_name}') attempted to set '{tag}' as tag. "
+                f"This tag does not match the required format."
+            )
+            continue
+        if tag in reserved_tags:
+            allowed_pkgs = _RESERVED_TAGS.get(tag, set())
+            log.debug(
+                f"Tag provider '{provider.name}' (package '{provider.package_name}') attempted to set reserved tag '{tag}'. "
+                f"This tag can only be set by packages from: {allowed_pkgs}."
+            )
+            continue
+        tag_ns = get_namespace(tag)
+        if tag_ns and tag_ns in reserved_namespaces:
+            allowed_pkgs = _RESERVED_NAMESPACES.get(tag_ns, set())
+            log.debug(
+                f"Tag provider '{provider.name}' (package '{provider.package_name}') attempted to set tag '{tag}' in reserved namespace '{tag_ns}'. "
+                f"This namespace can only be set by packages from: {allowed_pkgs}."
+            )
+            continue
+        filtered_tags.add(tag)
+    return filtered_tags
+
+
+def discover_tag_providers(
+    tag_providers_group: str = "overture.tag_providers",
+) -> TagProviderDict:
+    """Discover and load tag providers via entry points.
+
+    Parameters
+    ----------
+    tag_providers_group : str, optional
+        Entry point group to search (default: ``"overture.tag_providers"``).
+
+    Returns
+    -------
+    TagProviderDict
+        Discovered tag providers keyed by TagProviderKey.
+    """
+    tag_providers = {}
+    try:
+        for tag_provider in importlib.metadata.entry_points(group=tag_providers_group):
+            try:
+                tag_provider_class = tag_provider.load()
+                key = TagProviderKey(
+                    name=tag_provider.name,
+                    entry_point=tag_provider.value,
+                    package_name=getattr(tag_provider.dist, "name", ""),
+                )
+                tag_providers[key] = tag_provider_class
+            except Exception as e:
+                log.warning(f"Could not load tag provider {tag_provider.name}: {e}")
+    except Exception as e:
+        log.warning(f"Could not discover entry points: {e}")
+    return tag_providers
+
+
+def discover_models(
+    model_group: str = "overture.models",
+) -> ModelDict:
+    """Discover and load models via entry points, attaching tags from tag providers.
+
+    Parameters
+    ----------
+    model_group : str, optional
+        Entry point group to search (default: ``"overture.models"``).
+
+    Returns
+    -------
+    ModelDict
+        Discovered models keyed by ModelKey.
+    """
+    models = {}
+    tag_providers = discover_tag_providers()
+    try:
+        for model in importlib.metadata.entry_points(group=model_group):
+            try:
+                model_class = model.load()
+                key = ModelKey(
+                    name=model.name,
+                    entry_point=model.value,
+                    tags=frozenset(),
+                )
+                try:
+                    key = replace(
+                        key,
+                        tags=frozenset(generate_tags(model_class, key, tag_providers)),
+                    )
+                except Exception as e:
+                    log.warning(f"Could not resolve tags for model {model.name}: {e}")
+                models[key] = model_class
+            except Exception as e:
+                log.warning(f"Could not load model {model.name}: {e}")
+    except Exception as e:
+        log.warning(f"Could not discover entry points: {e}")
+    return models
+
+
+def filter_models(
+    models: ModelDict,
+    *,
+    tags: tuple[str, ...] = (),
+    excluded_tags: tuple[str, ...] = (),
+    type_names: tuple[str, ...] = (),
+) -> ModelDict:
+    """Filter models by required tags, excluded tags, and/or type names.
+
+    Parameters
+    ----------
+    models : ModelDict
+        Models to filter.
+    tags : tuple[str, ...], optional
+        Tags that must all be present on the model.
+    excluded_tags : tuple[str, ...], optional
+        Tags that must not be present on the model.
+    type_names : tuple[str, ...], optional
+        Model names to include; all others are excluded.
+
+    Returns
+    -------
+    ModelDict
+        Filtered models.
+    """
+    filters: list[ModelKeyFilter] = []
+    if tags:
+        filters.append(lambda key: all(tag in key.tags for tag in tags))
+    if excluded_tags:
+        filters.append(lambda key: not any(tag in key.tags for tag in excluded_tags))
+    if type_names:
+        filters.append(lambda key: key.name in type_names)
+    if filters:
+        models = {
+            key: model for key, model in models.items() if all(f(key) for f in filters)
+        }
+    return models
+
+
+def get_registered_model(model_name: str) -> type[BaseModel] | None:
+    """Get the model by name.
+
+    Loads all models via entry points and returns the first with a matching name.
+    If multiple models share the same name, the first one encountered is returned.
+
+    Parameters
+    ----------
+    model_name : str
+        Model name to look up.
+
+    Returns
+    -------
+    type[BaseModel] or None
+        Model class if found, otherwise ``None``.
+    """
+    models = discover_models()
+    for key, model_class in models.items():
+        if key.name == model_name:
+            return model_class
+    return None
