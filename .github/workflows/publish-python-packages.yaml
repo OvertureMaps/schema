@@ -27,8 +27,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
+    name: Check for changes
     if: github.event.repository.full_name == github.repository
     uses: ./.github/workflows/reusable-check-python-package-versions.yaml
     permissions:
@@ -38,6 +43,7 @@ jobs:
       after_commit: ${{ github.event.after }}
 
   publish:
+    name: Publish
     needs: [check]
     if: github.event.repository.full_name == github.repository && needs.check.outputs.num_changed_packages > 0
     runs-on: ubuntu-latest
@@ -84,18 +90,18 @@ jobs:
         env:
           CA_TOKEN: ${{ steps.get-code-artifact-params.outputs.token }}
           CA_PUBLISH_URL: ${{ steps.get-code-artifact-params.outputs.publish_url }}
+          PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
+          BEFORE: ${{ matrix.before }} # zizmor: ignore[template-injection]
+          AFTER: ${{ matrix.after }} # zizmor: ignore[template-injection]
         run: |
-          package="${{ matrix.package }}"
-          before="${{ matrix.before }}"
-          after="${{ matrix.after }}"
-          printf 'Publishing package %s version %s to PyPI (previous version %s)...\n' "$package" "$after" "$before"
-          uv build --package "$package"
-          wheel="dist/${package//-/_}-${after}-py3-none-any.whl"
+          printf 'Publishing package %s version %s to PyPI (previous version %s)...\n' "$PACKAGE" "$AFTER" "$BEFORE"
+          uv build --package "$PACKAGE"
+          wheel="dist/${PACKAGE//-/_}-${AFTER}-py3-none-any.whl"
           if [ ! -f "$wheel" ]; then
             echo "    Wheel file [$wheel] not found. Aborting!"
             exit 1
           fi
-          tarball="dist/${package//-/_}-${after}.tar.gz"
+          tarball="dist/${PACKAGE//-/_}-${AFTER}.tar.gz"
           if [ ! -f "$tarball" ]; then
             echo "    Source tarball file [$tarball] not found. Aborting!"
             exit 1

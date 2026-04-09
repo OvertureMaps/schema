@@ -7,12 +7,18 @@ on:
       - 'packages/**/__about__.py'
 
 permissions:
-  id-token: write
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
     uses: ./.github/workflows/reusable-check-python-package-versions.yaml
+    permissions:
+      id-token: write # Required for AWS CodeArtifact OIDC authentication
+      contents: read
     with:
       before_commit: ${{ github.event.pull_request.base.sha }}
       after_commit: ${{ github.event.pull_request.head.sha }}

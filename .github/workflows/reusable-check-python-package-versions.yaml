@@ -51,8 +51,13 @@ on:
         value: ${{ jobs.check-python-package-versions.outputs.num_changed_packages }}
 
 
+permissions:
+  contents: read
+
+
 jobs:
   check-python-package-versions:
+    name: Check Python package versions
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -144,6 +149,7 @@ jobs:
         if: steps.save-changes.outputs.num_changed_packages > 0
         env:
           INDEX_URL: ${{ steps.get-code-artifact-index-url.outputs.index_url }}
+          # zizmor: ignore[template-injection]
         run: |
           jq -c '.[]' /tmp/package-version-diff.json | while read -r entry; do
             package=$(echo "$entry" | jq -r '.package')
