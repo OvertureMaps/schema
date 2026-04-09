@@ -82,8 +82,8 @@ jobs:
     runs-on: ubuntu-slim
     needs: [check-fork, build]
     permissions:
-      id-token: write
-      pull-requests: write
+      id-token: write # Required for OIDC authentication to AWS
+      pull-requests: write # Required for commenting on PRs
     env:
       AWS_ROLE_ARN: arn:aws:iam::763944545891:role/pages-staging-oidc-overturemaps
       AWS_REGION: us-west-2
@@ -108,19 +108,25 @@ jobs:
       - name: Copy to S3
         run: |
           aws s3 sync --delete --quiet build \
-            s3://overture-managed-staging-usw2/gh-pages/schema/pr/${{ github.event.number }}/
+            s3://overture-managed-staging-usw2/gh-pages/schema/pr/$PR_NUMBER/
+        env:
+          PR_NUMBER: ${{ github.event.number }}  # zizmor: ignore[template-injection]
 
       - name: Bust the cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id E1KP2IN0H2RGGT \
-            --paths "/schema/pr/${{ github.event.number }}/*"
+            --paths "/schema/pr/$PR_NUMBER/*"
+        env:
+          PR_NUMBER: ${{ github.event.number }}  # zizmor: ignore[template-injection]
 
       - name: Gather metadata for PR comment
         id: deploy-metadata
         run: |
           echo "time=$(date -u +'%b %d, %Y %H:%M UTC')" >> $GITHUB_OUTPUT
           echo "short-sha=$(echo '${{ github.event.pull_request.head.sha }}' | cut -c1-7)" >> $GITHUB_OUTPUT
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}  # zizmor: ignore[template-injection]
 
       - name: Comment on PR
         uses: marocchino/sticky-pull-request-comment@d4d6b0936434b21bc8345ad45a440c5f7d2c40ff # v3.0.3
