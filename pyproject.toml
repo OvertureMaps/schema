@@ -6,6 +6,9 @@ name = "overture-schema-workspace"
 requires-python = ">=3.10"
 version = "0.0.0"
 
+[tool.uv]
+exclude-newer = "1 week"
+
 [tool.uv.workspace]
 members = ["packages/*"]
 

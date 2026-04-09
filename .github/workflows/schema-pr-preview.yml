@@ -13,11 +13,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  STAGING_URL: https://staging.overturemaps.org
-  PREVIEW_PATH: /schema/pr/${{ github.event.number }}
-  SCHEMA_PREVIEW: 'true'
-
 jobs:
   check-fork:
     name: Check fork
@@ -34,21 +29,23 @@ jobs:
     needs: check-fork
     env:
       DOCS_PATH: _docs
+      STAGING_URL: https://staging.overturemaps.org
+      SCHEMA_PREVIEW: 'true'
     steps:
       - name: Check out schema repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
       - name: Check out docs repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: OvertureMaps/docs
           path: ${{ env.DOCS_PATH }}
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ${{ env.DOCS_PATH }}/package.json
 
@@ -60,7 +57,7 @@ jobs:
         run: npm ci --omit=dev
 
       - name: Generate schema markdown docs
-        uses: OvertureMaps/workflows/.github/actions/generate-schema-docs@main
+        uses: OvertureMaps/workflows/.github/actions/generate-schema-docs@4fbe12a41eae18e9ac641667074feb65ce478009 # validate-pr-title-v1
         with:
           output-dir: ${{ github.workspace }}/${{ env.DOCS_PATH }}/docs/schema/reference
           schema-path: .
@@ -71,11 +68,11 @@ jobs:
         run: npm run build
         env:
           DOCUSAURUS_URL: ${{ env.STAGING_URL }}/
-          DOCUSAURUS_BASE_URL: ${{ env.PREVIEW_PATH }}/
+          DOCUSAURUS_BASE_URL: /schema/pr/${{ github.event.number }}/
           SCHEMA_PREVIEW: ${{ env.SCHEMA_PREVIEW }}
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: build-artifact
           path: ${{ env.DOCS_PATH }}/build
@@ -90,19 +87,20 @@ jobs:
     env:
       AWS_ROLE_ARN: arn:aws:iam::763944545891:role/pages-staging-oidc-overturemaps
       AWS_REGION: us-west-2
+      STAGING_URL: https://staging.overturemaps.org
     environment:
       name: staging
-      url: ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html
+      url: https://staging.overturemaps.org/schema/pr/${{ github.event.number }}/schema/index.html
 
     steps:
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Download build artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: build-artifact
           path: build
@@ -110,13 +108,13 @@ jobs:
       - name: Copy to S3
         run: |
           aws s3 sync --delete --quiet build \
-            s3://overture-managed-staging-usw2/gh-pages${{ env.PREVIEW_PATH }}/
+            s3://overture-managed-staging-usw2/gh-pages/schema/pr/${{ github.event.number }}/
 
       - name: Bust the cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id E1KP2IN0H2RGGT \
-            --paths "${{ env.PREVIEW_PATH }}/*"
+            --paths "/schema/pr/${{ github.event.number }}/*"
 
       - name: Gather metadata for PR comment
         id: deploy-metadata
@@ -125,17 +123,17 @@ jobs:
           echo "short-sha=$(echo '${{ github.event.pull_request.head.sha }}' | cut -c1-7)" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
-        uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # v3.0.2
+        uses: marocchino/sticky-pull-request-comment@d4d6b0936434b21bc8345ad45a440c5f7d2c40ff # v3.0.3
         with:
           message: |
             ## 🗺️ Schema reference docs preview is live!
 
             |                  |                                                                    |
             |------------------|--------------------------------------------------------------------|
-            | 🌍 **Preview**   | ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html |
+            | 🌍 **Preview**   | https://staging.overturemaps.org/schema/pr/${{ github.event.number }}/schema/index.html |
             | 🕐 **Updated**   | ${{ steps.deploy-metadata.outputs.time }} |
             | 📝 **Commit**    | [${{ steps.deploy-metadata.outputs.short-sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}) |
-            | 🔧 **env SCHEMA_PREVIEW** | `${{ env.SCHEMA_PREVIEW }}` |
+            | 🔧 **env SCHEMA_PREVIEW** | `true` |
 
             > [!NOTE]
             > ♻️ This preview updates automatically with each push to this PR.

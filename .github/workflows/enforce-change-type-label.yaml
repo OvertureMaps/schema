@@ -7,9 +7,13 @@ on:
 jobs:
   check-label:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read # Required for reading PR labels
+
     steps:
       - name: Require exactly one change type label
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const allChangeTypeLabels = new Set([
