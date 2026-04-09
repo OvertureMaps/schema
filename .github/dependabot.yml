@@ -13,3 +13,6 @@ updates:
     commit-message:
       prefix: "[CHORE](deps)"
       include: "scope"
+    review-before-merge: true
+    cooldown:
+      default-days: 7
