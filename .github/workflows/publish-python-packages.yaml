@@ -31,6 +31,8 @@ jobs:
   check:
     if: github.event.repository.full_name == github.repository
     uses: ./.github/workflows/reusable-check-python-package-versions.yaml
+    permissions:
+      id-token: write # Required for OIDC in reusable workflow to check AWS CodeArtifact
     with:
       before_commit: ${{ github.event.before }}
       after_commit: ${{ github.event.after }}
@@ -40,6 +42,7 @@ jobs:
     if: github.event.repository.full_name == github.repository && needs.check.outputs.num_changed_packages > 0
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       id-token: write # Required for OIDC authentication to AWS
 
     strategy:

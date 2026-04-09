@@ -56,6 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write # Required for OIDC authentication to AWS to check CodeArtifact
 
     outputs:
       changed_packages: ${{ steps.save-changes.outputs.changed_packages }}
