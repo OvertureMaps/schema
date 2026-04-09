@@ -1,0 +1,141 @@
+---
+name: Schema PR Preview
+run-name: Deploy schema docs preview for PR #${{ github.event.number }}
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: schema-pr-preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  STAGING_URL: https://staging.overturemaps.org
+  PREVIEW_PATH: /schema/pr/${{ github.event.number }}
+  SCHEMA_PREVIEW: 'true'
+
+jobs:
+  check-fork:
+    name: Check fork
+    runs-on: ubuntu-slim
+    steps:
+      - name: Staging deploy is not supported for fork PRs
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "::warning title=Staging deploy not supported for fork PRs::Staging previews are only available for PRs from branches within this repository, not forks. Please open your PR from a branch in OvertureMaps/schema instead."
+  build:
+    name: Build
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    needs: check-fork
+    env:
+      DOCS_PATH: _docs
+    steps:
+      - name: Check out schema repo
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check out docs repo
+        uses: actions/checkout@v6
+        with:
+          repository: OvertureMaps/docs
+          path: ${{ env.DOCS_PATH }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.DOCS_PATH }}/package.json
+
+      # Configure npm for faster CI context installs
+      - uses: lowlydba/sustainable-npm@31d51025884f424f58f22e4e6578178bb4e79632 # v3.0.0
+
+      - name: Install NPM dependencies
+        working-directory: ${{ env.DOCS_PATH }}
+        run: npm ci --omit=dev
+
+      - name: Generate schema markdown docs
+        uses: OvertureMaps/workflows/.github/actions/generate-schema-docs@main
+        with:
+          output-dir: ${{ github.workspace }}/${{ env.DOCS_PATH }}/docs/schema/reference
+          schema-path: .
+          skip-checkout: 'true' # Repo is already checked out at root, and action defaults to looking there
+
+      - name: Build Docusaurus site
+        working-directory: ${{ env.DOCS_PATH }}
+        run: npm run build
+        env:
+          DOCUSAURUS_URL: ${{ env.STAGING_URL }}/
+          DOCUSAURUS_BASE_URL: ${{ env.PREVIEW_PATH }}/
+          SCHEMA_PREVIEW: ${{ env.SCHEMA_PREVIEW }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-artifact
+          path: ${{ env.DOCS_PATH }}/build
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-slim
+    needs: [check-fork, build]
+    permissions:
+      id-token: write
+      pull-requests: write
+    env:
+      AWS_ROLE_ARN: arn:aws:iam::763944545891:role/pages-staging-oidc-overturemaps
+      AWS_REGION: us-west-2
+    environment:
+      name: staging
+      url: ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: build-artifact
+          path: build
+
+      - name: Copy to S3
+        run: |
+          aws s3 sync --delete --quiet build \
+            s3://overture-managed-staging-usw2/gh-pages${{ env.PREVIEW_PATH }}/
+
+      - name: Bust the cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E1KP2IN0H2RGGT \
+            --paths "${{ env.PREVIEW_PATH }}/*"
+
+      - name: Gather metadata for PR comment
+        id: deploy-metadata
+        run: |
+          echo "time=$(date -u +'%b %d, %Y %H:%M UTC')" >> $GITHUB_OUTPUT
+          echo "short-sha=$(echo '${{ github.event.pull_request.head.sha }}' | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        uses: marocchino/sticky-pull-request-comment@d4d6b0936434b21bc8345ad45a440c5f7d2c40ff # v3.0.3
+        with:
+          message: |
+            ## 🗺️ Schema reference docs preview is live!
+
+            |                  |                                                                    |
+            |------------------|--------------------------------------------------------------------|
+            | 🌍 **Preview**   | ${{ env.STAGING_URL }}${{ env.PREVIEW_PATH }}/schema/index.html |
+            | 🕐 **Updated**   | ${{ steps.deploy-metadata.outputs.time }} |
+            | 📝 **Commit**    | [${{ steps.deploy-metadata.outputs.short-sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}) |
+            | 🔧 **env SCHEMA_PREVIEW** | `${{ env.SCHEMA_PREVIEW }}` |
+
+            > [!NOTE]
+            > ♻️ This preview updates automatically with each push to this PR.

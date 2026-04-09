@@ -14,6 +14,7 @@ from overture.schema.system._json_schema import (
     put_one_of,
     put_properties,
     put_required,
+    required_non_null,
     try_move,
 )
 
@@ -561,3 +562,44 @@ def test_try_move_missing_key() -> None:
 
     assert {"foo": "bar"} == src
     assert {} == dst
+
+
+####################################################################################################
+#                                        required_non_null                                         #
+####################################################################################################
+
+
+@pytest.mark.parametrize(
+    "aliases,expect",
+    [
+        (
+            ["foo"],
+            {
+                "required": ["foo"],
+                "properties": {"foo": {"not": {"type": "null"}}},
+            },
+        ),
+        (
+            ["foo", "bar"],
+            {
+                "required": ["foo", "bar"],
+                "properties": {
+                    "foo": {"not": {"type": "null"}},
+                    "bar": {"not": {"type": "null"}},
+                },
+            },
+        ),
+    ],
+)
+def test_required_non_null_success(aliases: list[str], expect: JsonSchemaValue) -> None:
+    assert expect == required_non_null(aliases)
+
+
+def test_required_non_null_error_empty() -> None:
+    with pytest.raises(ValueError, match="`operands` cannot be empty"):
+        required_non_null([])
+
+
+def test_required_non_null_error_not_list() -> None:
+    with pytest.raises(TypeError, match="`operands` must be a `list`"):
+        required_non_null(cast(list[str], "foo"))

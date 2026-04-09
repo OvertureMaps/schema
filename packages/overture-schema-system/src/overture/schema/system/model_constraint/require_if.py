@@ -1,5 +1,5 @@
 """
-Require every field in a group of fields to have a value explicitly set, but only if a condition is
+Require every field in a group of fields to have a non-`None` value, but only if a condition is
 true.
 """
 
@@ -8,7 +8,7 @@ from collections.abc import Callable
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 
-from .._json_schema import get_static_json_schema_extra, put_if
+from .._json_schema import get_static_json_schema_extra, put_if, required_non_null
 from .model_constraint import (
     Condition,
     OptionalFieldGroupConstraint,
@@ -22,12 +22,12 @@ def require_if(
 ) -> Callable[[type[BaseModel]], type[BaseModel]]:
     """
     Decorate a Pydantic model class with a constraint requiring all of the named fields to have a
-    value explicitly set, but only if a condition is true.
+    non-`None` value, but only if a condition is true.
 
     To ensure parity between Python and JSON Schema validation, a field's value must be explicitly
-    set to satisfy the constraint. This means in particular that fields whose value was set by
-    Pydantic using a default value do not count as having a set value, and fields containing the
-    value `None`, if this value was explicitly set rather than being inherited by default, do count.
+    set to a non-`None` value to satisfy the constraint. Fields whose value was set by Pydantic
+    using a default are treated as absent and violate the constraint, as do fields explicitly set
+    to `None`.
 
     Parameters
     ----------
@@ -61,7 +61,16 @@ def require_if(
     ...     MyModel(foo='special value')
     ... except ValidationError as e:
     ...     assert (
-    ...         'at least one field is missing an explicit value when it should have one: bar, baz'
+    ...         'at least one field is not set to a value other than None: bar, baz'
+    ...     ) in str(e)
+    ...     print('Validation failed')
+    Validation failed
+    >>>
+    >>> try:
+    ...     MyModel(foo='special value', bar=None, baz=None)
+    ... except ValidationError as e:
+    ...     assert (
+    ...         'at least one field is not set to a value other than None: bar, baz'
     ...     ) in str(e)
     ...     print('Validation failed')
     Validation failed
@@ -125,13 +134,15 @@ class RequireIfConstraint(OptionalFieldGroupConstraint):
             return
 
         missing_fields = [
-            f for f in self.field_names if f not in model_instance.model_fields_set
+            f
+            for f in self.field_names
+            if not self._field_has_non_none_value(model_instance, f)
         ]
 
         if missing_fields:
             raise ValueError(
-                f"at least one field is missing an explicit value when it should have one: {', '.join(missing_fields)} - "
-                f"these field value(s) are required because {self.__condition} is true` (`{self.name}`)"
+                f"at least one field is not set to a value other than None: {', '.join(missing_fields)} - "
+                f"these field(s) are required because {self.__condition} is true (`{self.name}`)"
             )
 
     @override
@@ -140,8 +151,9 @@ class RequireIfConstraint(OptionalFieldGroupConstraint):
 
         json_schema = get_static_json_schema_extra(config)
 
+        aliases = [apply_alias(model_class, f) for f in self.field_names]
         put_if(
             json_schema,
             self.__condition.json_schema(model_class),
-            {"required": [apply_alias(model_class, f) for f in self.field_names]},
+            required_non_null(aliases),
         )

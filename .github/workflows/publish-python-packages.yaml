@@ -6,6 +6,7 @@ on:
     paths:
       - '**/pyproject.toml'
       - 'packages/**/__about__.py'
+  workflow_dispatch:
     inputs:
       aws_iam_role_name:
         description: The name of the IAM role to assume for accessing CodeArtifact
@@ -44,18 +45,18 @@ jobs:
         include: ${{ fromJson(needs.check.outputs.changed_packages) }}
     steps:
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           version: latest
 
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Sync code to make packages visible to Python
         run: uv sync --all-packages
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-region: us-west-2
           role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
@@ -64,16 +65,18 @@ jobs:
       - name: Get CodeArtifact publish URL
         id: get-code-artifact-params
         run: |
-          echo 'token<<EOF' >> $GITHUB_OUTPUT
-          ./.github/workflows/scripts/code-artifact.sh token \
-            505071440022 us-west-2 overture-pypi >> $GITHUB_OUTPUT
-          echo EOF >> $GITHUB_OUTPUT
-          echo 'publish_url<<EOF' >> $GITHUB_OUTPUT
-          ./.github/workflows/scripts/code-artifact.sh publish-url \
-            505071440022 us-west-2 overture-pypi overture >> $GITHUB_OUTPUT
-          echo EOF >> $GITHUB_OUTPUT
+          token=$(./.github/workflows/scripts/code-artifact.sh token \
+            505071440022 us-west-2 overture-pypi)
+          echo "::add-mask::${token}"
+          echo "token=${token}" >> $GITHUB_OUTPUT
+          publish_url=$(./.github/workflows/scripts/code-artifact.sh publish-url \
+            505071440022 us-west-2 overture-pypi overture)
+          echo "publish_url=${publish_url}" >> $GITHUB_OUTPUT
 
       - name: Publish package ${{ matrix.package }} version ${{ matrix.after }} to PyPI
+        env:
+          CA_TOKEN: ${{ steps.get-code-artifact-params.outputs.token }}
+          CA_PUBLISH_URL: ${{ steps.get-code-artifact-params.outputs.publish_url }}
         run: |
           package="${{ matrix.package }}"
           before="${{ matrix.before }}"
@@ -91,5 +94,5 @@ jobs:
             exit 1
           fi
           uv publish "$wheel" "$tarball" \
-             -t "${{ steps.get-code-artifact-params.outputs.token }}" \
-            --publish-url "${{ steps.get-code-artifact-params.outputs.publish_url }}"
+             -t "${CA_TOKEN}" \
+            --publish-url "${CA_PUBLISH_URL}"

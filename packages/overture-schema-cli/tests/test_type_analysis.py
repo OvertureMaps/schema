@@ -10,7 +10,7 @@ from overture.schema.cli.type_analysis import (
     get_or_create_structural_tuple,
     introspect_union,
 )
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Discriminator, Field
 
 
 class TestStructuralTuples:
@@ -29,14 +29,9 @@ class TestStructuralTuples:
 
         UnionType = Annotated[ModelA | ModelB, Field(discriminator="type")]
 
-        # Test simple discriminated union error path
         loc = ("a", "required_a")
         metadata = introspect_union(UnionType)
         structural = create_structural_tuple(loc, metadata)
-        print(f"\nloc: {loc}")
-        print(f"structural: {structural}")
-        assert len(structural) == len(loc)
-        # First element should be discriminator, second should be field
         assert structural == ("discriminator", "field")
 
     def test_mixed_union_structural_tuple(self) -> None:
@@ -56,17 +51,11 @@ class TestStructuralTuples:
         # Test discriminated side
         loc1 = ("tagged-union[ModelA]", "a", "required_a")
         structural1 = create_structural_tuple(loc1, metadata)
-        print("\nDiscriminated side:")
-        print(f"loc: {loc1}")
-        print(f"structural: {structural1}")
         assert structural1 == ("union", "discriminator", "field")
 
         # Test non-discriminated side
         loc2 = ("Sources", "datasets")
         structural2 = create_structural_tuple(loc2, metadata)
-        print("\nNon-discriminated side:")
-        print(f"loc: {loc2}")
-        print(f"structural: {structural2}")
         assert structural2 == ("model", "field")
 
     def test_list_context_structural_tuple(self) -> None:
@@ -78,13 +67,9 @@ class TestStructuralTuples:
 
         UnionType = Annotated[ModelA, Field(discriminator="type")]
 
-        # Test list context
         loc = (1, "a", "required_a")
         metadata = introspect_union(list[UnionType])
         structural = create_structural_tuple(loc, metadata)
-        print("\nList context:")
-        print(f"loc: {loc}")
-        print(f"structural: {structural}")
         assert structural == ("list_index", "discriminator", "field")
 
     def test_nested_discriminated_structural_tuple(self) -> None:
@@ -114,13 +99,9 @@ class TestStructuralTuples:
         FeatureUnion = Annotated[Building | SegmentUnion, Field(discriminator="type")]
         MixedUnion = FeatureUnion | Sources
 
-        # Test nested discriminator path (type=segment, subtype=road)
         loc = ("tagged-union[SegmentUnion]", "segment", "road", "road_class")
         metadata = introspect_union(MixedUnion)
         structural = create_structural_tuple(loc, metadata)
-        print("\nNested discriminated:")
-        print(f"loc: {loc}")
-        print(f"structural: {structural}")
         assert structural == ("union", "discriminator", "discriminator", "field")
 
 
@@ -253,34 +234,70 @@ class TestIntrospectUnion:
         assert metadata.discriminator_field == "type"
         assert "a" in metadata.discriminator_to_model
 
-    @pytest.mark.parametrize(
-        "literal_value,expected_in_mapping",
-        [
-            pytest.param("building", True, id="literal_building"),
-            pytest.param("place", True, id="literal_place"),
-            pytest.param("nonexistent", False, id="not_present"),
-        ],
-    )
-    def test_introspect_extracts_all_literals(
-        self, literal_value: str, expected_in_mapping: bool
-    ) -> None:
-        """Test that introspect_union extracts all Literal field values."""
+
+class TestDiscriminatorDiscovery:
+    """Tests for runtime discriminator field discovery (not hardcoded)."""
+
+    def test_nonstandard_discriminator_field_name(self) -> None:
+        """Discriminator field not named type/theme/subtype is discovered at runtime."""
+
+        class Cat(BaseModel):
+            kind: Literal["cat"]
+            indoor: bool
+
+        class Dog(BaseModel):
+            kind: Literal["dog"]
+            breed: str
+
+        UnionType = Annotated[Cat | Dog, Field(discriminator="kind")]
+        metadata = introspect_union(UnionType)
+
+        assert metadata.is_discriminated is True
+        assert metadata.discriminator_field == "kind"
+        assert metadata.discriminator_to_model["cat"] == Cat
+        assert metadata.discriminator_to_model["dog"] == Dog
+
+    def test_non_discriminator_literal_fields_excluded(self) -> None:
+        """Literal fields that aren't the discriminator are not in the mapping."""
 
         class Building(BaseModel):
             type: Literal["building"]
-            subtype: Literal["residential"]
+            status: Literal["active"]
 
         class Place(BaseModel):
             type: Literal["place"]
-            category: Literal["restaurant"]
+            status: Literal["active"]
 
         UnionType = Annotated[Building | Place, Field(discriminator="type")]
         metadata = introspect_union(UnionType)
 
-        if expected_in_mapping:
-            assert literal_value in metadata.discriminator_to_model
-        else:
-            assert literal_value not in metadata.discriminator_to_model
+        assert "building" in metadata.discriminator_to_model
+        assert "place" in metadata.discriminator_to_model
+        assert "active" not in metadata.discriminator_to_model
+
+    def test_callable_discriminator_extracts_field_name(self) -> None:
+        """Callable discriminators (Feature.field_discriminator) are supported."""
+
+        class ModelA(BaseModel):
+            kind: Literal["a"]
+
+        class ModelB(BaseModel):
+            kind: Literal["b"]
+
+        def get_kind(data: object) -> str | None:
+            return data.get("kind") if isinstance(data, dict) else None
+
+        get_kind._field_name = "kind"  # type: ignore[attr-defined]
+
+        UnionType = Annotated[
+            ModelA | ModelB, Field(discriminator=Discriminator(get_kind))
+        ]
+        metadata = introspect_union(UnionType)
+
+        assert metadata.is_discriminated is True
+        assert metadata.discriminator_field == "kind"
+        assert metadata.discriminator_to_model["a"] == ModelA
+        assert metadata.discriminator_to_model["b"] == ModelB
 
 
 class TestStructuralTupleCaching:

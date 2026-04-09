@@ -237,7 +237,7 @@ class BBox:
                 elif isinstance(value, tuple | list):
                     return cls.from_geo_json(value)
                 elif isinstance(value, dict):
-                    BBox(**value)
+                    return BBox(**value)
                 else:
                     raise TypeError(
                         f"expected `BBox` or `tuple` or `list`; got `{type(value).__name__}` with value {repr(value)}"

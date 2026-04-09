@@ -17,6 +17,72 @@ from overture.schema.system.field_constraint.string import (
     WikidataIdConstraint,
 )
 
+PATTERN_CONSTRAINT_CASES = [
+    (
+        LanguageTagConstraint,
+        ["en", "en-US", "en-GB", "zh-CN", "fr-CA", "es-MX"],
+        ["invalid-tag-format", "123", "en_US", "toolongcode"],
+        "Invalid IETF BCP-47 language tag",
+    ),
+    (
+        CountryCodeAlpha2Constraint,
+        ["US", "GB", "CA", "FR", "DE", "JP", "CN", "BR"],
+        ["USA", "123", "invalid", "gb", "us"],
+        "Invalid ISO 3166-1 alpha-2 country code",
+    ),
+    (
+        RegionCodeConstraint,
+        ["US-CA", "GB-ENG", "CA-ON", "FR-75", "DE-BY"],
+        ["US", "123-45", "invalid-region", "us-ca"],
+        "Invalid ISO 3166-2 subdivision code",
+    ),
+    (
+        WikidataIdConstraint,
+        ["Q1", "Q123", "Q999999", "Q1234567890"],
+        ["q123", "P123", "Q", "123", "Q12abc"],
+        "Invalid Wikidata identifier",
+    ),
+    (
+        PhoneNumberConstraint,
+        ["+1-555-123-4567", "+44-20-7946-0958", "+33-1-42-86-83-26", "+81-3-1234-5678"],
+        ["555-123-4567", "1-555-123-4567", "not-a-phone"],
+        "Invalid phone number format",
+    ),
+    (
+        HexColorConstraint,
+        ["#FFFFFF", "#000000", "#FF0000", "#ffffff", "#FFF", "#fff", "#ABC", "#123"],
+        ["FFFFFF", "#FF", "#FFFFFFF", "#GGGGGG", "red", "#", "#FFFF"],
+        "Invalid hexadecimal color format",
+    ),
+    (
+        NoWhitespaceConstraint,
+        ["hello", "identifier123", "snake_case_id", "kebab-case-id", "camelCaseId"],
+        [
+            "hello world",
+            "id with spaces",
+            "tab\tcharacter",
+            "new\nline",
+            "carriage\rreturn",
+        ],
+        "cannot contain whitespace",
+    ),
+    (
+        SnakeCaseConstraint,
+        ["restaurant", "gas_station", "shopping_mall", "coffee_shop", "bank_atm"],
+        ["Restaurant", "gas-station", "shopping mall", "category!"],
+        "Invalid category format",
+    ),
+    (
+        StrippedConstraint,
+        ["hello", "hello world", "text with internal spaces", ""],
+        [" hello", "hello ", "\thello", "hello\n", " hello world "],
+        "leading or trailing whitespace",
+    ),
+]
+
+
+PATTERN_CONSTRAINT_IDS = [cls.__name__ for cls, *_ in PATTERN_CONSTRAINT_CASES]
+
 
 class TestStringConstraints:
     """Test all string-based constraints."""
@@ -28,7 +94,6 @@ class TestStringConstraints:
         class TestModel(BaseModel):
             code: Annotated[str, constraint]
 
-        # Valid values
         model = TestModel(code="US")
         assert model.code == "US"
 
@@ -42,7 +107,6 @@ class TestStringConstraints:
         class TestModel(BaseModel):
             code: Annotated[str, constraint]
 
-        # Invalid values
         with pytest.raises(ValidationError) as exc_info:
             TestModel(code="usa")
         assert "Must be 2 uppercase letters" in str(exc_info.value)
@@ -50,85 +114,46 @@ class TestStringConstraints:
         with pytest.raises(ValidationError):
             TestModel(code="123")
 
-    def test_language_tag_constraint_valid(self) -> None:
-        """Test LanguageTagConstraint with valid language tags."""
-
+    @pytest.mark.parametrize(
+        "constraint_cls,valid,invalid,error_substr",
+        PATTERN_CONSTRAINT_CASES,
+        ids=PATTERN_CONSTRAINT_IDS,
+    )
+    def test_subclass_valid(
+        self,
+        constraint_cls: type,
+        valid: list[str],
+        invalid: list[str],
+        error_substr: str,
+    ) -> None:
         class TestModel(BaseModel):
-            language: Annotated[str, LanguageTagConstraint()]
+            value: Annotated[str, constraint_cls()]
 
-        # Valid language tags
-        valid_tags = ["en", "en-US", "en-GB", "zh-CN", "fr-CA", "es-MX"]
+        for v in valid:
+            model = TestModel(value=v)
+            assert model.value == v
 
-        for tag in valid_tags:
-            model = TestModel(language=tag)
-            assert model.language == tag
-
-    def test_language_tag_constraint_invalid(self) -> None:
-        """Test LanguageTagConstraint with invalid language tags."""
-
+    @pytest.mark.parametrize(
+        "constraint_cls,valid,invalid,error_substr",
+        PATTERN_CONSTRAINT_CASES,
+        ids=PATTERN_CONSTRAINT_IDS,
+    )
+    def test_subclass_invalid(
+        self,
+        constraint_cls: type,
+        valid: list[str],
+        invalid: list[str],
+        error_substr: str,
+    ) -> None:
         class TestModel(BaseModel):
-            language: Annotated[str, LanguageTagConstraint()]
+            value: Annotated[str, constraint_cls()]
 
-        invalid_tags = ["invalid-tag-format", "123", "en_US", "toolongcode"]
-
-        for tag in invalid_tags:
+        for v in invalid:
             with pytest.raises(ValidationError) as exc_info:
-                TestModel(language=tag)
-            assert "Invalid IETF BCP-47 language tag" in str(exc_info.value)
-
-    def test_country_code_constraint_valid(self) -> None:
-        """Test CountryCodeAlpha2Constraint with valid ISO 3166-1 alpha-2 codes."""
-
-        class TestModel(BaseModel):
-            country: Annotated[str, CountryCodeAlpha2Constraint()]
-
-        valid_codes = ["US", "GB", "CA", "FR", "DE", "JP", "CN", "BR"]
-
-        for code in valid_codes:
-            model = TestModel(country=code)
-            assert model.country == code
-
-    def test_country_code_constraint_invalid(self) -> None:
-        """Test CountryCodeAlpha2Constraint with invalid country codes."""
-
-        class TestModel(BaseModel):
-            country: Annotated[str, CountryCodeAlpha2Constraint()]
-
-        invalid_codes = ["USA", "123", "invalid", "gb", "us"]
-
-        for code in invalid_codes:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(country=code)
-            assert "Invalid ISO 3166-1 alpha-2 country code" in str(exc_info.value)
-
-    def test_region_code_constraint_valid(self) -> None:
-        """Test RegionCodeConstraint with valid ISO 3166-2 codes."""
-
-        class TestModel(BaseModel):
-            region: Annotated[str, RegionCodeConstraint()]
-
-        valid_codes = ["US-CA", "GB-ENG", "CA-ON", "FR-75", "DE-BY"]
-
-        for code in valid_codes:
-            model = TestModel(region=code)
-            assert model.region == code
-
-    def test_region_code_constraint_invalid(self) -> None:
-        """Test RegionCodeConstraint with invalid region codes."""
-
-        class TestModel(BaseModel):
-            region: Annotated[str, RegionCodeConstraint()]
-
-        invalid_codes = ["US", "123-45", "invalid-region", "us-ca"]
-
-        for code in invalid_codes:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(region=code)
-            assert "Invalid ISO 3166-2 subdivision code" in str(exc_info.value)
+                TestModel(value=v)
+            assert error_substr in str(exc_info.value)
 
     def test_json_pointer_constraint_valid(self) -> None:
-        """Test JsonPointerConstraint with valid JSON pointers."""
-
         class TestModel(BaseModel):
             pointer: Annotated[str, JsonPointerConstraint()]
 
@@ -138,8 +163,8 @@ class TestStringConstraints:
             "/foo/bar",
             "/0",
             "/foo/0/bar",
-            "/~0",  # Represents ~
-            "/~1",  # Represents /
+            "/~0",
+            "/~1",
         ]
 
         for ptr in valid_pointers:
@@ -147,210 +172,17 @@ class TestStringConstraints:
             assert model.pointer == ptr
 
     def test_json_pointer_constraint_invalid(self) -> None:
-        """Test JsonPointerConstraint with invalid JSON pointers."""
-
         class TestModel(BaseModel):
             pointer: Annotated[str, JsonPointerConstraint()]
 
-        invalid_pointers = [
-            "foo",  # Must start with /
-            "foo/bar",  # Must start with /
-        ]
-
-        for ptr in invalid_pointers:
+        for ptr in ["foo", "foo/bar"]:
             with pytest.raises(ValidationError) as exc_info:
                 TestModel(pointer=ptr)
             assert "JSON Pointer must start" in str(exc_info.value)
 
-    def test_whitespace_constraint_valid(self) -> None:
-        """Test WhitespaceConstraint with valid strings (no leading/trailing
-        whitespace)."""
-
-        class TestModel(BaseModel):
-            text: Annotated[str, StrippedConstraint()]
-
-        valid_strings = [
-            "hello",
-            "hello world",
-            "text with internal spaces",
-            "",  # Empty string is valid
-        ]
-
-        for text in valid_strings:
-            model = TestModel(text=text)
-            assert model.text == text
-
-    def test_whitespace_constraint_invalid(self) -> None:
-        """Test WhitespaceConstraint with invalid strings (leading/trailing
-        whitespace)."""
-
-        class TestModel(BaseModel):
-            text: Annotated[str, StrippedConstraint()]
-
-        invalid_strings = [
-            " hello",  # Leading space
-            "hello ",  # Trailing space
-            "\thello",  # Leading tab
-            "hello\n",  # Trailing newline
-            " hello world ",  # Both leading and trailing
-        ]
-
-        for text in invalid_strings:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(text=text)
-            assert "cannot have leading or trailing whitespace" in str(exc_info.value)
-
-    def test_wikidata_constraint_valid(self) -> None:
-        """Test WikidataConstraint with valid Wikidata identifiers."""
-
-        class TestModel(BaseModel):
-            wikidata_id: Annotated[str, WikidataIdConstraint()]
-
-        valid_ids = ["Q1", "Q123", "Q999999", "Q1234567890"]
-
-        for wid in valid_ids:
-            model = TestModel(wikidata_id=wid)
-            assert model.wikidata_id == wid
-
-    def test_wikidata_constraint_invalid(self) -> None:
-        """Test WikidataConstraint with invalid Wikidata identifiers."""
-
-        class TestModel(BaseModel):
-            wikidata_id: Annotated[str, WikidataIdConstraint()]
-
-        invalid_ids = [
-            "q123",  # Lowercase q
-            "P123",  # Property instead of item
-            "Q",  # Missing number
-            "123",  # Missing Q prefix
-            "Q12abc",  # Non-numeric suffix
-        ]
-
-        for wid in invalid_ids:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(wikidata_id=wid)
-            assert "Invalid Wikidata identifier" in str(exc_info.value)
-
-    def test_phone_number_constraint_valid(self) -> None:
-        """Test PhoneNumberConstraint with valid international phone numbers."""
-
-        class TestModel(BaseModel):
-            phone: Annotated[str, PhoneNumberConstraint()]
-
-        valid_phones = [
-            "+1-555-123-4567",
-            "+44-20-7946-0958",
-            "+33-1-42-86-83-26",
-            "+81-3-1234-5678",
-            "+86-10-8888-8888",
-        ]
-
-        for phone in valid_phones:
-            model = TestModel(phone=phone)
-            assert model.phone == phone
-
-    def test_phone_number_constraint_invalid(self) -> None:
-        """Test PhoneNumberConstraint with invalid phone numbers."""
-
-        class TestModel(BaseModel):
-            phone: Annotated[str, PhoneNumberConstraint()]
-
-        invalid_phones = [
-            "555-123-4567",  # Missing country code
-            "1-555-123-4567",  # Missing +
-            "not-a-phone",  # Not a phone number
-        ]
-
-        for phone in invalid_phones:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(phone=phone)
-            assert "Invalid phone number format" in str(exc_info.value)
-
-    def test_hex_color_constraint_valid(self) -> None:
-        """Test HexColorConstraint with valid hex colors."""
-
-        class TestModel(BaseModel):
-            color: Annotated[str, HexColorConstraint()]
-
-        valid_colors = [
-            "#FFFFFF",
-            "#000000",
-            "#FF0000",
-            "#00FF00",
-            "#0000FF",
-            "#ABCDEF",
-            "#123456",
-            "#ffffff",  # lowercase
-            "#abcdef",  # lowercase
-            "#FFF",  # 3-character uppercase
-            "#fff",  # 3-character lowercase
-            "#ABC",  # 3-character mixed case
-            "#123",  # 3-character numbers
-        ]
-
-        for color in valid_colors:
-            model = TestModel(color=color)
-            assert model.color == color
-
-    def test_hex_color_constraint_invalid(self) -> None:
-        """Test HexColorConstraint with invalid hex colors."""
-
-        class TestModel(BaseModel):
-            color: Annotated[str, HexColorConstraint()]
-
-        invalid_colors = [
-            "FFFFFF",  # Missing #
-            "#FF",  # Too short (2 chars)
-            "#FFFFFFF",  # Too long (7 chars)
-            "#GGGGGG",  # Invalid hex characters
-            "red",  # Not hex
-            "#",  # Just hash
-            "#FFFF",  # Invalid length (4 chars)
-        ]
-
-        for color in invalid_colors:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(color=color)
-            # Just check that validation fails - message may vary
-            assert len(exc_info.value.errors()) > 0
-
-    def test_no_whitespace_constraint_valid(self) -> None:
-        """Test NoWhitespaceConstraint with valid strings (no whitespace)."""
-
-        class TestModel(BaseModel):
-            identifier: Annotated[str, NoWhitespaceConstraint()]
-
-        valid_identifiers = [
-            "hello",
-            "identifier123",
-            "snake_case_id",
-            "kebab-case-id",
-            "camelCaseId",
-        ]
-
-        for ident in valid_identifiers:
-            model = TestModel(identifier=ident)
-            assert model.identifier == ident
-
-    def test_no_whitespace_constraint_invalid(self) -> None:
-        """Test NoWhitespaceConstraint with invalid strings (containing whitespace)."""
-
-        class TestModel(BaseModel):
-            identifier: Annotated[str, NoWhitespaceConstraint()]
-
-        invalid_identifiers = [
-            "hello world",
-            "id with spaces",
-            "tab\tcharacter",
-            "new\nline",
-            "carriage\rreturn",
-        ]
-
-        for ident in invalid_identifiers:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(identifier=ident)
-            # Just check that validation fails - message may vary
-            assert len(exc_info.value.errors()) > 0
+    def test_stripped_constraint_pattern_string(self) -> None:
+        """Codegen extracts the regex via constraint.pattern.pattern."""
+        assert StrippedConstraint().pattern.pattern == r"^(\S(.*\S)?)?\Z"
 
 
 class TestJsonSchemaGeneration:
@@ -374,6 +206,23 @@ class TestJsonSchemaGeneration:
 
         # Check descriptions
         assert "IETF BCP-47 language tag" in props["language"].get("description", "")
+
+    def test_stripped_constraint_json_schema_pattern(self) -> None:
+        """StrippedConstraint's JSON schema pattern accepts empty string
+        and rejects leading/trailing whitespace."""
+        import re
+
+        class TestModel(BaseModel):
+            text: Annotated[str, StrippedConstraint()]
+
+        schema = TestModel.model_json_schema()
+        pattern = re.compile(schema["properties"]["text"]["pattern"])
+
+        assert pattern.match("") is not None
+        assert pattern.match("a") is not None
+        assert pattern.match("a b c") is not None
+        assert pattern.match(" leading") is None
+        assert pattern.match("trailing ") is None
 
 
 class TestErrorHandling:
@@ -424,38 +273,59 @@ class TestErrorHandling:
         error = exc_info.value
         assert error.error_count() >= 1
 
-    def test_snake_case_constraint_valid(self) -> None:
-        """Test CategoryPatternConstraint with valid snake_case patterns."""
+
+class TestPatternConstraintHierarchy:
+    """Test that pattern-based constraints extend PatternConstraint."""
+
+    @pytest.mark.parametrize(
+        "constraint_cls",
+        [
+            CountryCodeAlpha2Constraint,
+            HexColorConstraint,
+            LanguageTagConstraint,
+            NoWhitespaceConstraint,
+            SnakeCaseConstraint,
+            PhoneNumberConstraint,
+            RegionCodeConstraint,
+            StrippedConstraint,
+            WikidataIdConstraint,
+        ],
+    )
+    def test_pattern_constraints_are_pattern_constraint_instances(
+        self, constraint_cls: type
+    ) -> None:
+        assert isinstance(constraint_cls(), PatternConstraint)
+
+    def test_pattern_constraint_with_description_kwargs(self) -> None:
+        """Bare PatternConstraint with description/length kwargs emits correct JSON schema."""
+        constraint = PatternConstraint(
+            r"^[A-Z]{2}$",
+            "Must be 2 uppercase letters",
+            description="Two letter code",
+            min_length=2,
+            max_length=2,
+        )
 
         class TestModel(BaseModel):
-            category: Annotated[str, SnakeCaseConstraint()]
+            code: Annotated[str, constraint]
 
-        valid_categories = [
-            "restaurant",
-            "gas_station",
-            "shopping_mall",
-            "coffee_shop",
-            "bank_atm",
-        ]
+        schema = TestModel.model_json_schema()
+        props = schema["properties"]["code"]
+        assert props["pattern"] == "^[A-Z]{2}$"
+        assert props["description"] == "Two letter code"
+        assert props["minLength"] == 2
+        assert props["maxLength"] == 2
 
-        for cat in valid_categories:
-            model = TestModel(category=cat)
-            assert model.category == cat
-
-    def test_snake_case_constraint_invalid(self) -> None:
-        """Test CategoryPatternConstraint with invalid category patterns."""
+    def test_pattern_constraint_without_optional_kwargs(self) -> None:
+        """Bare PatternConstraint without optional kwargs omits them from JSON schema."""
+        constraint = PatternConstraint(r"^[A-Z]+$", "Must be uppercase")
 
         class TestModel(BaseModel):
-            category: Annotated[str, SnakeCaseConstraint()]
+            code: Annotated[str, constraint]
 
-        invalid_categories = [
-            "Restaurant",  # Capital letter
-            "gas-station",  # Hyphen instead of underscore
-            "shopping mall",  # Space instead of underscore
-            "category!",  # Special character
-        ]
-
-        for cat in invalid_categories:
-            with pytest.raises(ValidationError) as exc_info:
-                TestModel(category=cat)
-            assert "Invalid category format" in str(exc_info.value)
+        schema = TestModel.model_json_schema()
+        props = schema["properties"]["code"]
+        assert props["pattern"] == "^[A-Z]+$"
+        assert "description" not in props
+        assert "minLength" not in props
+        assert "maxLength" not in props

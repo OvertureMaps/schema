@@ -1,6 +1,6 @@
 # Overture Schema Core
 
-Core Pydantic models and base classes for Overture Maps schemas, providing foundational types, geometry handling, and a comprehensive scoping system for conditional rule application.
+Shared models and conventions for building Overture Maps feature types. Defines the base feature class all themes extend, a scoping framework for expressing conditional values (this speed limit applies *here*, *then*, to *these vehicles*), and common structures for names, sources, and cartographic hints.
 
 ## Installation
 
@@ -8,159 +8,90 @@ Core Pydantic models and base classes for Overture Maps schemas, providing found
 pip install overture-schema-core
 ```
 
-## Key Components
+## OvertureFeature
 
-- **Base Classes**: Extensible base models for Overture Maps features
-- **Geometry Types**: WKB geometry type hints and utilities
-- **Common Structures**: Shared models used across all themes
-- **Primitive Data Types**: Validated primitive types with multi-target serialization support
-- **Scoping System**: Flexible conditional rule application framework
-
-## Enhanced Primitive Types
-
-The enhanced primitive types system provides validated primitive types with automatic
-constraint checking and multi-target serialization support. This enables consistent type
-definitions that can generate appropriate representations for different targets (Spark,
-Parquet, etc.).
-
-### Available Types
-
-Built-in Python primitive types (`str`, `int`, `float`, `bool`, `list`, etc.) are
-automatically mapped.
-
-We also provide the following additional types:
-
-#### Integer Types
-
-- **`uint8`**: 8-bit unsigned integer (0-255)
-- **`uint16`**: 16-bit unsigned integer (0-65535)
-- **`uint32`**: 32-bit unsigned integer (0-4294967295)
-- **`int8`**: 8-bit signed integer (-128 to 127)
-- **`int32`**: 32-bit signed integer (-2³¹ to 2³¹-1)
-- **`int64`**: 64-bit signed integer (-2⁶³ to 2⁶³-1)
-
-#### Floating Point Types
-
-- **`float32`**: 32-bit floating point number
-- **`float64`**: 64-bit floating point number
-
-### Basic Usage
+Every Overture feature type inherits from `OvertureFeature`, which extends `system.Feature` with the fields present on all Overture data: `id`, `theme`, `type`, `version`, `geometry`, and `sources`.
 
 ```python
-from pydantic import BaseModel, Field
-from overture.schema.core.primitives import (
-    uint8, uint32, float32
-)
+from typing import Literal
+from overture.schema.core import OvertureFeature
 
-class Building(BaseModel):
-    """Building feature with specific primitive data types."""
-
-    height: float32 | None = Field(
-        None,
-        description="Height of building in meters"
-    )
-
-    num_floors: uint8 | None = Field(
-        None,
-        description="Number of floors in building"
-    )
-
-    area: uint32 | None = Field(
-        None,
-        description="Floor area in square meters"
-    )
+class Park(OvertureFeature[Literal["places"], Literal["park"]]):
+    area_hectares: float | None = None
 ```
 
-### Automatic Validation
+## Scoping
 
-Enhanced primitive types automatically validate constraints:
+Many Overture values only apply under specific conditions -- a speed limit that holds during rush hour, along a sub-segment, in the forward direction. The `@scoped` decorator adds conditional fields to any Pydantic model:
 
 ```python
-# Valid values
-building = Building(height=45.5, num_floors=12, area=2500)
+from pydantic import BaseModel
+from overture.schema.core.scoping import Scope, scoped
+from overture.schema.system.primitive import float32
 
-# Invalid values raise ValidationError
-Building(num_floors=256)  # Error: 256 > UInt8 maximum (255)
-Building(num_floors=-1)   # Error: -1 < UInt8 minimum (0)
+@scoped(Scope.GEOMETRIC_RANGE, Scope.TEMPORAL)
+class SpeedLimit(BaseModel):
+    max_speed: float32
 ```
 
-### Type Safety
+This produces a model with `between` (geometric range) and `when.during` (temporal) fields, both optional. The full set of scopes and the fields they inject:
 
-The enhanced primitive types provide strong type safety guarantees at both static and
-runtime levels:
+| Scope                      | Field             |
+|----------------------------|-------------------|
+| `Scope.GEOMETRIC_POSITION` | `at`              |
+| `Scope.GEOMETRIC_RANGE`    | `between`         |
+| `Scope.HEADING`            | `when.heading`    |
+| `Scope.TEMPORAL`           | `when.during`     |
+| `Scope.TRAVEL_MODE`        | `when.mode`       |
+| `Scope.PURPOSE_OF_USE`     | `when.using`      |
+| `Scope.RECOGNIZED_STATUS`  | `when.recognized` |
+| `Scope.SIDE`               | `side`            |
+| `Scope.VEHICLE`            | `when.vehicle`    |
 
-**Static Type Checking**: mypy can distinguish between different primitive types,
-*preventing common errors:
+Scopes are optional by default. Make them mandatory via `required`:
 
 ```python
-from overture.schema.core.primitives import uint8, uint32
-
-def process_floor_count(floors: uint8) -> str:
-    return f"Building has {floors} floors"
-
-def process_area(area: uint32) -> str:
-    return f"Area: {area} sq meters"
-
-# Type checker prevents mixing incompatible types
-floors: uint8 = 12
-area: uint32 = 2500
-
-process_floor_count(area)   # mypy error: Expected UInt8, got UInt32
-process_area(floors)        # mypy error: Expected UInt32, got UInt8
+@scoped(Scope.TEMPORAL, required=(Scope.GEOMETRIC_POSITION, Scope.HEADING))
+class TrafficSignal(BaseModel):
+    signal_type: str
 ```
 
+## Names
 
-### Examples
+Multilingual naming with support for common names, name rules (official, alternate, short variants), and scoping by geometric range, side, or political perspective. Mix `Named` into a feature type to give it a `names` field:
 
-#### Temporal Speed Limit
+```python
+from typing import Literal
+from overture.schema.core import OvertureFeature
+from overture.schema.core.names import Named
 
-```yaml
-speed_limits:
-  - between: [0, 1]
-    max_speed: {value: 30, unit: km/h}
-    when:
-      during: "Mo-Fr 07:00-09:00,17:00-19:00"  # Rush hours only
+class Lake(OvertureFeature[Literal["base"], Literal["water"]], Named):
+    pass  # inherits names: Names | None from Named
 ```
 
-#### Vehicle-Specific Access Restriction
+Name rules support geometric range and side scoping for cases like a street whose name changes partway along or differs on each side. `NameRule` variants: `common`, `official`, `alternate`, `short`.
 
-```yaml
-access_restrictions:
-  - between: [0.2, 0.8]
-    access_type: denied
-    when:
-      vehicle:
-        - dimension: weight
-          comparison: greater_than
-          value: 7.5
-          unit: t
+## Sources
+
+Source attribution tracking. Each `SourceItem` identifies which dataset a feature or property came from, with optional license, record ID, update time, and confidence score. Source items support geometric range scoping for per-segment attribution.
+
+```python
+from overture.schema.core.sources import SourceItem
+
+sources = [
+    SourceItem(property="", dataset="OpenStreetMap"),
+    SourceItem(property="/geometry", dataset="Microsoft ML Buildings"),
+    # first 30% of the segment's geometry came from a different source
+    SourceItem(property="/geometry", dataset="County GIS", between=[0, 0.3]),
+]
 ```
 
-#### Multi-Dimensional Scoping
+## Cartography
 
-```yaml
-access_restrictions:
-  - between: [0, 1]
-    access_type: denied
-    when:
-      mode: [bus]
-      during: "Mo-Fr 15:00-18:00"
-      heading: forward
-      using: [to_deliver]
-```
+Rendering hints for map-making: `prominence` (1--100 significance scale), `min_zoom`/`max_zoom` (tile zoom bounds), and `sort_key` (draw order). Mix `CartographicallyHinted` into a model to add a `cartography` field.
 
-### Design Principles
+## Also Included
 
-1. **Composability**: Mix-in design allows combining only needed scoping dimensions
-2. **Reusability**: Base scope classes work across all rule types and themes
-3. **Extensibility**: Easy to add new scoping dimensions or modify existing ones
-4. **Type Safety**: Full Pydantic validation for all scoping conditions
-5. **Linear Reference Integration**: Seamless integration with geometric positioning
-
-### Rule Complexity Patterns
-
-- **Simple Rules** (flags, dimensions): Geometric scoping only
-- **Complex Rules** (speed limits, access): Geometric + conditional scoping
-- **Transition Rules**: Full scoping including directional constraints
-
-This scoping system provides the foundation for precise, flexible rule specification across all Overture Maps transportation features.
+- **Types** -- domain-specific aliases built on system primitives: `ConfidenceScore` (0.0--1.0), `Level` (z-order), `FeatureVersion`.
+- **Units** -- measurement enumerations: `SpeedUnit`, `LengthUnit`, `WeightUnit`.
+- **Discovery** -- entry-point-based model registry. Theme packages register models via `overture.models` entry points; `discover_models()` resolves them at runtime.

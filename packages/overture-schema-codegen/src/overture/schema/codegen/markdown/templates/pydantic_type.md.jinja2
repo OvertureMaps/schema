@@ -1,0 +1,8 @@
+# {{ pydantic_type.name }}
+{% if pydantic_type.description %}
+
+{{ pydantic_type.description | linkify_urls }}
+{% endif %}
+
+See: [Pydantic docs]({{ pydantic_type.docs_url }})
+{% include '_used_by.md.jinja2' %}

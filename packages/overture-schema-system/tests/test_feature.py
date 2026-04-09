@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Annotated, Any, Literal, cast
 
 import pytest
+from _pytest.subtests import Subtests
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -15,7 +16,6 @@ from pydantic import (
     create_model,
 )
 from pydantic.json_schema import JsonSchemaValue, JsonValue
-from pytest_subtests import SubTests
 from util import assert_subset
 
 from overture.schema.system.feature import Feature, _FieldLevel, _maybe_refactor_schema
@@ -37,7 +37,7 @@ from overture.schema.system.primitive import (
 
 class TestFieldDiscriminator:
     @pytest.mark.parametrize("field", ["hello", "type", "properties"])
-    def test_validation_success_simple(self, field: str, subtests: SubTests) -> None:
+    def test_validation_success_simple(self, field: str, subtests: Subtests) -> None:
         """
         Test the discriminated union success case for a discriminator that is a simple string.
 
@@ -150,7 +150,7 @@ class TestFieldDiscriminator:
                 actual = tap.validate_python(expect)
                 assert expect == actual
 
-    def test_validation_success_convert(self, subtests: SubTests) -> None:
+    def test_validation_success_convert(self, subtests: Subtests) -> None:
         """
         Test the discriminated union success case where the discriminator value is of a variety of
         types.
@@ -226,7 +226,7 @@ class TestFieldDiscriminator:
                     model1_actual = tap.validate_python(model1_expect)
                     assert model1_expect == model1_actual
 
-    def test_validation_success_missing_discriminator(self, subtests: SubTests) -> None:
+    def test_validation_success_missing_discriminator(self, subtests: Subtests) -> None:
         """
         Tests a union of discriminated unions against an input that doesn't contain the
         contain the discriminator field of the first union, but does contain the discriminator field
@@ -331,6 +331,18 @@ class TestFieldDiscriminator:
             ValidationError, match="Unable to extract tag using discriminator"
         ):
             tap.validate_json(json.dumps(data))
+
+    def test_field_discriminator_attaches_field_name(self) -> None:
+        """The callable returned by field_discriminator carries _field_name for introspection."""
+
+        class A(Feature):
+            kind: Literal["a"]
+
+        class B(Feature):
+            kind: Literal["b"]
+
+        disc = Feature.field_discriminator("kind", A, B)
+        assert disc.discriminator._field_name == "kind"  # type: ignore[union-attr]
 
     def test_error_field_not_str(self) -> None:
         with pytest.raises(
@@ -1510,8 +1522,14 @@ class TestJsonSchema:
                 "properties": {
                     "required": ["baz"],
                     "anyOf": [
-                        {"required": ["foo"]},
-                        {"required": ["bar"]},
+                        {
+                            "required": ["foo"],
+                            "properties": {"foo": {"not": {"type": "null"}}},
+                        },
+                        {
+                            "required": ["bar"],
+                            "properties": {"bar": {"not": {"type": "null"}}},
+                        },
                     ],
                     "if": {
                         "properties": {
@@ -1521,7 +1539,10 @@ class TestJsonSchema:
                         },
                     },
                     "then": {
-                        "not": {"required": ["bar"]},
+                        "not": {
+                            "required": ["bar"],
+                            "properties": {"bar": {"not": {"type": "null"}}},
+                        },
                     },
                 },
             },
@@ -1556,12 +1577,18 @@ class TestJsonSchema:
                 "properties",
             ],
             "anyOf": [
-                {"required": ["bbox"]},
+                {
+                    "required": ["bbox"],
+                    "properties": {"bbox": {"not": {"type": "null"}}},
+                },
                 {
                     "properties": {
                         "properties": {
                             "type": "object",
-                            "required": ["foo"],
+                            "properties": {
+                                "foo": {"not": {"type": "null"}},
+                                "properties": {"type": "object", "required": ["foo"]},
+                            },
                         }
                     },
                 },
@@ -1569,7 +1596,13 @@ class TestJsonSchema:
                     "properties": {
                         "properties": {
                             "type": "object",
-                            "required": ["garply"],
+                            "properties": {
+                                "garply": {"not": {"type": "null"}},
+                                "properties": {
+                                    "type": "object",
+                                    "required": ["garply"],
+                                },
+                            },
                         },
                     },
                 },
@@ -1591,9 +1624,17 @@ class TestJsonSchema:
                     "then": {
                         "required": ["id"],
                         "properties": {
+                            "id": {"not": {"type": "null"}},
                             "properties": {
                                 "type": "object",
-                                "required": ["foo", "qux"],
+                                "properties": {
+                                    "foo": {"not": {"type": "null"}},
+                                    "qux": {"not": {"type": "null"}},
+                                    "properties": {
+                                        "type": "object",
+                                        "required": ["foo", "qux"],
+                                    },
+                                },
                             },
                         },
                     },
@@ -1616,7 +1657,14 @@ class TestJsonSchema:
                             "properties": {
                                 "properties": {
                                     "type": "object",
-                                    "required": ["foo", "type"],
+                                    "properties": {
+                                        "foo": {"not": {"type": "null"}},
+                                        "type": {"not": {"type": "null"}},
+                                        "properties": {
+                                            "type": "object",
+                                            "required": ["foo", "type"],
+                                        },
+                                    },
                                 }
                             }
                         },

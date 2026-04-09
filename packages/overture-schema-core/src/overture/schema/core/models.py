@@ -65,9 +65,9 @@ class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
             maybe_plural = "s" if len(invalid_extra_fields) > 1 else ""
             raise ValueError(
                 f"invalid extra field name{maybe_plural}: {', '.join(invalid_extra_fields)} "
-                "(extra fields are temporarily allowed, but only if their names start with 'ext_', "
-                "but all extra field name support in {self.__class__.__name__} is on a deprecation path"
-                "and will be removed)"
+                f"(extra fields are temporarily allowed, but only if their names start with 'ext_', "
+                f"but all extra field name support in {self.__class__.__name__} is on a deprecation path "
+                f"and will be removed)"
             )
         return self
 

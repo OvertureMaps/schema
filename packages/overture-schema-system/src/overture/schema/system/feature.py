@@ -30,6 +30,33 @@ from overture.schema.system.primitive import BBox, Geometry
 from overture.schema.system.ref import Id
 
 
+def resolve_discriminator_field_name(discriminator: object) -> str | None:
+    """Resolve a Pydantic discriminator value to its field name string.
+
+    Handles the three forms a discriminator can take:
+    - A plain string (used directly as the field name).
+    - A `pydantic.Discriminator` whose `.discriminator` attribute is a string.
+    - A `pydantic.Discriminator` whose `.discriminator` is a callable
+      produced by `Feature.field_discriminator`, which stores the field name
+      as `_field_name` on the callable.
+
+    Returns None if *discriminator* is None or its field name cannot be
+    determined.
+    """
+    if discriminator is None:
+        return None
+    if isinstance(discriminator, str):
+        return discriminator
+    inner = getattr(discriminator, "discriminator", None)
+    if isinstance(inner, str):
+        return inner
+    if callable(inner):
+        field_name = getattr(inner, "_field_name", None)
+        if isinstance(field_name, str):
+            return field_name
+    return None
+
+
 class Feature(BaseModel):
     """
     A feature is something you can point to on a map—like a building, road, lake, or park—with the
@@ -206,7 +233,10 @@ class Feature(BaseModel):
         Returns
         -------
         Discriminator
-            Discriminator that enables discriminated unions that include features
+            Discriminator that enables discriminated unions that include features.
+            The inner callable carries a `_field_name` attribute set to *field*,
+            allowing introspection code to recover the discriminator field name
+            without hardcoding it.
 
         Raises
         ------
@@ -296,6 +326,7 @@ class Feature(BaseModel):
                     else getattr(data, field, None)
                 )
 
+        get_discriminator_value._field_name = field  # type: ignore[attr-defined]
         return Discriminator(get_discriminator_value)
 
     @model_serializer(mode="wrap")

@@ -2,6 +2,7 @@
 
 import pytest
 from overture.schema.cli.commands import resolve_types
+from overture.schema.core.discovery import discover_models
 
 
 class TestResolveTypes:
@@ -124,8 +125,6 @@ class TestResolveTypes:
         expected_themes: set[str],
     ) -> None:
         """Test that resolve_types returns models from expected themes."""
-        from overture.schema.core.discovery import discover_models
-
         models = discover_models(namespace=namespace)
         actual_themes = {key.theme for key in models.keys()}
 

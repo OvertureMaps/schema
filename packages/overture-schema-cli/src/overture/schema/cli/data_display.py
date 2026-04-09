@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from rich import box
 from rich.panel import Panel
 from rich.table import Table
 
@@ -670,8 +671,6 @@ def create_feature_display(
             table.add_row(field_name_styled, value_styled, "", "")
 
     # Wrap table in a Panel with rounded borders
-    from rich import box
-
     # Add title: "Validation Failed" for single features, or item info for collections
     if item_index is not None:
         if item_type:
