@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl
 
 from overture.schema.core.names import Names
 from overture.schema.core.sources import SourceItem
@@ -20,7 +20,7 @@ from overture.schema.system.string import NoWhitespaceString, WikidataId
 @no_extra_fields
 class ColloquialAreaProperties(BaseModel):
     """Properties specific to colloquial area features.
-    
+
     Supplemental datasets do not use the 'theme' property since they are
     not part of the reference map themes.
     """
@@ -102,7 +102,6 @@ class ColloquialArea(Feature):
     have GERS IDs. Supplemental datasets do not use the 'theme' property.
     """
 
-    id: str
     geometry: Annotated[
         Geometry,
         GeometryTypeConstraint(GeometryType.POLYGON, GeometryType.MULTI_POLYGON),

@@ -1,12 +1,11 @@
 """Tests for ColloquialArea feature type."""
 
 import pytest
+from overture.schema.supplemental import ColloquialArea
 from pydantic import ValidationError
 
-from overture.schema.supplemental import ColloquialArea
 
-
-def test_colloquial_area_minimal():
+def test_colloquial_area_minimal() -> None:
     """Test minimal valid colloquial area."""
     data = {
         "id": "test:area:1",
@@ -42,7 +41,7 @@ def test_colloquial_area_minimal():
     assert area.properties.type == "colloquial_area"
 
 
-def test_colloquial_area_full():
+def test_colloquial_area_full() -> None:
     """Test colloquial area with all optional properties."""
     data = {
         "id": "test:area:east_asia",
@@ -86,10 +85,11 @@ def test_colloquial_area_full():
 
     area = ColloquialArea.model_validate(data)
     assert area.properties.wikidata == "Q27231"
+    assert area.properties.center_point is not None
     assert area.properties.center_point.to_geo_json()["coordinates"] == (122.5, 30.0)
 
 
-def test_colloquial_area_invalid_geometry():
+def test_colloquial_area_invalid_geometry() -> None:
     """Test that Point geometry is rejected."""
     data = {
         "id": "test:area:invalid",
@@ -112,7 +112,7 @@ def test_colloquial_area_invalid_geometry():
         ColloquialArea.model_validate(data)
 
 
-def test_colloquial_area_missing_names():
+def test_colloquial_area_missing_names() -> None:
     """Test that missing names property fails validation."""
     data = {
         "id": "test:area:invalid",
