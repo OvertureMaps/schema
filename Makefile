@@ -47,6 +47,7 @@ mypy-only:
 	@find packages -maxdepth 1 -type d -name "overture-schema*" \
 		| sort \
 		| sed 's|-theme$$||' \
+		| sed 's|-datasets$$||' \
 		| tr - . \
 		| sed 's|^packages/|-p |' \
 		| xargs uv run mypy --no-error-summary
