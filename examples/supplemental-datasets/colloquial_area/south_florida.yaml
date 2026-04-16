@@ -1,0 +1,33 @@
+---
+id: example:colloquial_area:south_florida
+type: Feature
+geometry:
+  type: Polygon
+  coordinates:
+    - [
+        [-82.0, 24.5],
+        [-80.0, 24.5],
+        [-80.0, 27.0],
+        [-82.0, 27.0],
+        [-82.0, 24.5]
+      ]
+properties:
+  type: colloquial_area
+  version: 1
+  names:
+    primary: South Florida
+    common:
+      en: South Florida
+      es: Sur de Florida
+  bbox: [-82.0, 24.5, -80.0, 27.0]
+  center_point:
+    type: Point
+    coordinates: [-81.0, 25.75]
+  parent_name: Florida
+  wikipedia_url: https://en.wikipedia.org/wiki/South_Florida
+  wikidata: Q618897
+  sources:
+    - property: ""
+      dataset: example_dataset
+      license: CC-BY-4.0
+      update_time: "2024-03-20T14:22:00Z"

@@ -1,0 +1,87 @@
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: colloquial_area
+description: >-
+  A colloquial area represents an informal, culturally defined, or commonly
+  referenced area that does not correspond to official administrative boundaries.
+  Unlike countries, states, counties, or cities whose boundaries are legally
+  defined, colloquial areas evolve from cultural, historical, economic, or
+  linguistic identity. These areas have no official ISO codes, no fixed
+  administrative definitions, and frequently overlap existing divisions.
+  They are nonetheless highly important for search, mapping, analytics, and
+  user experience.
+
+  Examples include South Florida (a cultural and economic region including
+  Miami, Fort Lauderdale, and West Palm Beach), East Asia (a macro-region
+  comprising Japan, South Korea, China, Mongolia, etc.), and Northern Italy
+  (regions north of the Po River, used in climate, economic, and tourism contexts).
+
+  Colloquial areas are part of supplemental datasets—single-source datasets
+  separate from the Overture reference map that follow a different release
+  cadence and do not have GERS IDs.
+type: object
+properties:
+  id: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/id }
+  geometry:
+    description: >-
+      Colloquial area geometries MUST be polygons or multi-polygons as
+      defined by the GeoJSON schema.
+    unevaluatedProperties: false
+    oneOf:
+      - "$ref": https://geojson.org/schema/Polygon.json
+      - "$ref": https://geojson.org/schema/MultiPolygon.json
+  properties:
+    unevaluatedProperties: false
+    required: [type, version, names, sources]
+    patternProperties:
+      ^ext_.*$:
+        description: "Additional top-level properties must be prefixed with `ext_`."
+    properties:
+      type:
+        description: Feature type for supplemental feeds
+        type: string
+        enum: [colloquial_area]
+      version: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/featureVersion }
+      sources: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/sources }
+      names: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/allNames }
+      bbox:
+        description: >-
+          Bounding box of the colloquial area stored as a property.
+          Format: [west, south, east, north].
+        type: array
+        items:
+          type: number
+        minItems: 4
+        maxItems: 4
+      center_point:
+        description: >-
+          Representative center point of the colloquial area, useful for
+          labeling or geocoding purposes.
+        type: object
+        required: [type, coordinates]
+        properties:
+          type:
+            type: string
+            enum: [Point]
+          coordinates:
+            description: >-
+              Coordinates in [longitude, latitude] format.
+            type: array
+            items:
+              type: number
+            minItems: 2
+            maxItems: 3
+      parent_name:
+        description: >-
+          Name of the parent geographic area containing this colloquial area,
+          such as a city, county, or region.
+        type: string
+        minLength: 1
+        pattern: ^(\S.*)?\S$
+      wikipedia_url:
+        description: >-
+          URL to the Wikipedia article about this colloquial area, if available.
+        type: string
+        format: uri
+        pattern: ^https?://
+      wikidata: { "$ref": ../defs.yaml#/$defs/propertyDefinitions/wikidata }

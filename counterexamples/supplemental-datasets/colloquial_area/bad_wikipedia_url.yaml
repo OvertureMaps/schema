@@ -1,0 +1,24 @@
+---
+# Invalid: wikipedia_url must be a valid URI with http/https scheme
+id: example:colloquial_area:bad_wikipedia_url
+type: Feature
+geometry:
+  type: Polygon
+  coordinates:
+    - [
+        [-74.0100, 40.7100],
+        [-74.0000, 40.7100],
+        [-74.0000, 40.7200],
+        [-74.0100, 40.7200],
+        [-74.0100, 40.7100]
+      ]
+properties:
+  type: colloquial_area
+  version: 1
+  names:
+    primary: Bad Wikipedia URL
+  wikipedia_url: not-a-valid-url
+  sources:
+    - property: ""
+      dataset: example_dataset
+      license: MIT

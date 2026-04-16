@@ -1,0 +1,36 @@
+---
+id: example:colloquial_area:east_asia
+type: Feature
+geometry:
+  type: Polygon
+  coordinates:
+    - [
+        [100.0, 10.0],
+        [145.0, 10.0],
+        [145.0, 50.0],
+        [100.0, 50.0],
+        [100.0, 10.0]
+      ]
+properties:
+  type: colloquial_area
+  version: 1
+  names:
+    primary: East Asia
+    common:
+      en: East Asia
+      zh-CN: 东亚
+      ja: 東アジア
+      ko: 동아시아
+      es: Asia Oriental
+      fr: Asie de l'Est
+  bbox: [100.0, 10.0, 145.0, 50.0]
+  center_point:
+    type: Point
+    coordinates: [122.5, 30.0]
+  wikipedia_url: https://en.wikipedia.org/wiki/East_Asia
+  wikidata: Q27231
+  sources:
+    - property: ""
+      dataset: example_dataset
+      license: ODbL-1.0
+      update_time: "2024-03-15T10:30:00Z"
