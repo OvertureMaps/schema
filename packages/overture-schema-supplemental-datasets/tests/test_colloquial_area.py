@@ -12,13 +12,15 @@ def test_colloquial_area_minimal() -> None:
         "type": "Feature",
         "geometry": {
             "type": "Polygon",
-            "coordinates": [[
-                [-74.01, 40.71],
-                [-74.00, 40.71],
-                [-74.00, 40.72],
-                [-74.01, 40.72],
-                [-74.01, 40.71],
-            ]],
+            "coordinates": [
+                [
+                    [-74.01, 40.71],
+                    [-74.00, 40.71],
+                    [-74.00, 40.72],
+                    [-74.01, 40.72],
+                    [-74.01, 40.71],
+                ]
+            ],
         },
         "properties": {
             "type": "colloquial_area",
@@ -48,13 +50,15 @@ def test_colloquial_area_full() -> None:
         "type": "Feature",
         "geometry": {
             "type": "Polygon",
-            "coordinates": [[
-                [100.0, 10.0],
-                [145.0, 10.0],
-                [145.0, 50.0],
-                [100.0, 50.0],
-                [100.0, 10.0],
-            ]],
+            "coordinates": [
+                [
+                    [100.0, 10.0],
+                    [145.0, 10.0],
+                    [145.0, 50.0],
+                    [100.0, 50.0],
+                    [100.0, 10.0],
+                ]
+            ],
         },
         "properties": {
             "type": "colloquial_area",
@@ -119,13 +123,15 @@ def test_colloquial_area_missing_names() -> None:
         "type": "Feature",
         "geometry": {
             "type": "Polygon",
-            "coordinates": [[
-                [-74.01, 40.71],
-                [-74.00, 40.71],
-                [-74.00, 40.72],
-                [-74.01, 40.72],
-                [-74.01, 40.71],
-            ]],
+            "coordinates": [
+                [
+                    [-74.01, 40.71],
+                    [-74.00, 40.71],
+                    [-74.00, 40.72],
+                    [-74.01, 40.72],
+                    [-74.01, 40.71],
+                ]
+            ],
         },
         "properties": {
             "type": "colloquial_area",
