@@ -542,11 +542,217 @@ Inheriting from `str, Enum` makes enum values work as both enums and strings, wh
 
 ### Relationship Patterns
 
-**What are relationships?** Relationships (or "associations") represent connections between different features or models. Think of them like links that connect related pieces of information - for example, a city center that belongs to an administrative area, or a transportation segment that connects to specific intersections.
+#### What are relationships?
 
-Pydantic provides several ways to express these relationships, each suited to different use cases and complexity levels.
+Relationships (or "associations") represent connections between different features or models. Think of them like links that connect related pieces of information — for example, a building part that is structurally part of a building, or a division area that is administratively nested under a division.
 
-#### 1. Direct References (Foreign Keys)
+Pydantic provides several ways to express these relationships, each suited to different use cases and complexity levels. Before choosing a pattern, it's important to understand the **semantic type** of the relationship you're modeling.
+
+---
+
+#### Semantic Relationship Types
+
+Every relationship between two features carries a semantic meaning about coupling strength, lifecycle dependency, and ownership. The schema defines four relationship types, ordered from strongest to weakest coupling.
+
+The types describe the *nature* of the link, not which feature is "parent" or "child." Direction is implicit in which feature holds the reference — the field's owner is the source, the referenced type is the target.
+
+```python
+class Relationship(str, Enum):
+    """Semantic relationship types, ordered by coupling strength."""
+
+    # Composition: structural whole-part relationship.
+    # Lifecycle dependent — the part cannot exist without the whole.
+    # Also covers geometric roles like boundary definitions.
+    COMPOSITION = "composition"
+
+    # Aggregation: grouping relationship without lifecycle dependency.
+    # The member is independently viable and survives reassignment or orphaning.
+    AGGREGATION = "aggregation"
+
+    # Hierarchy: organizational or classificatory nesting.
+    # Not structural assembly — administrative parentage, taxonomy, categorization.
+    HIERARCHY = "hierarchy"
+
+    # Association: peer-level reference with no ownership or nesting.
+    # Neither feature depends on or contains the other.
+    ASSOCIATION = "association"
+```
+
+##### `COMPOSITION` — Structural Whole-Part
+
+A structural whole-part relationship with lifecycle dependency. The part has no independent meaning outside the whole. Deleting the whole invalidates the part.
+
+**Test question:** *"If I delete the whole, does keeping the part orphaned make any sense at all?"* If the answer is no, it's `COMPOSITION`.
+
+**Examples:**
+
+- `Building` → `BuildingPart` — building *has parts*
+- `BuildingPart` → `Building` — part *is part of* building
+- `BoundaryLine` → `Area` — line *defines the boundary of* area
+
+##### `AGGREGATION` — Grouping Without Lifecycle Dependency
+
+A grouping or collection relationship where the member is independently viable. No lifecycle dependency — the member survives reassignment to another group or orphaning.
+
+**Test question:** *"Can this thing belong to something else or nothing and still be a valid map feature?"* If yes, it's `AGGREGATION`.
+
+**Examples:**
+
+- `Route` → `Segment` — route *groups* segments
+- `TrailSegment` → `NationalPark` — segment *is grouped by* park
+
+##### `HIERARCHY` — Organizational Nesting
+
+An organizational or classificatory nesting relationship. This is not about structural assembly — it's about administrative parentage, taxonomy, or categorization, with property inheritance down the tree.
+
+**Test question:** *"Is this about organizational belonging rather than structural assembly?"* If yes, it's `HIERARCHY`.
+
+**Examples:**
+
+- `Division` → `DivisionArea` — division *has child* areas
+- `DivisionArea` → `Division` — area *is child of* division
+- `Place` → `AdminArea` — place nested under admin area
+- `POICategory` → `POI` — category *has child* POIs
+
+##### `ASSOCIATION` — Peer-Level Reference
+
+A peer-level reference with no ownership, containment, or nesting. Neither feature depends on or contains the other. This is the fallback when none of the stronger types apply.
+
+**Test question:** *"Are these just peers that know about each other?"* If yes, it's `ASSOCIATION`.
+
+**Examples:**
+
+- `Building` → `Address` — a building references its address, neither owns the other
+- `Bridge` → `River` — the bridge crosses the river, no ownership implied
+- `Segment` → `Connector` — segment references its start/end connector
+
+---
+
+#### Relationship Attributes
+
+Any relationship — regardless of semantic type — can carry attributes that describe the link itself (not the features it connects). There are two approaches, chosen by complexity.
+
+##### Inline Attributes (Lightweight)
+
+When a relationship needs one or two simple, typed attributes, attach them directly to the `Reference` annotation. This avoids the overhead of a separate association feature for metadata that is intrinsic to the link.
+
+```python
+class Reference:
+    """A typed reference from one feature to another."""
+
+    def __init__(
+        self,
+        relationship: Relationship,
+        target: type,
+        *,
+        order: int | None = None,
+        attrs: dict[str, Any] | None = None,
+    ):
+        self.relationship = relationship
+        self.target = target
+        self.order = order
+        self.attrs = attrs or {}
+```
+
+**Usage:**
+
+```python
+class Segment(OvertureFeature[Literal["transportation"], Literal["segment"]]):
+    from_connector_id: Annotated[
+        Id,
+        Reference(Relationship.ASSOCIATION, Connector),
+        Field(description="Connector at the start of this segment")
+    ]
+    to_connector_id: Annotated[
+        Id,
+        Reference(Relationship.ASSOCIATION, Connector),
+        Field(description="Connector at the end of this segment")
+    ]
+
+class Route(OvertureFeature[Literal["transportation"], Literal["route"]]):
+    segment_ids: Annotated[
+        list[Id],
+        Reference(
+            Relationship.AGGREGATION,
+            TransportationSegment,
+            order=0,  # signals that list order is semantically meaningful
+        ),
+        Field(description="Ordered segments aggregated into this route"),
+    ]
+```
+
+**Good candidates for inline attributes:**
+
+- `order` — position or sequence when ordering matters
+- `valid_from` / `valid_to` — simple temporal scoping of the link
+- `confidence` — a single trust score on the link
+
+##### Separate Association Feature (Rich)
+
+When the relationship carries multiple attributes, has its own identity, or needs to be independently queryable, escalate to a dedicated association feature (Pattern 2). This is the same approach described earlier.
+
+```python
+class AdminCityCenterAssociation(
+    OvertureFeature[Literal["associations"], Literal["admin_city_center"]]
+):
+    admin_area_id: Annotated[Id, Reference(Relationship.ASSOCIATION, AdminArea)]
+    city_center_id: Annotated[Id, Reference(Relationship.ASSOCIATION, CityCenter)]
+
+    # Rich attributes on the relationship
+    relationship_type: Literal["primary_center", "secondary_center"] = "primary_center"
+    established_date: str | None = None
+    confidence_score: Annotated[float64, Field(ge=0.0, le=1.0)] | None = None
+    notes: str | None = None
+```
+
+##### When to Escalate
+
+| Condition                                           | Use                          |
+| --------------------------------------------------  | ---------------------------- |
+| Zero or one simple attribute on the link            | Inline attribute             |
+| Two or three typed attributes, no independent query | Inline `attrs` dict          |
+| Many attributes, own identity, or queryable         | Separate association feature |
+| Many-to-many with per-link metadata                 | Separate association feature |
+
+The principle: **keep the link lightweight until the relationship's own data model demands a feature.**
+
+##### `BOUNDARY_OF` — Boundary (Specialized)
+
+A geometric role describing how one feature defines the boundary of another. Retained as a specialized subtype because it expresses a geometric function rather than a general semantic link.
+
+**Examples:**
+
+- `BoundaryLine` → `Area` (a line defines the edge of a polygon area)
+
+---
+
+#### Selection Priority
+
+When a relationship could fit multiple types, the choice is not a strict linear ranking but a **diamond decision**: start at the top, fork in the middle based on the *kind* of coupling, and fall through to the bottom only when no stronger type applies.
+
+```text
+              COMPOSITION
+               /        \
+        AGGREGATION   HIERARCHY
+               \        /
+              ASSOCIATION
+```
+
+The rationale is **information preservation**: each tier above association adds a guarantee (lifecycle, structural grouping, or organizational nesting). Drop down only when the stronger commitment would be a false promise.
+
+| If the relationship implies...                          | Use              |
+| ------------------------------------------------------- | ---------------- |
+| Structural whole-part with lifecycle dependency         | `COMPOSITION`    |
+| Geometric boundary definition (lifecycle dependent)     | `COMPOSITION`    |
+| Grouping/collection without lifecycle dependency        | `AGGREGATION`    |
+| Organizational nesting or classification tree           | `HIERARCHY`      |
+| Peer-level reference, no ownership or nesting           | `ASSOCIATION`    |
+
+---
+
+#### Implementation Patterns
+
+##### 1. Direct References (Foreign Keys)
 
 The fundamental pattern is a direct reference where one feature "points to" another using an ID field with type safety and semantic information. This creates a one-way relationship - like a building knowing which neighborhood it belongs to, but the neighborhood doesn't automatically know about all its buildings.
 
@@ -556,49 +762,63 @@ from pydantic import Field
 from overture.schema.core import OvertureFeature
 from overture.schema.system.ref import Id, Reference, Relationship
 
-class DivisionArea(OvertureFeature[Literal["divisions"], Literal["division_area"]]):
-    """Area polygon that belongs to a division."""
+# COMPOSITION — building lists its parts ("has part")
+class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
+    """A building composed of structural parts."""
 
-    # Required reference - every division area must belong to a division
-    division_id: Annotated[
+    part_ids: Annotated[
+        list[Id] | None,
+        Reference(Relationship.COMPOSITION, BuildingPart),
+        Field(description="Building parts that compose this building"),
+    ] = None
+
+# COMPOSITION — part points to its whole ("part of")
+class BuildingPart(OvertureFeature[Literal["buildings"], Literal["building_part"]]):
+    """A structural part of a building."""
+
+    building_id: Annotated[
         Id,
-        Reference(Relationship.BELONGS_TO, Division),
-        Field(description="Division this area belongs to")
+        Reference(Relationship.COMPOSITION, Building),
+        Field(description="Building this part structurally belongs to")
     ]
 
-    # Optional reference - may or may not be associated with a place
-    place_id: Annotated[
+# ASSOCIATION — peer reference, no ownership
+class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
+    """A building feature."""
+
+    address_id: Annotated[
         Id | None,
-        Reference(Relationship.CONNECTS_TO, Place),
-        Field(description="Place this area is associated with")
+        Reference(Relationship.ASSOCIATION, Address),
+        Field(description="Address associated with this building")
     ] = None
 ```
 
-**Available relationship types (see [Relationship](packages/overture-schema-system/src/overture/schema/system/ref/ref.py)):**
+##### 2. Association as a Separate Feature (Complex Relationships)
 
-- **`BELONGS_TO`**: The referencing feature belongs to the referenced feature (division area belongs to division)
-- **`CONNECTS_TO`**: The referencing feature connects to the referenced feature (segment connects to connector)
-- **`BOUNDARY_OF`**: The referencing feature forms a boundary of the referenced feature (boundary line defines area)
-
-#### 2. Association as a Separate Feature (Complex Relationships)
-
-When the relationship itself needs to store information, create a dedicated feature to represent that relationship. This is like creating a "relationship record" that describes how two things are connected.
+When the relationship itself needs to store information, create a dedicated feature to represent it. This applies regardless of the semantic type — any of the four types can carry metadata.
 
 **Simple relationship (use Pattern 1):**
 
-- "Building A belongs to Neighborhood B" - just needs an ID reference
+- "Building Part A is part of Building B" — just needs an ID reference.
 
 **Complex relationship (use Pattern 2):**
 
-- "Admin Area X has City Center Y as its primary center since 2010 with 85% confidence" - the relationship has properties (`type=primary`, `date=2010`, `confidence=85%`)
+- "Admin Area X has City Center Y as its primary center since 2010 with 85% confidence" — the relationship has properties.
 
 ```python
-class AdminCityCenterAssociation(OvertureFeature[Literal["associations"], Literal["admin_city_center"]]):
+class AdminCityCenterAssociation(
+    OvertureFeature[Literal["associations"], Literal["admin_city_center"]]
+):
     """Describes how an administrative area relates to a city center."""
 
-    # The two things being connected
-    admin_area_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, AdminArea)]
-    city_center_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, CityCenter)]
+    admin_area_id: Annotated[
+        Id,
+        Reference(Relationship.ASSOCIATION, AdminArea)
+    ]
+    city_center_id: Annotated[
+        Id,
+        Reference(Relationship.ASSOCIATION, CityCenter)
+    ]
 
     # Information about the relationship itself
     relationship_type: Literal["primary_center", "secondary_center"] = "primary_center"
@@ -606,38 +826,30 @@ class AdminCityCenterAssociation(OvertureFeature[Literal["associations"], Litera
     confidence_score: Annotated[float64, Field(ge=0.0, le=1.0)] | None = None
 ```
 
-When to use separate association features:
+**When to use separate association features:**
 
-- The relationship has properties: confidence scores, dates, types, notes
-- Many-to-many connections: one admin area can have multiple city centers, one city center can serve multiple admin areas
-- You need to query the relationships: "show me all primary city center relationships established after 2015"
+- The relationship has properties (confidence scores, dates, types, notes).
+- Many-to-many connections exist (one admin area can have multiple city centers, one city center can serve multiple admin areas).
+- You need to query the relationships independently ("show me all primary city center relationships established after 2015").
 
-This focuses on the core concept: when relationships carry data, they become features themselves.
+##### 3. Collection References
 
-#### 3. Collection References
-
-When a feature needs to reference multiple other features, use a list of references:
+When a feature needs to reference multiple other features, use a list of references. The semantic type still matters — a route aggregating segments is `AGGREGATION`, not `ASSOCIATION`.
 
 ```python
+# AGGREGATION — segments are independently viable features
 class Route(OvertureFeature[Literal["transportation"], Literal["route"]]):
     """A transportation route that passes through multiple segments."""
 
     segment_ids: Annotated[
         list[Id],
-        Field(min_length=1, description="Ordered list of segments in this route"),
-        UniqueItemsConstraint(),  # No duplicate segments
-        Reference(Relationship.CONNECTS_TO, TransportationSegment)  # All IDs reference segments
+        Reference(Relationship.AGGREGATION, TransportationSegment),
+        Field(min_length=1, description="Ordered segments aggregated into this route"),
+        UniqueItemsConstraint(),
     ]
-
-class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
-    """A building that may contain multiple building parts."""
-
-    part_ids: Annotated[
-        list[Id] | None,
-        Field(description="Building parts that belong to this building"),
-        Reference(Relationship.BOUNDARY_OF, BuildingPart)  # All IDs reference building parts
-    ] = None
 ```
+
+---
 
 #### Best Practices
 
@@ -646,75 +858,24 @@ class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
 Include `Reference` annotations for semantic clarity and documentation:
 
 ```python
-# Good - complete relationship information
+# Good — complete relationship information with semantic type
 division_id: Annotated[
     Id,
-    Reference(Relationship.BELONGS_TO, Division),
-    Field(description="Division this area belongs to")
+    Reference(Relationship.HIERARCHY, Division),
+    Field(description="Division this area is administratively nested under")
 ]
 
-# Avoid - missing semantic information
+# Avoid — missing semantic information
 division_id: Id
 ```
 
-##### Choose the Right Pattern
+##### Choose the Right Semantic Type First, Then the Right Pattern
 
-- **Simple relationships** → Direct references (foreign keys)
-- **Relationships with metadata** → Separate association features
-
-```python
-# Simple: just a link
-admin_area_id: Annotated[Id, Reference(Relationship.BELONGS_TO, AdminArea)]
-
-# Complex: relationship has properties
-class AdminCityCenterAssociation(Feature[...]):
-    admin_area_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, AdminArea)]
-    city_center_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, CityCenter)]
-    relationship_type: Literal["primary", "secondary"] = "primary"
-```
-
-#### Association Pattern Examples
-
-**Transportation Network:**
-
-```python
-# Segments connect to connectors (intersection points)
-class Segment(OvertureFeature[Literal["transportation"], Literal["segment"]]):
-    from_connector_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, Connector)]
-    to_connector_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, Connector)]
-
-# Routes contain multiple segments in order
-class Route(Feature[Literal["transportation"], Literal["route"]]):
-    segment_ids: Annotated[
-        list[Id],
-        Reference(Relationship.CONNECTS_TO, TransportationSegment),
-        Field(description="Ordered list of segments in this route")
-    ]
-```
-
-**Administrative Hierarchy:**
-
-```python
-# Division areas belong to divisions
-class DivisionArea(OvertureFeature[Literal["divisions"], Literal["division_area"]]):
-    division_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Division)]
-
-# Places belong to administrative areas
-class Place(OvertureFeature[Literal["places"], Literal["place"]]):
-    admin_area_id: Annotated[Id | None, Reference(Relationship.BELONGS_TO, AdminArea)] = None
-```
-
-**Building Relationships:**
-
-```python
-# Building parts belong to buildings
-class BuildingPart(OvertureFeature[Literal["buildings"], Literal["building_part"]]):
-    building_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Building)]
-
-# Buildings can reference their address
-class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
-    address_id: Annotated[Id | None, Reference(Relationship.CONNECTS_TO, Address)] = None
-```
+1. **Determine the semantic type** using the selection priority and test questions above.
+2. **Then choose the implementation pattern:**
+   - Simple relationships → Direct references (Pattern 1)
+   - Relationships with metadata → Separate association features (Pattern 2)
+   - One-to-many references → Collection references (Pattern 3)
 
 ### Discriminated Unions
 
@@ -1223,13 +1384,13 @@ class MyAssociation(OvertureFeature[Literal["associations"], Literal["my_associa
     # References to the associated features
     feature_a_id: Annotated[
         Id,
-        Reference(Relationship.CONNECTS_TO, FeatureA),
+        Reference(Relationship.ASSOCIATION, FeatureA),
         Field(description="First feature in the relationship")
     ]
 
     feature_b_id: Annotated[
         Id,
-        Reference(Relationship.CONNECTS_TO, FeatureB),
+        Reference(Relationship.ASSOCIATION, FeatureB),
         Field(description="Second feature in the relationship")
     ]
 
@@ -1257,7 +1418,7 @@ height: Annotated[float64 | None, Field(ge=0, description="Height in meters")] =
 tags: Annotated[list[str] | None, Field(min_length=1), UniqueItemsConstraint()] = None
 
 # Association patterns
-parent_id: Annotated[Id | None, Reference(Relationship.BELONGS_TO, ParentModel)] = None
+parent_id: Annotated[Id | None, Reference(Relationship.HIERARCHY, ParentModel)] = None
 connector_ids: list[Id]  # References to multiple related features
 ```
 
