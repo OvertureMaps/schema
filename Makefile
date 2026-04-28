@@ -1,5 +1,7 @@
 .PHONY: default uv-sync check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only update-baselines
 
+TESTMON ?= --testmon
+
 default: test-all
 
 install: uv-sync
@@ -11,13 +13,13 @@ check: uv-sync
 	@$(MAKE) -j test-only doctest-only lint-only mypy-only
 
 test-all: uv-sync
-	@uv run pytest -W error packages/
+	@uv run pytest -W error $(TESTMON) packages/
 
 test: uv-sync
-	@uv run pytest -W error packages/ -x -q --tb=short
+	@uv run pytest -W error $(TESTMON) packages/ -x -q --tb=short
 
 test-only:
-	@uv run pytest -W error packages/ -x -q --tb=short
+	@uv run pytest -W error $(TESTMON) packages/ -x -q --tb=short
 
 coverage: uv-sync
 	@uv run pytest packages/ --cov overture.schema --cov-report=term --cov-report=html && open htmlcov/index.html
