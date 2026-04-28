@@ -5,3 +5,4 @@
 docs/docusaurus
 __pycache__/
 .coverage
+.testmondata*
