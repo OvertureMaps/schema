@@ -151,8 +151,8 @@ Registration is done in the `[project.entry-points."overture.models"]` section:
 
 ```toml
 [project.entry-points."overture.models"]
-building = "overture.schema.buildings.building.models:Building"
-building_part = "overture.schema.buildings.building_part.models:BuildingPart"
+building = "overture.schema.buildings:Building"
+building_part = "overture.schema.buildings:BuildingPart"
 ```
 
 The discovery system provides programmatic access to registered models:
