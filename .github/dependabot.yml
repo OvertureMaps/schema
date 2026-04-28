@@ -14,6 +14,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "bot"
+      - "automation 🦾" # Required for enforce-change-type-label.yaml check
     commit-message:
       prefix: "[CHORE](deps)"
       include: "scope"
