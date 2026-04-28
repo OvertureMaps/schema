@@ -30,12 +30,13 @@ jobs:
               'change type - documentation - member 📝',
               'change type - major 🚨',
               'change type - minor 🤏',
+              'automation 🦾',
             ]);
             const prLabels = context.payload.pull_request.labels.map(label => label.name);
             const appliedChangeTypeLabels = prLabels.filter(prLabel => allChangeTypeLabels.has(prLabel));
             if (appliedChangeTypeLabels.length !== 1) {
               const baseMessage = `The PR must have EXACTLY one of the following CHANGE TYPE labels: ${Array.from(allChangeTypeLabels).sort().join(', ')}. `
-              const n = appliedChangeTypeLabels.length; 
+              const n = appliedChangeTypeLabels.length;
               let contextualMessage;
               if (n === 0) {
                 contextualMessage = 'It currently has no change type label. Please ➕ add one label. 🙏'
