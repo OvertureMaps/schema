@@ -54,6 +54,7 @@ dev = [
     "pydocstyle>=6.3.0",
     "pytest>=9.0.0",
     "pytest-cov>=7.0.0",
+    "pytest-testmon>=2.2.0",
     "ruff>=0.13.0",
 ]
 
