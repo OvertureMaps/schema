@@ -10,7 +10,7 @@ class ModelKey:
     name : str
         Friendly name derived from the entry point key.
     entry_point : str
-        Entry point value in ``"module:Class"`` format.
+        Entry point value in `"module:Class"` format.
     tags : frozenset[str]
         Tags associated with the model.
     """
@@ -29,7 +29,7 @@ class TagProviderKey:
     name : str
         Friendly name derived from the entry point key.
     entry_point : str
-        Entry point value in ``"module:function"`` format.
+        Entry point value in `"module:function"` format.
     package_name : str
         Package that provides this tag provider.
     """

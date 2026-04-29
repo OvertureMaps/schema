@@ -2,7 +2,7 @@
 
 import importlib.metadata
 import logging
-from dataclasses import replace
+from dataclasses import dataclass, replace
 
 from pydantic import BaseModel
 
@@ -13,7 +13,6 @@ from overture.schema.system.discovery.tag import (
 from overture.schema.system.discovery.types import (
     ModelDict,
     ModelKey,
-    ModelKeyFilter,
     TagProviderDict,
     TagProviderKey,
 )
@@ -129,7 +128,7 @@ def discover_tag_providers(
     Parameters
     ----------
     tag_providers_group : str, optional
-        Entry point group to search (default: ``"overture.tag_providers"``).
+        Entry point group to search (default: `"overture.tag_providers"`).
 
     Returns
     -------
@@ -162,7 +161,7 @@ def discover_models(
     Parameters
     ----------
     model_group : str, optional
-        Entry point group to search (default: ``"overture.models"``).
+        Entry point group to search (default: `"overture.models"`).
 
     Returns
     -------
@@ -195,43 +194,74 @@ def discover_models(
     return models
 
 
+@dataclass(frozen=True, slots=True, kw_only=True)
+class TagSelector:
+    """Three tag tuples consumed by `filter_models`.
+
+    See `filter_models` for predicate semantics, including how
+    empty tuples are interpreted.
+
+    Attributes
+    ----------
+    include_any
+        Scope (OR) — tags that bring models into the result.
+    require_all
+        Narrow (AND) — tags every kept model must have.
+    exclude_any
+        Subtract (OR-NOT) — tags that drop a model from the result.
+    """
+
+    include_any: tuple[str, ...] = ()
+    require_all: tuple[str, ...] = ()
+    exclude_any: tuple[str, ...] = ()
+
+
 def filter_models(
     models: ModelDict,
+    selector: TagSelector = TagSelector(),
     *,
-    tags: tuple[str, ...] = (),
-    excluded_tags: tuple[str, ...] = (),
     type_names: tuple[str, ...] = (),
 ) -> ModelDict:
-    """Filter models by required tags, excluded tags, and/or type names.
+    """Filter models by tag predicates and optional type-name match.
+
+    Each tuple in `selector` is a predicate over `key.tags`; a model
+    is kept only if it satisfies every predicate. Empty tuples are
+    no-ops — empty `include_any` imposes no scope, empty
+    `require_all` imposes no narrowing, empty `exclude_any` drops
+    nothing — so an empty selector returns `models` unchanged.
 
     Parameters
     ----------
-    models : ModelDict
+    models
         Models to filter.
-    tags : tuple[str, ...], optional
-        Tags that must all be present on the model.
-    excluded_tags : tuple[str, ...], optional
-        Tags that must not be present on the model.
-    type_names : tuple[str, ...], optional
-        Model names to include; all others are excluded.
+    selector
+        Tag predicates to apply.
+    type_names
+        If non-empty, only models whose `key.name` is in the list
+        are kept. Orthogonal to the tag predicate algebra.
 
     Returns
     -------
     ModelDict
-        Filtered models.
+        Models satisfying every supplied predicate.
     """
-    filters: list[ModelKeyFilter] = []
-    if tags:
-        filters.append(lambda key: all(tag in key.tags for tag in tags))
-    if excluded_tags:
-        filters.append(lambda key: not any(tag in key.tags for tag in excluded_tags))
-    if type_names:
-        filters.append(lambda key: key.name in type_names)
-    if filters:
-        models = {
-            key: model for key, model in models.items() if all(f(key) for f in filters)
-        }
-    return models
+
+    def matches(key: ModelKey) -> bool:
+        if selector.include_any and not any(
+            t in key.tags for t in selector.include_any
+        ):
+            return False
+        if selector.require_all and not all(
+            t in key.tags for t in selector.require_all
+        ):
+            return False
+        if selector.exclude_any and any(t in key.tags for t in selector.exclude_any):
+            return False
+        if type_names and key.name not in type_names:
+            return False
+        return True
+
+    return {k: m for k, m in models.items() if matches(k)}
 
 
 def get_registered_model(model_name: str) -> type[BaseModel] | None:
@@ -248,7 +278,7 @@ def get_registered_model(model_name: str) -> type[BaseModel] | None:
     Returns
     -------
     type[BaseModel] or None
-        Model class if found, otherwise ``None``.
+        Model class if found, otherwise `None`.
     """
     models = discover_models()
     for key, model_class in models.items():

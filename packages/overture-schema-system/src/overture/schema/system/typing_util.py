@@ -7,8 +7,8 @@ from typing import Annotated, Any, Literal, Union, get_args, get_origin
 def collect_types(tp: Any) -> set[type]:  # noqa: ANN401
     """Collect all concrete types from a type annotation.
 
-    Recursively unwraps ``Annotated``, ``NewType``, ``Union``/``X | Y``, and
-    ``Literal`` to collect the concrete types they contain. Only actual `type`
+    Recursively unwraps `Annotated`, `NewType`, `Union`/`X | Y`, and
+    `Literal` to collect the concrete types they contain. Only actual `type`
     instances are returned.
 
     Parameters
@@ -19,7 +19,7 @@ def collect_types(tp: Any) -> set[type]:  # noqa: ANN401
     Returns
     -------
     set[type]
-        All concrete types found within ``tp``.
+        All concrete types found within `tp`.
 
     """
     result: set[type] = set()

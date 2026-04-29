@@ -1,3 +1,10 @@
+"""Tag providers for the core Overture schema package.
+
+Each provider inspects a discovered model and returns the set of tags
+that should be attached. Registered via the
+`overture.tag_providers` entry-point group.
+"""
+
 from typing import get_args
 
 from pydantic import BaseModel
@@ -29,7 +36,7 @@ APPROVED = {
 def authority_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
-    """Add the ``"overture"`` tag if the model originates from an approved Overture package.
+    """Add the `"overture"` tag if the model originates from an approved Overture package.
 
     Parameters
     ----------
@@ -43,7 +50,7 @@ def authority_provider(
     Returns
     -------
     set[str]
-        Updated tags, with ``"overture"`` added if applicable.
+        Updated tags, with `"overture"` added if applicable.
     """
     if _matches_manifest(key):
         tags.add("overture")
@@ -53,7 +60,7 @@ def authority_provider(
 def theme_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
-    """Add the ``"overture:theme={theme}"`` tag if the model is a subclass of OvertureFeature.
+    """Add the `"overture:theme={theme}"` tag if the model is a subclass of OvertureFeature.
 
     Parameters
     ----------
@@ -67,7 +74,7 @@ def theme_provider(
     Returns
     -------
     set[str]
-        Updated tags, with ``"overture:theme={theme}"`` added if applicable.
+        Updated tags, with `"overture:theme={theme}"` added if applicable.
     """
     for tp in collect_types(model_class):
         if issubclass(tp, OvertureFeature):

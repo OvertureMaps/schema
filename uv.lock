@@ -800,6 +800,7 @@ source = { editable = "packages/overture-schema-codegen" }
 dependencies = [
     { name = "click" },
     { name = "jinja2" },
+    { name = "overture-schema-cli" },
     { name = "overture-schema-core" },
     { name = "overture-schema-system" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
@@ -809,6 +810,7 @@ dependencies = [
 requires-dist = [
     { name = "click", specifier = ">=8.0" },
     { name = "jinja2", specifier = ">=3.0" },
+    { name = "overture-schema-cli", editable = "packages/overture-schema-cli" },
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0" },

@@ -10,4 +10,3 @@ from .models import ModelKey, TagProviderKey
 TagProvider: TypeAlias = Callable[[type[BaseModel], ModelKey, set[str]], set[str]]
 ModelDict: TypeAlias = dict[ModelKey, type[BaseModel]]
 TagProviderDict: TypeAlias = dict[TagProviderKey, TagProvider]
-ModelKeyFilter: TypeAlias = Callable[[ModelKey], bool]

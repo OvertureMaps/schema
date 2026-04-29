@@ -6,6 +6,7 @@ requires = ["hatchling"]
 dependencies = [
     "click>=8.0",
     "jinja2>=3.0",
+    "overture-schema-cli",
     "overture-schema-core",
     "overture-schema-system",
     "tomli>=2.0; python_version < '3.11'",
@@ -19,6 +20,7 @@ name = "overture-schema-codegen"
 overture-codegen = "overture.schema.codegen.cli:main"
 
 [tool.uv.sources]
+overture-schema-cli = { workspace = true }
 overture-schema-core = { workspace = true }
 overture-schema-system = { workspace = true }
 

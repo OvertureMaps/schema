@@ -25,7 +25,11 @@ from overture.schema.codegen.extraction.specs import (
     is_model_class,
 )
 from overture.schema.codegen.extraction.type_analyzer import TypeInfo, TypeKind
-from overture.schema.system.discovery import discover_models, filter_models
+from overture.schema.system.discovery import (
+    TagSelector,
+    discover_models,
+    filter_models,
+)
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
@@ -339,7 +343,9 @@ def flat_specs_from_discovery(
     """Build a flat list of ModelSpecs from discovery, with entry_point set."""
     models = discover_models()
     if theme:
-        models = filter_models(models, tags=(f"overture:theme={theme}",))
+        models = filter_models(
+            models, TagSelector(include_any=(f"overture:theme={theme}",))
+        )
     result = []
     for key, cls in models.items():
         if not is_model_class(cls):

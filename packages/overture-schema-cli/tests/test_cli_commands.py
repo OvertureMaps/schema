@@ -368,3 +368,46 @@ class TestShowFieldOption:
         # Should show id for both features
         assert "id=first" in stderr_output or "first" in stderr_output
         assert "id=second" in stderr_output or "second" in stderr_output
+
+
+_TAG_COMBINATOR_FLAGS = (
+    pytest.param("--filter", "feature", id="filter"),
+    pytest.param("--exclude", "overture:theme=places", id="exclude"),
+)
+
+
+@pytest.mark.parametrize(("flag", "value"), _TAG_COMBINATOR_FLAGS)
+def test_validate_wires_tag_combinator_flag(
+    cli_runner: CliRunner,
+    building_feature_yaml: str,
+    flag: str,
+    value: str,
+) -> None:
+    """validate wires --filter/--exclude through to the tag selector."""
+    result = cli_runner.invoke(
+        cli, ["validate", building_feature_yaml, "--tag", "overture", flag, value]
+    )
+    assert result.exit_code == 0
+
+
+@pytest.mark.parametrize(("flag", "value"), _TAG_COMBINATOR_FLAGS)
+def test_json_schema_wires_tag_combinator_flag(
+    cli_runner: CliRunner,
+    flag: str,
+    value: str,
+) -> None:
+    """json-schema wires --filter/--exclude through to the tag selector."""
+    result = cli_runner.invoke(cli, ["json-schema", "--tag", "overture", flag, value])
+    assert result.exit_code == 0
+    assert result.output  # non-empty JSON
+
+
+@pytest.mark.parametrize(("flag", "value"), _TAG_COMBINATOR_FLAGS)
+def test_list_types_wires_tag_combinator_flag(
+    cli_runner: CliRunner,
+    flag: str,
+    value: str,
+) -> None:
+    """list-types wires --filter/--exclude through to the tag selector."""
+    result = cli_runner.invoke(cli, ["list-types", "--tag", "overture", flag, value])
+    assert result.exit_code == 0

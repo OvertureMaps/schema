@@ -211,10 +211,10 @@ class SnakeCaseConstraint(PatternConstraint):
 class StrippedConstraint(PatternConstraint):
     r"""Allows only strings that have no leading/trailing whitespace.
 
-    Uses ``\Z`` (absolute end-of-string) instead of ``$`` because
-    Python's ``$`` matches before a trailing ``\n``. ECMA regex (used by
-    JSON Schema) treats ``$`` as absolute end-of-string, so the JSON
-    schema output swaps ``\Z`` back to ``$``.
+    Uses `\Z` (absolute end-of-string) instead of `$` because
+    Python's `$` matches before a trailing `\n`. ECMA regex (used by
+    JSON Schema) treats `$` as absolute end-of-string, so the JSON
+    schema output swaps `\Z` back to `$`.
     """
 
     def __init__(self) -> None:

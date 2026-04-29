@@ -1,14 +1,14 @@
 """Tag format specification and utilities for Overture schema discovery.
 
-Tags follow the pattern ``[namespace:]predicate[=value]`` and come in three forms:
+Tags follow the pattern `[namespace:]predicate[=value]` and come in three forms:
 
-- **Plain** — ``overture``, ``feature``
-- **Namespaced** — ``system:extension`
-- **Key/value** — ``overture:theme=buildings``
+- **Plain** — `overture`, `feature`
+- **Namespaced** — `system:extension`
+- **Key/value** — `overture:theme=buildings`
 
-``:`` signals ownership and reservation — only the owning package may set tags in a
-given namespace. ``=`` signals a dimension with a discrete value.
-One level of each: no nested colons, no multiple ``=`` signs.
+`:` signals ownership and reservation — only the owning package may set tags in a
+given namespace. `=` signals a dimension with a discrete value.
+One level of each: no nested colons, no multiple `=` signs.
 
 Tag matching is case-sensitive throughout.
 """
@@ -33,7 +33,7 @@ def get_namespace(tag: str) -> str:
     Returns
     -------
     str
-        The namespace prefix if the tag is a namespaced tag, otherwise ``""``.
+        The namespace prefix if the tag is a namespaced tag, otherwise `""`.
 
     Examples
     --------
@@ -51,12 +51,12 @@ def get_values_for_key(tags: frozenset[str] | set[str], key: str) -> set[str]:
     tags : frozenset[str] or set[str]
         Tags to search.
     key : str
-        Key to match, e.g. ``"overture:theme"``.
+        Key to match, e.g. `"overture:theme"`.
 
     Returns
     -------
     set[str]
-        Values of tags matching ``key=<value>``.
+        Values of tags matching `key=<value>`.
 
     Examples
     --------
@@ -72,11 +72,11 @@ def is_valid_tag(tag: str) -> bool:
 
     A valid tag is a plain tag, a namespaced tag, or a key/value tag:
 
-    - **Plain**: ``[a-z0-9][a-z0-9_-]*`` — lowercase alphanumeric, hyphens,
+    - **Plain**: `[a-z0-9][a-z0-9_-]*` — lowercase alphanumeric, hyphens,
       underscores; no dots.
-    - **Namespace / predicate**: ``[a-z0-9][a-z0-9_.-]*`` — same but dots
+    - **Namespace / predicate**: `[a-z0-9][a-z0-9_.-]*` — same but dots
       are also allowed.
-    - **Key/value**: ``{namespace}:{predicate}=[a-zA-Z0-9_.-]+`` — namespace and predicate as
+    - **Key/value**: `{namespace}:{predicate}=[a-zA-Z0-9_.-]+` — namespace and predicate as
       above; value is alphanumeric (upper and lower case), hyphens, underscores, or dots;
       must be non-empty.
 
@@ -88,7 +88,7 @@ def is_valid_tag(tag: str) -> bool:
     Returns
     -------
     bool
-        ``True`` if `tag` matches the required format.
+        `True` if `tag` matches the required format.
 
     Examples
     --------

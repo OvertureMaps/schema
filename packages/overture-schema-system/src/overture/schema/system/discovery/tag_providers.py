@@ -10,7 +10,7 @@ from overture.schema.system.typing_util import collect_types
 def feature_provider(
     model_class: type[BaseModel], key: ModelKey, tags: set[str]
 ) -> set[str]:
-    """Add the ``"feature"`` tag if the model is a subclass of Feature.
+    """Add the `"feature"` tag if the model is a subclass of Feature.
 
     Parameters
     ----------
@@ -24,7 +24,7 @@ def feature_provider(
     Returns
     -------
     set[str]
-        Updated tags, with ``"feature"`` added if applicable.
+        Updated tags, with `"feature"` added if applicable.
     """
     if any(issubclass(tp, Feature) for tp in collect_types(model_class)):
         tags.add("feature")

@@ -59,6 +59,44 @@ class TestCliGenerate:
         assert "Building" in result.output
         assert "Place" not in result.output
 
+    def test_generate_accepts_filter_flag(self, cli_runner: CliRunner) -> None:
+        """generate accepts --filter without error.
+
+        Selector algebra is covered in test_discovery_filter_models.
+        """
+        result = cli_runner.invoke(
+            cli,
+            [
+                "generate",
+                "--format",
+                "markdown",
+                "--tag",
+                "overture",
+                "--filter",
+                "feature",
+            ],
+        )
+        assert result.exit_code == 0
+
+    def test_generate_accepts_exclude_flag(self, cli_runner: CliRunner) -> None:
+        """generate accepts --exclude without error.
+
+        Selector algebra is covered in test_discovery_filter_models.
+        """
+        result = cli_runner.invoke(
+            cli,
+            [
+                "generate",
+                "--format",
+                "markdown",
+                "--tag",
+                "overture",
+                "--exclude",
+                "overture:theme=places",
+            ],
+        )
+        assert result.exit_code == 0
+
     def test_generate_markdown_feature_at_theme_level(
         self, cli_runner: CliRunner, tmp_path: Path
     ) -> None:
