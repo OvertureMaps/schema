@@ -1,0 +1,79 @@
+---
+title: colloquial_area
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import JSONSchemaViewer from "@theme/JSONSchemaViewer";
+import generateResolverOptions from "@site/src/components/shared-libs/generateResolverOptions"
+import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
+import yamlLoad from "@site/src/components/yamlLoad"
+import ColloquialAreaSchema from "!!raw-loader!@site/docs/_schema/supplemental-datasets/colloquial_area.yaml";
+import ColloquialAreaExampleEastAsia from "!!raw-loader!@site/docs/_examples/supplemental-datasets/colloquial_area/east_asia.yaml";
+import ColloquialAreaExampleSouthFlorida from "!!raw-loader!@site/docs/_examples/supplemental-datasets/colloquial_area/south_florida.yaml";
+import ColloquialAreaExampleMinimal from "!!raw-loader!@site/docs/_examples/supplemental-datasets/colloquial_area/minimal.yaml";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Colloquial Area
+
+A colloquial area represents an informal, culturally defined, or commonly referenced area that does not correspond to official administrative boundaries. Unlike countries, states, counties, or cities whose boundaries are legally defined, colloquial areas evolve from cultural, historical, economic, or linguistic identity. These areas have no official ISO codes, no fixed administrative definitions, and frequently overlap existing divisions.
+
+<table>
+  <tbody>
+  <tr>
+    <th>Geometry Type</th>
+    <td><code>Polygon</code>, <code>MultiPolygon</code></td>
+  </tr>
+  <tr>
+    <th>Supplemental Dataset</th>
+    <td>Yes (not part of reference map)</td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td><code>colloquial_area</code></td>
+  </tr>
+  </tbody>
+</table>
+
+:::info Supplemental Dataset
+Colloquial areas are part of a **supplemental dataset**, not a reference map theme. Supplemental datasets:
+- Are single-source (not conflated from multiple sources)
+- Do not have GERS IDs for entity resolution
+- Follow an independent release cadence
+- Do not include a `theme` property
+:::
+
+## Schema
+
+<Tabs>
+  <TabItem value="browsable" label="Browsable" default>
+    <JSONSchemaViewer schema={ yamlLoad(ColloquialAreaSchema) } resolverOptions={ generateResolverOptions({remote: true, yamlBasePath: '/supplemental-datasets'})}/>
+  </TabItem>
+  <TabItem value="yaml" label="YAML" default>
+    <CodeBlock language="jsx">{ColloquialAreaSchema}</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Examples
+
+<Tabs>
+  <TabItem value="1" label="East Asia" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(ColloquialAreaExampleEastAsia), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="2" label="South Florida">
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(ColloquialAreaExampleSouthFlorida), null, 2) }</CodeBlock>
+  </TabItem>
+  <TabItem value="3" label="Minimal">
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(ColloquialAreaExampleMinimal), null, 2) }</CodeBlock>
+  </TabItem>
+</Tabs>
+
+## Use Cases
+
+Colloquial areas fill gaps in the reference map by providing recognized geographic data that doesn't fit standard entity-based themes:
+
+- **vs. divisions**: Lack official administrative boundaries or legal status—they are culturally or socially recognized regions
+- **vs. places**: Represent regions and areas (polygons), not point-based business or venue locations  
+- **vs. addresses/buildings/transportation**: Informal geographic regions, not physical infrastructure or postal entities
+
+Examples include South Florida (cultural and economic region), East Asia (macro-region), and Northern Italy (climate, economic, and tourism context).

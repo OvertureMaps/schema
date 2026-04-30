@@ -58,6 +58,16 @@ Most but not all of the feature types in the Overture schema require data for th
 ### Properties may be specific to a feature type
 Some properties in the Overture schema are only populated with data for specific feature types. For example, the `place` feature type must include data for the `categories` property, as required by the schema. The `division_area` and `address` feature types require the `country` property to be populated with ISO 3166-1 alpha-2 country codes. The `segment` feature type in the transportation theme is the only feature type that includes data for a complex set of properties that describe roads. The [schema concepts](concepts) section of this documentation describes these complexities in detail.
 
+### Supplemental datasets
+In addition to the core reference map themes, Overture provides **supplemental datasets** that extend the map with additional geographic data not part of the reference map corpus. Supplemental datasets differ from reference map themes in several important ways:
+
+- **Single-source**: Each supplemental dataset comes from a single data provider, not conflated from multiple sources
+- **No GERS IDs**: Features do not have Global Entity Reference System identifiers used for entity resolution
+- **Independent release cadence**: Updates follow their own schedule, not tied to monthly reference map releases
+- **No `theme` property**: Unlike reference map features, supplemental datasets do not include a `theme` property and are identified only by their `type`
+
+Supplemental datasets provide valuable geographic data that users recognize, reference, and search for—even when these features don't meet the strict criteria for inclusion in the multi-source, conflated reference map. Examples include colloquial areas like "South Florida," "East Asia," or "Northern Italy" that represent culturally recognized regions without official administrative boundaries.
+
 
 ## Schema conventions
 In addition to following the JSON and GeoJSON specifications, the Overture schema has its own style and conventions. The notations, nomenclatures, specifications, and standards we have adopted are described below. 

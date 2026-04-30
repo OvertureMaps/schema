@@ -1,0 +1,22 @@
+---
+id: example:colloquial_area:minimal
+type: Feature
+geometry:
+  type: Polygon
+  coordinates:
+    - [
+        [-74.0100, 40.7100],
+        [-74.0000, 40.7100],
+        [-74.0000, 40.7200],
+        [-74.0100, 40.7200],
+        [-74.0100, 40.7100]
+      ]
+properties:
+  type: colloquial_area
+  version: 1
+  names:
+    primary: Example Neighborhood
+  sources:
+    - property: ""
+      dataset: example_dataset
+      license: MIT

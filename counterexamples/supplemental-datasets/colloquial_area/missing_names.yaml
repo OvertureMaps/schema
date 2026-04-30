@@ -1,0 +1,21 @@
+---
+# Invalid: Missing required 'names' property
+id: example:colloquial_area:missing_names
+type: Feature
+geometry:
+  type: Polygon
+  coordinates:
+    - [
+        [-74.0100, 40.7100],
+        [-74.0000, 40.7100],
+        [-74.0000, 40.7200],
+        [-74.0100, 40.7200],
+        [-74.0100, 40.7100]
+      ]
+properties:
+  type: colloquial_area
+  version: 1
+  sources:
+    - property: ""
+      dataset: example_dataset
+      license: MIT

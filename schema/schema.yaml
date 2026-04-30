@@ -130,3 +130,10 @@ oneOf:
             type: { enum: [segment] }
     then: { "$ref": transportation/segment.yaml }
     else: { propertyNames: false }
+  - if:
+      properties:
+        properties:
+          properties:
+            type: { enum: [colloquial_area] }
+    then: { "$ref": supplemental-datasets/colloquial_area.yaml }
+    else: { propertyNames: false }

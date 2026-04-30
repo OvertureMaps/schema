@@ -1,0 +1,26 @@
+---
+# Invalid: center_point must have type 'Point', not 'LineString'
+id: example:colloquial_area:bad_center_point
+type: Feature
+geometry:
+  type: Polygon
+  coordinates:
+    - [
+        [-74.0100, 40.7100],
+        [-74.0000, 40.7100],
+        [-74.0000, 40.7200],
+        [-74.0100, 40.7200],
+        [-74.0100, 40.7100]
+      ]
+properties:
+  type: colloquial_area
+  version: 1
+  names:
+    primary: Bad Center Point
+  center_point:
+    type: LineString
+    coordinates: [[-74.0100, 40.7100], [-74.0000, 40.7200]]
+  sources:
+    - property: ""
+      dataset: example_dataset
+      license: MIT

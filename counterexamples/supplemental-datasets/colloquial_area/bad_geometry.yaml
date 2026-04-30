@@ -1,0 +1,16 @@
+---
+# Invalid: Geometry must be Polygon or MultiPolygon, not Point
+id: example:colloquial_area:bad_geometry
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-74.0050, 40.7150]
+properties:
+  type: colloquial_area
+  version: 1
+  names:
+    primary: Invalid Geometry Example
+  sources:
+    - property: ""
+      dataset: example_dataset
+      license: MIT
