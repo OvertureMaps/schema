@@ -1,25 +1,25 @@
 """Tag provider logic for Overture schema discovery system."""
 
-from typing import Any
+from collections.abc import Iterable
+
+from pydantic import BaseModel
 
 from overture.schema.system.discovery.types import ModelKey
 from overture.schema.system.feature import Feature
-from overture.schema.system.typing_util import collect_types
 
 
-def feature_provider(model_class: Any, key: ModelKey, tags: set[str]) -> set[str]:  # noqa: ANN401
-    """Add the `"feature"` tag if the entry point references a `Feature` subclass.
-
-    Tags are attached to the entry point's `ModelKey`. For
-    discriminated-union features, the provider walks every concrete arm
-    via `collect_types`; if any arm is a `Feature` subclass, the tag is
-    added to the union's `ModelKey`.
+def feature_provider(
+    types: Iterable[type[BaseModel]],
+    key: ModelKey,
+    tags: set[str],
+) -> set[str]:
+    """Add the `"feature"` tag if any concrete type is a `Feature` subclass.
 
     Parameters
     ----------
-    model_class
-        A class or discriminated-union type expression loaded from an
-        `overture.models` entry point.
+    types
+        Concrete `BaseModel` subclasses for the entry point. For
+        discriminated-union features this is every arm.
     key
         Key identifying the model.
     tags
@@ -30,6 +30,6 @@ def feature_provider(model_class: Any, key: ModelKey, tags: set[str]) -> set[str
     set[str]
         Updated tags, with `"feature"` added if applicable.
     """
-    if any(issubclass(tp, Feature) for tp in collect_types(model_class)):
+    if any(issubclass(tp, Feature) for tp in types):
         tags.add("feature")
     return tags

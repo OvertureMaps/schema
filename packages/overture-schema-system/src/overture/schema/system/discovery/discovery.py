@@ -3,6 +3,7 @@
 import importlib.metadata
 import logging
 from dataclasses import dataclass, replace
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -16,6 +17,7 @@ from overture.schema.system.discovery.types import (
     TagProviderDict,
     TagProviderKey,
 )
+from overture.schema.system.typing_util import collect_types
 
 log = logging.getLogger(__name__)
 
@@ -32,20 +34,23 @@ _RESERVED_NAMESPACES: dict[str, set[str]] = {
 
 
 def _generate_tags(
-    model_class: type[BaseModel],
+    model_class: Any,  # noqa: ANN401
     key: ModelKey,
     providers: TagProviderDict,
 ) -> set[str]:
     """Generate tags for a model class using tag providers.
 
-    Each provider is called in turn indeterministically; tags it adds are filtered for
-    validity and permission before being included. Provider errors are caught and
-    logged as warnings rather than propagated.
+    The model is walked once via `collect_types` to find every concrete
+    `BaseModel` arm, and each provider is called with the result. Tags
+    a provider adds are filtered for validity and permission before
+    being included. Provider errors are caught and logged as warnings
+    rather than propagated.
 
     Parameters
     ----------
     model_class
-        Model class to generate tags for.
+        Value loaded from an `overture.models` entry point — usually a
+        `type[BaseModel]`, or a discriminated-union expression.
     key
         Key identifying the model.
     providers
@@ -56,10 +61,11 @@ def _generate_tags(
     set[str]
         Tags generated for the model.
     """
+    types = collect_types(model_class)
     tags: set[str] = set()
     for provider_key, provider in providers.items():
         try:
-            added_tags = set(provider(model_class, key, tags.copy())) - tags
+            added_tags = set(provider(types, key, tags.copy())) - tags
             filtered_tags = _filter_tags(added_tags, provider_key)
             tags.update(filtered_tags)
         except Exception as e:

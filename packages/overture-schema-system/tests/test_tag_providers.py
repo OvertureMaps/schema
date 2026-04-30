@@ -1,4 +1,5 @@
-from typing import Annotated, Any
+from collections.abc import Iterable
+from typing import Annotated
 
 import pytest
 from pydantic import BaseModel, Field, Tag
@@ -8,6 +9,7 @@ from overture.schema.system.discovery.tag_providers import feature_provider
 from overture.schema.system.discovery.types import (
     ModelKey,
     TagProvider,
+    TagProviderDict,
     TagProviderKey,
 )
 from overture.schema.system.feature import Feature
@@ -68,7 +70,11 @@ def any_model() -> type[BaseModel]:
 def fake_provider(*tags: str) -> TagProvider:
     """Provider that always returns the given tags, ignoring its inputs."""
 
-    def _provider(model_class: Any, key: ModelKey, current_tags: set[str]) -> set[str]:
+    def _provider(
+        types: Iterable[type[BaseModel]],
+        key: ModelKey,
+        current_tags: set[str],
+    ) -> set[str]:
         return set(tags)
 
     return _provider
@@ -171,7 +177,7 @@ def test_mixed_tags(
 
 def test_feature_provider_adds_feature_tag(feature: type[Feature]) -> None:
     key = ModelKey(name="feature", entry_point="system:Feature", tags=frozenset())
-    result = feature_provider(feature, key, set())
+    result = feature_provider((feature,), key, set())
     assert "feature" in result
 
 
@@ -181,12 +187,15 @@ def test_feature_provider_does_not_add_feature_tag(
     key = ModelKey(
         name="notafeature", entry_point="system:NotAFeature", tags=frozenset()
     )
-    result = feature_provider(not_a_feature, key, set())
+    result = feature_provider((not_a_feature,), key, set())
     assert "feature" not in result
 
 
-def test_feature_provider_handles_discriminated_union() -> None:
-    # Mimics the shape of `Segment`: Annotated[Union[...], Field(discriminator=...)]
+def test_feature_provider_handles_discriminated_union(
+    system_tag_provider: TagProviderKey,
+) -> None:
+    # Mimics the shape of `Segment`: Annotated[Union[...], Field(discriminator=...)].
+    # `_generate_tags` is responsible for walking the union to concrete arms.
     class ArmA(Feature):
         pass
 
@@ -198,5 +207,6 @@ def test_feature_provider_handles_discriminated_union() -> None:
         Field(discriminator="type"),
     ]
     key = ModelKey(name="union", entry_point="mod:Union", tags=frozenset())
-    result = feature_provider(union, key, set())
+    providers: TagProviderDict = {system_tag_provider: feature_provider}
+    result = _generate_tags(union, key, providers)
     assert "feature" in result

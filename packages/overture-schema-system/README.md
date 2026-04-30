@@ -160,15 +160,20 @@ Helpers in `overture.schema.system.discovery.tag` parse structured tags:
 
 ### Providers
 
-A tag provider is a callable registered on the `overture.tag_providers` entry point group. Discovery passes it the model class and a copy of the tags accumulated so far; tags it adds are merged into the running set after passing the reservation checks below.
+A tag provider is a callable registered on the `overture.tag_providers` entry point group. Discovery passes it the concrete `BaseModel` subclasses for the entry point and a copy of the tags accumulated so far; tags it adds are merged into the running set after passing the reservation checks below.
 
 ```python
+from collections.abc import Iterable
+from pydantic import BaseModel
 from overture.schema.system.discovery import ModelKey
 from overture.schema.system.feature import Feature
-from overture.schema.system.typing_util import collect_types
 
-def feature_provider(model_class, key: ModelKey, tags: set[str]) -> set[str]:
-    if any(issubclass(tp, Feature) for tp in collect_types(model_class)):
+def feature_provider(
+    types: Iterable[type[BaseModel]],
+    key: ModelKey,
+    tags: set[str],
+) -> set[str]:
+    if any(issubclass(tp, Feature) for tp in types):
         tags.add("feature")
     return tags
 ```
@@ -180,7 +185,7 @@ feature = "overture.schema.system.discovery.tag_providers:feature_provider"
 
 Tags from one provider are visible to providers that run later, but execution order is unspecified -- a provider must not depend on tags added by another. Provider exceptions are caught, logged, and discarded; they do not abort discovery.
 
-The `model_class` argument is whatever the entry point loads. For most features that is a `type[BaseModel]`, but discriminated-union features (e.g. `Segment`) load as `Annotated[Union[...], Field(...)]` expressions, which are not `type` objects. Providers walk these with `collect_types` instead of calling `issubclass` directly.
+Discovery resolves the entry-point value to concrete classes before invoking providers. For class entries that yields a one-element iterable; for discriminated-union features (e.g. `Segment`, which loads as `Annotated[Union[...], Field(...)]`) it yields every arm. Providers therefore work uniformly with `issubclass` and never need to walk type expressions themselves.
 
 ### Reservation
 
@@ -197,7 +202,7 @@ When a provider attempts to set a reserved tag from an unauthorized package, dis
 
 ### Built-in Providers
 
-- **`feature`** (in `system`) -- adds `feature` if the entry point references a `Feature` subclass, walking discriminated unions via `collect_types`.
+- **`feature`** (in `system`) -- adds `feature` if any concrete arm is a `Feature` subclass.
 - **`authority`** (in `core`) -- adds `overture` if the model's entry point appears in the curated approval manifest (`APPROVED` in `overture.schema.core.tag_providers`).
 - **`theme`** (in `core`) -- adds `overture:theme={theme}` for each `OvertureFeature` referenced. A discriminated-union feature whose arms span multiple themes contributes one tag per distinct theme.
 

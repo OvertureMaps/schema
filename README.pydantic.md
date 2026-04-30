@@ -160,21 +160,51 @@ The discovery system provides programmatic access to registered models:
 ```python
 from overture.schema.system.discovery import discover_models, get_registered_model
 
-# Discover all registered models
+# Discover all registered models, keyed by ModelKey
 all_models = discover_models()
-# Returns:
+
+# Get a specific model by name
+building_model = get_registered_model("building")
+if building_model:
+    building = building_model.model_validate(building_data)
+```
+
+### Tagging
+
+Each `ModelKey` returned by `discover_models()` carries a `frozenset[str]` of tags
+that classify the model orthogonally to its entry-point name -- whether the model
+is a `Feature` subclass, which Overture theme it belongs to, which package shipped
+it, and so on. Downstream tools (the CLI, codegen, third-party consumers) use tags
+to filter the working set without importing every model:
+
+```python
+from overture.schema.system.discovery import (
+    TagSelector,
+    discover_models,
+    filter_models,
+)
+
+models = discover_models()
 # {
-#   ModelKey(name="building", entry_point="overture.schema.buildings:Building", tags=frozenset({"feature", "overture", "overture:theme=buildings"})): BuildingModel,
-#   ModelKey(name="place",    entry_point="overture.schema.places:Place",       tags=frozenset({"feature", "overture", "overture:theme=places"})): PlaceModel,
+#   ModelKey(name="building", entry_point="overture.schema.buildings:Building",
+#            tags=frozenset({"feature", "overture", "overture:theme=buildings"})): BuildingModel,
+#   ModelKey(name="place",    entry_point="overture.schema.places:Place",
+#            tags=frozenset({"feature", "overture", "overture:theme=places"})):    PlaceModel,
 #   ...
 # }
 
-# Get a specific model by type
-building_model = get_registered_model("building")
-if building_model:
-    # Use the model class
-    building = building_model.model_validate(building_data)
+buildings = filter_models(
+    models,
+    TagSelector(include_any=("overture:theme=buildings",)),
+)
 ```
+
+Tags are produced by *tag providers* registered on the `overture.tag_providers`
+entry-point group. The `system` and `core` packages ship the built-in providers
+(`feature`, `overture`, `overture:theme=*`); third parties can register their own
+to attach custom tags during discovery. See the [`overture-schema-system`
+README](packages/overture-schema-system/README.md#tagging) for tag format,
+reserved namespaces, and provider authoring.
 
 ## Development
 

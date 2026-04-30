@@ -10,6 +10,8 @@ from overture.schema.core.tag_providers import (
     theme_provider,
 )
 from overture.schema.system.discovery import ModelKey
+from overture.schema.system.discovery.discovery import _generate_tags
+from overture.schema.system.discovery.types import TagProviderDict, TagProviderKey
 from pydantic import BaseModel, Field, Tag
 
 
@@ -42,11 +44,12 @@ def _empty_key(name: str = "x", entry_point: str = "mod:X") -> ModelKey:
 
 
 def test_theme_provider_plain_class(building: type[OvertureFeature]) -> None:
-    tags = theme_provider(building, _empty_key(), set())
+    tags = theme_provider((building,), _empty_key(), set())
     assert tags == {"overture:theme=buildings"}
 
 
 def test_theme_provider_discriminated_union() -> None:
+    # `_generate_tags` is responsible for walking the union to concrete arms.
     class Road(OvertureFeature[Literal["transportation"], Literal["road"]]):
         pass
 
@@ -57,12 +60,18 @@ def test_theme_provider_discriminated_union() -> None:
         Annotated[Road, Tag("road")] | Annotated[Rail, Tag("rail")],
         Field(discriminator="type"),
     ]
-    tags = theme_provider(union, _empty_key(), set())
+    provider_key = TagProviderKey(
+        name="theme",
+        entry_point="core:theme_provider",
+        package_name="overture-schema-core",
+    )
+    providers: TagProviderDict = {provider_key: theme_provider}
+    tags = _generate_tags(union, _empty_key(), providers)
     assert tags == {"overture:theme=transportation"}
 
 
 def test_theme_provider_skips_non_overture(not_overture: type[BaseModel]) -> None:
-    tags = theme_provider(not_overture, _empty_key(), set())
+    tags = theme_provider((not_overture,), _empty_key(), set())
     assert tags == set()
 
 
@@ -73,17 +82,17 @@ def test_theme_provider_raises_on_non_literal_theme() -> None:
         pass
 
     with pytest.raises(TypeError, match="must be annotated Literal"):
-        theme_provider(BadFeature, _empty_key(), set())
+        theme_provider((BadFeature,), _empty_key(), set())
 
 
 def test_authority_provider_approved(road: type[OvertureFeature]) -> None:
     approved_entry = next(iter(APPROVED))
     key = ModelKey(name="x", entry_point=approved_entry, tags=frozenset())
-    tags = authority_provider(road, key, set())
+    tags = authority_provider((road,), key, set())
     assert "overture" in tags
 
 
 def test_authority_provider_not_approved(road: type[OvertureFeature]) -> None:
     key = ModelKey(name="x", entry_point="some.unapproved:Model", tags=frozenset())
-    tags = authority_provider(road, key, set())
+    tags = authority_provider((road,), key, set())
     assert "overture" not in tags

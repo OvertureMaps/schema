@@ -5,11 +5,13 @@ that should be attached. Registered via the
 `overture.tag_providers` entry-point group.
 """
 
-from typing import Any, Literal, get_args, get_origin
+from collections.abc import Iterable
+from typing import Literal, get_args, get_origin
+
+from pydantic import BaseModel
 
 from overture.schema.core import OvertureFeature
 from overture.schema.system.discovery import ModelKey
-from overture.schema.system.typing_util import collect_types
 
 APPROVED = {
     "overture.schema.addresses:Address",
@@ -31,14 +33,18 @@ APPROVED = {
 }
 
 
-def authority_provider(model_class: Any, key: ModelKey, tags: set[str]) -> set[str]:  # noqa: ANN401
+def authority_provider(
+    types: Iterable[type[BaseModel]],
+    key: ModelKey,
+    tags: set[str],
+) -> set[str]:
     """Add the `"overture"` tag if the model originates from an approved Overture package.
 
     Parameters
     ----------
-    model_class
-        A class or discriminated-union type expression loaded from an
-        `overture.models` entry point.
+    types
+        Concrete `BaseModel` subclasses for the entry point. Unused —
+        approval is determined by the entry-point identity in `key`.
     key
         Key identifying the model.
     tags
@@ -54,15 +60,18 @@ def authority_provider(model_class: Any, key: ModelKey, tags: set[str]) -> set[s
     return tags
 
 
-def theme_provider(model_class: Any, key: ModelKey, tags: set[str]) -> set[str]:  # noqa: ANN401
+def theme_provider(
+    types: Iterable[type[BaseModel]],
+    key: ModelKey,
+    tags: set[str],
+) -> set[str]:
     """Add `"overture:theme={theme}"` for each `OvertureFeature` referenced.
 
     Tags are attached to the entry point's `ModelKey`. For
-    discriminated-union features, the provider walks every concrete arm
-    via `collect_types` and reads each arm's `theme`; tags from all arms
-    accumulate on the union's `ModelKey`. Arms that share a theme
-    deduplicate to a single tag; arms with different themes contribute
-    multiple `overture:theme=X` tags to the same `ModelKey`.
+    discriminated-union features, every concrete arm contributes its
+    own `theme`; arms that share a theme deduplicate to a single tag,
+    and arms with different themes contribute multiple
+    `overture:theme=X` tags to the same `ModelKey`.
 
     Each arm's `theme` field must be annotated as a single-value
     `Literal[str]`; any other annotation is a model-definition bug and
@@ -70,9 +79,9 @@ def theme_provider(model_class: Any, key: ModelKey, tags: set[str]) -> set[str]:
 
     Parameters
     ----------
-    model_class
-        A class or discriminated-union type expression loaded from an
-        `overture.models` entry point.
+    types
+        Concrete `BaseModel` subclasses for the entry point. For
+        discriminated-union features this is every arm.
     key
         Key identifying the model.
     tags
@@ -89,7 +98,7 @@ def theme_provider(model_class: Any, key: ModelKey, tags: set[str]) -> set[str]:
         If a referenced `OvertureFeature`'s `theme` is not a single-value
         `Literal[str]`.
     """
-    for tp in collect_types(model_class):
+    for tp in types:
         if issubclass(tp, OvertureFeature):
             tags.add(f"overture:theme={_theme_literal(tp)}")
     return tags
