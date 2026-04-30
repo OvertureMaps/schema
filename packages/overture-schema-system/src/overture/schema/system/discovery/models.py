@@ -1,3 +1,5 @@
+"""Key types identifying registered models and tag providers."""
+
 from dataclasses import dataclass
 
 
