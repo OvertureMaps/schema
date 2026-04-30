@@ -64,7 +64,8 @@ def generate_tags(
             tags.update(filtered_tags)
         except Exception as e:
             log.warning(
-                f"Error in tag provider {provider.__name__} for model {key.name}: {e}"
+                f"Error in tag provider {provider_key.name} for model {key.name}: {e}",
+                exc_info=True,
             )
     return tags
 
