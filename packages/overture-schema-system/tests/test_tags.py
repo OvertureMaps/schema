@@ -1,5 +1,6 @@
 import re
-import unittest
+
+import pytest
 
 from overture.schema.system.discovery.tag import (
     NAMESPACE_TAG,
@@ -31,89 +32,77 @@ def test_get_values_for_key_handles_empty_tags() -> None:
     assert result == set()
 
 
-class TestPlainTagRegex(unittest.TestCase):
-    def test_valid_plain_tags(self) -> None:
-        valid_tags = [
-            "v",
-            "valid",
-            "valid1",
-            "valid_tag",
-            "valid-tag",
-            "0valid",
-            "42",
-        ]
-        for tag in valid_tags:
-            self.assertTrue(
-                re.fullmatch(PLAIN_TAG, tag), f"PLAIN_TAG should match: {tag}"
-            )
-            self.assertTrue(TAG.fullmatch(tag), f"TAG should match: {tag}")
-            self.assertTrue(
-                is_valid_tag(tag), f"is_valid_tag should return True for: {tag}"
-            )
+VALID_PLAIN_TAGS = [
+    "v",
+    "valid",
+    "valid1",
+    "valid_tag",
+    "valid-tag",
+    "0valid",
+    "42",
+]
 
-    def test_invalid_plain_tags(self) -> None:
-        invalid_tags = [
-            "",
-            "_invalid",
-            "-invalid",
-            "Invalid",
-            "invalid!",
-            "invalid ",
-            "in.valid",
-            "3.14",
-        ]
-        for tag in invalid_tags:
-            self.assertFalse(
-                re.fullmatch(PLAIN_TAG, tag), f"PLAIN_TAG should not match: {tag}"
-            )
-            self.assertFalse(TAG.fullmatch(tag), f"TAG should not match: {tag}")
-            self.assertFalse(
-                is_valid_tag(tag), f"is_valid_tag should return False for: {tag}"
-            )
+INVALID_PLAIN_TAGS = [
+    "",
+    "_invalid",
+    "-invalid",
+    "Invalid",
+    "invalid!",
+    "invalid ",
+    "in.valid",
+    "3.14",
+]
+
+VALID_NAMESPACE_TAGS = [
+    "ns:predicate",
+    "ns:predicate1",
+    "ns:predicate-1",
+    "ns:predicate=value",
+    "ns:predicate=value_0",
+    "ns:predicate=value-0",
+    "ns:predicate=value.0",
+    "ns:predicate=value_2-3.4",
+    "ns:predicate=42",
+    "ns:predicate=3.14",
+    "ns:predicate=Value",
+]
+
+INVALID_NAMESPACE_TAGS = [
+    "ns:",
+    ":predicate",
+    "ns:predicate=",
+    "ns:predicate=value ",
+    "ns:predicate=value!",
+    "ns:predicate=ns:value",
+    "ns:predicate=predicate=value",
+    "Ns:predicate",
+    "ns:Predicate",
+]
 
 
-class TestNamespaceTagRegex(unittest.TestCase):
-    def test_valid_namespace_tags(self) -> None:
-        valid_tags = [
-            "ns:predicate",
-            "ns:predicate1",
-            "ns:predicate-1",
-            "ns:predicate=value",
-            "ns:predicate=value_0",
-            "ns:predicate=value-0",
-            "ns:predicate=value.0",
-            "ns:predicate=value_2-3.4",
-            "ns:predicate=42",
-            "ns:predicate=3.14",
-            "ns:predicate=Value",
-        ]
-        for tag in valid_tags:
-            self.assertTrue(
-                re.fullmatch(NAMESPACE_TAG, tag), f"NAMESPACE_TAG should match: {tag}"
-            )
-            self.assertTrue(TAG.fullmatch(tag), f"TAG should match: {tag}")
-            self.assertTrue(
-                is_valid_tag(tag), f"is_valid_tag should return True for: {tag}"
-            )
+@pytest.mark.parametrize("tag", VALID_PLAIN_TAGS)
+def test_valid_plain_tag(tag: str) -> None:
+    assert re.fullmatch(PLAIN_TAG, tag)
+    assert TAG.fullmatch(tag)
+    assert is_valid_tag(tag)
 
-    def test_invalid_namespace_tags(self) -> None:
-        invalid_tags = [
-            "ns:",
-            ":predicate",
-            "ns:predicate=",
-            "ns:predicate=value ",
-            "ns:predicate=value!",
-            "ns:predicate=ns:value",
-            "ns:predicate=predicate=value",
-            "Ns:predicate",
-            "ns:Predicate",
-        ]
-        for tag in invalid_tags:
-            self.assertFalse(
-                re.fullmatch(NAMESPACE_TAG, tag),
-                f"NAMESPACE_TAG should not match: {tag}",
-            )
-            self.assertFalse(TAG.fullmatch(tag), f"TAG should not match: {tag}")
-            self.assertFalse(
-                is_valid_tag(tag), f"is_valid_tag should return False for: {tag}"
-            )
+
+@pytest.mark.parametrize("tag", INVALID_PLAIN_TAGS)
+def test_invalid_plain_tag(tag: str) -> None:
+    assert not re.fullmatch(PLAIN_TAG, tag)
+    assert not TAG.fullmatch(tag)
+    assert not is_valid_tag(tag)
+
+
+@pytest.mark.parametrize("tag", VALID_NAMESPACE_TAGS)
+def test_valid_namespace_tag(tag: str) -> None:
+    assert re.fullmatch(NAMESPACE_TAG, tag)
+    assert TAG.fullmatch(tag)
+    assert is_valid_tag(tag)
+
+
+@pytest.mark.parametrize("tag", INVALID_NAMESPACE_TAGS)
+def test_invalid_namespace_tag(tag: str) -> None:
+    assert not re.fullmatch(NAMESPACE_TAG, tag)
+    assert not TAG.fullmatch(tag)
+    assert not is_valid_tag(tag)
