@@ -97,14 +97,14 @@ def _filter_tags(tags: set[str], provider: TagProviderKey) -> set[str]:
     }
     for tag in tags:
         if not is_valid_tag(tag):
-            log.debug(
+            log.warning(
                 f"Tag provider '{provider.name}' (package '{provider.package_name}') attempted to set '{tag}' as tag. "
                 f"This tag does not match the required format."
             )
             continue
         if tag in reserved_tags:
             allowed_pkgs = _RESERVED_TAGS.get(tag, set())
-            log.debug(
+            log.warning(
                 f"Tag provider '{provider.name}' (package '{provider.package_name}') attempted to set reserved tag '{tag}'. "
                 f"This tag can only be set by packages from: {allowed_pkgs}."
             )
@@ -112,7 +112,7 @@ def _filter_tags(tags: set[str], provider: TagProviderKey) -> set[str]:
         tag_ns = get_namespace(tag)
         if tag_ns and tag_ns in reserved_namespaces:
             allowed_pkgs = _RESERVED_NAMESPACES.get(tag_ns, set())
-            log.debug(
+            log.warning(
                 f"Tag provider '{provider.name}' (package '{provider.package_name}') attempted to set tag '{tag}' in reserved namespace '{tag_ns}'. "
                 f"This namespace can only be set by packages from: {allowed_pkgs}."
             )

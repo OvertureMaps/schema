@@ -1,9 +1,15 @@
-import pytest
-from pydantic import BaseModel
+from typing import Annotated, Any
 
-from overture.schema.system.discovery.discovery import _filter_tags
+import pytest
+from pydantic import BaseModel, Field, Tag
+
+from overture.schema.system.discovery.discovery import _generate_tags
 from overture.schema.system.discovery.tag_providers import feature_provider
-from overture.schema.system.discovery.types import ModelKey, TagProviderKey
+from overture.schema.system.discovery.types import (
+    ModelKey,
+    TagProvider,
+    TagProviderKey,
+)
 from overture.schema.system.feature import Feature
 
 
@@ -46,56 +52,121 @@ def not_a_feature() -> type[BaseModel]:
     return NotAFeature
 
 
-def test_valid_tags(other_tag_provider: TagProviderKey) -> None:
-    tags = {"valid", "other:valid", "other:valid=true"}
-    filtered = _filter_tags(tags, other_tag_provider)
-    assert filtered == tags
+@pytest.fixture
+def any_key() -> ModelKey:
+    return ModelKey(name="x", entry_point="m:X", tags=frozenset())
 
 
-def test_invalid_tag(other_tag_provider: TagProviderKey) -> None:
-    tags = {"InvalidTag"}
-    filtered = _filter_tags(tags, other_tag_provider)
-    assert filtered == set()
+@pytest.fixture
+def any_model() -> type[BaseModel]:
+    class M(BaseModel):
+        pass
+
+    return M
 
 
-def test_reserved_tag(other_tag_provider: TagProviderKey) -> None:
-    tags = {"overture", "feature", "valid"}
-    filtered = _filter_tags(tags, other_tag_provider)
-    assert "valid" in filtered
-    assert "overture" not in filtered
-    assert "feature" not in filtered
+def fake_provider(*tags: str) -> TagProvider:
+    """Provider that always returns the given tags, ignoring its inputs."""
+
+    def _provider(model_class: Any, key: ModelKey, current_tags: set[str]) -> set[str]:
+        return set(tags)
+
+    return _provider
+
+
+def test_valid_tags(
+    other_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
+) -> None:
+    providers = {
+        other_tag_provider: fake_provider("valid", "other:valid", "other:valid=true")
+    }
+    result = _generate_tags(any_model, any_key, providers)
+    assert result == {"valid", "other:valid", "other:valid=true"}
+
+
+def test_invalid_tag(
+    other_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
+) -> None:
+    providers = {other_tag_provider: fake_provider("InvalidTag")}
+    result = _generate_tags(any_model, any_key, providers)
+    assert result == set()
+
+
+def test_reserved_tag(
+    other_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
+) -> None:
+    providers = {other_tag_provider: fake_provider("overture", "feature", "valid")}
+    result = _generate_tags(any_model, any_key, providers)
+    assert result == {"valid"}
 
 
 def test_allowed_reserved_tag(
-    core_tag_provider: TagProviderKey, system_tag_provider: TagProviderKey
+    core_tag_provider: TagProviderKey,
+    system_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
 ) -> None:
-    assert "overture" in _filter_tags({"overture"}, core_tag_provider)
-    assert "feature" in _filter_tags({"feature"}, system_tag_provider)
+    core_providers = {core_tag_provider: fake_provider("overture")}
+    assert _generate_tags(any_model, any_key, core_providers) == {"overture"}
+
+    system_providers = {system_tag_provider: fake_provider("feature")}
+    assert _generate_tags(any_model, any_key, system_providers) == {"feature"}
 
 
-def test_reserved_namespace(other_tag_provider: TagProviderKey) -> None:
-    tags = {"overture:feature", "system:feature", "valid:tag"}
-    filtered = _filter_tags(tags, other_tag_provider)
-    assert "valid:tag" in filtered
-    assert "overture:feature" not in filtered
-    assert "system:feature" not in filtered
+def test_reserved_namespace(
+    other_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
+) -> None:
+    providers = {
+        other_tag_provider: fake_provider(
+            "overture:feature", "system:feature", "valid:tag"
+        )
+    }
+    result = _generate_tags(any_model, any_key, providers)
+    assert result == {"valid:tag"}
 
 
 def test_allowed_reserved_namespace(
-    core_tag_provider: TagProviderKey, system_tag_provider: TagProviderKey
+    core_tag_provider: TagProviderKey,
+    system_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
 ) -> None:
-    assert "overture:feature" in _filter_tags({"overture:feature"}, core_tag_provider)
-    assert "system:feature" in _filter_tags({"system:feature"}, system_tag_provider)
+    core_providers = {core_tag_provider: fake_provider("overture:feature")}
+    assert _generate_tags(any_model, any_key, core_providers) == {"overture:feature"}
+
+    system_providers = {system_tag_provider: fake_provider("system:feature")}
+    assert _generate_tags(any_model, any_key, system_providers) == {"system:feature"}
 
 
-def test_empty_tags(other_tag_provider: TagProviderKey) -> None:
-    assert _filter_tags(set(), other_tag_provider) == set()
+def test_empty_tags(
+    other_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
+) -> None:
+    providers = {other_tag_provider: fake_provider()}
+    assert _generate_tags(any_model, any_key, providers) == set()
 
 
-def test_mixed_tags(other_tag_provider: TagProviderKey) -> None:
-    tags = {"valid", "feature", "overture:feature", "InvalidTag"}
-    filtered = _filter_tags(tags, other_tag_provider)
-    assert filtered == {"valid"}
+def test_mixed_tags(
+    other_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
+) -> None:
+    providers = {
+        other_tag_provider: fake_provider(
+            "valid", "feature", "overture:feature", "InvalidTag"
+        )
+    }
+    result = _generate_tags(any_model, any_key, providers)
+    assert result == {"valid"}
 
 
 def test_feature_provider_adds_feature_tag(feature: type[Feature]) -> None:
@@ -112,3 +183,20 @@ def test_feature_provider_does_not_add_feature_tag(
     )
     result = feature_provider(not_a_feature, key, set())
     assert "feature" not in result
+
+
+def test_feature_provider_handles_discriminated_union() -> None:
+    # Mimics the shape of `Segment`: Annotated[Union[...], Field(discriminator=...)]
+    class ArmA(Feature):
+        pass
+
+    class ArmB(BaseModel):
+        pass
+
+    union = Annotated[
+        Annotated[ArmA, Tag("a")] | Annotated[ArmB, Tag("b")],
+        Field(discriminator="type"),
+    ]
+    key = ModelKey(name="union", entry_point="mod:Union", tags=frozenset())
+    result = feature_provider(union, key, set())
+    assert "feature" in result
