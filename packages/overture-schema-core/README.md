@@ -94,4 +94,4 @@ Rendering hints for map-making: `prominence` (1--100 significance scale), `min_z
 
 - **Types** -- domain-specific aliases built on system primitives: `ConfidenceScore` (0.0--1.0), `Level` (z-order), `FeatureVersion`.
 - **Units** -- measurement enumerations: `SpeedUnit`, `LengthUnit`, `WeightUnit`.
-- **Discovery** -- entry-point-based model registry. Theme packages register models via `overture.models` entry points; `discover_models()` resolves them at runtime.
+- **Tag providers** -- `authority` and `theme` providers for the discovery system in `overture-schema-system`. They tag `OvertureFeature`-derived models with `overture` (when manifest-approved) and `overture:theme={theme}`.

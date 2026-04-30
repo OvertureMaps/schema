@@ -109,6 +109,108 @@ class ParkBench(Identified):
     park_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Park)]
 ```
 
+## Discovery
+
+Packages register models on the `overture.models` Python entry point group. Each entry maps a name to a class import path:
+
+```toml
+[project.entry-points."overture.models"]
+building      = "overture.schema.buildings:Building"
+building_part = "overture.schema.buildings:BuildingPart"
+```
+
+`discover_models()` walks the group, loads each entry point, and returns a dict keyed by `ModelKey`. Consumers iterate over the result without knowing which package owns any given model -- the CLI and codegen tools both run discovery to assemble their working set.
+
+A `ModelKey` carries the entry point `name`, its `entry_point` value (`"module:Class"`), and a `frozenset[str]` of tags. [Tagging](#tagging) is how those tags get attached.
+
+## Tagging
+
+Tags classify discovered models. A package registers [tag providers](#providers) on `overture.tag_providers`; when `discover_models` runs, it asks every provider which tags apply to each model and attaches the resulting set to its `ModelKey`. Downstream tools read those tags -- the CLI's `--tag` filter, codegen's grouping logic, anything that reasons about a model without importing it.
+
+```python
+from overture.schema.system.discovery import (
+    TagSelector,
+    discover_models,
+    filter_models,
+)
+
+models = discover_models()
+
+selected = filter_models(
+    models,
+    TagSelector(include_any=("feature",), exclude_any=("draft",)),
+)
+```
+
+### Format
+
+Tags follow `[namespace:]predicate[=value]`:
+
+- **Plain** -- `feature`, `overture`
+- **Namespaced** -- `system:extension`
+- **Key/value** -- `overture:theme=buildings`
+
+`:` separates namespace from predicate -- one level only, no nested colons. `=` introduces a discrete value, one per tag. Predicate and namespace parts are lowercase alphanumeric (with `_`, `.`, `-`); values also accept uppercase. Matching is case-sensitive throughout.
+
+Helpers in `overture.schema.system.discovery.tag` parse structured tags:
+
+- `is_valid_tag(tag)` -- check whether a string matches the format
+- `get_namespace(tag)` -- extract the namespace prefix, or `""` for a plain tag
+- `get_values_for_key(tags, "overture:theme")` -- extract values from k/v tags with the given key
+
+### Providers
+
+A tag provider is a callable registered on the `overture.tag_providers` entry point group. Discovery passes it the model class and a copy of the tags accumulated so far; tags it adds are merged into the running set after passing the reservation checks below.
+
+```python
+from overture.schema.system.discovery import ModelKey
+from overture.schema.system.feature import Feature
+from overture.schema.system.typing_util import collect_types
+
+def feature_provider(model_class, key: ModelKey, tags: set[str]) -> set[str]:
+    if any(issubclass(tp, Feature) for tp in collect_types(model_class)):
+        tags.add("feature")
+    return tags
+```
+
+```toml
+[project.entry-points."overture.tag_providers"]
+feature = "overture.schema.system.discovery.tag_providers:feature_provider"
+```
+
+Tags from one provider are visible to providers that run later, but execution order is unspecified -- a provider must not depend on tags added by another. Provider exceptions are caught, logged, and discarded; they do not abort discovery.
+
+The `model_class` argument is whatever the entry point loads. For most features that is a `type[BaseModel]`, but discriminated-union features (e.g. `Segment`) load as `Annotated[Union[...], Field(...)]` expressions, which are not `type` objects. Providers walk these with `collect_types` instead of calling `issubclass` directly.
+
+### Reservation
+
+Specific plain tags and namespaces are reserved for designated packages. For example:
+
+| Tag or namespace | Owning package |
+|---|---|
+| `feature` (tag) | `overture-schema-system` |
+| `overture` (tag) | `overture-schema-core` |
+| `system:` (namespace) | `overture-schema-system` |
+| `overture:` (namespace) | `overture-schema-core` |
+
+When a provider attempts to set a reserved tag from an unauthorized package, discovery logs a warning and discards the tag.
+
+### Built-in Providers
+
+- **`feature`** (in `system`) -- adds `feature` if the entry point references a `Feature` subclass, walking discriminated unions via `collect_types`.
+- **`authority`** (in `core`) -- adds `overture` if the model's entry point appears in the curated approval manifest (`APPROVED` in `overture.schema.core.tag_providers`).
+- **`theme`** (in `core`) -- adds `overture:theme={theme}` for each `OvertureFeature` referenced. A discriminated-union feature whose arms span multiple themes contributes one tag per distinct theme.
+
+### Selecting Models by Tag
+
+`filter_models(models, selector)` applies `TagSelector` predicates against each `ModelKey.tags`:
+
+- `include_any` -- OR scope; at least one tag must match (empty: no scope filter)
+- `require_all` -- AND narrowing; every tag must be present (empty: no narrowing)
+- `exclude_any` -- OR-NOT subtraction; any match drops the model
+
+An empty selector returns the input unchanged.
+
 ## Also Included
 
 - **Optionality** -- `Omitable[T]` models JSON Schema's "may be absent but not null" semantics, which Pydantic's `T | None` conflates with nullable.
