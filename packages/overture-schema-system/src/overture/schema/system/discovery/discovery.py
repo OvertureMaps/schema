@@ -31,7 +31,7 @@ _RESERVED_NAMESPACES: dict[str, set[str]] = {
 }
 
 
-def generate_tags(
+def _generate_tags(
     model_class: type[BaseModel],
     key: ModelKey,
     providers: TagProviderDict,
@@ -44,11 +44,11 @@ def generate_tags(
 
     Parameters
     ----------
-    model_class : type[BaseModel]
+    model_class
         Model class to generate tags for.
-    key : ModelKey
+    key
         Key identifying the model.
-    providers : TagProviderDict
+    providers
         Tag providers to invoke.
 
     Returns
@@ -59,7 +59,7 @@ def generate_tags(
     tags: set[str] = set()
     for provider_key, provider in providers.items():
         try:
-            added_tags = provider(model_class, key, tags.copy()).difference(tags)
+            added_tags = set(provider(model_class, key, tags.copy())) - tags
             filtered_tags = _filter_tags(added_tags, provider_key)
             tags.update(filtered_tags)
         except Exception as e:
@@ -183,7 +183,7 @@ def discover_models(
                 try:
                     key = replace(
                         key,
-                        tags=frozenset(generate_tags(model_class, key, tag_providers)),
+                        tags=frozenset(_generate_tags(model_class, key, tag_providers)),
                     )
                 except Exception as e:
                     log.warning(f"Could not resolve tags for model {model.name}: {e}")

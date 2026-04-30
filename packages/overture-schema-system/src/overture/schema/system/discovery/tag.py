@@ -15,11 +15,10 @@ Tag matching is case-sensitive throughout.
 
 import re
 
-PLAIN_TAG = r"[a-z0-9][a-z0-9_-]*"
-NAMESPACE = PREDICATE = r"[a-z0-9][a-z0-9_.-]*"
+TAG_PART = r"[a-z0-9][a-z0-9_.-]*"
 VALUE = r"[a-zA-Z0-9_.-]+"
-NAMESPACE_TAG = rf"{NAMESPACE}:{PREDICATE}(?:={VALUE})?"
-TAG = re.compile(rf"^(?:{PLAIN_TAG}|{NAMESPACE_TAG})$")
+NAMESPACE_TAG = rf"{TAG_PART}:{TAG_PART}(?:={VALUE})?"
+TAG = re.compile(rf"^(?:{TAG_PART}|{NAMESPACE_TAG})$")
 
 
 def get_namespace(tag: str) -> str:
@@ -72,13 +71,12 @@ def is_valid_tag(tag: str) -> bool:
 
     A valid tag is a plain tag, a namespaced tag, or a key/value tag:
 
-    - **Plain**: `[a-z0-9][a-z0-9_-]*` — lowercase alphanumeric, hyphens,
-      underscores; no dots.
-    - **Namespace / predicate**: `[a-z0-9][a-z0-9_.-]*` — same but dots
-      are also allowed.
-    - **Key/value**: `{namespace}:{predicate}=[a-zA-Z0-9_.-]+` — namespace and predicate as
-      above; value is alphanumeric (upper and lower case), hyphens, underscores, or dots;
-      must be non-empty.
+    - **Plain / namespace / predicate**: `[a-z0-9][a-z0-9_.-]*` —
+      lowercase alphanumeric start, then alphanumeric, hyphens,
+      underscores, or dots.
+    - **Key/value**: `{namespace}:{predicate}=[a-zA-Z0-9_.-]+` — namespace and
+      predicate as above; value is alphanumeric (upper and lower case),
+      hyphens, underscores, or dots; must be non-empty.
 
     Parameters
     ----------

@@ -4,8 +4,8 @@ import pytest
 
 from overture.schema.system.discovery.tag import (
     NAMESPACE_TAG,
-    PLAIN_TAG,
     TAG,
+    TAG_PART,
     get_values_for_key,
     is_valid_tag,
 )
@@ -40,23 +40,27 @@ VALID_PLAIN_TAGS = [
     "valid-tag",
     "0valid",
     "42",
+    "in.valid",
+    "3.14",
+    "com.example",
 ]
 
 INVALID_PLAIN_TAGS = [
     "",
     "_invalid",
     "-invalid",
+    ".invalid",
     "Invalid",
     "invalid!",
     "invalid ",
-    "in.valid",
-    "3.14",
 ]
 
 VALID_NAMESPACE_TAGS = [
     "ns:predicate",
     "ns:predicate1",
     "ns:predicate-1",
+    "ns.dotted:predicate",
+    "ns:pred.icate",
     "ns:predicate=value",
     "ns:predicate=value_0",
     "ns:predicate=value-0",
@@ -82,14 +86,14 @@ INVALID_NAMESPACE_TAGS = [
 
 @pytest.mark.parametrize("tag", VALID_PLAIN_TAGS)
 def test_valid_plain_tag(tag: str) -> None:
-    assert re.fullmatch(PLAIN_TAG, tag)
+    assert re.fullmatch(TAG_PART, tag)
     assert TAG.fullmatch(tag)
     assert is_valid_tag(tag)
 
 
 @pytest.mark.parametrize("tag", INVALID_PLAIN_TAGS)
 def test_invalid_plain_tag(tag: str) -> None:
-    assert not re.fullmatch(PLAIN_TAG, tag)
+    assert not re.fullmatch(TAG_PART, tag)
     assert not TAG.fullmatch(tag)
     assert not is_valid_tag(tag)
 
