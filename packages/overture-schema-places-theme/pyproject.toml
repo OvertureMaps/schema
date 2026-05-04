@@ -5,8 +5,7 @@ maintainers = [
 dependencies = [
     "overture-schema-core",
     "overture-schema-system",
-    "pydantic>=2.0",
-    "pydantic[email]",
+    "pydantic[email]>=2.12.0",
 ]
 description = "Overture Maps places theme with place type models"
 dynamic = ["version"]
