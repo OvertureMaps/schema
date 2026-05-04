@@ -5,7 +5,7 @@ maintainers = [
 dependencies = [
     "overture-schema-core",
     "overture-schema-system",
-    "pydantic>=2.0",
+    "pydantic>=2.12.0",
 ]
 description = "Overture Maps buildings theme shared structures, building types, and building part types"
 dynamic = ["version"]

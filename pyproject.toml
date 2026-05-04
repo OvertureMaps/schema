@@ -52,9 +52,9 @@ dev = [
     "mypy>=1.17.0",
     "pdoc>=15.0.4",
     "pydocstyle>=6.3.0",
-    "pytest>=8.4.1",
+    "pytest>=9.0.0",
     "pytest-cov>=7.0.0",
-    "ruff>=0.12.4",
+    "ruff>=0.13.0",
 ]
 
 [tool.pytest.ini_options]
