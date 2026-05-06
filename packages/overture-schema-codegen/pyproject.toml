@@ -4,7 +4,7 @@ requires = ["hatchling"]
 
 [project]
 dependencies = [
-    "click>=8.0",
+    "click>=8.1",
     "jinja2>=3.0",
     "overture-schema-cli",
     "overture-schema-core",

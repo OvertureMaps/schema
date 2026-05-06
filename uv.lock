@@ -778,7 +778,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "click", specifier = ">=8.0" },
+    { name = "click", specifier = ">=8.1" },
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.12.0" },
@@ -808,7 +808,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "click", specifier = ">=8.0" },
+    { name = "click", specifier = ">=8.1" },
     { name = "jinja2", specifier = ">=3.0" },
     { name = "overture-schema-cli", editable = "packages/overture-schema-cli" },
     { name = "overture-schema-core", editable = "packages/overture-schema-core" },
