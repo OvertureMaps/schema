@@ -5,7 +5,7 @@ from typing import TypeAlias
 
 from pydantic import BaseModel
 
-from .models import ModelKey, TagProviderKey
+from .keys import ModelKey, TagProviderKey
 
 # Tag providers receive the concrete `BaseModel` subclasses for an entry
 # point. For class entries this is a one-element iterable; for
