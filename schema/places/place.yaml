@@ -137,4 +137,3 @@ properties:
           This is not an indication of 'opening hours' or that the place is open/closed at the current time-of-day or day-of-week.
         type: string
         enum: ["open", "permanently_closed", "temporarily_closed"]
-    required: [operating_status]
