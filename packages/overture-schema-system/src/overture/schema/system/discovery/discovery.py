@@ -23,7 +23,6 @@ log = logging.getLogger(__name__)
 
 # Tags that are reserved and can only be set by specific packages.
 _RESERVED_TAGS: dict[str, set[str]] = {
-    "overture": {"overture-schema-core"},
     "feature": {"overture-schema-system"},
 }
 # Namespaces that are reserved and can only be set by specific packages.

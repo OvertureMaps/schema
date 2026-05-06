@@ -14,14 +14,6 @@ from pydantic import BaseModel, Field, Tag
 
 
 @pytest.fixture
-def road() -> type[OvertureFeature]:
-    class Road(OvertureFeature[Literal["transportation"], Literal["road"]]):
-        pass
-
-    return Road
-
-
-@pytest.fixture
 def building() -> type[OvertureFeature]:
     class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
         pass

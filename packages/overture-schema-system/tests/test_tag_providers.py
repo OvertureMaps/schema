@@ -107,20 +107,16 @@ def test_reserved_tag(
     any_key: ModelKey,
     any_model: type[BaseModel],
 ) -> None:
-    providers = {other_tag_provider: fake_provider("overture", "feature", "valid")}
+    providers = {other_tag_provider: fake_provider("feature", "valid")}
     result = _generate_tags(any_model, any_key, providers)
     assert result == {"valid"}
 
 
 def test_allowed_reserved_tag(
-    core_tag_provider: TagProviderKey,
     system_tag_provider: TagProviderKey,
     any_key: ModelKey,
     any_model: type[BaseModel],
 ) -> None:
-    core_providers = {core_tag_provider: fake_provider("overture")}
-    assert _generate_tags(any_model, any_key, core_providers) == {"overture"}
-
     system_providers = {system_tag_provider: fake_provider("feature")}
     assert _generate_tags(any_model, any_key, system_providers) == {"feature"}
 

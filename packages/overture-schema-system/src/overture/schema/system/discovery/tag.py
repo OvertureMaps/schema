@@ -2,7 +2,7 @@
 
 Tags follow the pattern `[namespace:]predicate[=value]` and come in three forms:
 
-- **Plain** — `overture`, `feature`
+- **Plain** — `feature`
 - **Namespaced** — `system:extension`
 - **Key/value** — `overture:theme=buildings`
 
