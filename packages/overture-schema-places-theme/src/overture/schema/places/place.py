@@ -205,10 +205,10 @@ class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
         ),
     ]
 
-    # Required
+    # Optional
 
     operating_status: Annotated[
-        OperatingStatus,
+        OperatingStatus | None,
         Field(
             description=textwrap.dedent("""
                 An indication of whether a place is: in continued operation, in a temporary
@@ -221,9 +221,7 @@ class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
                 set to 0.
             """).strip(),
         ),
-    ]
-
-    # Optional
+    ] = None
 
     categories: Categories | None = None
     basic_category: Annotated[
