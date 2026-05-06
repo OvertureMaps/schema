@@ -530,8 +530,7 @@
       "required": [
         "theme",
         "type",
-        "version",
-        "operating_status"
+        "version"
       ],
       "type": "object"
     },
