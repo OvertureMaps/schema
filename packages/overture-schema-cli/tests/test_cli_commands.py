@@ -385,7 +385,7 @@ def test_validate_wires_tag_combinator_flag(
 ) -> None:
     """validate wires --filter/--exclude through to the tag selector."""
     result = cli_runner.invoke(
-        cli, ["validate", building_feature_yaml, "--tag", "overture", flag, value]
+        cli, ["validate", building_feature_yaml, "--tag", "feature", flag, value]
     )
     assert result.exit_code == 0
 
@@ -397,7 +397,7 @@ def test_json_schema_wires_tag_combinator_flag(
     value: str,
 ) -> None:
     """json-schema wires --filter/--exclude through to the tag selector."""
-    result = cli_runner.invoke(cli, ["json-schema", "--tag", "overture", flag, value])
+    result = cli_runner.invoke(cli, ["json-schema", "--tag", "feature", flag, value])
     assert result.exit_code == 0
     assert result.output  # non-empty JSON
 
@@ -409,5 +409,5 @@ def test_list_types_wires_tag_combinator_flag(
     value: str,
 ) -> None:
     """list-types wires --filter/--exclude through to the tag selector."""
-    result = cli_runner.invoke(cli, ["list-types", "--tag", "overture", flag, value])
+    result = cli_runner.invoke(cli, ["list-types", "--tag", "feature", flag, value])
     assert result.exit_code == 0

@@ -13,52 +13,6 @@ from pydantic import BaseModel
 from overture.schema.core import OvertureFeature
 from overture.schema.system.discovery import ModelKey
 
-APPROVED = {
-    "overture.schema.addresses:Address",
-    "overture.schema.base:Bathymetry",
-    "overture.schema.base:Infrastructure",
-    "overture.schema.base:Land",
-    "overture.schema.base:LandCover",
-    "overture.schema.base:LandUse",
-    "overture.schema.base:Water",
-    "overture.schema.buildings:Building",
-    "overture.schema.buildings:BuildingPart",
-    "overture.schema.divisions:Division",
-    "overture.schema.divisions:DivisionArea",
-    "overture.schema.divisions:DivisionBoundary",
-    "overture.schema.places:Place",
-    "overture.schema.transportation:Connector",
-    "overture.schema.transportation:Segment",
-    "overture.schema.annex:Sources",
-}
-
-
-def authority_provider(
-    types: Iterable[type[BaseModel]],
-    key: ModelKey,
-    tags: set[str],
-) -> set[str]:
-    """Add the `"overture"` tag if the model originates from an approved Overture package.
-
-    Parameters
-    ----------
-    types
-        Concrete `BaseModel` subclasses for the entry point. Unused —
-        approval is determined by the entry-point identity in `key`.
-    key
-        Key identifying the model.
-    tags
-        Current tags; may be extended.
-
-    Returns
-    -------
-    set[str]
-        Updated tags, with `"overture"` added if applicable.
-    """
-    if _matches_manifest(key):
-        tags.add("overture")
-    return tags
-
 
 def theme_provider(
     types: Iterable[type[BaseModel]],
@@ -102,10 +56,6 @@ def theme_provider(
         if issubclass(tp, OvertureFeature):
             tags.add(f"overture:theme={_theme_literal(tp)}")
     return tags
-
-
-def _matches_manifest(key: ModelKey) -> bool:
-    return key.entry_point in APPROVED
 
 
 def _theme_literal(model_class: type[OvertureFeature]) -> str:

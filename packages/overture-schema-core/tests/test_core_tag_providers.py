@@ -5,8 +5,6 @@ from typing import Annotated, Literal
 import pytest
 from overture.schema.core import OvertureFeature
 from overture.schema.core.tag_providers import (
-    APPROVED,
-    authority_provider,
     theme_provider,
 )
 from overture.schema.system.discovery import ModelKey
@@ -83,16 +81,3 @@ def test_theme_provider_raises_on_non_literal_theme() -> None:
 
     with pytest.raises(TypeError, match="must be annotated Literal"):
         theme_provider((BadFeature,), _empty_key(), set())
-
-
-def test_authority_provider_approved(road: type[OvertureFeature]) -> None:
-    approved_entry = next(iter(APPROVED))
-    key = ModelKey(name="x", entry_point=approved_entry, tags=frozenset())
-    tags = authority_provider((road,), key, set())
-    assert "overture" in tags
-
-
-def test_authority_provider_not_approved(road: type[OvertureFeature]) -> None:
-    key = ModelKey(name="x", entry_point="some.unapproved:Model", tags=frozenset())
-    tags = authority_provider((road,), key, set())
-    assert "overture" not in tags

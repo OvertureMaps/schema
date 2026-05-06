@@ -38,5 +38,4 @@ dev = [
 ]
 
 [project.entry-points."overture.tag_providers"]
-authority = "overture.schema.core.tag_providers:authority_provider"
-theme     = "overture.schema.core.tag_providers:theme_provider"
+theme = "overture.schema.core.tag_providers:theme_provider"
