@@ -1862,7 +1862,18 @@
         "vehicle": {
           "description": "A list of one or more vehicle parameters that limit the vehicles the containing AccessRestrictionRule applies to.",
           "items": {
-            "anyOf": [
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count.",
+            "discriminator": {
+              "mapping": {
+                "axle_count": "#/$defs/VehicleAxleCountSelector",
+                "height": "#/$defs/VehicleHeightSelector",
+                "length": "#/$defs/VehicleLengthSelector",
+                "weight": "#/$defs/VehicleWeightSelector",
+                "width": "#/$defs/VehicleWidthSelector"
+              },
+              "propertyName": "dimension"
+            },
+            "oneOf": [
               {
                 "$ref": "#/$defs/VehicleAxleCountSelector"
               },
@@ -1878,8 +1889,7 @@
               {
                 "$ref": "#/$defs/VehicleWidthSelector"
               }
-            ],
-            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
+            ]
           },
           "minItems": 1,
           "title": "Vehicle",
@@ -2025,7 +2035,18 @@
         "vehicle": {
           "description": "A list of one or more vehicle parameters that limit the vehicles the containing ProhibitedTransitionRule applies to.",
           "items": {
-            "anyOf": [
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count.",
+            "discriminator": {
+              "mapping": {
+                "axle_count": "#/$defs/VehicleAxleCountSelector",
+                "height": "#/$defs/VehicleHeightSelector",
+                "length": "#/$defs/VehicleLengthSelector",
+                "weight": "#/$defs/VehicleWeightSelector",
+                "width": "#/$defs/VehicleWidthSelector"
+              },
+              "propertyName": "dimension"
+            },
+            "oneOf": [
               {
                 "$ref": "#/$defs/VehicleAxleCountSelector"
               },
@@ -2041,8 +2062,7 @@
               {
                 "$ref": "#/$defs/VehicleWidthSelector"
               }
-            ],
-            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
+            ]
           },
           "minItems": 1,
           "title": "Vehicle",
@@ -2173,7 +2193,18 @@
         "vehicle": {
           "description": "A list of one or more vehicle parameters that limit the vehicles the containing SpeedLimitRule applies to.",
           "items": {
-            "anyOf": [
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count.",
+            "discriminator": {
+              "mapping": {
+                "axle_count": "#/$defs/VehicleAxleCountSelector",
+                "height": "#/$defs/VehicleHeightSelector",
+                "length": "#/$defs/VehicleLengthSelector",
+                "weight": "#/$defs/VehicleWeightSelector",
+                "width": "#/$defs/VehicleWidthSelector"
+              },
+              "propertyName": "dimension"
+            },
+            "oneOf": [
               {
                 "$ref": "#/$defs/VehicleAxleCountSelector"
               },
@@ -2189,8 +2220,7 @@
               {
                 "$ref": "#/$defs/VehicleWidthSelector"
               }
-            ],
-            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
+            ]
           },
           "minItems": 1,
           "title": "Vehicle",
