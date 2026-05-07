@@ -1,15 +1,30 @@
 """Tests for constraint description (model-level and field-level)."""
 
-from annotated_types import Ge, Gt, Interval, Le, Lt, MaxLen, MinLen
+import re
+
+from annotated_types import Ge, Gt, Interval, Le, Lt
 from overture.schema.codegen.extraction.field_constraints import (
     constraint_display_text,
     describe_field_constraint,
+)
+from overture.schema.codegen.extraction.length_constraints import (
+    ArrayMaxLen,
+    ArrayMinLen,
+    ScalarMaxLen,
+    ScalarMinLen,
+)
+from overture.schema.codegen.extraction.literal_alternatives import (
+    LiteralAlternatives,
 )
 from overture.schema.codegen.extraction.model_constraints import (
     analyze_model_constraints,
 )
 from overture.schema.codegen.extraction.specs import TypeIdentity
 from overture.schema.codegen.extraction.type_analyzer import ConstraintSource
+from overture.schema.system.field_constraint.string import (
+    CountryCodeAlpha2Constraint,
+    PatternConstraint,
+)
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     ForbidIfConstraint,
@@ -151,6 +166,24 @@ class TestDescribeFiltering:
         result = describe_model_constraints((constraint,))
 
         assert result == ["`@future_thing`"]
+
+
+class TestLiteralAlternativesProse:
+    """`X | Literal[c]` renders a faithful 'Also accepts' note in the docs."""
+
+    def test_empty_string_literal(self) -> None:
+        assert (
+            describe_field_constraint(LiteralAlternatives(("",)))
+            == "Also accepts: `''`"
+        )
+
+    def test_named_literal(self) -> None:
+        result = describe_field_constraint(LiteralAlternatives(("Global",)))
+        assert result == "Also accepts: `'Global'`"
+
+    def test_multiple_literals(self) -> None:
+        result = describe_field_constraint(LiteralAlternatives(("a", "b")))
+        assert result == "Also accepts: `'a'`, `'b'`"
 
 
 class TestConsolidation:
@@ -377,11 +410,27 @@ class TestDescribeFieldConstraint:
     def test_lt(self) -> None:
         assert describe_field_constraint(Lt(lt=100)) == "`< 100`"
 
-    def test_min_len(self) -> None:
-        assert describe_field_constraint(MinLen(min_length=1)) == "Minimum length: 1"
+    def test_scalar_min_len(self) -> None:
+        assert (
+            describe_field_constraint(ScalarMinLen(min_length=1)) == "Minimum length: 1"
+        )
 
-    def test_max_len(self) -> None:
-        assert describe_field_constraint(MaxLen(max_length=10)) == "Maximum length: 10"
+    def test_array_min_len(self) -> None:
+        assert (
+            describe_field_constraint(ArrayMinLen(min_length=1)) == "Minimum length: 1"
+        )
+
+    def test_scalar_max_len(self) -> None:
+        assert (
+            describe_field_constraint(ScalarMaxLen(max_length=10))
+            == "Maximum length: 10"
+        )
+
+    def test_array_max_len(self) -> None:
+        assert (
+            describe_field_constraint(ArrayMaxLen(max_length=10))
+            == "Maximum length: 10"
+        )
 
     def test_interval_closed(self) -> None:
         assert describe_field_constraint(Interval(ge=0, le=100)) == "`0 ≤ x ≤ 100`"
@@ -494,3 +543,29 @@ class TestConstraintDisplayText:
         assert len(received) == 1
         assert received[0].obj is Target
         assert result == "References [`Target`](link) (composition)"
+
+
+class TestConstraintPatternFlags:
+    """constraint_display_text surfaces a compiled pattern's regex flags."""
+
+    def _display(self, constraint: object) -> str:
+        cs = ConstraintSource(source_ref=None, source_name=None, constraint=constraint)
+        return constraint_display_text(cs)
+
+    def test_case_insensitive_pattern_shows_inline_flag(self) -> None:
+        # A case-insensitive pattern displayed without its flag misleads the
+        # reader into thinking only lowercase matches.
+        c = PatternConstraint(r"^[a-z]+$", "err: {value}", flags=re.I)
+        assert "pattern: `(?i)^[a-z]+$`" in self._display(c)
+
+    def test_unflagged_pattern_omits_inline_flag_group(self) -> None:
+        # re.UNICODE is the implicit str-pattern default and must not leak as
+        # a (?u) group onto every pattern.
+        assert "pattern: `^[A-Z]{2}$`" in self._display(CountryCodeAlpha2Constraint())
+        assert "(?" not in self._display(CountryCodeAlpha2Constraint())
+
+    def test_multiple_flags_render_as_one_group(self) -> None:
+        # Display tolerates flags pyspark cannot honor (re.M); doc generation
+        # must not crash where check generation would.
+        c = PatternConstraint(r"^[a-z]+$", "err: {value}", flags=re.I | re.M)
+        assert "pattern: `(?im)^[a-z]+$`" in self._display(c)

@@ -1,37 +1,33 @@
 """Convert field-level constraints to display text.
 
 Handles constraints from Annotated metadata and NewType wrappers:
-Ge, Gt, Interval, Le, Lt, MaxLen, MinLen, GeometryTypeConstraint,
-Reference, and custom constraint classes.
+Ge, Gt, Interval, Le, Lt, ArrayMinLen, ArrayMaxLen, ScalarMinLen,
+ScalarMaxLen, GeometryTypeConstraint, Reference, and custom constraint
+classes.
 """
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 
-from annotated_types import Ge, Gt, Interval, Le, Lt, MaxLen, MinLen
+from annotated_types import Ge, Gt, Interval, Le, Lt
 
 from overture.schema.system.primitive import GeometryTypeConstraint
 from overture.schema.system.ref import Reference
 
 from .docstring import first_docstring_line
+from .length_constraints import ArrayMaxLen, ArrayMinLen, ScalarMaxLen, ScalarMinLen
+from .literal_alternatives import LiteralAlternatives
 from .specs import TypeIdentity
 from .type_analyzer import ConstraintSource
 
 __all__ = [
     "constraint_display_text",
-    "constraint_pattern",
     "describe_field_constraint",
 ]
 
-# Bound attribute names paired with display operators. Each entry maps an
-# annotated_types constraint attribute (Ge, Gt, Le, Lt, Interval) to its
-# mathematical symbol for prose rendering.
-#
-# numeric_extraction.py has its own _BOUND_ATTRS for numeric extraction. The
-# duplication is deliberate: these modules use the same attribute names for
-# unrelated purposes (display formatting vs. numeric bound extraction), and
-# coupling them for four string literals adds a dependency without value.
+# Bound attribute -> mathematical symbol for prose rendering.
 _BOUND_OPS: tuple[tuple[str, str], ...] = (
     ("ge", "≥"),
     ("gt", ">"),
@@ -108,10 +104,12 @@ def describe_field_constraint(
         result = _first_bound(constraint)
         if result is not None:
             return result
-    if isinstance(constraint, MinLen):
+    if isinstance(constraint, (ArrayMinLen, ScalarMinLen)):
         return f"Minimum length: {constraint.min_length}"
-    if isinstance(constraint, MaxLen):
+    if isinstance(constraint, (ArrayMaxLen, ScalarMaxLen)):
         return f"Maximum length: {constraint.max_length}"
+    if isinstance(constraint, LiteralAlternatives):
+        return "Also accepts: " + ", ".join(f"`{v!r}`" for v in constraint.values)
 
     if _is_opaque_constraint(constraint):
         return f"`{type(constraint).__name__}`"
@@ -130,14 +128,41 @@ def _constraint_class_description(constraint: object) -> str | None:
     return line or None
 
 
-def constraint_pattern(constraint: object) -> str | None:
-    """Extract the regex pattern string from a constraint, if present.
+# re.UNICODE is the implicit default on compiled `str` patterns; rendering it
+# would stamp a noise `(?u)` group onto every pattern. Every other flag with a
+# visible matching effect is surfaced in the documented pattern. Unlike the
+# pyspark dispatch (`compiled_pattern_source`) -- which must reject flags
+# Spark's rlike cannot honor -- display is faithful for known flags and never
+# fails: a flag absent from this table is dropped from the rendered group, not
+# raised on. A new flag added to pyspark's supported set with a visible effect
+# belongs here too, or docs will hide that pattern's real behavior.
+_DISPLAY_FLAG_LETTERS: tuple[tuple[re.RegexFlag, str], ...] = (
+    (re.IGNORECASE, "i"),
+    (re.MULTILINE, "m"),
+    (re.DOTALL, "s"),
+    (re.VERBOSE, "x"),
+    (re.ASCII, "a"),
+)
 
-    Traverses two levels: constraint.pattern is a compiled re.Pattern
-    object, and re.Pattern.pattern is the raw string.
+
+def _inline_flag_prefix(flags: int) -> str:
+    """Render set regex flags as an inline group like `(?im)`, or "" if none."""
+    letters = "".join(c for flag, c in _DISPLAY_FLAG_LETTERS if flags & flag)
+    return f"(?{letters})" if letters else ""
+
+
+def _constraint_pattern(constraint: object) -> str | None:
+    """Return a constraint's compiled regex as displayable source, or None.
+
+    Prepends an inline-flag group (e.g. `(?i)` for case-insensitivity) so a
+    flagged pattern reads as the regex that actually matches rather than its
+    bare, misleading source. Returns None when `constraint.pattern` is not a
+    compiled `re.Pattern`.
     """
     compiled = getattr(constraint, "pattern", None)
-    return getattr(compiled, "pattern", None)
+    if not isinstance(compiled, re.Pattern):
+        return None
+    return f"{_inline_flag_prefix(compiled.flags)}{compiled.pattern}"
 
 
 def constraint_display_text(
@@ -148,7 +173,7 @@ def constraint_display_text(
     description = _constraint_class_description(cs.constraint)
     if _is_opaque_constraint(cs.constraint) and description:
         cls_name = type(cs.constraint).__name__
-        pattern = constraint_pattern(cs.constraint)
+        pattern = _constraint_pattern(cs.constraint)
         if pattern:
             return f"{description} (`{cls_name}`, pattern: `{pattern}`)"
         return f"{description} (`{cls_name}`)"

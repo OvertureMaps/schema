@@ -157,7 +157,6 @@ network = "za:regional"
 ref = "R33"
 
 # Rail segment: disused railway, Mpulungu, Zambia (2026-02-18.0)
-# Populates rail_flags with values to cover the rail_flags[].values xfail.
 [[examples.Segment]]
 class = "unknown"
 geometry = "LINESTRING (30.9844394 -12.7185733, 30.9818611 -12.7207838, 30.9815908 -12.7210751)"

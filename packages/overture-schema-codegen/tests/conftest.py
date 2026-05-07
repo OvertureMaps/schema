@@ -6,7 +6,7 @@ from click.testing import CliRunner
 from codegen_test_support import find_model_class
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.numeric_extraction import extract_numerics
-from overture.schema.codegen.extraction.specs import ModelSpec
+from overture.schema.codegen.extraction.specs import RecordSpec
 from overture.schema.codegen.markdown.pipeline import (
     partition_numeric_and_geometry_types,
 )
@@ -52,7 +52,7 @@ def building_class(all_discovered_models: dict) -> type[BaseModel]:
 
 
 @pytest.fixture
-def building_spec(building_class: type[BaseModel]) -> ModelSpec:
+def building_spec(building_class: type[BaseModel]) -> RecordSpec:
     """Extract the Building model spec."""
     return extract_model(building_class)
 
