@@ -7,9 +7,10 @@ the source Python module path relative to schema_root.
 from collections.abc import Sequence
 from pathlib import PurePosixPath
 
-from ..extraction.case_conversion import slug_filename
+from overture.schema.system.case import to_snake_case
+
 from ..extraction.specs import (
-    FeatureSpec,
+    ModelSpec,
     PydanticTypeSpec,
     SupplementarySpec,
     TypeIdentity,
@@ -29,7 +30,7 @@ GEOMETRY_PAGE = PurePosixPath("system/primitive/geometry.md")
 
 
 def build_placement_registry(
-    feature_specs: Sequence[FeatureSpec],
+    model_specs: Sequence[ModelSpec],
     all_specs: dict[TypeIdentity, SupplementarySpec],
     numeric_names: list[TypeIdentity],
     geometry_names: list[TypeIdentity],
@@ -45,7 +46,7 @@ def build_placement_registry(
     )
 
     feature_dirs: set[PurePosixPath] = set()
-    for spec in feature_specs:
+    for spec in model_specs:
         spec_dir = output_dir_for_entry_point(spec.entry_point, schema_root)
         registry[spec.identity] = _md_path(spec_dir, spec.name)
         feature_dirs.add(spec_dir)
@@ -54,10 +55,8 @@ def build_placement_registry(
         if tid in registry:
             continue
         if isinstance(supp_spec, PydanticTypeSpec):
-            registry[tid] = (
-                PurePosixPath("pydantic")
-                / supp_spec.source_module
-                / slug_filename(tid.name)
+            registry[tid] = _md_path(
+                PurePosixPath("pydantic") / supp_spec.source_module, tid.name
             )
             continue
         source_module = getattr(supp_spec.source_type, "__module__", None)
@@ -77,7 +76,7 @@ def resolve_output_path(
     """Look up a type's output path from the registry, with flat-file fallback."""
     if registry is not None and identity in registry:
         return registry[identity]
-    return PurePosixPath(slug_filename(identity.name))
+    return _md_path(PurePosixPath(""), identity.name)
 
 
 def _aggregate_page_entries(
@@ -112,4 +111,4 @@ def _nest_under_types(
 
 def _md_path(directory: PurePosixPath, name: str) -> PurePosixPath:
     """Build a .md file path from a directory and a PascalCase type name."""
-    return directory / slug_filename(name)
+    return directory / f"{to_snake_case(name)}.md"

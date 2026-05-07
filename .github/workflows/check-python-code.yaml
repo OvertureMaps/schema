@@ -6,12 +6,16 @@ on:
       - 'packages/**'
       - 'pyproject.toml'
       - 'uv.lock'
+      - 'Makefile'
+      - '.github/workflows/check-python-code.yaml'
   push:
     branches: [main, dev]
     paths:
       - 'packages/**'
       - 'pyproject.toml'
       - 'uv.lock'
+      - 'Makefile'
+      - '.github/workflows/check-python-code.yaml'
 
 permissions:
   contents: read

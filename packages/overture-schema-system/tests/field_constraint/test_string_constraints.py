@@ -1,3 +1,4 @@
+import re
 from typing import Annotated
 
 import pytest
@@ -210,7 +211,6 @@ class TestJsonSchemaGeneration:
     def test_stripped_constraint_json_schema_pattern(self) -> None:
         """StrippedConstraint's JSON schema pattern accepts empty string
         and rejects leading/trailing whitespace."""
-        import re
 
         class TestModel(BaseModel):
             text: Annotated[str, StrippedConstraint()]

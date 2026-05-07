@@ -1,0 +1,10 @@
+{%- macro check_function(c) -%}
+def {{ c.func_name }}() -> Check:
+    return Check(
+        field={{ c.field | py_literal }},
+        name={{ c.check_name | py_literal }},
+        expr={{ c.expr }},
+        shape=CheckShape.{{ c.shape }},
+        read_columns={{ c.read_columns | py_literal }},
+    )
+{% endmacro %}

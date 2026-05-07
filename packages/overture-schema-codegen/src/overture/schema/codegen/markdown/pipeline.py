@@ -14,14 +14,13 @@ import overture.schema.system.primitive as _system_primitive
 from overture.schema.system.primitive import GeometryType
 
 from ..extraction.examples import ExampleRecord, load_examples
-from ..extraction.model_extraction import expand_model_tree
 from ..extraction.numeric_extraction import extract_numerics
 from ..extraction.specs import (
     EnumSpec,
-    FeatureSpec,
     ModelSpec,
     NewTypeSpec,
     PydanticTypeSpec,
+    RecordSpec,
     SupplementarySpec,
     TypeIdentity,
     UnionSpec,
@@ -37,8 +36,8 @@ from .path_assignment import (
 )
 from .renderer import (
     render_enum,
-    render_feature,
     render_geometry_from_values,
+    render_model,
     render_newtype,
     render_primitives_from_specs,
     render_pydantic_type,
@@ -58,11 +57,11 @@ class RenderedPage:
 
     content: str
     path: PurePosixPath
-    is_feature: bool = False
+    is_model: bool = False
 
 
 def _load_model_examples(
-    spec: FeatureSpec,
+    spec: ModelSpec,
 ) -> list[ExampleRecord] | None:
     """Load examples for a feature spec, returning None when absent."""
     if isinstance(spec, UnionSpec):
@@ -97,16 +96,19 @@ def _render_supplement(
     ctx = LinkContext(output_path, registry)
     used_by = reverse_refs.get(tid)
 
-    if isinstance(spec, EnumSpec):
-        content = render_enum(spec, link_ctx=ctx, used_by=used_by)
-    elif isinstance(spec, NewTypeSpec):
-        content = render_newtype(spec, ctx, used_by=used_by)
-    elif isinstance(spec, ModelSpec):
-        content = render_feature(spec, ctx, used_by=used_by)
-    elif isinstance(spec, PydanticTypeSpec):
-        content = render_pydantic_type(spec, link_ctx=ctx, used_by=used_by)
-    else:
-        raise TypeError(f"Unhandled SupplementarySpec variant: {type(spec).__name__}")
+    match spec:
+        case EnumSpec():
+            content = render_enum(spec, link_ctx=ctx, used_by=used_by)
+        case NewTypeSpec():
+            content = render_newtype(spec, ctx, used_by=used_by)
+        case RecordSpec():
+            content = render_model(spec, ctx, used_by=used_by)
+        case PydanticTypeSpec():
+            content = render_pydantic_type(spec, link_ctx=ctx, used_by=used_by)
+        case _:
+            raise TypeError(
+                f"Unhandled SupplementarySpec variant: {type(spec).__name__}"
+            )
 
     return RenderedPage(content=content, path=output_path)
 
@@ -134,7 +136,7 @@ def partition_numeric_and_geometry_types(
 
 
 def generate_markdown_pages(
-    feature_specs: Sequence[FeatureSpec],
+    model_specs: Sequence[ModelSpec],
     schema_root: str,
 ) -> list[RenderedPage]:
     """Generate all markdown pages from feature specs.
@@ -143,29 +145,25 @@ def generate_markdown_pages(
     I/O, frontmatter injection, and any output-format-specific concerns
     (like Docusaurus category files).
     """
-    cache: dict[type, ModelSpec] = {}
-    for spec in feature_specs:
-        expand_model_tree(spec, cache)
-
     numeric_names, geometry_names = partition_numeric_and_geometry_types(
         _system_primitive
     )
-    all_specs = collect_all_supplementary_types(feature_specs)
+    all_specs = collect_all_supplementary_types(model_specs)
     registry = build_placement_registry(
-        feature_specs, all_specs, numeric_names, geometry_names, schema_root
+        model_specs, all_specs, numeric_names, geometry_names, schema_root
     )
 
-    reverse_refs = compute_reverse_references(feature_specs, all_specs)
+    reverse_refs = compute_reverse_references(model_specs, all_specs)
 
     pages: list[RenderedPage] = []
 
-    for spec in feature_specs:
+    for spec in model_specs:
         output_path = registry[spec.identity]
         ctx = LinkContext(output_path, registry)
         examples = _load_model_examples(spec)
         used_by = reverse_refs.get(spec.identity)
-        content = render_feature(spec, link_ctx=ctx, examples=examples, used_by=used_by)
-        pages.append(RenderedPage(content=content, path=output_path, is_feature=True))
+        content = render_model(spec, link_ctx=ctx, examples=examples, used_by=used_by)
+        pages.append(RenderedPage(content=content, path=output_path, is_model=True))
 
     for tid, supp_spec in all_specs.items():
         pages.append(_render_supplement(tid, supp_spec, registry, reverse_refs))
