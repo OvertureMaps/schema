@@ -38,24 +38,30 @@ class VehicleRelation(str, Enum):
 
 
 @no_extra_fields
-class VehicleAxleCountSelector(BaseModel):
+class VehicleSelectorBase(BaseModel):
     """
-    Selects vehicles based on the number of axles they have.
+    Common fields shared by all vehicle selector subtypes.
+
+    See also: `VehicleSelector`.
     """
 
-    dimension: Literal[VehicleDimension.AXLE_COUNT]
+    dimension: VehicleDimension
     comparison: VehicleRelation
+
+
+@no_extra_fields
+class VehicleAxleCountSelector(VehicleSelectorBase):
+    """Selects vehicles based on the number of axles they have."""
+
+    dimension: Literal[VehicleDimension.AXLE_COUNT]
     value: uint8 = Field(description="Number of axles on the vehicle")
 
 
 @no_extra_fields
-class VehicleHeightSelector(BaseModel):
-    """
-    Selects vehicles based on their height.
-    """
+class VehicleHeightSelector(VehicleSelectorBase):
+    """Selects vehicles based on their height."""
 
     dimension: Literal[VehicleDimension.HEIGHT]
-    comparison: VehicleRelation
     value: Annotated[
         float64,
         Field(
@@ -66,13 +72,10 @@ class VehicleHeightSelector(BaseModel):
 
 
 @no_extra_fields
-class VehicleLengthSelector(BaseModel):
-    """
-    Selects vehicles based on their length.
-    """
+class VehicleLengthSelector(VehicleSelectorBase):
+    """Selects vehicles based on their length."""
 
     dimension: Literal[VehicleDimension.LENGTH]
-    comparison: VehicleRelation
     value: Annotated[
         float64,
         Field(
@@ -83,13 +86,10 @@ class VehicleLengthSelector(BaseModel):
 
 
 @no_extra_fields
-class VehicleWeightSelector(BaseModel):
-    """
-    Selects vehicles based on their weight.
-    """
+class VehicleWeightSelector(VehicleSelectorBase):
+    """Selects vehicles based on their weight."""
 
     dimension: Literal[VehicleDimension.WEIGHT]
-    comparison: VehicleRelation
     value: Annotated[
         float64,
         Field(
@@ -100,13 +100,10 @@ class VehicleWeightSelector(BaseModel):
 
 
 @no_extra_fields
-class VehicleWidthSelector(BaseModel):
-    """
-    Selects vehicles based on their width.
-    """
+class VehicleWidthSelector(VehicleSelectorBase):
+    """Selects vehicles based on their width."""
 
     dimension: Literal[VehicleDimension.WIDTH]
-    comparison: VehicleRelation
     value: Annotated[
         float64,
         Field(
@@ -123,7 +120,8 @@ VehicleSelector = Annotated[
     | VehicleWeightSelector
     | VehicleWidthSelector,
     Field(
-        description="Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count."
+        discriminator="dimension",
+        description="Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count.",
     ),
 ]
 """
