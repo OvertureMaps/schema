@@ -37,7 +37,7 @@ Width = NewType("Width", Annotated[float64, Field(gt=0)])
 
 
 def _connector_type() -> type[OvertureFeature]:
-    from .connector import Connector
+    from .connector import Connector  # noqa: PLC0415
 
     return Connector
 

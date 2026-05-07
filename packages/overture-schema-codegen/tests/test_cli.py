@@ -438,6 +438,62 @@ class TestGenerateWithSegment:
         assert "subtype" in content
 
 
+class TestCliGeneratePyspark:
+    def test_pyspark_format_accepted(self, cli_runner: CliRunner) -> None:
+        """pyspark format should be a valid --format choice."""
+        result = cli_runner.invoke(cli, ["generate", "--format", "pyspark"])
+        assert "Invalid value" not in (result.output or "")
+        assert result.exit_code == 0
+
+    def test_pyspark_to_output_dir(self, cli_runner: CliRunner, tmp_path: Path) -> None:
+        """pyspark format with --output-dir should create expression files."""
+        result = cli_runner.invoke(
+            cli,
+            [
+                "generate",
+                "--format",
+                "pyspark",
+                "--tag",
+                "overture:theme=divisions",
+                "--output-dir",
+                str(tmp_path),
+            ],
+        )
+        assert result.exit_code == 0
+        py_files = list(tmp_path.rglob("*.py"))
+        assert len(py_files) > 0
+        names = {f.stem for f in py_files}
+        assert "division_area" in names
+
+    def test_pyspark_writes_under_entry_point_namespace(
+        self, cli_runner: CliRunner, tmp_path: Path
+    ) -> None:
+        """Expression modules land under the entry-point namespace, no extra `expressions/` wrapper."""
+        output_dir = tmp_path / "expressions"
+        result = cli_runner.invoke(
+            cli,
+            [
+                "generate",
+                "--format",
+                "pyspark",
+                "--tag",
+                "overture:theme=divisions",
+                "--output-dir",
+                str(output_dir),
+            ],
+        )
+        assert result.exit_code == 0
+
+        # Modules land under the entry-point namespace.
+        assert (output_dir / "overture" / "schema" / "divisions").is_dir()
+
+        # No nested expressions/ subdirectory.
+        nested = output_dir / "expressions"
+        assert not nested.exists(), (
+            f"Nested expressions/ directory found: {list(nested.iterdir())}"
+        )
+
+
 class TestReverseReferences:
     """Integration test: Reverse references appear in generated markdown."""
 

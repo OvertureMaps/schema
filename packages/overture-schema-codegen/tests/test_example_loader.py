@@ -9,6 +9,7 @@ from textwrap import dedent
 from typing import Annotated, Literal
 
 import pytest
+from overture.schema.buildings.building import Building
 from overture.schema.codegen.extraction.examples import (
     ExampleRecord,
     _inject_literal_fields,
@@ -20,7 +21,14 @@ from overture.schema.codegen.extraction.examples import (
     resolve_pyproject_path,
     validate_example,
 )
+from overture.schema.system.primitive import BBox, Geometry
+from overture.schema.transportation import Segment
+from overture.schema.transportation.segment.models import (
+    RoadSegment,
+    TransportationSegment,
+)
 from pydantic import BaseModel, ConfigDict, Field, Tag, ValidationError
+from shapely.geometry import Point
 
 
 class TestOrderExampleRows:
@@ -639,10 +647,6 @@ class TestIntegration:
 
     def test_real_building_examples_validate(self) -> None:
         """Validate real Building examples from the schema package."""
-        pytest.importorskip("overture.schema.buildings.building")
-
-        from overture.schema.buildings.building import Building  # noqa: PLC0415
-
         pyproject_path = resolve_pyproject_path(Building)
         assert pyproject_path is not None, "Could not find pyproject.toml for Building"
 
@@ -657,14 +661,6 @@ class TestIntegration:
 
     def test_real_segment_examples_validate(self) -> None:
         """Validate real Segment examples (discriminated union with cross-arm fields)."""
-        pytest.importorskip("overture.schema.transportation")
-
-        from overture.schema.transportation import Segment  # noqa: PLC0415
-        from overture.schema.transportation.segment.models import (  # noqa: PLC0415
-            RoadSegment,
-            TransportationSegment,
-        )
-
         pyproject_path = resolve_pyproject_path(RoadSegment)
         assert pyproject_path is not None
 
@@ -889,7 +885,6 @@ class TestFlattenModelInstance:
 
     def test_slots_based_field_flattened(self) -> None:
         """Non-BaseModel types with __slots__ and properties are flattened."""
-        from overture.schema.system.primitive import BBox  # noqa: PLC0415
 
         class WithBBox(BaseModel):
             id: str
@@ -907,7 +902,6 @@ class TestFlattenModelInstance:
 
     def test_none_slots_based_field_is_leaf(self) -> None:
         """A slots-based field with None value is a leaf."""
-        from overture.schema.system.primitive import BBox  # noqa: PLC0415
 
         class WithBBox(BaseModel):
             id: str
@@ -919,8 +913,6 @@ class TestFlattenModelInstance:
 
     def test_single_slot_wrapper_is_leaf(self) -> None:
         """Single-slot types (wrappers like Geometry) are leaf values."""
-        from overture.schema.system.primitive import Geometry  # noqa: PLC0415
-        from shapely.geometry import Point  # noqa: PLC0415
 
         class WithGeom(BaseModel):
             id: str

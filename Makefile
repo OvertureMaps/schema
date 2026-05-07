@@ -1,4 +1,4 @@
-.PHONY: default uv-sync check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only update-baselines
+.PHONY: default uv-sync clean-pyspark generate-pyspark check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only update-baselines
 
 TESTMON ?= --testmon
 
@@ -7,9 +7,22 @@ default: test-all
 install: uv-sync
 
 uv-sync:
-	@uv sync --all-packages 2> /dev/null
+	@uv sync --all-packages --all-extras 2> /dev/null
 
-check: uv-sync
+PYSPARK_EXPRESSIONS := packages/overture-schema-pyspark/src/overture/schema/pyspark/expressions/generated
+PYSPARK_GENERATED_TESTS := packages/overture-schema-pyspark/tests/generated
+
+clean-pyspark:
+	@rm -rf $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS)
+
+generate-pyspark: uv-sync clean-pyspark
+	@uv run overture-codegen generate --format pyspark \
+		--output-dir $(PYSPARK_EXPRESSIONS) \
+		--test-output-dir $(PYSPARK_GENERATED_TESTS)
+	@uv run ruff check --fix --quiet $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS)
+	@uv run ruff format --quiet $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS)
+
+check: uv-sync generate-pyspark
 	@$(MAKE) -j test-only doctest-only lint-only mypy-only
 
 test-all: uv-sync

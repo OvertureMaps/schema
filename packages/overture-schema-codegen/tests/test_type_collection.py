@@ -6,12 +6,9 @@ from codegen_test_support import (
     FeatureWithUrl,
     Instrument,
     TestSegmentWithSubModel,
+    feature_spec_for_model,
     has_name,
     lookup_by_name,
-)
-from overture.schema.codegen.extraction.model_extraction import (
-    expand_model_tree,
-    extract_model,
 )
 from overture.schema.codegen.extraction.specs import (
     EnumSpec,
@@ -37,9 +34,7 @@ def _make_feature_with_sub_model(sub_model: type) -> type[BaseModel]:
 
 
 def _expanded_supplementary(model_class: type) -> dict[TypeIdentity, SupplementarySpec]:
-    spec = extract_model(model_class)
-    expand_model_tree(spec)
-    return collect_all_supplementary_types([spec])
+    return collect_all_supplementary_types([feature_spec_for_model(model_class)])
 
 
 class TestCollectAllSupplementarySpecs:
@@ -77,11 +72,8 @@ class TestCollectAllSupplementarySpecs:
         ModelA = type("Address", (BaseModel,), {"__annotations__": {"x": str}})
         ModelB = type("Address", (BaseModel,), {"__annotations__": {"y": int}})
 
-        outer_a = extract_model(_make_feature_with_sub_model(ModelA))
-        expand_model_tree(outer_a)
-
-        outer_b = extract_model(_make_feature_with_sub_model(ModelB))
-        expand_model_tree(outer_b)
+        outer_a = feature_spec_for_model(_make_feature_with_sub_model(ModelA))
+        outer_b = feature_spec_for_model(_make_feature_with_sub_model(ModelB))
 
         result = collect_all_supplementary_types([outer_a, outer_b])
 

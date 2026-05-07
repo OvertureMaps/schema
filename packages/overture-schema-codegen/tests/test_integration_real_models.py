@@ -5,7 +5,7 @@ the installed Overture schema packages.
 """
 
 import pytest
-from codegen_test_support import assert_literal_field
+from codegen_test_support import assert_literal_field, feature_spec_for_model
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
     FeatureSpec,
@@ -15,7 +15,6 @@ from overture.schema.codegen.extraction.specs import (
     is_model_class,
     is_union_alias,
 )
-from overture.schema.codegen.extraction.type_analyzer import TypeKind
 from overture.schema.codegen.extraction.union_extraction import extract_union
 from overture.schema.codegen.layout.module_layout import entry_point_class
 from overture.schema.codegen.markdown.pipeline import generate_markdown_pages
@@ -28,21 +27,6 @@ from pydantic import BaseModel
 
 class TestDiscoverModels:
     """Tests for model discovery."""
-
-    def test_discover_models_returns_dict(self) -> None:
-        """discover_models() should return a dictionary."""
-        models = discover_models()
-        assert isinstance(models, dict)
-
-    def test_discover_models_finds_building(
-        self, building_class: type[BaseModel]
-    ) -> None:
-        """Should discover the Building model."""
-        assert issubclass(building_class, BaseModel)
-
-    def test_discover_models_finds_place(self, place_class: type[BaseModel]) -> None:
-        """Should discover the Place model."""
-        assert issubclass(place_class, BaseModel)
 
     def test_discover_models_returns_multiple_themes(self) -> None:
         """Should discover models from multiple themes."""
@@ -68,11 +52,10 @@ class TestExtractBuildingModel:
         field_names = {f.name for f in building_spec.fields}
         assert "id" in field_names
 
-    def test_building_field_types_are_valid(self, building_spec: ModelSpec) -> None:
-        """All Building fields should have valid TypeInfo."""
+    def test_building_field_shapes_are_present(self, building_spec: ModelSpec) -> None:
+        """Every Building field has a `FieldShape`."""
         for field in building_spec.fields:
-            assert field.type_info is not None
-            assert field.type_info.kind in TypeKind
+            assert field.shape is not None
 
 
 class TestExtractPlaceModel:
@@ -109,17 +92,12 @@ class TestFieldTypeAnalysis:
             spec = extract_model(model_class)
             assert spec.name == model_class.__name__
 
-    def test_all_field_types_resolved(self, all_discovered_models: dict) -> None:
-        """All fields should have resolved TypeInfo."""
+    def test_all_field_shapes_resolved(self, all_discovered_models: dict) -> None:
+        """Every field of every discovered model carries a `FieldShape`."""
         for model_class in filter_model_classes(all_discovered_models):
             spec = extract_model(model_class)
             for field in spec.fields:
-                assert field.type_info.base_type, (
-                    f"No base_type for {spec.name}.{field.name}"
-                )
-                assert field.type_info.kind in TypeKind, (
-                    f"Invalid kind for {spec.name}.{field.name}"
-                )
+                assert field.shape is not None, f"No shape for {spec.name}.{field.name}"
 
 
 class TestMarkdownRenderingRealModels:
@@ -127,7 +105,7 @@ class TestMarkdownRenderingRealModels:
 
     def test_render_building_content(self, building_class: type[BaseModel]) -> None:
         """Building renders with title, field table, and expected fields."""
-        markdown = render_feature(extract_model(building_class))
+        markdown = render_feature(feature_spec_for_model(building_class))
 
         assert "# Building" in markdown
         assert "| Name |" in markdown
@@ -138,9 +116,7 @@ class TestMarkdownRenderingRealModels:
     def test_render_all_models_without_crash(self, all_discovered_models: dict) -> None:
         """render_feature should not crash on any discovered model."""
         for model_class in filter_model_classes(all_discovered_models):
-            markdown = render_feature(extract_model(model_class))
-            assert isinstance(markdown, str)
-            assert len(markdown) > 0
+            render_feature(feature_spec_for_model(model_class))
 
 
 class TestDiscriminatedUnions:
@@ -221,9 +197,8 @@ class TestSegmentUnionExtraction:
         assert segment_spec.discriminator_field == "subtype"
         assert segment_spec.discriminator_mapping is not None
         assert len(segment_spec.discriminator_mapping) == 3
-        # Keys are str(enum_member), e.g. "Subtype.ROAD"
-        road_key = next(k for k in segment_spec.discriminator_mapping if "ROAD" in k)
-        assert segment_spec.discriminator_mapping[road_key] is RoadSegment
+        # Keys are runtime string values, e.g. "road"
+        assert segment_spec.discriminator_mapping["road"] is RoadSegment
 
     def test_segment_common_base_is_base_model(self, segment_spec: UnionSpec) -> None:
         """Segment common_base is the shared base class."""

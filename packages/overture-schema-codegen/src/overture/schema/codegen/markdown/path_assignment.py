@@ -7,7 +7,8 @@ the source Python module path relative to schema_root.
 from collections.abc import Sequence
 from pathlib import PurePosixPath
 
-from ..extraction.case_conversion import slug_filename
+from overture.schema.system.case import to_snake_case
+
 from ..extraction.specs import (
     FeatureSpec,
     PydanticTypeSpec,
@@ -54,10 +55,8 @@ def build_placement_registry(
         if tid in registry:
             continue
         if isinstance(supp_spec, PydanticTypeSpec):
-            registry[tid] = (
-                PurePosixPath("pydantic")
-                / supp_spec.source_module
-                / slug_filename(tid.name)
+            registry[tid] = _md_path(
+                PurePosixPath("pydantic") / supp_spec.source_module, tid.name
             )
             continue
         source_module = getattr(supp_spec.source_type, "__module__", None)
@@ -77,7 +76,7 @@ def resolve_output_path(
     """Look up a type's output path from the registry, with flat-file fallback."""
     if registry is not None and identity in registry:
         return registry[identity]
-    return PurePosixPath(slug_filename(identity.name))
+    return _md_path(PurePosixPath(""), identity.name)
 
 
 def _aggregate_page_entries(
@@ -112,4 +111,4 @@ def _nest_under_types(
 
 def _md_path(directory: PurePosixPath, name: str) -> PurePosixPath:
     """Build a .md file path from a directory and a PascalCase type name."""
-    return directory / slug_filename(name)
+    return directory / f"{to_snake_case(name)}.md"
