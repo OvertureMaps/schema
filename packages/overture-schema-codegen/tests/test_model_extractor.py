@@ -12,11 +12,9 @@ from codegen_test_support import (
     assert_literal_field,
     find_field,
 )
-from overture.schema.codegen.extraction.model_extraction import (
-    expand_model_tree,
-    extract_model,
-)
-from overture.schema.codegen.extraction.specs import ModelSpec
+from overture.schema.codegen.extraction.field import ModelRef, Primitive
+from overture.schema.codegen.extraction.field_walk import has_array_layer, terminal_of
+from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
@@ -90,7 +88,9 @@ class TestExtractModelSimple:
         assert result.description == "A simple test model."
         assert len(result.fields) == 1
         assert result.fields[0].name == "name"
-        assert result.fields[0].type_info.base_type == "str"
+        scalar = terminal_of(result.fields[0].shape)
+        assert isinstance(scalar, Primitive)
+        assert scalar.base_type == "str"
         assert result.fields[0].is_required is True
 
     def test_extract_model_does_not_set_entry_point(self) -> None:
@@ -118,7 +118,7 @@ class TestExtractModelSimple:
 
         nickname_field = find_field(result, "nickname")
         assert nickname_field.is_required is False
-        assert nickname_field.type_info.is_optional is True
+        assert nickname_field.is_optional is True
 
     def test_extract_model_with_field_description(self) -> None:
         """Should extract field descriptions from Field()."""
@@ -144,8 +144,10 @@ class TestExtractModelSimple:
 
         tags_field = result.fields[0]
         assert tags_field.name == "tags"
-        assert tags_field.type_info.is_list is True
-        assert tags_field.type_info.base_type == "str"
+        assert has_array_layer(tags_field.shape)
+        scalar = terminal_of(tags_field.shape)
+        assert isinstance(scalar, Primitive)
+        assert scalar.base_type == "str"
 
 
 class TestExtractModelWithThemeType:
@@ -365,115 +367,115 @@ class TestFieldOrderingWithMixins:
         assert field_names == ["core", "p", "pm", "own", "cm"]
 
 
-class TestExpandModelTree:
-    """Tests for expand_model_tree."""
+class TestSubModelExpansion:
+    """Sub-model resolution at extract_model time."""
 
     def test_model_without_sub_models_unchanged(self) -> None:
-        """Fields without MODEL kind get model=None."""
+        """Fields without MODEL kind have no ModelRef in their shape."""
 
         class Simple(BaseModel):
             name: str
             count: int
 
         spec = extract_model(Simple)
-        expand_model_tree(spec)
 
         for f in spec.fields:
-            assert f.model is None
-            assert f.starts_cycle is False
+            assert not isinstance(terminal_of(f.shape), ModelRef)
 
     def test_nested_model_gets_expanded(self) -> None:
-        """MODEL-kind fields get their model populated."""
+        """MODEL-kind fields resolve to a ModelRef in the shape."""
         spec = extract_model(FeatureWithAddress)
-        expand_model_tree(spec)
 
         addr_field = find_field(spec, "address")
-        assert addr_field.model is not None
-        assert addr_field.model.name == "Address"
-        assert addr_field.starts_cycle is False
+        terminal = terminal_of(addr_field.shape)
+        assert isinstance(terminal, ModelRef)
+        assert terminal.model.name == "Address"
+        assert terminal.starts_cycle is False
 
         # Sub-model fields should exist
-        sub_names = [f.name for f in addr_field.model.fields]
+        sub_names = [f.name for f in terminal.model.fields]
         assert "street" in sub_names
         assert "city" in sub_names
 
     def test_cycle_detected_and_marked(self) -> None:
-        """Self-referential model gets starts_cycle=True."""
+        """Self-referential model gets starts_cycle=True on the ModelRef."""
         spec = extract_model(TreeNode)
-        expand_model_tree(spec)
 
         parent_field = find_field(spec, "parent")
-        assert parent_field.model is not None
-        assert parent_field.model is spec  # Same object -- cycle
-        assert parent_field.starts_cycle is True
+        terminal = terminal_of(parent_field.shape)
+        assert isinstance(terminal, ModelRef)
+        assert terminal.model is spec  # Same object -- cycle
+        assert terminal.starts_cycle is True
 
-    def test_shared_reference_not_marked_as_cycle(self) -> None:
-        """Two models referencing the same sub-model share it without cycle."""
+    def test_shared_reference_within_one_extraction(self) -> None:
+        """Two fields referencing the same sub-model share the ModelSpec."""
 
         class Shared(BaseModel):
             value: str
 
-        class ModelA(BaseModel):
-            ref: Shared
+        class Container(BaseModel):
+            first: Shared
+            second: Shared
 
-        class ModelB(BaseModel):
-            ref: Shared
+        spec = extract_model(Container)
+        first = find_field(spec, "first")
+        second = find_field(spec, "second")
 
-        cache: dict[type, ModelSpec] = {}
-        spec_a = extract_model(ModelA)
-        expand_model_tree(spec_a, cache)
-
-        spec_b = extract_model(ModelB)
-        expand_model_tree(spec_b, cache)
-
-        ref_a = find_field(spec_a, "ref")
-        ref_b = find_field(spec_b, "ref")
-
-        # Same ModelSpec object, neither is a cycle
-        assert ref_a.model is ref_b.model
-        assert ref_a.starts_cycle is False
-        assert ref_b.starts_cycle is False
+        first_ref = terminal_of(first.shape)
+        second_ref = terminal_of(second.shape)
+        assert isinstance(first_ref, ModelRef)
+        assert isinstance(second_ref, ModelRef)
+        # Within one extract_model call, the cache ensures the same
+        # ModelSpec is reused for both references; neither is a cycle.
+        assert first_ref.model is second_ref.model
+        assert first_ref.starts_cycle is False
+        assert second_ref.starts_cycle is False
 
     def test_list_of_model_gets_expanded(self) -> None:
-        """list[Model] fields also get their model populated."""
+        """list[Model] fields also get their model populated via ModelRef."""
 
         class HasList(BaseModel):
             items: list[SourceItem]
 
         spec = extract_model(HasList)
-        expand_model_tree(spec)
 
         items_field = find_field(spec, "items")
-        assert items_field.model is not None
-        assert items_field.model.name == "SourceItem"
+        terminal = terminal_of(items_field.shape)
+        assert isinstance(terminal, ModelRef)
+        assert terminal.model.name == "SourceItem"
 
 
 class TestFieldInfoMetadataConstraints:
-    """Constraints from field_info.metadata are merged into TypeInfo.
+    """Constraints from `field_info.metadata` attach to the field's shape.
 
     Pydantic strips the Annotated wrapper from some fields and moves the
-    metadata to field_info.metadata. extract_model merges these back into
-    TypeInfo.constraints so they aren't silently dropped.
+    metadata to `field_info.metadata`. `extract_model` attaches these
+    constraints to the appropriate `FieldShape` layer so they aren't
+    silently dropped.
     """
 
     def test_geometry_type_constraint_extracted(self) -> None:
         """GeometryTypeConstraint on geometry field should appear in constraints."""
+        from overture.schema.codegen.extraction.field_walk import all_constraints
+
         spec = extract_model(Venue)
         geometry_field = find_field(spec, "geometry")
 
         constraint_types = [
-            type(cs.constraint) for cs in geometry_field.type_info.constraints
+            type(cs.constraint) for cs in all_constraints(geometry_field.shape)
         ]
         assert GeometryTypeConstraint in constraint_types
 
     def test_geometry_type_constraint_has_null_source(self) -> None:
         """Constraints from field_info.metadata have source_ref=None (not from a NewType)."""
+        from overture.schema.codegen.extraction.field_walk import all_constraints
+
         spec = extract_model(Venue)
         geometry_field = find_field(spec, "geometry")
 
         geo_constraints = [
             cs
-            for cs in geometry_field.type_info.constraints
+            for cs in all_constraints(geometry_field.shape)
             if isinstance(cs.constraint, GeometryTypeConstraint)
         ]
         assert len(geo_constraints) == 1
@@ -485,12 +487,14 @@ class TestFieldInfoMetadataConstraints:
         When field_info.metadata is empty (Pydantic kept the Annotated wrapper),
         no extra constraints are added.
         """
+        from overture.schema.codegen.extraction.field_walk import all_constraints
+
         spec = extract_model(Instrument)
         tags_field = find_field(spec, "tags")
 
         unique_constraints = [
             cs
-            for cs in tags_field.type_info.constraints
+            for cs in all_constraints(tags_field.shape)
             if isinstance(cs.constraint, UniqueItemsConstraint)
         ]
         assert len(unique_constraints) == 1
@@ -498,6 +502,7 @@ class TestFieldInfoMetadataConstraints:
     def test_standalone_annotated_field_extracts_metadata(self) -> None:
         """Direct Annotated[Type, constraint] fields (non-optional, non-union)
         get their constraints from field_info.metadata."""
+        from overture.schema.codegen.extraction.field_walk import all_constraints
 
         class Model(BaseModel):
             geo: Annotated[
@@ -509,7 +514,7 @@ class TestFieldInfoMetadataConstraints:
         geo_field = find_field(spec, "geo")
 
         constraint_types = [
-            type(cs.constraint) for cs in geo_field.type_info.constraints
+            type(cs.constraint) for cs in all_constraints(geo_field.shape)
         ]
         assert GeometryTypeConstraint in constraint_types
 

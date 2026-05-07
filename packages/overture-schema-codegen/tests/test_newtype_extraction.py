@@ -3,6 +3,7 @@
 from typing import Annotated, NewType
 
 from codegen_test_support import STR_TYPE
+from overture.schema.codegen.extraction.field import ArrayOf
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
 from overture.schema.codegen.extraction.specs import NewTypeSpec
 from overture.schema.system.field_constraint import UniqueItemsConstraint
@@ -19,15 +20,23 @@ class TestExtractNewType:
         spec = extract_newtype(HexColor)
 
         assert spec.name == "HexColor"
-        assert spec.type_info.newtype_name == "HexColor"
+        # Outermost NewTypeShape stripped; shape is the underlying scalar.
+        from overture.schema.codegen.extraction.field_walk import terminal_scalar
+
+        assert terminal_scalar(spec.shape) is not None
 
     def test_extract_id(self) -> None:
         """Should extract Id NewType with nested chain."""
         spec = extract_newtype(Id)
 
         assert spec.name == "Id"
-        assert spec.type_info.newtype_name == "Id"
-        assert spec.type_info.base_type == "NoWhitespaceString"
+        # Id wraps NoWhitespaceString, which is a registered semantic newtype
+        # resolving to a Scalar. After stripping "Id", shape is Scalar with
+        # base_type "NoWhitespaceString".
+        from overture.schema.codegen.extraction.field import Primitive
+
+        assert isinstance(spec.shape, Primitive)
+        assert spec.shape.base_type == "NoWhitespaceString"
 
     def test_extract_newtype_wrapping_list(self) -> None:
         """Should extract a list-wrapping NewType."""
@@ -41,8 +50,8 @@ class TestExtractNewType:
         spec = extract_newtype(TestSources)
 
         assert spec.name == "TestSources"
-        assert spec.type_info.is_list is True
-        assert spec.type_info.newtype_name == "TestSources"
+        # After stripping the outer NewTypeShape("TestSources"), shape is ArrayOf.
+        assert isinstance(spec.shape, ArrayOf)
 
     def test_extract_newtype_without_doc_uses_field_description(self) -> None:
         """NewType with Field(description=...) but no __doc__ uses Field description."""
@@ -66,7 +75,7 @@ class TestNewTypeSpecSourceType:
     """Tests for source_type on NewTypeSpec."""
 
     def test_newtype_spec_source_type_defaults_to_none(self) -> None:
-        spec = NewTypeSpec(name="Test", description=None, type_info=STR_TYPE)
+        spec = NewTypeSpec(name="Test", description=None, shape=STR_TYPE)
         assert spec.source_type is None
 
     def test_extract_newtype_sets_source_type(self) -> None:

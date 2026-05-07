@@ -3,7 +3,8 @@
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
-from ..extraction.case_conversion import slug_filename
+from overture.schema.system.case import to_snake_case
+
 from ..extraction.specs import TypeIdentity
 
 __all__ = ["LinkContext", "relative_link"]
@@ -28,7 +29,7 @@ class LinkContext:
         Always returns a usable link string. Use when the caller needs a
         link regardless of whether the type has a registered page.
         """
-        return self.resolve_link(identity) or slug_filename(identity.name)
+        return self.resolve_link(identity) or f"{to_snake_case(identity.name)}.md"
 
 
 def _is_normalized(path: PurePosixPath) -> bool:

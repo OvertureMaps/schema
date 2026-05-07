@@ -14,7 +14,6 @@ import overture.schema.system.primitive as _system_primitive
 from overture.schema.system.primitive import GeometryType
 
 from ..extraction.examples import ExampleRecord, load_examples
-from ..extraction.model_extraction import expand_model_tree
 from ..extraction.numeric_extraction import extract_numerics
 from ..extraction.specs import (
     EnumSpec,
@@ -97,16 +96,19 @@ def _render_supplement(
     ctx = LinkContext(output_path, registry)
     used_by = reverse_refs.get(tid)
 
-    if isinstance(spec, EnumSpec):
-        content = render_enum(spec, link_ctx=ctx, used_by=used_by)
-    elif isinstance(spec, NewTypeSpec):
-        content = render_newtype(spec, ctx, used_by=used_by)
-    elif isinstance(spec, ModelSpec):
-        content = render_feature(spec, ctx, used_by=used_by)
-    elif isinstance(spec, PydanticTypeSpec):
-        content = render_pydantic_type(spec, link_ctx=ctx, used_by=used_by)
-    else:
-        raise TypeError(f"Unhandled SupplementarySpec variant: {type(spec).__name__}")
+    match spec:
+        case EnumSpec():
+            content = render_enum(spec, link_ctx=ctx, used_by=used_by)
+        case NewTypeSpec():
+            content = render_newtype(spec, ctx, used_by=used_by)
+        case ModelSpec():
+            content = render_feature(spec, ctx, used_by=used_by)
+        case PydanticTypeSpec():
+            content = render_pydantic_type(spec, link_ctx=ctx, used_by=used_by)
+        case _:
+            raise TypeError(
+                f"Unhandled SupplementarySpec variant: {type(spec).__name__}"
+            )
 
     return RenderedPage(content=content, path=output_path)
 
@@ -143,10 +145,6 @@ def generate_markdown_pages(
     I/O, frontmatter injection, and any output-format-specific concerns
     (like Docusaurus category files).
     """
-    cache: dict[type, ModelSpec] = {}
-    for spec in feature_specs:
-        expand_model_tree(spec, cache)
-
     numeric_names, geometry_names = partition_numeric_and_geometry_types(
         _system_primitive
     )

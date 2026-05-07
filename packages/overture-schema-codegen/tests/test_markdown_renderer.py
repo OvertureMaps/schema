@@ -21,13 +21,11 @@ from codegen_test_support import (
     Sources,
     TreeNode,
     Venue,
+    feature_spec_for_model,
     make_union_spec,
 )
 from overture.schema.codegen.extraction.examples import ExampleRecord
-from overture.schema.codegen.extraction.model_extraction import (
-    expand_model_tree,
-    extract_model,
-)
+from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
@@ -365,9 +363,7 @@ class TestRenderFeatureNewTypeDisplay:
 
             sources: TestSources | None = None
 
-        spec = extract_model(ModelWithSources)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_feature(feature_spec_for_model(ModelWithSources))
 
         assert "`TestSources`" in result
         assert "(list, optional)" in result
@@ -441,9 +437,7 @@ class TestRenderFeatureNewTypeDisplay:
 
             inner: Inner
 
-        spec = extract_model(Outer)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_feature(feature_spec_for_model(Outer))
 
         assert "| `Inner` |" in result
 
@@ -453,9 +447,7 @@ class TestRenderFeatureInlineExpansion:
 
     def test_direct_model_fields_expanded_with_dot_prefix(self) -> None:
         """Direct model field expands sub-fields with dot notation."""
-        spec = extract_model(FeatureWithAddress)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_feature(feature_spec_for_model(FeatureWithAddress))
 
         assert "| `address.street` |" in result
         assert "| `address.city` |" in result
@@ -463,18 +455,14 @@ class TestRenderFeatureInlineExpansion:
 
     def test_list_of_model_fields_expanded_with_bracket_dot_prefix(self) -> None:
         """List-of-model field expands sub-fields with []. notation."""
-        spec = extract_model(FeatureWithSources)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_feature(feature_spec_for_model(FeatureWithSources))
 
         assert "| `sources[]` |" in result
         assert "| `sources[].dataset` |" in result
 
     def test_cycle_detection_prevents_infinite_recursion(self) -> None:
         """Recursive model emits parent row but does not recurse."""
-        spec = extract_model(TreeNode)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_feature(feature_spec_for_model(TreeNode))
 
         # The parent field row appears
         assert "| `parent` |" in result
@@ -491,9 +479,7 @@ class TestRenderFeatureInlineExpansion:
 
     def test_parent_row_preserved_before_expansion(self) -> None:
         """The parent field row still appears before expanded sub-fields."""
-        spec = extract_model(FeatureWithAddress)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_feature(feature_spec_for_model(FeatureWithAddress))
 
         # Parent row for 'address' itself appears
         assert "| `address` |" in result
@@ -589,13 +575,11 @@ class TestRenderFeatureConstraintNotes:
 
 
 class TestRenderFeatureFieldConstraints:
-    """Tests for field-level constraint annotation from TypeInfo."""
+    """Tests for field-level constraint annotation from the field's shape."""
 
     def test_venue_geometry_shows_allowed_types(self) -> None:
         """Venue's geometry field shows GeometryTypeConstraint as a note."""
-        spec = extract_model(Venue)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_feature(feature_spec_for_model(Venue))
 
         lines = result.splitlines()
         geo_line = next(line for line in lines if "| `geometry` |" in line)
@@ -603,8 +587,6 @@ class TestRenderFeatureFieldConstraints:
 
     def test_venue_reference_links_when_context_available(self) -> None:
         """Reference constraint links the target type when LinkContext has the page."""
-        spec = extract_model(Venue)
-        expand_model_tree(spec)
         ctx = LinkContext(
             page_path=PurePosixPath("music/venue.md"),
             registry={
@@ -613,7 +595,7 @@ class TestRenderFeatureFieldConstraints:
                 )
             },
         )
-        result = render_feature(spec, link_ctx=ctx)
+        result = render_feature(feature_spec_for_model(Venue), link_ctx=ctx)
 
         lines = result.splitlines()
         ref_line = next(line for line in lines if "| `resident_ensemble` |" in line)
@@ -622,9 +604,7 @@ class TestRenderFeatureFieldConstraints:
 
     def test_venue_reference_unlinked_without_context(self) -> None:
         """Reference constraint renders as plain code when no LinkContext."""
-        spec = extract_model(Venue)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_feature(feature_spec_for_model(Venue))
 
         lines = result.splitlines()
         ref_line = next(line for line in lines if "| `resident_ensemble` |" in line)
@@ -1203,7 +1183,7 @@ class TestRenderUnionTemplate:
                 AnnotatedField(
                     field_spec=FieldSpec(
                         name="id",
-                        type_info=STR_TYPE,
+                        shape=STR_TYPE,
                         description="ID",
                         is_required=True,
                     ),
@@ -1217,17 +1197,21 @@ class TestRenderUnionTemplate:
 
     def test_variant_fields_have_inline_tag(self) -> None:
         """Variant-specific fields get *(Variant)* tag."""
+
+        class RoadSegment(BaseModel):
+            pass
+
         spec = make_union_spec(
             name="Segment",
             annotated_fields=[
                 AnnotatedField(
                     field_spec=FieldSpec(
                         name="speed_limit",
-                        type_info=STR_TYPE,
+                        shape=STR_TYPE,
                         description=None,
                         is_required=False,
                     ),
-                    variant_sources=("RoadSegment",),
+                    variant_sources=(RoadSegment,),
                 ),
             ],
         )
