@@ -1,6 +1,6 @@
 [project]
 maintainers = [
-    {name = "Overture Maps Schema Working Group"},
+    { name = "Overture Maps Schema Working Group" },
 ]
 dependencies = [
     "overture-schema-common",
@@ -41,62 +41,159 @@ segment = "overture.schema.transportation:Segment"
 [project.entry-points.pytest11]
 overture_baselines = "overture.schema.system.testing.plugin"
 
+# Connector: Vermooten Street junction, Pretoria, South Africa (2026-02-18.0)
 [[examples.Connector]]
-id = "39542bee-230f-4b91-b7e5-a9b58e0c59b1"
-geometry = "POINT (-176.5472979 -43.9679472)"
-version = 1
+geometry = "POINT (30.048398 -25.708697)"
+id = "73a46c48-dc5a-4162-b9c8-1643298784c3"
 theme = "transportation"
 type = "connector"
+version = 1
 
 [examples.Connector.bbox]
-xmin = -176.54730224609375
-xmax = -176.54727172851562
-ymin = -43.96794891357422
-ymax = -43.96794128417969
+xmax = 30.04840087890625
+xmin = 30.048397064208984
+ymax = -25.708696365356445
+ymin = -25.70870018005371
 
 [[examples.Connector.sources]]
-property = ""
 dataset = "OpenStreetMap"
+license = "ODbL-1.0"
+property = ""
+record_id = "n252436807@6"
+update_time = "2025-01-06T20:44:06Z"
 
+# Road segment: Vermooten Street / R33, Pretoria, South Africa (2026-02-18.0)
+# Populates access_restrictions with when.vehicle, speed_limits with
+# when.heading, routes with ref, road_surface, and names.
 [[examples.Segment]]
-id = "1bc62f3b-08b5-42b8-89fe-36f685f60455"
-geometry = "LINESTRING (-176.5636191 -43.954404, -176.5643637 -43.9538145, -176.5647264 -43.9535274, -176.5649947 -43.953251)"
-version = 1
+class = "primary"
+geometry = "LINESTRING (30.048398 -25.708697, 30.0485458 -25.708892, 30.0487074 -25.7090728, 30.0488875 -25.709252, 30.049138 -25.7094697, 30.0493666 -25.7096603, 30.0497209 -25.7099369, 30.0509508 -25.710904, 30.0511567 -25.7110786, 30.0515268 -25.7113855, 30.0518399 -25.711661, 30.052143 -25.7119631, 30.0523513 -25.7121619, 30.0526875 -25.7124827, 30.0531992 -25.7129799, 30.0535874 -25.7133575)"
+id = "621e0a00-9466-4c3f-bb4a-64a83cd7a934"
 subtype = "road"
-class = "residential"
 theme = "transportation"
 type = "segment"
+version = 4
 
 [examples.Segment.bbox]
-xmin = -176.5650177001953
-xmax = -176.56361389160156
-ymin = -43.954410552978516
-ymax = -43.953250885009766
+xmax = 30.05359
+xmin = 30.048397
+ymax = -25.708696
+ymin = -25.713358
 
 [[examples.Segment.sources]]
-property = ""
 dataset = "OpenStreetMap"
-record_id = "w53435546@6"
-update_time = "2021-05-03T06:37:03Z"
+license = "ODbL-1.0"
+property = "/routes"
+record_id = "r1808544@180"
+
+[[examples.Segment.sources]]
+dataset = "OpenStreetMap"
+license = "ODbL-1.0"
+property = "/routes"
+record_id = "r1808545@177"
+
+[[examples.Segment.sources]]
+dataset = "OpenStreetMap"
+license = "ODbL-1.0"
+property = ""
+record_id = "w338134264@15"
+update_time = "2025-04-21T09:53:35Z"
 
 [examples.Segment.names]
-primary = "Meteorological Lane"
+primary = "Vermooten Street"
 
 [[examples.Segment.names.rules]]
+value = "Vermooten Street"
 variant = "common"
-value = "Meteorological Lane"
 
 [[examples.Segment.connectors]]
-connector_id = "15b2c131-9137-4add-88c6-2acd3fa61355"
 at = 0.0
+connector_id = "73a46c48-dc5a-4162-b9c8-1643298784c3"
 
 [[examples.Segment.connectors]]
-connector_id = "23ae2702-ef77-4d2e-b39d-77360b696d20"
-at = 0.523536154
+at = 0.154695182
+connector_id = "e81188ed-9b2f-48b4-99f2-d894044d88f5"
 
 [[examples.Segment.connectors]]
-connector_id = "8e944ce1-4b81-49eb-a823-7d98779c855c"
+at = 0.483463065
+connector_id = "11124794-8830-4aff-bd09-f578d3a196b1"
+
+[[examples.Segment.connectors]]
+at = 0.753014135
+connector_id = "cfda5f80-ffe6-4b5c-b219-4f208e0a3832"
+
+[[examples.Segment.connectors]]
 at = 1.0
+connector_id = "a5871213-947e-4342-b486-f560f0ac22f3"
+
+[[examples.Segment.access_restrictions]]
+access_type = "denied"
+
+[examples.Segment.access_restrictions.when]
+
+[[examples.Segment.access_restrictions.when.vehicle]]
+comparison = "greater_than"
+dimension = "height"
+unit = "m"
+value = 5.2
+
+[[examples.Segment.speed_limits]]
+
+[examples.Segment.speed_limits.max_speed]
+unit = "km/h"
+value = 60
+
+[examples.Segment.speed_limits.when]
+heading = "forward"
 
 [[examples.Segment.road_surface]]
-value = "gravel"
+value = "paved"
+
+[[examples.Segment.routes]]
+name = "R33 (northbound)"
+network = "za:regional"
+ref = "R33"
+
+[[examples.Segment.routes]]
+name = "R33 (southbound)"
+network = "za:regional"
+ref = "R33"
+
+# Rail segment: disused railway, Mpulungu, Zambia (2026-02-18.0)
+# Populates rail_flags with values to cover the rail_flags[].values xfail.
+[[examples.Segment]]
+class = "unknown"
+geometry = "LINESTRING (30.9844394 -12.7185733, 30.9818611 -12.7207838, 30.9815908 -12.7210751)"
+id = "2a9415ed-fa07-4734-9d8e-1d8ff69451c2"
+subtype = "rail"
+theme = "transportation"
+type = "segment"
+version = 1
+
+[examples.Segment.bbox]
+xmax = 30.98444
+xmin = 30.98159
+ymax = -12.718572
+ymin = -12.721077
+
+[[examples.Segment.sources]]
+dataset = "OpenStreetMap"
+license = "ODbL-1.0"
+property = ""
+record_id = "w414442537@2"
+update_time = "2026-02-05T14:25:06Z"
+
+[[examples.Segment.connectors]]
+at = 0.0
+connector_id = "2da12352-29c5-479e-932f-68fbe90c8229"
+
+[[examples.Segment.connectors]]
+at = 0.895049489
+connector_id = "feed87bb-7abf-4254-9e14-efd6bdb3e428"
+
+[[examples.Segment.connectors]]
+at = 1.0
+connector_id = "e37ca4ff-ab09-4c84-8d3c-450c703d7308"
+
+[[examples.Segment.rail_flags]]
+values = ["is_disused"]
