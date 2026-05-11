@@ -8,12 +8,12 @@ from typing import Annotated, NewType
 from pydantic import BaseModel, Field
 
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import uint8
+from overture.schema.system.primitive import int32
 
 Prominence = NewType(
     "Prominence",
     Annotated[
-        uint8,
+        int32,
         Field(
             ge=1,
             le=100,
@@ -34,7 +34,7 @@ Prominence = NewType(
 MinZoom = NewType(
     "MinZoom",
     Annotated[
-        uint8,
+        int32,
         Field(
             ge=0,
             le=23,
@@ -55,7 +55,7 @@ MinZoom = NewType(
 MaxZoom = NewType(
     "MaxZoom",
     Annotated[
-        uint8,
+        int32,
         Field(
             ge=0,
             le=23,
@@ -76,7 +76,7 @@ MaxZoom = NewType(
 SortKey = NewType(
     "SortKey",
     Annotated[
-        uint8,
+        int32,
         Field(
             description=textwrap.dedent("""
                 Integer indicating the recommended order in which to draw features.
@@ -106,4 +106,9 @@ class CartographicallyHinted(BaseModel):
     Properties for adding cartographic hints to a model.
     """
 
-    cartography: Annotated[CartographicHints | None, Field(title="cartography")] = None
+    cartography: Annotated[
+        CartographicHints | None,
+        Field(
+            description="Cartographic hints useful when including the feature in maps"
+        ),
+    ] = None

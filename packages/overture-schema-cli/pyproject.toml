@@ -1,7 +1,11 @@
 [project]
+maintainers = [
+    {name = "Overture Maps Schema Working Group"},
+]
 dependencies = [
     "overture-schema-core",
-    "pydantic>=2.0",
+    "overture-schema-system",
+    "pydantic>=2.12.0",
     "pyyaml>=6.0.2",
     "click>=8.0",
     "rich>=13.0",
@@ -14,8 +18,14 @@ name = "overture-schema-cli"
 readme = "README.md"
 requires-python = ">=3.10"
 
+[project.urls]
+Homepage = "https://overturemaps.org"
+Source = "https://github.com/OvertureMaps/schema"
+Issues = "https://github.com/OvertureMaps/schema/issues"
+
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
+overture-schema-system = { workspace = true }
 
 [build-system]
 build-backend = "hatchling.build"
@@ -23,9 +33,9 @@ requires = ["hatchling"]
 
 [dependency-groups]
 dev = [
-    "pytest>=7.0",
-    "ruff",
-    "mypy",
+    "pytest>=9.0.0",
+    "ruff>=0.13.0",
+    "mypy>=1.17.0",
 ]
 
 [tool.hatch.version]

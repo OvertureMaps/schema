@@ -2,17 +2,17 @@
   "$defs": {
     "CapitalOfDivisionItem": {
       "additionalProperties": false,
-      "description": "One division that has capital.",
+      "description": "A division of which the owning division is the capital, together with its subtype.",
       "properties": {
         "division_id": {
-          "description": "ID of the division",
+          "description": "ID of the division whose capital is the current division.",
           "minLength": 1,
           "pattern": "^\\S+$",
           "title": "Division Id",
           "type": "string"
         },
         "subtype": {
-          "$ref": "#/$defs/PlaceType"
+          "$ref": "#/$defs/DivisionSubtype"
         }
       },
       "required": [
@@ -49,8 +49,8 @@
         },
         "sort_key": {
           "description": "Integer indicating the recommended order in which to draw features.\n\nFeatures with a lower number should be drawn \"in front\" of features with a higher\nnumber.",
-          "maximum": 255,
-          "minimum": 0,
+          "maximum": 2147483647,
+          "minimum": -2147483648,
           "title": "Sort Key",
           "type": "integer"
         }
@@ -59,7 +59,7 @@
       "type": "object"
     },
     "DivisionClass": {
-      "description": "Division-specific class designations.",
+      "description": "Further classification of a division that is more specific than its `subtype`.\n\nA division's `class` adds detail to the broad classification found in `DivisionSubtype`.",
       "enum": [
         "megacity",
         "city",
@@ -70,12 +70,31 @@
       "title": "DivisionClass",
       "type": "string"
     },
+    "DivisionSubtype": {
+      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g., country,\nregion, locality, etc.) similar to a Who's on First placetype.",
+      "enum": [
+        "country",
+        "dependency",
+        "macroregion",
+        "region",
+        "macrocounty",
+        "county",
+        "localadmin",
+        "locality",
+        "borough",
+        "macrohood",
+        "neighborhood",
+        "microhood"
+      ],
+      "title": "DivisionSubtype",
+      "type": "string"
+    },
     "HierarchyItem": {
       "additionalProperties": false,
       "description": "One division in a hierarchy.",
       "properties": {
         "division_id": {
-          "description": "ID of the division",
+          "description": "ID of a division that is an ancestor of the current division.\n\nIn the context of division hierarchies, the ancestor divisions of a division include\nthe division itself, and any other division that is an ancestor of the division's parent.",
           "minLength": 1,
           "pattern": "^\\S+$",
           "title": "Division Id",
@@ -84,12 +103,12 @@
         "name": {
           "description": "Primary name of the division",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Name",
           "type": "string"
         },
         "subtype": {
-          "$ref": "#/$defs/PlaceType"
+          "$ref": "#/$defs/DivisionSubtype"
         }
       },
       "required": [
@@ -133,7 +152,7 @@
         "value": {
           "description": "The actual name value.",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Value",
           "type": "string"
         },
@@ -169,7 +188,7 @@
           "patternProperties": {
             "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$": {
               "description": "String with no leading/trailing whitespace",
-              "pattern": "^(\\S.*)?\\S$",
+              "pattern": "^(\\S(.*\\S)?)?$",
               "type": "string"
             }
           },
@@ -182,7 +201,7 @@
         "primary": {
           "description": "The most commonly used name.",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Primary",
           "type": "string"
         },
@@ -252,25 +271,6 @@
       "title": "Perspectives",
       "type": "object"
     },
-    "PlaceType": {
-      "description": "Category of the division from a finite, hierarchical, ordered list of categories (e.g., country,\nregion, locality, etc.) similar to a Who's on First placetype.",
-      "enum": [
-        "country",
-        "dependency",
-        "macroregion",
-        "region",
-        "macrocounty",
-        "county",
-        "localadmin",
-        "locality",
-        "borough",
-        "macrohood",
-        "neighborhood",
-        "microhood"
-      ],
-      "title": "PlaceType",
-      "type": "string"
-    },
     "Side": {
       "description": "The side, left or right, on which something appears relative to a facing or heading direction\n(*e.g.*, the side of a road relative to the road orientation), or relative to the direction of\ntravel of a person or vehicle.",
       "enum": [
@@ -310,7 +310,7 @@
         },
         "license": {
           "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "License",
           "type": "string"
         },
@@ -340,7 +340,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Divisions are recognized official or non-official organizations of people as seen\nfrom a given political perspective.\n\nExamples include countries, provinces, cities, towns, neighborhoods, etc.",
+  "description": "Divisions are recognized official or non-official organizations of people as seen from a given\npolitical perspective.\n\nExamples include countries, provinces, cities, towns, neighborhoods, etc.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -353,7 +353,7 @@
       "type": "array"
     },
     "geometry": {
-      "description": "Approximate location of a position commonly associated with the real-world entity modeled by the division feature.",
+      "description": "Approximate location of a position commonly associated with the real-world entity\nmodeled by the division feature.",
       "properties": {
         "bbox": {
           "items": {
@@ -401,6 +401,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -415,6 +422,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -429,6 +443,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -443,6 +464,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -457,6 +485,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -471,6 +506,13 @@
             }
           },
           "then": {
+            "properties": {
+              "admin_level": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "admin_level"
             ]
@@ -487,6 +529,13 @@
             }
           },
           "then": {
+            "properties": {
+              "parent_division_id": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
             "required": [
               "parent_division_id"
             ]
@@ -502,6 +551,13 @@
           },
           "then": {
             "not": {
+              "properties": {
+                "parent_division_id": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
               "required": [
                 "parent_division_id"
               ]
@@ -523,14 +579,14 @@
       },
       "properties": {
         "admin_level": {
-          "description": "Integer representing the division's position in its country's administrative hierarchy, where lower numbers correspond to higher level administrative units.",
-          "maximum": 255,
+          "description": "Integer representing the division's position in its country's administrative\nhierarchy, where lower numbers correspond to higher level administrative units.",
+          "maximum": 16,
           "minimum": 0,
           "title": "Admin Level",
           "type": "integer"
         },
         "capital_division_ids": {
-          "description": "Division IDs of this division's capital divisions. If present, this property will refer to the division IDs of the capital cities, county seats, etc. of a division.",
+          "description": "Division IDs of this division's capital divisions. If present, this property will\nrefer to the division IDs of the capital cities, county seats, etc. of a division.",
           "items": {
             "description": "A unique identifier",
             "minLength": 1,
@@ -554,13 +610,14 @@
         },
         "cartography": {
           "$ref": "#/$defs/CartographicHints",
-          "title": "cartography"
+          "description": "Cartographic hints useful when including the feature in maps"
         },
         "class": {
-          "$ref": "#/$defs/DivisionClass"
+          "$ref": "#/$defs/DivisionClass",
+          "description": "A more specific classification of the division than is provided by `subtype`."
         },
         "country": {
-          "description": "ISO 3166-1 alpha-2 country code of the country or country-like entity, that this division represents or belongs to.\n\nIf the entity this division represents has a country code, the country property contains it. If it does not, the country property contains the country code of the first division encountered by traversing the parent_division_id chain to the root.\n\nFor example:\n    - The country value for the United States is 'US'\n    - The country value for New York City is 'US'\n    - The country value for Puerto Rico, a dependency of the US,\n    is 'PR'.\n    - The country value for San Juan, Puerto Rico is 'PR'.\n\nIf an entity has an internationally-recognized ISO 3166-1 alpha-2 country code, it should always be used. In cases where the schema requires the code but no internationally-recognized code is available, a synthetic code may be used provided it does not conflict with any internationally-recognized codes.",
+          "description": "ISO 3166-1 alpha-2 country code of the country or country-like entity, that this\ndivision represents or belongs to.\n\nIf the entity this division represents has a country code, the country property\ncontains it. If it does not, the country property contains the country code of the\nfirst division encountered by traversing the parent_division_id chain to the root.\n\nFor example:\n- The country value for the United States is 'US'\n- The country value for New York City is 'US'\n- The country value for Puerto Rico, a dependency of the US, is 'PR'.\n- The country value for San Juan, Puerto Rico is 'PR'.\n\nIf an entity has an internationally-recognized ISO 3166-1 alpha-2 country code, it\nshould always be used. In cases where the schema requires the code but no\ninternationally-recognized code is available, a synthetic code may be used provided\nit does not conflict with any internationally-recognized codes.",
           "maxLength": 2,
           "minLength": 2,
           "pattern": "^[A-Z]{2}$",
@@ -568,9 +625,9 @@
           "type": "string"
         },
         "hierarchies": {
-          "description": "Hierarchies in which this division participates.\n\nEvery division participates in at least one hierarchy. Most participate in only one. Some divisions may participate in more than one hierarchy, for example if they are claimed by different parent divisions from different political perspectives; or if there are other real-world reasons why the division or one of its ancestors has multiple parents.\n\nThe first hierarchy in the list is the default hierarchy, and the second-to-last entry in the default hierarchy (if there is such an entry) always corresponds to the `parent_division_id' property. The ordering of hierarchies after the first one is arbitrary.",
+          "description": "Hierarchies in which this division participates.\n\nEvery division participates in at least one hierarchy. Most participate in only one.\nSome divisions may participate in more than one hierarchy, for example if they are\nclaimed by different parent divisions from different political perspectives; or if\nthere are other real-world reasons why the division or one of its ancestors has\nmultiple parents.\n\nThe first hierarchy in the list is the default hierarchy, and the second-to-last\nentry in the default hierarchy (if there is such an entry) always corresponds to the\n`parent_division_id` property. The ordering of hierarchies after the first one is\narbitrary.",
           "items": {
-            "description": "A hierarchy of divisions, with the first entry being a country; each subsequent entry, if any, being a division that is a direct child of the previous entry; and the last entry representing the division that contains the hierarchy.\n\nFor example, a hierarchy for the United States is simply [United States]. A hierarchy for the U.S. state of New Hampshire would be [United States, New Hampshire], and a hierarchy for the city of Concord, NH would be [United States, New Hampshire, Merrimack County, Concord].",
+            "description": "A hierarchy of divisions, with the first entry being a country; each subsequent\nentry, if any, being a division that is a direct child of the previous entry; and\nthe last entry representing the division that contains the hierarchy.\n\nFor example, a hierarchy for the United States is simply [United States]. A\nhierarchy for the U.S. state of New Hampshire would be\n[United States, New Hampshire], and a hierarchy for the city of Concord, NH would be\n[United States, New Hampshire, Merrimack County, Concord].",
             "items": {
               "$ref": "#/$defs/HierarchyItem"
             },
@@ -585,11 +642,11 @@
         },
         "local_type": {
           "additionalProperties": false,
-          "description": "Local name for the subtype property, optionally localized.\n\nFor example, the Canadian province of Quebec has the subtype 'region', but in the local administrative hierarchy it is referred to as a 'province'. Similarly, the Canadian Yukon territory also has subtype 'region', but is locally called a 'territory'.\n\nThis property is localized using a standard Overture names structure. So for example, in Switzerland the top-level administrative subdivision corresponding to subtype 'region' is the canton, which is may be translated in each of Switzerland's official languages as, 'canton' in French, 'kanton' in German, 'cantone' in Italian, and 'chantun' in Romansh.",
+          "description": "Local name for the subtype property, optionally localized.\n\nFor example, the Canadian province of Quebec has the subtype `\"region\"`, but in the\nlocal administrative hierarchy it is referred to as a province. Similarly, the\nCanadian Yukon territory also has subtype `\"region\"`, but is locally called a\nterritory.\n\nThis property is localized using a standard Overture names structure. So for\nexample, in Switzerland the top-level administrative subdivision corresponding to\nsubtype 'region' is the canton, which may be translated in each of Switzerland's\nofficial languages as, 'canton' in French, 'kanton' in German, 'cantone' in Italian,\nand 'chantun' in Romansh.",
           "patternProperties": {
             "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$": {
               "description": "String with no leading/trailing whitespace",
-              "pattern": "^(\\S.*)?\\S$",
+              "pattern": "^(\\S(.*\\S)?)?$",
               "type": "string"
             }
           },
@@ -600,14 +657,15 @@
           "type": "object"
         },
         "names": {
-          "$ref": "#/$defs/Names"
+          "$ref": "#/$defs/Names",
+          "description": "All known names by which the division is called"
         },
         "norms": {
           "$ref": "#/$defs/Norms",
-          "description": "Collects information about local norms and rules within the division that are generally useful for mapping and map-related use cases.\n\nIf the norms property or a desired sub-property of the norms property is missing on a division, but at least one of its ancestor divisions has the norms property and the desired sub-property, then the value from the nearest ancestor division may be assumed."
+          "description": "Collects information about local norms and rules within the division that are\ngenerally useful for mapping and map-related use cases.\n\nIf the norms property or a desired sub-property of the norms property is missing\non a division, but at least one of its ancestor divisions has the norms property\nand the desired sub-property, then the value from the nearest ancestor division\nmay be assumed."
         },
         "parent_division_id": {
-          "description": "Division ID of this division's parent division.\n\nNot allowed for top-level divisions (countries) and required for all other divisions.\n\nThe default parent division is the parent division as seen from the default political perspective, if there is one, and is otherwise chosen somewhat arbitrarily. The hierarchies property can be used to inspect the exhaustive list of parent divisions.",
+          "description": "Division ID of this division's parent division.\n\nNot allowed for top-level divisions (countries) and required for all other\ndivisions.\n\nThe default parent division is the parent division as seen from the default\npolitical perspective, if there is one, and is otherwise chosen somewhat\narbitrarily. The hierarchies property can be used to inspect the exhaustive list of\nparent divisions.",
           "minLength": 1,
           "pattern": "^\\S+$",
           "title": "Parent Division Id",
@@ -615,7 +673,7 @@
         },
         "perspectives": {
           "$ref": "#/$defs/Perspectives",
-          "description": "Political perspectives from which this division is considered to be an accurate representation.\n\nIf this property is absent, then this division is not known to be disputed from any political perspective. Consequently, there is only one division feature representing the entire real world entity.\n\nIf this property is present, it means the division represents one of several alternative perspectives on the same real-world entity.\n\nThere are two modes of perspective:\n\n1. `accepted_by` means the representation of the division is accepted by the listed entities and would be included on a map drawn from their perspective.\n\n2. `disputed_by` means the representation of the division is disputed by the listed entities and would be excluded from a map drawn from their perspective.\n\nWhen drawing a map from the perspective of a given country, one would start by gathering all the undisputed divisions (with no `perspectives` property), and then adding to that first all divisions explicitly accepted by the country, and second all divisions not explicitly disputed by the country."
+          "description": "Political perspectives from which this division is considered to be an accurate\nrepresentation.\n\nIf this property is absent, then this division is not known to be disputed from\nany political perspective. Consequently, there is only one division feature\nrepresenting the entire real world entity.\n\nIf this property is present, it means the division represents one of several\nalternative perspectives on the same real-world entity.\n\nThere are two modes of perspective:\n\n1. `accepted_by` means the representation of the division is accepted by the\n   listed entities and would be included on a map drawn from their perspective.\n\n2. `disputed_by` means the representation of the division is disputed by the\n   listed entities and would be excluded from a map drawn from their perspective.\n\nWhen drawing a map from the perspective of a given country, one would start by\ngathering all the undisputed divisions (with no `perspectives` property), and then\nadding to that first all divisions explicitly accepted by the country, and second\nall divisions not explicitly disputed by the country."
         },
         "population": {
           "description": "Population of the division",
@@ -625,7 +683,7 @@
           "type": "integer"
         },
         "region": {
-          "description": "ISO 3166-2 principal subdivision code of the subdivision-like entity this division represents or belongs to.\n\nIf the entity this division represents has a principal subdivision code, the region property contains it. If it does not, the region property contains the principal subdivision code of the first division encountered by traversing the parent_division_id chain to the root.\n\nFor example:\n    - The region value for the United States is omitted.\n    - The region value for the U.S. state of New York is 'US-NY'.\n    - The region value for New York City is 'US-NY', which it\n    inherits from the state of New York.\n    - The region value for Puerto Rico is 'US-PR'.",
+          "description": "ISO 3166-2 principal subdivision code of the subdivision-like entity this division\nrepresents or belongs to.\n\nIf the entity this division represents has a principal subdivision code, the region\nproperty contains it. If it does not, the region property contains the principal\nsubdivision code of the first division encountered by traversing the\n`parent_division_id` chain to the root.\n\nFor example:\n- The region value for the United States is omitted.\n- The region value for the U.S. state of New York is 'US-NY'.\n- The region value for New York City is 'US-NY', which it inherits from the state\n  of New York.\n- The region value for Puerto Rico is 'US-PR'.",
           "maxLength": 6,
           "minLength": 4,
           "pattern": "^[A-Z]{2}-[A-Z0-9]{1,3}$",
@@ -643,7 +701,8 @@
           "uniqueItems": true
         },
         "subtype": {
-          "$ref": "#/$defs/PlaceType"
+          "$ref": "#/$defs/DivisionSubtype",
+          "description": "A broad classification of the division (e.g., country, region, locality, etc.)."
         },
         "theme": {
           "const": "divisions",

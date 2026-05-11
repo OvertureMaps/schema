@@ -43,7 +43,7 @@ class CollectionConstraint(FieldConstraint):
 
 
 class UniqueItemsConstraint(CollectionConstraint):
-    """Ensures all items in a collection are unique."""
+    """All items must be unique."""
 
     def validate(self, value: list[Any] | None, info: ValidationInfo) -> None:
         # Skip validation for None values (used with optional fields)

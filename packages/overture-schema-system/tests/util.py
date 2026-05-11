@@ -1,16 +1,19 @@
+from collections.abc import Mapping
 from typing import cast
 
 
-def subset_conflicts(a: dict[str, object], b: dict[str, object]) -> dict[str, object]:
+def subset_conflicts(
+    a: Mapping[str, object], b: Mapping[str, object]
+) -> dict[str, object]:
     """
     Returns conflict items that prevent `a` from being a subset of `b`.
 
     Parameters
     ----------
-    a : dict[str, object]
+    a : Mapping[str, object]
         Candidate subset of `b`
-    b : dict[str, object]
-        Candidate supserset of `a`
+    b : Mapping[str, object]
+        Candidate superset of `a`
 
     Returns
     -------
@@ -44,7 +47,10 @@ def subset_conflicts(a: dict[str, object], b: dict[str, object]) -> dict[str, ob
 
 
 def assert_subset(
-    a: dict[str, object], b: dict[str, object], a_name: str = "a", b_name: str = "b"
+    a: Mapping[str, object],
+    b: Mapping[str, object],
+    a_name: str = "a",
+    b_name: str = "b",
 ) -> None:
     conflicts = subset_conflicts(a, b)
     if conflicts:

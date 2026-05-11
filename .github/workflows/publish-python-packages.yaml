@@ -1,0 +1,111 @@
+name: Publish Python packages to PyPI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/pyproject.toml'
+      - 'packages/**/__about__.py'
+  workflow_dispatch:
+    inputs:
+      aws_iam_role_name:
+        description: The name of the IAM role to assume for accessing CodeArtifact
+        type: string
+        required: false
+        default: GithubActions_Schema_CodeArtifact_Publish
+      domain:
+        description: The CodeArtifact domain name
+        type: string
+        required: false
+        default: overture-pypi
+      repository:
+        description: The CodeArtifact repository name
+        type: string
+        required: false
+        default: overture
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check for changes
+    if: github.event.repository.full_name == github.repository
+    uses: ./.github/workflows/reusable-check-python-package-versions.yaml
+    permissions:
+      id-token: write # Required for OIDC in reusable workflow to check AWS CodeArtifact
+    with:
+      before_commit: ${{ github.event.before }}
+      after_commit: ${{ github.event.after }}
+
+  publish:
+    name: Publish
+    needs: [check]
+    if: github.event.repository.full_name == github.repository && needs.check.outputs.num_changed_packages > 0
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC authentication to AWS
+
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.check.outputs.changed_packages) }}
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: latest
+
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Sync code to make packages visible to Python
+        run: uv sync --all-packages
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        with:
+          aws-region: us-west-2
+          role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
+          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
+
+      - name: Get CodeArtifact publish URL
+        id: get-code-artifact-params
+        run: |
+          token=$(./.github/workflows/scripts/code-artifact.sh token \
+            505071440022 us-west-2 overture-pypi)
+          echo "::add-mask::${token}"
+          echo "token=${token}" >> $GITHUB_OUTPUT
+          publish_url=$(./.github/workflows/scripts/code-artifact.sh publish-url \
+            505071440022 us-west-2 overture-pypi overture)
+          echo "publish_url=${publish_url}" >> $GITHUB_OUTPUT
+
+      - name: Publish package ${{ matrix.package }} version ${{ matrix.after }} to PyPI
+        env:
+          CA_TOKEN: ${{ steps.get-code-artifact-params.outputs.token }}
+          CA_PUBLISH_URL: ${{ steps.get-code-artifact-params.outputs.publish_url }}
+          PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
+          BEFORE: ${{ matrix.before }} # zizmor: ignore[template-injection]
+          AFTER: ${{ matrix.after }} # zizmor: ignore[template-injection]
+        run: |
+          printf 'Publishing package %s version %s to PyPI (previous version %s)...\n' "$PACKAGE" "$AFTER" "$BEFORE"
+          uv build --package "$PACKAGE"
+          wheel="dist/${PACKAGE//-/_}-${AFTER}-py3-none-any.whl"
+          if [ ! -f "$wheel" ]; then
+            echo "    Wheel file [$wheel] not found. Aborting!"
+            exit 1
+          fi
+          tarball="dist/${PACKAGE//-/_}-${AFTER}.tar.gz"
+          if [ ! -f "$tarball" ]; then
+            echo "    Source tarball file [$tarball] not found. Aborting!"
+            exit 1
+          fi
+          uv publish "$wheel" "$tarball" \
+             -t "${CA_TOKEN}" \
+            --publish-url "${CA_PUBLISH_URL}"

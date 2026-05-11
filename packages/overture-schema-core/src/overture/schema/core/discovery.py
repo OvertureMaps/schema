@@ -21,15 +21,15 @@ class ModelKey:
         The theme name (e.g., "buildings", "places"), or None for non-themed models
     type : str
         The feature type (e.g., "building", "place")
-    class_name : str
-        The fully qualified class name from the entry point value
+    entry_point : str
+        The entry point value in "module:Class" format
 
     """
 
     namespace: str
     theme: str | None
     type: str
-    class_name: str
+    entry_point: str
 
 
 def discover_models(
@@ -87,7 +87,7 @@ def discover_models(
                     namespace=ns,
                     theme=theme,
                     type=feature_type,
-                    class_name=entry_point.value,
+                    entry_point=entry_point.value,
                 )
                 models[key] = model_class
             except Exception as e:

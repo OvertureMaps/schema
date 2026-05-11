@@ -27,8 +27,8 @@
         },
         "sort_key": {
           "description": "Integer indicating the recommended order in which to draw features.\n\nFeatures with a lower number should be drawn \"in front\" of features with a higher\nnumber.",
-          "maximum": 255,
-          "minimum": 0,
+          "maximum": 2147483647,
+          "minimum": -2147483648,
           "title": "Sort Key",
           "type": "integer"
         }
@@ -83,7 +83,7 @@
         },
         "license": {
           "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "License",
           "type": "string"
         },
@@ -231,7 +231,7 @@
       "properties": {
         "cartography": {
           "$ref": "#/$defs/CartographicHints",
-          "title": "cartography"
+          "description": "Cartographic hints useful when including the feature in maps"
         },
         "sources": {
           "description": "Information about the source data used to assemble the feature.",

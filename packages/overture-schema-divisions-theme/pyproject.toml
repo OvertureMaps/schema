@@ -1,8 +1,11 @@
 [project]
+maintainers = [
+    {name = "Overture Maps Schema Working Group"},
+]
 dependencies = [
     "overture-schema-core",
     "overture-schema-system",
-    "pydantic>=2.0",
+    "pydantic>=2.12.0",
 ]
 description = "Overture Maps divisions theme shared structures, division, division area and division boundary types"
 dynamic = ["version"]
@@ -10,6 +13,11 @@ license = "MIT"
 name = "overture-schema-divisions-theme"
 readme = "README.md"
 requires-python = ">=3.10"
+
+[project.urls]
+Homepage = "https://overturemaps.org"
+Source = "https://github.com/OvertureMaps/schema"
+Issues = "https://github.com/OvertureMaps/schema/issues"
 
 [tool.uv.sources]
 overture-schema-core = { workspace = true }
@@ -29,3 +37,113 @@ packages = ["src/overture"]
 "overture:divisions:division" = "overture.schema.divisions:Division"
 "overture:divisions:division_area" = "overture.schema.divisions:DivisionArea"
 "overture:divisions:division_boundary" = "overture.schema.divisions:DivisionBoundary"
+ 
+[[examples.Division]]
+id = "350e85f6-68ba-4114-9906-c2844815988b"
+geometry = "POINT (-175.2551522 -21.1353686)"
+country = "TO"
+version = 1
+subtype = "locality"
+class = "village"
+region = "TO-04"
+hierarchies = [
+  [
+    {division_id = "fef8748b-0c91-46ad-9f2d-976d8d2de3e9", subtype = "country", name = "Tonga"},
+    {division_id = "4d67561a-2292-41bd-8996-7853d276a42c", subtype = "region", name = "Tongatapu"},
+    {division_id = "8730f0cc-d436-4f11-a7d3-49085813ef44", subtype = "county", name = "Vahe Kolomotu'a"},
+    {division_id = "350e85f6-68ba-4114-9906-c2844815988b", subtype = "locality", name = "Sia'atoutai"},
+  ],
+]
+parent_division_id = "8730f0cc-d436-4f11-a7d3-49085813ef44"
+population = 534
+theme = "divisions"
+type = "division"
+
+[examples.Division.bbox]
+xmin = -175.25515747070312
+xmax = -175.255126953125
+ymin = -21.1353702545166
+ymax = -21.13536834716797
+
+[[examples.Division.sources]]
+property = ""
+dataset = "OpenStreetMap"
+record_id = "n3173231082@4"
+update_time = "2014-12-18T09:17:03Z"
+
+[examples.Division.cartography]
+prominence = 29
+
+[examples.Division.names]
+primary = "Sia'atoutai"
+
+[[examples.Division.names.rules]]
+variant = "alternate"
+value = "Nafualu"
+
+[examples.Division.local_type]
+en = "village"
+
+[[examples.DivisionArea]]
+id = "eb9b112f-ec3c-47f7-b519-6f9f2e6fc2bd"
+geometry = "MULTIPOLYGON (((-174.9553949 -21.4730179, -174.9514163 -21.4719978, -174.9520108 -21.4681253, -174.9566122 -21.4687535, -174.9553949 -21.4730179)), ((-174.9634398 -21.3476807, -174.9753507 -21.3833656, -174.9702168 -21.4037277, -174.950488 -21.4269887, -174.9082983 -21.4577763, -174.9004303 -21.4398142, -174.9048159 -21.3698688, -174.9165467 -21.3035402, -174.9126977 -21.2903268, -174.9199765 -21.2834922, -174.9634398 -21.3476807)))"
+country = "TO"
+version = 2
+subtype = "region"
+class = "land"
+is_land = true
+is_territorial = false
+region = "TO-01"
+division_id = "21597af0-b564-463c-a356-42c29e712b7d"
+theme = "divisions"
+type = "division_area"
+
+[examples.DivisionArea.bbox]
+xmin = -174.97535705566406
+xmax = -174.90040588378906
+ymin = -21.473018646240234
+ymax = -21.283489227294922
+
+[[examples.DivisionArea.sources]]
+property = ""
+dataset = "OpenStreetMap"
+record_id = "r7247527@3"
+update_time = "2020-12-30T18:41:56Z"
+
+[examples.DivisionArea.names]
+primary = "ʻEua"
+
+[[examples.DivisionBoundary]]
+id = "2bdf68e4-860d-3d8c-a472-ccf439a5302a"
+geometry = "LINESTRING (-147.064823 -15.4231537, -147.0519131 -15.2885069, -147.048482 -15.1511701)"
+country = "PF"
+version = 1
+subtype = "county"
+class = "maritime"
+is_land = false
+is_territorial = true
+division_ids = [
+  "ae266459-63a4-4508-8295-0101e27d039b",
+  "d4a6873d-885a-4f2a-bc0f-37e9d9e874e4"
+]
+is_disputed = false
+theme = "divisions"
+type = "division_boundary"
+
+[examples.DivisionBoundary.bbox]
+xmin = -147.06483459472656
+xmax = -147.04847717285156
+ymin = -15.4231538772583
+ymax = -15.151169776916504
+
+[[examples.DivisionBoundary.sources]]
+property = ""
+dataset = "OpenStreetMap"
+record_id = "r6063055@9"
+update_time = "2023-07-20T00:28:40Z"
+
+[[examples.DivisionBoundary.sources]]
+property = ""
+dataset = "OpenStreetMap"
+record_id = "r6063063@12"
+update_time = "2023-07-20T00:28:40Z"

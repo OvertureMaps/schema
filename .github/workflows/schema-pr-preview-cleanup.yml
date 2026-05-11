@@ -1,0 +1,48 @@
+---
+name: Schema PR Preview Cleanup
+run-name: Cleanup schema docs preview for PR #${{ github.event.number }}
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: schema-pr-preview-${{ github.event.number }}
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    name: Cleanup
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for OIDC authentication to AWS
+    env:
+      AWS_ROLE_ARN: arn:aws:iam::763944545891:role/pages-staging-oidc-overturemaps
+      AWS_REGION: us-west-2
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # No flags to ignore "not found" errors, so we use "|| true" to prevent failure if the path doesn't exist
+      - name: Delete from S3
+        run: |
+          aws s3 rm --recursive --quiet \
+            s3://overture-managed-staging-usw2/gh-pages/schema/pr/$PR_NUMBER/ || true
+        env:
+          PR_NUMBER: ${{ github.event.number }}  # zizmor: ignore[template-injection]
+
+      - name: Bust the cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E1KP2IN0H2RGGT \
+            --paths "/schema/pr/$PR_NUMBER/*" || true
+        env:
+          PR_NUMBER: ${{ github.event.number }}  # zizmor: ignore[template-injection]

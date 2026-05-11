@@ -1,6 +1,7 @@
 """Click-based CLI for overture-schema package."""
 
 import builtins
+import io
 import json
 import sys
 from collections import Counter, defaultdict
@@ -322,8 +323,6 @@ def load_input(filename: Path) -> tuple[dict | list, str]:
                 pass
 
         # Parse as single YAML/JSON document
-        import io
-
         data = yaml.load(io.StringIO(content), Loader=CoreLoader)
         return data, "<stdin>"
 
@@ -798,7 +797,7 @@ def dump_namespace(
         sorted_types = sorted(theme_types[theme], key=lambda x: x[0].type)
         for key, model_class in sorted_types:
             stdout.print(
-                f"  [bright_black]→[/bright_black] [bold cyan]{key.type}[/bold cyan] [dim magenta]({key.class_name})[/dim magenta]"
+                f"  [bright_black]→[/bright_black] [bold cyan]{key.type}[/bold cyan] [dim magenta]({key.entry_point})[/dim magenta]"
             )
             docstring = get_model_docstring(model_class)
             if docstring:

@@ -4,12 +4,24 @@ on:
   pull_request:
     types: [opened, edited, labeled, unlabeled, synchronize]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   check-label:
+    name: Check label
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read # Required for reading PR labels
+
     steps:
       - name: Require exactly one change type label
-        uses: actions/github-script@v6
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const allChangeTypeLabels = new Set([
@@ -18,12 +30,13 @@ jobs:
               'change type - documentation - member 📝',
               'change type - major 🚨',
               'change type - minor 🤏',
+              'automation 🦾',
             ]);
             const prLabels = context.payload.pull_request.labels.map(label => label.name);
             const appliedChangeTypeLabels = prLabels.filter(prLabel => allChangeTypeLabels.has(prLabel));
             if (appliedChangeTypeLabels.length !== 1) {
               const baseMessage = `The PR must have EXACTLY one of the following CHANGE TYPE labels: ${Array.from(allChangeTypeLabels).sort().join(', ')}. `
-              const n = appliedChangeTypeLabels.length; 
+              const n = appliedChangeTypeLabels.length;
               let contextualMessage;
               if (n === 0) {
                 contextualMessage = 'It currently has no change type label. Please ➕ add one label. 🙏'

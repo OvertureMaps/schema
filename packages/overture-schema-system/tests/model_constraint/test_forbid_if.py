@@ -6,6 +6,7 @@ from pydantic.json_schema import JsonDict
 from util import assert_subset
 
 from overture.schema.system import create_model
+from overture.schema.system._json_schema import required_non_null
 from overture.schema.system.model_constraint import (
     Condition,
     FieldEqCondition,
@@ -16,7 +17,7 @@ from overture.schema.system.model_constraint import (
 
 
 @pytest.mark.parametrize("field_names", [[], ()])
-def test_error_not_enough_field_names(field_names: list[str]):
+def test_error_not_enough_field_names(field_names: list[str]) -> None:
     with pytest.raises(ValueError, match="`field_names` cannot be empty, but it is"):
         forbid_if(field_names, FieldEqCondition("foo", 42))
 
@@ -77,7 +78,8 @@ def test_error_invalid_model_instance(constraint: ForbidIfConstraint) -> None:
 
     constraint.validate_class(TestModel)
     with pytest.raises(
-        ValueError, match="at least one field has an explicit value when it should not"
+        ValueError,
+        match="at least one field is set to a value other than None when it must not be",
     ):
         constraint.validate_instance(model_instance)
 
@@ -105,6 +107,18 @@ def test_valid_model_instance_condition_true(field_names: list[str]) -> None:
     constraint.validate_instance(TestModel(baz=42))
 
 
+def test_valid_model_instance_fields_explicitly_none_when_condition_true() -> None:
+    """Setting a forbidden field to None does not violate the prohibition."""
+
+    class TestModel(BaseModel):
+        foo: int | None = None
+        bar: int | None = None
+        baz: int
+
+    constraint = ForbidIfConstraint(["foo", "bar"], FieldEqCondition("baz", 42))
+    constraint.validate_instance(TestModel(foo=None, bar=None, baz=42))
+
+
 @pytest.mark.parametrize("field_names", [["foo"], ["bar"], ["foo", "bar"]])
 def test_valid_model_instance_condition_false(field_names: list[str]) -> None:
     class TestModel(BaseModel):
@@ -126,7 +140,7 @@ def test_model_json_schema_no_model_config() -> None:
     actual = TestModel.model_json_schema()
     expect = {
         "if": {"properties": {"qux": {"const": 42}}},
-        "then": {"not": {"required": ["foo", "baz"]}},
+        "then": {"not": required_non_null(["foo", "baz"])},
     }
     assert expect == TestModel.model_config["json_schema_extra"]
     assert_subset(expect, actual, "expect", "actual")
@@ -139,7 +153,7 @@ def test_model_json_schema_no_model_config() -> None:
             None,
             {
                 "if": {"not": {"properties": {"corge": {"const": 42}}}},
-                "then": {"not": {"required": ["bar", "baz"]}},
+                "then": {"not": required_non_null(["bar", "baz"])},
             },
         ),
         (
@@ -147,7 +161,7 @@ def test_model_json_schema_no_model_config() -> None:
             {
                 "random": "value",
                 "if": {"not": {"properties": {"corge": {"const": 42}}}},
-                "then": {"not": {"required": ["bar", "baz"]}},
+                "then": {"not": required_non_null(["bar", "baz"])},
             },
         ),
         (
@@ -157,7 +171,7 @@ def test_model_json_schema_no_model_config() -> None:
                     {"if": 123},
                     {
                         "if": {"not": {"properties": {"corge": {"const": 42}}}},
-                        "then": {"not": {"required": ["bar", "baz"]}},
+                        "then": {"not": required_non_null(["bar", "baz"])},
                     },
                 ]
             },

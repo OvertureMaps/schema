@@ -144,7 +144,7 @@ class Building(
     Appearance,
 ):
     """
-    Buildings are man-made structures with roofs that exists permanently in one place.
+    Buildings are man-made structures with roofs that exist permanently in one place.
 
     A building's geometry represents the two-dimensional footprint of the building as viewed from
     directly above, looking down. Fields such as `height` and `num_floors` allow the

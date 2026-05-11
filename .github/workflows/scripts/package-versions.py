@@ -3,6 +3,7 @@
 from importlib import metadata
 from pathlib import Path
 import json
+import re
 import sys
 
 
@@ -35,6 +36,9 @@ def compare(before_file: str, after_file: str):
     Compare two JSON files containing package versions and print the packages that have a version
     number change as a JSON array.
 
+    The output JSON array is sorted in topological order by package name, so those changed packages
+    that do not depend on other changed packages appear first.
+
     Form of the JSON array:
 
         [ {"package": "p1", "before": "v1", "after": "v2"}, ... ]
@@ -48,7 +52,23 @@ def compare(before_file: str, after_file: str):
     before_dict = {item["package"]: item["version"] for item in before_array}
     after_dict = {item["package"]: item["version"] for item in after_array}
 
-    combined_keys = sorted(list(set(before_dict.keys()) | set(after_dict.keys())))
+    def level(package: str) -> int:
+        """
+        Return the level of a package for topological sorting.
+
+        This is brittle and hard to keep in sync, so we should replace it with a version that
+        dynamically computes dependencies in the future.
+        """
+        if package == "overture-schema-system":
+            return 0
+        elif package in ["overture-schema-core"]:
+            return 1
+        elif re.fullmatch(r'overture-schema-.*-theme', package) or package in ["overture-schema", "overture-schema-cli", "overture-schema-codegen", "overture-schema-annex"]:
+            return 2
+        else:
+            raise ValueError(f"Unknown package for level computation: {package}")
+
+    combined_keys = sorted(list(set(before_dict.keys()) | set(after_dict.keys())), key=level)
 
     changed_packages = []
     for package in combined_keys:

@@ -8,6 +8,8 @@ from typing import Any, Literal, get_args, get_origin
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
+from overture.schema.system.feature import resolve_discriminator_field_name
+
 from .types import ErrorLocation, ValidationErrorDict
 
 # Type aliases for structural tuple elements
@@ -29,11 +31,23 @@ class UnionMetadata:
     nested_unions: dict[str, "UnionMetadata"]
 
 
+def _extract_literal_value(model: type[BaseModel], field_name: str) -> str | None:
+    """Extract the single Literal value from a model field as a string, if present."""
+    field_info = model.model_fields.get(field_name)
+    if field_info is None or field_info.annotation is None:
+        return None
+    if get_origin(field_info.annotation) is Literal:
+        args = get_args(field_info.annotation)
+        return str(args[0]) if args else None
+    return None
+
+
 def _process_union_member(
     member: Any,  # noqa: ANN401
     discriminator_to_model: dict[str, type[BaseModel]],
     model_name_to_model: dict[str, type[BaseModel]],
     nested_unions: dict[str, UnionMetadata],
+    discriminator_field: str | None = None,
 ) -> None:
     """Process a single union member, handling nesting recursively.
 
@@ -43,6 +57,7 @@ def _process_union_member(
         discriminator_to_model: Dict to populate with discriminator value mappings
         model_name_to_model: Dict to populate with model name mappings
         nested_unions: Dict to populate with nested union metadata
+        discriminator_field: The discriminator field name from the parent union annotation
     """
     member_origin = get_origin(member)
 
@@ -63,12 +78,24 @@ def _process_union_member(
             nested_metadata = introspect_union(member)
             nested_unions[str(member)] = nested_metadata
             discriminator_to_model.update(nested_metadata.discriminator_to_model)
+            # The nested union's discriminator_to_model uses the nested discriminator
+            # field (e.g. "subtype"). Re-extract using the parent discriminator field
+            # (e.g. "type") so leaf models are also reachable by the parent's values.
+            if discriminator_field is not None:
+                for model in nested_metadata.model_name_to_model.values():
+                    value = _extract_literal_value(model, discriminator_field)
+                    if value is not None:
+                        discriminator_to_model[value] = model
             return
 
         # Unwrap Annotated to get the actual type (e.g., Annotated[Building, Tag('building')])
         # and process it recursively
         _process_union_member(
-            member_args[0], discriminator_to_model, model_name_to_model, nested_unions
+            member_args[0],
+            discriminator_to_model,
+            model_name_to_model,
+            nested_unions,
+            discriminator_field,
         )
         return
 
@@ -76,17 +103,10 @@ def _process_union_member(
     if inspect.isclass(member) and issubclass(member, BaseModel):
         model_name_to_model[member.__name__] = member
 
-        # Extract discriminator values from known discriminator fields only
-        # Restrict to known discriminator names to avoid false positives from other Literal fields
-        discriminator_fields = ("type", "theme", "subtype")
-        for field_name, field_info in member.model_fields.items():
-            if field_name not in discriminator_fields:
-                continue
-            annotation = field_info.annotation
-            if get_origin(annotation) is Literal:
-                literal_args = get_args(annotation)
-                if literal_args:
-                    discriminator_to_model[literal_args[0]] = member
+        if discriminator_field is not None:
+            value = _extract_literal_value(member, discriminator_field)
+            if value is not None:
+                discriminator_to_model[value] = member
 
 
 def introspect_union(union_type: Any) -> UnionMetadata:  # noqa: ANN401
@@ -163,9 +183,9 @@ def introspect_union(union_type: Any) -> UnionMetadata:  # noqa: ANN401
                 if isinstance(metadata, FieldInfo) and hasattr(
                     metadata, "discriminator"
                 ):
-                    disc = metadata.discriminator
-                    # discriminator can be a string or Discriminator object
-                    discriminator_field = str(disc) if disc is not None else None
+                    discriminator_field = resolve_discriminator_field_name(
+                        metadata.discriminator
+                    )
                     break
 
     # Get union members
@@ -183,7 +203,11 @@ def introspect_union(union_type: Any) -> UnionMetadata:  # noqa: ANN401
     # Process each union member
     for member in union_members:
         _process_union_member(
-            member, discriminator_to_model, model_name_to_model, nested_unions
+            member,
+            discriminator_to_model,
+            model_name_to_model,
+            nested_unions,
+            discriminator_field,
         )
 
     return UnionMetadata(

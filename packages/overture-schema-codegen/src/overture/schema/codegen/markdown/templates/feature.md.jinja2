@@ -1,0 +1,45 @@
+# {{ model.name }}
+{% if model.description %}
+
+{{ model.description | linkify_urls }}
+{% endif %}
+
+## Fields
+
+| Name | Type | Description |
+| -----: | :----: | ------------- |
+{% for field in fields -%}
+| {% if field.pre_formatted %}{{ field.name }}{% else %}`{{ field.name }}`{% endif %} | {{ field.type_str }} | {% if field.description %}{{ field.description }} {% endif %}|
+{% endfor %}
+{% if constraints %}
+
+## Constraints
+
+{% for c in constraints %}
+- {{ c }}
+{% endfor %}
+{% endif %}
+{% if examples %}
+
+## Examples
+{% if examples|length == 1 %}
+
+| Column | Value |
+| -------: | ------- |
+{% for row in examples[0] -%}
+| `{{ row.column }}` | {{ row.value }} |
+{% endfor %}
+{% else %}
+{% for example in examples %}
+
+### Example {{ loop.index }}
+
+| Column | Value |
+| -------: | ------- |
+{% for row in example -%}
+| `{{ row.column }}` | {{ row.value }} |
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% include '_used_by.md.jinja2' %}

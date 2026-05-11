@@ -102,7 +102,7 @@
         "value": {
           "description": "The actual name value.",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Value",
           "type": "string"
         },
@@ -138,7 +138,7 @@
           "patternProperties": {
             "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*$": {
               "description": "String with no leading/trailing whitespace",
-              "pattern": "^(\\S.*)?\\S$",
+              "pattern": "^(\\S(.*\\S)?)?$",
               "type": "string"
             }
           },
@@ -151,7 +151,7 @@
         "primary": {
           "description": "The most commonly used name.",
           "minLength": 1,
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "Primary",
           "type": "string"
         },
@@ -248,7 +248,7 @@
         },
         "license": {
           "description": "Source data license name.\n\nThis should be a valid SPDX license identifier when available.\n\nIf omitted, contact the data provider for more license information.",
-          "pattern": "^(\\S.*)?\\S$",
+          "pattern": "^(\\S(.*\\S)?)?$",
           "title": "License",
           "type": "string"
         },
@@ -499,13 +499,14 @@
         "level": {
           "default": 0,
           "description": "Z-order of the feature where 0 is visual level",
-          "maximum": 32767,
-          "minimum": -32768,
+          "maximum": 2147483647,
+          "minimum": -2147483648,
           "title": "Level",
           "type": "integer"
         },
         "names": {
-          "$ref": "#/$defs/Names"
+          "$ref": "#/$defs/Names",
+          "description": "All known names by which the feature is called"
         },
         "source_tags": {
           "additionalProperties": true,

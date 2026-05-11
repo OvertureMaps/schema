@@ -1,19 +1,24 @@
 name: Check Python package version numbers
 
 on:
-  pull_request_target:
+  pull_request:
     paths:
       - '**/pyproject.toml'
       - 'packages/**/__about__.py'
 
 permissions:
-  id-token: write
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
-    if: github.event.pull_request.head.repo.full_name == github.repository
     uses: ./.github/workflows/reusable-check-python-package-versions.yaml
+    permissions:
+      id-token: write # Required for AWS CodeArtifact OIDC authentication
+      contents: read
     with:
       before_commit: ${{ github.event.pull_request.base.sha }}
       after_commit: ${{ github.event.pull_request.head.sha }}

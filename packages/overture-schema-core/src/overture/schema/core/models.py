@@ -12,7 +12,6 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
 from typing_extensions import Self
 
-from overture.schema.core.sources import Sources
 from overture.schema.system.feature import Feature
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
@@ -25,6 +24,7 @@ from overture.schema.system.string import (
 )
 
 from .enums import PerspectiveMode
+from .sources import Sources
 from .types import (
     FeatureVersion,
     Level,
@@ -65,9 +65,9 @@ class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
             maybe_plural = "s" if len(invalid_extra_fields) > 1 else ""
             raise ValueError(
                 f"invalid extra field name{maybe_plural}: {', '.join(invalid_extra_fields)} "
-                "(extra fields are temporarily allowed, but only if their names start with 'ext_', "
-                "but all extra field name support in {self.__class__.name} is on a deprecation path "
-                "and will be removed)"
+                f"(extra fields are temporarily allowed, but only if their names start with 'ext_', "
+                f"but all extra field name support in {self.__class__.__name__} is on a deprecation path "
+                f"and will be removed)"
             )
         return self
 

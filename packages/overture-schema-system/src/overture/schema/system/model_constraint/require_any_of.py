@@ -1,28 +1,26 @@
 """
-Require at least one named field to have a value explicitly set.
+Require at least one named field to have a non-`None` value.
 """
 
 from collections.abc import Callable
 
 from pydantic import BaseModel, ConfigDict
-from pydantic.json_schema import JsonDict
 from typing_extensions import override
 
-from .._json_schema import get_static_json_schema_extra, put_any_of
+from .._json_schema import get_static_json_schema_extra, put_any_of, required_non_null
 from .model_constraint import OptionalFieldGroupConstraint, apply_alias
 
 
 def require_any_of(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel]]:
     """
     Decorate a Pydantic model class with a constraint requiring that at least one of the named
-    fields has a value explicitly set.
+    fields has a non-`None` value.
 
     This function is the decorator version of the `RequireAnyOfConstraint` class.
 
     To ensure parity between Python and JSON Schema validation, a field's value must be explicitly
-    set to satisfy the constraint. This means in particular that fields whose value was set by
-    Pydantic using a default value do not count as having a set value, and fields containing the
-    value `None`, if this value was explicitly set rather than being inherited by default, do count.
+    set to a non-`None` value to satisfy the constraint. Fields whose value was set by Pydantic
+    using a default value violate the constraint, as do fields explicitly set to `None`.
 
     Parameters
     ----------
@@ -49,16 +47,21 @@ def require_any_of(*field_names: str) -> Callable[[type[BaseModel]], type[BaseMo
     MyModel(foo=42, bar=None)
     >>> MyModel(bar="hello")            # validates OK
     MyModel(foo=None, bar='hello')
-    >>> MyModel(foo=None, bar=None)     # validates OK
-    MyModel(foo=None, bar=None)
     >>>
     >>> try:
     ...     MyModel()
     ... except ValidationError as e:
-    ...    assert "at least one of these fields must be explicitly set, but none are: foo, bar" \
+    ...    assert "at least one of these fields must be set to a value other than None, but none are: foo, bar" \
                in str(e)
-    ...    print("Validation failed")
-    Validation failed
+    ...    print("Validation failed (no fields set)")
+    Validation failed (no fields set)
+    >>> try:
+    ...     MyModel(foo=None, bar=None)
+    ... except ValidationError as e:
+    ...    assert "at least one of these fields must be set to a value other than None, but none are: foo, bar" \
+               in str(e)
+    ...    print("Validation failed (all fields None)")
+    Validation failed (all fields None)
     """
     model_constraint = RequireAnyOfConstraint._create_internal(
         f"@{require_any_of.__name__}", *field_names
@@ -97,11 +100,11 @@ class RequireAnyOfConstraint(OptionalFieldGroupConstraint):
     def validate_instance(self, model_instance: BaseModel) -> None:
         super().validate_instance(model_instance)
 
-        if not (
-            any(f for f in self.field_names if f in model_instance.model_fields_set)
+        if not any(
+            self._field_has_non_none_value(model_instance, f) for f in self.field_names
         ):
             raise ValueError(
-                f"at least one of these fields must be explicitly set, but none are: {', '.join(self.field_names)} (`{self.name}`)"
+                f"at least one of these fields must be set to a value other than None, but none are: {', '.join(self.field_names)} (`{self.name}`)"
             )
 
     @override
@@ -110,7 +113,10 @@ class RequireAnyOfConstraint(OptionalFieldGroupConstraint):
 
         json_schema = get_static_json_schema_extra(config)
 
-        def required(field_name: str) -> JsonDict:
-            return {"required": [apply_alias(model_class, field_name)]}
-
-        put_any_of(json_schema, [required(f) for f in self.field_names])
+        put_any_of(
+            json_schema,
+            [
+                required_non_null([apply_alias(model_class, f)])
+                for f in self.field_names
+            ],
+        )

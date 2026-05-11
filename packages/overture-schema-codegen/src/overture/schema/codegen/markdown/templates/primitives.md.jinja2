@@ -1,0 +1,27 @@
+# Primitive Types
+
+Numeric types used for schema field definitions.
+
+## Integer Types
+
+| Type | Range | Description |
+| -----: | :-----: | ------------- |
+{% for t in signed_ints -%}
+| `{{ t.name }}` | {{ t.range }} | {{ t.description }} |
+{% endfor %}
+
+## Unsigned Integer Types
+
+| Type | Range | Description |
+| -----: | :-----: | ------------- |
+{% for t in unsigned_ints -%}
+| `{{ t.name }}` | {{ t.range }} | {{ t.description }} |
+{% endfor %}
+
+## Floating Point Types
+
+| Type | Precision | Description |
+| -----: | :---------: | ------------- |
+{% for t in floats -%}
+| `{{ t.name }}` | {{ t.precision }} | {{ t.description }} |
+{% endfor %}

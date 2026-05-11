@@ -56,10 +56,6 @@ class ModelConstraint:
             )
         self.__name = name
 
-    def __validate_instance(self, model_instance: BaseModel) -> BaseModel:
-        self.validate_instance(model_instance)
-        return model_instance
-
     @property
     def name(self) -> str:
         """Returns the name of the constraint, e.g. "FooConstraint" or "@foo"."""
@@ -126,6 +122,15 @@ class ModelConstraint:
         metadata = Metadata.retrieve_from(model_class, Metadata()).copy()  # type: ignore[union-attr]
         model_constraints = (*ModelConstraint.get_model_constraints(model_class), self)
         metadata[_MODEL_CONSTRAINT_KEY] = model_constraints
+        # Capture the constraint in a closure rather than passing a bound method.
+        # Some Pydantic versions unwrap bound methods passed through __validators__
+        # and rebind `self` to the model instance, breaking the dispatch.
+        constraint = self
+
+        def _after_validator(model_instance: BaseModel) -> BaseModel:
+            constraint.validate_instance(model_instance)
+            return model_instance
+
         new_model_class = create_model(
             model_class.__name__,
             __config__=config,
@@ -135,7 +140,7 @@ class ModelConstraint:
             __validators__={
                 self.name: cast(
                     Callable[..., Any],
-                    model_validator(mode="after")(self.__validate_instance),
+                    model_validator(mode="after")(_after_validator),
                 )
             },
             __metadata__=metadata,
@@ -333,6 +338,13 @@ class OptionalFieldGroupConstraint(FieldGroupConstraint):
 
     def __init__(self, name: str | None, field_names: tuple[str, ...]):
         super().__init__(name, field_names)
+
+    @staticmethod
+    def _field_has_non_none_value(model_instance: BaseModel, field_name: str) -> bool:
+        return (
+            field_name in model_instance.model_fields_set
+            and getattr(model_instance, field_name) is not None
+        )
 
     @override
     def validate_class(self, model_class: type[BaseModel]) -> None:
