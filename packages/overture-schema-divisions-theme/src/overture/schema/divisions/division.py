@@ -116,7 +116,7 @@ class CapitalOfDivisionItem(BaseModel):
     division_id: Annotated[
         Id,
         Field(description="ID of the division whose capital is the current division."),
-        Reference(Relationship.CAPITAL_OF, Division),
+        Reference(Relationship.HIERARCHY, Division, role="capital_of"),
     ]
     subtype: DivisionSubtype
 
@@ -139,7 +139,7 @@ class HierarchyItem(BaseModel):
             the division itself, and any other division that is an ancestor of the division's parent.
         """).strip()
         ),
-        Reference(Relationship.DESCENDANT_OF, Division),
+        Reference(Relationship.HIERARCHY, Division, role="descendant_of"),
     ]
     subtype: DivisionSubtype
     name: Annotated[
@@ -276,7 +276,7 @@ class Division(
                 parent divisions.
         """).strip()
         ),
-        Reference(Relationship.CHILD_OF, Division),
+        Reference(Relationship.HIERARCHY, Division, role="child_of"),
     ] = None
     admin_level: AdminLevel | None = None
 
@@ -382,7 +382,7 @@ class Division(
         list[
             Annotated[
                 Id,
-                Reference(Relationship.CAPITALLED_BY, Division),
+                Reference(Relationship.HIERARCHY, Division, role="has_as_capital"),
             ]
         ]
         | None,

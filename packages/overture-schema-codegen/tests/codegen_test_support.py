@@ -122,7 +122,8 @@ class Venue(
     ]
     capacity: Annotated[int, Field(ge=1)] | None = None
     resident_ensemble: (
-        Annotated[Id, Reference(Relationship.BELONGS_TO, Instrument)] | None
+        Annotated[Id, Reference(Relationship.AGGREGATION, Instrument, role="part_of")]
+        | None
     ) = None
 
 

@@ -96,6 +96,9 @@ def describe_field_constraint(
         target = constraint.relatee
         target_id = TypeIdentity.of(target)
         target_str = link_fn(target_id) if link_fn else f"`{target.__name__}`"
+        if constraint.role:
+            role_label = constraint.role.replace("_", " ")
+            return f"References {target_str} ({rel_label}, {role_label})"
         return f"References {target_str} ({rel_label})"
     if isinstance(constraint, Interval):
         desc = _describe_interval(constraint)
