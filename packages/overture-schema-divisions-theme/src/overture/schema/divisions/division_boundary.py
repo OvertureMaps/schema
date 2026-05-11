@@ -125,7 +125,7 @@ class DivisionBoundary(
         list[
             Annotated[
                 Id,
-                Reference(Relationship.BOUNDARY_OF, Division),
+                Reference(Relationship.COMPOSITION, Division, role="boundary_of"),
             ]
         ],
         Field(

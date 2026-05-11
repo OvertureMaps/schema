@@ -517,7 +517,7 @@
           "type": "string"
         },
         "division_id": {
-          "description": "Division ID of the division this area belongs to.",
+          "description": "Division ID of the parent division of this area.",
           "minLength": 1,
           "pattern": "^\\S+$",
           "title": "Division Id",

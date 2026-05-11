@@ -144,7 +144,7 @@ unique identifier of another model.
 >>> class Park(Identified):
 ...     pass
 >>> class ParkBench(Identified):
-...    park_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Park)]
+...    park_id: Annotated[Id, Reference(Relationship.COMPOSITION, Park, role="located_in")]
 """
 
 from . import (

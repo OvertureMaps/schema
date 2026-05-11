@@ -618,7 +618,7 @@ class TestRenderFeatureFieldConstraints:
         lines = result.splitlines()
         ref_line = next(line for line in lines if "| `resident_ensemble` |" in line)
         assert "[`Instrument`](instrument.md)" in ref_line
-        assert "belongs to" in ref_line
+        assert "aggregation, part of" in ref_line
 
     def test_venue_reference_unlinked_without_context(self) -> None:
         """Reference constraint renders as plain code when no LinkContext."""
@@ -629,7 +629,7 @@ class TestRenderFeatureFieldConstraints:
         lines = result.splitlines()
         ref_line = next(line for line in lines if "| `resident_ensemble` |" in line)
         assert "References `Instrument`" in ref_line
-        assert "belongs to" in ref_line
+        assert "aggregation, part of" in ref_line
 
 
 class TestRenderEnumBasic:

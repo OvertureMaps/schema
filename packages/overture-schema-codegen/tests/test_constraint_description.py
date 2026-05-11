@@ -382,22 +382,22 @@ class TestDescribeFieldConstraint:
             == "Allowed geometry types: LineString, Point, Polygon"
         )
 
-    def test_reference_belongs_to(self) -> None:
+    def test_reference_composition(self) -> None:
         class Target(Identified):
             pass
 
-        constraint = Reference(Relationship.BELONGS_TO, Target)
+        constraint = Reference(Relationship.COMPOSITION, Target)
         assert (
-            describe_field_constraint(constraint) == "References `Target` (belongs to)"
+            describe_field_constraint(constraint) == "References `Target` (composition)"
         )
 
-    def test_reference_connects_to(self) -> None:
+    def test_reference_association(self) -> None:
         class Other(Identified):
             pass
 
-        constraint = Reference(Relationship.CONNECTS_TO, Other)
+        constraint = Reference(Relationship.ASSOCIATION, Other)
         assert (
-            describe_field_constraint(constraint) == "References `Other` (connects to)"
+            describe_field_constraint(constraint) == "References `Other` (association)"
         )
 
     def test_reference_link_fn_receives_type_identity(self) -> None:
@@ -412,13 +412,13 @@ class TestDescribeFieldConstraint:
             received.append(tid)
             return f"[`{tid.name}`](link)"
 
-        constraint = Reference(Relationship.BELONGS_TO, Target)
+        constraint = Reference(Relationship.COMPOSITION, Target)
         result = describe_field_constraint(constraint, link_fn=link_fn)
 
         assert len(received) == 1
         assert received[0].obj is Target
         assert received[0].name == "Target"
-        assert result == "References [`Target`](link) (belongs to)"
+        assert result == "References [`Target`](link) (composition)"
 
     def test_reference_link_fn_used_in_output(self) -> None:
         """link_fn return value appears verbatim in the description."""
@@ -426,11 +426,11 @@ class TestDescribeFieldConstraint:
         class Target(Identified):
             pass
 
-        constraint = Reference(Relationship.CONNECTS_TO, Target)
+        constraint = Reference(Relationship.ASSOCIATION, Target)
         result = describe_field_constraint(
             constraint, link_fn=lambda tid: f"[`{tid.name}`](path/to/target)"
         )
-        assert result == "References [`Target`](path/to/target) (connects to)"
+        assert result == "References [`Target`](path/to/target) (association)"
 
 
 class TestConstraintDisplayText:
@@ -442,7 +442,7 @@ class TestConstraintDisplayText:
         class Target(Identified):
             pass
 
-        constraint = Reference(Relationship.BELONGS_TO, Target)
+        constraint = Reference(Relationship.COMPOSITION, Target)
         cs = ConstraintSource(source_ref=None, source_name=None, constraint=constraint)
 
         received: list[TypeIdentity] = []
@@ -455,4 +455,4 @@ class TestConstraintDisplayText:
 
         assert len(received) == 1
         assert received[0].obj is Target
-        assert result == "References [`Target`](link) (belongs to)"
+        assert result == "References [`Target`](link) (composition)"

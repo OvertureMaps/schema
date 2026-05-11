@@ -44,8 +44,8 @@ class Identified(BaseModel):
     ...     name: str = Field(description = 'Name of the room')
     ...     house_id: Annotated[
     ...         Id,
-    ...        Reference(Relationship.BELONGS_TO, House)
-    ...     ] = Field(description = "Unique ID of the house the room belongs to.")
+    ...        Reference(Relationship.COMPOSITION, House, role="inside_of")
+    ...     ] = Field(description = "Unique ID of the house the room is inside of.")
 
     When combining `Identified` with another Pydantic model that has an `id` field, such as a
     :class:`~overture.schema.system.feature.Feature`, you must derive from `Identified` first in

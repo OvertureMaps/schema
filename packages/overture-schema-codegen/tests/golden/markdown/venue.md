@@ -15,7 +15,7 @@ A location where musical performances take place.
 | `description` | `string` (optional) | *At least one of `name`, `description` must be set* |
 | `geometry` | `geometry` | *Allowed geometry types: Point, Polygon* |
 | `capacity` | `int64` (optional) | *`≥ 1`* |
-| `resident_ensemble` | `Id` (optional) | A unique identifier<br/><br/>*References `Instrument` (belongs to)* |
+| `resident_ensemble` | `Id` (optional) | A unique identifier<br/><br/>*References `Instrument` (aggregation, part of)* |
 
 ## Constraints
 

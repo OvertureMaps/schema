@@ -132,9 +132,9 @@ class DivisionArea(
     division_id: Annotated[
         Id,
         Field(
-            description="Division ID of the division this area belongs to.",
+            description="Division ID of the parent division of this area.",
         ),
-        Reference(Relationship.BELONGS_TO, Division),
+        Reference(Relationship.HIERARCHY, Division, role="child_of"),
     ]
     country: Annotated[
         CountryCodeAlpha2,

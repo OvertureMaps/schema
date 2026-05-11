@@ -54,7 +54,9 @@ class ConnectorReference(BaseModel):
 
     # Required
 
-    connector_id: Annotated[Id, Reference(Relationship.CONNECTS_TO, _connector_type())]
+    connector_id: Annotated[
+        Id, Reference(Relationship.ASSOCIATION, _connector_type(), role="connects_to")
+    ]
 
 
 @no_extra_fields
