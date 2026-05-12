@@ -19,7 +19,7 @@ from pydantic import (
     Field,
 )
 
-from overture.schema.core.scoping.heading import Heading
+from overture.schema.common.scoping.heading import Heading
 from overture.schema.system import create_model
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (

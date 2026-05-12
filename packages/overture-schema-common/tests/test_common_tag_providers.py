@@ -1,10 +1,10 @@
-"""Tests for core tag providers."""
+"""Tests for common tag providers."""
 
 from typing import Annotated, Literal
 
 import pytest
-from overture.schema.core import OvertureFeature
-from overture.schema.core.tag_providers import (
+from overture.schema.common import OvertureFeature
+from overture.schema.common.tag_providers import (
     theme_provider,
 )
 from overture.schema.system.discovery import ModelKey
@@ -52,8 +52,8 @@ def test_theme_provider_discriminated_union() -> None:
     ]
     provider_key = TagProviderKey(
         name="theme",
-        entry_point="core:theme_provider",
-        package_name="overture-schema-core",
+        entry_point="common:theme_provider",
+        package_name="overture-schema-common",
     )
     providers: TagProviderDict = {provider_key: theme_provider}
     tags = _generate_tags(union, _empty_key(), providers)

@@ -5,10 +5,10 @@ from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field
 
-from overture.schema.core import (
+from overture.schema.common import (
     OvertureFeature,
 )
-from overture.schema.core.models import Perspectives
+from overture.schema.common.models import Perspectives
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (

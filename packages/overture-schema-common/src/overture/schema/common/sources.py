@@ -8,8 +8,8 @@ from typing import Annotated, NewType
 
 from pydantic import BaseModel, Field
 
-from overture.schema.core.scoping import Scope, scoped
-from overture.schema.core.types import ConfidenceScore
+from overture.schema.common.scoping import Scope, scoped
+from overture.schema.common.types import ConfidenceScore
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.string import JsonPointer, StrippedString

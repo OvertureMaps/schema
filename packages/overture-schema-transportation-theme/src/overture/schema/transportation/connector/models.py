@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field
 
-from overture.schema.core import (
+from overture.schema.common import (
     OvertureFeature,
 )
 from overture.schema.system.primitive import (

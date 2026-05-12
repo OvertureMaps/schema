@@ -3,12 +3,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "overture-schema-core"
+name = "overture-schema-common"
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
 dynamic = ["version"]
-description = "Core schemas for Overture Maps"
+description = "Common components that are shared across Overture theme schemas"
 license = "MIT"
 dependencies = [
     "overture-schema-system",
@@ -25,7 +25,7 @@ Issues = "https://github.com/OvertureMaps/schema/issues"
 overture-schema-system = { workspace = true }
 
 [tool.hatch.version]
-path = "src/overture/schema/core/__about__.py"
+path = "src/overture/schema/common/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]
@@ -38,4 +38,4 @@ dev = [
 ]
 
 [project.entry-points."overture.tag_providers"]
-theme = "overture.schema.core.tag_providers:theme_provider"
+theme = "overture.schema.common.tag_providers:theme_provider"

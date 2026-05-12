@@ -7,11 +7,11 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field
 
 from overture.schema.base._common import SourcedFromOpenStreetMap
-from overture.schema.core import (
+from overture.schema.common import (
     OvertureFeature,
 )
-from overture.schema.core.models import Stacked
-from overture.schema.core.names import Named
+from overture.schema.common.models import Stacked
+from overture.schema.common.names import Named
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,

@@ -9,7 +9,7 @@ dependencies = [
     "overture-schema-divisions-theme",
     "overture-schema-places-theme",
     "overture-schema-transportation-theme",
-    "overture-schema-core",
+    "overture-schema-common",
     "pydantic>=2.12.0",
     "pyyaml>=6.0.2",
     "overture-schema-cli",
@@ -31,7 +31,7 @@ overture-schema-addresses-theme = { workspace = true }
 overture-schema-base-theme = { workspace = true }
 overture-schema-buildings-theme = { workspace = true }
 overture-schema-cli = { workspace = true }
-overture-schema-core = { workspace = true }
+overture-schema-common = { workspace = true }
 overture-schema-divisions-theme = { workspace = true }
 overture-schema-places-theme = { workspace = true }
 overture-schema-transportation-theme = { workspace = true }

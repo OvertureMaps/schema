@@ -9,15 +9,15 @@ from typing import Annotated, Literal, NewType
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from overture.schema.core import (
+from overture.schema.common import (
     OvertureFeature,
 )
-from overture.schema.core.cartography import CartographicallyHinted
-from overture.schema.core.models import (
+from overture.schema.common.cartography import CartographicallyHinted
+from overture.schema.common.models import (
     Perspectives,
 )
-from overture.schema.core.names import CommonNames, Named, Names
-from overture.schema.core.scoping.side import Side
+from overture.schema.common.names import CommonNames, Named, Names
+from overture.schema.common.scoping.side import Side
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,

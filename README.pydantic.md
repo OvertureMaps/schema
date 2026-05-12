@@ -88,7 +88,7 @@ This workspace contains the following packages:
 
 - **`overture-schema`** - Main entrypoint package that aggregates all types for
   convenient usage
-- **`overture-schema-core`** - Overture-specific models shared across themes: base
+- **`overture-schema-common`** - Overture-specific models shared across themes: base
   feature class, scoping framework, names, sources, and cartographic hints
 - **`overture-schema-system`** - Portable primitive types, constraints, and a
   GeoJSON-aware base model for building Pydantic schemas that serialize to
@@ -200,7 +200,7 @@ buildings = filter_models(
 ```
 
 Tags are produced by *tag providers* registered on the `overture.tag_providers`
-entry-point group. The `system` and `core` packages ship the built-in providers
+entry-point group. The `system` and `common` packages ship the built-in providers
 (`feature`, `overture`, `overture:theme=*`); third parties can register their own
 to attach custom tags during discovery. See the [`overture-schema-system`
 README](packages/overture-schema-system/README.md#tagging) for tag format,

@@ -43,7 +43,7 @@ Output Layout        What to generate, where it goes, how outputs link
     ^
 Extraction           TypeInfo, FieldSpec, ModelSpec, UnionSpec
     ^
-Discovery            discover_models() from overture-schema-core
+Discovery            discover_models() from overture-schema-common
 ```
 
 **Discovery** loads registered Pydantic models via entry points. The return dict

@@ -153,10 +153,10 @@ class TestCliGenerate:
         )
         assert result.exit_code == 0
 
-        core_dir = tmp_path / "core"
-        assert core_dir.exists(), "core/ directory should exist"
-        subdirs = [d.name for d in core_dir.iterdir() if d.is_dir()]
-        assert len(subdirs) > 0, "core/ should have subdirectories"
+        common_dir = tmp_path / "common"
+        assert common_dir.exists(), "common/ directory should exist"
+        subdirs = [d.name for d in common_dir.iterdir() if d.is_dir()]
+        assert len(subdirs) > 0, "common/ should have subdirectories"
 
     def test_generate_multiple_themes_to_output_dir(
         self, cli_runner: CliRunner, tmp_path: Path
@@ -265,10 +265,10 @@ class TestCliGenerateCategoryFiles:
         data = json.loads(cat_file.read_text())
         assert data["label"] == "Buildings"
 
-    def test_core_directory_has_category_file(
+    def test_common_directory_has_category_file(
         self, cli_runner: CliRunner, tmp_path: Path
     ) -> None:
-        """core/ directory should have _category_.json."""
+        """common/ directory should have _category_.json."""
         result = cli_runner.invoke(
             cli,
             [
@@ -282,10 +282,10 @@ class TestCliGenerateCategoryFiles:
 
         assert result.exit_code == 0
 
-        cat_file = tmp_path / "core" / "_category_.json"
+        cat_file = tmp_path / "common" / "_category_.json"
         assert cat_file.exists()
         data = json.loads(cat_file.read_text())
-        assert data["label"] == "Core"
+        assert data["label"] == "Common"
 
     def test_feature_dirs_positioned_before_non_feature_dirs(
         self, cli_runner: CliRunner, tmp_path: Path
@@ -309,9 +309,9 @@ class TestCliGenerateCategoryFiles:
             return result
 
         # Feature directories (contain feature pages) should sort before
-        # non-feature directories (core, system -- shared types only)
+        # non-feature directories (common, system -- shared types only)
         feature_positions = [pos("buildings"), pos("places"), pos("transportation")]
-        non_feature_positions = [pos("core"), pos("system")]
+        non_feature_positions = [pos("common"), pos("system")]
 
         assert max(feature_positions) < min(non_feature_positions)
 
@@ -332,7 +332,7 @@ class TestCliGenerateCategoryFiles:
         assert result.exit_code == 0
 
         data = json.loads(
-            (tmp_path / "core" / "scoping" / "_category_.json").read_text()
+            (tmp_path / "common" / "scoping" / "_category_.json").read_text()
         )
         assert "position" not in data
 

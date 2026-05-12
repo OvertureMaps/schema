@@ -43,7 +43,7 @@ does.
 
 ## 1. Discovery
 
-The pipeline starts in `overture-schema-core`, not in the codegen package itself.
+The pipeline starts in `overture-schema-common`, not in the codegen package itself.
 `discover_models()` calls `importlib.metadata.entry_points(group="overture.models")` and
 loads every registered model. Each entry point name encodes identity as a
 colon-delimited triple (`overture:buildings:building`); each value encodes the Python

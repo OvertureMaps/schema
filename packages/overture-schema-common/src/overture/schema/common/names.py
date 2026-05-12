@@ -9,7 +9,7 @@ Examples
 Create a feature type that can have a name:
 
 >>> from typing import Literal
->>> from overture.schema.core import OvertureFeature
+>>> from overture.schema.common import OvertureFeature
 >>> from overture.schema.system.primitive import Geometry
 >>> class MyFeature(OvertureFeature[Literal["mytheme"], Literal["mytype"]], Named):
 ...     pass
@@ -59,7 +59,7 @@ Create a name structure with official, alternate, and short names:
 
 Create a name structure for a street where the name changes based on the side of the street.
 
->>> from overture.schema.core.scoping import Side
+>>> from overture.schema.common.scoping import Side
 >>> names = Names(
 ...     primary='Fir St',
 ...     rules=[
@@ -75,8 +75,8 @@ from typing import Annotated, NewType
 
 from pydantic import BaseModel, Field
 
-from overture.schema.core.models import Perspectives
-from overture.schema.core.scoping import Scope, scoped
+from overture.schema.common.models import Perspectives
+from overture.schema.common.scoping import Scope, scoped
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.string import (

@@ -3,7 +3,7 @@ import re
 from typing import Annotated, cast, get_args, get_origin
 
 import pytest
-from overture.schema.core.scoping import (
+from overture.schema.common.scoping import (
     Heading,
     LinearlyReferencedPosition,
     Scope,

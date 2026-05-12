@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
-from overture.schema.core.unit import LengthUnit, WeightUnit
+from overture.schema.common.unit import LengthUnit, WeightUnit
 from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.primitive import float64, uint8
 
@@ -17,7 +17,7 @@ class VehicleDimension(str, Enum):
     Dimension of a vehicle, such as length, weight, or number of axles, that can be constrained in a
     `VehicleParameter`.
 
-    See also: `overture.schema.core.scoping.Scope.VEHICLE`.
+    See also: `overture.schema.common.scoping.Scope.VEHICLE`.
     """
 
     AXLE_COUNT = "axle_count"

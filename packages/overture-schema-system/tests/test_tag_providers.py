@@ -16,9 +16,11 @@ from overture.schema.system.feature import Feature
 
 
 @pytest.fixture
-def core_tag_provider() -> TagProviderKey:
+def common_tag_provider() -> TagProviderKey:
     return TagProviderKey(
-        name="core", entry_point="core:Provider", package_name="overture-schema-core"
+        name="common",
+        entry_point="common:Provider",
+        package_name="overture-schema-common",
     )
 
 
@@ -136,13 +138,13 @@ def test_reserved_namespace(
 
 
 def test_allowed_reserved_namespace(
-    core_tag_provider: TagProviderKey,
+    common_tag_provider: TagProviderKey,
     system_tag_provider: TagProviderKey,
     any_key: ModelKey,
     any_model: type[BaseModel],
 ) -> None:
-    core_providers = {core_tag_provider: fake_provider("overture:feature")}
-    assert _generate_tags(any_model, any_key, core_providers) == {"overture:feature"}
+    common_providers = {common_tag_provider: fake_provider("overture:feature")}
+    assert _generate_tags(any_model, any_key, common_providers) == {"overture:feature"}
 
     system_providers = {system_tag_provider: fake_provider("system:feature")}
     assert _generate_tags(any_model, any_key, system_providers) == {"system:feature"}
