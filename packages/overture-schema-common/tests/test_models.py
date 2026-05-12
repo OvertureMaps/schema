@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 from deepdiff import DeepDiff
-from overture.schema.core.models import OvertureFeature
+from overture.schema.common.models import OvertureFeature
 from overture.schema.system.json_schema import GenerateOmitNullableOptionalJsonSchema
 from overture.schema.system.primitive import (
     BBox,

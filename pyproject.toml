@@ -68,7 +68,7 @@ pythonpath = [
     "packages/overture-schema-buildings-theme/tests",
     "packages/overture-schema-cli/tests",
     "packages/overture-schema-codegen/tests",
-    "packages/overture-schema-core/tests",
+    "packages/overture-schema-common/tests",
     "packages/overture-schema-divisions-theme/tests",
     "packages/overture-schema-places-theme/tests",
     "packages/overture-schema-system/tests",

@@ -1,11 +1,11 @@
-# Overture Schema Core
+# Overture Schema Common
 
 Shared models and conventions for building Overture Maps feature types. Defines the base feature class all themes extend, a scoping framework for expressing conditional values (this speed limit applies *here*, *then*, to *these vehicles*), and common structures for names, sources, and cartographic hints.
 
 ## Installation
 
 ```bash
-pip install overture-schema-core
+pip install overture-schema-common
 ```
 
 ## OvertureFeature
@@ -14,7 +14,7 @@ Every Overture feature type inherits from `OvertureFeature`, which extends `syst
 
 ```python
 from typing import Literal
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 
 class Park(OvertureFeature[Literal["places"], Literal["park"]]):
     area_hectares: float | None = None
@@ -26,7 +26,7 @@ Many Overture values only apply under specific conditions -- a speed limit that 
 
 ```python
 from pydantic import BaseModel
-from overture.schema.core.scoping import Scope, scoped
+from overture.schema.common.scoping import Scope, scoped
 from overture.schema.system.primitive import float32
 
 @scoped(Scope.GEOMETRIC_RANGE, Scope.TEMPORAL)
@@ -62,8 +62,8 @@ Multilingual naming with support for common names, name rules (official, alterna
 
 ```python
 from typing import Literal
-from overture.schema.core import OvertureFeature
-from overture.schema.core.names import Named
+from overture.schema.common import OvertureFeature
+from overture.schema.common.names import Named
 
 class Lake(OvertureFeature[Literal["base"], Literal["water"]], Named):
     pass  # inherits names: Names | None from Named
@@ -76,7 +76,7 @@ Name rules support geometric range and side scoping for cases like a street whos
 Source attribution tracking. Each `SourceItem` identifies which dataset a feature or property came from, with optional license, record ID, update time, and confidence score. Source items support geometric range scoping for per-segment attribution.
 
 ```python
-from overture.schema.core.sources import SourceItem
+from overture.schema.common.sources import SourceItem
 
 sources = [
     SourceItem(property="", dataset="OpenStreetMap"),

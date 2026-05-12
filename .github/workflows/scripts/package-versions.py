@@ -61,7 +61,7 @@ def compare(before_file: str, after_file: str):
         """
         if package == "overture-schema-system":
             return 0
-        elif package in ["overture-schema-core"]:
+        elif package in ["overture-schema-common", "overture-schema-core"]:
             return 1
         elif re.fullmatch(r'overture-schema-.*-theme', package) or package in ["overture-schema", "overture-schema-cli", "overture-schema-codegen", "overture-schema-annex"]:
             return 2

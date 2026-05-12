@@ -19,7 +19,7 @@ members = [
     "overture-schema-buildings-theme",
     "overture-schema-cli",
     "overture-schema-codegen",
-    "overture-schema-core",
+    "overture-schema-common",
     "overture-schema-divisions-theme",
     "overture-schema-places-theme",
     "overture-schema-system",
@@ -656,7 +656,7 @@ dependencies = [
     { name = "overture-schema-base-theme" },
     { name = "overture-schema-buildings-theme" },
     { name = "overture-schema-cli" },
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-divisions-theme" },
     { name = "overture-schema-places-theme" },
     { name = "overture-schema-transportation-theme" },
@@ -677,7 +677,7 @@ requires-dist = [
     { name = "overture-schema-base-theme", editable = "packages/overture-schema-base-theme" },
     { name = "overture-schema-buildings-theme", editable = "packages/overture-schema-buildings-theme" },
     { name = "overture-schema-cli", editable = "packages/overture-schema-cli" },
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-divisions-theme", editable = "packages/overture-schema-divisions-theme" },
     { name = "overture-schema-places-theme", editable = "packages/overture-schema-places-theme" },
     { name = "overture-schema-transportation-theme", editable = "packages/overture-schema-transportation-theme" },
@@ -696,14 +696,14 @@ dev = [
 name = "overture-schema-addresses-theme"
 source = { editable = "packages/overture-schema-addresses-theme" }
 dependencies = [
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.12.0" },
 ]
@@ -712,14 +712,14 @@ requires-dist = [
 name = "overture-schema-annex"
 source = { editable = "packages/overture-schema-annex" }
 dependencies = [
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.12.0" },
 ]
@@ -728,14 +728,14 @@ requires-dist = [
 name = "overture-schema-base-theme"
 source = { editable = "packages/overture-schema-base-theme" }
 dependencies = [
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.12.0" },
 ]
@@ -744,14 +744,14 @@ requires-dist = [
 name = "overture-schema-buildings-theme"
 source = { editable = "packages/overture-schema-buildings-theme" }
 dependencies = [
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.12.0" },
 ]
@@ -761,7 +761,7 @@ name = "overture-schema-cli"
 source = { editable = "packages/overture-schema-cli" }
 dependencies = [
     { name = "click" },
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -779,7 +779,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.1" },
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.12.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
@@ -801,7 +801,7 @@ dependencies = [
     { name = "click" },
     { name = "jinja2" },
     { name = "overture-schema-cli" },
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
@@ -811,14 +811,14 @@ requires-dist = [
     { name = "click", specifier = ">=8.1" },
     { name = "jinja2", specifier = ">=3.0" },
     { name = "overture-schema-cli", editable = "packages/overture-schema-cli" },
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0" },
 ]
 
 [[package]]
-name = "overture-schema-core"
-source = { editable = "packages/overture-schema-core" }
+name = "overture-schema-common"
+source = { editable = "packages/overture-schema-common" }
 dependencies = [
     { name = "overture-schema-system" },
     { name = "pydantic" },
@@ -850,14 +850,14 @@ dev = [
 name = "overture-schema-divisions-theme"
 source = { editable = "packages/overture-schema-divisions-theme" }
 dependencies = [
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.12.0" },
 ]
@@ -866,14 +866,14 @@ requires-dist = [
 name = "overture-schema-places-theme"
 source = { editable = "packages/overture-schema-places-theme" }
 dependencies = [
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "pydantic", extra = ["email"] },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.12.0" },
 ]
@@ -910,14 +910,14 @@ dev = [
 name = "overture-schema-transportation-theme"
 source = { editable = "packages/overture-schema-transportation-theme" }
 dependencies = [
-    { name = "overture-schema-core" },
+    { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.12.0" },
 ]

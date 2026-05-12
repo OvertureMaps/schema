@@ -5,7 +5,7 @@ This guide helps you work with Overture Maps Pydantic schemas - Python models th
 ## Table of Contents
 
 - [Quick Start](#quick-start)
-- [Core Concepts](#core-concepts)
+- [Basic Concepts](#basic-concepts)
   - [Models and Inheritance](#models-and-inheritance)
   - [Field Types](#field-types)
   - [Field Enhancement](#field-enhancement)
@@ -40,8 +40,8 @@ from enum import Enum
 # Pydantic essentials
 from pydantic import BaseModel, Field
 
-# Overture core models
-from overture.schema.core import OvertureFeature
+# Overture common models
+from overture.schema.common import OvertureFeature
 from overture.schema.system.primitive import Geometry, GeometryType, GeometryTypeConstraint
 
 # Validation system
@@ -54,7 +54,7 @@ from overture.schema.system.string import (
     NoWhitespaceString,
     StrippedString,
 )
-from overture.schema.core.types import ConfidenceScore
+from overture.schema.common.types import ConfidenceScore
 from overture.schema.system.string import LanguageTag
 
 # Numeric primitives (use these instead of int/float)
@@ -100,7 +100,7 @@ class MyCustomType(BaseModel):
 ```python
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 from overture.schema.system.primitive import Geometry, GeometryType, GeometryTypeConstraint
 
 class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
@@ -119,7 +119,7 @@ class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
 
 ---
 
-## Core Concepts
+## Basic Concepts
 
 ### Models and Inheritance
 
@@ -151,7 +151,7 @@ class Address(BaseModel):
 
 ```python
 from typing import Literal
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 from overture.schema.system.primitive import float64
 
 class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
@@ -177,9 +177,9 @@ By specifying `OvertureFeature[Literal["buildings"], Literal["building"]]`, you'
 
 ```python
 from typing import Literal
-from overture.schema.core import OvertureFeature
-from overture.schema.core.models import Stacked
-from overture.schema.core.names import Named
+from overture.schema.common import OvertureFeature
+from overture.schema.common.models import Stacked
+from overture.schema.common.names import Named
 from overture.schema.system.primitive import float64
 
 class Building(OvertureFeature[Literal["buildings"], Literal["building"]], Named, Stacked):
@@ -647,7 +647,7 @@ The fundamental pattern is a direct reference where one feature "points to" anot
 ```python
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 from overture.schema.system.ref import Id, Reference, Relationship
 
 # COMPOSITION — part points to its whole
@@ -772,7 +772,7 @@ division_id: Id
 ```python
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 
 # Base class with common fields
 class TransportationSegment(OvertureFeature[Literal["transportation"], Literal["segment"]]):
@@ -999,7 +999,7 @@ class Contact(BaseModel):
 
 Organize code by scope and avoid circular imports:
 
-**Cross-theme shared**: `overture-schema-core` package
+**Cross-theme shared**: `overture-schema-common` package
 
 - Used by multiple themes (e.g., `OvertureFeature`, `Names`, `Sources`, `Scope`)
 
@@ -1028,7 +1028,7 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
 
 # Cross-theme imports
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
 
@@ -1088,7 +1088,7 @@ properties:
 **Pydantic approach:**
 
 ```python
-# In overture-schema-core/src/overture/schema/core/models.py
+# In overture-schema-common/src/overture/schema/common/models.py
 @no_extra_fields
 class Address(BaseModel):
     """A postal address."""
@@ -1131,7 +1131,7 @@ allOf:
 **Pydantic equivalent** uses **mixin classes**:
 
 ```python
-# In core/models.py
+# In common/models.py
 class Named(BaseModel):
     """Properties defining the names of a feature."""
     names: Names | None = None
@@ -1203,7 +1203,7 @@ class MyCustomType(BaseModel):
 ```python models.py
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 from overture.schema.system.primitive import Geometry, GeometryType, GeometryTypeConstraint
 
 class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
@@ -1262,7 +1262,7 @@ class Contact(BaseModel):
 ```python models.py
 from typing import Annotated, Literal
 from pydantic import Field
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 from overture.schema.system.primitive import float64
 from overture.schema.system.ref import Id, Reference, Relationship
 
@@ -1346,7 +1346,7 @@ class Status(str, Enum):
 from typing import Annotated, Literal
 from enum import Enum
 from pydantic import Field
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.primitive import int32, float64

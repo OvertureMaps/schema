@@ -57,7 +57,7 @@ Output Layout        What to generate, where it goes, how outputs link
     ^
 Extraction           TypeInfo, FieldSpec, ModelSpec, EnumSpec, ...
     ^
-Discovery            discover_models() from overture-schema-core
+Discovery            discover_models() from overture-schema-common
 ```
 
 `markdown/pipeline.py` orchestrates the pipeline without I/O: it expands feature trees,

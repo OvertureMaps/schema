@@ -28,7 +28,7 @@ class TestComputeSchemaRoot:
     def test_mixed_depth_paths(self) -> None:
         paths = [
             "overture.schema.buildings",
-            "overture.schema.core.names.primary_name",
+            "overture.schema.common.names.primary_name",
         ]
         assert compute_schema_root(paths) == "overture.schema"
 
@@ -86,8 +86,10 @@ class TestModuleRelpath:
 
     def test_deep_path(self) -> None:
         assert (
-            module_relpath("overture.schema.core.names.primary_name", "overture.schema")
-            == "core.names.primary_name"
+            module_relpath(
+                "overture.schema.common.names.primary_name", "overture.schema"
+            )
+            == "common.names.primary_name"
         )
 
     def test_module_equals_root(self) -> None:
@@ -137,18 +139,18 @@ class TestComputeOutputDir:
         assert result == PurePosixPath("buildings")
 
     def test_file_module_drops_last(self) -> None:
-        reg = _make_registry(("overture.schema.core.names.primary_name", False))
+        reg = _make_registry(("overture.schema.common.names.primary_name", False))
         result = compute_output_dir(
-            "overture.schema.core.names.primary_name", "overture.schema", reg
+            "overture.schema.common.names.primary_name", "overture.schema", reg
         )
-        assert result == PurePosixPath("core/names")
+        assert result == PurePosixPath("common/names")
 
     def test_deep_package(self) -> None:
-        reg = _make_registry(("overture.schema.core.names", True))
+        reg = _make_registry(("overture.schema.common.names", True))
         result = compute_output_dir(
-            "overture.schema.core.names", "overture.schema", reg
+            "overture.schema.common.names", "overture.schema", reg
         )
-        assert result == PurePosixPath("core/names")
+        assert result == PurePosixPath("common/names")
 
     def test_file_module_in_theme(self) -> None:
         reg = _make_registry(("overture.schema.buildings.enums", False))

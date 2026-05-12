@@ -4,10 +4,10 @@ from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field, Tag
 
-from overture.schema.core import (
+from overture.schema.common import (
     OvertureFeature,
 )
-from overture.schema.core.names import (
+from overture.schema.common.names import (
     Named,
 )
 from overture.schema.system.feature import Feature

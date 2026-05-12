@@ -65,16 +65,16 @@ class TestRelativeLink:
 
     def test_sibling_directory(self) -> None:
         source = PurePosixPath("buildings/building.md")
-        target = PurePosixPath("core/names/names.md")
-        assert relative_link(source, target) == "../core/names/names.md"
+        target = PurePosixPath("common/names/names.md")
+        assert relative_link(source, target) == "../common/names/names.md"
 
-    def test_within_core(self) -> None:
-        source = PurePosixPath("core/names/names.md")
-        target = PurePosixPath("core/sources/sources.md")
+    def test_within_common(self) -> None:
+        source = PurePosixPath("common/names/names.md")
+        target = PurePosixPath("common/sources/sources.md")
         assert relative_link(source, target) == "../sources/sources.md"
 
     def test_to_aggregate_page(self) -> None:
-        source = PurePosixPath("core/names/names.md")
+        source = PurePosixPath("common/names/names.md")
         target = PurePosixPath("system/primitive/primitives.md")
         assert relative_link(source, target) == "../../system/primitive/primitives.md"
 
@@ -95,13 +95,13 @@ class TestBuildPlacementRegistry:
         )
 
     def test_shared_types_mirror_source_modules(self) -> None:
-        """Core/system types land in directories matching their module path."""
+        """Shared types land in directories matching their module path."""
         specs = flat_specs_from_discovery("buildings")
         registry, _ = _build_registry(specs)
 
         names = {tid.name for tid in registry}
         if "Names" in names:
-            assert str(lookup_by_name(registry, "Names")).startswith("core/")
+            assert str(lookup_by_name(registry, "Names")).startswith("common/")
 
     def test_no_duplicate_paths(self) -> None:
         """No two individual types share an output path."""
@@ -133,15 +133,15 @@ class TestBuildPlacementRegistry:
         )
 
     def test_shared_types_not_nested(self) -> None:
-        """Core/system supplementary types stay at their module-mirrored path."""
+        """Common/system supplementary types stay at their module-mirrored path."""
         specs = flat_specs_from_discovery("buildings")
         registry, _ = _build_registry(specs)
 
-        # Names is from overture.schema.core -- no features there, no nesting
+        # Names is from overture.schema.common -- no features there, no nesting
         names = {tid.name for tid in registry}
         if "Names" in names:
             path = str(lookup_by_name(registry, "Names"))
-            assert path.startswith("core/")
+            assert path.startswith("common/")
             assert "/types/" not in path
 
 

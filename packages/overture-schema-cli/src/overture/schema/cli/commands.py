@@ -17,7 +17,7 @@ from rich.console import Console
 from rich.text import Text
 from yamlcore import CoreLoader  # type: ignore
 
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 from overture.schema.system.discovery import (
     ModelDict,
     ModelKey,

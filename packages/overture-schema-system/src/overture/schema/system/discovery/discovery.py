@@ -27,7 +27,7 @@ _RESERVED_TAGS: dict[str, set[str]] = {
 }
 # Namespaces that are reserved and can only be set by specific packages.
 _RESERVED_NAMESPACES: dict[str, set[str]] = {
-    "overture": {"overture-schema-core"},
+    "overture": {"overture-schema-common"},
     "system": {"overture-schema-system"},
 }
 

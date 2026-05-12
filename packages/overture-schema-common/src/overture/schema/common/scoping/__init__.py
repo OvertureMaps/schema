@@ -17,7 +17,7 @@ obervations, and each observation would contain a linearly-referenced depth valu
 
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel
->>> from overture.schema.core.models import OvertureFeature
+>>> from overture.schema.common.models import OvertureFeature
 >>> from overture.schema.system.primitive import (
 ...     float32,
 ...     Geometry,
@@ -56,7 +56,7 @@ Overture structure and conventions.
 
 Types of scoping
 ================
-The authoritative list of available scopes is enumerated in `overture.schema.core.scoping.Scope`.
+The authoritative list of available scopes is enumerated in `overture.schema.common.scoping.Scope`.
 
 The following scopes are available:
 
@@ -71,7 +71,7 @@ along the path, `1.0` represents the end of the path, and so on.
 
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel
->>> from overture.schema.core.models import OvertureFeature
+>>> from overture.schema.common.models import OvertureFeature
 >>> from overture.schema.system.primitive import (
 ...     Geometry,
 ...     GeometryType,
@@ -119,7 +119,7 @@ model.
 
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel, Field
->>> from overture.schema.core.models import OvertureFeature
+>>> from overture.schema.common.models import OvertureFeature
 >>> from overture.schema.system.primitive import (
 ...     Geometry,
 ...     GeometryType,
@@ -212,7 +212,7 @@ is decorated with side scoping, a `side` field  is automatically added to the mo
 
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel
->>> from overture.schema.core.models import OvertureFeature
+>>> from overture.schema.common.models import OvertureFeature
 >>> from overture.schema.system.primitive import (
 ...     Geometry,
 ...     GeometryType,
@@ -254,7 +254,7 @@ bridges or entering garages, applying differential speed limits to different cla
 *etc.* When a model is decorated with vehicle scoping, a `when.vehicle` field is automatically
 added to the model.
 
->>> from overture.schema.core.unit import LengthUnit
+>>> from overture.schema.common.unit import LengthUnit
 >>> from overture.schema.system.primitive import float32
 ...
 >>> @scoped(Scope.VEHICLE)

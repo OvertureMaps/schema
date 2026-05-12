@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from overture.schema.core import (
+from overture.schema.common import (
     OvertureFeature,
 )
 from overture.schema.system.model_constraint import no_extra_fields

@@ -195,14 +195,14 @@ Specific plain tags and namespaces are reserved for designated packages. For exa
 |---|---|
 | `feature` (tag) | `overture-schema-system` |
 | `system:` (namespace) | `overture-schema-system` |
-| `overture:` (namespace) | `overture-schema-core` |
+| `overture:` (namespace) | `overture-schema-common` |
 
 When a provider attempts to set a reserved tag from an unauthorized package, discovery logs a warning and discards the tag.
 
 ### Built-in Providers
 
 - **`feature`** (in `system`) -- adds `feature` if any concrete arm is a `Feature` subclass.
-- **`theme`** (in `core`) -- adds `overture:theme={theme}` for each `OvertureFeature` referenced. A discriminated-union feature whose arms span multiple themes contributes one tag per distinct theme.
+- **`theme`** (in `common`) -- adds `overture:theme={theme}` for each `OvertureFeature` referenced. A discriminated-union feature whose arms span multiple themes contributes one tag per distinct theme.
 
 ### Selecting Models by Tag
 

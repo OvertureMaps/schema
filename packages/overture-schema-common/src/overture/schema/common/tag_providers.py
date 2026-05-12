@@ -1,4 +1,4 @@
-"""Tag providers for the core Overture schema package.
+"""Tag providers for the common Overture schema package.
 
 Each provider inspects a discovered model and returns the set of tags
 that should be attached. Registered via the
@@ -10,7 +10,7 @@ from typing import Literal, get_args, get_origin
 
 from pydantic import BaseModel
 
-from overture.schema.core import OvertureFeature
+from overture.schema.common import OvertureFeature
 from overture.schema.system.discovery import ModelKey
 
 

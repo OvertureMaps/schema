@@ -8,9 +8,9 @@ from pydantic import Field
 
 from overture.schema.buildings._common import Appearance
 from overture.schema.buildings.building import Building
-from overture.schema.core import OvertureFeature
-from overture.schema.core.models import Stacked
-from overture.schema.core.names import Named
+from overture.schema.common import OvertureFeature
+from overture.schema.common.models import Stacked
+from overture.schema.common.names import Named
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,

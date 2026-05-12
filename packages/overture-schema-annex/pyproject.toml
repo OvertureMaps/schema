@@ -2,7 +2,7 @@
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
-dependencies = ["overture-schema-core", "overture-schema-system", "pydantic>=2.12.0"]
+dependencies = ["overture-schema-common", "overture-schema-system", "pydantic>=2.12.0"]
 description = "Add your description here"
 dynamic = ["version"]
 license = "MIT"
@@ -11,7 +11,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 
 [tool.uv.sources]
-overture-schema-core = { workspace = true }
+overture-schema-common = { workspace = true }
 overture-schema-system = { workspace = true }
 
 [project.urls]
