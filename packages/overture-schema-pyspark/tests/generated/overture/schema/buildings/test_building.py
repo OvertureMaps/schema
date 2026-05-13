@@ -194,6 +194,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="building::sources_unique:struct_unique",
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
+        mutate=lambda row: mutate_unique_items(row, "sources"),
+        expected_field="sources_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="building::sources[].property:required",
         scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
         mutate=set_at_path("sources[].property", None),
@@ -445,6 +452,26 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="building::names.rules[].perspectives.countries_unique:struct_unique",
+        scaffold={
+            "names": {
+                "primary": "a",
+                "rules": [
+                    {
+                        "value": "a",
+                        "variant": "common",
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
+                    }
+                ],
+            }
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "names.rules[].perspectives.countries"
+        ),
+        expected_field="names.rules[].perspectives.countries_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="building::names.rules[].perspectives.countries[]:country_code_alpha2",
         scaffold={
             "names": {
@@ -593,33 +620,6 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("roof_color", "not-hex"),
         expected_field="roof_color",
         expected_check="hex_color",
-    ),
-    Scenario(
-        id="building::sources_unique:struct_unique",
-        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
-        mutate=lambda row: mutate_unique_items(row, "sources"),
-        expected_field="sources_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="building::names.rules[].perspectives.countries_unique:struct_unique",
-        scaffold={
-            "names": {
-                "primary": "a",
-                "rules": [
-                    {
-                        "value": "a",
-                        "variant": "common",
-                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
-                    }
-                ],
-            }
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "names.rules[].perspectives.countries"
-        ),
-        expected_field="names.rules[].perspectives.countries_unique",
-        expected_check="struct_unique",
     ),
 ]
 

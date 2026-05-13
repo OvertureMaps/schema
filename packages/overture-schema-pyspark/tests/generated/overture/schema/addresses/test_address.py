@@ -170,6 +170,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="address::sources_unique:struct_unique",
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
+        mutate=lambda row: mutate_unique_items(row, "sources"),
+        expected_field="sources_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="address::sources[].property:required",
         scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
         mutate=set_at_path("sources[].property", None),
@@ -367,13 +374,6 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("unit", " has spaces "),
         expected_field="unit",
         expected_check="stripped",
-    ),
-    Scenario(
-        id="address::sources_unique:struct_unique",
-        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
-        mutate=lambda row: mutate_unique_items(row, "sources"),
-        expected_field="sources_unique",
-        expected_check="struct_unique",
     ),
 ]
 

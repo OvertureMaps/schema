@@ -181,6 +181,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="division_boundary::sources_unique:struct_unique",
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
+        mutate=lambda row: mutate_unique_items(row, "sources"),
+        expected_field="sources_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="division_boundary::sources[].property:required",
         scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
         mutate=set_at_path("sources[].property", None),
@@ -317,6 +324,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_max_length",
     ),
     Scenario(
+        id="division_boundary::division_ids_unique:struct_unique",
+        scaffold={},
+        mutate=lambda row: mutate_unique_items(row, "division_ids"),
+        expected_field="division_ids_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="division_boundary::division_ids[]:string_min_length",
         scaffold={},
         mutate=set_at_path("division_ids[]", ""),
@@ -385,6 +399,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("perspectives.countries", []),
         expected_field="perspectives.countries_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="division_boundary::perspectives.countries_unique:struct_unique",
+        scaffold={"perspectives": {"mode": "accepted_by", "countries": ["US"]}},
+        mutate=lambda row: mutate_unique_items(row, "perspectives.countries"),
+        expected_field="perspectives.countries_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="division_boundary::perspectives.countries[]:country_code_alpha2",
@@ -465,27 +486,6 @@ SCENARIOS: list[Scenario] = [
         mutate=lambda row: mutate_forbid_if(row, ["country"], "subtype", "country"),
         expected_field="country_forbidden",
         expected_check="forbid_if",
-    ),
-    Scenario(
-        id="division_boundary::sources_unique:struct_unique",
-        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
-        mutate=lambda row: mutate_unique_items(row, "sources"),
-        expected_field="sources_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="division_boundary::division_ids_unique:struct_unique",
-        scaffold={},
-        mutate=lambda row: mutate_unique_items(row, "division_ids"),
-        expected_field="division_ids_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="division_boundary::perspectives.countries_unique:struct_unique",
-        scaffold={"perspectives": {"mode": "accepted_by", "countries": ["US"]}},
-        mutate=lambda row: mutate_unique_items(row, "perspectives.countries"),
-        expected_field="perspectives.countries_unique",
-        expected_check="struct_unique",
     ),
 ]
 

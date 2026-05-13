@@ -162,6 +162,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="connector::sources_unique:struct_unique",
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
+        mutate=lambda row: mutate_unique_items(row, "sources"),
+        expected_field="sources_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="connector::sources[].property:required",
         scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
         mutate=set_at_path("sources[].property", None),
@@ -247,13 +254,6 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("sources[].between", [0.8, 0.2]),
         expected_field="sources[].between",
         expected_check="linear_range_order",
-    ),
-    Scenario(
-        id="connector::sources_unique:struct_unique",
-        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
-        mutate=lambda row: mutate_unique_items(row, "sources"),
-        expected_field="sources_unique",
-        expected_check="struct_unique",
     ),
 ]
 
