@@ -9,7 +9,7 @@ from typing import Annotated, Any, Literal, cast, get_args, get_origin
 from pydantic import BaseModel, Field, Tag, TypeAdapter
 
 from overture.schema.core import OvertureFeature
-from overture.schema.core.discovery import discover_models
+from overture.schema.system.discovery import discover_models
 from overture.schema.system.feature import Feature
 
 

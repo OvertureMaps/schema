@@ -48,15 +48,54 @@ class TestCliGenerate:
         assert result.exit_code == 0
         assert "# Building" in result.output or "# " in result.output
 
-    def test_generate_with_theme_filter(self, cli_runner: CliRunner) -> None:
-        """generate --theme should filter to specific theme."""
+    def test_generate_with_tag_filter(self, cli_runner: CliRunner) -> None:
+        """generate --tag should filter to specific theme."""
         result = cli_runner.invoke(
-            cli, ["generate", "--format", "markdown", "--theme", "buildings"]
+            cli,
+            ["generate", "--format", "markdown", "--tag", "overture:theme=buildings"],
         )
 
         assert result.exit_code == 0
         assert "Building" in result.output
         assert "Place" not in result.output
+
+    def test_generate_accepts_filter_flag(self, cli_runner: CliRunner) -> None:
+        """generate accepts --filter without error.
+
+        Selector algebra is covered in test_discovery_filter_models.
+        """
+        result = cli_runner.invoke(
+            cli,
+            [
+                "generate",
+                "--format",
+                "markdown",
+                "--tag",
+                "feature",
+                "--filter",
+                "feature",
+            ],
+        )
+        assert result.exit_code == 0
+
+    def test_generate_accepts_exclude_flag(self, cli_runner: CliRunner) -> None:
+        """generate accepts --exclude without error.
+
+        Selector algebra is covered in test_discovery_filter_models.
+        """
+        result = cli_runner.invoke(
+            cli,
+            [
+                "generate",
+                "--format",
+                "markdown",
+                "--tag",
+                "feature",
+                "--exclude",
+                "overture:theme=places",
+            ],
+        )
+        assert result.exit_code == 0
 
     def test_generate_markdown_feature_at_theme_level(
         self, cli_runner: CliRunner, tmp_path: Path
@@ -68,8 +107,8 @@ class TestCliGenerate:
                 "generate",
                 "--format",
                 "markdown",
-                "--theme",
-                "buildings",
+                "--tag",
+                "overture:theme=buildings",
                 "--output-dir",
                 str(tmp_path),
             ],
@@ -93,8 +132,8 @@ class TestCliGenerate:
                 "generate",
                 "--format",
                 "markdown",
-                "--theme",
-                "buildings",
+                "--tag",
+                "overture:theme=buildings",
                 "--output-dir",
                 str(tmp_path),
             ],
@@ -211,8 +250,8 @@ class TestCliGenerateCategoryFiles:
                 "generate",
                 "--format",
                 "markdown",
-                "--theme",
-                "buildings",
+                "--tag",
+                "overture:theme=buildings",
                 "--output-dir",
                 str(tmp_path),
             ],
@@ -311,8 +350,8 @@ class TestCliGenerateEnums:
                 "generate",
                 "--format",
                 "markdown",
-                "--theme",
-                "buildings",
+                "--tag",
+                "overture:theme=buildings",
                 "--output-dir",
                 str(tmp_path),
             ],
@@ -344,7 +383,8 @@ class TestCliEntryPoint:
 
         monkeypatch.setattr("overture.schema.codegen.cli._generate_markdown", spy)
         result = cli_runner.invoke(
-            cli, ["generate", "--format", "markdown", "--theme", "buildings"]
+            cli,
+            ["generate", "--format", "markdown", "--tag", "overture:theme=buildings"],
         )
 
         assert result.exit_code == 0
@@ -381,8 +421,8 @@ class TestGenerateWithSegment:
                 "generate",
                 "--format",
                 "markdown",
-                "--theme",
-                "transportation",
+                "--tag",
+                "overture:theme=transportation",
                 "--output-dir",
                 str(tmp_path),
             ],
@@ -411,8 +451,8 @@ class TestReverseReferences:
                 "generate",
                 "--format",
                 "markdown",
-                "--theme",
-                "buildings",
+                "--tag",
+                "overture:theme=buildings",
                 "--output-dir",
                 str(tmp_path),
             ],

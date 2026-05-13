@@ -30,7 +30,7 @@ path = "src/overture/schema/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"annex:sources" = "overture.schema.annex:Sources"
+sources = "overture.schema.annex:Sources"
 
 [project.entry-points.pytest11]
 overture_baselines = "overture.schema.system.testing.plugin"

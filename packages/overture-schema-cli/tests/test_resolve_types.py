@@ -1,168 +1,81 @@
-"""Parametrized tests for resolve_types function."""
+"""Tests for resolve_types — CLI glue between filter_models and union creation.
+
+The combinator algebra of filter_models itself is covered in
+`test_discovery_filter_models.py` in the system package.
+"""
+
+from collections.abc import Iterator
+from typing import get_args
+from unittest.mock import patch
 
 import pytest
 from overture.schema.cli.commands import resolve_types
-from overture.schema.core.discovery import discover_models
+from overture.schema.system.discovery import ModelKey, TagSelector
+
+DISCOVER_MODELS = "overture.schema.cli.commands.discover_models"
 
 
-class TestResolveTypes:
-    """Tests for the resolve_types function with various filter combinations."""
-
-    @pytest.mark.parametrize(
-        "overture_types,namespace,theme_names,type_names,should_succeed",
-        [
-            # Test --overture-types flag
-            pytest.param(True, None, (), (), True, id="overture_types_only"),
-            pytest.param(False, "overture", (), (), True, id="overture_namespace"),
-            # Test theme filtering
-            pytest.param(False, None, ("buildings",), (), True, id="theme_buildings"),
-            pytest.param(
-                False, None, ("transportation",), (), True, id="theme_transportation"
-            ),
-            pytest.param(
-                False, None, ("buildings", "places"), (), True, id="multiple_themes"
-            ),
-            pytest.param(False, None, ("nonexistent",), (), False, id="invalid_theme"),
-            # Test type filtering
-            pytest.param(False, None, (), ("building",), True, id="type_building"),
-            pytest.param(False, None, (), ("segment",), True, id="type_segment"),
-            pytest.param(
-                False, None, (), ("building", "place"), True, id="multiple_types"
-            ),
-            pytest.param(False, None, (), ("nonexistent",), False, id="invalid_type"),
-            # Test combined theme + type filtering
-            pytest.param(
-                False,
-                None,
-                ("buildings",),
-                ("building",),
-                True,
-                id="theme_and_type_match",
-            ),
-            pytest.param(
-                False,
-                None,
-                ("buildings",),
-                ("segment",),
-                False,
-                id="theme_and_type_mismatch",
-            ),
-            pytest.param(
-                False,
-                None,
-                ("transportation",),
-                ("segment", "connector"),
-                True,
-                id="theme_with_multiple_types",
-            ),
-            # Test namespace combined with theme/type
-            pytest.param(
-                False,
-                "overture",
-                ("buildings",),
-                (),
-                True,
-                id="namespace_with_theme",
-            ),
-            pytest.param(
-                False,
-                "overture",
-                (),
-                ("building",),
-                True,
-                id="namespace_with_type",
-            ),
-            pytest.param(
-                False,
-                "overture",
-                ("buildings",),
-                ("building",),
-                True,
-                id="namespace_with_theme_and_type",
-            ),
-            # Test no filters (all models)
-            pytest.param(False, None, (), (), True, id="no_filters_all_models"),
-        ],
-    )
-    def test_resolve_types_combinations(
-        self,
-        overture_types: bool,
-        namespace: str | None,
-        theme_names: tuple[str, ...],
-        type_names: tuple[str, ...],
-        should_succeed: bool,
-    ) -> None:
-        """Test resolve_types with various filter combinations."""
-        if should_succeed:
-            model_type = resolve_types(
-                overture_types, namespace, theme_names, type_names
-            )
-            assert model_type is not None
-        else:
-            with pytest.raises(ValueError, match="No models found"):
-                resolve_types(overture_types, namespace, theme_names, type_names)
-
-    @pytest.mark.parametrize(
-        "namespace,expected_themes",
-        [
-            pytest.param(
-                "overture",
-                {
-                    "buildings",
-                    "places",
-                    "transportation",
-                    "base",
-                    "divisions",
-                    "addresses",
-                },
-                id="overture_namespace",
-            ),
-        ],
-    )
-    def test_resolve_types_returns_expected_themes(
-        self,
-        namespace: str,
-        expected_themes: set[str],
-    ) -> None:
-        """Test that resolve_types returns models from expected themes."""
-        models = discover_models(namespace=namespace)
-        actual_themes = {key.theme for key in models.keys()}
-
-        # Check that we have at least the expected themes (may have more)
-        assert expected_themes.issubset(actual_themes), (
-            f"Missing expected themes. Expected {expected_themes}, got {actual_themes}"
-        )
+# Mock model classes
+class Place:
+    pass
 
 
-class TestResolveTypesEdgeCases:
-    """Tests for edge cases in resolve_types."""
+class Segment:
+    pass
 
-    def test_resolve_types_case_sensitive(self) -> None:
-        """Test that theme and type names are case-sensitive."""
-        # Lowercase should work
-        model_type = resolve_types(False, None, ("buildings",), ())
-        assert model_type is not None
 
-        # Uppercase should fail (themes are lowercase in registry)
-        with pytest.raises(ValueError, match="No models found"):
-            resolve_types(False, None, ("BUILDINGS",), ())
+class Building:
+    pass
 
-    def test_resolve_types_empty_result_error_message(self) -> None:
-        """Test that a helpful error message is shown when no models match."""
-        with pytest.raises(ValueError) as exc_info:
-            resolve_types(False, None, ("nonexistent",), ("also_fake",))
 
-        assert "No models found" in str(exc_info.value)
+BUILDING_KEY = ModelKey(
+    name="building",
+    entry_point="mock:Building",
+    tags=frozenset({"feature", "overture", "overture:theme=buildings"}),
+)
+SEGMENT_KEY = ModelKey(
+    name="segment",
+    entry_point="mock:Segment",
+    tags=frozenset({"feature", "overture", "overture:theme=transportation"}),
+)
+PLACE_KEY = ModelKey(
+    name="place",
+    entry_point="mock:Place",
+    tags=frozenset({"feature", "overture", "overture:theme=places"}),
+)
 
-    def test_resolve_types_namespace_isolation(self) -> None:
-        """Test that namespace filtering properly isolates models."""
-        # Get all models (no namespace filter)
-        all_models_type = resolve_types(False, None, (), ())
-        assert all_models_type is not None
+MOCK_MODELS = {
+    BUILDING_KEY: Building,
+    SEGMENT_KEY: Segment,
+    PLACE_KEY: Place,
+}
 
-        # Get only overture namespace
-        overture_type = resolve_types(False, "overture", (), ())
-        assert overture_type is not None
 
-        # Both should work, but they represent different sets of models
-        # (This test primarily ensures no exceptions are raised)
+@pytest.fixture(autouse=True)
+def _patched_discover_models() -> Iterator[None]:
+    with patch(DISCOVER_MODELS, return_value=MOCK_MODELS):
+        yield
+
+
+def test_no_filters_returns_union_of_all() -> None:
+    union = resolve_types(TagSelector())
+    assert set(get_args(union)) == {Building, Segment, Place}
+
+
+def test_returns_type_when_filter_matches() -> None:
+    # Single match collapses to the bare class; multi-match yields a Union.
+    union = resolve_types(TagSelector(include_any=("overture:theme=transportation",)))
+    assert union is Segment
+
+
+def test_empty_match_raises_value_error() -> None:
+    with pytest.raises(ValueError, match="No models found"):
+        resolve_types(TagSelector(include_any=("nonexistent",)))
+
+
+def test_type_names_are_case_sensitive() -> None:
+    # Lowercase matches.
+    assert resolve_types(TagSelector(), type_names=("building",)) is Building
+    # Uppercase doesn't.
+    with pytest.raises(ValueError, match="No models found"):
+        resolve_types(TagSelector(), type_names=("BUILDING",))

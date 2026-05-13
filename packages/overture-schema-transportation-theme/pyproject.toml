@@ -35,8 +35,8 @@ path = "src/overture/schema/transportation/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"overture:transportation:connector" = "overture.schema.transportation:Connector"
-"overture:transportation:segment" = "overture.schema.transportation:Segment"
+connector = "overture.schema.transportation:Connector"
+segment = "overture.schema.transportation:Segment"
 
 [project.entry-points.pytest11]
 overture_baselines = "overture.schema.system.testing.plugin"

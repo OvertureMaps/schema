@@ -6,7 +6,11 @@ from pathlib import Path, PurePosixPath
 
 import click
 
-from overture.schema.core.discovery import discover_models
+from overture.schema.cli.tag_options import build_selector, tag_selection_options
+from overture.schema.system.discovery import (
+    discover_models,
+    filter_models,
+)
 
 from .extraction.model_extraction import extract_model
 from .extraction.specs import (
@@ -75,11 +79,7 @@ def list_models() -> None:
     type=click.Choice(_OUTPUT_FORMATS),
     help="Output format",
 )
-@click.option(
-    "--theme",
-    multiple=True,
-    help="Filter to specific theme(s); repeatable (e.g., --theme buildings --theme places)",
-)
+@tag_selection_options
 @click.option(
     "--output-dir",
     type=click.Path(path_type=Path),
@@ -88,21 +88,19 @@ def list_models() -> None:
 )
 def generate(
     output_format: str,
-    theme: tuple[str, ...],
+    tags: tuple[str, ...],
+    filters: tuple[str, ...],
+    excludes: tuple[str, ...],
     output_dir: Path | None,
 ) -> None:
     """Generate code/docs from discovered models."""
     all_models = discover_models()
 
-    # Schema root from ALL entry points (before theme filter).
+    # Schema root from ALL entry points (before tag filters).
     module_paths = [entry_point_module(k.entry_point) for k in all_models]
     schema_root = compute_schema_root(module_paths)
 
-    models = (
-        {k: v for k, v in all_models.items() if k.theme in theme}
-        if theme
-        else all_models
-    )
+    models = filter_models(all_models, build_selector(tags, filters, excludes))
 
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)

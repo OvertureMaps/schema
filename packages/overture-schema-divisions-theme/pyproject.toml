@@ -34,9 +34,9 @@ path = "src/overture/schema/divisions/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"overture:divisions:division" = "overture.schema.divisions:Division"
-"overture:divisions:division_area" = "overture.schema.divisions:DivisionArea"
-"overture:divisions:division_boundary" = "overture.schema.divisions:DivisionBoundary"
+division = "overture.schema.divisions:Division"
+division_area = "overture.schema.divisions:DivisionArea"
+division_boundary = "overture.schema.divisions:DivisionBoundary"
 
 [project.entry-points.pytest11]
 overture_baselines = "overture.schema.system.testing.plugin"

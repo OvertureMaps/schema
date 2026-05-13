@@ -14,23 +14,30 @@ import click
 import yaml
 from pydantic import BaseModel, Field, Tag, TypeAdapter, ValidationError
 from rich.console import Console
+from rich.text import Text
 from yamlcore import CoreLoader  # type: ignore
 
 from overture.schema.core import OvertureFeature
-from overture.schema.core.discovery import ModelKey, discover_models
+from overture.schema.system.discovery import (
+    ModelDict,
+    ModelKey,
+    TagSelector,
+    discover_models,
+    filter_models,
+)
+from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.feature import Feature
 from overture.schema.system.json_schema import json_schema
 
-from .docstrings import get_model_docstring, get_theme_module_docstring
 from .error_formatting import (
     format_validation_error,
     format_validation_errors_verbose,
     group_errors_by_discriminator,
     select_most_likely_errors,
 )
-from .output import rewrap
+from .tag_options import build_selector, tag_selection_options
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
-from .types import ErrorLocation, ModelDict, UnionType
+from .types import ErrorLocation, UnionType
 
 # Console instances for rich output
 stdout = Console(highlight=False)
@@ -190,62 +197,18 @@ def validate_features(data: list, model_type: UnionType) -> list[BaseModel]:
 
 
 def resolve_types(
-    use_overture_types: bool,
-    namespace: str | None,
-    theme_names: tuple[str, ...],
-    type_names: tuple[str, ...],
+    selector: TagSelector = TagSelector(),
+    *,
+    type_names: tuple[str, ...] = (),
 ) -> UnionType:
-    """Resolve CLI options into a model type suitable for parse_feature.
+    """Resolve a TagSelector + type-names into a Pydantic union type."""
+    models = discover_models()
+    models = filter_models(models, selector, type_names=type_names)
 
-    Args
-    ----
-        use_overture_types: Boolean from --overture-types flag
-        namespace: Namespace to filter by (e.g., "overture", "annex")
-        theme_names: List of theme names from --theme option
-        type_names: List of type names from --type option
-
-    Returns
-    -------
-        Model type suitable for passing to parse_feature
-    """
-    # Determine effective namespace
-    effective_namespace = "overture" if use_overture_types else namespace
-
-    # Discover models once with the appropriate namespace
-    all_models = discover_models(namespace=effective_namespace)
-
-    # Filter models based on CLI options
-    filtered_models: ModelDict = {}
-
-    if use_overture_types:
-        filtered_models = all_models
-
-    elif theme_names and not type_names:
-        # Theme-only mode: all types in specified themes
-        for key, model_class in all_models.items():
-            if key.theme in theme_names:
-                filtered_models[key] = model_class
-
-    elif type_names and not theme_names:
-        # Type-only mode: find matching types across all themes
-        for key, model_class in all_models.items():
-            if key.type in type_names:
-                filtered_models[key] = model_class
-
-    elif type_names and theme_names:
-        # Both specified: find matching types within specified themes
-        for key, model_class in all_models.items():
-            if key.theme in theme_names and key.type in type_names:
-                filtered_models[key] = model_class
-
-    else:
-        # No filters specified - use all models
-        filtered_models = all_models
-
-    if not filtered_models:
+    if not models:
         raise ValueError("No models found matching the specified criteria")
 
-    return create_union_type_from_models(filtered_models)
+    return create_union_type_from_models(models)
 
 
 def get_source_name(filename: Path) -> str:
@@ -281,10 +244,10 @@ def cli() -> None:
       $ overture-schema list-types
     \b
       # Generate JSON schema
-      $ overture-schema json-schema --theme buildings
+      $ overture-schema json-schema --tag overture:theme=buildings
     \b
       # Validate specific types
-      $ overture-schema validate --theme buildings data.json
+      $ overture-schema validate --tag overture:theme=buildings data.json
     """
     pass
 
@@ -523,11 +486,12 @@ def handle_validation_error(
     # Show heterogeneity warning if collection has mixed types
     if is_heterogeneous:
         stderr.print(
-            "  ⚠ Heterogeneous collection: Data contains multiple feature types.",
+            "  ⚠ Heterogeneous collection: Data contains multiple feature types. Consider:",
             style="yellow",
         )
         stderr.print(
-            "    • Consider validating each type separately with --theme or --type",
+            "    • Validating each type separately with --tag, --filter, "
+            "--exclude, or --type",
             style="dim",
         )
         stderr.print()
@@ -548,7 +512,7 @@ def handle_validation_error(
             style="yellow",
         )
         stderr.print(
-            "    • Specifying --theme or --type to narrow validation", style="dim"
+            "    • Specifying --tag or --type to narrow validation", style="dim"
         )
         stderr.print("    • Adding discriminator fields to clarify intent", style="dim")
         stderr.print()
@@ -627,20 +591,7 @@ def handle_generic_error(e: Exception, filename: Path, error_type: str) -> None:
 
 @cli.command()
 @click.argument("filename", type=click.Path(path_type=Path), required=True)
-@click.option(
-    "--overture-types",
-    is_flag=True,
-    help="Validate against all official Overture types (excludes extensions)",
-)
-@click.option(
-    "--namespace",
-    help="Namespace to filter by (e.g., overture, annex)",
-)
-@click.option(
-    "--theme",
-    multiple=True,
-    help="Theme to validate against (shorthand for all types in theme)",
-)
+@tag_selection_options
 @click.option(
     "--type",
     "types",
@@ -655,9 +606,9 @@ def handle_generic_error(e: Exception, filename: Path, error_type: str) -> None:
 )
 def validate(
     filename: Path,
-    overture_types: bool,
-    namespace: str | None,
-    theme: tuple[str, ...],
+    tags: tuple[str, ...],
+    filters: tuple[str, ...],
+    excludes: tuple[str, ...],
     types: tuple[str, ...],
     show_fields: tuple[str, ...],
 ) -> None:
@@ -675,17 +626,19 @@ def validate(
       $ overture-schema validate - < data.json
     \b
       # Validate only buildings
-      $ overture-schema validate --theme buildings data.json
+      $ overture-schema validate --tag overture:theme=buildings data.json
     \b
       # Validate specific type
       $ overture-schema validate --type building data.json
     \b
       # Official Overture types only
-      $ overture-schema validate --overture-types data.json
+      $ overture-schema validate --tag overture --tag feature data.json
     """
     # Resolve model type first (errors here are ValueErrors, not ValidationErrors)
     try:
-        model_type = resolve_types(overture_types, namespace, theme, types)
+        model_type = resolve_types(
+            build_selector(tags, filters, excludes), type_names=types
+        )
     except ValueError as e:
         handle_generic_error(e, filename, "value")
         return
@@ -712,20 +665,7 @@ def validate(
 
 
 @cli.command("json-schema")
-@click.option(
-    "--overture-types",
-    is_flag=True,
-    help="Generate schema for all official Overture types (excludes extensions)",
-)
-@click.option(
-    "--namespace",
-    help="Namespace to filter by (e.g., overture, annex)",
-)
-@click.option(
-    "--theme",
-    multiple=True,
-    help="Theme to generate schema for (shorthand for all types in theme)",
-)
+@tag_selection_options
 @click.option(
     "--type",
     "types",
@@ -733,9 +673,9 @@ def validate(
     help="Specific type to generate schema for (e.g., building, segment)",
 )
 def json_schema_command(
-    overture_types: bool,
-    namespace: str | None,
-    theme: tuple[str, ...],
+    tags: tuple[str, ...],
+    filters: tuple[str, ...],
+    excludes: tuple[str, ...],
     types: tuple[str, ...],
 ) -> None:
     r"""Generate JSON schema for Overture Maps types.
@@ -748,17 +688,19 @@ def json_schema_command(
       # All types
       $ overture-schema json-schema > schema.json
     \b
-      # Buildings theme
-      $ overture-schema json-schema --theme buildings
+      # Buildings theme by tag
+      $ overture-schema json-schema --tag overture:theme=buildings
     \b
       # Specific types
       $ overture-schema json-schema --type building
     \b
       # Official Overture types only
-      $ overture-schema json-schema --overture-types
+      $ overture-schema json-schema --tag overture --tag feature
     """
     try:
-        model_type = resolve_types(overture_types, namespace, theme, types)
+        model_type = resolve_types(
+            build_selector(tags, filters, excludes), type_names=types
+        )
         schema = json_schema(model_type)
         # Use plain print for JSON output to avoid Rich formatting
         print(json.dumps(schema, indent=2, sort_keys=True))
@@ -766,53 +708,23 @@ def json_schema_command(
         raise click.UsageError(str(e)) from e
 
 
-def dump_namespace(
-    theme_types: dict[str | None, list[tuple[ModelKey, type[BaseModel]]]],
-) -> None:
-    """Print all themes and types for a namespace.
-
-    Displays themes in alphabetical order with their types and docstrings.
-    Each type includes its model class name and description.
-
-    Args
-    ----
-    theme_types : dict[str | None, list[tuple[ModelKey, type[BaseModel]]]]
-        Dict mapping theme name to list of (ModelKey, model_class) tuples
-    """
-    for theme in sorted(theme_types.keys(), key=lambda x: (x is None, x)):
-        if theme:
-            stdout.print(
-                f"[bold green underline]{theme.upper()}[/bold green underline]"
-            )
-
-            theme_docstring = get_theme_module_docstring(theme)
-            if theme_docstring:
-                stdout.print(
-                    rewrap(theme_docstring, stdout, padding_right=4), style="dim"
-                )
-
-            stdout.print()
-
-        # Add types to the tree
-        sorted_types = sorted(theme_types[theme], key=lambda x: x[0].type)
-        for key, model_class in sorted_types:
-            stdout.print(
-                f"  [bright_black]→[/bright_black] [bold cyan]{key.type}[/bold cyan] [dim magenta]({key.entry_point})[/dim magenta]"
-            )
-            docstring = get_model_docstring(model_class)
-            if docstring:
-                stdout.print(
-                    rewrap(docstring, stdout, indent=4, padding_right=12), style="dim"
-                )
-            stdout.print()
-
-
 @cli.command("list-types")
-def list_types() -> None:
-    r"""List all available types grouped by theme with descriptions.
+@tag_selection_options
+@click.option(
+    "--group-by",
+    help="Group types by a key/value tag's key (e.g. 'overture:theme'). "
+    "Plain and namespaced tags have no value to group by and are "
+    "ignored here.",
+)
+def list_types(
+    tags: tuple[str, ...],
+    filters: tuple[str, ...],
+    excludes: tuple[str, ...],
+    group_by: str | None,
+) -> None:
+    r"""List all available types.
 
-    Displays all registered Overture Maps types organized by theme,
-    including model class names and docstrings.
+    Displays all registered models and can be organized by grouping.
 
     \b
     Examples:
@@ -821,35 +733,46 @@ def list_types() -> None:
     """
     try:
         models = discover_models()
+        models = filter_models(models, build_selector(tags, filters, excludes))
 
-        # Group models by namespace and theme
-        namespaces: dict[
-            str, dict[str | None, list[tuple[ModelKey, type[BaseModel]]]]
-        ] = {}
-        for key, model_class in models.items():
-            if key.namespace not in namespaces:
-                namespaces[key.namespace] = {}
-            if key.theme not in namespaces[key.namespace]:
-                namespaces[key.namespace][key.theme] = []
+        if group_by:
+            grouped_models: dict[str, set[ModelKey]] = {}
 
-            namespaces[key.namespace][key.theme].append((key, model_class))
+            for key in models.keys():
+                if groups := get_values_for_key(key.tags, group_by):
+                    for group in groups:
+                        grouped_models.setdefault(group, set()).add(key)
 
-        # display Overture themes first
-        if "overture" in namespaces:
-            stdout.print("[bold red]OVERTURE THEMES[/bold red]", justify="center")
-            stdout.print()
+            padding = (
+                max(
+                    (len(key.name) for keys in grouped_models.values() for key in keys),
+                    default=0,
+                )
+                + 2
+            )
 
-            dump_namespace(namespaces["overture"])
+            for group, keys in sorted(grouped_models.items()):
+                stdout.print(
+                    f"[green bold]{group_by}={group} ({len(keys)})[/green bold]"
+                )
+                for key in sorted(keys, key=lambda k: k.name):
+                    model = Text()
+                    model.append("→ ", style="bright_black")
+                    model.append(key.name, style="bold cyan")
+                    model.pad_right(max(1, padding - len(key.name)))
+                    model.append("  ".join(sorted(key.tags)))
+                    stdout.print(model)
+                stdout.print()
 
-            stdout.print("[bold red]ADDITIONAL TYPES[/bold red]", justify="center")
-            stdout.print()
+        else:
+            padding = max((len(key.name) for key in models.keys()), default=0) + 2
 
-        for namespace in sorted(namespaces.keys()):
-            if namespace == "overture":
-                continue
-
-            stdout.print(f"[bold blue]{namespace.upper()}[/bold blue]")
-            dump_namespace(namespaces[namespace])
+            for key in sorted(models.keys(), key=lambda k: k.name):
+                model = Text()
+                model.append(key.name, style="bold cyan")
+                model.pad_right(max(1, padding - len(key.name)))
+                model.append("  ".join(sorted(key.tags)))
+                stdout.print(model)
 
     except Exception as e:
         click.echo(f"Error listing types: {e}", err=True)

@@ -35,12 +35,12 @@ path = "src/overture/schema/base/__about__.py"
 packages = ["src/overture"]
 
 [project.entry-points."overture.models"]
-"overture:base:bathymetry" = "overture.schema.base:Bathymetry"
-"overture:base:infrastructure" = "overture.schema.base:Infrastructure"
-"overture:base:land" = "overture.schema.base:Land"
-"overture:base:land_cover" = "overture.schema.base:LandCover"
-"overture:base:land_use" = "overture.schema.base:LandUse"
-"overture:base:water" = "overture.schema.base:Water"
+bathymetry = "overture.schema.base:Bathymetry"
+infrastructure = "overture.schema.base:Infrastructure"
+land = "overture.schema.base:Land"
+land_cover = "overture.schema.base:LandCover"
+land_use = "overture.schema.base:LandUse"
+water = "overture.schema.base:Water"
 
 [project.entry-points.pytest11]
 overture_baselines = "overture.schema.system.testing.plugin"

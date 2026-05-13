@@ -14,7 +14,7 @@ from overture.schema.codegen.markdown.renderer import (
     render_geometry_from_values,
     render_primitives_from_specs,
 )
-from overture.schema.core.discovery import discover_models
+from overture.schema.system.discovery import discover_models
 from overture.schema.system.primitive import GeometryType
 from pydantic import BaseModel
 

@@ -16,8 +16,8 @@ class TestListTypesCommand:
         """Test the list-types command."""
         result = cli_runner.invoke(cli, ["list-types"])
         assert result.exit_code == 0
-        # Should show theme names
-        assert "BUILDINGS" in result.output or "buildings" in result.output
+        # Should show theme tag
+        assert "overture:theme=buildings" in result.output
         # Should show type names
         assert "building" in result.output
 
@@ -33,7 +33,9 @@ class TestJsonSchemaCommand:
 
     def test_json_schema_generates_valid_output(self, cli_runner: CliRunner) -> None:
         """Test that json-schema command generates valid JSON."""
-        result = cli_runner.invoke(cli, ["json-schema", "--theme", "buildings"])
+        result = cli_runner.invoke(
+            cli, ["json-schema", "--tag", "overture:theme=buildings"]
+        )
         assert result.exit_code == 0
 
         # Should be valid JSON
@@ -57,7 +59,7 @@ class TestValidateCommand:
         flat_feature = build_feature(geojson_format=False)
         flat_json = json.dumps(flat_feature)
         result = cli_runner.invoke(
-            cli, ["validate", "--theme", "buildings", "-"], input=flat_json
+            cli, ["validate", "--tag", "overture:theme=buildings", "-"], input=flat_json
         )
         assert result.exit_code == 0
         assert "Successfully validated <stdin>" in result.output
@@ -222,7 +224,7 @@ class TestValidateCommand:
         # Try to validate with a nonexistent theme
         result = cli_runner.invoke(
             cli,
-            ["validate", "--theme", "nonexistent_theme", "-"],
+            ["validate", "--tag", "overture:theme=nonexistent_theme", "-"],
             input=building_feature_yaml_content,
         )
         # UsageError exits with code 2
@@ -254,7 +256,7 @@ class TestValidateCommand:
         # Try to validate buildings theme with a type that doesn't exist in that theme
         result = cli_runner.invoke(
             cli,
-            ["validate", "--theme", "buildings", "--type", "segment", "-"],
+            ["validate", "--tag", "overture:theme=buildings", "--type", "segment", "-"],
             input=building_feature_yaml_content,
         )
         # UsageError exits with code 2
@@ -366,3 +368,46 @@ class TestShowFieldOption:
         # Should show id for both features
         assert "id=first" in stderr_output or "first" in stderr_output
         assert "id=second" in stderr_output or "second" in stderr_output
+
+
+_TAG_COMBINATOR_FLAGS = (
+    pytest.param("--filter", "feature", id="filter"),
+    pytest.param("--exclude", "overture:theme=places", id="exclude"),
+)
+
+
+@pytest.mark.parametrize(("flag", "value"), _TAG_COMBINATOR_FLAGS)
+def test_validate_wires_tag_combinator_flag(
+    cli_runner: CliRunner,
+    building_feature_yaml: str,
+    flag: str,
+    value: str,
+) -> None:
+    """validate wires --filter/--exclude through to the tag selector."""
+    result = cli_runner.invoke(
+        cli, ["validate", building_feature_yaml, "--tag", "feature", flag, value]
+    )
+    assert result.exit_code == 0
+
+
+@pytest.mark.parametrize(("flag", "value"), _TAG_COMBINATOR_FLAGS)
+def test_json_schema_wires_tag_combinator_flag(
+    cli_runner: CliRunner,
+    flag: str,
+    value: str,
+) -> None:
+    """json-schema wires --filter/--exclude through to the tag selector."""
+    result = cli_runner.invoke(cli, ["json-schema", "--tag", "feature", flag, value])
+    assert result.exit_code == 0
+    assert result.output  # non-empty JSON
+
+
+@pytest.mark.parametrize(("flag", "value"), _TAG_COMBINATOR_FLAGS)
+def test_list_types_wires_tag_combinator_flag(
+    cli_runner: CliRunner,
+    flag: str,
+    value: str,
+) -> None:
+    """list-types wires --filter/--exclude through to the tag selector."""
+    result = cli_runner.invoke(cli, ["list-types", "--tag", "feature", flag, value])
+    assert result.exit_code == 0
