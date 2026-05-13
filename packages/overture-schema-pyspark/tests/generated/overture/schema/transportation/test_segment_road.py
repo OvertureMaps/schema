@@ -279,6 +279,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::sources_unique:struct_unique",
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
+        mutate=lambda row: mutate_unique_items(row, "sources"),
+        expected_field="sources_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::sources[].property:required",
         scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
         mutate=set_at_path("sources[].property", None),
@@ -387,6 +394,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::access_restrictions_unique:struct_unique",
+        scaffold={"access_restrictions": [{"access_type": "allowed"}]},
+        mutate=lambda row: mutate_unique_items(row, "access_restrictions"),
+        expected_field="access_restrictions_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::access_restrictions[].access_type:required",
         scaffold={"access_restrictions": [{"access_type": "allowed"}]},
         mutate=set_at_path("access_restrictions[].access_type", None),
@@ -450,6 +464,17 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::access_restrictions[].when.mode_unique:struct_unique",
+        scaffold={
+            "access_restrictions": [
+                {"access_type": "allowed", "when": {"mode": ["vehicle"]}}
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(row, "access_restrictions[].when.mode"),
+        expected_field="access_restrictions[].when.mode_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::access_restrictions[].when.mode[]:enum",
         scaffold={
             "access_restrictions": [
@@ -472,6 +497,17 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::access_restrictions[].when.using_unique:struct_unique",
+        scaffold={
+            "access_restrictions": [
+                {"access_type": "allowed", "when": {"using": ["as_customer"]}}
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(row, "access_restrictions[].when.using"),
+        expected_field="access_restrictions[].when.using_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::access_restrictions[].when.using[]:enum",
         scaffold={
             "access_restrictions": [
@@ -492,6 +528,19 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("access_restrictions[].when.recognized", []),
         expected_field="access_restrictions[].when.recognized_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::access_restrictions[].when.recognized_unique:struct_unique",
+        scaffold={
+            "access_restrictions": [
+                {"access_type": "allowed", "when": {"recognized": ["as_permitted"]}}
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "access_restrictions[].when.recognized"
+        ),
+        expected_field="access_restrictions[].when.recognized_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::access_restrictions[].when.recognized[]:enum",
@@ -526,6 +575,31 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("access_restrictions[].when.vehicle", []),
         expected_field="access_restrictions[].when.vehicle_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::access_restrictions[].when.vehicle_unique:struct_unique",
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ]
+                    },
+                }
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "access_restrictions[].when.vehicle"
+        ),
+        expected_field="access_restrictions[].when.vehicle_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::access_restrictions[].when.vehicle[].dimension:required",
@@ -679,6 +753,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("connectors", []),
         expected_field="connectors_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::connectors_unique:struct_unique",
+        scaffold={"connectors": [{"connector_id": "a"}, {"connector_id": "a1"}]},
+        mutate=lambda row: mutate_unique_items(row, "connectors"),
+        expected_field="connectors_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::connectors[].connector_id:required",
@@ -1013,6 +1094,26 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::names.rules[].perspectives.countries_unique:struct_unique",
+        scaffold={
+            "names": {
+                "primary": "a",
+                "rules": [
+                    {
+                        "value": "a",
+                        "variant": "common",
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
+                    }
+                ],
+            }
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "names.rules[].perspectives.countries"
+        ),
+        expected_field="names.rules[].perspectives.countries_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::names.rules[].perspectives.countries[]:country_code_alpha2",
         scaffold={
             "names": {
@@ -1286,6 +1387,23 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::destinations[].labels_unique:struct_unique",
+        scaffold={
+            "destinations": [
+                {
+                    "from_connector_id": "a",
+                    "to_connector_id": "a",
+                    "to_segment_id": "a",
+                    "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
+                }
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(row, "destinations[].labels"),
+        expected_field="destinations[].labels_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::destinations[].labels[].value:required",
         scaffold={
             "destinations": [
@@ -1371,6 +1489,23 @@ SCENARIOS: list[Scenario] = [
         expected_check="enum",
     ),
     Scenario(
+        id="segment::destinations[].symbols_unique:struct_unique",
+        scaffold={
+            "destinations": [
+                {
+                    "from_connector_id": "a",
+                    "to_connector_id": "a",
+                    "to_segment_id": "a",
+                    "final_heading": "forward",
+                    "symbols": ["motorway"],
+                }
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(row, "destinations[].symbols"),
+        expected_field="destinations[].symbols_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::destinations[].symbols[]:enum",
         scaffold={
             "destinations": [
@@ -1448,6 +1583,22 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("prohibited_transitions[].sequence", []),
         expected_field="prohibited_transitions[].sequence_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::prohibited_transitions[].sequence_unique:struct_unique",
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "final_heading": "forward",
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                }
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "prohibited_transitions[].sequence"
+        ),
+        expected_field="prohibited_transitions[].sequence_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::prohibited_transitions[].sequence[].connector_id:required",
@@ -1641,6 +1792,23 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::prohibited_transitions[].when.mode_unique:struct_unique",
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {"mode": ["vehicle"]},
+                }
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "prohibited_transitions[].when.mode"
+        ),
+        expected_field="prohibited_transitions[].when.mode_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::prohibited_transitions[].when.mode[]:enum",
         scaffold={
             "prohibited_transitions": [
@@ -1671,6 +1839,23 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::prohibited_transitions[].when.using_unique:struct_unique",
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {"using": ["as_customer"]},
+                }
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "prohibited_transitions[].when.using"
+        ),
+        expected_field="prohibited_transitions[].when.using_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::prohibited_transitions[].when.using[]:enum",
         scaffold={
             "prohibited_transitions": [
@@ -1699,6 +1884,23 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("prohibited_transitions[].when.recognized", []),
         expected_field="prohibited_transitions[].when.recognized_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::prohibited_transitions[].when.recognized_unique:struct_unique",
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {"recognized": ["as_permitted"]},
+                }
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "prohibited_transitions[].when.recognized"
+        ),
+        expected_field="prohibited_transitions[].when.recognized_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::prohibited_transitions[].when.recognized[]:enum",
@@ -1738,6 +1940,32 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("prohibited_transitions[].when.vehicle", []),
         expected_field="prohibited_transitions[].when.vehicle_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::prohibited_transitions[].when.vehicle_unique:struct_unique",
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ]
+                    },
+                }
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "prohibited_transitions[].when.vehicle"
+        ),
+        expected_field="prohibited_transitions[].when.vehicle_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::prohibited_transitions[].when.vehicle[].dimension:required",
@@ -1920,6 +2148,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::road_flags_unique:struct_unique",
+        scaffold={"road_flags": [{"values": ["is_bridge"]}]},
+        mutate=lambda row: mutate_unique_items(row, "road_flags"),
+        expected_field="road_flags_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::road_flags[].values:required",
         scaffold={"road_flags": [{"values": ["is_bridge"]}]},
         mutate=set_at_path("road_flags[].values", None),
@@ -1932,6 +2167,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("road_flags[].values", []),
         expected_field="road_flags[].values_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::road_flags[].values_unique:struct_unique",
+        scaffold={"road_flags": [{"values": ["is_bridge"]}]},
+        mutate=lambda row: mutate_unique_items(row, "road_flags[].values"),
+        expected_field="road_flags[].values_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::road_flags[].values[]:enum",
@@ -1967,6 +2209,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("road_surface", []),
         expected_field="road_surface_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::road_surface_unique:struct_unique",
+        scaffold={"road_surface": [{"value": "unknown"}]},
+        mutate=lambda row: mutate_unique_items(row, "road_surface"),
+        expected_field="road_surface_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::road_surface[].value:required",
@@ -2009,6 +2258,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("speed_limits", []),
         expected_field="speed_limits_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::speed_limits_unique:struct_unique",
+        scaffold={"speed_limits": [{"max_speed": {"value": 1, "unit": "mph"}}]},
+        mutate=lambda row: mutate_unique_items(row, "speed_limits"),
+        expected_field="speed_limits_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::speed_limits[].max_speed.value:required",
@@ -2116,6 +2372,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::speed_limits[].when.mode_unique:struct_unique",
+        scaffold={"speed_limits": [{"when": {"mode": ["vehicle"]}}]},
+        mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.mode"),
+        expected_field="speed_limits[].when.mode_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::speed_limits[].when.mode[]:enum",
         scaffold={"speed_limits": [{"when": {"mode": ["vehicle"]}}]},
         mutate=set_at_path("speed_limits[].when.mode[]", "__INVALID__"),
@@ -2130,6 +2393,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="segment::speed_limits[].when.using_unique:struct_unique",
+        scaffold={"speed_limits": [{"when": {"using": ["as_customer"]}}]},
+        mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.using"),
+        expected_field="speed_limits[].when.using_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="segment::speed_limits[].when.using[]:enum",
         scaffold={"speed_limits": [{"when": {"using": ["as_customer"]}}]},
         mutate=set_at_path("speed_limits[].when.using[]", "__INVALID__"),
@@ -2142,6 +2412,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("speed_limits[].when.recognized", []),
         expected_field="speed_limits[].when.recognized_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::speed_limits[].when.recognized_unique:struct_unique",
+        scaffold={"speed_limits": [{"when": {"recognized": ["as_permitted"]}}]},
+        mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.recognized"),
+        expected_field="speed_limits[].when.recognized_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::speed_limits[].when.recognized[]:enum",
@@ -2171,6 +2448,28 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("speed_limits[].when.vehicle", []),
         expected_field="speed_limits[].when.vehicle_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::speed_limits[].when.vehicle_unique:struct_unique",
+        scaffold={
+            "speed_limits": [
+                {
+                    "when": {
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.vehicle"),
+        expected_field="speed_limits[].when.vehicle_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].dimension:required",
@@ -2264,6 +2563,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("width_rules", []),
         expected_field="width_rules_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="segment::width_rules_unique:struct_unique",
+        scaffold={"width_rules": [{"value": 1.0}]},
+        mutate=lambda row: mutate_unique_items(row, "width_rules"),
+        expected_field="width_rules_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="segment::width_rules[].value:required",
@@ -2691,312 +2997,6 @@ SCENARIOS: list[Scenario] = [
         ),
         expected_field="rail_flags_forbidden",
         expected_check="forbid_if",
-    ),
-    Scenario(
-        id="segment::sources_unique:struct_unique",
-        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
-        mutate=lambda row: mutate_unique_items(row, "sources"),
-        expected_field="sources_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::access_restrictions_unique:struct_unique",
-        scaffold={"access_restrictions": [{"access_type": "allowed"}]},
-        mutate=lambda row: mutate_unique_items(row, "access_restrictions"),
-        expected_field="access_restrictions_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::access_restrictions[].when.mode_unique:struct_unique",
-        scaffold={
-            "access_restrictions": [
-                {"access_type": "allowed", "when": {"mode": ["vehicle"]}}
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(row, "access_restrictions[].when.mode"),
-        expected_field="access_restrictions[].when.mode_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::access_restrictions[].when.using_unique:struct_unique",
-        scaffold={
-            "access_restrictions": [
-                {"access_type": "allowed", "when": {"using": ["as_customer"]}}
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(row, "access_restrictions[].when.using"),
-        expected_field="access_restrictions[].when.using_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::access_restrictions[].when.recognized_unique:struct_unique",
-        scaffold={
-            "access_restrictions": [
-                {"access_type": "allowed", "when": {"recognized": ["as_permitted"]}}
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "access_restrictions[].when.recognized"
-        ),
-        expected_field="access_restrictions[].when.recognized_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::access_restrictions[].when.vehicle_unique:struct_unique",
-        scaffold={
-            "access_restrictions": [
-                {
-                    "access_type": "allowed",
-                    "when": {
-                        "vehicle": [
-                            {
-                                "dimension": "height",
-                                "comparison": "greater_than",
-                                "value": 0.0,
-                                "unit": "in",
-                            }
-                        ]
-                    },
-                }
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "access_restrictions[].when.vehicle"
-        ),
-        expected_field="access_restrictions[].when.vehicle_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::connectors_unique:struct_unique",
-        scaffold={"connectors": [{"connector_id": "a"}, {"connector_id": "a1"}]},
-        mutate=lambda row: mutate_unique_items(row, "connectors"),
-        expected_field="connectors_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::names.rules[].perspectives.countries_unique:struct_unique",
-        scaffold={
-            "names": {
-                "primary": "a",
-                "rules": [
-                    {
-                        "value": "a",
-                        "variant": "common",
-                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
-                    }
-                ],
-            }
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "names.rules[].perspectives.countries"
-        ),
-        expected_field="names.rules[].perspectives.countries_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::destinations[].labels_unique:struct_unique",
-        scaffold={
-            "destinations": [
-                {
-                    "from_connector_id": "a",
-                    "to_connector_id": "a",
-                    "to_segment_id": "a",
-                    "final_heading": "forward",
-                    "labels": [{"value": "a", "type": "street"}],
-                }
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(row, "destinations[].labels"),
-        expected_field="destinations[].labels_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::destinations[].symbols_unique:struct_unique",
-        scaffold={
-            "destinations": [
-                {
-                    "from_connector_id": "a",
-                    "to_connector_id": "a",
-                    "to_segment_id": "a",
-                    "final_heading": "forward",
-                    "symbols": ["motorway"],
-                }
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(row, "destinations[].symbols"),
-        expected_field="destinations[].symbols_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::prohibited_transitions[].sequence_unique:struct_unique",
-        scaffold={
-            "prohibited_transitions": [
-                {
-                    "final_heading": "forward",
-                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
-                }
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "prohibited_transitions[].sequence"
-        ),
-        expected_field="prohibited_transitions[].sequence_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::prohibited_transitions[].when.mode_unique:struct_unique",
-        scaffold={
-            "prohibited_transitions": [
-                {
-                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
-                    "final_heading": "forward",
-                    "when": {"mode": ["vehicle"]},
-                }
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "prohibited_transitions[].when.mode"
-        ),
-        expected_field="prohibited_transitions[].when.mode_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::prohibited_transitions[].when.using_unique:struct_unique",
-        scaffold={
-            "prohibited_transitions": [
-                {
-                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
-                    "final_heading": "forward",
-                    "when": {"using": ["as_customer"]},
-                }
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "prohibited_transitions[].when.using"
-        ),
-        expected_field="prohibited_transitions[].when.using_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::prohibited_transitions[].when.recognized_unique:struct_unique",
-        scaffold={
-            "prohibited_transitions": [
-                {
-                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
-                    "final_heading": "forward",
-                    "when": {"recognized": ["as_permitted"]},
-                }
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "prohibited_transitions[].when.recognized"
-        ),
-        expected_field="prohibited_transitions[].when.recognized_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::prohibited_transitions[].when.vehicle_unique:struct_unique",
-        scaffold={
-            "prohibited_transitions": [
-                {
-                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
-                    "final_heading": "forward",
-                    "when": {
-                        "vehicle": [
-                            {
-                                "dimension": "height",
-                                "comparison": "greater_than",
-                                "value": 0.0,
-                                "unit": "in",
-                            }
-                        ]
-                    },
-                }
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "prohibited_transitions[].when.vehicle"
-        ),
-        expected_field="prohibited_transitions[].when.vehicle_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::road_flags_unique:struct_unique",
-        scaffold={"road_flags": [{"values": ["is_bridge"]}]},
-        mutate=lambda row: mutate_unique_items(row, "road_flags"),
-        expected_field="road_flags_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::road_flags[].values_unique:struct_unique",
-        scaffold={"road_flags": [{"values": ["is_bridge"]}]},
-        mutate=lambda row: mutate_unique_items(row, "road_flags[].values"),
-        expected_field="road_flags[].values_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::road_surface_unique:struct_unique",
-        scaffold={"road_surface": [{"value": "unknown"}]},
-        mutate=lambda row: mutate_unique_items(row, "road_surface"),
-        expected_field="road_surface_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::speed_limits_unique:struct_unique",
-        scaffold={"speed_limits": [{"max_speed": {"value": 1, "unit": "mph"}}]},
-        mutate=lambda row: mutate_unique_items(row, "speed_limits"),
-        expected_field="speed_limits_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::speed_limits[].when.mode_unique:struct_unique",
-        scaffold={"speed_limits": [{"when": {"mode": ["vehicle"]}}]},
-        mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.mode"),
-        expected_field="speed_limits[].when.mode_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::speed_limits[].when.using_unique:struct_unique",
-        scaffold={"speed_limits": [{"when": {"using": ["as_customer"]}}]},
-        mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.using"),
-        expected_field="speed_limits[].when.using_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::speed_limits[].when.recognized_unique:struct_unique",
-        scaffold={"speed_limits": [{"when": {"recognized": ["as_permitted"]}}]},
-        mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.recognized"),
-        expected_field="speed_limits[].when.recognized_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::speed_limits[].when.vehicle_unique:struct_unique",
-        scaffold={
-            "speed_limits": [
-                {
-                    "when": {
-                        "vehicle": [
-                            {
-                                "dimension": "height",
-                                "comparison": "greater_than",
-                                "value": 0.0,
-                                "unit": "in",
-                            }
-                        ]
-                    }
-                }
-            ]
-        },
-        mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.vehicle"),
-        expected_field="speed_limits[].when.vehicle_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="segment::width_rules_unique:struct_unique",
-        scaffold={"width_rules": [{"value": 1.0}]},
-        mutate=lambda row: mutate_unique_items(row, "width_rules"),
-        expected_field="width_rules_unique",
-        expected_check="struct_unique",
     ),
 ]
 

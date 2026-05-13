@@ -215,6 +215,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="place::sources_unique:struct_unique",
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
+        mutate=lambda row: mutate_unique_items(row, "sources"),
+        expected_field="sources_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="place::sources[].property:required",
         scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
         mutate=set_at_path("sources[].property", None),
@@ -323,6 +330,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="snake_case",
     ),
     Scenario(
+        id="place::categories.alternate_unique:struct_unique",
+        scaffold={"categories": {"primary": "snake_case", "alternate": ["snake_case"]}},
+        mutate=lambda row: mutate_unique_items(row, "categories.alternate"),
+        expected_field="categories.alternate_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="place::categories.alternate[]:snake_case",
         scaffold={"categories": {"primary": "snake_case", "alternate": ["snake_case"]}},
         mutate=set_at_path("categories.alternate[]", "HAS SPACES"),
@@ -365,6 +379,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="place::taxonomy.hierarchy_unique:struct_unique",
+        scaffold={"taxonomy": {"primary": "snake_case", "hierarchy": ["snake_case"]}},
+        mutate=lambda row: mutate_unique_items(row, "taxonomy.hierarchy"),
+        expected_field="taxonomy.hierarchy_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="place::taxonomy.hierarchy[]:snake_case",
         scaffold={"taxonomy": {"primary": "snake_case", "hierarchy": ["snake_case"]}},
         mutate=set_at_path("taxonomy.hierarchy[]", "HAS SPACES"),
@@ -383,6 +404,19 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("taxonomy.alternates", []),
         expected_field="taxonomy.alternates_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="place::taxonomy.alternates_unique:struct_unique",
+        scaffold={
+            "taxonomy": {
+                "primary": "snake_case",
+                "hierarchy": ["snake_case"],
+                "alternates": ["snake_case"],
+            }
+        },
+        mutate=lambda row: mutate_unique_items(row, "taxonomy.alternates"),
+        expected_field="taxonomy.alternates_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="place::taxonomy.alternates[]:snake_case",
@@ -419,6 +453,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="place::websites_unique:struct_unique",
+        scaffold={"websites": ["https://example.com/"]},
+        mutate=lambda row: mutate_unique_items(row, "websites"),
+        expected_field="websites_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="place::websites[]:url_format",
         scaffold={"websites": ["https://example.com/"]},
         mutate=set_at_path("websites[]", "not-a-url"),
@@ -441,6 +482,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("socials", []),
         expected_field="socials_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="place::socials_unique:struct_unique",
+        scaffold={"socials": ["https://example.com/"]},
+        mutate=lambda row: mutate_unique_items(row, "socials"),
+        expected_field="socials_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="place::socials[]:url_format",
@@ -467,6 +515,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="place::emails_unique:struct_unique",
+        scaffold={"emails": ["user@example.com"]},
+        mutate=lambda row: mutate_unique_items(row, "emails"),
+        expected_field="emails_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="place::emails[]:email",
         scaffold={"emails": ["user@example.com"]},
         mutate=set_at_path("emails[]", "not-an-email"),
@@ -479,6 +534,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("phones", []),
         expected_field="phones_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="place::phones_unique:struct_unique",
+        scaffold={"phones": ["+1 555-555-5555"]},
+        mutate=lambda row: mutate_unique_items(row, "phones"),
+        expected_field="phones_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="place::phones[]:phone_number",
@@ -683,6 +745,31 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("brand.names.rules[].perspectives.countries", []),
         expected_field="brand.names.rules[].perspectives.countries_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="place::brand.names.rules[].perspectives.countries_unique:struct_unique",
+        scaffold={
+            "brand": {
+                "names": {
+                    "primary": "a",
+                    "rules": [
+                        {
+                            "value": "a",
+                            "variant": "common",
+                            "perspectives": {
+                                "mode": "accepted_by",
+                                "countries": ["US"],
+                            },
+                        }
+                    ],
+                }
+            }
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "brand.names.rules[].perspectives.countries"
+        ),
+        expected_field="brand.names.rules[].perspectives.countries_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="place::brand.names.rules[].perspectives.countries[]:country_code_alpha2",
@@ -948,6 +1035,26 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="place::names.rules[].perspectives.countries_unique:struct_unique",
+        scaffold={
+            "names": {
+                "primary": "a",
+                "rules": [
+                    {
+                        "value": "a",
+                        "variant": "common",
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
+                    }
+                ],
+            }
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "names.rules[].perspectives.countries"
+        ),
+        expected_field="names.rules[].perspectives.countries_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="place::names.rules[].perspectives.countries[]:country_code_alpha2",
         scaffold={
             "names": {
@@ -1012,113 +1119,6 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("names.rules[].side", "__INVALID__"),
         expected_field="names.rules[].side",
         expected_check="enum",
-    ),
-    Scenario(
-        id="place::sources_unique:struct_unique",
-        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
-        mutate=lambda row: mutate_unique_items(row, "sources"),
-        expected_field="sources_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="place::categories.alternate_unique:struct_unique",
-        scaffold={"categories": {"primary": "snake_case", "alternate": ["snake_case"]}},
-        mutate=lambda row: mutate_unique_items(row, "categories.alternate"),
-        expected_field="categories.alternate_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="place::taxonomy.hierarchy_unique:struct_unique",
-        scaffold={"taxonomy": {"primary": "snake_case", "hierarchy": ["snake_case"]}},
-        mutate=lambda row: mutate_unique_items(row, "taxonomy.hierarchy"),
-        expected_field="taxonomy.hierarchy_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="place::taxonomy.alternates_unique:struct_unique",
-        scaffold={
-            "taxonomy": {
-                "primary": "snake_case",
-                "hierarchy": ["snake_case"],
-                "alternates": ["snake_case"],
-            }
-        },
-        mutate=lambda row: mutate_unique_items(row, "taxonomy.alternates"),
-        expected_field="taxonomy.alternates_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="place::websites_unique:struct_unique",
-        scaffold={"websites": ["https://example.com/"]},
-        mutate=lambda row: mutate_unique_items(row, "websites"),
-        expected_field="websites_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="place::socials_unique:struct_unique",
-        scaffold={"socials": ["https://example.com/"]},
-        mutate=lambda row: mutate_unique_items(row, "socials"),
-        expected_field="socials_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="place::emails_unique:struct_unique",
-        scaffold={"emails": ["user@example.com"]},
-        mutate=lambda row: mutate_unique_items(row, "emails"),
-        expected_field="emails_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="place::phones_unique:struct_unique",
-        scaffold={"phones": ["+1 555-555-5555"]},
-        mutate=lambda row: mutate_unique_items(row, "phones"),
-        expected_field="phones_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="place::brand.names.rules[].perspectives.countries_unique:struct_unique",
-        scaffold={
-            "brand": {
-                "names": {
-                    "primary": "a",
-                    "rules": [
-                        {
-                            "value": "a",
-                            "variant": "common",
-                            "perspectives": {
-                                "mode": "accepted_by",
-                                "countries": ["US"],
-                            },
-                        }
-                    ],
-                }
-            }
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "brand.names.rules[].perspectives.countries"
-        ),
-        expected_field="brand.names.rules[].perspectives.countries_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="place::names.rules[].perspectives.countries_unique:struct_unique",
-        scaffold={
-            "names": {
-                "primary": "a",
-                "rules": [
-                    {
-                        "value": "a",
-                        "variant": "common",
-                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
-                    }
-                ],
-            }
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "names.rules[].perspectives.countries"
-        ),
-        expected_field="names.rules[].perspectives.countries_unique",
-        expected_check="struct_unique",
     ),
 ]
 

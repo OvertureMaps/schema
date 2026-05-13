@@ -287,6 +287,26 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="division::names.rules[].perspectives.countries_unique:struct_unique",
+        scaffold={
+            "names": {
+                "primary": "a",
+                "rules": [
+                    {
+                        "value": "a",
+                        "variant": "common",
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
+                    }
+                ],
+            }
+        },
+        mutate=lambda row: mutate_unique_items(
+            row, "names.rules[].perspectives.countries"
+        ),
+        expected_field="names.rules[].perspectives.countries_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="division::names.rules[].perspectives.countries[]:country_code_alpha2",
         scaffold={
             "names": {
@@ -464,6 +484,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="division::sources_unique:struct_unique",
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
+        mutate=lambda row: mutate_unique_items(row, "sources"),
+        expected_field="sources_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="division::sources[].property:required",
         scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
         mutate=set_at_path("sources[].property", None),
@@ -593,11 +620,25 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="division::hierarchies_unique:struct_unique",
+        scaffold={},
+        mutate=lambda row: mutate_unique_items(row, "hierarchies"),
+        expected_field="hierarchies_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="division::hierarchies[]_min_length:array_min_length",
         scaffold={},
         mutate=set_at_path("hierarchies[]", []),
         expected_field="hierarchies[]_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="division::hierarchies[]_unique:struct_unique",
+        scaffold={},
+        mutate=lambda row: mutate_unique_items(row, "hierarchies[]"),
+        expected_field="hierarchies[]_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="division::hierarchies[][].division_id:required",
@@ -742,6 +783,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="division::perspectives.countries_unique:struct_unique",
+        scaffold={"perspectives": {"mode": "accepted_by", "countries": ["US"]}},
+        mutate=lambda row: mutate_unique_items(row, "perspectives.countries"),
+        expected_field="perspectives.countries_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="division::perspectives.countries[]:country_code_alpha2",
         scaffold={"perspectives": {"mode": "accepted_by", "countries": ["US"]}},
         mutate=set_at_path("perspectives.countries[]", "99"),
@@ -770,6 +818,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="array_min_length",
     ),
     Scenario(
+        id="division::capital_division_ids_unique:struct_unique",
+        scaffold={"capital_division_ids": ["a"]},
+        mutate=lambda row: mutate_unique_items(row, "capital_division_ids"),
+        expected_field="capital_division_ids_unique",
+        expected_check="struct_unique",
+    ),
+    Scenario(
         id="division::capital_division_ids[]:string_min_length",
         scaffold={"capital_division_ids": ["a"]},
         mutate=set_at_path("capital_division_ids[]", ""),
@@ -789,6 +844,13 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("capital_of_divisions", []),
         expected_field="capital_of_divisions_min_length",
         expected_check="array_min_length",
+    ),
+    Scenario(
+        id="division::capital_of_divisions_unique:struct_unique",
+        scaffold={"capital_of_divisions": [{"division_id": "a", "subtype": "country"}]},
+        mutate=lambda row: mutate_unique_items(row, "capital_of_divisions"),
+        expected_field="capital_of_divisions_unique",
+        expected_check="struct_unique",
     ),
     Scenario(
         id="division::capital_of_divisions[].division_id:required",
@@ -899,68 +961,6 @@ SCENARIOS: list[Scenario] = [
         ),
         expected_field="parent_division_id_forbidden",
         expected_check="forbid_if",
-    ),
-    Scenario(
-        id="division::names.rules[].perspectives.countries_unique:struct_unique",
-        scaffold={
-            "names": {
-                "primary": "a",
-                "rules": [
-                    {
-                        "value": "a",
-                        "variant": "common",
-                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
-                    }
-                ],
-            }
-        },
-        mutate=lambda row: mutate_unique_items(
-            row, "names.rules[].perspectives.countries"
-        ),
-        expected_field="names.rules[].perspectives.countries_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="division::sources_unique:struct_unique",
-        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
-        mutate=lambda row: mutate_unique_items(row, "sources"),
-        expected_field="sources_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="division::hierarchies_unique:struct_unique",
-        scaffold={},
-        mutate=lambda row: mutate_unique_items(row, "hierarchies"),
-        expected_field="hierarchies_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="division::hierarchies[]_unique:struct_unique",
-        scaffold={},
-        mutate=lambda row: mutate_unique_items(row, "hierarchies[]"),
-        expected_field="hierarchies[]_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="division::perspectives.countries_unique:struct_unique",
-        scaffold={"perspectives": {"mode": "accepted_by", "countries": ["US"]}},
-        mutate=lambda row: mutate_unique_items(row, "perspectives.countries"),
-        expected_field="perspectives.countries_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="division::capital_division_ids_unique:struct_unique",
-        scaffold={"capital_division_ids": ["a"]},
-        mutate=lambda row: mutate_unique_items(row, "capital_division_ids"),
-        expected_field="capital_division_ids_unique",
-        expected_check="struct_unique",
-    ),
-    Scenario(
-        id="division::capital_of_divisions_unique:struct_unique",
-        scaffold={"capital_of_divisions": [{"division_id": "a", "subtype": "country"}]},
-        mutate=lambda row: mutate_unique_items(row, "capital_of_divisions"),
-        expected_field="capital_of_divisions_unique",
-        expected_check="struct_unique",
     ),
 ]
 
