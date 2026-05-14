@@ -1,5 +1,5 @@
 ---
-title: Scoped and rule-based properties
+title: Scoping rules
 ---
 
 import CodeBlock from '@theme/CodeBlock';
@@ -15,8 +15,12 @@ import ExampleSubjectiveStatusScoping from '!!raw-loader!@site/docs/_examples/tr
 import ExampleSubjectiveVehicleAttributesScoping from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/subjective-vehicle-attributes-scoping.yaml';
 
 
-In the real world, many facts and rules affecting entities have only a partial application, meaning they don't apply everywhere, or they don't apply at all times, or to everyone, or to all sets of external conditions. For example, access restrictions on a road segment might not apply to all people or all kinds of vehicles, or they might vary according to the day of the week.
-<!-- add another example that is not transportation focused -->
+In the real world, many facts and rules affecting entities have
+only a partial application, meaning they don't apply everywhere, or
+they don't apply at all times, or to everyone, or to all sets of
+external conditions. For example, access restrictions on a road segment
+might not apply to all people or all kinds of vehicles, or they might
+vary according to the day of the week. <!-- add another example that is not transportation focused -->
 
 The Overture schema uses two related concepts to capture the partial application of facts and rules: scoped values and rule-based properties.
 
@@ -112,7 +116,16 @@ The example below shows a road segment with a temporally-scoped access restricti
 
 Subjective scoping means that the scope of a property can be constrained based on subjective factors like *who* or *what* is travelling on the transportation network, or *how* they are doing it.
 
-The Overture transportation schema supports several subjective factors. The sub-headings below explain each of these subjective factors in greater detail.
+The Overture transportation schema supports the following subjective factors:
+
+1. [Travel mode](#travel-mode-scoping)
+1. [Heading](#heading)
+1. [Purpose of use](#purpose-of-use-scoping)
+1. [Status or membership in a recognized group](#status-scoping-membership-in-a-recognized-group)
+1. [Vehicle attributes](#vehicle-attributes-scoping)
+
+The sub-headings below explain each of these subjective factors in greater
+detail.
 
 #### Travel-mode scoping
 
@@ -122,6 +135,7 @@ The property construct `when: { mode: [...] }` limits the scope its parent value
 
 To dive deeper into this topic, see the page on [travel modes](https://docs.overturemaps.org/guides/transportation/travel-modes).
 
+#### Heading
 #### Heading
 
 <Tabs>
@@ -250,4 +264,3 @@ if there is no applicable rule, an appropriate default value may be assumed.
    specific ones in a rule list.
 3. **Fallback to default.** If there are no matching rules, an appropriate
    default value may apply, depending on the property being evaluated.
-
