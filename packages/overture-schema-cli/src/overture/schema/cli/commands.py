@@ -29,12 +29,14 @@ from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.feature import Feature
 from overture.schema.system.json_schema import json_schema
 
+from .docstrings import get_model_docstring, get_theme_module_docstring
 from .error_formatting import (
     format_validation_error,
     format_validation_errors_verbose,
     group_errors_by_discriminator,
     select_most_likely_errors,
 )
+from .output import rewrap
 from .tag_options import build_selector, tag_selection_options
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
 from .types import ErrorLocation, UnionType
@@ -706,6 +708,47 @@ def json_schema_command(
         print(json.dumps(schema, indent=2, sort_keys=True))
     except ValueError as e:
         raise click.UsageError(str(e)) from e
+
+
+def dump_namespace(
+    theme_types: dict[str | None, list[tuple[ModelKey, type[BaseModel]]]],
+) -> None:
+    """Print all themes and types for a namespace.
+
+    Displays themes in alphabetical order with their types and docstrings.
+    Each type includes its model class name and description.
+
+    Args
+    ----
+    theme_types : dict[str | None, list[tuple[ModelKey, type[BaseModel]]]]
+        Dict mapping theme name to list of (ModelKey, model_class) tuples
+    """
+    for theme in sorted(theme_types.keys(), key=lambda x: (x is None, x)):
+        if theme:
+            stdout.print(
+                f"[bold green underline]{theme.upper()}[/bold green underline]"
+            )
+
+            theme_docstring = get_theme_module_docstring(theme)
+            if theme_docstring:
+                stdout.print(
+                    rewrap(theme_docstring, stdout, padding_right=4), style="dim"
+                )
+
+            stdout.print()
+
+        # Add types to the tree
+        sorted_types = sorted(theme_types[theme], key=lambda x: x[0].type)
+        for key, model_class in sorted_types:
+            stdout.print(
+                f"  [bright_black]→[/bright_black] [bold cyan]{key.type}[/bold cyan] [dim magenta]({key.entry_point})[/dim magenta]"
+            )
+            docstring = get_model_docstring(model_class)
+            if docstring:
+                stdout.print(
+                    rewrap(docstring, stdout, indent=4, padding_right=12), style="dim"
+                )
+            stdout.print()
 
 
 @cli.command("list-types")
