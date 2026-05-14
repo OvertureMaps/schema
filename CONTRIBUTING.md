@@ -55,7 +55,7 @@ gitGraph
 
 ## Branch Protections
 
-Both `main` and `vnext` require a PR and at least two approving review before merge. No direct pushes.
+Both `main` and `vnext` require a PR and at least two approving reviews before merge. No direct pushes.
 
 ## Migration Notes
 
