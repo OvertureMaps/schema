@@ -57,11 +57,10 @@ jobs:
               );
             }
 
-            if (targetRef === 'main' && (hasMajor || hasMinor)) {
+            if (targetRef === 'main' && hasMajor) {
               core.warning(
-                `This PR targets 'main' but has a major/minor change-type label ` +
-                `('${labels.filter(l => l === MAJOR_LABEL || l === MINOR_LABEL).join("', '")}').` +
-                ` Major/minor changes should typically target 'vnext'. ` +
+                `This PR targets 'main' but has the '${MAJOR_LABEL}' label. ` +
+                `Major/breaking changes should typically target 'vnext'. ` +
                 `The reviewer is the source of truth for change classification.`
               );
             }
