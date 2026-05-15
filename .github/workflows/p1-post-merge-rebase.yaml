@@ -16,20 +16,25 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # Only one rebase at a time; a newer push supersedes an in-flight one.
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   rebase-vnext:
     name: Rebase vnext onto main
     runs-on: ubuntu-slim
     permissions:
       contents: read
-      issues: write
+      issues: write # Required to open a failure issue when the rebase conflicts
     steps:
       - name: Generate app token
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: Iv23liiN80WEARreTV7m
-          private-key: ${{ secrets.OVERTURE_PULL_REQUESTER_APP_PEM }}
+          private-key: ${{ secrets.OVERTURE_PULL_REQUESTER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
 
       # Detect whether this push was a vnext→main release merge.
       # The GitHub API returns the PR(s) associated with the merge commit.
