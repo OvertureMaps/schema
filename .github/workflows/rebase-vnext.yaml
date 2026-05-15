@@ -1,4 +1,4 @@
-name: Post-merge vnext rebase
+name: Rebase vnext onto main
 
 # Triggered on every push to main. Force-rebases vnext onto the new main HEAD
 # using the overture-pull-requester GitHub App (which has branch-protection bypass).
@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   rebase-vnext:
-    name: Rebase vnext onto main
+    name: Force-rebase vnext
     runs-on: ubuntu-slim
     permissions:
       contents: read

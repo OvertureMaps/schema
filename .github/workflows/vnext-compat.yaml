@@ -1,4 +1,4 @@
-name: PR compatibility check (vnext)
+name: vnext compatibility check
 
 # Runs on every PR targeting main. Simulates squashing the PR onto main, then
 # attempts a dry-run rebase of vnext onto the result. If vnext would conflict,

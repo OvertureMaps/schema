@@ -1,4 +1,4 @@
-name: PR target check (advisory)
+name: PR advisory check
 
 # Advisory only — never blocks a PR. Warns when the change-type label and
 # target branch look mismatched so the reviewer can catch it early.
