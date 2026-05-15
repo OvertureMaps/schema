@@ -19,7 +19,7 @@ permissions:
 jobs:
   rebase-vnext:
     name: Rebase vnext onto main
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-slim
     permissions:
       contents: read
       issues: write

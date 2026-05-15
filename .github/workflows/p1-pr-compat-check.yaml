@@ -23,7 +23,7 @@ jobs:
   compat-check:
     name: Check vnext compatibility
     if: github.head_ref != 'vnext'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-slim
     permissions:
       contents: read
       pull-requests: write
