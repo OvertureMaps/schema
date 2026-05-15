@@ -78,6 +78,11 @@ jobs:
               ? `**Conflicting files:**\n\`\`\`\n${files}\n\`\`\`\n`
               : '';
 
+            const fileList = files ? files.split('\n').filter(Boolean) : [];
+            const diffCmd  = fileList.length
+              ? `git diff origin/main...origin/vnext -- ${fileList.join(' ')}`
+              : 'git diff origin/main...origin/vnext';
+
             const body = [
               '## ⚠️ `vnext` compatibility conflict detected',
               '',
@@ -87,17 +92,20 @@ jobs:
               fileBlock,
               '**How to fix:**',
               '',
-              'You need to make your changes compatible with `vnext`. Do **not** rebase your branch',
-              'onto `vnext` — that would pull unreleased breaking changes into `main`.',
+              'Do **not** rebase your branch onto `vnext` — that would pull unreleased breaking',
+              'changes into `main`. Instead:',
               '',
-              '1. See what `vnext` does differently in the conflicting file(s):',
+              '1. See exactly what `vnext` changes in the conflicting file(s):',
               '```bash',
               'git fetch origin',
-              `git diff origin/main...origin/vnext${files ? ' -- ' + files.split('\n').join(' ') : ''}`,
+              diffCmd,
               '```',
-              '2. Update your branch so your changes are compatible with both `main` and `vnext`.',
-              '3. Push your branch (no force-push needed):',
+              '2. Open each conflicting file in your editor. The diff above shows what `vnext` adds',
+              '   or changes there — adjust your edits so they no longer overlap with those lines.',
+              '3. Commit the adjustment and push:',
               '```bash',
+              `git add ${fileList.length ? fileList.join(' ') : '<conflicting files>'}`,
+              'git commit -m "fix: resolve vnext compatibility"',
               `git push origin ${branch}`,
               '```',
               '',

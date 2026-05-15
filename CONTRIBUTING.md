@@ -82,17 +82,24 @@ Every PR targeting `main` runs a compatibility check:
 
 #### Resolving a vnext conflict
 
-If this check flags your PR, CI will post a comment listing the conflicting files. You need to make
-your changes compatible with `vnext` — **do not** rebase your branch onto `vnext`, as that would
-pull unreleased breaking changes into `main`.
+If this check flags your PR, CI will post a comment listing the conflicting files. Do **not** rebase
+your branch onto `vnext` — that would pull unreleased breaking changes into `main`.
 
-1. See what `vnext` does differently in the conflicting files:
+1. See exactly what `vnext` changes in the conflicting files:
    ```bash
    git fetch origin
    git diff origin/main...origin/vnext -- <conflicting files>
    ```
-2. Update your branch so your changes don't conflict with `vnext`.
-3. Push normally — no force-push needed. The check will re-run automatically.
+2. Open each conflicting file in your editor. The diff above shows what `vnext` adds or changes
+   there — adjust your edits so they no longer overlap with those lines.
+3. Commit the adjustment and push:
+   ```bash
+   git add <conflicting files>
+   git commit -m "fix: resolve vnext compatibility"
+   git push origin your-branch
+   ```
+
+After pushing, the check re-runs automatically.
 
 ### Post-merge vnext rebase
 
