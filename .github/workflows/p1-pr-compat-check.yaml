@@ -125,16 +125,28 @@ jobs:
           PR_HEAD_REF: ${{ github.head_ref }}
           CONFLICTED_FILES: ${{ steps.compat.outputs.conflicted_files }}
         run: |
-          cat >> "$GITHUB_STEP_SUMMARY" << 'SUMMARY'
-          ## ⚠️ vnext compatibility conflict detected
-          This PR conflicts with `vnext` when rebased onto `main`.
-          See the conflicting files below. Inspect the diff with:
-          ```
-          git fetch origin
-          git diff origin/main...origin/vnext -- $CONFLICTED_FILES
-          ```
-          Edit overlapping lines in those files, then commit and push.
-          SUMMARY
+          {
+            echo "## ⚠️ vnext compatibility conflict detected"
+            echo ""
+            echo "This PR conflicts with \`vnext\` when rebased onto \`main\`."
+            echo ""
+            if [ -n "$CONFLICTED_FILES" ]; then
+              echo "**Conflicting files:**"
+              echo '```'
+              echo "$CONFLICTED_FILES"
+              echo '```'
+              echo ""
+              echo "Inspect the diff with:"
+              echo '```bash'
+              echo "git fetch origin"
+              echo "git diff origin/main...origin/vnext -- $CONFLICTED_FILES"
+              echo '```'
+            else
+              echo "Run \`git diff origin/main...origin/vnext\` to inspect the conflict."
+            fi
+            echo ""
+            echo "Edit overlapping lines in those files, then commit and push."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail on conflict
         if: steps.compat.outputs.compatible == 'false'

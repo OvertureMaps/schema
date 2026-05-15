@@ -66,8 +66,8 @@ source of truth for change classification.
 
 | Situation | Warning |
 |-----------|---------|
-| PR targets `vnext`, label is not `change type - major 🚨` or `change type - minor 🤏` | Consider targeting `main` instead |
-| PR targets `main`, label is `change type - major 🚨` or `change type - minor 🤏` | Consider targeting `vnext` instead |
+| PR targets `vnext`, label is not `change type - major 🚨` | Consider targeting `main` instead |
+| PR targets `main`, label is `change type - major 🚨` | Consider targeting `vnext` instead |
 
 ### vnext compatibility check
 
