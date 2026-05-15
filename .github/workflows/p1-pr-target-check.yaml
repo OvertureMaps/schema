@@ -31,8 +31,7 @@ jobs:
     if: |
       github.event.action == 'opened' ||
       github.event.action == 'reopened' ||
-      github.event.label.name == 'change type - major 🚨' ||
-      github.event.label.name == 'change type - minor 🤏'
+      github.event.label.name == 'change type - major 🚨'
     runs-on: ubuntu-slim
     permissions:
       contents: read
@@ -42,7 +41,6 @@ jobs:
         with:
           script: |
             const MAJOR_LABEL = 'change type - major 🚨';
-            const MINOR_LABEL = 'change type - minor 🤏';
 
             const pr        = context.payload.pull_request;
             const targetRef = pr.base.ref;          // 'main' or 'vnext'
@@ -50,7 +48,6 @@ jobs:
             const labels    = pr.labels.map(l => l.name);
 
             const hasMajor = labels.includes(MAJOR_LABEL);
-            const hasMinor = labels.includes(MINOR_LABEL);
 
             // Skip vnext→main release PRs — self-referential by design.
             if (headRef === 'vnext') {
@@ -58,9 +55,9 @@ jobs:
               return;
             }
 
-            if (targetRef === 'vnext' && !hasMajor && !hasMinor) {
+            if (targetRef === 'vnext' && !hasMajor) {
               core.warning(
-                `This PR targets 'vnext' but has neither the '${MAJOR_LABEL}' nor '${MINOR_LABEL}' label. ` +
+                `This PR targets 'vnext' but does not have the '${MAJOR_LABEL}' label. ` +
                 `'vnext' is intended for major or breaking changes. ` +
                 `If this is not a breaking change, consider targeting 'main' instead. ` +
                 `The reviewer is the source of truth for change classification.`
