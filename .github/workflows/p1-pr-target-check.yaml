@@ -11,7 +11,8 @@ name: PR target check (advisory)
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, labeled, unlabeled]
+    branches: [main, vnext]
+    types: [opened, reopened, labeled, unlabeled]
 
 permissions:
   contents: read
@@ -23,6 +24,15 @@ concurrency:
 jobs:
   pr-target-check:
     name: Check PR target vs change-type label
+    # Only allocate a runner when something that can affect the result has changed:
+    #   - PR opened/reopened  → initial label state unknown
+    #   - major/minor label added or removed → the only labels this check cares about
+    # All other label events (cosmetic, docs, automation) are skipped for free.
+    if: |
+      github.event.action == 'opened' ||
+      github.event.action == 'reopened' ||
+      github.event.label.name == 'change type - major 🚨' ||
+      github.event.label.name == 'change type - minor 🤏'
     runs-on: ubuntu-slim
     permissions:
       contents: read
