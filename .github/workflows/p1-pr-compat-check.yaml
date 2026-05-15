@@ -9,7 +9,7 @@ name: PR compatibility check (vnext)
 on:
   pull_request:
     branches: [main]
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, edited]
 
 permissions:
   contents: read
@@ -64,7 +64,7 @@ jobs:
           fi
 
       - name: Post conflict resolution comment
-        if: steps.compat.outputs.compatible == 'false'
+        if: steps.compat.outputs.compatible == 'false' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           PR_HEAD_REF: ${{ github.head_ref }}
@@ -118,6 +118,23 @@ jobs:
               issue_number: context.issue.number,
               body,
             });
+
+      - name: Emit conflict instructions to job summary (fork PRs)
+        if: steps.compat.outputs.compatible == 'false' && github.event.pull_request.head.repo.full_name != github.repository
+        env:
+          PR_HEAD_REF: ${{ github.head_ref }}
+          CONFLICTED_FILES: ${{ steps.compat.outputs.conflicted_files }}
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" << 'SUMMARY'
+          ## ⚠️ vnext compatibility conflict detected
+          This PR conflicts with `vnext` when rebased onto `main`.
+          See the conflicting files below. Inspect the diff with:
+          ```
+          git fetch origin
+          git diff origin/main...origin/vnext -- $CONFLICTED_FILES
+          ```
+          Edit overlapping lines in those files, then commit and push.
+          SUMMARY
 
       - name: Fail on conflict
         if: steps.compat.outputs.compatible == 'false'

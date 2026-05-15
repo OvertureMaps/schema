@@ -79,9 +79,13 @@ jobs:
           git checkout -b rebase-vnext FETCH_HEAD
 
           if git rebase origin/main 2>&1; then
-            git push --force origin rebase-vnext:vnext
-            echo "success=true" >> "$GITHUB_OUTPUT"
-            echo "vnext successfully rebased and force-pushed."
+            if git push --force-with-lease origin rebase-vnext:vnext 2>&1; then
+              echo "success=true" >> "$GITHUB_OUTPUT"
+              echo "vnext successfully rebased and force-pushed."
+            else
+              echo "success=false" >> "$GITHUB_OUTPUT"
+              echo "Rebase succeeded but push failed — will open a GitHub issue."
+            fi
           else
             git rebase --abort 2>/dev/null || true
             echo "success=false" >> "$GITHUB_OUTPUT"
