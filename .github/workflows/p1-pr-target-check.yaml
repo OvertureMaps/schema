@@ -1,0 +1,67 @@
+name: PR target check (advisory)
+
+# Advisory only — never blocks a PR. Warns when the change-type label and
+# target branch look mismatched so the reviewer can catch it early.
+#
+# Rules (reviewer remains the source of truth):
+#   • PR → vnext  with no major/minor label  → warn (vnext is for breaking changes)
+#   • PR → main   with a  major/minor label  → warn (major/minor belongs on vnext)
+#
+# Skipped for vnext→main release PRs (head_ref == 'vnext').
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-target-check:
+    name: Check PR target vs change-type label
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check label vs target branch
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const MAJOR_LABEL = 'change type - major 🚨';
+            const MINOR_LABEL = 'change type - minor 🤏';
+
+            const pr        = context.payload.pull_request;
+            const targetRef = pr.base.ref;          // 'main' or 'vnext'
+            const headRef   = pr.head.ref;
+            const labels    = pr.labels.map(l => l.name);
+
+            const hasMajor = labels.includes(MAJOR_LABEL);
+            const hasMinor = labels.includes(MINOR_LABEL);
+
+            // Skip vnext→main release PRs — self-referential by design.
+            if (headRef === 'vnext') {
+              core.info('vnext→main release PR detected — skipping target check.');
+              return;
+            }
+
+            if (targetRef === 'vnext' && !hasMajor && !hasMinor) {
+              core.warning(
+                `This PR targets 'vnext' but has neither the '${MAJOR_LABEL}' nor '${MINOR_LABEL}' label. ` +
+                `'vnext' is intended for major or breaking changes. ` +
+                `If this is not a breaking change, consider targeting 'main' instead. ` +
+                `The reviewer is the source of truth for change classification.`
+              );
+            }
+
+            if (targetRef === 'main' && (hasMajor || hasMinor)) {
+              core.warning(
+                `This PR targets 'main' but has a major/minor change-type label ` +
+                `('${labels.filter(l => l === MAJOR_LABEL || l === MINOR_LABEL).join("', '")}').` +
+                ` Major/minor changes should typically target 'vnext'. ` +
+                `The reviewer is the source of truth for change classification.`
+              );
+            }

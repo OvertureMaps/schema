@@ -1,0 +1,112 @@
+name: PR compatibility check (vnext)
+
+# Runs on every PR targeting main. Simulates squashing the PR onto main, then
+# attempts a dry-run rebase of vnext onto the result. If vnext would conflict,
+# the check fails and posts a comment with exact commands to resolve it.
+#
+# Skipped for vnext→main release PRs (head_ref == 'vnext') — self-referential.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  compat-check:
+    name: Check vnext compatibility
+    if: github.head_ref != 'vnext'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Simulate squash onto main, then rebase vnext
+        id: compat
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git fetch origin main vnext
+
+          # Build a throwaway squash commit of the PR on top of main.
+          git checkout -b sim-main origin/main
+          git merge --squash "$PR_HEAD_SHA"
+          git commit --allow-empty -m "sim: squash of PR #${PR_NUMBER}"
+
+          # Attempt to rebase vnext onto the squash commit.
+          git checkout -b sim-vnext origin/vnext
+          if git rebase sim-main 2>&1; then
+            echo "compatible=true" >> "$GITHUB_OUTPUT"
+          else
+            CONFLICTS=$(git diff --name-only --diff-filter=U 2>/dev/null || true)
+            git rebase --abort
+            echo "compatible=false" >> "$GITHUB_OUTPUT"
+            {
+              echo 'conflicted_files<<EOF'
+              echo "$CONFLICTS"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post conflict resolution comment
+        if: steps.compat.outputs.compatible == 'false'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_HEAD_REF: ${{ github.head_ref }}
+          CONFLICTED_FILES: ${{ steps.compat.outputs.conflicted_files }}
+        with:
+          script: |
+            const branch = process.env.PR_HEAD_REF;
+            const files  = (process.env.CONFLICTED_FILES || '').trim();
+
+            const fileBlock = files
+              ? `**Conflicting files:**\n\`\`\`\n${files}\n\`\`\`\n`
+              : '';
+
+            const body = [
+              '## ⚠️ `vnext` compatibility conflict detected',
+              '',
+              'Rebasing `vnext` onto `main` after this PR would produce merge conflicts.',
+              'Rebase your branch onto `vnext`, resolve the conflicts there, and push.',
+              fileBlock,
+              '**Steps to resolve:**',
+              '```bash',
+              'git fetch origin',
+              `git checkout ${branch}`,
+              'git rebase origin/vnext',
+              '# Resolve any conflicts, then:',
+              'git rebase --continue',
+              `git push --force-with-lease origin ${branch}`,
+              '```',
+              '',
+              'After pushing, this check will re-run automatically.',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Fail on conflict
+        if: steps.compat.outputs.compatible == 'false'
+        run: |
+          echo "::error::This PR conflicts with 'vnext' when rebased onto main. See the PR comment for resolution instructions."
+          exit 1
