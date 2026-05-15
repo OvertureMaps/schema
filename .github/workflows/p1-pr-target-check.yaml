@@ -23,7 +23,7 @@ concurrency:
 jobs:
   pr-target-check:
     name: Check PR target vs change-type label
-    runs-on: ubuntu-24.04-slim
+    runs-on: ubuntu-slim
     permissions:
       contents: read
     steps:
