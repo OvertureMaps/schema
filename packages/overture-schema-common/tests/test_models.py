@@ -5,11 +5,13 @@ from typing import Any
 import pytest
 from deepdiff import DeepDiff
 from overture.schema.common.models import OvertureFeature
+from overture.schema.common.sources import SourceItem
 from overture.schema.system.json_schema import GenerateOmitNullableOptionalJsonSchema
 from overture.schema.system.primitive import (
     BBox,
     Geometry,
 )
+from pydantic import ValidationError
 from shapely.geometry import LineString, Point
 
 
@@ -71,7 +73,7 @@ def test_feature_json_schema() -> None:
                     },
                     "confidence": {"maximum": 1.0, "minimum": 0.0, "type": "number"},
                 },
-                "required": ["property", "dataset", "provider", "resource", "version"],
+                "required": ["property", "dataset"],
                 "type": "object",
             }
         },
@@ -513,3 +515,22 @@ def test_feature_validate_json(
     )
 
     assert feature == validated
+
+
+def test_source_item_provider_resource_version_omittable() -> None:
+    """provider, resource, and version can be omitted; absent fields excluded from JSON."""
+    item = SourceItem(property="", dataset="osm")
+    dumped = json.loads(item.model_dump_json(exclude_unset=True))
+    assert "provider" not in dumped
+    assert "resource" not in dumped
+    assert "version" not in dumped
+
+
+def test_source_item_provider_resource_version_not_nullable() -> None:
+    """provider, resource, and version cannot be set to null."""
+    with pytest.raises(ValidationError):
+        SourceItem(property="", dataset="osm", provider=None)
+    with pytest.raises(ValidationError):
+        SourceItem(property="", dataset="osm", resource=None)
+    with pytest.raises(ValidationError):
+        SourceItem(property="", dataset="osm", version=None)

@@ -12,6 +12,7 @@ from overture.schema.common.scoping import Scope, scoped
 from overture.schema.common.types import ConfidenceScore
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.optionality import Omitable
 from overture.schema.system.string import JsonPointer, StrippedString
 
 
@@ -44,36 +45,25 @@ class SourceItem(BaseModel):
             Dataset identifier retained for backward compatibility.
         """).strip()
     )
-    provider: Annotated[
-        str,
-        Field(
-            min_length=1,
-            description=textwrap.dedent("""
-                Name of the entity that produced the source data.
-            """).strip(),
-        ),
-    ]
-    resource: Annotated[
-        str,
-        Field(
-            min_length=1,
-            description=textwrap.dedent("""
-                Subject or data type produced by the provider.
-            """).strip(),
-        ),
-    ]
-    version: Annotated[
-        str,
-        Field(
-            min_length=1,
-            description=textwrap.dedent("""
-                Sortable source snapshot identifier, such as a date, number, or release label.
-            """).strip(),
-        ),
-    ]
 
-    # Optional
-
+    provider: Omitable[str] = Field(
+        min_length=1,
+        description=textwrap.dedent("""
+            Optional name of the entity that produced the source data.
+        """).strip(),
+    )
+    resource: Omitable[str] = Field(
+        min_length=1,
+        description=textwrap.dedent("""
+            Optional subject or data type produced by the provider.
+        """).strip(),
+    )
+    version: Omitable[str] = Field(
+        min_length=1,
+        description=textwrap.dedent("""
+            Optional sortable source snapshot identifier, such as a date, number, or release label.
+        """).strip(),
+    )
     license: Annotated[
         StrippedString | None,
         Field(

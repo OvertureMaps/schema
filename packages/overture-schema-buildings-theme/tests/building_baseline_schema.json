@@ -372,7 +372,7 @@
           "type": "string"
         },
         "provider": {
-          "description": "Name of the entity that produced the source data.",
+          "description": "Optional name of the entity that produced the source data.",
           "minLength": 1,
           "title": "Provider",
           "type": "string"
@@ -383,7 +383,7 @@
           "type": "string"
         },
         "resource": {
-          "description": "Subject or data type produced by the provider.",
+          "description": "Optional subject or data type produced by the provider.",
           "minLength": 1,
           "title": "Resource",
           "type": "string"
@@ -395,7 +395,7 @@
           "type": "string"
         },
         "version": {
-          "description": "Sortable source snapshot identifier, such as a date, number, or release label.",
+          "description": "Optional sortable source snapshot identifier, such as a date, number, or release label.",
           "minLength": 1,
           "title": "Version",
           "type": "string"
@@ -403,10 +403,7 @@
       },
       "required": [
         "property",
-        "dataset",
-        "provider",
-        "resource",
-        "version"
+        "dataset"
       ],
       "title": "SourceItem",
       "type": "object"

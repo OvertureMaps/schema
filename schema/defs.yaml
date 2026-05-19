@@ -264,10 +264,11 @@ description: Common schema definitions shared by all themes
         is a reference to the property element within this Feature, and will be
         referenced using JSON Pointer Notation RFC 6901
         (https://datatracker.ietf.org/doc/rfc6901/). Source identity includes
-        a backward-compatible dataset identifier plus provider, resource, and
-        version values that together identify a specific source snapshot.
+        a backward-compatible dataset identifier plus optional provider,
+        resource, and version values that together can identify a specific
+        source snapshot.
       type: object
-      required: [property, dataset, provider, resource, version]
+      required: [property, dataset]
       allOf:
         - { "$ref": "#/$defs/propertyContainers/geometricRangeScopeContainer" }
       unevaluatedProperties: false
