@@ -6,6 +6,9 @@ The Overture Maps schema working group is responsible for designing the Overture
 ## Documentation
 The contents of this repository are presented in a more human-friendly format at [docs.overturemaps.org](https://docs.overturemaps.org/)
 
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branching strategy, workflow, and contribution guidelines.
+
 ## Feedback
 Please provide feedback or ask questions at [Discussions](https://github.com/orgs/OvertureMaps/discussions).
 
