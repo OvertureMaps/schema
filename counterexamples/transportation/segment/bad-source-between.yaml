@@ -21,4 +21,7 @@ properties:
     - record_id: w123
       property: ""
       dataset: some source
+      provider: some_provider
+      resource: some_resource
+      version: "2087-08-23"
       between: []

@@ -17,5 +17,8 @@ properties:
     - record_id: w353912370@4
       property: ""
       dataset: OpenStreetMap
+      provider: osm
+      resource: planet
+      version: "2099-05-18T10:30:00Z"
   wikidata: Q7420045
   version: 0

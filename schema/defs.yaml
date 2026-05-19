@@ -260,15 +260,14 @@ description: Common schema definitions shared by all themes
       enum: [left, right]
     sourcePropertyItem:
       description: >-
-        An object storing the source for a specificed property. The property
+        An object storing the source for a specified property. The property
         is a reference to the property element within this Feature, and will be
         referenced using JSON Pointer Notation RFC 6901
-        (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for
-        that referenced property will be specified in the overture list of
-        approved sources from the Overture Data Working Group that contains
-        the relevant metadata for that dataset including license source organization.
+        (https://datatracker.ietf.org/doc/rfc6901/). Source identity includes
+        a backward-compatible dataset identifier plus provider, resource, and
+        version values that together identify a specific source snapshot.
       type: object
-      required: [property, dataset]
+      required: [property, dataset, provider, resource, version]
       allOf:
         - { "$ref": "#/$defs/propertyContainers/geometricRangeScopeContainer" }
       unevaluatedProperties: false
@@ -277,6 +276,20 @@ description: Common schema definitions shared by all themes
           type: string
         dataset:
           type: string
+          description: >-
+            Dataset identifier retained for backward compatibility.
+        provider:
+          type: string
+          description: The entity that produced the source data, for example meta, esri, microsoft, etc.
+          minLength: 1
+        resource:
+          type: string
+          description: The subject or data type produced by the provider, for example buildings, division-names, planet, etc.
+          minLength: 1
+        version:
+          type: string
+          description: Sortable source snapshot identifier, for example 2026-02-13, 5.3, A5692, etc.
+          minLength: 1
         license:
           type: string
           description: >-
@@ -296,10 +309,10 @@ description: Common schema definitions shared by all themes
       description: >-
         The array of source information for the properties of a
         given feature, with each entry being a source object which
-        lists the property in JSON Pointer notation and the dataset
-        that specific value came from. All features must have a root
-        level source which is the default source if a specific
-        property's source is not specified.
+        lists the property in JSON Pointer notation and source
+        identifiers for where that value came from. All features
+        must have a root level source which is the default source
+        if a specific property's source is not specified.
       type: array
       items: {"$ref" : "#/$defs/propertyDefinitions/sourcePropertyItem"}
       minItems: 1

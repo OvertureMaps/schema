@@ -17,6 +17,9 @@ properties:
     - record_id: w54320702@1
       property: ""
       dataset: OpenStreetMap
+      provider: osm
+      resource: planet
+      version: "2099-05-18T10:30:00Z"
   is_salt: false
   is_intermittent: false
   version: 0

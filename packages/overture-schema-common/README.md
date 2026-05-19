@@ -73,16 +73,16 @@ Name rules support geometric range and side scoping for cases like a street whos
 
 ## Sources
 
-Source attribution tracking. Each `SourceItem` identifies which dataset a feature or property came from, with optional license, record ID, update time, and confidence score. Source items support geometric range scoping for per-segment attribution.
+Source attribution tracking. Each `SourceItem` includes a backward-compatible `dataset` identifier and the required source triplet (`provider`, `resource`, `version`), with optional license, record ID, update time, and confidence score. Source items support geometric range scoping for per-segment attribution.
 
 ```python
 from overture.schema.common.sources import SourceItem
 
 sources = [
-    SourceItem(property="", dataset="OpenStreetMap"),
-    SourceItem(property="/geometry", dataset="Microsoft ML Buildings"),
+    SourceItem(property="", dataset="OpenStreetMap", provider="osm", resource="planet", version="2026-05-01"),
+    SourceItem(property="/geometry", dataset="Microsoft ML Buildings", provider="microsoft", resource="buildings", version="v3"),
     # first 30% of the segment's geometry came from a different source
-    SourceItem(property="/geometry", dataset="County GIS", between=[0, 0.3]),
+    SourceItem(property="/geometry", dataset="County GIS", provider="county-gis", resource="building-footprints", version="2026-04", between=[0, 0.3]),
 ]
 ```
 

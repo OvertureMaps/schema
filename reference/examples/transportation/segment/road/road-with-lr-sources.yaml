@@ -20,12 +20,18 @@ properties:
   sources:
     - property: "/names/primary"
       dataset: OpenStreetMap
+      provider: osm
+      resource: planet
+      version: "2099-05-18T10:30:00Z"
       record_id: w12345@1
       between:
         - 0
         - 0.5
     - property: ""
       dataset: OpenStreetMap
+      provider: osm
+      resource: planet
+      version: "2097-08-12T11:20:00Z"
       record_id: w67890@1
       between:
         - 0.5

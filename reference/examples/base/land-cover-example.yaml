@@ -16,4 +16,7 @@ properties:
     - record_id: x123
       property: ""
       dataset: some source
+      provider: some_provider
+      resource: some_resource
+      version: abc
   version: 0

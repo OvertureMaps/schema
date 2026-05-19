@@ -27,8 +27,14 @@ properties:
   is_underground: false
   sources:
   - property: ""
-    dataset: microsoftMLBuildings,
+    dataset: microsoftMLBuildings
+    provider: microsoft
+    resource: ml-buildings
+    version: abc
     confidence: 1
   - property: /properties/height
-    dataset:  metaLidarExtractions,
+    dataset:  metaLidarExtractions
+    provider: meta
+    resource: lidar-extractions
+    version: "2087-08-23"
     confidence: 0.95

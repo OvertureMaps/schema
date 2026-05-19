@@ -71,6 +71,9 @@ ymax = -21.13536834716797
 [[examples.Division.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2014-12-18"
 record_id = "n3173231082@4"
 update_time = "2014-12-18T09:17:03Z"
 
@@ -110,6 +113,9 @@ ymax = -21.283489227294922
 [[examples.DivisionArea.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2020-12-30"
 record_id = "r7247527@3"
 update_time = "2020-12-30T18:41:56Z"
 
@@ -142,11 +148,17 @@ ymax = -15.151169776916504
 [[examples.DivisionBoundary.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2023-07-20"
 record_id = "r6063055@9"
 update_time = "2023-07-20T00:28:40Z"
 
 [[examples.DivisionBoundary.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2023-07-20"
 record_id = "r6063063@12"
 update_time = "2023-07-20T00:28:40Z"

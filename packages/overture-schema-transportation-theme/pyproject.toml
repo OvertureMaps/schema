@@ -57,6 +57,9 @@ ymax = -43.96794128417969
 [[examples.Connector.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2024-01-01"
 
 [[examples.Segment]]
 id = "1bc62f3b-08b5-42b8-89fe-36f685f60455"
@@ -76,6 +79,9 @@ ymax = -43.953250885009766
 [[examples.Segment.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2021-05-03"
 record_id = "w53435546@6"
 update_time = "2021-05-03T06:37:03Z"
 

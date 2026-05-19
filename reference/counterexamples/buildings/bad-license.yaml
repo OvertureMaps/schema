@@ -11,6 +11,9 @@ properties:
   version: 1
   sources:
     - dataset: MyGreatDataset
+      provider: overture
+      resource: soccer-stadiums
+      version: "2087-08-23"
       property: "/geometry"
       update_time: "2024-04-26T23:55:01-08:00"
       confidence: 0.3

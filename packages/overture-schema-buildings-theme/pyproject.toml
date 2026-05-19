@@ -59,6 +59,9 @@ ymax = -43.993709564208984
 [[examples.Building.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2017-08-27"
 record_id = "w519166507@1"
 update_time = "2017-08-27T21:39:50.000Z"
 
@@ -81,5 +84,8 @@ ymax = -39.81088638305664
 [[examples.BuildingPart.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2014-10-31"
 record_id = "w223076787@2"
 update_time = "2014-10-31T22:55:36.000Z"

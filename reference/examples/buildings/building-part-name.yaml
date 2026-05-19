@@ -30,3 +30,6 @@ properties:
   sources:
   - property: ""
     dataset: OpenStreetMap
+    provider: osm
+    resource: planet
+    version: "2099-05-18T10:30:00Z"

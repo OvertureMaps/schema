@@ -12,5 +12,8 @@ properties:
   version: 1
   sources:
     - dataset: OpenStreetMap
+      provider: osm
+      resource: planet
+      version: "2099-05-18T10:30:00Z"
       property: "/blah"
       update_time: abc2023-02-22T23:55:01-08:00

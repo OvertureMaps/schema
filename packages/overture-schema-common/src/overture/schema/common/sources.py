@@ -41,9 +41,36 @@ class SourceItem(BaseModel):
     )
     dataset: str = Field(
         description=textwrap.dedent("""
-            Name of the dataset where the source data can be found.
+            Dataset identifier retained for backward compatibility.
         """).strip()
     )
+    provider: Annotated[
+        str,
+        Field(
+            min_length=1,
+            description=textwrap.dedent("""
+                Name of the entity that produced the source data.
+            """).strip(),
+        ),
+    ]
+    resource: Annotated[
+        str,
+        Field(
+            min_length=1,
+            description=textwrap.dedent("""
+                Subject or data type produced by the provider.
+            """).strip(),
+        ),
+    ]
+    version: Annotated[
+        str,
+        Field(
+            min_length=1,
+            description=textwrap.dedent("""
+                Sortable source snapshot identifier, such as a date, number, or release label.
+            """).strip(),
+        ),
+    ]
 
     # Optional
 

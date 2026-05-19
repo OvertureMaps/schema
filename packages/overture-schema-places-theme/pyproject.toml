@@ -66,6 +66,9 @@ ymax = -79.17133331298828
 [[examples.Place.sources]]
 property = ""
 dataset = "meta"
+provider = "meta"
+resource = "places"
+version = "2025-06-30"
 record_id = "107663894904826"
 update_time = "2025-06-30T07:00:00.000Z"
 confidence = 0.7337175792507205

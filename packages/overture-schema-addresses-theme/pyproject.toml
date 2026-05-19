@@ -69,3 +69,6 @@ value = "Chatham Island"
 [[examples.Address.sources]]
 property = ""
 dataset = "OpenAddresses/LINZ"
+provider = "open-addresses"
+resource = "linz"
+version = "2024-01-01"

@@ -16,6 +16,9 @@ properties:
   sources:
     - property: ""
       dataset: OpenStreetMap
+      provider: osm
+      resource: planet
+      version: "2099-05-18T10:30:00Z"
       record_id: R61320.V468
   country: US
   region: US-NY

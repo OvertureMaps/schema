@@ -62,6 +62,9 @@ ymax = -75.64299774169922
 [[examples.Bathymetry.sources]]
 property = ""
 dataset = "ETOPO/GLOBathy"
+provider = "etopo"
+resource = "globathy"
+version = "2024-12-09"
 record_id = "2024-12-09T00:00:00.000Z"
 
 [examples.Bathymetry.cartography]
@@ -86,6 +89,9 @@ ymax = -82.42407989501953
 [[examples.Infrastructure.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2023-04-07"
 record_id = "n7674174803@2"
 update_time = "2023-04-07T17:37:48.000Z"
 
@@ -119,6 +125,9 @@ ymax = -85.44999694824219
 [[examples.Land.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2024-03-05"
 record_id = "n11693475112@1"
 update_time = "2024-03-05T09:23:39.000Z"
 
@@ -147,6 +156,9 @@ ymax = 65.96218872070312
 [[examples.LandCover.sources]]
 property = ""
 dataset = "ESA WorldCover"
+provider = "esa"
+resource = "worldcover"
+version = "2024-11-07"
 update_time = "2024-11-07T00:00:00.000Z"
 
 [examples.LandCover.cartography]
@@ -172,6 +184,9 @@ ymax = -43.95420837402344
 [[examples.LandUse.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2010-04-24"
 record_id = "w56117029@3"
 update_time = "2010-04-24T22:35:13.000Z"
 
@@ -203,6 +218,9 @@ ymax = -84.9347915649414
 [[examples.Water.sources]]
 property = ""
 dataset = "OpenStreetMap"
+provider = "osm"
+resource = "planet"
+version = "2024-02-11"
 record_id = "n11109190647@2"
 update_time = "2024-02-11T05:52:05.000Z"
 

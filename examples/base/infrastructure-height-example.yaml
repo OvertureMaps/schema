@@ -16,4 +16,7 @@ properties:
     - property: ""
       record_id: n10707323715@5
       dataset: OpenStreetMap
+      provider: osm
+      resource: planet
+      version: "2099-05-18T10:30:00Z"
   version: 0

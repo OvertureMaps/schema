@@ -57,6 +57,9 @@ def test_feature_json_schema() -> None:
                     },
                     "property": {"type": "string"},
                     "dataset": {"type": "string"},
+                    "provider": {"minLength": 1, "type": "string"},
+                    "resource": {"minLength": 1, "type": "string"},
+                    "version": {"minLength": 1, "type": "string"},
                     "license": {
                         "pattern": "^(\\S(.*\\S)?)?$",
                         "type": "string",
@@ -68,7 +71,7 @@ def test_feature_json_schema() -> None:
                     },
                     "confidence": {"maximum": 1.0, "minimum": 0.0, "type": "number"},
                 },
-                "required": ["property", "dataset"],
+                "required": ["property", "dataset", "provider", "resource", "version"],
                 "type": "object",
             }
         },
