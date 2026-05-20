@@ -247,6 +247,24 @@ def test_validate_skip_columns(spark: SparkSession, tmp_path: Path) -> None:
     assert "0 / 1 rows with errors" in result.output
 
 
+def test_validate_missing_column_suggests_skip_columns(
+    spark: SparkSession, tmp_path: Path
+) -> None:
+    """A column absent from the data hints the --skip-columns flag."""
+    input_path = str(tmp_path / "input.parquet")
+
+    # Data missing the 'value' column the schema expects
+    spark.createDataFrame([Row(id="r1", theme="test", type="test_cli")]).write.parquet(
+        input_path
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(validate_cli, [_TEST_TYPE, input_path])
+    assert result.exit_code != 0
+    assert "Schema mismatch" in result.output
+    assert "--skip-columns value" in result.output
+
+
 def test_validate_ignore_extra_columns(spark: SparkSession, tmp_path: Path) -> None:
     """--ignore-extra-columns suppresses 'expected missing' schema mismatches."""
     input_path = str(tmp_path / "input.parquet")

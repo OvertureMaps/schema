@@ -311,11 +311,30 @@ def validate_feature(
             + "; ".join(parts)
         )
 
+    # Schema columns the data lacks.  A check referencing an absent column
+    # raises an AnalysisException during Spark plan analysis, so such checks
+    # are dropped before evaluation via the `excluded` filter below -- the
+    # same filter skip_columns feeds.  Only that check-filtering is shared:
+    # a skip_columns mismatch was suppressed by the loop above, so the
+    # caller sees no mismatch and validation continues; an absent-column
+    # mismatch stays in `mismatches` and is reported, so the caller (the
+    # CLI) aborts unless --skip-schema-check.  `--skip-columns` opts into
+    # that suppression -- it is not a restatement of the default.
+    # `Check.root_field` is column-granular, so filtering is all-or-nothing:
+    # if the data has the `bbox` struct but is missing only `bbox.xmin`,
+    # every check whose root_field is `bbox` is dropped, including checks on
+    # sub-fields that are present.  Finer granularity would require
+    # sub-column awareness in Check, which it deliberately lacks.
+    absent_columns = {
+        m.path.split(".", 1)[0] for m in mismatches if m.actual == "missing"
+    }
+
     # Check filtering
+    excluded = skip | absent_columns
     kept: list[Check] = []
     suppressed: list[Check] = []
     for chk in all_checks:
-        if chk.root_field is not None and chk.root_field in skip:
+        if chk.root_field is not None and chk.root_field in excluded:
             continue  # structurally absent, not tracked in suppressed
         if chk.root_field is not None and chk.root_field in suppress_roots:
             suppressed.append(chk)

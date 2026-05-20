@@ -514,3 +514,29 @@ class TestValidateFeature:
         )
         assert result.checks == []
         assert result.error_rows().count() == 0
+
+    def test_missing_column_does_not_raise(self, spark: SparkSession) -> None:
+        # A DataFrame missing a required column causes AnalysisException when
+        # evaluate_checks references that column.  validate_feature must detect
+        # structurally absent columns via schema_mismatches and silently drop
+        # the corresponding checks before calling evaluate_checks -- mirroring
+        # the skip_columns path.
+        schema_no_theme = StructType(
+            [f for f in _VF_SCHEMA.fields if f.name != "theme"]
+        )
+        df = spark.createDataFrame(
+            [Row(id="1", type=_VF_TYPE, value="ok", sources="s")],
+            schema=schema_no_theme,
+        )
+        result = validate_feature(df, _VF_TYPE)
+        # Must not raise -- returns normally
+        assert isinstance(result, ValidationResult)
+        # Missing column is reported as a schema mismatch
+        mismatch_paths = [m.path for m in result.schema_mismatches]
+        assert "theme" in mismatch_paths
+        # No check may reference the absent root field
+        missing_root_fields = {c.root_field for c in result.checks}
+        assert "theme" not in missing_root_fields
+        # Absent-column checks are silently dropped, not tracked in suppressed
+        suppressed_root_fields = {c.root_field for c in result.suppressed_checks}
+        assert "theme" not in suppressed_root_fields
