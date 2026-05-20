@@ -3919,16 +3919,19 @@ def _access_restrictions_when_check_require_any_of_5_check() -> Check:
         name="require_any_of",
         expr=array_check(
             "access_restrictions",
-            lambda el: check_require_any_of(
-                [
-                    el["when"]["heading"],
-                    el["when"]["during"],
-                    el["when"]["mode"],
-                    el["when"]["using"],
-                    el["when"]["recognized"],
-                    el["when"]["vehicle"],
-                ],
-                ["heading", "during", "mode", "using", "recognized", "vehicle"],
+            lambda el: F.when(
+                el["when"].isNotNull(),
+                check_require_any_of(
+                    [
+                        el["when"]["heading"],
+                        el["when"]["during"],
+                        el["when"]["mode"],
+                        el["when"]["using"],
+                        el["when"]["recognized"],
+                        el["when"]["vehicle"],
+                    ],
+                    ["heading", "during", "mode", "using", "recognized", "vehicle"],
+                ),
             ),
         ),
         shape=CheckShape.ARRAY,
@@ -4055,16 +4058,19 @@ def _prohibited_transitions_when_check_require_any_of_12_check() -> Check:
         name="require_any_of",
         expr=array_check(
             "prohibited_transitions",
-            lambda el: check_require_any_of(
-                [
-                    el["when"]["heading"],
-                    el["when"]["during"],
-                    el["when"]["mode"],
-                    el["when"]["using"],
-                    el["when"]["recognized"],
-                    el["when"]["vehicle"],
-                ],
-                ["heading", "during", "mode", "using", "recognized", "vehicle"],
+            lambda el: F.when(
+                el["when"].isNotNull(),
+                check_require_any_of(
+                    [
+                        el["when"]["heading"],
+                        el["when"]["during"],
+                        el["when"]["mode"],
+                        el["when"]["using"],
+                        el["when"]["recognized"],
+                        el["when"]["vehicle"],
+                    ],
+                    ["heading", "during", "mode", "using", "recognized", "vehicle"],
+                ),
             ),
         ),
         shape=CheckShape.ARRAY,
@@ -4176,16 +4182,19 @@ def _speed_limits_when_check_require_any_of_18_check() -> Check:
         name="require_any_of",
         expr=array_check(
             "speed_limits",
-            lambda el: check_require_any_of(
-                [
-                    el["when"]["heading"],
-                    el["when"]["during"],
-                    el["when"]["mode"],
-                    el["when"]["using"],
-                    el["when"]["recognized"],
-                    el["when"]["vehicle"],
-                ],
-                ["heading", "during", "mode", "using", "recognized", "vehicle"],
+            lambda el: F.when(
+                el["when"].isNotNull(),
+                check_require_any_of(
+                    [
+                        el["when"]["heading"],
+                        el["when"]["during"],
+                        el["when"]["mode"],
+                        el["when"]["using"],
+                        el["when"]["recognized"],
+                        el["when"]["vehicle"],
+                    ],
+                    ["heading", "during", "mode", "using", "recognized", "vehicle"],
+                ),
             ),
         ),
         shape=CheckShape.ARRAY,
