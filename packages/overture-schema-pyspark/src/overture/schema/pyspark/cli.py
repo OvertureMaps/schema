@@ -220,6 +220,19 @@ def validate_cli(
         click.echo(f"Schema mismatches for {resolved}:", err=True)
         for m in result.schema_mismatches:
             click.echo(f"  {m.path}: expected {m.expected}, got {m.actual}", err=True)
+        absent_columns = list(
+            dict.fromkeys(
+                m.path.split(".", 1)[0]
+                for m in result.schema_mismatches
+                if m.actual == "missing"
+            )
+        )
+        if absent_columns:
+            flags = " ".join(f"--skip-columns {c}" for c in absent_columns)
+            click.echo(
+                f"  Re-run with `{flags}` to skip missing columns.",
+                err=True,
+            )
         if not skip_schema_check:
             sys.exit(1)
 
