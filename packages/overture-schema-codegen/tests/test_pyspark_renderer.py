@@ -33,6 +33,7 @@ from overture.schema.codegen.pyspark.renderer import (
 )
 from overture.schema.codegen.pyspark.schema_builder import build_schema
 from overture.schema.system.field_path import (
+    ScalarPath,
     parse,
 )
 from overture.schema.system.model_constraint import (
@@ -1095,3 +1096,72 @@ class TestGatedArrayRendering:
         # Gate must be on el (the rule struct), not inner (the country string).
         assert 'el["perspectives"].isNotNull()' in source
         assert "inner[" not in source
+
+
+@require_any_of("a", "b")
+class _OptionalSubModel(BaseModel):
+    a: str | None = None
+    b: str | None = None
+
+
+class _ElementWithOptional(BaseModel):
+    nested: _OptionalSubModel | None = None
+
+
+class _ArrayWithOptionalSubModel(BaseModel):
+    items: list[_ElementWithOptional]
+
+
+class TestGatedModelConstraintRendering:
+    """ModelCheck with gate wraps the constraint in F.when(<accessor>.isNotNull(), ...)."""
+
+    def test_gated_model_check_wraps_in_f_when(self) -> None:
+        """A gated ModelCheck on items[].nested emits F.when(el['nested'].isNotNull(), ...)."""
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("a", "b")),
+            target=_path("items[].nested"),
+            gate=_path("items[].nested"),
+        )
+        source = _render_model_node(check)
+        assert 'el["nested"].isNotNull()' in source
+        assert "check_require_any_of" in source
+        assert "F.when(" in source
+
+    def test_gated_model_check_is_parseable(self) -> None:
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("a", "b")),
+            target=_path("items[].nested"),
+            gate=_path("items[].nested"),
+        )
+        source = _render_model_node(check)
+        ast.parse(source)
+
+    def test_ungated_model_check_no_f_when(self) -> None:
+        """A ModelCheck without gate does NOT emit isNotNull wrapping."""
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("x", "y")),
+            target=_path("items[]"),
+            gate=None,
+        )
+        source = _render_model_node(check)
+        assert "isNotNull" not in source
+        assert "check_require_any_of" in source
+
+    def test_full_render_optional_sub_model_has_when_guard(self) -> None:
+        """End-to-end: rendering _ArrayWithOptionalSubModel emits the isNotNull guard."""
+        source = _render(_ArrayWithOptionalSubModel, "arr_optional_sub")
+        assert 'el["nested"].isNotNull()' in source
+
+    def test_full_render_optional_sub_model_parseable(self) -> None:
+        source = _render(_ArrayWithOptionalSubModel, "arr_optional_sub")
+        ast.parse(source)
+
+    def test_gated_model_check_assertion_on_non_array_target(self) -> None:
+        """A gate paired with a non-ArrayPath target raises AssertionError."""
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("a", "b")),
+            target=ScalarPath(),
+            gate=_path("items[].nested"),
+        )
+        with pytest.raises(AssertionError, match="gate.*non-ArrayPath"):
+            _render_model_node(check)

@@ -394,11 +394,17 @@ def _recurse_into_model(
         model_checks.extend(sub_model_checks)
 
     if model_spec.constraints:
+        constraint_gate = (
+            prefix
+            if is_optional and not field_is_list and isinstance(prefix, ArrayPath)
+            else None
+        )
         sub_model_constraint_checks = _dispatch_model_constraints(
             model_spec.constraints,
             model_spec.fields,
             target=_model_constraint_target(prefix),
             arm=arm,
+            gate=constraint_gate,
         )
         if sub_model_constraint_checks:
             _guard_struct_nested_anchor(prefix, model_spec.name)
@@ -485,10 +491,11 @@ def _dispatch_model_constraints(
     *,
     target: FieldPath = ScalarPath(),
     arm: str | None = None,
+    gate: FieldPath | None = None,
 ) -> list[ModelCheck]:
     """Dispatch model constraints to ModelChecks."""
     return [
-        ModelCheck(descriptor=desc, target=target, arm=arm)
+        ModelCheck(descriptor=desc, target=target, arm=arm, gate=gate)
         for mc in constraints
         for desc in dispatch_model_constraint(mc, fields)
     ]

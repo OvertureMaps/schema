@@ -1336,6 +1336,10 @@ class _ArrayOfConstrainedModel(BaseModel):
     items: list[_ArrayElementWithConstraint]
 
 
+class _OptionalArrayOfConstrainedModel(BaseModel):
+    items: list[_ArrayElementWithConstraint] | None = None
+
+
 @require_any_of("a", "b")
 class _NestedConstrainedStruct(BaseModel):
     a: str | None = None
@@ -1875,3 +1879,82 @@ class TestPrimitiveBoundsFiltered:
             d = dict(b.kwargs)
             assert d.get("ge") != -(2**31)
             assert d.get("le") != 2**31 - 1
+
+
+@require_any_of("x", "y")
+class _OptionalSubModelConstrained(BaseModel):
+    """Sub-model with require_any_of on its own fields."""
+
+    x: str | None = None
+    y: str | None = None
+
+
+class _ElementWithOptionalConstrained(BaseModel):
+    nested: _OptionalSubModelConstrained | None = None
+
+
+class _ArrayOfElementWithOptionalConstrained(BaseModel):
+    items: list[_ElementWithOptionalConstrained]
+
+
+class TestOptionalSubModelModelCheckGate:
+    """ModelCheck for a constraint on an optional sub-model carries gate set to its path.
+
+    When the constrained model is reached via an optional field (`field: Model | None`),
+    the PySpark validator must skip the constraint when the field is NULL. The
+    `ModelCheck.gate` carries the path to the optional field so the renderer can emit
+    `F.when(<accessor>.isNotNull(), ...)`.
+    """
+
+    def test_optional_nested_model_gate_set(self) -> None:
+        """items[].nested is optional -- gate == path to nested."""
+        _, model_nodes = _checks_for(_ArrayOfElementWithOptionalConstrained)
+        nodes = [
+            n
+            for n in _filter_nodes(model_nodes, "check_require_any_of")
+            if n.target == _path("items[].nested")
+        ]
+        assert len(nodes) == 1
+        assert nodes[0].gate == _path("items[].nested")
+
+    def test_non_optional_sub_model_has_no_gate(self) -> None:
+        """Direct array element model (not optional) -- gate is None."""
+        _, model_nodes = _checks_for(_ArrayOfConstrainedModel)
+        nodes = [
+            n
+            for n in _filter_nodes(model_nodes, "check_require_any_of")
+            if n.target == _path("items[]")
+        ]
+        assert len(nodes) == 1
+        assert nodes[0].gate is None
+
+    def test_optional_list_field_element_model_has_no_gate(self) -> None:
+        """Optional list field (list[Model] | None) -- element constraint gate is None.
+
+        The field being optional means the list itself may be absent; but the
+        constrained model is reached via array iteration, not a nullable struct
+        field, so no element-level gate belongs.
+        """
+        _, model_nodes = _checks_for(_OptionalArrayOfConstrainedModel)
+        nodes = [
+            n
+            for n in _filter_nodes(model_nodes, "check_require_any_of")
+            if n.target == _path("items[]")
+        ]
+        assert len(nodes) == 1
+        assert nodes[0].gate is None
+
+    def test_segment_speed_limits_when_has_gate(self) -> None:
+        """Segment.speed_limits[].when is optional -- gate == path to when."""
+        from codegen_test_support import discover_feature
+
+        spec = discover_feature("Segment")
+        _, model_nodes = build_checks(spec)
+        when_nodes = [
+            n
+            for n in _filter_nodes(model_nodes, "check_require_any_of")
+            if n.target == _path("speed_limits[].when")
+        ]
+        assert len(when_nodes) >= 1
+        for node in when_nodes:
+            assert node.gate == _path("speed_limits[].when")

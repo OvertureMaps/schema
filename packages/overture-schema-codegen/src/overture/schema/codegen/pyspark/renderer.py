@@ -455,10 +455,26 @@ def _render_model_constraint_function_context(
             raise TypeError(f"Unhandled model constraint descriptor: {desc!r}")
 
     if isinstance(target, ArrayPath):
+        if check.gate is not None:
+            assert not target.iter_struct_paths, (
+                f"gated ModelCheck with a nested-array target ({target!r}) is unsupported; "
+                f"the element-gate wrap assumes a single array level"
+            )
+            element_relative = target.element_relative_gate(check.gate)
+            assert element_relative is not None, (
+                f"ModelCheck gate={check.gate!r} is not reachable as an element-level "
+                f"accessor on target={target!r}; gates on ModelChecks must be ArrayPaths "
+                f"entering the same outer array as the target"
+            )
+            inner_expr = _wrap_element_gate(inner_expr, var, element_relative)
         expr = _wrap_in_array_iteration(
             target.column_path, target.iter_struct_paths, inner_expr
         )
     else:
+        assert check.gate is None, (
+            f"ModelCheck gate={check.gate!r} paired with non-ArrayPath target={target!r}; "
+            f"a gate only makes sense when the constrained model is inside an array"
+        )
         expr = inner_expr
 
     return _check_function_context(

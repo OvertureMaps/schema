@@ -76,8 +76,15 @@ class ModelCheck:
     value. Constraints discovered through a variant-specific field's
     sub-model or sub-union inherit the contributing outer arm, so they
     land only in that arm's test module.
+
+    `gate` is the optional-ancestor path that must be non-null for the
+    constraint to apply. Set when the constrained model is reached via
+    an optional field (`field: Model | None`). The renderer wraps the
+    constraint expression in `F.when(<accessor>.isNotNull(), ...)` so
+    the check is skipped when the optional model is absent (NULL).
     """
 
     descriptor: ModelConstraintDescriptor
     target: FieldPath = ScalarPath()
     arm: str | None = None
+    gate: FieldPath | None = None
