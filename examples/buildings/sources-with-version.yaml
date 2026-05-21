@@ -1,0 +1,26 @@
+---
+id: overture:buildings:building:1234
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+properties:
+  theme: buildings
+  type: building
+  version: 1
+  sources:
+    - property: "/geometry"
+      dataset: osm-planet
+      provider: osm
+      resource: planet
+      version: '2078-08-28T14:44:41Z'
+    - property: "/properties/name"
+      dataset: metaML-buildings
+      provider: meta
+      resource: ml-buildings
+      version: 'abcdef'
+    - property: "/properties/height"
+      dataset: microsoft-buildings
+      provider: microsoft
+      resource: buildings
+      version: '352'
