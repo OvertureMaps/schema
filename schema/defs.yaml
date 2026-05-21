@@ -260,13 +260,14 @@ description: Common schema definitions shared by all themes
       enum: [left, right]
     sourcePropertyItem:
       description: >-
-        An object storing the source for a specificed property. The property
+        An object storing the source for a specified property. The property
         is a reference to the property element within this Feature, and will be
         referenced using JSON Pointer Notation RFC 6901
-        (https://datatracker.ietf.org/doc/rfc6901/). The source dataset for
-        that referenced property will be specified in the overture list of
-        approved sources from the Overture Data Working Group that contains
-        the relevant metadata for that dataset including license source organization.
+        (https://datatracker.ietf.org/doc/rfc6901/). The source is currently
+        identified by the dataset field, but will, in the future, be replaced
+        by the combination of provider, resource, and version fields.
+        Additional metadata such as license, record_id, update_time, and
+        confidence may also be provided.
       type: object
       required: [property, dataset]
       allOf:
@@ -292,14 +293,31 @@ description: Common schema definitions shared by all themes
           type: number
           minimum: 0
           maximum: 1
+        provider:
+          type: string
+          description: >-
+            The Provider Label for the entity that produced this data
+            (e.g. osm, meta, esri).
+          minLength: 1
+        resource:
+          type: string
+          description: >-
+            The subject or type of data provided by the provider (e.g. planet,
+            buildings, division-names).
+          minLength: 1
+        version:
+          type: string
+          description: >-
+            A sortable identifier for the specific snapshot of the resource
+            (e.g. 2026-02-13, 5.3, A5692).
+          minLength: 1
     sources:
       description: >-
         The array of source information for the properties of a
         given feature, with each entry being a source object which
-        lists the property in JSON Pointer notation and the dataset
-        that specific value came from. All features must have a root
-        level source which is the default source if a specific
-        property's source is not specified.
+        lists the property in JSON Pointer notation. All features
+        must have a root level source which is the default source
+        if a specific property's source is not specified.
       type: array
       items: {"$ref" : "#/$defs/propertyDefinitions/sourcePropertyItem"}
       minItems: 1
