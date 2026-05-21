@@ -12,7 +12,7 @@ dependencies = [
     "tomli>=2.0; python_version < '3.11'",
 ]
 description = "Code generator that produces documentation and code from Pydantic models"
-dynamic = ["version"]
+version = "0.1.1"
 license = "MIT"
 name = "overture-schema-codegen"
 
@@ -23,9 +23,6 @@ overture-codegen = "overture.schema.codegen.cli:main"
 overture-schema-cli = { workspace = true }
 overture-schema-common = { workspace = true }
 overture-schema-system = { workspace = true }
-
-[tool.hatch.version]
-path = "src/overture/schema/codegen/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]

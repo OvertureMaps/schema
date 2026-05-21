@@ -20,7 +20,7 @@ def collect():
     packages = sorted(
         d.name
         for d in packages_dir.iterdir()
-        if d.is_dir() and d.name.startswith("overture-schema")
+        if d.is_dir() and d.name.startswith("overture-schema") and (d / "pyproject.toml").exists()
     )
 
     package_versions = [

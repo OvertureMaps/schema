@@ -1,1 +1,6 @@
-__version__ = "0.1.1.dev1"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("overture-schema-transportation-theme")
+except PackageNotFoundError:
+    __version__ = "unknown"
