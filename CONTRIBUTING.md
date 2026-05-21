@@ -57,6 +57,64 @@ gitGraph
 
 Both `main` and `vnext` require a PR and at least two approving reviews before merge. No direct pushes.
 
+## CI Checks
+
+### PR target check (advisory)
+
+Every PR runs an advisory label-vs-target check. It **never blocks** a merge — the reviewer is the
+source of truth for change classification.
+
+| Situation | Warning |
+|-----------|---------|
+| PR targets `vnext`, label is not `change type - major 🚨` | Consider targeting `main` instead |
+| PR targets `main`, label is `change type - major 🚨` | Consider targeting `vnext` instead |
+
+### vnext compatibility check
+
+Every PR targeting `main` runs a compatibility check:
+
+1. The PR is squash-simulated onto `main` in a throwaway clone.
+2. `vnext` is dry-run rebased onto the result.
+3. If there is no conflict — the check passes silently.
+4. If there is a conflict — the check **fails** and CI posts a comment with exact commands.
+
+**Skipped** for `vnext`→`main` release PRs.
+
+#### Resolving a vnext conflict
+
+If this check flags your PR, CI will post a comment listing the conflicting files. Do **not** rebase
+your branch onto `vnext` — that would pull unreleased breaking changes into `main`.
+
+1. See exactly what `vnext` changes in the conflicting files:
+   ```bash
+   git fetch origin
+   git diff origin/main...origin/vnext -- <conflicting files>
+   ```
+2. Open each conflicting file in your editor. The diff above shows what `vnext` adds or changes
+   there — adjust your edits so they no longer overlap with those lines.
+3. Commit the adjustment and push:
+   ```bash
+   git add <conflicting files>
+   git commit -m "fix: resolve vnext compatibility"
+   git push origin your-branch
+   ```
+
+After pushing, the check re-runs automatically.
+
+### Post-merge vnext rebase
+
+When any PR merges to `main`, `vnext` is automatically force-rebased onto the new `main` HEAD
+using the `overture-pull-requester` GitHub App.
+
+**Skipped** for `vnext`→`main` release merges — `vnext` is already equal to `main` at that point.
+
+If the automatic rebase fails, a GitHub issue is opened and assigned to the author of the merged PR.
+
+> **Accepted tradeoff — in-flight PRs targeting `vnext`:** after the automatic rebase, the base of
+> any open PR that targets `vnext` will be force-updated. If you have such a PR open, run
+> `git pull --rebase` (or `git fetch origin && git rebase origin/vnext`) on your branch before
+> pushing again.
+
 ## Migration Notes
 
 When Phases 0-4 are complete, this area can be removed in favor of more permanent documentation.
@@ -70,9 +128,11 @@ When Phases 0-4 are complete, this area can be removed in favor of more permanen
 
 If your fork still references `dev` or `staging`, update your remotes accordingly.
 
-### [Phase 1](https://github.com/OvertureMaps/schema/issues/507)
+### [Phase 1](https://github.com/OvertureMaps/schema/issues/507), May 2026
 
-- WIP / Pending
+- Advisory PR target check added: warns when your change-type label and target branch look mismatched.
+- vnext compatibility check added: every PR to `main` verifies that `vnext` can rebase cleanly on top; posts exact fix commands on conflict.
+- Post-merge automatic rebase added: `vnext` is force-rebased onto `main` after every merge; if it fails, a GitHub issue is opened.
 
 ### [Phase 2](https://github.com/OvertureMaps/schema/issues/508)
 

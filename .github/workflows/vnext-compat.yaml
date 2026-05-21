@@ -1,0 +1,155 @@
+name: vnext compatibility check
+
+# Runs on every PR targeting main. Simulates squashing the PR onto main, then
+# attempts a dry-run rebase of vnext onto the result. If vnext would conflict,
+# the check fails and posts a comment with exact commands to resolve it.
+#
+# Skipped for vnext→main release PRs (head_ref == 'vnext') — self-referential.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  compat-check:
+    name: Check vnext compatibility
+    if: github.head_ref != 'vnext'
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+      pull-requests: write # Required to post conflict resolution instructions as a PR comment
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Simulate squash onto main, then rebase vnext
+        id: compat
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          git fetch origin main vnext
+
+          # Build a throwaway squash commit of the PR on top of main.
+          git checkout -b sim-main origin/main
+          git merge --squash "$PR_HEAD_SHA"
+          git commit --allow-empty -m "sim: squash of PR #${PR_NUMBER}"
+
+          # Attempt to rebase vnext onto the squash commit.
+          git checkout -b sim-vnext origin/vnext
+          if git rebase sim-main 2>&1; then
+            echo "compatible=true" >> "$GITHUB_OUTPUT"
+          else
+            CONFLICTS=$(git diff --name-only --diff-filter=U 2>/dev/null || true)
+            git rebase --abort
+            echo "compatible=false" >> "$GITHUB_OUTPUT"
+            {
+              echo 'conflicted_files<<EOF'
+              echo "$CONFLICTS"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post conflict resolution comment
+        if: steps.compat.outputs.compatible == 'false' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_HEAD_REF: ${{ github.head_ref }}
+          CONFLICTED_FILES: ${{ steps.compat.outputs.conflicted_files }}
+        with:
+          script: |
+            const branch = process.env.PR_HEAD_REF;
+            const files  = (process.env.CONFLICTED_FILES || '').trim();
+
+            const fileBlock = files
+              ? `**Conflicting files:**\n\`\`\`\n${files}\n\`\`\`\n`
+              : '';
+
+            const fileList = files ? files.split('\n').filter(Boolean) : [];
+            const diffCmd  = fileList.length
+              ? `git diff origin/main...origin/vnext -- ${fileList.join(' ')}`
+              : 'git diff origin/main...origin/vnext';
+
+            const body = [
+              '## ⚠️ `vnext` compatibility conflict detected',
+              '',
+              'If this PR merges to `main`, `vnext` cannot be cleanly rebased on top.',
+              'Your changes conflict with something already on `vnext`.',
+              '',
+              fileBlock,
+              '**How to fix:**',
+              '',
+              'Do **not** rebase your branch onto `vnext` — that would pull unreleased breaking',
+              'changes into `main`. Instead:',
+              '',
+              '1. See exactly what `vnext` changes in the conflicting file(s):',
+              '```bash',
+              'git fetch origin',
+              diffCmd,
+              '```',
+              '2. Open each conflicting file in your editor. The diff above shows what `vnext` adds',
+              '   or changes there — adjust your edits so they no longer overlap with those lines.',
+              '3. Commit the adjustment and push:',
+              '```bash',
+              `git add ${fileList.length ? fileList.join(' ') : '<conflicting files>'}`,
+              'git commit -m "fix: resolve vnext compatibility"',
+              `git push origin ${branch}`,
+              '```',
+              '',
+              'After pushing, this check will re-run automatically.',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Emit conflict instructions to job summary (fork PRs)
+        if: steps.compat.outputs.compatible == 'false' && github.event.pull_request.head.repo.full_name != github.repository
+        env:
+          PR_HEAD_REF: ${{ github.head_ref }}
+          CONFLICTED_FILES: ${{ steps.compat.outputs.conflicted_files }}
+        run: |
+          {
+            echo "## ⚠️ vnext compatibility conflict detected"
+            echo ""
+            echo "This PR conflicts with \`vnext\` when rebased onto \`main\`."
+            echo ""
+            if [ -n "$CONFLICTED_FILES" ]; then
+              echo "**Conflicting files:**"
+              echo '```'
+              echo "$CONFLICTED_FILES"
+              echo '```'
+              echo ""
+              echo "Inspect the diff with:"
+              echo '```bash'
+              echo "git fetch origin"
+              echo "git diff origin/main...origin/vnext -- $CONFLICTED_FILES"
+              echo '```'
+            else
+              echo "Run \`git diff origin/main...origin/vnext\` to inspect the conflict."
+            fi
+            echo ""
+            echo "Edit overlapping lines in those files, then commit and push."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on conflict
+        if: steps.compat.outputs.compatible == 'false'
+        run: |
+          echo "::error::This PR conflicts with 'vnext' when rebased onto main. See the PR comment for resolution instructions."
+          exit 1

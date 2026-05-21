@@ -1,0 +1,134 @@
+name: PR advisory check
+
+# Advisory only — never blocks a PR. Warns when the change-type label and
+# target branch look mismatched so the reviewer can catch it early.
+#
+# Rules (reviewer remains the source of truth):
+#   • PR → vnext  without the major label → warn (vnext is for breaking changes)
+#   • PR → main   with    the major label → warn (major/breaking belongs on vnext)
+#
+# Skipped for vnext→main release PRs (head_ref == 'vnext').
+
+on:
+  pull_request:
+    branches: [main, vnext]
+    types: [opened, reopened, labeled, unlabeled, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-target-check:
+    name: Check PR target vs change-type label
+    # Only allocate a runner when something that can affect the result has changed:
+    #   - PR opened/reopened  → initial label state unknown
+    #   - major label added or removed → the only label this check cares about
+    # All other label events (cosmetic, docs, automation, minor) are skipped for free.
+    if: |
+      github.event.action == 'opened' ||
+      github.event.action == 'reopened' ||
+      github.event.action == 'edited' && github.event.changes.base != null ||
+      github.event.label.name == 'change type - major 🚨'
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+      pull-requests: write # Required to upsert the advisory warning PR comment
+    steps:
+      - name: Check label vs target branch
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const MAJOR_LABEL  = 'change type - major 🚨';
+            const COMMENT_TAG  = '<!-- p1-pr-target-check -->';
+
+            const pr        = context.payload.pull_request;
+            const targetRef = pr.base.ref;
+            const headRef   = pr.head.ref;
+            const labels    = pr.labels.map(l => l.name);
+            const hasMajor  = labels.includes(MAJOR_LABEL);
+
+            // Skip vnext→main release PRs — self-referential by design.
+            if (headRef === 'vnext') {
+              core.info('vnext→main release PR detected — skipping target check.');
+              return;
+            }
+
+            // Collect warnings so we can emit both an annotation and a PR comment.
+            const warnings = [];
+
+            if (targetRef === 'vnext' && !hasMajor) {
+              warnings.push(
+                `This PR targets \`vnext\` but does not have the \`${MAJOR_LABEL}\` label. ` +
+                `\`vnext\` is intended for major or breaking changes. ` +
+                `If this is not a breaking change, consider targeting \`main\` instead.`
+              );
+            }
+
+            if (targetRef === 'main' && hasMajor) {
+              warnings.push(
+                `This PR targets \`main\` but has the \`${MAJOR_LABEL}\` label. ` +
+                `Major/breaking changes should typically target \`vnext\` instead.`
+              );
+            }
+
+            // Always emit workflow-level annotations.
+            for (const w of warnings) core.warning(w);
+
+            // PR comments require write access. Fork PRs run with a read-only token
+            // even if pull-requests: write is declared — skip comments for forks.
+            const isSameRepo =
+              pr.head.repo && pr.head.repo.full_name === `${context.repo.owner}/${context.repo.repo}`;
+
+            if (!isSameRepo) {
+              core.info('Fork PR detected — skipping comment (no write access).');
+              return;
+            }
+
+            // Upsert a single PR comment: update if one already exists, create if not.
+            // When there are no warnings, delete any previous warning comment.
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: pr.number,
+            });
+            const existing = comments.find(c => c.body.includes(COMMENT_TAG));
+
+            if (warnings.length === 0) {
+              if (existing) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo:  context.repo.repo,
+                  comment_id: existing.id,
+                });
+              }
+              return;
+            }
+
+            const body = [
+              COMMENT_TAG,
+              '## ⚠️ PR target check (advisory)',
+              '',
+              ...warnings.map(w => `- ${w}`),
+              '',
+              '_Reviewer is the source of truth for change classification. This warning is advisory only._',
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: pr.number,
+                body,
+              });
+            }

@@ -1,0 +1,150 @@
+name: Rebase vnext onto main
+
+# Triggered on every push to main. Force-rebases vnext onto the new main HEAD
+# using the overture-pull-requester GitHub App (which has branch-protection bypass).
+#
+# Skipped for vnext→main release merges — vnext is already equal to main at that
+# point so a rebase would be a no-op, and the GitHub API check catches this.
+#
+# If the rebase fails a GitHub issue is opened and assigned to the PR author
+# so the conflict can be resolved manually.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  # Only one rebase at a time; a newer push supersedes an in-flight one.
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  rebase-vnext:
+    name: Force-rebase vnext
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+      issues: write # Required to open a failure issue when the rebase conflicts
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: Iv23liiN80WEARreTV7m
+          private-key: ${{ secrets.OVERTURE_PULL_REQUESTER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
+
+      # Detect whether this push was a vnext→main release merge.
+      # The GitHub API returns the PR(s) associated with the merge commit.
+      - name: Detect vnext→main release merge
+        id: skip
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          MAIN_SHA: ${{ github.sha }}
+        run: |
+          PR_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${MAIN_SHA}/pulls" \
+            --jq '.[0] // empty' 2>/dev/null || true)
+
+          HEAD_REF=$(echo "$PR_JSON"  | jq -r '.head.ref   // empty' 2>/dev/null || true)
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number     // empty' 2>/dev/null || true)
+          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.user.login // empty' 2>/dev/null || true)
+
+          if [ "$HEAD_REF" = "vnext" ]; then
+            echo "Skipping: this is a vnext→main release merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false"      >> "$GITHUB_OUTPUT"
+            echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+            echo "pr_author=${PR_AUTHOR}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        if: steps.skip.outputs.skip != 'true'
+        with:
+          fetch-depth: 0
+          # Use the app token so the subsequent force-push is authenticated.
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true
+
+      - name: Rebase vnext onto new main HEAD
+        if: steps.skip.outputs.skip != 'true'
+        id: rebase
+        run: |
+          git config user.email "overture-pull-requester[bot]@users.noreply.github.com"
+          git config user.name  "overture-pull-requester[bot]"
+
+          git fetch origin vnext
+          git checkout -b rebase-vnext FETCH_HEAD
+
+          if git rebase origin/main 2>&1; then
+            if git push --force-with-lease origin rebase-vnext:vnext 2>&1; then
+              echo "success=true" >> "$GITHUB_OUTPUT"
+              echo "vnext successfully rebased and force-pushed."
+            else
+              echo "success=false" >> "$GITHUB_OUTPUT"
+              echo "Rebase succeeded but push failed — will open a GitHub issue."
+            fi
+          else
+            git rebase --abort 2>/dev/null || true
+            echo "success=false" >> "$GITHUB_OUTPUT"
+            echo "Rebase failed — will open a GitHub issue."
+          fi
+
+      - name: Open failure issue
+        if: steps.skip.outputs.skip != 'true' && steps.rebase.outputs.success == 'false'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ steps.skip.outputs.pr_number }}
+          PR_AUTHOR: ${{ steps.skip.outputs.pr_author }}
+          MAIN_SHA: ${{ github.sha }}
+        with:
+          # Use the app token so the issue is opened under the bot's identity.
+          github-token: ${{ env.APP_TOKEN }}
+          script: |
+            const prNumber = process.env.PR_NUMBER || 'unknown';
+            const prAuthor = process.env.PR_AUTHOR || '';
+            const mainSha  = (process.env.MAIN_SHA || '').slice(0, 7);
+
+            const prRef = prNumber !== 'unknown'
+              ? `[PR #${prNumber}](https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber})`
+              : 'a recent PR';
+
+            const body = [
+              '## `vnext` rebase conflict',
+              '',
+              `The automatic post-merge rebase of \`vnext\` onto \`main\` failed after ${prRef} was merged (merge commit \`${mainSha}\`).`,
+              '',
+              'Manual intervention is required to keep `vnext` in sync with `main`.',
+              '',
+              '## Steps to resolve',
+              '',
+              '```bash',
+              'git fetch origin',
+              'git checkout vnext',
+              'git rebase origin/main',
+              '# Resolve any conflicts, then:',
+              'git rebase --continue',
+              'git push --force-with-lease origin vnext',
+              '```',
+              '',
+              '> **Note:** Any open PRs that target `vnext` will have their base rewritten once',
+              '> `vnext` is back in sync. Contributors should `git pull --rebase` before pushing again.',
+              '',
+              'After resolving and pushing, close this issue.',
+            ].join('\n');
+
+            const issuePayload = {
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              title: `vnext rebase conflict after #${prNumber} merged to main`,
+              body,
+            };
+
+            if (prAuthor) {
+              issuePayload.assignees = [prAuthor];
+            }
+
+            await github.rest.issues.create(issuePayload);
