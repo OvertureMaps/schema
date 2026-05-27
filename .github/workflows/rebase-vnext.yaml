@@ -35,6 +35,10 @@ jobs:
         with:
           client-id: Iv23liiN80WEARreTV7m
           private-key: ${{ secrets.OVERTURE_PULL_REQUESTER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
+          # Explicitly scope the app token instead of inheriting all installation permissions.
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: read
 
       # Detect whether this push was a vnext→main release merge.
       # The GitHub API returns the PR(s) associated with the merge commit.
