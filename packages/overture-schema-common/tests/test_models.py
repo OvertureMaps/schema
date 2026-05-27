@@ -5,6 +5,8 @@ from typing import Any
 import pytest
 from deepdiff import DeepDiff
 from overture.schema.common.models import OvertureFeature
+from overture.schema.common.sources import SourceItem
+from pydantic import ValidationError
 from overture.schema.system.json_schema import GenerateOmitNullableOptionalJsonSchema
 from overture.schema.system.primitive import (
     BBox,
@@ -57,6 +59,21 @@ def test_feature_json_schema() -> None:
                     },
                     "property": {"type": "string"},
                     "dataset": {"type": "string"},
+                    "provider": {
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9][a-z0-9._-]*$",
+                        "type": "string",
+                    },
+                    "resource": {
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9][a-z0-9._-]*$",
+                        "type": "string",
+                    },
+                    "version": {
+                        "minLength": 1,
+                        "pattern": "^\\S+$",
+                        "type": "string",
+                    },
                     "license": {
                         "pattern": "^(\\S(.*\\S)?)?$",
                         "type": "string",
@@ -510,3 +527,33 @@ def test_feature_validate_json(
     )
 
     assert feature == validated
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    ["provider", "resource", "version"],
+)
+def test_source_item_rejects_embedded_whitespace(field_name: str) -> None:
+    payload = {
+        "property": "",
+        "dataset": "osm-planet",
+        field_name: "with space",
+    }
+
+    with pytest.raises(ValidationError):
+        SourceItem.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    ["provider", "resource"],
+)
+def test_source_item_rejects_uppercase_in_provider_resource(field_name: str) -> None:
+    payload = {
+        "property": "",
+        "dataset": "osm-planet",
+        field_name: "ContainsUpper",
+    }
+
+    with pytest.raises(ValidationError):
+        SourceItem.model_validate(payload)

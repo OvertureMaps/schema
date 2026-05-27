@@ -86,6 +86,39 @@ class SourceItem(BaseModel):
             """).strip()
         ),
     ] = None
+    provider: Annotated[
+        str | None,
+        Field(
+            min_length=1,
+            pattern=r"^[a-z0-9][a-z0-9._-]*$",
+            description=textwrap.dedent("""
+                The provider label (lowercase with no white space) for the entity that contributed this data
+                (e.g., osm, meta, esri).
+            """).strip(),
+        ),
+    ] = None
+    resource: Annotated[
+        str | None,
+        Field(
+            min_length=1,
+            pattern=r"^[a-z0-9][a-z0-9._-]*$",
+            description=textwrap.dedent("""
+                The subject or type of data contributed by the provider (lowercase with no white space)
+                (e.g., planet, buildings, division-names).
+            """).strip(),
+        ),
+    ] = None
+    version: Annotated[
+        str | None,
+        Field(
+            min_length=1,
+            pattern=r"^\S+$",
+            description=textwrap.dedent("""
+                A sortable identifier for the specific snapshot of the resource
+                (e.g., 2026-02-13, 5.3, A5692).
+            """).strip(),
+        ),
+    ] = None
 
 
 Sources = NewType(
