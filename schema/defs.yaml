@@ -296,13 +296,13 @@ description: Common schema definitions shared by all themes
         provider:
           type: [string, "null"]
           description: >-
-            The Provider Label for the entity that produced this data
+            The Provider Label for the entity that contributed this data
             (e.g. osm, meta, esri).
           minLength: 1
         resource:
           type: [string, "null"]
           description: >-
-            The subject or type of data provided by the provider (e.g. planet,
+            The subject or type of data contributed by the provider (e.g. planet,
             buildings, division-names).
           minLength: 1
         version:
