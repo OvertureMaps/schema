@@ -6,12 +6,12 @@ import pytest
 from deepdiff import DeepDiff
 from overture.schema.common.models import OvertureFeature
 from overture.schema.common.sources import SourceItem
-from pydantic import ValidationError
 from overture.schema.system.json_schema import GenerateOmitNullableOptionalJsonSchema
 from overture.schema.system.primitive import (
     BBox,
     Geometry,
 )
+from pydantic import ValidationError
 from shapely.geometry import LineString, Point
 
 
