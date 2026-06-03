@@ -111,5 +111,19 @@ class DivisionSubtype(str, DocumentedEnum):
         "A mini-neighborhood that is contained within a division of type neighborhood.",
     )
 
+    SPECIAL_PURPOSE_DISTRICT = (
+        "special_purpose_district",
+        textwrap.dedent("""
+            A special-purpose government or assessment area that levies taxes, fees, or services
+            over a defined territory (e.g., transit, school, fire, water, library, or sales/use-tax
+            districts). Unlike the other categories, a special-purpose district is not part of the
+            ordered, general-purpose containment hierarchy; it is a cross-cutting overlay that may
+            span multiple sibling divisions. Its parent_division_id is the smallest single division
+            that wholly contains it (the state for a district spanning several counties, or the
+            country for one spanning several states). admin_level does not apply and is typically
+            omitted, since the district does not occupy a single level of the hierarchy.
+        """).strip(),
+    )
+
 
 IS_COUNTRY = FieldEqCondition("subtype", DivisionSubtype.COUNTRY)

@@ -1,0 +1,48 @@
+# Delano-Earlimart Irrigation District boundary, from California DWR i03 Water
+# Districts (lightly generalized). A special-purpose (irrigation) district.
+---
+id: example:division_area:land:special_purpose_district:us-ca-delano-earlimart-id
+type: Feature
+geometry:
+  type: Polygon
+  coordinates:
+    -
+      - [-119.1349, 35.9063]
+      - [-119.1349, 35.9208]
+      - [-119.1795, 35.9209]
+      - [-119.1794, 35.9137]
+      - [-119.2146, 35.9138]
+      - [-119.2146, 35.9066]
+      - [-119.2859, 35.9063]
+      - [-119.2859, 35.8628]
+      - [-119.2904, 35.8628]
+      - [-119.2904, 35.8483]
+      - [-119.2858, 35.8483]
+      - [-119.2859, 35.8048]
+      - [-119.277, 35.8048]
+      - [-119.277, 35.7903]
+      - [-119.2053, 35.7904]
+      - [-119.2052, 35.7469]
+      - [-119.1417, 35.7471]
+      - [-119.1011, 35.8125]
+      - [-119.1252, 35.8124]
+      - [-119.1261, 35.8918]
+      - [-119.1349, 35.8918]
+      - [-119.1349, 35.9063]
+properties:
+  theme: divisions
+  type: division_area
+  version: 0
+  subtype: special_purpose_district
+  class: land
+  is_land: true
+  is_territorial: false
+  division_id: example:division:special_purpose_district:us-ca-delano-earlimart-id
+  names:
+    primary: Delano-Earlimart Irrigation District
+  sources:
+    - property: ""
+      dataset: California DWR i03 Water Districts
+      record_id: "712"
+  country: US
+  region: US-CA

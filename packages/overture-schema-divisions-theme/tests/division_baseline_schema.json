@@ -84,7 +84,8 @@
         "borough",
         "macrohood",
         "neighborhood",
-        "microhood"
+        "microhood",
+        "special_purpose_district"
       ],
       "title": "DivisionSubtype",
       "type": "string"

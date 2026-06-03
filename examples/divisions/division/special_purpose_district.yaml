@@ -1,0 +1,35 @@
+# Delano-Earlimart Irrigation District, California: a special-purpose
+# district (irrigation district) that levies assessments across parts of Kern
+# and Tulare counties. Because it spans two counties, its parent is the state.
+---
+id: example:division:special_purpose_district:us-ca-delano-earlimart-id
+type: Feature
+geometry:
+  type: Point
+  coordinates: [-119.20562, 35.8304]
+properties:
+  theme: divisions
+  type: division
+  version: 0
+  subtype: special_purpose_district
+  local_type:
+    en: irrigation district
+  names:
+    primary: Delano-Earlimart Irrigation District
+  sources:
+    - property: ""
+      dataset: California DWR i03 Water Districts
+      record_id: "712"
+  country: US
+  region: US-CA
+  hierarchies:
+    - - division_id: example:division:country:us
+        subtype: country
+        name: United States
+      - division_id: example:division:region:us-ca
+        subtype: region
+        name: California
+      - division_id: example:division:special_purpose_district:us-ca-delano-earlimart-id
+        subtype: special_purpose_district
+        name: Delano-Earlimart Irrigation District
+  parent_division_id: example:division:region:us-ca
