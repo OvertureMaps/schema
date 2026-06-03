@@ -18,35 +18,41 @@ class TypeMapping:
     """Maps a type to its representation in different targets."""
 
     markdown: str
+    arrow: str | None = None
 
-    def for_target(self, target: str) -> str:
-        """Get the type representation for a named target."""
-        if target != "markdown":
-            raise ValueError(f"Unknown target {target!r}, expected 'markdown'")
-        return self.markdown
+    def for_target(self, target: str) -> str | None:
+        """Get the type representation for a named target.
+
+        Returns None for targets where this type has no mapping.
+        """
+        if target == "markdown":
+            return self.markdown
+        if target == "arrow":
+            return self.arrow
+        raise ValueError(f"Unknown target {target!r}")
 
 
 PRIMITIVE_TYPES: dict[str, TypeMapping] = {
     # Signed integers
-    "int8": TypeMapping(markdown="int8"),
-    "int16": TypeMapping(markdown="int16"),
-    "int32": TypeMapping(markdown="int32"),
-    "int64": TypeMapping(markdown="int64"),
+    "int8": TypeMapping(markdown="int8", arrow="int8"),
+    "int16": TypeMapping(markdown="int16", arrow="int16"),
+    "int32": TypeMapping(markdown="int32", arrow="int32"),
+    "int64": TypeMapping(markdown="int64", arrow="int64"),
     # Unsigned integers
-    "uint8": TypeMapping(markdown="uint8"),
-    "uint16": TypeMapping(markdown="uint16"),
-    "uint32": TypeMapping(markdown="uint32"),
+    "uint8": TypeMapping(markdown="uint8", arrow="uint8"),
+    "uint16": TypeMapping(markdown="uint16", arrow="uint16"),
+    "uint32": TypeMapping(markdown="uint32", arrow="uint32"),
     # Floating point
-    "float32": TypeMapping(markdown="float32"),
-    "float64": TypeMapping(markdown="float64"),
+    "float32": TypeMapping(markdown="float32", arrow="float32"),
+    "float64": TypeMapping(markdown="float64", arrow="float64"),
     # Basic types
-    "str": TypeMapping(markdown="string"),
-    "bool": TypeMapping(markdown="boolean"),
+    "str": TypeMapping(markdown="string", arrow="utf8"),
+    "bool": TypeMapping(markdown="boolean", arrow="bool_"),
     # Python builtins (aliases to their portable equivalents)
-    "int": TypeMapping(markdown="int64"),
-    "float": TypeMapping(markdown="float64"),
+    "int": TypeMapping(markdown="int64", arrow="int64"),
+    "float": TypeMapping(markdown="float64", arrow="float64"),
     # Geometry types
-    "Geometry": TypeMapping(markdown="geometry"),
+    "Geometry": TypeMapping(markdown="geometry", arrow="binary"),
     "BBox": TypeMapping(markdown="bbox"),
 }
 
@@ -93,7 +99,7 @@ def resolve_type_name(type_info: TypeInfo, target: str) -> str:
     type_info : TypeInfo
         The analyzed type information.
     target : str
-        The output target ("markdown").
+        The output target ("markdown" or "arrow").
 
     Returns
     -------
@@ -104,7 +110,9 @@ def resolve_type_name(type_info: TypeInfo, target: str) -> str:
     if mapping is None and type_info.source_type is not None:
         mapping = get_type_mapping(type_info.source_type.__name__)
     if mapping is not None:
-        return mapping.for_target(target)
+        result = mapping.for_target(target)
+        if result is not None:
+            return result
 
     # Semantic NewType wrapping an unregistered type (e.g., Sources wrapping
     # SourceItem): use the underlying class name rather than the NewType alias.
