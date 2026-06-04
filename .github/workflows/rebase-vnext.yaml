@@ -36,9 +36,10 @@ jobs:
           client-id: Iv23liiN80WEARreTV7m
           private-key: ${{ secrets.OVERTURE_PULL_REQUESTER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
           # Explicitly scope the app token instead of inheriting all installation permissions.
-          permission-contents: write
-          permission-issues: write
-          permission-pull-requests: read
+          permission-contents: write        # force-push the rebased vnext; clone/fetch
+          permission-issues: write          # open a failure issue on rebase conflict
+          permission-pull-requests: read    # read PR on merge commit to detect vnext→main release
+          permission-workflows: write       # vnext commits may touch .github/workflows/**
 
       # Detect whether this push was a vnext→main release merge.
       # The GitHub API returns the PR(s) associated with the merge commit.
