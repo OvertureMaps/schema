@@ -258,9 +258,9 @@
           "type": "string"
         },
         "provider": {
-          "description": "The provider label (lowercase with no white space) for the entity that contributed this data\n(e.g., osm, meta, esri).",
+          "description": "The provider label for the entity that contributed this data\n(e.g., osm, meta, esri).",
           "minLength": 1,
-          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
           "title": "Provider",
           "type": "string"
         },
@@ -270,9 +270,9 @@
           "type": "string"
         },
         "resource": {
-          "description": "The subject or type of data contributed by the provider (lowercase with no white space)\n(e.g., planet, buildings, division-names).",
+          "description": "The subject or type of data contributed by the provider\n(e.g., planet, buildings, division_names).",
           "minLength": 1,
-          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
           "title": "Resource",
           "type": "string"
         },

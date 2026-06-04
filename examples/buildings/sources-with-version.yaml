@@ -17,7 +17,7 @@ properties:
     - property: "/properties/name"
       dataset: metaML-buildings
       provider: meta
-      resource: ml-buildings
+      resource: ml_buildings
       version: 'abcdef'
     - property: "/properties/height"
       dataset: microsoft-buildings
