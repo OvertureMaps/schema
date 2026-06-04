@@ -61,12 +61,12 @@ def test_feature_json_schema() -> None:
                     "dataset": {"type": "string"},
                     "provider": {
                         "minLength": 1,
-                        "pattern": "^[a-z0-9][a-z0-9._-]*$",
+                        "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
                         "type": "string",
                     },
                     "resource": {
                         "minLength": 1,
-                        "pattern": "^[a-z0-9][a-z0-9._-]*$",
+                        "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
                         "type": "string",
                     },
                     "version": {

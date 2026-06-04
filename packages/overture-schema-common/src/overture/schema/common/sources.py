@@ -12,7 +12,12 @@ from overture.schema.common.scoping import Scope, scoped
 from overture.schema.common.types import ConfidenceScore
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.string import JsonPointer, StrippedString
+from overture.schema.system.string import (
+    JsonPointer,
+    NoWhitespaceString,
+    SnakeCaseString,
+    StrippedString,
+)
 
 
 @no_extra_fields
@@ -87,32 +92,29 @@ class SourceItem(BaseModel):
         ),
     ] = None
     provider: Annotated[
-        str | None,
+        SnakeCaseString | None,
         Field(
             min_length=1,
-            pattern=r"^[a-z0-9][a-z0-9._-]*$",
             description=textwrap.dedent("""
-                The provider label (lowercase with no white space) for the entity that contributed this data
+                The provider label for the entity that contributed this data
                 (e.g., osm, meta, esri).
             """).strip(),
         ),
     ] = None
     resource: Annotated[
-        str | None,
+        SnakeCaseString | None,
         Field(
             min_length=1,
-            pattern=r"^[a-z0-9][a-z0-9._-]*$",
             description=textwrap.dedent("""
-                The subject or type of data contributed by the provider (lowercase with no white space)
-                (e.g., planet, buildings, division-names).
+                The subject or type of data contributed by the provider
+                (e.g., planet, buildings, division_names).
             """).strip(),
         ),
     ] = None
     version: Annotated[
-        str | None,
+        NoWhitespaceString | None,
         Field(
             min_length=1,
-            pattern=r"^\S+$",
             description=textwrap.dedent("""
                 A sortable identifier for the specific snapshot of the resource
                 (e.g., 2026-02-13, 5.3, A5692).
