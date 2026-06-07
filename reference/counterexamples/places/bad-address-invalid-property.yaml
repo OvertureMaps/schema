@@ -12,8 +12,6 @@ properties:
   version: 0
   names:
     primary: Fancy POI with invalid address property (region2)
-  categories:
-    primary: some_category
   addresses:
     - freeform: "770 Broadway, Floor 8"
       locality: "New York"

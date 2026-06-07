@@ -5,10 +5,6 @@ geometry:
   type: Point
   coordinates: [0, 0]
 properties:
-  categories:
-    primary: the1_category_you_want_first
-    alternate:
-      - another_category
   confidence: 0.9
   websites:
     - https://www.example.com/

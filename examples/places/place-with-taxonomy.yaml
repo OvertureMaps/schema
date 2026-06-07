@@ -16,11 +16,6 @@ properties:
     alternates:
       - gas_station
       - sushi_restaurant
-  categories:
-    primary: gas_station_sushi
-    alternate:
-      - gas_station
-      - sushi_restaurant
   confidence: 0.85
   websites:
     - https://www.buckysgas.example.com

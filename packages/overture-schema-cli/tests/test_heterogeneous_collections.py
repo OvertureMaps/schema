@@ -20,7 +20,6 @@ def heterogeneous_collection_json() -> str:
         geometry_type="Point",
         coordinates=[0.5, 0.5],
         operating_status="open",
-        categories={"primary": "restaurant"},
         names={"primary": "Valid Place"},
     )
     return json.dumps([building, place])
@@ -55,7 +54,6 @@ def heterogeneous_with_missing_fields_json() -> str:
         type="place",
         geometry_type="Point",
         coordinates=[6.5, 6.5],
-        categories={"primary": "restaurant"},
         names={"primary": "Place missing required field"},
     )
     return json.dumps([building1, building2, building3, place])
