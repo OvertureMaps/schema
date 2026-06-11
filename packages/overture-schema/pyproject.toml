@@ -15,7 +15,7 @@ dependencies = [
     "overture-schema-cli",
 ]
 description = "Complete Overture Maps schema collection with all themes and types"
-dynamic = ["version"]
+version = "1.17.1"
 license = "MIT"
 name = "overture-schema"
 readme = "README.md"
@@ -46,9 +46,6 @@ dev = [
     "deepdiff>=8.6.0",
     "yamlcore>=0.0.4",
 ]
-
-[tool.hatch.version]
-path = "src/overture/schema/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]

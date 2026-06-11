@@ -133,17 +133,12 @@ jobs:
       - name: Get CodeArtifact index URL
         id: get-code-artifact-index-url
         if: steps.save-changes.outputs.num_changed_packages > 0
-        env:
-          AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
-          AWS_REGION: ${{ inputs.aws_region }}
-          DOMAIN: ${{ inputs.domain }}
-          REPOSITORY: ${{ inputs.repository }}
-        run: |
-          index_url=$(./.github/workflows/scripts/code-artifact.sh index-url \
-            "$AWS_ACCOUNT_ID" "$AWS_REGION" \
-            "$DOMAIN" "$REPOSITORY")
-          echo "::add-mask::${index_url}"
-          echo "index_url=${index_url}" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/code-artifact
+        with:
+          aws_account_id: ${{ inputs.aws_account_id }}
+          aws_region: ${{ inputs.aws_region }}
+          domain: ${{ inputs.domain }}
+          repository: ${{ inputs.repository }}
 
       - name: Fail if any of the new versions already exist in the repo
         if: steps.save-changes.outputs.num_changed_packages > 0

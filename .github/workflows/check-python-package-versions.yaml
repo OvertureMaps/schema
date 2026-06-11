@@ -4,8 +4,6 @@ on:
   pull_request:
     paths:
       - '**/pyproject.toml'
-      - 'packages/**/__about__.py'
-
 permissions:
   contents: read
 

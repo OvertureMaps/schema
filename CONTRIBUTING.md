@@ -115,6 +115,12 @@ If the automatic rebase fails, a GitHub issue is opened and assigned to the auth
 > `git pull --rebase` (or `git fetch origin && git rebase origin/vnext`) on your branch before
 > pushing again.
 
+### Version dry-run (informational)
+
+After each push to `main` or `vnext`, CI runs the `compute-versions-dry-run` workflow. It logs what package versions **would** be stamped at publish time — no artifacts are actually produced. Check the workflow's job summary for a table of computed versions.
+
+This workflow will be replaced by actual publish workflows in Phase 3.
+
 ## Migration Notes
 
 When Phases 0-4 are complete, this area can be removed in favor of more permanent documentation.
@@ -134,7 +140,14 @@ If your fork still references `dev` or `staging`, update your remotes accordingl
 - vnext compatibility check added: every PR to `main` verifies that `vnext` can rebase cleanly on top; posts exact fix commands on conflict.
 - Post-merge automatic rebase added: `vnext` is force-rebased onto `main` after every merge; if it fails, a GitHub issue is opened.
 
-### [Phase 2](https://github.com/OvertureMaps/schema/issues/508)
+### [Phase 2.A](https://github.com/OvertureMaps/schema/issues/508), May 2026
+
+- All packages baselined with static versions in `pyproject.toml` (`overture-schema` at `1.17.1`, others at `0.1.1`).
+- `compute-version` composite action added: computes PEP 440 versions for vnext (dev), main (patch), and main-bump (reset) contexts.
+- `code-artifact` composite action added: replaces the legacy shell script for AWS CodeArtifact auth.
+- `compute-versions-dry-run` workflow added for version visibility until Phase 3 publish workflows land.
+
+### [Phase 2.B](https://github.com/OvertureMaps/schema/issues/533)
 
 - WIP / Pending
 

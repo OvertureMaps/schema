@@ -7,7 +7,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer = "2026-05-14T16:33:24.6787743Z"
 exclude-newer-span = "P1W"
 
 [manifest]
@@ -650,6 +650,7 @@ wheels = [
 
 [[package]]
 name = "overture-schema"
+version = "1.17.0"
 source = { editable = "packages/overture-schema" }
 dependencies = [
     { name = "overture-schema-addresses-theme" },
@@ -694,6 +695,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-addresses-theme"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-addresses-theme" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -710,6 +712,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-annex"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-annex" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -726,6 +729,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-base-theme"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-base-theme" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -742,6 +746,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-buildings-theme"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-buildings-theme" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -758,6 +763,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-cli"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-cli" }
 dependencies = [
     { name = "click" },
@@ -796,6 +802,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-codegen"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-codegen" }
 dependencies = [
     { name = "click" },
@@ -818,6 +825,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-common"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-common" }
 dependencies = [
     { name = "overture-schema-system" },
@@ -848,6 +856,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-divisions-theme"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-divisions-theme" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -864,6 +873,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-places-theme"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-places-theme" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -880,6 +890,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-system"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-system" }
 dependencies = [
     { name = "pydantic" },
@@ -908,6 +919,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-transportation-theme"
+version = "0.1.0"
 source = { editable = "packages/overture-schema-transportation-theme" }
 dependencies = [
     { name = "overture-schema-common" },
