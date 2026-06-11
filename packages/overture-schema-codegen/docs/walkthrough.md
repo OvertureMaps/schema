@@ -23,8 +23,8 @@ Documentation needs all of this. The codegen exists to preserve it.
 
 Navigating Python's type annotation machinery -- NewType chains, nested `Annotated`
 wrappers, union filtering, generic resolution -- is complex. The codegen does it once.
-`analyze_type()` unwraps annotations into `TypeInfo`, a flat target-independent
-representation. Extractors build specs from `TypeInfo`. Renderers consume specs without
+`analyze_type()` unwraps annotations into `FieldShape`, a tree-shaped target-independent
+representation. Extractors build specs from these shapes. Renderers consume specs without
 re-entering the type system. New output targets add renderers, not extraction logic.
 
 The solution decomposes into four layers. Discovery finds models. Extraction unwraps
@@ -64,28 +64,15 @@ it. The entry point `overture:transportation:segment` maps to
 
 The codegen classifies these at the CLI boundary: `is_model_class` identifies concrete
 `BaseModel` subclasses, `is_union_alias` calls `analyze_type` to identify discriminated
-unions. From that point forward both model features and union features satisfy the
-`FeatureSpec` protocol and flow through the same pipeline.
+unions. From that point forward both model features and union features are `FeatureSpec` values
+(`ModelSpec | UnionSpec`) and flow through the same pipeline.
 
 ## 2. Leaf utilities
 
-Two modules with no internal dependencies. Both serve multiple layers.
-
-### extraction/case_conversion.py
-
-Converts PascalCase to snake_case with two compiled regexes. `_ACRONYM_BOUNDARY` inserts
-an underscore between an uppercase run and a capitalized word start: `HTMLParser`
-becomes `HTML_Parser` becomes `html_parser`. `_CAMEL_BOUNDARY` inserts between
-lowercase-or-digit and uppercase: `buildingPart` becomes `building_part`.
-`to_snake_case` applies them in sequence and lowercases.
-
-`slug_filename` composes the conversion with a file extension. Every output file path in
-the system passes through this function.
-
-```python
->>> slug_filename("HexColor")
-'hex_color.md'
-```
+One module with no internal dependencies, serving multiple layers. PascalCase to
+snake_case conversion lives in `overture.schema.system.case` (used by the pyspark
+generator and the markdown path assignment); markdown output filenames are
+`f"{to_snake_case(name)}.md"` at the call site.
 
 ### extraction/docstring.py
 
@@ -113,92 +100,85 @@ summaries.
 ## 3. Type analysis
 
 This is the module the entire package exists to house. `analyze_type` takes a raw type
-annotation and returns `TypeInfo` -- a flat dataclass that fully describes the unwrapped
-type without any reference to Python's typing machinery.
+annotation and returns `tuple[FieldShape, bool, str | None]` -- the structural shape,
+whether the field is optional, and the first description found in the annotation chain.
+`FieldShape` is a discriminated union tree that fully describes the type without any
+reference to Python's typing machinery.
 
-### The loop
+### The recursion
 
-The function runs a single `while True` loop that peels layers in fixed order. Each
-iteration handles one wrapper:
+`_unwrap` peels one annotation layer per call frame and returns a `FieldShape` subtree.
+Each case handles one wrapper kind:
 
-**NewType** records names at two levels. The first NewType encountered becomes
-`outermost_newtype_name` (the user-facing identity, e.g. "FeatureVersion") and snapshots
-the current `list_depth` into `newtype_outer_list_depth` -- capturing how many list
-layers appeared before the NewType boundary. Subsequent NewTypes update
-`last_newtype_name` (the innermost, used for constraint provenance and as the terminal
-`base_type`). The loop unwraps via `__supertype__` and continues.
+**NewType** constructs a `_NewTypeCtx` carrying the NewType's name and callable
+reference, then recurses into `__supertype__` with that context active. After the
+recursion returns, `_erase_inner_newtypes` strips every `NewTypeShape` reachable through
+the recursion result's `ArrayOf` layers so that exactly one `NewTypeShape` remains per
+spine. The frame then wraps the (now wrapper-free) inner shape:
+`NewTypeShape(name="FeatureVersion", inner=<recursion result>)`. Inner NewType names
+survive as the terminal `Primitive.base_type`.
 
-**Annotated** collects every metadata object as a `ConstraintSource`, tagging each with
-whichever NewType was most recently entered. This is how constraint provenance survives:
-when `int32`'s `Annotated` layer contributes `Field(ge=0)`, the constraint records
-`source="int32"`. If a `FieldInfo` carries a description, the function captures it --
-first description wins, so the outermost NewType's documentation takes precedence.
+**Annotated** collects every metadata object in the `args[1:]` slice as a
+`ConstraintSource`, tagging each with the active `newtype_ctx`. If a `FieldInfo` is
+present, its `metadata` list contributes additional constraint sources (Pydantic unpacks
+`Field(min_length=1)` into annotated-types objects there). Descriptions are captured
+from `FieldInfo.description` -- first one found wins, so the outermost annotation's
+documentation takes precedence. The collected constraints are then attached to the
+recursion result via `attach_constraints`, which walks any leading `NewTypeShape`
+wrappers to prepend the constraints on the first structural layer (`ArrayOf`, `MapOf`,
+or scalar terminal) that can hold them. Raw `MinLen` / `MaxLen` constraints are wrapped
+into typed `ArrayMinLen` / `ScalarMinLen` (and `MaxLen` variants) matching the attachment
+layer, so length-constraint dispatch is type-keyed downstream.
 
-**Union** filters out `NoneType` (marks optional), `Sentinel` instances (Pydantic's
-`<MISSING>` marker for undeclared defaults), and `Literal` sentinel arms (like
-`Literal[""]` used alongside `HttpUrl`). If multiple concrete `BaseModel` subclasses
-remain after filtering, the function classifies the type as `UNION` and returns
-immediately with the member tuple. Non-BaseModel multi-type unions raise
-`UnsupportedUnionError`. A single remaining arm continues the loop.
+**Union** delegates to `_peel_union`. That helper filters `NoneType` (marks optional),
+`Sentinel` instances, and `Literal` sentinel arms. If multiple concrete `BaseModel`
+subclasses remain, it invokes `union_resolver` and returns a `_Resolved` short-circuit.
+A single remaining arm returns `_ContinueWith`, and `_unwrap` recurses into it.
 
-The `Literal` filtering has a guard: when a union contains *only* Literal arms (like
-`Optional[Literal["x"]]`), the function keeps them rather than filtering everything out.
+**list** recurses into the element type and wraps the result in `ArrayOf`. Nested lists
+(`list[list[str]]`) produce nested `ArrayOf` instances -- there is no numeric depth
+counter. Constraints contributed by an `Annotated` wrapper at any particular list level
+land on that level's `ArrayOf` node because `attach_constraints` prepends to the
+outermost structural layer, which is exactly the `ArrayOf` that was just constructed.
 
-**list/dict** increments `list_depth` for each `list[...]` layer (so `list[list[str]]`
-records depth 2), sets dict flags, and continues into element types. Dict is the one
-case where `analyze_type` recurses -- it calls itself for key and value types, storing
-the results as nested `TypeInfo` objects.
+**dict** recurses separately for key and value types (with `newtype_ctx=None` for both,
+since dict keys and values are independent spines) and returns `MapOf`.
 
-**Terminal** classification in `_classify_terminal` handles what remains after all
-wrappers are peeled: `Any` becomes a PRIMITIVE, `Literal` returns with the literal value
-(single-value only -- multi-value Literals get `literal_value=None`), `Enum` subclasses
-become ENUM, `BaseModel` subclasses become MODEL, everything else becomes PRIMITIVE.
+**Terminal** classification in `_terminal` handles the base case: `Any` becomes
+`AnyScalar`, `Literal` becomes `LiteralScalar`, `BaseModel` subclasses route through
+`model_resolver` (or fall back to `Primitive(source_type=cls)`), everything else becomes
+`Primitive(base_type=newtype_ctx.name or annotation.__name__)`.
 
 ### Concrete walkthroughs
 
-**Segment (union path).** `analyze_type` receives the `Annotated` alias. Iteration 1
-sees `Annotated` -- collects the `FieldInfo` with discriminator metadata as a
-constraint, unwraps to `Union[RoadSegment, RailSegment, WaterSegment]`. Iteration 2 sees
-the union. No `None` arm, no sentinels. Three concrete `BaseModel` subclasses remain --
-the function classifies the type as `UNION` and returns immediately: `kind=UNION`,
-`union_members=(RoadSegment, RailSegment, WaterSegment)`, `base_type="RoadSegment"` (the
-first member). Two iterations, done. The union members are raw type objects, not
-recursively analyzed -- callers that need field details call `extract_model` on each
-member separately.
+**Segment (union path).** `_unwrap` receives the `Annotated` alias for Segment. The
+`Annotated` case collects discriminator metadata from `FieldInfo`, then sees the inner
+annotation is a union. `_peel_union` finds three concrete `BaseModel` arms, invokes
+`union_resolver`, and returns `_Resolved(UnionRef(...))` carrying the `UnionSpec` that
+the resolver constructed. The `Annotated` handler attaches the discriminator constraints
+and returns. Two frames deep, done.
 
 **FeatureVersion (NewType chain path).** `FeatureVersion = NewType("FeatureVersion",
 int32)` where `int32 = NewType("int32", Annotated[int, Field(ge=0, le=2147483647)])`.
 
-Iteration 1 sees `FeatureVersion`. It's a NewType -- record
-`outermost_newtype_name="FeatureVersion"`, snapshot `newtype_outer_list_depth=0` (no list
-layers yet), unwrap to `int32`, continue. Iteration 2 sees
-`int32`. Also a NewType -- update `last_newtype_name="int32"`, unwrap to `Annotated[int,
-Field(ge=0, ...)]`, continue. Iteration 3 sees `Annotated`. Collect
-`ConstraintSource(source="int32", constraint=<Field metadata>)`, unwrap to `int`. The
-loop breaks on `int` (not a NewType, not Annotated, not a union, not a container).
-`_classify_terminal` returns a `TypeInfo` with `base_type="int32"`,
-`newtype_name="FeatureVersion"`, `kind=PRIMITIVE`, and a constraint tuple recording the
-provenance chain.
+Frame 1 sees `FeatureVersion` -- a NewType. Constructs `_NewTypeCtx("FeatureVersion",
+FeatureVersion)`, recurses into `int32`. Frame 2 sees `int32` -- also a NewType.
+Constructs `_NewTypeCtx("int32", int32)`, recurses into `Annotated[int, Field(ge=0,
+...)]`. Frame 3 sees `Annotated`. Collects `ConstraintSource(source_name="int32",
+constraint=<Field metadata ge/le>)`. Recurses into `int`. Frame 4 hits the terminal
+`int`. `newtype_ctx` is still `_NewTypeCtx("int32", int32)` -- frame 3 passed frame 2's
+context through unchanged, since `Annotated` does not introduce a NewType -- so
+`_terminal` uses `newtype_ctx.name` (`"int32"`) as `base_type`. Returns
+`Primitive(base_type="int32")`. Frame 3 attaches the constraints: `Primitive` gets the
+`ge=0` / `le=2147483647` sources prepended. Frame 2's `_erase_inner_newtypes` sees a
+bare `Primitive` -- no `NewTypeShape` to strip -- and wraps the result in
+`NewTypeShape(name="int32", inner=Primitive(...))`. Frame 1's `_erase_inner_newtypes`
+strips that inner `NewTypeShape`, yielding `Primitive(...)`, and wraps it in
+`NewTypeShape(name="FeatureVersion", inner=Primitive(...))`.
 
-The two paths demonstrate the function's range. Segment exits early on the union branch
-with member types for downstream extraction. FeatureVersion runs the full loop through
-NewType and Annotated layers, accumulating constraint provenance that survives to
-rendering.
-
-### _UnwrapState
-
-The accumulator dataclass carries state across iterations: optional/dict flags,
-`list_depth` (incremented per `list[...]` layer), `newtype_outer_list_depth` (snapshotted
-from `list_depth` when the first NewType is entered), the constraint list, both NewType
-name slots, and the captured description. Its `build_type_info` method assembles the
-final `TypeInfo` from accumulated state, freezing the constraint list into a tuple.
-
-### walk_type_info
-
-A shared visitor that recurses into dict key/value `TypeInfo` children. Both type
-collection and reverse reference computation use it rather than duplicating the descent
-pattern. Union members are raw `type` objects (not `TypeInfo` instances), so callers
-handle them directly.
+The two paths demonstrate the function's range. Segment exits after two frames via
+`union_resolver`. FeatureVersion recurses four frames through a NewType chain, with
+constraint provenance tagging surviving to rendering.
 
 ## 4. Data structures
 
@@ -206,10 +186,10 @@ handle them directly.
 a dataclass with no methods beyond field access and, in `UnionSpec`'s case, one cached
 property.
 
-**FieldSpec** represents one model field: alias-resolved name, `TypeInfo`, description,
-required flag. Two fields populated later by tree expansion: `model` (a reference to the
-nested `ModelSpec` for MODEL-kind fields) and `starts_cycle` (true when following this
-field's model would create a cycle in the ancestor chain).
+**FieldSpec** represents one model field: alias-resolved name, `shape: FieldShape`,
+description, required flag. `ModelRef` and `UnionRef` shapes carry their resolved specs
+(populated during `extract_model` recursion), so consumers can follow the tree without a
+separate expansion pass.
 
 **ModelSpec** represents one Pydantic model: class name, cleaned docstring, fields in
 documentation order, source class reference, the entry point string that located it, and
@@ -218,33 +198,37 @@ model-level constraints from decorators like `@require_any_of`.
 **UnionSpec** represents a discriminated union type alias. Segment's `UnionSpec` carries
 `members=[RoadSegment, RailSegment, WaterSegment]`, `discriminator_field="subtype"`, and
 `common_base=TransportationSegment`. Its `annotated_fields` list pairs each `FieldSpec`
-with `variant_sources` -- a tuple of class names indicating which union members
-contribute that field, or `None` for fields from `TransportationSegment` shared across
-all members. The `fields` cached property unwraps this for code that doesn't need
-provenance. `UnionSpec` uses `eq=False` because it contains mutable lists and a
-`cached_property` -- dataclass-generated `__eq__` would be unreliable.
+with `variant_sources` -- a tuple of `BaseModel` subclasses indicating which union
+members contribute that field, or `None` for fields from `TransportationSegment` shared
+across all members. The `fields` cached property unwraps this for code that doesn't need
+provenance. Each member also has its already-extracted `ModelSpec` retained in
+`member_specs: list[MemberSpec]` so downstream consumers (check builder, base-row
+generator) reuse it instead of re-extracting the subtree. `UnionSpec` uses `eq=False`
+because it contains mutable lists and a `cached_property` -- dataclass-generated
+`__eq__` would be unreliable.
 
-**FeatureSpec** is a `Protocol` satisfied by both `ModelSpec` and `UnionSpec`. This is
-the pipeline's unifying abstraction. Tree expansion, type collection, rendering
-dispatch, and example loading all operate on `FeatureSpec` without knowing which
-concrete type they hold.
+**FeatureSpec** is the type alias `ModelSpec | UnionSpec`. Type collection, rendering
+dispatch, and example loading all operate on `FeatureSpec`. Consumers narrow with
+`isinstance` when they need `UnionSpec`-specific attributes like `discriminator_field`.
 
 **EnumSpec** and **EnumMemberSpec** serve enums. **NewTypeSpec** serves NewTypes.
 **NumericSpec** serves numeric primitives with an `Interval` for bounds and optional
 `float_bits`.
 
-**SupplementarySpec** is the union type alias `EnumSpec | NewTypeSpec | ModelSpec` --
-the set of non-feature types that need their own output pages. `NumericSpec` and
-geometry types are excluded because they render on aggregate pages rather than
-individual ones.
+**SupplementarySpec** is the union type alias `EnumSpec | NewTypeSpec | ModelSpec |
+PydanticTypeSpec` -- the set of non-feature types that need their own output pages.
+`PydanticTypeSpec` covers Pydantic built-ins like `HttpUrl` and `EmailStr` (carrying the
+class plus a pointer back to Pydantic's docs). `NumericSpec` and geometry types are
+excluded because they render on aggregate pages rather than individual ones.
 
 ### Classification functions
 
-Three functions at the bottom of `extraction/specs.py` classify discovery results. `is_model_class`
-is a `TypeGuard` that checks `isinstance(obj, type) and issubclass(obj, BaseModel)`.
-`is_union_alias` calls `analyze_type` and checks for `UNION` kind -- the only place
-outside the type analyzer that touches Python type annotations. `filter_model_classes`
-applies the model guard across the discovery dict's values.
+Three functions at the bottom of `extraction/specs.py` classify discovery results.
+`is_model_class` is a `TypeGuard` that checks `isinstance(obj, type) and issubclass(obj,
+BaseModel)`. `is_union_alias` calls `analyze_type` with a sentinel `union_resolver` that
+raises immediately on detection -- the only place outside the type analyzer that touches
+Python type annotations. `filter_model_classes` applies the model guard across the
+discovery dict's values.
 
 ## 5. Type registry
 
@@ -291,27 +275,28 @@ classes.
 
 One subtlety: Pydantic strips the `Annotated` wrapper from some fields and moves the
 metadata to `field_info.metadata`. When this happens, `analyze_type` sees a bare type
-and misses the constraints. `_merge_field_metadata` patches them back in, tagging them
-with `source=None` since they came from the field's own annotation rather than a NewType
-chain.
+and misses the constraints. `_attach_field_metadata` routes them through
+`attach_constraints` -- tagging them with `source=None` since they came from the field's
+own annotation rather than a NewType chain -- so length-constraint typing happens here
+just as it does during normal `Annotated` unwrapping.
 
 Model-level constraints come from `ModelConstraint.get_model_constraints(model_class)`,
 which inspects decorators like `@require_any_of` and `@require_if`.
 
-### Tree expansion
+### Recursive extraction
 
-`expand_model_tree` is the recursive step that populates `FieldSpec.model` references.
-It maintains a shared cache keyed by Python class and an ancestor set for cycle
-detection.
+`extract_model` recursively resolves sub-models and sub-unions during field extraction,
+building `ModelRef`/`UnionRef` shapes with their specs already populated. It maintains a
+shared cache keyed by Python class and an ancestor set for cycle detection.
 
 The cache insert happens *before* recursion. Without this ordering, a back-edge
 encounter would find no cached entry and infinite-loop instead of marking
-`starts_cycle=True`. The sequence: extract the sub-model, insert it into the cache, then
-recurse into its fields. Shared references (the same sub-model used in multiple fields)
-reuse the cached `ModelSpec` without marking cycles.
+`starts_cycle=True`. The sequence: create the partial `ModelSpec`, insert it into the
+cache, then populate its fields. Shared references (the same sub-model used in multiple
+fields) reuse the cached `ModelSpec` without marking cycles.
 
-Union-kind fields skip inline expansion -- they appear as a single row in the output,
-linking to their members, rather than expanding inline.
+`UnionRef` fields resolve via the `union_resolver` callback -- they appear as a single
+row in the output, linking to their members, rather than expanding inline.
 
 ## 7. Other extractors
 
@@ -326,17 +311,18 @@ per-member check, so members that inherit the class docstring verbatim get
 ### NewType extraction
 
 `extract_newtype` calls `analyze_type` on the NewType callable and extracts the custom
-docstring. When the NewType has no explicit docstring, it falls back to
-`TypeInfo.description` -- the first `Field.description` found in the `Annotated`
+docstring. When the NewType has no explicit docstring, it falls back to the description
+returned by `analyze_type` -- the first `Field.description` found in the `Annotated`
 metadata chain.
 
 ### Union extraction
 
 The most involved extractor. Walk through `Segment` concretely.
 
-`extract_union("Segment", annotation)` calls `analyze_type` on the
-`Annotated[Union[RoadSegment, RailSegment, WaterSegment], ...]` alias. The analyzer
-returns `kind=UNION` with the three member types.
+`extract_union("Segment", annotation)` calls `_union_members`, which runs `analyze_type`
+with a capturing `union_resolver` that raises out of the analysis as soon as it sees a
+multi-arm union of `BaseModel` subclasses. The captured tuple gives the three member
+types plus any description from enclosing `Annotated` layers.
 
 Next, `_find_common_base` intersects each member's filtered MRO (BaseModel subclasses
 only, excluding `BaseModel` itself). All three share `TransportationSegment` in their
@@ -348,13 +334,17 @@ The extractor calls `extract_model(TransportationSegment)` to get the shared fie
 Fields like `id`, `geometry`, `version`, `sources`, and `subtype` appear in the common
 base. These become shared `AnnotatedField` entries with `variant_sources=None`.
 
-Then it extracts each member: `RoadSegment`, `RailSegment`, `WaterSegment`. Fields not
-in the shared set are variant-specific, deduplicated by `(name, type_identity)` where
-`type_identity` captures `base_type`, `kind`, `is_optional`, and `list_depth`. If
-`RoadSegment` and `WaterSegment` both define a `width` field with the same type
-identity, the `AnnotatedField` accumulates both class names:
-`variant_sources=("RoadSegment", "WaterSegment")`. Fields unique to one member get a
-single-element tuple.
+Then it extracts each member: `RoadSegment`, `RailSegment`, `WaterSegment`. Each result
+is retained on the `UnionSpec` as a `MemberSpec(member_cls, spec)` so consumers don't
+re-extract. Fields not in the shared set are variant-specific, deduplicated by
+`(name, structural_fingerprint)` where the fingerprint walks the field's `FieldShape`
+tree, capturing every wrapper layer plus the terminal type. If `RoadSegment` and
+`WaterSegment` both define a `width` field with the same fingerprint, the
+`AnnotatedField` accumulates both classes: `variant_sources=(RoadSegment,
+WaterSegment)`. Fields unique to one member get a single-element tuple. When two members
+declare the same field name with the same structural fingerprint but diverging
+constraints, the extractor raises rather than silently dropping one member's
+constraints.
 
 `extract_discriminator` inspects the `Annotated` metadata for a `FieldInfo` with a
 discriminator attribute. For Segment, it finds `subtype` and builds the mapping:
@@ -435,24 +425,23 @@ discover every referenced type that needs its own output page: enums, semantic N
 and sub-models.
 
 The walk maintains a visited set for models and a feature name set for skip detection.
-Types that are themselves top-level features get skipped. For UNION-kind fields, the
-function extracts and walks each member's fields. For semantic NewTypes, it walks the
-`__supertype__` chain to collect intermediate NewTypes -- `Id` wraps
-`NoWhitespaceString` wraps `str`, and both `Id` and `NoWhitespaceString` get their own
-pages. The `walk_type_info` visitor handles dict key/value recursion.
+Types that are themselves top-level features get skipped. For `UnionRef` fields, the function extracts and walks each member's fields. For
+semantic NewTypes, it walks the `__supertype__` chain to collect intermediate NewTypes --
+`Id` wraps `NoWhitespaceString` wraps `str`, and both `Id` and `NoWhitespaceString` get
+their own pages. `walk_shape` from `field_walk.py` handles recursion into `ArrayOf`,
+`MapOf`, and `NewTypeShape` wrappers.
 
-MODEL-kind fields follow `field_spec.model` references that were populated by
-`expand_model_tree`. The function raises `RuntimeError` if it encounters a MODEL-kind
-field with `model=None` -- a guard against calling collection before tree expansion.
+`ModelRef` fields follow their `.model` reference (populated during `extract_model`
+recursion) into nested `ModelSpec` trees.
 
 A single field matches multiple conditions independently. A semantic NewType wrapping a
-MODEL-kind type triggers both NewType extraction and model collection. The checks use
+`ModelRef` triggers both NewType extraction and model collection. The checks use
 independent `if` statements, not `elif`.
 
 ## 11. Path assignment
 
-`build_placement_registry` builds the complete mapping from type names to output file
-paths. Three tiers:
+`build_placement_registry` builds the complete `dict[TypeIdentity, PurePosixPath]`
+mapping each type to its output file path. Four tiers:
 
 Aggregate pages come first. All numeric primitives point to
 `system/primitive/primitives.md`. All geometry types point to
@@ -460,7 +449,8 @@ Aggregate pages come first. All numeric primitives point to
 reference page.
 
 Feature specs get individual pages. Output directories derive from
-`output_dir_for_entry_point`. Filenames use `slug_filename`.
+`output_dir_for_entry_point`. Filenames are the snake-case type name with a `.md`
+extension.
 
 Supplementary specs get module-derived paths from `source_type.__module__`. When a
 supplementary type's output directory falls under a feature directory,
@@ -472,15 +462,20 @@ cluttering feature directories.
 `_nest_under_types` sorts feature directories by path length (descending) before
 checking containment, so the most specific match wins.
 
+`PydanticTypeSpec` entries (e.g. `HttpUrl`) bypass module mirroring and land at
+`pydantic/<source_module>/<slug>.md`, keeping the generated Pydantic reference set
+isolated from theme directories.
+
 ## 12. Links and reverse references
 
 ### Link computation
 
-`LinkContext` carries the current page's output path and the full type-to-path registry.
-When a renderer formats a type reference, it calls `resolve_link` to compute a relative
-path from the current page to the target. Types without registry entries return `None`,
-telling renderers to show inline code instead of a broken link. `resolve_link_or_slug`
-provides a fallback when a link is required regardless.
+`LinkContext` carries the current page's output path and the full `dict[TypeIdentity,
+PurePosixPath]` registry. When a renderer formats a type reference, it calls
+`resolve_link` with the target's `TypeIdentity` to compute a relative path. Identities
+without registry entries return `None`, telling renderers to show inline code instead
+of a broken link. `resolve_link_or_slug` provides a fallback when a link is required
+regardless.
 
 `relative_link` computes `../` navigation between any two paths in the output tree. It
 finds the common prefix of directory components, counts the levels up from the source
@@ -490,8 +485,9 @@ rejects `..` components to prevent path traversal surprises.
 ### Reverse references
 
 `compute_reverse_references` walks all feature fields and supplementary specs to build
-`dict[str, list[UsedByEntry]]`. Each entry maps a type name to the list of types that
-reference it. Entries sort models before NewTypes, alphabetical within each group.
+`dict[TypeIdentity, list[UsedByEntry]]`. Each entry maps a target identity to the list
+of types that reference it. Entries sort models before NewTypes, alphabetical within
+each group.
 
 The function tracks references with sets for deduplication, then sorts into lists at the
 end. It skips self-references and references to types not in the supplementary spec dict
@@ -504,29 +500,28 @@ provenance rather than direct field reference.
 
 ## 13. Markdown type formatting
 
-`markdown/type_format.py` converts `TypeInfo` into display strings for markdown output.
+`markdown/type_format.py` converts a field's `FieldShape` into display strings for
+markdown output.
 
-`format_type` handles the full range of field types. Single-value Literals render as
-`"value"` in backticks. Semantic NewTypes and enums/models get markdown links via
-`_resolve_type_link`, which checks the `LinkContext` registry and falls back to plain
+`format_type` handles the full range of field types. Single-value `LiteralScalar`s
+render as `"value"` in backticks. Semantic NewTypes and enums/models get markdown links
+via `_resolve_type_link`, which checks the `LinkContext` registry and falls back to plain
 code spans. For types with a linked identity (semantic NewTypes, enums, models), list
-rendering depends on where the list layers sit relative to the NewType boundary.
-`newtype_outer_list_depth > 0` means the list wraps the NewType (`list[PhoneNumber]`) and
-renders as `list<PhoneNumber>`. `is_list` with `newtype_name` set means the NewType
-wraps a list internally (`Sources` wrapping `list[SourceItem]`) and renders with a
-`(list)` qualifier. Non-NewType identities (enums, models) use `list<X>` syntax. Linked
-inner types use broken-backtick syntax (`` `list<` `` ... `` `>` ``) built as a single
-wrapper to avoid adjacent backticks that CommonMark would interpret as multi-backtick
-code span delimiters. Dict types render as `` `map<K, V>` ``. Qualifiers (optional, list,
-map) append in parentheses.
+rendering depends on where the `ArrayOf` layers sit relative to the `NewTypeShape`
+boundary. An `ArrayOf` sitting outside the `NewTypeShape` in the shape tree means the
+list wraps the NewType (`list[PhoneNumber]`) and renders as `list<PhoneNumber>`. A
+`NewTypeShape` with an `ArrayOf` inner means the NewType wraps a list internally
+(`Sources` wrapping `list[SourceItem]`) and renders with a `(list)` qualifier. Non-NewType
+identities (enums, models) use `list<X>` syntax. Linked inner types use broken-backtick
+syntax (`` `list<` `` ... `` `>` ``) built as a single wrapper to avoid adjacent backticks
+that CommonMark would interpret as multi-backtick code span delimiters. `MapOf` shapes
+render as `` `map<K, V>` ``. Qualifiers (optional, list, map) append in parentheses.
 
-Union members format independently -- each gets its own link resolution, joined with
-pipe separators escaped for table-cell safety.
+`UnionRef` members format independently -- each gets its own link resolution, joined
+with pipe separators escaped for table-cell safety.
 
 `format_underlying_type` handles NewType page headers. It links enums and models that
-have their own pages but skips the outermost NewType name to avoid self-referencing. The
-function uses `source_type.__name__` rather than `base_type` for link resolution, since
-`base_type` may carry the outermost NewType name when only one NewType wraps a class.
+have their own pages but skips the outermost NewType name to avoid self-referencing.
 
 ## 14. Markdown rendering
 
@@ -631,26 +626,23 @@ pipeline.
 
 `generate_markdown_pages` in `markdown/pipeline.py` is the "main" function. It takes
 feature specs and a schema root, returns rendered pages without touching the filesystem.
-Eight steps:
+Seven steps (tree expansion now happens inside `extract_model`):
 
-1. **Expand model trees** with a shared cache across all features, so sub-models
-   referenced by multiple features extract once.
-
-2. **Partition primitive and geometry names** from the system primitive module's
+1. **Partition primitive and geometry names** from the system primitive module's
    `__all__` exports.
 
-3. **Collect supplementary types** by walking expanded feature trees.
+2. **Collect supplementary types** by walking feature trees.
 
-4. **Build the placement registry** mapping every type to its output file path.
+3. **Build the placement registry** mapping every type to its output file path.
 
-5. **Compute reverse references** across all features and supplements.
+4. **Compute reverse references** across all features and supplements.
 
-6. **Render each feature** with its `LinkContext`, loaded examples, and used-by entries.
+5. **Render each feature** with its `LinkContext`, loaded examples, and used-by entries.
 
-7. **Render each supplementary type** -- dispatching to `render_enum`, `render_newtype`,
-   or `render_feature` (for sub-models) based on spec type.
+6. **Render each supplementary type** -- dispatching to `render_enum`, `render_newtype`,
+   `render_feature` (for sub-models), or `render_pydantic_type` based on spec type.
 
-8. **Render aggregate pages** for primitives and geometry.
+7. **Render aggregate pages** for primitives and geometry.
 
 The return value is `list[RenderedPage]` -- frozen dataclasses carrying content, output
 path, and a boolean `is_feature` flag. The caller decides what to do with them.
@@ -688,36 +680,34 @@ A reader who reached this point has seen every module in isolation. This section
 entry_point="overture.schema.transportation:Segment")`.
 
 **Classification.** The CLI tests each entry. `is_model_class(Segment)` returns false --
-`Segment` is not a class. `is_union_alias(Segment)` calls `analyze_type`, which peels
-the `Annotated` wrapper and finds three `BaseModel` subclasses in the union. The
-analyzer returns `kind=UNION`. The CLI routes Segment to `extract_union`.
+`Segment` is not a class. `is_union_alias(Segment)` calls `analyze_type` with a sentinel
+`union_resolver` that raises on detection. The CLI routes Segment to `extract_union`.
 
-**Extraction.** `extract_union("Segment", annotation)` calls `analyze_type` again (cheap
--- the same two-iteration path), gets the three member types, and finds
-`TransportationSegment` as the common base via `_find_common_base`. It extracts the
-common base's fields as shared, then extracts each member's fields and partitions the
-non-shared ones into `AnnotatedField` entries with variant provenance.
+**Extraction.** `extract_union("Segment", annotation)` calls `_union_members`, which
+runs `analyze_type` with a capturing `union_resolver` to grab the three member types
+plus the union description. `_find_common_base` picks `TransportationSegment` as the
+shared parent. The extractor calls `extract_model` on the common base and on each
+member -- the results are cached on the `UnionSpec` as `member_specs` -- and partitions
+the non-shared fields into `AnnotatedField` entries with variant provenance.
 `extract_discriminator` finds `subtype` and builds `{"road": RoadSegment, "rail":
-RailSegment, "water": WaterSegment}`. The result is a `UnionSpec` satisfying
-`FeatureSpec`.
+RailSegment, "water": WaterSegment}`. The result is a `UnionSpec` (a `FeatureSpec`).
 
 Meanwhile, concrete models like `Building` go through `extract_model`, which calls
 `analyze_type` on each field annotation. A field typed `FeatureVersion` unwraps through
-two NewType layers and an `Annotated` layer, producing a `TypeInfo` with
-`base_type="int32"`, `newtype_name="FeatureVersion"`, and constraint provenance linking
-`ge=0` back to the `int32` NewType. Both extraction paths produce specs satisfying
-`FeatureSpec`.
+two NewType layers and an `Annotated` layer, producing a `NewTypeShape(name="FeatureVersion",
+inner=Primitive(base_type="int32", constraints=(...)))` shape with constraint provenance
+linking `ge=0` back to the `int32` NewType. Both extraction paths produce `FeatureSpec`
+values.
 
 **Pipeline entry.** The feature specs enter `generate_markdown_pages`.
-`expand_model_tree` walks MODEL-kind fields on Segment's `UnionSpec` and populates
-`FieldSpec.model` references. The shared cache ensures sub-models referenced by multiple
-features (like `Sources`) extract once. Union-kind fields skip inline expansion.
+Sub-model `FieldShape` trees are fully resolved -- `ModelRef` nodes already carry their
+`ModelSpec` from recursive `extract_model` calls. No separate expansion pass is needed.
 
 **Layout.** `partition_numeric_and_geometry_types` reads the system module's exports.
-`collect_all_supplementary_types` walks Segment's expanded fields and discovers
-referenced enums (like `Subtype`), semantic NewTypes (like `Id`, `Sources`), and
-sub-models. The walk follows `FieldSpec.model` references down the tree, and for
-UNION-kind fields, extracts and walks each member's fields separately.
+`collect_all_supplementary_types` walks Segment's field shapes and discovers referenced
+enums (like `Subtype`), semantic NewTypes (like `Id`, `Sources`), and sub-models. The
+walk follows `ModelRef.model` references down the tree, and for `UnionRef` shapes,
+extracts and walks each member's fields separately.
 
 `build_placement_registry` assigns Segment's output path from its entry point:
 `entry_point_module` extracts `overture.schema.transportation`, `compute_output_dir`
@@ -732,10 +722,10 @@ populate "Used By" sections: the `Subtype` enum page shows that Segment uses it.
 full registry. `render_feature` dispatches to `_expand_union_fields` because the spec is
 a `UnionSpec`. Shared fields from `TransportationSegment` render as plain rows.
 Variant-specific fields get italic tags: `` `road_class` *(Road)* ``. The renderer
-formats each field's type via `format_type`, which resolves links through the
+formats each field's `FieldShape` via `format_type`, which resolves links through the
 `LinkContext` -- `Subtype` gets a relative link to its enum page, `Id` links to its
-NewType page. Constraints with `source=None` annotate field rows; constraints with named
-sources appear on the source NewType's page instead.
+NewType page. Constraints with `source_name=None` annotate field rows; constraints with
+named sources appear on the source NewType's page instead.
 
 The example loader finds `pyproject.toml` in the transportation theme package, reads
 `[examples.Segment]`, validates each example against the union alias (injecting literal

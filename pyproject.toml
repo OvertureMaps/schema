@@ -54,6 +54,7 @@ dev = [
     "pydocstyle>=6.3.0",
     "pytest>=9.0.0",
     "pytest-cov>=7.0.0",
+    "pytest-testmon>=2.2.0",
     "ruff>=0.13.0",
 ]
 
@@ -71,6 +72,7 @@ pythonpath = [
     "packages/overture-schema-common/tests",
     "packages/overture-schema-divisions-theme/tests",
     "packages/overture-schema-places-theme/tests",
+    "packages/overture-schema-pyspark/tests",
     "packages/overture-schema-system/tests",
     "packages/overture-schema-transportation-theme/tests",
     "packages/overture-schema/tests",

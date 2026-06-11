@@ -11,7 +11,6 @@ from codegen_test_support import (
     lookup_by_name,
     make_union_spec,
 )
-from overture.schema.codegen.extraction.model_extraction import expand_model_tree
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
     FeatureSpec,
@@ -45,9 +44,6 @@ def _build_registry(
     feature_specs: list[ModelSpec],
 ) -> tuple[dict[TypeIdentity, PurePosixPath], dict[TypeIdentity, SupplementarySpec]]:
     """Build placement registry with standard aggregate names."""
-    cache: dict[type, ModelSpec] = {}
-    for spec in feature_specs:
-        expand_model_tree(spec, cache)
     all_specs = collect_all_supplementary_types(feature_specs)
     registry = build_placement_registry(
         feature_specs, all_specs, _NUMERIC_NAMES, _GEOMETRY_NAMES, _SCHEMA_ROOT
@@ -162,7 +158,7 @@ class TestPlacementWithUnionSpec:
                 AnnotatedField(
                     field_spec=FieldSpec(
                         name="name",
-                        type_info=STR_TYPE,
+                        shape=STR_TYPE,
                         description=None,
                         is_required=True,
                     ),

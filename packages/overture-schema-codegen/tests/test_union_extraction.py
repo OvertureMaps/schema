@@ -5,11 +5,14 @@ from codegen_test_support import (
     RailSegment,
     RoadSegment,
     SegmentBase,
+    TestEnumDiscriminatorUnion,
     TestSegment,
+    TestSegmentDivergingConstraints,
     WaterSegment,
 )
 from overture.schema.codegen.extraction.specs import FieldSpec, UnionSpec
 from overture.schema.codegen.extraction.union_extraction import extract_union
+from overture.schema.common.scoping.vehicle import VehicleSelector
 
 
 class TestExtractUnion:
@@ -51,19 +54,19 @@ class TestExtractUnion:
     def test_variant_specific_fields_have_sources(
         self, segment_spec: UnionSpec
     ) -> None:
-        """Variant-only fields carry their source class names."""
+        """Variant-only fields carry their source classes."""
         speed = next(
             af
             for af in segment_spec.annotated_fields
             if af.field_spec.name == "speed_limit"
         )
-        assert speed.variant_sources == ("RoadSegment",)
+        assert speed.variant_sources == (RoadSegment,)
         gauge = next(
             af
             for af in segment_spec.annotated_fields
             if af.field_spec.name == "rail_gauge"
         )
-        assert gauge.variant_sources == ("RailSegment",)
+        assert gauge.variant_sources == (RailSegment,)
 
     def test_heterogeneous_same_name_produces_separate_rows(
         self, segment_spec: UnionSpec
@@ -74,8 +77,8 @@ class TestExtractUnion:
         ]
         assert len(class_fields) == 2
         sources = {af.variant_sources for af in class_fields}
-        assert ("RoadSegment",) in sources
-        assert ("RailSegment",) in sources
+        assert (RoadSegment,) in sources
+        assert (RailSegment,) in sources
 
     def test_members_lists_all_member_classes(self, segment_spec: UnionSpec) -> None:
         """UnionSpec.members contains all union member classes."""
@@ -89,3 +92,43 @@ class TestExtractUnion:
         """spec.fields returns list[FieldSpec] without provenance."""
         for f in segment_spec.fields:
             assert isinstance(f, FieldSpec)
+
+
+class TestExtractDiscriminatorWithEnumLiterals:
+    """Discriminator mapping uses runtime string values for enum literals."""
+
+    @pytest.fixture
+    def spec(self) -> UnionSpec:
+        return extract_union("TestEnumDiscriminatorUnion", TestEnumDiscriminatorUnion)
+
+    def test_discriminator_mapping_uses_enum_values(self, spec: UnionSpec) -> None:
+        """Mapping keys must be the Parquet-serialized string values, not enum repr."""
+        assert spec.discriminator_mapping is not None
+        assert set(spec.discriminator_mapping.keys()) == {"car", "bike"}
+
+
+class TestDivergingConstraints:
+    """Same-named fields with matching shape but diverging constraints fail loudly."""
+
+    def test_diverging_constraints_raise(self) -> None:
+        """A field shared by structure but not by constraints raises ValueError.
+
+        `ShortNamesSegment` and `LongNamesSegment` both declare `aliases`
+        as `list[str] | None`, so the structural fingerprint collapses
+        them — but the `min_length` constraints differ. Dedup would
+        silently keep one member's `FieldSpec`, so extraction raises
+        instead.
+        """
+        with pytest.raises(ValueError, match="diverging constraints"):
+            extract_union(
+                "TestSegmentDivergingConstraints", TestSegmentDivergingConstraints
+            )
+
+
+class TestUnionNameDerivation:
+    """Union name fallback when the caller passes a member class name."""
+
+    def test_name_derived_from_common_base(self) -> None:
+        """When name matches a member class, derive from common base minus 'Base' suffix."""
+        spec = extract_union("VehicleAxleCountSelector", VehicleSelector)
+        assert spec.name == "VehicleSelector"

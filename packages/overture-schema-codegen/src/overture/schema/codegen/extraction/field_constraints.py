@@ -1,37 +1,31 @@
 """Convert field-level constraints to display text.
 
 Handles constraints from Annotated metadata and NewType wrappers:
-Ge, Gt, Interval, Le, Lt, MaxLen, MinLen, GeometryTypeConstraint,
-Reference, and custom constraint classes.
+Ge, Gt, Interval, Le, Lt, ArrayMinLen, ArrayMaxLen, ScalarMinLen,
+ScalarMaxLen, GeometryTypeConstraint, Reference, and custom constraint
+classes.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
 
-from annotated_types import Ge, Gt, Interval, Le, Lt, MaxLen, MinLen
+from annotated_types import Ge, Gt, Interval, Le, Lt
 
 from overture.schema.system.primitive import GeometryTypeConstraint
 from overture.schema.system.ref import Reference
 
 from .docstring import first_docstring_line
+from .length_constraints import ArrayMaxLen, ArrayMinLen, ScalarMaxLen, ScalarMinLen
 from .specs import TypeIdentity
 from .type_analyzer import ConstraintSource
 
 __all__ = [
     "constraint_display_text",
-    "constraint_pattern",
     "describe_field_constraint",
 ]
 
-# Bound attribute names paired with display operators. Each entry maps an
-# annotated_types constraint attribute (Ge, Gt, Le, Lt, Interval) to its
-# mathematical symbol for prose rendering.
-#
-# numeric_extraction.py has its own _BOUND_ATTRS for numeric extraction. The
-# duplication is deliberate: these modules use the same attribute names for
-# unrelated purposes (display formatting vs. numeric bound extraction), and
-# coupling them for four string literals adds a dependency without value.
+# Bound attribute -> mathematical symbol for prose rendering.
 _BOUND_OPS: tuple[tuple[str, str], ...] = (
     ("ge", "≥"),
     ("gt", ">"),
@@ -108,9 +102,9 @@ def describe_field_constraint(
         result = _first_bound(constraint)
         if result is not None:
             return result
-    if isinstance(constraint, MinLen):
+    if isinstance(constraint, (ArrayMinLen, ScalarMinLen)):
         return f"Minimum length: {constraint.min_length}"
-    if isinstance(constraint, MaxLen):
+    if isinstance(constraint, (ArrayMaxLen, ScalarMaxLen)):
         return f"Maximum length: {constraint.max_length}"
 
     if _is_opaque_constraint(constraint):
@@ -130,7 +124,7 @@ def _constraint_class_description(constraint: object) -> str | None:
     return line or None
 
 
-def constraint_pattern(constraint: object) -> str | None:
+def _constraint_pattern(constraint: object) -> str | None:
     """Extract the regex pattern string from a constraint, if present.
 
     Traverses two levels: constraint.pattern is a compiled re.Pattern
@@ -148,7 +142,7 @@ def constraint_display_text(
     description = _constraint_class_description(cs.constraint)
     if _is_opaque_constraint(cs.constraint) and description:
         cls_name = type(cs.constraint).__name__
-        pattern = constraint_pattern(cs.constraint)
+        pattern = _constraint_pattern(cs.constraint)
         if pattern:
             return f"{description} (`{cls_name}`, pattern: `{pattern}`)"
         return f"{description} (`{cls_name}`)"

@@ -1,9 +1,15 @@
 """Tests for constraint description (model-level and field-level)."""
 
-from annotated_types import Ge, Gt, Interval, Le, Lt, MaxLen, MinLen
+from annotated_types import Ge, Gt, Interval, Le, Lt
 from overture.schema.codegen.extraction.field_constraints import (
     constraint_display_text,
     describe_field_constraint,
+)
+from overture.schema.codegen.extraction.length_constraints import (
+    ArrayMaxLen,
+    ArrayMinLen,
+    ScalarMaxLen,
+    ScalarMinLen,
 )
 from overture.schema.codegen.extraction.model_constraints import (
     analyze_model_constraints,
@@ -339,11 +345,27 @@ class TestDescribeFieldConstraint:
     def test_lt(self) -> None:
         assert describe_field_constraint(Lt(lt=100)) == "`< 100`"
 
-    def test_min_len(self) -> None:
-        assert describe_field_constraint(MinLen(min_length=1)) == "Minimum length: 1"
+    def test_scalar_min_len(self) -> None:
+        assert (
+            describe_field_constraint(ScalarMinLen(min_length=1)) == "Minimum length: 1"
+        )
 
-    def test_max_len(self) -> None:
-        assert describe_field_constraint(MaxLen(max_length=10)) == "Maximum length: 10"
+    def test_array_min_len(self) -> None:
+        assert (
+            describe_field_constraint(ArrayMinLen(min_length=1)) == "Minimum length: 1"
+        )
+
+    def test_scalar_max_len(self) -> None:
+        assert (
+            describe_field_constraint(ScalarMaxLen(max_length=10))
+            == "Maximum length: 10"
+        )
+
+    def test_array_max_len(self) -> None:
+        assert (
+            describe_field_constraint(ArrayMaxLen(max_length=10))
+            == "Maximum length: 10"
+        )
 
     def test_interval_closed(self) -> None:
         assert describe_field_constraint(Interval(ge=0, le=100)) == "`0 ≤ x ≤ 100`"

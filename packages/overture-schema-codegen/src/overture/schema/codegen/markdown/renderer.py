@@ -14,7 +14,9 @@ from jinja2 import Environment, FileSystemLoader
 from typing_extensions import NotRequired
 
 from ..extraction.examples import ExampleRecord
+from ..extraction.field import ConstraintSource
 from ..extraction.field_constraints import constraint_display_text
+from ..extraction.field_walk import all_constraints, list_depth, terminal_model_ref
 from ..extraction.model_constraints import analyze_model_constraints
 from ..extraction.specs import (
     AnnotatedField,
@@ -27,9 +29,6 @@ from ..extraction.specs import (
     PydanticTypeSpec,
     TypeIdentity,
     UnionSpec,
-)
-from ..extraction.type_analyzer import (
-    ConstraintSource,
 )
 from .link_computation import LinkContext
 from .reverse_references import UsedByEntry
@@ -237,14 +236,14 @@ def _annotate_field_constraints(
 ) -> None:
     """Annotate a field row with constraints from the field's own annotation.
 
-    Shows constraints where source is None — those applied directly to
+    Shows constraints where source is None -- those applied directly to
     the field, not inherited from NewType chains. NewType-inherited
     constraints appear on the NewType's own page instead.
     """
     link_fn = _link_fn_from_ctx(ctx)
     notes = [
         constraint_display_text(cs, link_fn=link_fn)
-        for cs in field.type_info.constraints
+        for cs in all_constraints(field.shape)
         if cs.source_ref is None
     ]
     if notes:
@@ -253,13 +252,11 @@ def _annotate_field_constraints(
 
 def _expandable_list_suffix(field_spec: FieldSpec) -> str:
     """Return `"[]"` per nesting level for list-of-model fields expanded inline."""
-    if (
-        field_spec.type_info.is_list
-        and field_spec.model
-        and not field_spec.starts_cycle
-    ):
-        return "[]" * field_spec.type_info.list_depth
-    return ""
+    model_ref = terminal_model_ref(field_spec.shape)
+    if model_ref is None or model_ref.starts_cycle:
+        return ""
+    depth = list_depth(field_spec.shape)
+    return "[]" * depth if depth > 0 else ""
 
 
 def _expand_sub_model(
@@ -269,10 +266,13 @@ def _expand_sub_model(
     result: list[_FieldRow],
 ) -> None:
     """Expand sub-model fields inline, appending child rows to *result*."""
-    sub = field_spec.model if not field_spec.starts_cycle else None
-    if sub is not None:
-        child_prefix = f"{name}{_expandable_list_suffix(field_spec)}."
-        result.extend(_expand_model_fields(sub.fields, ctx, prefix=child_prefix))
+    model_ref = terminal_model_ref(field_spec.shape)
+    if model_ref is None or model_ref.starts_cycle:
+        return
+    child_prefix = f"{name}{_expandable_list_suffix(field_spec)}."
+    result.extend(
+        _expand_model_fields(model_ref.model.fields, ctx, prefix=child_prefix)
+    )
 
 
 def _annotate_top_level_constraints(
@@ -341,7 +341,7 @@ def _variant_tag(annotated: AnnotatedField, union_name: str) -> str | None:
     if annotated.variant_sources is None:
         return None
     short_names = [
-        _short_variant_name(v, union_name) for v in annotated.variant_sources
+        _short_variant_name(v.__name__, union_name) for v in annotated.variant_sources
     ]
     return f" *({', '.join(short_names)})*"
 
@@ -385,9 +385,8 @@ def render_feature(
     examples: list[ExampleRecord] | None = None,
     used_by: list[UsedByEntry] | None = None,
 ) -> str:
-    """Render a FeatureSpec (ModelSpec or UnionSpec) as Markdown documentation.
+    """Render a feature spec as Markdown documentation.
 
-    For ModelSpec, requires expand_model_tree to have been called first.
     For UnionSpec, adds inline variant tags to variant-specific fields.
     """
     template = _get_jinja_env().get_template("feature.md.jinja2")
@@ -491,13 +490,13 @@ def render_newtype(
     link_ctx: LinkContext | None = None,
     used_by: list[UsedByEntry] | None = None,
 ) -> str:
-    """Render a NewTypeSpec as Markdown documentation."""
+    """Render a `NewTypeSpec` as Markdown documentation."""
     template = _get_jinja_env().get_template("newtype.md.jinja2")
-    ti = newtype_spec.type_info
-    underlying = format_underlying_type(ti, link_ctx)
+    shape = newtype_spec.shape
+    underlying = format_underlying_type(shape, link_ctx)
     constraints = [
         _format_constraint(cs, newtype_spec.source_type, link_ctx)
-        for cs in ti.constraints
+        for cs in all_constraints(shape)
     ]
 
     return template.render(

@@ -20,9 +20,25 @@ name = "overture-schema-codegen"
 overture-codegen = "overture.schema.codegen.cli:main"
 
 [tool.uv.sources]
+overture-schema-addresses-theme = { workspace = true }
+overture-schema-base-theme = { workspace = true }
+overture-schema-buildings-theme = { workspace = true }
 overture-schema-cli = { workspace = true }
 overture-schema-common = { workspace = true }
+overture-schema-divisions-theme = { workspace = true }
+overture-schema-places-theme = { workspace = true }
 overture-schema-system = { workspace = true }
+overture-schema-transportation-theme = { workspace = true }
+
+[dependency-groups]
+test = [
+    "overture-schema-addresses-theme",
+    "overture-schema-base-theme",
+    "overture-schema-buildings-theme",
+    "overture-schema-divisions-theme",
+    "overture-schema-places-theme",
+    "overture-schema-transportation-theme",
+]
 
 [tool.hatch.version]
 path = "src/overture/schema/codegen/__about__.py"

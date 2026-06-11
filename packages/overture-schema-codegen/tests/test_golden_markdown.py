@@ -18,14 +18,11 @@ from codegen_test_support import (
     Venue,
     Widget,
     assert_golden,
+    feature_spec_for_model,
 )
 from overture.schema.codegen.extraction.enum_extraction import extract_enum
-from overture.schema.codegen.extraction.model_extraction import (
-    expand_model_tree,
-    extract_model,
-)
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
-from overture.schema.codegen.extraction.specs import TypeIdentity
+from overture.schema.codegen.extraction.specs import FeatureSpec, TypeIdentity
 from overture.schema.codegen.layout.type_collection import (
     collect_all_supplementary_types,
 )
@@ -67,12 +64,10 @@ NEWTYPE_CASES = [
 @pytest.fixture(scope="module")
 def reverse_refs() -> dict[TypeIdentity, list[UsedByEntry]]:
     """Compute reverse references for all test models."""
-    feature_specs = []
+    feature_specs: list[FeatureSpec] = []
     for model_class, _ in FEATURE_CASES:
         assert isinstance(model_class, type) and issubclass(model_class, BaseModel)
-        spec = extract_model(model_class)
-        expand_model_tree(spec)
-        feature_specs.append(spec)
+        feature_specs.append(feature_spec_for_model(model_class))
 
     all_specs = collect_all_supplementary_types(feature_specs)
     return compute_reverse_references(feature_specs, all_specs)
@@ -89,8 +84,7 @@ def test_feature_golden(
     update_golden: bool,
     reverse_refs: dict[TypeIdentity, list[UsedByEntry]],
 ) -> None:
-    spec = extract_model(model_class)
-    expand_model_tree(spec)
+    spec = feature_spec_for_model(model_class)
     used_by = reverse_refs.get(spec.identity)
     actual = render_feature(spec, used_by=used_by)
     assert_golden(actual, GOLDEN_DIR / golden_filename, update=update_golden)

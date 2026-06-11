@@ -1,8 +1,8 @@
-"""Model extraction and tree expansion."""
+"""Pydantic model extraction into `ModelSpec`."""
 
 from __future__ import annotations
 
-import dataclasses
+from collections.abc import Mapping
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
@@ -11,11 +11,22 @@ from pydantic_core import PydanticUndefined
 from overture.schema.system.model_constraint import ModelConstraint
 
 from .docstring import clean_docstring
-from .specs import FeatureSpec, FieldSpec, ModelSpec, is_model_class
-from .type_analyzer import ConstraintSource, TypeInfo, TypeKind, analyze_type
+from .field import (
+    ConstraintSource,
+    FieldShape,
+    ModelRef,
+    UnionRef,
+)
+from .specs import FieldSpec, ModelSpec, is_model_class
+from .type_analyzer import (
+    ModelResolver,
+    UnionResolver,
+    analyze_type,
+    attach_constraints,
+    unwrap_list,
+)
 
 __all__ = [
-    "expand_model_tree",
     "extract_model",
     "resolve_field_alias",
 ]
@@ -37,28 +48,30 @@ def resolve_field_alias(field_name: str, field_info: FieldInfo) -> str:
     return field_name
 
 
-def _merge_field_metadata(type_info: TypeInfo, field_info: FieldInfo) -> TypeInfo:
-    """Merge constraints from field_info.metadata into TypeInfo.
-
-    Pydantic strips the Annotated wrapper from some fields (non-optional,
-    non-union) and moves the metadata to field_info.metadata. When this
-    happens, analyze_type sees a bare type and misses the constraints.
-    The two sets never overlap: field_info.metadata is empty when the
-    Annotated wrapper survives in the annotation.
-    """
-    if not field_info.metadata:
-        return type_info
-    extra = tuple(ConstraintSource(None, None, m) for m in field_info.metadata)
-    return dataclasses.replace(type_info, constraints=type_info.constraints + extra)
-
-
-def _is_field_required(field_info: FieldInfo, type_info: TypeInfo) -> bool:
+def _is_field_required(field_info: FieldInfo, is_optional: bool) -> bool:
     """Determine whether a field is required (no default and not Optional)."""
     has_default = (
         field_info.default is not PydanticUndefined
         or field_info.default_factory is not None
     )
-    return not has_default and not type_info.is_optional
+    return not has_default and not is_optional
+
+
+def _attach_field_metadata(shape: FieldShape, field_info: FieldInfo) -> FieldShape:
+    """Merge constraints from `field_info.metadata` onto *shape*.
+
+    Pydantic strips the outermost Annotated wrapper from some fields
+    (non-optional, non-union) and moves its metadata to
+    `field_info.metadata`. When that happens `analyze_type` sees a bare
+    type and misses those constraints. They anchor at the topmost
+    constraint-bearing layer, so we route them through
+    `attach_constraints` so that length-constraint wrapping applies here
+    just as it does during normal annotation unwrapping.
+    """
+    if not field_info.metadata:
+        return shape
+    extra = tuple(ConstraintSource(None, None, m) for m in field_info.metadata)
+    return attach_constraints(shape, extra)
 
 
 def _basemodel_bases(cls: type) -> list[type[BaseModel]]:
@@ -88,13 +101,13 @@ def _class_order(model_class: type[BaseModel]) -> list[type]:
 
 
 def _field_order(model_class: type[BaseModel]) -> list[str]:
-    """Return model_fields keys in documentation order.
+    """Return `model_fields` keys in documentation order.
 
     Walks the class hierarchy recursively. At each level of multiple
-    inheritance, the first base is the "primary chain" and the rest
-    are "mixins." Primary chain and own fields come first, then mixin
-    fields in declaration order. Single-inheritance levels use
-    Pydantic's default reversed-MRO order.
+    inheritance, the first base is the primary chain and the rest are
+    mixins. Primary chain and own fields come first, then mixin fields
+    in declaration order. Single-inheritance levels use Pydantic's
+    default reversed-MRO order.
     """
     valid_names = set(model_class.model_fields.keys())
     result: list[str] = []
@@ -111,94 +124,124 @@ def extract_model(
     model_class: type[BaseModel],
     *,
     entry_point: str | None = None,
+    partitions: Mapping[str, str] | None = None,
 ) -> ModelSpec:
-    """Extract model specification from a Pydantic model class."""
-    field_info_map = model_class.model_fields
-    ordered_keys = _field_order(model_class)
+    """Extract a fully-resolved `ModelSpec` from a Pydantic model class.
 
-    fields: list[FieldSpec] = []
-    for field_name in ordered_keys:
-        field_info = field_info_map[field_name]
-        output_name = resolve_field_alias(field_name, field_info)
-
-        # Use field_info.annotation (resolved TypeVars) not get_type_hints
-        annotation = field_info.annotation
-        if annotation is None:
-            continue
-
-        type_info = _merge_field_metadata(analyze_type(annotation), field_info)
-
-        fields.append(
-            FieldSpec(
-                name=output_name,
-                type_info=type_info,
-                description=field_info.description or type_info.description,
-                is_required=_is_field_required(field_info, type_info),
-            )
-        )
-
-    return ModelSpec(
-        name=model_class.__name__,
-        description=clean_docstring(model_class.__doc__),
-        fields=fields,
-        source_type=model_class,
+    Recurses into sub-models and unions, producing `ModelRef` /
+    `UnionRef` terminals with their specs resolved. Cycles in the
+    model graph (a field whose source type is an ancestor on the
+    current extraction stack) produce a `ModelRef` pointing at the
+    in-progress ancestor spec with `starts_cycle=True` so consumers
+    stop recursion at the back-edge.
+    """
+    return _extract_model_recursive(
+        model_class,
         entry_point=entry_point,
-        constraints=ModelConstraint.get_model_constraints(model_class),
+        partitions=partitions or {},
+        cache={},
+        ancestors=frozenset(),
     )
 
 
-def expand_model_tree(
-    spec: FeatureSpec,
-    cache: dict[type, ModelSpec] | None = None,
-) -> FeatureSpec:
-    """Populate model references on MODEL-kind fields, recursively.
+def _extract_model_recursive(
+    model_class: type[BaseModel],
+    *,
+    entry_point: str | None,
+    partitions: Mapping[str, str],
+    cache: dict[type, ModelSpec],
+    ancestors: frozenset[type],
+) -> ModelSpec:
+    """Inner recursive helper for `extract_model`.
 
-    Walks *spec*'s fields and sets `field.model` for fields whose type
-    is a Pydantic model. Uses *cache* to reuse already-extracted ModelSpecs
-    and detect shared references. Marks fields whose model creates a cycle
-    in the ancestor chain with `starts_cycle=True`.
-
-    Mutates *spec* in place and returns it.
+    Inserts the (partial) `ModelSpec` into `cache` before populating
+    its fields so cycles can find it. `ancestors` is the set of types
+    currently on the recursion stack -- a sub-field whose source type
+    appears there is a back-edge and gets `starts_cycle=True`.
     """
-    if cache is None:
-        cache = {}
-    if isinstance(spec, ModelSpec) and spec.source_type is not None:
-        cache[spec.source_type] = spec
-    ancestors = frozenset({spec.source_type}) if spec.source_type else frozenset()
-    _expand_fields(spec.fields, cache, ancestors)
+    spec = ModelSpec(
+        name=model_class.__name__,
+        description=clean_docstring(model_class.__doc__),
+        fields=[],
+        source_type=model_class,
+        entry_point=entry_point,
+        partitions=partitions,
+        constraints=ModelConstraint.get_model_constraints(model_class),
+    )
+    cache[model_class] = spec
+    descendant_ancestors = ancestors | {model_class}
+
+    model_resolver, union_resolver = _make_resolvers(cache, descendant_ancestors)
+
+    fields: list[FieldSpec] = []
+    for field_name in _field_order(model_class):
+        field_info = model_class.model_fields[field_name]
+        annotation = field_info.annotation
+        if annotation is None:
+            continue
+        shape, is_optional, ti_description = analyze_type(
+            annotation,
+            model_resolver=model_resolver,
+            union_resolver=union_resolver,
+        )
+        shape = _attach_field_metadata(shape, field_info)
+        fields.append(
+            FieldSpec(
+                name=resolve_field_alias(field_name, field_info),
+                shape=shape,
+                description=field_info.description or ti_description,
+                is_required=_is_field_required(field_info, is_optional),
+                is_optional=is_optional,
+            )
+        )
+
+    spec.fields = fields
     return spec
 
 
-def _expand_fields(
-    fields: list[FieldSpec],
+def _make_resolvers(
     cache: dict[type, ModelSpec],
     ancestors: frozenset[type],
-) -> None:
-    """Recursive helper for expand_model_tree.
+) -> tuple[ModelResolver, UnionResolver]:
+    """Build the resolvers that recursively extract sub-models / sub-unions.
 
-    Cache insertion happens before recursion — cycle detection depends
-    on the ancestor's ModelSpec being in the cache when the back-edge
-    is encountered.
+    `cache` shares already-extracted sub-specs across a single
+    extraction so sub-models referenced more than once share a
+    `ModelSpec`. `ancestors` carries the recursion stack for cycle
+    detection -- a back-edge produces a `ModelRef` pointing at the
+    in-progress ancestor spec with `starts_cycle=True`.
     """
-    for field_spec in fields:
-        ti = field_spec.type_info
-        source = ti.source_type
-        if ti.kind == TypeKind.UNION:
-            # Union fields have no single model to recurse into.
-            # The field row appears in the output; skip inline expansion.
-            continue
-        if ti.kind != TypeKind.MODEL or source is None:
-            continue
 
-        if source in ancestors:
-            # Cycle: reuse existing spec, mark the edge
-            field_spec.model = cache.get(source)
-            field_spec.starts_cycle = True
-        elif source in cache:
-            # Shared reference: reuse, not a cycle
-            field_spec.model = cache[source]
-        else:
-            sub_spec = extract_model(source)
-            cache[source] = sub_spec  # insert BEFORE recursing
-            field_spec.model = sub_spec
-            _expand_fields(sub_spec.fields, cache, ancestors | {source})
+    def resolve_model(cls: type[BaseModel]) -> ModelRef:
+        if cls in ancestors:
+            return ModelRef(model=cache[cls], starts_cycle=True)
+        cached = cache.get(cls)
+        if cached is not None:
+            return ModelRef(model=cached)
+        sub_spec = _extract_model_recursive(
+            cls,
+            entry_point=None,
+            partitions={},
+            cache=cache,
+            ancestors=ancestors,
+        )
+        return ModelRef(model=sub_spec)
+
+    def resolve_union(
+        annotation: object,
+        members: tuple[type[BaseModel], ...],
+        _description: str | None,
+    ) -> UnionRef:
+        # Late import: extract_union calls back into extract_model for
+        # member classes. A module-level import would be a cycle.
+        from .union_extraction import extract_union
+
+        # Recover the union alias name: `analyze_type` reaches the
+        # union via `members[0].__name__` when the alias name is lost
+        # (plain `Foo = Annotated[...]` doesn't preserve it pre-PEP-695).
+        # Convention: members extend `<Alias>Base`.
+        placeholder = members[0].__name__ if members else ""
+        sub_union = extract_union(placeholder, unwrap_list(annotation))
+        return UnionRef(union=sub_union)
+
+    return resolve_model, resolve_union

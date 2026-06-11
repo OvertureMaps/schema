@@ -17,6 +17,7 @@ from .extraction.specs import (
     FeatureSpec,
     is_model_class,
     is_union_alias,
+    partitions_from_tags,
 )
 from .extraction.union_extraction import extract_union
 from .layout.module_layout import (
@@ -26,12 +27,13 @@ from .layout.module_layout import (
     entry_point_module,
 )
 from .markdown.pipeline import generate_markdown_pages
+from .pyspark.pipeline import generate_pyspark_modules
 
 log = logging.getLogger(__name__)
 
 __all__ = ["cli"]
 
-_OUTPUT_FORMATS = ("markdown",)
+_OUTPUT_FORMATS = ("markdown", "pyspark")
 
 _FEATURE_FRONTMATTER = "---\nsidebar_position: 1\n---\n\n"
 
@@ -84,7 +86,15 @@ def list_models() -> None:
     "--output-dir",
     type=click.Path(path_type=Path),
     default=None,
-    help="Write output to directory (default: stdout)",
+    help="Write output files directly into this directory (default: stdout). "
+    "For pyspark, writes expression modules (*.py) and a _registry.py. "
+    "For markdown, writes theme subdirectories.",
+)
+@click.option(
+    "--test-output-dir",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Write test modules (test_*.py) into this directory (pyspark only).",
 )
 def generate(
     output_format: str,
@@ -92,13 +102,13 @@ def generate(
     filters: tuple[str, ...],
     excludes: tuple[str, ...],
     output_dir: Path | None,
+    test_output_dir: Path | None,
 ) -> None:
     """Generate code/docs from discovered models."""
-    all_models = discover_models()
+    if output_format != "pyspark" and test_output_dir is not None:
+        raise click.UsageError("--test-output-dir is only valid with --format pyspark")
 
-    # Schema root from ALL entry points (before tag filters).
-    module_paths = [entry_point_module(k.entry_point) for k in all_models]
-    schema_root = compute_schema_root(module_paths)
+    all_models = discover_models()
 
     models = filter_models(all_models, build_selector(tags, filters, excludes))
 
@@ -107,18 +117,27 @@ def generate(
 
     feature_specs: list[FeatureSpec] = []
     for key, entry in models.items():
+        partitions = partitions_from_tags(key.tags)
         if is_model_class(entry):
-            feature_specs.append(extract_model(entry, entry_point=key.entry_point))
+            feature_specs.append(
+                extract_model(entry, entry_point=key.entry_point, partitions=partitions)
+            )
         elif is_union_alias(entry):
             feature_specs.append(
                 extract_union(
                     entry_point_class(key.entry_point),
                     entry,
                     entry_point=key.entry_point,
+                    partitions=partitions,
                 )
             )
 
-    _generate_markdown(feature_specs, schema_root, output_dir)
+    if output_format == "pyspark":
+        _generate_pyspark(feature_specs, output_dir, test_output_dir)
+    else:
+        module_paths = [entry_point_module(k.entry_point) for k in all_models]
+        schema_root = compute_schema_root(module_paths)
+        _generate_markdown(feature_specs, schema_root, output_dir)
 
 
 def _generate_markdown(
@@ -139,6 +158,24 @@ def _generate_markdown(
         feature_paths = {page.path for page in pages if page.is_feature}
         all_paths = {page.path for page in pages}
         _write_category_files(output_dir, all_paths, feature_paths)
+
+
+def _generate_pyspark(
+    feature_specs: list[FeatureSpec],
+    output_dir: Path | None,
+    test_output_dir: Path | None = None,
+) -> None:
+    """Generate PySpark validation modules.
+
+    Output is syntactically valid Python; we assume a code formatter runs
+    over the written directories afterwards to match existing conventions.
+    """
+    modules = generate_pyspark_modules(feature_specs)
+    for mod in modules.source:
+        _write_output(mod.content, output_dir, mod.path)
+    if test_output_dir is not None:
+        for mod in modules.test:
+            _write_output(mod.content, test_output_dir, mod.path)
 
 
 def _ancestor_dirs(paths: set[PurePosixPath]) -> set[PurePosixPath]:
