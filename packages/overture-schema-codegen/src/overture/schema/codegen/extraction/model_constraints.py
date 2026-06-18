@@ -142,7 +142,10 @@ def _affected_field_names(constraint: ModelConstraint) -> frozenset[str]:
         return frozenset(constraint.field_names) | _condition_field_names(
             constraint.condition
         )
-    if isinstance(constraint, (RequireAnyOfConstraint, RadioGroupConstraint, RequireAnyTrueConstraint)):
+    if isinstance(
+        constraint,
+        (RequireAnyOfConstraint, RadioGroupConstraint, RequireAnyTrueConstraint),
+    ):
         return frozenset(constraint.field_names)
     return frozenset()
 
@@ -154,7 +157,9 @@ def _describe_one(constraint: ModelConstraint) -> str | None:
     if isinstance(constraint, RequireAnyOfConstraint):
         return f"At least one of {_backtick_join(constraint.field_names)} must be set"
     if isinstance(constraint, RequireAnyTrueConstraint):
-        return f"At least one of {_backtick_join(constraint.field_names)} must be `true`"
+        return (
+            f"At least one of {_backtick_join(constraint.field_names)} must be `true`"
+        )
     if isinstance(constraint, RadioGroupConstraint):
         return f"Exactly one of {_backtick_join(constraint.field_names)} must be `true`"
     if isinstance(constraint, MinFieldsSetConstraint):
