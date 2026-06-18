@@ -294,19 +294,19 @@ description: Common schema definitions shared by all themes
           minimum: 0
           maximum: 1
         provider:
-          type: [string, "null"]
+          type: string
           description: >-
             The Provider Label for the entity that contributed this data
             (e.g. osm, meta, esri).
           minLength: 1
         resource:
-          type: [string, "null"]
+          type: string
           description: >-
             The subject or type of data contributed by the provider (e.g. planet,
             buildings, division-names).
           minLength: 1
         version:
-          type: [string, "null"]
+          type: string
           description: >-
             A sortable identifier for the specific snapshot of the resource
             (e.g. 2026-02-13, 5.3, A5692).
