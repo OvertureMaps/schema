@@ -40,7 +40,7 @@ properties:     # JSON Schema: Top-level object properties.
         then:
           required:
             - admin_level
-    oneOf:
+    anyOf:
       - properties:
           is_land:
             const: true

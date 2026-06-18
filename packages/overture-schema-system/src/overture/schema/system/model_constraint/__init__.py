@@ -12,6 +12,7 @@ from .model_constraint import (
 from .no_extra_fields import NoExtraFieldsConstraint, no_extra_fields
 from .radio_group import RadioGroupConstraint, radio_group
 from .require_any_of import RequireAnyOfConstraint, require_any_of
+from .require_any_true import RequireAnyTrueConstraint, require_any_true
 from .require_if import RequireIfConstraint, require_if
 
 __all__ = [
@@ -31,7 +32,9 @@ __all__ = [
     "radio_group",
     "RadioGroupConstraint",
     "require_any_of",
+    "require_any_true",
     "require_if",
     "RequireAnyOfConstraint",
+    "RequireAnyTrueConstraint",
     "RequireIfConstraint",
 ]
