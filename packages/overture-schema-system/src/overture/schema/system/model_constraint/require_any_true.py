@@ -119,7 +119,7 @@ class RequireAnyTrueConstraint(FieldGroupConstraint):
         ]
         if non_bool_fields:
             raise TypeError(
-                f"`{self.name}` specifies fields that are have a non-`bool` type in the model class `{model_class.__name__}`: {', '.join(non_bool_fields)}  "
+                f"`{self.name}` specifies fields that have a non-`bool` type in the model class `{model_class.__name__}`: {', '.join(non_bool_fields)}"
             )
 
     @override
