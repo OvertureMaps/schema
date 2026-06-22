@@ -145,8 +145,5 @@ class RequireAnyTrueConstraint(FieldGroupConstraint):
         json_schema = get_static_json_schema_extra(config)
 
         def has_true_value(field_name: str) -> dict:
-            return {
-                "properties": {apply_alias(model_class, field_name): {"const": True}}
-            }
-
-        put_any_of(json_schema, [has_true_value(f) for f in self.field_names])
+            alias = apply_alias(model_class, field_name)
+            return {"required": [alias], "properties": {alias: {"const": True}}}
