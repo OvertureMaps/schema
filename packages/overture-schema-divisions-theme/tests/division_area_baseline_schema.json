@@ -474,14 +474,20 @@
             "is_land": {
               "const": true
             }
-          }
+          },
+          "required": [
+            "is_land"
+          ]
         },
         {
           "properties": {
             "is_territorial": {
               "const": true
             }
-          }
+          },
+          "required": [
+            "is_territorial"
+          ]
         }
       ],
       "not": {
