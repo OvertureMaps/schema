@@ -8,6 +8,7 @@ classes.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 
 from annotated_types import Ge, Gt, Interval, Le, Lt
@@ -124,14 +125,41 @@ def _constraint_class_description(constraint: object) -> str | None:
     return line or None
 
 
-def _constraint_pattern(constraint: object) -> str | None:
-    """Extract the regex pattern string from a constraint, if present.
+# re.UNICODE is the implicit default on compiled `str` patterns; rendering it
+# would stamp a noise `(?u)` group onto every pattern. Every other flag with a
+# visible matching effect is surfaced in the documented pattern. Unlike the
+# pyspark dispatch (`compiled_pattern_source`) -- which must reject flags
+# Spark's rlike cannot honor -- display is faithful for known flags and never
+# fails: a flag absent from this table is dropped from the rendered group, not
+# raised on. A new flag added to pyspark's supported set with a visible effect
+# belongs here too, or docs will hide that pattern's real behavior.
+_DISPLAY_FLAG_LETTERS: tuple[tuple[re.RegexFlag, str], ...] = (
+    (re.IGNORECASE, "i"),
+    (re.MULTILINE, "m"),
+    (re.DOTALL, "s"),
+    (re.VERBOSE, "x"),
+    (re.ASCII, "a"),
+)
 
-    Traverses two levels: constraint.pattern is a compiled re.Pattern
-    object, and re.Pattern.pattern is the raw string.
+
+def _inline_flag_prefix(flags: int) -> str:
+    """Render set regex flags as an inline group like `(?im)`, or "" if none."""
+    letters = "".join(c for flag, c in _DISPLAY_FLAG_LETTERS if flags & flag)
+    return f"(?{letters})" if letters else ""
+
+
+def _constraint_pattern(constraint: object) -> str | None:
+    """Return a constraint's compiled regex as displayable source, or None.
+
+    Prepends an inline-flag group (e.g. `(?i)` for case-insensitivity) so a
+    flagged pattern reads as the regex that actually matches rather than its
+    bare, misleading source. Returns None when `constraint.pattern` is not a
+    compiled `re.Pattern`.
     """
     compiled = getattr(constraint, "pattern", None)
-    return getattr(compiled, "pattern", None)
+    if not isinstance(compiled, re.Pattern):
+        return None
+    return f"{_inline_flag_prefix(compiled.flags)}{compiled.pattern}"
 
 
 def constraint_display_text(

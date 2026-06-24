@@ -17,13 +17,15 @@ from pyspark.sql.types import (
     StructType,
 )
 
-from overture.schema.pyspark.check import Check, CheckShape, FeatureValidation
+from overture.schema.pyspark.check import Check, CheckShape, ModelValidation
 from overture.schema.pyspark.expressions._schema_structs import (
     BBOX_STRUCT,
 )
 from overture.schema.pyspark.expressions.column_patterns import (
     array_check,
     check_struct_unique,
+    map_keys_check,
+    map_values_check,
     nested_array_check,
 )
 from overture.schema.pyspark.expressions.constraint_expressions import (
@@ -55,7 +57,7 @@ def _id_required_check() -> Check:
         name="required",
         expr=check_required(F.col("id")),
         shape=CheckShape.SCALAR,
-        root_field="id",
+        read_columns=frozenset({"id"}),
     )
 
 
@@ -65,7 +67,7 @@ def _id_string_min_length_check() -> Check:
         name="string_min_length",
         expr=check_string_min_length(F.col("id"), 1),
         shape=CheckShape.SCALAR,
-        root_field="id",
+        read_columns=frozenset({"id"}),
     )
 
 
@@ -77,7 +79,7 @@ def _id_no_whitespace_check() -> Check:
             F.col("id"), "^\\S+\\z", label="String without whitespace characters"
         ),
         shape=CheckShape.SCALAR,
-        root_field="id",
+        read_columns=frozenset({"id"}),
     )
 
 
@@ -87,7 +89,7 @@ def _bbox_bbox_completeness_check() -> Check:
         name="bbox_completeness",
         expr=check_bbox_completeness(F.col("bbox")),
         shape=CheckShape.SCALAR,
-        root_field="bbox",
+        read_columns=frozenset({"bbox"}),
     )
 
 
@@ -97,7 +99,7 @@ def _bbox_bbox_lat_ordering_check() -> Check:
         name="bbox_lat_ordering",
         expr=check_bbox_lat_ordering(F.col("bbox")),
         shape=CheckShape.SCALAR,
-        root_field="bbox",
+        read_columns=frozenset({"bbox"}),
     )
 
 
@@ -107,7 +109,7 @@ def _bbox_bbox_lat_range_check() -> Check:
         name="bbox_lat_range",
         expr=check_bbox_lat_range(F.col("bbox")),
         shape=CheckShape.SCALAR,
-        root_field="bbox",
+        read_columns=frozenset({"bbox"}),
     )
 
 
@@ -117,7 +119,7 @@ def _geometry_required_check() -> Check:
         name="required",
         expr=check_required(F.col("geometry")),
         shape=CheckShape.SCALAR,
-        root_field="geometry",
+        read_columns=frozenset({"geometry"}),
     )
 
 
@@ -127,7 +129,7 @@ def _geometry_geometry_type_check() -> Check:
         name="geometry_type",
         expr=check_geometry_type(F.col("geometry"), GeometryType.LINE_STRING),
         shape=CheckShape.SCALAR,
-        root_field="geometry",
+        read_columns=frozenset({"geometry"}),
     )
 
 
@@ -137,7 +139,7 @@ def _theme_required_check() -> Check:
         name="required",
         expr=check_required(F.col("theme")),
         shape=CheckShape.SCALAR,
-        root_field="theme",
+        read_columns=frozenset({"theme"}),
     )
 
 
@@ -147,7 +149,7 @@ def _theme_enum_check() -> Check:
         name="enum",
         expr=check_enum(F.col("theme"), ["transportation"]),
         shape=CheckShape.SCALAR,
-        root_field="theme",
+        read_columns=frozenset({"theme"}),
     )
 
 
@@ -157,7 +159,7 @@ def _type_required_check() -> Check:
         name="required",
         expr=check_required(F.col("type")),
         shape=CheckShape.SCALAR,
-        root_field="type",
+        read_columns=frozenset({"type"}),
     )
 
 
@@ -167,7 +169,7 @@ def _type_enum_check() -> Check:
         name="enum",
         expr=check_enum(F.col("type"), ["segment"]),
         shape=CheckShape.SCALAR,
-        root_field="type",
+        read_columns=frozenset({"type"}),
     )
 
 
@@ -177,7 +179,7 @@ def _version_required_check() -> Check:
         name="required",
         expr=check_required(F.col("version")),
         shape=CheckShape.SCALAR,
-        root_field="version",
+        read_columns=frozenset({"version"}),
     )
 
 
@@ -187,7 +189,7 @@ def _version_bounds_check() -> Check:
         name="bounds",
         expr=check_bounds(F.col("version"), ge=0),
         shape=CheckShape.SCALAR,
-        root_field="version",
+        read_columns=frozenset({"version"}),
     )
 
 
@@ -197,7 +199,7 @@ def _sources_min_length_check() -> Check:
         name="array_min_length",
         expr=check_array_min_length(F.col("sources"), 1),
         shape=CheckShape.SCALAR,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -207,7 +209,7 @@ def _sources_unique_check() -> Check:
         name="struct_unique",
         expr=check_struct_unique(F.col("sources")),
         shape=CheckShape.SCALAR,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -217,7 +219,7 @@ def _sources_property_required_check() -> Check:
         name="required",
         expr=array_check("sources", lambda el: check_required(el["property"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -227,7 +229,7 @@ def _sources_property_json_pointer_check() -> Check:
         name="json_pointer",
         expr=array_check("sources", lambda el: check_json_pointer(el["property"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -237,7 +239,7 @@ def _sources_dataset_check() -> Check:
         name="required",
         expr=array_check("sources", lambda el: check_required(el["dataset"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -247,27 +249,27 @@ def _sources_license_check() -> Check:
         name="stripped",
         expr=array_check("sources", lambda el: check_stripped(el["license"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
 def _sources_confidence_bounds_check() -> Check:
     return Check(
-        field="sources[].confidence",
+        field="sources[].confidence_0",
         name="bounds",
         expr=array_check("sources", lambda el: check_bounds(el["confidence"], ge=0.0)),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
 def _sources_confidence_bounds_check_1() -> Check:
     return Check(
-        field="sources[].confidence",
+        field="sources[].confidence_1",
         name="bounds",
         expr=array_check("sources", lambda el: check_bounds(el["confidence"], le=1.0)),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -279,7 +281,7 @@ def _sources_between_linear_range_length_check() -> Check:
             "sources", lambda el: check_linear_range_length(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -291,7 +293,7 @@ def _sources_between_linear_range_bounds_check() -> Check:
             "sources", lambda el: check_linear_range_bounds(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -301,7 +303,7 @@ def _sources_between_linear_range_order_check() -> Check:
         name="linear_range_order",
         expr=array_check("sources", lambda el: check_linear_range_order(el["between"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -311,7 +313,7 @@ def _subtype_required_check() -> Check:
         name="required",
         expr=check_required(F.col("subtype")),
         shape=CheckShape.SCALAR,
-        root_field="subtype",
+        read_columns=frozenset({"subtype"}),
     )
 
 
@@ -321,7 +323,7 @@ def _subtype_enum_check() -> Check:
         name="enum",
         expr=check_enum(F.col("subtype"), ["road", "rail", "water"]),
         shape=CheckShape.SCALAR,
-        root_field="subtype",
+        read_columns=frozenset({"subtype"}),
     )
 
 
@@ -331,7 +333,7 @@ def _access_restrictions_min_length_check() -> Check:
         name="array_min_length",
         expr=check_array_min_length(F.col("access_restrictions"), 1),
         shape=CheckShape.SCALAR,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -341,7 +343,7 @@ def _access_restrictions_unique_check() -> Check:
         name="struct_unique",
         expr=check_struct_unique(F.col("access_restrictions")),
         shape=CheckShape.SCALAR,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -353,7 +355,7 @@ def _access_restrictions_access_type_required_check() -> Check:
             "access_restrictions", lambda el: check_required(el["access_type"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -368,7 +370,7 @@ def _access_restrictions_access_type_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -380,7 +382,7 @@ def _access_restrictions_between_linear_range_length_check() -> Check:
             "access_restrictions", lambda el: check_linear_range_length(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -392,7 +394,7 @@ def _access_restrictions_between_linear_range_bounds_check() -> Check:
             "access_restrictions", lambda el: check_linear_range_bounds(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -404,7 +406,7 @@ def _access_restrictions_between_linear_range_order_check() -> Check:
             "access_restrictions", lambda el: check_linear_range_order(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -417,7 +419,7 @@ def _access_restrictions_when_heading_check() -> Check:
             lambda el: check_enum(el["when"]["heading"], ["forward", "backward"]),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -430,7 +432,7 @@ def _access_restrictions_when_mode_min_length_check() -> Check:
             lambda el: check_array_min_length(el["when"]["mode"], 1),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -442,7 +444,7 @@ def _access_restrictions_when_mode_unique_check() -> Check:
             "access_restrictions", lambda el: check_struct_unique(el["when"]["mode"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -473,7 +475,7 @@ def _access_restrictions_when_mode_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -486,7 +488,7 @@ def _access_restrictions_when_using_min_length_check() -> Check:
             lambda el: check_array_min_length(el["when"]["using"], 1),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -498,7 +500,7 @@ def _access_restrictions_when_using_unique_check() -> Check:
             "access_restrictions", lambda el: check_struct_unique(el["when"]["using"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -523,7 +525,7 @@ def _access_restrictions_when_using_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -536,7 +538,7 @@ def _access_restrictions_when_recognized_min_length_check() -> Check:
             lambda el: check_array_min_length(el["when"]["recognized"], 1),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -549,7 +551,7 @@ def _access_restrictions_when_recognized_unique_check() -> Check:
             lambda el: check_struct_unique(el["when"]["recognized"]),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -574,7 +576,7 @@ def _access_restrictions_when_recognized_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -587,7 +589,7 @@ def _access_restrictions_when_vehicle_min_length_check() -> Check:
             lambda el: check_array_min_length(el["when"]["vehicle"], 1),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -599,7 +601,7 @@ def _access_restrictions_when_vehicle_unique_check() -> Check:
             "access_restrictions", lambda el: check_struct_unique(el["when"]["vehicle"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -614,7 +616,7 @@ def _access_restrictions_when_vehicle_dimension_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -633,7 +635,7 @@ def _access_restrictions_when_vehicle_dimension_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -648,7 +650,7 @@ def _access_restrictions_when_vehicle_comparison_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -673,13 +675,13 @@ def _access_restrictions_when_vehicle_comparison_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
 def _access_restrictions_when_vehicle_value_check() -> Check:
     return Check(
-        field="access_restrictions[].when.vehicle[].value",
+        field="access_restrictions[].when.vehicle[].value_0",
         name="required",
         expr=nested_array_check(
             "access_restrictions",
@@ -692,13 +694,13 @@ def _access_restrictions_when_vehicle_value_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
 def _access_restrictions_when_vehicle_value_required_check() -> Check:
     return Check(
-        field="access_restrictions[].when.vehicle[].value",
+        field="access_restrictions[].when.vehicle[].value_1",
         name="required",
         expr=nested_array_check(
             "access_restrictions",
@@ -711,7 +713,7 @@ def _access_restrictions_when_vehicle_value_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -730,13 +732,13 @@ def _access_restrictions_when_vehicle_value_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
 def _access_restrictions_when_vehicle_unit_required_check() -> Check:
     return Check(
-        field="access_restrictions[].when.vehicle[].unit",
+        field="access_restrictions[].when.vehicle[].unit_0",
         name="required",
         expr=nested_array_check(
             "access_restrictions",
@@ -749,13 +751,13 @@ def _access_restrictions_when_vehicle_unit_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
 def _access_restrictions_when_vehicle_unit_enum_check() -> Check:
     return Check(
-        field="access_restrictions[].when.vehicle[].unit",
+        field="access_restrictions[].when.vehicle[].unit_0",
         name="enum",
         expr=nested_array_check(
             "access_restrictions",
@@ -770,13 +772,13 @@ def _access_restrictions_when_vehicle_unit_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
 def _access_restrictions_when_vehicle_unit_required_check_1() -> Check:
     return Check(
-        field="access_restrictions[].when.vehicle[].unit",
+        field="access_restrictions[].when.vehicle[].unit_1",
         name="required",
         expr=nested_array_check(
             "access_restrictions",
@@ -788,13 +790,13 @@ def _access_restrictions_when_vehicle_unit_required_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
 def _access_restrictions_when_vehicle_unit_enum_check_1() -> Check:
     return Check(
-        field="access_restrictions[].when.vehicle[].unit",
+        field="access_restrictions[].when.vehicle[].unit_1",
         name="enum",
         expr=nested_array_check(
             "access_restrictions",
@@ -807,7 +809,7 @@ def _access_restrictions_when_vehicle_unit_enum_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -817,7 +819,7 @@ def _connectors_min_length_check() -> Check:
         name="array_min_length",
         expr=check_array_min_length(F.col("connectors"), 2),
         shape=CheckShape.SCALAR,
-        root_field="connectors",
+        read_columns=frozenset({"connectors"}),
     )
 
 
@@ -827,7 +829,7 @@ def _connectors_unique_check() -> Check:
         name="struct_unique",
         expr=check_struct_unique(F.col("connectors")),
         shape=CheckShape.SCALAR,
-        root_field="connectors",
+        read_columns=frozenset({"connectors"}),
     )
 
 
@@ -837,7 +839,7 @@ def _connectors_connector_id_required_check() -> Check:
         name="required",
         expr=array_check("connectors", lambda el: check_required(el["connector_id"])),
         shape=CheckShape.ARRAY,
-        root_field="connectors",
+        read_columns=frozenset({"connectors"}),
     )
 
 
@@ -849,7 +851,7 @@ def _connectors_connector_id_string_min_length_check() -> Check:
             "connectors", lambda el: check_string_min_length(el["connector_id"], 1)
         ),
         shape=CheckShape.ARRAY,
-        root_field="connectors",
+        read_columns=frozenset({"connectors"}),
     )
 
 
@@ -866,27 +868,27 @@ def _connectors_connector_id_no_whitespace_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="connectors",
+        read_columns=frozenset({"connectors"}),
     )
 
 
 def _connectors_at_bounds_check() -> Check:
     return Check(
-        field="connectors[].at",
+        field="connectors[].at_0",
         name="bounds",
         expr=array_check("connectors", lambda el: check_bounds(el["at"], ge=0.0)),
         shape=CheckShape.ARRAY,
-        root_field="connectors",
+        read_columns=frozenset({"connectors"}),
     )
 
 
 def _connectors_at_bounds_check_1() -> Check:
     return Check(
-        field="connectors[].at",
+        field="connectors[].at_1",
         name="bounds",
         expr=array_check("connectors", lambda el: check_bounds(el["at"], le=1.0)),
         shape=CheckShape.ARRAY,
-        root_field="connectors",
+        read_columns=frozenset({"connectors"}),
     )
 
 
@@ -896,7 +898,7 @@ def _level_rules_value_check() -> Check:
         name="required",
         expr=array_check("level_rules", lambda el: check_required(el["value"])),
         shape=CheckShape.ARRAY,
-        root_field="level_rules",
+        read_columns=frozenset({"level_rules"}),
     )
 
 
@@ -908,7 +910,7 @@ def _level_rules_between_linear_range_length_check() -> Check:
             "level_rules", lambda el: check_linear_range_length(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="level_rules",
+        read_columns=frozenset({"level_rules"}),
     )
 
 
@@ -920,7 +922,7 @@ def _level_rules_between_linear_range_bounds_check() -> Check:
             "level_rules", lambda el: check_linear_range_bounds(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="level_rules",
+        read_columns=frozenset({"level_rules"}),
     )
 
 
@@ -932,7 +934,7 @@ def _level_rules_between_linear_range_order_check() -> Check:
             "level_rules", lambda el: check_linear_range_order(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="level_rules",
+        read_columns=frozenset({"level_rules"}),
     )
 
 
@@ -942,7 +944,7 @@ def _routes_name_string_min_length_check() -> Check:
         name="string_min_length",
         expr=array_check("routes", lambda el: check_string_min_length(el["name"], 1)),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -952,7 +954,7 @@ def _routes_name_stripped_check() -> Check:
         name="stripped",
         expr=array_check("routes", lambda el: check_stripped(el["name"])),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -964,7 +966,7 @@ def _routes_network_string_min_length_check() -> Check:
             "routes", lambda el: check_string_min_length(el["network"], 1)
         ),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -974,7 +976,7 @@ def _routes_network_stripped_check() -> Check:
         name="stripped",
         expr=array_check("routes", lambda el: check_stripped(el["network"])),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -984,7 +986,7 @@ def _routes_ref_string_min_length_check() -> Check:
         name="string_min_length",
         expr=array_check("routes", lambda el: check_string_min_length(el["ref"], 1)),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -994,7 +996,7 @@ def _routes_ref_stripped_check() -> Check:
         name="stripped",
         expr=array_check("routes", lambda el: check_stripped(el["ref"])),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -1004,7 +1006,7 @@ def _routes_symbol_string_min_length_check() -> Check:
         name="string_min_length",
         expr=array_check("routes", lambda el: check_string_min_length(el["symbol"], 1)),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -1014,7 +1016,7 @@ def _routes_symbol_stripped_check() -> Check:
         name="stripped",
         expr=array_check("routes", lambda el: check_stripped(el["symbol"])),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -1031,7 +1033,7 @@ def _routes_wikidata_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -1041,7 +1043,7 @@ def _routes_between_linear_range_length_check() -> Check:
         name="linear_range_length",
         expr=array_check("routes", lambda el: check_linear_range_length(el["between"])),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -1051,7 +1053,7 @@ def _routes_between_linear_range_bounds_check() -> Check:
         name="linear_range_bounds",
         expr=array_check("routes", lambda el: check_linear_range_bounds(el["between"])),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -1061,7 +1063,7 @@ def _routes_between_linear_range_order_check() -> Check:
         name="linear_range_order",
         expr=array_check("routes", lambda el: check_linear_range_order(el["between"])),
         shape=CheckShape.ARRAY,
-        root_field="routes",
+        read_columns=frozenset({"routes"}),
     )
 
 
@@ -1071,7 +1073,7 @@ def _subclass_rules_value_required_check() -> Check:
         name="required",
         expr=array_check("subclass_rules", lambda el: check_required(el["value"])),
         shape=CheckShape.ARRAY,
-        root_field="subclass_rules",
+        read_columns=frozenset({"subclass_rules"}),
     )
 
 
@@ -1095,7 +1097,7 @@ def _subclass_rules_value_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="subclass_rules",
+        read_columns=frozenset({"subclass_rules"}),
     )
 
 
@@ -1107,7 +1109,7 @@ def _subclass_rules_between_linear_range_length_check() -> Check:
             "subclass_rules", lambda el: check_linear_range_length(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="subclass_rules",
+        read_columns=frozenset({"subclass_rules"}),
     )
 
 
@@ -1119,7 +1121,7 @@ def _subclass_rules_between_linear_range_bounds_check() -> Check:
             "subclass_rules", lambda el: check_linear_range_bounds(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="subclass_rules",
+        read_columns=frozenset({"subclass_rules"}),
     )
 
 
@@ -1131,7 +1133,7 @@ def _subclass_rules_between_linear_range_order_check() -> Check:
             "subclass_rules", lambda el: check_linear_range_order(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="subclass_rules",
+        read_columns=frozenset({"subclass_rules"}),
     )
 
 
@@ -1141,7 +1143,7 @@ def _names_primary_required_check() -> Check:
         name="required",
         expr=F.when(F.col("names").isNotNull(), check_required(F.col("names.primary"))),
         shape=CheckShape.SCALAR,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1151,7 +1153,7 @@ def _names_primary_string_min_length_check() -> Check:
         name="string_min_length",
         expr=check_string_min_length(F.col("names.primary"), 1),
         shape=CheckShape.SCALAR,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1161,7 +1163,34 @@ def _names_primary_stripped_check() -> Check:
         name="stripped",
         expr=check_stripped(F.col("names.primary")),
         shape=CheckShape.SCALAR,
-        root_field="names",
+        read_columns=frozenset({"names"}),
+    )
+
+
+def _names_common_key_check() -> Check:
+    return Check(
+        field="names.common{key}",
+        name="language_tag",
+        expr=map_keys_check(
+            "names.common",
+            lambda k: check_pattern(
+                k,
+                "^(?:(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}?)|(?:[A-Za-z]{4,8}))(?:-[A-Za-z]{4})?(?:-[A-Za-z]{2}|[0-9]{3})?(?:-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(?:-[A-WY-Za-wy-z0-9](?:-[A-Za-z0-9]{2,8})+)*\\z",
+                label="IETF BCP-47 language tag",
+            ),
+        ),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"names"}),
+    )
+
+
+def _names_common_value_check() -> Check:
+    return Check(
+        field="names.common{value}",
+        name="stripped",
+        expr=map_values_check("names.common", lambda v: check_stripped(v)),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1171,7 +1200,7 @@ def _names_rules_value_required_check() -> Check:
         name="required",
         expr=array_check("names.rules", lambda el: check_required(el["value"])),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1183,7 +1212,7 @@ def _names_rules_value_string_min_length_check() -> Check:
             "names.rules", lambda el: check_string_min_length(el["value"], 1)
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1193,7 +1222,7 @@ def _names_rules_value_stripped_check() -> Check:
         name="stripped",
         expr=array_check("names.rules", lambda el: check_stripped(el["value"])),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1203,7 +1232,7 @@ def _names_rules_variant_required_check() -> Check:
         name="required",
         expr=array_check("names.rules", lambda el: check_required(el["variant"])),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1218,7 +1247,7 @@ def _names_rules_variant_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1235,7 +1264,7 @@ def _names_rules_language_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1251,7 +1280,7 @@ def _names_rules_perspectives_mode_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1266,7 +1295,7 @@ def _names_rules_perspectives_mode_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1282,7 +1311,7 @@ def _names_rules_perspectives_countries_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1295,7 +1324,7 @@ def _names_rules_perspectives_countries_min_length_check() -> Check:
             lambda el: check_array_min_length(el["perspectives"]["countries"], 1),
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1308,7 +1337,7 @@ def _names_rules_perspectives_countries_unique_check() -> Check:
             lambda el: check_struct_unique(el["perspectives"]["countries"]),
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1326,7 +1355,7 @@ def _names_rules_perspectives_countries_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1338,7 +1367,7 @@ def _names_rules_between_linear_range_length_check() -> Check:
             "names.rules", lambda el: check_linear_range_length(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1350,7 +1379,7 @@ def _names_rules_between_linear_range_bounds_check() -> Check:
             "names.rules", lambda el: check_linear_range_bounds(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1362,7 +1391,7 @@ def _names_rules_between_linear_range_order_check() -> Check:
             "names.rules", lambda el: check_linear_range_order(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
@@ -1374,23 +1403,23 @@ def _names_rules_side_check() -> Check:
             "names.rules", lambda el: check_enum(el["side"], ["left", "right"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="names",
+        read_columns=frozenset({"names"}),
     )
 
 
 def _class_required_check() -> Check:
     return Check(
-        field="class",
+        field="class_0",
         name="required",
         expr=F.when(F.col("subtype").isin(["road"]), check_required(F.col("class"))),
         shape=CheckShape.SCALAR,
-        root_field="class",
+        read_columns=frozenset({"class", "subtype"}),
     )
 
 
 def _class_enum_check() -> Check:
     return Check(
-        field="class",
+        field="class_0",
         name="enum",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -1418,7 +1447,7 @@ def _class_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.SCALAR,
-        root_field="class",
+        read_columns=frozenset({"class", "subtype"}),
     )
 
 
@@ -1433,7 +1462,7 @@ def _destinations_from_connector_id_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1449,7 +1478,7 @@ def _destinations_from_connector_id_string_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1469,7 +1498,7 @@ def _destinations_from_connector_id_no_whitespace_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1484,7 +1513,7 @@ def _destinations_to_connector_id_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1500,7 +1529,7 @@ def _destinations_to_connector_id_string_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1520,7 +1549,7 @@ def _destinations_to_connector_id_no_whitespace_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1533,7 +1562,7 @@ def _destinations_to_segment_id_required_check() -> Check:
             array_check("destinations", lambda el: check_required(el["to_segment_id"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1549,7 +1578,7 @@ def _destinations_to_segment_id_string_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1569,7 +1598,7 @@ def _destinations_to_segment_id_no_whitespace_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1582,7 +1611,7 @@ def _destinations_final_heading_required_check() -> Check:
             array_check("destinations", lambda el: check_required(el["final_heading"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1598,7 +1627,7 @@ def _destinations_final_heading_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1613,7 +1642,7 @@ def _destinations_labels_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1626,7 +1655,7 @@ def _destinations_labels_unique_check() -> Check:
             array_check("destinations", lambda el: check_struct_unique(el["labels"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1644,7 +1673,7 @@ def _destinations_labels_value_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1663,7 +1692,7 @@ def _destinations_labels_value_string_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1681,7 +1710,7 @@ def _destinations_labels_value_stripped_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1699,7 +1728,7 @@ def _destinations_labels_type_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1727,7 +1756,7 @@ def _destinations_labels_type_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1740,7 +1769,7 @@ def _destinations_symbols_unique_check() -> Check:
             array_check("destinations", lambda el: check_struct_unique(el["symbols"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1783,7 +1812,7 @@ def _destinations_symbols_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1801,7 +1830,7 @@ def _destinations_when_heading_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1817,7 +1846,7 @@ def _destinations_when_heading_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -1832,7 +1861,7 @@ def _prohibited_transitions_sequence_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -1848,7 +1877,7 @@ def _prohibited_transitions_sequence_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -1863,7 +1892,7 @@ def _prohibited_transitions_sequence_unique_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -1881,7 +1910,7 @@ def _prohibited_transitions_sequence_connector_id_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -1900,7 +1929,7 @@ def _prohibited_transitions_sequence_connector_id_string_min_length_check() -> C
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -1923,7 +1952,7 @@ def _prohibited_transitions_sequence_connector_id_no_whitespace_check() -> Check
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -1941,7 +1970,7 @@ def _prohibited_transitions_sequence_segment_id_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -1960,7 +1989,7 @@ def _prohibited_transitions_sequence_segment_id_string_min_length_check() -> Che
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -1983,7 +2012,7 @@ def _prohibited_transitions_sequence_segment_id_no_whitespace_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -1998,7 +2027,7 @@ def _prohibited_transitions_final_heading_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2014,7 +2043,7 @@ def _prohibited_transitions_final_heading_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2030,7 +2059,7 @@ def _prohibited_transitions_between_linear_range_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2046,7 +2075,7 @@ def _prohibited_transitions_between_linear_range_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2062,7 +2091,7 @@ def _prohibited_transitions_between_linear_range_order_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2078,7 +2107,7 @@ def _prohibited_transitions_when_heading_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2094,7 +2123,7 @@ def _prohibited_transitions_when_mode_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2110,7 +2139,7 @@ def _prohibited_transitions_when_mode_unique_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2144,7 +2173,7 @@ def _prohibited_transitions_when_mode_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2160,7 +2189,7 @@ def _prohibited_transitions_when_using_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2176,7 +2205,7 @@ def _prohibited_transitions_when_using_unique_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2204,7 +2233,7 @@ def _prohibited_transitions_when_using_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2220,7 +2249,7 @@ def _prohibited_transitions_when_recognized_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2236,7 +2265,7 @@ def _prohibited_transitions_when_recognized_unique_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2264,7 +2293,7 @@ def _prohibited_transitions_when_recognized_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2280,7 +2309,7 @@ def _prohibited_transitions_when_vehicle_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2296,7 +2325,7 @@ def _prohibited_transitions_when_vehicle_unique_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2315,7 +2344,7 @@ def _prohibited_transitions_when_vehicle_dimension_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2337,7 +2366,7 @@ def _prohibited_transitions_when_vehicle_dimension_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2356,7 +2385,7 @@ def _prohibited_transitions_when_vehicle_comparison_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2384,13 +2413,13 @@ def _prohibited_transitions_when_vehicle_comparison_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
 def _prohibited_transitions_when_vehicle_value_check() -> Check:
     return Check(
-        field="prohibited_transitions[].when.vehicle[].value",
+        field="prohibited_transitions[].when.vehicle[].value_0",
         name="required",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2406,13 +2435,13 @@ def _prohibited_transitions_when_vehicle_value_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
 def _prohibited_transitions_when_vehicle_value_required_check() -> Check:
     return Check(
-        field="prohibited_transitions[].when.vehicle[].value",
+        field="prohibited_transitions[].when.vehicle[].value_1",
         name="required",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2430,7 +2459,7 @@ def _prohibited_transitions_when_vehicle_value_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2454,13 +2483,13 @@ def _prohibited_transitions_when_vehicle_value_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
 def _prohibited_transitions_when_vehicle_unit_required_check() -> Check:
     return Check(
-        field="prohibited_transitions[].when.vehicle[].unit",
+        field="prohibited_transitions[].when.vehicle[].unit_0",
         name="required",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2476,13 +2505,13 @@ def _prohibited_transitions_when_vehicle_unit_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
 def _prohibited_transitions_when_vehicle_unit_enum_check() -> Check:
     return Check(
-        field="prohibited_transitions[].when.vehicle[].unit",
+        field="prohibited_transitions[].when.vehicle[].unit_0",
         name="enum",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2500,13 +2529,13 @@ def _prohibited_transitions_when_vehicle_unit_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
 def _prohibited_transitions_when_vehicle_unit_required_check_1() -> Check:
     return Check(
-        field="prohibited_transitions[].when.vehicle[].unit",
+        field="prohibited_transitions[].when.vehicle[].unit_1",
         name="required",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2522,13 +2551,13 @@ def _prohibited_transitions_when_vehicle_unit_required_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
 def _prohibited_transitions_when_vehicle_unit_enum_check_1() -> Check:
     return Check(
-        field="prohibited_transitions[].when.vehicle[].unit",
+        field="prohibited_transitions[].when.vehicle[].unit_1",
         name="enum",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2546,7 +2575,7 @@ def _prohibited_transitions_when_vehicle_unit_enum_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -2559,7 +2588,7 @@ def _road_flags_min_length_check() -> Check:
             check_array_min_length(F.col("road_flags"), 1),
         ),
         shape=CheckShape.SCALAR,
-        root_field="road_flags",
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -2571,7 +2600,7 @@ def _road_flags_unique_check() -> Check:
             F.col("subtype").isin(["road"]), check_struct_unique(F.col("road_flags"))
         ),
         shape=CheckShape.SCALAR,
-        root_field="road_flags",
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -2584,7 +2613,7 @@ def _road_flags_values_check() -> Check:
             array_check("road_flags", lambda el: check_required(el["values"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_flags",
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -2599,7 +2628,7 @@ def _road_flags_values_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_flags",
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -2612,7 +2641,7 @@ def _road_flags_values_unique_check() -> Check:
             array_check("road_flags", lambda el: check_struct_unique(el["values"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_flags",
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -2642,7 +2671,7 @@ def _road_flags_values_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_flags",
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -2657,7 +2686,7 @@ def _road_flags_between_linear_range_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_flags",
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -2672,7 +2701,7 @@ def _road_flags_between_linear_range_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_flags",
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -2687,7 +2716,7 @@ def _road_flags_between_linear_range_order_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_flags",
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -2700,7 +2729,7 @@ def _road_surface_min_length_check() -> Check:
             check_array_min_length(F.col("road_surface"), 1),
         ),
         shape=CheckShape.SCALAR,
-        root_field="road_surface",
+        read_columns=frozenset({"road_surface", "subtype"}),
     )
 
 
@@ -2712,7 +2741,7 @@ def _road_surface_unique_check() -> Check:
             F.col("subtype").isin(["road"]), check_struct_unique(F.col("road_surface"))
         ),
         shape=CheckShape.SCALAR,
-        root_field="road_surface",
+        read_columns=frozenset({"road_surface", "subtype"}),
     )
 
 
@@ -2725,7 +2754,7 @@ def _road_surface_value_required_check() -> Check:
             array_check("road_surface", lambda el: check_required(el["value"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_surface",
+        read_columns=frozenset({"road_surface", "subtype"}),
     )
 
 
@@ -2752,7 +2781,7 @@ def _road_surface_value_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_surface",
+        read_columns=frozenset({"road_surface", "subtype"}),
     )
 
 
@@ -2767,7 +2796,7 @@ def _road_surface_between_linear_range_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_surface",
+        read_columns=frozenset({"road_surface", "subtype"}),
     )
 
 
@@ -2782,7 +2811,7 @@ def _road_surface_between_linear_range_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_surface",
+        read_columns=frozenset({"road_surface", "subtype"}),
     )
 
 
@@ -2797,7 +2826,7 @@ def _road_surface_between_linear_range_order_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="road_surface",
+        read_columns=frozenset({"road_surface", "subtype"}),
     )
 
 
@@ -2810,7 +2839,7 @@ def _speed_limits_min_length_check() -> Check:
             check_array_min_length(F.col("speed_limits"), 1),
         ),
         shape=CheckShape.SCALAR,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -2822,7 +2851,7 @@ def _speed_limits_unique_check() -> Check:
             F.col("subtype").isin(["road"]), check_struct_unique(F.col("speed_limits"))
         ),
         shape=CheckShape.SCALAR,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -2841,13 +2870,13 @@ def _speed_limits_max_speed_value_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_max_speed_value_bounds_check() -> Check:
     return Check(
-        field="speed_limits[].max_speed.value",
+        field="speed_limits[].max_speed.value_0",
         name="bounds",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2856,13 +2885,13 @@ def _speed_limits_max_speed_value_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_max_speed_value_bounds_check_1() -> Check:
     return Check(
-        field="speed_limits[].max_speed.value",
+        field="speed_limits[].max_speed.value_1",
         name="bounds",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2872,7 +2901,7 @@ def _speed_limits_max_speed_value_bounds_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -2890,7 +2919,7 @@ def _speed_limits_max_speed_unit_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -2906,7 +2935,7 @@ def _speed_limits_max_speed_unit_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -2925,13 +2954,13 @@ def _speed_limits_min_speed_value_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_min_speed_value_bounds_check() -> Check:
     return Check(
-        field="speed_limits[].min_speed.value",
+        field="speed_limits[].min_speed.value_0",
         name="bounds",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2940,13 +2969,13 @@ def _speed_limits_min_speed_value_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_min_speed_value_bounds_check_1() -> Check:
     return Check(
-        field="speed_limits[].min_speed.value",
+        field="speed_limits[].min_speed.value_1",
         name="bounds",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -2956,7 +2985,7 @@ def _speed_limits_min_speed_value_bounds_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -2974,7 +3003,7 @@ def _speed_limits_min_speed_unit_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -2990,7 +3019,7 @@ def _speed_limits_min_speed_unit_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3005,7 +3034,7 @@ def _speed_limits_between_linear_range_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3020,7 +3049,7 @@ def _speed_limits_between_linear_range_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3035,7 +3064,7 @@ def _speed_limits_between_linear_range_order_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3051,7 +3080,7 @@ def _speed_limits_when_heading_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3066,7 +3095,7 @@ def _speed_limits_when_mode_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3081,7 +3110,7 @@ def _speed_limits_when_mode_unique_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3115,7 +3144,7 @@ def _speed_limits_when_mode_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3131,7 +3160,7 @@ def _speed_limits_when_using_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3146,7 +3175,7 @@ def _speed_limits_when_using_unique_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3174,7 +3203,7 @@ def _speed_limits_when_using_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3190,7 +3219,7 @@ def _speed_limits_when_recognized_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3205,7 +3234,7 @@ def _speed_limits_when_recognized_unique_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3233,7 +3262,7 @@ def _speed_limits_when_recognized_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3249,7 +3278,7 @@ def _speed_limits_when_vehicle_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3264,7 +3293,7 @@ def _speed_limits_when_vehicle_unique_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3283,7 +3312,7 @@ def _speed_limits_when_vehicle_dimension_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3305,7 +3334,7 @@ def _speed_limits_when_vehicle_dimension_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3324,7 +3353,7 @@ def _speed_limits_when_vehicle_comparison_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3352,13 +3381,13 @@ def _speed_limits_when_vehicle_comparison_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_when_vehicle_value_check() -> Check:
     return Check(
-        field="speed_limits[].when.vehicle[].value",
+        field="speed_limits[].when.vehicle[].value_0",
         name="required",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -3374,13 +3403,13 @@ def _speed_limits_when_vehicle_value_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_when_vehicle_value_required_check() -> Check:
     return Check(
-        field="speed_limits[].when.vehicle[].value",
+        field="speed_limits[].when.vehicle[].value_1",
         name="required",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -3398,7 +3427,7 @@ def _speed_limits_when_vehicle_value_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3422,13 +3451,13 @@ def _speed_limits_when_vehicle_value_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_when_vehicle_unit_required_check() -> Check:
     return Check(
-        field="speed_limits[].when.vehicle[].unit",
+        field="speed_limits[].when.vehicle[].unit_0",
         name="required",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -3444,13 +3473,13 @@ def _speed_limits_when_vehicle_unit_required_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_when_vehicle_unit_enum_check() -> Check:
     return Check(
-        field="speed_limits[].when.vehicle[].unit",
+        field="speed_limits[].when.vehicle[].unit_0",
         name="enum",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -3468,13 +3497,13 @@ def _speed_limits_when_vehicle_unit_enum_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_when_vehicle_unit_required_check_1() -> Check:
     return Check(
-        field="speed_limits[].when.vehicle[].unit",
+        field="speed_limits[].when.vehicle[].unit_1",
         name="required",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -3490,13 +3519,13 @@ def _speed_limits_when_vehicle_unit_required_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
 def _speed_limits_when_vehicle_unit_enum_check_1() -> Check:
     return Check(
-        field="speed_limits[].when.vehicle[].unit",
+        field="speed_limits[].when.vehicle[].unit_1",
         name="enum",
         expr=F.when(
             F.col("subtype").isin(["road"]),
@@ -3514,7 +3543,7 @@ def _speed_limits_when_vehicle_unit_enum_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -3538,7 +3567,7 @@ def _subclass_check() -> Check:
             ),
         ),
         shape=CheckShape.SCALAR,
-        root_field="subclass",
+        read_columns=frozenset({"subclass", "subtype"}),
     )
 
 
@@ -3551,7 +3580,7 @@ def _width_rules_min_length_check() -> Check:
             check_array_min_length(F.col("width_rules"), 1),
         ),
         shape=CheckShape.SCALAR,
-        root_field="width_rules",
+        read_columns=frozenset({"subtype", "width_rules"}),
     )
 
 
@@ -3563,7 +3592,7 @@ def _width_rules_unique_check() -> Check:
             F.col("subtype").isin(["road"]), check_struct_unique(F.col("width_rules"))
         ),
         shape=CheckShape.SCALAR,
-        root_field="width_rules",
+        read_columns=frozenset({"subtype", "width_rules"}),
     )
 
 
@@ -3576,7 +3605,7 @@ def _width_rules_value_required_check() -> Check:
             array_check("width_rules", lambda el: check_required(el["value"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="width_rules",
+        read_columns=frozenset({"subtype", "width_rules"}),
     )
 
 
@@ -3589,7 +3618,7 @@ def _width_rules_value_bounds_check() -> Check:
             array_check("width_rules", lambda el: check_bounds(el["value"], gt=0.0)),
         ),
         shape=CheckShape.ARRAY,
-        root_field="width_rules",
+        read_columns=frozenset({"subtype", "width_rules"}),
     )
 
 
@@ -3604,7 +3633,7 @@ def _width_rules_between_linear_range_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="width_rules",
+        read_columns=frozenset({"subtype", "width_rules"}),
     )
 
 
@@ -3619,7 +3648,7 @@ def _width_rules_between_linear_range_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="width_rules",
+        read_columns=frozenset({"subtype", "width_rules"}),
     )
 
 
@@ -3634,23 +3663,23 @@ def _width_rules_between_linear_range_order_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="width_rules",
+        read_columns=frozenset({"subtype", "width_rules"}),
     )
 
 
 def _class_required_check_1() -> Check:
     return Check(
-        field="class",
+        field="class_1",
         name="required",
         expr=F.when(F.col("subtype").isin(["rail"]), check_required(F.col("class"))),
         shape=CheckShape.SCALAR,
-        root_field="class",
+        read_columns=frozenset({"class", "subtype"}),
     )
 
 
 def _class_enum_check_1() -> Check:
     return Check(
-        field="class",
+        field="class_1",
         name="enum",
         expr=F.when(
             F.col("subtype").isin(["rail"]),
@@ -3669,7 +3698,7 @@ def _class_enum_check_1() -> Check:
             ),
         ),
         shape=CheckShape.SCALAR,
-        root_field="class",
+        read_columns=frozenset({"class", "subtype"}),
     )
 
 
@@ -3682,7 +3711,7 @@ def _rail_flags_min_length_check() -> Check:
             check_array_min_length(F.col("rail_flags"), 1),
         ),
         shape=CheckShape.SCALAR,
-        root_field="rail_flags",
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -3694,7 +3723,7 @@ def _rail_flags_unique_check() -> Check:
             F.col("subtype").isin(["rail"]), check_struct_unique(F.col("rail_flags"))
         ),
         shape=CheckShape.SCALAR,
-        root_field="rail_flags",
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -3707,7 +3736,7 @@ def _rail_flags_values_check() -> Check:
             array_check("rail_flags", lambda el: check_required(el["values"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="rail_flags",
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -3722,7 +3751,7 @@ def _rail_flags_values_min_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="rail_flags",
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -3735,7 +3764,7 @@ def _rail_flags_values_unique_check() -> Check:
             array_check("rail_flags", lambda el: check_struct_unique(el["values"])),
         ),
         shape=CheckShape.ARRAY,
-        root_field="rail_flags",
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -3766,7 +3795,7 @@ def _rail_flags_values_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="rail_flags",
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -3781,7 +3810,7 @@ def _rail_flags_between_linear_range_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="rail_flags",
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -3796,7 +3825,7 @@ def _rail_flags_between_linear_range_bounds_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="rail_flags",
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -3811,7 +3840,7 @@ def _rail_flags_between_linear_range_order_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="rail_flags",
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -3831,7 +3860,7 @@ def _access_restrictions_when_vehicle_check_forbid_if_0_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -3851,7 +3880,7 @@ def _access_restrictions_when_vehicle_check_require_if_1_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -3871,7 +3900,7 @@ def _access_restrictions_when_vehicle_check_require_if_2_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -3891,7 +3920,7 @@ def _access_restrictions_when_vehicle_check_require_if_3_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -3909,7 +3938,7 @@ def _access_restrictions_when_vehicle_check_require_if_4_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -3935,7 +3964,7 @@ def _access_restrictions_when_check_require_any_of_5_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="access_restrictions",
+        read_columns=frozenset({"access_restrictions"}),
     )
 
 
@@ -3950,7 +3979,7 @@ def _destinations_check_require_any_of_6_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="destinations",
+        read_columns=frozenset({"destinations"}),
     )
 
 
@@ -3970,7 +3999,7 @@ def _prohibited_transitions_when_vehicle_check_forbid_if_7_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions"}),
     )
 
 
@@ -3990,7 +4019,7 @@ def _prohibited_transitions_when_vehicle_check_require_if_8_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions"}),
     )
 
 
@@ -4010,7 +4039,7 @@ def _prohibited_transitions_when_vehicle_check_require_if_9_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions"}),
     )
 
 
@@ -4030,7 +4059,7 @@ def _prohibited_transitions_when_vehicle_check_require_if_10_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions"}),
     )
 
 
@@ -4048,7 +4077,7 @@ def _prohibited_transitions_when_vehicle_check_require_if_11_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions"}),
     )
 
 
@@ -4074,7 +4103,7 @@ def _prohibited_transitions_when_check_require_any_of_12_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="prohibited_transitions",
+        read_columns=frozenset({"prohibited_transitions"}),
     )
 
 
@@ -4094,7 +4123,7 @@ def _speed_limits_when_vehicle_check_forbid_if_13_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits"}),
     )
 
 
@@ -4114,7 +4143,7 @@ def _speed_limits_when_vehicle_check_require_if_14_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits"}),
     )
 
 
@@ -4134,7 +4163,7 @@ def _speed_limits_when_vehicle_check_require_if_15_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits"}),
     )
 
 
@@ -4154,7 +4183,7 @@ def _speed_limits_when_vehicle_check_require_if_16_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits"}),
     )
 
 
@@ -4172,7 +4201,7 @@ def _speed_limits_when_vehicle_check_require_if_17_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits"}),
     )
 
 
@@ -4198,7 +4227,7 @@ def _speed_limits_when_check_require_any_of_18_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits"}),
     )
 
 
@@ -4214,7 +4243,7 @@ def _speed_limits_check_require_any_of_19_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="speed_limits",
+        read_columns=frozenset({"speed_limits"}),
     )
 
 
@@ -4226,7 +4255,7 @@ def _check_forbid_if_20_check() -> Check:
             F.col("class"), F.col("subtype") == "water", "subtype = 'water'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"class", "subtype"}),
     )
 
 
@@ -4238,7 +4267,7 @@ def _check_require_if_21_check() -> Check:
             F.col("class"), F.col("subtype") == "rail", "subtype = 'rail'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"class", "subtype"}),
     )
 
 
@@ -4250,7 +4279,7 @@ def _check_require_if_22_check() -> Check:
             F.col("class"), F.col("subtype") == "road", "subtype = 'road'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"class", "subtype"}),
     )
 
 
@@ -4262,7 +4291,7 @@ def _check_forbid_if_23_check() -> Check:
             F.col("destinations"), F.col("subtype") != "road", "subtype != 'road'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"destinations", "subtype"}),
     )
 
 
@@ -4276,7 +4305,7 @@ def _check_forbid_if_24_check() -> Check:
             "subtype != 'road'",
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"prohibited_transitions", "subtype"}),
     )
 
 
@@ -4288,7 +4317,7 @@ def _check_forbid_if_25_check() -> Check:
             F.col("road_flags"), F.col("subtype") != "road", "subtype != 'road'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"road_flags", "subtype"}),
     )
 
 
@@ -4300,7 +4329,7 @@ def _check_forbid_if_26_check() -> Check:
             F.col("road_surface"), F.col("subtype") != "road", "subtype != 'road'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"road_surface", "subtype"}),
     )
 
 
@@ -4312,7 +4341,7 @@ def _check_forbid_if_27_check() -> Check:
             F.col("speed_limits"), F.col("subtype") != "road", "subtype != 'road'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"speed_limits", "subtype"}),
     )
 
 
@@ -4324,7 +4353,7 @@ def _check_forbid_if_28_check() -> Check:
             F.col("subclass"), F.col("subtype") != "road", "subtype != 'road'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"subclass", "subtype"}),
     )
 
 
@@ -4336,7 +4365,7 @@ def _check_forbid_if_29_check() -> Check:
             F.col("width_rules"), F.col("subtype") != "road", "subtype != 'road'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"subtype", "width_rules"}),
     )
 
 
@@ -4348,7 +4377,7 @@ def _check_forbid_if_30_check() -> Check:
             F.col("rail_flags"), F.col("subtype") != "rail", "subtype != 'rail'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"rail_flags", "subtype"}),
     )
 
 
@@ -4443,6 +4472,8 @@ def segment_checks() -> list[Check]:
         _names_primary_required_check(),
         _names_primary_string_min_length_check(),
         _names_primary_stripped_check(),
+        _names_common_key_check(),
+        _names_common_value_check(),
         _names_rules_value_required_check(),
         _names_rules_value_string_min_length_check(),
         _names_rules_value_stripped_check(),
@@ -5055,7 +5086,7 @@ ENTRY_POINT = "overture.schema.transportation:Segment"
 
 PARTITIONS: dict[str, str] = {"theme": "transportation"}
 
-FEATURE_VALIDATION = FeatureValidation(
+MODEL_VALIDATION = ModelValidation(
     schema=SEGMENT_SCHEMA,
     checks=segment_checks,
     geometry_types=GEOMETRY_TYPES,

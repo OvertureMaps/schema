@@ -6,15 +6,11 @@ from typing import Annotated, Literal
 
 import pytest
 from annotated_types import Ge
-from codegen_test_support import find_theme, partitions_from_tags
+from codegen_test_support import find_theme
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
-    FeatureSpec,
-    is_model_class,
-    is_union_alias,
+    ModelSpec,
 )
-from overture.schema.codegen.extraction.union_extraction import extract_union
-from overture.schema.codegen.layout.module_layout import entry_point_class
 from overture.schema.codegen.pyspark.check_ir import Check
 from overture.schema.codegen.pyspark.constraint_dispatch import ExpressionDescriptor
 from overture.schema.codegen.pyspark.pipeline import (
@@ -24,6 +20,7 @@ from overture.schema.codegen.pyspark.pipeline import (
     generate_pyspark_module,
     generate_pyspark_modules,
 )
+from overture.schema.codegen.spec_discovery import extract_model_spec
 from overture.schema.system.field_path import ScalarPath
 from overture.schema.system.primitive import GeometryType
 from pydantic import BaseModel
@@ -54,7 +51,7 @@ class TestGeneratePysparkModule:
     def test_content_is_valid_python(self, simple_module: GeneratedModule) -> None:
         ast.parse(simple_module.content)
 
-    def test_path_uses_snake_case_feature_name(
+    def test_path_uses_snake_case_model_name(
         self, simple_module: GeneratedModule
     ) -> None:
         assert simple_module.path == PurePosixPath(
@@ -78,7 +75,7 @@ class TestGeneratePysparkModule:
         assert "SIMPLE_MODEL_SCHEMA" in simple_module.content
 
 
-def _two_specs() -> list[FeatureSpec]:
+def _two_specs() -> list[ModelSpec]:
     return [
         extract_model(SimpleModel, entry_point="overture.schema.simple:SimpleModel"),
         extract_model(BoundsModel, entry_point="overture.schema.bounds:BoundsModel"),
@@ -119,26 +116,13 @@ class TestGeneratePysparkModules:
         self, all_discovered_models: dict
     ) -> None:
         """divisions theme should produce a division_area.py module."""
-        division_specs: list[FeatureSpec] = []
+        division_specs: list[ModelSpec] = []
         for key, entry in all_discovered_models.items():
             if find_theme(key.tags) != "divisions":
                 continue
-            partitions = partitions_from_tags(key.tags)
-            if is_model_class(entry):
-                division_specs.append(
-                    extract_model(
-                        entry, entry_point=key.entry_point, partitions=partitions
-                    )
-                )
-            elif is_union_alias(entry):
-                division_specs.append(
-                    extract_union(
-                        entry_point_class(key.entry_point),
-                        entry,
-                        entry_point=key.entry_point,
-                        partitions=partitions,
-                    )
-                )
+            spec = extract_model_spec(key, entry)
+            if spec is not None:
+                division_specs.append(spec)
 
         results = generate_pyspark_modules(division_specs)
         names = {r.path.stem for r in results.source}
@@ -180,19 +164,13 @@ class TestPerArmTestGeneration:
 
     @pytest.fixture
     def segment_modules(self, all_discovered_models: dict) -> PipelineOutput:
-        specs: list[FeatureSpec] = []
+        specs: list[ModelSpec] = []
         for key, entry in all_discovered_models.items():
             if key.name != "segment":
                 continue
-            if is_union_alias(entry):
-                specs.append(
-                    extract_union(
-                        entry_point_class(key.entry_point),
-                        entry,
-                        entry_point=key.entry_point,
-                        partitions=partitions_from_tags(key.tags),
-                    )
-                )
+            spec = extract_model_spec(key, entry)
+            if spec is not None:
+                specs.append(spec)
         return generate_pyspark_modules(specs)
 
     def test_produces_per_arm_test_files(self, segment_modules: PipelineOutput) -> None:

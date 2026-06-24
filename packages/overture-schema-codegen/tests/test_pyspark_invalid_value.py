@@ -5,8 +5,10 @@ from overture.schema.codegen.pyspark.constraint_dispatch import ExpressionDescri
 from overture.schema.codegen.pyspark.test_data.invalid_value import invalid_value
 from overture.schema.system.field_constraint.string import (
     CountryCodeAlpha2Constraint,
+    JsonPointerConstraint,
     NoWhitespaceConstraint,
     RegionCodeConstraint,
+    StrippedConstraint,
 )
 from overture.schema.system.primitive.geom import GeometryType
 
@@ -52,9 +54,10 @@ class TestInvalidValueBounds:
 
 
 class TestInvalidValuePattern:
-    def test_default_pattern(self) -> None:
+    def test_unknown_constraint_type_raises(self) -> None:
         desc = ExpressionDescriptor(function="check_pattern", args=(r"^[A-Z]+$",))
-        assert invalid_value(desc) == "!!!INVALID!!!"
+        with pytest.raises(ValueError, match="No invalid value"):
+            invalid_value(desc)
 
     def test_no_whitespace_pattern(self) -> None:
         desc = ExpressionDescriptor(
@@ -93,11 +96,15 @@ class TestInvalidValueStringTypes:
         assert invalid_value(desc) == "not-an-email"
 
     def test_stripped(self) -> None:
-        desc = ExpressionDescriptor(function="check_stripped")
+        desc = ExpressionDescriptor(
+            function="check_stripped", constraint_type=StrippedConstraint
+        )
         assert invalid_value(desc) == " has spaces "
 
     def test_json_pointer(self) -> None:
-        desc = ExpressionDescriptor(function="check_json_pointer")
+        desc = ExpressionDescriptor(
+            function="check_json_pointer", constraint_type=JsonPointerConstraint
+        )
         assert invalid_value(desc) == "no-slash"
 
 
@@ -165,6 +172,22 @@ class TestInvalidValueGeometry:
             ),
         )
         with pytest.raises(ValueError):
+            invalid_value(desc)
+
+
+class TestInvalidValueRawPattern:
+    """Raw pydantic `Field(pattern=)` map keys curated in `PATTERN_VALUES`."""
+
+    def test_curated_license_pattern_returns_invalid(self) -> None:
+        # Sources.license_priority key pattern, anchor-normalized.
+        desc = ExpressionDescriptor(
+            function="check_pattern", args=(r"^[A-Za-z0-9._+\-]+\z",)
+        )
+        assert invalid_value(desc) == "bad license!"
+
+    def test_uncurated_pattern_still_raises(self) -> None:
+        desc = ExpressionDescriptor(function="check_pattern", args=(r"^xyz\z",))
+        with pytest.raises(ValueError, match="check_pattern"):
             invalid_value(desc)
 
 

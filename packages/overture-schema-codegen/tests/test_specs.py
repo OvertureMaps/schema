@@ -13,10 +13,10 @@ from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
     EnumSpec,
-    FeatureSpec,
     FieldSpec,
     ModelSpec,
     NewTypeSpec,
+    RecordSpec,
     TypeIdentity,
     is_union_alias,
 )
@@ -24,12 +24,13 @@ from overture.schema.system.primitive import int32
 from pydantic import BaseModel, Field
 
 
-class TestFeatureSpec:
-    def test_model_spec_is_feature_spec(self) -> None:
+class TestModelSpec:
+    def test_record_spec_is_model_spec(self) -> None:
         class Simple(BaseModel):
             name: str
 
-        spec: FeatureSpec = extract_model(Simple)
+        spec: ModelSpec = extract_model(Simple)
+        assert isinstance(spec, RecordSpec)
         assert spec.name == "Simple"
         assert isinstance(spec.fields, list)
         assert spec.source_type is Simple
@@ -133,8 +134,8 @@ class TestTypeIdentity:
 
 
 class TestSpecIdentity:
-    def test_model_spec_identity(self) -> None:
-        spec = ModelSpec(name="Foo", description=None, source_type=SimpleModel)
+    def test_record_spec_identity(self) -> None:
+        spec = RecordSpec(name="Foo", description=None, source_type=SimpleModel)
         assert spec.identity.obj is SimpleModel
         assert spec.identity.name == "Foo"
 

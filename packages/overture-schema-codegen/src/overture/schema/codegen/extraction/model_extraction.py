@@ -1,4 +1,4 @@
-"""Pydantic model extraction into `ModelSpec`."""
+"""Pydantic model extraction into `RecordSpec`."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from .field import (
     ModelRef,
     UnionRef,
 )
-from .specs import FieldSpec, ModelSpec, is_model_class
+from .specs import FieldSpec, RecordSpec, is_model_class
 from .type_analyzer import (
     ModelResolver,
     UnionResolver,
@@ -125,8 +125,8 @@ def extract_model(
     *,
     entry_point: str | None = None,
     partitions: Mapping[str, str] | None = None,
-) -> ModelSpec:
-    """Extract a fully-resolved `ModelSpec` from a Pydantic model class.
+) -> RecordSpec:
+    """Extract a fully-resolved `RecordSpec` from a Pydantic model class.
 
     Recurses into sub-models and unions, producing `ModelRef` /
     `UnionRef` terminals with their specs resolved. Cycles in the
@@ -149,17 +149,17 @@ def _extract_model_recursive(
     *,
     entry_point: str | None,
     partitions: Mapping[str, str],
-    cache: dict[type, ModelSpec],
+    cache: dict[type, RecordSpec],
     ancestors: frozenset[type],
-) -> ModelSpec:
+) -> RecordSpec:
     """Inner recursive helper for `extract_model`.
 
-    Inserts the (partial) `ModelSpec` into `cache` before populating
+    Inserts the (partial) `RecordSpec` into `cache` before populating
     its fields so cycles can find it. `ancestors` is the set of types
     currently on the recursion stack -- a sub-field whose source type
     appears there is a back-edge and gets `starts_cycle=True`.
     """
-    spec = ModelSpec(
+    spec = RecordSpec(
         name=model_class.__name__,
         description=clean_docstring(model_class.__doc__),
         fields=[],
@@ -181,6 +181,7 @@ def _extract_model_recursive(
             continue
         shape, is_optional, ti_description = analyze_type(
             annotation,
+            owner=model_class,
             model_resolver=model_resolver,
             union_resolver=union_resolver,
         )
@@ -200,14 +201,14 @@ def _extract_model_recursive(
 
 
 def _make_resolvers(
-    cache: dict[type, ModelSpec],
+    cache: dict[type, RecordSpec],
     ancestors: frozenset[type],
 ) -> tuple[ModelResolver, UnionResolver]:
     """Build the resolvers that recursively extract sub-models / sub-unions.
 
     `cache` shares already-extracted sub-specs across a single
     extraction so sub-models referenced more than once share a
-    `ModelSpec`. `ancestors` carries the recursion stack for cycle
+    `RecordSpec`. `ancestors` carries the recursion stack for cycle
     detection -- a back-edge produces a `ModelRef` pointing at the
     in-progress ancestor spec with `starts_cycle=True`.
     """

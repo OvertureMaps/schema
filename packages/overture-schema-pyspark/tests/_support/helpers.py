@@ -31,11 +31,11 @@ def deep_merge(base: dict, scaffold: dict) -> dict:
 
 
 class PathTraversalError(Exception):
-    """Raised when set_at_path cannot traverse a path in the row dict."""
+    """Raised when path traversal cannot proceed."""
 
 
 def _scaffold_struct(target: dict, name: str) -> dict:
-    """Return target[name] as a dict, scaffolding `{}` when missing or None."""
+    """Return `target[name]` as a dict, scaffolding `{}` when missing or None."""
     child = target.get(name) if isinstance(target, dict) else None
     if child is None:
         child = {}
@@ -44,7 +44,7 @@ def _scaffold_struct(target: dict, name: str) -> dict:
 
 
 def _scaffold_array(target: dict, name: str, path: FieldPath | str) -> list:
-    """Return target[name] as a list, scaffolding `[{}]` when None.
+    """Return `target[name]` as a list, scaffolding `[{}]` when None.
 
     Empty arrays raise — there is no element to mutate.
     """
@@ -64,10 +64,10 @@ def _scaffold_array(target: dict, name: str, path: FieldPath | str) -> list:
 def _descend_through_array(
     segment: ArraySegment, target: dict, path: FieldPath | str
 ) -> list:
-    """Enter an array segment and walk through its iter_count.
+    """Enter an array segment and walk through its `iter_count`.
 
     Scaffolds `[{}]` at the outer level when None; deeper levels
-    (`iter_count > 1`) must already be lists -- scaffolding into
+    (`iter_count > 1`) must already be lists — scaffolding into
     nested-list shapes isn't supported because no current schema
     needs it.
 

@@ -7,19 +7,15 @@ each constraint produces the expected violation.
 
 from __future__ import annotations
 
-from overture.schema.system.field_constraint.string import (
-    CountryCodeAlpha2Constraint,
-    HexColorConstraint,
-    LanguageTagConstraint,
-    NoWhitespaceConstraint,
-    PhoneNumberConstraint,
-    RegionCodeConstraint,
-    SnakeCaseConstraint,
-    WikidataIdConstraint,
-)
 from overture.schema.system.primitive.geom import GeometryType
 
 from ..constraint_dispatch import ExpressionDescriptor
+from .constraint_values import (
+    CONSTRAINT_VALUES,
+    curated_pattern_values,
+    invalid_bound,
+    uncurated_pattern_error,
+)
 
 __all__ = ["invalid_value"]
 
@@ -31,28 +27,15 @@ _INVALID_GEOMETRY_CANDIDATES: tuple[tuple[GeometryType, str], ...] = (
 )
 
 
-# Pattern-constraint -> sample value that violates the pattern.
-# Used by `check_pattern` whose constraint_type identifies which validator.
-_INVALID_PATTERN_VALUES: dict[type, str] = {
-    NoWhitespaceConstraint: "has whitespace",
-    CountryCodeAlpha2Constraint: "99",
-    RegionCodeConstraint: "99-999",
-    SnakeCaseConstraint: "HAS SPACES",
-    PhoneNumberConstraint: "1234567890",
-    WikidataIdConstraint: "P999",
-    HexColorConstraint: "not-hex",
-    LanguageTagConstraint: "123",
-}
-
 # Direct lookup: check function name -> invalid value (no descriptor inspection).
+# Reserved for checks with no associated constraint type (url/email, linear_range,
+# bbox, required, enum, and min-length literals).
 _INVALID_LITERALS: dict[str, object] = {
     "check_required": None,
     "check_enum": "__INVALID__",
     "check_url_format": "not-a-url",
     "check_url_length": "https://" + "x" * 2076,
     "check_email": "not-an-email",
-    "check_stripped": " has spaces ",
-    "check_json_pointer": "no-slash",
     "check_array_min_length": [],
     "check_string_min_length": "",
     "check_linear_range_length": [0.5],
@@ -75,16 +58,24 @@ def invalid_value(desc: ExpressionDescriptor) -> object:
     Raises
     ------
     ValueError
-        For unrecognised check function names or when all geometry candidates
+        For unrecognised check function names, unknown `constraint_type`
+        on `check_pattern` descriptors, or when all geometry candidates
         are in the allowed set.
     """
     fn = desc.function
+    # Constraint-type lookup precedes function-name lookup: any type present in
+    # CONSTRAINT_VALUES resolves via the table even when its check function also
+    # appears in _INVALID_LITERALS (e.g. check_stripped, check_json_pointer).
+    if desc.constraint_type in CONSTRAINT_VALUES:
+        return CONSTRAINT_VALUES[desc.constraint_type].invalid
     if fn in _INVALID_LITERALS:
         return _INVALID_LITERALS[fn]
     if fn == "check_bounds":
-        return _invalid_bound(desc)
+        return invalid_bound(desc)
     if fn == "check_pattern":
-        return _INVALID_PATTERN_VALUES.get(desc.constraint_type, "!!!INVALID!!!")  # type: ignore[arg-type]
+        if (curated := curated_pattern_values(desc)) is not None:
+            return curated.invalid
+        raise uncurated_pattern_error(desc, side="invalid")
     if fn == "check_array_max_length":
         max_len = int(desc.args[0])  # type: ignore[call-overload]
         return [{}] * (max_len + 1)
@@ -94,28 +85,6 @@ def invalid_value(desc: ExpressionDescriptor) -> object:
     if fn == "check_geometry_type":
         return _invalid_geometry(desc)
     raise ValueError(f"No invalid value defined for check function: {fn!r}")
-
-
-def _invalid_bound(desc: ExpressionDescriptor) -> object:
-    """Produce a value violating a bounds check for invalid-value generation.
-
-    The `ge` / `le` branches return one below / above the bound. For
-    `ge=0` this returns `-1`, which violates the bound but would also
-    underflow an unsigned base type. No schema today combines `ge=0` with
-    an unsigned terminal -- if that ever changes, the caller will need to
-    consult the base type and pick a sentinel (e.g. a string or null) for
-    the violating value.
-    """
-    kwargs = dict(desc.kwargs)
-    if "ge" in kwargs:
-        return kwargs["ge"] - 1  # type: ignore[operator]
-    if "gt" in kwargs:
-        return kwargs["gt"]
-    if "le" in kwargs:
-        return kwargs["le"] + 1  # type: ignore[operator]
-    if "lt" in kwargs:
-        return kwargs["lt"]
-    raise ValueError(f"No recognised bound key in kwargs: {kwargs!r}")
 
 
 def _invalid_geometry(desc: ExpressionDescriptor) -> str:

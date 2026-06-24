@@ -209,25 +209,25 @@ SCENARIOS: list[Scenario] = [
         expected_check="stripped",
     ),
     Scenario(
-        id="address::sources[].confidence:bounds",
+        id="address::sources[].confidence_0:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", -1.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="address::sources[].confidence:bounds_1",
+        id="address::sources[].confidence_1:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", 2.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -391,7 +391,7 @@ def sparse_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_SPARSE,
         SCENARIOS,
-        feature_name="address",
+        model_name="address",
     )
 
 
@@ -403,7 +403,7 @@ def populated_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_POPULATED,
         SCENARIOS,
-        feature_name="address",
+        model_name="address",
     )
 
 

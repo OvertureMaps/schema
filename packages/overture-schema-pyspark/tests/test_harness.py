@@ -57,7 +57,7 @@ class TestBuildScenarioMap:
                 expected_check="required",
             ),
         ]
-        scenario_map = build_scenario_map(scenarios, feature_name="f")
+        scenario_map = build_scenario_map(scenarios, model_name="f")
         assert scenario_uuid("f::x:required::valid") in scenario_map
         assert (
             scenario_map[scenario_uuid("f::x:required::valid")]
@@ -79,7 +79,7 @@ class TestBuildScenarioMap:
                 expected_check="check",
             ),
         ]
-        scenario_map = build_scenario_map(scenarios, feature_name="f")
+        scenario_map = build_scenario_map(scenarios, model_name="f")
         # baseline + (::valid, ::invalid) for the one scenario
         assert len(scenario_map) == 3
 
@@ -101,14 +101,14 @@ class TestBuildScenarioMap:
             ),
         ]
         with pytest.raises(ValueError, match="Duplicate"):
-            build_scenario_map(scenarios, feature_name="f")
+            build_scenario_map(scenarios, model_name="f")
 
 
 class TestBuildScenarioRows:
     def test_baseline_row_included(self) -> None:
         base = {"id": "original-uuid", "theme": "buildings", "type": "building", "x": 1}
         rows, scenario_map, skipped = build_scenario_rows(
-            base, [], feature_name="building"
+            base, [], model_name="building"
         )
         assert len(rows) == 1
         assert rows[0]["theme"] == "buildings"
@@ -131,7 +131,7 @@ class TestBuildScenarioRows:
             ),
         ]
         rows, scenario_map, skipped = build_scenario_rows(
-            base, scenarios, feature_name="f"
+            base, scenarios, model_name="f"
         )
         assert len(rows) == 1
         assert "f::x:check" in skipped
@@ -149,7 +149,7 @@ class TestBuildScenarioRows:
             ),
         ]
         rows, scenario_map, skipped = build_scenario_rows(
-            base, scenarios, feature_name="f"
+            base, scenarios, model_name="f"
         )
         # baseline + valid + invalid
         assert len(rows) == 3
@@ -171,7 +171,7 @@ class TestBuildScenarioRows:
             ),
         ]
         rows, scenario_map, skipped = build_scenario_rows(
-            base, scenarios, feature_name="f"
+            base, scenarios, model_name="f"
         )
         assert len(rows) == 3
         # Valid row uses base_row (preserves all fields in items element)
@@ -189,7 +189,7 @@ class TestBuildScenarioRows:
             expected_check="check",
         )
         rows, scenario_map, skipped = build_scenario_rows(
-            base_row, [s], feature_name="test"
+            base_row, [s], model_name="test"
         )
         invalid_id = scenario_uuid("test::b:check::invalid")
         invalid_row = next(r for r in rows if r["_scenario_id"] == invalid_id)
@@ -207,7 +207,7 @@ class TestBuildScenarioRows:
             expected_check="required",
         )
         rows, scenario_map, skipped = build_scenario_rows(
-            base_row, [s], feature_name="test"
+            base_row, [s], model_name="test"
         )
         assert len(rows) == 3
         assert not skipped
@@ -258,7 +258,7 @@ class TestSchemaAssertions:
                 name="required",
                 expr=F.lit(None),
                 shape=CheckShape.SCALAR,
-                root_field="id",
+                read_columns=frozenset({"id"}),
             )
         ]
         assert_schema_covers_checks(schema, checks)  # should not raise
@@ -271,7 +271,7 @@ class TestSchemaAssertions:
                 name="min_length",
                 expr=F.lit(None),
                 shape=CheckShape.SCALAR,
-                root_field="sources",
+                read_columns=frozenset({"sources"}),
             )
         ]
         assert_schema_covers_checks(schema, checks)  # should not raise
@@ -286,24 +286,30 @@ class TestSchemaAssertions:
                 name="required",
                 expr=F.lit(None),
                 shape=CheckShape.SCALAR,
-                root_field="missing",
+                read_columns=frozenset({"missing"}),
             )
         ]
         with pytest.raises(AssertionError, match="missing"):
             assert_schema_covers_checks(schema, checks)
 
-    def test_assert_schema_covers_synthetic_model_check(
+    def test_assert_schema_covers_model_check_columns(
         self, spark: SparkSession
     ) -> None:
-        """root_field=None passes regardless of schema (radio_group, etc.)."""
-        schema = StructType([StructField("id", StringType())])
+        """A model check passes when every column it reads is in the schema."""
+        schema = StructType(
+            [
+                StructField("id", StringType()),
+                StructField("a", StringType()),
+                StructField("b", StringType()),
+            ]
+        )
         checks = [
             Check(
                 field="radio_group",
                 name="radio_group",
                 expr=F.lit(None),
                 shape=CheckShape.SCALAR,
-                root_field=None,
+                read_columns=frozenset({"a", "b"}),
             )
         ]
         assert_schema_covers_checks(schema, checks)  # should not raise

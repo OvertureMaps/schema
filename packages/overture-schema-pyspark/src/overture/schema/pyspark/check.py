@@ -27,21 +27,23 @@ class Check:
     and report grouping), not how to access the data.  The expression in
     `expr` already encodes the access pattern.
 
-    `root_field` is the top-level schema column the check belongs to,
-    or None for synthetic model-level checks (radio_group, require_any_of)
-    that don't correspond to a single column.  Used by `validate_feature`
-    to suppress or skip checks by column name.
+    `read_columns` names every top-level schema column the expression
+    dereferences -- one for a plain field check, several for a model-level
+    check that spans columns, plus any discriminator a variant gate reads.
+    `validate_model` drops a check when any column it reads is skipped or
+    structurally absent, so an unresolvable `F.col()` never reaches Spark;
+    it also treats these as the columns a check can be suppressed by name.
     """
 
     field: str
     name: str
     expr: Column
     shape: CheckShape
-    root_field: str | None
+    read_columns: frozenset[str]
 
 
 @dataclass(frozen=True)
-class FeatureValidation:
+class ModelValidation:
     """Pairs an expected schema with check builders for a feature type."""
 
     schema: StructType

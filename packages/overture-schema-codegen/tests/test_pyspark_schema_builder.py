@@ -3,7 +3,7 @@
 from enum import Enum
 
 import pytest
-from codegen_test_support import feature_spec_for_model
+from codegen_test_support import spec_for_model
 from overture.schema.codegen.extraction.field import Primitive
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
@@ -23,7 +23,7 @@ class SimpleModel(BaseModel):
 class TestPrimitiveFields:
     @pytest.fixture
     def fields(self) -> list[SchemaField]:
-        return build_schema(feature_spec_for_model(SimpleModel))
+        return build_schema(spec_for_model(SimpleModel))
 
     def test_string_field_maps_to_string_type(self, fields: list[SchemaField]) -> None:
         name_field = next(f for f in fields if f.name == "name")
@@ -46,7 +46,7 @@ class ContainerModel(BaseModel):
 class TestNestedModel:
     @pytest.fixture
     def fields(self) -> list[SchemaField]:
-        return build_schema(feature_spec_for_model(ContainerModel))
+        return build_schema(spec_for_model(ContainerModel))
 
     def test_nested_model_emits_struct_type(self, fields: list[SchemaField]) -> None:
         item_field = next(f for f in fields if f.name == "item")
@@ -66,7 +66,7 @@ class ListModel(BaseModel):
 class TestListFields:
     @pytest.fixture
     def fields(self) -> list[SchemaField]:
-        return build_schema(feature_spec_for_model(ListModel))
+        return build_schema(spec_for_model(ListModel))
 
     def test_list_str_maps_to_array_string(self, fields: list[SchemaField]) -> None:
         tags_field = next(f for f in fields if f.name == "tags")
@@ -86,7 +86,7 @@ class DictModel(BaseModel):
 class TestDictFields:
     @pytest.fixture
     def fields(self) -> list[SchemaField]:
-        return build_schema(feature_spec_for_model(DictModel))
+        return build_schema(spec_for_model(DictModel))
 
     def test_dict_str_str_maps_to_map_type(self, fields: list[SchemaField]) -> None:
         labels_field = next(f for f in fields if f.name == "labels")
@@ -96,7 +96,7 @@ class TestDictFields:
 class TestDivisionAreaSchema:
     @pytest.fixture(scope="class")
     def fields(self) -> list[SchemaField]:
-        return build_schema(feature_spec_for_model(DivisionArea))
+        return build_schema(spec_for_model(DivisionArea))
 
     def test_id_field_is_string_type(self, fields: list[SchemaField]) -> None:
         id_field = next(f for f in fields if f.name == "id")

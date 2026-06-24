@@ -10,7 +10,7 @@ from pathlib import PurePosixPath
 from overture.schema.system.case import to_snake_case
 
 from ..extraction.specs import (
-    FeatureSpec,
+    ModelSpec,
     PydanticTypeSpec,
     SupplementarySpec,
     TypeIdentity,
@@ -30,7 +30,7 @@ GEOMETRY_PAGE = PurePosixPath("system/primitive/geometry.md")
 
 
 def build_placement_registry(
-    feature_specs: Sequence[FeatureSpec],
+    model_specs: Sequence[ModelSpec],
     all_specs: dict[TypeIdentity, SupplementarySpec],
     numeric_names: list[TypeIdentity],
     geometry_names: list[TypeIdentity],
@@ -46,7 +46,7 @@ def build_placement_registry(
     )
 
     feature_dirs: set[PurePosixPath] = set()
-    for spec in feature_specs:
+    for spec in model_specs:
         spec_dir = output_dir_for_entry_point(spec.entry_point, schema_root)
         registry[spec.identity] = _md_path(spec_dir, spec.name)
         feature_dirs.add(spec_dir)

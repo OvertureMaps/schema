@@ -14,6 +14,7 @@ from typing import Any, TypeAlias
 
 from annotated_types import Ge, Gt, Interval, Le, Lt
 from pydantic import Strict
+from pydantic._internal._fields import PydanticMetadata
 
 from overture.schema.system.case import to_snake_case
 from overture.schema.system.field_constraint.collection import UniqueItemsConstraint
@@ -35,7 +36,8 @@ from overture.schema.system.model_constraint import (
 from overture.schema.system.primitive import GeometryTypeConstraint
 from overture.schema.system.ref import Reference
 
-from ..extraction.field import FieldShape, ModelRef
+from ..extraction.docstring import first_docstring_line
+from ..extraction.field import FieldShape, ModelRef, Primitive
 from ..extraction.field_walk import has_array_layer, terminal_of
 from ..extraction.length_constraints import (
     ArrayMaxLen,
@@ -44,6 +46,7 @@ from ..extraction.length_constraints import (
     ScalarMinLen,
 )
 from ..extraction.specs import FieldSpec
+from ..extraction.type_registry import primitive_spark_category
 
 __all__ = [
     "ExpressionDescriptor",
@@ -114,13 +117,58 @@ _NEWTYPE_DISPATCH: dict[str, tuple[ExpressionDescriptor, ...]] = {
 }
 
 
-def _normalize_anchor(pattern: str) -> str:
+# re.UNICODE is Python's implicit default on compiled `str` patterns and needs
+# no translation -- Java's regex engine is Unicode-aware without a flag.
+# re.IGNORECASE maps to the inline `(?i)` flag Spark's rlike honors. A new
+# supported flag with a visible matching effect also belongs in
+# `field_constraints._DISPLAY_FLAG_LETTERS`, or docs will hide its behavior.
+_SUPPORTED_PATTERN_FLAGS = re.IGNORECASE | re.UNICODE
+
+
+def compiled_pattern_source(pattern: re.Pattern[str]) -> str:
+    """Return the Spark-regex source string for a compiled `re.Pattern`.
+
+    A compiled `re.Pattern` is the only Pydantic carrier for a flagged pattern
+    (a bare `Field(pattern=str)` cannot express `re.I`). Translates the flags
+    Spark's `rlike` can honor into inline prefixes -- `re.IGNORECASE` becomes
+    `(?i)`, the idiom `constraint_expressions.check_url_format` already uses.
+    The ASCII/Unicode case-folding divergence between Java and Python is the
+    same accepted divergence documented at `check_pattern`.
+
+    Raises
+    ------
+    NotImplementedError
+        For any flag without a faithful `rlike` translation (e.g.
+        `re.MULTILINE`), naming the flag rather than silently dropping it.
+    """
+    unsupported = re.RegexFlag(pattern.flags & ~_SUPPORTED_PATTERN_FLAGS)
+    if unsupported:
+        raise NotImplementedError(
+            f"check_pattern cannot translate regex flag {unsupported!r} to Spark rlike"
+        )
+    source = pattern.pattern
+    # Only IGNORECASE emits a prefix; UNICODE passes the gate but is a no-op
+    # (Java is Unicode-aware unflagged). A new supported flag needs its own
+    # translation clause here, or it will pass the gate and be silently dropped.
+    if pattern.flags & re.IGNORECASE:
+        source = f"(?i){source}"
+    return source
+
+
+def normalize_anchor(pattern: str) -> str:
     """Replace trailing `$` with `\\z` for Java/Spark regex compatibility.
 
-    Leaves an escaped trailing `\\$` (literal dollar match) untouched.
+    Uses backslash-parity to distinguish a real anchor from an escaped
+    literal `$`. Counts the run of backslashes immediately before the
+    final `$`: an even count means `$` is unescaped (convert to `\\z`);
+    an odd count means it is an escaped literal `$` (leave unchanged).
     """
-    if pattern.endswith("$") and not pattern.endswith(r"\$"):
-        return pattern[:-1] + r"\z"
+    if not pattern.endswith("$"):
+        return pattern
+    prefix = pattern[:-1]  # strip the trailing $
+    backslashes = len(prefix) - len(prefix.rstrip("\\"))
+    if backslashes % 2 == 0:
+        return prefix + r"\z"
     return pattern
 
 
@@ -135,11 +183,10 @@ def _pattern_label(constraint: PatternConstraint) -> str:
     """Extract a human-readable label from a PatternConstraint."""
     if constraint.description:
         return constraint.description
-    doc = type(constraint).__doc__
-    if doc:
-        return doc.strip().split("\n")[0].rstrip(".")
+    if (summary := first_docstring_line(type(constraint).__doc__)) is not None:
+        return summary.rstrip(".")
     name = type(constraint).__name__.removesuffix("Constraint")
-    return re.sub(r"(?<=[a-z0-9])([A-Z])", r" \1", name).lower()
+    return to_snake_case(name).replace("_", " ")
 
 
 _ConstraintHandler = Callable[[Any, str | None], ExpressionDescriptor | None]
@@ -174,14 +221,49 @@ def _dispatch_pattern(
     constraint: PatternConstraint,
     _base_type: str | None,
 ) -> ExpressionDescriptor:
-    """Map a PatternConstraint (or subclass) to a check_pattern descriptor."""
+    """Map a PatternConstraint (or subclass) to a check_pattern descriptor.
+
+    The Python `re` pattern source is embedded verbatim (anchor and inline
+    flags aside) into a Java `rlike`. The two engines diverge on Unicode
+    shorthand classes and `.` line-terminator handling; that is an accepted
+    divergence, documented at `constraint_expressions.check_pattern`.
+    """
     return ExpressionDescriptor(
         function="check_pattern",
-        args=(_normalize_anchor(constraint.pattern.pattern),),
+        args=(normalize_anchor(compiled_pattern_source(constraint.pattern)),),
         constraint_type=type(constraint),
         label=_pattern_label(constraint),
         check_name=_pattern_check_name(constraint),
     )
+
+
+def _raw_pattern(constraint: object) -> str | None:
+    """Return the Spark-regex source of raw pydantic `Field(pattern=)`, or None.
+
+    Pydantic represents `Field(pattern=...)` as a `PydanticMetadata` marker
+    (the private `_PydanticGeneralMetadata`) carrying the pattern as either a
+    `str` (`Field(pattern="...")`) or a compiled `re.Pattern`
+    (`Field(pattern=re.compile(...))` -- the only carrier for a flagged,
+    e.g. case-insensitive, pattern). The schema's own `PatternConstraint` is
+    handled earlier; raw metadata reaches here from `dict[K, V]` keys/values
+    that used `Field(pattern=)` rather than a schema constraint class
+    (e.g. `Sources.license_priority`).
+
+    The `PydanticMetadata` check -- not merely a `.pattern` attribute --
+    keeps `dispatch_constraint`'s fallback contract intact: an unrelated future
+    constraint that happens to expose a `.pattern` still raises `TypeError`
+    rather than being silently dispatched as a `check_pattern`. A compiled
+    pattern carrying an untranslatable flag raises `NotImplementedError` via
+    `compiled_pattern_source`.
+    """
+    if not isinstance(constraint, PydanticMetadata):
+        return None
+    pattern = getattr(constraint, "pattern", None)
+    if isinstance(pattern, str):
+        return pattern
+    if isinstance(pattern, re.Pattern):
+        return compiled_pattern_source(pattern)
+    return None
 
 
 # Ordered: the first matching entry wins, so any subclass relationship
@@ -217,11 +299,15 @@ _CONSTRAINT_DISPATCH: list[tuple[type | tuple[type, ...], _ConstraintHandler]] =
     ),
     (
         StrippedConstraint,
-        lambda _c, _bt: ExpressionDescriptor(function="check_stripped"),
+        lambda c, _bt: ExpressionDescriptor(
+            function="check_stripped", constraint_type=type(c)
+        ),
     ),
     (
         JsonPointerConstraint,
-        lambda _c, _bt: ExpressionDescriptor(function="check_json_pointer"),
+        lambda c, _bt: ExpressionDescriptor(
+            function="check_json_pointer", constraint_type=type(c)
+        ),
     ),
     (PatternConstraint, _dispatch_pattern),
     # check_struct_unique uses Spark's array_distinct: structural equality on
@@ -274,6 +360,17 @@ def dispatch_constraint(
     for key_types, handler in _CONSTRAINT_DISPATCH:
         if isinstance(constraint, key_types):
             return handler(constraint, base_type)
+    raw_pattern = _raw_pattern(constraint)
+    if raw_pattern is not None:
+        # Raw pydantic `Field(pattern=)` metadata. `constraint_type` stays
+        # None (the pydantic class is a private closure type, not a stable
+        # key); the curated valid/invalid pair lives in `PATTERN_VALUES`,
+        # keyed by the normalized pattern in `args`.
+        return ExpressionDescriptor(
+            function="check_pattern",
+            args=(normalize_anchor(raw_pattern),),
+            label="pattern",
+        )
     raise TypeError(f"Unhandled constraint type: {type(constraint).__name__}")
 
 
@@ -321,12 +418,14 @@ class RequireIf:
 class ForbidIf:
     """Descriptor for `check_forbid_if`: field must be absent when condition holds.
 
-    `field_shapes` pairs non-string field names with their `FieldShape` so
-    the test renderer can emit type-appropriate `fill_values` literals.
+    `field_shapes` pairs non-string-default field names with their `FieldShape`
+    so the test renderer can emit type-appropriate `fill_values` literals.
     Stored as a tuple of `(name, shape)` pairs so the descriptor is
     hashable; consumers convert with `dict()` when they need mapping
     access. String fields are omitted because the renderer defaults to
-    `""` for them without needing the shape.
+    `""` for them, which is correct. Arrays, model references, and
+    non-string scalars (int/uint/float/bool) require an explicit entry
+    so the renderer emits a typed literal (`[{}]`, `{}`, `0`, `False`, etc.).
     """
 
     field_names: tuple[str, ...]
@@ -394,11 +493,21 @@ def _unwrap_require_any_of_names(
     return tuple(result)
 
 
-def _is_compound_shape(shape: FieldShape) -> bool:
-    """Whether `shape` needs a non-`{}` fill value in mutation helpers."""
+def _needs_explicit_fill(shape: FieldShape) -> bool:
+    """Whether `shape` needs an explicit (non-default-string) fill value.
+
+    Arrays and model references need `[{}]` / `{}` fill. Non-string
+    scalars (int/uint/float/bool families) need a typed fill (0, False,
+    etc.). Plain string scalars are omitted -- the `""` default is correct.
+    """
     if has_array_layer(shape):
         return True
-    return isinstance(terminal_of(shape), ModelRef)
+    terminal = terminal_of(shape)
+    if isinstance(terminal, ModelRef):
+        return True
+    if not isinstance(terminal, Primitive):
+        return False
+    return primitive_spark_category(terminal.base_type) in ("int", "float", "bool")
 
 
 def forbid_if_field_shapes(
@@ -407,14 +516,16 @@ def forbid_if_field_shapes(
 ) -> tuple[tuple[str, FieldShape], ...]:
     """Build the `field_shapes` pairs for non-string ForbidIf targets.
 
-    Keeps only fields whose shape is compound (an array or a model
-    reference); string fields are omitted because the test renderer
-    defaults their fill value to `""` without needing the shape.
+    Keeps fields whose shape is an array, a model reference, or a
+    non-string scalar (int/uint/float/bool families). String fields are
+    omitted because the test renderer defaults their fill value to `""`
+    without needing the shape.
     """
     return tuple(
         (name, shape)
         for name in field_names
-        if (shape := shape_by_name.get(name)) is not None and _is_compound_shape(shape)
+        if (shape := shape_by_name.get(name)) is not None
+        and _needs_explicit_fill(shape)
     )
 
 

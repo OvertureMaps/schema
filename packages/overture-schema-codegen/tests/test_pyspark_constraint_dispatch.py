@@ -1,5 +1,7 @@
 """Tests for pyspark constraint dispatch."""
 
+import re
+
 import pytest
 from annotated_types import Ge, Gt, Interval, Le, Lt
 from overture.schema.codegen.extraction.field import Primitive
@@ -21,7 +23,9 @@ from overture.schema.codegen.pyspark.constraint_dispatch import (
     dispatch_constraint,
     dispatch_model_constraint,
     dispatch_newtype,
+    forbid_if_field_shapes,
     model_constraint_function,
+    normalize_anchor,
 )
 from overture.schema.system.field_constraint.collection import UniqueItemsConstraint
 from overture.schema.system.field_constraint.string import (
@@ -43,7 +47,7 @@ from overture.schema.system.model_constraint import (
 )
 from overture.schema.system.primitive import GeometryType, GeometryTypeConstraint
 from overture.schema.system.ref import Identified, Reference, Relationship
-from pydantic import Strict
+from pydantic import Field, Strict
 
 
 class _Stub(Identified):
@@ -121,11 +125,13 @@ class TestStringConstraintDispatch:
         desc = dispatch_constraint(StrippedConstraint())
         assert desc is not None
         assert desc.function == "check_stripped"
+        assert desc.constraint_type is StrippedConstraint
 
     def test_json_pointer(self) -> None:
         desc = dispatch_constraint(JsonPointerConstraint())
         assert desc is not None
         assert desc.function == "check_json_pointer"
+        assert desc.constraint_type is JsonPointerConstraint
 
     def test_pattern_constraint_base(self) -> None:
         c = PatternConstraint(r"^[A-Z]{2}$", "test error")
@@ -151,6 +157,67 @@ class TestStringConstraintDispatch:
         assert desc.args == (r"^[a-z0-9]+(_[a-z0-9]+)*\z",)  # anchor normalized
         assert desc.label == "Category in snake_case format"
         assert desc.check_name == "snake_case"
+
+
+class TestRawPydanticPatternDispatch:
+    """Raw pydantic `Field(pattern=)` metadata (`_PydanticGeneralMetadata`).
+
+    Distinguished from the schema's `PatternConstraint` by being a
+    `PydanticMetadata` marker. Carries the pattern as a `str`
+    (`Field(pattern="...")`) or a compiled `re.Pattern`
+    (`Field(pattern=re.compile(...))` -- the only flagged-pattern carrier).
+    Reaches dispatch via map keys today (e.g. `Sources.license_priority`).
+    """
+
+    def test_pydantic_pattern_metadata_dispatches_as_pattern(self) -> None:
+        (meta,) = Field(pattern=r"^[a-z]+$").metadata
+        desc = dispatch_constraint(meta)
+        assert desc is not None
+        assert desc.function == "check_pattern"
+        assert desc.args == (r"^[a-z]+\z",)  # anchor-normalized
+
+    def test_compiled_pattern_metadata_dispatches_as_pattern(self) -> None:
+        # A compiled re.Pattern is the only carrier for a flagged pattern, so
+        # `Field(pattern=re.compile(...))` must dispatch like a bare string.
+        (meta,) = Field(pattern=re.compile(r"^[a-z]+$")).metadata
+        desc = dispatch_constraint(meta)
+        assert desc is not None
+        assert desc.function == "check_pattern"
+        assert desc.args == (r"^[a-z]+\z",)  # anchor-normalized
+
+    def test_compiled_pattern_ignorecase_prepends_inline_flag(self) -> None:
+        # re.IGNORECASE has no string-pattern carrier; it maps to Spark's
+        # inline (?i) flag (the same idiom check_url_format uses).
+        (meta,) = Field(pattern=re.compile(r"^[a-z]+$", re.I)).metadata
+        desc = dispatch_constraint(meta)
+        assert desc is not None
+        assert desc.function == "check_pattern"
+        assert desc.args == (r"(?i)^[a-z]+\z",)
+
+    def test_compiled_pattern_unsupported_flag_raises_named(self) -> None:
+        # An untranslatable flag must raise a clean, flag-naming error rather
+        # than the opaque "Unhandled constraint type" TypeError.
+        (meta,) = Field(pattern=re.compile(r"^[a-z]+$", re.M)).metadata
+        with pytest.raises(NotImplementedError, match="MULTILINE"):
+            dispatch_constraint(meta)
+
+    def test_plain_object_with_str_pattern_still_raises(self) -> None:
+        # A non-PydanticMetadata object that merely exposes a string
+        # `.pattern` must not be mistaken for raw pattern metadata: the
+        # fallback contract stays "raise on unhandled", so an unrelated
+        # future constraint can't be silently turned into a check_pattern.
+        class _Imposter:
+            pattern = r"^[a-z]+$"
+
+        with pytest.raises(TypeError, match="Unhandled constraint type"):
+            dispatch_constraint(_Imposter())
+
+    def test_non_pattern_object_still_raises(self) -> None:
+        class _Unknown:
+            pass
+
+        with pytest.raises(TypeError, match="Unhandled constraint type"):
+            dispatch_constraint(_Unknown())
 
 
 class TestPatternConstraintDispatch:
@@ -184,6 +251,19 @@ class TestPatternConstraintDispatch:
         pattern = str(desc.args[0])
         # The trailing $ is replaced; the \$ inside the class is preserved
         assert pattern == r"^[\$]+\z"
+
+    def test_ignorecase_flag_prepends_inline_flag(self) -> None:
+        """A case-insensitive PatternConstraint maps re.I to Spark's (?i)."""
+        c = PatternConstraint(r"^[a-z]+$", "error: {value}", flags=re.I)
+        desc = dispatch_constraint(c)
+        assert desc is not None
+        assert desc.args == (r"(?i)^[a-z]+\z",)
+
+    def test_unsupported_flag_raises_named(self) -> None:
+        """An untranslatable flag raises a clean, flag-naming error."""
+        c = PatternConstraint(r"^[a-z]+$", "error: {value}", flags=re.M)
+        with pytest.raises(NotImplementedError, match="MULTILINE"):
+            dispatch_constraint(c)
 
 
 class TestStructuralConstraintDispatch:
@@ -258,6 +338,19 @@ class TestNewtypeDispatch:
     def test_unknown_newtype_returns_none(self) -> None:
         desc = dispatch_newtype("FeatureVersion")
         assert desc is None
+
+
+class TestPatternLabelAcronymHandling:
+    def test_acronym_run_in_name_splits_correctly(self) -> None:
+        """PatternConstraint subclass with an acronym run labels with spaces."""
+
+        class JSONPathConstraint(PatternConstraint):
+            def __init__(self) -> None:
+                super().__init__(r"^\$", "Invalid JSON path: {value}")
+
+        desc = dispatch_constraint(JSONPathConstraint())
+        assert desc is not None
+        assert desc.label == "json path"
 
 
 class TestUnknownConstraintFails:
@@ -383,3 +476,65 @@ class TestModelConstraintDispatch:
     def test_unknown_model_constraint_raises(self) -> None:
         with pytest.raises(TypeError, match="Unhandled model constraint"):
             dispatch_model_constraint(object(), [])
+
+
+class TestForbidIfFieldShapes:
+    """Non-string scalar shapes must appear in field_shapes."""
+
+    @pytest.mark.parametrize(
+        ("base_type", "field_name"),
+        [
+            ("int32", "count"),
+            ("bool", "flag"),
+            ("float64", "score"),
+        ],
+    )
+    def test_non_string_scalar_included_in_field_shapes(
+        self, base_type: str, field_name: str
+    ) -> None:
+        shape = Primitive(base_type=base_type)
+        result = forbid_if_field_shapes((field_name,), {field_name: shape})
+        assert len(result) == 1
+        assert result[0][0] == field_name
+
+    def test_string_scalar_excluded_from_field_shapes(self) -> None:
+        """String scalars remain excluded; renderer defaults to '' fill."""
+        shape = Primitive(base_type="str")
+        result = forbid_if_field_shapes(("label",), {"label": shape})
+        assert result == ()
+
+    def test_dispatch_model_constraint_forbid_if_int_has_field_shapes(self) -> None:
+        condition = FieldEqCondition(field_name="subtype", value="road")
+        c = ForbidIfConstraint(field_names=("version",), condition=condition)
+        fields = [
+            FieldSpec(name="version", shape=Primitive(base_type="int32")),
+        ]
+        (desc,) = dispatch_model_constraint(c, fields)
+        assert isinstance(desc, ForbidIf)
+        assert len(desc.field_shapes) == 1
+        assert desc.field_shapes[0][0] == "version"
+
+
+class TestNormalizeAnchorParity:
+    """normalize_anchor uses backslash-parity to distinguish anchor from escaped $."""
+
+    def test_bare_dollar_converted(self) -> None:
+        assert normalize_anchor(r"foo$") == r"foo\z"
+
+    def test_escaped_dollar_left_unchanged(self) -> None:
+        """Single backslash before $ -- literal dollar, must not convert."""
+        assert normalize_anchor(r"foo\$") == r"foo\$"
+
+    def test_escaped_backslash_then_anchor_converted(self) -> None:
+        """Two backslashes before $ -- even parity, $ is a real anchor, must convert."""
+        # "foo\\\\$" is the 6-char string: f o o \ \ $
+        # Even number of backslashes (2) before $: the $ is an unescaped anchor.
+        result = normalize_anchor("foo\\\\$")
+        assert result.endswith(r"\z"), f"Expected \\\\z suffix, got {result!r}"
+        assert not result.endswith("$")
+
+    def test_triple_backslash_dollar_left_unchanged(self) -> None:
+        r"""Three backslashes before $ -- odd parity, $ is a literal dollar."""
+        # "foo\\\\\\$" -- three backslashes + $, odd count: escaped literal $
+        result = normalize_anchor("foo\\\\\\$")
+        assert result.endswith("$"), f"Expected trailing $, got {result!r}"

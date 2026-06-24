@@ -14,7 +14,7 @@ def test_check_is_frozen(spark: SparkSession) -> None:
         name="required",
         expr=F.lit("error"),
         shape=CheckShape.SCALAR,
-        root_field="subtype",
+        read_columns=frozenset({"subtype"}),
     )
     with pytest.raises(dataclasses.FrozenInstanceError):
         check.field = "other"  # type: ignore[misc]

@@ -1,7 +1,7 @@
-"""Validation pipeline for Overture feature data.
+"""Validation pipeline for registered models.
 
-`validate_feature()` is the primary entry point: it looks up the
-feature type in the registry, compares schemas, filters checks, and
+`validate_model()` is the primary entry point: it looks up the
+model type in the registry, compares schemas, filters checks, and
 evaluates them in a single pass.  Returns a `ValidationResult`
 carrying the evaluated DataFrame and metadata.
 
@@ -31,13 +31,13 @@ from .expressions.column_patterns import coalesce_errors
 from .schema_check import SchemaMismatch, compare_schemas
 
 
-def feature_keys() -> list[str]:
+def model_keys() -> list[str]:
     """Canonical entry-point keys registered in the validation registry."""
     return sorted(REGISTRY)
 
 
-def feature_names() -> list[str]:
-    """All names `validate_feature` accepts.
+def model_names() -> list[str]:
+    """All names `validate_model` accepts.
 
     Includes canonical entry-point keys and the snake-case class-name
     aliases the resolver recognizes (only when an alias is unambiguous).
@@ -85,10 +85,41 @@ def _normalize_suppress(
 # are preserved.
 _ERR_COLUMN = re.compile(r"^_err_\d+$")
 
+# Working/output columns `explain_errors` introduces beyond `_err_<int>`:
+# `_idx`/`_errors` are UNPIVOT scratch, `field`/`check`/`message` are its
+# output contract. An input column sharing any of these names produces
+# duplicate attributes -> AMBIGUOUS_REFERENCE.
+_EXPLAIN_RESERVED = ("_idx", "_errors", "field", "check", "message")
+
 
 def _non_error_columns(evaluated: DataFrame) -> list[str]:
     """Column names excluding `_err_N` error columns appended by `evaluate_checks`."""
     return [c for c in evaluated.columns if not _ERR_COLUMN.match(c)]
+
+
+def _reject_reserved_collisions(collisions: Iterable[str], reserved_label: str) -> None:
+    """Raise if any input column collides with a reserved working/output name.
+
+    Parameters
+    ----------
+    collisions
+        Input column names that collide with the reserved set.
+    reserved_label
+        Human-readable description of the reserved names, completing the
+        sentence `... collide with {reserved_label}`.
+
+    Raises
+    ------
+    ValueError
+        If `collisions` is non-empty.  The message names the offending
+        columns and the remediation (rename or drop them).
+    """
+    names = sorted(collisions)
+    if names:
+        raise ValueError(
+            f"input columns {names} collide with {reserved_label}; "
+            f"rename or drop them before validating"
+        )
 
 
 def evaluate_checks(df: DataFrame, checks: list[Check]) -> DataFrame:
@@ -96,7 +127,19 @@ def evaluate_checks(df: DataFrame, checks: list[Check]) -> DataFrame:
 
     Returns the input DataFrame with one `array<string>` column per check,
     containing error messages (non-empty) or null/empty (no error).
+
+    Raises
+    ------
+    ValueError
+        If `df` already contains a `_err_<int>` column.  Appending the
+        working columns would shadow it (duplicate attributes), so the
+        collision is rejected -- most realistically a persisted
+        `result.evaluated` fed back through validation.
     """
+    _reject_reserved_collisions(
+        (c for c in df.columns if _ERR_COLUMN.match(c)),
+        "the reserved '_err_<int>' columns evaluate_checks appends",
+    )
     error_cols = []
     for i, chk in enumerate(checks):
         if chk.shape == CheckShape.SCALAR:
@@ -155,8 +198,18 @@ def explain_errors(evaluated: DataFrame, checks: list[Check]) -> DataFrame:
     -------
     DataFrame
         Schema: `<original columns>, field, check, message`.
+
+    Raises
+    ------
+    ValueError
+        If an original column collides with a working/output name
+        (`_idx`, `_errors`, `field`, `check`, `message`).
     """
     orig_cols = _non_error_columns(evaluated)
+    _reject_reserved_collisions(
+        (c for c in orig_cols if c in _EXPLAIN_RESERVED),
+        f"explain_errors' working/output columns {list(_EXPLAIN_RESERVED)}",
+    )
     n = len(checks)
     if n == 0:
         empty_schema = StructType(
@@ -192,7 +245,7 @@ def explain_errors(evaluated: DataFrame, checks: list[Check]) -> DataFrame:
 
 @dataclass(frozen=True)
 class ValidationResult:
-    """Result of validate_feature().
+    """Result of validate_model().
 
     Consumer owns caching of `evaluated`. Call `error_rows()` for
     the filtered view; use `explain_errors(result.evaluated,
@@ -203,6 +256,14 @@ class ValidationResult:
     checks: list[Check]
     schema_mismatches: list[SchemaMismatch]
     suppressed_checks: list[Check]
+    absent_columns: tuple[str, ...] = ()
+    """Root columns present in the schema but absent from the data and not already skipped.
+
+    Ordered by first appearance in `schema_mismatches`, deduplicated.
+    Matches the set of root fields whose checks `validate_model` silently
+    drops; callers use this to suggest `--skip-columns` without re-deriving
+    it from `schema_mismatches`.
+    """
 
     def error_rows(self) -> DataFrame:
         """Rows with at least one violation. Original columns only."""
@@ -234,22 +295,22 @@ class ValidationResult:
         return row["total"], row["errors"]
 
 
-def validate_feature(
+def validate_model(
     df: DataFrame,
-    feature_type: str,
+    model_type: str,
     *,
     skip_columns: Iterable[str] = (),
     ignore_extra_columns: Iterable[str] = (),
     suppress: Iterable[str | tuple[str, str] | Check] = (),
 ) -> ValidationResult:
-    """Validate a DataFrame against a registered feature type.
+    """Validate a DataFrame against a registered model type.
 
     Parameters
     ----------
     df
         Input DataFrame to validate.
-    feature_type
-        Registered feature type name (e.g. `"building"`).
+    model_type
+        Registered model type name (e.g. `"building"`).
     skip_columns
         Columns declared absent from the data.  Raises `ValueError`
         if any are present in `df.columns`.
@@ -265,11 +326,11 @@ def validate_feature(
     Raises
     ------
     ValueError
-        If `feature_type` isn't registered.  Message includes the
+        If `model_type` isn't registered.  Message includes the
         sorted list of known types.
     """
-    feature_type = resolve_entry_point_key(feature_type, REGISTRY)
-    validation = REGISTRY[feature_type]
+    model_type = resolve_entry_point_key(model_type, REGISTRY)
+    validation = REGISTRY[model_type]
     skip = frozenset(skip_columns)
     ignore_extra = frozenset(ignore_extra_columns)
     suppress_roots, suppress_pairs = _normalize_suppress(suppress)
@@ -287,16 +348,18 @@ def validate_feature(
     raw_mismatches = compare_schemas(df.schema, validation.schema)
     mismatches = []
     for m in raw_mismatches:
-        root = m.path.split(".", 1)[0]
-        if root in skip:
+        if m.root in skip:
             continue
-        if m.expected == "missing" and root in ignore_extra:
+        if m.expected == "missing" and m.root in ignore_extra:
             continue
         mismatches.append(m)
 
-    # Validate suppress entries match real checks before filtering
+    # Validate suppress entries match real checks before filtering.  A bare
+    # suppress string names a column; it is valid when some check reads it,
+    # which is exactly when suppressing it would drop a check -- the same
+    # `read_columns` set that drives exclusion below.
     all_checks = validation.checks()
-    valid_roots = {c.root_field for c in all_checks if c.root_field is not None}
+    valid_roots = {col for c in all_checks for col in c.read_columns}
     valid_pairs = {(c.field, c.name) for c in all_checks}
     unmatched_roots = suppress_roots - valid_roots
     unmatched_pairs = suppress_pairs - valid_pairs
@@ -307,7 +370,7 @@ def validate_feature(
         if unmatched_pairs:
             parts.append(f"unknown (field, name) pairs {sorted(unmatched_pairs)}")
         raise ValueError(
-            f"suppress entries don't match any check for {feature_type!r}: "
+            f"suppress entries don't match any check for {model_type!r}: "
             + "; ".join(parts)
         )
 
@@ -320,23 +383,32 @@ def validate_feature(
     # mismatch stays in `mismatches` and is reported, so the caller (the
     # CLI) aborts unless --skip-schema-check.  `--skip-columns` opts into
     # that suppression -- it is not a restatement of the default.
-    # `Check.root_field` is column-granular, so filtering is all-or-nothing:
-    # if the data has the `bbox` struct but is missing only `bbox.xmin`,
-    # every check whose root_field is `bbox` is dropped, including checks on
-    # sub-fields that are present.  Finer granularity would require
-    # sub-column awareness in Check, which it deliberately lacks.
-    absent_columns = {
-        m.path.split(".", 1)[0] for m in mismatches if m.actual == "missing"
-    }
+    # Exclusion is column-granular, so filtering is all-or-nothing: if the
+    # data has the `bbox` struct but is missing only `bbox.xmin`, every check
+    # rooted at `bbox` is dropped, including checks on sub-fields that are
+    # present.  Finer granularity would require sub-column awareness in Check,
+    # which it deliberately lacks.  `m.root` strips the array/map step markers
+    # (`sources[].confidence` -> `sources`) so a nested absence still resolves
+    # to the top-level column.
+    absent_columns = tuple(
+        dict.fromkeys(m.root for m in mismatches if m.actual == "missing")
+    )
 
-    # Check filtering
-    excluded = skip | absent_columns
+    # Check filtering.  A check is dropped when any column it reads is gone --
+    # whether skipped or structurally absent -- so an unresolvable `F.col()`
+    # never reaches Spark.  Suppression by column name is the same predicate
+    # over a different set: suppressing a column is treating it as absent.
+    excluded = skip | set(absent_columns)
+
+    def _is_excluded(chk: Check) -> bool:
+        return not excluded.isdisjoint(chk.read_columns)
+
     kept: list[Check] = []
     suppressed: list[Check] = []
     for chk in all_checks:
-        if chk.root_field is not None and chk.root_field in excluded:
+        if _is_excluded(chk):
             continue  # structurally absent, not tracked in suppressed
-        if chk.root_field is not None and chk.root_field in suppress_roots:
+        if not suppress_roots.isdisjoint(chk.read_columns):
             suppressed.append(chk)
             continue
         if (chk.field, chk.name) in suppress_pairs:
@@ -350,4 +422,5 @@ def validate_feature(
         checks=kept,
         schema_mismatches=mismatches,
         suppressed_checks=suppressed,
+        absent_columns=absent_columns,
     )

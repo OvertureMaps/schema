@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from enum import Enum
 
 from pydantic import BaseModel
+from typing_extensions import assert_never
 
 from ..extraction.field import (
     AnyScalar,
@@ -99,23 +100,43 @@ def _format_union_members(
     return separator.join(resolve_type_link(TypeIdentity.of(m), ctx) for m in members)
 
 
+def _model_ref_identity(model_ref: ModelRef) -> TypeIdentity | None:
+    """Return a linkable identity for a `ModelRef`, or None when unsourced.
+
+    A `ModelRef` links by its `source_type` (the original Python class)
+    paired with the model name. Returns None when `source_type` is absent
+    -- a synthesized spec with no backing class has no page to link to.
+    """
+    src = model_ref.model.source_type
+    if src is None:
+        return None
+    return TypeIdentity(src, model_ref.model.name)
+
+
 def _model_link(model_ref: ModelRef, ctx: LinkContext | None) -> str:
     """Resolve a `ModelRef` to a markdown link or fallback code span."""
-    src = model_ref.model.source_type
-    if src is not None:
-        return resolve_type_link(TypeIdentity(src, model_ref.model.name), ctx)
+    identity = _model_ref_identity(model_ref)
+    if identity is not None:
+        return resolve_type_link(identity, ctx)
     return f"`{model_ref.model.name}`"
 
 
 def _scalar_identity(scalar: Primitive) -> TypeIdentity | None:
-    """Return a linkable identity for a `Primitive`'s `source_type`, if any."""
+    """Return a linkable identity for a `Primitive`'s `source_type`, if any.
+
+    Enum / BaseModel / Pydantic-sourced types link by their own
+    identity and class name. Class-based registered primitives
+    (`Geometry`, `BBox`) are plain classes -- not BaseModel, not
+    Pydantic-sourced -- so they link by object identity to their
+    aggregate page under the markdown registry name (`geometry`, `bbox`).
+    """
     src = scalar.source_type
-    if src is None:
+    if not isinstance(src, type):
         return None
-    if isinstance(src, type) and (
-        issubclass(src, Enum) or issubclass(src, BaseModel) or is_pydantic_sourced(src)
-    ):
+    if issubclass(src, Enum) or issubclass(src, BaseModel) or is_pydantic_sourced(src):
         return TypeIdentity.of(src)
+    if get_type_mapping(src.__name__) is not None:
+        return TypeIdentity(src, _registry_name(scalar))
     return None
 
 
@@ -152,34 +173,109 @@ def _registry_name(scalar: Scalar) -> str:
 
 
 def _format_map(shape: MapOf, ctx: LinkContext | None) -> str:
-    """Format a `MapOf` as a bare `map<K, V>` code span (no outer wrappers)."""
-    key = _markdown_name_for_shape(shape.key)
-    value = _markdown_name_for_shape(shape.value)
-    return f"`map<{key}, {value}>`"
+    """Format a `MapOf` as a `map<K, V>` code span, linking key/value types.
 
+    Semantic NewTypes and Enum / BaseModel-sourced key/value types link
+    to their pages; primitives stay bare. Output is identical whether the
+    map is rendered in a field cell or as a NewType's underlying type --
+    both paths route through here.
 
-def _markdown_name_for_shape(shape: FieldShape) -> str:
-    """Return a bare markdown name (no link, no backticks) for a shape.
-
-    Used inside `map<K, V>` rendering. Picks the semantic NewType name
-    when wrapping a registered primitive, otherwise the registry name
-    of the terminal scalar.
+    A link has to break out of the surrounding code span, so any bare side
+    is folded into the adjacent `map<...>` span rather than wrapped in its
+    own backticks. Two backtick spans must never abut: CommonMark reads the
+    resulting `` as a two-backtick delimiter and swallows the link.
     """
-    if isinstance(shape, NewTypeShape):
-        return shape.name
-    if isinstance(shape, Scalar):
-        return _registry_name(shape)
-    if isinstance(shape, ModelRef):
-        return shape.model.name
-    if isinstance(shape, ArrayOf):
-        inner = _markdown_name_for_shape(shape.element)
-        return f"list<{inner}>"
-    if isinstance(shape, MapOf):
-        return (
-            f"map<{_markdown_name_for_shape(shape.key)}, "
-            f"{_markdown_name_for_shape(shape.value)}>"
-        )
-    return "?"
+    key_str, key_linked = _map_side(shape.key, ctx)
+    val_str, val_linked = _map_side(shape.value, ctx)
+    if not key_linked and not val_linked:
+        return f"`map<{key_str}, {val_str}>`"
+    if key_linked and val_linked:
+        return f"`map<`{key_str}`,`{val_str}`>`"
+    if key_linked:
+        return f"`map<`{key_str}`,{val_str}>`"
+    return f"`map<{key_str},`{val_str}`>`"
+
+
+def _map_side(shape: FieldShape, ctx: LinkContext | None) -> tuple[str, bool]:
+    """Render one map key/value as (text, is_link).
+
+    Returns a page link when the side resolves to one, else its
+    container-aware bare name (so a `list<...>` / `map<...>` wrapper
+    survives instead of collapsing to its element). The flag tells
+    `_format_map` whether the side breaks out of the surrounding code span.
+    """
+    link = _map_side_link(shape, ctx)
+    if link is not None:
+        return link, True
+    return _bare_map_side_name(shape), False
+
+
+def _map_side_link(shape: FieldShape, ctx: LinkContext | None) -> str | None:
+    """Return a markdown link for a map key/value that has its own page.
+
+    Links a semantic NewType, a model (`ModelRef`), or an Enum /
+    BaseModel-sourced primitive when `ctx` resolves a page for it.
+    NewType and primitive sides link through `list<...>` layers; a model
+    side links only when it is the direct map side (`depth == 0`), so a
+    `list<Model>`-valued map keeps its `list<...>` wrapper from
+    `_bare_map_side_name` rather than collapsing to a bare model link.
+    Returns None when the side has no page; the caller renders a bare
+    name instead.
+    """
+    identity: TypeIdentity | None = None
+    depth, cur = _peel_arrays(shape)
+    if isinstance(cur, NewTypeShape) and is_semantic_newtype(shape):
+        identity = TypeIdentity(cur.ref, cur.name)
+    elif depth == 0 and isinstance(cur, ModelRef):
+        identity = _model_ref_identity(cur)
+    elif isinstance(cur, Primitive) and cur.source_type is not None:
+        src = cur.source_type
+        if isinstance(src, type) and (
+            issubclass(src, Enum) or issubclass(src, BaseModel)
+        ):
+            identity = TypeIdentity(src, cur.base_type)
+    if identity and ctx:
+        href = ctx.resolve_link(identity)
+        if href:
+            return _code_link(identity.name, href)
+    return None
+
+
+def _bare_map_side_name(shape: FieldShape) -> str:
+    """Bare markdown name for a map key/value, recursing through containers.
+
+    Every variant resolves to a real name: `list<...>` / `map<...>`
+    wrappers recurse, scalars use their registry name (so `Any` is `Any`,
+    not `?`), semantic NewTypes and models use their type name, and a
+    pass-through NewType resolves through the registry like the scalar it
+    aliases. There is no `?` fallback -- a side that can't be named is a
+    bug, not a placeholder.
+
+    A union-valued map is the one shape left unrendered: no schema field
+    uses one, and its `\\|`-separated members do not compose cleanly into
+    a bare `map<...>` span. It raises so the gap surfaces loudly when a
+    field first needs it, rather than shipping a half-rendered value.
+    """
+    match shape:
+        case ArrayOf(element=element):
+            return f"list<{_bare_map_side_name(element)}>"
+        case MapOf(key=key, value=value):
+            return f"map<{_bare_map_side_name(key)}, {_bare_map_side_name(value)}>"
+        case NewTypeShape(name=name) if is_semantic_newtype(shape):
+            return name
+        case NewTypeShape():
+            return resolve_type_name(shape)
+        case ModelRef(model=model):
+            return model.name
+        case Primitive() | LiteralScalar() | AnyScalar():
+            return _registry_name(shape)
+        case UnionRef():
+            raise NotImplementedError(
+                "union-typed map key/value is not rendered in markdown; "
+                "add handling here when a schema field first needs one"
+            )
+        case _:
+            assert_never(shape)
 
 
 def format_type(field: FieldSpec, ctx: LinkContext | None = None) -> str:
@@ -258,40 +354,6 @@ def _peel_to_terminal(shape: FieldShape) -> FieldShape:
             return shape
 
 
-def _linked_or_backticked(
-    shape: FieldShape, ctx: LinkContext | None
-) -> tuple[str, bool]:
-    """Return (formatted_string, has_link) for a shape component.
-
-    Used by NewType page rendering to format the underlying type with
-    a link to its source page when one exists.
-    """
-    identity: TypeIdentity | None = None
-    _, cur = _peel_arrays(shape)
-    if isinstance(cur, NewTypeShape) and is_semantic_newtype(shape):
-        identity = TypeIdentity(cur.ref, cur.name)
-    elif isinstance(cur, Primitive) and cur.source_type is not None:
-        src = cur.source_type
-        if isinstance(src, type) and (
-            issubclass(src, Enum) or issubclass(src, BaseModel)
-        ):
-            identity = TypeIdentity(src, cur.base_type)
-    if identity and ctx:
-        href = ctx.resolve_link(identity)
-        if href:
-            return _code_link(identity.name, href), True
-    return _markdown_name_for_underlying(shape), False
-
-
-def _markdown_name_for_underlying(shape: FieldShape) -> str:
-    """Bare markdown display name for a NewType's underlying type."""
-    if is_semantic_newtype(shape):
-        _, cur = _peel_arrays(shape)
-        if isinstance(cur, NewTypeShape):
-            return cur.name
-    return resolve_type_name(shape)
-
-
 def format_underlying_type(shape: FieldShape, ctx: LinkContext | None = None) -> str:
     """Format a NewType's underlying type for the page header, with links."""
     terminal = _peel_to_terminal(shape)
@@ -299,15 +361,7 @@ def format_underlying_type(shape: FieldShape, ctx: LinkContext | None = None) ->
         return _format_union_members(terminal.union.members, ctx, separator=" | ")
 
     if isinstance(terminal, MapOf):
-        key_str, key_linked = _linked_or_backticked(terminal.key, ctx)
-        val_str, val_linked = _linked_or_backticked(terminal.value, ctx)
-        if key_linked or val_linked:
-            if not key_linked:
-                key_str = f"`{key_str}`"
-            if not val_linked:
-                val_str = f"`{val_str}`"
-            return f"`map<`{key_str}`,`{val_str}`>`"
-        return f"`map<{key_str}, {val_str}>`"
+        return _format_map(terminal, ctx)
 
     # For underlying-type rendering on a NewType's own page, skip the
     # is_semantic_newtype path to avoid self-linking: this shape

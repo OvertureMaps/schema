@@ -10,6 +10,7 @@ dependencies = [
     "overture-schema-common",
     "overture-schema-system",
     "tomli>=2.0; python_version < '3.11'",
+    "typing-extensions>=4.0",
 ]
 description = "Code generator that produces documentation and code from Pydantic models"
 dynamic = ["version"]

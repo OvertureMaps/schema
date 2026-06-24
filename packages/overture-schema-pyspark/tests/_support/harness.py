@@ -1,6 +1,6 @@
 """Validation harness for generated conformance tests.
 
-Builds a single DataFrame per feature type from scenario mutations,
+Builds a single DataFrame per model type from scenario mutations,
 runs validation once, and indexes violations by scenario ID.
 """
 
@@ -23,7 +23,7 @@ from .scenarios import Scenario
 
 # Namespace for `_scenario_id` UUIDs. Distinct from
 # `overture.schema.codegen.pyspark.test_data.base_row._BASE_ROW_NAMESPACE`
-# (which synthesizes feature `id` values) so a feature `id` can never
+# (which synthesizes model `id` values) so a model `id` can never
 # collide with a scenario tag and confuse the violations index.
 _NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 
@@ -44,16 +44,16 @@ def scenario_uuid(scenario_id: str) -> str:
 def build_scenario_map(
     scenarios: Sequence[Scenario],
     *,
-    feature_name: str,
+    model_name: str,
 ) -> dict[str, str]:
     """Map _scenario_id values to human-readable scenario IDs.
 
     Parameters
     ----------
     scenarios
-        All scenarios for a feature type.
-    feature_name
-        Feature name for the baseline row ID.
+        All scenarios for a model type.
+    model_name
+        Model name for the baseline row ID.
 
     Returns
     -------
@@ -65,7 +65,7 @@ def build_scenario_map(
     ValueError
         If two scenarios would produce the same UUID key.
     """
-    baseline_id = f"{feature_name}::baseline"
+    baseline_id = f"{model_name}::baseline"
     scenario_map: dict[str, str] = {scenario_uuid(baseline_id): baseline_id}
 
     for s in scenarios:
@@ -85,7 +85,7 @@ def build_scenario_rows(
     base_row: dict[str, Any],
     scenarios: Sequence[Scenario],
     *,
-    feature_name: str,
+    model_name: str,
 ) -> tuple[list[dict[str, Any]], dict[str, str], dict[str, str]]:
     """Build mutation rows and scenario mapping from scenarios.
 
@@ -95,8 +95,8 @@ def build_scenario_rows(
         Valid base row dict from the example loader.
     scenarios
         Scenarios to apply.
-    feature_name
-        Feature name for baseline ID and UUID namespace.
+    model_name
+        Model name for baseline ID and UUID namespace.
 
     Returns
     -------
@@ -105,14 +105,14 @@ def build_scenario_rows(
         scenario_map maps _scenario_id values to scenario IDs, and skipped
         maps scenario IDs to skip reasons.
     """
-    scenario_map = build_scenario_map(scenarios, feature_name=feature_name)
+    scenario_map = build_scenario_map(scenarios, model_name=model_name)
     base_row = sanitize_row(base_row)
     # Deep-copy every row so nested structures aren't aliased with base_row;
     # a future in-place mutation of one row would otherwise leak across rows.
     rows: list[dict[str, Any]] = [
         {
             **copy.deepcopy(base_row),
-            "_scenario_id": scenario_uuid(f"{feature_name}::baseline"),
+            "_scenario_id": scenario_uuid(f"{model_name}::baseline"),
         }
     ]
     skipped: dict[str, str] = {}
@@ -178,21 +178,21 @@ def _sanitize_in_place(d: dict[str, Any]) -> dict[str, Any]:
 
 
 def assert_schema_covers_checks(schema: StructType, checks: list[Check]) -> None:
-    """Assert every check's root field exists in the schema.
+    """Assert every column a check reads exists in the schema.
 
-    Synthetic model-level checks (`root_field=None`) pass
-    unconditionally. Otherwise the root must be a top-level schema
-    column. This is a fast sanity check; deeper field paths are the
-    codegen's responsibility and surface at Spark execution time.
+    Covers field and model-level checks alike: each top-level column in a
+    check's `read_columns` must be a schema column. This is a fast sanity
+    check; deeper field paths are the codegen's responsibility and surface
+    at Spark execution time.
     """
     top_level = {f.name for f in schema.fields}
     for chk in checks:
-        if chk.root_field is None or chk.root_field in top_level:
-            continue
-        raise AssertionError(
-            f"Check references root field {chk.root_field!r} "
-            f"not found in schema. Available: {sorted(top_level)}"
-        )
+        missing = chk.read_columns - top_level
+        if missing:
+            raise AssertionError(
+                f"Check reads columns {sorted(missing)} "
+                f"not found in schema. Available: {sorted(top_level)}"
+            )
 
 
 def run_validation_pipeline(
@@ -201,7 +201,7 @@ def run_validation_pipeline(
     checks: list[Check],
     base_row: dict[str, Any],
     scenarios: Sequence[Scenario],
-    feature_name: str,
+    model_name: str,
 ) -> ValidationResults:
     """Run the full validation pipeline.
 
@@ -211,15 +211,16 @@ def run_validation_pipeline(
     """
     assert_schema_covers_checks(schema, checks)
     rows, scenario_map, skipped = build_scenario_rows(
-        base_row, scenarios, feature_name=feature_name
+        base_row, scenarios, model_name=model_name
     )
     augmented_schema = StructType(
         schema.fields + [StructField("_scenario_id", StringType(), True)]
     )
     df = spark.createDataFrame(rows, schema=augmented_schema, verifySchema=False)  # type: ignore[union-attr]
     violations = explain_errors(evaluate_checks(df, checks), checks)
+    indexed = violations.select("_scenario_id", "field", "check")
     return ValidationResults(
-        violations=index_violations(violations.collect(), scenario_map),
+        violations=index_violations(indexed.collect(), scenario_map),
         skipped=skipped,
     )
 

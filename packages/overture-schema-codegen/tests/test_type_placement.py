@@ -13,9 +13,9 @@ from codegen_test_support import (
 )
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
-    FeatureSpec,
     FieldSpec,
     ModelSpec,
+    RecordSpec,
     SupplementarySpec,
     TypeIdentity,
 )
@@ -41,12 +41,12 @@ _SCHEMA_ROOT = "overture.schema"
 
 
 def _build_registry(
-    feature_specs: list[ModelSpec],
+    model_specs: list[RecordSpec],
 ) -> tuple[dict[TypeIdentity, PurePosixPath], dict[TypeIdentity, SupplementarySpec]]:
     """Build placement registry with standard aggregate names."""
-    all_specs = collect_all_supplementary_types(feature_specs)
+    all_specs = collect_all_supplementary_types(model_specs)
     registry = build_placement_registry(
-        feature_specs, all_specs, _NUMERIC_NAMES, _GEOMETRY_NAMES, _SCHEMA_ROOT
+        model_specs, all_specs, _NUMERIC_NAMES, _GEOMETRY_NAMES, _SCHEMA_ROOT
     )
     return registry, all_specs
 
@@ -145,7 +145,7 @@ class TestPlacementWithUnionSpec:
     """Tests for placement registry with UnionSpec."""
 
     def test_union_spec_gets_placement(self) -> None:
-        """UnionSpec is placed alongside ModelSpec in the registry."""
+        """UnionSpec is placed alongside RecordSpec in the registry."""
 
         class Base(BaseModel):
             name: str
@@ -170,10 +170,10 @@ class TestPlacementWithUnionSpec:
             entry_point="test.package:TestUnion",
         )
 
-        feature_specs: list[FeatureSpec] = [union_spec]
-        all_specs = collect_all_supplementary_types(feature_specs)
+        model_specs: list[ModelSpec] = [union_spec]
+        all_specs = collect_all_supplementary_types(model_specs)
         registry = build_placement_registry(
-            feature_specs, all_specs, [], [], "test.package"
+            model_specs, all_specs, [], [], "test.package"
         )
         assert any(tid.name == "TestUnion" for tid in registry)
 
@@ -202,7 +202,7 @@ class TestPydanticTypePlacement:
 
     def test_pydantic_type_placed_under_module_dir(self) -> None:
         registry = build_placement_registry(
-            feature_specs=[],
+            model_specs=[],
             all_specs={HTTP_URL_SPEC.identity: HTTP_URL_SPEC},
             numeric_names=[],
             geometry_names=[],
@@ -218,7 +218,7 @@ class TestPydanticTypePlacement:
             EMAIL_STR_SPEC.identity: EMAIL_STR_SPEC,
         }
         registry = build_placement_registry(
-            feature_specs=[],
+            model_specs=[],
             all_specs=specs,
             numeric_names=[],
             geometry_names=[],

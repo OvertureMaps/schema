@@ -12,9 +12,16 @@ from codegen_test_support import (
     RadioModel,
     RequireAnyModel,
     TripleNestedArrayModel,
-    feature_spec_for_model,
+    spec_for_model,
 )
-from overture.schema.codegen.pyspark._render_common import jinja_env
+from overture.schema.codegen.pyspark._render_common import (
+    FieldEq,
+    field_check_rows,
+    jinja_env,
+    model_check_rows,
+    require_field_eq,
+    schema_const_name,
+)
 from overture.schema.codegen.pyspark.check_builder import build_checks
 from overture.schema.codegen.pyspark.check_ir import (
     Check,
@@ -25,11 +32,14 @@ from overture.schema.codegen.pyspark.check_ir import (
 from overture.schema.codegen.pyspark.constraint_dispatch import (
     ExpressionDescriptor,
     RequireAnyOf,
+    RequireIf,
 )
 from overture.schema.codegen.pyspark.renderer import (
+    _read_columns,
     _render_check_function_context,
     _render_model_constraint_function_context,
-    render_feature_module,
+    _require_read_columns,
+    render_model_module,
 )
 from overture.schema.codegen.pyspark.schema_builder import build_schema
 from overture.schema.system.field_path import (
@@ -55,6 +65,130 @@ from pydantic.fields import FieldInfo
 _path = parse
 
 
+class TestReadColumns:
+    """`_read_columns` derives a check's top-level reads from its rendered expr.
+
+    Ground truth, not a structural proxy: the top-level column reads generated
+    code emits are `F.col("...")`, the outermost `array_check`/
+    `nested_array_check` string argument, and the `map_keys_check`/
+    `map_values_check` string argument. Element-relative accessors (`el[...]`,
+    `inner[...]`) read nothing at the row level.
+    """
+
+    def test_scalar_col(self) -> None:
+        assert _read_columns('check_bounds(F.col("speed"), ge=0)') == frozenset(
+            {"speed"}
+        )
+
+    def test_struct_leaf_strips_to_top_level(self) -> None:
+        # require_any_of over a struct field unwraps to a dotted required leaf;
+        # the read column is the top-level struct, not the dotted path.
+        expr = 'check_require_any_of([F.col("fast.value"), F.col("slow.value")], ["fast.value", "slow.value"])'
+        assert _read_columns(expr) == frozenset({"fast", "slow"})
+
+    def test_top_level_array_check(self) -> None:
+        assert _read_columns(
+            'array_check("sources", lambda el: check_required(el["dataset"]))'
+        ) == frozenset({"sources"})
+
+    def test_dotted_array_check_strips_to_top_level(self) -> None:
+        assert _read_columns(
+            'array_check("names.rules", lambda el: check_required(el["value"]))'
+        ) == frozenset({"names"})
+
+    def test_nested_array_check_reads_only_outer_column(self) -> None:
+        # The outer column is a string literal; inner iteration uses an
+        # element accessor (`el["when"]["vehicle"]`), which is not a row-level read.
+        expr = (
+            'nested_array_check("access_restrictions", lambda el: '
+            'array_check(el["when"]["vehicle"], lambda inner: '
+            'check_forbid_if(inner["unit"], inner["dimension"] == "axle_count", "...")))'
+        )
+        assert _read_columns(expr) == frozenset({"access_restrictions"})
+
+    def test_map_keys_check_reads_map_column(self) -> None:
+        # A map key/value check dereferences the map column by name, exactly
+        # like array_check; the inner lambda reads a projected element, not a
+        # row column. The runtime must drop the check when the map is absent.
+        expr = 'map_keys_check("license_priority", lambda k: check_pattern(k, "^x$", label="pattern"))'
+        assert _read_columns(expr) == frozenset({"license_priority"})
+
+    def test_map_values_check_reads_map_column(self) -> None:
+        expr = 'map_values_check("license_priority", lambda v: check_bounds(v, ge=0))'
+        assert _read_columns(expr) == frozenset({"license_priority"})
+
+    def test_multiple_cols_with_condition(self) -> None:
+        # require_if reads its target column and the column its condition
+        # branches on; the description string is not a column read.
+        expr = (
+            'check_require_if(F.col("admin_level"), F.col("subtype") == "county", '
+            "\"subtype = 'county'\")"
+        )
+        assert _read_columns(expr) == frozenset({"admin_level", "subtype"})
+
+    def test_variant_gated_field_reads_discriminator(self) -> None:
+        # A variant-gated field check dereferences the discriminator column too,
+        # so an absent discriminator drops the check rather than crashing.
+        expr = 'F.when(F.col("subtype").isin(["road"]), check_required(F.col("class")))'
+        assert _read_columns(expr) == frozenset({"subtype", "class"})
+
+    def test_no_row_level_reads(self) -> None:
+        assert _read_columns('F.lit(None).cast("string")') == frozenset()
+
+
+class TestRequireReadColumns:
+    """Every generated check must read at least one top-level column.
+
+    The guard turns an unrecognized render form -- which yields empty
+    `read_columns` and a check the runtime can never drop on absence --
+    into a generation-time error instead of a latent Spark crash.
+    """
+
+    def test_returns_columns_when_recognized(self) -> None:
+        assert _require_read_columns(
+            'check_bounds(F.col("speed"), ge=0)', "speed", "bounds"
+        ) == frozenset({"speed"})
+
+    def test_raises_when_no_column_recognized(self) -> None:
+        with pytest.raises(ValueError, match="reads no top-level column"):
+            _require_read_columns(
+                'unknown_wrapper("license_priority", lambda e: e)',
+                "license_priority",
+                "pattern",
+            )
+
+
+class TestRequireFieldEq:
+    """`require_field_eq` is the strict, raising companion to `parse_field_eq`."""
+
+    def test_unwraps_field_eq(self) -> None:
+        assert require_field_eq(FieldEqCondition("subtype", "county")) == FieldEq(
+            "subtype", "county", False
+        )
+
+    def test_unwraps_negated_field_eq(self) -> None:
+        condition = Not(FieldEqCondition("subtype", "county"))
+        assert require_field_eq(condition) == FieldEq("subtype", "county", True)
+
+    def test_raises_on_other_condition(self) -> None:
+        # A condition `parse_field_eq` cannot unwrap (nested negation) names its
+        # type in the error so a new Condition subtype fails loudly in one place.
+        condition = Not(Not(FieldEqCondition("subtype", "county")))
+        with pytest.raises(TypeError, match="Unhandled condition type: Not"):
+            require_field_eq(condition)
+
+
+class TestSchemaConstName:
+    def test_uppercases_model_name(self) -> None:
+        assert schema_const_name("address") == "ADDRESS_SCHEMA"
+
+    def test_already_uppercase(self) -> None:
+        assert schema_const_name("BUILDING") == "BUILDING_SCHEMA"
+
+    def test_mixed_case(self) -> None:
+        assert schema_const_name("myFeature") == "MYFEATURE_SCHEMA"
+
+
 class BoundsModel(BaseModel):
     score: Annotated[float, Ge(0.0)]
 
@@ -77,11 +211,64 @@ class FloatListModel(BaseModel):
     scores: list[Annotated[float, Ge(0.0)]] | None = None
 
 
+class MapValueLeaf(BaseModel):
+    label: Annotated[str, MinLen(1)]
+
+
+# dict[K, Model] value model with a constrained field -- the field check
+# renders inside a map_values_check lambda navigating into the value struct.
+class MapValueFieldModel(BaseModel):
+    items: dict[str, MapValueLeaf]
+
+
+@require_any_of("foo", "bar")
+class MapValueAnyOf(BaseModel):
+    foo: int | None = None
+    bar: str | None = None
+
+
+# dict[K, Model] value model with a model-level constraint -- the model check
+# renders inside a map_values_check lambda.
+class MapValueConstraintModel(BaseModel):
+    subs: dict[str, MapValueAnyOf]
+
+
+@require_if(["admin_level"], FieldEqCondition("subtype", "country"))
+class LeafRequireIf(BaseModel):
+    subtype: str
+    admin_level: int | None = None
+
+
+# The require_if model sits one struct level below the container element, so
+# both container types reach it at a non-empty leaf (`...inner`). The target
+# AND condition field refs must both navigate that leaf.
+class LeafRequireIfOuter(BaseModel):
+    inner: LeafRequireIf
+
+
+class MapValueRequireIfModel(BaseModel):
+    subs: dict[str, LeafRequireIfOuter]
+
+
+class ArrayValueRequireIfModel(BaseModel):
+    rows: list[LeafRequireIfOuter]
+
+
+@forbid_if(["extra"], FieldEqCondition("kind", "basic"))
+class MapValueForbidIf(BaseModel):
+    kind: str
+    extra: str | None = None
+
+
+class MapValueForbidIfModel(BaseModel):
+    subs: dict[str, MapValueForbidIf]
+
+
 def _render(model_cls: type[BaseModel], name: str = "simple") -> str:
-    spec = feature_spec_for_model(model_cls)
+    spec = spec_for_model(model_cls)
     field_checks, model_checks = build_checks(spec)
     schema_fields = build_schema(spec)
-    return render_feature_module(name, field_checks, model_checks, schema_fields)
+    return render_model_module(name, field_checks, model_checks, schema_fields)
 
 
 def _render_check_function_string(ctx: dict[str, object]) -> str:
@@ -90,22 +277,21 @@ def _render_check_function_string(ctx: dict[str, object]) -> str:
     return str(template.module.check_function(c=ctx))  # type: ignore[attr-defined]
 
 
-def _render_check_function(
-    check: Check, func_name: str, descriptor_idx: int = 0
-) -> str:
+def _render_check_function(check: Check, descriptor_idx: int = 0) -> str:
     """Render a per-field check function source from a Check."""
-    ctx = _render_check_function_context(check, func_name, descriptor_idx)
+    row = field_check_rows([check])[descriptor_idx]
+    ctx = _render_check_function_context(row)
     return _render_check_function_string(ctx)
 
 
 def _render_node(check: Check) -> str:
     """Render a single Check to its function source."""
-    return _render_check_function(check, "_test_check", descriptor_idx=0)
+    return _render_check_function(check, descriptor_idx=0)
 
 
 def _render_model_node(check: ModelCheck) -> str:
     """Render a single ModelCheck to its function source."""
-    ctx = _render_model_constraint_function_context(check, 0, "")
+    ctx = _render_model_constraint_function_context(model_check_rows([check])[0])
     return _render_check_function_string(ctx)
 
 
@@ -156,9 +342,9 @@ class TestBuilderFunction:
     def test_builder_returns_list_check(self, literal_subtype_source: str) -> None:
         assert "list[Check]" in literal_subtype_source
 
-    def test_builder_name_uses_feature_name(self) -> None:
-        source = _render(LiteralSubtypeModel, "my_feature")
-        assert "def my_feature_checks()" in source
+    def test_builder_name_uses_model_name(self) -> None:
+        source = _render(LiteralSubtypeModel, "my_model")
+        assert "def my_model_checks()" in source
 
 
 class TestSchemaConstant:
@@ -180,7 +366,7 @@ class TestSchemaConstant:
         from overture.schema.codegen.pyspark.schema_builder import SchemaField
 
         schema_fields = [SchemaField(name="bbox", type_expr="BBOX_STRUCT")]
-        source = render_feature_module("simple", [], [], schema_fields)
+        source = render_model_module("simple", [], [], schema_fields)
         assert 'StructField("bbox", BBOX_STRUCT, True)' in source
 
 
@@ -191,10 +377,10 @@ class TestGeometryTypes:
         assert "GEOMETRY_TYPES" not in literal_subtype_source
 
     def test_emitted_when_provided(self) -> None:
-        spec = feature_spec_for_model(LiteralSubtypeModel)
+        spec = spec_for_model(LiteralSubtypeModel)
         field_nodes, model_nodes = build_checks(spec)
         schema_fields = build_schema(spec)
-        source = render_feature_module(
+        source = render_model_module(
             "simple",
             field_nodes,
             model_nodes,
@@ -208,10 +394,10 @@ class TestGeometryTypes:
     def test_geometry_type_imported_when_only_constant_needs_it(self) -> None:
         # LiteralSubtypeModel has no check_geometry_type constraint, so the
         # import is only required because GEOMETRY_TYPES references it.
-        spec = feature_spec_for_model(LiteralSubtypeModel)
+        spec = spec_for_model(LiteralSubtypeModel)
         field_nodes, model_nodes = build_checks(spec)
         schema_fields = build_schema(spec)
-        source = render_feature_module(
+        source = render_model_module(
             "simple",
             field_nodes,
             model_nodes,
@@ -329,6 +515,26 @@ class TestModelConstraintFunctions:
         """check_require_any_of must not receive a context string argument."""
         source = _render(RequireAnyModel, "require_any")
         assert "'RequireAnyModel'" not in source
+
+    def test_require_any_of_emits_read_columns(self) -> None:
+        # A model check reads several columns directly; the runtime drops the
+        # check when any of them is skipped or structurally absent.
+        source = _render(RequireAnyModel, "require_any")
+        assert "read_columns=frozenset({'x', 'y'})" in source
+
+    def test_field_check_emits_read_columns(self) -> None:
+        # Every check declares the columns it reads, field checks included --
+        # there is no separate root_field/referenced_fields split.
+        source = _render(BoundsModel)
+        assert "read_columns=frozenset({'score'})" in source
+        assert "root_field" not in source
+        assert "referenced_fields" not in source
+
+    def test_require_if_read_columns_include_condition(self) -> None:
+        # require_if reads its target column and the column its condition
+        # branches on; both must be carried so skipping either drops the check.
+        source = _render(RequireIfEnumModel, "require_if_enum")
+        assert "read_columns=frozenset({'admin_level', 'subtype'})" in source
 
     def test_model_constraint_imports_function(self) -> None:
         source = _render(RadioModel, "radio")
@@ -604,7 +810,7 @@ class TestDuplicateFunctionNames:
             descriptors=(ExpressionDescriptor(function="check_required"),),
             target=_path("items[]"),
         )
-        source = render_feature_module("dup", [col_check, elem_check], [], [])
+        source = render_model_module("dup", [col_check, elem_check], [], [])
         ast.parse(source)
         func_defs = re.findall(r"^def (_\w+_check\w*)\(", source, re.MULTILINE)
         assert len(func_defs) == len(set(func_defs)), (
@@ -627,12 +833,159 @@ class TestDuplicateFunctionNames:
             target=_path("class"),
             guards=(ColumnGuard(discriminator="subtype", values=("rail",)),),
         )
-        source = render_feature_module("dup", [road_check, rail_check], [], [])
+        source = render_model_module("dup", [road_check, rail_check], [], [])
         ast.parse(source)
         func_defs = re.findall(r"^def (_\w+_check\w*)\(", source, re.MULTILINE)
         assert len(func_defs) == len(set(func_defs)), (
             f"Duplicate function names: {func_defs}"
         )
+
+
+class TestFieldCheckLabelCollision:
+    """Field checks sharing a `(field, name)` identity get distinct labels.
+
+    The discriminated vehicle-dimension union in `segment` emits two
+    field checks with the identical identity
+    `("...vehicle[].value", "required")` -- one per arm of the inner
+    union. Without a collision suffix the emitted `Check.field` is
+    ambiguous (it keys `suppress` matching, `explain_errors` metadata,
+    and the conformance test's `expected_field`). Mirror the model-check
+    `_N` convention: every member of a colliding group gets a suffix.
+    """
+
+    def test_colliding_required_checks_get_distinct_labels(self) -> None:
+        first = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+            guards=(ElementGuard(discriminator="dimension", values=("axle_count",)),),
+        )
+        second = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+            guards=(
+                ElementGuard(discriminator="dimension", values=("height", "width")),
+            ),
+        )
+        source = render_model_module("collide", [first, second], [], [])
+        ast.parse(source)
+        labels = re.findall(r'field="(value[^"]*)"', source)
+        assert labels == ["value_0", "value_1"], labels
+
+    def test_noncolliding_field_check_stays_bare(self) -> None:
+        required = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+        )
+        bounds = Check(
+            descriptors=(
+                ExpressionDescriptor(function="check_bounds", kwargs=(("ge", 0),)),
+            ),
+            target=_path("value"),
+        )
+        source = render_model_module("solo", [required, bounds], [], [])
+        ast.parse(source)
+        labels = re.findall(r'field="(value[^"]*)"', source)
+        assert labels == ["value", "value"], labels
+
+    def test_multi_descriptor_collision_only_on_shared_name(self) -> None:
+        """A multi-descriptor check collides per emitted `(field, name)` row."""
+        single = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+        )
+        multi = Check(
+            descriptors=(
+                ExpressionDescriptor(function="check_required"),
+                ExpressionDescriptor(function="check_bounds", kwargs=(("ge", 0),)),
+            ),
+            target=_path("value"),
+        )
+        source = render_model_module("multi", [single, multi], [], [])
+        ast.parse(source)
+        # The two `required` rows collide (-> value_0/value_1); the lone
+        # `bounds` row stays bare.
+        required_fields = re.findall(
+            r'field="(value[^"]*)",\n\s+name="required"', source
+        )
+        bounds_fields = re.findall(r'field="(value[^"]*)",\n\s+name="bounds"', source)
+        assert required_fields == ["value_0", "value_1"], required_fields
+        assert bounds_fields == ["value"], bounds_fields
+
+    def test_labels_are_positional_not_identity_keyed(self) -> None:
+        """Row labels align to flattened `(check, desc_idx)` order.
+
+        Collision suffixes depend only on the iteration order both
+        renderers share -- never on the identity of the `Check` objects.
+        Two value-equal but distinct checks (the cross-arm collision case)
+        must still each receive their own collision index.
+        """
+        first = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+        )
+        second = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+        )
+        # A distinct copy of `first`, equal by value -- under identity
+        # keying this would alias `first`; positional keying keeps it
+        # separate.
+        first_copy = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+        )
+        labels = [row.label for row in field_check_rows([first, second, first_copy])]
+        assert labels == ["value_0", "value_1", "value_2"], labels
+
+
+class TestMapPathRendering:
+    """MapPath targets render to map_keys_check / map_values_check."""
+
+    def test_map_key_renders_map_keys_check(self) -> None:
+        check = Check(
+            descriptors=(
+                ExpressionDescriptor(
+                    function="check_pattern",
+                    args=(r"^[a-z]+$",),
+                    label="language tag",
+                ),
+            ),
+            target=_path("names{key}"),
+        )
+        source = render_model_module("dictfeat", [check], [], [])
+        ast.parse(source)
+        assert 'map_keys_check("names", lambda k: check_pattern(k,' in source
+
+    def test_map_value_renders_map_values_check(self) -> None:
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_stripped"),),
+            target=_path("names.common{value}"),
+        )
+        source = render_model_module("dictfeat", [check], [], [])
+        ast.parse(source)
+        assert 'map_values_check("names.common", lambda v: check_stripped(v))' in source
+
+    def test_map_check_imports_helper_from_column_patterns(self) -> None:
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_stripped"),),
+            target=_path("names{value}"),
+        )
+        source = render_model_module("dictfeat", [check], [], [])
+        assert re.search(
+            r"from [.\w]*column_patterns import[\s\S]*?map_values_check", source
+        )
+
+    def test_map_check_read_columns_is_top_level_column(self) -> None:
+        # The map check dereferences its top-level map column (`names`), not the
+        # dotted struct path or the `{value}` step marker; `read_columns` is the
+        # granularity at which validate drops the check when the column is absent.
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_stripped"),),
+            target=_path("names.common{value}"),
+        )
+        source = render_model_module("dictfeat", [check], [], [])
+        # Renderer emits repr() (single quotes); ruff later normalizes.
+        assert "read_columns=frozenset({'names'})" in source
 
 
 @require_any_of("x", "y")
@@ -690,7 +1043,7 @@ class TestVariantDiscriminatorField:
             target=_path("a_field"),
             guards=(ColumnGuard(discriminator="kind", values=("a",)),),
         )
-        source = render_feature_module("test_variant", [check], [], [])
+        source = render_model_module("test_variant", [check], [], [])
         ast.parse(source)
         assert 'F.col("kind")' in source
         assert 'F.col("subtype")' not in source
@@ -785,12 +1138,12 @@ class TestTopLevelVariantGatedArray:
         )
 
     def test_parseable(self, surface_check: Check) -> None:
-        source = render_feature_module("test", [surface_check], [], [])
+        source = render_model_module("test", [surface_check], [], [])
         ast.parse(source)
 
     def test_discriminator_uses_f_col(self, surface_check: Check) -> None:
         """Top-level discriminator must reference F.col, not el[...]."""
-        source = render_feature_module("test", [surface_check], [], [])
+        source = render_model_module("test", [surface_check], [], [])
         assert 'F.col("subtype")' in source, (
             "Top-level discriminator must use F.col, not el[...]"
         )
@@ -800,7 +1153,7 @@ class TestTopLevelVariantGatedArray:
 
     def test_f_when_wraps_array_check(self, surface_check: Check) -> None:
         """F.when must wrap the array_check call, not the lambda body."""
-        source = _render_check_function(surface_check, "_surface_check")
+        source = _render_check_function(surface_check)
         # F.when must appear before array_check in the expression.
         f_when_pos = source.find("F.when(")
         array_check_pos = source.find("array_check(")
@@ -812,13 +1165,13 @@ class TestTopLevelVariantGatedArray:
 
     def test_no_el_discriminator_in_lambda(self, surface_value_check: Check) -> None:
         """el['subtype'] must not appear even with leaf path -- subtype is top-level."""
-        source = render_feature_module("test", [surface_value_check], [], [])
+        source = render_model_module("test", [surface_value_check], [], [])
         assert 'el["subtype"]' not in source, (
             'el["subtype"] found -- top-level discriminator must not appear inside lambda'
         )
 
     def test_leaf_path_check_parseable(self, surface_value_check: Check) -> None:
-        source = render_feature_module("test", [surface_value_check], [], [])
+        source = render_model_module("test", [surface_value_check], [], [])
         ast.parse(source)
 
 
@@ -854,7 +1207,7 @@ class TestRenderNestedArrayCheckStructure:
             ),
             target=_path("items[].things[].value"),
         )
-        source = _render_check_function(check, "_test_check")
+        source = _render_check_function(check)
         assert "nested_array_check" in source
         assert "lambda el" in source
         assert "lambda inner" in source
@@ -870,7 +1223,7 @@ class TestRenderNestedArrayCheckStructure:
             target=_path("items[].things[].unit"),
             guards=(ColumnGuard(discriminator="kind", values=("a", "b")),),
         )
-        source = _render_check_function(check, "_test_check")
+        source = _render_check_function(check)
         assert "nested_array_check" in source
         assert 'F.col("kind").isin(' in source
 
@@ -883,7 +1236,7 @@ class TestRenderNestedArrayCheckStructure:
             target=_path("items[].things[].unit"),
             guards=(ElementGuard(discriminator="kind", values=("a", "b")),),
         )
-        source = _render_check_function(check, "_test_check")
+        source = _render_check_function(check)
         assert "nested_array_check" in source
         assert 'F.col("kind")' not in source
         assert 'inner["kind"]' in source
@@ -1165,3 +1518,103 @@ class TestGatedModelConstraintRendering:
         )
         with pytest.raises(AssertionError, match="gate.*non-ArrayPath"):
             _render_model_node(check)
+
+
+class TestMapValueModelRendering:
+    """Render `dict[K, Model]` value-model checks inside a map lambda.
+
+    The map's values are iterated like an array: a value-model field check
+    renders `map_values_check("col", lambda v: check(v["field"]))`, and a
+    value-model constraint renders `map_values_check("col", lambda v:
+    check_require_any_of([v["a"], v["b"]], ...))`. Both mirror the
+    `array_check` rendering of a `list[Model]` element.
+    """
+
+    def _field_check(self, model_cls: type[BaseModel], function: str) -> Check:
+        field_checks, _ = build_checks(spec_for_model(model_cls))
+        for check in field_checks:
+            if any(d.function == function for d in check.descriptors):
+                return check
+        raise AssertionError(f"no field check with {function}")
+
+    def _model_check(self, model_cls: type[BaseModel]) -> ModelCheck:
+        _, model_checks = build_checks(spec_for_model(model_cls))
+        assert len(model_checks) == 1, model_checks
+        return model_checks[0]
+
+    def test_value_field_check_renders_map_values_lambda(self) -> None:
+        check = self._field_check(MapValueFieldModel, "check_string_min_length")
+        rows = field_check_rows([check])
+        sources = [
+            _render_check_function_string(_render_check_function_context(row))
+            for row in rows
+        ]
+        assert any(
+            'map_values_check("items", lambda v: check_string_min_length(v["label"], 1))'
+            in s
+            for s in sources
+        ), sources
+
+    def test_value_model_constraint_renders_map_values_lambda(self) -> None:
+        # Asserts the raw renderer form: field names render via repr (single
+        # quotes); ruff normalizes to double quotes downstream.
+        check = self._model_check(MapValueConstraintModel)
+        source = _render_model_node(check)
+        assert (
+            'map_values_check("subs", lambda v: '
+            "check_require_any_of([v[\"foo\"], v[\"bar\"]], ['foo', 'bar']))"
+        ) in source, source
+
+    def test_full_module_parseable_with_map_value_field(self) -> None:
+        source = _render(MapValueFieldModel, "map_field")
+        ast.parse(source)
+        assert "map_values_check(" in source
+
+    def test_full_module_parseable_with_map_value_constraint(self) -> None:
+        source = _render(MapValueConstraintModel, "map_con")
+        ast.parse(source)
+        assert "map_values_check(" in source
+
+    def test_model_constraint_func_name_prefixes_map_column(self) -> None:
+        # Mirrors the ArrayPath naming so distinct map columns yield distinct
+        # generated function names rather than colliding on `_<fn>_<idx>`.
+        check = self._model_check(MapValueConstraintModel)
+        source = _render_model_node(check)
+        assert "def _subs_check_require_any_of_0_check()" in source, source
+
+    def test_forbid_if_value_constraint_renders_map_values_lambda(self) -> None:
+        check = self._model_check(MapValueForbidIfModel)
+        source = _render_model_node(check)
+        assert (
+            'map_values_check("subs", lambda v: '
+            'check_forbid_if(v["extra"], v["kind"] == \'basic\', "kind = \'basic\'"))'
+        ) in source, source
+
+
+class TestLeafQualifiedConditionRef:
+    """A require_if/forbid_if condition reached through a non-empty leaf
+    keeps the leaf.
+
+    The target field ref and the condition field ref navigate the same
+    struct leaf; rendering the condition without the leaf references a
+    wrong column (a top-level field of the iterated element instead of the
+    nested struct's field). The leaf is non-empty for a constrained model
+    reached below an iterated container -- both `list[Model]` and
+    `dict[K, Model]`.
+    """
+
+    def _require_if_check(self, model_cls: type[BaseModel]) -> ModelCheck:
+        _, model_checks = build_checks(spec_for_model(model_cls))
+        matches = [c for c in model_checks if isinstance(c.descriptor, RequireIf)]
+        assert len(matches) == 1, model_checks
+        return matches[0]
+
+    def test_map_value_require_if_condition_keeps_leaf(self) -> None:
+        source = _render_model_node(self._require_if_check(MapValueRequireIfModel))
+        assert 'v["inner"]["admin_level"]' in source, source
+        assert 'v["inner"]["subtype"] ==' in source, source
+
+    def test_array_require_if_condition_keeps_leaf(self) -> None:
+        source = _render_model_node(self._require_if_check(ArrayValueRequireIfModel))
+        assert 'el["inner"]["admin_level"]' in source, source
+        assert 'el["inner"]["subtype"] ==' in source, source

@@ -1,9 +1,8 @@
-"""Build StructType schema source from FeatureSpec field trees."""
+"""Build StructType schema source from ModelSpec field trees."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 
 from ..extraction.field import (
     AnyScalar,
@@ -17,8 +16,8 @@ from ..extraction.field import (
     Scalar,
     UnionRef,
 )
-from ..extraction.field_walk import terminal_scalar
-from ..extraction.specs import FeatureSpec, FieldSpec, UnionSpec
+from ..extraction.field_walk import enum_source, terminal_scalar
+from ..extraction.specs import FieldSpec, ModelSpec, UnionSpec
 from ..extraction.type_registry import get_type_mapping
 
 __all__ = [
@@ -83,11 +82,7 @@ def _spark_for_scalar(scalar: Scalar) -> str:
         return _STRING_FALLBACK
     if scalar.base_type in SHARED_TYPE_REFS:
         return SHARED_TYPE_REFS[scalar.base_type]
-    if (
-        scalar.source_type is not None
-        and isinstance(scalar.source_type, type)
-        and issubclass(scalar.source_type, Enum)
-    ):
+    if enum_source(scalar) is not None:
         return _STRING_FALLBACK
     return _spark_for_base(scalar.base_type, scalar.source_type)
 
@@ -156,7 +151,7 @@ def _shape_to_spark(shape: FieldShape) -> str:
     raise TypeError(f"Unhandled FieldShape: {shape!r}")
 
 
-def build_schema(spec: FeatureSpec) -> list[SchemaField]:
+def build_schema(spec: ModelSpec) -> list[SchemaField]:
     """Build schema fields for a feature spec.
 
     Walks the field tree and maps types to Spark type expressions.

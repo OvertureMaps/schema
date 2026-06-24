@@ -16,7 +16,11 @@ from ....._support.harness import (
     run_validation_pipeline,
 )
 from ....._support.helpers import set_at_path
-from ....._support.mutations import mutate_unique_items
+from ....._support.mutations import (
+    mutate_map_key,
+    mutate_map_value,
+    mutate_unique_items,
+)
 from ....._support.scenarios import Scenario
 
 BASE_ROW_SPARSE: dict = {
@@ -53,7 +57,7 @@ BASE_ROW_POPULATED: dict = {
     "level": 0,
     "names": {
         "primary": "a",
-        "common": {},
+        "common": {"en": "clean"},
         "rules": [
             {
                 "value": "a",
@@ -222,25 +226,25 @@ SCENARIOS: list[Scenario] = [
         expected_check="stripped",
     ),
     Scenario(
-        id="water::sources[].confidence:bounds",
+        id="water::sources[].confidence_0:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", -1.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="water::sources[].confidence:bounds_1",
+        id="water::sources[].confidence_1:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", 2.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -309,6 +313,20 @@ SCENARIOS: list[Scenario] = [
         scaffold={"names": {"primary": "a"}},
         mutate=set_at_path("names.primary", " has spaces "),
         expected_field="names.primary",
+        expected_check="stripped",
+    ),
+    Scenario(
+        id="water::names.common{key}:language_tag",
+        scaffold={"names": {"primary": "a", "common": {"en": "clean"}}},
+        mutate=lambda row: mutate_map_key(row, "names.common", "123"),
+        expected_field="names.common{key}",
+        expected_check="language_tag",
+    ),
+    Scenario(
+        id="water::names.common{value}:stripped",
+        scaffold={"names": {"primary": "a", "common": {"en": "clean"}}},
+        mutate=lambda row: mutate_map_value(row, "names.common", " has spaces "),
+        expected_field="names.common{value}",
         expected_check="stripped",
     ),
     Scenario(
@@ -549,7 +567,7 @@ def sparse_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_SPARSE,
         SCENARIOS,
-        feature_name="water",
+        model_name="water",
     )
 
 
@@ -561,7 +579,7 @@ def populated_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_POPULATED,
         SCENARIOS,
-        feature_name="water",
+        model_name="water",
     )
 
 

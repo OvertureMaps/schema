@@ -9,20 +9,24 @@ from enum import Enum
 from overture.schema.system.field_path import (
     ArrayPath,
     FieldPath,
+    MapPath,
+    MapProjection,
     ScalarPath,
 )
-from overture.schema.system.model_constraint import Condition
 from overture.schema.system.primitive import GeometryType
 
 from ._render_common import (
-    check_name,
-    compute_label_suffixes,
-    disambiguate,
-    field_label,
+    FieldCheckRow,
+    FieldEq,
+    ModelCheckRow,
+    field_check_rows,
     jinja_env,
-    model_constraint_field_label,
-    parse_field_eq,
+    map_runtime_helper,
+    model_check_rows,
     py_literal,
+    require_field_eq,
+    sanitize_field_name,
+    schema_const_name,
     tuple_literal,
 )
 from .check_ir import (
@@ -43,7 +47,7 @@ from .constraint_dispatch import (
 from .schema_builder import SHARED_TYPE_REFS, SchemaField
 
 __all__ = [
-    "render_feature_module",
+    "render_model_module",
 ]
 
 # Descriptor function names that resolve to helpers from the
@@ -52,7 +56,13 @@ __all__ = [
 # `_render_common.COLUMN_LEVEL_FUNCTIONS`, which classifies checks that
 # emit one Check per field rather than per array element.
 _COLUMN_PATTERN_HELPERS = frozenset(
-    {"array_check", "nested_array_check", "check_struct_unique"}
+    {
+        "array_check",
+        "nested_array_check",
+        "map_keys_check",
+        "map_values_check",
+        "check_struct_unique",
+    }
 )
 
 _SHARED_STRUCT_REFS = frozenset(SHARED_TYPE_REFS.values())
@@ -78,20 +88,53 @@ _SPARK_TYPES = frozenset(
 )
 
 
-# Collapses runs of `.`, `[`, `]`, `_` to a single `_` for identifier sanitization.
-_PATH_SEPARATOR_RUN = re.compile(r"[.\[\]_]+")
+# A generated expression dereferences a top-level row column through one of a
+# fixed set of forms, each taking the column name as a string literal: `F.col`,
+# the outermost `array_check`/`nested_array_check`, and `map_keys_check`/
+# `map_values_check`. Inner array iterations use element accessors (`el[...]`),
+# whose first argument is never a string literal and so never matches here. A
+# new column-consuming wrapper must be added to this alternation; `read_columns`
+# fails loudly (see `_require_read_columns`) if a check's expr matches none.
+_COLUMN_READ = re.compile(
+    r'(?:F\.col|(?:nested_)?array_check|map_(?:keys|values)_check)\("([^"]+)"'
+)
 
 
-def _sanitize_field_name(field: str) -> str:
-    """Convert an encoded field-path string to a valid Python identifier fragment."""
-    return _PATH_SEPARATOR_RUN.sub("_", field).strip("_")
+def _read_columns(expr: str) -> frozenset[str]:
+    """Top-level columns a rendered check expression dereferences.
+
+    Derived from the expression source itself rather than the check's
+    structure, so it stays correct as the renderer evolves: whatever
+    `F.col`/`array_check`/`map_*_check` the expression emits is what the
+    runtime reads. Dotted struct navigation (`bbox.xmin`, `names.rules`)
+    collapses to its top-level column, the granularity at which absence is
+    detected.
+    """
+    return frozenset(m.group(1).split(".", 1)[0] for m in _COLUMN_READ.finditer(expr))
 
 
-def _render_condition_desc(condition: Condition) -> str:
-    """Render a Condition to a human-readable description string for error messages."""
-    parsed = parse_field_eq(condition)
-    if parsed is None:
-        raise TypeError(f"Unhandled condition type: {type(condition).__name__}")
+def _require_read_columns(expr: str, field: str, name: str) -> frozenset[str]:
+    """Top-level columns a generated check reads -- guaranteed non-empty.
+
+    Every generated check dereferences at least one row column. An empty
+    result means `_read_columns` did not recognize a form `expr` uses --
+    typically a newly added column-consuming wrapper absent from
+    `_COLUMN_READ`. Left silent, the runtime could not drop the check when
+    its column is absent (`validate_model` keys on `read_columns`), so an
+    unresolvable reference would reach Spark. This converts that latent
+    crash into a generation-time error naming the offending check.
+    """
+    columns = _read_columns(expr)
+    if not columns:
+        raise ValueError(
+            f"check {field!r} ({name!r}) reads no top-level column; "
+            f"_read_columns recognized no column form in: {expr}"
+        )
+    return columns
+
+
+def _render_condition_desc(parsed: FieldEq) -> str:
+    """Render a parsed condition to a human-readable error-message description."""
     display = repr(
         parsed.value.value if isinstance(parsed.value, Enum) else parsed.value
     )
@@ -100,13 +143,22 @@ def _render_condition_desc(condition: Condition) -> str:
 
 
 def _render_condition(
-    condition: Condition, *, in_array: bool = False, var: str = "el"
+    parsed: FieldEq,
+    *,
+    in_array: bool = False,
+    struct_path: tuple[str, ...] = (),
+    var: str = "el",
 ) -> str:
-    """Render a Condition to a PySpark Column expression string."""
-    parsed = parse_field_eq(condition)
-    if parsed is None:
-        raise TypeError(f"Unhandled condition type: {type(condition).__name__}")
-    ref = _render_field_ref(parsed.field_name, in_array=in_array, var=var)
+    """Render a parsed condition to a PySpark Column expression string.
+
+    `struct_path` is the leaf the constrained model was reached at; the
+    condition field lives beside the target field on that same model, so
+    its reference must navigate the same leaf (e.g. `el["inner"]["subtype"]`,
+    not `el["subtype"]`).
+    """
+    ref = _render_field_ref(
+        parsed.field_name, in_array=in_array, struct_path=struct_path, var=var
+    )
     op = "!=" if parsed.negated else "=="
     return f"{ref} {op} {py_literal(parsed.value)}"
 
@@ -274,6 +326,37 @@ def _render_array_check_expr(
     )
 
 
+def _map_iter_var(projection: MapProjection) -> str:
+    """Lambda variable name for a map projection: `k` for keys, `v` for values."""
+    return "k" if projection is MapProjection.KEY else "v"
+
+
+def _wrap_in_map_iteration(target: MapPath, body: str) -> str:
+    """Wrap `body` in a map_keys_check / map_values_check projection lambda.
+
+    The map helper projects the map (`F.map_keys` / `F.map_values`) and
+    applies the lambda to each projected key or value, the map analogue of
+    `_wrap_in_array_iteration`. `body` references the projected element via
+    the same `_map_iter_var(target.projection)` name this builds the lambda
+    parameter from.
+    """
+    helper = map_runtime_helper(target.projection)
+    var = _map_iter_var(target.projection)
+    return f'{helper}("{target.map_column}", lambda {var}: {body})'
+
+
+def _render_map_check_expr(target: MapPath, desc: ExpressionDescriptor) -> str:
+    """Render a MapPath target to a map_keys_check / map_values_check expression.
+
+    A non-empty `target.leaf` navigates into a `dict[K, Model]` value struct
+    (`v["field"]`), mirroring an array element's leaf accessor; an empty leaf
+    applies the check to the projected scalar itself.
+    """
+    var = _map_iter_var(target.projection)
+    body = _render_expr_call(desc, _element_accessor(var, target.leaf))
+    return _wrap_in_map_iteration(target, body)
+
+
 def _render_variant_expr(
     inner_expr: str,
     variant_values: tuple[str, ...],
@@ -300,29 +383,25 @@ def _render_column_gate(expr: str, gate: FieldPath) -> str:
 def _model_check_func_name(check: ModelCheck, idx: int) -> str:
     """Build the private function name for a model-constraint check.
 
-    Non-array targets emit `_{fn}_{idx}_check`. Array targets prefix the
-    column path -- using the full encoded `FieldPath` when the check is
-    reached via inner iteration or leaf struct navigation, otherwise the
-    outer column name alone -- so collisions across nested contexts get
-    distinct identifiers.
+    Array and map targets prefix the column path -- using the full encoded
+    `FieldPath` when the check is reached via inner iteration or leaf struct
+    navigation, otherwise the outer column name alone -- so collisions
+    across nested contexts get distinct identifiers. Row-root targets emit
+    `_{fn}_{idx}_check`.
     """
     fn = model_constraint_function(check.descriptor)
     match check.target:
         case ArrayPath() as target:
             has_nested_path = bool(target.iter_struct_paths) or bool(target.leaf)
             prefix_source = str(target) if has_nested_path else target.column_path
-            prefix = _sanitize_field_name(prefix_source)
+            prefix = sanitize_field_name(prefix_source)
+            return f"_{prefix}_{fn}_{idx}_check"
+        case MapPath() as target:
+            prefix_source = str(target) if target.leaf else target.map_column
+            prefix = sanitize_field_name(prefix_source)
             return f"_{prefix}_{fn}_{idx}_check"
         case _:
             return f"_{fn}_{idx}_check"
-
-
-def _root_field_for_target(target: FieldPath) -> str | None:
-    """Top-level schema column for a Check/ModelCheck target.
-
-    Returns the first segment's name, or `None` for an empty path.
-    """
-    return target.segments[0].name if target.segments else None
 
 
 def _check_shape_token(target: FieldPath) -> str:
@@ -330,10 +409,11 @@ def _check_shape_token(target: FieldPath) -> str:
 
     Mirrors the member names of `overture.schema.pyspark.check.CheckShape`;
     the check-function template prefixes `CheckShape.` to the result. An
-    `ArrayPath` target renders to an `array<string>` expression, every
+    `ArrayPath` or `MapPath` target renders to an `array<string>`
+    expression (the map helper iterates the projected keys/values), every
     other path to a nullable string.
     """
-    return "ARRAY" if isinstance(target, ArrayPath) else "SCALAR"
+    return "ARRAY" if isinstance(target, (ArrayPath, MapPath)) else "SCALAR"
 
 
 def _render_check_expr(check: Check, descriptor_idx: int) -> str:
@@ -369,6 +449,8 @@ def _render_check_expr(check: Check, descriptor_idx: int) -> str:
                 element_guards=element_guards,
                 gate_parts=gate_parts,
             )
+        case MapPath():
+            expr = _render_map_check_expr(check.target, desc)
         case _:
             raise TypeError(
                 f"Unhandled FieldPath variant: {type(check.target).__name__}"
@@ -380,7 +462,12 @@ def _render_check_expr(check: Check, descriptor_idx: int) -> str:
 
 
 def _check_function_context(
-    *, target: FieldPath, func_name: str, field: str, name: str, expr: str
+    *,
+    target: FieldPath,
+    func_name: str,
+    field: str,
+    name: str,
+    expr: str,
 ) -> dict[str, object]:
     """Assemble the template context dict for one check function."""
     return {
@@ -389,28 +476,28 @@ def _check_function_context(
         "check_name": name,
         "expr": expr,
         "shape": _check_shape_token(target),
-        "root_field": _root_field_for_target(target),
+        "read_columns": _require_read_columns(expr, field, name),
     }
 
 
-def _render_check_function_context(
-    check: Check, func_name: str, descriptor_idx: int = 0
-) -> dict[str, object]:
-    """Build the template context for a per-field check function from a Check."""
-    desc = check.descriptors[descriptor_idx]
+def _render_check_function_context(row: FieldCheckRow) -> dict[str, object]:
+    """Build the template context for a per-field check function from a row.
+
+    The row carries the final `func_name`, `label`, and `name`; the
+    collisions that produce them are resolved once in `field_check_rows`.
+    """
     return _check_function_context(
-        target=check.target,
-        func_name=func_name,
-        field=field_label(check),
-        name=check_name(desc.function, desc.check_name),
-        expr=_render_check_expr(check, descriptor_idx),
+        target=row.check.target,
+        func_name=row.func_name,
+        field=row.label,
+        name=row.name,
+        expr=_render_check_expr(row.check, row.descriptor_idx),
     )
 
 
-def _render_model_constraint_function_context(
-    check: ModelCheck, idx: int, label_suffix: str
-) -> dict[str, object]:
+def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, object]:
     """Build the template context for a model-constraint check function."""
+    check = row.check
     desc = check.descriptor
     target = check.target
     match target:
@@ -418,6 +505,13 @@ def _render_model_constraint_function_context(
             in_array = True
             var = "inner" if target.iter_struct_paths else "el"
             struct_path: tuple[str, ...] = target.leaf
+        case MapPath():
+            # The map's values are iterated like an array element, so field
+            # references use the element accessor (`v["foo"]`) under the
+            # projected variable.
+            in_array = True
+            var = _map_iter_var(target.projection)
+            struct_path = target.leaf
         case _:
             in_array = False
             var, struct_path = "el", ()
@@ -440,10 +534,11 @@ def _render_model_constraint_function_context(
             inner_expr = f"{fn}({cols_list}, {names_list})"
         case RequireIf() | ForbidIf():
             target_name = desc.field_names[0]
+            parsed = require_field_eq(desc.condition)
             condition_expr = _render_condition(
-                desc.condition, in_array=in_array, var=var
+                parsed, in_array=in_array, struct_path=struct_path, var=var
             )
-            condition_desc = _render_condition_desc(desc.condition)
+            condition_desc = _render_condition_desc(parsed)
             target_ref = _field_ref(target_name)
             inner_expr = (
                 f"{fn}({target_ref}, {condition_expr}, {py_literal(condition_desc)})"
@@ -470,6 +565,16 @@ def _render_model_constraint_function_context(
         expr = _wrap_in_array_iteration(
             target.column_path, target.iter_struct_paths, inner_expr
         )
+    elif isinstance(target, MapPath):
+        # A `dict[K, Model]` value-model constraint wraps in map_values_check
+        # (or map_keys_check), iterating the projected values like an array.
+        # check_builder zeros the gate for iterated containers, so no gate
+        # reaches here.
+        assert check.gate is None, (
+            f"ModelCheck gate={check.gate!r} paired with MapPath target={target!r}; "
+            f"map iteration handles value nullability, so a gate is unexpected"
+        )
+        expr = _wrap_in_map_iteration(target, inner_expr)
     else:
         assert check.gate is None, (
             f"ModelCheck gate={check.gate!r} paired with non-ArrayPath target={target!r}; "
@@ -479,9 +584,9 @@ def _render_model_constraint_function_context(
 
     return _check_function_context(
         target=target,
-        func_name=_model_check_func_name(check, idx),
-        field=model_constraint_field_label(check, label_suffix),
-        name=check_name(fn),
+        func_name=_model_check_func_name(check, row.idx),
+        field=row.label,
+        name=row.name,
         expr=expr,
     )
 
@@ -526,6 +631,8 @@ def _pattern_imports_for(target: FieldPath) -> set[str]:
             if target.iter_struct_paths:
                 names.add("nested_array_check")
             return names
+        case MapPath():
+            return {map_runtime_helper(target.projection)}
         case _:
             return set()
 
@@ -576,22 +683,8 @@ def _field_check_function_entries(
     field_checks: list[Check],
 ) -> list[dict[str, object]]:
     """Build template contexts for field-level checks."""
-    descriptor_refs: list[tuple[Check, int]] = []
-    raw_names: list[str] = []
-    for check in field_checks:
-        labeled = field_label(check)
-        multi = len(check.descriptors) > 1
-        for desc_idx, desc in enumerate(check.descriptors):
-            suffix = f"_{check_name(desc.function, desc.check_name)}" if multi else ""
-            raw_names.append(f"_{_sanitize_field_name(labeled)}{suffix}_check")
-            descriptor_refs.append((check, desc_idx))
-
-    func_names = disambiguate(raw_names)
     return [
-        _render_check_function_context(check, func_name, desc_idx)
-        for (check, desc_idx), func_name in zip(
-            descriptor_refs, func_names, strict=True
-        )
+        _render_check_function_context(row) for row in field_check_rows(field_checks)
     ]
 
 
@@ -599,15 +692,14 @@ def _model_check_function_entries(
     model_checks: list[ModelCheck],
 ) -> list[dict[str, object]]:
     """Build template contexts for model-level checks."""
-    label_suffixes = compute_label_suffixes(model_checks)
     return [
-        _render_model_constraint_function_context(mc, idx, label_suffixes[idx])
-        for idx, mc in enumerate(model_checks)
+        _render_model_constraint_function_context(row)
+        for row in model_check_rows(model_checks)
     ]
 
 
-def render_feature_module(
-    feature_name: str,
+def render_model_module(
+    model_name: str,
     field_checks: list[Check],
     model_checks: list[ModelCheck],
     schema_fields: list[SchemaField],
@@ -616,7 +708,7 @@ def render_feature_module(
     entry_point: str = "tests.placeholder:Placeholder",
     partitions: Mapping[str, str] | None = None,
 ) -> str:
-    """Render a complete Python module for a feature's checks and schema."""
+    """Render a complete Python module for a model's checks and schema."""
     constraint_expr_fns = sorted(
         _collect_constraint_expr_imports(field_checks, model_checks)
     )
@@ -634,19 +726,19 @@ def render_feature_module(
         field_checks
     ) + _model_check_function_entries(model_checks)
 
-    feature_title = feature_name.replace("_", " ").title()
+    model_title = model_name.replace("_", " ").title()
 
-    template = jinja_env().get_template("feature_module.py.jinja2")
+    template = jinja_env().get_template("model_module.py.jinja2")
     return template.render(
-        feature_name=feature_name,
-        feature_title=feature_title,
+        model_name=model_name,
+        model_title=model_title,
         constraint_expr_fns=constraint_expr_fns,
         column_pattern_fns=column_pattern_fns,
         spark_types=spark_types,
         schema_struct_refs=schema_struct_refs,
         geometry_type=geometry_type,
         check_functions=check_functions,
-        schema_const_name=f"{feature_name.upper()}_SCHEMA",
+        schema_const_name=schema_const_name(model_name),
         schema_fields=schema_fields,
         geometry_types_literal=geometry_types_literal,
         entry_point=entry_point,

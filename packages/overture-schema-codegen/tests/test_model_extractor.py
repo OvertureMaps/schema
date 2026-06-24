@@ -408,7 +408,7 @@ class TestSubModelExpansion:
         assert terminal.starts_cycle is True
 
     def test_shared_reference_within_one_extraction(self) -> None:
-        """Two fields referencing the same sub-model share the ModelSpec."""
+        """Two fields referencing the same sub-model share the RecordSpec."""
 
         class Shared(BaseModel):
             value: str
@@ -426,7 +426,7 @@ class TestSubModelExpansion:
         assert isinstance(first_ref, ModelRef)
         assert isinstance(second_ref, ModelRef)
         # Within one extract_model call, the cache ensures the same
-        # ModelSpec is reused for both references; neither is a cycle.
+        # RecordSpec is reused for both references; neither is a cycle.
         assert first_ref.model is second_ref.model
         assert first_ref.starts_cycle is False
         assert second_ref.starts_cycle is False

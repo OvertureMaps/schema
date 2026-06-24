@@ -6,19 +6,33 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 from overture.schema.pyspark._registry import REGISTRY
-from overture.schema.pyspark.check import Check, CheckShape, FeatureValidation
+from overture.schema.pyspark.check import Check, CheckShape
 from overture.schema.pyspark.cli import (
     ReadSpec,
     _spark_config,
+    absent_column,
     read_feature,
     resolve_read,
     validate_cli,
 )
+from pyspark.errors import AnalysisException
 from pyspark.sql import Row, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import StringType, StructField, StructType
 
+from ._support.registry import register_model
+
 _TEST_TYPE = "_test_cli"
+
+# Shared schema for all test registrations that need the four base columns.
+_BASE_SCHEMA = StructType(
+    [
+        StructField("id", StringType(), True),
+        StructField("theme", StringType(), True),
+        StructField("type", StringType(), True),
+        StructField("value", StringType(), True),
+    ]
+)
 
 # Tests that branch on registered geometry types require the runtime registry
 # to be populated (i.e. generated expression modules present).
@@ -95,26 +109,15 @@ def _test_checks() -> list[Check]:
             name="enum",
             expr=F.when(F.col("value") != "good", F.lit("not good")),
             shape=CheckShape.SCALAR,
-            root_field="value",
+            read_columns=frozenset({"value"}),
         ),
     ]
 
 
 @pytest.fixture(autouse=True)
 def _register_test_checks() -> Iterator[None]:
-    REGISTRY[_TEST_TYPE] = FeatureValidation(
-        schema=StructType(
-            [
-                StructField("id", StringType(), True),
-                StructField("theme", StringType(), True),
-                StructField("type", StringType(), True),
-                StructField("value", StringType(), True),
-            ]
-        ),
-        checks=_test_checks,
-    )
-    yield
-    del REGISTRY[_TEST_TYPE]
+    with register_model(_TEST_TYPE, _BASE_SCHEMA, _test_checks):
+        yield
 
 
 def test_validate_missing_args() -> None:
@@ -265,6 +268,120 @@ def test_validate_missing_column_suggests_skip_columns(
     assert "--skip-columns value" in result.output
 
 
+def _unresolved(object_name: str, *, suggestion: bool = True) -> AnalysisException:
+    """An UNRESOLVED_COLUMN AnalysisException naming `object_name`."""
+    suffix = "WITH_SUGGESTION" if suggestion else "WITHOUT_SUGGESTION"
+    return AnalysisException(
+        f"column {object_name} cannot be resolved",
+        errorClass=f"UNRESOLVED_COLUMN.{suffix}",
+        messageParameters={"objectName": object_name},
+    )
+
+
+class TestAbsentColumn:
+    """Classification of AnalysisExceptions into absent-column vs. bug."""
+
+    def test_absent_top_level_column_is_named(self) -> None:
+        assert absent_column(_unresolved("`phantom`"), ["id", "value"]) == "phantom"
+
+    def test_without_suggestion_is_also_named(self) -> None:
+        exc = _unresolved("`phantom`", suggestion=False)
+        assert absent_column(exc, ["id", "value"]) == "phantom"
+
+    def test_dotted_reference_yields_top_level_column(self) -> None:
+        assert absent_column(_unresolved("`bbox`.`xmin`"), ["id"]) == "bbox"
+
+    def test_present_column_is_not_named(self) -> None:
+        # An unresolved-column error naming a column that *is* present is not
+        # the missing-data case --skip-columns resolves; treat it as a bug.
+        assert absent_column(_unresolved("`value`"), ["id", "value"]) is None
+
+    def test_non_unresolved_condition_is_a_bug(self) -> None:
+        exc = AnalysisException(
+            "cannot extract field from scalar",
+            errorClass="INVALID_EXTRACT_BASE_FIELD_TYPE",
+            messageParameters={"base": '"value"', "other": '"STRING"'},
+        )
+        assert absent_column(exc, ["id", "value"]) is None
+
+    def test_missing_condition_is_a_bug(self) -> None:
+        assert absent_column(AnalysisException("opaque failure"), ["id"]) is None
+
+    def test_missing_object_name_is_a_bug(self) -> None:
+        exc = AnalysisException(
+            "unresolved with no objectName",
+            errorClass="UNRESOLVED_COLUMN.WITHOUT_SUGGESTION",
+            messageParameters={},
+        )
+        assert absent_column(exc, ["id"]) is None
+
+
+def test_validate_unresolvable_check_names_absent_column(
+    spark: SparkSession, tmp_path: Path
+) -> None:
+    """An unresolved-column check names the absent column and hints --skip-columns."""
+    unresolvable_type = "_test_cli_unresolvable"
+    # A check reading a column in neither the data nor the expected schema
+    # is invisible to absence detection (which only flags expected-but-
+    # missing columns), so it survives the read_columns drop, reaches
+    # evaluation, and raises UNRESOLVED_COLUMN -- the backstop the CLI
+    # must catch and convert into a column-named hint.
+    with register_model(
+        unresolvable_type,
+        _BASE_SCHEMA,
+        checks=lambda: [
+            Check(
+                field="phantom",
+                name="present",
+                expr=F.when(F.col("phantom").isNull(), F.lit("missing phantom")),
+                shape=CheckShape.SCALAR,
+                read_columns=frozenset({"phantom"}),
+            )
+        ],
+    ):
+        input_path = str(tmp_path / "input.parquet")
+        spark.createDataFrame(
+            [Row(id="r1", theme="test", type="x", value="good")]
+        ).write.parquet(input_path)
+        runner = CliRunner()
+        result = runner.invoke(validate_cli, [unresolvable_type, input_path])
+        assert result.exit_code != 0
+        assert "phantom" in result.output
+        assert "--skip-columns phantom" in result.output
+
+
+def test_validate_planning_bug_propagates(spark: SparkSession, tmp_path: Path) -> None:
+    """A non-column planning error surfaces as a bug, not a --skip-columns hint."""
+    buggy_type = "_test_cli_planning_bug"
+    # `value` is a present string column, so the check survives the
+    # read_columns drop, but extracting a struct field from a string is a
+    # generator bug: it raises an AnalysisException that is *not*
+    # UNRESOLVED_COLUMN. `--skip-columns value` would not fix it, so the
+    # backstop must let it propagate rather than masking it.
+    with register_model(
+        buggy_type,
+        _BASE_SCHEMA,
+        checks=lambda: [
+            Check(
+                field="value",
+                name="struct_field",
+                expr=F.when(F.col("value").getField("missing").isNull(), F.lit("bad")),
+                shape=CheckShape.SCALAR,
+                read_columns=frozenset({"value"}),
+            )
+        ],
+    ):
+        input_path = str(tmp_path / "input.parquet")
+        spark.createDataFrame(
+            [Row(id="r1", theme="test", type="x", value="good")]
+        ).write.parquet(input_path)
+        runner = CliRunner()
+        result = runner.invoke(validate_cli, [buggy_type, input_path])
+        assert result.exit_code != 0
+        assert isinstance(result.exception, AnalysisException)
+        assert "--skip-columns" not in result.output
+
+
 def test_validate_ignore_extra_columns(spark: SparkSession, tmp_path: Path) -> None:
     """--ignore-extra-columns suppresses 'expected missing' schema mismatches."""
     input_path = str(tmp_path / "input.parquet")
@@ -372,12 +489,15 @@ class TestResolveRead:
             base_path="/data/release/2026-02-18.0",
         )
 
-    def test_theme_partition_without_type(self) -> None:
+    def test_theme_partition_appends_type_leaf(self) -> None:
+        # A theme-level path is missing the `type=` leaf; resolve_read must
+        # append it so a single feature's checks aren't run against every
+        # type sharing the theme directory.
         spec = resolve_read(
             "/data/release/2026-02-18.0/theme=base/", _BATHYMETRY_PARTITIONS
         )
         assert spec == ReadSpec(
-            data_path="/data/release/2026-02-18.0/theme=base/",
+            data_path="/data/release/2026-02-18.0/theme=base/type=bathymetry",
             base_path="/data/release/2026-02-18.0",
         )
 
@@ -474,6 +594,25 @@ class TestReadFeature:
             ],
         )
         spec = resolve_read(str(base), {"theme": "test", "type": _TEST_TYPE})
+        df = read_feature(spark, spec)
+        assert df.count() == 1
+        assert df.collect()[0]["id"] == "r1"
+
+    def test_theme_partition_filters_to_type(
+        self, spark: SparkSession, tmp_path: Path
+    ) -> None:
+        """A theme-level path returns only the target type, not its siblings."""
+        base = tmp_path / "release"
+        _write_partitioned(
+            spark,
+            base,
+            [
+                Row(id="r1", value="good", theme="test", type=_TEST_TYPE),
+                Row(id="r2", value="good", theme="test", type="other"),
+            ],
+        )
+        theme_path = str(base / "theme=test")
+        spec = resolve_read(theme_path, {"theme": "test", "type": _TEST_TYPE})
         df = read_feature(spark, spec)
         assert df.count() == 1
         assert df.collect()[0]["id"] == "r1"

@@ -1,1 +1,1 @@
-"""PySpark codegen pipeline: FeatureSpec to expression and test modules."""
+"""PySpark codegen pipeline: ModelSpec to expression and test modules."""

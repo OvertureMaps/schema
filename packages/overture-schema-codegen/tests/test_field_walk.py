@@ -1,9 +1,12 @@
 """Tests for the `FieldShape` walker and structural helpers."""
 
+import enum
+
 import pytest
 from overture.schema.codegen.extraction.field import (
     AnyScalar,
     ArrayOf,
+    ConstraintSource,
     LiteralScalar,
     MapOf,
     ModelRef,
@@ -12,6 +15,8 @@ from overture.schema.codegen.extraction.field import (
     UnionRef,
 )
 from overture.schema.codegen.extraction.field_walk import (
+    enum_source,
+    map_key_value_constraints,
     shape_children,
     terminal_model_ref,
     terminal_of,
@@ -162,3 +167,69 @@ class TestTerminalFilters:
     )
     def test_terminal_model_ref(self, shape: object, expected: object) -> None:
         assert terminal_model_ref(shape) is expected  # type: ignore[arg-type]
+
+
+class _Color(enum.Enum):
+    RED = "red"
+    BLUE = "blue"
+
+
+class TestEnumSource:
+    """`enum_source` extracts the `Enum` class from an enum-backed `Primitive`."""
+
+    def test_enum_backed_primitive_returns_class(self) -> None:
+        shape = Primitive(base_type="str", source_type=_Color)
+        assert enum_source(shape) is _Color
+
+    def test_plain_primitive_returns_none(self) -> None:
+        shape = Primitive(base_type="str")
+        assert enum_source(shape) is None
+
+    def test_literal_scalar_returns_none(self) -> None:
+        shape = LiteralScalar(values=("a",))
+        assert enum_source(shape) is None
+
+    def test_non_enum_class_source_type_returns_none(self) -> None:
+        # source_type is a real class that is not an Enum subclass
+        shape = Primitive(base_type="str", source_type=int)
+        assert enum_source(shape) is None
+
+    def test_newtype_wrapping_enum_primitive_returns_none(self) -> None:
+        # wrappers are not unwrapped — only a bare Primitive matches
+        inner = Primitive(base_type="str", source_type=_Color)
+        nt = NewTypeShape(name="ColorAlias", ref=object(), inner=inner)
+        assert enum_source(nt) is None
+
+    def test_array_of_enum_primitive_returns_none(self) -> None:
+        inner = Primitive(base_type="str", source_type=_Color)
+        shape = ArrayOf(element=inner)
+        assert enum_source(shape) is None
+
+
+def _constraint() -> ConstraintSource:
+    """A directly-applied constraint with no NewType source."""
+    return ConstraintSource(source_ref=None, source_name=None, constraint=object())
+
+
+class TestMapKeyValueConstraints:
+    """`map_key_value_constraints` collects a `MapOf` terminal's sides."""
+
+    def test_direct_map_returns_key_and_value_constraints(self) -> None:
+        kc, vc = _constraint(), _constraint()
+        shape = MapOf(
+            key=Primitive(base_type="str", constraints=(kc,)),
+            value=Primitive(base_type="int32", constraints=(vc,)),
+        )
+        assert map_key_value_constraints(shape) == ((kc,), (vc,))
+
+    def test_looks_through_newtype_and_array_wrappers(self) -> None:
+        vc = _constraint()
+        inner_map = MapOf(
+            key=Primitive(base_type="str"),
+            value=Primitive(base_type="int32", constraints=(vc,)),
+        )
+        shape = NewTypeShape(name="N", ref=object(), inner=ArrayOf(element=inner_map))
+        assert map_key_value_constraints(shape) == ((), (vc,))
+
+    def test_non_map_shape_returns_empty(self) -> None:
+        assert map_key_value_constraints(Primitive(base_type="str")) == ((), ())

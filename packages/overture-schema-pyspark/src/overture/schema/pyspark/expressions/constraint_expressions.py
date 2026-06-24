@@ -25,15 +25,25 @@ from overture.schema.system.primitive import GeometryType
 
 from .column_patterns import error_msg
 
-_WKB_TYPE_HEX: dict[GeometryType, str] = {
-    GeometryType.POINT: "01",
-    GeometryType.LINE_STRING: "02",
-    GeometryType.POLYGON: "03",
-    GeometryType.MULTI_POINT: "04",
-    GeometryType.MULTI_LINE_STRING: "05",
-    GeometryType.MULTI_POLYGON: "06",
-    GeometryType.GEOMETRY_COLLECTION: "07",
+_WKB_TYPE_CODE: dict[GeometryType, int] = {
+    GeometryType.POINT: 1,
+    GeometryType.LINE_STRING: 2,
+    GeometryType.POLYGON: 3,
+    GeometryType.MULTI_POINT: 4,
+    GeometryType.MULTI_LINE_STRING: 5,
+    GeometryType.MULTI_POLYGON: 6,
+    GeometryType.GEOMETRY_COLLECTION: 7,
 }
+
+# A 3D/measured geometry encodes its extra dimensions in the WKB type word two
+# different ways. EWKB (shapely's `.wkb` default, PostGIS, GDAL old-OGC) sets
+# high flag bits -- Z=0x80000000, M=0x40000000, SRID=0x20000000 -- leaving the
+# base type in the low bits. ISO WKB (mandated by GeoParquet) instead offsets
+# the type by 1000/2000/3000 for Z/M/ZM (PointZ=1001). Masking off the EWKB
+# flag nibble and then taking the value mod 1000 recovers the OGC base type
+# (1-7) from either encoding.
+_EWKB_FLAG_MASK = 0x0FFFFFFF
+_ISO_DIMENSION_MODULUS = 1000
 
 
 _BOUND_OPS: dict[str, tuple[str, Callable[[Column, float | int], Column]]] = {
@@ -69,8 +79,17 @@ def check_bounds(
         )
     if not checks:
         return F.lit(None).cast("string")
-    # null col -> all F.when checks return null (no false positive)
-    return F.coalesce(*checks)
+    # NaN satisfies no Pydantic bound (every comparison against it is False),
+    # but Spark sorts NaN above all values, so lower bounds (NaN < v / NaN <= v)
+    # never fire on it.  Reject NaN explicitly whenever any bound applies.  The
+    # cast keeps integer columns -- which can never be NaN -- from erroring.
+    nan_check = F.when(
+        F.isnan(col.cast("double")),
+        error_msg("must be a number, got ", col.cast("string")),
+    )
+    # null col -> isnan is False (nan_check null) and every bound comparison is
+    # null, so coalesce yields null (no false positive)
+    return F.coalesce(nan_check, *checks)
 
 
 def check_enum(
@@ -101,6 +120,17 @@ def check_pattern(col: Column, pattern: str, *, label: str) -> Column:
     label
         Human-readable description used in error messages:
         `"invalid {label}: got '...'"`
+
+    Notes
+    -----
+    `rlike` runs Java's regex engine against patterns authored for Python's
+    `re` (the engine Pydantic validates with).  The dialects coincide on the
+    ASCII character ranges the schema patterns use, but diverge on the
+    shorthand classes: Java's `\\d \\s \\w \\S` are ASCII-only while Python's
+    are Unicode, so e.g. `^\\S+$` accepts a non-breaking space here that
+    Pydantic rejects, and `.` excludes a different set of line terminators.
+    These divergences are accepted -- the affected inputs (Unicode digits,
+    exotic whitespace) do not occur in practice for the constrained fields.
     """
     msg = error_msg(f"invalid {label}: got '", col.cast("string"), F.lit("'"))
     return F.when(col.isNotNull() & ~col.rlike(pattern), msg)
@@ -109,20 +139,29 @@ def check_pattern(col: Column, pattern: str, *, label: str) -> Column:
 def check_url_format(col: Column) -> Column:
     """HTTP/HTTPS URL format check via pattern match.  Returns error string or null.
 
-    Pydantic's `HttpUrl` additionally normalizes values (adds trailing
-    slash, lowercases host and scheme) before validation and comparison.
-    This check validates the raw string without normalization — format
-    acceptance is broader, and downstream uniqueness checks compare
-    un-normalized values.
+    Pydantic's `HttpUrl` normalizes values (adds trailing slash, lowercases
+    host and scheme) before validation and comparison.  This check validates
+    the raw string without normalization, with one concession to scheme
+    normalization: `(?i)` accepts an upper- or mixed-case scheme (`HTTP://`)
+    the way Pydantic's lowercasing does.  Host case is left un-normalized, so
+    downstream uniqueness checks still compare un-normalized values.
     """
-    return check_pattern(col, r"^https?://[^\s]+\z", label="HTTP/HTTPS URL")
+    return check_pattern(col, r"(?i)^https?://[^\s]+\z", label="HTTP/HTTPS URL")
+
+
+# Maximum HTTP(S) URL length, mirroring Pydantic's HttpUrl cap (the de facto
+# 2083-character limit from legacy browsers).
+_MAX_URL_LENGTH = 2083
 
 
 def check_url_length(col: Column) -> Column:
-    """URL length check: must not exceed 2083 characters.  Returns error string or null."""
+    """URL length check: must not exceed the maximum URL length.  Returns error string or null."""
     return F.when(
-        col.isNotNull() & (F.length(col) > 2083),
-        error_msg("URL exceeds 2083 characters: length ", F.length(col).cast("string")),
+        col.isNotNull() & (F.length(col) > _MAX_URL_LENGTH),
+        error_msg(
+            f"URL exceeds {_MAX_URL_LENGTH} characters: length ",
+            F.length(col).cast("string"),
+        ),
     )
 
 
@@ -197,6 +236,14 @@ DEL, C1 controls) that have no place at string boundaries.
 Interior control characters (middle of the string) are NOT rejected —
 the `.*` in the middle position still matches anything.  Policing
 interior content is a separate concern.
+
+Divergence from Pydantic (accepted): Pydantic's stripped pattern
+`^(\S(.*\S)?)?\Z` runs without DOTALL, so an interior newline makes it
+fail (its `.` cannot cross the newline to reach the closing anchor).  The
+`(?s)` here lets `.*` cross newlines, so a string with an interior newline
+but clean boundaries passes Spark while Pydantic rejects it.  Stripped
+fields are short identifiers/names where interior newlines do not occur,
+so the looser behavior is accepted rather than matched.
 
 Flags: `(?s)` (DOTALL) lets `.*` cross newlines.  `(?U)`
 (UNICODE_CHARACTER_CLASS) gives `\s` full Unicode coverage.  `\z`
@@ -408,32 +455,38 @@ def check_geometry_type(
     col: Column,
     *allowed: GeometryType,
 ) -> Column:
-    """Geometry type check via WKB header byte parsing.
+    """Geometry type check via WKB header parsing.
 
-    Reads the endianness indicator and type uint32 from the WKB binary
-    without deserializing coordinates.  O(1) per row regardless of
+    Reads the endianness indicator and the 4-byte type word from the WKB
+    binary without deserializing coordinates.  O(1) per row regardless of
     geometry complexity.
 
-    Extracts only the low byte of the type uint32, which is safe for
-    OGC types 1-7 and immune to Z/M/ZM flag bits (those modify high
-    bytes only).
+    Normalizes both 3D/measured encodings (EWKB high flag bits and the ISO
+    WKB dimension offset) down to the OGC base type, so a valid PointZ
+    validates as a Point regardless of how its dimensions were encoded.
     """
     hex_geom = F.hex(col)
     byte_order = F.substring(hex_geom, 1, 2)
-    # LE: type LSB at hex positions 3-4
-    # BE: type LSB at hex positions 9-10
-    type_hex = F.when(
-        byte_order == "01",
-        F.substring(hex_geom, 3, 2),
-    ).otherwise(
+    # The 4-byte type word follows the 1-byte order flag (hex positions 3-10).
+    # Big-endian stores it most-significant byte first (read as-is); little-
+    # endian stores it least-significant byte first, so reverse the byte pairs.
+    be_type_hex = F.substring(hex_geom, 3, 8)
+    le_type_hex = F.concat(
         F.substring(hex_geom, 9, 2),
+        F.substring(hex_geom, 7, 2),
+        F.substring(hex_geom, 5, 2),
+        F.substring(hex_geom, 3, 2),
     )
-    allowed_hex = [_WKB_TYPE_HEX[t] for t in allowed]
+    type_word = F.conv(
+        F.when(byte_order == "01", le_type_hex).otherwise(be_type_hex), 16, 10
+    ).cast("long")
+    base_type = type_word.bitwiseAND(_EWKB_FLAG_MASK) % _ISO_DIMENSION_MODULUS
+    allowed_codes = [_WKB_TYPE_CODE[t] for t in allowed]
     names = " | ".join(t.geo_json_type for t in allowed)
-    if len(allowed_hex) == 1:
-        violation = type_hex != allowed_hex[0]
+    if len(allowed_codes) == 1:
+        violation = base_type != allowed_codes[0]
     else:
-        violation = ~type_hex.isin(allowed_hex)
+        violation = ~base_type.isin(allowed_codes)
     return F.when(
         col.isNotNull() & violation,
         error_msg(f"expected {names} geometry"),

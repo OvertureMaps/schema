@@ -68,6 +68,44 @@ def nested_array_check(
     return _null_guarded_transform(_resolve_column(column), check_fn, flatten=True)
 
 
+def _map_projection_check(
+    column: str | Column,
+    projector: Callable[[Column], Column],
+    check_fn: Callable[[Column], Column],
+) -> Column:
+    """Project a map column to an array, then null-guard and transform it.
+
+    *projector* is `F.map_keys` or `F.map_values`.  The projection already
+    yields a Column, so this calls `_null_guarded_transform` directly --
+    routing through `array_check` would re-resolve an already-resolved
+    Column.  A null map column projects to null, which the guard yields
+    through as null.
+    """
+    return _null_guarded_transform(projector(_resolve_column(column)), check_fn)
+
+
+def map_keys_check(
+    column: str | Column, check_fn: Callable[[Column], Column]
+) -> Column:
+    """Validate a map's keys: project to `map_keys`, then array-check.
+
+    *check_fn* receives each map key and returns a string Column (error
+    message) or null. A null map column yields null.
+    """
+    return _map_projection_check(column, F.map_keys, check_fn)
+
+
+def map_values_check(
+    column: str | Column, check_fn: Callable[[Column], Column]
+) -> Column:
+    """Validate a map's values: project to `map_values`, then array-check.
+
+    *check_fn* receives each map value and returns a string Column (error
+    message) or null. A null map column yields null.
+    """
+    return _map_projection_check(column, F.map_values, check_fn)
+
+
 def check_struct_unique(column: str | Column) -> Column:
     """Check that an array has no duplicate items by whole-element comparison.
 

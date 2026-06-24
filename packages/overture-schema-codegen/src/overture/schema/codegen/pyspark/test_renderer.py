@@ -6,20 +6,20 @@ from typing import Any, NamedTuple
 
 from typing_extensions import assert_never
 
-from overture.schema.system.field_path import ArrayPath
+from overture.schema.system.field_path import ArrayPath, MapPath, MapProjection
 
-from ..extraction.field import FieldShape
-from ..extraction.field_walk import has_array_layer
-from ..extraction.specs import FeatureSpec
+from ..extraction.field import FieldShape, Primitive
+from ..extraction.field_walk import has_array_layer, terminal_of
+from ..extraction.specs import ModelSpec
+from ..extraction.type_registry import primitive_spark_category
 from ._render_common import (
-    check_name,
-    compute_label_suffixes,
     disambiguate,
-    field_label,
+    field_check_rows,
     jinja_env,
-    model_constraint_field_label,
+    model_check_rows,
     parse_field_eq,
     py_literal,
+    schema_const_name,
 )
 from .check_ir import (
     Check,
@@ -70,7 +70,7 @@ def _model_check_belongs_to_arm(check: ModelCheck, arm: str) -> bool:
 
 
 def render_test_module(
-    feature_name: str,
+    model_name: str,
     field_checks: list[Check],
     model_checks: list[ModelCheck],
     *,
@@ -79,24 +79,28 @@ def render_test_module(
     base_row_sparse: dict[str, Any] | None = None,
     base_row_populated: dict[str, Any] | None = None,
     arm: str | None = None,
-    spec: FeatureSpec | None = None,
+    spec: ModelSpec | None = None,
 ) -> str:
-    """Render a complete pytest test file for a feature's validation checks.
+    """Render a complete pytest test file for a model's validation checks.
 
     Arm filtering uses two complementary signals. A field check's
     `ColumnGuard`s identify the arms it belongs to. A model check's `arm`
     attribute is set for member-specific constraints and `None` for
     union-level constraints (which apply to every arm).
-    """
-    if arm is not None:
-        field_checks = [c for c in field_checks if _check_belongs_to_arm(c, arm)]
-        model_checks = [c for c in model_checks if _model_check_belongs_to_arm(c, arm)]
 
+    Both label-collision passes run over the *unfiltered* check lists so
+    they agree with the expression module, which `renderer` emits once
+    across every arm. Each scenario builder takes `arm` and drops rows
+    that fall outside it after their suffixes are assigned; computing a
+    suffix over an arm subset would let it hide a collision the shared
+    module still carries, producing an `expected_field` the module never
+    emits.
+    """
     model_scenarios, used_mutation_fns = _render_model_scenarios(
-        feature_name, model_checks, spec
+        model_name, model_checks, spec, arm
     )
     field_scenarios, field_helpers = _render_field_check_scenarios(
-        feature_name, field_checks, spec
+        model_name, field_checks, spec, arm
     )
     used_mutation_fns |= field_helpers - {"set_at_path"}
 
@@ -109,8 +113,8 @@ def render_test_module(
 
     template = jinja_env().get_template("test_module.py.jinja2")
     return template.render(
-        feature_name=feature_name,
-        schema_name=f"{feature_name.upper()}_SCHEMA",
+        model_name=model_name,
+        schema_name=schema_const_name(model_name),
         mutation_imports=sorted(used_mutation_fns),
         needs_set_at_path="set_at_path" in field_helpers,
         base_row_sparse=sparse_repr,
@@ -152,14 +156,24 @@ class _MutateExpr(NamedTuple):
 
 
 def _field_mutate_expr(
-    check: Check, desc: ExpressionDescriptor, spec: FeatureSpec | None
+    check: Check, desc: ExpressionDescriptor, spec: ModelSpec | None
 ) -> _MutateExpr:
     """Render the `mutate=` expression for one field-check descriptor.
 
-    `check_struct_unique` calls the `mutate_unique_items` helper at the
-    target path; every other descriptor injects a constraint-violating
-    literal via `set_at_path`.
+    A `MapPath` target corrupts the map's single valid entry via
+    `mutate_map_key` / `mutate_map_value`; `check_struct_unique` calls
+    `mutate_unique_items` at the target path; every other descriptor
+    injects a constraint-violating literal via `set_at_path`.
     """
+    if isinstance(check.target, MapPath):
+        helper = (
+            "mutate_map_key"
+            if check.target.projection is MapProjection.KEY
+            else "mutate_map_value"
+        )
+        col_repr = py_literal(check.target.map_column)
+        iv_repr = py_literal(invalid_value(desc))
+        return _MutateExpr(f"lambda row: {helper}(row, {col_repr}, {iv_repr})", helper)
     target_repr = py_literal(str(check.target))
     if desc.function == "check_struct_unique":
         return _MutateExpr(
@@ -171,32 +185,35 @@ def _field_mutate_expr(
 
 
 def _render_field_check_scenarios(
-    feature_name: str,
+    model_name: str,
     field_checks: list[Check],
-    spec: FeatureSpec | None,
+    spec: ModelSpec | None,
+    arm: str | None,
 ) -> tuple[list[list[tuple[str, str]]], set[str]]:
     """Render Scenario entries for field-level checks.
 
     Returns the entries and the set of mutation helper names referenced
-    by them, mirroring `_render_model_scenarios`.
+    by them, mirroring `_render_model_scenarios`. `field_check_rows`
+    assigns collision suffixes over the unfiltered list; this drops rows
+    outside `arm` afterward so per-arm modules carry the labels the shared
+    expression module emits. Pass `None` to include all arms.
     """
-    rows: list[tuple[Check, ExpressionDescriptor, str, str]] = []
-    for check in field_checks:
-        label = field_label(check)
-        for desc in check.descriptors:
-            name = check_name(desc.function, desc.check_name)
-            rows.append((check, desc, label, name))
-
+    rows = [
+        row
+        for row in field_check_rows(field_checks)
+        if arm is None or _check_belongs_to_arm(row.check, arm)
+    ]
     scenario_ids = disambiguate(
-        [f"{feature_name}::{label}:{name}" for _check, _desc, label, name in rows]
+        [f"{model_name}::{row.label}:{row.name}" for row in rows]
     )
 
     entries: list[list[tuple[str, str]]] = []
     used_helpers: set[str] = set()
-    for (check, desc, label, name), scenario_id in zip(rows, scenario_ids, strict=True):
-        scaffold = generate_scaffold(check, spec) if spec is not None else {}
+    for row, scenario_id in zip(rows, scenario_ids, strict=True):
+        desc = row.check.descriptors[row.descriptor_idx]
+        scaffold = generate_scaffold(row.check, spec) if spec is not None else {}
         try:
-            mutate = _field_mutate_expr(check, desc, spec)
+            mutate = _field_mutate_expr(row.check, desc, spec)
         except ValueError as exc:
             raise ValueError(
                 f"Cannot render mutate expression for {scenario_id}: {exc}"
@@ -207,8 +224,8 @@ def _render_field_check_scenarios(
                 scenario_id=scenario_id,
                 scaffold=scaffold,
                 mutate_expr=mutate.expr,
-                expected_field=label,
-                expected_check=name,
+                expected_field=row.label,
+                expected_check=row.name,
             )
         )
 
@@ -229,7 +246,7 @@ def _checks_array_element(check: Check) -> bool:
 def _wrap_for_list_leaf(
     value: object,
     check: Check,
-    spec: FeatureSpec | None,
+    spec: ModelSpec | None,
 ) -> object:
     """Wrap a scalar invalid value to match the field's list nesting depth."""
     if spec is None or isinstance(value, list):
@@ -243,26 +260,38 @@ def _wrap_for_list_leaf(
 
 
 def _render_model_scenarios(
-    feature_name: str,
+    model_name: str,
     model_checks: list[ModelCheck],
-    spec: FeatureSpec | None,
+    spec: ModelSpec | None,
+    arm: str | None,
 ) -> tuple[list[list[tuple[str, str]]], set[str]]:
     """Render Scenario entries for model-level checks.
 
     Returns the entries and the set of mutation helper names referenced
     by them, so the caller can scope the test module's imports.
+    `model_check_rows` assigns collision suffixes over the unfiltered
+    list; this drops rows outside `arm` afterward so per-arm modules carry
+    the labels the shared expression module emits. Pass `None` to include
+    all arms.
+
+    The scenario id's trailing index counts surviving rows within the arm
+    (`enumerate` after the filter), not the row's position in the
+    unfiltered list -- it is a test-internal disambiguator with no
+    cross-module contract, kept contiguous per arm.
     """
     entries: list[list[tuple[str, str]]] = []
     used_mutation_fns: set[str] = set()
-    label_suffixes = compute_label_suffixes(model_checks)
 
-    for idx, mc in enumerate(model_checks):
+    rows = [
+        row
+        for row in model_check_rows(model_checks)
+        if arm is None or _model_check_belongs_to_arm(row.check, arm)
+    ]
+    for scenario_idx, row in enumerate(rows):
+        mc = row.check
         desc = mc.descriptor
-        fn = model_constraint_function(desc)
         mutation_fn = model_mutation_function(desc)
-        name = check_name(fn)
-        scenario_id = f"{feature_name}::model:{name}:{idx}"
-        label = model_constraint_field_label(mc, label_suffixes[idx])
+        scenario_id = f"{model_name}::model:{row.name}:{scenario_idx}"
         scaffold = generate_model_scaffold(mc, spec) if spec is not None else {}
 
         try:
@@ -278,8 +307,8 @@ def _render_model_scenarios(
                 scenario_id=scenario_id,
                 scaffold=scaffold,
                 mutate_expr=mutate_expr,
-                expected_field=label,
-                expected_check=name,
+                expected_field=row.label,
+                expected_check=row.name,
             )
         )
 
@@ -346,6 +375,22 @@ def _fill_value_literal(shape: FieldShape) -> str:
     """Return a Python source literal for a type-appropriate non-null fill value."""
     if has_array_layer(shape):
         return "[{}]"
+    terminal = terminal_of(shape)
+    if isinstance(terminal, Primitive):
+        category = primitive_spark_category(terminal.base_type)
+        match category:
+            case "bool":
+                return "False"
+            case "float":
+                return "0.0"
+            case "int":
+                return "0"
+            case "string" | "other":
+                raise ValueError(
+                    f"unhandled Primitive base_type: {terminal.base_type!r}"
+                )
+            case _:
+                assert_never(category)
     return "{}"
 
 

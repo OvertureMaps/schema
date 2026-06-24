@@ -7,19 +7,24 @@ from typing import Annotated, Literal, NewType, Union
 import pytest
 from annotated_types import Ge, Le, MinLen
 from codegen_test_support import (
+    FeatureWithDict,
     LiteralSubtypeModel,
     RadioModel,
     RequireAnyModel,
     TripleNestedArrayModel,
     discover_feature,
-    feature_spec_for_model,
+    spec_for_model,
     union_spec_for,
 )
-from overture.schema.codegen.extraction.field import ConstraintSource, Primitive
+from overture.schema.codegen.extraction.field import (
+    ConstraintSource,
+    Primitive,
+    UnionRef,
+)
 from overture.schema.codegen.extraction.specs import (
-    FeatureSpec,
     FieldSpec,
     ModelSpec,
+    RecordSpec,
 )
 from overture.schema.codegen.extraction.union_extraction import extract_union
 from overture.schema.codegen.pyspark._render_common import column_level_suffix
@@ -44,6 +49,8 @@ from overture.schema.system.field_path import (
     ArrayPath,
     ArraySegment,
     FieldPath,
+    MapPath,
+    MapProjection,
     ScalarPath,
     parse,
 )
@@ -80,7 +87,7 @@ def _element_guard(check: Check) -> ElementGuard | None:
 def _checks_for(
     model_cls: type[BaseModel],
 ) -> tuple[list[Check], list[ModelCheck]]:
-    return build_checks(feature_spec_for_model(model_cls))
+    return build_checks(spec_for_model(model_cls))
 
 
 def _condition_of(check: ModelCheck) -> object:
@@ -1125,7 +1132,60 @@ class TestStructNestedUnionWithConstraint:
         with pytest.raises(
             NotImplementedError, match="Model constraint on struct-nested"
         ):
-            build_checks(feature_spec_for_model(_OuterWithStructNestedUnion))
+            build_checks(spec_for_model(_OuterWithStructNestedUnion))
+
+
+class TestStructNestedUnionWithVariantFields:
+    """Struct-nested union producing gated field checks is unsupported.
+
+    A `ColumnGuard` carries a bare discriminator name that renders as
+    `F.col("<discriminator>")` -- a top-level column access that is wrong
+    when the union is reached through a plain struct field. Raising loudly
+    is safer than emitting a mis-gated check.
+
+    Distinct from `TestStructNestedUnionWithConstraint`: that class covers
+    model/exclusivity checks; this class covers variant-gated field checks
+    (the silent-failure path the previous guard missed).
+
+    The trigger spec is built manually (not via `spec_for_model`) because
+    Pydantic strips the `Annotated[Union[...], FieldInfo(discriminator=...)]`
+    wrapper from `model_fields`, causing the inline extraction path to lose
+    `discriminator_mapping`. Constructing `UnionRef(union=...)` directly
+    with a fully-extracted union spec (via `union_spec_for`) replicates the
+    state that a future extraction path that preserves discriminator metadata
+    would produce.
+    """
+
+    @pytest.fixture(scope="class")
+    def discriminated_union_ref_spec(self) -> RecordSpec:
+        """A `RecordSpec` whose `nested` field holds a `UnionRef` with a full discriminator."""
+        union_spec = union_spec_for("Synthetic", _SyntheticUnionFixtures.SyntheticUnion)
+        field = FieldSpec(
+            name="nested",
+            shape=UnionRef(union=union_spec),
+            description=None,
+            is_required=True,
+            is_optional=False,
+        )
+        return RecordSpec(name="Outer", description=None, fields=[field])
+
+    def test_struct_nested_union_variant_fields_raises(
+        self, discriminated_union_ref_spec: RecordSpec
+    ) -> None:
+        with pytest.raises(NotImplementedError, match="ColumnGuard"):
+            build_checks(discriminated_union_ref_spec)
+
+    def test_row_root_union_with_variant_fields_succeeds(self) -> None:
+        """Row-root union (empty `ScalarPath`) must still build checks without raising."""
+        field_checks, _ = _union_checks(
+            "Synthetic", _SyntheticUnionFixtures.SyntheticUnion
+        )
+        assert any(n.guards for n in field_checks)
+
+    def test_array_reached_union_with_variant_fields_succeeds(self) -> None:
+        """Array-reached union (`ArrayPath` prefix) must still build checks without raising."""
+        field_checks, _ = _checks_for(_ListUnionContainer)
+        assert any(n.guards for n in field_checks)
 
 
 class _NestedInnerBase(BaseModel):
@@ -1412,12 +1472,12 @@ class TestDoubleNestedArrayModelConstraints:
 
 class TestSegmentUnionChecks:
     @pytest.fixture(scope="class")
-    def segment_spec(self) -> FeatureSpec:
+    def segment_spec(self) -> ModelSpec:
         return discover_feature("Segment")
 
     @pytest.fixture(scope="class")
     def segment_checks(
-        self, segment_spec: FeatureSpec
+        self, segment_spec: ModelSpec
     ) -> tuple[list[Check], list[ModelCheck]]:
         return build_checks(segment_spec)
 
@@ -1630,7 +1690,7 @@ class TestUnionInsideArray:
 
     @pytest.fixture(scope="class")
     def results(self) -> tuple[list[Check], list[ModelCheck]]:
-        return build_checks(feature_spec_for_model(_Wrapper))
+        return build_checks(spec_for_model(_Wrapper))
 
     @pytest.fixture(scope="class")
     def field_nodes(self, results: tuple[list[Check], list[ModelCheck]]) -> list[Check]:
@@ -1862,7 +1922,7 @@ class TestPrimitiveBoundsFiltered:
         field = FieldSpec(
             name="version", shape=shape, description=None, is_required=True
         )
-        spec = ModelSpec(name="Test", description=None, fields=[field])
+        spec = RecordSpec(name="Test", description=None, fields=[field])
         nodes, _ = build_checks(spec)
         return nodes
 
@@ -1958,3 +2018,202 @@ class TestOptionalSubModelModelCheckGate:
         assert len(when_nodes) >= 1
         for node in when_nodes:
             assert node.gate == _path("speed_limits[].when")
+
+
+class TestMapKeyValueConstraints:
+    """check_builder descends into MapOf key/value shapes.
+
+    `FeatureWithDict.names` is `dict[LanguageTag, StrippedString]`: the key
+    carries `LanguageTagConstraint` (dispatches to check_pattern) and the
+    value carries `StrippedConstraint` (dispatches to check_stripped). Both
+    constraints are validated when the same NewTypes are reached through a
+    struct field -- generated transportation/segment.py emits check_pattern
+    for `names.rules[].language` -- so reaching them through a map must not
+    silently drop validation.
+    """
+
+    def _map_check(self, projection: MapProjection, function: str) -> Check:
+        field_checks, _ = _checks_for(FeatureWithDict)
+        matches = [
+            c
+            for c in field_checks
+            if isinstance(c.target, MapPath)
+            and c.target.projection is projection
+            and any(d.function == function for d in c.descriptors)
+        ]
+        assert len(matches) >= 1, (
+            f"no MapPath {projection} check with {function}; "
+            f"targets={[str(c.target) for c in field_checks]}"
+        )
+        return matches[0]
+
+    def test_map_key_pattern_check_targets_names_key(self) -> None:
+        check = self._map_check(MapProjection.KEY, "check_pattern")
+        assert str(check.target) == "names{key}"
+
+    def test_map_value_stripped_check_targets_names_value(self) -> None:
+        check = self._map_check(MapProjection.VALUE, "check_stripped")
+        assert str(check.target) == "names{value}"
+
+    def test_map_field_with_unconstrained_value_emits_no_value_check(self) -> None:
+        # metadata: dict[str, int] -- neither key nor value carries a
+        # constraint, so no MapPath checks are produced for it.
+        field_checks, _ = _checks_for(FeatureWithDict)
+        metadata_maps = [
+            c
+            for c in field_checks
+            if isinstance(c.target, MapPath) and c.target.map_column == "metadata"
+        ]
+        assert metadata_maps == []
+
+
+class _MapWithConstrainedListValueModel(BaseModel):
+    """`dict[K, list[constrained-scalar]]` -- a map value carrying an array layer.
+
+    `terminal_scalar` unwraps the `ArrayOf` to the inner scalar, so the
+    naive scalar guard lets this through; the value scalar's constraint
+    has no `MapPath` + `ArraySegment` geometry to land on.
+    """
+
+    items: dict[str, list[Annotated[str, MinLen(1)]]]
+
+
+class _MapWithUnconstrainedListValueModel(BaseModel):
+    """`dict[K, list[scalar]]` with no key/value constraint -- nothing to emit."""
+
+    items: dict[str, list[int]]
+
+
+class _ListOfConstrainedMapModel(BaseModel):
+    """`list[dict[K, constrained-scalar]]` -- a map reached through an array."""
+
+    items: list[dict[str, Annotated[str, MinLen(1)]]]
+
+
+class _ListOfUnconstrainedMapModel(BaseModel):
+    """`list[dict[K, scalar]]` with no key/value constraint -- nothing to emit."""
+
+    items: list[dict[str, str]]
+
+
+class TestMapProjectionUnsupportedShapes:
+    """`_map_projection_checks` is bounded to a scalar terminal reached struct-only.
+
+    Three shapes fall outside that bound -- a map value/key with an array
+    layer (`dict[K, list[V]]`), and a map reached through an array
+    (`list[dict[K, V]]`). For each, a key/value constraint raises to keep
+    the dropped check loud, and an unconstrained one yields no checks (a
+    `MapPath` cannot locate the value, but there is nothing to validate).
+    """
+
+    def test_constrained_list_value_raises(self) -> None:
+        with pytest.raises(NotImplementedError, match="map value"):
+            _checks_for(_MapWithConstrainedListValueModel)
+
+    def test_unconstrained_list_value_emits_no_projection_check(self) -> None:
+        field_checks, _ = _checks_for(_MapWithUnconstrainedListValueModel)
+        assert not any(isinstance(c.target, MapPath) for c in field_checks)
+
+    def test_constrained_map_in_array_raises(self) -> None:
+        with pytest.raises(NotImplementedError, match="map value"):
+            _checks_for(_ListOfConstrainedMapModel)
+
+    def test_unconstrained_map_in_array_emits_no_projection_check(self) -> None:
+        field_checks, _ = _checks_for(_ListOfUnconstrainedMapModel)
+        assert not any(isinstance(c.target, MapPath) for c in field_checks)
+
+
+class _InnerLabel(BaseModel):
+    label: Annotated[str, MinLen(1)]
+
+
+class _MapOfModel(BaseModel):
+    """A `dict[K, Model]` value model with a constrained scalar field.
+
+    The value model's `label` field is validated on a `MapPath` leaf
+    (`items{value}.label`), the map analogue of a `list[Model]` element.
+    """
+
+    items: dict[str, _InnerLabel]
+
+
+@require_any_of("foo", "bar")
+class _AnyOfSub(BaseModel):
+    foo: int | None = None
+    bar: str | None = None
+
+
+class _ModelConstraintAsMapValue(BaseModel):
+    """A `dict[K, Model]` value model carrying a model-level constraint.
+
+    The `require_any_of` constraint is validated on the map value itself
+    (`subs{value}`).
+    """
+
+    subs: dict[str, _AnyOfSub]
+
+
+class TestMapValueModelDescent:
+    """check_builder descends into a `dict[K, Model]` value model.
+
+    A `ModelRef`/`UnionRef` map value is walked for its field and
+    model-level constraints on a `MapPath` target, the map analogue of a
+    `list[Model]` element reached through the `ModelRef` walker arm.
+    """
+
+    def test_value_field_constraint_targets_map_value_leaf(self) -> None:
+        field_checks, _ = _checks_for(_MapOfModel)
+        matches = [
+            c
+            for c in field_checks
+            if isinstance(c.target, MapPath)
+            and str(c.target) == "items{value}.label"
+            and any(d.function == "check_string_min_length" for d in c.descriptors)
+        ]
+        assert len(matches) == 1, [str(c.target) for c in field_checks]
+
+    def test_value_required_field_emits_required_descriptor(self) -> None:
+        field_checks, _ = _checks_for(_MapOfModel)
+        leaf_checks = [
+            c
+            for c in field_checks
+            if isinstance(c.target, MapPath) and str(c.target) == "items{value}.label"
+        ]
+        assert leaf_checks
+        functions = {d.function for c in leaf_checks for d in c.descriptors}
+        assert "check_required" in functions
+
+    def test_value_model_constraint_targets_map_value(self) -> None:
+        _, model_checks = _checks_for(_ModelConstraintAsMapValue)
+        matches = _filter_nodes(model_checks, "check_require_any_of", ("foo", "bar"))
+        assert len(matches) == 1
+        assert isinstance(matches[0].target, MapPath)
+        assert str(matches[0].target) == "subs{value}"
+
+
+class _MapValueWithList(BaseModel):
+    tags: list[Annotated[str, MinLen(1)]]
+
+
+class _ListInsideMapValueModel(BaseModel):
+    """A `dict[K, Model]` value model with a constrained list field.
+
+    A list nested inside a map element has no representable `MapPath`, so
+    the descent raises rather than emitting an unanchored target.
+    """
+
+    items: dict[str, _MapValueWithList]
+
+
+class TestMapValueModelDescentBoundary:
+    """Descent raises where a `MapPath` cannot represent the shape.
+
+    A map value model is descended into for scalar fields and model
+    constraints; a container (list or map) nested inside it has no
+    `MapPath` geometry, so the walker raises rather than emitting an
+    unvalidated target.
+    """
+
+    def test_list_inside_map_value_model_raises(self) -> None:
+        with pytest.raises(NotImplementedError, match="list nested inside a map"):
+            _checks_for(_ListInsideMapValueModel)

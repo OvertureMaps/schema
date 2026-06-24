@@ -7,7 +7,7 @@ default: test-all
 install: uv-sync
 
 uv-sync:
-	@uv sync --all-packages --all-extras 2> /dev/null
+	@uv sync --all-packages --all-extras -q
 
 PYSPARK_EXPRESSIONS := packages/overture-schema-pyspark/src/overture/schema/pyspark/expressions/generated
 PYSPARK_GENERATED_TESTS := packages/overture-schema-pyspark/tests/generated
@@ -25,8 +25,11 @@ generate-pyspark: uv-sync clean-pyspark
 check: uv-sync generate-pyspark
 	@$(MAKE) -j test-only doctest-only lint-only mypy-only
 
+# test-all is the unconditional full run -- testmon-independent, unlike the
+# incremental test/test-only targets -- so data-only changes (golden JSON,
+# [[examples]]) that testmon cannot see still get exercised.
 test-all: uv-sync
-	@uv run pytest -W error $(TESTMON) packages/
+	@uv run pytest -W error packages/
 
 test: uv-sync
 	@uv run pytest -W error $(TESTMON) packages/ -x -q --tb=short

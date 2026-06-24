@@ -5,6 +5,6 @@ def {{ c.func_name }}() -> Check:
         name="{{ c.check_name }}",
         expr={{ c.expr }},
         shape=CheckShape.{{ c.shape }},
-        root_field={{ c.root_field | py_literal }},
+        read_columns={{ c.read_columns | py_literal }},
     )
 {% endmacro %}

@@ -11,6 +11,7 @@ automatically; that's a per-consumer decision.
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
+from enum import Enum
 
 from typing_extensions import assert_never
 
@@ -30,8 +31,10 @@ from .field import (
 
 __all__ = [
     "all_constraints",
+    "enum_source",
     "has_array_layer",
     "list_depth",
+    "map_key_value_constraints",
     "newtype_name",
     "shape_children",
     "terminal_model_ref",
@@ -86,6 +89,34 @@ def terminal_model_ref(shape: FieldShape) -> ModelRef | None:
     """Return the terminal `ModelRef`, or `None` for non-model terminals."""
     terminal = terminal_of(shape)
     return terminal if isinstance(terminal, ModelRef) else None
+
+
+def enum_source(shape: FieldShape) -> type[Enum] | None:
+    """Return the `Enum` class backing a `Primitive`, or `None`.
+
+    Returns the `Enum` subclass stored in `Primitive.source_type` when
+    `shape` is a `Primitive` and `source_type` is an `Enum` subclass.
+    Returns `None` for every other shape, including wrappers: a
+    `NewTypeShape` wrapping an enum-backed `Primitive` returns `None`,
+    not the inner enum.
+
+    Parameters
+    ----------
+    shape
+        The shape to inspect.
+
+    Returns
+    -------
+    type[Enum] or None
+        The `Enum` class when `shape` is a `Primitive` backed by one,
+        `None` otherwise.
+    """
+    if not isinstance(shape, Primitive):
+        return None
+    src = shape.source_type
+    if isinstance(src, type) and issubclass(src, Enum):
+        return src
+    return None
 
 
 def shape_children(shape: FieldShape) -> Iterator[FieldShape]:
@@ -213,3 +244,25 @@ def all_constraints(shape: FieldShape) -> tuple[ConstraintSource, ...]:
                 return tuple(collected)
             case _:
                 assert_never(cur)
+
+
+def map_key_value_constraints(
+    shape: FieldShape,
+) -> tuple[tuple[ConstraintSource, ...], tuple[ConstraintSource, ...]]:
+    """Return a `MapOf` terminal's (key_constraints, value_constraints), or `((), ())`.
+
+    Looks through `NewTypeShape` / `ArrayOf` wrappers to find a `MapOf`,
+    then gathers each side's constraints with `all_constraints`. This
+    surfaces per-key and per-value rules that `all_constraints` on the
+    enclosing field deliberately stops short of (it treats `MapOf` as a
+    terminal). Returns `((), ())` when *shape* has no `MapOf` terminal.
+    """
+    cur = shape
+    while True:
+        match cur:
+            case NewTypeShape(inner=inner) | ArrayOf(element=inner):
+                cur = inner
+            case MapOf(key=key, value=value):
+                return all_constraints(key), all_constraints(value)
+            case _:
+                return (), ()

@@ -1,7 +1,7 @@
 """Generate valid base rows for the rendered conformance tests.
 
 `generate_base_row` produces a minimal valid row (required fields only)
-from a `FeatureSpec`. `generate_populated_row` produces a fully
+from a `ModelSpec`. `generate_populated_row` produces a fully
 populated row including optional fields. `generate_arm_rows` and
 `generate_populated_arm_rows` do the same for each arm of a discriminated
 union.
@@ -15,19 +15,7 @@ from enum import Enum
 from typing import Any
 
 from overture.schema.common.scoping.lr import LinearReferenceRangeConstraint
-from overture.schema.system.field_constraint.string import (
-    CountryCodeAlpha2Constraint,
-    HexColorConstraint,
-    JsonPointerConstraint,
-    LanguageTagConstraint,
-    PhoneNumberConstraint,
-    RegionCodeConstraint,
-    SnakeCaseConstraint,
-    StrippedConstraint,
-    WikidataIdConstraint,
-)
 from overture.schema.system.model_constraint import (
-    FieldEqCondition,
     ForbidIfConstraint,
     MinFieldsSetConstraint,
     RadioGroupConstraint,
@@ -52,11 +40,24 @@ from ...extraction.field import (
     Primitive,
     UnionRef,
 )
-from ...extraction.field_walk import has_array_layer, terminal_primitive
+from ...extraction.field_walk import (
+    enum_source,
+    has_array_layer,
+    terminal_primitive,
+    terminal_scalar,
+)
 from ...extraction.length_constraints import ArrayMinLen
-from ...extraction.specs import FeatureSpec, FieldSpec, ModelSpec, UnionSpec
+from ...extraction.specs import FieldSpec, ModelSpec, RecordSpec, UnionSpec
+from ...extraction.type_registry import primitive_spark_category
+from .._render_common import require_field_eq
 from ..constraint_dispatch import ExpressionDescriptor, dispatch_constraint
 from ..schema_builder import spark_type_rank
+from .constraint_values import (
+    CONSTRAINT_VALUES,
+    curated_pattern_values,
+    uncurated_pattern_error,
+    valid_bound,
+)
 
 __all__ = [
     "generate_arm_rows",
@@ -115,7 +116,7 @@ def _is_geometry_terminal(terminal: Primitive) -> bool:
     return terminal.source_type is Geometry
 
 
-def generate_base_row(spec: FeatureSpec, *, index: int = 0) -> dict[str, Any]:
+def generate_base_row(spec: ModelSpec, *, index: int = 0) -> dict[str, Any]:
     """Produce a minimal valid row from a feature spec (required fields only).
 
     The row passes `TypeAdapter(validation_type).validate_python()`.
@@ -131,7 +132,7 @@ def generate_base_row(spec: FeatureSpec, *, index: int = 0) -> dict[str, Any]:
     return _build_row(spec, index=index, populate_optional=False)
 
 
-def generate_populated_row(spec: FeatureSpec, *, index: int = 0) -> dict[str, Any]:
+def generate_populated_row(spec: ModelSpec, *, index: int = 0) -> dict[str, Any]:
     """Produce a fully populated valid row (all fields, including optional).
 
     Sub-models are recursively populated.
@@ -147,7 +148,7 @@ def generate_populated_row(spec: FeatureSpec, *, index: int = 0) -> dict[str, An
     return _build_row(spec, index=index, populate_optional=True)
 
 
-def generate_arm_rows(spec: FeatureSpec) -> dict[str, dict[str, Any]]:
+def generate_arm_rows(spec: ModelSpec) -> dict[str, dict[str, Any]]:
     """Produce one minimal valid row per discriminator arm of a union.
 
     Returns `{arm_value: row}` where each row passes TypeAdapter
@@ -162,7 +163,7 @@ def generate_arm_rows(spec: FeatureSpec) -> dict[str, dict[str, Any]]:
 
 
 def generate_populated_arm_rows(
-    spec: FeatureSpec,
+    spec: ModelSpec,
 ) -> dict[str, dict[str, Any]]:
     """Produce one fully populated valid row per discriminator arm.
 
@@ -177,7 +178,7 @@ def generate_populated_arm_rows(
     return _build_arm_rows(_require_union(spec), populate_optional=True)
 
 
-def _require_union(spec: FeatureSpec) -> UnionSpec:
+def _require_union(spec: ModelSpec) -> UnionSpec:
     if not isinstance(spec, UnionSpec):
         raise TypeError(
             f"Expected a UnionSpec, got {type(spec).__name__}: {spec.name!r}"
@@ -186,7 +187,7 @@ def _require_union(spec: FeatureSpec) -> UnionSpec:
 
 
 def _build_row(
-    spec: FeatureSpec,
+    spec: ModelSpec,
     *,
     index: int = 0,
     populate_optional: bool,
@@ -235,16 +236,28 @@ def _build_arm_rows(
 
 
 def _row_satisfies_condition(row: dict[str, Any], condition: object) -> bool:
-    """Check whether a FieldEqCondition is satisfied by the row's current values."""
-    if not isinstance(condition, FieldEqCondition):
-        return False
-    cond_value = condition.value
+    """Check whether the condition is satisfied by the row's current values.
+
+    Handles `FieldEqCondition` and `Not(FieldEqCondition)`. Raises
+    `TypeError` for any other condition kind so new condition types fail
+    loudly rather than silently returning an incorrect result.
+
+    Parameters
+    ----------
+    row
+        Current row dict being built.
+    condition
+        A `Condition` from a `RequireIfConstraint` or `ForbidIfConstraint`.
+    """
+    field_eq = require_field_eq(condition)  # type: ignore[arg-type]
+    cond_value = field_eq.value
     if isinstance(cond_value, Enum):
         cond_value = cond_value.value
-    return row.get(condition.field_name) == cond_value
+    matches = row.get(field_eq.field_name) == cond_value
+    return matches != field_eq.negated
 
 
-def _satisfy_model_constraints(row: dict[str, Any], spec: FeatureSpec) -> None:
+def _satisfy_model_constraints(row: dict[str, Any], spec: ModelSpec) -> None:
     """Adjust *row* so each model constraint is satisfied.
 
     `require_if`/`radio_group`/`require_any_of`/`min_fields_set` fill in
@@ -364,7 +377,7 @@ def value_for_field(
     )
 
 
-def _widest_union_member(union: UnionSpec) -> ModelSpec:
+def _widest_union_member(union: UnionSpec) -> RecordSpec:
     """Pick the union member whose fields have the highest cumulative Spark type rank.
 
     When multiple union members share a field name with different numeric
@@ -388,7 +401,7 @@ def _widest_union_member(union: UnionSpec) -> ModelSpec:
 
 
 def _row_from_model_spec(
-    spec: ModelSpec,
+    spec: RecordSpec,
     *,
     index: int = 0,
     populate_optional: bool = False,
@@ -446,17 +459,29 @@ def _value_for_shape(
                 populate_optional=populate_optional,
             )
 
-        case MapOf():
-            return {}
+        case MapOf(key=key_shape, value=value_shape):
+            # One constraint-valid entry: an empty map satisfies Pydantic
+            # but leaves nothing for a conformance scenario to corrupt, so
+            # the key/value checks would never fire. A `dict[K, Any]` value
+            # (e.g. Infrastructure.source_tags) carries no constraint -- and
+            # thus no check -- and `Any` has no value strategy, so the map
+            # stays empty: there is nothing to validate or corrupt.
+            if isinstance(terminal_scalar(value_shape), AnyScalar):
+                return {}
+            map_key = _value_for_shape(
+                key_shape, index=index, populate_optional=populate_optional
+            )
+            map_value = _value_for_shape(
+                value_shape, index=index, populate_optional=populate_optional
+            )
+            return {map_key: map_value}
 
         case LiteralScalar(values=values):
             val = values[0]
             return val.value if isinstance(val, Enum) else val
 
-        case Primitive(source_type=cls) if (
-            cls is not None and isinstance(cls, type) and issubclass(cls, Enum)
-        ):
-            return list(cls)[0].value  # type: ignore[call-overload]
+        case Primitive() as p if (enum_cls := enum_source(p)) is not None:
+            return list(enum_cls)[0].value
 
         case ModelRef(model=m):
             return _row_from_model_spec(
@@ -476,8 +501,10 @@ def _value_for_shape(
             )
 
         case AnyScalar():
-            # Unreachable today: the only `AnyScalar` is a `MapOf` value
-            # type, and the `MapOf` case returns `{}` without descending.
+            # No value strategy exists for `Any`. The map walk descends
+            # into key/value shapes, so a `dict[K, Any]` value would reach
+            # here -- no schema declares one today, and this raises loudly
+            # rather than guess a value if one ever appears.
             raise TypeError(
                 "AnyScalar reached base-row generation; no value strategy exists"
             )
@@ -498,18 +525,6 @@ def _value_for_shape(
     raise TypeError(f"Unhandled FieldShape: {shape!r}")
 
 
-def _value_from_check_bounds(
-    desc: ExpressionDescriptor, scalar: Primitive, cs: ConstraintSource
-) -> object | None:
-    # Skip structural bounds from numeric primitive NewTypes (int32, uint8, ...).
-    # Those bounds match Spark/Parquet types structurally -- the type system
-    # already enforces the range. Only semantic bounds (from field-level
-    # constraints or semantic NewTypes like FeatureVersion) produce values.
-    if cs.source_name == scalar.base_type:
-        return None
-    return _valid_bound_for_base_row(desc)
-
-
 def _value_from_check_enum(
     desc: ExpressionDescriptor, _scalar: Primitive, _cs: ConstraintSource
 ) -> object:
@@ -524,29 +539,45 @@ def _value_from_check_string_min_length(
     return "a"
 
 
+def _value_from_check_pattern(
+    desc: ExpressionDescriptor, _scalar: Primitive, _cs: ConstraintSource
+) -> object:
+    """Return a pattern-matching value for a curated raw pydantic pattern.
+
+    Only raw `Field(pattern=)` constraints reach here -- named
+    `PatternConstraint` subclasses resolve earlier via `CONSTRAINT_VALUES`.
+    An uncurated pattern fails loud, symmetrically with `invalid_value`:
+    matching strings can't be generated generically, and silently falling
+    back to the primitive default would emit a row that fails the pattern,
+    surfacing later as a misleading "row should be valid" Pydantic error.
+
+    Raises
+    ------
+    ValueError
+        When the pattern has no curated entry in `PATTERN_VALUES`.
+    """
+    curated = curated_pattern_values(desc)
+    if curated is None:
+        raise uncurated_pattern_error(desc, side="valid")
+    return curated.valid
+
+
 # Builders for descriptor-driven values, keyed by `ExpressionDescriptor.function`.
-# Functions absent from this table are intentionally skipped -- notably
-# `check_pattern`, since matching strings can't be generated generically.
+# `check_bounds` is intentionally absent: it is routed through
+# `_value_from_scalar_constraints` to merge multiple bound descriptors (e.g.
+# separate Gt + Lt) before calling `valid_bound` once with the combined kwargs,
+# so a single-bound path never silently produces a value that violates a second
+# bound on the same field.
+# `check_pattern` only yields a value for a curated raw pydantic pattern;
+# named pattern constraints resolve earlier via `CONSTRAINT_VALUES`.
 _DESCRIPTOR_VALUE_BUILDERS: dict[
     str, Callable[[ExpressionDescriptor, Primitive, ConstraintSource], object | None]
 ] = {
     "check_enum": _value_from_check_enum,
-    "check_bounds": _value_from_check_bounds,
     "check_string_min_length": _value_from_check_string_min_length,
+    "check_pattern": _value_from_check_pattern,
 }
 
-
-_CONSTRAINT_VALID_VALUES: dict[type, object] = {
-    CountryCodeAlpha2Constraint: "US",
-    HexColorConstraint: "#aabbcc",
-    JsonPointerConstraint: "/valid/pointer",
-    LanguageTagConstraint: "en",
-    PhoneNumberConstraint: "+1 555-555-5555",
-    RegionCodeConstraint: "US-CA",
-    SnakeCaseConstraint: "snake_case",
-    StrippedConstraint: "clean",
-    WikidataIdConstraint: "Q42",
-}
 
 _CONSTRAINT_VALID_LIST_VALUES: dict[type, list[object]] = {
     LinearReferenceRangeConstraint: [0.0, 1.0],
@@ -554,20 +585,27 @@ _CONSTRAINT_VALID_LIST_VALUES: dict[type, list[object]] = {
 
 
 def _value_from_scalar_constraints(scalar: Primitive) -> object | None:
-    """Return a value satisfying the first dispatched constraint.
+    """Return a value satisfying all dispatched constraints on a scalar.
 
-    Maps known constraint types to valid values directly, then dispatches
-    remaining constraints through `_DESCRIPTOR_VALUE_BUILDERS` keyed on
-    the `ExpressionDescriptor` function name. Assumes constraints on a
-    single field don't conflict; no schema today mixes constraints in a
-    way that would expose a conflict.
+    Maps known constraint types to valid values directly. For `check_bounds`
+    descriptors, merges all bound kwargs from every constraint on the field
+    into one dict and calls `valid_bound` once, so a field carrying separate
+    `Gt`/`Lt` constraints (two `check_bounds` descriptors) gets a value
+    satisfying both bounds. Non-bounds constraints use first-match behavior.
     """
+    merged_bounds: dict[str, object] = {}
     for cs in scalar.constraints:
         constraint_type = type(cs.constraint)
-        if constraint_type in _CONSTRAINT_VALID_VALUES:
-            return _CONSTRAINT_VALID_VALUES[constraint_type]
+        if constraint_type in CONSTRAINT_VALUES:
+            return CONSTRAINT_VALUES[constraint_type].valid
         desc = dispatch_constraint(cs.constraint, base_type=scalar.base_type)
         if desc is None:
+            continue
+        if desc.function == "check_bounds":
+            # Skip structural bounds from numeric NewType ranges — those are
+            # enforced by the Spark/Parquet type system, not by field constraints.
+            if cs.source_name != scalar.base_type:
+                merged_bounds.update(desc.kwargs)
             continue
         builder = _DESCRIPTOR_VALUE_BUILDERS.get(desc.function)
         if builder is None:
@@ -575,6 +613,11 @@ def _value_from_scalar_constraints(scalar: Primitive) -> object | None:
         val = builder(desc, scalar, cs)
         if val is not None:
             return val
+    if merged_bounds:
+        merged_desc = ExpressionDescriptor(
+            function="check_bounds", kwargs=tuple(merged_bounds.items())
+        )
+        return valid_bound(merged_desc)
     return None
 
 
@@ -604,32 +647,16 @@ def _min_length_from_shape_constraints(
     return 1
 
 
-def _valid_bound_for_base_row(desc: ExpressionDescriptor) -> object:
-    """Produce a value satisfying a bounds check for base row generation."""
-    kwargs = dict(desc.kwargs)
-    if "ge" in kwargs:
-        return kwargs["ge"]
-    if "gt" in kwargs:
-        return kwargs["gt"] + 1  # type: ignore[operator]
-    if "le" in kwargs:
-        return kwargs["le"]
-    if "lt" in kwargs:
-        return kwargs["lt"] - 1  # type: ignore[operator]
-    return 0
-
-
 def _primitive_default(base_type: str) -> object:
     """Return a type-appropriate default for a primitive base_type."""
     explicit = _PRIMITIVE_DEFAULTS.get(base_type)
     if explicit is not None:
         return explicit
-    # Numeric types: match prefixes like int32, uint8, float64, double
-    lower = base_type.lower()
-    if lower.startswith(("float", "double")):
+    category = primitive_spark_category(base_type)
+    if category == "float":
         return 0.0
-    if lower.startswith(("int", "uint")):
+    if category == "int":
         return 0
-    # Fallback for string-like types
     return ""
 
 

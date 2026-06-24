@@ -68,6 +68,46 @@ def test_check_bounds_null_passthrough(spark: SparkSession) -> None:
     assert result[0]["err"] is None
 
 
+def test_check_bounds_nan_lower_bound_violation(spark: SparkSession) -> None:
+    """NaN satisfies no Pydantic bound, but Spark sorts NaN above all values,
+    so a lower bound (NaN < v) never fires. check_bounds must reject it."""
+    df = spark.createDataFrame([Row(val=float("nan"))], schema="val double")
+    result = df.select(check_bounds(F.col("val"), ge=0).alias("err")).collect()
+    assert result[0]["err"] is not None
+    assert "NaN" in result[0]["err"]
+
+
+def test_check_bounds_nan_gt_violation(spark: SparkSession) -> None:
+    """Same lower-bound leak as ge, via the strict-greater comparison."""
+    df = spark.createDataFrame([Row(val=float("nan"))], schema="val double")
+    result = df.select(check_bounds(F.col("val"), gt=0).alias("err")).collect()
+    assert result[0]["err"] is not None
+    assert "NaN" in result[0]["err"]
+
+
+def test_check_bounds_nan_upper_bound_violation(spark: SparkSession) -> None:
+    """An upper bound already rejects NaN in Spark (NaN > v is true); the
+    explicit NaN check keeps that behavior."""
+    df = spark.createDataFrame([Row(val=float("nan"))], schema="val double")
+    result = df.select(check_bounds(F.col("val"), le=1).alias("err")).collect()
+    assert result[0]["err"] is not None
+
+
+def test_check_bounds_nan_no_bounds_passes(spark: SparkSession) -> None:
+    """With no bounds there is nothing to violate; NaN passes, matching
+    Pydantic's allow_inf_nan default for unconstrained floats."""
+    df = spark.createDataFrame([Row(val=float("nan"))], schema="val double")
+    result = df.select(check_bounds(F.col("val")).alias("err")).collect()
+    assert result[0]["err"] is None
+
+
+def test_check_bounds_valid_float_passes(spark: SparkSession) -> None:
+    """A finite in-range float is unaffected by the NaN guard."""
+    df = spark.createDataFrame([Row(val=0.5)], schema="val double")
+    result = df.select(check_bounds(F.col("val"), ge=0, le=1).alias("err")).collect()
+    assert result[0]["err"] is None
+
+
 def test_check_enum_valid(spark: SparkSession) -> None:
     df = spark.createDataFrame([Row(val="road")])
     result = df.select(
@@ -500,6 +540,64 @@ class TestCheckGeometryType:
             check_geometry_type(F.col("geometry"), GeometryType.POINT).alias("err")
         ).collect()
         assert result[0]["err"] is None
+
+    def test_iso_wkb_z_point_accepted(self, spark: SparkSession) -> None:
+        """ISO WKB encodes Z by offsetting the type (PointZ=1001), shifting
+        the low byte to 0xE9. GeoParquet mandates ISO WKB, so 3D geometries
+        reach the check this way and must still validate by base type."""
+        iso_point_z = struct.pack("<bIddd", 1, 1001, 0.0, 0.0, 5.0)
+        df = spark.createDataFrame(
+            [Row(geometry=bytearray(iso_point_z))], schema="geometry binary"
+        )
+        result = df.select(
+            check_geometry_type(F.col("geometry"), GeometryType.POINT).alias("err")
+        ).collect()
+        assert result[0]["err"] is None
+
+    def test_iso_wkb_z_point_big_endian_accepted(self, spark: SparkSession) -> None:
+        iso_point_z_be = struct.pack(">bIddd", 0, 1001, 0.0, 0.0, 5.0)
+        df = spark.createDataFrame(
+            [Row(geometry=bytearray(iso_point_z_be))], schema="geometry binary"
+        )
+        result = df.select(
+            check_geometry_type(F.col("geometry"), GeometryType.POINT).alias("err")
+        ).collect()
+        assert result[0]["err"] is None
+
+    def test_ewkb_z_point_accepted(self, spark: SparkSession) -> None:
+        """EWKB encodes Z as a high flag bit (0x80000001), leaving the low
+        byte at 0x01 -- shapely's `.wkb` default. Must keep validating."""
+        ewkb_point_z = struct.pack("<bIddd", 1, 0x80000001, 0.0, 0.0, 5.0)
+        df = spark.createDataFrame(
+            [Row(geometry=bytearray(ewkb_point_z))], schema="geometry binary"
+        )
+        result = df.select(
+            check_geometry_type(F.col("geometry"), GeometryType.POINT).alias("err")
+        ).collect()
+        assert result[0]["err"] is None
+
+    def test_shapely_3d_point_accepted(self, spark: SparkSession) -> None:
+        """shapely's native 3D WKB output validates as POINT."""
+        df = spark.createDataFrame(
+            [Row(geometry=bytearray(Point(0, 0, 5).wkb))], schema="geometry binary"
+        )
+        result = df.select(
+            check_geometry_type(F.col("geometry"), GeometryType.POINT).alias("err")
+        ).collect()
+        assert result[0]["err"] is None
+
+    def test_iso_wkb_z_wrong_type_rejected(self, spark: SparkSession) -> None:
+        """A 3D LineString (ISO 1002) is still rejected when POINT is expected
+        -- normalization strips the dimension offset, not the base type."""
+        iso_linestring_z = struct.pack("<bI", 1, 1002)
+        df = spark.createDataFrame(
+            [Row(geometry=bytearray(iso_linestring_z))], schema="geometry binary"
+        )
+        result = df.select(
+            check_geometry_type(F.col("geometry"), GeometryType.POINT).alias("err")
+        ).collect()
+        assert result[0]["err"] is not None
+        assert "Point" in result[0]["err"]
 
 
 class TestCheckStripped:
@@ -939,6 +1037,19 @@ def test_check_url_format_http_valid(spark: SparkSession) -> None:
 
 def test_check_url_format_https_valid(spark: SparkSession) -> None:
     df = spark.createDataFrame([Row(val="https://example.com/path?q=1")])
+    result = df.select(check_url_format(F.col("val")).alias("err")).collect()
+    assert result[0]["err"] is None
+
+
+def test_check_url_format_uppercase_scheme_valid(spark: SparkSession) -> None:
+    """Pydantic HttpUrl lowercases the scheme, so HTTP:// is accepted."""
+    df = spark.createDataFrame([Row(val="HTTP://example.com")])
+    result = df.select(check_url_format(F.col("val")).alias("err")).collect()
+    assert result[0]["err"] is None
+
+
+def test_check_url_format_mixed_case_scheme_valid(spark: SparkSession) -> None:
+    df = spark.createDataFrame([Row(val="HtTpS://example.com/path")])
     result = df.select(check_url_format(F.col("val")).alias("err")).collect()
     assert result[0]["err"] is None
 

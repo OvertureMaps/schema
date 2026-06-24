@@ -220,25 +220,25 @@ SCENARIOS: list[Scenario] = [
         expected_check="stripped",
     ),
     Scenario(
-        id="division_boundary::sources[].confidence:bounds",
+        id="division_boundary::sources[].confidence_0:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", -1.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="division_boundary::sources[].confidence:bounds_1",
+        id="division_boundary::sources[].confidence_1:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", 2.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -359,17 +359,17 @@ SCENARIOS: list[Scenario] = [
         expected_check="region_code",
     ),
     Scenario(
-        id="division_boundary::admin_level:bounds",
+        id="division_boundary::admin_level_0:bounds",
         scaffold={"admin_level": 0},
         mutate=set_at_path("admin_level", -1),
-        expected_field="admin_level",
+        expected_field="admin_level_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="division_boundary::admin_level:bounds_1",
+        id="division_boundary::admin_level_1:bounds",
         scaffold={"admin_level": 0},
         mutate=set_at_path("admin_level", 17),
-        expected_field="admin_level",
+        expected_field="admin_level_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -503,7 +503,7 @@ def sparse_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_SPARSE,
         SCENARIOS,
-        feature_name="division_boundary",
+        model_name="division_boundary",
     )
 
 
@@ -515,7 +515,7 @@ def populated_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_POPULATED,
         SCENARIOS,
-        feature_name="division_boundary",
+        model_name="division_boundary",
     )
 
 

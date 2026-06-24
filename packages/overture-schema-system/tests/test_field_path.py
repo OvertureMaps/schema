@@ -9,11 +9,15 @@ import pytest
 from overture.schema.system.field_path import (
     ArrayPath,
     ArraySegment,
+    MapPath,
+    MapProjection,
+    MapSegment,
     ScalarPath,
     StructSegment,
     coerce,
     parse,
     promote_terminal_array,
+    promote_terminal_map,
 )
 
 
@@ -189,6 +193,10 @@ class TestPromoteTerminalArray:
         with pytest.raises(ValueError, match="empty path"):
             promote_terminal_array(ScalarPath())
 
+    def test_map_path_raises(self) -> None:
+        with pytest.raises(NotImplementedError, match="map"):
+            promote_terminal_array(parse("subs{value}.inner"))
+
 
 class TestColumnPrefix:
     def test_array_at_start_has_empty_prefix(self) -> None:
@@ -326,6 +334,21 @@ class TestElementRelativeGate:
         with pytest.raises(NotImplementedError, match="nested array segment"):
             target.element_relative_gate(gate)
 
+    def test_mismatched_iter_count_returns_none(self) -> None:
+        # target iterates items[] (iter_count=1); gate enters items[][] (iter_count=2)
+        # -- same name, different iteration depth -- not the same element scope
+        target = parse("items[].value")
+        gate = parse("items[][].nested")
+        assert isinstance(target, ArrayPath)
+        assert target.element_relative_gate(gate) is None
+
+    def test_matching_iter_count_still_returns_element_relative_tuple(self) -> None:
+        # regression: matching iter_count must remain reachable after the fix
+        target = parse("items[][].value")
+        gate = parse("items[][].nested")
+        assert isinstance(target, ArrayPath)
+        assert target.element_relative_gate(gate) == ("nested",)
+
 
 class TestArrayPathInvariant:
     def test_rejects_segments_without_array(self) -> None:
@@ -362,6 +385,222 @@ class TestCoerce:
 
     def test_parses_string(self) -> None:
         assert coerce("items[].value") == parse("items[].value")
+
+
+class TestMapPath:
+    def test_str_top_level_key(self) -> None:
+        path = MapPath(
+            segments=(MapSegment(name="tags", projection=MapProjection.KEY),)
+        )
+        assert str(path) == "tags{key}"
+
+    def test_str_top_level_value(self) -> None:
+        path = MapPath(
+            segments=(MapSegment(name="tags", projection=MapProjection.VALUE),)
+        )
+        assert str(path) == "tags{value}"
+
+    def test_str_nested_under_struct(self) -> None:
+        path = MapPath(
+            segments=(
+                StructSegment(name="names"),
+                MapSegment(name="common", projection=MapProjection.KEY),
+            )
+        )
+        assert str(path) == "names.common{key}"
+
+    def test_projection_property(self) -> None:
+        path = MapPath(
+            segments=(MapSegment(name="tags", projection=MapProjection.VALUE),)
+        )
+        assert path.projection is MapProjection.VALUE
+
+    def test_map_column_top_level(self) -> None:
+        path = MapPath(
+            segments=(MapSegment(name="tags", projection=MapProjection.KEY),)
+        )
+        assert path.map_column == "tags"
+
+    def test_map_column_nested(self) -> None:
+        path = MapPath(
+            segments=(
+                StructSegment(name="names"),
+                MapSegment(name="common", projection=MapProjection.VALUE),
+            )
+        )
+        assert path.map_column == "names.common"
+
+    def test_must_contain_a_map_segment(self) -> None:
+        with pytest.raises(ValueError, match="MapSegment"):
+            MapPath(segments=(StructSegment(name="names"),))
+
+    def test_rejects_array_segment_before_map(self) -> None:
+        with pytest.raises(ValueError, match="struct"):
+            MapPath(
+                segments=(  # type: ignore[arg-type]  # invalid by design: runtime guard under test
+                    ArraySegment(name="items"),
+                    MapSegment(name="tags", projection=MapProjection.KEY),
+                )
+            )
+
+    def test_rejects_two_map_segments(self) -> None:
+        with pytest.raises(ValueError, match="MapSegment"):
+            MapPath(
+                segments=(
+                    MapSegment(name="a", projection=MapProjection.KEY),
+                    MapSegment(name="b", projection=MapProjection.VALUE),
+                )
+            )
+
+    @pytest.mark.parametrize(
+        "encoded",
+        ["tags{key}", "tags{value}", "names.common{key}", "names.common{value}"],
+    )
+    def test_str_round_trip(self, encoded: str) -> None:
+        assert str(parse(encoded)) == encoded
+
+    def test_parse_returns_map_path(self) -> None:
+        assert isinstance(parse("names.common{key}"), MapPath)
+
+    def test_parse_key(self) -> None:
+        assert parse("tags{key}") == MapPath(
+            segments=(MapSegment(name="tags", projection=MapProjection.KEY),)
+        )
+
+    def test_parse_nested_value(self) -> None:
+        assert parse("names.common{value}") == MapPath(
+            segments=(
+                StructSegment(name="names"),
+                MapSegment(name="common", projection=MapProjection.VALUE),
+            )
+        )
+
+
+class TestMapPathLeaf:
+    """A `MapPath` may carry struct segments after the `MapSegment`.
+
+    These name a value inside a `dict[K, Model]`'s value (or key) struct,
+    mirroring `ArrayPath.leaf` for `list[Model]`. The `MapSegment` is the
+    iteration boundary; the leaf is the struct navigation inside each
+    projected element.
+    """
+
+    def test_leaf_empty_for_bare_projection(self) -> None:
+        path = MapPath(
+            segments=(MapSegment(name="subs", projection=MapProjection.VALUE),)
+        )
+        assert path.leaf == ()
+
+    def test_leaf_names_struct_segments_after_map(self) -> None:
+        path = MapPath(
+            segments=(
+                MapSegment(name="subs", projection=MapProjection.VALUE),
+                StructSegment(name="label"),
+            )
+        )
+        assert path.leaf == ("label",)
+
+    def test_leaf_spans_nested_struct_navigation(self) -> None:
+        path = MapPath(
+            segments=(
+                MapSegment(name="subs", projection=MapProjection.VALUE),
+                StructSegment(name="inner"),
+                StructSegment(name="label"),
+            )
+        )
+        assert path.leaf == ("inner", "label")
+
+    def test_map_column_excludes_leaf(self) -> None:
+        path = MapPath(
+            segments=(
+                StructSegment(name="names"),
+                MapSegment(name="common", projection=MapProjection.VALUE),
+                StructSegment(name="label"),
+            )
+        )
+        assert path.map_column == "names.common"
+
+    def test_projection_found_with_leaf_present(self) -> None:
+        path = MapPath(
+            segments=(
+                MapSegment(name="subs", projection=MapProjection.KEY),
+                StructSegment(name="label"),
+            )
+        )
+        assert path.projection is MapProjection.KEY
+
+    def test_str_appends_leaf_after_marker(self) -> None:
+        path = MapPath(
+            segments=(
+                MapSegment(name="subs", projection=MapProjection.VALUE),
+                StructSegment(name="label"),
+            )
+        )
+        assert str(path) == "subs{value}.label"
+
+    def test_append_struct_extends_leaf(self) -> None:
+        path = MapPath(
+            segments=(MapSegment(name="subs", projection=MapProjection.VALUE),)
+        )
+        extended = path.append_struct("label")
+        assert extended == MapPath(
+            segments=(
+                MapSegment(name="subs", projection=MapProjection.VALUE),
+                StructSegment(name="label"),
+            )
+        )
+
+    def test_rejects_array_segment_in_leaf(self) -> None:
+        with pytest.raises(ValueError, match="struct"):
+            MapPath(
+                segments=(  # type: ignore[arg-type]  # invalid by design: runtime guard under test
+                    MapSegment(name="subs", projection=MapProjection.VALUE),
+                    ArraySegment(name="items"),
+                )
+            )
+
+    @pytest.mark.parametrize(
+        "encoded",
+        ["subs{value}.label", "names.common{key}.tag", "subs{value}.inner.label"],
+    )
+    def test_str_round_trip_with_leaf(self, encoded: str) -> None:
+        assert str(parse(encoded)) == encoded
+
+    def test_parse_value_with_leaf(self) -> None:
+        assert parse("subs{value}.label") == MapPath(
+            segments=(
+                MapSegment(name="subs", projection=MapProjection.VALUE),
+                StructSegment(name="label"),
+            )
+        )
+
+    def test_parse_rejects_array_marker_in_leaf(self) -> None:
+        with pytest.raises(ValueError, match="map projection"):
+            parse("subs{value}.items[]")
+
+
+class TestPromoteTerminalMap:
+    def test_top_level_struct_becomes_map_key(self) -> None:
+        assert promote_terminal_map(parse("tags"), MapProjection.KEY) == parse(
+            "tags{key}"
+        )
+
+    def test_struct_prefix_preserved_for_value(self) -> None:
+        assert promote_terminal_map(
+            parse("names.common"), MapProjection.VALUE
+        ) == parse("names.common{value}")
+
+    def test_empty_path_raises(self) -> None:
+        with pytest.raises(ValueError, match="empty path"):
+            promote_terminal_map(ScalarPath(), MapProjection.KEY)
+
+    def test_array_path_raises(self) -> None:
+        with pytest.raises(NotImplementedError, match="list"):
+            promote_terminal_map(parse("items[].tags"), MapProjection.KEY)
+
+    def test_map_path_raises(self) -> None:
+        with pytest.raises(NotImplementedError, match="map"):
+            promote_terminal_map(parse("subs{value}.inner"), MapProjection.VALUE)
 
 
 class TestParseRejectsEmptyParts:

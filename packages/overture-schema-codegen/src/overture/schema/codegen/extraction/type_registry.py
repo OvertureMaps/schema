@@ -1,17 +1,22 @@
 """Type registry mapping Python types to target representations."""
 
 from dataclasses import dataclass
+from typing import Literal
 
 from .field import FieldShape
 from .field_walk import newtype_name, terminal_primitive
 
 __all__ = [
+    "SparkCategory",
     "TypeMapping",
     "PRIMITIVE_TYPES",
     "get_type_mapping",
     "is_semantic_newtype",
+    "primitive_spark_category",
     "resolve_type_name",
 ]
+
+SparkCategory = Literal["string", "int", "float", "bool", "other"]
 
 
 @dataclass(frozen=True)
@@ -73,6 +78,41 @@ def get_type_mapping(type_name: str) -> TypeMapping | None:
     builtin names (`int` -> int64, `float` -> float64).
     """
     return PRIMITIVE_TYPES.get(type_name)
+
+
+# BinaryType() is intentionally absent: geometry maps to BinaryType() in
+# PRIMITIVE_TYPES but falls through to "other" here, not a numeric/string/bool scalar.
+_SPARK_TYPE_CATEGORIES: dict[str, SparkCategory] = {
+    "StringType()": "string",
+    "IntegerType()": "int",
+    "LongType()": "int",
+    "FloatType()": "float",
+    "DoubleType()": "float",
+    "BooleanType()": "bool",
+}
+
+
+def primitive_spark_category(base_type: str) -> SparkCategory:
+    """Return the Spark category for a primitive base type name.
+
+    Parameters
+    ----------
+    base_type
+        A primitive type name (`"int32"`, `"float64"`, `"bool"`, `"str"`, ...).
+
+    Returns
+    -------
+    SparkCategory
+        `"string"` for string-valued types, `"int"` for integer types,
+        `"float"` for floating-point types, `"bool"` for boolean types,
+        `"other"` for binary, geometry, or unregistered types. Unknown
+        types fall back to `"other"`, preserving string-default behavior
+        for any future unregistered type.
+    """
+    mapping = get_type_mapping(base_type)
+    if mapping is None or mapping.spark is None:
+        return "other"
+    return _SPARK_TYPE_CATEGORIES.get(mapping.spark, "other")
 
 
 def resolve_type_name(shape: FieldShape) -> str:

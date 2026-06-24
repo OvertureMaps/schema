@@ -16,6 +16,7 @@ from ....._support.harness import (
     run_validation_pipeline,
 )
 from ....._support.helpers import set_at_path
+from ....._support.mutations import mutate_map_key, mutate_map_value
 from ....._support.scenarios import Scenario
 
 BASE_ROW_SPARSE: dict = {
@@ -33,7 +34,7 @@ BASE_ROW_SPARSE: dict = {
             "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
         }
     ],
-    "license_priority": {},
+    "license_priority": {"ODbL-1.0": 0},
 }
 
 
@@ -69,7 +70,7 @@ BASE_ROW_POPULATED: dict = {
             "requires_attribution": "",
         }
     ],
-    "license_priority": {},
+    "license_priority": {"ODbL-1.0": 0},
 }
 
 
@@ -756,6 +757,20 @@ SCENARIOS: list[Scenario] = [
         expected_field="license_priority",
         expected_check="required",
     ),
+    Scenario(
+        id="sources::license_priority{key}:pattern",
+        scaffold={},
+        mutate=lambda row: mutate_map_key(row, "license_priority", "bad license!"),
+        expected_field="license_priority{key}",
+        expected_check="pattern",
+    ),
+    Scenario(
+        id="sources::license_priority{value}:bounds",
+        scaffold={},
+        mutate=lambda row: mutate_map_value(row, "license_priority", -1),
+        expected_field="license_priority{value}",
+        expected_check="bounds",
+    ),
 ]
 
 
@@ -772,7 +787,7 @@ def sparse_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_SPARSE,
         SCENARIOS,
-        feature_name="sources",
+        model_name="sources",
     )
 
 
@@ -784,7 +799,7 @@ def populated_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_POPULATED,
         SCENARIOS,
-        feature_name="sources",
+        model_name="sources",
     )
 
 

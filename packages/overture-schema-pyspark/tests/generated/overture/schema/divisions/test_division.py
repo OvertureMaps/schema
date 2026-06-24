@@ -18,6 +18,8 @@ from ....._support.harness import (
 from ....._support.helpers import set_at_path
 from ....._support.mutations import (
     mutate_forbid_if,
+    mutate_map_key,
+    mutate_map_value,
     mutate_require_if,
     mutate_unique_items,
 )
@@ -41,7 +43,7 @@ BASE_ROW_POPULATED: dict = {
     "cartography": {"prominence": 1, "min_zoom": 0, "max_zoom": 0, "sort_key": 0},
     "names": {
         "primary": "a",
-        "common": {},
+        "common": {"en": "clean"},
         "rules": [
             {
                 "value": "a",
@@ -75,7 +77,7 @@ BASE_ROW_POPULATED: dict = {
     "hierarchies": [[{"division_id": "a", "subtype": "country", "name": "a"}]],
     "admin_level": 0,
     "class": "megacity",
-    "local_type": {},
+    "local_type": {"en": "clean"},
     "region": "US-CA",
     "perspectives": {"mode": "accepted_by", "countries": ["US"]},
     "norms": {"driving_side": "left"},
@@ -88,45 +90,45 @@ BASE_ROW_POPULATED: dict = {
 
 SCENARIOS: list[Scenario] = [
     Scenario(
-        id="division::cartography.prominence:bounds",
+        id="division::cartography.prominence_0:bounds",
         scaffold={"cartography": {"prominence": 1}},
         mutate=set_at_path("cartography.prominence", 0),
-        expected_field="cartography.prominence",
+        expected_field="cartography.prominence_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="division::cartography.prominence:bounds_1",
+        id="division::cartography.prominence_1:bounds",
         scaffold={"cartography": {"prominence": 1}},
         mutate=set_at_path("cartography.prominence", 101),
-        expected_field="cartography.prominence",
+        expected_field="cartography.prominence_1",
         expected_check="bounds",
     ),
     Scenario(
-        id="division::cartography.min_zoom:bounds",
+        id="division::cartography.min_zoom_0:bounds",
         scaffold={"cartography": {"min_zoom": 0}},
         mutate=set_at_path("cartography.min_zoom", -1),
-        expected_field="cartography.min_zoom",
+        expected_field="cartography.min_zoom_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="division::cartography.min_zoom:bounds_1",
+        id="division::cartography.min_zoom_1:bounds",
         scaffold={"cartography": {"min_zoom": 0}},
         mutate=set_at_path("cartography.min_zoom", 24),
-        expected_field="cartography.min_zoom",
+        expected_field="cartography.min_zoom_1",
         expected_check="bounds",
     ),
     Scenario(
-        id="division::cartography.max_zoom:bounds",
+        id="division::cartography.max_zoom_0:bounds",
         scaffold={"cartography": {"max_zoom": 0}},
         mutate=set_at_path("cartography.max_zoom", -1),
-        expected_field="cartography.max_zoom",
+        expected_field="cartography.max_zoom_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="division::cartography.max_zoom:bounds_1",
+        id="division::cartography.max_zoom_1:bounds",
         scaffold={"cartography": {"max_zoom": 0}},
         mutate=set_at_path("cartography.max_zoom", 24),
-        expected_field="cartography.max_zoom",
+        expected_field="cartography.max_zoom_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -155,6 +157,20 @@ SCENARIOS: list[Scenario] = [
         scaffold={"names": {"primary": "a"}},
         mutate=set_at_path("names.primary", " has spaces "),
         expected_field="names.primary",
+        expected_check="stripped",
+    ),
+    Scenario(
+        id="division::names.common{key}:language_tag",
+        scaffold={"names": {"primary": "a", "common": {"en": "clean"}}},
+        mutate=lambda row: mutate_map_key(row, "names.common", "123"),
+        expected_field="names.common{key}",
+        expected_check="language_tag",
+    ),
+    Scenario(
+        id="division::names.common{value}:stripped",
+        scaffold={"names": {"primary": "a", "common": {"en": "clean"}}},
+        mutate=lambda row: mutate_map_value(row, "names.common", " has spaces "),
+        expected_field="names.common{value}",
         expected_check="stripped",
     ),
     Scenario(
@@ -523,25 +539,25 @@ SCENARIOS: list[Scenario] = [
         expected_check="stripped",
     ),
     Scenario(
-        id="division::sources[].confidence:bounds",
+        id="division::sources[].confidence_0:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", -1.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="division::sources[].confidence:bounds_1",
+        id="division::sources[].confidence_1:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", 2.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -727,17 +743,17 @@ SCENARIOS: list[Scenario] = [
         expected_check="no_whitespace",
     ),
     Scenario(
-        id="division::admin_level:bounds",
+        id="division::admin_level_0:bounds",
         scaffold={"admin_level": 0},
         mutate=set_at_path("admin_level", -1),
-        expected_field="admin_level",
+        expected_field="admin_level_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="division::admin_level:bounds_1",
+        id="division::admin_level_1:bounds",
         scaffold={"admin_level": 0},
         mutate=set_at_path("admin_level", 17),
-        expected_field="admin_level",
+        expected_field="admin_level_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -746,6 +762,20 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("class", "__INVALID__"),
         expected_field="class",
         expected_check="enum",
+    ),
+    Scenario(
+        id="division::local_type{key}:language_tag",
+        scaffold={"local_type": {"en": "clean"}},
+        mutate=lambda row: mutate_map_key(row, "local_type", "123"),
+        expected_field="local_type{key}",
+        expected_check="language_tag",
+    ),
+    Scenario(
+        id="division::local_type{value}:stripped",
+        scaffold={"local_type": {"en": "clean"}},
+        mutate=lambda row: mutate_map_value(row, "local_type", " has spaces "),
+        expected_field="local_type{value}",
+        expected_check="stripped",
     ),
     Scenario(
         id="division::region:region_code",
@@ -978,7 +1008,7 @@ def sparse_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_SPARSE,
         SCENARIOS,
-        feature_name="division",
+        model_name="division",
     )
 
 
@@ -990,7 +1020,7 @@ def populated_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_POPULATED,
         SCENARIOS,
-        feature_name="division",
+        model_name="division",
     )
 
 

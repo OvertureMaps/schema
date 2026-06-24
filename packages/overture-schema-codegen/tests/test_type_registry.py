@@ -9,6 +9,7 @@ from overture.schema.codegen.extraction.type_registry import (
     PRIMITIVE_TYPES,
     TypeMapping,
     get_type_mapping,
+    primitive_spark_category,
     resolve_type_name,
 )
 
@@ -102,3 +103,34 @@ class TestResolveTypeName:
     def test_array_of_scalar_resolves_terminal(self) -> None:
         shape = ArrayOf(element=Primitive(base_type="str", source_type=str))
         assert resolve_type_name(shape) == "string"
+
+
+class TestPrimitiveSparkCategory:
+    def test_int_types_are_int(self) -> None:
+        for bt in (
+            "int8",
+            "int16",
+            "int32",
+            "int64",
+            "uint8",
+            "uint16",
+            "uint32",
+            "int",
+        ):
+            assert primitive_spark_category(bt) == "int", bt
+
+    def test_float_types_are_float(self) -> None:
+        for bt in ("float32", "float64", "float"):
+            assert primitive_spark_category(bt) == "float", bt
+
+    def test_bool_is_bool(self) -> None:
+        assert primitive_spark_category("bool") == "bool"
+
+    def test_string_type_is_string(self) -> None:
+        assert primitive_spark_category("str") == "string"
+
+    def test_unknown_type_falls_back_to_other(self) -> None:
+        assert primitive_spark_category("UnknownNewType") == "other"
+
+    def test_geometry_is_other(self) -> None:
+        assert primitive_spark_category("Geometry") == "other"

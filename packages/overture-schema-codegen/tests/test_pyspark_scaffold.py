@@ -6,9 +6,9 @@ import pytest
 from codegen_test_support import (
     FeatureWithRequiredUrl,
     discover_feature,
-    feature_spec_for_model,
+    spec_for_model,
 )
-from overture.schema.codegen.extraction.specs import FeatureSpec
+from overture.schema.codegen.extraction.specs import ModelSpec
 from overture.schema.codegen.pyspark.check_builder import build_checks
 from overture.schema.codegen.pyspark.check_ir import ElementGuard
 from overture.schema.codegen.pyspark.test_data.scaffold import (
@@ -22,24 +22,24 @@ _path = parse
 
 
 @pytest.fixture(scope="module")
-def connector_spec() -> FeatureSpec:
+def connector_spec() -> ModelSpec:
     return discover_feature("Connector")
 
 
 @pytest.fixture(scope="module")
-def division_area_spec() -> FeatureSpec:
+def division_area_spec() -> ModelSpec:
     return discover_feature("DivisionArea")
 
 
 @pytest.fixture(scope="module")
-def segment_spec() -> FeatureSpec:
+def segment_spec() -> ModelSpec:
     return discover_feature("Segment")
 
 
 class TestLeafListDepth:
     def test_leaf_list_depth(self) -> None:
         """leaf_list_depth returns unaccounted-for list depth."""
-        spec = feature_spec_for_model(FeatureWithRequiredUrl)
+        spec = spec_for_model(FeatureWithRequiredUrl)
         # Scalar field inside array struct — no extra wrapping
         assert leaf_list_depth(_path("datasets[].url"), spec) == 0
         # List field without trailing array marker — needs wrapping
@@ -53,7 +53,7 @@ class TestNestedListUrlField:
 
     def test_nested_list_url_field_single_depth(self) -> None:
         """list[HttpUrl] scaffold should be single-depth, not double-wrapped."""
-        spec = feature_spec_for_model(FeatureWithRequiredUrl)
+        spec = spec_for_model(FeatureWithRequiredUrl)
         field_nodes, _ = build_checks(spec)
         url_nodes = [n for n in field_nodes if "download_urls" in str(n.target)]
         assert url_nodes, "Expected check nodes for download_urls"
@@ -73,7 +73,7 @@ class TestGenerateScaffoldConnector:
     """Scaffold for Connector — simple top-level and one-level-nested fields."""
 
     def test_required_top_level_field_produces_empty_scaffold(
-        self, connector_spec: FeatureSpec
+        self, connector_spec: ModelSpec
     ) -> None:
         """Required top-level fields exist in base row; scaffold adds nothing."""
         field_nodes, _ = build_checks(connector_spec)
@@ -82,7 +82,7 @@ class TestGenerateScaffoldConnector:
         assert scaffold == {}
 
     def test_optional_top_level_field_produces_scaffold(
-        self, connector_spec: FeatureSpec
+        self, connector_spec: ModelSpec
     ) -> None:
         """Optional fields absent from base row get a valid scaffold value."""
         field_nodes, _ = build_checks(connector_spec)
@@ -97,7 +97,7 @@ class TestGenerateScaffoldConnector:
         assert isinstance(scaffold["sources"], list)
         assert len(scaffold["sources"]) >= 1
 
-    def test_array_nested_field_builds_path(self, connector_spec: FeatureSpec) -> None:
+    def test_array_nested_field_builds_path(self, connector_spec: ModelSpec) -> None:
         """sources[].property needs a sources array with one element."""
         field_nodes, _ = build_checks(connector_spec)
         node = next(n for n in field_nodes if n.target == _path("sources[].property"))
@@ -109,7 +109,7 @@ class TestGenerateScaffoldConnector:
         # Required sibling 'dataset' populated
         assert "dataset" in elem
 
-    def test_scaffold_is_dict(self, connector_spec: FeatureSpec) -> None:
+    def test_scaffold_is_dict(self, connector_spec: ModelSpec) -> None:
         field_nodes, _ = build_checks(connector_spec)
         for node in field_nodes:
             scaffold = generate_scaffold(node, connector_spec)
@@ -120,7 +120,7 @@ class TestGenerateScaffoldSegment:
     """Scaffold for Segment — deeply nested arrays and discriminators."""
 
     def test_suffixed_nested_leaf_uses_actual_field_name(
-        self, segment_spec: FeatureSpec
+        self, segment_spec: ModelSpec
     ) -> None:
         """Column-level checks share the structural path with the real field."""
         field_nodes, _ = build_checks(segment_spec)
@@ -136,7 +136,7 @@ class TestGenerateScaffoldSegment:
         assert "mode" in when, f"Expected 'mode', got keys: {list(when.keys())}"
         assert "mode_min_length" not in when
 
-    def test_deeply_nested_array_path(self, segment_spec: FeatureSpec) -> None:
+    def test_deeply_nested_array_path(self, segment_spec: ModelSpec) -> None:
         """speed_limits[].when.vehicle[].dimension builds full nesting."""
         field_nodes, _ = build_checks(segment_spec)
         node = next(
@@ -153,7 +153,7 @@ class TestGenerateScaffoldSegment:
         assert isinstance(when["vehicle"], list)
         assert len(when["vehicle"]) == 1
 
-    def test_element_guard_discriminator_set(self, segment_spec: FeatureSpec) -> None:
+    def test_element_guard_discriminator_set(self, segment_spec: ModelSpec) -> None:
         """Checks with an `ElementGuard` set the discriminator value in the scaffold."""
         field_checks, _ = build_checks(segment_spec)
         # Find a speed_limits check with an ElementGuard.
@@ -174,7 +174,7 @@ class TestGenerateScaffoldSegment:
         assert vehicle_elem[element_guard.discriminator] == element_guard.values[0]
 
     def test_column_variant_does_not_appear_inside_scaffold(
-        self, segment_spec: FeatureSpec
+        self, segment_spec: ModelSpec
     ) -> None:
         """`ColumnGuard`s don't set discriminator inside the scaffold dict."""
         field_checks, _ = build_checks(segment_spec)
@@ -191,7 +191,7 @@ class TestGenerateScaffoldSegment:
         # it belongs at the row level, which the base row handles.
         assert isinstance(scaffold, dict)
 
-    def test_multiple_element_guards_raises(self, segment_spec: FeatureSpec) -> None:
+    def test_multiple_element_guards_raises(self, segment_spec: ModelSpec) -> None:
         """The check_ir invariant allows at most one `ElementGuard` per Check.
 
         Multiple guards would indicate the gate composition rule changed
@@ -217,7 +217,7 @@ class TestGenerateScaffoldSegment:
 
 class TestGenerateModelScaffold:
     def test_top_level_model_constraint_produces_empty_scaffold(
-        self, division_area_spec: FeatureSpec
+        self, division_area_spec: ModelSpec
     ) -> None:
         """Model constraints at the top level need no nesting."""
         _, model_nodes = build_checks(division_area_spec)
@@ -227,7 +227,7 @@ class TestGenerateModelScaffold:
         assert isinstance(scaffold, dict)
 
     def test_array_nested_model_constraint_builds_path(
-        self, segment_spec: FeatureSpec
+        self, segment_spec: ModelSpec
     ) -> None:
         """Model constraints inside arrays build the array path."""
         _, model_checks = build_checks(segment_spec)

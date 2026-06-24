@@ -7,10 +7,12 @@ them by attachment layer so each variant carries its own dispatch:
 `ArrayMinLen` / `ArrayMaxLen` for `ArrayOf` layers, `ScalarMinLen` /
 `ScalarMaxLen` for scalar layers.
 
-These are codegen-internal classes -- Pydantic users continue to write
-`Annotated[X, MinLen(n)]` in their schemas; the wrapping happens inside
-`type_analyzer.attach_constraints` when the constraint reaches its
-target layer.
+These are codegen-internal classes -- schema authors continue to write
+the normal Pydantic form (`Field(min_length=n)` / `Field(max_length=n)`),
+which Pydantic lowers into the `annotated_types.MinLen` / `MaxLen`
+metadata described above. The wrapping into these layer-typed variants
+happens inside `type_analyzer.attach_constraints` when the constraint
+reaches its target layer.
 """
 
 from __future__ import annotations

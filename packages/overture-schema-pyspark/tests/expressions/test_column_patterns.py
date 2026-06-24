@@ -5,7 +5,13 @@ from overture.schema.pyspark.expressions.column_patterns import (
     check_struct_unique,
     coalesce_errors,
     error_msg,
+    map_keys_check,
+    map_values_check,
     nested_array_check,
+)
+from overture.schema.pyspark.expressions.constraint_expressions import (
+    check_require_any_of,
+    check_string_min_length,
 )
 from pyspark.sql import Row, SparkSession
 from pyspark.sql import functions as F
@@ -242,6 +248,132 @@ def test_nested_array_check_no_errors(spark: SparkSession) -> None:
     )
     result = df.select(coalesce_errors(result_col).alias("errs")).collect()
     assert result[0]["errs"] == []
+
+
+def test_map_keys_check_flags_bad_key(spark: SparkSession) -> None:
+    df = spark.createDataFrame(
+        [Row(tags={"good": "v", "bad": "v"})],
+        schema="tags map<string,string>",
+    )
+    result = df.select(
+        map_keys_check("tags", lambda k: F.when(k == "bad", F.lit("bad key"))).alias(
+            "errs"
+        )
+    ).collect()
+    assert result[0]["errs"] == ["bad key"]
+
+
+def test_map_values_check_flags_bad_value(spark: SparkSession) -> None:
+    df = spark.createDataFrame(
+        [Row(tags={"a": "ok", "b": "bad"})],
+        schema="tags map<string,string>",
+    )
+    result = df.select(
+        map_values_check(
+            "tags", lambda v: F.when(v == "bad", F.lit("bad value"))
+        ).alias("errs")
+    ).collect()
+    assert result[0]["errs"] == ["bad value"]
+
+
+def test_map_values_check_descends_into_value_struct_field(
+    spark: SparkSession,
+) -> None:
+    # A field check on a `dict[str, Model]` value navigates into the value
+    # struct: map_values_check over a struct-navigating lambda, the exact
+    # composition the renderer emits for a map-of-model value field.
+    df = spark.createDataFrame(
+        [Row(items={"a": Row(label="")})],
+        schema="items map<string,struct<label:string>>",
+    )
+    result = df.select(
+        map_values_check(
+            "items", lambda v: check_string_min_length(v["label"], 1)
+        ).alias("errs")
+    ).collect()
+    assert result[0]["errs"] == ["minimum length 1, got 0"]
+
+
+def test_map_values_check_passes_valid_value_struct_field(
+    spark: SparkSession,
+) -> None:
+    df = spark.createDataFrame(
+        [Row(items={"a": Row(label="ok")})],
+        schema="items map<string,struct<label:string>>",
+    )
+    result = df.select(
+        map_values_check(
+            "items", lambda v: check_string_min_length(v["label"], 1)
+        ).alias("errs")
+    ).collect()
+    assert result[0]["errs"] == []
+
+
+def test_map_values_check_enforces_value_model_constraint(
+    spark: SparkSession,
+) -> None:
+    # A model-level constraint on a `dict[str, Model]` value: map_values_check
+    # wrapping check_require_any_of over the value struct's fields, the exact
+    # composition the renderer emits for a map-of-model value-model constraint.
+    df = spark.createDataFrame(
+        [Row(subs={"a": Row(foo=None, bar=None)})],
+        schema="subs map<string,struct<foo:int,bar:string>>",
+    )
+    result = df.select(
+        map_values_check(
+            "subs",
+            lambda v: check_require_any_of([v["foo"], v["bar"]], ["foo", "bar"]),
+        ).alias("errs")
+    ).collect()
+    assert result[0]["errs"] == ["requires at least one of foo, bar"]
+
+
+def test_map_values_check_passes_satisfied_value_model_constraint(
+    spark: SparkSession,
+) -> None:
+    df = spark.createDataFrame(
+        [Row(subs={"a": Row(foo=1, bar=None)})],
+        schema="subs map<string,struct<foo:int,bar:string>>",
+    )
+    result = df.select(
+        map_values_check(
+            "subs",
+            lambda v: check_require_any_of([v["foo"], v["bar"]], ["foo", "bar"]),
+        ).alias("errs")
+    ).collect()
+    assert result[0]["errs"] == []
+
+
+def test_map_keys_check_null_column_returns_null(spark: SparkSession) -> None:
+    df = spark.createDataFrame([Row(tags=None)], schema="tags map<string,string>")
+    result = df.select(
+        map_keys_check("tags", lambda k: F.lit("err")).alias("errs")
+    ).collect()
+    assert result[0]["errs"] is None
+
+
+def test_map_values_check_all_valid_empty(spark: SparkSession) -> None:
+    df = spark.createDataFrame(
+        [Row(tags={"a": "ok"})], schema="tags map<string,string>"
+    )
+    result = df.select(
+        map_values_check("tags", lambda v: F.when(v == "bad", F.lit("err"))).alias(
+            "errs"
+        )
+    ).collect()
+    assert result[0]["errs"] == []
+
+
+def test_map_keys_check_accepts_column(spark: SparkSession) -> None:
+    df = spark.createDataFrame(
+        [Row(tags={"bad": "v"})], schema="tags map<string,string>"
+    )
+    result = df.select(
+        map_keys_check(F.col("tags"), lambda k: F.when(k == "bad", F.lit("err"))).alias(
+            "errs"
+        )
+    ).collect()
+    assert result[0]["errs"] == ["err"]
 
 
 def test_coalesce_errors_null_becomes_empty(spark: SparkSession) -> None:

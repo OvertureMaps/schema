@@ -133,7 +133,21 @@ def _structural_fingerprint(spec: FieldSpec) -> _TypeShape:
     return (base_type, kind, spec.is_optional, depth)
 
 
-def _constraints_fingerprint(spec: FieldSpec) -> frozenset[str]:
+def _fingerprint_key(constraint: object) -> object:
+    """Return a value-stable set key for a single constraint.
+
+    Constraints with value equality -- every `FieldConstraint`, the
+    `annotated_types` dataclasses, `GeometryTypeConstraint` -- key as
+    themselves. Foreign metadata that falls back to identity equality, namely
+    pydantic's internal `Field(...)` metadata, keys on its value-stable `repr`
+    so two equal-valued instances still collapse.
+    """
+    if type(constraint).__eq__ is object.__eq__:
+        return repr(constraint)
+    return constraint
+
+
+def _constraints_fingerprint(spec: FieldSpec) -> frozenset[object]:
     """Constraints declared anywhere in *spec*'s shape tree, as a comparable set.
 
     `_structural_fingerprint` deliberately ignores constraints so that
@@ -141,8 +155,13 @@ def _constraints_fingerprint(spec: FieldSpec) -> frozenset[str]:
     metadata still collapse to one `AnnotatedField`. This captures what
     that ignores, so collisions with diverging constraints fail loudly
     instead of silently keeping the last member's `FieldSpec`.
+
+    Constraint identity lives on the constraints themselves: `FieldConstraint`
+    subclasses define value equality and hashing, so equal rules collapse in
+    the set. `_fingerprint_key` covers the lone foreign holdout that still
+    compares by identity.
     """
-    constraints: list[str] = []
+    keys: list[object] = []
 
     def collect(shape: FieldShape) -> None:
         match shape:
@@ -154,12 +173,12 @@ def _constraints_fingerprint(spec: FieldSpec) -> frozenset[str]:
                 | MapOf(constraints=cs)
             ):
                 for source in cs:
-                    constraints.append(repr(source.constraint))
+                    keys.append(_fingerprint_key(source.constraint))
             case ModelRef() | UnionRef() | NewTypeShape():
                 pass
 
     walk_shape(spec.shape, collect)
-    return frozenset(constraints)
+    return frozenset(keys)
 
 
 def extract_union(

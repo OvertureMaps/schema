@@ -16,11 +16,11 @@ from overture.schema.system.field_path import (
     ArrayPath,
     ArraySegment,
     FieldPath,
-    PathSegment,
+    FieldSegment,
 )
 
 from ...extraction.field_walk import has_array_layer, list_depth, terminal_model_ref
-from ...extraction.specs import FeatureSpec, FieldSpec
+from ...extraction.specs import FieldSpec, ModelSpec
 from ..check_ir import (
     Check,
     ElementGuard,
@@ -52,7 +52,7 @@ def _find_field_spec(fields: list[FieldSpec], name: str) -> FieldSpec | None:
     return None
 
 
-def leaf_list_depth(field_path: FieldPath, spec: FeatureSpec) -> int:
+def leaf_list_depth(field_path: FieldPath, spec: ModelSpec) -> int:
     """Return the unaccounted-for list depth of the leaf field.
 
     Walks the spec's field tree along *field_path* and returns the
@@ -96,14 +96,20 @@ def _required_siblings(
 
 
 def _walk_to_target(
-    segments: tuple[PathSegment, ...],
+    segments: tuple[FieldSegment, ...],
     fields: list[FieldSpec],
     spec_name: str,
     *,
     discriminator: _ElementDiscriminator | None,
     current_depth: int = 0,
 ) -> dict[str, Any]:
-    """Recursively build the scaffold dict along the path segments."""
+    """Recursively build the scaffold dict along the path segments.
+
+    Accepts any `FieldSegment`: struct steps recurse, an `ArraySegment`
+    wraps its inner value in lists, and a trailing `MapSegment` resolves
+    via `value_for_field` (which populates the map with a valid entry),
+    so a `MapPath` target scaffolds the same way as a struct terminal.
+    """
     if not segments:
         return {}
 
@@ -185,7 +191,7 @@ def _element_discriminator(check: Check) -> _ElementDiscriminator | None:
     return None
 
 
-def generate_scaffold(check: Check, spec: FeatureSpec) -> dict[str, Any]:
+def generate_scaffold(check: Check, spec: ModelSpec) -> dict[str, Any]:
     """Build a sparse dict from null to the target field of a Check."""
     segments = check.target.segments
     if not segments:
@@ -206,7 +212,7 @@ def generate_scaffold(check: Check, spec: FeatureSpec) -> dict[str, Any]:
     )
 
 
-def generate_model_scaffold(check: ModelCheck, spec: FeatureSpec) -> dict[str, Any]:
+def generate_model_scaffold(check: ModelCheck, spec: ModelSpec) -> dict[str, Any]:
     """Build a sparse dict for a model-level check's nesting structure.
 
     Only top-level array columns are supported -- a `ScalarPath` target

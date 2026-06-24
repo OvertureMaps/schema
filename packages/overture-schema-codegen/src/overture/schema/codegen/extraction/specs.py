@@ -20,10 +20,10 @@ __all__ = [
     "AnnotatedField",
     "EnumMemberSpec",
     "EnumSpec",
-    "FeatureSpec",
+    "ModelSpec",
     "FieldSpec",
     "MemberSpec",
-    "ModelSpec",
+    "RecordSpec",
     "NewTypeSpec",
     "NumericSpec",
     "PydanticTypeSpec",
@@ -84,7 +84,7 @@ class TypeIdentity:
 class _SourceTypeIdentityMixin:
     """Mixin providing `identity` from `source_type` and `name`.
 
-    Shared by EnumSpec, ModelSpec, NewTypeSpec, and PydanticTypeSpec --
+    Shared by EnumSpec, RecordSpec, NewTypeSpec, and PydanticTypeSpec --
     each has a `source_type` (the Python class/callable) and a `name`.
     UnionSpec uses `source_annotation` instead, so it defines its
     own `identity`.
@@ -136,7 +136,7 @@ class FieldSpec:
 
 
 @dataclass
-class ModelSpec(_SourceTypeIdentityMixin):
+class RecordSpec(_SourceTypeIdentityMixin):
     """Specification for a Pydantic model."""
 
     name: str
@@ -158,7 +158,7 @@ class AnnotatedField:
 
 @dataclass
 class MemberSpec:
-    """A union member's class paired with its extracted `ModelSpec`.
+    """A union member's class paired with its extracted `RecordSpec`.
 
     `extract_union` already runs `extract_model` on every member to
     build the merged `annotated_fields`; retaining the result here lets
@@ -167,7 +167,7 @@ class MemberSpec:
     """
 
     member_cls: type[BaseModel]
-    spec: ModelSpec
+    spec: RecordSpec
 
 
 @dataclass
@@ -241,15 +241,16 @@ class PydanticTypeSpec(_SourceTypeIdentityMixin):
         )
 
 
-FeatureSpec: TypeAlias = ModelSpec | UnionSpec
-"""Top-level feature types passed through the extraction pipeline.
+ModelSpec: TypeAlias = RecordSpec | UnionSpec
+"""A model is one record, or a tagged union of records.
 
-Consumers narrow with `isinstance` when an arm-specific attribute
-is needed (e.g. `UnionSpec.discriminator_field`).
+The top-level type passed through the extraction pipeline. Consumers
+narrow with `isinstance` when an arm-specific attribute is needed
+(e.g. `UnionSpec.discriminator_field`).
 """
 
-SupplementarySpec = EnumSpec | NewTypeSpec | ModelSpec | PydanticTypeSpec
-"""Non-feature types referenced by feature models.
+SupplementarySpec = EnumSpec | NewTypeSpec | RecordSpec | PydanticTypeSpec
+"""Supplementary types referenced by models.
 
 Excludes NumericSpec and geometry types, which are extracted
 separately via dedicated functions.

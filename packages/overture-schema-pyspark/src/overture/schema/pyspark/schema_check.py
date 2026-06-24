@@ -6,6 +6,7 @@ as a flat list with dot-notation paths.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from pyspark.sql.types import (
@@ -14,6 +15,10 @@ from pyspark.sql.types import (
     MapType,
     StructType,
 )
+
+# First struct (`.`), array (`[]`), or map (`{key}`/`{value}`) step marker
+# in an encoded path; everything before it is the top-level column.
+_STEP_MARKER = re.compile(r"[.\[{]")
 
 
 @dataclass(frozen=True)
@@ -33,6 +38,16 @@ class SchemaMismatch:
     path: str
     actual: str
     expected: str
+
+    @property
+    def root(self) -> str:
+        """Top-level schema column this mismatch belongs to.
+
+        Strips the struct/array/map step markers `_compare` embeds in
+        `path` (e.g. `sources[].confidence` -> `sources`), leaving the
+        column name that matches a `Check.read_columns` entry.
+        """
+        return _STEP_MARKER.split(self.path, maxsplit=1)[0]
 
 
 def _type_name(dt: DataType) -> str:

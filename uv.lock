@@ -842,6 +842,7 @@ dependencies = [
     { name = "overture-schema-common" },
     { name = "overture-schema-system" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions" },
 ]
 
 [package.dev-dependencies]
@@ -862,6 +863,7 @@ requires-dist = [
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0" },
+    { name = "typing-extensions", specifier = ">=4.0" },
 ]
 
 [package.metadata.requires-dev]

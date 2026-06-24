@@ -13,15 +13,14 @@ from ..extraction.field import (
     ModelRef,
     NewTypeShape,
     Primitive,
-    Scalar,
     UnionRef,
 )
-from ..extraction.field_walk import terminal_of, walk_shape
+from ..extraction.field_walk import all_constraints, walk_shape
 from ..extraction.specs import (
-    FeatureSpec,
     FieldSpec,
     ModelSpec,
     NewTypeSpec,
+    RecordSpec,
     SupplementarySpec,
     TypeIdentity,
     UnionSpec,
@@ -51,7 +50,7 @@ class UsedByEntry:
 
 
 def compute_reverse_references(
-    feature_specs: Sequence[FeatureSpec],
+    model_specs: Sequence[ModelSpec],
     all_specs: Mapping[TypeIdentity, SupplementarySpec],
 ) -> dict[TypeIdentity, list[UsedByEntry]]:
     """Compute reverse references from types to their referrers.
@@ -61,8 +60,8 @@ def compute_reverse_references(
 
     Parameters
     ----------
-    feature_specs
-        Feature-level specs (ModelSpec or UnionSpec).
+    model_specs
+        Feature-level specs (RecordSpec or UnionSpec).
     all_specs
         Supplementary types (enums, newtypes, sub-models).
     """
@@ -114,7 +113,7 @@ def compute_reverse_references(
         for field_spec in fields:
             collect_from_shape(field_spec.shape, referrer, referrer_kind)
 
-    def collect_from_model_spec(spec: ModelSpec, referrer: TypeIdentity) -> None:
+    def collect_from_model_spec(spec: RecordSpec, referrer: TypeIdentity) -> None:
         collect_from_fields(spec.fields, referrer, UsedByKind.MODEL)
 
     def collect_from_union_spec(spec: UnionSpec) -> None:
@@ -129,20 +128,21 @@ def compute_reverse_references(
         # spec.shape already has the outer NewTypeShape stripped.
         collect_from_shape(spec.shape, referrer, UsedByKind.NEWTYPE)
 
-        # Inherited NewTypes from constraint sources (constraint chains).
-        terminal = terminal_of(spec.shape)
-        if isinstance(terminal, Scalar):
-            for cs in terminal.constraints:
-                if cs.source_ref is not None and cs.source_name is not None:
-                    add_reference(
-                        TypeIdentity(cs.source_ref, cs.source_name),
-                        referrer,
-                        UsedByKind.NEWTYPE,
-                    )
+        # Inherited NewTypes from constraint sources at every layer
+        # (array / map / scalar), not just the terminal scalar -- a
+        # NewType chaining through an array NewType carries the inner
+        # NewType's provenance on the array layer.
+        for cs in all_constraints(spec.shape):
+            if cs.source_ref is not None and cs.source_name is not None:
+                add_reference(
+                    TypeIdentity(cs.source_ref, cs.source_name),
+                    referrer,
+                    UsedByKind.NEWTYPE,
+                )
 
     # Collect from features
-    for spec in feature_specs:
-        if isinstance(spec, ModelSpec):
+    for spec in model_specs:
+        if isinstance(spec, RecordSpec):
             collect_from_model_spec(spec, spec.identity)
         elif isinstance(spec, UnionSpec):
             collect_from_union_spec(spec)
@@ -151,7 +151,7 @@ def compute_reverse_references(
     for tid, supp_spec in all_specs.items():
         if isinstance(supp_spec, NewTypeSpec):
             collect_from_newtype_spec(supp_spec, tid)
-        elif isinstance(supp_spec, ModelSpec):
+        elif isinstance(supp_spec, RecordSpec):
             collect_from_model_spec(supp_spec, tid)
 
     # Sort into deterministic lists.

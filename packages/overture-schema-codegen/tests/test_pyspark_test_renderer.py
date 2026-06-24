@@ -5,7 +5,8 @@ import re
 from enum import Enum
 
 import pytest
-from overture.schema.codegen.extraction.field import ArrayOf, Primitive
+from overture.schema.codegen.extraction.field import ArrayOf, ModelRef, Primitive
+from overture.schema.codegen.extraction.specs import RecordSpec
 from overture.schema.codegen.pyspark.check_ir import (
     Check,
     ColumnGuard,
@@ -20,12 +21,18 @@ from overture.schema.codegen.pyspark.constraint_dispatch import (
     RequireAnyOf,
     RequireIf,
 )
+from overture.schema.codegen.pyspark.renderer import render_model_module
+from overture.schema.codegen.pyspark.test_renderer import (
+    _fill_value_literal,
+)
 from overture.schema.codegen.pyspark.test_renderer import (
     render_test_module as _real_render_test_module,
 )
 from overture.schema.system.field_constraint.string import (
     CountryCodeAlpha2Constraint,
+    LanguageTagConstraint,
     NoWhitespaceConstraint,
+    StrippedConstraint,
 )
 from overture.schema.system.field_path import ArrayPath, ScalarPath, parse
 from overture.schema.system.model_constraint import FieldEqCondition, Not
@@ -99,6 +106,7 @@ def _array(
         prefix = ScalarPath(segments=prefix_structs)
         path = prefix.append_array(outer_name, iter_count=1)
     else:
+        assert isinstance(column_path, ArrayPath)  # never a MapPath here
         path = column_path
     for sp in inner_struct_paths:
         for n in sp[:-1]:
@@ -107,6 +115,44 @@ def _array(
     for n in leaf_path:
         path = path.append_struct(n)
     return path
+
+
+class TestMapPathScenarios:
+    """MapPath field checks emit mutate_map_key / mutate_map_value scenarios."""
+
+    def test_map_key_emits_mutate_map_key(self) -> None:
+        check = make_check(
+            "check_pattern",
+            _path("names.common{key}"),
+            args=(r"^[a-z]+$",),
+            constraint_type=LanguageTagConstraint,
+            label="language tag",
+        )
+        source = render_test_module("dictfeat", [check], [])
+        ast.parse(source)
+        assert "mutate_map_key(row, 'names.common', '123')" in source
+        assert "expected_field='names.common{key}'" in source
+
+    def test_map_value_emits_mutate_map_value(self) -> None:
+        check = make_check(
+            "check_stripped",
+            _path("names{value}"),
+            constraint_type=StrippedConstraint,
+        )
+        source = render_test_module("dictfeat", [check], [])
+        ast.parse(source)
+        assert "mutate_map_value(row, 'names', ' has spaces ')" in source
+        assert "expected_field='names{value}'" in source
+
+    def test_map_mutation_helper_is_imported(self) -> None:
+        check = make_check(
+            "check_stripped",
+            _path("names{value}"),
+            constraint_type=StrippedConstraint,
+        )
+        source = render_test_module("dictfeat", [check], [])
+        # Appears in both the import block and the scenario call.
+        assert source.count("mutate_map_value") >= 2
 
 
 class TestRenderTestModuleParseable:
@@ -189,12 +235,13 @@ class TestFieldScenarios:
         with pytest.raises(ValueError, match="Cannot render mutate expression"):
             render_test_module("test", nodes, [])
 
-    def test_pattern_produces_invalid_string(self) -> None:
+    def test_pattern_without_constraint_type_raises(self) -> None:
+        """check_pattern with no constraint_type raises at codegen time."""
         nodes = [
             make_check("check_pattern", _path("wikidata.value"), args=(r"^Q\d+$",)),
         ]
-        source = render_test_module("test", nodes, [])
-        assert "'pattern'" in source
+        with pytest.raises(ValueError, match="Cannot render mutate expression"):
+            render_test_module("test", nodes, [])
 
     def test_no_whitespace_pattern_mutation_contains_whitespace(self) -> None:
         """Mutation for NoWhitespaceConstraint must contain whitespace to violate ^\\S+$."""
@@ -262,7 +309,7 @@ class TestFieldScenarios:
         assert "[{}, {}, {}, {}]" in source or "[{}] * 4" in source
         assert "expected_field='connectors_max_length'" in source
 
-    def test_scenario_id_includes_feature_name(self) -> None:
+    def test_scenario_id_includes_model_name(self) -> None:
         nodes = [make_check("check_required", _path("country"))]
         source = render_test_module("division_area", nodes, [])
         assert "division_area::country:required" in source
@@ -369,14 +416,24 @@ class TestModelScenarios:
         assert "[{}]" in source
 
     def test_forbid_if_struct_field_generates_fill_values(self) -> None:
-        """forbid_if targeting a struct field emits fill_values with {}."""
+        """forbid_if targeting a struct field emits fill_values with {}.
+
+        Struct fields reach `_fill_value_literal` as `ModelRef` shapes, not
+        `Primitive` — `_needs_explicit_fill` only passes model references and
+        arrays for the `{}` / `[{}]` fill; string `Primitive`s are excluded.
+        """
         model_nodes = [
             ModelCheck(
                 descriptor=ForbidIf(
                     field_names=("road_surface",),
                     condition=FieldEqCondition("subtype", "road"),
                     field_shapes=(
-                        ("road_surface", Primitive(base_type="RoadSurface")),
+                        (
+                            "road_surface",
+                            ModelRef(
+                                model=RecordSpec(name="RoadSurface", description=None)
+                            ),
+                        ),
                     ),
                 ),
             ),
@@ -554,6 +611,43 @@ class TestModelScenarios:
         ]
         with pytest.raises(ValueError, match="multi-level inner struct paths"):
             render_test_module("test", [], model_nodes)
+
+
+class TestCrossArmModelCheckLabelCollision:
+    """Per-arm test labels must match the expression module's labels.
+
+    The expression module is rendered once over the unfiltered model-check
+    list, so a cross-arm base-label collision earns a `_N` suffix there. A
+    per-arm test module must compute that suffix over the same unfiltered
+    list and filter rows afterward; computing it over the arm subset would
+    emit a bare `expected_field` the module never produces.
+    """
+
+    def test_per_arm_label_matches_module_label(self) -> None:
+        road = ModelCheck(
+            descriptor=RequireIf(
+                field_names=("class",),
+                condition=FieldEqCondition("subtype", "road"),
+            ),
+            arm="road",
+        )
+        rail = ModelCheck(
+            descriptor=RequireIf(
+                field_names=("class",),
+                condition=FieldEqCondition("subtype", "rail"),
+            ),
+            arm="rail",
+        )
+        model_checks = [road, rail]
+
+        module = render_model_module("seg", [], model_checks, [])
+        module_labels = re.findall(r'field="(class_required[^"]*)"', module)
+        road_label = module_labels[0]
+
+        test_source = render_test_module("seg", [], model_checks, arm="road")
+        test_labels = re.findall(r"expected_field='(class_required[^']*)'", test_source)
+
+        assert test_labels == [road_label], (test_labels, road_label)
 
 
 class TestTestLayer:
@@ -791,6 +885,211 @@ class TestArmFiltering:
         assert "speed_limits" not in rail
         road = render_test_module("test", [check], [], arm="road")
         assert "speed_limits" in road
+
+
+class TestFieldLabelCollisionSuffix:
+    """Colliding field-check `expected_field`s carry the suffix the module emits.
+
+    The expression module is rendered once across every arm, so its
+    `(field, name)` collisions are defined over the full check list. The
+    per-arm test modules must derive `expected_field` from that same
+    full list -- not a post-arm-filter subset -- or they assert a field
+    the module never emits.
+    """
+
+    def _colliding_checks(self) -> list[Check]:
+        """Two `required` checks on one path, distinguished by inner union arm."""
+        return [
+            make_check(
+                "check_required",
+                _path("value"),
+                guards=(
+                    ColumnGuard(discriminator="subtype", values=("road",)),
+                    ElementGuard(discriminator="dimension", values=("axle_count",)),
+                ),
+            ),
+            make_check(
+                "check_required",
+                _path("value"),
+                guards=(
+                    ColumnGuard(discriminator="subtype", values=("road",)),
+                    ElementGuard(discriminator="dimension", values=("height",)),
+                ),
+            ),
+        ]
+
+    def test_colliding_expected_fields_are_suffixed(self) -> None:
+        source = render_test_module("test", self._colliding_checks(), [])
+        ast.parse(source)
+        assert "expected_field='value_0'" in source
+        assert "expected_field='value_1'" in source
+        assert "expected_field='value'," not in source
+
+    def test_suffix_survives_arm_filter(self) -> None:
+        """Both colliding checks share an arm; the per-arm file keeps both suffixes.
+
+        Computing suffixes post-filter would still see the collision here
+        (both survive), so this alone is necessary but not sufficient --
+        `test_suffix_computed_over_unfiltered_list` covers the case where
+        filtering would otherwise hide it.
+        """
+        source = render_test_module("test", self._colliding_checks(), [], arm="road")
+        ast.parse(source)
+        assert "expected_field='value_0'" in source
+        assert "expected_field='value_1'" in source
+
+    def test_suffix_computed_over_unfiltered_list(self) -> None:
+        """A surviving check keeps the suffix even when its collision sibling is filtered out.
+
+        The two checks collide in the full list (both emit
+        `(value, required)`) but belong to different arms. The expression
+        module -- rendered across both arms -- emits `value_0` / `value_1`.
+        Each arm test sees only one of them after filtering; computing
+        the suffix from that one-element subset would wrongly drop it.
+        """
+        checks = [
+            make_check(
+                "check_required",
+                _path("value"),
+                guards=(ColumnGuard(discriminator="subtype", values=("road",)),),
+            ),
+            make_check(
+                "check_required",
+                _path("value"),
+                guards=(ColumnGuard(discriminator="subtype", values=("rail",)),),
+            ),
+        ]
+        road = render_test_module("test", checks, [], arm="road")
+        rail = render_test_module("test", checks, [], arm="rail")
+        ast.parse(road)
+        ast.parse(rail)
+        assert "expected_field='value_0'" in road
+        assert "expected_field='value_1'" in rail
+        # Neither arm asserts the bare, never-emitted label.
+        assert "expected_field='value'," not in road
+        assert "expected_field='value'," not in rail
+
+    def test_noncolliding_field_check_stays_bare(self) -> None:
+        nodes = [
+            make_check("check_required", _path("value")),
+            make_check("check_bounds", _path("value"), kwargs=(("ge", 0),)),
+        ]
+        source = render_test_module("test", nodes, [])
+        ast.parse(source)
+        assert "expected_field='value'," in source
+        assert "expected_field='value_0'" not in source
+
+
+class TestForbidIfNonStringFillValues:
+    """fill_values for non-string scalar ForbidIf fields must be typed literals."""
+
+    def test_forbid_if_int_field_generates_int_fill_value(self) -> None:
+        """forbid_if targeting an int field emits fill_values with 0, not {}."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=ForbidIf(
+                    field_names=("version",),
+                    condition=FieldEqCondition("subtype", "road"),
+                    field_shapes=(("version", Primitive(base_type="int32")),),
+                ),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert "fill_values" in source
+        assert "'version': 0" in source
+        assert "'version': {}" not in source
+
+    def test_forbid_if_bool_field_generates_bool_fill_value(self) -> None:
+        """forbid_if targeting a bool field emits fill_values with False, not {}."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=ForbidIf(
+                    field_names=("flag",),
+                    condition=FieldEqCondition("subtype", "road"),
+                    field_shapes=(("flag", Primitive(base_type="bool")),),
+                ),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert "fill_values" in source
+        assert "'flag': False" in source
+        assert "'flag': {}" not in source
+
+    def test_forbid_if_float_field_generates_float_fill_value(self) -> None:
+        """forbid_if targeting a float field emits fill_values with 0.0, not {}."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=ForbidIf(
+                    field_names=("score",),
+                    condition=FieldEqCondition("subtype", "road"),
+                    field_shapes=(("score", Primitive(base_type="float64")),),
+                ),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert "fill_values" in source
+        assert "'score': 0.0" in source
+        assert "'score': {}" not in source
+
+    def test_string_primitive_in_field_shapes_raises(self) -> None:
+        """_fill_value_literal raises ValueError if a string-typed Primitive reaches it.
+
+        String primitives must not appear in field_shapes (the contract is that
+        `_needs_explicit_fill` filters them out). A direct violation raises loudly
+        instead of silently emitting `{}`.
+        """
+        model_nodes = [
+            ModelCheck(
+                descriptor=ForbidIf(
+                    field_names=("label",),
+                    condition=FieldEqCondition("subtype", "road"),
+                    field_shapes=(("label", Primitive(base_type="str")),),
+                ),
+            ),
+        ]
+        with pytest.raises(ValueError, match="unhandled Primitive base_type"):
+            render_test_module("test", [], model_nodes)
+
+
+class TestFillValueLiteralOtherCategory:
+    """_fill_value_literal raises for Primitive base types in category 'other'.
+
+    'Geometry' maps to `primitive_spark_category` -> 'other'. A ForbidIf
+    field_shapes entry containing such a shape must raise at generation time
+    rather than silently emitting `{}` (a struct literal) for a binary column.
+    """
+
+    def test_geometry_primitive_raises_directly(self) -> None:
+        """_fill_value_literal raises ValueError for a Primitive of category 'other'.
+
+        Calls `_fill_value_literal` directly with a `Geometry` Primitive
+        (category 'other') to confirm the raise is unconditional rather
+        than guarded by a registry lookup.
+        """
+        with pytest.raises(ValueError, match="unhandled Primitive base_type"):
+            _fill_value_literal(Primitive(base_type="Geometry"))
+
+    def test_geometry_primitive_in_field_shapes_raises(self) -> None:
+        """_fill_value_literal raises ValueError for a Geometry-typed Primitive.
+
+        'Geometry' is category 'other' in `primitive_spark_category`. Without
+        the fix, the 'other' branch falls through to the struct `return "{}"`,
+        silently emitting an invalid fill value for a binary column.
+        """
+        model_nodes = [
+            ModelCheck(
+                descriptor=ForbidIf(
+                    field_names=("geometry",),
+                    condition=FieldEqCondition("subtype", "road"),
+                    field_shapes=(("geometry", Primitive(base_type="Geometry")),),
+                ),
+            ),
+        ]
+        with pytest.raises(ValueError, match="unhandled Primitive base_type"):
+            render_test_module("test", [], model_nodes)
 
 
 class TestLinearRangeMutations:

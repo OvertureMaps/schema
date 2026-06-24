@@ -266,3 +266,33 @@ class TestKindMismatch:
         )
         result = compare_schemas(actual, expected)
         assert result == [SchemaMismatch("x", "StringType", "ArrayType")]
+
+
+class TestSchemaMismatchRoot:
+    """`root` strips the step markers `_compare` embeds in `path`.
+
+    The top-level column a mismatch belongs to is everything before the
+    first struct (`.`), array (`[]`), or map (`{key}`/`{value}`) step, so
+    it matches the column-granular `Check.read_columns`.
+    """
+
+    def test_top_level(self) -> None:
+        assert SchemaMismatch("theme", "missing", "StringType").root == "theme"
+
+    def test_struct_field(self) -> None:
+        assert SchemaMismatch("bbox.xmin", "missing", "DoubleType").root == "bbox"
+
+    def test_array_element_field(self) -> None:
+        assert (
+            SchemaMismatch("sources[].confidence", "missing", "DoubleType").root
+            == "sources"
+        )
+
+    def test_array_element(self) -> None:
+        assert SchemaMismatch("tags[]", "IntegerType", "StringType").root == "tags"
+
+    def test_map_key(self) -> None:
+        assert SchemaMismatch("tags{key}", "IntegerType", "StringType").root == "tags"
+
+    def test_map_value(self) -> None:
+        assert SchemaMismatch("tags{value}", "IntegerType", "StringType").root == "tags"

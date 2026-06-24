@@ -2,19 +2,24 @@
 
 from enum import Enum
 from pathlib import PurePosixPath
-from typing import Literal, NewType
+from typing import Any, Literal, NewType
 
+import pytest
 from overture.schema.codegen.extraction.field import (
     AnyScalar,
     ArrayOf,
     LiteralScalar,
+    NewTypeShape,
+    Primitive,
     Scalar,
     UnionRef,
 )
+from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import FieldSpec, TypeIdentity
 from overture.schema.codegen.extraction.type_analyzer import analyze_type
 from overture.schema.codegen.markdown.link_computation import LinkContext
 from overture.schema.codegen.markdown.type_format import (
+    _bare_map_side_name,
     _registry_name,
     format_type,
     format_underlying_type,
@@ -29,6 +34,14 @@ class _ModelA(BaseModel):
 
 class _ModelB(BaseModel):
     y: str
+
+
+class _OuterWithModelMap(BaseModel):
+    m: dict[str, _ModelB]
+
+
+class _OuterWithModelListMap(BaseModel):
+    m: dict[str, list[_ModelB]]
 
 
 class TestFormatType:
@@ -81,6 +94,42 @@ class TestFormatType:
         result = format_type(_make_field(int32))
         assert result == "`int32`"
         assert "](int32.md)" not in result
+
+    def test_geometry_links_to_aggregate_page(self) -> None:
+        from overture.schema.system.primitive import Geometry
+
+        field = _make_field(Geometry)
+        ctx = LinkContext(
+            page_path=PurePosixPath("buildings/building/building.md"),
+            registry={
+                TypeIdentity(Geometry, "Geometry"): PurePosixPath(
+                    "system/primitive/geometry.md"
+                )
+            },
+        )
+        assert (
+            format_type(field, ctx)
+            == "[`geometry`](../../system/primitive/geometry.md)"
+        )
+
+    def test_bbox_links_to_aggregate_page(self) -> None:
+        from overture.schema.system.primitive import BBox
+
+        field = _make_field(BBox)
+        ctx = LinkContext(
+            page_path=PurePosixPath("base/feature/feature.md"),
+            registry={
+                TypeIdentity(BBox, "BBox"): PurePosixPath(
+                    "system/primitive/geometry.md"
+                )
+            },
+        )
+        assert format_type(field, ctx) == "[`bbox`](../../system/primitive/geometry.md)"
+
+    def test_geometry_without_context_renders_plain_code(self) -> None:
+        from overture.schema.system.primitive import Geometry
+
+        assert format_type(_make_field(Geometry)) == "`geometry`"
 
 
 def _make_field(
@@ -319,6 +368,131 @@ class TestListOfSemanticNewtype:
         assert "list<`" in result or "`list<list<" in result
         assert "ScalarNT" in result
         assert "(list)" not in result
+
+
+def _link_ctx(*entries: tuple[object, str, str]) -> LinkContext:
+    """Build a LinkContext registering each (newtype, name, page_path)."""
+    return LinkContext(
+        page_path=PurePosixPath("base/names/names.md"),
+        registry={
+            TypeIdentity(newtype, name): PurePosixPath(path)
+            for newtype, name, path in entries
+        },
+    )
+
+
+class TestFormatMapType:
+    """Tests for MapOf rendering in field cells (format_type).
+
+    Adjacent backtick runs break links: CommonMark reads `` as a
+    multi-backtick code-span delimiter, so any side left bare must fold
+    into the surrounding `map<...>` span. Every linked case asserts
+    `"``" not in result` to guard that.
+    """
+
+    def test_map_without_context_renders_bare_names(self) -> None:
+        """A map field with no link context renders bare key/value names."""
+        assert format_type(_make_field(dict[str, int32])) == "`map<string, int32>`"
+
+    def test_map_value_list_preserves_list_wrapper(self) -> None:
+        """A list-valued map keeps its `list<...>` wrapper, not just the element."""
+        assert (
+            format_type(_make_field(dict[str, list[int]]))
+            == "`map<string, list<int64>>`"
+        )
+
+    def test_map_value_nested_map_preserves_map_wrapper(self) -> None:
+        """A map-valued map keeps its inner `map<...>`, not a bare `?`."""
+        assert (
+            format_type(_make_field(dict[str, dict[str, int]]))
+            == "`map<string, map<string, int64>>`"
+        )
+
+    def test_map_value_any_renders_as_any_not_question_mark(self) -> None:
+        """An `Any`-valued map names the value `Any`, never a bare `?`."""
+        assert format_type(_make_field(dict[str, Any])) == "`map<string, Any>`"
+
+    def test_union_valued_map_side_raises(self) -> None:
+        """A union-valued map side fails loudly rather than rendering a guess."""
+        with pytest.raises(NotImplementedError):
+            _bare_map_side_name(_union_ref([_ModelA, _ModelB]))
+
+    def test_non_semantic_newtype_map_side_uses_registry_name(self) -> None:
+        """A pass-through NewType resolves to its registry name, not its raw name.
+
+        A NewType whose name equals its base type (here `int`) is not
+        semantic, so it must render as the registry markdown name (`int64`).
+        """
+        shape = NewTypeShape(
+            name="int", ref=object(), inner=Primitive(base_type="int", source_type=int)
+        )
+        assert _bare_map_side_name(shape) == "int64"
+
+    def test_map_key_newtype_links_in_field_cell(self) -> None:
+        """A semantic NewType key links to its page in the field cell."""
+        LangTag = NewType("LangTag", str)
+        ctx = _link_ctx((LangTag, "LangTag", "system/language_tag.md"))
+        result = format_type(_make_field(dict[LangTag, str]), ctx)
+        assert "[`LangTag`]" in result
+        assert "language_tag.md" in result
+        assert "map<" in result
+        assert "``" not in result
+
+    def test_map_value_newtype_links_in_field_cell(self) -> None:
+        """A semantic NewType value links to its page in the field cell."""
+        Stripped = NewType("Stripped", str)
+        ctx = _link_ctx((Stripped, "Stripped", "system/stripped_string.md"))
+        result = format_type(_make_field(dict[str, Stripped]), ctx)
+        assert "[`Stripped`]" in result
+        assert "stripped_string.md" in result
+        assert "``" not in result
+
+    def test_map_value_model_links_in_field_cell(self) -> None:
+        """A model-valued map links the value model to its page (bd-ru4n).
+
+        The real pipeline resolves a `dict[K, Model]` value to a `ModelRef`
+        (not a BaseModel-sourced `Primitive`), so the link path must handle
+        `ModelRef` map sides, not only `Primitive` ones.
+        """
+        spec = extract_model(_OuterWithModelMap)
+        field = next(f for f in spec.fields if f.name == "m")
+        ctx = _link_ctx((_ModelB, "_ModelB", "theme/feature/types/model_b.md"))
+        result = format_type(field, ctx)
+        assert "[`_ModelB`]" in result
+        assert "model_b.md" in result
+        assert "map<" in result
+        assert "``" not in result
+
+    def test_map_value_model_list_renders_bare_with_wrapper(self) -> None:
+        """A `list<Model>`-valued map keeps its `list<...>` wrapper, no link.
+
+        The real pipeline resolves the value to `ArrayOf(element=ModelRef)`.
+        Linking would collapse the wrapper to a bare model link, so the
+        `depth == 0` guard keeps the model side bare and preserves
+        `list<...>`. Registering `_ModelB` makes the absent link meaningful.
+        """
+        spec = extract_model(_OuterWithModelListMap)
+        field = next(f for f in spec.fields if f.name == "m")
+        ctx = _link_ctx((_ModelB, "_ModelB", "theme/feature/types/model_b.md"))
+        result = format_type(field, ctx)
+        assert "[`_ModelB`]" not in result
+        assert "list<" in result
+        assert "map<string, list<_ModelB>>" in result
+
+    def test_map_key_and_value_newtypes_both_link(self) -> None:
+        """When both sides are semantic NewTypes, both link in the field cell."""
+        LangTag = NewType("LangTag", str)
+        Stripped = NewType("Stripped", str)
+        ctx = _link_ctx(
+            (LangTag, "LangTag", "system/language_tag.md"),
+            (Stripped, "Stripped", "system/stripped_string.md"),
+        )
+        result = format_type(_make_field(dict[LangTag, Stripped]), ctx)
+        assert "[`LangTag`]" in result
+        assert "language_tag.md" in result
+        assert "[`Stripped`]" in result
+        assert "stripped_string.md" in result
+        assert "``" not in result
 
 
 class TestFormatUnderlyingUnionType:

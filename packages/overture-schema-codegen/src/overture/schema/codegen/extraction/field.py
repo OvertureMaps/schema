@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypeAlias
 
 if TYPE_CHECKING:
-    from .specs import ModelSpec, UnionSpec
+    from .specs import RecordSpec, UnionSpec
 
 __all__ = [
     "AnyScalar",
@@ -101,7 +101,7 @@ class ModelRef:
     consumers that recurse into models must stop at cycle starts.
     """
 
-    model: ModelSpec
+    model: RecordSpec
     starts_cycle: bool = False
 
 

@@ -1,5 +1,7 @@
 """Tests for constraint description (model-level and field-level)."""
 
+import re
+
 from annotated_types import Ge, Gt, Interval, Le, Lt
 from overture.schema.codegen.extraction.field_constraints import (
     constraint_display_text,
@@ -16,6 +18,10 @@ from overture.schema.codegen.extraction.model_constraints import (
 )
 from overture.schema.codegen.extraction.specs import TypeIdentity
 from overture.schema.codegen.extraction.type_analyzer import ConstraintSource
+from overture.schema.system.field_constraint.string import (
+    CountryCodeAlpha2Constraint,
+    PatternConstraint,
+)
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     ForbidIfConstraint,
@@ -516,3 +522,29 @@ class TestConstraintDisplayText:
         assert len(received) == 1
         assert received[0].obj is Target
         assert result == "References [`Target`](link) (composition)"
+
+
+class TestConstraintPatternFlags:
+    """constraint_display_text surfaces a compiled pattern's regex flags."""
+
+    def _display(self, constraint: object) -> str:
+        cs = ConstraintSource(source_ref=None, source_name=None, constraint=constraint)
+        return constraint_display_text(cs)
+
+    def test_case_insensitive_pattern_shows_inline_flag(self) -> None:
+        # A case-insensitive pattern displayed without its flag misleads the
+        # reader into thinking only lowercase matches.
+        c = PatternConstraint(r"^[a-z]+$", "err: {value}", flags=re.I)
+        assert "pattern: `(?i)^[a-z]+$`" in self._display(c)
+
+    def test_unflagged_pattern_omits_inline_flag_group(self) -> None:
+        # re.UNICODE is the implicit str-pattern default and must not leak as
+        # a (?u) group onto every pattern.
+        assert "pattern: `^[A-Z]{2}$`" in self._display(CountryCodeAlpha2Constraint())
+        assert "(?" not in self._display(CountryCodeAlpha2Constraint())
+
+    def test_multiple_flags_render_as_one_group(self) -> None:
+        # Display tolerates flags pyspark cannot honor (re.M); doc generation
+        # must not crash where check generation would.
+        c = PatternConstraint(r"^[a-z]+$", "err: {value}", flags=re.I | re.M)
+        assert "pattern: `(?im)^[a-z]+$`" in self._display(c)

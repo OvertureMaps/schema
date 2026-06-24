@@ -12,10 +12,9 @@ from collections.abc import Callable
 from typing import Any
 
 from overture.schema.system.field_path import (
-    ArrayPath,
     ArraySegment,
     FieldPath,
-    PathSegment,
+    FieldSegment,
     ScalarPath,
     coerce,
 )
@@ -190,7 +189,7 @@ def mutate_unique_items(row_dict: dict, path: FieldPath | str) -> dict:
     result = copy.deepcopy(row_dict)
     segments = coerce(path).segments
 
-    parent: Any = _walk_strict(result, segments[:-1], path)
+    parent: Any = _walk_strict(result, path, segments[:-1])
     last = segments[-1]
     if not isinstance(parent, dict) or last.name not in parent:
         raise PathTraversalError(f"Missing key '{last.name}' in path '{path}'")
@@ -198,13 +197,15 @@ def mutate_unique_items(row_dict: dict, path: FieldPath | str) -> dict:
     # When the terminal is an array segment, descend `iter_count` levels of
     # `[0]`. Otherwise the terminal struct already references the list to
     # mutate. The final `container[key]` must itself be a list.
-    container: Any = parent
-    key: int | str = last.name
-    iter_count = last.iter_count if isinstance(last, ArraySegment) else 0
-    for depth in range(iter_count):
-        inner = container[key]
-        _require_non_empty_array(inner, f"{last.name}{'[]' * depth}", path)
-        container, key = inner, 0
+    container: Any
+    key: int | str
+    if isinstance(last, ArraySegment):
+        container, key = _descend_iter_count(
+            parent[last.name], last.iter_count, last.name, path
+        )
+    else:
+        container = parent
+        key = last.name
     arr = container[key]
     if not isinstance(arr, list):
         raise PathTraversalError(
@@ -214,16 +215,56 @@ def mutate_unique_items(row_dict: dict, path: FieldPath | str) -> dict:
     return result
 
 
+def mutate_map_key(row_dict: dict, path: FieldPath | str, bad_key: object) -> dict:
+    """Replace the single map entry's key with *bad_key*, preserving its value.
+
+    *path* is the struct-field path to the map column (e.g. `"names.common"`).
+    The base row / scaffold populates the map with one valid entry, so a
+    one-entry replacement suffices to trigger the key check. Raises
+    `PathTraversalError` when the map is missing or empty.
+    """
+    _key, value = _single_map_entry(row_dict, path)
+    return _replace_map(row_dict, path, {bad_key: value})
+
+
+def mutate_map_value(row_dict: dict, path: FieldPath | str, bad_value: object) -> dict:
+    """Replace the single map entry's value with *bad_value*, preserving its key.
+
+    Mirror of `mutate_map_key` for the value side. Raises
+    `PathTraversalError` when the map is missing or empty.
+    """
+    key, _value = _single_map_entry(row_dict, path)
+    return _replace_map(row_dict, path, {key: bad_value})
+
+
+def _single_map_entry(row_dict: dict, path: FieldPath | str) -> tuple[Any, Any]:
+    """Return the `(key, value)` of the sole entry of the map at *path*."""
+    m = _get_nested(row_dict, path)
+    if not isinstance(m, dict) or not m:
+        raise PathTraversalError(f"Missing or empty map at path '{path}'")
+    return next(iter(m.items()))
+
+
+def _replace_map(row_dict: dict, path: FieldPath | str, new_map: dict) -> dict:
+    """Return a deep copy of *row_dict* with the map at *path* replaced."""
+    result = copy.deepcopy(row_dict)
+    _set_nested(result, path, new_map)
+    return result
+
+
 def _walk_strict(
-    target: Any, segments: tuple[PathSegment, ...], path: FieldPath | str
+    target: Any, path: FieldPath | str, segments: tuple[FieldSegment, ...] | None = None
 ) -> Any:
-    """Walk segments without scaffolding.
+    """Walk *path* without scaffolding, raising on missing or null nodes.
 
     Raises `PathTraversalError` on missing or null struct intermediates,
-    and on empty arrays encountered at array intermediates (each `[]` in
-    a segment's `iter_count` descends one element, which requires a
-    non-empty list).
+    and on empty arrays encountered at array segments (each `[]` in a
+    segment's `iter_count` descends one element, which requires a
+    non-empty list). When *segments* is provided it overrides the
+    segments derived from *path*; *path* still labels error messages.
     """
+    if segments is None:
+        segments = coerce(path).segments
     for segment in segments:
         if not isinstance(target, dict) or target.get(segment.name) is None:
             raise PathTraversalError(
@@ -231,14 +272,34 @@ def _walk_strict(
             )
         target = target[segment.name]
         if isinstance(segment, ArraySegment):
-            for _ in range(segment.iter_count):
-                _require_non_empty_array(target, segment.name, path)
-                target = target[0]
+            container, key = _descend_iter_count(
+                target, segment.iter_count, segment.name, path
+            )
+            target = container[key]
     return target
 
 
+def _descend_iter_count(
+    arr: list, iter_count: int, name: str, path: FieldPath | str
+) -> tuple[Any, int]:
+    """Descend *iter_count* levels into nested lists via element 0.
+
+    Each level requires a non-empty list; the error label for depth `d`
+    is *name* followed by `d` `[]` markers. Returns the final
+    `(container, key)` write site so callers can read (`container[key]`)
+    or replace (`container[key] = ...`) the innermost element.
+    """
+    container: Any = [arr]
+    key = 0
+    for depth in range(iter_count):
+        inner = container[key]
+        _require_non_empty_array(inner, f"{name}{'[]' * depth}", path)
+        container, key = inner, 0
+    return container, key
+
+
 def _require_non_empty_array(value: Any, name: str, path: FieldPath | str) -> None:
-    """Raise PathTraversalError unless *value* is a non-empty list."""
+    """Raise `PathTraversalError` unless *value* is a non-empty list."""
     if not isinstance(value, list) or len(value) == 0:
         raise PathTraversalError(f"Empty or missing array at '{name}' in path '{path}'")
 
@@ -339,15 +400,15 @@ def _ensure_condition(
 
 
 def _as_scalar_path(path: FieldPath | str) -> ScalarPath:
-    """Coerce *path* to a ScalarPath, rejecting any array markers.
+    """Coerce *path* to a `ScalarPath`, rejecting array or map markers.
 
-    The dict-walking helpers operate only on struct fields; an array
-    marker indicates the caller wanted array-aware navigation and picked
-    the wrong helper.
+    The dict-walking helpers operate only on struct fields; an array or
+    map-projection marker indicates the caller wanted array-/map-aware
+    navigation and picked the wrong helper.
     """
     coerced = coerce(path)
-    if isinstance(coerced, ArrayPath):
-        raise ValueError(f"struct-only path expected, got array segment in {path!r}")
+    if not isinstance(coerced, ScalarPath):
+        raise ValueError(f"struct-only path expected, got {coerced!r} for {path!r}")
     return coerced
 
 
@@ -370,7 +431,7 @@ def _set_nested(
         if child is None:
             if value is None:
                 return
-            raise TypeError(f"None intermediate at '{part}' in path '{path}'")
+            raise PathTraversalError(f"None intermediate at '{part}' in path '{path}'")
         target = child
     target[segments[-1].name] = value
 
@@ -378,7 +439,7 @@ def _set_nested(
 def _get_nested(d: dict, path: FieldPath | str) -> object:
     """Get a value from a nested dict using a struct-field path.
 
-    Returns None when any intermediate key is missing.
+    Returns None when any intermediate key is missing or not a dict.
     """
     target: object = d
     for segment in _as_scalar_path(path).segments:

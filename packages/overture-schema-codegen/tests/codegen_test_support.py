@@ -21,18 +21,18 @@ from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
     EnumMemberSpec,
     EnumSpec,
-    FeatureSpec,
     FieldSpec,
     MemberSpec,
     ModelSpec,
+    RecordSpec,
     TypeIdentity,
     UnionSpec,
     is_model_class,
     is_union_alias,
-    partitions_from_tags,
 )
 from overture.schema.codegen.extraction.union_extraction import extract_union
 from overture.schema.codegen.layout.module_layout import entry_point_class
+from overture.schema.codegen.spec_discovery import extract_model_spec
 from overture.schema.system.discovery import (
     TagSelector,
     discover_models,
@@ -369,8 +369,8 @@ def find_model_class(name: str, models: dict[object, object]) -> type[BaseModel]
     return match
 
 
-def find_field(spec: ModelSpec, name: str) -> FieldSpec:
-    """Find a field by name in a ModelSpec, raising if missing."""
+def find_field(spec: RecordSpec, name: str) -> FieldSpec:
+    """Find a field by name in a RecordSpec, raising if missing."""
     return next(f for f in spec.fields if f.name == name)
 
 
@@ -401,7 +401,7 @@ def has_name(mapping: Mapping[TypeIdentity, object], name: str) -> bool:
 
 
 def assert_literal_field(
-    spec: ModelSpec, field_name: str, expected_value: object
+    spec: RecordSpec, field_name: str, expected_value: object
 ) -> None:
     """Assert a field is a single-value Literal with the expected value."""
     field = find_field(spec, field_name)
@@ -412,19 +412,40 @@ def assert_literal_field(
 
 def flat_specs_from_discovery(
     theme: str | None = None,
-) -> list[ModelSpec]:
-    """Build a flat list of ModelSpecs from discovery, with entry_point set."""
+) -> list[RecordSpec]:
+    """Build a flat list of RecordSpecs from discovery, with entry_point set."""
     models = discover_models()
     if theme:
         models = filter_models(
             models, TagSelector(include_any=(f"overture:theme={theme}",))
         )
-    result = []
-    for key, cls in models.items():
-        if not is_model_class(cls):
-            continue
-        result.append(extract_model(cls, entry_point=key.entry_point))
-    return result
+    return [
+        spec
+        for key, cls in models.items()
+        if isinstance(spec := extract_model_spec(key, cls), RecordSpec)
+    ]
+
+
+class TaggedVariantA(SegmentBase):
+    """Segment variant with a unique-items tags field."""
+
+    subtype: Literal["tagged_a"]
+    tags: Annotated[list[str], UniqueItemsConstraint()] | None = None
+
+
+class TaggedVariantB(SegmentBase):
+    """Segment variant with a unique-items tags field (distinct instance, same constraint)."""
+
+    subtype: Literal["tagged_b"]
+    tags: Annotated[list[str], UniqueItemsConstraint()] | None = None
+
+
+TestSegmentEqualConstraints = Annotated[
+    TaggedVariantA | TaggedVariantB,
+    Field(
+        description="Union whose members share a field with equal-but-distinct constraint instances"
+    ),
+]
 
 
 class LiteralSubtypeModel(BaseModel):
@@ -454,31 +475,25 @@ class RequireAnyModel(BaseModel):
     y: str | None = None
 
 
-def discover_feature(class_name: str) -> FeatureSpec:
-    """Discover and extract a feature spec by class name."""
+def discover_feature(class_name: str) -> ModelSpec:
+    """Discover and extract a model spec by class name."""
     models = discover_models()
     for key, entry in models.items():
-        partitions = partitions_from_tags(key.tags)
-        if is_model_class(entry) and entry.__name__ == class_name:
-            return extract_model(
-                entry, entry_point=key.entry_point, partitions=partitions
-            )
-        if is_union_alias(entry) and entry_point_class(key.entry_point) == class_name:
-            return extract_union(
-                entry_point_class(key.entry_point),
-                entry,
-                entry_point=key.entry_point,
-                partitions=partitions,
-            )
+        if (is_model_class(entry) and entry.__name__ == class_name) or (
+            is_union_alias(entry) and entry_point_class(key.entry_point) == class_name
+        ):
+            spec = extract_model_spec(key, entry)
+            if spec is not None:
+                return spec
     raise LookupError(f"{class_name} not found in discovered models")
 
 
-def feature_spec_for_model(
+def spec_for_model(
     cls: type[BaseModel],
     *,
     entry_point: str | None = None,
     partitions: Mapping[str, str] | None = None,
-) -> ModelSpec:
+) -> RecordSpec:
     """Extract a model class for tests; sub-specs are populated by extract_model."""
     return extract_model(cls, entry_point=entry_point, partitions=partitions)
 

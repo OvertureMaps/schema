@@ -5,6 +5,13 @@
 at a time, and produces a `FieldShape` describing the structure with
 constraints attached to the layer they target.
 
+Forward references encountered along the way are resolved against the
+`owner` model's namespace before classification. Builtin generics store
+`list["Node"]`'s element as a bare `str` (not a `ForwardRef`), which
+neither Pydantic nor `typing.get_type_hints` resolves; resolving it here
+lets a self-referential field reach its model terminal so the cycle
+guard in `extract_model` engages.
+
 Each `Annotated` frame attaches its metadata to the shape its inner
 annotation unwraps to, so that, e.g., the inner and outer `MinLen` in
 `Annotated[list[Annotated[str, MinLen(2)]], MinLen(3)]` land on
@@ -24,12 +31,21 @@ from __future__ import annotations
 import types
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from typing import Annotated, Any, Literal, NoReturn, Union, get_args, get_origin
+from typing import (
+    Annotated,
+    Any,
+    ForwardRef,
+    Literal,
+    NoReturn,
+    Union,
+    get_args,
+    get_origin,
+)
 
 from annotated_types import MaxLen, MinLen
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from typing_extensions import Sentinel, assert_never
+from typing_extensions import Sentinel, assert_never, evaluate_forward_ref
 
 from .docstring import clean_docstring
 from .field import (
@@ -39,8 +55,10 @@ from .field import (
     FieldShape,
     LiteralScalar,
     MapOf,
+    ModelRef,
     NewTypeShape,
     Primitive,
+    UnionRef,
 )
 from .field_walk import terminal_of
 from .length_constraints import ArrayMaxLen, ArrayMinLen, ScalarMaxLen, ScalarMinLen
@@ -74,6 +92,7 @@ __all__ = [
     "ConstraintSource",
     "ModelResolver",
     "UnionResolver",
+    "UnresolvedForwardRefError",
     "UnsupportedUnionError",
     "analyze_type",
     "attach_constraints",
@@ -86,6 +105,15 @@ __all__ = [
 
 class UnsupportedUnionError(TypeError):
     """Raised when `analyze_type` encounters a multi-type union it cannot represent."""
+
+
+class UnresolvedForwardRefError(TypeError):
+    """Raised when a forward-reference annotation cannot be resolved to a type.
+
+    Subclasses `TypeError` so callers that already guard `analyze_type`
+    with `except (TypeError, UnsupportedUnionError)` treat an unresolvable
+    forward ref as the analyzable-shape failure it is.
+    """
 
 
 ModelResolver = Callable[[type[BaseModel]], FieldShape]
@@ -161,6 +189,7 @@ def _filter_sentinel_arms(args: tuple[object, ...]) -> list[object]:
 def analyze_type(
     annotation: object,
     *,
+    owner: type | None = None,
     model_resolver: ModelResolver | None = None,
     union_resolver: UnionResolver | None = None,
 ) -> tuple[FieldShape, bool, str | None]:
@@ -170,10 +199,15 @@ def analyze_type(
     ----------
     annotation
         The annotation to analyze.
+    owner
+        The model class these annotations belong to. Supplies the
+        namespace for resolving forward references (`list["Node"]`
+        stores `"Node"` as a bare string). When None, an unresolvable
+        forward ref raises `UnresolvedForwardRefError`.
     model_resolver
         Optional callback invoked when the terminal is a `BaseModel`
         subclass. Returns the `FieldShape` to use at that position --
-        typically a `ModelRef` with a resolved `ModelSpec`. Defaults to
+        typically a `ModelRef` with a resolved `RecordSpec`. Defaults to
         a `Scalar` carrying the class as `source_type` for callers that
         cannot resolve sub-models (e.g. dict key/value analysis).
     union_resolver
@@ -191,6 +225,7 @@ def analyze_type(
     return _unwrap(
         annotation,
         newtype_ctx=None,
+        owner=owner,
         model_resolver=model_resolver,
         union_resolver=union_resolver,
     )
@@ -200,6 +235,7 @@ def _unwrap(
     annotation: object,
     *,
     newtype_ctx: _NewTypeCtx | None,
+    owner: type | None,
     model_resolver: ModelResolver | None,
     union_resolver: UnionResolver | None,
 ) -> tuple[FieldShape, bool, str | None]:
@@ -211,6 +247,9 @@ def _unwrap(
         The innermost `NewType` currently in scope, or None. Sets the
         terminal `Primitive.base_type` and tags constraints with their
         contributing `NewType`.
+    owner
+        The model class supplying the namespace for forward-ref
+        resolution; invariant across the walk.
 
     Returns
     -------
@@ -226,9 +265,13 @@ def _unwrap(
         return _unwrap(
             annotation,
             newtype_ctx=newtype_ctx,
+            owner=owner,
             model_resolver=model_resolver,
             union_resolver=union_resolver,
         )
+
+    if isinstance(annotation, (str, ForwardRef)):
+        annotation = _resolve_forward_ref(annotation, owner)
 
     origin = get_origin(annotation)
 
@@ -300,8 +343,8 @@ def _unwrap(
         args = get_args(annotation)
         if not args:
             raise TypeError("Bare list without type argument is not supported")
-        element, opt, desc = _recurse(args[0], newtype_ctx)
-        return ArrayOf(element=element, constraints=()), opt, desc
+        element, _, _ = _recurse(args[0], newtype_ctx)
+        return ArrayOf(element=element, constraints=()), False, None
 
     if origin is dict:
         args = get_args(annotation)
@@ -312,6 +355,38 @@ def _unwrap(
         return MapOf(key=key_shape, value=value_shape, constraints=()), False, None
 
     return _terminal(annotation, newtype_ctx, model_resolver), False, None
+
+
+def _resolve_forward_ref(annotation: str | ForwardRef, owner: type | None) -> object:
+    """Resolve a string / `ForwardRef` annotation to its type object.
+
+    Resolves against *owner*'s module and class namespaces, plus *owner*
+    bound to its own name. The class namespace lets a forward ref to a
+    nested model (`Outer.Inner`) resolve; the self-name binding lets a
+    self-referential model defined in a local scope (e.g. a test body)
+    resolve `"Owner"` even when it is absent from the module globals.
+    Raises `UnresolvedForwardRefError` for a name not in scope
+    (`NameError`), a missing attribute on a dotted reference
+    (`AttributeError`), or a string that is not a valid type expression
+    (`SyntaxError`) -- a clean, named failure in place of the opaque
+    `TypeError` the terminal classifier would otherwise raise on a bare
+    string.
+    """
+    if owner is not None:
+        localns = {**vars(owner), owner.__name__: owner}
+    else:
+        localns = None
+    try:
+        ref = ForwardRef(annotation) if isinstance(annotation, str) else annotation
+        return evaluate_forward_ref(ref, owner=owner, locals=localns)
+    except (NameError, SyntaxError, AttributeError) as exc:
+        target = (
+            annotation if isinstance(annotation, str) else annotation.__forward_arg__
+        )
+        context = f" while extracting {owner.__qualname__}" if owner is not None else ""
+        raise UnresolvedForwardRefError(
+            f"Cannot resolve forward reference {target!r}{context}"
+        ) from exc
 
 
 def _constraint_source(
@@ -356,8 +431,11 @@ def attach_constraints(
     to the `.constraints` of the first `ArrayOf`, `MapOf`, `Primitive`,
     `LiteralScalar`, or `AnyScalar` reached. Does not descend into
     `ArrayOf.element` or `MapOf.key` / `.value`. `ModelRef` / `UnionRef`
-    carry no constraints -- constraints destined for a model terminal
-    are dropped (preserved verbatim from current behavior).
+    carry no constraints, so a constraint destined for a model/union
+    terminal (`Annotated[SomeModel, SomeConstraint()]`) raises
+    `NotImplementedError` rather than vanishing from both docs and
+    validation -- no current schema field does this, and silently
+    dropping it would diverge the generated output from the source.
 
     Length constraints (`annotated_types.MinLen` / `MaxLen`) are wrapped
     into the typed `length_constraints` variants matching the
@@ -380,8 +458,14 @@ def attach_constraints(
         case Primitive() | LiteralScalar() | AnyScalar():
             wrapped = tuple(_wrap_length_for_scalar(cs) for cs in constraints)
             return replace(shape, constraints=wrapped + shape.constraints)
+        case ModelRef() | UnionRef():
+            names = ", ".join(type(cs.constraint).__name__ for cs in constraints)
+            raise NotImplementedError(
+                f"Constraints ({names}) on a model/union terminal are not "
+                f"supported; attach them to a scalar or array layer instead"
+            )
         case _:
-            return shape
+            assert_never(shape)
 
 
 def _wrap_length_for_array(cs: ConstraintSource) -> ConstraintSource:

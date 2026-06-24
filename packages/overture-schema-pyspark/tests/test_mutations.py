@@ -1,16 +1,69 @@
 """Tests for model-level mutation functions."""
 
+from typing import Any
+
 import pytest
 
 from ._support.helpers import PathTraversalError
 from ._support.mutations import (
+    _get_nested,
+    _set_nested,
+    _walk_strict,
     mutate_forbid_if,
+    mutate_map_key,
+    mutate_map_value,
     mutate_min_fields_set,
     mutate_radio_group,
     mutate_require_any_of,
     mutate_require_if,
     mutate_unique_items,
 )
+
+
+class TestMutateMapKey:
+    def test_replaces_key_preserving_value(self) -> None:
+        row = {"names": {"en": "clean"}}
+        result = mutate_map_key(row, "names", "123")
+        assert result["names"] == {"123": "clean"}
+
+    def test_nested_path(self) -> None:
+        row = {"names": {"common": {"en": "clean"}}}
+        result = mutate_map_key(row, "names.common", "123")
+        assert result["names"]["common"] == {"123": "clean"}
+
+    def test_does_not_mutate_original(self) -> None:
+        row = {"names": {"en": "clean"}}
+        mutate_map_key(row, "names", "123")
+        assert row["names"] == {"en": "clean"}
+
+    def test_missing_map_raises(self) -> None:
+        with pytest.raises(PathTraversalError):
+            mutate_map_key({"other": 1}, "names", "123")
+
+    def test_empty_map_raises(self) -> None:
+        with pytest.raises(PathTraversalError):
+            mutate_map_key({"names": {}}, "names", "123")
+
+
+class TestMutateMapValue:
+    def test_replaces_value_preserving_key(self) -> None:
+        row = {"names": {"en": "clean"}}
+        result = mutate_map_value(row, "names", " has spaces ")
+        assert result["names"] == {"en": " has spaces "}
+
+    def test_nested_path(self) -> None:
+        row = {"names": {"common": {"en": "clean"}}}
+        result = mutate_map_value(row, "names.common", " bad ")
+        assert result["names"]["common"] == {"en": " bad "}
+
+    def test_does_not_mutate_original(self) -> None:
+        row = {"names": {"en": "clean"}}
+        mutate_map_value(row, "names", " bad ")
+        assert row["names"] == {"en": "clean"}
+
+    def test_missing_map_raises(self) -> None:
+        with pytest.raises(PathTraversalError):
+            mutate_map_value({"other": 1}, "names", " bad ")
 
 
 class TestMutateRequireAnyOf:
@@ -261,3 +314,129 @@ class TestMutateUniqueItems:
         row: dict = {"hierarchies": [{"a": 1}]}
         with pytest.raises(PathTraversalError):
             mutate_unique_items(row, "hierarchies[]")
+
+
+class TestWalkStrict:
+    def test_simple_struct(self) -> None:
+        row = {"a": {"b": {"c": 42}}}
+        result = _walk_strict(row, "a.b")
+        assert result == {"c": 42}
+
+    def test_root_returns_row(self) -> None:
+        row = {"x": 1}
+        assert _walk_strict(row, "") == row
+
+    def test_missing_key_raises(self) -> None:
+        row = {"a": {"b": 1}}
+        with pytest.raises(PathTraversalError, match="Missing"):
+            _walk_strict(row, "a.c")
+
+    def test_null_intermediate_raises(self) -> None:
+        row = {"a": None}
+        with pytest.raises(PathTraversalError, match="a"):
+            _walk_strict(row, "a.b")
+
+    def test_error_message_includes_segment_name(self) -> None:
+        row = {"outer": {"inner": None}}
+        with pytest.raises(PathTraversalError, match="inner"):
+            _walk_strict(row, "outer.inner.leaf")
+
+    def test_error_message_includes_full_path(self) -> None:
+        row = {"outer": None}
+        with pytest.raises(PathTraversalError, match="outer.inner"):
+            _walk_strict(row, "outer.inner")
+
+    def test_array_segment_descends_to_element_zero(self) -> None:
+        row = {"items": [{"val": 5}]}
+        result = _walk_strict(row, "items[]")
+        assert result == {"val": 5}
+
+    def test_array_segment_empty_raises(self) -> None:
+        row: dict[str, Any] = {"items": []}
+        with pytest.raises(PathTraversalError, match="items"):
+            _walk_strict(row, "items[]")
+
+    def test_array_segment_with_struct_after(self) -> None:
+        row = {"rules": [{"when": {"mode": [{"type": "car"}]}}]}
+        result = _walk_strict(row, "rules[].when")
+        assert result == {"mode": [{"type": "car"}]}
+
+    def test_nested_list_descends_each_bracket_level(self) -> None:
+        row = {"grid": [[{"val": 7}]]}
+        result = _walk_strict(row, "grid[][]")
+        assert result == {"val": 7}
+
+    def test_nested_list_empty_inner_raises(self) -> None:
+        row: dict[str, Any] = {"grid": [[]]}
+        with pytest.raises(PathTraversalError, match="grid"):
+            _walk_strict(row, "grid[][]")
+
+
+class TestGetNested:
+    def test_simple_lookup(self) -> None:
+        row = {"a": {"b": 3}}
+        assert _get_nested(row, "a.b") == 3
+
+    def test_missing_key_returns_none(self) -> None:
+        row = {"a": 1}
+        assert _get_nested(row, "b") is None
+
+    def test_missing_nested_key_returns_none(self) -> None:
+        row = {"a": {"b": 1}}
+        assert _get_nested(row, "a.c") is None
+
+    def test_none_intermediate_returns_none(self) -> None:
+        row = {"a": None}
+        assert _get_nested(row, "a.b") is None
+
+    def test_non_dict_intermediate_returns_none(self) -> None:
+        row = {"a": [1, 2, 3]}
+        assert _get_nested(row, "a.b") is None
+
+    def test_rejects_array_path(self) -> None:
+        with pytest.raises(ValueError, match="struct-only"):
+            _get_nested({"items": [{"v": 1}]}, "items[].v")
+
+
+class TestSetNested:
+    def test_set_simple_field(self) -> None:
+        d = {"a": 1}
+        _set_nested(d, "a", 2)
+        assert d["a"] == 2
+
+    def test_set_nested_field(self) -> None:
+        d = {"outer": {"inner": "old"}}
+        _set_nested(d, "outer.inner", "new")
+        assert d["outer"]["inner"] == "new"
+
+    def test_null_value_through_none_intermediate_silent(self) -> None:
+        """Nulling through a None intermediate is a no-op — already null."""
+        d = {"a": None}
+        _set_nested(d, "a.b", None)
+        assert d["a"] is None
+
+    def test_null_value_through_missing_intermediate_silent(self) -> None:
+        d: dict = {}
+        _set_nested(d, "a.b", None)
+        assert "a" not in d
+
+    def test_non_null_through_none_intermediate_raises_path_traversal_error(
+        self,
+    ) -> None:
+        d = {"a": None}
+        with pytest.raises(PathTraversalError, match="a"):
+            _set_nested(d, "a.b", "value")
+
+    def test_create_scaffolds_missing_intermediate(self) -> None:
+        d: dict = {}
+        _set_nested(d, "a.b", "v", create=True)
+        assert d["a"]["b"] == "v"
+
+    def test_create_scaffolds_none_intermediate(self) -> None:
+        d: dict = {"a": None}
+        _set_nested(d, "a.b", "v", create=True)
+        assert d["a"]["b"] == "v"
+
+    def test_rejects_array_path(self) -> None:
+        with pytest.raises(ValueError, match="struct-only"):
+            _set_nested({"items": []}, "items[].v", "x")

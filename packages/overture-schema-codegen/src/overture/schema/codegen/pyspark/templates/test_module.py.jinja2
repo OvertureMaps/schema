@@ -1,13 +1,13 @@
 # Auto-generated — do not edit.
 
-"""Generated conformance tests for {{ feature_name }}."""
+"""Generated conformance tests for {{ model_name }}."""
 
 from __future__ import annotations
 
 import pytest
 from {{ expression_import }} import (
-    {{ feature_name | upper }}_SCHEMA,
-    {{ feature_name }}_checks,
+    {{ model_name | upper }}_SCHEMA,
+    {{ model_name }}_checks,
 )
 from pyspark.sql import SparkSession
 
@@ -42,7 +42,7 @@ SCENARIOS: list[Scenario] = [
 
 @pytest.fixture(scope="module")
 def checks() -> list:
-    return {{ feature_name }}_checks()
+    return {{ model_name }}_checks()
 
 
 @pytest.fixture(scope="module")
@@ -53,7 +53,7 @@ def sparse_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_SPARSE,
         SCENARIOS,
-        feature_name="{{ feature_name }}",
+        model_name="{{ model_name }}",
     )
 
 
@@ -65,7 +65,7 @@ def populated_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_POPULATED,
         SCENARIOS,
-        feature_name="{{ feature_name }}",
+        model_name="{{ model_name }}",
     )
 
 
@@ -78,7 +78,7 @@ def test_baseline_sparse(sparse_results: ValidationResults) -> None:
     for required-only fields), the baseline fails here before any
     scenario runs.
     """
-    baseline = sparse_results.violations.get("{{ feature_name }}::baseline", set())
+    baseline = sparse_results.violations.get("{{ model_name }}::baseline", set())
     assert baseline == set(), f"Sparse baseline has violations: {baseline}"
 
 
@@ -89,7 +89,7 @@ def test_baseline_populated(populated_results: ValidationResults) -> None:
     filled, exercising codegen paths that only fire when a value is
     present.
     """
-    baseline = populated_results.violations.get("{{ feature_name }}::baseline", set())
+    baseline = populated_results.violations.get("{{ model_name }}::baseline", set())
     assert baseline == set(), f"Populated baseline has violations: {baseline}"
 
 

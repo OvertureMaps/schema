@@ -204,25 +204,25 @@ SCENARIOS: list[Scenario] = [
         expected_check="stripped",
     ),
     Scenario(
-        id="bathymetry::sources[].confidence:bounds",
+        id="bathymetry::sources[].confidence_0:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", -1.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="bathymetry::sources[].confidence:bounds_1",
+        id="bathymetry::sources[].confidence_1:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", 2.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -273,45 +273,45 @@ SCENARIOS: list[Scenario] = [
         expected_check="bounds",
     ),
     Scenario(
-        id="bathymetry::cartography.prominence:bounds",
+        id="bathymetry::cartography.prominence_0:bounds",
         scaffold={"cartography": {"prominence": 1}},
         mutate=set_at_path("cartography.prominence", 0),
-        expected_field="cartography.prominence",
+        expected_field="cartography.prominence_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="bathymetry::cartography.prominence:bounds_1",
+        id="bathymetry::cartography.prominence_1:bounds",
         scaffold={"cartography": {"prominence": 1}},
         mutate=set_at_path("cartography.prominence", 101),
-        expected_field="cartography.prominence",
+        expected_field="cartography.prominence_1",
         expected_check="bounds",
     ),
     Scenario(
-        id="bathymetry::cartography.min_zoom:bounds",
+        id="bathymetry::cartography.min_zoom_0:bounds",
         scaffold={"cartography": {"min_zoom": 0}},
         mutate=set_at_path("cartography.min_zoom", -1),
-        expected_field="cartography.min_zoom",
+        expected_field="cartography.min_zoom_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="bathymetry::cartography.min_zoom:bounds_1",
+        id="bathymetry::cartography.min_zoom_1:bounds",
         scaffold={"cartography": {"min_zoom": 0}},
         mutate=set_at_path("cartography.min_zoom", 24),
-        expected_field="cartography.min_zoom",
+        expected_field="cartography.min_zoom_1",
         expected_check="bounds",
     ),
     Scenario(
-        id="bathymetry::cartography.max_zoom:bounds",
+        id="bathymetry::cartography.max_zoom_0:bounds",
         scaffold={"cartography": {"max_zoom": 0}},
         mutate=set_at_path("cartography.max_zoom", -1),
-        expected_field="cartography.max_zoom",
+        expected_field="cartography.max_zoom_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="bathymetry::cartography.max_zoom:bounds_1",
+        id="bathymetry::cartography.max_zoom_1:bounds",
         scaffold={"cartography": {"max_zoom": 0}},
         mutate=set_at_path("cartography.max_zoom", 24),
-        expected_field="cartography.max_zoom",
+        expected_field="cartography.max_zoom_1",
         expected_check="bounds",
     ),
 ]
@@ -330,7 +330,7 @@ def sparse_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_SPARSE,
         SCENARIOS,
-        feature_name="bathymetry",
+        model_name="bathymetry",
     )
 
 
@@ -342,7 +342,7 @@ def populated_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_POPULATED,
         SCENARIOS,
-        feature_name="bathymetry",
+        model_name="bathymetry",
     )
 
 

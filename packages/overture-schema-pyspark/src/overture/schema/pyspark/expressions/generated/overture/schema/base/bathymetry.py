@@ -15,7 +15,7 @@ from pyspark.sql.types import (
     StructType,
 )
 
-from overture.schema.pyspark.check import Check, CheckShape, FeatureValidation
+from overture.schema.pyspark.check import Check, CheckShape, ModelValidation
 from overture.schema.pyspark.expressions._schema_structs import (
     BBOX_STRUCT,
 )
@@ -49,7 +49,7 @@ def _id_required_check() -> Check:
         name="required",
         expr=check_required(F.col("id")),
         shape=CheckShape.SCALAR,
-        root_field="id",
+        read_columns=frozenset({"id"}),
     )
 
 
@@ -59,7 +59,7 @@ def _id_string_min_length_check() -> Check:
         name="string_min_length",
         expr=check_string_min_length(F.col("id"), 1),
         shape=CheckShape.SCALAR,
-        root_field="id",
+        read_columns=frozenset({"id"}),
     )
 
 
@@ -71,7 +71,7 @@ def _id_no_whitespace_check() -> Check:
             F.col("id"), "^\\S+\\z", label="String without whitespace characters"
         ),
         shape=CheckShape.SCALAR,
-        root_field="id",
+        read_columns=frozenset({"id"}),
     )
 
 
@@ -81,7 +81,7 @@ def _bbox_bbox_completeness_check() -> Check:
         name="bbox_completeness",
         expr=check_bbox_completeness(F.col("bbox")),
         shape=CheckShape.SCALAR,
-        root_field="bbox",
+        read_columns=frozenset({"bbox"}),
     )
 
 
@@ -91,7 +91,7 @@ def _bbox_bbox_lat_ordering_check() -> Check:
         name="bbox_lat_ordering",
         expr=check_bbox_lat_ordering(F.col("bbox")),
         shape=CheckShape.SCALAR,
-        root_field="bbox",
+        read_columns=frozenset({"bbox"}),
     )
 
 
@@ -101,7 +101,7 @@ def _bbox_bbox_lat_range_check() -> Check:
         name="bbox_lat_range",
         expr=check_bbox_lat_range(F.col("bbox")),
         shape=CheckShape.SCALAR,
-        root_field="bbox",
+        read_columns=frozenset({"bbox"}),
     )
 
 
@@ -111,7 +111,7 @@ def _geometry_required_check() -> Check:
         name="required",
         expr=check_required(F.col("geometry")),
         shape=CheckShape.SCALAR,
-        root_field="geometry",
+        read_columns=frozenset({"geometry"}),
     )
 
 
@@ -123,7 +123,7 @@ def _geometry_geometry_type_check() -> Check:
             F.col("geometry"), GeometryType.MULTI_POLYGON, GeometryType.POLYGON
         ),
         shape=CheckShape.SCALAR,
-        root_field="geometry",
+        read_columns=frozenset({"geometry"}),
     )
 
 
@@ -133,7 +133,7 @@ def _theme_required_check() -> Check:
         name="required",
         expr=check_required(F.col("theme")),
         shape=CheckShape.SCALAR,
-        root_field="theme",
+        read_columns=frozenset({"theme"}),
     )
 
 
@@ -143,7 +143,7 @@ def _theme_enum_check() -> Check:
         name="enum",
         expr=check_enum(F.col("theme"), ["base"]),
         shape=CheckShape.SCALAR,
-        root_field="theme",
+        read_columns=frozenset({"theme"}),
     )
 
 
@@ -153,7 +153,7 @@ def _type_required_check() -> Check:
         name="required",
         expr=check_required(F.col("type")),
         shape=CheckShape.SCALAR,
-        root_field="type",
+        read_columns=frozenset({"type"}),
     )
 
 
@@ -163,7 +163,7 @@ def _type_enum_check() -> Check:
         name="enum",
         expr=check_enum(F.col("type"), ["bathymetry"]),
         shape=CheckShape.SCALAR,
-        root_field="type",
+        read_columns=frozenset({"type"}),
     )
 
 
@@ -173,7 +173,7 @@ def _version_required_check() -> Check:
         name="required",
         expr=check_required(F.col("version")),
         shape=CheckShape.SCALAR,
-        root_field="version",
+        read_columns=frozenset({"version"}),
     )
 
 
@@ -183,7 +183,7 @@ def _version_bounds_check() -> Check:
         name="bounds",
         expr=check_bounds(F.col("version"), ge=0),
         shape=CheckShape.SCALAR,
-        root_field="version",
+        read_columns=frozenset({"version"}),
     )
 
 
@@ -193,7 +193,7 @@ def _sources_min_length_check() -> Check:
         name="array_min_length",
         expr=check_array_min_length(F.col("sources"), 1),
         shape=CheckShape.SCALAR,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -203,7 +203,7 @@ def _sources_unique_check() -> Check:
         name="struct_unique",
         expr=check_struct_unique(F.col("sources")),
         shape=CheckShape.SCALAR,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -213,7 +213,7 @@ def _sources_property_required_check() -> Check:
         name="required",
         expr=array_check("sources", lambda el: check_required(el["property"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -223,7 +223,7 @@ def _sources_property_json_pointer_check() -> Check:
         name="json_pointer",
         expr=array_check("sources", lambda el: check_json_pointer(el["property"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -233,7 +233,7 @@ def _sources_dataset_check() -> Check:
         name="required",
         expr=array_check("sources", lambda el: check_required(el["dataset"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -243,27 +243,27 @@ def _sources_license_check() -> Check:
         name="stripped",
         expr=array_check("sources", lambda el: check_stripped(el["license"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
 def _sources_confidence_bounds_check() -> Check:
     return Check(
-        field="sources[].confidence",
+        field="sources[].confidence_0",
         name="bounds",
         expr=array_check("sources", lambda el: check_bounds(el["confidence"], ge=0.0)),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
 def _sources_confidence_bounds_check_1() -> Check:
     return Check(
-        field="sources[].confidence",
+        field="sources[].confidence_1",
         name="bounds",
         expr=array_check("sources", lambda el: check_bounds(el["confidence"], le=1.0)),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -275,7 +275,7 @@ def _sources_between_linear_range_length_check() -> Check:
             "sources", lambda el: check_linear_range_length(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -287,7 +287,7 @@ def _sources_between_linear_range_bounds_check() -> Check:
             "sources", lambda el: check_linear_range_bounds(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -297,7 +297,7 @@ def _sources_between_linear_range_order_check() -> Check:
         name="linear_range_order",
         expr=array_check("sources", lambda el: check_linear_range_order(el["between"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -307,7 +307,7 @@ def _depth_required_check() -> Check:
         name="required",
         expr=check_required(F.col("depth")),
         shape=CheckShape.SCALAR,
-        root_field="depth",
+        read_columns=frozenset({"depth"}),
     )
 
 
@@ -317,67 +317,67 @@ def _depth_bounds_check() -> Check:
         name="bounds",
         expr=check_bounds(F.col("depth"), ge=0),
         shape=CheckShape.SCALAR,
-        root_field="depth",
+        read_columns=frozenset({"depth"}),
     )
 
 
 def _cartography_prominence_bounds_check() -> Check:
     return Check(
-        field="cartography.prominence",
+        field="cartography.prominence_0",
         name="bounds",
         expr=check_bounds(F.col("cartography.prominence"), ge=1),
         shape=CheckShape.SCALAR,
-        root_field="cartography",
+        read_columns=frozenset({"cartography"}),
     )
 
 
 def _cartography_prominence_bounds_check_1() -> Check:
     return Check(
-        field="cartography.prominence",
+        field="cartography.prominence_1",
         name="bounds",
         expr=check_bounds(F.col("cartography.prominence"), le=100),
         shape=CheckShape.SCALAR,
-        root_field="cartography",
+        read_columns=frozenset({"cartography"}),
     )
 
 
 def _cartography_min_zoom_bounds_check() -> Check:
     return Check(
-        field="cartography.min_zoom",
+        field="cartography.min_zoom_0",
         name="bounds",
         expr=check_bounds(F.col("cartography.min_zoom"), ge=0),
         shape=CheckShape.SCALAR,
-        root_field="cartography",
+        read_columns=frozenset({"cartography"}),
     )
 
 
 def _cartography_min_zoom_bounds_check_1() -> Check:
     return Check(
-        field="cartography.min_zoom",
+        field="cartography.min_zoom_1",
         name="bounds",
         expr=check_bounds(F.col("cartography.min_zoom"), le=23),
         shape=CheckShape.SCALAR,
-        root_field="cartography",
+        read_columns=frozenset({"cartography"}),
     )
 
 
 def _cartography_max_zoom_bounds_check() -> Check:
     return Check(
-        field="cartography.max_zoom",
+        field="cartography.max_zoom_0",
         name="bounds",
         expr=check_bounds(F.col("cartography.max_zoom"), ge=0),
         shape=CheckShape.SCALAR,
-        root_field="cartography",
+        read_columns=frozenset({"cartography"}),
     )
 
 
 def _cartography_max_zoom_bounds_check_1() -> Check:
     return Check(
-        field="cartography.max_zoom",
+        field="cartography.max_zoom_1",
         name="bounds",
         expr=check_bounds(F.col("cartography.max_zoom"), le=23),
         shape=CheckShape.SCALAR,
-        root_field="cartography",
+        read_columns=frozenset({"cartography"}),
     )
 
 
@@ -471,7 +471,7 @@ ENTRY_POINT = "overture.schema.base:Bathymetry"
 
 PARTITIONS: dict[str, str] = {"theme": "base"}
 
-FEATURE_VALIDATION = FeatureValidation(
+MODEL_VALIDATION = ModelValidation(
     schema=BATHYMETRY_SCHEMA,
     checks=bathymetry_checks,
     geometry_types=GEOMETRY_TYPES,

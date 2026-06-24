@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass
 
 import click
+from pyspark.errors import AnalysisException
 from pyspark.sql import DataFrame, SparkSession
 
 from overture.schema.system.discovery import resolve_entry_point_key
@@ -15,8 +16,8 @@ from overture.schema.system.primitive import GeometryType
 from ._registry import PARTITION_MAP, REGISTRY
 from .validate import (
     explain_errors,
-    feature_names,
-    validate_feature,
+    model_names,
+    validate_model,
 )
 
 
@@ -32,37 +33,75 @@ class ReadSpec:
     base_path: str | None = None
 
 
+def absent_column(exc: AnalysisException, columns: Collection[str]) -> str | None:
+    """The top-level column an unresolved-column error names, if absent from data.
+
+    Returns the column name only when `exc` is an `UNRESOLVED_COLUMN` error
+    whose target is genuinely missing from `columns` -- the case a re-run with
+    `--skip-columns` resolves.  Every other `AnalysisException` (a struct field
+    accessed on a scalar, a type mismatch, an unresolved column that is in fact
+    present) returns None, marking it a generator or expression bug to surface
+    rather than steer toward `--skip-columns`.
+
+    Parameters
+    ----------
+    exc
+        The exception raised while Spark planned the check expressions.
+    columns
+        The data's top-level column names (`df.columns`).
+    """
+    condition = exc.getCondition()
+    if condition is None or not condition.startswith("UNRESOLVED_COLUMN"):
+        return None
+    object_name = (exc.getMessageParameters() or {}).get("objectName")
+    if not object_name:
+        return None
+    # objectName is backtick-quoted, e.g. `phantom` or `bbox`.`xmin`; the
+    # top-level segment is the column df.columns would carry.
+    top_level = object_name.split(".", 1)[0].strip("`")
+    return top_level if top_level not in columns else None
+
+
 def resolve_read(path: str, partitions: Mapping[str, str] | None) -> ReadSpec:
     """Determine read strategy from path structure.
 
-    Three cases:
+    The partition map is an ordered Hive hierarchy
+    (`{"theme": "buildings", "type": "building"}`). A path supplies a
+    prefix of it; the leaves below the deepest level already present are
+    appended so the read always lands on a single feature type. Cases:
 
-    1. **Hive partition path** (contains `/{key}=` for some key in
-       `partitions`) -- derive `basePath` so Spark discovers partition
-       columns.
-    2. **Individual file** (`*.parquet`) or no partitions -- read
+    1. **Individual file** (`*.parquet`) or no partitions -- read
        directly; data already contains the partition columns inline.
-    3. **Release root** -- append the partition path
-       (`key1=v1/key2=v2/...`) and set `basePath` to the original path.
+    2. **Release root** (no partition directories) -- append the full
+       partition path and set `basePath` to the original path.
+    3. **Partial partition path** (`theme=X/`) -- append the missing
+       leaves (`type=Y`) so a single feature's checks aren't run against
+       every type sharing the theme directory.
+    4. **Leaf partition path** (`theme=X/type=Y/`) -- nothing to append;
+       read it directly with `basePath` derived.
     """
     stripped = path.rstrip("/")
-
-    # Path already contains Hive partition directories
-    for key in partitions or ():
-        idx = stripped.find(f"/{key}=")
-        if idx >= 0:
-            return ReadSpec(data_path=path, base_path=stripped[:idx])
 
     # Individual file or no partition mapping — data has partition columns inline
     if stripped.endswith(".parquet") or not partitions:
         return ReadSpec(data_path=path)
 
-    # Release root — construct leaf path from partition map
-    partition_path = "/".join(f"{k}={v}" for k, v in partitions.items())
-    return ReadSpec(
-        data_path=f"{stripped}/{partition_path}",
-        base_path=stripped,
-    )
+    keys = list(partitions)
+    # Partition levels already present in the path, in hierarchy order.
+    present = [i for i, key in enumerate(keys) if f"/{key}=" in stripped]
+    depth = present[-1] + 1 if present else 0  # count of levels already filled
+    leaves = "/".join(f"{key}={partitions[key]}" for key in keys[depth:])
+
+    if not present:
+        # Release root — append the full partition path; it is the base.
+        return ReadSpec(data_path=f"{stripped}/{leaves}", base_path=stripped)
+
+    # Path already contains partition directories: the base is the release
+    # root (before the first one); append any leaves below the deepest
+    # present level (none for a leaf path, which then reads as-is).
+    base_idx = stripped.find(f"/{keys[present[0]]}=")
+    data_path = f"{stripped}/{leaves}" if leaves else path
+    return ReadSpec(data_path=data_path, base_path=stripped[:base_idx])
 
 
 def read_feature(spark: SparkSession, spec: ReadSpec) -> DataFrame:
@@ -182,7 +221,7 @@ def validate_cli(
         resolved = resolve_entry_point_key(feature_type, REGISTRY)
     except ValueError:
         click.echo(
-            f"Unknown type '{feature_type}'. Known: {', '.join(feature_names())}",
+            f"Unknown type '{feature_type}'. Known: {', '.join(model_names())}",
             err=True,
         )
         sys.exit(1)
@@ -205,7 +244,7 @@ def validate_cli(
             suppress.append(s)
 
     try:
-        result = validate_feature(
+        result = validate_model(
             df,
             resolved,
             skip_columns=skip_columns,
@@ -215,20 +254,35 @@ def validate_cli(
     except ValueError as e:
         click.echo(str(e), err=True)
         sys.exit(1)
+    except AnalysisException as e:
+        # Backstop, narrowed to the one cause `--skip-columns` can address: a
+        # check that names a column missing from the data.  validate_model
+        # already drops checks for skipped and schema-absent columns, so this
+        # fires only on a column outside the expected schema -- offer the
+        # operator the skip lever and name the column.  Every other
+        # AnalysisException (a type mismatch, a struct field read off a scalar)
+        # is a generator bug `--skip-columns` cannot fix; let it propagate as a
+        # traceback rather than mask it behind the skip hint.
+        column = absent_column(e, df.columns)
+        if column is None:
+            raise
+        click.echo(
+            f"A check references column '{column}', absent from the data at {path}.",
+            err=True,
+        )
+        click.echo(
+            f"Re-run with `--skip-columns {column}` to skip its checks, "
+            "or `--skip-schema-check`.",
+            err=True,
+        )
+        sys.exit(1)
 
     if result.schema_mismatches:
         click.echo(f"Schema mismatches for {resolved}:", err=True)
         for m in result.schema_mismatches:
             click.echo(f"  {m.path}: expected {m.expected}, got {m.actual}", err=True)
-        absent_columns = list(
-            dict.fromkeys(
-                m.path.split(".", 1)[0]
-                for m in result.schema_mismatches
-                if m.actual == "missing"
-            )
-        )
-        if absent_columns:
-            flags = " ".join(f"--skip-columns {c}" for c in absent_columns)
+        if result.absent_columns:
+            flags = " ".join(f"--skip-columns {c}" for c in result.absent_columns)
             click.echo(
                 f"  Re-run with `{flags}` to skip missing columns.",
                 err=True,

@@ -15,14 +15,17 @@ from pyspark.sql.types import (
     StructType,
 )
 
-from overture.schema.pyspark.check import Check, CheckShape, FeatureValidation
+from overture.schema.pyspark.check import Check, CheckShape, ModelValidation
 from overture.schema.pyspark.expressions.column_patterns import (
     array_check,
+    map_keys_check,
+    map_values_check,
     nested_array_check,
 )
 from overture.schema.pyspark.expressions.constraint_expressions import (
     check_array_max_length,
     check_array_min_length,
+    check_bounds,
     check_enum,
     check_pattern,
     check_required,
@@ -37,7 +40,7 @@ def _datasets_check() -> Check:
         name="required",
         expr=check_required(F.col("datasets")),
         shape=CheckShape.SCALAR,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -47,7 +50,7 @@ def _datasets_source_name_check() -> Check:
         name="required",
         expr=array_check("datasets", lambda el: check_required(el["source_name"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -59,7 +62,7 @@ def _datasets_source_dataset_name_check() -> Check:
             "datasets", lambda el: check_required(el["source_dataset_name"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -69,7 +72,7 @@ def _datasets_data_url_required_check() -> Check:
         name="required",
         expr=array_check("datasets", lambda el: check_required(el["data_url"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -79,7 +82,7 @@ def _datasets_data_url_url_format_check() -> Check:
         name="url_format",
         expr=array_check("datasets", lambda el: check_url_format(el["data_url"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -89,7 +92,7 @@ def _datasets_data_url_url_length_check() -> Check:
         name="url_length",
         expr=array_check("datasets", lambda el: check_url_length(el["data_url"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -101,7 +104,7 @@ def _datasets_data_url_archived_required_check() -> Check:
             "datasets", lambda el: check_required(el["data_url_archived"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -113,7 +116,7 @@ def _datasets_data_url_archived_url_format_check() -> Check:
             "datasets", lambda el: check_url_format(el["data_url_archived"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -125,7 +128,7 @@ def _datasets_data_url_archived_url_length_check() -> Check:
             "datasets", lambda el: check_url_length(el["data_url_archived"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -135,7 +138,7 @@ def _datasets_license_url_required_check() -> Check:
         name="required",
         expr=array_check("datasets", lambda el: check_required(el["license_url"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -145,7 +148,7 @@ def _datasets_license_url_url_format_check() -> Check:
         name="url_format",
         expr=array_check("datasets", lambda el: check_url_format(el["license_url"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -155,7 +158,7 @@ def _datasets_license_url_url_length_check() -> Check:
         name="url_length",
         expr=array_check("datasets", lambda el: check_url_length(el["license_url"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -167,7 +170,7 @@ def _datasets_license_url_archived_required_check() -> Check:
             "datasets", lambda el: check_required(el["license_url_archived"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -179,7 +182,7 @@ def _datasets_license_url_archived_url_format_check() -> Check:
             "datasets", lambda el: check_url_format(el["license_url_archived"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -191,7 +194,7 @@ def _datasets_license_url_archived_url_length_check() -> Check:
             "datasets", lambda el: check_url_length(el["license_url_archived"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -201,7 +204,7 @@ def _datasets_license_type_check() -> Check:
         name="required",
         expr=array_check("datasets", lambda el: check_required(el["license_type"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -211,7 +214,7 @@ def _datasets_license_text_check() -> Check:
         name="required",
         expr=array_check("datasets", lambda el: check_required(el["license_text"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -223,7 +226,7 @@ def _datasets_license_attribution_check() -> Check:
             "datasets", lambda el: check_required(el["license_attribution"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -233,7 +236,7 @@ def _datasets_coverage_bbox_check() -> Check:
         name="required",
         expr=array_check("datasets", lambda el: check_required(el["coverage_bbox"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -245,7 +248,7 @@ def _datasets_coverage_bbox_min_length_check() -> Check:
             "datasets", lambda el: check_array_min_length(el["coverage_bbox"], 4)
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -257,7 +260,7 @@ def _datasets_coverage_bbox_max_length_check() -> Check:
             "datasets", lambda el: check_array_max_length(el["coverage_bbox"], 4)
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -267,7 +270,7 @@ def _datasets_url_url_format_check() -> Check:
         name="url_format",
         expr=array_check("datasets", lambda el: check_url_format(el["url"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -277,7 +280,7 @@ def _datasets_url_url_length_check() -> Check:
         name="url_length",
         expr=array_check("datasets", lambda el: check_url_length(el["url"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -287,7 +290,7 @@ def _datasets_url_archived_url_format_check() -> Check:
         name="url_format",
         expr=array_check("datasets", lambda el: check_url_format(el["url_archived"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -297,7 +300,7 @@ def _datasets_url_archived_url_length_check() -> Check:
         name="url_length",
         expr=array_check("datasets", lambda el: check_url_length(el["url_archived"])),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -312,7 +315,7 @@ def _datasets_data_download_url_url_format_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -327,7 +330,7 @@ def _datasets_data_download_url_url_length_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -345,7 +348,7 @@ def _datasets_countries_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -360,7 +363,7 @@ def _datasets_build_source_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -373,7 +376,7 @@ def _datasets_update_type_check() -> Check:
             lambda el: check_enum(el["update_type"], ["continuous", "manual"]),
         ),
         shape=CheckShape.ARRAY,
-        root_field="datasets",
+        read_columns=frozenset({"datasets"}),
     )
 
 
@@ -383,7 +386,30 @@ def _license_priority_check() -> Check:
         name="required",
         expr=check_required(F.col("license_priority")),
         shape=CheckShape.SCALAR,
-        root_field="license_priority",
+        read_columns=frozenset({"license_priority"}),
+    )
+
+
+def _license_priority_key_check() -> Check:
+    return Check(
+        field="license_priority{key}",
+        name="pattern",
+        expr=map_keys_check(
+            "license_priority",
+            lambda k: check_pattern(k, "^[A-Za-z0-9._+\\-]+\\z", label="pattern"),
+        ),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"license_priority"}),
+    )
+
+
+def _license_priority_value_check() -> Check:
+    return Check(
+        field="license_priority{value}",
+        name="bounds",
+        expr=map_values_check("license_priority", lambda v: check_bounds(v, ge=0)),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"license_priority"}),
     )
 
 
@@ -421,6 +447,8 @@ def sources_checks() -> list[Check]:
         _datasets_build_source_check(),
         _datasets_update_type_check(),
         _license_priority_check(),
+        _license_priority_key_check(),
+        _license_priority_value_check(),
     ]
 
 
@@ -480,7 +508,7 @@ ENTRY_POINT = "overture.schema.annex:Sources"
 
 PARTITIONS: dict[str, str] = {}
 
-FEATURE_VALIDATION = FeatureValidation(
+MODEL_VALIDATION = ModelValidation(
     schema=SOURCES_SCHEMA,
     checks=sources_checks,
 )

@@ -4,7 +4,7 @@ import datetime
 import functools
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TypedDict, cast
@@ -16,17 +16,22 @@ from typing_extensions import NotRequired
 from ..extraction.examples import ExampleRecord
 from ..extraction.field import ConstraintSource
 from ..extraction.field_constraints import constraint_display_text
-from ..extraction.field_walk import all_constraints, list_depth, terminal_model_ref
+from ..extraction.field_walk import (
+    all_constraints,
+    list_depth,
+    map_key_value_constraints,
+    terminal_model_ref,
+)
 from ..extraction.model_constraints import analyze_model_constraints
 from ..extraction.specs import (
     AnnotatedField,
     EnumSpec,
-    FeatureSpec,
     FieldSpec,
     ModelSpec,
     NewTypeSpec,
     NumericSpec,
     PydanticTypeSpec,
+    RecordSpec,
     TypeIdentity,
     UnionSpec,
 )
@@ -40,7 +45,7 @@ from .type_format import (
 
 __all__ = [
     "render_enum",
-    "render_feature",
+    "render_model",
     "render_geometry_from_values",
     "render_newtype",
     "render_primitives_from_specs",
@@ -241,11 +246,18 @@ def _annotate_field_constraints(
     constraints appear on the NewType's own page instead.
     """
     link_fn = _link_fn_from_ctx(ctx)
-    notes = [
-        constraint_display_text(cs, link_fn=link_fn)
-        for cs in all_constraints(field.shape)
-        if cs.source_ref is None
-    ]
+
+    def directly_applied(prefix: str, sources: Iterable[ConstraintSource]) -> list[str]:
+        return [
+            f"{prefix}{constraint_display_text(cs, link_fn=link_fn)}"
+            for cs in sources
+            if cs.source_ref is None
+        ]
+
+    key_constraints, value_constraints = map_key_value_constraints(field.shape)
+    notes = directly_applied("", all_constraints(field.shape))
+    notes += directly_applied("key: ", key_constraints)
+    notes += directly_applied("value: ", value_constraints)
     if notes:
         _annotate_constraint_notes(row, notes)
 
@@ -379,8 +391,8 @@ def _expand_union_fields(
     return result
 
 
-def render_feature(
-    spec: FeatureSpec,
+def render_model(
+    spec: ModelSpec,
     link_ctx: LinkContext | None = None,
     examples: list[ExampleRecord] | None = None,
     used_by: list[UsedByEntry] | None = None,
@@ -395,7 +407,7 @@ def render_feature(
 
     if isinstance(spec, UnionSpec):
         fields = _expand_union_fields(spec, link_ctx, constraint_notes=field_notes)
-    elif isinstance(spec, ModelSpec):
+    elif isinstance(spec, RecordSpec):
         fields = _expand_model_fields(spec.fields, link_ctx)
         _annotate_top_level_constraints(fields, field_notes)
     else:

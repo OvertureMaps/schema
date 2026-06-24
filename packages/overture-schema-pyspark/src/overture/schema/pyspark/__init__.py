@@ -6,10 +6,10 @@ from .validate import (
     ValidationResult,
     evaluate_checks,
     explain_errors,
-    feature_keys,
-    feature_names,
     filter_errors,
-    validate_feature,
+    model_keys,
+    model_names,
+    validate_model,
 )
 
 __all__ = [
@@ -20,8 +20,8 @@ __all__ = [
     "compare_schemas",
     "evaluate_checks",
     "explain_errors",
-    "feature_keys",
-    "feature_names",
+    "model_keys",
+    "model_names",
     "filter_errors",
-    "validate_feature",
+    "validate_model",
 ]

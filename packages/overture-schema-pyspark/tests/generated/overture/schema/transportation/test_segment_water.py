@@ -18,6 +18,8 @@ from ....._support.harness import (
 from ....._support.helpers import set_at_path
 from ....._support.mutations import (
     mutate_forbid_if,
+    mutate_map_key,
+    mutate_map_value,
     mutate_require_any_of,
     mutate_require_if,
     mutate_unique_items,
@@ -37,7 +39,7 @@ BASE_ROW_SPARSE: dict = {
 BASE_ROW_POPULATED: dict = {
     "names": {
         "primary": "a",
-        "common": {},
+        "common": {"en": "clean"},
         "rules": [
             {
                 "value": "a",
@@ -256,25 +258,25 @@ SCENARIOS: list[Scenario] = [
         expected_check="stripped",
     ),
     Scenario(
-        id="segment::sources[].confidence:bounds",
+        id="segment::sources[].confidence_0:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", -1.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="segment::sources[].confidence:bounds_1",
+        id="segment::sources[].confidence_1:bounds",
         scaffold={
             "sources": [
                 {"property": "/valid/pointer", "dataset": "", "confidence": 0.0}
             ]
         },
         mutate=set_at_path("sources[].confidence", 2.0),
-        expected_field="sources[].confidence",
+        expected_field="sources[].confidence_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -588,7 +590,7 @@ SCENARIOS: list[Scenario] = [
         expected_check="enum",
     ),
     Scenario(
-        id="segment::access_restrictions[].when.vehicle[].value:required",
+        id="segment::access_restrictions[].when.vehicle[].value_0:required",
         scaffold={
             "access_restrictions": [
                 {
@@ -598,11 +600,11 @@ SCENARIOS: list[Scenario] = [
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].value", None),
-        expected_field="access_restrictions[].when.vehicle[].value",
+        expected_field="access_restrictions[].when.vehicle[].value_0",
         expected_check="required",
     ),
     Scenario(
-        id="segment::access_restrictions[].when.vehicle[].value:required_1",
+        id="segment::access_restrictions[].when.vehicle[].value_1:required",
         scaffold={
             "access_restrictions": [
                 {
@@ -612,7 +614,7 @@ SCENARIOS: list[Scenario] = [
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].value", None),
-        expected_field="access_restrictions[].when.vehicle[].value",
+        expected_field="access_restrictions[].when.vehicle[].value_1",
         expected_check="required",
     ),
     Scenario(
@@ -630,7 +632,7 @@ SCENARIOS: list[Scenario] = [
         expected_check="bounds",
     ),
     Scenario(
-        id="segment::access_restrictions[].when.vehicle[].unit:required",
+        id="segment::access_restrictions[].when.vehicle[].unit_0:required",
         scaffold={
             "access_restrictions": [
                 {
@@ -640,11 +642,11 @@ SCENARIOS: list[Scenario] = [
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].unit", None),
-        expected_field="access_restrictions[].when.vehicle[].unit",
+        expected_field="access_restrictions[].when.vehicle[].unit_0",
         expected_check="required",
     ),
     Scenario(
-        id="segment::access_restrictions[].when.vehicle[].unit:enum",
+        id="segment::access_restrictions[].when.vehicle[].unit_0:enum",
         scaffold={
             "access_restrictions": [
                 {
@@ -654,11 +656,11 @@ SCENARIOS: list[Scenario] = [
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].unit", "__INVALID__"),
-        expected_field="access_restrictions[].when.vehicle[].unit",
+        expected_field="access_restrictions[].when.vehicle[].unit_0",
         expected_check="enum",
     ),
     Scenario(
-        id="segment::access_restrictions[].when.vehicle[].unit:required_1",
+        id="segment::access_restrictions[].when.vehicle[].unit_1:required",
         scaffold={
             "access_restrictions": [
                 {
@@ -668,11 +670,11 @@ SCENARIOS: list[Scenario] = [
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].unit", None),
-        expected_field="access_restrictions[].when.vehicle[].unit",
+        expected_field="access_restrictions[].when.vehicle[].unit_1",
         expected_check="required",
     ),
     Scenario(
-        id="segment::access_restrictions[].when.vehicle[].unit:enum_1",
+        id="segment::access_restrictions[].when.vehicle[].unit_1:enum",
         scaffold={
             "access_restrictions": [
                 {
@@ -682,7 +684,7 @@ SCENARIOS: list[Scenario] = [
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].unit", "__INVALID__"),
-        expected_field="access_restrictions[].when.vehicle[].unit",
+        expected_field="access_restrictions[].when.vehicle[].unit_1",
         expected_check="enum",
     ),
     Scenario(
@@ -721,17 +723,17 @@ SCENARIOS: list[Scenario] = [
         expected_check="no_whitespace",
     ),
     Scenario(
-        id="segment::connectors[].at:bounds",
+        id="segment::connectors[].at_0:bounds",
         scaffold={"connectors": [{"connector_id": "a", "at": 0.0}]},
         mutate=set_at_path("connectors[].at", -1.0),
-        expected_field="connectors[].at",
+        expected_field="connectors[].at_0",
         expected_check="bounds",
     ),
     Scenario(
-        id="segment::connectors[].at:bounds_1",
+        id="segment::connectors[].at_1:bounds",
         scaffold={"connectors": [{"connector_id": "a", "at": 0.0}]},
         mutate=set_at_path("connectors[].at", 2.0),
-        expected_field="connectors[].at",
+        expected_field="connectors[].at_1",
         expected_check="bounds",
     ),
     Scenario(
@@ -900,6 +902,20 @@ SCENARIOS: list[Scenario] = [
         scaffold={"names": {"primary": "a"}},
         mutate=set_at_path("names.primary", " has spaces "),
         expected_field="names.primary",
+        expected_check="stripped",
+    ),
+    Scenario(
+        id="segment::names.common{key}:language_tag",
+        scaffold={"names": {"primary": "a", "common": {"en": "clean"}}},
+        mutate=lambda row: mutate_map_key(row, "names.common", "123"),
+        expected_field="names.common{key}",
+        expected_check="language_tag",
+    ),
+    Scenario(
+        id="segment::names.common{value}:stripped",
+        scaffold={"names": {"primary": "a", "common": {"en": "clean"}}},
+        mutate=lambda row: mutate_map_value(row, "names.common", " has spaces "),
+        expected_field="names.common{value}",
         expected_check="stripped",
     ),
     Scenario(
@@ -1343,7 +1359,7 @@ def sparse_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_SPARSE,
         SCENARIOS,
-        feature_name="segment",
+        model_name="segment",
     )
 
 
@@ -1355,7 +1371,7 @@ def populated_results(spark: SparkSession, checks: list) -> ValidationResults:
         checks,
         BASE_ROW_POPULATED,
         SCENARIOS,
-        feature_name="segment",
+        model_name="segment",
     )
 
 

@@ -18,17 +18,17 @@ from codegen_test_support import (
     Venue,
     Widget,
     assert_golden,
-    feature_spec_for_model,
+    spec_for_model,
 )
 from overture.schema.codegen.extraction.enum_extraction import extract_enum
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
-from overture.schema.codegen.extraction.specs import FeatureSpec, TypeIdentity
+from overture.schema.codegen.extraction.specs import ModelSpec, TypeIdentity
 from overture.schema.codegen.layout.type_collection import (
     collect_all_supplementary_types,
 )
 from overture.schema.codegen.markdown.renderer import (
     render_enum,
-    render_feature,
+    render_model,
     render_newtype,
 )
 from overture.schema.codegen.markdown.reverse_references import (
@@ -64,13 +64,13 @@ NEWTYPE_CASES = [
 @pytest.fixture(scope="module")
 def reverse_refs() -> dict[TypeIdentity, list[UsedByEntry]]:
     """Compute reverse references for all test models."""
-    feature_specs: list[FeatureSpec] = []
+    model_specs: list[ModelSpec] = []
     for model_class, _ in FEATURE_CASES:
         assert isinstance(model_class, type) and issubclass(model_class, BaseModel)
-        feature_specs.append(feature_spec_for_model(model_class))
+        model_specs.append(spec_for_model(model_class))
 
-    all_specs = collect_all_supplementary_types(feature_specs)
-    return compute_reverse_references(feature_specs, all_specs)
+    all_specs = collect_all_supplementary_types(model_specs)
+    return compute_reverse_references(model_specs, all_specs)
 
 
 @pytest.mark.parametrize(
@@ -84,9 +84,9 @@ def test_feature_golden(
     update_golden: bool,
     reverse_refs: dict[TypeIdentity, list[UsedByEntry]],
 ) -> None:
-    spec = feature_spec_for_model(model_class)
+    spec = spec_for_model(model_class)
     used_by = reverse_refs.get(spec.identity)
-    actual = render_feature(spec, used_by=used_by)
+    actual = render_model(spec, used_by=used_by)
     assert_golden(actual, GOLDEN_DIR / golden_filename, update=update_golden)
 
 

@@ -15,10 +15,10 @@ from overture.schema.system.case import to_snake_case
 from overture.schema.system.discovery import entry_point_to_path
 from overture.schema.system.primitive import GeometryType
 
-from ..extraction.specs import FeatureSpec, UnionSpec
+from ..extraction.specs import ModelSpec, UnionSpec
 from .check_builder import build_checks
 from .check_ir import Check, ModelCheck
-from .renderer import render_feature_module
+from .renderer import render_model_module
 from .schema_builder import build_schema
 from .test_data.base_row import (
     generate_arm_rows,
@@ -78,16 +78,16 @@ def _support_prefix(directory: PurePosixPath) -> str:
     return "." * (len(directory.parts) + _DOTS_FROM_TEST_TO_TESTS_ROOT)
 
 
-def _require_entry_point(spec: FeatureSpec) -> str:
+def _require_entry_point(spec: ModelSpec) -> str:
     """Return *spec*'s entry point or raise if it's missing."""
     if spec.entry_point is None:
-        msg = f"FeatureSpec {spec.name!r} has no entry_point."
+        msg = f"ModelSpec {spec.name!r} has no entry_point."
         raise ValueError(msg)
     return spec.entry_point
 
 
-def _directory_and_feature_name(spec: FeatureSpec) -> tuple[PurePosixPath, str]:
-    """Return the output directory and snake_case feature name for a spec.
+def _directory_and_model_name(spec: ModelSpec) -> tuple[PurePosixPath, str]:
+    """Return the output directory and snake_case model name for a spec.
 
     Both halves derive from the entry-point's class name so filenames
     and symbol names stay in sync with what the runtime registry
@@ -102,7 +102,7 @@ def _extract_geometry_types(
 ) -> tuple[GeometryType, ...]:
     """Collect allowed geometry types from every `check_geometry_type` descriptor.
 
-    A feature may carry multiple `check_geometry_type` descriptors -- e.g.
+    A model may carry multiple `check_geometry_type` descriptors -- e.g.
     one per union arm with a distinct allowed-types set. The result is the
     union of all of them, sorted by name for deterministic output.
     """
@@ -132,40 +132,40 @@ def _init_modules(paths: Iterable[PurePosixPath]) -> list[GeneratedModule]:
     return [GeneratedModule(content="", path=d / "__init__.py") for d in sorted(dirs)]
 
 
-def generate_pyspark_module(spec: FeatureSpec) -> GeneratedModule:
-    """Generate a PySpark validation module from a feature spec.
+def generate_pyspark_module(spec: ModelSpec) -> GeneratedModule:
+    """Generate a PySpark validation module from a model spec.
 
     Parameters
     ----------
     spec
-        The extracted feature spec to generate from.
+        The extracted model spec to generate from.
 
     Returns
     -------
     GeneratedModule
         Module content and a relative output path mirroring the
-        feature's entry-point package layout.
+        model's entry-point package layout.
     """
     return _render_module(spec, build_checks(spec))
 
 
 def generate_pyspark_modules(
-    feature_specs: Sequence[FeatureSpec],
+    model_specs: Sequence[ModelSpec],
 ) -> PipelineOutput:
-    """Generate PySpark validation modules for all features.
+    """Generate PySpark validation modules for all models.
 
     Parameters
     ----------
-    feature_specs
-        Extracted feature specs to generate from.
+    model_specs
+        Extracted model specs to generate from.
 
     Returns
     -------
     PipelineOutput
-        Source-tree feature modules and test-tree modules. Each tree
+        Source-tree model modules and test-tree modules. Each tree
         includes the `__init__.py` files needed for its package layout.
     """
-    items = [(spec, build_checks(spec)) for spec in feature_specs]
+    items = [(spec, build_checks(spec)) for spec in model_specs]
     source = [_render_module(spec, checks) for spec, checks in items]
     test: list[GeneratedModule] = []
     for spec, checks in items:
@@ -176,16 +176,16 @@ def generate_pyspark_modules(
 
 
 def _render_module(
-    spec: FeatureSpec,
+    spec: ModelSpec,
     checks: tuple[list[Check], list[ModelCheck]],
 ) -> GeneratedModule:
-    """Build checks, schema, and render for a feature spec."""
+    """Build checks, schema, and render for a model spec."""
     field_checks, model_checks = checks
     schema_fields = build_schema(spec)
     geometry_types = _extract_geometry_types(field_checks)
-    directory, feature_name = _directory_and_feature_name(spec)
-    content = render_feature_module(
-        feature_name,
+    directory, model_name = _directory_and_model_name(spec)
+    content = render_model_module(
+        model_name,
         field_checks,
         model_checks,
         schema_fields,
@@ -195,12 +195,12 @@ def _render_module(
     )
     return GeneratedModule(
         content=content,
-        path=directory / f"{feature_name}.py",
+        path=directory / f"{model_name}.py",
     )
 
 
 def _select_arm_rows(
-    spec: FeatureSpec,
+    spec: ModelSpec,
 ) -> dict[str | None, tuple[dict[str, object], dict[str, object]]]:
     """Map each test module's arm key to its (sparse, populated) base rows.
 
@@ -219,10 +219,10 @@ def _select_arm_rows(
 
 
 def _render_test_modules(
-    spec: FeatureSpec,
+    spec: ModelSpec,
     checks: tuple[list[Check], list[ModelCheck]],
 ) -> list[GeneratedModule]:
-    """Render test modules for a feature spec.
+    """Render test modules for a model spec.
 
     For union specs with multiple discriminator arms, produces one
     test module per arm. Each arm's test includes the field and
@@ -230,8 +230,8 @@ def _render_test_modules(
     `render_test_module`.
     """
     field_checks, model_checks = checks
-    directory, feature_name = _directory_and_feature_name(spec)
-    expression_import = ".".join([_OUTPUT_PACKAGE, *directory.parts, feature_name])
+    directory, model_name = _directory_and_model_name(spec)
+    expression_import = ".".join([_OUTPUT_PACKAGE, *directory.parts, model_name])
     support_prefix = _support_prefix(directory)
 
     modules: list[GeneratedModule] = []
@@ -240,7 +240,7 @@ def _render_test_modules(
         modules.append(
             GeneratedModule(
                 content=render_test_module(
-                    feature_name,
+                    model_name,
                     field_checks,
                     model_checks,
                     base_row_sparse=base_row_sparse,
@@ -250,7 +250,7 @@ def _render_test_modules(
                     expression_import=expression_import,
                     support_prefix=support_prefix,
                 ),
-                path=directory / f"test_{feature_name}{suffix}.py",
+                path=directory / f"test_{model_name}{suffix}.py",
             )
         )
     return modules

@@ -11,16 +11,16 @@ from codegen_test_support import (
     RoadSegment,
     TreeNode,
     Venue,
-    feature_spec_for_model,
     has_name,
     lookup_by_name,
     make_union_spec,
+    spec_for_model,
 )
 from overture.schema.codegen.extraction.enum_extraction import extract_enum
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
 from overture.schema.codegen.extraction.specs import (
-    ModelSpec,
     PydanticTypeSpec,
+    RecordSpec,
     TypeIdentity,
 )
 from overture.schema.codegen.layout.type_collection import (
@@ -50,7 +50,7 @@ def test_model_referencing_type_produces_used_by_entry(
     target_name: str,
 ) -> None:
     """Model referencing a type produces a 'used by' entry on that type."""
-    expanded = feature_spec_for_model(model_class, entry_point=model_name)
+    expanded = spec_for_model(model_class, entry_point=model_name)
     all_specs = collect_all_supplementary_types([expanded])
 
     assert has_name(all_specs, target_name)
@@ -84,6 +84,48 @@ def test_newtype_inheriting_from_newtype_produces_used_by_entry() -> None:
     assert entries[0].kind == UsedByKind.NEWTYPE
 
 
+def test_newtype_inheriting_through_array_layer_produces_used_by_entry() -> None:
+    """A NewType chaining through an array NewType inherits the inner
+    NewType's provenance from the array layer, not just the terminal scalar."""
+    from overture.schema.codegen.extraction.field import (
+        ArrayOf,
+        ConstraintSource,
+        Primitive,
+    )
+    from overture.schema.codegen.extraction.specs import NewTypeSpec
+
+    Inner = NewType("Inner", str)
+    Outer = NewType("Outer", list)
+
+    outer_spec = NewTypeSpec(
+        name="Outer",
+        description=None,
+        shape=ArrayOf(
+            element=Primitive(base_type="str"),
+            constraints=(
+                ConstraintSource(
+                    source_ref=Inner, source_name="Inner", constraint=object()
+                ),
+            ),
+        ),
+    )
+    inner_spec = NewTypeSpec(
+        name="Inner", description=None, shape=Primitive(base_type="str")
+    )
+
+    all_specs = {
+        TypeIdentity(Outer, "Outer"): outer_spec,
+        TypeIdentity(Inner, "Inner"): inner_spec,
+    }
+
+    result = compute_reverse_references([], all_specs)
+
+    entries = lookup_by_name(result, "Inner")
+    assert len(entries) == 1
+    assert entries[0].identity.name == "Outer"
+    assert entries[0].kind == UsedByKind.NEWTYPE
+
+
 def test_union_members_have_used_by_entries() -> None:
     """Union members have 'used by' entries pointing to the union feature."""
     # Create a union spec with RoadSegment as a member
@@ -95,8 +137,8 @@ def test_union_members_have_used_by_entries() -> None:
     )
 
     # Extract the member
-    road_spec = feature_spec_for_model(RoadSegment)
-    assert isinstance(road_spec, ModelSpec)
+    road_spec = spec_for_model(RoadSegment)
+    assert isinstance(road_spec, RecordSpec)
     all_specs = {TypeIdentity(RoadSegment, "RoadSegment"): road_spec}
 
     result = compute_reverse_references([union_spec], all_specs)
@@ -109,8 +151,8 @@ def test_union_members_have_used_by_entries() -> None:
 
 def test_self_references_filtered_out() -> None:
     """Self-references are filtered out (handles recursive types)."""
-    tree_spec = feature_spec_for_model(TreeNode, entry_point="TreeNode")
-    assert isinstance(tree_spec, ModelSpec)
+    tree_spec = spec_for_model(TreeNode, entry_point="TreeNode")
+    assert isinstance(tree_spec, RecordSpec)
 
     # Manually add TreeNode to all_specs to test self-reference filtering
     all_specs = {TypeIdentity(TreeNode, "TreeNode"): tree_spec}
@@ -124,8 +166,8 @@ def test_self_references_filtered_out() -> None:
 
 def test_deduplication_same_type_multiple_fields() -> None:
     """Deduplication works when same type is referenced via multiple fields."""
-    instrument_spec = feature_spec_for_model(Instrument, entry_point="Instrument")
-    venue_spec = feature_spec_for_model(Venue, entry_point="Venue")
+    instrument_spec = spec_for_model(Instrument, entry_point="Instrument")
+    venue_spec = spec_for_model(Venue, entry_point="Venue")
     all_specs = collect_all_supplementary_types([instrument_spec, venue_spec])
 
     assert has_name(all_specs, "Id")
@@ -143,7 +185,7 @@ def test_deduplication_same_type_multiple_fields() -> None:
 
 def test_pydantic_type_has_used_by_from_feature() -> None:
     """Pydantic type in all_specs gets used-by entries from features referencing it."""
-    expanded = feature_spec_for_model(FeatureWithUrl, entry_point="FeatureWithUrl")
+    expanded = spec_for_model(FeatureWithUrl, entry_point="FeatureWithUrl")
     all_specs = collect_all_supplementary_types([expanded])
 
     assert has_name(all_specs, "HttpUrl")
@@ -173,8 +215,8 @@ def test_sort_tiebreaker_uses_module_for_same_name_referrers() -> None:
     FeatureBeta.__name__ = "Feature"
     FeatureBeta.__module__ = "beta.models"
 
-    spec_a = feature_spec_for_model(FeatureAlpha, entry_point="Feature")
-    spec_b = feature_spec_for_model(FeatureBeta, entry_point="Feature")
+    spec_a = spec_for_model(FeatureAlpha, entry_point="Feature")
+    spec_b = spec_for_model(FeatureBeta, entry_point="Feature")
 
     enum_id = TypeIdentity(SharedEnum, "SharedEnum")
     all_specs = {enum_id: extract_enum(SharedEnum)}
@@ -196,8 +238,8 @@ def test_sorting_models_before_newtypes() -> None:
     # Create a synthetic NewType that wraps Id
     CustomId = NewType("CustomId", Id)
 
-    instrument_spec = feature_spec_for_model(Instrument, entry_point="Instrument")
-    venue_spec = feature_spec_for_model(Venue, entry_point="Venue")
+    instrument_spec = spec_for_model(Instrument, entry_point="Instrument")
+    venue_spec = spec_for_model(Venue, entry_point="Venue")
     all_specs = collect_all_supplementary_types([instrument_spec, venue_spec])
 
     # Add the CustomId NewType which references Id

@@ -23,6 +23,7 @@ from overture.schema.codegen.extraction.length_constraints import (
     ScalarMinLen,
 )
 from overture.schema.codegen.extraction.type_analyzer import (
+    UnresolvedForwardRefError,
     UnsupportedUnionError,
     analyze_type,
     single_literal_value,
@@ -115,11 +116,25 @@ class TestList:
         assert optional is True
 
     def test_list_optional_element(self) -> None:
+        # list[str | None] is a required list whose *elements* may be None.
+        # Field-level optionality (list itself accepting None) is False;
+        # element nullability is an element-shape concern, not a field concern.
         shape, optional, _ = analyze_type(list[str | None])
         assert isinstance(shape, ArrayOf)
-        # `is_optional` reflects the field accepting None; element-level
-        # `| None` propagates the same way.
+        assert optional is False
+
+    def test_optional_list_with_optional_element(self) -> None:
+        # list[str | None] | None: both the field and its elements accept None.
+        # Field optionality is True (the outer | None), independent of the element.
+        shape, optional, _ = analyze_type(list[str | None] | None)
+        assert isinstance(shape, ArrayOf)
         assert optional is True
+
+    def test_list_optional_element_desc_is_none(self) -> None:
+        # Description comes from Field(description=...) at the field layer,
+        # not from the element type. List branch returns None, matching dict.
+        _, _, desc = analyze_type(list[str | None])
+        assert desc is None
 
 
 class TestAnnotated:
@@ -153,6 +168,50 @@ class TestAnnotated:
         inner = shape.element.constraints
         assert len(inner) == 1
         assert inner[0].constraint == ScalarMinLen(min_length=2)
+
+
+class TestAttachConstraintsOnModelTerminal:
+    """Constraints destined for a model/union terminal are rejected loudly."""
+
+    def _model_ref(self) -> FieldShape:
+        from overture.schema.codegen.extraction.field import ModelRef
+        from overture.schema.codegen.extraction.specs import RecordSpec
+
+        return ModelRef(model=RecordSpec(name="Person", description=None))
+
+    def _union_ref(self) -> FieldShape:
+        from overture.schema.codegen.extraction.field import UnionRef
+        from overture.schema.codegen.extraction.specs import UnionSpec
+
+        return UnionRef(
+            union=UnionSpec(
+                name="U",
+                description=None,
+                annotated_fields=[],
+                members=[],
+                discriminator_field=None,
+                discriminator_mapping=None,
+                source_annotation=object(),
+                common_base=BaseModel,
+            )
+        )
+
+    @pytest.mark.parametrize("ref_name", ["_model_ref", "_union_ref"])
+    def test_constraint_on_terminal_raises(self, ref_name: str) -> None:
+        from overture.schema.codegen.extraction.field import ConstraintSource
+        from overture.schema.codegen.extraction.type_analyzer import attach_constraints
+
+        shape = getattr(self, ref_name)()
+        cs = (ConstraintSource(source_ref=None, source_name=None, constraint=Ge(0)),)
+        with pytest.raises(NotImplementedError):
+            attach_constraints(shape, cs)
+
+    @pytest.mark.parametrize("ref_name", ["_model_ref", "_union_ref"])
+    def test_no_constraints_is_noop(self, ref_name: str) -> None:
+        from overture.schema.codegen.extraction.type_analyzer import attach_constraints
+
+        shape = getattr(self, ref_name)()
+        assert attach_constraints(shape, ()) is shape
 
 
 class TestLiteral:
@@ -317,7 +376,33 @@ class TestDict:
 class TestErrors:
     def test_unsupported_annotation(self) -> None:
         with pytest.raises(TypeError, match="Unsupported annotation type"):
+            analyze_type(42)
+
+    def test_unresolvable_forward_ref_raises_named_error(self) -> None:
+        with pytest.raises(
+            UnresolvedForwardRefError, match="forward reference 'Missing'"
+        ):
+            analyze_type("Missing")
+
+    def test_malformed_forward_ref_raises_named_error(self) -> None:
+        with pytest.raises(UnresolvedForwardRefError, match="not a type"):
             analyze_type("not a type")
+
+    def test_dotted_forward_ref_missing_attr_raises_named_error(self) -> None:
+        """A dotted ref to a missing attribute fails as `UnresolvedForwardRefError`.
+
+        `evaluate_forward_ref` raises `AttributeError` (not `NameError`)
+        when the head of a dotted reference resolves but the attribute is
+        absent; the wrapping must catch it so the failure stays named.
+        """
+
+        class Outer(BaseModel):
+            x: int
+
+        with pytest.raises(
+            UnresolvedForwardRefError, match="forward reference 'Outer.Missing'"
+        ):
+            analyze_type("Outer.Missing", owner=Outer)
 
     def test_multi_type_union_without_resolver(self) -> None:
         with pytest.raises(UnsupportedUnionError):
@@ -326,6 +411,46 @@ class TestErrors:
     def test_bare_list(self) -> None:
         with pytest.raises(TypeError, match="Bare list without type argument"):
             analyze_type(list)
+
+
+class TestForwardRefs:
+    def test_bare_string_element_resolved_against_owner(self) -> None:
+        """`list["Self"]` resolves the bare-string element via the owner namespace.
+
+        With no `model_resolver` the resolved model terminal falls back
+        to a `Primitive` carrying the class as `source_type`; the point
+        is that the bare `str` was resolved rather than reaching the
+        terminal classifier unresolved.
+        """
+
+        class Node(BaseModel):
+            children: list["Node"]
+
+        annotation = Node.model_fields["children"].annotation
+        shape, _, _ = analyze_type(annotation, owner=Node)
+
+        assert isinstance(shape, ArrayOf)
+        assert isinstance(shape.element, Primitive)
+        assert shape.element.source_type is Node
+
+    def test_nested_class_forward_ref_resolved_against_owner(self) -> None:
+        """A bare forward ref to a nested class resolves via the owner's namespace.
+
+        `_resolve_forward_ref` merges `vars(owner)` into the resolution
+        namespace, so `"Inner"` reaches `Outer.Inner` rather than raising
+        `NameError`. The merge is explicit because passing any `locals` to
+        `evaluate_forward_ref` bypasses the library's own `vars(owner)`
+        fallback.
+        """
+
+        class Outer(BaseModel):
+            class Inner(BaseModel):
+                x: int
+
+        shape, _, _ = analyze_type("Inner", owner=Outer)
+
+        assert isinstance(shape, Primitive)
+        assert shape.source_type is Outer.Inner
 
 
 class UnionModelA(BaseModel):

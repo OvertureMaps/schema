@@ -6,15 +6,15 @@ from codegen_test_support import (
     FeatureWithUrl,
     Instrument,
     TestSegmentWithSubModel,
-    feature_spec_for_model,
     has_name,
     lookup_by_name,
+    spec_for_model,
 )
 from overture.schema.codegen.extraction.specs import (
     EnumSpec,
-    ModelSpec,
     NewTypeSpec,
     PydanticTypeSpec,
+    RecordSpec,
     SupplementarySpec,
     TypeIdentity,
 )
@@ -34,7 +34,7 @@ def _make_feature_with_sub_model(sub_model: type) -> type[BaseModel]:
 
 
 def _expanded_supplementary(model_class: type) -> dict[TypeIdentity, SupplementarySpec]:
-    return collect_all_supplementary_types([feature_spec_for_model(model_class)])
+    return collect_all_supplementary_types([spec_for_model(model_class)])
 
 
 class TestCollectAllSupplementarySpecs:
@@ -56,7 +56,7 @@ class TestCollectAllSupplementarySpecs:
         result = _expanded_supplementary(FeatureWithAddress)
 
         assert has_name(result, "Address")
-        assert isinstance(lookup_by_name(result, "Address"), ModelSpec)
+        assert isinstance(lookup_by_name(result, "Address"), RecordSpec)
 
     def test_collects_transitive_types(self) -> None:
         """Types referenced by sub-models are also collected."""
@@ -72,8 +72,8 @@ class TestCollectAllSupplementarySpecs:
         ModelA = type("Address", (BaseModel,), {"__annotations__": {"x": str}})
         ModelB = type("Address", (BaseModel,), {"__annotations__": {"y": int}})
 
-        outer_a = feature_spec_for_model(_make_feature_with_sub_model(ModelA))
-        outer_b = feature_spec_for_model(_make_feature_with_sub_model(ModelB))
+        outer_a = spec_for_model(_make_feature_with_sub_model(ModelA))
+        outer_b = spec_for_model(_make_feature_with_sub_model(ModelB))
 
         result = collect_all_supplementary_types([outer_a, outer_b])
 
@@ -95,7 +95,7 @@ class TestCollectUnionMemberSubModels:
         result = _expanded_supplementary(FeatureWithUnionSubModel)
 
         assert has_name(result, "ContactInfo")
-        assert isinstance(lookup_by_name(result, "ContactInfo"), ModelSpec)
+        assert isinstance(lookup_by_name(result, "ContactInfo"), RecordSpec)
 
 
 class TestCollectPydanticTypes:
@@ -118,3 +118,24 @@ class TestCollectPydanticTypes:
         result = _expanded_supplementary(FeatureWithUrl)
         assert not has_name(result, "str")
         assert not has_name(result, "int")
+
+
+class TestSemanticNewtypeGuard:
+    """Only semantic NewTypes become standalone supplementary specs."""
+
+    def test_registered_primitive_newtype_not_collected(self) -> None:
+        """A non-semantic NewType (uint8) belongs on the aggregate
+        primitives page, not as a standalone NewTypeSpec whose path
+        collides with it."""
+        from overture.schema.system.primitive import uint8
+        from overture.schema.system.string import HexColor
+
+        feature = type(
+            "FeatureWithPrimitives",
+            (BaseModel,),
+            {"__annotations__": {"count": uint8, "color": HexColor}},
+        )
+        result = _expanded_supplementary(feature)
+
+        assert not has_name(result, "uint8")
+        assert has_name(result, "HexColor")

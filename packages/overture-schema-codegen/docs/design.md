@@ -45,7 +45,7 @@ tests that verify behavior of generated code.
 
 - Markdown documentation pages with field tables, cross-page links, constraint
   descriptions, and examples.
-- PySpark validation modules: per-feature expression builders, StructType schemas,
+- PySpark validation modules: per-model expression builders, StructType schemas,
   a feature registry, and generated conformance test modules.
 
 ## Architecture
@@ -57,7 +57,7 @@ Rendering            Output formatting, all presentation decisions
     ^
 Output Layout        What to generate, where it goes, how outputs link
     ^
-Extraction           FieldShape, FieldSpec, ModelSpec, EnumSpec, ...
+Extraction           FieldShape, FieldSpec, RecordSpec, EnumSpec, ...
     ^
 Discovery            discover_models() from overture-schema-common
 ```
@@ -85,8 +85,8 @@ graph TD
         EX["extraction/type_analyzer / extractors"]
     end
 
-    EX -->|"FeatureSpec[]"| OL
-    EX -->|"FeatureSpec[]"| PS
+    EX -->|"ModelSpec[]"| OL
+    EX -->|"ModelSpec[]"| PS
 
     subgraph "Output Layout (Markdown)"
         OL["layout/type_collection"]
@@ -172,7 +172,7 @@ constraints land on structurally distinct nodes without any numeric bookkeeping.
 
 Extraction is split by entity kind:
 
-- `extraction/model_extraction.py`: Pydantic model -> `ModelSpec` (fields in MRO-aware
+- `extraction/model_extraction.py`: Pydantic model -> `RecordSpec` (fields in MRO-aware
   documentation order, alias-resolved names, model-level constraints)
 - `extraction/enum_extraction.py`: Enum class -> `EnumSpec`
 - `extraction/newtype_extraction.py`: NewType -> `NewTypeSpec`
@@ -185,7 +185,7 @@ and sub-unions during extraction, building `ModelRef`/`UnionRef` terminals with 
 specs resolved. A shared cache and cycle detection (`starts_cycle=True`) prevent
 infinite recursion and duplicate extraction.
 
-### Unions and FeatureSpec
+### Unions and ModelSpec
 
 Discriminated unions (e.g. `Segment = Annotated[Union[RoadSegment, ...],
 Discriminator(...)]`) are type aliases, not classes. `UnionSpec` captures the union
@@ -194,9 +194,9 @@ Fields shared across all variants appear once; fields present in some variants a
 wrapped in `AnnotatedField` with `variant_sources` indicating which members contribute
 them. The common base class is identified so shared fields can be deduplicated.
 
-`FeatureSpec` is a type alias `ModelSpec | UnionSpec`. Code that operates on "any
-top-level feature" -- supplementary type collection, rendering dispatch -- uses
-`FeatureSpec` so union and model features flow through the same pipeline. Consumers
+`ModelSpec` is a type alias `RecordSpec | UnionSpec`. Code that operates on "any
+top-level model" -- supplementary type collection, rendering dispatch -- uses
+`ModelSpec` so records and unions flow through the same pipeline. Consumers
 narrow with `isinstance` when arm-specific attributes are needed.
 
 ### Constraints
@@ -218,7 +218,7 @@ reference each other.
 `collect_all_supplementary_types()` walks the field trees of all feature specs to extract
 the supplementary types that need their own output: enums, semantic NewTypes, sub-models,
 and Pydantic built-in types (`HttpUrl`, `EmailStr`). Returns `dict[TypeIdentity,
-SupplementarySpec]`, where `SupplementarySpec = EnumSpec | NewTypeSpec | ModelSpec |
+SupplementarySpec]`, where `SupplementarySpec = EnumSpec | NewTypeSpec | RecordSpec |
 PydanticTypeSpec`. `TypeIdentity` pairs a unique Python object with its display name so
 registry lookups remain stable when two distinct types share a name.
 
@@ -259,7 +259,7 @@ to registered primitives.
 ### Markdown renderer
 
 Jinja2 templates for feature, enum, NewType, primitives, and geometry pages.
-`render_feature()` walks each field's `FieldShape` tree and expands `ModelRef`
+`render_model()` walks each field's `FieldShape` tree and expands `ModelRef`
 terminals inline with dot-notation (e.g., `sources[].dataset`), stopping at
 `ModelRef.starts_cycle`. `format_type()` in `markdown/type_format.py` converts a
 `FieldShape` into link-aware display strings using `LinkContext`.
@@ -287,7 +287,7 @@ fields absent from the concrete variant instance.
 
 ## PySpark Pipeline
 
-The PySpark codegen transforms extracted `FeatureSpec` trees into validation expression
+The PySpark codegen transforms extracted `ModelSpec` trees into validation expression
 modules and generated conformance test modules. `pyspark/pipeline.py` exposes
 `generate_pyspark_module` (single spec) and `generate_pyspark_modules` (all specs).
 
@@ -354,19 +354,19 @@ wider Spark numeric type wins).
 
 ### Renderer
 
-`pyspark/renderer.py` emits per-feature Python modules containing:
+`pyspark/renderer.py` emits per-model Python modules containing:
 
 - Private `_fieldname_check()` functions returning `Check(field=, name=, expr=, shape=, root_field=)`
-- A public `feature_checks() -> list[Check]` function calling all of them
-- A per-feature `FEATURENAME_SCHEMA` StructType constant (e.g. `ADDRESS_SCHEMA`, `SEGMENT_SCHEMA`)
+- A public `<model>_checks() -> list[Check]` function calling all of them
+- A per-model `MODELNAME_SCHEMA` StructType constant (e.g. `ADDRESS_SCHEMA`, `SEGMENT_SCHEMA`)
 - An `ENTRY_POINT` string, a `PARTITIONS` dict describing the feature's Hive partition
-  layout (empty when not partitioned), and a `FEATURE_VALIDATION` constant pairing the
+  layout (empty when not partitioned), and a `MODEL_VALIDATION` constant pairing the
   schema and checks
 
 The registry is not generated. `_registry.py` lives hand-written in the
 `overture-schema-pyspark` package and walks the `expressions.generated` namespace at
-import time, collecting every module that exposes `ENTRY_POINT` and `FEATURE_VALIDATION`
-into a `dict[str, FeatureValidation]`. Modules that also expose `PARTITIONS` populate a
+import time, collecting every module that exposes `ENTRY_POINT` and `MODEL_VALIDATION`
+into a `dict[str, ModelValidation]`. Modules that also expose `PARTITIONS` populate a
 parallel partition map keyed by entry point.
 
 Expression rendering handles scalar expressions, array_check/nested_array_check chains,
@@ -376,7 +376,7 @@ Output is formatted with ruff.
 
 ### Test Renderer
 
-`pyspark/test_renderer.py` emits per-feature pytest modules containing:
+`pyspark/test_renderer.py` emits per-model pytest modules containing:
 
 - `BASE_ROW_SPARSE` / `BASE_ROW_POPULATED` -- valid synthetic rows
 - `SCENARIOS: list[Scenario]` -- generated test cases, each carrying a
@@ -394,7 +394,7 @@ Union specs with multiple discriminator arms produce one test module per arm.
 `pyspark/test_data/` is a subpackage with three modules:
 
 - `base_row.py` -- `generate_base_row` / `generate_populated_row` produce sparse
-  (required only) and fully populated valid rows from a `FeatureSpec`. Consults field
+  (required only) and fully populated valid rows from a `ModelSpec`. Consults field
   constraints to produce constraint-satisfying values (country codes, geometry WKT,
   bounds-respecting numbers). `generate_arm_rows` / `generate_populated_arm_rows`
   produce one row per discriminator arm for union specs.
@@ -422,7 +422,7 @@ PySpark validation diverges from Pydantic validation in two documented areas:
 
 **Adding a new output target**: Add a column to `TypeMapping` in
 `extraction/type_registry.py` for type-name resolution. Write a pipeline module that
-consumes `FeatureSpec` trees and a renderer that produces output. The extraction layer is
+consumes `ModelSpec` trees and a renderer that produces output. The extraction layer is
 target-independent. Register the format in `cli.py`.
 
 **Adding a new type kind**: Add a variant to `FieldShape` in `extraction/field.py`.

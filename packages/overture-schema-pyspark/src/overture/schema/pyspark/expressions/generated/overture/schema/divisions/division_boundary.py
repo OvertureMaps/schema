@@ -16,7 +16,7 @@ from pyspark.sql.types import (
     StructType,
 )
 
-from overture.schema.pyspark.check import Check, CheckShape, FeatureValidation
+from overture.schema.pyspark.check import Check, CheckShape, ModelValidation
 from overture.schema.pyspark.expressions._schema_structs import (
     BBOX_STRUCT,
 )
@@ -54,7 +54,7 @@ def _id_required_check() -> Check:
         name="required",
         expr=check_required(F.col("id")),
         shape=CheckShape.SCALAR,
-        root_field="id",
+        read_columns=frozenset({"id"}),
     )
 
 
@@ -64,7 +64,7 @@ def _id_string_min_length_check() -> Check:
         name="string_min_length",
         expr=check_string_min_length(F.col("id"), 1),
         shape=CheckShape.SCALAR,
-        root_field="id",
+        read_columns=frozenset({"id"}),
     )
 
 
@@ -76,7 +76,7 @@ def _id_no_whitespace_check() -> Check:
             F.col("id"), "^\\S+\\z", label="String without whitespace characters"
         ),
         shape=CheckShape.SCALAR,
-        root_field="id",
+        read_columns=frozenset({"id"}),
     )
 
 
@@ -86,7 +86,7 @@ def _bbox_bbox_completeness_check() -> Check:
         name="bbox_completeness",
         expr=check_bbox_completeness(F.col("bbox")),
         shape=CheckShape.SCALAR,
-        root_field="bbox",
+        read_columns=frozenset({"bbox"}),
     )
 
 
@@ -96,7 +96,7 @@ def _bbox_bbox_lat_ordering_check() -> Check:
         name="bbox_lat_ordering",
         expr=check_bbox_lat_ordering(F.col("bbox")),
         shape=CheckShape.SCALAR,
-        root_field="bbox",
+        read_columns=frozenset({"bbox"}),
     )
 
 
@@ -106,7 +106,7 @@ def _bbox_bbox_lat_range_check() -> Check:
         name="bbox_lat_range",
         expr=check_bbox_lat_range(F.col("bbox")),
         shape=CheckShape.SCALAR,
-        root_field="bbox",
+        read_columns=frozenset({"bbox"}),
     )
 
 
@@ -116,7 +116,7 @@ def _geometry_required_check() -> Check:
         name="required",
         expr=check_required(F.col("geometry")),
         shape=CheckShape.SCALAR,
-        root_field="geometry",
+        read_columns=frozenset({"geometry"}),
     )
 
 
@@ -128,7 +128,7 @@ def _geometry_geometry_type_check() -> Check:
             F.col("geometry"), GeometryType.LINE_STRING, GeometryType.MULTI_LINE_STRING
         ),
         shape=CheckShape.SCALAR,
-        root_field="geometry",
+        read_columns=frozenset({"geometry"}),
     )
 
 
@@ -138,7 +138,7 @@ def _theme_required_check() -> Check:
         name="required",
         expr=check_required(F.col("theme")),
         shape=CheckShape.SCALAR,
-        root_field="theme",
+        read_columns=frozenset({"theme"}),
     )
 
 
@@ -148,7 +148,7 @@ def _theme_enum_check() -> Check:
         name="enum",
         expr=check_enum(F.col("theme"), ["divisions"]),
         shape=CheckShape.SCALAR,
-        root_field="theme",
+        read_columns=frozenset({"theme"}),
     )
 
 
@@ -158,7 +158,7 @@ def _type_required_check() -> Check:
         name="required",
         expr=check_required(F.col("type")),
         shape=CheckShape.SCALAR,
-        root_field="type",
+        read_columns=frozenset({"type"}),
     )
 
 
@@ -168,7 +168,7 @@ def _type_enum_check() -> Check:
         name="enum",
         expr=check_enum(F.col("type"), ["division_boundary"]),
         shape=CheckShape.SCALAR,
-        root_field="type",
+        read_columns=frozenset({"type"}),
     )
 
 
@@ -178,7 +178,7 @@ def _version_required_check() -> Check:
         name="required",
         expr=check_required(F.col("version")),
         shape=CheckShape.SCALAR,
-        root_field="version",
+        read_columns=frozenset({"version"}),
     )
 
 
@@ -188,7 +188,7 @@ def _version_bounds_check() -> Check:
         name="bounds",
         expr=check_bounds(F.col("version"), ge=0),
         shape=CheckShape.SCALAR,
-        root_field="version",
+        read_columns=frozenset({"version"}),
     )
 
 
@@ -198,7 +198,7 @@ def _sources_min_length_check() -> Check:
         name="array_min_length",
         expr=check_array_min_length(F.col("sources"), 1),
         shape=CheckShape.SCALAR,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -208,7 +208,7 @@ def _sources_unique_check() -> Check:
         name="struct_unique",
         expr=check_struct_unique(F.col("sources")),
         shape=CheckShape.SCALAR,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -218,7 +218,7 @@ def _sources_property_required_check() -> Check:
         name="required",
         expr=array_check("sources", lambda el: check_required(el["property"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -228,7 +228,7 @@ def _sources_property_json_pointer_check() -> Check:
         name="json_pointer",
         expr=array_check("sources", lambda el: check_json_pointer(el["property"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -238,7 +238,7 @@ def _sources_dataset_check() -> Check:
         name="required",
         expr=array_check("sources", lambda el: check_required(el["dataset"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -248,27 +248,27 @@ def _sources_license_check() -> Check:
         name="stripped",
         expr=array_check("sources", lambda el: check_stripped(el["license"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
 def _sources_confidence_bounds_check() -> Check:
     return Check(
-        field="sources[].confidence",
+        field="sources[].confidence_0",
         name="bounds",
         expr=array_check("sources", lambda el: check_bounds(el["confidence"], ge=0.0)),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
 def _sources_confidence_bounds_check_1() -> Check:
     return Check(
-        field="sources[].confidence",
+        field="sources[].confidence_1",
         name="bounds",
         expr=array_check("sources", lambda el: check_bounds(el["confidence"], le=1.0)),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -280,7 +280,7 @@ def _sources_between_linear_range_length_check() -> Check:
             "sources", lambda el: check_linear_range_length(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -292,7 +292,7 @@ def _sources_between_linear_range_bounds_check() -> Check:
             "sources", lambda el: check_linear_range_bounds(el["between"])
         ),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -302,7 +302,7 @@ def _sources_between_linear_range_order_check() -> Check:
         name="linear_range_order",
         expr=array_check("sources", lambda el: check_linear_range_order(el["between"])),
         shape=CheckShape.ARRAY,
-        root_field="sources",
+        read_columns=frozenset({"sources"}),
     )
 
 
@@ -312,7 +312,7 @@ def _subtype_required_check() -> Check:
         name="required",
         expr=check_required(F.col("subtype")),
         shape=CheckShape.SCALAR,
-        root_field="subtype",
+        read_columns=frozenset({"subtype"}),
     )
 
 
@@ -338,7 +338,7 @@ def _subtype_enum_check() -> Check:
             ],
         ),
         shape=CheckShape.SCALAR,
-        root_field="subtype",
+        read_columns=frozenset({"subtype"}),
     )
 
 
@@ -348,7 +348,7 @@ def _class_required_check() -> Check:
         name="required",
         expr=check_required(F.col("class")),
         shape=CheckShape.SCALAR,
-        root_field="class",
+        read_columns=frozenset({"class"}),
     )
 
 
@@ -358,7 +358,7 @@ def _class_enum_check() -> Check:
         name="enum",
         expr=check_enum(F.col("class"), ["land", "maritime"]),
         shape=CheckShape.SCALAR,
-        root_field="class",
+        read_columns=frozenset({"class"}),
     )
 
 
@@ -368,7 +368,7 @@ def _division_ids_check() -> Check:
         name="required",
         expr=check_required(F.col("division_ids")),
         shape=CheckShape.SCALAR,
-        root_field="division_ids",
+        read_columns=frozenset({"division_ids"}),
     )
 
 
@@ -378,7 +378,7 @@ def _division_ids_min_length_check() -> Check:
         name="array_min_length",
         expr=check_array_min_length(F.col("division_ids"), 2),
         shape=CheckShape.SCALAR,
-        root_field="division_ids",
+        read_columns=frozenset({"division_ids"}),
     )
 
 
@@ -388,7 +388,7 @@ def _division_ids_max_length_check() -> Check:
         name="array_max_length",
         expr=check_array_max_length(F.col("division_ids"), 2),
         shape=CheckShape.SCALAR,
-        root_field="division_ids",
+        read_columns=frozenset({"division_ids"}),
     )
 
 
@@ -398,7 +398,7 @@ def _division_ids_unique_check() -> Check:
         name="struct_unique",
         expr=check_struct_unique(F.col("division_ids")),
         shape=CheckShape.SCALAR,
-        root_field="division_ids",
+        read_columns=frozenset({"division_ids"}),
     )
 
 
@@ -408,7 +408,7 @@ def _division_ids_string_min_length_check() -> Check:
         name="string_min_length",
         expr=array_check("division_ids", lambda el: check_string_min_length(el, 1)),
         shape=CheckShape.ARRAY,
-        root_field="division_ids",
+        read_columns=frozenset({"division_ids"}),
     )
 
 
@@ -423,7 +423,7 @@ def _division_ids_no_whitespace_check() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="division_ids",
+        read_columns=frozenset({"division_ids"}),
     )
 
 
@@ -435,7 +435,7 @@ def _country_check() -> Check:
             F.col("country"), "^[A-Z]{2}\\z", label="ISO 3166-1 alpha-2 country code"
         ),
         shape=CheckShape.SCALAR,
-        root_field="country",
+        read_columns=frozenset({"country"}),
     )
 
 
@@ -449,27 +449,27 @@ def _region_check() -> Check:
             label="ISO 3166-2 subdivision code",
         ),
         shape=CheckShape.SCALAR,
-        root_field="region",
+        read_columns=frozenset({"region"}),
     )
 
 
 def _admin_level_bounds_check() -> Check:
     return Check(
-        field="admin_level",
+        field="admin_level_0",
         name="bounds",
         expr=check_bounds(F.col("admin_level"), ge=0),
         shape=CheckShape.SCALAR,
-        root_field="admin_level",
+        read_columns=frozenset({"admin_level"}),
     )
 
 
 def _admin_level_bounds_check_1() -> Check:
     return Check(
-        field="admin_level",
+        field="admin_level_1",
         name="bounds",
         expr=check_bounds(F.col("admin_level"), le=16),
         shape=CheckShape.SCALAR,
-        root_field="admin_level",
+        read_columns=frozenset({"admin_level"}),
     )
 
 
@@ -482,7 +482,7 @@ def _perspectives_mode_required_check() -> Check:
             check_required(F.col("perspectives.mode")),
         ),
         shape=CheckShape.SCALAR,
-        root_field="perspectives",
+        read_columns=frozenset({"perspectives"}),
     )
 
 
@@ -492,7 +492,7 @@ def _perspectives_mode_enum_check() -> Check:
         name="enum",
         expr=check_enum(F.col("perspectives.mode"), ["accepted_by", "disputed_by"]),
         shape=CheckShape.SCALAR,
-        root_field="perspectives",
+        read_columns=frozenset({"perspectives"}),
     )
 
 
@@ -505,7 +505,7 @@ def _perspectives_countries_check() -> Check:
             check_required(F.col("perspectives.countries")),
         ),
         shape=CheckShape.SCALAR,
-        root_field="perspectives",
+        read_columns=frozenset({"perspectives"}),
     )
 
 
@@ -515,7 +515,7 @@ def _perspectives_countries_min_length_check() -> Check:
         name="array_min_length",
         expr=check_array_min_length(F.col("perspectives.countries"), 1),
         shape=CheckShape.SCALAR,
-        root_field="perspectives",
+        read_columns=frozenset({"perspectives"}),
     )
 
 
@@ -525,7 +525,7 @@ def _perspectives_countries_unique_check() -> Check:
         name="struct_unique",
         expr=check_struct_unique(F.col("perspectives.countries")),
         shape=CheckShape.SCALAR,
-        root_field="perspectives",
+        read_columns=frozenset({"perspectives"}),
     )
 
 
@@ -540,7 +540,7 @@ def _perspectives_countries_check_1() -> Check:
             ),
         ),
         shape=CheckShape.ARRAY,
-        root_field="perspectives",
+        read_columns=frozenset({"perspectives"}),
     )
 
 
@@ -552,7 +552,7 @@ def _check_radio_group_0_check() -> Check:
             [F.col("is_land"), F.col("is_territorial")], ["is_land", "is_territorial"]
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"is_land", "is_territorial"}),
     )
 
 
@@ -564,7 +564,7 @@ def _check_require_if_1_check() -> Check:
             F.col("admin_level"), F.col("subtype") == "county", "subtype = 'county'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"admin_level", "subtype"}),
     )
 
 
@@ -578,7 +578,7 @@ def _check_require_if_2_check() -> Check:
             "subtype = 'macrocounty'",
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"admin_level", "subtype"}),
     )
 
 
@@ -590,7 +590,7 @@ def _check_require_if_3_check() -> Check:
             F.col("admin_level"), F.col("subtype") == "region", "subtype = 'region'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"admin_level", "subtype"}),
     )
 
 
@@ -604,7 +604,7 @@ def _check_require_if_4_check() -> Check:
             "subtype = 'macroregion'",
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"admin_level", "subtype"}),
     )
 
 
@@ -618,7 +618,7 @@ def _check_require_if_5_check() -> Check:
             "subtype = 'dependency'",
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"admin_level", "subtype"}),
     )
 
 
@@ -630,7 +630,7 @@ def _check_require_if_6_check() -> Check:
             F.col("admin_level"), F.col("subtype") == "country", "subtype = 'country'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"admin_level", "subtype"}),
     )
 
 
@@ -642,7 +642,7 @@ def _check_require_if_7_check() -> Check:
             F.col("country"), F.col("subtype") != "country", "subtype != 'country'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"country", "subtype"}),
     )
 
 
@@ -654,7 +654,7 @@ def _check_forbid_if_8_check() -> Check:
             F.col("country"), F.col("subtype") == "country", "subtype = 'country'"
         ),
         shape=CheckShape.SCALAR,
-        root_field=None,
+        read_columns=frozenset({"country", "subtype"}),
     )
 
 
@@ -775,7 +775,7 @@ ENTRY_POINT = "overture.schema.divisions:DivisionBoundary"
 
 PARTITIONS: dict[str, str] = {"theme": "divisions"}
 
-FEATURE_VALIDATION = FeatureValidation(
+MODEL_VALIDATION = ModelValidation(
     schema=DIVISION_BOUNDARY_SCHEMA,
     checks=division_boundary_checks,
     geometry_types=GEOMETRY_TYPES,

@@ -64,8 +64,8 @@ it. The entry point `overture:transportation:segment` maps to
 
 The codegen classifies these at the CLI boundary: `is_model_class` identifies concrete
 `BaseModel` subclasses, `is_union_alias` calls `analyze_type` to identify discriminated
-unions. From that point forward both model features and union features are `FeatureSpec` values
-(`ModelSpec | UnionSpec`) and flow through the same pipeline.
+unions. From that point forward both records and unions are `ModelSpec` values
+(`RecordSpec | UnionSpec`) and flow through the same pipeline.
 
 ## 2. Leaf utilities
 
@@ -191,7 +191,7 @@ description, required flag. `ModelRef` and `UnionRef` shapes carry their resolve
 (populated during `extract_model` recursion), so consumers can follow the tree without a
 separate expansion pass.
 
-**ModelSpec** represents one Pydantic model: class name, cleaned docstring, fields in
+**RecordSpec** represents one Pydantic model: class name, cleaned docstring, fields in
 documentation order, source class reference, the entry point string that located it, and
 model-level constraints from decorators like `@require_any_of`.
 
@@ -201,21 +201,21 @@ model-level constraints from decorators like `@require_any_of`.
 with `variant_sources` -- a tuple of `BaseModel` subclasses indicating which union
 members contribute that field, or `None` for fields from `TransportationSegment` shared
 across all members. The `fields` cached property unwraps this for code that doesn't need
-provenance. Each member also has its already-extracted `ModelSpec` retained in
+provenance. Each member also has its already-extracted `RecordSpec` retained in
 `member_specs: list[MemberSpec]` so downstream consumers (check builder, base-row
 generator) reuse it instead of re-extracting the subtree. `UnionSpec` uses `eq=False`
 because it contains mutable lists and a `cached_property` -- dataclass-generated
 `__eq__` would be unreliable.
 
-**FeatureSpec** is the type alias `ModelSpec | UnionSpec`. Type collection, rendering
-dispatch, and example loading all operate on `FeatureSpec`. Consumers narrow with
+**ModelSpec** is the type alias `RecordSpec | UnionSpec`. Type collection, rendering
+dispatch, and example loading all operate on `ModelSpec`. Consumers narrow with
 `isinstance` when they need `UnionSpec`-specific attributes like `discriminator_field`.
 
 **EnumSpec** and **EnumMemberSpec** serve enums. **NewTypeSpec** serves NewTypes.
 **NumericSpec** serves numeric primitives with an `Interval` for bounds and optional
 `float_bits`.
 
-**SupplementarySpec** is the union type alias `EnumSpec | NewTypeSpec | ModelSpec |
+**SupplementarySpec** is the union type alias `EnumSpec | NewTypeSpec | RecordSpec |
 PydanticTypeSpec` -- the set of non-feature types that need their own output pages.
 `PydanticTypeSpec` covers Pydantic built-ins like `HttpUrl` and `EmailStr` (carrying the
 class plus a pointer back to Pydantic's docs). `NumericSpec` and geometry types are
@@ -252,7 +252,7 @@ precedence.
 
 ## 6. Model extraction
 
-`extract_model` converts a Pydantic `BaseModel` subclass into a `ModelSpec`.
+`extract_model` converts a Pydantic `BaseModel` subclass into a `RecordSpec`.
 
 ### Field ordering
 
@@ -291,9 +291,9 @@ shared cache keyed by Python class and an ancestor set for cycle detection.
 
 The cache insert happens *before* recursion. Without this ordering, a back-edge
 encounter would find no cached entry and infinite-loop instead of marking
-`starts_cycle=True`. The sequence: create the partial `ModelSpec`, insert it into the
+`starts_cycle=True`. The sequence: create the partial `RecordSpec`, insert it into the
 cache, then populate its fields. Shared references (the same sub-model used in multiple
-fields) reuse the cached `ModelSpec` without marking cycles.
+fields) reuse the cached `RecordSpec` without marking cycles.
 
 `UnionRef` fields resolve via the `union_resolver` callback -- they appear as a single
 row in the output, linking to their members, rather than expanding inline.
@@ -432,7 +432,7 @@ their own pages. `walk_shape` from `field_walk.py` handles recursion into `Array
 `MapOf`, and `NewTypeShape` wrappers.
 
 `ModelRef` fields follow their `.model` reference (populated during `extract_model`
-recursion) into nested `ModelSpec` trees.
+recursion) into nested `RecordSpec` trees.
 
 A single field matches multiple conditions independently. A semantic NewType wrapping a
 `ModelRef` triggers both NewType extraction and model collection. The checks use
@@ -543,7 +543,7 @@ spans.
 
 ### Field expansion
 
-`render_feature` dispatches on spec type. `ModelSpec` gets `_expand_model_fields`, which
+`render_model` dispatches on spec type. `RecordSpec` gets `_expand_model_fields`, which
 walks the pre-populated `FieldSpec.model` tree and produces dot-notation rows.
 `sources[0].dataset` appears as a single row in the flat field table, with `[]`
 appended per nesting level to list-of-model fields (so a doubly-nested list gets
@@ -640,12 +640,12 @@ Seven steps (tree expansion now happens inside `extract_model`):
 5. **Render each feature** with its `LinkContext`, loaded examples, and used-by entries.
 
 6. **Render each supplementary type** -- dispatching to `render_enum`, `render_newtype`,
-   `render_feature` (for sub-models), or `render_pydantic_type` based on spec type.
+   `render_model` (for sub-models), or `render_pydantic_type` based on spec type.
 
 7. **Render aggregate pages** for primitives and geometry.
 
 The return value is `list[RenderedPage]` -- frozen dataclasses carrying content, output
-path, and a boolean `is_feature` flag. The caller decides what to do with them.
+path, and a boolean `is_model` flag. The caller decides what to do with them.
 
 ### The CLI
 
@@ -690,18 +690,18 @@ shared parent. The extractor calls `extract_model` on the common base and on eac
 member -- the results are cached on the `UnionSpec` as `member_specs` -- and partitions
 the non-shared fields into `AnnotatedField` entries with variant provenance.
 `extract_discriminator` finds `subtype` and builds `{"road": RoadSegment, "rail":
-RailSegment, "water": WaterSegment}`. The result is a `UnionSpec` (a `FeatureSpec`).
+RailSegment, "water": WaterSegment}`. The result is a `UnionSpec` (a `ModelSpec`).
 
 Meanwhile, concrete models like `Building` go through `extract_model`, which calls
 `analyze_type` on each field annotation. A field typed `FeatureVersion` unwraps through
 two NewType layers and an `Annotated` layer, producing a `NewTypeShape(name="FeatureVersion",
 inner=Primitive(base_type="int32", constraints=(...)))` shape with constraint provenance
-linking `ge=0` back to the `int32` NewType. Both extraction paths produce `FeatureSpec`
+linking `ge=0` back to the `int32` NewType. Both extraction paths produce `ModelSpec`
 values.
 
 **Pipeline entry.** The feature specs enter `generate_markdown_pages`.
 Sub-model `FieldShape` trees are fully resolved -- `ModelRef` nodes already carry their
-`ModelSpec` from recursive `extract_model` calls. No separate expansion pass is needed.
+`RecordSpec` from recursive `extract_model` calls. No separate expansion pass is needed.
 
 **Layout.** `partition_numeric_and_geometry_types` reads the system module's exports.
 `collect_all_supplementary_types` walks Segment's field shapes and discovers referenced
@@ -719,7 +719,7 @@ that Segment references `Subtype`, `Id`, `Sources`, and other types. These refer
 populate "Used By" sections: the `Subtype` enum page shows that Segment uses it.
 
 **Rendering.** The pipeline builds a `LinkContext` from Segment's output path and the
-full registry. `render_feature` dispatches to `_expand_union_fields` because the spec is
+full registry. `render_model` dispatches to `_expand_union_fields` because the spec is
 a `UnionSpec`. Shared fields from `TransportationSegment` render as plain rows.
 Variant-specific fields get italic tags: `` `road_class` *(Road)* ``. The renderer
 formats each field's `FieldShape` via `format_type`, which resolves links through the
@@ -737,7 +737,7 @@ The Jinja2 template assembles the field table, optional constraints section, exa
 and "Used By" partial into markdown.
 
 **Output.** The pipeline returns a `RenderedPage` with Segment's content, its output
-path, and `is_feature=True`. The CLI prepends Docusaurus frontmatter and writes the
+path, and `is_model=True`. The CLI prepends Docusaurus frontmatter and writes the
 file. `_category_.json` files get generated for sidebar navigation.
 
 **The layering principle.** At every stage, the modules that do the work never reach
