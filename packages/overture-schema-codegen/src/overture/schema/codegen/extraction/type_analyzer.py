@@ -343,8 +343,11 @@ def _unwrap(
         args = get_args(annotation)
         if not args:
             raise TypeError("Bare list without type argument is not supported")
-        element, _, _ = _recurse(args[0], newtype_ctx)
-        return ArrayOf(element=element, constraints=()), False, None
+        element, _, desc = _recurse(args[0], newtype_ctx)
+        # A list field is never optional on account of element nullability,
+        # so the element's `is_optional` is dropped; its description is the
+        # field's fallback prose when no field-level description exists.
+        return ArrayOf(element=element, constraints=()), False, desc
 
     if origin is dict:
         args = get_args(annotation)

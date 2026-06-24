@@ -187,7 +187,7 @@ def _version_bounds_check() -> Check:
     return Check(
         field="version",
         name="bounds",
-        expr=check_bounds(F.col("version"), ge=0),
+        expr=check_bounds(F.col("version"), ge=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"version"}),
     )
@@ -2881,7 +2881,10 @@ def _speed_limits_max_speed_value_bounds_check() -> Check:
         expr=F.when(
             F.col("subtype").isin(["road"]),
             array_check(
-                "speed_limits", lambda el: check_bounds(el["max_speed"]["value"], ge=1)
+                "speed_limits",
+                lambda el: check_bounds(
+                    el["max_speed"]["value"], ge=1, check_nan=False
+                ),
             ),
         ),
         shape=CheckShape.ARRAY,
@@ -2897,7 +2900,9 @@ def _speed_limits_max_speed_value_bounds_check_1() -> Check:
             F.col("subtype").isin(["road"]),
             array_check(
                 "speed_limits",
-                lambda el: check_bounds(el["max_speed"]["value"], le=350),
+                lambda el: check_bounds(
+                    el["max_speed"]["value"], le=350, check_nan=False
+                ),
             ),
         ),
         shape=CheckShape.ARRAY,
@@ -2965,7 +2970,10 @@ def _speed_limits_min_speed_value_bounds_check() -> Check:
         expr=F.when(
             F.col("subtype").isin(["road"]),
             array_check(
-                "speed_limits", lambda el: check_bounds(el["min_speed"]["value"], ge=1)
+                "speed_limits",
+                lambda el: check_bounds(
+                    el["min_speed"]["value"], ge=1, check_nan=False
+                ),
             ),
         ),
         shape=CheckShape.ARRAY,
@@ -2981,7 +2989,9 @@ def _speed_limits_min_speed_value_bounds_check_1() -> Check:
             F.col("subtype").isin(["road"]),
             array_check(
                 "speed_limits",
-                lambda el: check_bounds(el["min_speed"]["value"], le=350),
+                lambda el: check_bounds(
+                    el["min_speed"]["value"], le=350, check_nan=False
+                ),
             ),
         ),
         shape=CheckShape.ARRAY,

@@ -407,7 +407,9 @@ def _license_priority_value_check() -> Check:
     return Check(
         field="license_priority{value}",
         name="bounds",
-        expr=map_values_check("license_priority", lambda v: check_bounds(v, ge=0)),
+        expr=map_values_check(
+            "license_priority", lambda v: check_bounds(v, ge=0, check_nan=False)
+        ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"license_priority"}),
     )

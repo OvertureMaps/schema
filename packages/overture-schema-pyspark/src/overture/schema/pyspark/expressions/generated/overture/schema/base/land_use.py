@@ -189,7 +189,7 @@ def _version_bounds_check() -> Check:
     return Check(
         field="version",
         name="bounds",
-        expr=check_bounds(F.col("version"), ge=0),
+        expr=check_bounds(F.col("version"), ge=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"version"}),
     )
@@ -494,7 +494,7 @@ def _elevation_check() -> Check:
     return Check(
         field="elevation",
         name="bounds",
-        expr=check_bounds(F.col("elevation"), le=9000),
+        expr=check_bounds(F.col("elevation"), le=9000, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"elevation"}),
     )

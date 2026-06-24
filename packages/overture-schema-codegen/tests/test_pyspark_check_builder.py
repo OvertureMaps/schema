@@ -17,7 +17,10 @@ from codegen_test_support import (
     union_spec_for,
 )
 from overture.schema.codegen.extraction.field import (
+    ArrayOf,
     ConstraintSource,
+    FieldShape,
+    MapOf,
     Primitive,
     UnionRef,
 )
@@ -30,6 +33,7 @@ from overture.schema.codegen.extraction.union_extraction import extract_union
 from overture.schema.codegen.pyspark._render_common import column_level_suffix
 from overture.schema.codegen.pyspark.check_builder import (
     build_checks,
+    classify_map_projection,
 )
 from overture.schema.codegen.pyspark.check_ir import (
     Check,
@@ -2006,8 +2010,6 @@ class TestOptionalSubModelModelCheckGate:
 
     def test_segment_speed_limits_when_has_gate(self) -> None:
         """Segment.speed_limits[].when is optional -- gate == path to when."""
-        from codegen_test_support import discover_feature
-
         spec = discover_feature("Segment")
         _, model_nodes = build_checks(spec)
         when_nodes = [
@@ -2096,10 +2098,92 @@ class _ListOfUnconstrainedMapModel(BaseModel):
     items: list[dict[str, str]]
 
 
+class _PlainScalarMapModel(BaseModel):
+    items: dict[str, str]
+
+
+class _ConstrainedScalarMapModel(BaseModel):
+    items: dict[str, Annotated[str, MinLen(1)]]
+
+
+class TestClassifyMapProjection:
+    """`classify_map_projection` is the single arbiter of map-shape support.
+
+    Every map-shape prohibition in `_map_projection_checks` routes through
+    this classifier rather than restating the rule inline. The classifier
+    names the representable shape (struct-prefix -> one MapSegment -> scalar
+    or model/union terminal, reached without array iteration, no array layer
+    in the projected shape) and the reason each unsupported shape is rejected.
+    """
+
+    def _scalar_shape(self, *, constrained: bool) -> FieldShape:
+        spec = spec_for_model(
+            _ConstrainedScalarMapModel if constrained else _PlainScalarMapModel
+        )
+        assert isinstance(spec, RecordSpec)
+        shape = spec.fields[0].shape
+        assert isinstance(shape, MapOf)
+        return shape.value
+
+    def test_scalar_terminal_reached_struct_only_is_representable(self) -> None:
+        verdict = classify_map_projection(
+            self._scalar_shape(constrained=True), _path("items{value}")
+        )
+        assert verdict.representable
+        assert verdict.reason is None
+
+    def test_map_reached_through_array_is_rejected(self) -> None:
+        # The classifier owns the path-structural rejection too: a map_path
+        # that is an ArrayPath cannot anchor a struct-prefixed MapPath.
+        verdict = classify_map_projection(
+            self._scalar_shape(constrained=True), _path("items[]")
+        )
+        assert not verdict.representable
+        assert verdict.reason is not None
+
+    def test_array_layer_in_projected_shape_is_rejected(self) -> None:
+        spec = spec_for_model(_MapWithConstrainedListValueModel)
+        assert isinstance(spec, RecordSpec)
+        shape = spec.fields[0].shape
+        assert isinstance(shape, MapOf)
+        verdict = classify_map_projection(shape.value, _path("items{value}"))
+        assert not verdict.representable
+        assert verdict.reason is not None
+
+    def test_classifier_rejects_dict_of_list_value(self) -> None:
+        # dict[K, list[V]]: the projected value shape carries an array layer.
+        # The classifier rejects it, and `_checks_for` raises -- the model
+        # raises iff the classifier rejects a shape with something to validate.
+        spec = spec_for_model(_MapWithConstrainedListValueModel)
+        assert isinstance(spec, RecordSpec)
+        shape = spec.fields[0].shape
+        assert isinstance(shape, MapOf)
+        verdict = classify_map_projection(shape.value, _path("items{value}"))
+        assert not verdict.representable
+        assert verdict.has_value_to_validate
+        with pytest.raises(NotImplementedError):
+            _checks_for(_MapWithConstrainedListValueModel)
+
+    def test_classifier_rejects_map_reached_through_array(self) -> None:
+        # list[dict[K, V]]: the map is reached through an array, so the
+        # map_path is an ArrayPath. The classifier rejects on the path alone.
+        spec = spec_for_model(_ListOfConstrainedMapModel)
+        assert isinstance(spec, RecordSpec)
+        outer = spec.fields[0].shape
+        assert isinstance(outer, ArrayOf)
+        inner_map = outer.element
+        assert isinstance(inner_map, MapOf)
+        verdict = classify_map_projection(inner_map.value, _path("items[]"))
+        assert not verdict.representable
+        assert verdict.has_value_to_validate
+        with pytest.raises(NotImplementedError):
+            _checks_for(_ListOfConstrainedMapModel)
+
+
 class TestMapProjectionUnsupportedShapes:
     """`_map_projection_checks` is bounded to a scalar terminal reached struct-only.
 
-    Three shapes fall outside that bound -- a map value/key with an array
+    Two shapes fall outside that bound -- a map value/key with an array
     layer (`dict[K, list[V]]`), and a map reached through an array
     (`list[dict[K, V]]`). For each, a key/value constraint raises to keep
     the dropped check loud, and an unconstrained one yields no checks (a

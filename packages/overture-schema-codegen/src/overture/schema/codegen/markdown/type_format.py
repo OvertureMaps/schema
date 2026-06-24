@@ -213,13 +213,13 @@ def _map_side(shape: FieldShape, ctx: LinkContext | None) -> tuple[str, bool]:
 def _map_side_link(shape: FieldShape, ctx: LinkContext | None) -> str | None:
     """Return a markdown link for a map key/value that has its own page.
 
-    Links a semantic NewType, a model (`ModelRef`), or an Enum /
-    BaseModel-sourced primitive when `ctx` resolves a page for it.
-    NewType and primitive sides link through `list<...>` layers; a model
-    side links only when it is the direct map side (`depth == 0`), so a
-    `list<Model>`-valued map keeps its `list<...>` wrapper from
-    `_bare_map_side_name` rather than collapsing to a bare model link.
-    Returns None when the side has no page; the caller renders a bare
+    Links a semantic NewType, a model (`ModelRef`), or a primitive whose
+    `source_type` is a linkable identity (`_scalar_identity`), when `ctx`
+    resolves a page for it. NewType and primitive sides link through
+    `list<...>` layers; a model side links only when it is the direct map
+    side (`depth == 0`), so a `list<Model>`-valued map keeps its `list<...>`
+    wrapper from `_bare_map_side_name` rather than collapsing to a bare model
+    link. Returns None when the side has no page; the caller renders a bare
     name instead.
     """
     identity: TypeIdentity | None = None
@@ -228,12 +228,8 @@ def _map_side_link(shape: FieldShape, ctx: LinkContext | None) -> str | None:
         identity = TypeIdentity(cur.ref, cur.name)
     elif depth == 0 and isinstance(cur, ModelRef):
         identity = _model_ref_identity(cur)
-    elif isinstance(cur, Primitive) and cur.source_type is not None:
-        src = cur.source_type
-        if isinstance(src, type) and (
-            issubclass(src, Enum) or issubclass(src, BaseModel)
-        ):
-            identity = TypeIdentity(src, cur.base_type)
+    elif isinstance(cur, Primitive):
+        identity = _scalar_identity(cur)
     if identity and ctx:
         href = ctx.resolve_link(identity)
         if href:
@@ -363,16 +359,13 @@ def format_underlying_type(shape: FieldShape, ctx: LinkContext | None = None) ->
     if isinstance(terminal, MapOf):
         return _format_map(terminal, ctx)
 
-    # For underlying-type rendering on a NewType's own page, skip the
-    # is_semantic_newtype path to avoid self-linking: this shape
-    # belongs to the NewType being rendered.
+    # Link by the terminal primitive's identity, not the enclosing NewType's:
+    # this shape belongs to the NewType being rendered, so linking its own
+    # identity would self-link. The terminal's identity is always its
+    # underlying primitive (Geometry/BBox, a pydantic type, etc.).
     identity: TypeIdentity | None = None
-    if isinstance(terminal, Primitive) and terminal.source_type is not None:
-        src = terminal.source_type
-        if isinstance(src, type) and (
-            issubclass(src, Enum) or issubclass(src, BaseModel)
-        ):
-            identity = TypeIdentity.of(src)
+    if isinstance(terminal, Primitive):
+        identity = _scalar_identity(terminal)
 
     depth, _ = _peel_arrays(shape)
 

@@ -323,6 +323,70 @@ def _terminal_scalar_checks(
     return []
 
 
+@dataclass(frozen=True)
+class MapProjectionVerdict:
+    """Whether a map's projected key/value shape is representable as a `MapPath`.
+
+    `reason` names why an unrepresentable shape was rejected (for the
+    `NotImplementedError` message); it is `None` when `representable` is True.
+    `has_value_to_validate` reports whether the projected shape carries a
+    constraint or descends into a model -- the loud/quiet discriminator: an
+    unrepresentable shape with something to validate raises, an unrepresentable
+    shape with nothing to validate is silently dropped.
+    """
+
+    representable: bool
+    reason: str | None
+    has_value_to_validate: bool
+
+
+def classify_map_projection(
+    sub_shape: FieldShape,
+    map_path: FieldPath,
+) -> MapProjectionVerdict:
+    """Classify a map's projected key/value shape against the representable bound.
+
+    The single source of truth for which map projections a `MapPath` can
+    locate. The representable shape: a scalar terminal or `ModelRef`/`UnionRef`
+    terminal, reached WITHOUT array iteration (`map_path` is not an
+    `ArrayPath`), with no `ArrayOf` layer in the projected shape. Both
+    `_map_projection_checks` (shape-level) and the path-level guards in
+    `field_path.py` (`promote_terminal_map` rejecting an `ArrayPath`) enforce
+    this boundary; this classifier states it once so the prohibitions agree by
+    construction rather than by parallel maintenance.
+
+    Two shapes fall outside the bound and have no `MapPath`:
+
+    - a map reached through an array (`list[dict[K, V]]`, a `map_path` that is
+      an `ArrayPath`), whose key/value can't anchor a struct-prefixed `MapPath`;
+    - a key/value carrying an array layer (`dict[K, list[V]]`), whose scalar
+      terminal sits under an `ArrayOf` that `terminal_scalar` would unwrap.
+    """
+    is_ref_terminal = isinstance(terminal_of(sub_shape), (ModelRef, UnionRef))
+    has_value_to_validate = bool(all_constraints(sub_shape)) or is_ref_terminal
+    if isinstance(map_path, ArrayPath):
+        return MapProjectionVerdict(
+            representable=False,
+            reason="map reached through an array is not representable",
+            has_value_to_validate=has_value_to_validate,
+        )
+    if has_array_layer(sub_shape):
+        return MapProjectionVerdict(
+            representable=False,
+            reason="map value carrying a list layer (dict[K, list[V]]) is not representable",
+            has_value_to_validate=has_value_to_validate,
+        )
+    if not is_ref_terminal and terminal_scalar(sub_shape) is None:
+        return MapProjectionVerdict(
+            representable=False,
+            reason="constraint on a non-scalar terminal",
+            has_value_to_validate=has_value_to_validate,
+        )
+    return MapProjectionVerdict(
+        representable=True, reason=None, has_value_to_validate=has_value_to_validate
+    )
+
+
 def _map_projection_checks(
     sub_shape: FieldShape,
     map_path: FieldPath,
@@ -336,35 +400,19 @@ def _map_projection_checks(
     `_ShapeTerminal` lets the caller descend into the model's fields and
     constraints on a `MapPath` leaf, mirroring a `list[Model]` element).
 
-    Two shapes fall outside that bound and have no representable `MapPath`:
-
-    - a key/value carrying an array layer (`dict[K, list[V]]`), whose scalar
-      terminal sits under an `ArrayOf` that `terminal_scalar` would unwrap;
-    - a map reached through an array (`list[dict[K, V]]`, a `map_path` with
-      an `ArraySegment`), whose key/value can't anchor a struct-prefixed
-      `MapPath`.
-
-    Each is handled the same way: an unsupported shape carrying a key/value
-    constraint (or a model to descend into) raises `NotImplementedError` to
-    keep the dropped check loud; an unconstrained, non-model shape yields no
-    checks, since there is nothing to validate. The constraint -- not the
-    shape alone -- is what stays loud, matching the silent treatment of
-    unconstrained maps.
+    `classify_map_projection` is the arbiter of which shapes are
+    representable. An unrepresentable shape carrying something to validate
+    (`has_value_to_validate`) raises `NotImplementedError` to keep the dropped
+    check loud; an unrepresentable shape with nothing to validate yields no
+    checks. The constraint -- not the shape alone -- is what stays loud,
+    matching the silent treatment of unconstrained maps.
     """
-    reached_through_array = isinstance(map_path, ArrayPath)
-    is_ref_terminal = isinstance(terminal_of(sub_shape), (ModelRef, UnionRef))
-    if reached_through_array or has_array_layer(sub_shape):
-        if all_constraints(sub_shape) or is_ref_terminal:
+    verdict = classify_map_projection(sub_shape, map_path)
+    if not verdict.representable:
+        if verdict.has_value_to_validate:
             raise NotImplementedError(
-                f"map {projection.value} on an unsupported shape (list layer "
-                f"or map nested in an array) is not supported ({sub_shape!r})"
-            )
-        return [], None
-    if not is_ref_terminal and terminal_scalar(sub_shape) is None:
-        if all_constraints(sub_shape):
-            raise NotImplementedError(
-                f"map {projection.value} carrying a constraint on a non-scalar "
-                f"terminal is not supported ({sub_shape!r})"
+                f"map {projection.value} on an unsupported shape "
+                f"({verdict.reason}) is not supported ({sub_shape!r})"
             )
         return [], None
     primitive = terminal_primitive(sub_shape)
@@ -534,6 +582,18 @@ def _is_struct_only_prefix(prefix: FieldPath) -> bool:
     return not isinstance(prefix, ArrayPath) and bool(prefix.segments)
 
 
+def _reject_struct_only_prefix(prefix: FieldPath, message: str) -> None:
+    """Raise `NotImplementedError(message)` when `prefix` is struct-only.
+
+    Shared mechanism for the struct-nested guards: the renderer supports
+    neither model-constraint anchoring nor column-level discriminator
+    gating at a struct-only prefix, so reaching one with a real check is a
+    renderer gap rather than a normal case.
+    """
+    if _is_struct_only_prefix(prefix):
+        raise NotImplementedError(message)
+
+
 def _guard_struct_nested_anchor(prefix: FieldPath, name: str) -> None:
     """Raise when emitting a model constraint at a struct-only prefix.
 
@@ -545,12 +605,14 @@ def _guard_struct_nested_anchor(prefix: FieldPath, name: str) -> None:
     (`_model_constraint_target` keeps it, and the renderer wraps the check
     in `map_values_check`/`map_keys_check`).
     """
-    if _is_struct_only_prefix(prefix) and not isinstance(prefix, MapPath):
-        raise NotImplementedError(
-            f"Model constraint on struct-nested {name!r} "
-            f"(reached at {prefix!r}) -- the renderer has no anchor "
-            "for nested-struct model constraints."
-        )
+    if isinstance(prefix, MapPath):
+        return
+    _reject_struct_only_prefix(
+        prefix,
+        f"Model constraint on struct-nested {name!r} "
+        f"(reached at {prefix!r}) -- the renderer has no anchor "
+        "for nested-struct model constraints.",
+    )
 
 
 def _guard_struct_nested_variant_fields(prefix: FieldPath, name: str) -> None:
@@ -563,13 +625,13 @@ def _guard_struct_nested_variant_fields(prefix: FieldPath, name: str) -> None:
     column. Raising loudly is safer than emitting a mis-gated check; no
     current schema nests a discriminated union under a plain struct.
     """
-    if _is_struct_only_prefix(prefix):
-        raise NotImplementedError(
-            f"Discriminated union {name!r} with variant-gated field checks "
-            f"at struct-nested prefix {prefix!r} -- `ColumnGuard` would "
-            "render the discriminator as a top-level column, not a "
-            "struct-qualified path."
-        )
+    _reject_struct_only_prefix(
+        prefix,
+        f"Discriminated union {name!r} with variant-gated field checks "
+        f"at struct-nested prefix {prefix!r} -- `ColumnGuard` would "
+        "render the discriminator as a top-level column, not a "
+        "struct-qualified path.",
+    )
 
 
 def _recurse_into_union(

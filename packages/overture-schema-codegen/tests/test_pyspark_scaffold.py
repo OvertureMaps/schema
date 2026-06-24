@@ -10,7 +10,8 @@ from codegen_test_support import (
 )
 from overture.schema.codegen.extraction.specs import ModelSpec
 from overture.schema.codegen.pyspark.check_builder import build_checks
-from overture.schema.codegen.pyspark.check_ir import ElementGuard
+from overture.schema.codegen.pyspark.check_ir import ElementGuard, ModelCheck
+from overture.schema.codegen.pyspark.constraint_dispatch import RequireAnyOf
 from overture.schema.codegen.pyspark.test_data.scaffold import (
     generate_model_scaffold,
     generate_scaffold,
@@ -225,6 +226,23 @@ class TestGenerateModelScaffold:
         node = model_nodes[0]
         scaffold = generate_model_scaffold(node, division_area_spec)
         assert isinstance(scaffold, dict)
+
+    def test_map_value_model_constraint_produces_empty_scaffold(
+        self, connector_spec: ModelSpec
+    ) -> None:
+        """A `dict[K, Model]` value-model constraint needs no scaffold.
+
+        The mutation (`map_path=`) owns map navigation -- it corrupts the
+        base row's single map entry in place, or stubs one when the map is
+        absent. A dict scaffold can't replace a base-row map entry under
+        deep_merge's recursive dict merge, so {} is correct, not the
+        row-root-mutation bug.
+        """
+        mc = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("foo", "bar")),
+            target=_path("subs{value}"),
+        )
+        assert generate_model_scaffold(mc, connector_spec) == {}
 
     def test_array_nested_model_constraint_builds_path(
         self, segment_spec: ModelSpec

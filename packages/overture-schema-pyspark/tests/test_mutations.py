@@ -224,6 +224,81 @@ class TestMutateRequireAnyOfNested:
         assert row["items"][0]["a"] == 1
 
 
+class TestMutateMapValueModelConstraint:
+    """`map_path` threads a model mutation into a `dict[K, Model]` value model.
+
+    A model-level constraint on a map's value model targets the value, not
+    the row root. `map_path` names the map column; the mutation corrupts the
+    single entry's value (stubbing one when the map is absent), so the
+    generated `::invalid` row actually trips the value-model constraint.
+    """
+
+    def test_require_any_of_nulls_fields_in_map_value(self) -> None:
+        row = {"subs": {"en": {"foo": 1, "bar": "x"}}}
+        result = mutate_require_any_of(row, ["foo", "bar"], map_path="subs")
+        assert result["subs"]["en"] == {"foo": None, "bar": None}
+
+    def test_require_any_of_preserves_map_key(self) -> None:
+        row = {"subs": {"en": {"foo": 1, "bar": "x"}}}
+        result = mutate_require_any_of(row, ["foo", "bar"], map_path="subs")
+        assert list(result["subs"]) == ["en"]
+
+    def test_require_any_of_stubs_missing_map(self) -> None:
+        row: dict = {"subs": None}
+        result = mutate_require_any_of(row, ["foo", "bar"], map_path="subs")
+        assert isinstance(result["subs"], dict) and result["subs"]
+        assert next(iter(result["subs"].values())) == {"foo": None, "bar": None}
+
+    def test_struct_path_descends_into_map_value(self) -> None:
+        row = {"subs": {"en": {"inner": {"foo": 1, "bar": 2}}}}
+        result = mutate_require_any_of(
+            row, ["foo", "bar"], map_path="subs", struct_path="inner"
+        )
+        assert result["subs"]["en"]["inner"] == {"foo": None, "bar": None}
+
+    def test_nested_map_column_path(self) -> None:
+        row = {"outer": {"subs": {"en": {"foo": 1, "bar": 2}}}}
+        result = mutate_require_any_of(row, ["foo", "bar"], map_path="outer.subs")
+        assert result["outer"]["subs"]["en"] == {"foo": None, "bar": None}
+
+    def test_require_any_of_does_not_mutate_original(self) -> None:
+        row = {"subs": {"en": {"foo": 1, "bar": 2}}}
+        mutate_require_any_of(row, ["foo", "bar"], map_path="subs")
+        assert row["subs"]["en"]["foo"] == 1
+
+    def test_min_fields_set_nulls_fields_in_map_value(self) -> None:
+        row = {"subs": {"en": {"a": 1, "b": 2}}}
+        result = mutate_min_fields_set(row, ["a", "b"], map_path="subs")
+        assert result["subs"]["en"] == {"a": None, "b": None}
+
+    def test_require_if_sets_condition_and_nulls_in_map_value(self) -> None:
+        row = {"subs": {"en": {"subtype": "other", "admin_level": 5}}}
+        result = mutate_require_if(
+            row, ["admin_level"], "subtype", "country", map_path="subs"
+        )
+        value = result["subs"]["en"]
+        assert value["subtype"] == "country"
+        assert value["admin_level"] is None
+
+    def test_require_if_stubs_missing_map(self) -> None:
+        row: dict = {"subs": None}
+        result = mutate_require_if(
+            row, ["admin_level"], "subtype", "country", map_path="subs"
+        )
+        value = next(iter(result["subs"].values()))
+        assert value["subtype"] == "country"
+        assert value["admin_level"] is None
+
+    def test_forbid_if_sets_condition_and_ensures_non_null_in_map_value(self) -> None:
+        row = {"subs": {"en": {"subtype": "other", "admin_level": None}}}
+        result = mutate_forbid_if(
+            row, ["admin_level"], "subtype", "country", map_path="subs"
+        )
+        value = result["subs"]["en"]
+        assert value["subtype"] == "country"
+        assert value["admin_level"] is not None
+
+
 class TestMutateForbidIfNegate:
     def test_negate_changes_condition_value(self) -> None:
         """negate=True sets condition_field to something != condition_value."""

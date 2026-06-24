@@ -235,7 +235,7 @@ def _make_resolvers(
     ) -> UnionRef:
         # Late import: extract_union calls back into extract_model for
         # member classes. A module-level import would be a cycle.
-        from .union_extraction import extract_union
+        from .union_extraction import extract_union  # noqa: PLC0415
 
         # Recover the union alias name: `analyze_type` reaches the
         # union via `members[0].__name__` when the alias name is lost

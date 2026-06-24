@@ -49,6 +49,7 @@ from ...extraction.field_walk import (
 from ...extraction.length_constraints import ArrayMinLen
 from ...extraction.specs import FieldSpec, ModelSpec, RecordSpec, UnionSpec
 from ...extraction.type_registry import primitive_spark_category
+from .._primitive_fill import PRIMITIVE_FILL_TABLE
 from .._render_common import require_field_eq
 from ..constraint_dispatch import ExpressionDescriptor, dispatch_constraint
 from ..schema_builder import spark_type_rank
@@ -653,11 +654,8 @@ def _primitive_default(base_type: str) -> object:
     if explicit is not None:
         return explicit
     category = primitive_spark_category(base_type)
-    if category == "float":
-        return 0.0
-    if category == "int":
-        return 0
-    return ""
+    entry = PRIMITIVE_FILL_TABLE.get(category)
+    return entry[1] if entry is not None else ""
 
 
 def _geometry_wkt_from_shape_constraints(

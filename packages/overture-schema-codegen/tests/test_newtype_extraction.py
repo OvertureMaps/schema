@@ -3,7 +3,8 @@
 from typing import Annotated, NewType
 
 from codegen_test_support import STR_TYPE
-from overture.schema.codegen.extraction.field import ArrayOf
+from overture.schema.codegen.extraction.field import ArrayOf, Primitive
+from overture.schema.codegen.extraction.field_walk import terminal_scalar
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
 from overture.schema.codegen.extraction.specs import NewTypeSpec
 from overture.schema.system.field_constraint import UniqueItemsConstraint
@@ -21,8 +22,6 @@ class TestExtractNewType:
 
         assert spec.name == "HexColor"
         # Outermost NewTypeShape stripped; shape is the underlying scalar.
-        from overture.schema.codegen.extraction.field_walk import terminal_scalar
-
         assert terminal_scalar(spec.shape) is not None
 
     def test_extract_id(self) -> None:
@@ -33,8 +32,6 @@ class TestExtractNewType:
         # Id wraps NoWhitespaceString, which is a registered semantic newtype
         # resolving to a Scalar. After stripping "Id", shape is Scalar with
         # base_type "NoWhitespaceString".
-        from overture.schema.codegen.extraction.field import Primitive
-
         assert isinstance(spec.shape, Primitive)
         assert spec.shape.base_type == "NoWhitespaceString"
 

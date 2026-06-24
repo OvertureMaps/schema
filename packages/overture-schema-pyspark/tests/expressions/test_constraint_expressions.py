@@ -2,6 +2,7 @@
 
 import struct
 
+import pytest
 from overture.schema.pyspark.expressions.constraint_expressions import (
     check_array_max_length,
     check_array_min_length,
@@ -105,6 +106,43 @@ def test_check_bounds_valid_float_passes(spark: SparkSession) -> None:
     """A finite in-range float is unaffected by the NaN guard."""
     df = spark.createDataFrame([Row(val=0.5)], schema="val double")
     result = df.select(check_bounds(F.col("val"), ge=0, le=1).alias("err")).collect()
+    assert result[0]["err"] is None
+
+
+def test_check_bounds_nan_guard_off_passes_nan(spark: SparkSession) -> None:
+    """With check_nan=False the NaN guard is absent; NaN slips past a lower bound."""
+    df = spark.createDataFrame([Row(val=float("nan"))], schema="val double")
+    result = df.select(
+        check_bounds(F.col("val"), ge=0, check_nan=False).alias("err")
+    ).collect()
+    assert result[0]["err"] is None
+
+
+def test_check_bounds_nan_guard_on_rejects_nan(spark: SparkSession) -> None:
+    """With check_nan=True (default) NaN is rejected even with a lower bound."""
+    df = spark.createDataFrame([Row(val=float("nan"))], schema="val double")
+    result = df.select(
+        check_bounds(F.col("val"), ge=0, check_nan=True).alias("err")
+    ).collect()
+    assert result[0]["err"] is not None
+    assert "NaN" in result[0]["err"]
+
+
+def test_check_bounds_integer_column_rejects_violation(spark: SparkSession) -> None:
+    """check_nan=False is safe for integer columns; bound violations still fire."""
+    df = spark.createDataFrame([Row(val=0)], schema="val int")
+    result = df.select(
+        check_bounds(F.col("val"), ge=1, check_nan=False).alias("err")
+    ).collect()
+    assert result[0]["err"] is not None
+
+
+def test_check_bounds_integer_column_accepts_valid(spark: SparkSession) -> None:
+    """check_nan=False on an integer column: in-bound values pass."""
+    df = spark.createDataFrame([Row(val=5)], schema="val int")
+    result = df.select(
+        check_bounds(F.col("val"), ge=1, le=10, check_nan=False).alias("err")
+    ).collect()
     assert result[0]["err"] is None
 
 
@@ -598,6 +636,32 @@ class TestCheckGeometryType:
         ).collect()
         assert result[0]["err"] is not None
         assert "Point" in result[0]["err"]
+
+    def test_truncated_wkb_flagged(self, spark: SparkSession) -> None:
+        """A non-null WKB blob too short to contain a type word is flagged as a violation."""
+        truncated = bytearray(b"\x01")
+        df = spark.createDataFrame([Row(geometry=truncated)], schema="geometry binary")
+        result = df.select(
+            check_geometry_type(F.col("geometry"), GeometryType.POINT).alias("err")
+        ).collect()
+        assert result[0]["err"] is not None
+
+    @pytest.mark.parametrize("nbytes", [1, 2, 3, 4])
+    def test_partial_header_wkb_flagged(self, spark: SparkSession, nbytes: int) -> None:
+        """A blob with a partial WKB header is flagged, even when conv() yields a non-null type.
+
+        A little-endian order flag followed by a partial type word (2-4 bytes)
+        parses to a non-null but bogus base type -- e.g. `b"\\x01\\x01"` reads as
+        type 1, the Point code, and would silently validate as a Point. Only a
+        0-1 byte blob makes conv() return NULL, so a length gate (not a null
+        check) is what closes the truncation hole.
+        """
+        partial = bytearray(b"\x01" * nbytes)
+        df = spark.createDataFrame([Row(geometry=partial)], schema="geometry binary")
+        result = df.select(
+            check_geometry_type(F.col("geometry"), GeometryType.POINT).alias("err")
+        ).collect()
+        assert result[0]["err"] is not None
 
 
 class TestCheckStripped:

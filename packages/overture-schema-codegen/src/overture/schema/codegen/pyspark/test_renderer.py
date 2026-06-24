@@ -12,6 +12,7 @@ from ..extraction.field import FieldShape, Primitive
 from ..extraction.field_walk import has_array_layer, terminal_of
 from ..extraction.specs import ModelSpec
 from ..extraction.type_registry import primitive_spark_category
+from ._primitive_fill import PRIMITIVE_FILL_TABLE
 from ._render_common import (
     disambiguate,
     field_check_rows,
@@ -329,14 +330,14 @@ def _render_mutation_call(
                 mutation_fn, desc, check, fields_repr
             )
         case RadioGroup():
-            if isinstance(check.target, ArrayPath):
+            if isinstance(check.target, (ArrayPath, MapPath)):
                 raise ValueError(
-                    "mutate_radio_group does not accept array_path "
+                    "mutate_radio_group does not accept array_path/map_path "
                     f"(target={check.target!r})"
                 )
             return f"{mutation_fn}(row, {fields_repr})"
         case RequireAnyOf() | MinFieldsSet():
-            parts = _array_kwargs_leaf(check, mutation_fn)
+            parts = _iter_kwargs_leaf(check, mutation_fn)
             suffix = ", " + ", ".join(parts) if parts else ""
             return f"{mutation_fn}(row, {fields_repr}{suffix})"
     assert_never(desc)
@@ -363,7 +364,7 @@ def _render_conditional_mutation_call(
         kwarg_parts.append("negate=True")
     if fill:
         kwarg_parts.append(f"fill_values={fill}")
-    kwarg_parts.extend(_array_kwargs_inner(check, mutation_fn))
+    kwarg_parts.extend(_iter_kwargs_inner(check, mutation_fn))
     suffix = ", " + ", ".join(kwarg_parts) if kwarg_parts else ""
     return (
         f"{mutation_fn}(row, {fields_repr}, "
@@ -378,19 +379,9 @@ def _fill_value_literal(shape: FieldShape) -> str:
     terminal = terminal_of(shape)
     if isinstance(terminal, Primitive):
         category = primitive_spark_category(terminal.base_type)
-        match category:
-            case "bool":
-                return "False"
-            case "float":
-                return "0.0"
-            case "int":
-                return "0"
-            case "string" | "other":
-                raise ValueError(
-                    f"unhandled Primitive base_type: {terminal.base_type!r}"
-                )
-            case _:
-                assert_never(category)
+        if category in PRIMITIVE_FILL_TABLE:
+            return PRIMITIVE_FILL_TABLE[category][0]
+        raise ValueError(f"unhandled Primitive base_type: {terminal.base_type!r}")
     return "{}"
 
 
@@ -405,13 +396,48 @@ def _render_fill_values(desc: ForbidIf) -> str | None:
     return "{" + ", ".join(items) + "}"
 
 
-def _array_kwargs_leaf(check: ModelCheck, mutation_fn: str) -> list[str]:
-    """Array kwargs for mutations accepting `struct_path` (a trailing leaf).
+def _map_kwargs(target: MapPath, mutation_fn: str, *, allow_leaf: bool) -> list[str]:
+    """Mutation kwargs for a `dict[K, Model]` value-model constraint.
 
-    Yields `array_path=...` and optionally `struct_path=...`. Inner array
-    iteration is rejected -- these mutations consume only the outermost
-    array level.
+    Emits `map_path=...` (the map column) and, when `allow_leaf`, an
+    optional single-segment `struct_path=...` for a sub-model reached
+    through one struct field inside the value model -- the map analogue of
+    `_iter_kwargs_leaf`'s array `struct_path`. A KEY projection is
+    unrepresentable (a model can't be a dict key) and raises; a multi-segment
+    leaf, or any leaf when `allow_leaf` is False, raises too.
     """
+    if target.projection is not MapProjection.VALUE:
+        raise ValueError(
+            f"{mutation_fn} cannot target a map key (target={target!r}); a "
+            "model-level constraint on a map key is not representable as a row"
+        )
+    kwargs = [f'map_path="{target.map_column}"']
+    leaf = target.leaf
+    if leaf:
+        if not allow_leaf:
+            raise ValueError(
+                f"{mutation_fn} does not accept a map-value leaf (leaf={leaf!r})"
+            )
+        if len(leaf) > 1:
+            raise ValueError(
+                f"multi-segment map-value leaf {leaf!r} not supported by "
+                f"{mutation_fn} (struct_path must be a single segment)"
+            )
+        kwargs.append(f'struct_path="{leaf[0]}"')
+    return kwargs
+
+
+def _iter_kwargs_leaf(check: ModelCheck, mutation_fn: str) -> list[str]:
+    """Container kwargs for mutations accepting `struct_path` (a trailing leaf).
+
+    For an `ArrayPath`, yields `array_path=...` and optionally
+    `struct_path=...`; inner array iteration is rejected -- these mutations
+    consume only the outermost array level. For a `MapPath` (a
+    `dict[K, Model]` value-model constraint), delegates to `_map_kwargs`,
+    which yields `map_path=...` and an optional single-segment `struct_path`.
+    """
+    if isinstance(check.target, MapPath):
+        return _map_kwargs(check.target, mutation_fn, allow_leaf=True)
     if not isinstance(check.target, ArrayPath):
         return []
     inner_struct_paths = check.target.iter_struct_paths
@@ -434,13 +460,17 @@ def _array_kwargs_leaf(check: ModelCheck, mutation_fn: str) -> list[str]:
     return kwargs
 
 
-def _array_kwargs_inner(check: ModelCheck, mutation_fn: str) -> list[str]:
-    """Array kwargs for mutations accepting `inner_array_path`.
+def _iter_kwargs_inner(check: ModelCheck, mutation_fn: str) -> list[str]:
+    """Container kwargs for mutations accepting `inner_array_path`.
 
-    Yields `array_path=...` and optionally `inner_array_path=...`. A
-    trailing leaf path is rejected -- these mutations target an inner
-    array directly, not a struct field on its elements.
+    For an `ArrayPath`, yields `array_path=...` and optionally
+    `inner_array_path=...`; a trailing leaf path is rejected -- these
+    mutations target an inner array directly, not a struct field on its
+    elements. For a `MapPath`, delegates to `_map_kwargs` (no leaf: a map
+    value has no inner array layer to address).
     """
+    if isinstance(check.target, MapPath):
+        return _map_kwargs(check.target, mutation_fn, allow_leaf=False)
     if not isinstance(check.target, ArrayPath):
         return []
     inner_struct_paths = check.target.iter_struct_paths

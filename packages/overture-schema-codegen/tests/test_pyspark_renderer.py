@@ -12,8 +12,11 @@ from codegen_test_support import (
     RadioModel,
     RequireAnyModel,
     TripleNestedArrayModel,
+    discover_feature,
+    flat_specs_from_discovery,
     spec_for_model,
 )
+from overture.schema.codegen.extraction.specs import ModelSpec
 from overture.schema.codegen.pyspark._render_common import (
     FieldEq,
     field_check_rows,
@@ -31,17 +34,18 @@ from overture.schema.codegen.pyspark.check_ir import (
 )
 from overture.schema.codegen.pyspark.constraint_dispatch import (
     ExpressionDescriptor,
+    ForbidIf,
+    MinFieldsSet,
+    RadioGroup,
     RequireAnyOf,
     RequireIf,
 )
 from overture.schema.codegen.pyspark.renderer import (
-    _read_columns,
     _render_check_function_context,
     _render_model_constraint_function_context,
-    _require_read_columns,
     render_model_module,
 )
-from overture.schema.codegen.pyspark.schema_builder import build_schema
+from overture.schema.codegen.pyspark.schema_builder import SchemaField, build_schema
 from overture.schema.system.field_path import (
     ScalarPath,
     parse,
@@ -57,6 +61,7 @@ from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
+    int32,
 )
 from overture.schema.system.string import CountryCodeAlpha2
 from pydantic import BaseModel
@@ -65,97 +70,242 @@ from pydantic.fields import FieldInfo
 _path = parse
 
 
-class TestReadColumns:
-    """`_read_columns` derives a check's top-level reads from its rendered expr.
+class TestCheckIRReadColumns:
+    """IR-derived `read_columns` on `Check` and `ModelCheck`.
 
-    Ground truth, not a structural proxy: the top-level column reads generated
-    code emits are `F.col("...")`, the outermost `array_check`/
-    `nested_array_check` string argument, and the `map_keys_check`/
-    `map_values_check` string argument. Element-relative accessors (`el[...]`,
-    `inner[...]`) read nothing at the row level.
+    Each variant enumerates top-level row columns from the IR structure
+    directly -- no regex over rendered source. `ColumnGuard` discriminators
+    are included (they produce `F.col(...)` at the row level); `ElementGuard`
+    discriminators are not (they reference `el[...]`, an element-relative
+    accessor).
     """
 
-    def test_scalar_col(self) -> None:
-        assert _read_columns('check_bounds(F.col("speed"), ge=0)') == frozenset(
-            {"speed"}
+    def test_scalar_field_read_columns(self) -> None:
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("speed"),
         )
+        assert check.read_columns == frozenset({"speed"})
 
-    def test_struct_leaf_strips_to_top_level(self) -> None:
-        # require_any_of over a struct field unwraps to a dotted required leaf;
-        # the read column is the top-level struct, not the dotted path.
-        expr = 'check_require_any_of([F.col("fast.value"), F.col("slow.value")], ["fast.value", "slow.value"])'
-        assert _read_columns(expr) == frozenset({"fast", "slow"})
-
-    def test_top_level_array_check(self) -> None:
-        assert _read_columns(
-            'array_check("sources", lambda el: check_required(el["dataset"]))'
-        ) == frozenset({"sources"})
-
-    def test_dotted_array_check_strips_to_top_level(self) -> None:
-        assert _read_columns(
-            'array_check("names.rules", lambda el: check_required(el["value"]))'
-        ) == frozenset({"names"})
-
-    def test_nested_array_check_reads_only_outer_column(self) -> None:
-        # The outer column is a string literal; inner iteration uses an
-        # element accessor (`el["when"]["vehicle"]`), which is not a row-level read.
-        expr = (
-            'nested_array_check("access_restrictions", lambda el: '
-            'array_check(el["when"]["vehicle"], lambda inner: '
-            'check_forbid_if(inner["unit"], inner["dimension"] == "axle_count", "...")))'
+    def test_struct_dotted_scalar_strips_to_top_level(self) -> None:
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_bounds"),),
+            target=_path("bbox.xmin"),
         )
-        assert _read_columns(expr) == frozenset({"access_restrictions"})
+        assert check.read_columns == frozenset({"bbox"})
 
-    def test_map_keys_check_reads_map_column(self) -> None:
-        # A map key/value check dereferences the map column by name, exactly
-        # like array_check; the inner lambda reads a projected element, not a
-        # row column. The runtime must drop the check when the map is absent.
-        expr = 'map_keys_check("license_priority", lambda k: check_pattern(k, "^x$", label="pattern"))'
-        assert _read_columns(expr) == frozenset({"license_priority"})
-
-    def test_map_values_check_reads_map_column(self) -> None:
-        expr = 'map_values_check("license_priority", lambda v: check_bounds(v, ge=0))'
-        assert _read_columns(expr) == frozenset({"license_priority"})
-
-    def test_multiple_cols_with_condition(self) -> None:
-        # require_if reads its target column and the column its condition
-        # branches on; the description string is not a column read.
-        expr = (
-            'check_require_if(F.col("admin_level"), F.col("subtype") == "county", '
-            "\"subtype = 'county'\")"
+    def test_array_field_read_columns(self) -> None:
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("sources[]"),
         )
-        assert _read_columns(expr) == frozenset({"admin_level", "subtype"})
+        assert check.read_columns == frozenset({"sources"})
 
-    def test_variant_gated_field_reads_discriminator(self) -> None:
-        # A variant-gated field check dereferences the discriminator column too,
-        # so an absent discriminator drops the check rather than crashing.
-        expr = 'F.when(F.col("subtype").isin(["road"]), check_required(F.col("class")))'
-        assert _read_columns(expr) == frozenset({"subtype", "class"})
+    def test_dotted_array_strips_to_top_level(self) -> None:
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("names.rules[]"),
+        )
+        assert check.read_columns == frozenset({"names"})
 
-    def test_no_row_level_reads(self) -> None:
-        assert _read_columns('F.lit(None).cast("string")') == frozenset()
+    def test_map_field_read_columns(self) -> None:
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_stripped"),),
+            target=_path("names.common{value}"),
+        )
+        assert check.read_columns == frozenset({"names"})
+
+    def test_column_guard_discriminator_included(self) -> None:
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("class"),
+            guards=(ColumnGuard(discriminator="subtype", values=("road",)),),
+        )
+        assert check.read_columns == frozenset({"class", "subtype"})
+
+    def test_element_guard_discriminator_excluded(self) -> None:
+        # ElementGuard discriminators reference `el["subtype"]`, not F.col --
+        # they are element-relative and do not constitute a top-level row read.
+        check = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("items[].value"),
+            guards=(ElementGuard(discriminator="subtype", values=("road",)),),
+        )
+        assert check.read_columns == frozenset({"items"})
+
+    def test_model_check_require_any_of_reads_all_field_names(self) -> None:
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("x", "y", "z")),
+        )
+        assert check.read_columns == frozenset({"x", "y", "z"})
+
+    def test_model_check_require_if_includes_condition_field(self) -> None:
+        check = ModelCheck(
+            descriptor=RequireIf(
+                field_names=("admin_level",),
+                condition=FieldEqCondition("subtype", "county"),
+            ),
+        )
+        assert check.read_columns == frozenset({"admin_level", "subtype"})
+
+    def test_model_check_negated_condition_field_included(self) -> None:
+        check = ModelCheck(
+            descriptor=RequireIf(
+                field_names=("admin_level",),
+                condition=Not(FieldEqCondition("subtype", "county")),
+            ),
+        )
+        assert check.read_columns == frozenset({"admin_level", "subtype"})
+
+    def test_model_check_array_target_reads_only_container_column(self) -> None:
+        # When the constrained model is inside an array, field references use
+        # element-relative el["x"] accessors (not F.col("x")), so only the outer
+        # array column is a top-level row read.
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("x", "y")),
+            target=_path("items[]"),
+        )
+        assert check.read_columns == frozenset({"items"})
+
+    # IMPORTANT 1 — descriptor gate on scalar vs array target
+    def test_scalar_target_gate_column_included(self) -> None:
+        # A descriptor gate on a scalar target renders as F.col("{gate}").isNotNull(),
+        # a row-level read; the gate's top-level column must appear in read_columns.
+        check = Check(
+            descriptors=(
+                ExpressionDescriptor(function="check_required", gate=_path("parent")),
+            ),
+            target=_path("parent.value"),
+        )
+        assert check.read_columns == frozenset({"parent"})
+
+    def test_array_target_gate_column_excluded(self) -> None:
+        # A descriptor gate on an array target is applied element-relatively via
+        # element_relative_gate (el[...]), not as F.col -- excluded from read_columns.
+        check = Check(
+            descriptors=(
+                ExpressionDescriptor(function="check_required", gate=_path("items[]")),
+            ),
+            target=_path("items[].value"),
+        )
+        assert check.read_columns == frozenset({"items"})
+
+    # IMPORTANT 2 — RequireIf condition field exclusion on array target
+    def test_model_check_require_if_array_target_excludes_condition_field(self) -> None:
+        # On an array target, the condition is el["cond"] (element-relative), not
+        # F.col("cond"); only the outer array column is a row-level read.
+        check = ModelCheck(
+            descriptor=RequireIf(
+                field_names=("x",),
+                condition=FieldEqCondition("cond", "v"),
+            ),
+            target=_path("items[]"),
+        )
+        assert check.read_columns == frozenset({"items"})
+
+    def test_model_check_forbid_if_array_target_excludes_condition_field(self) -> None:
+        check = ModelCheck(
+            descriptor=ForbidIf(
+                field_names=("x",),
+                condition=FieldEqCondition("cond", "v"),
+                field_shapes=(),
+            ),
+            target=_path("items[]"),
+        )
+        assert check.read_columns == frozenset({"items"})
+
+    # MINOR 3 — RadioGroup and MinFieldsSet share the RequireAnyOf match arm
+    @pytest.mark.parametrize(
+        "descriptor",
+        [
+            RequireAnyOf(field_names=("a", "b")),
+            RadioGroup(field_names=("a", "b")),
+            MinFieldsSet(field_names=("a", "b"), count=1),
+        ],
+    )
+    def test_model_check_row_root_field_names_in_read_columns(
+        self, descriptor: RequireAnyOf | RadioGroup | MinFieldsSet
+    ) -> None:
+        # All three variants carry field_names rendered as F.col(...) at the row root.
+        check = ModelCheck(descriptor=descriptor)
+        assert check.read_columns == frozenset({"a", "b"})
+
+    # MINOR 4 — ModelCheck on a MapPath target
+    def test_model_check_map_target_reads_only_map_column(self) -> None:
+        # A dict[K, Model] value-model constraint targets a MapPath; field references
+        # use the projected element variable (v["field"]), not F.col. Only the map
+        # column itself is a row-level read.
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("label", "value")),
+            target=_path("names.common{value}"),
+        )
+        assert check.read_columns == frozenset({"names"})
 
 
-class TestRequireReadColumns:
-    """Every generated check must read at least one top-level column.
+# Resurrected as a TEST ORACLE: the regex `read_columns` derivation deleted from
+# renderer.py in this refactor. It recognized every top-level column form the
+# renderer emits -- `F.col`, the outer `array_check`/`nested_array_check`, and
+# `map_keys_check`/`map_values_check` -- by reading the rendered source directly.
+_RENDERED_COLUMN_READ = re.compile(
+    r'(?:F\.col|(?:nested_)?array_check|map_(?:keys|values)_check)\("([^"]+)"'
+)
 
-    The guard turns an unrecognized render form -- which yields empty
-    `read_columns` and a check the runtime can never drop on absence --
-    into a generation-time error instead of a latent Spark crash.
-    """
 
-    def test_returns_columns_when_recognized(self) -> None:
-        assert _require_read_columns(
-            'check_bounds(F.col("speed"), ge=0)', "speed", "bounds"
-        ) == frozenset({"speed"})
+def _columns_in_rendered_expr(expr: str) -> frozenset[str]:
+    """Top-level columns a rendered check expression dereferences (regex oracle)."""
+    return frozenset(
+        m.group(1).split(".", 1)[0] for m in _RENDERED_COLUMN_READ.finditer(expr)
+    )
 
-    def test_raises_when_no_column_recognized(self) -> None:
-        with pytest.raises(ValueError, match="reads no top-level column"):
-            _require_read_columns(
-                'unknown_wrapper("license_priority", lambda e: e)',
-                "license_priority",
-                "pattern",
+
+def _read_columns_mismatches(spec: ModelSpec) -> list[str]:
+    """Mismatches between IR `read_columns` and the rendered source, for one spec."""
+    field_checks, model_checks = build_checks(spec)
+    mismatches: list[str] = []
+    for check in field_checks:
+        for row in field_check_rows([check]):
+            expr = str(_render_check_function_context(row)["expr"])
+            rendered = _columns_in_rendered_expr(expr)
+            expected = row.check.read_columns
+            if rendered != expected:
+                mismatches.append(
+                    f"{spec.name}.{row.label}: rendered={sorted(rendered)} "
+                    f"read_columns={sorted(expected)} expr={expr}"
+                )
+    for model_row in model_check_rows(model_checks):
+        expr = str(_render_model_constraint_function_context(model_row)["expr"])
+        rendered = _columns_in_rendered_expr(expr)
+        expected = model_row.check.read_columns
+        if rendered != expected:
+            mismatches.append(
+                f"{spec.name}.{model_row.label} (model): rendered={sorted(rendered)} "
+                f"read_columns={sorted(expected)} expr={expr}"
             )
+    return mismatches
+
+
+class TestReadColumnsMatchRenderedSource:
+    """IR-derived `read_columns` equals what the rendered expression dereferences.
+
+    `read_columns` moved from a regex over rendered source to an IR-structural
+    derivation, so the two are now independent code paths that must agree:
+    `validate_model` drops a check only when none of its `read_columns` are
+    present in the input, so a column the rendered `F.col(...)` reads but
+    `read_columns` omits would reach Spark unresolved when that column is absent.
+    Neither the unit tests nor the regeneration diff catch such a desync (both
+    sides derive from the same code). This oracle re-derives the columns from
+    rendered source -- ground truth -- and asserts equality across every check
+    the real schemas produce, so a future renderer change that emits a new
+    column form without updating `read_columns` fails here.
+    """
+
+    def test_real_models_read_columns_match_rendered_source(self) -> None:
+        specs: list[ModelSpec] = list(flat_specs_from_discovery())
+        specs.append(discover_feature("Segment"))
+        mismatches: list[str] = []
+        for spec in specs:
+            mismatches.extend(_read_columns_mismatches(spec))
+        assert not mismatches, "read_columns desync:\n" + "\n".join(mismatches)
 
 
 class TestRequireFieldEq:
@@ -191,6 +341,11 @@ class TestSchemaConstName:
 
 class BoundsModel(BaseModel):
     score: Annotated[float, Ge(0.0)]
+
+
+# int32 is a non-float primitive; bounds on it must not emit the NaN guard.
+class IntBoundsModel(BaseModel):
+    count: Annotated[int32, Ge(0)]
 
 
 class ArrayModel(BaseModel):
@@ -335,6 +490,22 @@ class TestParseable:
         assert "nested_array_check(" in source
 
 
+class TestBoundsNanGuardRendering:
+    """The NaN guard flag is emitted only for non-float bound columns."""
+
+    def test_float_bound_omits_check_nan(self) -> None:
+        """Float-typed bounds produce a check_bounds call without check_nan."""
+        source = _render(BoundsModel)
+        start = source.index("check_bounds(")
+        call = source[start : source.index(")", start) + 1]
+        assert "check_nan" not in call
+
+    def test_integer_bound_emits_check_nan_false(self) -> None:
+        """Integer-typed bounds include check_nan=False to skip the dead guard."""
+        source = _render(IntBoundsModel)
+        assert "check_nan=False" in source
+
+
 class TestBuilderFunction:
     def test_contains_builder_function(self, literal_subtype_source: str) -> None:
         assert "def simple_checks()" in literal_subtype_source
@@ -363,8 +534,6 @@ class TestSchemaConstant:
 
     def test_shared_struct_ref_emits_struct_field(self) -> None:
         """Shared struct refs (BBOX_STRUCT) render as the type of a StructField."""
-        from overture.schema.codegen.pyspark.schema_builder import SchemaField
-
         schema_fields = [SchemaField(name="bbox", type_expr="BBOX_STRUCT")]
         source = render_model_module("simple", [], [], schema_fields)
         assert 'StructField("bbox", BBOX_STRUCT, True)' in source

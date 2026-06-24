@@ -21,6 +21,8 @@ from overture.schema.codegen.extraction.specs import (
 from overture.schema.codegen.layout.type_collection import (
     collect_all_supplementary_types,
 )
+from overture.schema.system.primitive import uint8
+from overture.schema.system.string import HexColor
 from pydantic import BaseModel
 
 
@@ -127,9 +129,6 @@ class TestSemanticNewtypeGuard:
         """A non-semantic NewType (uint8) belongs on the aggregate
         primitives page, not as a standalone NewTypeSpec whose path
         collides with it."""
-        from overture.schema.system.primitive import uint8
-        from overture.schema.system.string import HexColor
-
         feature = type(
             "FeatureWithPrimitives",
             (BaseModel,),

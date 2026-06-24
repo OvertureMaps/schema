@@ -468,7 +468,7 @@ def _version_bounds_check() -> Check:
     return Check(
         field="version",
         name="bounds",
-        expr=check_bounds(F.col("version"), ge=0),
+        expr=check_bounds(F.col("version"), ge=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"version"}),
     )
@@ -718,7 +718,7 @@ def _admin_level_bounds_check() -> Check:
     return Check(
         field="admin_level_0",
         name="bounds",
-        expr=check_bounds(F.col("admin_level"), ge=0),
+        expr=check_bounds(F.col("admin_level"), ge=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"admin_level"}),
     )
@@ -728,7 +728,7 @@ def _admin_level_bounds_check_1() -> Check:
     return Check(
         field="admin_level_1",
         name="bounds",
-        expr=check_bounds(F.col("admin_level"), le=16),
+        expr=check_bounds(F.col("admin_level"), le=16, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"admin_level"}),
     )

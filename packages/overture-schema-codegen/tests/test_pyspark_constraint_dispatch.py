@@ -93,6 +93,37 @@ class TestBoundsDispatch:
         assert desc.kwargs == (("ge", 0.0),)
         assert isinstance(dict(desc.kwargs)["ge"], float)
 
+    def test_float_bound_sets_check_nan_none(self) -> None:
+        """Float-typed bounds leave check_nan unset (runtime defaults to guarded)."""
+        desc = dispatch_constraint(Ge(ge=0), base_type="float64")
+        assert desc is not None
+        assert desc.check_nan is None
+
+    def test_integer_bound_sets_check_nan_false(self) -> None:
+        """Integer-typed bounds set check_nan=False to skip the dead NaN guard."""
+        desc = dispatch_constraint(Ge(ge=0), base_type="int32")
+        assert desc is not None
+        assert desc.check_nan is False
+
+    def test_untyped_bound_sets_check_nan_none(self) -> None:
+        """Bounds without a base_type leave check_nan unset (safe default)."""
+        desc = dispatch_constraint(Ge(ge=0))
+        assert desc is not None
+        assert desc.check_nan is None
+
+    def test_kwargs_contains_only_bounds(self) -> None:
+        """check_nan does not appear in kwargs; only ge/gt/le/lt keys are present.
+
+        Uses Interval(ge=0, le=1) so the descriptor has two bound kwargs,
+        making the assertion non-vacuous: a stray non-bound kwarg alongside
+        a real bound would cause the check to fail.
+        """
+        desc = dispatch_constraint(Interval(ge=0, le=1), base_type="int32")
+        assert desc is not None
+        kwarg_keys = {k for k, _ in desc.kwargs}
+        assert kwarg_keys == {"ge", "le"}
+        assert kwarg_keys <= {"ge", "gt", "le", "lt"}
+
 
 class TestLengthDispatch:
     def test_min_len_on_array(self) -> None:

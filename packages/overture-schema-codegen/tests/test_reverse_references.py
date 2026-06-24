@@ -17,8 +17,14 @@ from codegen_test_support import (
     spec_for_model,
 )
 from overture.schema.codegen.extraction.enum_extraction import extract_enum
+from overture.schema.codegen.extraction.field import (
+    ArrayOf,
+    ConstraintSource,
+    Primitive,
+)
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
 from overture.schema.codegen.extraction.specs import (
+    NewTypeSpec,
     PydanticTypeSpec,
     RecordSpec,
     TypeIdentity,
@@ -87,13 +93,6 @@ def test_newtype_inheriting_from_newtype_produces_used_by_entry() -> None:
 def test_newtype_inheriting_through_array_layer_produces_used_by_entry() -> None:
     """A NewType chaining through an array NewType inherits the inner
     NewType's provenance from the array layer, not just the terminal scalar."""
-    from overture.schema.codegen.extraction.field import (
-        ArrayOf,
-        ConstraintSource,
-        Primitive,
-    )
-    from overture.schema.codegen.extraction.specs import NewTypeSpec
-
     Inner = NewType("Inner", str)
     Outer = NewType("Outer", list)
 

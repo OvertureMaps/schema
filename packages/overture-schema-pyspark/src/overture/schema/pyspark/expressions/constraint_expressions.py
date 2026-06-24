@@ -45,6 +45,13 @@ _WKB_TYPE_CODE: dict[GeometryType, int] = {
 _EWKB_FLAG_MASK = 0x0FFFFFFF
 _ISO_DIMENSION_MODULUS = 1000
 
+# A WKB header is a 1-byte order flag plus a 4-byte type word: 5 bytes, or 10
+# hex characters under F.hex. F.conv returns NULL only when its input is the
+# empty string (a 0-1 byte blob), so a 2-4 byte blob parses a truncated header
+# into a non-null bogus type and would pass; gate on hex length so every blob
+# too short to carry a full type word is a violation.
+_MIN_WKB_HEADER_HEX_LEN = 10
+
 
 _BOUND_OPS: dict[str, tuple[str, Callable[[Column, float | int], Column]]] = {
     "ge": (">=", lambda c, v: c < v),
@@ -61,8 +68,22 @@ def check_bounds(
     gt: float | int | None = None,
     le: float | int | None = None,
     lt: float | int | None = None,
+    check_nan: bool = True,
 ) -> Column:
-    """Numeric bounds check.  Returns error string or null."""
+    """Numeric bounds check.  Returns error string or null.
+
+    Parameters
+    ----------
+    col
+        Column to validate.
+    ge, gt, le, lt
+        Inclusive/exclusive lower and upper bounds.
+    check_nan
+        When True (default), prepend an explicit NaN guard so that NaN values
+        are rejected even on lower bounds (Spark sorts NaN above all values,
+        so a lower bound never fires on NaN without this guard). Set to False
+        for integer columns, where NaN is impossible and the guard is dead work.
+    """
     checks: list[Column] = []
     for key, value in (("ge", ge), ("gt", gt), ("le", le), ("lt", lt)):
         if value is None:
@@ -79,6 +100,9 @@ def check_bounds(
         )
     if not checks:
         return F.lit(None).cast("string")
+    if not check_nan:
+        # null col -> every bound comparison is null, coalesce yields null
+        return F.coalesce(*checks)
     # NaN satisfies no Pydantic bound (every comparison against it is False),
     # but Spark sorts NaN above all values, so lower bounds (NaN < v / NaN <= v)
     # never fire on it.  Reject NaN explicitly whenever any bound applies.  The
@@ -484,9 +508,15 @@ def check_geometry_type(
     allowed_codes = [_WKB_TYPE_CODE[t] for t in allowed]
     names = " | ".join(t.geo_json_type for t in allowed)
     if len(allowed_codes) == 1:
-        violation = base_type != allowed_codes[0]
+        type_mismatch = base_type != allowed_codes[0]
     else:
-        violation = ~base_type.isin(allowed_codes)
+        type_mismatch = ~base_type.isin(allowed_codes)
+    # A blob too short to hold the full 4-byte type word cannot be parsed; treat
+    # it as a violation rather than validating a bogus type read from a truncated
+    # header. The length gate subsumes the conv()-returns-NULL case (0-1 byte
+    # blob) and also catches the 2-4 byte blobs that parse to a non-null garbage
+    # type and would otherwise slip through.
+    violation = (F.length(hex_geom) < _MIN_WKB_HEADER_HEX_LEN) | type_mismatch
     return F.when(
         col.isNotNull() & violation,
         error_msg(f"expected {names} geometry"),

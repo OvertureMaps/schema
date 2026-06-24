@@ -2,6 +2,7 @@
 
 import uuid
 from enum import Enum
+from typing import Any
 
 import pytest
 from annotated_types import Gt, Lt
@@ -18,6 +19,7 @@ from overture.schema.codegen.extraction.field import (
     ModelRef,
     Primitive,
 )
+from overture.schema.codegen.extraction.field_walk import terminal_of
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
     FieldSpec,
@@ -27,6 +29,8 @@ from overture.schema.codegen.extraction.specs import (
 from overture.schema.codegen.pyspark.constraint_dispatch import ExpressionDescriptor
 from overture.schema.codegen.pyspark.test_data.base_row import (
     _primitive_default,
+    _row_satisfies_condition,
+    _satisfy_model_constraints,
     _value_from_check_pattern,
     _value_from_scalar_constraints,
     generate_arm_rows,
@@ -38,6 +42,7 @@ from overture.schema.codegen.pyspark.test_data.base_row import (
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     forbid_if,
+    min_fields_set,
     require_if,
 )
 from pydantic import BaseModel, Field, HttpUrl, TypeAdapter
@@ -174,8 +179,6 @@ class TestPopulateOptionalFlag:
 
 def _list_of_model(shape: object) -> ModelRef:
     """Peel `ArrayOf` / `NewTypeShape` layers to reach the inner `ModelRef`."""
-    from overture.schema.codegen.extraction.field_walk import terminal_of
-
     terminal = terminal_of(shape)  # type: ignore[arg-type]
     assert isinstance(terminal, ModelRef), (
         f"Expected ModelRef terminal, got {type(terminal).__name__}"
@@ -285,11 +288,6 @@ class TestMapFieldPopulation:
         # `dict[str, Any]` (e.g. Infrastructure.source_tags) has no value
         # constraint -- hence no value check -- and `Any` has no value
         # strategy, so the map stays empty rather than crashing.
-        from typing import Any
-
-        from overture.schema.codegen.extraction.model_extraction import extract_model
-        from pydantic import BaseModel
-
         class TagsModel(BaseModel):
             source_tags: dict[str, Any] | None = None
 
@@ -365,10 +363,6 @@ class TestMinFieldsSetSatisfied:
     """`_satisfy_model_constraints` populates optional fields for `min_fields_set`."""
 
     def test_min_fields_set_populates_optional_fields(self) -> None:
-        from overture.schema.codegen.extraction.model_extraction import extract_model
-        from overture.schema.system.model_constraint import min_fields_set
-        from pydantic import BaseModel
-
         @min_fields_set(2)
         class MinTwoModel(BaseModel):
             a: str | None = None
@@ -387,10 +381,6 @@ class TestMinFieldsSetSatisfied:
         # and `min_fields_set(2)`, the required field plus one optional
         # already satisfy the constraint, so the sparse row only needs
         # one additional optional fill.
-        from overture.schema.codegen.extraction.model_extraction import extract_model
-        from overture.schema.system.model_constraint import min_fields_set
-        from pydantic import BaseModel
-
         @min_fields_set(2)
         class MixedMinModel(BaseModel):
             required_field: str
@@ -416,10 +406,6 @@ class TestMinFieldsSetSatisfied:
         # When required fields alone satisfy `count`, no optional fills are
         # needed -- matching Pydantic, which counts required fields toward
         # `model_fields_set`.
-        from overture.schema.codegen.extraction.model_extraction import extract_model
-        from overture.schema.system.model_constraint import min_fields_set
-        from pydantic import BaseModel
-
         @min_fields_set(2)
         class AllRequiredModel(BaseModel):
             req_a: str
@@ -477,10 +463,6 @@ class TestNotConditionBaseRow:
 
     def test_forbid_if_not_condition_removes_field(self) -> None:
         """forbid_if triggered by Not(FieldEqCondition) removes the forbidden field."""
-        from overture.schema.codegen.pyspark.test_data.base_row import (
-            _satisfy_model_constraints,
-        )
-
         spec = extract_model(_ModeModelForbidIf)
         row: dict[str, object] = {
             "mode": _ModeColor.RED.value,
@@ -492,9 +474,6 @@ class TestNotConditionBaseRow:
 
     def test_unknown_condition_type_raises(self) -> None:
         """_row_satisfies_condition must raise for unknown condition kinds."""
-        from overture.schema.codegen.pyspark.test_data.base_row import (
-            _row_satisfies_condition,
-        )
 
         class _Unknown:
             pass

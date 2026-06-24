@@ -7,6 +7,7 @@ from typing import Annotated, Literal
 import pytest
 from annotated_types import Ge
 from codegen_test_support import discover_feature
+from overture.schema.codegen.cli import _generate_pyspark
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.pyspark.pipeline import (
     GeneratedModule,
@@ -192,8 +193,6 @@ class TestSegmentGeneration:
 
 
 def test_cli_writes_init_modules(tmp_path: Path) -> None:
-    from overture.schema.codegen.cli import _generate_pyspark
-
     spec = extract_model(SimpleModel, entry_point="overture.schema.simple:SimpleModel")
     out = tmp_path / "src"
     test_out = tmp_path / "tests"

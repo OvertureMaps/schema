@@ -23,6 +23,7 @@ from .helpers import PathTraversalError
 
 _SENTINEL = "__FORBIDDEN_PRESENT__"
 _NOT_EQUAL_PREFIX = "__NOT_"
+_STUB_MAP_KEY = "_stub"
 
 
 def mutate_require_any_of(
@@ -31,6 +32,7 @@ def mutate_require_any_of(
     *,
     array_path: FieldPath | str | None = None,
     struct_path: str | None = None,
+    map_path: FieldPath | str | None = None,
 ) -> dict:
     """Null every named field so `require_any_of` fires.
 
@@ -41,12 +43,19 @@ def mutate_require_any_of(
         fields live at the row root.
     struct_path
         Optional single intermediate struct field between the array
-        element and the target fields.
+        element (or map value) and the target fields.
+    map_path
+        Map column whose `dict[K, Model]` value carries the constraint.
+        Mutually exclusive with `array_path`.
 
     See `_null_all_named_fields` for the full nesting semantics.
     """
     return _null_all_named_fields(
-        row_dict, field_names, array_path=array_path, struct_path=struct_path
+        row_dict,
+        field_names,
+        array_path=array_path,
+        struct_path=struct_path,
+        map_path=map_path,
     )
 
 
@@ -64,6 +73,7 @@ def mutate_min_fields_set(
     *,
     array_path: FieldPath | str | None = None,
     struct_path: str | None = None,
+    map_path: FieldPath | str | None = None,
 ) -> dict:
     """Null every named field so `min_fields_set(N)` fires (0 < N).
 
@@ -73,12 +83,16 @@ def mutate_min_fields_set(
     `check_required` checks; the conformance test only asserts the
     expected violation is present, so the extra failures don't matter.
 
-    `array_path` / `struct_path` mirror `mutate_require_any_of` for the
-    case where the constrained model is reached through array iteration
-    (and optionally one intermediate struct field).
+    `array_path` / `struct_path` / `map_path` mirror `mutate_require_any_of`
+    for the case where the constrained model is reached through array or map
+    iteration (and optionally one intermediate struct field).
     """
     return _null_all_named_fields(
-        row_dict, field_names, array_path=array_path, struct_path=struct_path
+        row_dict,
+        field_names,
+        array_path=array_path,
+        struct_path=struct_path,
+        map_path=map_path,
     )
 
 
@@ -88,16 +102,26 @@ def _null_all_named_fields(
     *,
     array_path: FieldPath | str | None,
     struct_path: str | None,
+    map_path: FieldPath | str | None = None,
 ) -> dict:
     """Return a deep copy of *row_dict* with every named field set to None.
 
-    Without *array_path*, the fields live at the row root. With *array_path*,
-    the fields live inside elements of that array column; *struct_path*
+    Without *array_path* or *map_path*, the fields live at the row root.
+    With *array_path*, the fields live inside elements of that array column;
+    with *map_path*, inside the value model of that map column. *struct_path*
     names an optional single intermediate struct field between the array
-    element and the target fields. A null array is replaced with a single
-    stub element so the violation has a row to fire on.
+    element / map value and the target fields. A null array is replaced with
+    a single stub element so the violation has a row to fire on; a null map
+    is stubbed analogously.
     """
     result = copy.deepcopy(row_dict)
+    if map_path is not None:
+        target = _map_value_to_mutate(result, map_path)
+        if struct_path:
+            target = _scaffold_struct_child(target, struct_path)
+        for name in field_names:
+            _set_nested(target, name, None)
+        return result
     if array_path is None:
         for name in field_names:
             _set_nested(result, name, None)
@@ -112,16 +136,39 @@ def _null_all_named_fields(
         _set_nested(result, array_path, [element])
     else:
         for element in arr:
-            if struct_path:
-                target = element.get(struct_path)
-                if target is None:
-                    target = {}
-                    element[struct_path] = target
-            else:
-                target = element
+            target = (
+                _scaffold_struct_child(element, struct_path) if struct_path else element
+            )
             for name in field_names:
                 _set_nested(target, name, None)
     return result
+
+
+def _scaffold_struct_child(parent: dict, name: str) -> dict:
+    """Return `parent[name]` as a dict, scaffolding `{}` when missing or None."""
+    child = parent.get(name)
+    if child is None:
+        child = {}
+        parent[name] = child
+    return child
+
+
+def _map_value_to_mutate(row: dict, map_path: FieldPath | str) -> dict:
+    """Return the value model of the map at *map_path*, stubbing if absent.
+
+    A model-level constraint on a `dict[K, Model]` value targets the value
+    model. The base row supplies the map's single entry; a missing or empty
+    map is stubbed with one entry so the violation has a value to fire on --
+    mirroring how a null array is stubbed in `_null_all_named_fields`. The
+    map carries exactly one entry (base-row generation emits a single
+    key/value pair), so the sole value is unambiguous.
+    """
+    m = _get_nested(row, map_path)
+    if isinstance(m, dict) and m:
+        return next(iter(m.values()))
+    stub: dict = {}
+    _set_nested(row, map_path, {_STUB_MAP_KEY: stub}, create=True)
+    return stub
 
 
 def mutate_require_if(
@@ -133,6 +180,7 @@ def mutate_require_if(
     negate: bool = False,
     array_path: FieldPath | str | None = None,
     inner_array_path: FieldPath | str | None = None,
+    map_path: FieldPath | str | None = None,
 ) -> dict:
     """Set condition to trigger require_if, then null target fields."""
     result = copy.deepcopy(row_dict)
@@ -142,7 +190,7 @@ def mutate_require_if(
         for name in field_names:
             _set_nested(target, name, None)
 
-    _apply_to_targets(result, _apply, array_path, inner_array_path)
+    _apply_to_targets(result, _apply, array_path, inner_array_path, map_path)
     return result
 
 
@@ -156,6 +204,7 @@ def mutate_forbid_if(
     fill_values: dict[str, object] | None = None,
     array_path: FieldPath | str | None = None,
     inner_array_path: FieldPath | str | None = None,
+    map_path: FieldPath | str | None = None,
 ) -> dict:
     """Set condition to trigger forbid_if, ensure target fields are non-null.
 
@@ -172,7 +221,7 @@ def mutate_forbid_if(
             if _get_nested(target, name) is None:
                 _set_nested(target, name, fills.get(name, _SENTINEL))
 
-    _apply_to_targets(result, _apply, array_path, inner_array_path)
+    _apply_to_targets(result, _apply, array_path, inner_array_path, map_path)
     return result
 
 
@@ -324,17 +373,23 @@ def _apply_to_targets(
     fn: _Applicator,
     array_path: FieldPath | str | None,
     inner_array_path: FieldPath | str | None,
+    map_path: FieldPath | str | None = None,
 ) -> None:
     """Apply a mutation function to target dicts at the appropriate nesting level.
 
-    Without array paths, applies directly to the row. With `array_path`,
-    iterates over elements of that array. With both `array_path` and
-    `inner_array_path`, iterates over outer elements, navigates the
-    inner struct path to a nested array, then iterates those elements.
+    Without array or map paths, applies directly to the row. With
+    `array_path`, iterates over elements of that array. With both
+    `array_path` and `inner_array_path`, iterates over outer elements,
+    navigates the inner struct path to a nested array, then iterates those
+    elements. With `map_path`, applies to the value model of that map column
+    (stubbing one entry when the map is absent).
 
     Creates stub array elements when the arrays are null so the mutation
     can populate them.
     """
+    if map_path is not None:
+        fn(_map_value_to_mutate(row, map_path))
+        return
     if array_path is None:
         fn(row)
         return

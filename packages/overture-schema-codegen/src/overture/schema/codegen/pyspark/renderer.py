@@ -88,51 +88,6 @@ _SPARK_TYPES = frozenset(
 )
 
 
-# A generated expression dereferences a top-level row column through one of a
-# fixed set of forms, each taking the column name as a string literal: `F.col`,
-# the outermost `array_check`/`nested_array_check`, and `map_keys_check`/
-# `map_values_check`. Inner array iterations use element accessors (`el[...]`),
-# whose first argument is never a string literal and so never matches here. A
-# new column-consuming wrapper must be added to this alternation; `read_columns`
-# fails loudly (see `_require_read_columns`) if a check's expr matches none.
-_COLUMN_READ = re.compile(
-    r'(?:F\.col|(?:nested_)?array_check|map_(?:keys|values)_check)\("([^"]+)"'
-)
-
-
-def _read_columns(expr: str) -> frozenset[str]:
-    """Top-level columns a rendered check expression dereferences.
-
-    Derived from the expression source itself rather than the check's
-    structure, so it stays correct as the renderer evolves: whatever
-    `F.col`/`array_check`/`map_*_check` the expression emits is what the
-    runtime reads. Dotted struct navigation (`bbox.xmin`, `names.rules`)
-    collapses to its top-level column, the granularity at which absence is
-    detected.
-    """
-    return frozenset(m.group(1).split(".", 1)[0] for m in _COLUMN_READ.finditer(expr))
-
-
-def _require_read_columns(expr: str, field: str, name: str) -> frozenset[str]:
-    """Top-level columns a generated check reads -- guaranteed non-empty.
-
-    Every generated check dereferences at least one row column. An empty
-    result means `_read_columns` did not recognize a form `expr` uses --
-    typically a newly added column-consuming wrapper absent from
-    `_COLUMN_READ`. Left silent, the runtime could not drop the check when
-    its column is absent (`validate_model` keys on `read_columns`), so an
-    unresolvable reference would reach Spark. This converts that latent
-    crash into a generation-time error naming the offending check.
-    """
-    columns = _read_columns(expr)
-    if not columns:
-        raise ValueError(
-            f"check {field!r} ({name!r}) reads no top-level column; "
-            f"_read_columns recognized no column form in: {expr}"
-        )
-    return columns
-
-
 def _render_condition_desc(parsed: FieldEq) -> str:
     """Render a parsed condition to a human-readable error-message description."""
     display = repr(
@@ -223,6 +178,8 @@ def _render_expr_call(
             parts.append(_render_arg(arg))
     for k, v in desc.kwargs:
         parts.append(f"{k}={py_literal(v)}")
+    if desc.check_nan is not None:
+        parts.append(f"check_nan={py_literal(desc.check_nan)}")
     if desc.label is not None:
         parts.append(f"label={py_literal(desc.label)}")
     return f"{desc.function}({', '.join(parts)})"
@@ -468,6 +425,7 @@ def _check_function_context(
     field: str,
     name: str,
     expr: str,
+    read_columns: frozenset[str],
 ) -> dict[str, object]:
     """Assemble the template context dict for one check function."""
     return {
@@ -476,7 +434,7 @@ def _check_function_context(
         "check_name": name,
         "expr": expr,
         "shape": _check_shape_token(target),
-        "read_columns": _require_read_columns(expr, field, name),
+        "read_columns": read_columns,
     }
 
 
@@ -492,6 +450,7 @@ def _render_check_function_context(row: FieldCheckRow) -> dict[str, object]:
         field=row.label,
         name=row.name,
         expr=_render_check_expr(row.check, row.descriptor_idx),
+        read_columns=row.check.read_columns,
     )
 
 
@@ -588,6 +547,7 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
         field=row.label,
         name=row.name,
         expr=expr,
+        read_columns=check.read_columns,
     )
 
 

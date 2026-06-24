@@ -181,7 +181,7 @@ def _version_bounds_check() -> Check:
     return Check(
         field="version",
         name="bounds",
-        expr=check_bounds(F.col("version"), ge=0),
+        expr=check_bounds(F.col("version"), ge=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"version"}),
     )
@@ -315,7 +315,7 @@ def _depth_bounds_check() -> Check:
     return Check(
         field="depth",
         name="bounds",
-        expr=check_bounds(F.col("depth"), ge=0),
+        expr=check_bounds(F.col("depth"), ge=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"depth"}),
     )
@@ -325,7 +325,7 @@ def _cartography_prominence_bounds_check() -> Check:
     return Check(
         field="cartography.prominence_0",
         name="bounds",
-        expr=check_bounds(F.col("cartography.prominence"), ge=1),
+        expr=check_bounds(F.col("cartography.prominence"), ge=1, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"cartography"}),
     )
@@ -335,7 +335,7 @@ def _cartography_prominence_bounds_check_1() -> Check:
     return Check(
         field="cartography.prominence_1",
         name="bounds",
-        expr=check_bounds(F.col("cartography.prominence"), le=100),
+        expr=check_bounds(F.col("cartography.prominence"), le=100, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"cartography"}),
     )
@@ -345,7 +345,7 @@ def _cartography_min_zoom_bounds_check() -> Check:
     return Check(
         field="cartography.min_zoom_0",
         name="bounds",
-        expr=check_bounds(F.col("cartography.min_zoom"), ge=0),
+        expr=check_bounds(F.col("cartography.min_zoom"), ge=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"cartography"}),
     )
@@ -355,7 +355,7 @@ def _cartography_min_zoom_bounds_check_1() -> Check:
     return Check(
         field="cartography.min_zoom_1",
         name="bounds",
-        expr=check_bounds(F.col("cartography.min_zoom"), le=23),
+        expr=check_bounds(F.col("cartography.min_zoom"), le=23, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"cartography"}),
     )
@@ -365,7 +365,7 @@ def _cartography_max_zoom_bounds_check() -> Check:
     return Check(
         field="cartography.max_zoom_0",
         name="bounds",
-        expr=check_bounds(F.col("cartography.max_zoom"), ge=0),
+        expr=check_bounds(F.col("cartography.max_zoom"), ge=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"cartography"}),
     )
@@ -375,7 +375,7 @@ def _cartography_max_zoom_bounds_check_1() -> Check:
     return Check(
         field="cartography.max_zoom_1",
         name="bounds",
-        expr=check_bounds(F.col("cartography.max_zoom"), le=23),
+        expr=check_bounds(F.col("cartography.max_zoom"), le=23, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"cartography"}),
     )

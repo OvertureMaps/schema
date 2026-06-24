@@ -215,11 +215,20 @@ def generate_scaffold(check: Check, spec: ModelSpec) -> dict[str, Any]:
 def generate_model_scaffold(check: ModelCheck, spec: ModelSpec) -> dict[str, Any]:
     """Build a sparse dict for a model-level check's nesting structure.
 
-    Only top-level array columns are supported -- a `ScalarPath` target
-    returns `{}` (no scaffold needed at row root) and an `ArrayPath`
-    whose column lives inside a struct raises `NotImplementedError`.
-    No schema today places a list of model-constrained models inside a
-    struct field, so the case has no test coverage.
+    Two target shapes need no scaffold and return `{}`:
+
+    - a `ScalarPath` target -- a top-level model constraint, whose fields
+      live at the row root;
+    - a `MapPath` target -- a `dict[K, Model]` value-model constraint. The
+      mutation (`map_path=`) owns map navigation: it corrupts the base row's
+      single map entry in place, or stubs one when the map is absent. Unlike
+      an array, a dict scaffold can't replace a base-row map entry under
+      `deep_merge`'s recursive dict merge, so there is nothing to add here.
+
+    A top-level `ArrayPath` builds the array path; an `ArrayPath` whose
+    column lives inside a struct raises `NotImplementedError`. No schema
+    today places a list of model-constrained models inside a struct field,
+    so the case has no test coverage.
     """
     match check.target:
         case ArrayPath() as target:

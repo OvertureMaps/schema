@@ -8,11 +8,14 @@ from annotated_types import Ge, MaxLen, MinLen
 from overture.schema.codegen.extraction.field import (
     AnyScalar,
     ArrayOf,
+    ConstraintSource,
     FieldShape,
     LiteralScalar,
     MapOf,
+    ModelRef,
     NewTypeShape,
     Primitive,
+    UnionRef,
 )
 from overture.schema.codegen.extraction.field_walk import (
     all_constraints,
@@ -22,13 +25,16 @@ from overture.schema.codegen.extraction.length_constraints import (
     ArrayMinLen,
     ScalarMinLen,
 )
+from overture.schema.codegen.extraction.specs import RecordSpec, UnionSpec
 from overture.schema.codegen.extraction.type_analyzer import (
     UnresolvedForwardRefError,
     UnsupportedUnionError,
     analyze_type,
+    attach_constraints,
     single_literal_value,
     unwrap_list,
 )
+from overture.schema.common.scoping.vehicle import VehicleSelector
 from overture.schema.system.primitive import int32
 from overture.schema.system.ref import Id
 from overture.schema.system.string import (
@@ -130,9 +136,16 @@ class TestList:
         assert isinstance(shape, ArrayOf)
         assert optional is True
 
+    def test_list_inherits_element_description(self) -> None:
+        # A list field with no field-level description inherits its
+        # element's description -- losing it would leave the field
+        # undocumented when the only prose lives on the element.
+        desc = _description(list[Annotated[str, Field(description="element prose")]])
+        assert desc == "element prose"
+
     def test_list_optional_element_desc_is_none(self) -> None:
-        # Description comes from Field(description=...) at the field layer,
-        # not from the element type. List branch returns None, matching dict.
+        # Element nullability alone introduces no description: list[str | None]
+        # has no prose on either layer, so the field description stays None.
         _, _, desc = analyze_type(list[str | None])
         assert desc is None
 
@@ -174,15 +187,9 @@ class TestAttachConstraintsOnModelTerminal:
     """Constraints destined for a model/union terminal are rejected loudly."""
 
     def _model_ref(self) -> FieldShape:
-        from overture.schema.codegen.extraction.field import ModelRef
-        from overture.schema.codegen.extraction.specs import RecordSpec
-
         return ModelRef(model=RecordSpec(name="Person", description=None))
 
     def _union_ref(self) -> FieldShape:
-        from overture.schema.codegen.extraction.field import UnionRef
-        from overture.schema.codegen.extraction.specs import UnionSpec
-
         return UnionRef(
             union=UnionSpec(
                 name="U",
@@ -198,9 +205,6 @@ class TestAttachConstraintsOnModelTerminal:
 
     @pytest.mark.parametrize("ref_name", ["_model_ref", "_union_ref"])
     def test_constraint_on_terminal_raises(self, ref_name: str) -> None:
-        from overture.schema.codegen.extraction.field import ConstraintSource
-        from overture.schema.codegen.extraction.type_analyzer import attach_constraints
-
         shape = getattr(self, ref_name)()
         cs = (ConstraintSource(source_ref=None, source_name=None, constraint=Ge(0)),)
         with pytest.raises(NotImplementedError):
@@ -208,8 +212,6 @@ class TestAttachConstraintsOnModelTerminal:
 
     @pytest.mark.parametrize("ref_name", ["_model_ref", "_union_ref"])
     def test_no_constraints_is_noop(self, ref_name: str) -> None:
-        from overture.schema.codegen.extraction.type_analyzer import attach_constraints
-
         shape = getattr(self, ref_name)()
         assert attach_constraints(shape, ()) is shape
 
@@ -491,8 +493,6 @@ class TestUnionResolver:
             analyze_type(union_type)
 
     def test_annotated_wrapped_members_unwrapped(self) -> None:
-        from overture.schema.codegen.extraction.type_analyzer import analyze_type as at
-
         captured_members: list[tuple[type[BaseModel], ...]] = []
 
         def resolver(
@@ -507,7 +507,7 @@ class TestUnionResolver:
             Annotated[UnionModelA, Tag("a")] | Annotated[UnionModelB, Tag("b")],
             Field(description="disc"),
         ]
-        at(union_type, union_resolver=resolver)
+        analyze_type(union_type, union_resolver=resolver)
         expected: set[type[BaseModel]] = {UnionModelA, UnionModelB}
         assert set(captured_members[0]) == expected
 
@@ -547,8 +547,6 @@ class TestUnwrapList:
         assert unwrap_list(list[int] | None) is int
 
     def test_optional_list_preserves_annotated(self) -> None:
-        from overture.schema.common.scoping.vehicle import VehicleSelector
-
         assert unwrap_list(list[VehicleSelector] | None) is VehicleSelector
 
 

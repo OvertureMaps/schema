@@ -186,7 +186,7 @@ def _version_bounds_check() -> Check:
     return Check(
         field="version",
         name="bounds",
-        expr=check_bounds(F.col("version"), ge=0),
+        expr=check_bounds(F.col("version"), ge=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"version"}),
     )
@@ -718,7 +718,7 @@ def _num_floors_check() -> Check:
     return Check(
         field="num_floors",
         name="bounds",
-        expr=check_bounds(F.col("num_floors"), gt=0),
+        expr=check_bounds(F.col("num_floors"), gt=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"num_floors"}),
     )
@@ -728,7 +728,7 @@ def _num_floors_underground_check() -> Check:
     return Check(
         field="num_floors_underground",
         name="bounds",
-        expr=check_bounds(F.col("num_floors_underground"), gt=0),
+        expr=check_bounds(F.col("num_floors_underground"), gt=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"num_floors_underground"}),
     )
@@ -738,7 +738,7 @@ def _min_floor_check() -> Check:
     return Check(
         field="min_floor",
         name="bounds",
-        expr=check_bounds(F.col("min_floor"), gt=0),
+        expr=check_bounds(F.col("min_floor"), gt=0, check_nan=False),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"min_floor"}),
     )

@@ -13,7 +13,11 @@ from codegen_test_support import (
     find_field,
 )
 from overture.schema.codegen.extraction.field import ModelRef, Primitive
-from overture.schema.codegen.extraction.field_walk import has_array_layer, terminal_of
+from overture.schema.codegen.extraction.field_walk import (
+    all_constraints,
+    has_array_layer,
+    terminal_of,
+)
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (
@@ -456,8 +460,6 @@ class TestFieldInfoMetadataConstraints:
 
     def test_geometry_type_constraint_extracted(self) -> None:
         """GeometryTypeConstraint on geometry field should appear in constraints."""
-        from overture.schema.codegen.extraction.field_walk import all_constraints
-
         spec = extract_model(Venue)
         geometry_field = find_field(spec, "geometry")
 
@@ -468,8 +470,6 @@ class TestFieldInfoMetadataConstraints:
 
     def test_geometry_type_constraint_has_null_source(self) -> None:
         """Constraints from field_info.metadata have source_ref=None (not from a NewType)."""
-        from overture.schema.codegen.extraction.field_walk import all_constraints
-
         spec = extract_model(Venue)
         geometry_field = find_field(spec, "geometry")
 
@@ -487,8 +487,6 @@ class TestFieldInfoMetadataConstraints:
         When field_info.metadata is empty (Pydantic kept the Annotated wrapper),
         no extra constraints are added.
         """
-        from overture.schema.codegen.extraction.field_walk import all_constraints
-
         spec = extract_model(Instrument)
         tags_field = find_field(spec, "tags")
 
@@ -502,7 +500,6 @@ class TestFieldInfoMetadataConstraints:
     def test_standalone_annotated_field_extracts_metadata(self) -> None:
         """Direct Annotated[Type, constraint] fields (non-optional, non-union)
         get their constraints from field_info.metadata."""
-        from overture.schema.codegen.extraction.field_walk import all_constraints
 
         class Model(BaseModel):
             geo: Annotated[

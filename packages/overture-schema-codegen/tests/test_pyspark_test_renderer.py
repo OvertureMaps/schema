@@ -7,6 +7,7 @@ from enum import Enum
 import pytest
 from overture.schema.codegen.extraction.field import ArrayOf, ModelRef, Primitive
 from overture.schema.codegen.extraction.specs import RecordSpec
+from overture.schema.codegen.pyspark._primitive_fill import PRIMITIVE_FILL_TABLE
 from overture.schema.codegen.pyspark.check_ir import (
     Check,
     ColumnGuard,
@@ -20,8 +21,12 @@ from overture.schema.codegen.pyspark.constraint_dispatch import (
     RadioGroup,
     RequireAnyOf,
     RequireIf,
+    _needs_explicit_fill,
 )
 from overture.schema.codegen.pyspark.renderer import render_model_module
+from overture.schema.codegen.pyspark.test_data.base_row import (
+    _primitive_default as _base_row_primitive_default,
+)
 from overture.schema.codegen.pyspark.test_renderer import (
     _fill_value_literal,
 )
@@ -43,6 +48,13 @@ _path = parse
 # Placeholder expression import path -- tests parse the rendered source
 # rather than executing it, so the import target need not be real.
 _TEST_EXPRESSION_IMPORT = "_placeholder.expression_module"
+
+# Representative base_type for each SparkCategory in PRIMITIVE_FILL_TABLE.
+_CATEGORY_BASE_TYPE: dict[str, str] = {
+    "int": "int32",
+    "float": "float64",
+    "bool": "bool",
+}
 
 
 def render_test_module(*args: object, **kwargs: object) -> str:
@@ -522,6 +534,90 @@ class TestModelScenarios:
         source = render_test_module("test", [], model_nodes)
         ast.parse(source)
         assert "negate=True" in source
+
+    def test_require_any_of_map_value_uses_map_path(self) -> None:
+        """require_any_of on a `dict[K, Model]` value model passes map_path."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyOf(field_names=("foo", "bar")),
+                target=_path("subs{value}"),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert 'map_path="subs"' in source
+        assert "array_path" not in source
+
+    def test_require_any_of_map_value_leaf_uses_struct_path(self) -> None:
+        """A struct-nested sub-model in a map value passes map_path + struct_path."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyOf(field_names=("foo", "bar")),
+                target=_path("subs{value}.inner"),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert 'map_path="subs"' in source
+        assert 'struct_path="inner"' in source
+
+    def test_min_fields_set_map_value_uses_map_path(self) -> None:
+        model_nodes = [
+            ModelCheck(
+                descriptor=MinFieldsSet(field_names=("foo", "bar"), count=1),
+                target=_path("subs{value}"),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert 'map_path="subs"' in source
+
+    def test_require_if_map_value_uses_map_path(self) -> None:
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireIf(
+                    field_names=("admin_level",),
+                    condition=FieldEqCondition("subtype", "country"),
+                ),
+                target=_path("subs{value}"),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert 'map_path="subs"' in source
+
+    def test_radio_group_map_value_raises(self) -> None:
+        """radio_group has no map-aware mutation; raise rather than emit a vacuous test."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=RadioGroup(field_names=("a", "b")),
+                target=_path("subs{value}"),
+            ),
+        ]
+        with pytest.raises(ValueError, match="map_path"):
+            render_test_module("test", [], model_nodes)
+
+    def test_require_any_of_map_key_projection_raises(self) -> None:
+        """A model can't be a dict key, so a KEY-projection model check is untestable."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyOf(field_names=("foo", "bar")),
+                target=_path("subs{key}"),
+            ),
+        ]
+        with pytest.raises(ValueError, match="map key"):
+            render_test_module("test", [], model_nodes)
+
+    def test_require_any_of_map_value_multi_segment_leaf_raises(self) -> None:
+        """The mutation struct_path is a single segment; a deeper leaf has no support."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyOf(field_names=("foo", "bar")),
+                target=_path("subs{value}.a.b"),
+            ),
+        ]
+        with pytest.raises(ValueError, match="single segment"):
+            render_test_module("test", [], model_nodes)
 
     def test_model_scenario_uses_inline_lambda(self) -> None:
         """Model scenarios emit mutate=lambda row: ... directly."""
@@ -1177,3 +1273,50 @@ class TestGeometryTypeMutations:
         nodes = [make_check("check_required", _path("country"))]
         source = render_test_module("test", nodes, [])
         assert "shapely" not in source
+
+
+class TestPrimitiveFillTableConsistency:
+    """The shared PRIMITIVE_FILL_TABLE drives all three fill-related functions.
+
+    Every category in the table must be accepted by `_needs_explicit_fill`,
+    produce a non-raising `_fill_value_literal`, and yield the matching
+    `_primitive_default` runtime value. A future category added to the table
+    but not wired into a consumer will fail here.
+    """
+
+    def test_category_base_type_covers_table(self) -> None:
+        """_CATEGORY_BASE_TYPE must cover every key in PRIMITIVE_FILL_TABLE.
+
+        If a category is added to the table without a representative base_type,
+        the other consistency tests would raise KeyError with a misleading trace
+        rather than a clear assertion. This test catches the gap loudly.
+        """
+        assert set(_CATEGORY_BASE_TYPE) == set(PRIMITIVE_FILL_TABLE), (
+            "Add a representative base_type to _CATEGORY_BASE_TYPE for each "
+            "new PRIMITIVE_FILL_TABLE key (and remove entries for deleted keys)."
+        )
+
+    def test_table_covers_needs_explicit_fill(self) -> None:
+        for category in PRIMITIVE_FILL_TABLE:
+            shape = Primitive(base_type=_CATEGORY_BASE_TYPE[category])
+            assert _needs_explicit_fill(shape), (
+                f"category {category!r} not accepted by _needs_explicit_fill"
+            )
+
+    def test_table_covers_fill_value_literal(self) -> None:
+        for category, (literal, _) in PRIMITIVE_FILL_TABLE.items():
+            shape = Primitive(base_type=_CATEGORY_BASE_TYPE[category])
+            assert _fill_value_literal(shape) == literal, (
+                f"category {category!r} literal mismatch"
+            )
+
+    def test_table_covers_primitive_default(self) -> None:
+        for category, (_, runtime_value) in PRIMITIVE_FILL_TABLE.items():
+            base_type = _CATEGORY_BASE_TYPE[category]
+            result = _base_row_primitive_default(base_type)
+            assert result == runtime_value, (
+                f"category {category!r} runtime value mismatch"
+            )
+            assert type(result) is type(runtime_value), (
+                f"category {category!r} runtime type mismatch"
+            )

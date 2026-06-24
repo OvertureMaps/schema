@@ -47,6 +47,7 @@ from ..extraction.length_constraints import (
 )
 from ..extraction.specs import FieldSpec
 from ..extraction.type_registry import primitive_spark_category
+from ._primitive_fill import PRIMITIVE_FILL_TABLE
 
 __all__ = [
     "ExpressionDescriptor",
@@ -93,6 +94,7 @@ class ExpressionDescriptor:
     gate: FieldPath | None = None
     label: str | None = None
     check_name: str | None = None
+    check_nan: bool | None = None
 
 
 _BASE_TYPE_DISPATCH: dict[str, tuple[ExpressionDescriptor, ...]] = {
@@ -214,7 +216,10 @@ def _dispatch_bounds(
             if is_float and isinstance(value, int) and not isinstance(value, bool):
                 value = float(value)
             kwargs.append((attr, value))
-    return ExpressionDescriptor(function="check_bounds", kwargs=tuple(kwargs))
+    check_nan: bool | None = False if base_type is not None and not is_float else None
+    return ExpressionDescriptor(
+        function="check_bounds", kwargs=tuple(kwargs), check_nan=check_nan
+    )
 
 
 def _dispatch_pattern(
@@ -507,7 +512,7 @@ def _needs_explicit_fill(shape: FieldShape) -> bool:
         return True
     if not isinstance(terminal, Primitive):
         return False
-    return primitive_spark_category(terminal.base_type) in ("int", "float", "bool")
+    return primitive_spark_category(terminal.base_type) in PRIMITIVE_FILL_TABLE
 
 
 def forbid_if_field_shapes(

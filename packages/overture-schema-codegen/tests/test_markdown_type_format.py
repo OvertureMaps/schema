@@ -8,6 +8,7 @@ import pytest
 from overture.schema.codegen.extraction.field import (
     AnyScalar,
     ArrayOf,
+    FieldShape,
     LiteralScalar,
     NewTypeShape,
     Primitive,
@@ -15,7 +16,7 @@ from overture.schema.codegen.extraction.field import (
     UnionRef,
 )
 from overture.schema.codegen.extraction.model_extraction import extract_model
-from overture.schema.codegen.extraction.specs import FieldSpec, TypeIdentity
+from overture.schema.codegen.extraction.specs import FieldSpec, TypeIdentity, UnionSpec
 from overture.schema.codegen.extraction.type_analyzer import analyze_type
 from overture.schema.codegen.markdown.link_computation import LinkContext
 from overture.schema.codegen.markdown.type_format import (
@@ -24,7 +25,7 @@ from overture.schema.codegen.markdown.type_format import (
     format_type,
     format_underlying_type,
 )
-from overture.schema.system.primitive import int32
+from overture.schema.system.primitive import BBox, Geometry, int32
 from pydantic import BaseModel, HttpUrl
 
 
@@ -96,8 +97,6 @@ class TestFormatType:
         assert "](int32.md)" not in result
 
     def test_geometry_links_to_aggregate_page(self) -> None:
-        from overture.schema.system.primitive import Geometry
-
         field = _make_field(Geometry)
         ctx = LinkContext(
             page_path=PurePosixPath("buildings/building/building.md"),
@@ -113,8 +112,6 @@ class TestFormatType:
         )
 
     def test_bbox_links_to_aggregate_page(self) -> None:
-        from overture.schema.system.primitive import BBox
-
         field = _make_field(BBox)
         ctx = LinkContext(
             page_path=PurePosixPath("base/feature/feature.md"),
@@ -127,8 +124,6 @@ class TestFormatType:
         assert format_type(field, ctx) == "[`bbox`](../../system/primitive/geometry.md)"
 
     def test_geometry_without_context_renders_plain_code(self) -> None:
-        from overture.schema.system.primitive import Geometry
-
         assert format_type(_make_field(Geometry)) == "`geometry`"
 
 
@@ -140,8 +135,6 @@ def _make_field(
     is_optional: bool = False,
 ) -> FieldSpec:
     """Build a FieldSpec from an annotation for test convenience."""
-    from overture.schema.codegen.extraction.field import FieldShape
-
     if isinstance(annotation, (Scalar, ArrayOf, UnionRef)):
         shape: FieldShape = annotation  # type: ignore[assignment]
     else:
@@ -158,9 +151,6 @@ def _make_field(
 
 def _union_ref(members: list[type]) -> UnionRef:
     """Build a UnionRef for tests without running through extract_union."""
-    from overture.schema.codegen.extraction.specs import UnionSpec
-    from pydantic import BaseModel
-
     union_spec = UnionSpec(
         name=members[0].__name__,
         description=None,
@@ -493,6 +483,62 @@ class TestFormatMapType:
         assert "[`Stripped`]" in result
         assert "stripped_string.md" in result
         assert "``" not in result
+
+    def test_map_value_geometry_links_in_field_cell(self) -> None:
+        """A Geometry-valued map links to the geometry page.
+
+        Geometry is a class-based registered primitive, not Enum/BaseModel.
+        The map-side link decision shares `_scalar_identity`'s coverage, so a
+        Geometry value links rather than rendering bare.
+        """
+        ctx = _link_ctx((Geometry, "geometry", "system/primitive/geometry.md"))
+        result = format_type(_make_field(dict[str, Geometry]), ctx)
+        assert "[`geometry`]" in result
+        assert "system/primitive/geometry.md" in result
+        assert "``" not in result
+
+    def test_map_value_pydantic_type_links_in_field_cell(self) -> None:
+        """A pydantic-sourced map value links to its page.
+
+        HttpUrl is pydantic-sourced, not Enum/BaseModel; the shared map-side
+        decision links it where the narrow Enum/BaseModel-only check left it
+        bare.
+        """
+        ctx = _link_ctx((HttpUrl, "HttpUrl", "pydantic/networks/http_url.md"))
+        result = format_type(_make_field(dict[str, HttpUrl]), ctx)
+        assert "[`HttpUrl`]" in result
+        assert "pydantic/networks/http_url.md" in result
+        assert "``" not in result
+
+
+class TestFormatUnderlyingScalarType:
+    """Tests for scalar terminals in format_underlying_type."""
+
+    def test_geometry_underlying_type_links(self) -> None:
+        """A NewType whose underlying type is Geometry links to its page."""
+        shape, _, _ = analyze_type(NewType("GeomAlias", Geometry))
+        ctx = LinkContext(
+            page_path=PurePosixPath("system/types/geom_alias.md"),
+            registry={
+                TypeIdentity(Geometry, "geometry"): PurePosixPath(
+                    "system/primitive/geometry.md"
+                )
+            },
+        )
+        result = format_underlying_type(shape, ctx)
+        assert "[`geometry`](../primitive/geometry.md)" in result
+
+    def test_numeric_underlying_type_stays_bare(self) -> None:
+        """A NewType over a numeric primitive renders bare, not over-linked.
+
+        The numeric branch keys on the builtin (`int`), which has no registry
+        entry, so the underlying type stays bare and keeps its markdown name.
+        """
+        shape, _, _ = analyze_type(int32)
+        ctx = LinkContext(page_path=PurePosixPath("system/types/x.md"), registry={})
+        result = format_underlying_type(shape, ctx)
+        assert result == "`int32`"
+        assert "[" not in result
 
 
 class TestFormatUnderlyingUnionType:
