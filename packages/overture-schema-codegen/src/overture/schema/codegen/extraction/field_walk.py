@@ -41,6 +41,7 @@ __all__ = [
     "terminal_of",
     "terminal_primitive",
     "terminal_scalar",
+    "terminal_union_ref",
     "walk_shape",
 ]
 
@@ -89,6 +90,12 @@ def terminal_model_ref(shape: FieldShape) -> ModelRef | None:
     """Return the terminal `ModelRef`, or `None` for non-model terminals."""
     terminal = terminal_of(shape)
     return terminal if isinstance(terminal, ModelRef) else None
+
+
+def terminal_union_ref(shape: FieldShape) -> UnionRef | None:
+    """Return the terminal `UnionRef`, or `None` for non-union terminals."""
+    terminal = terminal_of(shape)
+    return terminal if isinstance(terminal, UnionRef) else None
 
 
 def enum_source(shape: FieldShape) -> type[Enum] | None:

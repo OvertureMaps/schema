@@ -189,14 +189,14 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="division_boundary::sources[].property:required",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", None),
         expected_field="sources[].property",
         expected_check="required",
     ),
     Scenario(
         id="division_boundary::sources[].property:json_pointer",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", "no-slash"),
         expected_field="sources[].property",
         expected_check="json_pointer",
@@ -346,7 +346,7 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="division_boundary::country:country_code_alpha2",
-        scaffold={"country": "US"},
+        scaffold={"subtype": "dependency", "country": "US"},
         mutate=set_at_path("country", "99"),
         expected_field="country",
         expected_check="country_code_alpha2",
@@ -374,14 +374,14 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="division_boundary::perspectives.mode:required",
-        scaffold={"perspectives": {"countries": ["US"], "mode": "accepted_by"}},
+        scaffold={"perspectives": {"mode": "accepted_by", "countries": ["US"]}},
         mutate=set_at_path("perspectives.mode", None),
         expected_field="perspectives.mode",
         expected_check="required",
     ),
     Scenario(
         id="division_boundary::perspectives.mode:enum",
-        scaffold={"perspectives": {"countries": ["US"], "mode": "accepted_by"}},
+        scaffold={"perspectives": {"mode": "accepted_by", "countries": ["US"]}},
         mutate=set_at_path("perspectives.mode", "__INVALID__"),
         expected_field="perspectives.mode",
         expected_check="enum",
@@ -565,7 +565,12 @@ def _assert_scenario(
 ) -> None:
     expected = (scenario.expected_field, scenario.expected_check)
     if scenario.id in validation_results.skipped:
-        pytest.skip(validation_results.skipped[scenario.id])
+        # An unbuildable scenario exercises nothing; fail loud rather than skip
+        # (a skip reads as a pass and hides codegen/scaffold gaps).
+        pytest.fail(
+            f"unbuildable scenario {scenario.id!r}: "
+            f"{validation_results.skipped[scenario.id]}"
+        )
     valid_violations = validation_results.violations.get(f"{scenario.id}::valid", set())
     assert expected not in valid_violations
     invalid_violations = validation_results.violations.get(

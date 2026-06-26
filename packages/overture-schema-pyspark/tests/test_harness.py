@@ -10,7 +10,9 @@ from pyspark.sql import Row, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
     ArrayType,
+    DoubleType,
     IntegerType,
+    MapType,
     StringType,
     StructField,
     StructType,
@@ -20,6 +22,7 @@ from ._support.harness import (
     assert_schema_covers_checks,
     build_scenario_map,
     build_scenario_rows,
+    coerce_to_schema,
     index_violations,
     sanitize_row,
     scenario_uuid,
@@ -158,9 +161,13 @@ class TestBuildScenarioRows:
         assert rows[1]["_scenario_id"] == scenario_uuid("f::x:required::valid")
         assert rows[2]["_scenario_id"] == scenario_uuid("f::x:required::invalid")
 
-    def test_valid_row_uses_base_row_not_scaffold(self) -> None:
-        """Valid row is a copy of base_row, not the scaffold-merged row."""
-        base = {"id": "orig", "theme": "t", "type": "ty", "items": [{"a": 1, "b": 2}]}
+    def test_valid_row_uses_scaffold_merged_row(self) -> None:
+        """Valid row merges the scaffold so the target is present and exercised.
+
+        The scaffold reaches a target the base row lacks; the valid row must
+        carry it (with no mutation) or the no-violation assertion is vacuous.
+        """
+        base = {"id": "orig", "theme": "t", "type": "ty"}
         scenarios = [
             Scenario(
                 id="f::items[].a:required",
@@ -174,10 +181,37 @@ class TestBuildScenarioRows:
             base, scenarios, model_name="f"
         )
         assert len(rows) == 3
-        # Valid row uses base_row (preserves all fields in items element)
-        assert rows[1]["items"] == [{"a": 1, "b": 2}]
-        # Invalid row uses scaffold-merged row
+        # Valid row carries the scaffold's target value (no mutation).
+        assert rows[1]["items"] == [{"a": 0}]
+        # Invalid row applies the mutation on top of the scaffold.
         assert rows[2]["items"][0]["a"] is None
+
+    def test_valid_scaffold_overrides_scaffold_for_valid_row(self) -> None:
+        """`valid_scaffold`, when set, builds the valid row instead of `scaffold`.
+
+        The invalid row still uses `scaffold` -- only the valid row diverges,
+        e.g. to seed a literal alternative the mutation scaffold can't carry.
+        """
+        base = {"id": "orig", "theme": "t", "type": "ty"}
+        scenarios = [
+            Scenario(
+                id="f::kind:literal",
+                scaffold={"kind": "synthesized"},
+                mutate=set_at_path("kind", None),
+                expected_field="kind",
+                expected_check="required",
+                valid_scaffold={"kind": "literal-alt"},
+            ),
+        ]
+        rows, _scenario_map, _skipped = build_scenario_rows(
+            base, scenarios, model_name="f"
+        )
+        valid_id = scenario_uuid("f::kind:literal::valid")
+        invalid_id = scenario_uuid("f::kind:literal::invalid")
+        valid_row = next(r for r in rows if r["_scenario_id"] == valid_id)
+        invalid_row = next(r for r in rows if r["_scenario_id"] == invalid_id)
+        assert valid_row["kind"] == "literal-alt"
+        assert invalid_row["kind"] is None
 
     def test_scaffold_merged_onto_invalid_row(self) -> None:
         base_row = {"id": "x", "a": 1}
@@ -217,6 +251,52 @@ class TestBuildScenarioRows:
         assert invalid_row["b"] == 10
         # mutation applied: a is None
         assert invalid_row["a"] is None
+
+
+class TestCoerceToSchema:
+    """Ints land as floats in float columns; Spark would otherwise null them."""
+
+    def test_int_in_double_column_becomes_float(self) -> None:
+        schema = StructType([StructField("v", DoubleType(), True)])
+        result = coerce_to_schema({"v": 0}, schema)
+        assert isinstance(result["v"], float)
+        assert result["v"] == 0.0
+
+    def test_bool_in_double_column_left_alone(self) -> None:
+        """`bool` is an `int` subclass but maps to BooleanType, not a float."""
+        schema = StructType([StructField("v", DoubleType(), True)])
+        assert coerce_to_schema({"v": True}, schema)["v"] is True
+
+    def test_int_column_unchanged(self) -> None:
+        schema = StructType([StructField("v", IntegerType(), True)])
+        assert coerce_to_schema({"v": 5}, schema)["v"] == 5
+
+    def test_nested_struct_array_and_map_coerced(self) -> None:
+        schema = StructType(
+            [
+                StructField(
+                    "items",
+                    ArrayType(StructType([StructField("v", DoubleType(), True)])),
+                    True,
+                ),
+                StructField("m", MapType(StringType(), DoubleType()), True),
+            ]
+        )
+        result = coerce_to_schema({"items": [{"v": 1}], "m": {"k": 2}}, schema)
+        assert result["items"][0]["v"] == 1.0
+        assert isinstance(result["items"][0]["v"], float)
+        assert result["m"]["k"] == 2.0
+
+    def test_none_and_missing_fields_preserved(self) -> None:
+        schema = StructType(
+            [
+                StructField("v", DoubleType(), True),
+                StructField("w", DoubleType(), True),
+            ]
+        )
+        # `w` absent from the value stays absent (Spark fills null).
+        result = coerce_to_schema({"v": None}, schema)
+        assert result == {"v": None}
 
 
 class TestSanitizeRow:

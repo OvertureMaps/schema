@@ -176,7 +176,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="division::names.rules[].value:required",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", None),
         expected_field="names.rules[].value",
@@ -185,7 +185,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="division::names.rules[].value:string_min_length",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", ""),
         expected_field="names.rules[].value",
@@ -194,7 +194,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="division::names.rules[].value:stripped",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", " has spaces "),
         expected_field="names.rules[].value",
@@ -239,7 +239,7 @@ SCENARIOS: list[Scenario] = [
                     {
                         "value": "a",
                         "variant": "common",
-                        "perspectives": {"countries": ["US"], "mode": "accepted_by"},
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
                     }
                 ],
             }
@@ -257,7 +257,7 @@ SCENARIOS: list[Scenario] = [
                     {
                         "value": "a",
                         "variant": "common",
-                        "perspectives": {"countries": ["US"], "mode": "accepted_by"},
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
                     }
                 ],
             }
@@ -508,14 +508,14 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="division::sources[].property:required",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", None),
         expected_field="sources[].property",
         expected_check="required",
     ),
     Scenario(
         id="division::sources[].property:json_pointer",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", "no-slash"),
         expected_field="sources[].property",
         expected_check="json_pointer",
@@ -659,7 +659,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="division::hierarchies[][].division_id:required",
         scaffold={
-            "hierarchies": [[{"subtype": "country", "name": "a", "division_id": "a"}]]
+            "hierarchies": [[{"division_id": "a", "subtype": "country", "name": "a"}]]
         },
         mutate=set_at_path("hierarchies[][].division_id", None),
         expected_field="hierarchies[][].division_id",
@@ -668,7 +668,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="division::hierarchies[][].division_id:string_min_length",
         scaffold={
-            "hierarchies": [[{"subtype": "country", "name": "a", "division_id": "a"}]]
+            "hierarchies": [[{"division_id": "a", "subtype": "country", "name": "a"}]]
         },
         mutate=set_at_path("hierarchies[][].division_id", ""),
         expected_field="hierarchies[][].division_id",
@@ -677,7 +677,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="division::hierarchies[][].division_id:no_whitespace",
         scaffold={
-            "hierarchies": [[{"subtype": "country", "name": "a", "division_id": "a"}]]
+            "hierarchies": [[{"division_id": "a", "subtype": "country", "name": "a"}]]
         },
         mutate=set_at_path("hierarchies[][].division_id", "has whitespace"),
         expected_field="hierarchies[][].division_id",
@@ -686,7 +686,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="division::hierarchies[][].subtype:required",
         scaffold={
-            "hierarchies": [[{"division_id": "a", "name": "a", "subtype": "country"}]]
+            "hierarchies": [[{"division_id": "a", "subtype": "country", "name": "a"}]]
         },
         mutate=set_at_path("hierarchies[][].subtype", None),
         expected_field="hierarchies[][].subtype",
@@ -695,7 +695,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="division::hierarchies[][].subtype:enum",
         scaffold={
-            "hierarchies": [[{"division_id": "a", "name": "a", "subtype": "country"}]]
+            "hierarchies": [[{"division_id": "a", "subtype": "country", "name": "a"}]]
         },
         mutate=set_at_path("hierarchies[][].subtype", "__INVALID__"),
         expected_field="hierarchies[][].subtype",
@@ -730,14 +730,14 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="division::parent_division_id:string_min_length",
-        scaffold={"parent_division_id": "a"},
+        scaffold={"subtype": "dependency", "parent_division_id": "a"},
         mutate=set_at_path("parent_division_id", ""),
         expected_field="parent_division_id",
         expected_check="string_min_length",
     ),
     Scenario(
         id="division::parent_division_id:no_whitespace",
-        scaffold={"parent_division_id": "a"},
+        scaffold={"subtype": "dependency", "parent_division_id": "a"},
         mutate=set_at_path("parent_division_id", "has whitespace"),
         expected_field="parent_division_id",
         expected_check="no_whitespace",
@@ -786,14 +786,14 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="division::perspectives.mode:required",
-        scaffold={"perspectives": {"countries": ["US"], "mode": "accepted_by"}},
+        scaffold={"perspectives": {"mode": "accepted_by", "countries": ["US"]}},
         mutate=set_at_path("perspectives.mode", None),
         expected_field="perspectives.mode",
         expected_check="required",
     ),
     Scenario(
         id="division::perspectives.mode:enum",
-        scaffold={"perspectives": {"countries": ["US"], "mode": "accepted_by"}},
+        scaffold={"perspectives": {"mode": "accepted_by", "countries": ["US"]}},
         mutate=set_at_path("perspectives.mode", "__INVALID__"),
         expected_field="perspectives.mode",
         expected_check="enum",
@@ -884,21 +884,21 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="division::capital_of_divisions[].division_id:required",
-        scaffold={"capital_of_divisions": [{"subtype": "country", "division_id": "a"}]},
+        scaffold={"capital_of_divisions": [{"division_id": "a", "subtype": "country"}]},
         mutate=set_at_path("capital_of_divisions[].division_id", None),
         expected_field="capital_of_divisions[].division_id",
         expected_check="required",
     ),
     Scenario(
         id="division::capital_of_divisions[].division_id:string_min_length",
-        scaffold={"capital_of_divisions": [{"subtype": "country", "division_id": "a"}]},
+        scaffold={"capital_of_divisions": [{"division_id": "a", "subtype": "country"}]},
         mutate=set_at_path("capital_of_divisions[].division_id", ""),
         expected_field="capital_of_divisions[].division_id",
         expected_check="string_min_length",
     ),
     Scenario(
         id="division::capital_of_divisions[].division_id:no_whitespace",
-        scaffold={"capital_of_divisions": [{"subtype": "country", "division_id": "a"}]},
+        scaffold={"capital_of_divisions": [{"division_id": "a", "subtype": "country"}]},
         mutate=set_at_path("capital_of_divisions[].division_id", "has whitespace"),
         expected_field="capital_of_divisions[].division_id",
         expected_check="no_whitespace",
@@ -1070,7 +1070,12 @@ def _assert_scenario(
 ) -> None:
     expected = (scenario.expected_field, scenario.expected_check)
     if scenario.id in validation_results.skipped:
-        pytest.skip(validation_results.skipped[scenario.id])
+        # An unbuildable scenario exercises nothing; fail loud rather than skip
+        # (a skip reads as a pass and hides codegen/scaffold gaps).
+        pytest.fail(
+            f"unbuildable scenario {scenario.id!r}: "
+            f"{validation_results.skipped[scenario.id]}"
+        )
     valid_violations = validation_results.violations.get(f"{scenario.id}::valid", set())
     assert expected not in valid_violations
     invalid_violations = validation_results.violations.get(

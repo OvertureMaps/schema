@@ -45,6 +45,7 @@ from ..extraction.length_constraints import (
     ScalarMaxLen,
     ScalarMinLen,
 )
+from ..extraction.literal_alternatives import LiteralAlternatives
 from ..extraction.specs import FieldSpec
 from ..extraction.type_registry import primitive_spark_category
 from ._primitive_fill import PRIMITIVE_FILL_TABLE
@@ -95,6 +96,16 @@ class ExpressionDescriptor:
     label: str | None = None
     check_name: str | None = None
     check_nan: bool | None = None
+    allow_literals: tuple[object, ...] = ()
+    """Literal values that bypass this check.
+
+    When non-empty, the renderer wraps the generated call in
+    `except_literals(col, call, list(allow_literals))` so that a column
+    value matching one of these literals is treated as valid regardless of
+    what the check would otherwise report.  Populated by `check_builder`
+    from `LiteralAlternatives` constraints on terminal scalars (e.g.
+    `HttpUrl | Literal[""]`). Never set on `check_required` descriptors.
+    """
 
 
 _BASE_TYPE_DISPATCH: dict[str, tuple[ExpressionDescriptor, ...]] = {
@@ -196,8 +207,6 @@ _ConstraintHandler = Callable[[Any, str | None], ExpressionDescriptor | None]
 
 _BOUND_ATTRS = ("ge", "gt", "le", "lt")
 
-_FLOAT_BASE_TYPES = frozenset({"float", "float32", "float64"})
-
 
 def _dispatch_bounds(
     constraint: Ge | Gt | Le | Lt | Interval,
@@ -208,7 +217,7 @@ def _dispatch_bounds(
     Coerces integer bound values to float on float-typed columns so
     that generated test mutations match the Spark DoubleType column.
     """
-    is_float = base_type in _FLOAT_BASE_TYPES
+    is_float = base_type is not None and primitive_spark_category(base_type) == "float"
     kwargs: list[tuple[str, object]] = []
     for attr in _BOUND_ATTRS:
         value = getattr(constraint, attr, None)
@@ -276,7 +285,9 @@ def _raw_pattern(constraint: object) -> str | None:
 # subclasses PatternConstraint, so it must appear before the PatternConstraint
 # fallback entry.
 _CONSTRAINT_DISPATCH: list[tuple[type | tuple[type, ...], _ConstraintHandler]] = [
-    ((Reference, Strict), lambda _c, _bt: None),
+    # LiteralAlternatives is a modifier threaded onto the field's other
+    # descriptors as allow_literals (by check_builder), not a standalone check.
+    ((Reference, Strict, LiteralAlternatives), lambda _c, _bt: None),
     ((Ge, Gt, Le, Lt, Interval), _dispatch_bounds),
     (
         ArrayMinLen,

@@ -289,14 +289,14 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::sources[].property:required",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", None),
         expected_field="sources[].property",
         expected_check="required",
     ),
     Scenario(
         id="segment::sources[].property:json_pointer",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", "no-slash"),
         expected_field="sources[].property",
         expected_check="json_pointer",
@@ -458,7 +458,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.mode_min_length:array_min_length",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"mode": ["vehicle"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.mode", []),
@@ -469,7 +472,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.mode_unique:struct_unique",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"mode": ["vehicle"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
+                }
             ]
         },
         mutate=lambda row: mutate_unique_items(row, "access_restrictions[].when.mode"),
@@ -480,7 +486,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.mode[]:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"mode": ["vehicle"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.mode[]", "__INVALID__"),
@@ -491,7 +500,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.using_min_length:array_min_length",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"using": ["as_customer"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "using": ["as_customer"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.using", []),
@@ -502,7 +514,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.using_unique:struct_unique",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"using": ["as_customer"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "using": ["as_customer"]},
+                }
             ]
         },
         mutate=lambda row: mutate_unique_items(row, "access_restrictions[].when.using"),
@@ -513,7 +528,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.using[]:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"using": ["as_customer"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "using": ["as_customer"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.using[]", "__INVALID__"),
@@ -524,7 +542,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.recognized_min_length:array_min_length",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"recognized": ["as_permitted"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.recognized", []),
@@ -535,7 +556,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.recognized_unique:struct_unique",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"recognized": ["as_permitted"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
+                }
             ]
         },
         mutate=lambda row: mutate_unique_items(
@@ -548,7 +572,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.recognized[]:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"recognized": ["as_permitted"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.recognized[]", "__INVALID__"),
@@ -562,6 +589,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "access_type": "allowed",
                     "when": {
+                        "heading": "forward",
                         "vehicle": [
                             {
                                 "dimension": "height",
@@ -569,7 +597,7 @@ SCENARIOS: list[Scenario] = [
                                 "value": 0.0,
                                 "unit": "in",
                             }
-                        ]
+                        ],
                     },
                 }
             ]
@@ -585,6 +613,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "access_type": "allowed",
                     "when": {
+                        "heading": "forward",
                         "vehicle": [
                             {
                                 "dimension": "height",
@@ -592,7 +621,7 @@ SCENARIOS: list[Scenario] = [
                                 "value": 0.0,
                                 "unit": "in",
                             }
-                        ]
+                        ],
                     },
                 }
             ]
@@ -607,7 +636,20 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.vehicle[].dimension:required",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"vehicle": [{}]}}
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].dimension", None),
@@ -618,7 +660,20 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.vehicle[].dimension:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"vehicle": [{}]}}
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
             ]
         },
         mutate=set_at_path(
@@ -631,7 +686,20 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.vehicle[].comparison:required",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"vehicle": [{}]}}
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].comparison", None),
@@ -642,7 +710,20 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.vehicle[].comparison:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"vehicle": [{}]}}
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
             ]
         },
         mutate=set_at_path(
@@ -657,7 +738,16 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "axle_count"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "axle_count",
+                                "comparison": "greater_than",
+                                "value": 0,
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -671,7 +761,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -685,7 +785,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -699,7 +809,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -713,7 +833,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -727,7 +857,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "weight"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "weight",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "oz",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -741,7 +881,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "weight"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "weight",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "oz",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -765,35 +915,39 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::connectors[].connector_id:required",
-        scaffold={"connectors": [{"connector_id": "a"}]},
+        scaffold={"connectors": [{"connector_id": "a"}, {"connector_id": "a1"}]},
         mutate=set_at_path("connectors[].connector_id", None),
         expected_field="connectors[].connector_id",
         expected_check="required",
     ),
     Scenario(
         id="segment::connectors[].connector_id:string_min_length",
-        scaffold={"connectors": [{"connector_id": "a"}]},
+        scaffold={"connectors": [{"connector_id": "a"}, {"connector_id": "a1"}]},
         mutate=set_at_path("connectors[].connector_id", ""),
         expected_field="connectors[].connector_id",
         expected_check="string_min_length",
     ),
     Scenario(
         id="segment::connectors[].connector_id:no_whitespace",
-        scaffold={"connectors": [{"connector_id": "a"}]},
+        scaffold={"connectors": [{"connector_id": "a"}, {"connector_id": "a1"}]},
         mutate=set_at_path("connectors[].connector_id", "has whitespace"),
         expected_field="connectors[].connector_id",
         expected_check="no_whitespace",
     ),
     Scenario(
         id="segment::connectors[].at_0:bounds",
-        scaffold={"connectors": [{"connector_id": "a", "at": 0.0}]},
+        scaffold={
+            "connectors": [{"connector_id": "a", "at": 0.0}, {"connector_id": "a1"}]
+        },
         mutate=set_at_path("connectors[].at", -1.0),
         expected_field="connectors[].at_0",
         expected_check="bounds",
     ),
     Scenario(
         id="segment::connectors[].at_1:bounds",
-        scaffold={"connectors": [{"connector_id": "a", "at": 0.0}]},
+        scaffold={
+            "connectors": [{"connector_id": "a", "at": 0.0}, {"connector_id": "a1"}]
+        },
         mutate=set_at_path("connectors[].at", 2.0),
         expected_field="connectors[].at_1",
         expected_check="bounds",
@@ -983,7 +1137,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="segment::names.rules[].value:required",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", None),
         expected_field="names.rules[].value",
@@ -992,7 +1146,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="segment::names.rules[].value:string_min_length",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", ""),
         expected_field="names.rules[].value",
@@ -1001,7 +1155,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="segment::names.rules[].value:stripped",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", " has spaces "),
         expected_field="names.rules[].value",
@@ -1046,7 +1200,7 @@ SCENARIOS: list[Scenario] = [
                     {
                         "value": "a",
                         "variant": "common",
-                        "perspectives": {"countries": ["US"], "mode": "accepted_by"},
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
                     }
                 ],
             }
@@ -1064,7 +1218,7 @@ SCENARIOS: list[Scenario] = [
                     {
                         "value": "a",
                         "variant": "common",
-                        "perspectives": {"countries": ["US"], "mode": "accepted_by"},
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
                     }
                 ],
             }
@@ -1214,10 +1368,11 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "destinations": [
                 {
+                    "from_connector_id": "a",
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
-                    "from_connector_id": "a",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1230,10 +1385,11 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "destinations": [
                 {
+                    "from_connector_id": "a",
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
-                    "from_connector_id": "a",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1246,10 +1402,11 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "destinations": [
                 {
+                    "from_connector_id": "a",
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
-                    "from_connector_id": "a",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1263,9 +1420,10 @@ SCENARIOS: list[Scenario] = [
             "destinations": [
                 {
                     "from_connector_id": "a",
+                    "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
-                    "to_connector_id": "a",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1279,9 +1437,10 @@ SCENARIOS: list[Scenario] = [
             "destinations": [
                 {
                     "from_connector_id": "a",
+                    "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
-                    "to_connector_id": "a",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1295,9 +1454,10 @@ SCENARIOS: list[Scenario] = [
             "destinations": [
                 {
                     "from_connector_id": "a",
+                    "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
-                    "to_connector_id": "a",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1312,8 +1472,9 @@ SCENARIOS: list[Scenario] = [
                 {
                     "from_connector_id": "a",
                     "to_connector_id": "a",
-                    "final_heading": "forward",
                     "to_segment_id": "a",
+                    "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1328,8 +1489,9 @@ SCENARIOS: list[Scenario] = [
                 {
                     "from_connector_id": "a",
                     "to_connector_id": "a",
-                    "final_heading": "forward",
                     "to_segment_id": "a",
+                    "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1344,8 +1506,9 @@ SCENARIOS: list[Scenario] = [
                 {
                     "from_connector_id": "a",
                     "to_connector_id": "a",
-                    "final_heading": "forward",
                     "to_segment_id": "a",
+                    "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1362,6 +1525,7 @@ SCENARIOS: list[Scenario] = [
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1378,6 +1542,7 @@ SCENARIOS: list[Scenario] = [
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1428,7 +1593,7 @@ SCENARIOS: list[Scenario] = [
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
-                    "labels": [{"type": "street", "value": "a"}],
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1445,7 +1610,7 @@ SCENARIOS: list[Scenario] = [
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
-                    "labels": [{"type": "street", "value": "a"}],
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1462,7 +1627,7 @@ SCENARIOS: list[Scenario] = [
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
-                    "labels": [{"type": "street", "value": "a"}],
+                    "labels": [{"value": "a", "type": "street"}],
                 }
             ]
         },
@@ -1513,6 +1678,7 @@ SCENARIOS: list[Scenario] = [
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
                     "symbols": ["motorway"],
                 }
             ]
@@ -1530,6 +1696,7 @@ SCENARIOS: list[Scenario] = [
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
                     "symbols": ["motorway"],
                 }
             ]
@@ -1547,6 +1714,7 @@ SCENARIOS: list[Scenario] = [
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
                     "when": {"heading": "forward"},
                 }
             ]
@@ -1564,6 +1732,7 @@ SCENARIOS: list[Scenario] = [
                     "to_connector_id": "a",
                     "to_segment_id": "a",
                     "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
                     "when": {"heading": "forward"},
                 }
             ]
@@ -1577,8 +1746,8 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "prohibited_transitions": [
                 {
-                    "final_heading": "forward",
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
                 }
             ]
         },
@@ -1591,8 +1760,8 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "prohibited_transitions": [
                 {
-                    "final_heading": "forward",
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
                 }
             ]
         },
@@ -1605,8 +1774,8 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "prohibited_transitions": [
                 {
-                    "final_heading": "forward",
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
                 }
             ]
         },
@@ -1621,8 +1790,8 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "prohibited_transitions": [
                 {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "sequence": [{"segment_id": "a", "connector_id": "a"}],
                 }
             ]
         },
@@ -1635,8 +1804,8 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "prohibited_transitions": [
                 {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "sequence": [{"segment_id": "a", "connector_id": "a"}],
                 }
             ]
         },
@@ -1649,8 +1818,8 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "prohibited_transitions": [
                 {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "sequence": [{"segment_id": "a", "connector_id": "a"}],
                 }
             ]
         },
@@ -1665,8 +1834,8 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "prohibited_transitions": [
                 {
-                    "final_heading": "forward",
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
                 }
             ]
         },
@@ -1679,8 +1848,8 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "prohibited_transitions": [
                 {
-                    "final_heading": "forward",
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
                 }
             ]
         },
@@ -1693,8 +1862,8 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "prohibited_transitions": [
                 {
-                    "final_heading": "forward",
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
                 }
             ]
         },
@@ -1799,7 +1968,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"mode": ["vehicle"]},
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
                 }
             ]
         },
@@ -1814,7 +1983,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"mode": ["vehicle"]},
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
                 }
             ]
         },
@@ -1831,7 +2000,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"mode": ["vehicle"]},
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
                 }
             ]
         },
@@ -1846,7 +2015,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"using": ["as_customer"]},
+                    "when": {"heading": "forward", "using": ["as_customer"]},
                 }
             ]
         },
@@ -1861,7 +2030,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"using": ["as_customer"]},
+                    "when": {"heading": "forward", "using": ["as_customer"]},
                 }
             ]
         },
@@ -1878,7 +2047,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"using": ["as_customer"]},
+                    "when": {"heading": "forward", "using": ["as_customer"]},
                 }
             ]
         },
@@ -1893,7 +2062,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"recognized": ["as_permitted"]},
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
                 }
             ]
         },
@@ -1908,7 +2077,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"recognized": ["as_permitted"]},
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
                 }
             ]
         },
@@ -1925,7 +2094,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"recognized": ["as_permitted"]},
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
                 }
             ]
         },
@@ -1941,6 +2110,7 @@ SCENARIOS: list[Scenario] = [
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
                     "when": {
+                        "heading": "forward",
                         "vehicle": [
                             {
                                 "dimension": "height",
@@ -1948,7 +2118,7 @@ SCENARIOS: list[Scenario] = [
                                 "value": 0.0,
                                 "unit": "in",
                             }
-                        ]
+                        ],
                     },
                 }
             ]
@@ -1965,6 +2135,7 @@ SCENARIOS: list[Scenario] = [
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
                     "when": {
+                        "heading": "forward",
                         "vehicle": [
                             {
                                 "dimension": "height",
@@ -1972,7 +2143,7 @@ SCENARIOS: list[Scenario] = [
                                 "value": 0.0,
                                 "unit": "in",
                             }
-                        ]
+                        ],
                     },
                 }
             ]
@@ -1990,7 +2161,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2005,7 +2186,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2022,7 +2213,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2037,7 +2238,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2054,7 +2265,16 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{"dimension": "axle_count"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "axle_count",
+                                "comparison": "greater_than",
+                                "value": 0,
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2069,7 +2289,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2084,7 +2314,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2099,7 +2339,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2114,7 +2364,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2131,7 +2391,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{"dimension": "weight"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "weight",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "oz",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2146,7 +2416,17 @@ SCENARIOS: list[Scenario] = [
                 {
                     "sequence": [{"connector_id": "a", "segment_id": "a"}],
                     "final_heading": "forward",
-                    "when": {"vehicle": [{"dimension": "weight"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "weight",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "oz",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -2284,21 +2564,21 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::speed_limits[].max_speed.value:required",
-        scaffold={"speed_limits": [{"max_speed": {"unit": "mph", "value": 1}}]},
+        scaffold={"speed_limits": [{"max_speed": {"value": 1, "unit": "mph"}}]},
         mutate=set_at_path("speed_limits[].max_speed.value", None),
         expected_field="speed_limits[].max_speed.value",
         expected_check="required",
     ),
     Scenario(
         id="segment::speed_limits[].max_speed.value_0:bounds",
-        scaffold={"speed_limits": [{"max_speed": {"unit": "mph", "value": 1}}]},
+        scaffold={"speed_limits": [{"max_speed": {"value": 1, "unit": "mph"}}]},
         mutate=set_at_path("speed_limits[].max_speed.value", 0),
         expected_field="speed_limits[].max_speed.value_0",
         expected_check="bounds",
     ),
     Scenario(
         id="segment::speed_limits[].max_speed.value_1:bounds",
-        scaffold={"speed_limits": [{"max_speed": {"unit": "mph", "value": 1}}]},
+        scaffold={"speed_limits": [{"max_speed": {"value": 1, "unit": "mph"}}]},
         mutate=set_at_path("speed_limits[].max_speed.value", 351),
         expected_field="speed_limits[].max_speed.value_1",
         expected_check="bounds",
@@ -2319,126 +2599,243 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::speed_limits[].min_speed.value:required",
-        scaffold={"speed_limits": [{"min_speed": {"unit": "mph", "value": 1}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "min_speed": {"value": 1, "unit": "mph"},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].min_speed.value", None),
         expected_field="speed_limits[].min_speed.value",
         expected_check="required",
     ),
     Scenario(
         id="segment::speed_limits[].min_speed.value_0:bounds",
-        scaffold={"speed_limits": [{"min_speed": {"unit": "mph", "value": 1}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "min_speed": {"value": 1, "unit": "mph"},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].min_speed.value", 0),
         expected_field="speed_limits[].min_speed.value_0",
         expected_check="bounds",
     ),
     Scenario(
         id="segment::speed_limits[].min_speed.value_1:bounds",
-        scaffold={"speed_limits": [{"min_speed": {"unit": "mph", "value": 1}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "min_speed": {"value": 1, "unit": "mph"},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].min_speed.value", 351),
         expected_field="speed_limits[].min_speed.value_1",
         expected_check="bounds",
     ),
     Scenario(
         id="segment::speed_limits[].min_speed.unit:required",
-        scaffold={"speed_limits": [{"min_speed": {"value": 1, "unit": "mph"}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "min_speed": {"value": 1, "unit": "mph"},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].min_speed.unit", None),
         expected_field="speed_limits[].min_speed.unit",
         expected_check="required",
     ),
     Scenario(
         id="segment::speed_limits[].min_speed.unit:enum",
-        scaffold={"speed_limits": [{"min_speed": {"value": 1, "unit": "mph"}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "min_speed": {"value": 1, "unit": "mph"},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].min_speed.unit", "__INVALID__"),
         expected_field="speed_limits[].min_speed.unit",
         expected_check="enum",
     ),
     Scenario(
         id="segment::speed_limits[].between:linear_range_length",
-        scaffold={"speed_limits": [{"between": [0.0, 1.0]}]},
+        scaffold={
+            "speed_limits": [
+                {"max_speed": {"value": 1, "unit": "mph"}, "between": [0.0, 1.0]}
+            ]
+        },
         mutate=set_at_path("speed_limits[].between", [0.5]),
         expected_field="speed_limits[].between",
         expected_check="linear_range_length",
     ),
     Scenario(
         id="segment::speed_limits[].between:linear_range_bounds",
-        scaffold={"speed_limits": [{"between": [0.0, 1.0]}]},
+        scaffold={
+            "speed_limits": [
+                {"max_speed": {"value": 1, "unit": "mph"}, "between": [0.0, 1.0]}
+            ]
+        },
         mutate=set_at_path("speed_limits[].between", [1.5, 2.0]),
         expected_field="speed_limits[].between",
         expected_check="linear_range_bounds",
     ),
     Scenario(
         id="segment::speed_limits[].between:linear_range_order",
-        scaffold={"speed_limits": [{"between": [0.0, 1.0]}]},
+        scaffold={
+            "speed_limits": [
+                {"max_speed": {"value": 1, "unit": "mph"}, "between": [0.0, 1.0]}
+            ]
+        },
         mutate=set_at_path("speed_limits[].between", [0.8, 0.2]),
         expected_field="speed_limits[].between",
         expected_check="linear_range_order",
     ),
     Scenario(
         id="segment::speed_limits[].when.heading:enum",
-        scaffold={"speed_limits": [{"when": {"heading": "forward"}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward"},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.heading", "__INVALID__"),
         expected_field="speed_limits[].when.heading",
         expected_check="enum",
     ),
     Scenario(
         id="segment::speed_limits[].when.mode_min_length:array_min_length",
-        scaffold={"speed_limits": [{"when": {"mode": ["vehicle"]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.mode", []),
         expected_field="speed_limits[].when.mode_min_length",
         expected_check="array_min_length",
     ),
     Scenario(
         id="segment::speed_limits[].when.mode_unique:struct_unique",
-        scaffold={"speed_limits": [{"when": {"mode": ["vehicle"]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
+                }
+            ]
+        },
         mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.mode"),
         expected_field="speed_limits[].when.mode_unique",
         expected_check="struct_unique",
     ),
     Scenario(
         id="segment::speed_limits[].when.mode[]:enum",
-        scaffold={"speed_limits": [{"when": {"mode": ["vehicle"]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.mode[]", "__INVALID__"),
         expected_field="speed_limits[].when.mode[]",
         expected_check="enum",
     ),
     Scenario(
         id="segment::speed_limits[].when.using_min_length:array_min_length",
-        scaffold={"speed_limits": [{"when": {"using": ["as_customer"]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward", "using": ["as_customer"]},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.using", []),
         expected_field="speed_limits[].when.using_min_length",
         expected_check="array_min_length",
     ),
     Scenario(
         id="segment::speed_limits[].when.using_unique:struct_unique",
-        scaffold={"speed_limits": [{"when": {"using": ["as_customer"]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward", "using": ["as_customer"]},
+                }
+            ]
+        },
         mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.using"),
         expected_field="speed_limits[].when.using_unique",
         expected_check="struct_unique",
     ),
     Scenario(
         id="segment::speed_limits[].when.using[]:enum",
-        scaffold={"speed_limits": [{"when": {"using": ["as_customer"]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward", "using": ["as_customer"]},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.using[]", "__INVALID__"),
         expected_field="speed_limits[].when.using[]",
         expected_check="enum",
     ),
     Scenario(
         id="segment::speed_limits[].when.recognized_min_length:array_min_length",
-        scaffold={"speed_limits": [{"when": {"recognized": ["as_permitted"]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.recognized", []),
         expected_field="speed_limits[].when.recognized_min_length",
         expected_check="array_min_length",
     ),
     Scenario(
         id="segment::speed_limits[].when.recognized_unique:struct_unique",
-        scaffold={"speed_limits": [{"when": {"recognized": ["as_permitted"]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
+                }
+            ]
+        },
         mutate=lambda row: mutate_unique_items(row, "speed_limits[].when.recognized"),
         expected_field="speed_limits[].when.recognized_unique",
         expected_check="struct_unique",
     ),
     Scenario(
         id="segment::speed_limits[].when.recognized[]:enum",
-        scaffold={"speed_limits": [{"when": {"recognized": ["as_permitted"]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.recognized[]", "__INVALID__"),
         expected_field="speed_limits[].when.recognized[]",
         expected_check="enum",
@@ -2448,7 +2845,9 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "speed_limits": [
                 {
+                    "max_speed": {"value": 1, "unit": "mph"},
                     "when": {
+                        "heading": "forward",
                         "vehicle": [
                             {
                                 "dimension": "height",
@@ -2456,8 +2855,8 @@ SCENARIOS: list[Scenario] = [
                                 "value": 0.0,
                                 "unit": "in",
                             }
-                        ]
-                    }
+                        ],
+                    },
                 }
             ]
         },
@@ -2470,7 +2869,9 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "speed_limits": [
                 {
+                    "max_speed": {"value": 1, "unit": "mph"},
                     "when": {
+                        "heading": "forward",
                         "vehicle": [
                             {
                                 "dimension": "height",
@@ -2478,8 +2879,8 @@ SCENARIOS: list[Scenario] = [
                                 "value": 0.0,
                                 "unit": "in",
                             }
-                        ]
-                    }
+                        ],
+                    },
                 }
             ]
         },
@@ -2489,28 +2890,96 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].dimension:required",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].dimension", None),
         expected_field="speed_limits[].when.vehicle[].dimension",
         expected_check="required",
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].dimension:enum",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].dimension", "__INVALID__"),
         expected_field="speed_limits[].when.vehicle[].dimension",
         expected_check="enum",
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].comparison:required",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].comparison", None),
         expected_field="speed_limits[].when.vehicle[].comparison",
         expected_check="required",
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].comparison:enum",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].comparison", "__INVALID__"),
         expected_field="speed_limits[].when.vehicle[].comparison",
         expected_check="enum",
@@ -2518,7 +2987,21 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="segment::speed_limits[].when.vehicle[].value_0:required",
         scaffold={
-            "speed_limits": [{"when": {"vehicle": [{"dimension": "axle_count"}]}}]
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "axle_count",
+                                "comparison": "greater_than",
+                                "value": 0,
+                            }
+                        ],
+                    },
+                }
+            ]
         },
         mutate=set_at_path("speed_limits[].when.vehicle[].value", None),
         expected_field="speed_limits[].when.vehicle[].value_0",
@@ -2526,42 +3009,144 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].value_1:required",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{"dimension": "height"}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].value", None),
         expected_field="speed_limits[].when.vehicle[].value_1",
         expected_check="required",
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].value:bounds",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{"dimension": "height"}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].value", -1.0),
         expected_field="speed_limits[].when.vehicle[].value",
         expected_check="bounds",
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].unit_0:required",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{"dimension": "height"}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].unit", None),
         expected_field="speed_limits[].when.vehicle[].unit_0",
         expected_check="required",
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].unit_0:enum",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{"dimension": "height"}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].unit", "__INVALID__"),
         expected_field="speed_limits[].when.vehicle[].unit_0",
         expected_check="enum",
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].unit_1:required",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{"dimension": "weight"}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "weight",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "oz",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].unit", None),
         expected_field="speed_limits[].when.vehicle[].unit_1",
         expected_check="required",
     ),
     Scenario(
         id="segment::speed_limits[].when.vehicle[].unit_1:enum",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{"dimension": "weight"}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "weight",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "oz",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=set_at_path("speed_limits[].when.vehicle[].unit", "__INVALID__"),
         expected_field="speed_limits[].when.vehicle[].unit_1",
         expected_check="enum",
@@ -2624,7 +3209,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:forbid_if:0",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_forbid_if(
             row,
             ["unit"],
@@ -2638,7 +3240,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:1",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2652,7 +3271,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:2",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2666,7 +3302,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:3",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2680,7 +3333,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:4",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2694,7 +3364,11 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_any_of:5",
-        scaffold={"access_restrictions": [{"when": {}}]},
+        scaffold={
+            "access_restrictions": [
+                {"access_type": "allowed", "when": {"heading": "forward"}}
+            ]
+        },
         mutate=lambda row: mutate_require_any_of(
             row,
             ["heading", "during", "mode", "using", "recognized", "vehicle"],
@@ -2706,7 +3380,17 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_any_of:6",
-        scaffold={"destinations": [{}]},
+        scaffold={
+            "destinations": [
+                {
+                    "from_connector_id": "a",
+                    "to_connector_id": "a",
+                    "to_segment_id": "a",
+                    "final_heading": "forward",
+                    "labels": [{"value": "a", "type": "street"}],
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_any_of(
             row, ["labels", "symbols"], array_path="destinations"
         ),
@@ -2715,7 +3399,25 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:forbid_if:7",
-        scaffold={"prohibited_transitions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_forbid_if(
             row,
             ["unit"],
@@ -2729,7 +3431,25 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:8",
-        scaffold={"prohibited_transitions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2743,7 +3463,25 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:9",
-        scaffold={"prohibited_transitions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2757,7 +3495,25 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:10",
-        scaffold={"prohibited_transitions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2771,7 +3527,25 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:11",
-        scaffold={"prohibited_transitions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2785,7 +3559,15 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_any_of:12",
-        scaffold={"prohibited_transitions": [{"when": {}}]},
+        scaffold={
+            "prohibited_transitions": [
+                {
+                    "sequence": [{"connector_id": "a", "segment_id": "a"}],
+                    "final_heading": "forward",
+                    "when": {"heading": "forward"},
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_any_of(
             row,
             ["heading", "during", "mode", "using", "recognized", "vehicle"],
@@ -2797,7 +3579,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:forbid_if:13",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_forbid_if(
             row,
             ["unit"],
@@ -2811,7 +3610,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:14",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2825,7 +3641,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:15",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2839,7 +3672,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:16",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2853,7 +3703,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:17",
-        scaffold={"speed_limits": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -2867,7 +3734,14 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_any_of:18",
-        scaffold={"speed_limits": [{"when": {}}]},
+        scaffold={
+            "speed_limits": [
+                {
+                    "max_speed": {"value": 1, "unit": "mph"},
+                    "when": {"heading": "forward"},
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_any_of(
             row,
             ["heading", "during", "mode", "using", "recognized", "vehicle"],
@@ -2879,7 +3753,7 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_any_of:19",
-        scaffold={"speed_limits": [{}]},
+        scaffold={"speed_limits": [{"max_speed": {"value": 1, "unit": "mph"}}]},
         mutate=lambda row: mutate_require_any_of(
             row, ["max_speed.value", "min_speed.value"], array_path="speed_limits"
         ),
@@ -3092,7 +3966,12 @@ def _assert_scenario(
 ) -> None:
     expected = (scenario.expected_field, scenario.expected_check)
     if scenario.id in validation_results.skipped:
-        pytest.skip(validation_results.skipped[scenario.id])
+        # An unbuildable scenario exercises nothing; fail loud rather than skip
+        # (a skip reads as a pass and hides codegen/scaffold gaps).
+        pytest.fail(
+            f"unbuildable scenario {scenario.id!r}: "
+            f"{validation_results.skipped[scenario.id]}"
+        )
     valid_violations = validation_results.violations.get(f"{scenario.id}::valid", set())
     assert expected not in valid_violations
     invalid_violations = validation_results.violations.get(

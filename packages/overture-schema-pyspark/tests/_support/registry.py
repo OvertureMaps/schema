@@ -20,8 +20,10 @@ def register_model(
 ) -> Iterator[None]:
     """Register a model type in `REGISTRY` for the duration of a test.
 
-    Guarantees `del REGISTRY[model_type]` on exit so a failed test body
-    never leaks an entry into sibling tests.
+    Removes `REGISTRY[model_type]` on exit so a failed test body never
+    leaks an entry into sibling tests. Uses `pop(..., None)` so a body that
+    already removed or rebound the key does not raise a `KeyError` that
+    would mask the body's own exception.
 
     Parameters
     ----------
@@ -40,4 +42,4 @@ def register_model(
     try:
         yield
     finally:
-        del REGISTRY[model_type]
+        REGISTRY.pop(model_type, None)

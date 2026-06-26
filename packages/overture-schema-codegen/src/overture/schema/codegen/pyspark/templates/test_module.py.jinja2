@@ -115,7 +115,12 @@ def _assert_scenario(
 ) -> None:
     expected = (scenario.expected_field, scenario.expected_check)
     if scenario.id in validation_results.skipped:
-        pytest.skip(validation_results.skipped[scenario.id])
+        # An unbuildable scenario exercises nothing; fail loud rather than skip
+        # (a skip reads as a pass and hides codegen/scaffold gaps).
+        pytest.fail(
+            f"unbuildable scenario {scenario.id!r}: "
+            f"{validation_results.skipped[scenario.id]}"
+        )
     valid_violations = validation_results.violations.get(f"{scenario.id}::valid", set())
     assert expected not in valid_violations
     invalid_violations = validation_results.violations.get(

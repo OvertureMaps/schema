@@ -87,6 +87,7 @@ SCENARIOS: list[Scenario] = [
         scaffold={
             "datasets": [
                 {
+                    "source_name": "",
                     "source_dataset_name": "",
                     "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
@@ -96,7 +97,6 @@ SCENARIOS: list[Scenario] = [
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "source_name": "",
                 }
             ]
         },
@@ -110,6 +110,7 @@ SCENARIOS: list[Scenario] = [
             "datasets": [
                 {
                     "source_name": "",
+                    "source_dataset_name": "",
                     "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
@@ -118,7 +119,6 @@ SCENARIOS: list[Scenario] = [
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "source_dataset_name": "",
                 }
             ]
         },
@@ -133,6 +133,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "source_name": "",
                     "source_dataset_name": "",
+                    "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
@@ -140,7 +141,6 @@ SCENARIOS: list[Scenario] = [
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "data_url": "https://example.com/",
                 }
             ]
         },
@@ -155,6 +155,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "source_name": "",
                     "source_dataset_name": "",
+                    "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
@@ -162,13 +163,28 @@ SCENARIOS: list[Scenario] = [
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "data_url": "https://example.com/",
                 }
             ]
         },
         mutate=set_at_path("datasets[].data_url", "not-a-url"),
         expected_field="datasets[].data_url",
         expected_check="url_format",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "",
+                    "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].data_url:url_length",
@@ -177,6 +193,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "source_name": "",
                     "source_dataset_name": "",
+                    "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
@@ -184,7 +201,6 @@ SCENARIOS: list[Scenario] = [
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "data_url": "https://example.com/",
                 }
             ]
         },
@@ -194,6 +210,22 @@ SCENARIOS: list[Scenario] = [
         ),
         expected_field="datasets[].data_url",
         expected_check="url_length",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "",
+                    "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].data_url_archived:required",
@@ -203,13 +235,13 @@ SCENARIOS: list[Scenario] = [
                     "source_name": "",
                     "source_dataset_name": "",
                     "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "data_url_archived": "https://example.com/",
                 }
             ]
         },
@@ -225,19 +257,35 @@ SCENARIOS: list[Scenario] = [
                     "source_name": "",
                     "source_dataset_name": "",
                     "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "data_url_archived": "https://example.com/",
                 }
             ]
         },
         mutate=set_at_path("datasets[].data_url_archived", "not-a-url"),
         expected_field="datasets[].data_url_archived",
         expected_check="url_format",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "https://example.com/",
+                    "data_url_archived": "",
+                    "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].data_url_archived:url_length",
@@ -247,13 +295,13 @@ SCENARIOS: list[Scenario] = [
                     "source_name": "",
                     "source_dataset_name": "",
                     "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "data_url_archived": "https://example.com/",
                 }
             ]
         },
@@ -263,6 +311,22 @@ SCENARIOS: list[Scenario] = [
         ),
         expected_field="datasets[].data_url_archived",
         expected_check="url_length",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "https://example.com/",
+                    "data_url_archived": "",
+                    "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].license_url:required",
@@ -273,12 +337,12 @@ SCENARIOS: list[Scenario] = [
                     "source_dataset_name": "",
                     "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "license_url": "https://example.com/",
                 }
             ]
         },
@@ -295,18 +359,34 @@ SCENARIOS: list[Scenario] = [
                     "source_dataset_name": "",
                     "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "license_url": "https://example.com/",
                 }
             ]
         },
         mutate=set_at_path("datasets[].license_url", "not-a-url"),
         expected_field="datasets[].license_url",
         expected_check="url_format",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
+                    "license_url": "",
+                    "license_url_archived": "https://example.com/",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].license_url:url_length",
@@ -317,12 +397,12 @@ SCENARIOS: list[Scenario] = [
                     "source_dataset_name": "",
                     "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "license_url": "https://example.com/",
                 }
             ]
         },
@@ -332,6 +412,22 @@ SCENARIOS: list[Scenario] = [
         ),
         expected_field="datasets[].license_url",
         expected_check="url_length",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
+                    "license_url": "",
+                    "license_url_archived": "https://example.com/",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].license_url_archived:required",
@@ -343,11 +439,11 @@ SCENARIOS: list[Scenario] = [
                     "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "license_url_archived": "https://example.com/",
                 }
             ]
         },
@@ -365,17 +461,33 @@ SCENARIOS: list[Scenario] = [
                     "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "license_url_archived": "https://example.com/",
                 }
             ]
         },
         mutate=set_at_path("datasets[].license_url_archived", "not-a-url"),
         expected_field="datasets[].license_url_archived",
         expected_check="url_format",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
+                    "license_url_archived": "",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].license_url_archived:url_length",
@@ -387,11 +499,11 @@ SCENARIOS: list[Scenario] = [
                     "data_url": "https://example.com/",
                     "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "license_url_archived": "https://example.com/",
                 }
             ]
         },
@@ -401,6 +513,22 @@ SCENARIOS: list[Scenario] = [
         ),
         expected_field="datasets[].license_url_archived",
         expected_check="url_length",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
+                    "license_url_archived": "",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].license_type:required",
@@ -413,10 +541,10 @@ SCENARIOS: list[Scenario] = [
                     "data_url_archived": "https://example.com/",
                     "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
+                    "license_type": "",
                     "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "license_type": "",
                 }
             ]
         },
@@ -436,9 +564,9 @@ SCENARIOS: list[Scenario] = [
                     "license_url": "https://example.com/",
                     "license_url_archived": "https://example.com/",
                     "license_type": "",
+                    "license_text": "",
                     "license_attribution": "",
                     "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
-                    "license_text": "",
                 }
             ]
         },
@@ -459,8 +587,8 @@ SCENARIOS: list[Scenario] = [
                     "license_url_archived": "https://example.com/",
                     "license_type": "",
                     "license_text": "",
-                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
                     "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
                 }
             ]
         },
@@ -654,6 +782,23 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("datasets[].data_download_url[]", "not-a-url"),
         expected_field="datasets[].data_download_url[]",
         expected_check="url_format",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                    "data_download_url": [""],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].data_download_url[]:url_length",
@@ -680,6 +825,23 @@ SCENARIOS: list[Scenario] = [
         ),
         expected_field="datasets[].data_download_url[]",
         expected_check="url_length",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                    "data_download_url": [""],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].countries[]:country_code_alpha2",
@@ -703,6 +865,23 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("datasets[].countries[]", "99"),
         expected_field="datasets[].countries[]",
         expected_check="country_code_alpha2",
+        valid_scaffold={
+            "datasets": [
+                {
+                    "source_name": "",
+                    "source_dataset_name": "",
+                    "data_url": "https://example.com/",
+                    "data_url_archived": "https://example.com/",
+                    "license_url": "https://example.com/",
+                    "license_url_archived": "https://example.com/",
+                    "license_type": "",
+                    "license_text": "",
+                    "license_attribution": "",
+                    "coverage_bbox": [0.0, 0.0, 0.0, 0.0],
+                    "countries": ["Global"],
+                }
+            ]
+        },
     ),
     Scenario(
         id="sources::datasets[].build_source:enum",
@@ -849,7 +1028,12 @@ def _assert_scenario(
 ) -> None:
     expected = (scenario.expected_field, scenario.expected_check)
     if scenario.id in validation_results.skipped:
-        pytest.skip(validation_results.skipped[scenario.id])
+        # An unbuildable scenario exercises nothing; fail loud rather than skip
+        # (a skip reads as a pass and hides codegen/scaffold gaps).
+        pytest.fail(
+            f"unbuildable scenario {scenario.id!r}: "
+            f"{validation_results.skipped[scenario.id]}"
+        )
     valid_violations = validation_results.violations.get(f"{scenario.id}::valid", set())
     assert expected not in valid_violations
     invalid_violations = validation_results.violations.get(

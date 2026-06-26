@@ -31,6 +31,16 @@ def test_error_msg_multiple_values(spark: SparkSession) -> None:
     assert result[0]["msg"] == "prefix x and y"
 
 
+def test_error_msg_null_value_does_not_nullify_message(spark: SparkSession) -> None:
+    # A NULL interpolated value must not make the whole message NULL: F.concat
+    # would, and a NULL message is dropped by array_compact, silently swallowing
+    # the violation (e.g. an out-of-bounds linear-reference range [null, 1.5]).
+    # The null must render as a literal instead.
+    df = spark.createDataFrame([Row(val=None)], schema="val double")
+    result = df.select(error_msg("got ", F.col("val")).alias("msg")).collect()
+    assert result[0]["msg"] == "got null"
+
+
 def test_array_check_null_column_returns_null(spark: SparkSession) -> None:
     df = spark.createDataFrame(
         [Row(items=None)],

@@ -182,7 +182,11 @@ def _render_expr_call(
         parts.append(f"check_nan={py_literal(desc.check_nan)}")
     if desc.label is not None:
         parts.append(f"label={py_literal(desc.label)}")
-    return f"{desc.function}({', '.join(parts)})"
+    call = f"{desc.function}({', '.join(parts)})"
+    if desc.allow_literals:
+        literals = py_literal(list(desc.allow_literals))
+        return f"except_literals({col_expr}, {call}, {literals})"
+    return call
 
 
 def _element_accessor(var: str, path: tuple[str, ...]) -> str:
@@ -563,12 +567,13 @@ def _collect_constraint_expr_imports(
     `check_radio_group`, ...) are disjoint from that set, so they pass
     through unfiltered.
     """
-    names: set[str] = {
-        desc.function
-        for check in field_checks
-        for desc in check.descriptors
-        if desc.function not in _COLUMN_PATTERN_HELPERS
-    }
+    names: set[str] = set()
+    for check in field_checks:
+        for desc in check.descriptors:
+            if desc.function not in _COLUMN_PATTERN_HELPERS:
+                names.add(desc.function)
+            if desc.allow_literals:
+                names.add("except_literals")
     for mc in model_checks:
         names.add(model_constraint_function(mc.descriptor))
     return names
@@ -622,9 +627,12 @@ def _identifier_tokens(expr: str) -> set[str]:
 
 
 def _collect_spark_type_imports(schema_fields: list[SchemaField]) -> set[str]:
-    """Collect Spark type class names from schema field type expressions."""
-    if not schema_fields:
-        return set()
+    """Collect Spark type class names from schema field type expressions.
+
+    `StructType` and `StructField` are always included: the model module
+    template emits the schema constant as `StructType([...])` unconditionally,
+    so the import must be present even when there are no fields.
+    """
     used: set[str] = {"StructType", "StructField"}
     for sf in schema_fields:
         used |= _identifier_tokens(sf.type_expr) & _SPARK_TYPES

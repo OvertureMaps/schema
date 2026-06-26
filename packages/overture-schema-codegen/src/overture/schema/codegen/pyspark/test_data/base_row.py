@@ -50,7 +50,7 @@ from ...extraction.length_constraints import ArrayMinLen
 from ...extraction.specs import FieldSpec, ModelSpec, RecordSpec, UnionSpec
 from ...extraction.type_registry import primitive_spark_category
 from .._primitive_fill import PRIMITIVE_FILL_TABLE
-from .._render_common import require_field_eq
+from .._render_common import FieldEq, require_field_eq
 from ..constraint_dispatch import ExpressionDescriptor, dispatch_constraint
 from ..schema_builder import spark_type_rank
 from .constraint_values import (
@@ -61,10 +61,12 @@ from .constraint_values import (
 )
 
 __all__ = [
+    "condition_overrides_for_present_field",
     "generate_arm_rows",
     "generate_base_row",
     "generate_populated_arm_rows",
     "generate_populated_row",
+    "resolve_arm_spec",
     "value_for_field",
 ]
 
@@ -318,6 +320,94 @@ def _satisfy_model_constraints(row: dict[str, Any], spec: ModelSpec) -> None:
                     missing -= 1
 
 
+def _condition_disabling_value(field_eq: FieldEq, field_spec: FieldSpec) -> object:
+    """Return a value for a condition field that makes the condition false.
+
+    `FieldEqCondition(f, X)` holds when `f == X`, so a different enum member
+    disables it; a negated condition (`Not(...)`, true when `f != X`) is
+    disabled by `X` itself. Every condition in the schema gates on an enum
+    field, so a non-enum condition field raises rather than guess a value.
+
+    Parameters
+    ----------
+    field_eq
+        The unwrapped field-equality condition.
+    field_spec
+        Spec of the condition field, used to enumerate alternative values.
+    """
+    forbidden = field_eq.value
+    if isinstance(forbidden, Enum):
+        forbidden = forbidden.value
+    if field_eq.negated:
+        return forbidden
+    terminal = terminal_primitive(field_spec.shape)
+    enum_cls = enum_source(terminal) if terminal is not None else None
+    if enum_cls is None:
+        raise TypeError(
+            f"condition field {field_eq.field_name!r} is not enum-backed; "
+            "cannot derive a value that disables its forbid_if condition"
+        )
+    for member in enum_cls:
+        if member.value != forbidden:
+            return member.value
+    raise ValueError(
+        f"enum {enum_cls.__name__} has no member other than {forbidden!r}; "
+        "cannot disable its forbid_if condition"
+    )
+
+
+def condition_overrides_for_present_field(
+    spec: ModelSpec, field_name: str
+) -> dict[str, Any]:
+    """Return overrides that let `field_name` be present on a valid base row.
+
+    A `forbid_if` whose condition the base row satisfies forbids `field_name`,
+    so a scaffold that sets the field yields a row Pydantic rejects. Flip each
+    such condition field to a value the forbid rejects -- which also satisfies
+    the symmetric `require_if` that then mandates the field -- and re-satisfy
+    the model constraints, since a flipped condition can newly require other
+    fields. Returns only the fields whose value differs from the base row;
+    `field_name` itself is set by the scaffold and is excluded.
+
+    Returns `{}` when no `forbid_if` gates `field_name`, the common case.
+
+    Parameters
+    ----------
+    spec
+        The model whose constraints govern `field_name`.
+    field_name
+        A direct field of `spec` the scaffold needs to set.
+    """
+    forbidding = [
+        c
+        for c in spec.constraints
+        if isinstance(c, ForbidIfConstraint) and field_name in c.field_names
+    ]
+    if not forbidding:
+        return {}
+    base = generate_base_row(spec)
+    fields_by_name = {f.name: f for f in spec.fields}
+    flips: dict[str, Any] = {}
+    for constraint in forbidding:
+        if not _row_satisfies_condition(base, constraint.condition):
+            continue
+        field_eq = require_field_eq(constraint.condition)
+        cond_field = fields_by_name.get(field_eq.field_name)
+        if cond_field is not None:
+            flips[field_eq.field_name] = _condition_disabling_value(
+                field_eq, cond_field
+            )
+    if not flips:
+        return {}
+    merged = {**base, **flips}
+    _satisfy_model_constraints(merged, spec)
+    return {
+        name: value
+        for name, value in merged.items()
+        if name != field_name and base.get(name) != value
+    }
+
+
 def value_for_field(
     field: FieldSpec,
     spec_name: str,
@@ -399,6 +489,45 @@ def _widest_union_member(union: UnionSpec) -> RecordSpec:
             best_rank = rank
             best_spec = member.spec
     return best_spec
+
+
+def resolve_arm_spec(
+    union: UnionSpec, discriminator_value: object | None = None
+) -> RecordSpec:
+    """Return the member `RecordSpec` for one arm of a discriminated union.
+
+    Without a discriminator value (a check not gated to a specific arm),
+    returns the widest member -- the one whose float types survive PySpark
+    column widening, per `_widest_union_member`. With a value, returns the
+    member that value selects, and raises when it selects none: a seeded
+    discriminator that matches no arm is a check_builder/scaffold inconsistency,
+    not a reason to fall back to an arm whose fields contradict the seed.
+
+    Parameters
+    ----------
+    union
+        The union to resolve an arm from.
+    discriminator_value
+        The discriminator value identifying the arm (e.g. a scaffold's seeded
+        `ElementGuard` value), matching a `discriminator_mapping` key.
+
+    Raises
+    ------
+    ValueError
+        When `discriminator_value` is given but selects no member arm.
+    """
+    if discriminator_value is None:
+        return _widest_union_member(union)
+    mapping = union.discriminator_mapping or {}
+    member_cls = mapping.get(discriminator_value)  # type: ignore[call-overload]
+    if member_cls is not None:
+        for member in union.member_specs:
+            if member.member_cls is member_cls:
+                return member.spec
+    raise ValueError(
+        f"discriminator {discriminator_value!r} selects no arm of union "
+        f"{union.name!r} (arms: {sorted(mapping)})"
+    )
 
 
 def _row_from_model_spec(

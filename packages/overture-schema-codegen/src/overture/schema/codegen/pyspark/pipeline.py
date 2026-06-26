@@ -236,7 +236,7 @@ def _render_test_modules(
 
     modules: list[GeneratedModule] = []
     for arm, (base_row_sparse, base_row_populated) in _select_arm_rows(spec).items():
-        suffix = f"_{arm}" if arm else ""
+        suffix = f"_{arm}" if arm is not None else ""
         modules.append(
             GeneratedModule(
                 content=render_test_module(

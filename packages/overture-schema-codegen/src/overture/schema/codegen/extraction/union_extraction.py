@@ -52,7 +52,7 @@ def _find_common_base(members: list[type[BaseModel]]) -> type[BaseModel]:
     def max_mro_index(cls: type) -> int:
         return max(mro.index(cls) for mro in filtered_mros)
 
-    return min(common, key=max_mro_index)
+    return min(common, key=lambda c: (max_mro_index(c), c.__module__, c.__qualname__))
 
 
 def _find_field_by_alias(model: type[BaseModel], alias: str) -> FieldInfo | None:

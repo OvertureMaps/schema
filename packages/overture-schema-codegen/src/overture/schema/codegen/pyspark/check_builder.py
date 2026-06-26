@@ -62,6 +62,7 @@ from ..extraction.field_walk import (
     terminal_primitive,
     terminal_scalar,
 )
+from ..extraction.literal_alternatives import LiteralAlternatives
 from ..extraction.specs import FieldSpec, ModelSpec, RecordSpec, UnionSpec
 from ..extraction.type_registry import PRIMITIVE_TYPES
 from ._render_common import COLUMN_LEVEL_FUNCTIONS
@@ -101,6 +102,36 @@ def _dispatch_layer_constraints(
         if desc is not None:
             descriptors.append(desc)
     return descriptors
+
+
+def _literal_alternatives(shape: Scalar | MapOf) -> tuple[object, ...]:
+    """Return the allowed literal values from a `LiteralAlternatives` constraint, or `()`.
+
+    `MapOf` returns `()`: a map column carries no literal alternative of its
+    own (its key/value projections reach their own `Scalar` shapes, which are
+    handled there).
+    """
+    if isinstance(shape, MapOf):
+        return ()
+    for cs in shape.constraints:
+        if isinstance(cs.constraint, LiteralAlternatives):
+            return cs.constraint.values
+    return ()
+
+
+def _apply_literal_bypass(
+    descriptors: list[ExpressionDescriptor],
+    allow_literals: tuple[object, ...],
+) -> list[ExpressionDescriptor]:
+    """Stamp `allow_literals` onto each content descriptor.
+
+    Content descriptors are the non-required checks: enum, pattern,
+    bounds, base-type checks. `check_required` is excluded by callers
+    who pass only the content portion of the descriptor list.
+    """
+    if not allow_literals:
+        return descriptors
+    return [replace(desc, allow_literals=allow_literals) for desc in descriptors]
 
 
 def _enum_values(scalar: Scalar) -> list[object] | None:
@@ -310,6 +341,9 @@ def _terminal_scalar_checks(
         if base_descriptors is not None:
             element_descriptors.extend(base_descriptors)
     element_descriptors = list(dict.fromkeys(element_descriptors))
+    element_descriptors = _apply_literal_bypass(
+        element_descriptors, _literal_alternatives(shape)
+    )
 
     if required:
         return [

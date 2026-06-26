@@ -29,12 +29,42 @@ from overture.schema.pyspark.expressions.constraint_expressions import (
     check_stripped,
     check_url_format,
     check_url_length,
+    except_literals,
 )
 from overture.schema.system.primitive import GeometryType
 from pyspark.sql import Row, SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.types import DoubleType, StructField, StructType
+from pyspark.sql.types import DoubleType, StringType, StructField, StructType
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon
+
+
+def _except_literals_error(spark: SparkSession, value: str | None) -> str | None:
+    """Run `except_literals` over `check_url_format` for one string value."""
+    df = spark.createDataFrame(
+        [Row(val=value)], schema=StructType([StructField("val", StringType(), True)])
+    )
+    col = F.col("val")
+    expr = except_literals(col, check_url_format(col), [""])
+    # Spark Row field access is untyped (Any); the column holds an error string.
+    return df.select(expr.alias("err")).collect()[0]["err"]  # type: ignore[no-any-return]
+
+
+def test_except_literals_suppresses_allowed_literal(spark: SparkSession) -> None:
+    # "" is an allowed literal alternative -> the url_format error is suppressed.
+    assert _except_literals_error(spark, "") is None
+
+
+def test_except_literals_passes_through_real_violation(spark: SparkSession) -> None:
+    # A non-literal invalid value still surfaces the inner check's error.
+    assert _except_literals_error(spark, "not a url") is not None
+
+
+def test_except_literals_passes_through_valid_value(spark: SparkSession) -> None:
+    assert _except_literals_error(spark, "https://example.com/x") is None
+
+
+def test_except_literals_null_is_not_an_error(spark: SparkSession) -> None:
+    assert _except_literals_error(spark, None) is None
 
 
 def test_check_bounds_ge_le_valid(spark: SparkSession) -> None:

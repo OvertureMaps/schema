@@ -65,14 +65,17 @@ def compute_reverse_references(
     all_specs
         Supplementary types (enums, newtypes, sub-models).
     """
-    references: dict[TypeIdentity, set[UsedByEntry]] = {}
+    # An insertion-ordered set (dict keys) per target: dedups like a set but
+    # iterates deterministically, so sorted()'s stable order breaks ties by
+    # insertion rather than by nondeterministic set-hash order.
+    references: dict[TypeIdentity, dict[UsedByEntry, None]] = {}
 
     def add_reference(
         target: TypeIdentity, referrer: TypeIdentity, kind: UsedByKind
     ) -> None:
         if target == referrer or target not in all_specs:
             return
-        references.setdefault(target, set()).add(UsedByEntry(referrer, kind))
+        references.setdefault(target, {})[UsedByEntry(referrer, kind)] = None
 
     def collect_from_shape(
         shape: FieldShape,
@@ -156,9 +159,9 @@ def compute_reverse_references(
 
     # Sort into deterministic lists.
     result: dict[TypeIdentity, list[UsedByEntry]] = {}
-    for target, ref_set in references.items():
+    for target, ref_map in references.items():
         entries = sorted(
-            ref_set,
+            ref_map,
             key=lambda e: (e.kind.value, e.identity.name, e.identity.module),
         )
         result[target] = entries

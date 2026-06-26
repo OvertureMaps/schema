@@ -160,6 +160,20 @@ def check_pattern(col: Column, pattern: str, *, label: str) -> Column:
     return F.when(col.isNotNull() & ~col.rlike(pattern), msg)
 
 
+def except_literals(col: Column, error: Column, allowed: list[object]) -> Column:
+    """Suppress *error* when *col* equals one of the field's literal alternatives.
+
+    A field typed `X | Literal[c, ...]` accepts the literals `c, ...` alongside
+    any value the concrete arm `X` validates.  *error* is the concrete arm's
+    violation Column (error string or null).  Returns null whenever *col* is one
+    of *allowed* (a permitted literal), and *error* unchanged otherwise.  A null
+    *col* matches no literal and yields null -- the same result the wrapped
+    content checks already return for null, since presence is
+    `check_required`'s concern and is never wrapped here.
+    """
+    return F.when(~col.isin(allowed), error)
+
+
 def check_url_format(col: Column) -> Column:
     """HTTP/HTTPS URL format check via pattern match.  Returns error string or null.
 

@@ -13,6 +13,9 @@ from overture.schema.codegen.extraction.length_constraints import (
     ScalarMaxLen,
     ScalarMinLen,
 )
+from overture.schema.codegen.extraction.literal_alternatives import (
+    LiteralAlternatives,
+)
 from overture.schema.codegen.extraction.model_constraints import (
     analyze_model_constraints,
 )
@@ -163,6 +166,24 @@ class TestDescribeFiltering:
         result = describe_model_constraints((constraint,))
 
         assert result == ["`@future_thing`"]
+
+
+class TestLiteralAlternativesProse:
+    """`X | Literal[c]` renders a faithful 'Also accepts' note in the docs."""
+
+    def test_empty_string_literal(self) -> None:
+        assert (
+            describe_field_constraint(LiteralAlternatives(("",)))
+            == "Also accepts: `''`"
+        )
+
+    def test_named_literal(self) -> None:
+        result = describe_field_constraint(LiteralAlternatives(("Global",)))
+        assert result == "Also accepts: `'Global'`"
+
+    def test_multiple_literals(self) -> None:
+        result = describe_field_constraint(LiteralAlternatives(("a", "b")))
+        assert result == "Also accepts: `'a'`, `'b'`"
 
 
 class TestConsolidation:

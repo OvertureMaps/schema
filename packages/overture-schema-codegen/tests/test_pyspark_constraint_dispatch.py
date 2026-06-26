@@ -11,6 +11,7 @@ from overture.schema.codegen.extraction.length_constraints import (
     ScalarMaxLen,
     ScalarMinLen,
 )
+from overture.schema.codegen.extraction.literal_alternatives import LiteralAlternatives
 from overture.schema.codegen.extraction.specs import FieldSpec
 from overture.schema.codegen.pyspark.constraint_dispatch import (
     ExpressionDescriptor,
@@ -319,6 +320,12 @@ class TestSkippedConstraints:
 
     def test_strict_returns_none(self) -> None:
         desc = dispatch_constraint(Strict())
+        assert desc is None
+
+    def test_literal_alternatives_returns_none(self) -> None:
+        # The literal-alternatives bypass is a modifier on the field's other
+        # checks (threaded as allow_literals), not a standalone check.
+        desc = dispatch_constraint(LiteralAlternatives(("",)))
         assert desc is None
 
 

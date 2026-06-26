@@ -115,18 +115,41 @@ def _deduplicate_by_name(fields: list[FieldSpec]) -> list[FieldSpec]:
     type shapes (e.g. `value` as uint8 in one variant and float64 in
     another). Parquet stores one column per name, so the schema needs
     exactly one entry. When two fields share a name, the one with the
-    wider Spark type wins (matching Parquet's type-widening behavior).
+    wider numeric Spark type wins (matching Parquet's type-widening
+    behavior). Two same-named fields whose Spark types are non-numeric and
+    not identical cannot share a column, so the collision fails loudly
+    rather than silently keeping whichever arm came first.
     """
     seen: dict[str, FieldSpec] = {}
     for f in fields:
         existing = seen.get(f.name)
-        if existing is None or spark_type_rank(f) > spark_type_rank(existing):
+        if existing is None:
+            seen[f.name] = f
+            continue
+        rank_f, rank_existing = spark_type_rank(f), spark_type_rank(existing)
+        if rank_f < 0 and rank_existing < 0:
+            spark_f = _shape_to_spark(f.shape)
+            spark_existing = _shape_to_spark(existing.shape)
+            if spark_f != spark_existing:
+                raise ValueError(
+                    f"Union field {f.name!r} resolves to incompatible "
+                    f"non-widening Spark types across arms "
+                    f"({spark_existing} vs {spark_f}); a single Parquet "
+                    "column cannot represent both."
+                )
+        if rank_f > rank_existing:
             seen[f.name] = f
     return list(seen.values())
 
 
 def _struct_type_expr(fields: list[FieldSpec]) -> str:
     """Build an inline `StructType([...])` expression from a list of fields."""
+    if not fields:
+        raise ValueError(
+            "Cannot build a StructType for a model with no fields; an empty "
+            "struct column cannot carry data and signals an upstream "
+            "extraction problem."
+        )
     parts = [
         f'StructField("{f.name}", {_shape_to_spark(f.shape)}, True)' for f in fields
     ]

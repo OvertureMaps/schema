@@ -64,7 +64,7 @@ from overture.schema.system.primitive import (
     int32,
 )
 from overture.schema.system.string import CountryCodeAlpha2
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 from pydantic.fields import FieldInfo
 
 _path = parse
@@ -621,8 +621,8 @@ class TestPerFieldFunctions:
 
     def test_check_has_name_field(self, literal_subtype_source: str) -> None:
         """Rendered Check includes name= derived from constraint function."""
-        assert 'name="required"' in literal_subtype_source
-        assert 'name="enum"' in literal_subtype_source
+        assert "name='required'" in literal_subtype_source
+        assert "name='enum'" in literal_subtype_source
 
     def test_no_field_in_check_calls(self, literal_subtype_source: str) -> None:
         """check_* calls should not include field string as second arg."""
@@ -643,8 +643,8 @@ class TestPerFieldFunctions:
     ) -> None:
         """SimpleModel.subtype has check_required + check_enum -> two separate functions."""
         assert "F.coalesce" not in literal_subtype_source
-        assert 'name="required"' in literal_subtype_source
-        assert 'name="enum"' in literal_subtype_source
+        assert "name='required'" in literal_subtype_source
+        assert "name='enum'" in literal_subtype_source
 
     def test_compound_checks_split(self, literal_subtype_source: str) -> None:
         """A field with required + enum produces two Check functions, not one coalesced."""
@@ -939,16 +939,16 @@ class TestModelConstraintFieldLabels:
 
     def test_require_if_single_constraint_no_suffix(self) -> None:
         source = _render(RequireIfEnumModel, "require_if_enum")
-        assert 'field="admin_level_required"' in source
+        assert "field='admin_level_required'" in source
 
     def test_forbid_if_single_constraint_no_suffix(self) -> None:
         source = _render(RequireForbidModel, "rf")
-        assert 'field="admin_level_forbidden"' in source
+        assert "field='admin_level_forbidden'" in source
 
     def test_require_and_forbid_have_distinct_labels(self) -> None:
         source = _render(RequireForbidModel, "rf")
-        assert 'field="admin_level_required"' in source
-        assert 'field="admin_level_forbidden"' in source
+        assert "field='admin_level_required'" in source
+        assert "field='admin_level_forbidden'" in source
 
     def test_multiple_require_if_same_target_disambiguated(self) -> None:
         """Multiple require_if on the same target get per-field numeric suffixes."""
@@ -960,7 +960,7 @@ class TestModelConstraintFieldLabels:
             level: int | None = None
 
         source = _render(MultiRequireModel, "multi_req")
-        labels = re.findall(r'field="(level_required[^"]*)"', source)
+        labels = re.findall(r"field='(level_required[^']*)'", source)
         assert len(labels) >= 2, f"Expected >=2 unique labels, got {labels}"
         assert len(labels) == len(set(labels)), f"Duplicate labels: {labels}"
         assert all(re.search(r"_\d+$", lbl) for lbl in labels), (
@@ -1037,7 +1037,7 @@ class TestFieldCheckLabelCollision:
         )
         source = render_model_module("collide", [first, second], [], [])
         ast.parse(source)
-        labels = re.findall(r'field="(value[^"]*)"', source)
+        labels = re.findall(r"field='(value[^']*)'", source)
         assert labels == ["value_0", "value_1"], labels
 
     def test_noncolliding_field_check_stays_bare(self) -> None:
@@ -1053,7 +1053,7 @@ class TestFieldCheckLabelCollision:
         )
         source = render_model_module("solo", [required, bounds], [], [])
         ast.parse(source)
-        labels = re.findall(r'field="(value[^"]*)"', source)
+        labels = re.findall(r"field='(value[^']*)'", source)
         assert labels == ["value", "value"], labels
 
     def test_multi_descriptor_collision_only_on_shared_name(self) -> None:
@@ -1074,9 +1074,9 @@ class TestFieldCheckLabelCollision:
         # The two `required` rows collide (-> value_0/value_1); the lone
         # `bounds` row stays bare.
         required_fields = re.findall(
-            r'field="(value[^"]*)",\n\s+name="required"', source
+            r"field='(value[^']*)',\n\s+name='required'", source
         )
-        bounds_fields = re.findall(r'field="(value[^"]*)",\n\s+name="bounds"', source)
+        bounds_fields = re.findall(r"field='(value[^']*)',\n\s+name='bounds'", source)
         assert required_fields == ["value_0", "value_1"], required_fields
         assert bounds_fields == ["value"], bounds_fields
 
@@ -1195,7 +1195,7 @@ class TestArrayModelConstraintRendering:
 
     def test_field_label_uses_prefix(self) -> None:
         source = _render(ArrayOfConstrained, "arr_constrained")
-        assert 'field="items[]' in source
+        assert "field='items[]" in source
 
     def test_imports_array_check(self) -> None:
         source = _render(ArrayOfConstrained, "arr_constrained")
@@ -1787,3 +1787,27 @@ class TestLeafQualifiedConditionRef:
         source = _render_model_node(self._require_if_check(ArrayValueRequireIfModel))
         assert 'el["inner"]["admin_level"]' in source, source
         assert 'el["inner"]["subtype"] ==' in source, source
+
+
+class _UrlOrEmptyRender(BaseModel):
+    """Required `HttpUrl | Literal[""]` -- the literal bypasses the URL checks."""
+
+    data_url: HttpUrl | Literal[""]
+
+
+class TestLiteralAlternativesRendering:
+    """A descriptor carrying allow_literals renders an except_literals wrapper."""
+
+    def test_url_checks_wrapped_in_except_literals(self) -> None:
+        source = _render(_UrlOrEmptyRender)
+        # Both content checks are wrapped; the literal value is threaded in.
+        assert 'except_literals(F.col("data_url"), check_url_format(' in source, source
+        assert 'except_literals(F.col("data_url"), check_url_length(' in source, source
+        # py_literal emits the pre-ruff form (single quotes); ruff normalizes later.
+        assert ", ['']" in source, source
+
+    def test_except_literals_imported(self) -> None:
+        source = _render(_UrlOrEmptyRender)
+        assert "except_literals" in source
+        # check_required is not wrapped: it is not threaded with allow_literals.
+        assert 'except_literals(F.col("data_url"), check_required(' not in source

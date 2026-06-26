@@ -133,15 +133,23 @@ def _scenario_entry(
     mutate_expr: str,
     expected_field: str,
     expected_check: str,
+    valid_scaffold: dict[str, Any] | None = None,
 ) -> list[tuple[str, str]]:
-    """Build a rendered Scenario kwargs list for the test_module template."""
-    return [
+    """Build a rendered Scenario kwargs list for the test_module template.
+
+    `valid_scaffold` is emitted only when set, so scenarios without one keep
+    the dataclass default (a vacuous base-row copy for the `::valid` row).
+    """
+    entry = [
         ("id", py_literal(scenario_id)),
         ("scaffold", py_literal(scaffold)),
         ("mutate", mutate_expr),
         ("expected_field", py_literal(expected_field)),
         ("expected_check", py_literal(expected_check)),
     ]
+    if valid_scaffold is not None:
+        entry.append(("valid_scaffold", py_literal(valid_scaffold)))
+    return entry
 
 
 class _MutateExpr(NamedTuple):
@@ -213,6 +221,15 @@ def _render_field_check_scenarios(
     for row, scenario_id in zip(rows, scenario_ids, strict=True):
         desc = row.check.descriptors[row.descriptor_idx]
         scaffold = generate_scaffold(row.check, spec) if spec is not None else {}
+        # For an `X | Literal[c]` field, seed the literal alternative at the
+        # target so the `::valid` row proves the check accepts it.
+        valid_scaffold: dict[str, Any] | None = None
+        if desc.allow_literals and spec is not None:
+            # generate_scaffold shapes the bare literal to the field's list
+            # nesting, so pass it unwrapped.
+            valid_scaffold = generate_scaffold(
+                row.check, spec, leaf_value=desc.allow_literals[0]
+            )
         try:
             mutate = _field_mutate_expr(row.check, desc, spec)
         except ValueError as exc:
@@ -227,6 +244,7 @@ def _render_field_check_scenarios(
                 mutate_expr=mutate.expr,
                 expected_field=row.label,
                 expected_check=row.name,
+                valid_scaffold=valid_scaffold,
             )
         )
 

@@ -31,6 +31,7 @@ from overture.schema.pyspark.expressions.constraint_expressions import (
     check_required,
     check_url_format,
     check_url_length,
+    except_literals,
 )
 
 
@@ -80,7 +81,12 @@ def _datasets_data_url_url_format_check() -> Check:
     return Check(
         field="datasets[].data_url",
         name="url_format",
-        expr=array_check("datasets", lambda el: check_url_format(el["data_url"])),
+        expr=array_check(
+            "datasets",
+            lambda el: except_literals(
+                el["data_url"], check_url_format(el["data_url"]), [""]
+            ),
+        ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"datasets"}),
     )
@@ -90,7 +96,12 @@ def _datasets_data_url_url_length_check() -> Check:
     return Check(
         field="datasets[].data_url",
         name="url_length",
-        expr=array_check("datasets", lambda el: check_url_length(el["data_url"])),
+        expr=array_check(
+            "datasets",
+            lambda el: except_literals(
+                el["data_url"], check_url_length(el["data_url"]), [""]
+            ),
+        ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"datasets"}),
     )
@@ -113,7 +124,10 @@ def _datasets_data_url_archived_url_format_check() -> Check:
         field="datasets[].data_url_archived",
         name="url_format",
         expr=array_check(
-            "datasets", lambda el: check_url_format(el["data_url_archived"])
+            "datasets",
+            lambda el: except_literals(
+                el["data_url_archived"], check_url_format(el["data_url_archived"]), [""]
+            ),
         ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"datasets"}),
@@ -125,7 +139,10 @@ def _datasets_data_url_archived_url_length_check() -> Check:
         field="datasets[].data_url_archived",
         name="url_length",
         expr=array_check(
-            "datasets", lambda el: check_url_length(el["data_url_archived"])
+            "datasets",
+            lambda el: except_literals(
+                el["data_url_archived"], check_url_length(el["data_url_archived"]), [""]
+            ),
         ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"datasets"}),
@@ -146,7 +163,12 @@ def _datasets_license_url_url_format_check() -> Check:
     return Check(
         field="datasets[].license_url",
         name="url_format",
-        expr=array_check("datasets", lambda el: check_url_format(el["license_url"])),
+        expr=array_check(
+            "datasets",
+            lambda el: except_literals(
+                el["license_url"], check_url_format(el["license_url"]), [""]
+            ),
+        ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"datasets"}),
     )
@@ -156,7 +178,12 @@ def _datasets_license_url_url_length_check() -> Check:
     return Check(
         field="datasets[].license_url",
         name="url_length",
-        expr=array_check("datasets", lambda el: check_url_length(el["license_url"])),
+        expr=array_check(
+            "datasets",
+            lambda el: except_literals(
+                el["license_url"], check_url_length(el["license_url"]), [""]
+            ),
+        ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"datasets"}),
     )
@@ -179,7 +206,12 @@ def _datasets_license_url_archived_url_format_check() -> Check:
         field="datasets[].license_url_archived",
         name="url_format",
         expr=array_check(
-            "datasets", lambda el: check_url_format(el["license_url_archived"])
+            "datasets",
+            lambda el: except_literals(
+                el["license_url_archived"],
+                check_url_format(el["license_url_archived"]),
+                [""],
+            ),
         ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"datasets"}),
@@ -191,7 +223,12 @@ def _datasets_license_url_archived_url_length_check() -> Check:
         field="datasets[].license_url_archived",
         name="url_length",
         expr=array_check(
-            "datasets", lambda el: check_url_length(el["license_url_archived"])
+            "datasets",
+            lambda el: except_literals(
+                el["license_url_archived"],
+                check_url_length(el["license_url_archived"]),
+                [""],
+            ),
         ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"datasets"}),
@@ -311,7 +348,8 @@ def _datasets_data_download_url_url_format_check() -> Check:
         expr=nested_array_check(
             "datasets",
             lambda el: array_check(
-                el["data_download_url"], lambda inner: check_url_format(inner)
+                el["data_download_url"],
+                lambda inner: except_literals(inner, check_url_format(inner), [""]),
             ),
         ),
         shape=CheckShape.ARRAY,
@@ -326,7 +364,8 @@ def _datasets_data_download_url_url_length_check() -> Check:
         expr=nested_array_check(
             "datasets",
             lambda el: array_check(
-                el["data_download_url"], lambda inner: check_url_length(inner)
+                el["data_download_url"],
+                lambda inner: except_literals(inner, check_url_length(inner), [""]),
             ),
         ),
         shape=CheckShape.ARRAY,
@@ -342,8 +381,12 @@ def _datasets_countries_check() -> Check:
             "datasets",
             lambda el: array_check(
                 el["countries"],
-                lambda inner: check_pattern(
-                    inner, "^[A-Z]{2}\\z", label="ISO 3166-1 alpha-2 country code"
+                lambda inner: except_literals(
+                    inner,
+                    check_pattern(
+                        inner, "^[A-Z]{2}\\z", label="ISO 3166-1 alpha-2 country code"
+                    ),
+                    ["Global"],
                 ),
             ),
         ),

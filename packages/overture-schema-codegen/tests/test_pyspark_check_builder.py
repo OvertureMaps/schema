@@ -2289,6 +2289,65 @@ class _ListInsideMapValueModel(BaseModel):
     items: dict[str, _MapValueWithList]
 
 
+class _UrlOrEmptyModel(BaseModel):
+    """Required field typed `HttpUrl | Literal[""]` -- literal bypass scenario."""
+
+    data_url: Annotated[HttpUrl | Literal[""], Field()]
+
+
+class _OptionalCountryListModel(BaseModel):
+    """Optional list[CountryCodeAlpha2 | Literal["Global"]] -- array literal bypass."""
+
+    countries: (
+        list[Annotated[CountryCodeAlpha2 | Literal["Global"], Field()]] | None
+    ) = None
+
+
+class TestLiteralAlternativesBypass:
+    """check_builder threads allow_literals onto content descriptors for X | Literal[c] fields."""
+
+    def test_url_literal_bypass_on_content_descriptors(self) -> None:
+        """url_format and url_length carry allow_literals; check_required does not."""
+        checks, _ = _checks_for(_UrlOrEmptyModel)
+        url_checks = [c for c in checks if str(c.target).endswith("data_url")]
+        assert url_checks, "expected a check targeting data_url"
+        # Required field: one Check with (check_required, url_format, url_length)
+        assert len(url_checks) == 1
+        check = url_checks[0]
+        for desc in check.descriptors:
+            if desc.function == "check_required":
+                assert desc.allow_literals == (), (
+                    f"check_required must not carry allow_literals, got {desc.allow_literals}"
+                )
+            else:
+                assert desc.allow_literals == ("",), (
+                    f"{desc.function} should carry allow_literals=('',), got {desc.allow_literals}"
+                )
+
+    def test_array_literal_bypass_on_element_descriptor(self) -> None:
+        """Array-element pattern check carries allow_literals for list[T | Literal[c]]."""
+        checks, _ = _checks_for(_OptionalCountryListModel)
+        country_checks = [c for c in checks if "countries" in str(c.target)]
+        assert country_checks, "expected a check targeting countries"
+        check = country_checks[0]
+        content_descs = [d for d in check.descriptors if d.function != "check_required"]
+        assert content_descs, "expected at least one content descriptor"
+        for desc in content_descs:
+            assert desc.allow_literals == ("Global",), (
+                f"{desc.function} should carry allow_literals=('Global',), got {desc.allow_literals}"
+            )
+
+    def test_check_required_never_gets_allow_literals(self) -> None:
+        """check_required is excluded from the literal bypass even when coalesced."""
+        checks, _ = _checks_for(_UrlOrEmptyModel)
+        for check in checks:
+            for desc in check.descriptors:
+                if desc.function == "check_required":
+                    assert desc.allow_literals == (), (
+                        f"check_required at {check.target} carries unexpected allow_literals"
+                    )
+
+
 class TestMapValueModelDescentBoundary:
     """Descent raises where a `MapPath` cannot represent the shape.
 

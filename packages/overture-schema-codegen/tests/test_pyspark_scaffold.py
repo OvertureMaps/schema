@@ -1,6 +1,8 @@
 """Tests for sparse path scaffold generation."""
 
+import copy
 from dataclasses import replace
+from typing import Any
 
 import pytest
 from codegen_test_support import (
@@ -8,18 +10,49 @@ from codegen_test_support import (
     discover_feature,
     spec_for_model,
 )
-from overture.schema.codegen.extraction.specs import ModelSpec
+from overture.schema.codegen.extraction.specs import ModelSpec, UnionSpec
 from overture.schema.codegen.pyspark.check_builder import build_checks
-from overture.schema.codegen.pyspark.check_ir import ElementGuard, ModelCheck
+from overture.schema.codegen.pyspark.check_ir import (
+    Check,
+    ColumnGuard,
+    ElementGuard,
+    ModelCheck,
+)
 from overture.schema.codegen.pyspark.constraint_dispatch import RequireAnyOf
+from overture.schema.codegen.pyspark.test_data.base_row import (
+    generate_arm_rows,
+    generate_base_row,
+)
 from overture.schema.codegen.pyspark.test_data.scaffold import (
     generate_model_scaffold,
     generate_scaffold,
     leaf_list_depth,
 )
 from overture.schema.system.field_path import ArrayPath, parse
+from pydantic import TypeAdapter
 
 _path = parse
+
+
+def _deep_merge(base: dict, scaffold: dict) -> dict:
+    """Merge `scaffold` onto a deep copy of `base` (harness `deep_merge` semantics).
+
+    Dicts merge recursively; every other value (including lists) replaces the
+    base value. Mirrors `overture.schema.pyspark`'s conformance harness so the
+    validated row matches what the generated suite builds.
+    """
+    result = copy.deepcopy(base)
+    for key, value in scaffold.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = _deep_merge(result[key], value)
+        else:
+            result[key] = copy.deepcopy(value)
+    return result
+
+
+def _check_belongs_to_arm(check: Check, arm: str) -> bool:
+    """Whether a field check applies to a union arm (every `ColumnGuard` admits it)."""
+    return all(arm in g.values for g in check.guards if isinstance(g, ColumnGuard))
 
 
 @pytest.fixture(scope="module")
@@ -214,6 +247,93 @@ class TestGenerateScaffoldSegment:
         )
         with pytest.raises(NotImplementedError, match="ElementGuards"):
             generate_scaffold(bogus, segment_spec)
+
+
+# Models whose scaffolds must merge onto a base row to form a valid instance.
+# Spans a union with a union-in-array (`Segment`'s `when.vehicle[]`), record
+# specs with `require_any_of` and optional nested-model arrays, a map field
+# (`Infrastructure.source_tags`), and `list[list[...]]` arrays
+# (`Division.hierarchies[][]`, so iter_count>1 wrapping is covered). The
+# conformance suite only asserts each scenario's own expected violation is
+# absent from its valid row -- whole-row validity of a scaffold is checked here,
+# so a model-specific scaffold defect can't hide behind it.
+_VALID_ROW_MODELS = [
+    "Segment",
+    "Connector",
+    "Division",
+    "DivisionArea",
+    "DivisionBoundary",
+    "Place",
+    "Building",
+    "BuildingPart",
+    "Address",
+    "Infrastructure",
+    "Land",
+    "LandCover",
+    "LandUse",
+    "Water",
+    "Bathymetry",
+]
+
+
+def _base_rows_and_adapter(spec: ModelSpec) -> tuple[dict[str, dict[str, Any]], Any]:
+    """Return per-arm base rows and a Pydantic adapter for a spec.
+
+    A `UnionSpec` yields one base row per discriminator arm, validated against
+    the union annotation. A record spec yields a single row keyed by `""` (a
+    sentinel arm carrying no `ColumnGuard`, so `_check_belongs_to_arm` admits
+    every record-spec check) and validates against the source class.
+    """
+    if isinstance(spec, UnionSpec):
+        return generate_arm_rows(spec), TypeAdapter(spec.source_annotation)
+    assert spec.source_type is not None
+    return {"": generate_base_row(spec)}, TypeAdapter(spec.source_type)
+
+
+class TestScaffoldsProduceValidRows:
+    """Ground truth for finding #1: a scaffold merged onto the base row is valid.
+
+    The conformance harness builds the `::valid` row as
+    `deep_merge(base_row, scaffold)` with no mutation, then asserts the check
+    does not fire. That assertion is only meaningful when the merged row is a
+    genuinely valid instance -- otherwise unrelated `required` /
+    `require_any_of` violations (or a vacuous, target-absent row) let a check
+    that wrongly rejects a valid value ship green. These tests validate the
+    merged row against the Pydantic schema directly: the scaffold must reach
+    the target while keeping every model on the path valid.
+    """
+
+    @pytest.fixture(scope="module", params=_VALID_ROW_MODELS)
+    def model_case(
+        self, request: pytest.FixtureRequest
+    ) -> tuple[ModelSpec, dict[str, dict[str, Any]], Any]:
+        spec = discover_feature(request.param)
+        arm_rows, adapter = _base_rows_and_adapter(spec)
+        return spec, arm_rows, adapter
+
+    def test_field_scaffolds_validate(
+        self, model_case: tuple[ModelSpec, dict[str, dict[str, Any]], Any]
+    ) -> None:
+        spec, arm_rows, adapter = model_case
+        field_checks, _ = build_checks(spec)
+        for check in field_checks:
+            scaffold = generate_scaffold(check, spec)
+            for arm, base in arm_rows.items():
+                if not _check_belongs_to_arm(check, arm):
+                    continue
+                adapter.validate_python(_deep_merge(base, scaffold))
+
+    def test_model_scaffolds_validate(
+        self, model_case: tuple[ModelSpec, dict[str, dict[str, Any]], Any]
+    ) -> None:
+        spec, arm_rows, adapter = model_case
+        _, model_checks = build_checks(spec)
+        for check in model_checks:
+            scaffold = generate_model_scaffold(check, spec)
+            for arm, base in arm_rows.items():
+                if not (check.arm is None or check.arm == arm):
+                    continue
+                adapter.validate_python(_deep_merge(base, scaffold))
 
 
 class TestGenerateModelScaffold:

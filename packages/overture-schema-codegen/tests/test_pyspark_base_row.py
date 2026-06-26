@@ -33,6 +33,7 @@ from overture.schema.codegen.pyspark.test_data.base_row import (
     _satisfy_model_constraints,
     _value_from_check_pattern,
     _value_from_scalar_constraints,
+    condition_overrides_for_present_field,
     generate_arm_rows,
     generate_base_row,
     generate_populated_arm_rows,
@@ -486,6 +487,70 @@ class TestNotConditionBaseRow:
         spec = extract_model(_ModeModelRequireIf)
         row = generate_base_row(spec)
         TypeAdapter(_ModeModelRequireIf).validate_python(row)
+
+
+class _Subtype(str, Enum):
+    COUNTRY = "country"
+    REGION = "region"
+
+
+_IS_COUNTRY = FieldEqCondition("subtype", _Subtype.COUNTRY)
+
+
+# Mirrors Division/DivisionBoundary: the base row's first enum member
+# (`country`) triggers the forbid, and the symmetric require_if mandates the
+# field once the condition is disabled.
+@forbid_if(["parent"], _IS_COUNTRY)
+@require_if(["parent"], ~_IS_COUNTRY)
+class _DivisionLike(BaseModel):
+    subtype: _Subtype
+    parent: str | None = None
+
+
+class _Flag(str, Enum):
+    A = "a"
+    B = "b"
+
+
+# Disabling the forbid (mode != A) activates a require_if for a field the base
+# row lacks, so the override must re-satisfy constraints and carry that field.
+@forbid_if(["forbidden"], FieldEqCondition("mode", _Flag.A))
+@require_if(["needed"], FieldEqCondition("mode", _Flag.B))
+class _FlipActivatesRequire(BaseModel):
+    mode: _Flag
+    forbidden: str | None = None
+    needed: str | None = None
+
+
+class TestConditionOverridesForPresentField:
+    """A forbid_if the base row triggers is disabled so its field can be set."""
+
+    def test_flips_condition_field_to_disable_forbid(self) -> None:
+        """The override sets the condition field to a value the forbid rejects."""
+        spec = extract_model(_DivisionLike)
+        overrides = condition_overrides_for_present_field(spec, "parent")
+        assert overrides == {"subtype": "region"}
+
+    def test_merged_row_with_present_field_is_valid(self) -> None:
+        """Base row + override + the forbidden field validates against Pydantic."""
+        spec = extract_model(_DivisionLike)
+        overrides = condition_overrides_for_present_field(spec, "parent")
+        row = {**generate_base_row(spec), **overrides, "parent": "a"}
+        TypeAdapter(_DivisionLike).validate_python(row)
+
+    def test_field_without_forbid_if_needs_no_override(self) -> None:
+        """A field no forbid_if gates returns an empty override."""
+        spec = extract_model(_DivisionLike)
+        assert condition_overrides_for_present_field(spec, "subtype") == {}
+
+    def test_resatisfies_constraints_newly_required_by_the_flip(self) -> None:
+        """Disabling the forbid can activate a require_if; the override fills it."""
+        spec = extract_model(_FlipActivatesRequire)
+        overrides = condition_overrides_for_present_field(spec, "forbidden")
+        assert overrides["mode"] == "b"
+        assert overrides.get("needed") is not None
+        row = {**generate_base_row(spec), **overrides, "forbidden": "x"}
+        TypeAdapter(_FlipActivatesRequire).validate_python(row)
 
 
 class TestMultiBoundScalarConstraints:

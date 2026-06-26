@@ -178,6 +178,16 @@ class TestRenderTestModuleParseable:
         ast.parse(source)
 
 
+class TestUnbuildableScenariosAreLoud:
+    """An unbuildable scenario must fail, not silently skip (false green)."""
+
+    def test_skip_branch_fails_not_skips(self) -> None:
+        source = render_test_module("loud", [], [])
+        assert "validation_results.skipped" in source
+        assert "pytest.fail(" in source
+        assert "pytest.skip(" not in source
+
+
 class TestBaseRow:
     def test_default_base_rows_are_empty(self) -> None:
         source = render_test_module("test", [], [])
@@ -737,7 +747,7 @@ class TestCrossArmModelCheckLabelCollision:
         model_checks = [road, rail]
 
         module = render_model_module("seg", [], model_checks, [])
-        module_labels = re.findall(r'field="(class_required[^"]*)"', module)
+        module_labels = re.findall(r"field='(class_required[^']*)'", module)
         road_label = module_labels[0]
 
         test_source = render_test_module("seg", [], model_checks, arm="road")

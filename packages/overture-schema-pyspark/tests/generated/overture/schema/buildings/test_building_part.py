@@ -205,14 +205,14 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="building_part::sources[].property:required",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", None),
         expected_field="sources[].property",
         expected_check="required",
     ),
     Scenario(
         id="building_part::sources[].property:json_pointer",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", "no-slash"),
         expected_field="sources[].property",
         expected_check="json_pointer",
@@ -349,7 +349,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="building_part::names.rules[].value:required",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", None),
         expected_field="names.rules[].value",
@@ -358,7 +358,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="building_part::names.rules[].value:string_min_length",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", ""),
         expected_field="names.rules[].value",
@@ -367,7 +367,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="building_part::names.rules[].value:stripped",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", " has spaces "),
         expected_field="names.rules[].value",
@@ -412,7 +412,7 @@ SCENARIOS: list[Scenario] = [
                     {
                         "value": "a",
                         "variant": "common",
-                        "perspectives": {"countries": ["US"], "mode": "accepted_by"},
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
                     }
                 ],
             }
@@ -430,7 +430,7 @@ SCENARIOS: list[Scenario] = [
                     {
                         "value": "a",
                         "variant": "common",
-                        "perspectives": {"countries": ["US"], "mode": "accepted_by"},
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
                     }
                 ],
             }
@@ -723,7 +723,12 @@ def _assert_scenario(
 ) -> None:
     expected = (scenario.expected_field, scenario.expected_check)
     if scenario.id in validation_results.skipped:
-        pytest.skip(validation_results.skipped[scenario.id])
+        # An unbuildable scenario exercises nothing; fail loud rather than skip
+        # (a skip reads as a pass and hides codegen/scaffold gaps).
+        pytest.fail(
+            f"unbuildable scenario {scenario.id!r}: "
+            f"{validation_results.skipped[scenario.id]}"
+        )
     valid_violations = validation_results.violations.get(f"{scenario.id}::valid", set())
     assert expected not in valid_violations
     invalid_violations = validation_results.violations.get(

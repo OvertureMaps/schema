@@ -62,14 +62,21 @@ from .field import (
 )
 from .field_walk import terminal_of
 from .length_constraints import ArrayMaxLen, ArrayMinLen, ScalarMaxLen, ScalarMinLen
+from .literal_alternatives import LiteralAlternatives
 
 
 @dataclass(frozen=True, slots=True)
 class _ContinueWith:
-    """`_peel_union` result: next annotation to keep peeling."""
+    """`_peel_union` result: next annotation to keep peeling.
+
+    `literal_alternatives` carries the values of any `Literal[...]` arms
+    dropped in favor of a single concrete arm, so the caller can attach a
+    `LiteralAlternatives` constraint to the recursed shape.
+    """
 
     annotation: object
     is_optional: bool
+    literal_alternatives: tuple[object, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -301,6 +308,7 @@ def _unwrap(
         # union short-circuits with the constraints attached.
         next_annotation = inner_annotation
         layer_optional = False
+        literal_alts: tuple[object, ...] = ()
         if _is_union(get_origin(inner_annotation)):
             result = _peel_union(
                 inner_annotation,
@@ -315,11 +323,13 @@ def _unwrap(
                         result.is_optional,
                         own_desc,
                     )
-                case _ContinueWith(next_annotation, layer_optional):
+                case _ContinueWith(next_annotation, layer_optional, literal_alts):
                     pass
                 case _:
                     assert_never(result)
 
+        if literal_alts:
+            collected.append(_literal_alternatives_source(literal_alts))
         inner, opt, desc = _recurse(next_annotation, newtype_ctx)
         inner = attach_constraints(inner, tuple(collected))
         return (
@@ -333,8 +343,12 @@ def _unwrap(
         match result:
             case _Resolved(shape):
                 return shape, result.is_optional, None
-            case _ContinueWith(next_annotation, is_optional):
+            case _ContinueWith(next_annotation, is_optional, literal_alts):
                 inner, opt, desc = _recurse(next_annotation, newtype_ctx)
+                if literal_alts:
+                    inner = attach_constraints(
+                        inner, (_literal_alternatives_source(literal_alts),)
+                    )
                 return inner, opt or is_optional, desc
             case _:
                 assert_never(result)
@@ -399,6 +413,13 @@ def _constraint_source(
         source_ref=newtype_ctx.ref if newtype_ctx else None,
         source_name=newtype_ctx.name if newtype_ctx else None,
         constraint=constraint,
+    )
+
+
+def _literal_alternatives_source(values: tuple[object, ...]) -> ConstraintSource:
+    """Wrap dropped union `Literal` values as a `LiteralAlternatives` source."""
+    return ConstraintSource(
+        source_ref=None, source_name=None, constraint=LiteralAlternatives(values)
     )
 
 
@@ -555,6 +576,15 @@ def _peel_union(
     concrete_args = [a for a in non_none_args if get_origin(a) is not Literal]
     real_args = concrete_args if concrete_args else non_none_args
 
+    # A single concrete arm alongside `Literal[...]` arms keeps the concrete arm
+    # as the shape; the literal values ride along as a LiteralAlternatives
+    # constraint so they bypass the concrete arm's checks. Multi-arm and
+    # no-concrete-arm unions are unchanged (the literals stay dropped).
+    literal_alternatives: tuple[object, ...] = ()
+    if len(concrete_args) == 1:
+        literal_args = [a for a in non_none_args if get_origin(a) is Literal]
+        literal_alternatives = tuple(v for a in literal_args for v in get_args(a))
+
     if len(real_args) > 1:
         members: list[type[BaseModel]] = []
         for arg in real_args:
@@ -581,7 +611,7 @@ def _peel_union(
     if not real_args:
         raise UnsupportedUnionError(f"Union with no concrete types: {annotation}")
 
-    return _ContinueWith(real_args[0], is_optional)
+    return _ContinueWith(real_args[0], is_optional, literal_alternatives)
 
 
 def unwrap_list(annotation: object) -> object:

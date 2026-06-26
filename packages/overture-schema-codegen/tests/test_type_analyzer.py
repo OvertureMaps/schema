@@ -25,6 +25,9 @@ from overture.schema.codegen.extraction.length_constraints import (
     ArrayMinLen,
     ScalarMinLen,
 )
+from overture.schema.codegen.extraction.literal_alternatives import (
+    LiteralAlternatives,
+)
 from overture.schema.codegen.extraction.specs import RecordSpec, UnionSpec
 from overture.schema.codegen.extraction.type_analyzer import (
     UnresolvedForwardRefError,
@@ -99,10 +102,39 @@ class TestOptional:
     def test_typing_optional(self) -> None:
         assert _is_optional(Optional[str]) is True  # noqa: UP045
 
-    def test_literal_arm_filtered_with_concrete(self) -> None:
+    def test_literal_arm_keeps_concrete_shape(self) -> None:
+        # The concrete arm is the field's shape; the literal rides along as a
+        # LiteralAlternatives constraint (see TestLiteralAlternatives).
         shape, optional, _ = analyze_type(str | Literal[""] | None)
         assert isinstance(shape, Primitive) and shape.base_type == "str"
         assert optional is True
+
+
+class TestLiteralAlternatives:
+    """`X | Literal[c]` keeps the concrete arm but records the literal arms."""
+
+    def _alternatives(self, annotation: object) -> tuple[object, ...] | None:
+        for cs in all_constraints(_shape(annotation)):
+            if isinstance(cs.constraint, LiteralAlternatives):
+                return cs.constraint.values
+        return None
+
+    def test_scalar_literal_arm_preserved(self) -> None:
+        assert self._alternatives(str | Literal[""] | None) == ("",)
+
+    def test_literal_arm_preserved_inside_list(self) -> None:
+        shape = _shape(list[str | Literal["x"]])
+        assert isinstance(shape, ArrayOf) and isinstance(shape.element, Primitive)
+        assert self._alternatives(list[str | Literal["x"]]) == ("x",)
+
+    def test_multiple_literal_values_preserved(self) -> None:
+        assert self._alternatives(str | Literal["a", "b"]) == ("a", "b")
+
+    def test_pure_literal_union_has_no_alternatives(self) -> None:
+        # No concrete arm -> stays a LiteralScalar, no bypass constraint.
+        shape = _shape(Literal["a"] | None)
+        assert isinstance(shape, LiteralScalar)
+        assert self._alternatives(Literal["a"] | None) is None
 
 
 class TestList:

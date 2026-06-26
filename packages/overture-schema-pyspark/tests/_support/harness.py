@@ -15,7 +15,16 @@ from typing import Any
 from overture.schema.pyspark.check import Check
 from overture.schema.pyspark.validate import evaluate_checks, explain_errors
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StringType, StructField, StructType
+from pyspark.sql.types import (
+    ArrayType,
+    DataType,
+    DoubleType,
+    FloatType,
+    MapType,
+    StringType,
+    StructField,
+    StructType,
+)
 from shapely import wkb, wkt
 
 from .helpers import PathTraversalError, deep_merge
@@ -121,12 +130,20 @@ def build_scenario_rows(
         try:
             invalid_row = sanitize_row(s.mutate(deep_merge(base_row, s.scaffold)))
             invalid_row["_scenario_id"] = scenario_uuid(f"{s.id}::invalid")
-            rows.append(
-                {
-                    **copy.deepcopy(base_row),
-                    "_scenario_id": scenario_uuid(f"{s.id}::valid"),
-                }
+            # The valid row exercises a real value at the check's target: it
+            # merges the scaffold (a constraint-satisfying structure reaching
+            # the target) onto the base row, with NO mutation. A scenario may
+            # override with `valid_scaffold` to seed a specific value -- e.g.
+            # the literal alternative of an `X | Literal[c]` field. Without a
+            # valid scaffold the assertion would be vacuous: a target reachable
+            # only through scaffolded nesting is absent from a plain base-row
+            # copy, so a check that wrongly rejects a valid value passes green.
+            valid_source = (
+                s.valid_scaffold if s.valid_scaffold is not None else s.scaffold
             )
+            valid_row = sanitize_row(deep_merge(base_row, valid_source))
+            valid_row["_scenario_id"] = scenario_uuid(f"{s.id}::valid")
+            rows.append(valid_row)
             rows.append(invalid_row)
         except PathTraversalError as e:
             skipped[s.id] = str(e)
@@ -195,6 +212,47 @@ def assert_schema_covers_checks(schema: StructType, checks: list[Check]) -> None
             )
 
 
+_FLOAT_TYPES = (DoubleType, FloatType)
+
+
+def coerce_to_schema(value: Any, dtype: DataType) -> Any:
+    """Cast Python ints to floats where the schema declares a float column.
+
+    A discriminated union widens a numeric field to the broadest member type
+    (e.g. a `uint8` value alongside `float64` values becomes a `DoubleType`
+    column). A scaffold built for the narrow arm carries a Python `int`, which
+    Spark stores as null in a `DoubleType` column (`createDataFrame` does not
+    coerce with `verifySchema=False`) -- a null that fires `required` on the
+    `::valid` row. Recursing the row against the schema aligns each numeric
+    value with its declared column type, so a valid row stays valid. `bool` is
+    excluded (it is an `int` subclass but maps to `BooleanType`).
+
+    The struct branch keeps only keys the schema declares, mirroring how
+    `createDataFrame` reads a dict by field name -- so this also drops any
+    key absent from `dtype`. No row carries such keys today; the filtering is
+    incidental, not a guarantee.
+    """
+    if value is None:
+        return None
+    if isinstance(dtype, StructType) and isinstance(value, dict):
+        return {
+            f.name: coerce_to_schema(value[f.name], f.dataType)
+            for f in dtype.fields
+            if f.name in value
+        }
+    if isinstance(dtype, ArrayType) and isinstance(value, list):
+        return [coerce_to_schema(item, dtype.elementType) for item in value]
+    if isinstance(dtype, MapType) and isinstance(value, dict):
+        return {k: coerce_to_schema(v, dtype.valueType) for k, v in value.items()}
+    if (
+        isinstance(dtype, _FLOAT_TYPES)
+        and isinstance(value, int)
+        and not isinstance(value, bool)
+    ):
+        return float(value)
+    return value
+
+
 def run_validation_pipeline(
     spark: SparkSession,
     schema: StructType,
@@ -216,6 +274,7 @@ def run_validation_pipeline(
     augmented_schema = StructType(
         schema.fields + [StructField("_scenario_id", StringType(), True)]
     )
+    rows = [coerce_to_schema(row, augmented_schema) for row in rows]
     df = spark.createDataFrame(rows, schema=augmented_schema, verifySchema=False)  # type: ignore[union-attr]
     violations = explain_errors(evaluate_checks(df, checks), checks)
     indexed = violations.select("_scenario_id", "field", "check")

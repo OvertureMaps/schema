@@ -15,8 +15,17 @@ from pyspark.sql import functions as F
 
 
 def error_msg(prefix: str, *value_cols: Column) -> Column:
-    """Build an error message: literal prefix followed by interpolated values."""
-    return F.concat(F.lit(prefix), *value_cols)
+    """Build an error message: literal prefix followed by interpolated values.
+
+    Each interpolated value is coalesced to a string before concatenation so
+    that a NULL value never makes the whole message NULL. `F.concat` returns
+    NULL if any argument is NULL, and a NULL message is silently dropped by
+    `array_compact` in the array-check path (or the scalar wrapper) -- which
+    would discard a real violation whenever the offending value is itself
+    NULL (e.g. a linear-reference range `[null, 1.5]`).
+    """
+    safe = [F.coalesce(c.cast("string"), F.lit("null")) for c in value_cols]
+    return F.concat(F.lit(prefix), *safe)
 
 
 def _resolve_column(column: str | Column) -> Column:

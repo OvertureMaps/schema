@@ -19,20 +19,47 @@ from overture.schema.system.field_path import (
     FieldSegment,
 )
 
-from ...extraction.field_walk import has_array_layer, list_depth, terminal_model_ref
-from ...extraction.specs import FieldSpec, ModelSpec
+from ...extraction.field_walk import (
+    has_array_layer,
+    list_depth,
+    terminal_model_ref,
+    terminal_union_ref,
+)
+from ...extraction.specs import FieldSpec, ModelSpec, RecordSpec
 from ..check_ir import (
     Check,
     ElementGuard,
     ModelCheck,
 )
-from .base_row import value_for_field
+from .base_row import (
+    condition_overrides_for_present_field,
+    generate_base_row,
+    resolve_arm_spec,
+    value_for_field,
+)
 
 __all__ = [
     "generate_model_scaffold",
     "generate_scaffold",
     "leaf_list_depth",
 ]
+
+# Sentinel for "no leaf override": the terminal field keeps its synthesized
+# value. A `None` / `""` leaf override is meaningful, so it cannot be the
+# default.
+_UNSET: object = object()
+
+
+def _nest_leaf_value(value: object, field_spec: FieldSpec) -> object:
+    """Wrap a scalar leaf override to the field's list nesting depth.
+
+    `value_for_field` returns a list for a list-typed field, so a bare scalar
+    override (e.g. a literal alternative) is wrapped to the same depth: `[v]`
+    for `list[T]`, `[[v]]` for `list[list[T]]`, and `v` for a scalar field.
+    """
+    for _ in range(list_depth(field_spec.shape)):
+        value = [value]
+    return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,16 +110,23 @@ def leaf_list_depth(field_path: FieldPath, spec: ModelSpec) -> int:
     return max(0, list_depth(leaf.shape) - terminal_iter)
 
 
-def _required_siblings(
-    fields: list[FieldSpec], exclude: str, spec_name: str
-) -> dict[str, Any]:
-    """Populate required siblings at one nesting level, excluding the target."""
-    result: dict[str, Any] = {}
-    for f in fields:
-        if f.name == exclude or not f.is_required:
-            continue
-        result[f.name] = value_for_field(f, spec_name)
-    return result
+def _child_container_spec(
+    field_spec: FieldSpec, discriminator_value: object | None
+) -> RecordSpec | None:
+    """Resolve the model a path field descends into.
+
+    Returns the field's terminal `ModelRef` model, or -- for a discriminated
+    union -- the member arm the `discriminator_value` selects (the widest
+    member when the check is not arm-gated). `None` when the field has neither
+    a model nor a union terminal.
+    """
+    model_ref = terminal_model_ref(field_spec.shape)
+    if model_ref is not None:
+        return model_ref.model
+    union_ref = terminal_union_ref(field_spec.shape)
+    if union_ref is not None:
+        return resolve_arm_spec(union_ref.union, discriminator_value)
+    return None
 
 
 def _walk_to_target(
@@ -102,13 +136,26 @@ def _walk_to_target(
     *,
     discriminator: _ElementDiscriminator | None,
     current_depth: int = 0,
+    leaf_value: object = _UNSET,
 ) -> dict[str, Any]:
-    """Recursively build the scaffold dict along the path segments.
+    """Recursively build a constraint-satisfying scaffold along the path.
+
+    Each container model on the path is built as a valid base row
+    (`generate_base_row` -- required fields populated and model constraints
+    such as `require_any_of` satisfied), then the on-path child overrides its
+    field. A discriminated-union element resolves to the arm the seeded
+    discriminator selects (or the widest member when the check is not
+    arm-gated), so the element is a valid instance of a concrete arm rather
+    than an untagged `{}`.
 
     Accepts any `FieldSegment`: struct steps recurse, an `ArraySegment`
     wraps its inner value in lists, and a trailing `MapSegment` resolves
     via `value_for_field` (which populates the map with a valid entry),
     so a `MapPath` target scaffolds the same way as a struct terminal.
+
+    `leaf_value`, when set, replaces the synthesized value at the terminal
+    field -- used to seed a specific valid value (e.g. a literal alternative)
+    at the check's target.
     """
     if not segments:
         return {}
@@ -117,25 +164,42 @@ def _walk_to_target(
     remaining = segments[1:]
     field_spec = _find_field_spec(fields, seg.name)
 
+    # A path segment that resolves to no field, or that tries to descend into a
+    # non-container, would leave the scaffold short of its target -- the
+    # `::valid` row would then assert nothing (the vacuous-valid-row bug this
+    # generator exists to prevent). Fail loud at generation time instead.
+    if field_spec is None:
+        raise ValueError(
+            f"scaffold path segment {seg.name!r} matches no field "
+            f"(available: {sorted(f.name for f in fields)})"
+        )
+
     inner: Any
-    child_model = (
-        terminal_model_ref(field_spec.shape) if field_spec is not None else None
-    )
-    if remaining and child_model is not None:
-        child_fields = child_model.model.fields
-        inner = _walk_to_target(
+    if remaining:
+        discriminator_value = (
+            discriminator.value
+            if discriminator is not None and current_depth == discriminator.depth
+            else None
+        )
+        child_spec = _child_container_spec(field_spec, discriminator_value)
+        if child_spec is None:
+            raise ValueError(
+                f"scaffold cannot descend into non-container field {seg.name!r} "
+                f"with path remaining {[s.name for s in remaining]!r}"
+            )
+        recursed = _walk_to_target(
             remaining,
-            child_fields,
+            child_spec.fields,
             spec_name,
             discriminator=discriminator,
             current_depth=current_depth + 1,
+            leaf_value=leaf_value,
         )
-        siblings = _required_siblings(child_fields, remaining[0].name, spec_name)
-        inner = {**siblings, **inner}
-    elif not remaining and field_spec is not None:
-        inner = value_for_field(field_spec, spec_name)
+        inner = {**generate_base_row(child_spec), **recursed}
+    elif leaf_value is not _UNSET:
+        inner = _nest_leaf_value(leaf_value, field_spec)
     else:
-        inner = {}
+        inner = value_for_field(field_spec, spec_name)
 
     if (
         isinstance(inner, dict)
@@ -147,19 +211,41 @@ def _walk_to_target(
     # When the terminal segment is an array and the field itself is a list,
     # `value_for_field` already wrapped the value -- skip extra wrapping.
     if isinstance(seg, ArraySegment):
-        if (
-            not remaining
-            and field_spec is not None
-            and has_array_layer(field_spec.shape)
-        ):
+        if not remaining and has_array_layer(field_spec.shape):
             return {seg.name: inner}
+        # A single-level array (iter_count == 1) gets a constraint-valid list;
+        # nested `list[list[...]]` levels (iter_count > 1) carry no min_length>1
+        # or uniqueness constraint in any current schema, so minimal nesting
+        # suffices. Add per-level constraint handling here if one ever does --
+        # the row would otherwise be short on the unmutated `::valid` row.
+        if seg.iter_count == 1:
+            return {seg.name: _array_with_target(inner, field_spec, spec_name)}
         wrapped: Any = inner
         for _ in range(seg.iter_count):
             wrapped = [wrapped]
         return {seg.name: wrapped}
-    if remaining and field_spec is not None and has_array_layer(field_spec.shape):
-        return {seg.name: [inner]}
+    if remaining and has_array_layer(field_spec.shape):
+        return {seg.name: _array_with_target(inner, field_spec, spec_name)}
     return {seg.name: inner}
+
+
+def _array_with_target(
+    target_element: object, field_spec: FieldSpec, spec_name: str
+) -> list[Any]:
+    """Return a constraint-valid single-level list holding the target element.
+
+    `value_for_field` builds a list that satisfies the field's array
+    constraints (min length, unique items); the target-reaching element
+    replaces the first slot. A min_length>1 or uniqueness constraint then
+    holds on the unmutated `::valid` row -- a bare `[target_element]` would
+    leave the row short or, after `deep_merge` replaces the base row's list,
+    drop the elements that satisfied the constraint.
+    """
+    full = value_for_field(field_spec, spec_name)
+    if isinstance(full, list) and full:
+        full[0] = target_element
+        return full
+    return [target_element]
 
 
 def _element_discriminator(check: Check) -> _ElementDiscriminator | None:
@@ -191,8 +277,15 @@ def _element_discriminator(check: Check) -> _ElementDiscriminator | None:
     return None
 
 
-def generate_scaffold(check: Check, spec: ModelSpec) -> dict[str, Any]:
-    """Build a sparse dict from null to the target field of a Check."""
+def generate_scaffold(
+    check: Check, spec: ModelSpec, *, leaf_value: object = _UNSET
+) -> dict[str, Any]:
+    """Build a sparse dict from null to the target field of a Check.
+
+    `leaf_value`, when set, seeds that value at the target instead of the
+    field's synthesized value -- used to place a known-valid value (e.g. a
+    literal alternative) at the check's target for the `::valid` row.
+    """
     segments = check.target.segments
     if not segments:
         return {}
@@ -200,20 +293,28 @@ def generate_scaffold(check: Check, spec: ModelSpec) -> dict[str, Any]:
     if len(segments) == 1:
         seg0 = segments[0]
         field_spec = _find_field_spec(spec.fields, seg0.name)
-        if field_spec is None or field_spec.is_required:
+        if field_spec is None:
             return {}
-        return {seg0.name: value_for_field(field_spec, spec.name)}
+        # A `forbid_if` the base row triggers forbids this field; disable the
+        # condition so the field can be set without invalidating the row.
+        overrides = condition_overrides_for_present_field(spec, seg0.name)
+        if leaf_value is not _UNSET:
+            return {**overrides, seg0.name: _nest_leaf_value(leaf_value, field_spec)}
+        if field_spec.is_required:
+            return {}
+        return {**overrides, seg0.name: value_for_field(field_spec, spec.name)}
 
     return _walk_to_target(
         segments,
         spec.fields,
         spec.name,
         discriminator=_element_discriminator(check),
+        leaf_value=leaf_value,
     )
 
 
 def generate_model_scaffold(check: ModelCheck, spec: ModelSpec) -> dict[str, Any]:
-    """Build a sparse dict for a model-level check's nesting structure.
+    """Build a constraint-satisfying scaffold for a model-level check.
 
     Two target shapes need no scaffold and return `{}`:
 
@@ -225,55 +326,16 @@ def generate_model_scaffold(check: ModelCheck, spec: ModelSpec) -> dict[str, Any
       an array, a dict scaffold can't replace a base-row map entry under
       `deep_merge`'s recursive dict merge, so there is nothing to add here.
 
-    A top-level `ArrayPath` builds the array path; an `ArrayPath` whose
-    column lives inside a struct raises `NotImplementedError`. No schema
-    today places a list of model-constrained models inside a struct field,
-    so the case has no test coverage.
+    An `ArrayPath` walks the path with `_walk_to_target`: every model on the
+    way -- including the constrained model at the leaf -- is built as a valid
+    base row, so the constraint under test (e.g. a scope's `require_any_of`)
+    is satisfied on the unmutated `::valid` row and the only violation is the
+    one the mutation introduces.
     """
     match check.target:
         case ArrayPath() as target:
-            pass
+            return _walk_to_target(
+                target.segments, spec.fields, spec.name, discriminator=None
+            )
         case _:
             return {}
-    column_prefix = target.column_prefix
-    if column_prefix.segments:
-        raise NotImplementedError(
-            "Multi-segment column paths (struct fields containing arrays) "
-            "require walking the parent tree from the root to the array "
-            f"column; got {target!r}"
-        )
-
-    field_spec = _find_field_spec(spec.fields, target.column_path)
-    if field_spec is None:
-        return {}
-
-    inner_levels = target.iter_struct_paths
-    leaf_path = target.leaf
-
-    inner: dict[str, Any] = {}
-    root_model = terminal_model_ref(field_spec.shape)
-    current_fields: list[FieldSpec] = root_model.model.fields if root_model else []
-    nested = inner
-
-    for level in inner_levels:
-        for part in level:
-            child_spec = _find_field_spec(current_fields, part)
-            child_is_list = child_spec is not None and has_array_layer(child_spec.shape)
-            child_model = (
-                terminal_model_ref(child_spec.shape) if child_spec is not None else None
-            )
-            if child_is_list:
-                nested[part] = [{}]
-                nested = nested[part][0]
-            else:
-                nested[part] = {}
-                nested = nested[part]
-            current_fields = child_model.model.fields if child_model else []
-
-    for part in leaf_path:
-        nested[part] = {}
-        nested = nested[part]
-
-    if has_array_layer(field_spec.shape):
-        return {target.column_path: [inner]}
-    return {target.column_path: inner} if inner else {}

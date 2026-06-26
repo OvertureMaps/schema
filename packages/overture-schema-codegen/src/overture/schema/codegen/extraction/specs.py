@@ -170,7 +170,10 @@ class MemberSpec:
     spec: RecordSpec
 
 
-@dataclass
+# eq=False: contains mutable lists and a cached_property, so the
+# dataclass-generated __eq__ would compare by value over mutable fields and
+# __hash__ would be disabled (unhashable). Consumers key on object identity.
+@dataclass(eq=False)
 class UnionSpec:
     """Specification for a discriminated union type alias."""
 

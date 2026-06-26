@@ -227,14 +227,14 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::sources[].property:required",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", None),
         expected_field="sources[].property",
         expected_check="required",
     ),
     Scenario(
         id="segment::sources[].property:json_pointer",
-        scaffold={"sources": [{"dataset": "", "property": "/valid/pointer"}]},
+        scaffold={"sources": [{"property": "/valid/pointer", "dataset": ""}]},
         mutate=set_at_path("sources[].property", "no-slash"),
         expected_field="sources[].property",
         expected_check="json_pointer",
@@ -396,7 +396,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.mode_min_length:array_min_length",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"mode": ["vehicle"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.mode", []),
@@ -407,7 +410,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.mode_unique:struct_unique",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"mode": ["vehicle"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
+                }
             ]
         },
         mutate=lambda row: mutate_unique_items(row, "access_restrictions[].when.mode"),
@@ -418,7 +424,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.mode[]:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"mode": ["vehicle"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "mode": ["vehicle"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.mode[]", "__INVALID__"),
@@ -429,7 +438,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.using_min_length:array_min_length",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"using": ["as_customer"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "using": ["as_customer"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.using", []),
@@ -440,7 +452,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.using_unique:struct_unique",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"using": ["as_customer"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "using": ["as_customer"]},
+                }
             ]
         },
         mutate=lambda row: mutate_unique_items(row, "access_restrictions[].when.using"),
@@ -451,7 +466,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.using[]:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"using": ["as_customer"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "using": ["as_customer"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.using[]", "__INVALID__"),
@@ -462,7 +480,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.recognized_min_length:array_min_length",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"recognized": ["as_permitted"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.recognized", []),
@@ -473,7 +494,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.recognized_unique:struct_unique",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"recognized": ["as_permitted"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
+                }
             ]
         },
         mutate=lambda row: mutate_unique_items(
@@ -486,7 +510,10 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.recognized[]:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"recognized": ["as_permitted"]}}
+                {
+                    "access_type": "allowed",
+                    "when": {"heading": "forward", "recognized": ["as_permitted"]},
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.recognized[]", "__INVALID__"),
@@ -500,6 +527,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "access_type": "allowed",
                     "when": {
+                        "heading": "forward",
                         "vehicle": [
                             {
                                 "dimension": "height",
@@ -507,7 +535,7 @@ SCENARIOS: list[Scenario] = [
                                 "value": 0.0,
                                 "unit": "in",
                             }
-                        ]
+                        ],
                     },
                 }
             ]
@@ -523,6 +551,7 @@ SCENARIOS: list[Scenario] = [
                 {
                     "access_type": "allowed",
                     "when": {
+                        "heading": "forward",
                         "vehicle": [
                             {
                                 "dimension": "height",
@@ -530,7 +559,7 @@ SCENARIOS: list[Scenario] = [
                                 "value": 0.0,
                                 "unit": "in",
                             }
-                        ]
+                        ],
                     },
                 }
             ]
@@ -545,7 +574,20 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.vehicle[].dimension:required",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"vehicle": [{}]}}
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].dimension", None),
@@ -556,7 +598,20 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.vehicle[].dimension:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"vehicle": [{}]}}
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
             ]
         },
         mutate=set_at_path(
@@ -569,7 +624,20 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.vehicle[].comparison:required",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"vehicle": [{}]}}
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
             ]
         },
         mutate=set_at_path("access_restrictions[].when.vehicle[].comparison", None),
@@ -580,7 +648,20 @@ SCENARIOS: list[Scenario] = [
         id="segment::access_restrictions[].when.vehicle[].comparison:enum",
         scaffold={
             "access_restrictions": [
-                {"access_type": "allowed", "when": {"vehicle": [{}]}}
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
             ]
         },
         mutate=set_at_path(
@@ -595,7 +676,16 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "axle_count"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "axle_count",
+                                "comparison": "greater_than",
+                                "value": 0,
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -609,7 +699,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -623,7 +723,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -637,7 +747,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -651,7 +771,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "height"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -665,7 +795,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "weight"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "weight",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "oz",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -679,7 +819,17 @@ SCENARIOS: list[Scenario] = [
             "access_restrictions": [
                 {
                     "access_type": "allowed",
-                    "when": {"vehicle": [{"dimension": "weight"}]},
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "weight",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "oz",
+                            }
+                        ],
+                    },
                 }
             ]
         },
@@ -703,35 +853,39 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::connectors[].connector_id:required",
-        scaffold={"connectors": [{"connector_id": "a"}]},
+        scaffold={"connectors": [{"connector_id": "a"}, {"connector_id": "a1"}]},
         mutate=set_at_path("connectors[].connector_id", None),
         expected_field="connectors[].connector_id",
         expected_check="required",
     ),
     Scenario(
         id="segment::connectors[].connector_id:string_min_length",
-        scaffold={"connectors": [{"connector_id": "a"}]},
+        scaffold={"connectors": [{"connector_id": "a"}, {"connector_id": "a1"}]},
         mutate=set_at_path("connectors[].connector_id", ""),
         expected_field="connectors[].connector_id",
         expected_check="string_min_length",
     ),
     Scenario(
         id="segment::connectors[].connector_id:no_whitespace",
-        scaffold={"connectors": [{"connector_id": "a"}]},
+        scaffold={"connectors": [{"connector_id": "a"}, {"connector_id": "a1"}]},
         mutate=set_at_path("connectors[].connector_id", "has whitespace"),
         expected_field="connectors[].connector_id",
         expected_check="no_whitespace",
     ),
     Scenario(
         id="segment::connectors[].at_0:bounds",
-        scaffold={"connectors": [{"connector_id": "a", "at": 0.0}]},
+        scaffold={
+            "connectors": [{"connector_id": "a", "at": 0.0}, {"connector_id": "a1"}]
+        },
         mutate=set_at_path("connectors[].at", -1.0),
         expected_field="connectors[].at_0",
         expected_check="bounds",
     ),
     Scenario(
         id="segment::connectors[].at_1:bounds",
-        scaffold={"connectors": [{"connector_id": "a", "at": 0.0}]},
+        scaffold={
+            "connectors": [{"connector_id": "a", "at": 0.0}, {"connector_id": "a1"}]
+        },
         mutate=set_at_path("connectors[].at", 2.0),
         expected_field="connectors[].at_1",
         expected_check="bounds",
@@ -921,7 +1075,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="segment::names.rules[].value:required",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", None),
         expected_field="names.rules[].value",
@@ -930,7 +1084,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="segment::names.rules[].value:string_min_length",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", ""),
         expected_field="names.rules[].value",
@@ -939,7 +1093,7 @@ SCENARIOS: list[Scenario] = [
     Scenario(
         id="segment::names.rules[].value:stripped",
         scaffold={
-            "names": {"primary": "a", "rules": [{"variant": "common", "value": "a"}]}
+            "names": {"primary": "a", "rules": [{"value": "a", "variant": "common"}]}
         },
         mutate=set_at_path("names.rules[].value", " has spaces "),
         expected_field="names.rules[].value",
@@ -984,7 +1138,7 @@ SCENARIOS: list[Scenario] = [
                     {
                         "value": "a",
                         "variant": "common",
-                        "perspectives": {"countries": ["US"], "mode": "accepted_by"},
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
                     }
                 ],
             }
@@ -1002,7 +1156,7 @@ SCENARIOS: list[Scenario] = [
                     {
                         "value": "a",
                         "variant": "common",
-                        "perspectives": {"countries": ["US"], "mode": "accepted_by"},
+                        "perspectives": {"mode": "accepted_by", "countries": ["US"]},
                     }
                 ],
             }
@@ -1135,7 +1289,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:forbid_if:0",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_forbid_if(
             row,
             ["unit"],
@@ -1149,7 +1320,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:1",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -1163,7 +1351,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:2",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -1177,7 +1382,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:3",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -1191,7 +1413,24 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_if:4",
-        scaffold={"access_restrictions": [{"when": {"vehicle": [{}]}}]},
+        scaffold={
+            "access_restrictions": [
+                {
+                    "access_type": "allowed",
+                    "when": {
+                        "heading": "forward",
+                        "vehicle": [
+                            {
+                                "dimension": "height",
+                                "comparison": "greater_than",
+                                "value": 0.0,
+                                "unit": "in",
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
         mutate=lambda row: mutate_require_if(
             row,
             ["unit"],
@@ -1205,7 +1444,11 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         id="segment::model:require_any_of:5",
-        scaffold={"access_restrictions": [{"when": {}}]},
+        scaffold={
+            "access_restrictions": [
+                {"access_type": "allowed", "when": {"heading": "forward"}}
+            ]
+        },
         mutate=lambda row: mutate_require_any_of(
             row,
             ["heading", "during", "mode", "using", "recognized", "vehicle"],
@@ -1421,7 +1664,12 @@ def _assert_scenario(
 ) -> None:
     expected = (scenario.expected_field, scenario.expected_check)
     if scenario.id in validation_results.skipped:
-        pytest.skip(validation_results.skipped[scenario.id])
+        # An unbuildable scenario exercises nothing; fail loud rather than skip
+        # (a skip reads as a pass and hides codegen/scaffold gaps).
+        pytest.fail(
+            f"unbuildable scenario {scenario.id!r}: "
+            f"{validation_results.skipped[scenario.id]}"
+        )
     valid_violations = validation_results.violations.get(f"{scenario.id}::valid", set())
     assert expected not in valid_violations
     invalid_violations = validation_results.violations.get(

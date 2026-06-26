@@ -44,7 +44,7 @@ class TestDivisionAreaGeneration:
         content = generated.content
         # Hand-written checks: subtype, class, country, region, radio_group (is_land, is_territorial), admin_level
         for field in ["subtype", "class", "country", "region"]:
-            assert f'field="{field}"' in content, f"Missing check for {field}"
+            assert f"field='{field}'" in content, f"Missing check for {field}"
 
     def test_schema_has_expected_fields(self, generated: GeneratedModule) -> None:
         """Schema should contain all expected DivisionArea fields."""
