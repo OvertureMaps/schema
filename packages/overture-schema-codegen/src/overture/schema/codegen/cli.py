@@ -1,5 +1,6 @@
 """CLI entrypoint for schema code generation."""
 
+import importlib.metadata
 import json
 import logging
 from pathlib import Path, PurePosixPath
@@ -12,9 +13,12 @@ from overture.schema.system.discovery import (
     filter_models,
 )
 
+from .extraction.case_conversion import to_snake_case
 from .extraction.model_extraction import extract_model
 from .extraction.specs import (
     FeatureSpec,
+    ModelSpec,
+    UnionSpec,
     is_model_class,
     is_union_alias,
 )
@@ -24,6 +28,7 @@ from .layout.module_layout import (
     compute_schema_root,
     entry_point_class,
     entry_point_module,
+    output_dir_for_entry_point,
 )
 from .markdown.pipeline import generate_markdown_pages
 
@@ -31,7 +36,7 @@ log = logging.getLogger(__name__)
 
 __all__ = ["cli"]
 
-_OUTPUT_FORMATS = ("markdown",)
+_OUTPUT_FORMATS = ("markdown", "arrow")
 
 _FEATURE_FRONTMATTER = "---\nsidebar_position: 1\n---\n\n"
 
@@ -77,7 +82,7 @@ def list_models() -> None:
     "output_format",
     required=True,
     type=click.Choice(_OUTPUT_FORMATS),
-    help="Output format",
+    help="Output format: markdown or arrow.",
 )
 @tag_selection_options
 @click.option(
@@ -118,7 +123,12 @@ def generate(
                 )
             )
 
-    _generate_markdown(feature_specs, schema_root, output_dir)
+    if output_format == "markdown":
+        _generate_markdown(feature_specs, schema_root, output_dir)
+    elif output_format == "arrow":
+        _generate_arrow(feature_specs, schema_root, _schema_version(), output_dir)
+    else:
+        raise click.UsageError(f"Unknown format: {output_format!r}")
 
 
 def _generate_markdown(
@@ -182,6 +192,52 @@ def _write_category_files(
         file_path = output_dir / dir_path / "_category_.json"
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.write_text(json.dumps(category, indent=2) + "\n")
+
+
+def _schema_version() -> str | None:
+    """Resolve the installed overture-schema version, or None if unavailable."""
+    try:
+        return importlib.metadata.version("overture-schema")
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
+def _generate_arrow(
+    feature_specs: list[FeatureSpec],
+    schema_root: str,
+    version: str | None,
+    output_dir: Path | None,
+) -> None:
+    """Generate Arrow schema output (text or Parquet metadata files)."""
+    try:
+        import pyarrow.parquet as pq  # type: ignore[import-untyped]  # noqa: PLC0415
+    except ModuleNotFoundError as e:
+        raise click.UsageError(
+            "pyarrow is required for arrow output: "
+            "pip install overture-schema-codegen[arrow]"
+        ) from e
+
+    from .arrow_renderer import (  # noqa: PLC0415
+        model_spec_to_arrow_schema,
+        union_spec_to_arrow_schema,
+    )
+
+    for spec in feature_specs:
+        if isinstance(spec, ModelSpec):
+            schema = model_spec_to_arrow_schema(spec, version=version)
+        elif isinstance(spec, UnionSpec):
+            schema = union_spec_to_arrow_schema(spec, version=version)
+        else:
+            continue
+        slug = to_snake_case(spec.name)
+        rel_dir = output_dir_for_entry_point(spec.entry_point, schema_root)
+        if output_dir:
+            file_path = output_dir / rel_dir / f"{slug}.parquet"
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            pq.write_metadata(schema, str(file_path))
+        else:
+            content = f"# {spec.name}\n{schema.to_string()}"
+            _write_output(content, None, rel_dir / f"{slug}.arrow")
 
 
 def main() -> None:

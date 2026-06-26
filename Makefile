@@ -5,7 +5,7 @@ default: test-all
 install: uv-sync
 
 uv-sync:
-	@uv sync --all-packages 2> /dev/null
+	@uv sync --all-packages --all-extras 2> /dev/null
 
 check: uv-sync
 	@$(MAKE) -j test-only doctest-only lint-only mypy-only

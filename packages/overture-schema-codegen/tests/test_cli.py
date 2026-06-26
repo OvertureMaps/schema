@@ -396,6 +396,64 @@ class TestCliEntryPoint:
             )
 
 
+class TestArrowCLI:
+    """CLI generates Arrow output."""
+
+    def test_arrow_format_stdout(self, cli_runner: CliRunner) -> None:
+        """generate --format arrow should output Arrow schema to stdout."""
+        result = cli_runner.invoke(
+            cli, ["generate", "--format", "arrow", "--theme", "buildings"]
+        )
+        assert result.exit_code == 0
+        # Arrow schema .to_string() output contains field names
+        assert "id:" in result.output
+        assert "geometry:" in result.output
+
+    def test_arrow_format_output_dir(
+        self, cli_runner: CliRunner, tmp_path: Path
+    ) -> None:
+        """generate --format arrow --output-dir should write .parquet files."""
+        result = cli_runner.invoke(
+            cli,
+            [
+                "generate",
+                "--format",
+                "arrow",
+                "--theme",
+                "buildings",
+                "--output-dir",
+                str(tmp_path),
+            ],
+        )
+        assert result.exit_code == 0
+        parquet_files = list(tmp_path.rglob("*.parquet"))
+        assert len(parquet_files) > 0
+
+    def test_arrow_parquet_has_schema(
+        self, cli_runner: CliRunner, tmp_path: Path
+    ) -> None:
+        """Parquet files should contain valid Arrow schema."""
+        import pyarrow.parquet as pq  # type: ignore[import-untyped]  # noqa: PLC0415
+
+        result = cli_runner.invoke(
+            cli,
+            [
+                "generate",
+                "--format",
+                "arrow",
+                "--theme",
+                "buildings",
+                "--output-dir",
+                str(tmp_path),
+            ],
+        )
+        assert result.exit_code == 0
+        parquet_files = list(tmp_path.rglob("*.parquet"))
+        schema = pq.read_schema(parquet_files[0])
+        assert len(schema) > 0
+        assert "id" in schema.names
+
+
 class TestCliHelp:
     """Tests for CLI help."""
 

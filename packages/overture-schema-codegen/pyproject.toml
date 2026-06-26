@@ -19,6 +19,9 @@ name = "overture-schema-codegen"
 [project.scripts]
 overture-codegen = "overture.schema.codegen.cli:main"
 
+[project.optional-dependencies]
+arrow = ["pyarrow>=14.0"]
+
 [tool.uv.sources]
 overture-schema-cli = { workspace = true }
 overture-schema-common = { workspace = true }
