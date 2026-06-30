@@ -1,3 +1,5 @@
+from typing import cast
+
 import pytest
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic.json_schema import JsonDict
@@ -22,7 +24,7 @@ def test_error_not_enough_conditions(conditions: list[FieldEqCondition]) -> None
 @pytest.mark.parametrize("conditions", [["foo"], [FieldEqCondition("foo", True), 42]])
 def test_error_invalid_condition_types(conditions: list[object]) -> None:
     with pytest.raises(TypeError, match="`conditions` must contain only `Condition`"):
-        require_any_true(*conditions)
+        require_any_true(*cast(tuple[FieldEqCondition, ...], tuple(conditions)))
 
 
 @pytest.mark.parametrize(
