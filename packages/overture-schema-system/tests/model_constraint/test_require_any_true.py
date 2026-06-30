@@ -1,5 +1,3 @@
-from typing import Annotated, Union
-
 import pytest
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic.json_schema import JsonDict
@@ -7,47 +5,43 @@ from util import assert_subset
 
 from overture.schema.system import create_model
 from overture.schema.system.model_constraint import (
+    FieldEqCondition,
     ModelConstraint,
+    Not,
     RequireAnyTrueConstraint,
     require_any_true,
 )
 
 
-@pytest.mark.parametrize("field_names", [[], (), ["foo"], ("bar",)])
-def test_error_not_enough_field_names(field_names: list[str]) -> None:
-    with pytest.raises(
-        ValueError, match="`field_names` must contain at least two items"
-    ):
-        require_any_true(*field_names)
+@pytest.mark.parametrize("conditions", [[], ()])
+def test_error_not_enough_conditions(conditions: list[FieldEqCondition]) -> None:
+    with pytest.raises(ValueError, match="`conditions` must contain at least one item"):
+        require_any_true(*conditions)
 
 
-@pytest.mark.parametrize("field_names", [["foo", "foo"], ["bar", "foo", "bar"]])
-def test_error_duplicate_field_names(field_names: list[str]) -> None:
-    with pytest.raises(ValueError, match="`field_names` must not contain duplicates"):
-        require_any_true(*field_names)
+@pytest.mark.parametrize("conditions", [["foo"], [FieldEqCondition("foo", True), 42]])
+def test_error_invalid_condition_types(conditions: list[object]) -> None:
+    with pytest.raises(TypeError, match="`conditions` must contain only `Condition`"):
+        require_any_true(*conditions)
 
 
 @pytest.mark.parametrize(
     "constraint,model_class",
     [
         (
-            RequireAnyTrueConstraint("foo", "bar"),
-            create_model("case1", foo=(bool, ...), bar=(int, ...)),
+            RequireAnyTrueConstraint(FieldEqCondition("foo", True)),
+            create_model("case1", bar=(bool, ...)),
         ),
         (
-            RequireAnyTrueConstraint("bar", "baz"),
-            create_model(
-                "case2",
-                bar=(bool | None, ...),
-                baz=(Union[bool, int, None], ...),  # noqa: UP007
-            ),
+            RequireAnyTrueConstraint(Not(FieldEqCondition("foo", True))),
+            create_model("case2", bar=(bool, ...)),
         ),
         (
-            RequireAnyTrueConstraint("foo", "bar", "baz"),
+            RequireAnyTrueConstraint(FieldEqCondition("foo", True)),
             create_model(
                 "case3",
-                foo=(bool | None, ...),
-                bar=(Annotated[bool, "x"], ...),
+                bar=(bool | None, ...),
+                baz=(int | None, ...),
             ),
         ),
     ],
@@ -67,14 +61,14 @@ def test_error_invalid_model_class(
     [{}, {"foo": None, "bar": None}, {"foo": False, "bar": False}],
 )
 def test_error_no_true_value(kwargs: dict[str, bool | None]) -> None:
-    @require_any_true("foo", "bar")
+    @require_any_true(FieldEqCondition("foo", True), FieldEqCondition("bar", True))
     class TestModel(BaseModel):
         foo: bool | None = None
         bar: bool | None = None
 
     with pytest.raises(
         ValidationError,
-        match=r"at least one field from the `bool` field group \[foo, bar\] must be True, but none is True",
+        match=r"at least one field from the condition group \[foo, bar\] must be True, but none is True",
     ):
         TestModel(**kwargs)
 
@@ -84,7 +78,7 @@ def test_error_no_true_value(kwargs: dict[str, bool | None]) -> None:
     [(True, True), (True, False), (False, True), (None, True), (True, None)],
 )
 def test_valid_model_instance(foo: bool | None, bar: bool | None) -> None:
-    @require_any_true("foo", "bar")
+    @require_any_true(FieldEqCondition("foo", True), FieldEqCondition("bar", True))
     class TestModel(BaseModel):
         foo: bool | None = None
         bar: bool | None = None
@@ -92,8 +86,29 @@ def test_valid_model_instance(foo: bool | None, bar: bool | None) -> None:
     TestModel(foo=foo, bar=bar)
 
 
+def test_valid_model_instance_single_condition() -> None:
+    @require_any_true(FieldEqCondition("foo", "bar"))
+    class TestModel(BaseModel):
+        foo: str | None = None
+
+    TestModel(foo="bar")
+
+
+@pytest.mark.parametrize("kwargs", [{}, {"foo": None}, {"foo": "baz"}])
+def test_error_no_matching_generic_condition(kwargs: dict[str, str | None]) -> None:
+    @require_any_true(FieldEqCondition("foo", "bar"))
+    class TestModel(BaseModel):
+        foo: str | None = None
+
+    with pytest.raises(
+        ValidationError,
+        match=r"at least one condition from the condition group \[FieldEqCondition\(field_name='foo', value='bar'\)\] must be True, but none is True",
+    ):
+        TestModel(**kwargs)
+
+
 def test_model_json_schema_no_model_config() -> None:
-    @require_any_true("foo", "bar")
+    @require_any_true(FieldEqCondition("foo", True), FieldEqCondition("bar", True))
     class TestModel(BaseModel):
         foo: bool | None = None
         bar: bool | None = Field(default=None, alias="baz")
@@ -156,7 +171,7 @@ def test_model_json_schema_no_model_config() -> None:
 def test_model_json_schema_with_model_config(
     base_json_schema: JsonDict | None, expect: JsonDict
 ) -> None:
-    @require_any_true("foo", "bar")
+    @require_any_true(FieldEqCondition("foo", True), FieldEqCondition("bar", True))
     class TestModel(BaseModel):
         model_config = ConfigDict(json_schema_extra=base_json_schema)
 
@@ -167,8 +182,34 @@ def test_model_json_schema_with_model_config(
     assert_subset(expect, actual, "expect", "actual")
 
 
+def test_model_json_schema_with_generic_condition() -> None:
+    @require_any_true(
+        FieldEqCondition("foo", "bar"), Not(FieldEqCondition("baz", "qux"))
+    )
+    class TestModel(BaseModel):
+        foo: str | None = None
+        baz: str | None = None
+
+    actual = TestModel.model_json_schema()
+    expect = {
+        "anyOf": [
+            {
+                "required": ["foo"],
+                "properties": {"foo": {"const": "bar"}},
+            },
+            {
+                "not": {"properties": {"baz": {"const": "qux"}}},
+            },
+        ]
+    }
+    assert expect == TestModel.model_config["json_schema_extra"]
+    assert_subset(expect, actual, "expect", "actual")
+
+
 def test_model_constraints() -> None:
-    constraint = RequireAnyTrueConstraint("foo", "bar")
+    constraint = RequireAnyTrueConstraint(
+        FieldEqCondition("foo", True), FieldEqCondition("bar", True)
+    )
 
     class TestModel(BaseModel):
         foo: bool | None = None

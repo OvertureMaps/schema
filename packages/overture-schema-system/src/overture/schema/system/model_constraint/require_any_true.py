@@ -1,32 +1,30 @@
 """
-Require at least one field in a group of `bool` fields to have the value `True`.
+Require at least one condition in a group of conditions to evaluate to `True`.
 """
 
 from collections.abc import Callable
-from types import NoneType, UnionType
-from typing import Annotated, Any, Union, get_args, get_origin
 
 from pydantic import BaseModel, ConfigDict
+from pydantic.json_schema import JsonDict
 from typing_extensions import override
 
 from .._json_schema import get_static_json_schema_extra, put_any_of
-from .model_constraint import FieldGroupConstraint, apply_alias
+from .model_constraint import Condition, FieldEqCondition, ModelConstraint, apply_alias
 
 
-def require_any_true(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel]]:
+def require_any_true(
+    *conditions: Condition,
+) -> Callable[[type[BaseModel]], type[BaseModel]]:
     """
-    Decorate a Pydantic model class with a constraint requiring that at least one field in a group
-    of `bool` fields has the value `True`.
+    Decorate a Pydantic model class with a constraint requiring at least one condition in a group
+    of conditions to evaluate to `True`.
 
     This function is the decorator version of the `RequireAnyTrueConstraint` class.
 
-    Unlike `radio_group`, which requires *exactly one* field to be `True`, this constraint allows
-    multiple fields to be `True` simultaneously.
-
     Parameters
     ----------
-    *field_names : str
-        Varargs list of at least two unique field names.
+    *conditions : Condition
+        Varargs list of one or more conditions.
 
     Returns
     -------
@@ -36,8 +34,12 @@ def require_any_true(*field_names: str) -> Callable[[type[BaseModel]], type[Base
     Example
     -------
     >>> from pydantic import BaseModel, ValidationError
+    >>> from overture.schema.system.model_constraint import FieldEqCondition
     >>>
-    >>> @require_any_true("foo", "bar")
+    >>> @require_any_true(
+    ...     FieldEqCondition("foo", True),
+    ...     FieldEqCondition("bar", True),
+    ... )
     ... class MyModel(BaseModel):
     ...     foo: bool | None = None
     ...     bar: bool = True
@@ -53,99 +55,112 @@ def require_any_true(*field_names: str) -> Callable[[type[BaseModel]], type[Base
     ...     MyModel(bar=False)
     ... except ValidationError as e:
     ...    assert (
-    ...        "at least one field from the `bool` field group [foo, bar] must be True, "
+    ...        "at least one field from the condition group [foo, bar] must be True, "
     ...        "but none is True"
     ...    ) in str(e)
     ...    print("Validation failed")
     Validation failed
     """
     model_constraint = RequireAnyTrueConstraint._create_internal(
-        f"@{require_any_true.__name__}", *field_names
+        f"@{require_any_true.__name__}", *conditions
     )
 
     return model_constraint.decorate
 
 
-class RequireAnyTrueConstraint(FieldGroupConstraint):
+class RequireAnyTrueConstraint(ModelConstraint):
     """
     Class implementing the `require_any_true` decorator, which can also be used standalone.
     """
 
-    def __init__(self, *field_names: str):
-        super().__init__(
-            None, RequireAnyTrueConstraint.__validate_field_names(field_names)
-        )
+    def __init__(self, *conditions: Condition):
+        super().__init__(None)
+        self.__set_conditions(conditions)
 
     @classmethod
     def _create_internal(
-        cls, name: str, *field_names: str
+        cls, name: str, *conditions: Condition
     ) -> "RequireAnyTrueConstraint":
         instance = cls.__new__(cls)
-        super(RequireAnyTrueConstraint, instance).__init__(
-            name, RequireAnyTrueConstraint.__validate_field_names(field_names)
-        )
+        super(RequireAnyTrueConstraint, instance).__init__(name)
+        instance.__set_conditions(conditions)
         return instance
 
-    @staticmethod
-    def __validate_field_names(field_names: tuple[str, ...]) -> tuple[str, ...]:
-        if len(field_names) < 2:
+    @property
+    def conditions(self) -> tuple[Condition, ...]:
+        return self.__conditions
+
+    def __set_conditions(self, conditions: tuple[Condition, ...]) -> None:
+        if len(conditions) == 0:
             raise ValueError(
-                f"`field_names` must contain at least two items, but {field_names} has only {len(field_names)}"
+                "`conditions` must contain at least one item, but it is empty"
             )
-        return field_names
+        invalid_conditions = [c for c in conditions if not isinstance(c, Condition)]
+        if invalid_conditions:
+            raise TypeError(
+                f"`conditions` must contain only `{Condition.__name__}` values, but {repr(invalid_conditions[0])} has type `{type(invalid_conditions[0]).__name__}` (`{self.name}`)"
+            )
+        self.__conditions = conditions
+
+    @staticmethod
+    def __true_field_name(condition: Condition) -> str | None:
+        if (
+            isinstance(condition, FieldEqCondition)
+            and isinstance(condition.field_name, str)
+            and condition.value is True
+        ):
+            return condition.field_name
+        return None
+
+    def __validation_error_message(self) -> str:
+        true_field_names = [
+            field_name
+            for condition in self.conditions
+            if (field_name := self.__true_field_name(condition)) is not None
+        ]
+        if len(true_field_names) == len(self.conditions):
+            return (
+                "at least one field from the condition group "
+                f"[{', '.join(true_field_names)}] must be True, but none is True"
+            )
+        return (
+            "at least one condition from the condition group "
+            f"[{', '.join(repr(condition) for condition in self.conditions)}] "
+            "must be True, but none is True"
+        )
+
+    @staticmethod
+    def __condition_json_schema(
+        model_class: type[BaseModel], condition: Condition
+    ) -> JsonDict:
+        json_schema = condition.json_schema(model_class)
+        if isinstance(condition, FieldEqCondition):
+            alias = apply_alias(model_class, condition.field_name)
+            return {"required": [alias], **json_schema}
+        return json_schema
 
     @override
     def validate_class(self, model_class: type[BaseModel]) -> None:
         super().validate_class(model_class)
 
-        def is_bool(annotation: type[Any] | None) -> bool:
-            if annotation is bool:
-                return True
-            origin = get_origin(annotation)
-            if origin is Annotated:
-                return is_bool(get_args(annotation)[0])
-            elif get_origin(annotation) in (Union, UnionType):
-                args = get_args(annotation)
-                return any(is_bool(a) for a in args) and all(
-                    is_bool(a) or a in (None, NoneType) for a in args
-                )
-            else:
-                return False
-
-        non_bool_fields = [
-            f
-            for f in self.field_names
-            if not is_bool(model_class.model_fields[f].annotation)
-        ]
-        if non_bool_fields:
-            raise TypeError(
-                f"`{self.name}` specifies fields that have a non-`bool` type in the model class `{model_class.__name__}`: {', '.join(non_bool_fields)}"
-            )
+        for condition in self.conditions:
+            condition.validate_class(model_class)
 
     @override
     def validate_instance(self, model_instance: BaseModel) -> None:
         super().validate_instance(model_instance)
 
-        true_fields = [
-            f for f in self.field_names if getattr(model_instance, f) is True
-        ]
-
-        if len(true_fields) >= 1:
+        if any(condition.eval(model_instance) for condition in self.conditions):
             return
 
-        raise ValueError(
-            f"at least one field from the `bool` field group [{', '.join(self.field_names)}] "
-            f"must be True, but none is True (`{self.name}`)"
-        )
+        raise ValueError(f"{self.__validation_error_message()} (`{self.name}`)")
 
     @override
     def edit_config(self, model_class: type[BaseModel], config: ConfigDict) -> None:
         super().edit_config(model_class, config)
 
         json_schema = get_static_json_schema_extra(config)
-
-        def has_true_value(field_name: str) -> dict:
-            alias = apply_alias(model_class, field_name)
-            return {"required": [alias], "properties": {alias: {"const": True}}}
-
-        put_any_of(json_schema, [has_true_value(f) for f in self.field_names])
+        put_any_of(
+            json_schema,
+            [self.__condition_json_schema(model_class, c) for c in self.conditions],
+        )

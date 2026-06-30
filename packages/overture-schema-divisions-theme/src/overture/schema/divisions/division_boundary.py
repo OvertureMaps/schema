@@ -57,7 +57,10 @@ class BoundaryClass(str, DocumentedEnum):
 @require_if(["admin_level"], FieldEqCondition("subtype", DivisionSubtype.REGION))
 @require_if(["admin_level"], FieldEqCondition("subtype", DivisionSubtype.MACROCOUNTY))
 @require_if(["admin_level"], FieldEqCondition("subtype", DivisionSubtype.COUNTY))
-@require_any_true("is_land", "is_territorial")
+@require_any_true(
+    FieldEqCondition("is_land", True),
+    FieldEqCondition("is_territorial", True),
+)
 class DivisionBoundary(
     OvertureFeature[Literal["divisions"], Literal["division_boundary"]]
 ):
