@@ -165,9 +165,9 @@ def _describe_one(constraint: ModelConstraint) -> str | None:
         return f"At least one of {_backtick_join(constraint.field_names)} must be set"
     if isinstance(constraint, RequireAnyTrueConstraint):
         true_field_conditions = [
-            condition
+            field_eq
             for condition in constraint.conditions
-            if _unwrap_true_field_eq(condition) is not None
+            if (field_eq := _unwrap_true_field_eq(condition)) is not None
         ]
         if len(true_field_conditions) == len(constraint.conditions):
             return (
