@@ -106,15 +106,36 @@
           "title": "Property",
           "type": "string"
         },
+        "provider": {
+          "description": "The provider label for the entity that contributed this data\n(e.g., osm, meta, esri).",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+          "title": "Provider",
+          "type": "string"
+        },
         "record_id": {
           "description": "Identifies the specific record within the source dataset where the source data can\nbe found.\n\nThe format of record identifiers is dataset-specific.",
           "title": "Record Id",
+          "type": "string"
+        },
+        "resource": {
+          "description": "The subject or type of data contributed by the provider\n(e.g., planet, buildings, division_names).",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
+          "title": "Resource",
           "type": "string"
         },
         "update_time": {
           "description": "Last update time of the source data record.",
           "format": "date-time",
           "title": "Update Time",
+          "type": "string"
+        },
+        "version": {
+          "description": "A sortable identifier for the specific snapshot of the resource\n(e.g., 2026-02-13, 5.3, A5692).",
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Version",
           "type": "string"
         }
       },
