@@ -19,6 +19,7 @@ from overture.schema.system.model_constraint import (
     Not,
     RadioGroupConstraint,
     RequireAnyOfConstraint,
+    RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
 from overture.schema.system.primitive import GeometryType, GeometryTypeConstraint
@@ -58,6 +59,28 @@ class TestDescribeSingleConstraint:
         result = describe_model_constraints((constraint,))
 
         assert result == ["Exactly one of `is_land`, `is_territorial` must be `true`"]
+
+    def test_require_any_true_true_fields(self) -> None:
+        constraint = RequireAnyTrueConstraint._create_internal(
+            "@require_any_true",
+            FieldEqCondition("is_land", True),
+            FieldEqCondition("is_territorial", True),
+        )
+        result = describe_model_constraints((constraint,))
+
+        assert result == ["At least one of `is_land`, `is_territorial` must be `true`"]
+
+    def test_require_any_true_generic_conditions(self) -> None:
+        constraint = RequireAnyTrueConstraint._create_internal(
+            "@require_any_true",
+            FieldEqCondition("field_a", "foo"),
+            FieldEqCondition("field_b", "bar"),
+        )
+        result = describe_model_constraints((constraint,))
+
+        assert result == [
+            "At least one of these conditions must be true: `field_a` = `foo`, `field_b` = `bar`"
+        ]
 
     def test_min_fields_set(self) -> None:
         constraint = MinFieldsSetConstraint._create_internal("@min_fields_set", 3)
@@ -218,7 +241,11 @@ class TestMixedConstraints:
                 ["level"],
                 FieldEqCondition("subtype", "region"),
             ),
-            RadioGroupConstraint._create_internal("@radio_group", "is_land", "is_sea"),
+            RequireAnyTrueConstraint._create_internal(
+                "@require_any_true",
+                FieldEqCondition("is_land", True),
+                FieldEqCondition("is_sea", True),
+            ),
         )
         result = describe_model_constraints(constraints)
 
@@ -227,7 +254,7 @@ class TestMixedConstraints:
             "`parent_id` is forbidden when `subtype` = `country`",
             "`parent_id` is required when `subtype` ≠ `country`",
             "`level` is required when `subtype` is one of: `country`, `region`",
-            "Exactly one of `is_land`, `is_sea` must be `true`",
+            "At least one of `is_land`, `is_sea` must be `true`",
         ]
 
 
@@ -309,6 +336,17 @@ class TestFieldConstraintNotes:
         result = field_constraint_notes((constraint,))
 
         expected = "Exactly one of `is_land`, `is_sea` must be `true`"
+        assert result == {"is_land": [expected], "is_sea": [expected]}
+
+    def test_require_any_true_maps_condition_fields(self) -> None:
+        constraint = RequireAnyTrueConstraint._create_internal(
+            "@require_any_true",
+            FieldEqCondition("is_land", True),
+            FieldEqCondition("is_sea", True),
+        )
+        result = field_constraint_notes((constraint,))
+
+        expected = "At least one of `is_land`, `is_sea` must be `true`"
         assert result == {"is_land": [expected], "is_sea": [expected]}
 
     def test_multiple_constraints_on_one_field(self) -> None:

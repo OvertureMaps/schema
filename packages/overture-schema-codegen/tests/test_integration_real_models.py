@@ -234,28 +234,27 @@ class TestSegmentUnionExtraction:
         assert "id" in segment_spec.common_base.model_fields
 
 
+@pytest.fixture(scope="module")
+def pages() -> list:
+    """Generate all pages from real discovered models."""
+    models = discover_models()
+    feature_specs: list[FeatureSpec] = []
+    for key, entry in models.items():
+        if is_model_class(entry):
+            feature_specs.append(extract_model(entry, entry_point=key.entry_point))
+        elif is_union_alias(entry):
+            feature_specs.append(
+                extract_union(
+                    entry_point_class(key.entry_point),
+                    entry,
+                    entry_point=key.entry_point,
+                )
+            )
+    return generate_markdown_pages(feature_specs, "overture.schema")
+
+
 class TestPydanticTypePages:
     """End-to-end: pipeline produces pages for referenced Pydantic built-in types."""
-
-    _SCHEMA_ROOT = "overture.schema"
-
-    @pytest.fixture(scope="class")
-    def pages(self) -> list:
-        """Generate all pages from real discovered models."""
-        models = discover_models()
-        feature_specs: list[FeatureSpec] = []
-        for key, entry in models.items():
-            if is_model_class(entry):
-                feature_specs.append(extract_model(entry, entry_point=key.entry_point))
-            elif is_union_alias(entry):
-                feature_specs.append(
-                    extract_union(
-                        entry_point_class(key.entry_point),
-                        entry,
-                        entry_point=key.entry_point,
-                    )
-                )
-        return generate_markdown_pages(feature_specs, self._SCHEMA_ROOT)
 
     def test_http_url_page_exists(self, pages: list) -> None:
         """Pipeline produces a page for HttpUrl under pydantic/networks/."""

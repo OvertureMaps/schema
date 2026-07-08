@@ -18,6 +18,7 @@ from overture.schema.system.model_constraint import (
     Not,
     RadioGroupConstraint,
     RequireAnyOfConstraint,
+    RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
 
@@ -69,6 +70,12 @@ def _describe_condition(condition: object) -> str:
         op = "≠" if negated else "="
         return f"`{field_eq.field_name}` {op} `{field_eq.value}`"
     return str(condition)
+
+
+def _unwrap_true_field_eq(condition: object) -> FieldEqCondition | None:
+    if isinstance(condition, FieldEqCondition) and condition.value is True:
+        return condition
+    return None
 
 
 def _describe_conditional(constraint: _ConditionalConstraint) -> str:
@@ -143,6 +150,10 @@ def _affected_field_names(constraint: ModelConstraint) -> frozenset[str]:
         )
     if isinstance(constraint, (RequireAnyOfConstraint, RadioGroupConstraint)):
         return frozenset(constraint.field_names)
+    if isinstance(constraint, RequireAnyTrueConstraint):
+        return frozenset().union(
+            *(_condition_field_names(condition) for condition in constraint.conditions)
+        )
     return frozenset()
 
 
@@ -152,6 +163,21 @@ def _describe_one(constraint: ModelConstraint) -> str | None:
         return None
     if isinstance(constraint, RequireAnyOfConstraint):
         return f"At least one of {_backtick_join(constraint.field_names)} must be set"
+    if isinstance(constraint, RequireAnyTrueConstraint):
+        true_field_conditions = [
+            field_eq
+            for condition in constraint.conditions
+            if (field_eq := _unwrap_true_field_eq(condition)) is not None
+        ]
+        if len(true_field_conditions) == len(constraint.conditions):
+            return (
+                "At least one of "
+                f"{_backtick_join(tuple(c.field_name for c in true_field_conditions))} "
+                "must be `true`"
+            )
+        return "At least one of these conditions must be true: " + ", ".join(
+            _describe_condition(condition) for condition in constraint.conditions
+        )
     if isinstance(constraint, RadioGroupConstraint):
         return f"Exactly one of {_backtick_join(constraint.field_names)} must be `true`"
     if isinstance(constraint, MinFieldsSetConstraint):

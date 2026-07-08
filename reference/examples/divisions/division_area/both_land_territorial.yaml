@@ -1,0 +1,27 @@
+---
+id: example:division_area:both_land_territorial:country:us
+type: Feature
+geometry:
+  type: Polygon
+  coordinates: [
+    [
+      [-82.8732511, 24.4116731],
+      [-82.5948517, 24.5902399],
+      [-82.7300073, 24.8395704],
+      [-83.153058, 24.6776636],
+      [-82.8732511, 24.4116731]
+    ]
+  ]
+properties:
+  theme: divisions
+  type: division_area
+  subtype: country
+  is_land: true
+  is_territorial: true
+  country: US
+  admin_level: 0
+  version: 0
+  class: land
+  division_id: example:division:country:us
+  names:
+    primary: United States

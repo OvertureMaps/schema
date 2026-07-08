@@ -142,7 +142,8 @@ class TestScoped:
                 pass
 
     @pytest.mark.parametrize(
-        "scope,required", itertools.product(Scope._top_level_scopes(), (False, True))
+        "scope,required",
+        list(itertools.product(Scope._top_level_scopes(), (False, True))),
     )
     def test_single_scope_top_level(self, scope: Scope, required: bool) -> None:
         if required:
@@ -162,7 +163,8 @@ class TestScoped:
         assert field_info.is_required() == required
 
     @pytest.mark.parametrize(
-        "scope,required", itertools.product(Scope._when_scopes(), (False, True))
+        "scope,required",
+        list(itertools.product(Scope._when_scopes(), (False, True))),
     )
     def test_single_scope_when(self, scope: Scope, required: bool) -> None:
         if required:
