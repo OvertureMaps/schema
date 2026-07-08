@@ -67,5 +67,13 @@ jobs:
         if: matrix.resolution == 'lowest-direct'
         run: echo "UV_RESOLUTION=lowest-direct" >> "$GITHUB_ENV"
 
+      # Fail fast if uv.lock is stale (e.g. a pyproject.toml version bump
+      # landed without a matching `uv lock` run). Only for the default
+      # resolution cells -- lowest-direct intentionally re-resolves away
+      # from the committed lock, so `--locked` would always fail there.
+      - name: Configure lock check
+        if: matrix.resolution == 'default'
+        run: echo "UV_LOCKED=1" >> "$GITHUB_ENV"
+
       - name: Run make check
         run: make check

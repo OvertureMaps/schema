@@ -2,13 +2,26 @@ name: Compute versions (dry run)
 
 # Runs on pushes to vnext and main. Computes and logs the version that would
 # be published for each affected package — but does not build or publish.
-# Remove this workflow once Phase 3 publish workflows are live.
+# Also runs (read-only) on PRs that touch the compute-version/code-artifact
+# composite actions or this workflow itself, as a smoke test for those.
+# Remove this workflow once Phase 3 publish workflows are live (see
+# https://github.com/OvertureMaps/schema/issues/509).
 
 on:
+  # Real usage: logs the version that would be published for the actual
+  # branch context.
   push:
     branches: [main, vnext]
     paths:
       - '**/pyproject.toml'
+  # Test usage: smoke-tests the compute-version/code-artifact composite
+  # actions (and this workflow) against a placeholder context on PRs that
+  # touch them, so wiring regressions surface before merge.
+  pull_request:
+    paths:
+      - '.github/actions/compute-version/**'
+      - '.github/actions/code-artifact/**'
+      - '.github/workflows/compute-versions-dry-run.yaml'
   workflow_dispatch:
     inputs:
       context:
@@ -21,24 +34,18 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  compute-versions:
-    name: Compute versions
+  discover:
+    name: Discover context and packages${{ github.event_name == 'pull_request' && ' (test)' || '' }}
     if: github.event.repository.full_name == github.repository
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write # Required for OIDC authentication to AWS
-
+    outputs:
+      context: ${{ steps.context.outputs.value }}
+      packages: ${{ steps.packages.outputs.value }}
     steps:
-      - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-        with:
-          version: latest
-
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -58,6 +65,37 @@ jobs:
             echo "value=main" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Discover packages
+        id: packages
+        run: |
+          packages=$(for pkg_dir in packages/overture-schema*/; do
+            [ -f "${pkg_dir}/pyproject.toml" ] && basename "$pkg_dir"
+          done | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "value=${packages}" >> "$GITHUB_OUTPUT"
+
+  compute-versions:
+    name: Compute version (${{ matrix.package }})${{ github.event_name == 'pull_request' && ' (test)' || '' }}
+    needs: discover
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC authentication to AWS
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.discover.outputs.packages) }}
+
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: latest
+
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
@@ -69,56 +107,20 @@ jobs:
         id: ca
         uses: ./.github/actions/code-artifact
 
-      - name: Compute version for each package
-        env:
-          CONTEXT: ${{ steps.context.outputs.value }}
-          INDEX_URL: ${{ steps.ca.outputs.index_url }}
+      # Delegates to the same composite action Phase 3 publish workflows will
+      # use, so the version formula only has one implementation to keep correct.
+      - name: Compute version
+        id: compute
+        uses: ./.github/actions/compute-version
+        with:
+          package: ${{ matrix.package }}
+          context: ${{ needs.discover.outputs.context }}
+          index_url: ${{ steps.ca.outputs.index_url }}
+
+      - name: Report computed version
         run: |
-          echo "## Computed versions (context: ${CONTEXT})" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Computed version: \`${{ matrix.package }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Package | Version |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---------|---------|" >> "$GITHUB_STEP_SUMMARY"
-
-          for pkg_dir in packages/overture-schema*/; do
-            pkg=$(basename "$pkg_dir")
-            [ -f "${pkg_dir}/pyproject.toml" ] || continue
-
-            SEED=$(cd "$pkg_dir" && uv version --short)
-            MAJOR_MINOR=$(echo "$SEED" | grep -oE '^[0-9]+\.[0-9]+')
-
-            # Resolve latest from CA
-            resolve_latest() {
-              local output
-              output=$(echo "$1" \
-                | uv pip compile - --index-url "$INDEX_URL" --no-deps --quiet 2>&1) || {
-                echo "ERROR: uv pip compile failed for '$1':" >&2
-                echo "$output" >&2
-                exit 1
-              }
-              echo "$output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true
-            }
-
-            case "$CONTEXT" in
-              vnext)
-                LATEST=$(resolve_latest "$pkg")
-                BASE="${LATEST:-${MAJOR_MINOR}.0}"
-                VERSION="${BASE}+dev.${GITHUB_RUN_NUMBER}"
-                ;;
-              main)
-                LATEST_IN_SERIES=$(resolve_latest "${pkg}>=${MAJOR_MINOR}.0,<${MAJOR_MINOR}.99999")
-                if [ -n "$LATEST_IN_SERIES" ]; then
-                  CURRENT_PATCH=$(echo "$LATEST_IN_SERIES" | grep -oE '[0-9]+$')
-                  NEXT_PATCH=$((CURRENT_PATCH + 1))
-                else
-                  NEXT_PATCH=0
-                fi
-                VERSION="${MAJOR_MINOR}.${NEXT_PATCH}"
-                ;;
-              main-bump)
-                VERSION="${MAJOR_MINOR}.0"
-                ;;
-            esac
-
-            echo "| \`${pkg}\` | \`${VERSION}\` |" >> "$GITHUB_STEP_SUMMARY"
-            echo "  ${pkg} → ${VERSION}"
-          done
+          echo "Context: \`${{ needs.discover.outputs.context }}\`  " >> "$GITHUB_STEP_SUMMARY"
+          echo "Version: \`${{ steps.compute.outputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "  ${{ matrix.package }} → ${{ steps.compute.outputs.version }}"

@@ -60,10 +60,15 @@ runs:
         resolve_latest() {
           local constraint="$1"
           local output
-          # uv pip compile exits non-zero on network/auth errors; let those surface.
-          # "Could not find a version" is a normal empty-result — grep returns 1, which is OK.
+          # uv pip compile exits non-zero both when nothing matches (a normal
+          # "not published yet" result) and on real failures (network/auth/etc).
+          # Only treat the former as benign; anything else must surface and fail.
           output=$(echo "$constraint" \
             | uv pip compile - --index-url "$INDEX_URL" --no-deps --quiet 2>&1) || {
+            if echo "$output" | grep -qiE 'no solution found|could not find a version|not found in the package registry'; then
+              echo ""
+              return 0
+            fi
             echo "ERROR: uv pip compile failed for '${constraint}':" >&2
             echo "$output" >&2
             exit 1
