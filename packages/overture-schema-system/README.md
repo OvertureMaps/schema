@@ -88,6 +88,7 @@ class Contact(BaseModel):
 ```
 
 - `@require_any_of("a", "b", ...)` -- at least one field must be non-None
+- `@require_any_true(cond1, cond2, ...)` -- at least one condition must evaluate to true
 - `@radio_group("a", "b", ...)` -- at most one field may be truthy
 - `@require_if("target", condition)` -- field required when condition holds
 - `@forbid_if("target", condition)` -- field forbidden when condition holds

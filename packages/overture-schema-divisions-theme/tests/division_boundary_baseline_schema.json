@@ -417,6 +417,28 @@
           }
         }
       ],
+      "anyOf": [
+        {
+          "properties": {
+            "is_land": {
+              "const": true
+            }
+          },
+          "required": [
+            "is_land"
+          ]
+        },
+        {
+          "properties": {
+            "is_territorial": {
+              "const": true
+            }
+          },
+          "required": [
+            "is_territorial"
+          ]
+        }
+      ],
       "not": {
         "required": [
           "id",
@@ -424,22 +446,6 @@
           "geometry"
         ]
       },
-      "oneOf": [
-        {
-          "properties": {
-            "is_land": {
-              "const": true
-            }
-          }
-        },
-        {
-          "properties": {
-            "is_territorial": {
-              "const": true
-            }
-          }
-        }
-      ],
       "patternProperties": {
         "^ext_.*$": {
           "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."

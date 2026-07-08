@@ -1,5 +1,5 @@
 ---
-id: example:division_boundary:is_land:country:us
+id: example:division_boundary:both_land_territorial:country:us
 type: Feature
 geometry:
   type: LineString
@@ -9,9 +9,8 @@ properties:
   type: division_boundary
   version: 1
   subtype: country
+  admin_level: 0
   is_land: true
   is_territorial: true
   class: land
   division_ids: ["example:division:country:left", "example:division:country:right"]
-  ext_expected_errors:
-    - "oneOf failed, subschemas 0, 1 matched"
