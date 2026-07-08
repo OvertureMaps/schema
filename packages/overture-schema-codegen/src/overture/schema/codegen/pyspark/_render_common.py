@@ -4,7 +4,6 @@ Concerns:
 
 - `jinja_env` -- the cached Jinja2 environment.
 - `py_literal` / `tuple_literal` -- render Python values back to source code.
-- `parse_field_eq` -- unwrap a `FieldEqCondition` / `Not(FieldEqCondition)`.
 - schema constant naming -- `schema_const_name` (the cross-module contract
   between expression and test modules).
 - check/label naming -- `check_name`, `field_label`, `column_level_suffix`,
@@ -28,16 +27,11 @@ from collections.abc import Hashable, Iterable
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import NamedTuple, TypeVar
+from typing import TypeVar
 
 from jinja2 import Environment, FileSystemLoader
 
 from overture.schema.system.field_path import ArrayPath, MapProjection
-from overture.schema.system.model_constraint import (
-    Condition,
-    FieldEqCondition,
-    Not,
-)
 
 from .check_ir import Check, ModelCheck
 from .constraint_dispatch import ForbidIf, RequireIf, model_constraint_function
@@ -45,7 +39,6 @@ from .constraint_dispatch import ForbidIf, RequireIf, model_constraint_function
 __all__ = [
     "COLUMN_LEVEL_FUNCTIONS",
     "FieldCheckRow",
-    "FieldEq",
     "ModelCheckRow",
     "check_name",
     "column_level_suffix",
@@ -55,9 +48,7 @@ __all__ = [
     "jinja_env",
     "map_runtime_helper",
     "model_check_rows",
-    "parse_field_eq",
     "py_literal",
-    "require_field_eq",
     "sanitize_field_name",
     "schema_const_name",
     "tuple_literal",
@@ -167,44 +158,6 @@ def py_literal(value: object) -> str:
         # (set iteration order is not).
         return "frozenset({" + ", ".join(sorted(py_literal(v) for v in value)) + "})"
     return repr(value)
-
-
-class FieldEq(NamedTuple):
-    """An unwrapped `FieldEqCondition`, with `negated` set when wrapped in `Not`."""
-
-    field_name: str
-    value: object
-    negated: bool
-
-
-def parse_field_eq(condition: Condition) -> FieldEq | None:
-    """Unwrap a `FieldEqCondition` or `Not(FieldEqCondition)`.
-
-    Returns a `FieldEq` triple for either shape, or `None` for any
-    other condition. `negated` is True iff the condition was wrapped
-    in `Not`.
-    """
-    match condition:
-        case Not(inner=FieldEqCondition(field_name=fn, value=v)):
-            return FieldEq(fn, v, True)
-        case FieldEqCondition(field_name=fn, value=v):
-            return FieldEq(fn, v, False)
-        case _:
-            return None
-
-
-def require_field_eq(condition: Condition) -> FieldEq:
-    """Unwrap a field-equality condition, raising on any other shape.
-
-    The strict companion to `parse_field_eq`, for callers that only
-    handle `FieldEqCondition` / `Not(FieldEqCondition)`: a new condition
-    subtype fails loudly here, in one place, rather than slipping through
-    several independent `None` checks with drifting error messages.
-    """
-    parsed = parse_field_eq(condition)
-    if parsed is None:
-        raise TypeError(f"Unhandled condition type: {type(condition).__name__}")
-    return parsed
 
 
 def check_name(function: str, override: str | None = None) -> str:

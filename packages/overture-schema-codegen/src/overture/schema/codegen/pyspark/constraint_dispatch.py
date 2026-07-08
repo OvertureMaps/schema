@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, TypeAlias
+from typing import Any, NamedTuple, TypeAlias
 
 from annotated_types import Ge, Gt, Interval, Le, Lt
 from pydantic import Strict
@@ -26,11 +26,14 @@ from overture.schema.system.field_constraint.string import (
 from overture.schema.system.field_path import FieldPath
 from overture.schema.system.model_constraint import (
     Condition,
+    FieldEqCondition,
     ForbidIfConstraint,
     MinFieldsSetConstraint,
     NoExtraFieldsConstraint,
+    Not,
     RadioGroupConstraint,
     RequireAnyOfConstraint,
+    RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
 from overture.schema.system.primitive import GeometryTypeConstraint
@@ -52,11 +55,13 @@ from ._primitive_fill import PRIMITIVE_FILL_TABLE
 
 __all__ = [
     "ExpressionDescriptor",
+    "FieldEq",
     "ForbidIf",
     "MinFieldsSet",
     "ModelConstraintDescriptor",
     "RadioGroup",
     "RequireAnyOf",
+    "RequireAnyTrue",
     "RequireIf",
     "dispatch_base_type",
     "dispatch_constraint",
@@ -65,6 +70,9 @@ __all__ = [
     "forbid_if_field_shapes",
     "model_constraint_function",
     "model_mutation_function",
+    "parse_field_eq",
+    "require_bool_field_eq",
+    "require_field_eq",
 ]
 
 
@@ -408,11 +416,102 @@ def dispatch_base_type(base_type: str) -> tuple[ExpressionDescriptor, ...] | Non
     return _BASE_TYPE_DISPATCH.get(base_type)
 
 
+class FieldEq(NamedTuple):
+    """An unwrapped `FieldEqCondition`, with `negated` set when wrapped in `Not`."""
+
+    field_name: str
+    value: object
+    negated: bool
+
+
+def parse_field_eq(condition: Condition) -> FieldEq | None:
+    """Unwrap a `FieldEqCondition` or `Not(FieldEqCondition)`.
+
+    Returns a `FieldEq` triple for either shape, or `None` for any
+    other condition. `negated` is True iff the condition was wrapped
+    in `Not`.
+    """
+    match condition:
+        case Not(inner=FieldEqCondition(field_name=fn, value=v)):
+            return FieldEq(fn, v, True)
+        case FieldEqCondition(field_name=fn, value=v):
+            return FieldEq(fn, v, False)
+        case _:
+            return None
+
+
+def require_field_eq(condition: Condition) -> FieldEq:
+    """Unwrap a field-equality condition, raising on any other shape.
+
+    The strict companion to `parse_field_eq`, for callers that only
+    handle `FieldEqCondition` / `Not(FieldEqCondition)`: a new condition
+    subtype fails loudly here, in one place, rather than slipping through
+    several independent `None` checks with drifting error messages.
+    """
+    parsed = parse_field_eq(condition)
+    if parsed is None:
+        raise TypeError(f"Unhandled condition type: {type(condition).__name__}")
+    return parsed
+
+
+def require_bool_field_eq(condition: Condition) -> FieldEq:
+    """Unwrap a positive boolean `FieldEqCondition`, raising otherwise.
+
+    `require_any_true` PySpark support is limited to positive boolean-flag
+    equalities: the runtime coalesces a null condition to False (sound only
+    for a positive equality), and the test-data disabling value is the
+    boolean's negation. Negation or a non-boolean value raises here, so
+    every consumer -- dispatch, base-row synthesis, test rendering -- accepts
+    exactly the same set rather than each enforcing a different subset.
+    """
+    field_eq = require_field_eq(condition)
+    if field_eq.negated or not isinstance(field_eq.value, bool):
+        raise TypeError(
+            "require_any_true PySpark generation supports only positive "
+            f"boolean FieldEqConditions; got {condition!r}"
+        )
+    return field_eq
+
+
 @dataclass(frozen=True, slots=True)
 class RequireAnyOf:
     """Descriptor for `check_require_any_of`: at least one field must be set."""
 
     field_names: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class RequireAnyTrue:
+    """Descriptor for `check_require_any_true`: at least one condition holds.
+
+    Carries the raw `Condition`s so the renderer can lower each to a
+    Spark boolean expression (reusing the `require_if` condition path).
+    Unlike `RequireAnyOf`, which tests field presence, each condition
+    tests a field value -- the divisions case is all
+    `FieldEqCondition(field, True)`.
+
+    Construction enforces the positive-boolean invariant (via
+    `require_bool_field_eq`), so every instance is valid by construction and
+    the `field_names` and renderer paths need not re-check.
+    """
+
+    conditions: tuple[Condition, ...]
+
+    def __post_init__(self) -> None:
+        for c in self.conditions:
+            require_bool_field_eq(c)
+
+    @property
+    def field_names(self) -> tuple[str, ...]:
+        """Fields the conditions reference -- the columns this constraint governs.
+
+        Derived from `conditions` so `RequireAnyTrue` presents the same
+        `field_names` interface as the presence-based descriptors, letting
+        generic consumers (read-column tracking, node filtering) treat every
+        model-constraint descriptor uniformly. The value-vs-presence
+        distinction is carried by the descriptor type, not this attribute.
+        """
+        return tuple(require_field_eq(c).field_name for c in self.conditions)
 
 
 @dataclass(frozen=True, slots=True)
@@ -464,7 +563,7 @@ class MinFieldsSet:
 
 
 ModelConstraintDescriptor: TypeAlias = (
-    RequireAnyOf | RadioGroup | RequireIf | ForbidIf | MinFieldsSet
+    RequireAnyOf | RequireAnyTrue | RadioGroup | RequireIf | ForbidIf | MinFieldsSet
 )
 """One variant per model-constraint kind.
 
@@ -582,6 +681,11 @@ def dispatch_model_constraint(
                 constraint.field_names, {f.name: f for f in fields}
             )
             return (RequireAnyOf(field_names=unwrapped),)
+        case RequireAnyTrueConstraint():
+            # `RequireAnyTrue.__post_init__` enforces the positive-boolean set
+            # the whole pipeline (runtime, renderer, base row, test renderer)
+            # depends on, so a bad condition raises here at construction.
+            return (RequireAnyTrue(conditions=constraint.conditions),)
         case RadioGroupConstraint():
             return (RadioGroup(field_names=constraint.field_names),)
         case RequireIfConstraint():
@@ -619,6 +723,7 @@ def dispatch_model_constraint(
 
 _MODEL_CONSTRAINT_DISPATCH: dict[type[ModelConstraintDescriptor], tuple[str, str]] = {
     RequireAnyOf: ("check_require_any_of", "mutate_require_any_of"),
+    RequireAnyTrue: ("check_require_any_true", "mutate_require_any_true"),
     RadioGroup: ("check_radio_group", "mutate_radio_group"),
     RequireIf: ("check_require_if", "mutate_require_if"),
     ForbidIf: ("check_forbid_if", "mutate_forbid_if"),

@@ -18,7 +18,7 @@ from ....._support.harness import (
 from ....._support.helpers import set_at_path
 from ....._support.mutations import (
     mutate_forbid_if,
-    mutate_radio_group,
+    mutate_require_any_true,
     mutate_require_if,
     mutate_unique_items,
 )
@@ -53,6 +53,9 @@ BASE_ROW_POPULATED: dict = {
             "record_id": "",
             "update_time": "2024-01-01T00:00:00Z",
             "confidence": 0.0,
+            "provider": "a",
+            "resource": "a",
+            "version": "a",
             "between": [0.0, 1.0],
         }
     ],
@@ -242,6 +245,60 @@ SCENARIOS: list[Scenario] = [
         expected_check="bounds",
     ),
     Scenario(
+        id="division_boundary::sources[].provider:string_min_length",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "provider": "a"}]
+        },
+        mutate=set_at_path("sources[].provider", ""),
+        expected_field="sources[].provider",
+        expected_check="string_min_length",
+    ),
+    Scenario(
+        id="division_boundary::sources[].provider:snake_case",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "provider": "a"}]
+        },
+        mutate=set_at_path("sources[].provider", "HAS SPACES"),
+        expected_field="sources[].provider",
+        expected_check="snake_case",
+    ),
+    Scenario(
+        id="division_boundary::sources[].resource:string_min_length",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "resource": "a"}]
+        },
+        mutate=set_at_path("sources[].resource", ""),
+        expected_field="sources[].resource",
+        expected_check="string_min_length",
+    ),
+    Scenario(
+        id="division_boundary::sources[].resource:snake_case",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "resource": "a"}]
+        },
+        mutate=set_at_path("sources[].resource", "HAS SPACES"),
+        expected_field="sources[].resource",
+        expected_check="snake_case",
+    ),
+    Scenario(
+        id="division_boundary::sources[].version:string_min_length",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "version": "a"}]
+        },
+        mutate=set_at_path("sources[].version", ""),
+        expected_field="sources[].version",
+        expected_check="string_min_length",
+    ),
+    Scenario(
+        id="division_boundary::sources[].version:no_whitespace",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "version": "a"}]
+        },
+        mutate=set_at_path("sources[].version", "has whitespace"),
+        expected_field="sources[].version",
+        expected_check="no_whitespace",
+    ),
+    Scenario(
         id="division_boundary::sources[].between:linear_range_length",
         scaffold={
             "sources": [
@@ -415,11 +472,13 @@ SCENARIOS: list[Scenario] = [
         expected_check="country_code_alpha2",
     ),
     Scenario(
-        id="division_boundary::model:radio_group:0",
+        id="division_boundary::model:require_any_true:0",
         scaffold={},
-        mutate=lambda row: mutate_radio_group(row, ["is_land", "is_territorial"]),
-        expected_field="radio_group",
-        expected_check="radio_group",
+        mutate=lambda row: mutate_require_any_true(
+            row, {"is_land": False, "is_territorial": False}
+        ),
+        expected_field="require_any_true",
+        expected_check="require_any_true",
     ),
     Scenario(
         id="division_boundary::model:require_if:1",

@@ -20,6 +20,7 @@ from overture.schema.system.model_constraint import (
     MinFieldsSetConstraint,
     RadioGroupConstraint,
     RequireAnyOfConstraint,
+    RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
 from overture.schema.system.primitive.geom import (
@@ -50,8 +51,13 @@ from ...extraction.length_constraints import ArrayMinLen
 from ...extraction.specs import FieldSpec, ModelSpec, RecordSpec, UnionSpec
 from ...extraction.type_registry import primitive_spark_category
 from .._primitive_fill import PRIMITIVE_FILL_TABLE
-from .._render_common import FieldEq, require_field_eq
-from ..constraint_dispatch import ExpressionDescriptor, dispatch_constraint
+from ..constraint_dispatch import (
+    ExpressionDescriptor,
+    FieldEq,
+    dispatch_constraint,
+    require_bool_field_eq,
+    require_field_eq,
+)
 from ..schema_builder import spark_type_rank
 from .constraint_values import (
     CONSTRAINT_VALUES,
@@ -238,6 +244,16 @@ def _build_arm_rows(
     return result
 
 
+def _condition_value(field_eq: FieldEq) -> object:
+    """The condition's comparison value, with an `Enum` unwrapped to its value.
+
+    Row dicts store raw scalar values, so an `Enum`-typed condition value is
+    compared and written as its underlying `.value`.
+    """
+    value = field_eq.value
+    return value.value if isinstance(value, Enum) else value
+
+
 def _row_satisfies_condition(row: dict[str, Any], condition: object) -> bool:
     """Check whether the condition is satisfied by the row's current values.
 
@@ -253,10 +269,7 @@ def _row_satisfies_condition(row: dict[str, Any], condition: object) -> bool:
         A `Condition` from a `RequireIfConstraint` or `ForbidIfConstraint`.
     """
     field_eq = require_field_eq(condition)  # type: ignore[arg-type]
-    cond_value = field_eq.value
-    if isinstance(cond_value, Enum):
-        cond_value = cond_value.value
-    matches = row.get(field_eq.field_name) == cond_value
+    matches = row.get(field_eq.field_name) == _condition_value(field_eq)
     return matches != field_eq.negated
 
 
@@ -291,6 +304,15 @@ def _satisfy_model_constraints(row: dict[str, Any], spec: ModelSpec) -> None:
                     if field_name in fields_by_name:
                         row[field_name] = True
                         break
+            case RequireAnyTrueConstraint() if not any(
+                _row_satisfies_condition(row, c) for c in constraint.conditions
+            ):
+                # Make the first condition hold by writing the boolean it tests
+                # for. `require_bool_field_eq` validates the positive-boolean
+                # invariant here too -- this path runs on the raw constraint and
+                # does not pass through `dispatch_model_constraint`.
+                field_eq = require_bool_field_eq(constraint.conditions[0])  # type: ignore[arg-type]
+                row[field_eq.field_name] = field_eq.value
             case RequireAnyOfConstraint() if not any(
                 fn in row for fn in constraint.field_names
             ):
@@ -335,9 +357,7 @@ def _condition_disabling_value(field_eq: FieldEq, field_spec: FieldSpec) -> obje
     field_spec
         Spec of the condition field, used to enumerate alternative values.
     """
-    forbidden = field_eq.value
-    if isinstance(forbidden, Enum):
-        forbidden = forbidden.value
+    forbidden = _condition_value(field_eq)
     if field_eq.negated:
         return forbidden
     terminal = terminal_primitive(field_spec.shape)

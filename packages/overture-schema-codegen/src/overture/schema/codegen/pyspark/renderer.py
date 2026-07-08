@@ -17,14 +17,12 @@ from overture.schema.system.primitive import GeometryType
 
 from ._render_common import (
     FieldCheckRow,
-    FieldEq,
     ModelCheckRow,
     field_check_rows,
     jinja_env,
     map_runtime_helper,
     model_check_rows,
     py_literal,
-    require_field_eq,
     sanitize_field_name,
     schema_const_name,
     tuple_literal,
@@ -37,12 +35,15 @@ from .check_ir import (
 )
 from .constraint_dispatch import (
     ExpressionDescriptor,
+    FieldEq,
     ForbidIf,
     MinFieldsSet,
     RadioGroup,
     RequireAnyOf,
+    RequireAnyTrue,
     RequireIf,
     model_constraint_function,
+    require_field_eq,
 )
 from .schema_builder import SHARED_TYPE_REFS, SchemaField
 
@@ -115,7 +116,16 @@ def _render_condition(
         parsed.field_name, in_array=in_array, struct_path=struct_path, var=var
     )
     op = "!=" if parsed.negated else "=="
-    return f"{ref} {op} {py_literal(parsed.value)}"
+    # A bare `== True` / `== False` -- from any boolean condition, whether
+    # require_if/forbid_if or require_any_true -- trips ruff's E712, which would
+    # rewrite the comparison away; wrap the boolean in `F.lit(...)` so the Column
+    # comparison survives post-generation ruff intact.
+    value_src = (
+        f"F.lit({py_literal(parsed.value)})"
+        if isinstance(parsed.value, bool)
+        else py_literal(parsed.value)
+    )
+    return f"{ref} {op} {value_src}"
 
 
 def _render_field_ref(
@@ -486,15 +496,29 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
 
     fn = model_constraint_function(desc)
 
-    def _cols_and_names() -> tuple[str, str]:
-        cols_list = "[" + ", ".join(_field_ref(f) for f in desc.field_names) + "]"
-        names_list = py_literal(list(desc.field_names))
+    def _cols_and_names(field_names: tuple[str, ...]) -> tuple[str, str]:
+        cols_list = "[" + ", ".join(_field_ref(f) for f in field_names) + "]"
+        names_list = py_literal(list(field_names))
         return cols_list, names_list
 
     match desc:
         case RequireAnyOf() | RadioGroup():
-            cols_list, names_list = _cols_and_names()
+            cols_list, names_list = _cols_and_names(desc.field_names)
             inner_expr = f"{fn}({cols_list}, {names_list})"
+        case RequireAnyTrue():
+            parsed_conditions = [require_field_eq(c) for c in desc.conditions]
+            conds_list = (
+                "["
+                + ", ".join(
+                    _render_condition(
+                        p, in_array=in_array, struct_path=struct_path, var=var
+                    )
+                    for p in parsed_conditions
+                )
+                + "]"
+            )
+            names_list = py_literal([p.field_name for p in parsed_conditions])
+            inner_expr = f"{fn}({conds_list}, {names_list})"
         case RequireIf() | ForbidIf():
             target_name = desc.field_names[0]
             parsed = require_field_eq(desc.condition)
@@ -507,7 +531,7 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
                 f"{fn}({target_ref}, {condition_expr}, {py_literal(condition_desc)})"
             )
         case MinFieldsSet():
-            cols_list, names_list = _cols_and_names()
+            cols_list, names_list = _cols_and_names(desc.field_names)
             inner_expr = f"{fn}({cols_list}, {names_list}, {desc.count})"
         case _:
             raise TypeError(f"Unhandled model constraint descriptor: {desc!r}")

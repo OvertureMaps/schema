@@ -15,6 +15,7 @@ from ._support.mutations import (
     mutate_min_fields_set,
     mutate_radio_group,
     mutate_require_any_of,
+    mutate_require_any_true,
     mutate_require_if,
     mutate_unique_items,
 )
@@ -91,6 +92,22 @@ class TestMutateRadioGroup:
         row = {"a": False, "b": False}
         mutate_radio_group(row, ["a", "b"])
         assert row["a"] is False
+
+
+class TestMutateRequireAnyTrue:
+    def test_sets_each_field_to_disabling_value(self) -> None:
+        row = {"is_land": True, "is_territorial": True, "other": "x"}
+        result = mutate_require_any_true(
+            row, {"is_land": False, "is_territorial": False}
+        )
+        assert result["is_land"] is False
+        assert result["is_territorial"] is False
+        assert result["other"] == "x"
+
+    def test_does_not_mutate_original(self) -> None:
+        row = {"is_land": True, "is_territorial": True}
+        mutate_require_any_true(row, {"is_land": False, "is_territorial": False})
+        assert row["is_land"] is True
 
 
 class TestMutateMinFieldsSet:

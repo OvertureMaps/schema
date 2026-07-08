@@ -39,7 +39,7 @@ from overture.schema.pyspark.expressions.constraint_expressions import (
     check_linear_range_length,
     check_linear_range_order,
     check_pattern,
-    check_radio_group,
+    check_require_any_true,
     check_require_if,
     check_required,
     check_string_min_length,
@@ -267,6 +267,91 @@ def _sources_confidence_bounds_check_1() -> Check:
         field="sources[].confidence_1",
         name="bounds",
         expr=array_check("sources", lambda el: check_bounds(el["confidence"], le=1.0)),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"sources"}),
+    )
+
+
+def _sources_provider_string_min_length_check() -> Check:
+    return Check(
+        field="sources[].provider",
+        name="string_min_length",
+        expr=array_check(
+            "sources", lambda el: check_string_min_length(el["provider"], 1)
+        ),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"sources"}),
+    )
+
+
+def _sources_provider_snake_case_check() -> Check:
+    return Check(
+        field="sources[].provider",
+        name="snake_case",
+        expr=array_check(
+            "sources",
+            lambda el: check_pattern(
+                el["provider"],
+                "^[a-z0-9]+(_[a-z0-9]+)*\\z",
+                label="Category in snake_case format",
+            ),
+        ),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"sources"}),
+    )
+
+
+def _sources_resource_string_min_length_check() -> Check:
+    return Check(
+        field="sources[].resource",
+        name="string_min_length",
+        expr=array_check(
+            "sources", lambda el: check_string_min_length(el["resource"], 1)
+        ),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"sources"}),
+    )
+
+
+def _sources_resource_snake_case_check() -> Check:
+    return Check(
+        field="sources[].resource",
+        name="snake_case",
+        expr=array_check(
+            "sources",
+            lambda el: check_pattern(
+                el["resource"],
+                "^[a-z0-9]+(_[a-z0-9]+)*\\z",
+                label="Category in snake_case format",
+            ),
+        ),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"sources"}),
+    )
+
+
+def _sources_version_string_min_length_check() -> Check:
+    return Check(
+        field="sources[].version",
+        name="string_min_length",
+        expr=array_check(
+            "sources", lambda el: check_string_min_length(el["version"], 1)
+        ),
+        shape=CheckShape.ARRAY,
+        read_columns=frozenset({"sources"}),
+    )
+
+
+def _sources_version_no_whitespace_check() -> Check:
+    return Check(
+        field="sources[].version",
+        name="no_whitespace",
+        expr=array_check(
+            "sources",
+            lambda el: check_pattern(
+                el["version"], "^\\S+\\z", label="String without whitespace characters"
+            ),
+        ),
         shape=CheckShape.ARRAY,
         read_columns=frozenset({"sources"}),
     )
@@ -544,12 +629,13 @@ def _perspectives_countries_check_1() -> Check:
     )
 
 
-def _check_radio_group_0_check() -> Check:
+def _check_require_any_true_0_check() -> Check:
     return Check(
-        field="radio_group",
-        name="radio_group",
-        expr=check_radio_group(
-            [F.col("is_land"), F.col("is_territorial")], ["is_land", "is_territorial"]
+        field="require_any_true",
+        name="require_any_true",
+        expr=check_require_any_true(
+            [F.col("is_land") == F.lit(True), F.col("is_territorial") == F.lit(True)],
+            ["is_land", "is_territorial"],
         ),
         shape=CheckShape.SCALAR,
         read_columns=frozenset({"is_land", "is_territorial"}),
@@ -683,6 +769,12 @@ def division_boundary_checks() -> list[Check]:
         _sources_license_check(),
         _sources_confidence_bounds_check(),
         _sources_confidence_bounds_check_1(),
+        _sources_provider_string_min_length_check(),
+        _sources_provider_snake_case_check(),
+        _sources_resource_string_min_length_check(),
+        _sources_resource_snake_case_check(),
+        _sources_version_string_min_length_check(),
+        _sources_version_no_whitespace_check(),
         _sources_between_linear_range_length_check(),
         _sources_between_linear_range_bounds_check(),
         _sources_between_linear_range_order_check(),
@@ -706,7 +798,7 @@ def division_boundary_checks() -> list[Check]:
         _perspectives_countries_min_length_check(),
         _perspectives_countries_unique_check(),
         _perspectives_countries_check_1(),
-        _check_radio_group_0_check(),
+        _check_require_any_true_0_check(),
         _check_require_if_1_check(),
         _check_require_if_2_check(),
         _check_require_if_3_check(),
@@ -737,6 +829,9 @@ DIVISION_BOUNDARY_SCHEMA = StructType(
                         StructField("record_id", StringType(), True),
                         StructField("update_time", StringType(), True),
                         StructField("confidence", DoubleType(), True),
+                        StructField("provider", StringType(), True),
+                        StructField("resource", StringType(), True),
+                        StructField("version", StringType(), True),
                         StructField("between", ArrayType(DoubleType(), True), True),
                     ]
                 ),

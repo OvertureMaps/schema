@@ -25,7 +25,6 @@ from overture.schema.system.field_path import (
     ScalarPath,
     StructSegment,
 )
-from overture.schema.system.model_constraint import FieldEqCondition, Not
 
 from .constraint_dispatch import (
     ExpressionDescriptor,
@@ -34,7 +33,9 @@ from .constraint_dispatch import (
     ModelConstraintDescriptor,
     RadioGroup,
     RequireAnyOf,
+    RequireAnyTrue,
     RequireIf,
+    require_field_eq,
 )
 
 __all__ = [
@@ -89,23 +90,6 @@ def _path_top_column(path: FieldPath) -> str | None:
             return _top_level(path.map_column)
         case _:
             raise TypeError(f"Unhandled FieldPath variant: {type(path).__name__}")
-
-
-def _condition_field_name(condition: object) -> str:
-    """Extract the field name from a `FieldEqCondition` or `Not(FieldEqCondition)`.
-
-    Raises `TypeError` for any other condition shape, so a new condition
-    type fails loudly here rather than silently omitting a column read.
-    """
-    match condition:
-        case Not(inner=FieldEqCondition(field_name=fn)):
-            return fn
-        case FieldEqCondition(field_name=fn):
-            return fn
-        case _:
-            raise TypeError(
-                f"Unhandled condition type for read_columns: {type(condition).__name__}"
-            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -216,6 +200,7 @@ class ModelCheck:
             case (
                 RequireAnyOf(field_names=names)
                 | RadioGroup(field_names=names)
+                | RequireAnyTrue(field_names=names)
                 | MinFieldsSet(field_names=names)
             ):
                 for name in names:
@@ -226,7 +211,7 @@ class ModelCheck:
             ):
                 for name in names:
                     cols.add(_top_level(name))
-                cols.add(_condition_field_name(cond))
+                cols.add(require_field_eq(cond).field_name)
             case _:
                 raise TypeError(
                     f"Unhandled ModelConstraintDescriptor variant: {type(desc).__name__}"

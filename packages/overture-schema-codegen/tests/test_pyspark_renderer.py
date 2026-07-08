@@ -11,6 +11,7 @@ from codegen_test_support import (
     LiteralSubtypeModel,
     RadioModel,
     RequireAnyModel,
+    RequireAnyTrueModel,
     TripleNestedArrayModel,
     discover_feature,
     flat_specs_from_discovery,
@@ -18,11 +19,9 @@ from codegen_test_support import (
 )
 from overture.schema.codegen.extraction.specs import ModelSpec
 from overture.schema.codegen.pyspark._render_common import (
-    FieldEq,
     field_check_rows,
     jinja_env,
     model_check_rows,
-    require_field_eq,
     schema_const_name,
 )
 from overture.schema.codegen.pyspark.check_builder import build_checks
@@ -34,11 +33,13 @@ from overture.schema.codegen.pyspark.check_ir import (
 )
 from overture.schema.codegen.pyspark.constraint_dispatch import (
     ExpressionDescriptor,
+    FieldEq,
     ForbidIf,
     MinFieldsSet,
     RadioGroup,
     RequireAnyOf,
     RequireIf,
+    require_field_eq,
 )
 from overture.schema.codegen.pyspark.renderer import (
     _render_check_function_context,
@@ -673,6 +674,24 @@ class TestModelConstraintFunctions:
     def test_require_any_of_rendered(self) -> None:
         source = _render(RequireAnyModel, "require_any")
         assert "check_require_any_of" in source
+
+    def test_require_any_true_rendered(self) -> None:
+        source = _render(RequireAnyTrueModel, "require_any_true")
+        assert "check_require_any_true" in source
+
+    def test_require_any_true_lowers_conditions_to_value_equality(self) -> None:
+        """Each FieldEqCondition(field, True) lowers to a boolean Column.
+
+        The bool value renders as `F.lit(True)` (not the `True` keyword),
+        so ruff's E712 does not rewrite the comparison away.
+        """
+        source = _render(RequireAnyTrueModel, "require_any_true")
+        assert 'F.col("is_land") == F.lit(True)' in source
+        assert 'F.col("is_territorial") == F.lit(True)' in source
+
+    def test_require_any_true_reads_condition_columns(self) -> None:
+        source = _render(RequireAnyTrueModel, "require_any_true")
+        assert "read_columns=frozenset({'is_land', 'is_territorial'})" in source
 
     def test_radio_group_no_context_arg(self) -> None:
         """check_radio_group must not receive a context string argument."""

@@ -41,7 +41,12 @@ from overture.schema.system.discovery import (
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
-from overture.schema.system.model_constraint import radio_group, require_any_of
+from overture.schema.system.model_constraint import (
+    FieldEqCondition,
+    radio_group,
+    require_any_of,
+    require_any_true,
+)
 from overture.schema.system.primitive import (
     Geometry,
     GeometryType,
@@ -473,6 +478,15 @@ class RadioModel(BaseModel):
 class RequireAnyModel(BaseModel):
     x: str | None = None
     y: str | None = None
+
+
+@require_any_true(
+    FieldEqCondition("is_land", True),
+    FieldEqCondition("is_territorial", True),
+)
+class RequireAnyTrueModel(BaseModel):
+    is_land: bool | None = None
+    is_territorial: bool | None = None
 
 
 def discover_feature(class_name: str) -> ModelSpec:

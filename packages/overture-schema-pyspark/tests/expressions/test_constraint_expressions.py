@@ -22,6 +22,7 @@ from overture.schema.pyspark.expressions.constraint_expressions import (
     check_pattern,
     check_radio_group,
     check_require_any_of,
+    check_require_any_true,
     check_require_if,
     check_required,
     check_string_max_length,
@@ -297,6 +298,55 @@ def test_check_require_any_of_all_null(spark: SparkSession) -> None:
     assert result[0]["err"] is not None
     assert "a" in result[0]["err"]
     assert "b" in result[0]["err"]
+
+
+class TestCheckRequireAnyTrue:
+    _NAMES = ["is_land", "is_territorial"]
+
+    def _conds(self) -> list:
+        return [
+            F.col("is_land") == F.lit(True),
+            F.col("is_territorial") == F.lit(True),
+        ]
+
+    def test_one_condition_true(self, spark: SparkSession) -> None:
+        """At least one condition true -> no error."""
+        df = spark.createDataFrame(
+            [Row(is_land=True, is_territorial=False)],
+            schema="is_land boolean, is_territorial boolean",
+        )
+        result = df.select(
+            check_require_any_true(self._conds(), self._NAMES).alias("err")
+        ).collect()
+        assert result[0]["err"] is None
+
+    def test_all_conditions_false(self, spark: SparkSession) -> None:
+        """No condition true -> error naming the fields."""
+        df = spark.createDataFrame(
+            [Row(is_land=False, is_territorial=False)],
+            schema="is_land boolean, is_territorial boolean",
+        )
+        result = df.select(
+            check_require_any_true(self._conds(), self._NAMES).alias("err")
+        ).collect()
+        assert result[0]["err"] is not None
+        assert "is_land" in result[0]["err"]
+        assert "is_territorial" in result[0]["err"]
+
+    def test_all_conditions_null_is_violation(self, spark: SparkSession) -> None:
+        """Null fields -> conditions not true -> error.
+
+        Mirrors Python's `None == True` -> `False`: a null column value
+        does not satisfy the condition, so an all-null row violates.
+        """
+        df = spark.createDataFrame(
+            [Row(is_land=None, is_territorial=None)],
+            schema="is_land boolean, is_territorial boolean",
+        )
+        result = df.select(
+            check_require_any_true(self._conds(), self._NAMES).alias("err")
+        ).collect()
+        assert result[0]["err"] is not None
 
 
 class TestCheckRequireIf:

@@ -67,6 +67,20 @@ def mutate_radio_group(row_dict: dict, field_names: list[FieldPath | str]) -> di
     return result
 
 
+def mutate_require_any_true(row_dict: dict, disabling_values: dict[str, Any]) -> dict:
+    """Set each condition field to a value that makes its condition false.
+
+    `require_any_true` fires only when no condition is true, so writing a
+    value each condition rejects (e.g. `is_land=False` for
+    `FieldEqCondition("is_land", True)`) makes them all false. The renderer
+    computes the per-field disabling value from the constraint's conditions.
+    """
+    result = copy.deepcopy(row_dict)
+    for name, value in disabling_values.items():
+        _set_nested(result, name, value)
+    return result
+
+
 def mutate_min_fields_set(
     row_dict: dict,
     field_names: list[FieldPath | str],

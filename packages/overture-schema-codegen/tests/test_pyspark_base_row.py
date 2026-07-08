@@ -9,6 +9,7 @@ from annotated_types import Gt, Lt
 from codegen_test_support import (
     FeatureWithDict,
     FeatureWithRequiredUrl,
+    RequireAnyTrueModel,
     discover_feature,
     spec_for_model,
 )
@@ -63,6 +64,23 @@ def segment_spec() -> ModelSpec:
 def segment_union(segment_spec: ModelSpec) -> UnionSpec:
     assert isinstance(segment_spec, UnionSpec)
     return segment_spec
+
+
+class TestRequireAnyTrueBaseRow:
+    """A require_any_true base row must satisfy at least one condition.
+
+    Both condition fields are optional, so an unadjusted sparse row leaves
+    them absent -- which the constraint rejects. `_satisfy_model_constraints`
+    must set one true.
+    """
+
+    def test_base_row_satisfies_constraint(self) -> None:
+        row = generate_base_row(spec_for_model(RequireAnyTrueModel))
+        assert row.get("is_land") is True or row.get("is_territorial") is True
+
+    def test_base_row_passes_pydantic_validation(self) -> None:
+        row = generate_base_row(spec_for_model(RequireAnyTrueModel))
+        RequireAnyTrueModel(**row)
 
 
 class TestPrimitiveDefault:

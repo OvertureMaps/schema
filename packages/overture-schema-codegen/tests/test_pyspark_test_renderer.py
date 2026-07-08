@@ -20,6 +20,7 @@ from overture.schema.codegen.pyspark.constraint_dispatch import (
     MinFieldsSet,
     RadioGroup,
     RequireAnyOf,
+    RequireAnyTrue,
     RequireIf,
     _needs_explicit_fill,
 )
@@ -362,6 +363,23 @@ class TestModelScenarios:
         ]
         source = render_test_module("test", [], model_nodes)
         assert "mutate_require_any_of" in source
+
+    def test_require_any_true_imports_mutation(self) -> None:
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyTrue(
+                    conditions=(
+                        FieldEqCondition("is_land", True),
+                        FieldEqCondition("is_territorial", True),
+                    ),
+                ),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        assert "mutate_require_any_true" in source
+        # Each `field == True` condition is disabled by setting the field False.
+        assert "'is_land': False" in source
+        assert "'is_territorial': False" in source
 
     def test_require_if_includes_condition(self) -> None:
         model_nodes = [

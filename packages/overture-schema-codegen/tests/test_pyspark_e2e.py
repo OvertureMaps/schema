@@ -42,7 +42,7 @@ class TestDivisionAreaGeneration:
     def test_checks_cover_expected_fields(self, generated: GeneratedModule) -> None:
         """Generated checks should cover the fields from the hand-written module."""
         content = generated.content
-        # Hand-written checks: subtype, class, country, region, radio_group (is_land, is_territorial), admin_level
+        # Hand-written checks: subtype, class, country, region, require_any_true (is_land, is_territorial), admin_level
         for field in ["subtype", "class", "country", "region"]:
             assert f"field='{field}'" in content, f"Missing check for {field}"
 
@@ -81,10 +81,15 @@ class TestDivisionAreaGeneration:
             in content
         )
 
-    def test_radio_group_constraint(self, generated: GeneratedModule) -> None:
-        """Should have a radio_group check for is_land/is_territorial."""
+    def test_require_any_true_constraint(self, generated: GeneratedModule) -> None:
+        """Should have a require_any_true check for is_land/is_territorial.
+
+        DivisionArea uses `@require_any_true(FieldEqCondition("is_land", True),
+        FieldEqCondition("is_territorial", True))` -- at least one flag true,
+        both-true allowed (unlike radio_group's exactly-one).
+        """
         content = generated.content
-        assert "check_radio_group" in content
+        assert "check_require_any_true" in content
         assert "is_land" in content
         assert "is_territorial" in content
 

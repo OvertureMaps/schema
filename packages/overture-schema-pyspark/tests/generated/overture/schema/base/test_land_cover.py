@@ -44,6 +44,9 @@ BASE_ROW_POPULATED: dict = {
             "record_id": "",
             "update_time": "2024-01-01T00:00:00Z",
             "confidence": 0.0,
+            "provider": "a",
+            "resource": "a",
+            "version": "a",
             "between": [0.0, 1.0],
         }
     ],
@@ -224,6 +227,60 @@ SCENARIOS: list[Scenario] = [
         mutate=set_at_path("sources[].confidence", 2.0),
         expected_field="sources[].confidence_1",
         expected_check="bounds",
+    ),
+    Scenario(
+        id="land_cover::sources[].provider:string_min_length",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "provider": "a"}]
+        },
+        mutate=set_at_path("sources[].provider", ""),
+        expected_field="sources[].provider",
+        expected_check="string_min_length",
+    ),
+    Scenario(
+        id="land_cover::sources[].provider:snake_case",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "provider": "a"}]
+        },
+        mutate=set_at_path("sources[].provider", "HAS SPACES"),
+        expected_field="sources[].provider",
+        expected_check="snake_case",
+    ),
+    Scenario(
+        id="land_cover::sources[].resource:string_min_length",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "resource": "a"}]
+        },
+        mutate=set_at_path("sources[].resource", ""),
+        expected_field="sources[].resource",
+        expected_check="string_min_length",
+    ),
+    Scenario(
+        id="land_cover::sources[].resource:snake_case",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "resource": "a"}]
+        },
+        mutate=set_at_path("sources[].resource", "HAS SPACES"),
+        expected_field="sources[].resource",
+        expected_check="snake_case",
+    ),
+    Scenario(
+        id="land_cover::sources[].version:string_min_length",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "version": "a"}]
+        },
+        mutate=set_at_path("sources[].version", ""),
+        expected_field="sources[].version",
+        expected_check="string_min_length",
+    ),
+    Scenario(
+        id="land_cover::sources[].version:no_whitespace",
+        scaffold={
+            "sources": [{"property": "/valid/pointer", "dataset": "", "version": "a"}]
+        },
+        mutate=set_at_path("sources[].version", "has whitespace"),
+        expected_field="sources[].version",
+        expected_check="no_whitespace",
     ),
     Scenario(
         id="land_cover::sources[].between:linear_range_length",

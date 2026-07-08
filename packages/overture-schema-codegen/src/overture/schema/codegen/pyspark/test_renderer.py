@@ -18,7 +18,6 @@ from ._render_common import (
     field_check_rows,
     jinja_env,
     model_check_rows,
-    parse_field_eq,
     py_literal,
     schema_const_name,
 )
@@ -34,9 +33,12 @@ from .constraint_dispatch import (
     ModelConstraintDescriptor,
     RadioGroup,
     RequireAnyOf,
+    RequireAnyTrue,
     RequireIf,
     model_constraint_function,
     model_mutation_function,
+    parse_field_eq,
+    require_bool_field_eq,
 )
 from .test_data.invalid_value import invalid_value
 from .test_data.scaffold import (
@@ -343,6 +345,11 @@ def _render_mutation_call(
     fields_repr = py_literal(list(desc.field_names))
 
     match desc:
+        case RequireAnyTrue():
+            # Carries `conditions`, not `field_names`: the mutation disables
+            # every condition via a per-field `{field: value}` dict rather than
+            # the shared field-name list the other descriptors pass.
+            return _render_require_any_true_mutation_call(mutation_fn, desc)
         case RequireIf() | ForbidIf():
             return _render_conditional_mutation_call(
                 mutation_fn, desc, check, fields_repr
@@ -388,6 +395,23 @@ def _render_conditional_mutation_call(
         f"{mutation_fn}(row, {fields_repr}, "
         f"{py_literal(parsed.field_name)}, {py_literal(parsed.value)}{suffix})"
     )
+
+
+def _render_require_any_true_mutation_call(
+    mutation_fn: str, desc: RequireAnyTrue
+) -> str:
+    """Render a `mutate_require_any_true` call.
+
+    Passes a `{field: disabling_value}` dict that makes every condition false,
+    so the invalid row violates `require_any_true` and nothing else. Conditions
+    are positive boolean equalities (`require_bool_field_eq`), so each field's
+    disabling value is the negation of the boolean the condition tests for.
+    """
+    parsed = [require_bool_field_eq(c) for c in desc.conditions]
+    items = ", ".join(
+        f"{py_literal(p.field_name)}: {py_literal(not p.value)}" for p in parsed
+    )
+    return f"{mutation_fn}(row, {{{items}}})"
 
 
 def _fill_value_literal(shape: FieldShape) -> str:

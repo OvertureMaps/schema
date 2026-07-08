@@ -19,6 +19,7 @@ from overture.schema.codegen.pyspark.constraint_dispatch import (
     MinFieldsSet,
     RadioGroup,
     RequireAnyOf,
+    RequireAnyTrue,
     RequireIf,
     dispatch_base_type,
     dispatch_constraint,
@@ -44,6 +45,7 @@ from overture.schema.system.model_constraint import (
     Not,
     RadioGroupConstraint,
     RequireAnyOfConstraint,
+    RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
 from overture.schema.system.primitive import GeometryType, GeometryTypeConstraint
@@ -404,6 +406,42 @@ class TestModelConstraintDispatch:
         assert isinstance(desc, RequireAnyOf)
         assert model_constraint_function(desc) == "check_require_any_of"
         assert desc.field_names == ("a", "b")
+
+    def test_require_any_true(self) -> None:
+        c = RequireAnyTrueConstraint(
+            FieldEqCondition(field_name="is_land", value=True),
+            FieldEqCondition(field_name="is_territorial", value=True),
+        )
+        (desc,) = dispatch_model_constraint(c, [])
+        assert isinstance(desc, RequireAnyTrue)
+        assert model_constraint_function(desc) == "check_require_any_true"
+        assert desc.conditions == c.conditions
+
+    def test_require_any_true_rejects_negated_condition(self) -> None:
+        """PySpark support is positive-only; a negated condition fails loudly.
+
+        The runtime coalesces a null condition to False, which matches a
+        positive equality but flips a negated one on a null field, so
+        dispatch refuses to lower it rather than emit a wrong check.
+        """
+        c = RequireAnyTrueConstraint(
+            Not(FieldEqCondition(field_name="is_land", value=True)),
+        )
+        with pytest.raises(TypeError, match="positive boolean FieldEqConditions"):
+            dispatch_model_constraint(c, [])
+
+    def test_require_any_true_rejects_non_boolean_condition(self) -> None:
+        """PySpark support is boolean-flag-only.
+
+        The test-data disabling value is the boolean's negation, so a
+        non-boolean equality (e.g. `subtype == "county"`) fails loudly at
+        dispatch rather than later, mid test-module generation.
+        """
+        c = RequireAnyTrueConstraint(
+            FieldEqCondition(field_name="subtype", value="county"),
+        )
+        with pytest.raises(TypeError, match="positive boolean FieldEqConditions"):
+            dispatch_model_constraint(c, [])
 
     def test_radio_group(self) -> None:
         c = RadioGroupConstraint("is_land", "is_territorial")

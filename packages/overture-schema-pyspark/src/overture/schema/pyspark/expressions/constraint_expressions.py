@@ -397,6 +397,25 @@ def check_require_any_of(
     return F.when(all_null, F.lit(f"requires at least one of {names}"))
 
 
+def check_require_any_true(
+    conditions: list[Column],
+    field_names: list[str],
+) -> Column:
+    """At least one of the given boolean conditions must be true.
+
+    Each condition is a boolean Column (e.g. `is_land == True`). A null
+    condition counts as not-true -- mirroring Python's `None == True` ->
+    `False` -- so it is coalesced to `False` before the disjunction. The
+    check fires only when every condition is false or null.
+    """
+    any_true = reduce(
+        lambda a, b: a | b,
+        (F.coalesce(c, F.lit(False)) for c in conditions),
+    )
+    names = ", ".join(field_names)
+    return F.when(~any_true, F.lit(f"at least one of {names} must be true"))
+
+
 def check_min_fields_set(
     cols: list[Column],
     field_names: list[str],
