@@ -118,9 +118,13 @@ jobs:
           index_url: ${{ steps.ca.outputs.index_url }}
 
       - name: Report computed version
+        env:
+          PACKAGE: ${{ matrix.package }}
+          CONTEXT: ${{ needs.discover.outputs.context }}
+          VERSION: ${{ steps.compute.outputs.version }}
         run: |
-          echo "## Computed version: \`${{ matrix.package }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Computed version: \`${PACKAGE}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Context: \`${{ needs.discover.outputs.context }}\`  " >> "$GITHUB_STEP_SUMMARY"
-          echo "Version: \`${{ steps.compute.outputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "  ${{ matrix.package }} → ${{ steps.compute.outputs.version }}"
+          echo "Context: \`${CONTEXT}\`  " >> "$GITHUB_STEP_SUMMARY"
+          echo "Version: \`${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "  ${PACKAGE} → ${VERSION}"
