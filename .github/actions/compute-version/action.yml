@@ -84,8 +84,11 @@ runs:
               BASE="$LATEST"
               echo "Latest published version: ${LATEST}"
             else
-              BASE="${MAJOR_MINOR}.0"
-              echo "No published version found — falling back to ${BASE}"
+              # No published version at all — use the pyproject.toml seed
+              # as-is (not just its major.minor) so a patch already bumped
+              # there (e.g. baselining) isn't regressed.
+              BASE="$SEED"
+              echo "No published version found — falling back to seed version ${BASE}"
             fi
             VERSION="${BASE}+dev.${RUN_NUMBER}"
             ;;
@@ -93,13 +96,23 @@ runs:
           main)
             # Resolve the highest patch within the current major.minor series.
             LATEST_IN_SERIES=$(resolve_latest "${PACKAGE}>=${MAJOR_MINOR}.0,<${MAJOR_MINOR}.99999")
+            SEED_PATCH=$(echo "$SEED" | grep -oE '[0-9]+$')
             if [ -n "$LATEST_IN_SERIES" ]; then
               CURRENT_PATCH=$(echo "$LATEST_IN_SERIES" | grep -oE '[0-9]+$')
-              NEXT_PATCH=$((CURRENT_PATCH + 1))
-              echo "Latest in ${MAJOR_MINOR}.x series: ${LATEST_IN_SERIES} → next patch: ${NEXT_PATCH}"
+              NEXT_FROM_PUBLISHED=$((CURRENT_PATCH + 1))
+              echo "Latest in ${MAJOR_MINOR}.x series: ${LATEST_IN_SERIES} → next patch: ${NEXT_FROM_PUBLISHED}"
             else
-              NEXT_PATCH=0
-              echo "No published version in ${MAJOR_MINOR}.x series — starting at patch 0"
+              NEXT_FROM_PUBLISHED=0
+              echo "No published version in ${MAJOR_MINOR}.x series"
+            fi
+            # The pyproject.toml seed's patch acts as a floor so a manual
+            # bump there (e.g. baselining) is never regressed — CI only
+            # takes over incrementing once publishing has caught up to it.
+            if [ "$SEED_PATCH" -gt "$NEXT_FROM_PUBLISHED" ]; then
+              NEXT_PATCH=$SEED_PATCH
+              echo "Seed patch (${SEED_PATCH}) is ahead of published — using it as the baseline"
+            else
+              NEXT_PATCH=$NEXT_FROM_PUBLISHED
             fi
             VERSION="${MAJOR_MINOR}.${NEXT_PATCH}"
             ;;
