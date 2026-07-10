@@ -14,6 +14,7 @@ import ExampleAccessRestrictionAxleLimit from '!!raw-loader!@site/docs/_examples
 import ExampleSpeedLimitsSimple from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-01-simple.yaml';
 import ExampleSpeedLimitsDirectional from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-02-directional.yaml';
 import ExampleSpeedLimitsVariableMax from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-03-variable-max.yaml';
+import ExampleSpeedLimitsAdvisory from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/speed-limits-04-advisory.yaml';
 import ExampleTurnRestriction1Source from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-source.yaml';
 import ExampleTurnRestriction1Target from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-target.yaml';
 import ExampleTurnRestriction1Exit from '!!raw-loader!@site/docs/_examples/transportation/docusaurus/turn-restriction-01-exit.yaml';
@@ -272,9 +273,13 @@ real-world context to the example.*
 ### Speed limits
 
 Speed limits restrict the speed at which travel is permitted on a road.
-Typically speed limits specify maximum allowed speeds, but the
-Overture also allows minimum speed limits to be set and variable speed
-corridors to be indicated.
+Each speed limit rule has a `type` indicating the kind of speed rule,
+and a `speed` holding the speed value. Typically speed limits specify
+`maximum` allowed speeds, but Overture also supports `minimum` speed
+limits and `advisory` speeds, which are recommended but not regulatory.
+Variable speed corridors and roads without a regulatory maximum speed
+are indicated with the `road_flags` property, using the
+`has_dynamic_speed_limits` and `has_unlimited_speed_limits` flags.
 
 Every road segment has an implied speed limit or set of speed limits
 defined by its [road class](#road-class) and local rules, norms, and
@@ -304,6 +309,12 @@ As with access restrictions and turn restrictions, speed limits can be specified
   <TabItem value="speedLimitVariable" label="Variable speed corridor" default>
 
 <CodeBlock language="yaml">{ ExampleSpeedLimitsVariableMax }</CodeBlock>
+
+  </TabItem>
+
+  <TabItem value="speedLimitAdvisory" label="Advisory speed" default>
+
+<CodeBlock language="yaml">{ ExampleSpeedLimitsAdvisory }</CodeBlock>
 
   </TabItem>
 </Tabs>

@@ -230,7 +230,7 @@ properties:
       - restrooms          # 'toilets' in OSM
     roadFlag:
       description: >-
-        Simple flags that can be on or off for a road segment. Specifies physical characteristics and can overlap.
+        Simple flags that can be on or off for a road segment. Specifies physical characteristics and other properties of the road and can overlap.
       type: string
       enum:
         - is_bridge
@@ -240,6 +240,8 @@ properties:
         - is_abandoned
         - is_covered
         - is_indoor
+        - has_dynamic_speed_limits
+        - has_unlimited_speed_limits
     railFlag:
       description: >-
         Simple flags that can be on or off for a railway segment. Specifies physical characteristics and can overlap.
@@ -327,6 +329,15 @@ properties:
         - value
         - unit
       unevaluatedProperties: false
+    speedLimitType:
+      description: >-
+        The kind of speed rule. minimum and maximum are regulatory
+        limits, and advisory is a recommended, non-regulatory speed.
+      type: string
+      enum:
+        - maximum
+        - minimum
+        - advisory
     purposeOfUse:
       description: >-
         Reason why a person or entity travelling on the transportation
@@ -574,19 +585,13 @@ properties:
           purpose and use it to introduce an optional
           direction property in each rule.
         type: object
-        anyOf:
-          - required: [ min_speed ]
-          - required: [ max_speed ]
+        required: [ type, speed ]
         allOf:
           - "$ref": "../defs.yaml#/$defs/propertyContainers/geometricRangeScopeContainer"
         unevaluatedProperties: false
         properties:
-          min_speed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-          max_speed: { "$ref": "#/$defs/propertyDefinitions/speed" }
-          is_max_speed_variable:
-            description: Indicates a variable speed corridor
-            type: boolean
-            default: false
+          type: { "$ref": "#/$defs/propertyDefinitions/speedLimitType" }
+          speed: { "$ref": "#/$defs/propertyDefinitions/speed" }
           when:
             allOf:
               - "$ref": "#/$defs/propertyContainers/temporalScopeContainer"

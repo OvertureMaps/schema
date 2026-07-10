@@ -1,0 +1,25 @@
+---
+id: speed-limits-advisory
+type: Feature
+geometry:
+  type: LineString
+  coordinates:
+    - [-123.36051977110497, 48.42945540586221]
+    - [-123.36053780784551, 48.42906755412086]
+    - [-123.36034842206483, 48.42868269843091]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: secondary
+  speed_limits:
+    - type: maximum
+      speed:
+        value: 60
+        unit: km/h
+    - between: [0.4, 1]
+      type: advisory
+      speed:
+        value: 40
+        unit: km/h

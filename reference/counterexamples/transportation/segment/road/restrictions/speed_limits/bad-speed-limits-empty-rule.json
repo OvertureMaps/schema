@@ -17,8 +17,7 @@
     "speed_limits": [{}],
     "ext_description": "road segment where road.restrictions.speed_limits contains an empty rule",
     "ext_expected_errors": [
-      "anyOf/0/required]: missing property 'min_speed'",
-      "anyOf/1/required]: missing property 'max_speed'"
+      "required]: missing properties 'type', 'speed'"
     ]
   }
 }

@@ -13,6 +13,7 @@ properties:
   subtype: road
   class: residential
   speed_limits:
-    - max_speed:
+    - type: maximum
+      speed:
         value: 30
         unit: km/h

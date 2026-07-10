@@ -95,7 +95,7 @@ class DestinationSignSymbol(str, Enum):
 class RoadFlag(str, Enum):
     """Simple flags that can be on or off for a road segment.
 
-    Specifies physical characteristics and can overlap.
+    Specifies physical characteristics and other properties of the road and can overlap.
     """
 
     IS_BRIDGE = "is_bridge"
@@ -105,6 +105,8 @@ class RoadFlag(str, Enum):
     IS_ABANDONED = "is_abandoned"
     IS_COVERED = "is_covered"
     IS_INDOOR = "is_indoor"
+    HAS_DYNAMIC_SPEED_LIMITS = "has_dynamic_speed_limits"
+    HAS_UNLIMITED_SPEED_LIMITS = "has_unlimited_speed_limits"
 
 
 class RailFlag(str, Enum):
@@ -151,3 +153,11 @@ class AccessType(str, Enum):
     ALLOWED = "allowed"
     DENIED = "denied"
     DESIGNATED = "designated"
+
+
+class SpeedLimitType(str, Enum):
+    """The kind of speed limit."""
+
+    MAXIMUM = "maximum"
+    MINIMUM = "minimum"
+    ADVISORY = "advisory"

@@ -27,25 +27,28 @@ properties:
   road_surface:
     - value: gravel
   road_flags:
-    - values: [is_link, is_tunnel] # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
+    - values: [is_link, is_tunnel, has_dynamic_speed_limits] # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
   level: -1
   level_rules:
     - value: -1
   width_rules:
     - value: 10
   speed_limits:
-    - min_speed:
+    - type: minimum
+      speed:
         value: 90
         unit: km/h
-      max_speed:
+    - type: maximum
+      speed:
         value: 110
         unit: mph
-      is_max_speed_variable: true
-    - max_speed:
+    - type: maximum
+      speed:
         value: 55
         unit: mph
       when: {mode: [ "truck" ]}
-    - max_speed:
+    - type: maximum
+      speed:
         value: 30
         unit: km/h
       between: [0.25, 0.50]

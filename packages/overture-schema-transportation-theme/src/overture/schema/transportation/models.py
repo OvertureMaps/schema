@@ -26,6 +26,7 @@ from .enums import (
     RailFlag,
     RoadFlag,
     RoadSurface,
+    SpeedLimitType,
     Subclass,
 )
 
@@ -187,7 +188,6 @@ class SequenceEntry(BaseModel):
 
 
 @no_extra_fields
-@require_any_of("max_speed", "min_speed")
 @scoped(
     Scope.GEOMETRIC_RANGE,
     Scope.HEADING,
@@ -200,17 +200,10 @@ class SequenceEntry(BaseModel):
 class SpeedLimitRule(BaseModel):
     """An individual speed limit rule."""
 
-    # Optional
+    # Required
 
-    max_speed: Speed | None = None
-    min_speed: Speed | None = None
-    is_max_speed_variable: Annotated[
-        bool | None,
-        Field(
-            description="Indicates a variable speed corridor",
-            strict=True,
-        ),
-    ] = False
+    type: SpeedLimitType
+    speed: Speed
 
 
 @no_extra_fields

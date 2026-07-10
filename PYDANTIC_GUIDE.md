@@ -836,7 +836,7 @@ class RoadSegment(TransportationSegment):
     speed_limits: SpeedLimits | None = None
 
     def get_speed_limit(self) -> float:
-        return self.speed_limits.max_speed if self.speed_limits else 50.0
+        return self.speed_limits.speed if self.speed_limits else 50.0
 
 # Now only concrete classes can be instantiated
 # base_segment = TransportationSegment(...)  # TypeError: Can't instantiate abstract class

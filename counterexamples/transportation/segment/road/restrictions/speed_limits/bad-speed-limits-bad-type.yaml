@@ -1,0 +1,19 @@
+---
+id: road segment where road.restrictions.speed_limits contains a rule with an invalid type
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  ext_expected_errors:
+    - "[S#/$defs/propertyDefinitions/speedLimitType/enum]: value must be one of"
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: secondary
+  speed_limits:
+    - type: recommended
+      speed:
+        value: 110
+        unit: mph

@@ -11,28 +11,39 @@ properties:
   class: tertiary
   version: 3
   speed_limits:
-    - max_speed: {value: 20, unit: 'km/h'}
+    - type: maximum
+      speed: {value: 20, unit: 'km/h'}
       between: [ 0, 0.5 ]
-    - min_speed: {value: 25, unit: 'mph'}
+    - type: minimum
+      speed: {value: 25, unit: 'mph'}
       when:
         during: PH
-    - max_speed: {value: 100, unit: 'km/h'}
-      min_speed: {value: 75, unit: 'km/h'}
+    - type: maximum
+      speed: {value: 100, unit: 'km/h'}
       when: {heading: forward}
-    - min_speed: {value: 25, unit: 'mph'}
+    - type: minimum
+      speed: {value: 75, unit: 'km/h'}
+      when: {heading: forward}
+    - type: minimum
+      speed: {value: 25, unit: 'mph'}
       when:
         heading: forward
         mode: [car, hgv]
-    - max_speed: {value: 60, unit: 'mph'}
-      is_max_speed_variable: true
+    - type: maximum
+      speed: {value: 60, unit: 'mph'}
       when:
         heading: forward
         using: [at_destination]
-    - min_speed: {value: 25, unit: 'mph'}
+    - type: advisory
+      speed: {value: 45, unit: 'mph'}
+      between: [ 0.5, 1 ]
+    - type: minimum
+      speed: {value: 25, unit: 'mph'}
       when:
         heading: forward
         recognized: [as_employee]
-    - min_speed: {value: 40, unit: 'mph'}
+    - type: minimum
+      speed: {value: 40, unit: 'mph'}
       when:
         heading: forward
         vehicle:
@@ -47,9 +58,8 @@ properties:
             comparison: less_than
             value: 12
             unit: 'ft'
-    - max_speed: {value: 30, unit: 'km/h'}
-      min_speed: {value: 20, unit: 'mph'}
-      is_max_speed_variable: true
+    - type: maximum
+      speed: {value: 30, unit: 'km/h'}
       between: [0.25, 0.5]
       when:
         heading: forward

@@ -741,7 +741,7 @@
       "type": "string"
     },
     "RoadFlag": {
-      "description": "Simple flags that can be on or off for a road segment.\n\nSpecifies physical characteristics and can overlap.",
+      "description": "Simple flags that can be on or off for a road segment.\n\nSpecifies physical characteristics and other properties of the road and can overlap.",
       "enum": [
         "is_bridge",
         "is_link",
@@ -749,7 +749,9 @@
         "is_under_construction",
         "is_abandoned",
         "is_covered",
-        "is_indoor"
+        "is_indoor",
+        "has_dynamic_speed_limits",
+        "has_unlimited_speed_limits"
       ],
       "title": "RoadFlag",
       "type": "string"
@@ -1229,32 +1231,6 @@
     },
     "SpeedLimitRule": {
       "additionalProperties": false,
-      "anyOf": [
-        {
-          "properties": {
-            "max_speed": {
-              "not": {
-                "type": "null"
-              }
-            }
-          },
-          "required": [
-            "max_speed"
-          ]
-        },
-        {
-          "properties": {
-            "min_speed": {
-              "not": {
-                "type": "null"
-              }
-            }
-          },
-          "required": [
-            "min_speed"
-          ]
-        }
-      ],
       "description": "An individual speed limit rule.",
       "properties": {
         "between": {
@@ -1269,24 +1245,32 @@
           "title": "Between",
           "type": "array"
         },
-        "is_max_speed_variable": {
-          "default": false,
-          "description": "Indicates a variable speed corridor",
-          "title": "Is Max Speed Variable",
-          "type": "boolean"
-        },
-        "max_speed": {
+        "speed": {
           "$ref": "#/$defs/Speed"
         },
-        "min_speed": {
-          "$ref": "#/$defs/Speed"
+        "type": {
+          "$ref": "#/$defs/SpeedLimitType"
         },
         "when": {
           "$ref": "#/$defs/overture__schema__transportation__models__SpeedLimitRule__When"
         }
       },
+      "required": [
+        "type",
+        "speed"
+      ],
       "title": "SpeedLimitRule",
       "type": "object"
+    },
+    "SpeedLimitType": {
+      "description": "The kind of speed limit.",
+      "enum": [
+        "maximum",
+        "minimum",
+        "advisory"
+      ],
+      "title": "SpeedLimitType",
+      "type": "string"
     },
     "SpeedUnit": {
       "description": "Unit of speed.",
