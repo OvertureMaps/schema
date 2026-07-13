@@ -7,7 +7,7 @@ name = "overture-schema-common"
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
-dynamic = ["version"]
+version = "0.1.1"
 description = "Common components that are shared across Overture theme schemas"
 license = "MIT"
 dependencies = [
@@ -23,9 +23,6 @@ Issues = "https://github.com/OvertureMaps/schema/issues"
 
 [tool.uv.sources]
 overture-schema-system = { workspace = true }
-
-[tool.hatch.version]
-path = "src/overture/schema/common/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]

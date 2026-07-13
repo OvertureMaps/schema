@@ -4,7 +4,7 @@ maintainers = [
 ]
 dependencies = ["overture-schema-common", "overture-schema-system", "pydantic>=2.12.0"]
 description = "Add your description here"
-dynamic = ["version"]
+version = "0.1.1"
 license = "MIT"
 name = "overture-schema-annex"
 readme = "README.md"
@@ -22,9 +22,6 @@ Issues = "https://github.com/OvertureMaps/schema/issues"
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
-
-[tool.hatch.version]
-path = "src/overture/schema/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]

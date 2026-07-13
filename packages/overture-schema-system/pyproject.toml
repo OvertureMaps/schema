@@ -7,7 +7,7 @@ name = "overture-schema-system"
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
-dynamic = ["version"]
+version = "0.1.1"
 description = "Foundational types at the base of the Overture Maps schema system"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -28,9 +28,6 @@ dev = [
     "ruff>=0.13.0",
     "mypy>=1.17.0",
 ]
-
-[tool.hatch.version]
-path = "src/overture/schema/system/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]

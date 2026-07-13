@@ -1,0 +1,132 @@
+name: Compute package version
+description: >
+  Computes the version string for a package given branch context.
+
+  Contexts:
+    - `vnext`: `<last-published>+dev.<run_number>` (PEP 440 local version).
+      Falls back to `<major>.<minor>.0+dev.<run_number>` if never published.
+      Local versions are rejected by PyPI — only suitable for private indexes
+      like CodeArtifact.
+    - `main`: `<major>.<minor>.<next-patch>` — increments the highest
+      published patch for the same major.minor series.
+    - `main-bump`: `<major>.<minor>.0` — used when a major/minor bump commit
+      lands on main (patch resets to 0).
+
+  Prerequisites: repo must be checked out and `uv` must be available.
+
+inputs:
+  package:
+    description: Distribution package name (e.g. overture-schema-common).
+    required: true
+  context:
+    description: >
+      Branch context controlling the version formula.
+      Supported values: `vnext`, `main`, `main-bump`.
+    required: true
+  index_url:
+    description: >
+      PyPI simple index URL with embedded credentials for querying
+      CodeArtifact. Obtain via the `.github/actions/code-artifact` action's
+      `index_url` output after configuring AWS credentials.
+    required: true
+
+outputs:
+  version:
+    description: Computed version string (PEP 440).
+    value: ${{ steps.compute.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Compute version
+      id: compute
+      shell: bash
+      env:
+        PACKAGE: ${{ inputs.package }}
+        CONTEXT: ${{ inputs.context }}
+        INDEX_URL: ${{ inputs.index_url }}
+        RUN_NUMBER: ${{ github.run_number }}
+      run: |
+        set -euo pipefail
+
+        # --- Read seed version from pyproject.toml ---
+        SEED=$(cd "packages/${PACKAGE}" && uv version --short)
+        MAJOR_MINOR=$(echo "$SEED" | grep -oE '^[0-9]+\.[0-9]+')
+        echo "Seed version for ${PACKAGE}: ${SEED} (major.minor: ${MAJOR_MINOR})"
+
+        # --- Query CodeArtifact for the latest published version ---
+        # uv pip compile resolves the latest matching version from the index.
+        # We constrain to the current major.minor series for `main` context.
+        resolve_latest() {
+          local constraint="$1"
+          local output
+          # uv pip compile exits non-zero both when nothing matches (a normal
+          # "not published yet" result) and on real failures (network/auth/etc).
+          # Only treat the former as benign; anything else must surface and fail.
+          output=$(echo "$constraint" \
+            | uv pip compile - --index-url "$INDEX_URL" --no-deps --quiet 2>&1) || {
+            if echo "$output" | grep -qiE 'no solution found|could not find a version|not found in the package registry'; then
+              echo ""
+              return 0
+            fi
+            echo "ERROR: uv pip compile failed for '${constraint}':" >&2
+            echo "$output" >&2
+            exit 1
+          }
+          echo "$output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true
+        }
+
+        # --- Compute version based on context ---
+        case "$CONTEXT" in
+          vnext)
+            LATEST=$(resolve_latest "$PACKAGE")
+            if [ -n "$LATEST" ]; then
+              BASE="$LATEST"
+              echo "Latest published version: ${LATEST}"
+            else
+              # No published version at all — use the pyproject.toml seed
+              # as-is (not just its major.minor) so a patch already bumped
+              # there (e.g. baselining) isn't regressed.
+              BASE="$SEED"
+              echo "No published version found — falling back to seed version ${BASE}"
+            fi
+            VERSION="${BASE}+dev.${RUN_NUMBER}"
+            ;;
+
+          main)
+            # Resolve the highest patch within the current major.minor series.
+            LATEST_IN_SERIES=$(resolve_latest "${PACKAGE}>=${MAJOR_MINOR}.0,<${MAJOR_MINOR}.99999")
+            SEED_PATCH=$(echo "$SEED" | grep -oE '[0-9]+$')
+            if [ -n "$LATEST_IN_SERIES" ]; then
+              CURRENT_PATCH=$(echo "$LATEST_IN_SERIES" | grep -oE '[0-9]+$')
+              NEXT_FROM_PUBLISHED=$((CURRENT_PATCH + 1))
+              echo "Latest in ${MAJOR_MINOR}.x series: ${LATEST_IN_SERIES} → next patch: ${NEXT_FROM_PUBLISHED}"
+            else
+              NEXT_FROM_PUBLISHED=0
+              echo "No published version in ${MAJOR_MINOR}.x series"
+            fi
+            # The pyproject.toml seed's patch acts as a floor so a manual
+            # bump there (e.g. baselining) is never regressed — CI only
+            # takes over incrementing once publishing has caught up to it.
+            if [ "$SEED_PATCH" -gt "$NEXT_FROM_PUBLISHED" ]; then
+              NEXT_PATCH=$SEED_PATCH
+              echo "Seed patch (${SEED_PATCH}) is ahead of published — using it as the baseline"
+            else
+              NEXT_PATCH=$NEXT_FROM_PUBLISHED
+            fi
+            VERSION="${MAJOR_MINOR}.${NEXT_PATCH}"
+            ;;
+
+          main-bump)
+            VERSION="${MAJOR_MINOR}.0"
+            echo "Major/minor bump — patch resets to 0"
+            ;;
+
+          *)
+            echo "::error::Unknown context '${CONTEXT}'. Supported: vnext, main, main-bump."
+            exit 1
+            ;;
+        esac
+
+        echo "Computed version for ${PACKAGE} (${CONTEXT}): ${VERSION}"
+        echo "version=${VERSION}" >> "$GITHUB_OUTPUT"

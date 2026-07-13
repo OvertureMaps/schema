@@ -12,7 +12,7 @@ dependencies = [
     "yamlcore>=0.0.4",
 ]
 description = "Command-line interface for Overture Maps schema validation and JSON Schema generation"
-dynamic = ["version"]
+version = "0.1.1"
 license = "MIT"
 name = "overture-schema-cli"
 readme = "README.md"
@@ -37,9 +37,6 @@ dev = [
     "ruff>=0.13.0",
     "mypy>=1.17.0",
 ]
-
-[tool.hatch.version]
-path = "src/overture/schema/cli/__about__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]

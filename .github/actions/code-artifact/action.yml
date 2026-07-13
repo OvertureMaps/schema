@@ -1,0 +1,67 @@
+name: CodeArtifact credentials
+description: >
+  Retrieves an authorization token and constructs index/publish URLs for AWS
+  CodeArtifact. Assumes AWS credentials are already configured in the job.
+
+inputs:
+  aws_account_id:
+    description: AWS account ID that owns the CodeArtifact domain.
+    required: false
+    default: "505071440022"
+  aws_region:
+    description: AWS region where the CodeArtifact repository is hosted.
+    required: false
+    default: us-west-2
+  domain:
+    description: CodeArtifact domain name.
+    required: false
+    default: overture-pypi
+  repository:
+    description: CodeArtifact repository name.
+    required: false
+    default: overture
+
+outputs:
+  token:
+    description: CodeArtifact authorization token (masked in logs).
+    value: ${{ steps.creds.outputs.token }}
+  index_url:
+    description: >
+      Full index URL with embedded credentials, suitable for
+      `--index-url` / `--extra-index-url` in pip/uv.
+    value: ${{ steps.creds.outputs.index_url }}
+  publish_url:
+    description: >
+      Publish endpoint URL (no credentials embedded — pass token separately).
+    value: ${{ steps.creds.outputs.publish_url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get CodeArtifact credentials
+      id: creds
+      shell: bash
+      env:
+        AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
+        AWS_REGION: ${{ inputs.aws_region }}
+        DOMAIN: ${{ inputs.domain }}
+        REPOSITORY: ${{ inputs.repository }}
+      run: |
+        set -euo pipefail
+
+        token=$(aws codeartifact get-authorization-token \
+          --region "$AWS_REGION" \
+          --domain "$DOMAIN" \
+          --domain-owner "$AWS_ACCOUNT_ID" \
+          --query authorizationToken \
+          --output text)
+        echo "::add-mask::${token}"
+        echo "token=${token}" >> "$GITHUB_OUTPUT"
+
+        base_url="https://${DOMAIN}-${AWS_ACCOUNT_ID}.d.codeartifact.${AWS_REGION}.amazonaws.com/pypi/${REPOSITORY}"
+
+        index_url="https://aws:${token}@${DOMAIN}-${AWS_ACCOUNT_ID}.d.codeartifact.${AWS_REGION}.amazonaws.com/pypi/${REPOSITORY}/simple/"
+        echo "::add-mask::${index_url}"
+        echo "index_url=${index_url}" >> "$GITHUB_OUTPUT"
+
+        echo "publish_url=${base_url}" >> "$GITHUB_OUTPUT"
