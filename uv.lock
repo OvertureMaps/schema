@@ -21,6 +21,7 @@ members = [
     "overture-schema-codegen",
     "overture-schema-common",
     "overture-schema-divisions-theme",
+    "overture-schema-extensions",
     "overture-schema-places-theme",
     "overture-schema-system",
     "overture-schema-transportation-theme",
@@ -1066,6 +1067,20 @@ requires-dist = [
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
     { name = "pydantic", specifier = ">=2.12.0" },
+]
+
+[[package]]
+name = "overture-schema-extensions"
+source = { editable = "packages/overture-schema-extensions" }
+dependencies = [
+    { name = "overture-schema-core" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-core", editable = "packages/overture-schema-core" },
+    { name = "pydantic", specifier = ">=2.0" },
 ]
 
 [[package]]
