@@ -48,10 +48,15 @@ gitGraph
    commit id: "work B"
    checkout vnext
    merge feature-b
+   commit id: "bump major.minor"
    checkout main
-   merge vnext id: "release"
+   merge vnext id: "release" tag: "v2.0.0 (draft)"
    commit id: "next work"
 ```
+
+The `bump major.minor` commit edits the umbrella package's version in `pyproject.toml`. When the
+release merge lands on `main`, CI cuts a draft GitHub Release at that version — see
+[docs/versioning.md](docs/versioning.md).
 
 ## Branch Protections
 
