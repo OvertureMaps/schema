@@ -121,6 +121,27 @@ After each push to `main` or `vnext`, CI runs the `compute-versions-dry-run` wor
 
 This workflow will be replaced by actual publish workflows in Phase 3.
 
+### Release trigger
+
+On every push to `main` that touches `packages/overture-schema/pyproject.toml`, the
+`release-trigger` workflow compares the umbrella package's `<major>.<minor>` before and after.
+On a bump it creates a **draft** GitHub Release tagged `v<major>.<minor>.0`; a maintainer then
+writes the release notes and publishes the draft. Publishing the release is the **only** trigger
+for a public PyPI publish (Phase 3). Patch-only changes are a no-op.
+
+See [docs/versioning.md](docs/versioning.md) for the full version scheme, bump guidance, and
+release process.
+
+## Versioning quick reference
+
+- `<major>.<minor>` is a human decision — edit it in `pyproject.toml` in your PR and reset patch
+  to `0` (e.g. `1.17.1` → `1.18.0`). Minor bumps target `main`; major bumps target `vnext`.
+- `<patch>` is computed by CI at publish time — never edit it manually.
+- Only an `overture-schema` (umbrella) major/minor bump produces a public release. Other
+  packages publish to CodeArtifact only and reach public PyPI by riding along an umbrella release.
+- Details: [docs/versioning.md](docs/versioning.md).
+
+
 ## Migration Notes
 
 > **Roadmap:** this branching strategy is rolled out in phases, tracked under the parent
@@ -132,7 +153,7 @@ This workflow will be replaced by actual publish workflows in Phase 3.
 | [0](https://github.com/OvertureMaps/schema/issues/506) | ✅ Done | Switch from `dev`/`staging` to the `main`/`vnext` model. |
 | [1](https://github.com/OvertureMaps/schema/issues/507) | ✅ Done | CI guardrails: PR target check, vnext compatibility check, automatic post-merge rebase. |
 | [2.A](https://github.com/OvertureMaps/schema/issues/508) | ✅ Done | Version baselines + `compute-version` action. Computes versions only — nothing is published yet. |
-| [2.B](https://github.com/OvertureMaps/schema/issues/533) | 🚧 Next | Detect a `<major>.<minor>` bump landing on `main` and cut the GitHub Release that triggers a public publish. |
+| [2.B](https://github.com/OvertureMaps/schema/issues/533) | ✅ Done | Detect an umbrella `<major>.<minor>` bump landing on `main` and cut the draft GitHub Release that gates a public publish. |
 | [3](https://github.com/OvertureMaps/schema/issues/509) | ⏳ Planned | The actual publish workflows: `vnext` dev builds to CodeArtifact, `main` patch builds, and public PyPI releases. |
 | [4](https://github.com/OvertureMaps/schema/issues/510) | ⏳ Planned | Documentation polish — diagrams, contributor walkthroughs, FAQ. |
 
@@ -158,17 +179,21 @@ If your fork still references `dev` or `staging`, update your remotes accordingl
 - `code-artifact` composite action added: replaces the legacy shell script for AWS CodeArtifact auth.
 - `compute-versions-dry-run` workflow added for version visibility until Phase 3 publish workflows land.
 
-### [Phase 2.B](https://github.com/OvertureMaps/schema/issues/533)
+### [Phase 2.B](https://github.com/OvertureMaps/schema/issues/533), July 2026
 
-Not started. Will add a `p2-release-trigger` workflow that detects a `<major>.<minor>` bump
-landing on `main` and cuts a GitHub Release — the only trigger for a public PyPI publish.
+- `release-trigger` workflow added: detects an umbrella `overture-schema` major/minor bump on
+  `main` and creates a draft GitHub Release at `v<major>.<minor>.0`. A maintainer writes notes
+  and publishes — that `release: published` event is the only public PyPI trigger.
+- Decisions locked: patch builds on `main` go to CodeArtifact only; release notes are authored
+  manually at release time; only the umbrella package's bump cuts a release.
+- `docs/versioning.md` added with the full version scheme and release process.
 
 ### [Phase 3](https://github.com/OvertureMaps/schema/issues/509)
 
 Not started. Will add the actual publish workflows (`p3-dev-builds-ca`, `p3-main-publish`,
-`p3-release-publish`) that call the `compute-version` action from Phase 2.A. Where patch
-builds on `main` publish to (CodeArtifact-only vs. public PyPI) is still an open decision —
-see the linked issue.
+`p3-release-publish`) that call the `compute-version` action from Phase 2.A. Patch builds on
+`main` publish to CodeArtifact only (decided in Phase 2.B); the public PyPI publish fires on
+`release: published`.
 
 ### [Phase 4](https://github.com/OvertureMaps/schema/issues/510)
 

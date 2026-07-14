@@ -1,0 +1,110 @@
+name: Release trigger
+
+# Runs on every push to main that touches the umbrella package's pyproject.toml.
+# Detects a <major>.<minor> version bump of `overture-schema` and cuts a DRAFT
+# GitHub Release tagged `v<major>.<minor>.0`.
+#
+# A maintainer then writes the release notes and publishes the draft. The
+# `release: published` event is the ONLY trigger for a public PyPI publish
+# (Phase 3). Patch-level pushes and non-umbrella package bumps never reach
+# public PyPI — they publish to CodeArtifact only.
+#
+# Patch-only changes to the umbrella version are ignored: the patch component
+# is computed by CI (see .github/actions/compute-version), not by this
+# workflow.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - packages/overture-schema/pyproject.toml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  release-trigger:
+    name: Detect major/minor bump
+    if: github.event.repository.full_name == github.repository
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write # Required to create the release and its tag
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Detect major/minor bump
+        id: detect
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        run: |
+          set -euo pipefail
+
+          PYPROJECT="packages/overture-schema/pyproject.toml"
+
+          # `before` can be unresolvable after a force-push or history rewrite.
+          # Treat that as "no bump" rather than failing every subsequent push.
+          if ! git cat-file -e "${BEFORE}:${PYPROJECT}" 2>/dev/null; then
+            echo "::warning::Cannot read ${PYPROJECT} at ${BEFORE} — skipping bump detection."
+            echo "bump=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git show "${BEFORE}:${PYPROJECT}" > /tmp/pyproject-before.toml
+          git show "${AFTER}:${PYPROJECT}"  > /tmp/pyproject-after.toml
+
+          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          import sys
+          import tomllib
+
+          def major_minor(path: str) -> tuple[int, int]:
+              with open(path, "rb") as f:
+                  version = tomllib.load(f)["project"]["version"]
+              major, minor, *_ = version.split(".")
+              return int(major), int(minor)
+
+          before = major_minor("/tmp/pyproject-before.toml")
+          after = major_minor("/tmp/pyproject-after.toml")
+          print(f"overture-schema: {before} -> {after}", file=sys.stderr)
+
+          if before == after:
+              print("bump=false")
+          else:
+              print("bump=true")
+              print(f"tag=v{after[0]}.{after[1]}.0")
+          EOF
+
+      - name: Create draft release
+        if: steps.detect.outputs.bump == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.detect.outputs.tag }}
+          TARGET: ${{ github.event.after }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Release ${TAG} already exists. A duplicate major/minor bump landed on main — investigate before re-releasing."
+            exit 1
+          fi
+
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$TARGET" \
+            --title "$TAG" \
+            --draft \
+            --notes "Draft release for ${TAG}. Replace this with the release notes, then publish. Publishing fires the public PyPI release pipeline."
+
+          {
+            echo "## 📦 Draft release created: ${TAG}"
+            echo ""
+            echo "A maintainer must now write release notes and **publish** the draft."
+            echo "Publishing is the only trigger for the public PyPI release."
+          } >> "$GITHUB_STEP_SUMMARY"
