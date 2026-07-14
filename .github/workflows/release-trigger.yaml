@@ -76,6 +76,14 @@ jobs:
 
           if before == after:
               print("bump=false")
+          elif after < before:
+              print(
+                  f"::error::overture-schema major/minor went backwards: "
+                  f"{before[0]}.{before[1]} -> {after[0]}.{after[1]}. "
+                  f"Version decreases must never land on main — revert or fix the version.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
           else:
               print("bump=true")
               print(f"tag=v{after[0]}.{after[1]}.0")
