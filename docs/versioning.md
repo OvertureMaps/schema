@@ -95,4 +95,7 @@ flowchart LR
   duplicate bump landing on `main` requires human investigation before
   re-releasing.
 - Non-umbrella package bumps do not create releases. If a non-core package
-  needs a public release, bump the umbrella package.
+  needs a public release now, bump the umbrella package's minor in the same
+  PR. This is a one-line change and reflects that the umbrella
+  distribution's contents changed. Otherwise the package reaches public
+  PyPI with the next umbrella release.
