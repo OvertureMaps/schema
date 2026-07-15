@@ -25,7 +25,7 @@ The buildings theme has two feature types:
 
 ## Theme concepts
 
-Both building and building_part types may have many **shape** related properties. These are useful for expressing the physical shape characteristics of the buidling including `roof_height`, `roof_shape`, `roof_material`, `facade_material`, etc.
+Both building and building_part types may have many **shape** related properties. These are useful for expressing the physical shape characteristics of the building including `roof_height`, `roof_shape`, `roof_material`, `facade_material`, etc.
 
 ### Properties derived from OpenStreetMap tags
 
@@ -114,7 +114,7 @@ There are a handful of common formatting issues that we generally allow when par
         ```sql
         ^\s*\d+(\.\d*)?\s*(m|meter|metre)s?\s*$
         ```
-        Height strings with a number follwed by a metric unit that matches the singular
+        Height strings with a number followed by a metric unit that matches the singular
         or plural version form of `m`, `meter`, and `metre` strings after the number are
         also treated as meters and the units are stripped. These values are not rounded.
         Examples:

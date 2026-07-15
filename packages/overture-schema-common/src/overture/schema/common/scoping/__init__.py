@@ -13,7 +13,7 @@ and suppose you want to record depth observations for each tunnel along differen
 Perhaps a tunnel is 10 meters deep for the first 100 meters, then rises a bit to only 7 meters deep
 for the next 100 meters. These depth observations would be modeled in the Overture schema using
 geometric range scoping (linear referencing): you would give your tunnel model an array of depth
-obervations, and each observation would contain a linearly-referenced depth value.
+observations, and each observation would contain a linearly-referenced depth value.
 
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel

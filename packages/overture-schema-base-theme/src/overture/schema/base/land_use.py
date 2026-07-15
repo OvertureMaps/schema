@@ -185,7 +185,7 @@ class LandUse(
     activity, recreation, farming, housing, education, or military use.
 
     Land use features relate to `LandCover` features in the following way: land use is the human
-    human activity being done with the land, while land cover is the physical thing that covers it.
+    activity being done with the land, while land cover is the physical thing that covers it.
 
     TODO: Explain relationship to `Land` features.
     """

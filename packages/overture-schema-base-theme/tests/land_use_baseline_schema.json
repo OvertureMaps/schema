@@ -408,7 +408,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Land use features specify the predominant human use of an area of land, for example commercial\nactivity, recreation, farming, housing, education, or military use.\n\nLand use features relate to `LandCover` features in the following way: land use is the human\nhuman activity being done with the land, while land cover is the physical thing that covers it.\n\nTODO: Explain relationship to `Land` features.",
+  "description": "Land use features specify the predominant human use of an area of land, for example commercial\nactivity, recreation, farming, housing, education, or military use.\n\nLand use features relate to `LandCover` features in the following way: land use is the human\nactivity being done with the land, while land cover is the physical thing that covers it.\n\nTODO: Explain relationship to `Land` features.",
   "properties": {
     "bbox": {
       "description": "An optional bounding box for the feature",
@@ -580,7 +580,7 @@
       },
       "patternProperties": {
         "^ext_.*$": {
-          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
         }
       },
       "properties": {

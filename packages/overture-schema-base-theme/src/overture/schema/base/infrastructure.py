@@ -230,7 +230,7 @@ class Infrastructure(
     SourcedFromOpenStreetMap,
 ):
     """
-    Infrastructure features provide basic information about real-world infrastructure entitites
+    Infrastructure features provide basic information about real-world infrastructure entities
     such as bridges, airports, runways, aerialways, communication towers, and power lines.
     """
 

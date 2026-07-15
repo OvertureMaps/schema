@@ -65,7 +65,7 @@ class Scope(str, Enum):
     In order to add `when.heading`, this scope will place it into a containing `when` field in the
     model it decorates. The type of the `when` field will be a new model class named `When` that
     will be added as a nested class of the decorated model.  Consequently, the decorated model must
-    not aready have a `when` field or a nested class named `When`.
+    not already have a `when` field or a nested class named `When`.
     """
 
     TEMPORAL = "temporal"
@@ -78,7 +78,7 @@ class Scope(str, Enum):
     In order to add `when.during`, this scope will place it into a containing `when` field in the
     model it decorates. The type of the `when` field will be a new model class named `When` that
     will be added as a nested class of the decorated model.  Consequently, the decorated model must
-    not aready have a `when` field or a nested class named `When`.
+    not already have a `when` field or a nested class named `When`.
     """
 
     TRAVEL_MODE = "travel_mode"
@@ -104,7 +104,7 @@ class Scope(str, Enum):
     In order to add `when.using`, this scope will place it into a containing `when` field in the
     model it decorates. The type of the `when` field will be a new model class named `When` that
     will be added as a nested class of the decorated model.  Consequently, the decorated model must
-    not aready have a `when` field or a nested class named `When`.
+    not already have a `when` field or a nested class named `When`.
     """
 
     RECOGNIZED_STATUS = "recognized_status"
@@ -118,7 +118,7 @@ class Scope(str, Enum):
     In order to add `when.recognized`, this scope will place it into a containing `when` field in
     the model it decorates. The type of the `when` field will be a new model class named `When` that
     will be added as a nested class of the decorated model.  Consequently, the decorated model must
-    not aready have a `when` field or a nested class named `When`.
+    not already have a `when` field or a nested class named `When`.
     """
 
     SIDE = "side"
@@ -144,7 +144,7 @@ class Scope(str, Enum):
     In order to add `when.vehicle`, this scope will place it into a containing `when` field in the
     model it decorates. The type of the `when` field will be a new model class named `When` that
     will be added as a nested class of the decorated model.  Consequently, the decorated model must
-    not aready have a `when` field or a nested class named `When`.
+    not already have a `when` field or a nested class named `When`.
     """
 
     def _field(self, parent: str, required: bool) -> object:
