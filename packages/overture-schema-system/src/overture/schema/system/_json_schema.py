@@ -264,7 +264,7 @@ def put_properties(
 
     If the target JSON Schema already contains a `"properties"` clause, the new properties from
     `new_properties` are merged into it. Otherwise, a new `"properties"` clause is inserted into
-    `json_schema` and and all properties from `new_properties` are inserted into it.
+    `json_schema` and all properties from `new_properties` are inserted into it.
 
     Parameters
     ----------

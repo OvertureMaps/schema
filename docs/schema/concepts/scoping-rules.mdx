@@ -131,17 +131,16 @@ detail.
 
 A travel mode is a way of moving about the transportation network, for example driving in a motor vehicle, or, more specifically, driving in a high-occupancy vehicle.
 
-The property construct `when: { mode: [...] }` limits the scope its parent value to apply only to people or things travelling using the listed travel modes.
+The property construct `when: { mode: [...] }` limits the scope of its parent value to apply only to people or things travelling using the listed travel modes.
 
 To dive deeper into this topic, see the page on [travel modes](https://docs.overturemaps.org/guides/transportation/travel-modes).
 
-#### Heading
 #### Heading
 
 <Tabs>
   <TabItem value="description" label="Description" default>
 
-Heading scoping limits the the scope of a parent value to apply only when the traveller is proceeding along the segment geometry in the named direction, either `forward` or `backward`.
+Heading scoping limits the scope of a parent value to apply only when the traveller is proceeding along the segment geometry in the named direction, either `forward` or `backward`.
 (*The directions `forward` and `backward` are defined on the [shape and connectivity](https://docs.overturemaps.org/guides/transportation/shape-connectivity) page.*)
 
 The property construct `when: { heading: forward|backward }` applies heading scoping to a parent value.

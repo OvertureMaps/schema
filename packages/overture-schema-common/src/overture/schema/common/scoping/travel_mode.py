@@ -1,5 +1,5 @@
 """
-Types supporting the trravel mode scope.
+Types supporting the travel mode scope.
 """
 
 from enum import Enum
