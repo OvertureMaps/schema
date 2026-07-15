@@ -27,7 +27,7 @@ properties:
   road_surface:
     - value: gravel
   road_flags:
-    - values: [is_link, is_tunnel, has_dynamic_speed_limits] # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
+    - values: [is_link, is_tunnel, dynamic_speed] # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
   level: -1
   level_rules:
     - value: -1

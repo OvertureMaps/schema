@@ -15,7 +15,7 @@ properties:
   subtype: road
   class: motorway
   road_flags:
-    - values: [has_dynamic_speed_limits]
+    - values: [dynamic_speed]
   speed_limits:
     - type: maximum
       speed:

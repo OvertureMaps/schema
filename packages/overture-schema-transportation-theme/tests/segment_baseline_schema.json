@@ -750,8 +750,8 @@
         "is_abandoned",
         "is_covered",
         "is_indoor",
-        "has_dynamic_speed_limits",
-        "has_unlimited_speed_limits"
+        "dynamic_speed",
+        "unlimited_speed"
       ],
       "title": "RoadFlag",
       "type": "string"
@@ -1265,9 +1265,9 @@
     "SpeedLimitType": {
       "description": "The kind of speed limit.",
       "enum": [
+        "advisory",
         "maximum",
-        "minimum",
-        "advisory"
+        "minimum"
       ],
       "title": "SpeedLimitType",
       "type": "string"

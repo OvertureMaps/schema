@@ -240,8 +240,8 @@ properties:
         - is_abandoned
         - is_covered
         - is_indoor
-        - has_dynamic_speed_limits
-        - has_unlimited_speed_limits
+        - dynamic_speed
+        - unlimited_speed
     railFlag:
       description: >-
         Simple flags that can be on or off for a railway segment. Specifies physical characteristics and can overlap.

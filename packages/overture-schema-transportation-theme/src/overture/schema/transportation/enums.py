@@ -2,6 +2,8 @@
 
 from enum import Enum
 
+from overture.schema.system.doc import DocumentedEnum
+
 
 class Subtype(str, Enum):
     """Transportation segment subtype classification."""
@@ -92,21 +94,30 @@ class DestinationSignSymbol(str, Enum):
     RESTROOMS = "restrooms"  # 'toilets' in OSM
 
 
-class RoadFlag(str, Enum):
+class RoadFlag(str, DocumentedEnum):
     """Simple flags that can be on or off for a road segment.
 
     Specifies physical characteristics and other properties of the road and can overlap.
     """
 
     IS_BRIDGE = "is_bridge"
-    IS_LINK = "is_link"  # Note: `is_link` is deprecated and will be removed in a future release in favor of the link subclass
+    IS_LINK = (
+        "is_link",
+        "Deprecated: will be removed in a future release in favor of the `link` subclass",
+    )
     IS_TUNNEL = "is_tunnel"
     IS_UNDER_CONSTRUCTION = "is_under_construction"
     IS_ABANDONED = "is_abandoned"
     IS_COVERED = "is_covered"
     IS_INDOOR = "is_indoor"
-    HAS_DYNAMIC_SPEED_LIMITS = "has_dynamic_speed_limits"
-    HAS_UNLIMITED_SPEED_LIMITS = "has_unlimited_speed_limits"
+    DYNAMIC_SPEED = (
+        "dynamic_speed",
+        "Speed limits on the road are dynamic (e.g. displayed on variable signs in a dynamic speed corridor)",
+    )
+    UNLIMITED_SPEED = (
+        "unlimited_speed",
+        "No regulatory maximum speed applies (e.g. parts of the German Autobahn)",
+    )
 
 
 class RailFlag(str, Enum):
@@ -155,9 +166,12 @@ class AccessType(str, Enum):
     DESIGNATED = "designated"
 
 
-class SpeedLimitType(str, Enum):
+class SpeedLimitType(str, DocumentedEnum):
     """The kind of speed limit."""
 
+    ADVISORY = (
+        "advisory",
+        "A recommended safe speed (e.g. before sharp curves or on ramps)"
+    )
     MAXIMUM = "maximum"
     MINIMUM = "minimum"
-    ADVISORY = "advisory"
