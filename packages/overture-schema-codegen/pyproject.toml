@@ -16,6 +16,7 @@ description = "Code generator that produces documentation and code from Pydantic
 dynamic = ["version"]
 license = "MIT"
 name = "overture-schema-codegen"
+requires-python = ">=3.10"
 
 [project.scripts]
 overture-codegen = "overture.schema.codegen.cli:main"
