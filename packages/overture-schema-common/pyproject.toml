@@ -9,6 +9,7 @@ maintainers = [
 ]
 version = "0.1.1"
 description = "Common components that are shared across Overture theme schemas"
+requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
     "overture-schema-system",
