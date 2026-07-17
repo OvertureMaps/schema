@@ -38,7 +38,6 @@ __all__ = [
     "MapPath",
     "MapProjection",
     "MapSegment",
-    "PathSegment",
     "ScalarPath",
     "StructSegment",
     "coerce",
@@ -88,9 +87,6 @@ class MapSegment:
     projection: MapProjection
 
 
-PathSegment: TypeAlias = StructSegment | ArraySegment
-
-
 @dataclass(frozen=True, slots=True)
 class ScalarPath:
     """Locate a non-iterated value in a row."""
@@ -116,7 +112,7 @@ class ArrayPath:
     Invariant: `segments` contains at least one `ArraySegment`.
     """
 
-    segments: tuple[PathSegment, ...]
+    segments: tuple[StructSegment | ArraySegment, ...]
 
     def __post_init__(self) -> None:
         if not any(isinstance(s, ArraySegment) for s in self.segments):
@@ -334,14 +330,14 @@ FieldPath: TypeAlias = ScalarPath | ArrayPath | MapPath
 
 
 # The element type of any `FieldPath.segments`, across all three variants.
-# Broader than `PathSegment` (array/scalar paths only): a `MapPath` adds a
-# trailing `MapSegment`. Consumers that walk an arbitrary `FieldPath`'s
-# segments -- rather than a statically known `ArrayPath` -- annotate with
-# this so a `MapSegment` is not a type error.
+# Broader than an `ArrayPath`'s `StructSegment | ArraySegment`: a `MapPath`
+# adds a trailing `MapSegment`. Consumers that walk an arbitrary
+# `FieldPath`'s segments -- rather than a statically known `ArrayPath` --
+# annotate with this so a `MapSegment` is not a type error.
 FieldSegment: TypeAlias = StructSegment | ArraySegment | MapSegment
 
 
-def _segment_str(seg: PathSegment) -> str:
+def _segment_str(seg: StructSegment | ArraySegment) -> str:
     if isinstance(seg, ArraySegment):
         return seg.name + "[]" * seg.iter_count
     return seg.name
