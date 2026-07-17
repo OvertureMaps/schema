@@ -50,7 +50,10 @@ def absent_column(exc: AnalysisException, columns: Collection[str]) -> str | Non
     columns
         The data's top-level column names (`df.columns`).
     """
-    condition = exc.getCondition()
+    # getCondition() is pyspark 4.0+; the 3.4 floor exposes the same value as
+    # getErrorClass() (renamed, then deprecated, in 4.0).
+    get_condition = getattr(exc, "getCondition", None)
+    condition = get_condition() if get_condition is not None else exc.getErrorClass()
     if condition is None or not condition.startswith("UNRESOLVED_COLUMN"):
         return None
     object_name = (exc.getMessageParameters() or {}).get("objectName")
