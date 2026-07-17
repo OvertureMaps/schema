@@ -122,11 +122,7 @@ _BASE_TYPE_DISPATCH: dict[str, tuple[ExpressionDescriptor, ...]] = {
         ExpressionDescriptor(function="check_url_length"),
     ),
     "EmailStr": (ExpressionDescriptor(function="check_email"),),
-    "BBox": (
-        ExpressionDescriptor(function="check_bbox_completeness"),
-        ExpressionDescriptor(function="check_bbox_lat_ordering"),
-        ExpressionDescriptor(function="check_bbox_lat_range"),
-    ),
+    "BBox": (ExpressionDescriptor(function="check_bbox_completeness"),),
 }
 
 _NEWTYPE_DISPATCH: dict[str, tuple[ExpressionDescriptor, ...]] = {

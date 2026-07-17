@@ -568,33 +568,3 @@ def check_bbox_completeness(col: Column) -> Column:
         ),
         error_msg("bbox sub-fields must all be present"),
     )
-
-
-def check_bbox_lat_ordering(col: Column) -> Column:
-    """Check that ymin does not exceed ymax."""
-    return F.when(
-        col.isNotNull() & (col["ymin"] > col["ymax"]),
-        error_msg("expected ymin <= ymax"),
-    )
-
-
-def check_bbox_lat_range(col: Column) -> Column:
-    """Check that latitude values fall within [-90, 90]."""
-    return F.when(
-        col.isNotNull()
-        & (
-            (col["ymin"] < -90)
-            | (col["ymin"] > 90)
-            | (col["ymax"] < -90)
-            | (col["ymax"] > 90)
-        ),
-        error_msg("latitude values must be in [-90, 90]"),
-    )
-
-
-# TODO: check_bbox_lon_ordering -- deferred pending antimeridian crossing
-# policy. RFC 7946 section 5.2 allows xmin > xmax for bboxes that cross
-# the antimeridian.
-
-# TODO: check_bbox_lon_range -- deferred pending decision on whether
-# coordinates can wrap beyond [-180, 180].

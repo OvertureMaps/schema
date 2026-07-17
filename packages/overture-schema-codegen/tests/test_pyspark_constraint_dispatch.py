@@ -345,13 +345,11 @@ class TestBaseTypeDispatch:
         assert len(descs) == 1
         assert descs[0].function == "check_email"
 
-    def test_bbox_dispatches_to_three_checks(self) -> None:
+    def test_bbox_dispatches_to_completeness_check(self) -> None:
         descs = dispatch_base_type("BBox")
         assert descs is not None
-        assert len(descs) == 3
+        assert len(descs) == 1
         assert descs[0].function == "check_bbox_completeness"
-        assert descs[1].function == "check_bbox_lat_ordering"
-        assert descs[2].function == "check_bbox_lat_range"
 
     def test_unknown_base_type_returns_none(self) -> None:
         descs = dispatch_base_type("str")

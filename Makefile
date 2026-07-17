@@ -1,4 +1,4 @@
-.PHONY: default uv-sync clean-pyspark generate-pyspark verify-pyspark-generated check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only update-baselines
+.PHONY: default uv-sync clean-pyspark generate-pyspark check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only update-baselines
 
 TESTMON ?= --testmon
 
@@ -25,18 +25,12 @@ generate-pyspark: uv-sync clean-pyspark
 check: uv-sync generate-pyspark
 	@$(MAKE) -j test-only doctest-only lint-only mypy-only
 
-# Regenerate and fail if the committed generated output differs. Catches PRs
-# that change the schema or codegen without committing the regenerated files --
-# `check` itself regenerates, so without this guard stale committed output is
-# silently overwritten before the tests run and never verified.
-verify-pyspark-generated: generate-pyspark
-	@git diff --exit-code -- $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS) \
-		|| { echo "Generated PySpark output is stale; run 'make generate-pyspark' and commit."; exit 1; }
-
 # test-all is the unconditional full run -- testmon-independent, unlike the
 # incremental test/test-only targets -- so data-only changes (golden JSON,
-# [[examples]]) that testmon cannot see still get exercised.
-test-all: uv-sync
+# [[examples]]) that testmon cannot see still get exercised. It regenerates
+# the PySpark output first: that tree is no longer tracked in git, so the
+# generated conformance tests only exist once generation has run.
+test-all: uv-sync generate-pyspark
 	@uv run pytest -W error packages/
 
 test: uv-sync

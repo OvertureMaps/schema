@@ -307,8 +307,7 @@ Four dispatch mechanisms:
 
 3. **`dispatch_base_type`** -- base-type overrides for types with no `Annotated`
    constraints: `HttpUrl` -> `check_url_format` + `check_url_length`,
-   `EmailStr` -> `check_email`, `BBox` -> `check_bbox_completeness` +
-   `check_bbox_lat_ordering` + `check_bbox_lat_range`.
+   `EmailStr` -> `check_email`, `BBox` -> `check_bbox_completeness`.
 
 4. **`dispatch_model_constraint`** -- model constraints: `RequireAnyOfConstraint`,
    `RadioGroupConstraint`, `RequireIfConstraint`, `ForbidIfConstraint`,

@@ -42,8 +42,6 @@ _INVALID_LITERALS: dict[str, object] = {
     "check_linear_range_bounds": [1.5, 2.0],
     "check_linear_range_order": [0.8, 0.2],
     "check_bbox_completeness": {"xmin": 0.0, "xmax": 1.0, "ymin": None, "ymax": 1.0},
-    "check_bbox_lat_ordering": {"xmin": 0.0, "xmax": 1.0, "ymin": 10.0, "ymax": -10.0},
-    "check_bbox_lat_range": {"xmin": 0.0, "xmax": 1.0, "ymin": -100.0, "ymax": 100.0},
 }
 
 

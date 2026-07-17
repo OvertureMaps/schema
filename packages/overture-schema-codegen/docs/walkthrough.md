@@ -626,7 +626,7 @@ pipeline.
 
 `generate_markdown_pages` in `markdown/pipeline.py` is the "main" function. It takes
 feature specs and a schema root, returns rendered pages without touching the filesystem.
-Seven steps (tree expansion now happens inside `extract_model`):
+Seven steps (tree expansion happens inside `extract_model`):
 
 1. **Partition primitive and geometry names** from the system primitive module's
    `__all__` exports.

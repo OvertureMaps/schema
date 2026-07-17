@@ -7,8 +7,6 @@ from overture.schema.pyspark.expressions.constraint_expressions import (
     check_array_max_length,
     check_array_min_length,
     check_bbox_completeness,
-    check_bbox_lat_ordering,
-    check_bbox_lat_range,
     check_bounds,
     check_email,
     check_enum,
@@ -1528,69 +1526,3 @@ def test_check_bbox_completeness_null_subfield_fails(spark: SparkSession) -> Non
     )
     result = df.select(check_bbox_completeness(F.col("bbox")).alias("err")).collect()
     assert result[0]["err"] is not None
-
-
-def test_check_bbox_lat_ordering_valid(spark: SparkSession) -> None:
-    df = spark.createDataFrame(
-        [Row(bbox=Row(xmin=0.0, xmax=1.0, ymin=-10.0, ymax=10.0))],
-        schema=_BBOX_SCHEMA,
-    )
-    result = df.select(check_bbox_lat_ordering(F.col("bbox")).alias("err")).collect()
-    assert result[0]["err"] is None
-
-
-def test_check_bbox_lat_ordering_equal_valid(spark: SparkSession) -> None:
-    df = spark.createDataFrame(
-        [Row(bbox=Row(xmin=0.0, xmax=1.0, ymin=5.0, ymax=5.0))],
-        schema=_BBOX_SCHEMA,
-    )
-    result = df.select(check_bbox_lat_ordering(F.col("bbox")).alias("err")).collect()
-    assert result[0]["err"] is None
-
-
-def test_check_bbox_lat_ordering_inverted_fails(spark: SparkSession) -> None:
-    df = spark.createDataFrame(
-        [Row(bbox=Row(xmin=0.0, xmax=1.0, ymin=10.0, ymax=-10.0))],
-        schema=_BBOX_SCHEMA,
-    )
-    result = df.select(check_bbox_lat_ordering(F.col("bbox")).alias("err")).collect()
-    assert result[0]["err"] is not None
-
-
-def test_check_bbox_lat_ordering_null_bbox_passes(spark: SparkSession) -> None:
-    df = spark.createDataFrame([Row(bbox=None)], schema=_BBOX_SCHEMA)
-    result = df.select(check_bbox_lat_ordering(F.col("bbox")).alias("err")).collect()
-    assert result[0]["err"] is None
-
-
-def test_check_bbox_lat_range_valid(spark: SparkSession) -> None:
-    df = spark.createDataFrame(
-        [Row(bbox=Row(xmin=0.0, xmax=1.0, ymin=-90.0, ymax=90.0))],
-        schema=_BBOX_SCHEMA,
-    )
-    result = df.select(check_bbox_lat_range(F.col("bbox")).alias("err")).collect()
-    assert result[0]["err"] is None
-
-
-def test_check_bbox_lat_range_ymin_below_fails(spark: SparkSession) -> None:
-    df = spark.createDataFrame(
-        [Row(bbox=Row(xmin=0.0, xmax=1.0, ymin=-91.0, ymax=1.0))],
-        schema=_BBOX_SCHEMA,
-    )
-    result = df.select(check_bbox_lat_range(F.col("bbox")).alias("err")).collect()
-    assert result[0]["err"] is not None
-
-
-def test_check_bbox_lat_range_ymax_above_fails(spark: SparkSession) -> None:
-    df = spark.createDataFrame(
-        [Row(bbox=Row(xmin=0.0, xmax=1.0, ymin=0.0, ymax=91.0))],
-        schema=_BBOX_SCHEMA,
-    )
-    result = df.select(check_bbox_lat_range(F.col("bbox")).alias("err")).collect()
-    assert result[0]["err"] is not None
-
-
-def test_check_bbox_lat_range_null_bbox_passes(spark: SparkSession) -> None:
-    df = spark.createDataFrame([Row(bbox=None)], schema=_BBOX_SCHEMA)
-    result = df.select(check_bbox_lat_range(F.col("bbox")).alias("err")).collect()
-    assert result[0]["err"] is None

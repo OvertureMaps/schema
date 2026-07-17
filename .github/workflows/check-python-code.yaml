@@ -84,14 +84,3 @@ jobs:
 
       - name: Run make check
         run: make check
-
-      # `make check` regenerates the committed PySpark output in place. If a PR
-      # changed the schema or codegen without committing the regenerated files,
-      # the working tree now differs from what was committed -- fail loudly so
-      # stale generated output cannot pass CI.
-      - name: Verify generated PySpark output is committed
-        run: |
-          git diff --exit-code -- \
-            packages/overture-schema-pyspark/src/overture/schema/pyspark/expressions/generated \
-            packages/overture-schema-pyspark/tests/generated \
-          || { echo "::error::Generated PySpark output is stale. Run 'make generate-pyspark' and commit."; exit 1; }

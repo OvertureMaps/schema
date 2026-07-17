@@ -65,7 +65,7 @@ overture-validate segment samples/segment.parquet \
   --conf spark.master=local[4]
 
 # Continue past schema mismatches (e.g. Float vs Double on bbox)
-overture-validate place s3a://overturemaps-us-west-2/release/2026-02-18.0 \
+overture-validate place s3a://overturemaps-us-west-2/release/2026-06-17.0 \
   --skip-schema-check
 
 # Skip checks for a column absent from the data
@@ -106,15 +106,15 @@ structure:
 | --- | --- | --- |
 | Hive partition path (contains `/theme=`) | `.../theme=transportation/type=segment/` | Reads directly; derives `basePath` so Spark discovers partition columns. |
 | Individual file | `segment.parquet` | Reads directly; data already contains `theme`/`type` columns. |
-| Release root | `s3a://overturemaps-us-west-2/release/2026-02-18.0` | Appends `theme={theme}/type={type}` using the schema's theme mapping; sets `basePath` to the original path. |
+| Release root | `s3a://overturemaps-us-west-2/release/2026-06-17.0` | Appends `theme={theme}/type={type}` using the schema's theme mapping; sets `basePath` to the original path. |
 
 This means you can point the CLI at a release root and it constructs the
 full Hive path automatically:
 
 ```bash
 # These are equivalent:
-overture-validate segment s3a://overturemaps-us-west-2/release/2026-02-18.0
-overture-validate segment s3a://overturemaps-us-west-2/release/2026-02-18.0/theme=transportation/type=segment/
+overture-validate segment s3a://overturemaps-us-west-2/release/2026-06-17.0
+overture-validate segment s3a://overturemaps-us-west-2/release/2026-06-17.0/theme=transportation/type=segment/
 ```
 
 ### Reading from S3
@@ -126,14 +126,14 @@ the Overture release bucket:
 
 ```bash
 overture-validate segment \
-  s3a://overturemaps-us-west-2/release/2026-02-18.0/theme=transportation/type=segment/
+  s3a://overturemaps-us-west-2/release/2026-06-17.0/theme=transportation/type=segment/
 ```
 
 To use named AWS credentials instead of anonymous access:
 
 ```bash
 overture-validate segment \
-  s3a://overturemaps-us-west-2/release/2026-02-18.0/theme=transportation/type=segment/ \
+  s3a://overturemaps-us-west-2/release/2026-06-17.0/theme=transportation/type=segment/ \
   --conf spark.hadoop.fs.s3a.aws.credentials.provider=software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 ```
 
