@@ -27,12 +27,21 @@ class Check:
     and report grouping), not how to access the data.  The expression in
     `expr` already encodes the access pattern.
 
-    `read_columns` names every top-level schema column the expression
-    dereferences -- one for a plain field check, several for a model-level
-    check that spans columns, plus any discriminator a variant gate reads.
-    `validate_model` drops a check when any column it reads is skipped or
-    structurally absent, so an unresolvable `F.col()` never reaches Spark;
-    it also treats these as the columns a check can be suppressed by name.
+    `expr` and `read_columns` are two views of one computation, and each is
+    a "column" in a different sense.  `read_columns` are real columns of the
+    underlying schema model -- the top-level columns the check must read to
+    evaluate.  There is always at least one; a model-level constraint that
+    spans fields names several, plus any discriminator a variant gate reads.
+    `expr` is a *virtual column*: it is not a column of the schema model but
+    one synthesized by the generated validation machinery to hold the
+    composed expression the Spark engine evaluates.  The two travel together
+    because the builder knows the read-set as it composes `expr`; recording
+    it is surer than recovering it from the finished `Column`.
+
+    `validate_model` drops a check when any column in `read_columns` is
+    skipped or structurally absent, so an unresolvable `F.col()` never
+    reaches Spark; it also treats these as the columns a check can be
+    suppressed by name.
     """
 
     field: str
