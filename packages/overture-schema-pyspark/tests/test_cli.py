@@ -268,13 +268,33 @@ def test_validate_missing_column_suggests_skip_columns(
     assert "--skip-columns value" in result.output
 
 
+class _FakeAnalysisException(AnalysisException):
+    """A stand-in for a Spark-raised AnalysisException.
+
+    pyspark's public constructor cannot build an UNRESOLVED_COLUMN error on the
+    3.4 floor: it asserts that a message and an error class are mutually
+    exclusive, and an error-class-only construction looks up a Python-side
+    message template that exists only for Python-origin classes
+    (UNRESOLVED_COLUMN is raised by the JVM). absent_column reads only the
+    condition and the message parameters, so the tests fake those two accessors.
+    """
+
+    def __init__(self, condition: str, message_parameters: dict[str, str]) -> None:
+        self._condition = condition
+        self._message_parameters = message_parameters
+
+    def getCondition(self) -> str:
+        return self._condition
+
+    def getMessageParameters(self) -> dict[str, str]:
+        return self._message_parameters
+
+
 def _unresolved(object_name: str, *, suggestion: bool = True) -> AnalysisException:
     """An UNRESOLVED_COLUMN AnalysisException naming `object_name`."""
     suffix = "WITH_SUGGESTION" if suggestion else "WITHOUT_SUGGESTION"
-    return AnalysisException(
-        f"column {object_name} cannot be resolved",
-        errorClass=f"UNRESOLVED_COLUMN.{suffix}",
-        messageParameters={"objectName": object_name},
+    return _FakeAnalysisException(
+        f"UNRESOLVED_COLUMN.{suffix}", {"objectName": object_name}
     )
 
 
@@ -297,10 +317,9 @@ class TestAbsentColumn:
         assert absent_column(_unresolved("`value`"), ["id", "value"]) is None
 
     def test_non_unresolved_condition_is_a_bug(self) -> None:
-        exc = AnalysisException(
-            "cannot extract field from scalar",
-            errorClass="INVALID_EXTRACT_BASE_FIELD_TYPE",
-            messageParameters={"base": '"value"', "other": '"STRING"'},
+        exc = _FakeAnalysisException(
+            "INVALID_EXTRACT_BASE_FIELD_TYPE",
+            {"base": '"value"', "other": '"STRING"'},
         )
         assert absent_column(exc, ["id", "value"]) is None
 
@@ -308,11 +327,7 @@ class TestAbsentColumn:
         assert absent_column(AnalysisException("opaque failure"), ["id"]) is None
 
     def test_missing_object_name_is_a_bug(self) -> None:
-        exc = AnalysisException(
-            "unresolved with no objectName",
-            errorClass="UNRESOLVED_COLUMN.WITHOUT_SUGGESTION",
-            messageParameters={},
-        )
+        exc = _FakeAnalysisException("UNRESOLVED_COLUMN.WITHOUT_SUGGESTION", {})
         assert absent_column(exc, ["id"]) is None
 
 
