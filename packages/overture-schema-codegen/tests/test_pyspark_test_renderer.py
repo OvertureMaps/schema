@@ -3,11 +3,14 @@
 import ast
 import re
 from enum import Enum
+from typing import Annotated
 
 import pytest
 from overture.schema.codegen.extraction.field import ArrayOf, ModelRef, Primitive
+from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import RecordSpec
 from overture.schema.codegen.pyspark._primitive_fill import PRIMITIVE_FILL_TABLE
+from overture.schema.codegen.pyspark.check_builder import build_checks
 from overture.schema.codegen.pyspark.check_ir import (
     Check,
     ColumnGuard,
@@ -40,9 +43,14 @@ from overture.schema.system.field_constraint.string import (
     NoWhitespaceConstraint,
     StrippedConstraint,
 )
-from overture.schema.system.field_path import ArrayPath, ScalarPath, parse
+from overture.schema.system.field_path import Direct, Iterated, parse
 from overture.schema.system.geometric.geom import GeometryType
-from overture.schema.system.model_constraint import FieldEqCondition, Not
+from overture.schema.system.model_constraint import (
+    FieldEqCondition,
+    Not,
+    require_any_of,
+)
+from pydantic import BaseModel, Field
 
 _path = parse
 
@@ -105,33 +113,33 @@ def _array(
     column: str,
     inner_struct_paths: tuple[tuple[str, ...], ...] = (),
     leaf_path: tuple[str, ...] = (),
-) -> ArrayPath:
-    """Build an ArrayPath from a column name, inner struct paths, and a leaf path.
+) -> Iterated:
+    """Build an `Iterated` from a column name, inner struct paths, and a leaf path.
 
     Each entry in `inner_struct_paths` is `(prefix_structs..., inner_array_name)`:
     the prefix names become struct segments and the last name becomes an
     inner ArraySegment.
     """
-    column_path = _path(column)
-    if isinstance(column_path, ScalarPath):
-        prefix_structs = column_path.segments[:-1]
-        outer_name = column_path.segments[-1].name
-        prefix = ScalarPath(segments=prefix_structs)
-        path = prefix.append_array(outer_name, iter_count=1)
+    col_path = _path(column)
+    if isinstance(col_path, Direct):
+        prefix_structs = col_path.segments[:-1]
+        outer_name = col_path.segments[-1].name
+        prefix = Direct(segments=prefix_structs)
+        path = prefix.append_array(outer_name)
     else:
-        assert isinstance(column_path, ArrayPath)  # never a MapPath here
-        path = column_path
+        assert isinstance(col_path, Iterated)  # never a map here
+        path = col_path
     for sp in inner_struct_paths:
         for n in sp[:-1]:
             path = path.append_struct(n)
-        path = path.append_array(sp[-1], iter_count=1)
+        path = path.append_array(sp[-1])
     for n in leaf_path:
         path = path.append_struct(n)
     return path
 
 
-class TestMapPathScenarios:
-    """MapPath field checks emit mutate_map_key / mutate_map_value scenarios."""
+class TestMapProjectionScenarios:
+    """Map-projection field checks emit mutate_map_key / mutate_map_value scenarios."""
 
     def test_map_key_emits_mutate_map_key(self) -> None:
         check = make_check(
@@ -166,6 +174,105 @@ class TestMapPathScenarios:
         source = render_test_module("dictfeat", [check], [])
         # Appears in both the import block and the scenario call.
         assert source.count("mutate_map_value") >= 2
+
+
+class TestMapInArrayFieldChecks:
+    """A map reached after array iteration is not a map target.
+
+    `_is_map_target` reads the FIRST iterating frame (map-first), matching
+    `check_builder`. An array-first map leaf (`items[].tags{value}`) is
+    array-first, so its mutation must descend the array via `set_at_path`'s
+    map grammar, not corrupt a top-level map with `mutate_map_value`.
+    """
+
+    def test_map_in_array_uses_set_at_path_not_map_helper(self) -> None:
+        check = make_check(
+            "check_string_min_length",
+            _path("items[].tags{value}"),
+            args=(3,),
+        )
+        source = render_test_module("itemlist", [check], [])
+        ast.parse(source)
+        assert "set_at_path('items[].tags{value}', '')" in source
+        assert "mutate_map_value(row, 'items'" not in source
+
+    def test_map_first_still_uses_map_helper(self) -> None:
+        """A genuine map-first field check keeps the in-place map mutation."""
+        check = make_check(
+            "check_stripped",
+            _path("names.common{value}"),
+            constraint_type=StrippedConstraint,
+        )
+        source = render_test_module("dictfeat", [check], [])
+        ast.parse(source)
+        assert "mutate_map_value(row, 'names.common'" in source
+
+
+class TestMapOfContainerFieldChecks:
+    """Map-first field checks whose value is itself a container.
+
+    `dict[K, list[...]]` (`subs{value}[]`) and `dict[K, dict[K2, ...]]`
+    (`subs{value}{value}`) reach the constrained scalar map-first, then
+    through anonymous trailing iteration. `mutate_map_key` / `mutate_map_value`
+    corrupt a map's single entry in place and cannot descend a container
+    value, so these route to `set_at_path` with the full path, which peels
+    each trailing container to reach the scalar. A struct leaf after a map
+    (`subs{value}.label`) has no such peel and stays loudly gated.
+    """
+
+    def test_map_of_list_trailing_iteration_uses_set_at_path(self) -> None:
+        check = make_check(
+            "check_string_min_length",
+            _path("subs{value}[]"),
+            args=(3,),
+        )
+        source = render_test_module("mapoflist", [check], [])
+        ast.parse(source)
+        assert "set_at_path('subs{value}[]', '')" in source
+        assert "mutate_map_value(row, 'subs'" not in source
+
+    def test_map_of_map_trailing_iteration_uses_set_at_path(self) -> None:
+        check = make_check(
+            "check_bounds",
+            _path("subs{value}{value}"),
+            kwargs=(("ge", 0),),
+        )
+        source = render_test_module("mapofmap", [check], [])
+        ast.parse(source)
+        assert "set_at_path('subs{value}{value}', -1)" in source
+        assert "mutate_map_value(row, 'subs'" not in source
+
+    def test_map_value_struct_leaf_still_raises(self) -> None:
+        """A struct leaf after a map projection has no in-place mutation."""
+        check = make_check(
+            "check_string_min_length",
+            _path("subs{value}.label"),
+            args=(3,),
+        )
+        with pytest.raises(NotImplementedError, match="subs"):
+            render_test_module("mapofmodel", [check], [])
+
+    def test_map_of_list_field_check_uses_set_at_path_through_full_pipeline(
+        self,
+    ) -> None:
+        """`extract_model` + `check_builder` really produce `subs{value}[]`.
+
+        Drives the full synthetic-model path (`extract_model` -> `build_checks`
+        -> `render_test_module`), proving the mutation routing fires on a target
+        `check_builder` actually emits, not just a hand-built one.
+        """
+
+        class _MapOfList(BaseModel):
+            subs: dict[str, list[Annotated[str, Field(min_length=3)]]]
+
+        spec = extract_model(_MapOfList)
+        field_checks, model_checks = build_checks(spec)
+        assert any(str(fc.target) == "subs{value}[]" for fc in field_checks)
+        source = render_test_module(
+            "map_of_list", field_checks, model_checks, spec=spec
+        )
+        ast.parse(source)
+        assert "set_at_path('subs{value}[]'" in source
 
 
 class TestRenderTestModuleParseable:
@@ -600,6 +707,24 @@ class TestModelScenarios:
         ast.parse(source)
         assert 'map_path="subs"' in source
 
+    def test_min_fields_set_map_of_list_uses_element_path(self) -> None:
+        """`min_fields_set` also generalizes to the composite descent path.
+
+        Mirrors `test_require_any_of_map_of_list_uses_element_path`: proves
+        the "min_fields_set element_path emission" claim, not just
+        require_any_of/require_if.
+        """
+        model_nodes = [
+            ModelCheck(
+                descriptor=MinFieldsSet(field_names=("foo", "bar"), count=1),
+                target=_path("subs{value}[]"),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert 'element_path="subs{value}[]"' in source
+        assert 'map_path="subs"' not in source
+
     def test_require_if_map_value_uses_map_path(self) -> None:
         model_nodes = [
             ModelCheck(
@@ -613,6 +738,86 @@ class TestModelScenarios:
         source = render_test_module("test", [], model_nodes)
         ast.parse(source)
         assert 'map_path="subs"' in source
+
+    def test_require_any_of_map_of_list_uses_element_path(self) -> None:
+        """A `dict[K, list[Model]]` target descends map-then-array.
+
+        `subs{value}[]` reaches the constrained model through a map value that
+        is a list -- no scalar `map_path` addresses it, since the map value is
+        a list, not the model. The renderer emits the full composite descent
+        path, which the mutation walks: sole map value, then each list element.
+        """
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyOf(field_names=("foo", "bar")),
+                target=_path("subs{value}[]"),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert 'element_path="subs{value}[]"' in source
+        assert 'map_path="subs"' not in source
+
+    def test_require_any_of_array_of_map_uses_element_path(self) -> None:
+        """A `list[dict[K, Model]]` target descends array-then-map.
+
+        `items[].configs{value}` reaches the constrained model through a map
+        value nested under array iteration. No scalar `array_path` expresses
+        the map boundary; the renderer emits the composite descent path.
+        """
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyOf(field_names=("foo", "bar")),
+                target=_path("items[].configs{value}"),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert 'element_path="items[].configs{value}"' in source
+        assert 'array_path="items"' not in source
+
+    def test_require_if_map_of_list_uses_element_path(self) -> None:
+        """The `inner_array_path` call path also emits the composite descent."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireIf(
+                    field_names=("admin_level",),
+                    condition=FieldEqCondition("subtype", "country"),
+                ),
+                target=_path("subs{value}[]"),
+            ),
+        ]
+        source = render_test_module("test", [], model_nodes)
+        ast.parse(source)
+        assert 'element_path="subs{value}[]"' in source
+
+    def test_require_any_of_map_of_model_list_emits_element_path_full_pipeline(
+        self,
+    ) -> None:
+        """`extract_model` + `check_builder` really produce a `subs{value}[]` model check.
+
+        Mirrors `TestMapOfContainerFieldChecks`'s full-pipeline test on the
+        model side: proves the composite emission fires on a target
+        `check_builder` actually emits for `dict[K, list[Model]]`, not just a
+        hand-built one.
+        """
+
+        @require_any_of("foo", "bar")
+        class _ValueModel(BaseModel):
+            foo: str | None = None
+            bar: str | None = None
+
+        class _MapOfModelList(BaseModel):
+            subs: dict[str, list[_ValueModel]]
+
+        spec = extract_model(_MapOfModelList)
+        field_checks, model_checks = build_checks(spec)
+        assert any(str(mc.target) == "subs{value}[]" for mc in model_checks)
+        source = render_test_module(
+            "map_of_model_list", field_checks, model_checks, spec=spec
+        )
+        ast.parse(source)
+        assert 'element_path="subs{value}[]"' in source
 
     def test_radio_group_map_value_raises(self) -> None:
         """radio_group has no map-aware mutation; raise rather than emit a vacuous test."""
@@ -631,6 +836,22 @@ class TestModelScenarios:
             ModelCheck(
                 descriptor=RequireAnyOf(field_names=("foo", "bar")),
                 target=_path("subs{key}"),
+            ),
+        ]
+        with pytest.raises(ValueError, match="map key"):
+            render_test_module("test", [], model_nodes)
+
+    def test_require_any_of_array_of_map_key_projection_raises(self) -> None:
+        """A map key nested under array iteration is likewise not model-targetable.
+
+        The composite emission rejects a KEY frame at codegen time, matching
+        `_map_kwargs`'s map-first guard, rather than emitting a path the
+        mutation walker would only reject at runtime.
+        """
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyOf(field_names=("foo", "bar")),
+                target=_path("items[].configs{key}"),
             ),
         ]
         with pytest.raises(ValueError, match="map key"):
@@ -698,7 +919,7 @@ class TestModelScenarios:
             render_test_module("test", [], model_nodes)
 
     def test_radio_group_with_array_path_raises(self) -> None:
-        """radio_group takes no array kwargs; nodes with column_path raise."""
+        """radio_group takes no array kwargs; nodes with an iterated target raise."""
         model_nodes = [
             ModelCheck(
                 descriptor=RadioGroup(field_names=("a", "b")),
@@ -706,6 +927,38 @@ class TestModelScenarios:
             ),
         ]
         with pytest.raises(ValueError, match="array_path"):
+            render_test_module("test", [], model_nodes)
+
+    def test_require_any_true_iterated_raises(self) -> None:
+        """require_any_true has no map/array-aware mutation; iterated targets raise.
+
+        Mirrors `test_radio_group_with_array_path_raises`: without this guard,
+        `_render_require_any_true_mutation_call` ignores `check.target` entirely
+        and silently renders a root-level `mutate_require_any_true(row, {})`
+        call for a nested constraint -- a silent misroute, not a loud failure.
+        """
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyTrue(
+                    conditions=(FieldEqCondition("a", True),),
+                ),
+                target=_array("outer"),
+            ),
+        ]
+        with pytest.raises(ValueError, match="array_path"):
+            render_test_module("test", [], model_nodes)
+
+    def test_require_any_true_map_value_raises(self) -> None:
+        """A map-first iterated target for require_any_true likewise raises."""
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyTrue(
+                    conditions=(FieldEqCondition("a", True),),
+                ),
+                target=_path("subs{value}"),
+            ),
+        ]
+        with pytest.raises(ValueError, match="map_path"):
             render_test_module("test", [], model_nodes)
 
     def test_require_if_with_leaf_path_raises(self) -> None:

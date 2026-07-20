@@ -9,7 +9,13 @@ import copy
 from collections.abc import Callable
 from typing import Any
 
-from overture.schema.system.field_path import ArraySegment, FieldPath, coerce
+from overture.schema.system.field_path import (
+    ArraySegment,
+    FieldPath,
+    MapProjection,
+    MapSegment,
+    coerce,
+)
 
 
 def deep_merge(base: dict, scaffold: dict) -> dict:
@@ -61,27 +67,35 @@ def _scaffold_array(target: dict, name: str, path: FieldPath | str) -> list:
     return child
 
 
-def _descend_through_array(
-    segment: ArraySegment, target: dict, path: FieldPath | str
-) -> list:
-    """Enter an array segment and walk through its `iter_count`.
+def _require_non_empty_list(target: object, path: FieldPath | str) -> list:
+    """Assert *target* is already a non-empty list, returning it.
 
-    Scaffolds `[{}]` at the outer level when None; deeper levels
-    (`iter_count > 1`) must already be lists — scaffolding into
-    nested-list shapes isn't supported because no current schema
-    needs it.
-
-    Returns the innermost list. For terminal use, write to `[0]`;
-    for intermediate use, the next segment lives in `[0]`.
+    An anonymous `ArraySegment` descends one more list level via element 0
+    with no field name to scaffold against, so its parent element must
+    already be a list — deeper levels must already be lists, since
+    scaffolding into nested-list shapes isn't supported (no current schema
+    needs it).
     """
-    container = _scaffold_array(target, segment.name, path)
-    for _ in range(segment.iter_count - 1):
-        if len(container) == 0 or not isinstance(container[0], list):
-            raise PathTraversalError(
-                f"Expected non-empty nested list at '{segment.name}' in path '{path}'"
-            )
-        container = container[0]
-    return container
+    if not isinstance(target, list):
+        raise PathTraversalError(
+            f"Expected nested list in path '{path}', got {type(target).__name__}"
+        )
+    if len(target) == 0:
+        raise PathTraversalError(f"Empty nested list in path '{path}'")
+    return target
+
+
+def _array_slot(segment: ArraySegment, target: dict, path: FieldPath | str) -> list:
+    """Return the list *segment* indexes into, scaffolding when named.
+
+    A named segment enters an array field, scaffolding `[{}]` when it's
+    None. An anonymous segment descends one more list level of the same
+    field (`list[list[...]]`), which has no field name to scaffold
+    against, so its parent element must already be a non-empty list.
+    """
+    if segment.is_anonymous:
+        return _require_non_empty_list(target, path)
+    return _scaffold_array(target, segment.name, path)
 
 
 def set_at_path(path: FieldPath | str, value: object) -> Callable[[dict], dict]:
@@ -93,6 +107,14 @@ def set_at_path(path: FieldPath | str, value: object) -> Callable[[dict], dict]:
     None at an intermediate struct segment is scaffolded as `{}`; None at
     an intermediate array segment is scaffolded as `[{}]`. Empty arrays
     raise `PathTraversalError` when called — there is no element to mutate.
+
+    A trailing map marker (`"items[].tags{value}"`, `"tags{key}"`) corrupts
+    the single entry of the map it reaches: `{value}` replaces the entry's
+    value, `{key}` replaces its key, each preserving the other side. A
+    non-terminal `{value}` (`"subs{value}[]"`, `"subs{value}{value}"`)
+    descends the sole entry's value and keeps navigating, so a map value that
+    is itself a container is reachable. A non-terminal `{key}` raises — a map
+    key is an immutable scalar with nothing to descend into.
 
     Parameters
     ----------
@@ -110,8 +132,10 @@ def set_at_path(path: FieldPath | str, value: object) -> Callable[[dict], dict]:
     Raises
     ------
     PathTraversalError
-        When the path is empty, or when an intermediate or final array
-        segment is empty (raised at call time, not at factory time).
+        When the path is empty, when an intermediate or final array segment
+        is empty, when a terminal map is missing or empty, or when a
+        non-terminal `{key}` projection appears (raised at call time, not at
+        factory time).
     """
     segments = coerce(path).segments
 
@@ -121,15 +145,74 @@ def set_at_path(path: FieldPath | str, value: object) -> Callable[[dict], dict]:
         result = copy.deepcopy(row_dict)
         target: Any = result
         for segment in segments[:-1]:
-            if isinstance(segment, ArraySegment):
-                target = _descend_through_array(segment, target, path)[0]
+            if isinstance(segment, MapSegment):
+                target = _descend_map_projection(segment, target, path)
+            elif isinstance(segment, ArraySegment):
+                target = _array_slot(segment, target, path)[0]
             else:
                 target = _scaffold_struct(target, segment.name)
         last = segments[-1]
-        if isinstance(last, ArraySegment):
-            _descend_through_array(last, target, path)[0] = value
+        if isinstance(last, MapSegment):
+            _set_map_projection(last, target, path, value)
+        elif isinstance(last, ArraySegment):
+            _array_slot(last, target, path)[0] = value
         else:
             target[last.name] = value
         return result
 
     return mutator
+
+
+def _map_at(segment: MapSegment, parent: object, path: FieldPath | str) -> dict:
+    """Return the map *segment* projects, resolved from *parent*.
+
+    A named segment reads the map at `parent[segment.name]`; an anonymous
+    segment (the parent element is itself a map, e.g. `subs{value}{value}`)
+    projects *parent* directly. Raises `PathTraversalError` when the map is
+    missing or empty — there is no entry to descend or corrupt.
+    """
+    if segment.is_anonymous:
+        m = parent
+    else:
+        m = parent.get(segment.name) if isinstance(parent, dict) else None
+    if not isinstance(m, dict) or not m:
+        where = "" if segment.is_anonymous else f" at '{segment.name}'"
+        raise PathTraversalError(f"Missing or empty map{where} in path '{path}'")
+    return m
+
+
+def _descend_map_projection(
+    segment: MapSegment, parent: object, path: FieldPath | str
+) -> object:
+    """Descend a non-terminal `{value}` projection into the sole entry's value.
+
+    Returns the first entry's value so navigation continues into a container
+    the map holds (`subs{value}[]`, `subs{value}{value}`). A `{key}` projection
+    raises: a map key is an immutable scalar with nothing to descend into.
+    """
+    m = _map_at(segment, parent, path)
+    if segment.projection is not MapProjection.VALUE:
+        raise PathTraversalError(
+            f"Non-terminal map key projection {segment.name!r} in path '{path}'; "
+            f"a map key is a scalar and cannot be descended"
+        )
+    return m[next(iter(m))]
+
+
+def _set_map_projection(
+    segment: MapSegment, parent: object, path: FieldPath | str, value: object
+) -> None:
+    """Corrupt the single entry of the map *segment* names inside *parent*.
+
+    A VALUE projection replaces the first entry's value with *value* (keeping
+    its key); a KEY projection replaces the first entry's key with *value*
+    (keeping its value). One bad entry suffices — map checks are element-wise,
+    mirroring how `[]` mutates only element 0. Raises `PathTraversalError`
+    when the map is missing or empty, since there is no entry to corrupt.
+    """
+    m = _map_at(segment, parent, path)
+    first_key = next(iter(m))
+    if segment.projection is MapProjection.VALUE:
+        m[first_key] = value
+    else:
+        m[value] = m.pop(first_key)

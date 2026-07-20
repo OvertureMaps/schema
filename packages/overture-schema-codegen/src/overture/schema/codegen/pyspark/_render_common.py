@@ -31,7 +31,7 @@ from typing import TypeVar
 
 from jinja2 import Environment, FileSystemLoader
 
-from overture.schema.system.field_path import ArrayPath, MapProjection
+from overture.schema.system.field_path import Iterated, MapProjection
 
 from .check_ir import Check, Guard, ModelCheck
 from .constraint_dispatch import ForbidIf, RequireIf, model_constraint_function
@@ -77,21 +77,27 @@ _COLUMN_LEVEL_SUFFIXES: dict[str, str] = {
     "check_struct_unique": "_unique",
 }
 
-_MAP_RUNTIME_HELPERS: dict[MapProjection, str] = {
-    MapProjection.KEY: "map_keys_check",
-    MapProjection.VALUE: "map_values_check",
+_MAP_RUNTIME_HELPERS: dict[tuple[MapProjection, bool], str] = {
+    (MapProjection.KEY, False): "map_keys_check",
+    (MapProjection.VALUE, False): "map_values_check",
+    (MapProjection.KEY, True): "nested_map_keys_check",
+    (MapProjection.VALUE, True): "nested_map_values_check",
 }
 
 
-def map_runtime_helper(projection: MapProjection) -> str:
+def map_runtime_helper(projection: MapProjection, *, flatten: bool = False) -> str:
     """Map a projection to its PySpark column-patterns helper name.
 
     `MapProjection.KEY` -> `map_keys_check`;
-    `MapProjection.VALUE` -> `map_values_check`. This is a pyspark-layer
+    `MapProjection.VALUE` -> `map_values_check`. When *flatten* is set (the
+    map holds further iteration, e.g. `dict[K, list]`, so the projected
+    element check returns an `array<string>`), the flattening variant is
+    named instead (`nested_map_keys_check` / `nested_map_values_check`) --
+    the map analogue of `nested_array_check`. This is a pyspark-layer
     concern; the mapping lives here rather than on `MapProjection` itself
     (a system-package enum) to avoid a layering violation.
     """
-    return _MAP_RUNTIME_HELPERS[projection]
+    return _MAP_RUNTIME_HELPERS[(projection, flatten)]
 
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -209,8 +215,13 @@ def _model_check_base_label(check: ModelCheck) -> str:
       carries a single target field (multi-field decorators split at
       dispatch time).
     - Other kinds (`require_any_of`, `radio_group`, `min_fields_set`)
-      name the whole constraint; on `ArrayPath` targets they use the
+      name the whole constraint; on `Iterated` targets they use the
       path itself so anchors are distinguishable across nestings.
+
+    Every `Iterated` target (array, map, or mixed) uses the iterated
+    formula -- the anchor-disambiguation reason that motivates it for
+    arrays applies identically to maps and mixed paths. `Direct` targets
+    keep the row-root formula.
     """
     match check.descriptor:
         case RequireIf():
@@ -218,11 +229,11 @@ def _model_check_base_label(check: ModelCheck) -> str:
         case ForbidIf():
             kind_suffix = "_forbidden"
         case _:
-            if isinstance(check.target, ArrayPath):
+            if isinstance(check.target, Iterated):
                 return str(check.target)
             return check_name(model_constraint_function(check.descriptor))
     target = check.descriptor.field_names[0]
-    if not isinstance(check.target, ArrayPath):
+    if not isinstance(check.target, Iterated):
         return f"{target}{kind_suffix}"
     return f"{check.target}.{target}{kind_suffix}"
 

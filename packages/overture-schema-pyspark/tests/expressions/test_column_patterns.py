@@ -8,13 +8,24 @@ from overture.schema.pyspark.expressions.column_patterns import (
     map_keys_check,
     map_values_check,
     nested_array_check,
+    nested_map_keys_check,
+    nested_map_values_check,
 )
 from overture.schema.pyspark.expressions.constraint_expressions import (
+    check_bounds,
     check_require_any_of,
     check_string_min_length,
 )
 from pyspark.sql import Row, SparkSession
 from pyspark.sql import functions as F
+from pyspark.sql.types import (
+    ArrayType,
+    IntegerType,
+    MapType,
+    StringType,
+    StructField,
+    StructType,
+)
 
 
 def test_error_msg_concatenates(spark: SparkSession) -> None:
@@ -398,3 +409,104 @@ def test_coalesce_errors_preserves_array(spark: SparkSession) -> None:
     df = spark.createDataFrame([Row(x=1)])
     result = df.select(coalesce_errors(F.array(F.lit("err"))).alias("errs")).collect()
     assert result[0]["errs"] == ["err"]
+
+
+def test_nested_map_values_check_flattens_inner_array_errors(
+    spark: SparkSession,
+) -> None:
+    # column `m`: map<string, array<int>>; flag any element == 0 in any value list.
+    schema = StructType(
+        [StructField("m", MapType(StringType(), ArrayType(IntegerType())))]
+    )
+    df = spark.createDataFrame(
+        [({"a": [1, 0], "b": [2]},), ({"a": [1], "b": [3]},)],
+        schema,
+    )
+    check = nested_map_values_check(
+        "m",
+        lambda v: array_check(v, lambda e: F.when(e == 0, F.lit("zero not allowed"))),
+    )
+    rows = df.select(check.alias("errors")).collect()
+    # Row 0 has one zero -> one flattened error; row 1 has none -> empty.
+    assert rows[0]["errors"] == ["zero not allowed"]
+    assert rows[1]["errors"] == []
+
+
+def test_nested_map_keys_check_flattens_inner_array_errors(
+    spark: SparkSession,
+) -> None:
+    # column `m`: map<string, int>; split each key into char array and flag 'x'.
+    df = spark.createDataFrame(
+        [({"ax": 1, "b": 2},), ({"cd": 1},)],
+        schema="m map<string,int>",
+    )
+    check = nested_map_keys_check(
+        "m",
+        lambda k: array_check(
+            F.split(k, ""), lambda ch: F.when(ch == "x", F.lit("x not allowed"))
+        ),
+    )
+    rows = df.select(check.alias("errors")).collect()
+    # Row 0 has key "ax" with 'x' -> one flattened error; row 1 has no 'x' -> empty.
+    assert rows[0]["errors"] == ["x not allowed"]
+    assert rows[1]["errors"] == []
+
+
+def test_nested_array_check_wraps_map_values_check(spark: SparkSession) -> None:
+    # column `items`: array<struct<tags: map<string,string>>>; flag any map value
+    # shorter than 3 chars in any element -- the `items[].tags{value}` pairing the
+    # generated `nested_array_check(... map_values_check ...)` folds.
+    schema = StructType(
+        [
+            StructField(
+                "items",
+                ArrayType(
+                    StructType(
+                        [StructField("tags", MapType(StringType(), StringType()))]
+                    )
+                ),
+            )
+        ]
+    )
+    df = spark.createDataFrame(
+        [
+            ([{"tags": {"k": "ab"}}],),
+            ([{"tags": {"k": "abc"}}, {"tags": {"k2": "wxyz"}}],),
+        ],
+        schema,
+    )
+    check = nested_array_check(
+        "items",
+        lambda el: map_values_check(
+            el["tags"], lambda v: check_string_min_length(v, 3)
+        ),
+    )
+    rows = df.select(check.alias("errors")).collect()
+    # Row 0's "ab" is too short -> one flattened error; row 1 is clean -> empty.
+    assert rows[0]["errors"] != []
+    assert rows[1]["errors"] == []
+
+
+def test_nested_map_values_check_wraps_map_values_check(spark: SparkSession) -> None:
+    # column `subs`: map<string, map<string,int>>; flag any inner value < 0 -- the
+    # `subs{value}{value}` pairing the generated
+    # `nested_map_values_check(... map_values_check ...)` folds.
+    schema = StructType(
+        [
+            StructField(
+                "subs", MapType(StringType(), MapType(StringType(), IntegerType()))
+            )
+        ]
+    )
+    df = spark.createDataFrame(
+        [({"k": {"a": -2}},), ({"k": {"a": 0, "b": 1}},)],
+        schema,
+    )
+    check = nested_map_values_check(
+        "subs",
+        lambda v: map_values_check(v, lambda w: check_bounds(w, ge=0, check_nan=False)),
+    )
+    rows = df.select(check.alias("errors")).collect()
+    # Row 0's -2 violates ge=0 -> one flattened error; row 1 is clean -> empty.
+    assert rows[0]["errors"] != []
+    assert rows[1]["errors"] == []
