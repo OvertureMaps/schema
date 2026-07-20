@@ -2,10 +2,10 @@
 
 Sum types describe each check's structural placement:
 
-- `Check.target: FieldPath` -- a `ScalarPath` or `ArrayPath` locating
+- `Check.target: FieldPath` -- a `Direct` or `Iterated` locating
   where the descriptor's expression is evaluated. The choice of variant
-  signals whether the renderer wraps the expression in `array_check` /
-  `nested_array_check`.
+  signals whether the renderer wraps the expression in an iteration fold
+  (`array_check` / `map_values_check` / their nested variants).
 - `Guard` -- a single discriminator gate. `Check.guards` is a tuple
   of `Guard`s AND-composed at render time; nested-union gating
   composes one `ColumnGuard` with one `ElementGuard`.
@@ -19,10 +19,9 @@ from dataclasses import dataclass
 from typing import TypeAlias
 
 from overture.schema.system.field_path import (
-    ArrayPath,
+    Direct,
     FieldPath,
-    MapPath,
-    ScalarPath,
+    Iterated,
     StructSegment,
 )
 
@@ -72,22 +71,20 @@ def _top_level(name: str) -> str:
 
 
 def _path_top_column(path: FieldPath) -> str | None:
-    """Top-level row column for a `FieldPath`, or `None` for an empty `ScalarPath`.
+    """Top-level row column for a `FieldPath`, or `None` for an empty `Direct`.
 
     Collapses dotted struct navigation to its first segment -- the granularity
-    at which `validate_model` detects column absence. `ArrayPath.column_path`
-    and `MapPath.map_column` may be dotted when the iterated column is nested
-    inside a struct (e.g. `names.rules`); this strips to `names`.
+    at which `validate_model` detects column absence. `Iterated.outer_column`
+    may be dotted when the iterated column is nested inside a struct (e.g.
+    `names.rules`); this strips to `names`.
     """
     match path:
-        case ScalarPath(segments=(StructSegment(name=first), *_)):
+        case Direct(segments=(StructSegment(name=first), *_)):
             return first
-        case ScalarPath():
+        case Direct():
             return None
-        case ArrayPath():
-            return _top_level(path.column_path)
-        case MapPath():
-            return _top_level(path.map_column)
+        case Iterated():
+            return _top_level(path.outer_column)
         case _:
             raise TypeError(f"Unhandled FieldPath variant: {type(path).__name__}")
 
@@ -105,11 +102,11 @@ class Check:
         """Top-level row columns this check's expression dereferences.
 
         Includes the target's outermost column, any `ColumnGuard` discriminator
-        (rendered as `F.col(...)`), and any descriptor gate on a `ScalarPath`
+        (rendered as `F.col(...)`), and any descriptor gate on a `Direct`
         target (rendered as `F.col("{gate}").isNotNull()`). `ElementGuard`
         discriminators are excluded -- they reference `el[...]`, an
         element-relative accessor, not a row-level column. Descriptor gates on
-        `ArrayPath` targets are also excluded -- they are applied element-relatively
+        `Iterated` targets are also excluded -- they are applied element-relatively
         via `element_relative_gate`.
         """
         cols: set[str] = set()
@@ -124,7 +121,7 @@ class Check:
                     pass  # element-relative: not a row-level read
                 case _:
                     raise TypeError(f"Unhandled Guard variant: {type(guard).__name__}")
-        if isinstance(self.target, ScalarPath):
+        if isinstance(self.target, Direct):
             for desc in self.descriptors:
                 if desc.gate is not None:
                     gate_col = _path_top_column(desc.gate)
@@ -138,9 +135,9 @@ class ModelCheck:
     """A model-level validation check (cross-field constraint).
 
     `target` locates the model the constraint applies to: an empty
-    `ScalarPath()` for row-root constraints, or an `ArrayPath` when the
-    constrained model is reached by iterating one or more arrays. The
-    default `ScalarPath()` makes the row-root case ergonomic at
+    `Direct()` for row-root constraints, or an `Iterated` when the
+    constrained model is reached by iterating one or more arrays or maps.
+    The default `Direct()` makes the row-root case ergonomic at
     construction sites and is the common case; `Check.target` has no
     sensible default and is required.
 
@@ -162,7 +159,7 @@ class ModelCheck:
     """
 
     descriptor: ModelConstraintDescriptor
-    target: FieldPath = ScalarPath()
+    target: FieldPath = Direct()
     arm: str | None = None
     gate: FieldPath | None = None
 
@@ -170,27 +167,27 @@ class ModelCheck:
     def read_columns(self) -> frozenset[str]:
         """Top-level row columns this model check's expression dereferences.
 
-        For row-root constraints (`ScalarPath` target): all `field_names` from
+        For row-root constraints (`Direct` target): all `field_names` from
         the constraint (collapsed to top-level column) and, for `RequireIf`/
         `ForbidIf`, the condition field (both rendered as `F.col(...)`).
 
-        For array/map targets: only the outermost container column is a
-        row-level read (`array_check("col", ...)` / `map_values_check("col",
-        ...)`). The `field_names` and condition field are accessed as
-        element-relative `el[...]` / `inner[...]` accessors inside the
-        lambda -- not as `F.col(...)` -- so they do not contribute top-level
-        column reads.
+        For `Iterated` (array/map) targets: only the outermost container
+        column is a row-level read (`array_check("col", ...)` /
+        `map_values_check("col", ...)`). The `field_names` and condition field
+        are accessed as element-relative `el[...]` / `inner[...]` accessors
+        inside the lambda -- not as `F.col(...)` -- so they do not contribute
+        top-level column reads.
 
-        `gate` is excluded: for array targets it is element-relative; for scalar
-        targets the renderer asserts it is `None`. The `arm` field carries no
-        column information.
+        `gate` is excluded: for `Iterated` targets it is element-relative; for
+        `Direct` targets the renderer asserts it is `None`. The `arm` field
+        carries no column information.
         """
         cols: set[str] = set()
         desc = self.descriptor
-        # Array/map targets wrap everything in array_check/map_values_check;
+        # Iterated targets wrap everything in array_check/map_values_check;
         # field references inside the lambda are element-relative, not row-level.
         # Only the container column itself is a top-level read.
-        if not isinstance(self.target, ScalarPath):
+        if isinstance(self.target, Iterated):
             container_col = _path_top_column(self.target)
             if container_col is not None:
                 cols.add(container_col)

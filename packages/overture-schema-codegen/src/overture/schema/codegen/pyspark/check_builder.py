@@ -7,10 +7,10 @@ descriptor, then applies composition rules the dispatch table can't see:
   `Check` (required first, then enum, then dispatched constraints),
   deduplicate, and split column-level checks into separate suffixed checks.
 - Target resolution: a shape walker descends each field's `FieldShape`
-  tree, building the `ScalarPath` or `ArrayPath` target by appending
+  tree, building the `Direct` or `Iterated` target by appending
   segments as it goes -- so the path read in the code is the path that
-  lands in the IR. Entering a `list[...]` layer promotes the path's
-  terminal struct segment to an iterated `ArraySegment`.
+  lands in the IR. Entering a `list[...]` or `dict[K, V]` layer promotes
+  the path's terminal segment to an iterated `ArraySegment` / `MapSegment`.
 - Subtype gating: annotate variant-specific fields with discriminator
   `Guard`s, synthesize forbid_if/require_if for absent or required
   variants, and gate check_required under nullable struct ancestors.
@@ -25,15 +25,13 @@ from pydantic import BaseModel
 from typing_extensions import assert_never
 
 from overture.schema.system.field_path import (
-    ArrayPath,
     ArraySegment,
+    Direct,
     FieldPath,
-    MapPath,
+    Iterated,
     MapProjection,
     MapSegment,
-    ScalarPath,
-    promote_terminal_array,
-    promote_terminal_map,
+    promote_terminal,
 )
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
@@ -55,12 +53,8 @@ from ..extraction.field import (
     UnionRef,
 )
 from ..extraction.field_walk import (
-    all_constraints,
     enum_source,
-    has_array_layer,
-    terminal_of,
     terminal_primitive,
-    terminal_scalar,
 )
 from ..extraction.literal_alternatives import LiteralAlternatives
 from ..extraction.specs import FieldSpec, ModelSpec, RecordSpec, UnionSpec
@@ -200,14 +194,6 @@ def _walk_field_shape(
         case NewTypeShape(name=name, inner=inner):
             nt_descriptors = dispatch_newtype(name)
             if nt_descriptors is not None:
-                if isinstance(path.segments[-1], ArraySegment):
-                    # A NewType with a dispatch override nested under a list
-                    # layer has no schema field; raise to keep the gap loud
-                    # rather than emit an untested target (cf. list[list[Union]]).
-                    raise NotImplementedError(
-                        f"NewType with a dispatch override ({name}) nested "
-                        "under a list layer is not supported"
-                    )
                 descriptors = list(nt_descriptors)
                 if required:
                     descriptors.insert(0, _required_descriptor(required_gate))
@@ -247,7 +233,7 @@ def _walk_field_shape(
             )
             sub_checks, terminal = _walk_field_shape(
                 element,
-                promote_terminal_array(path),
+                promote_terminal(path),
                 base_type=base_type,
                 required=False,
                 required_gate=required_gate,
@@ -255,19 +241,11 @@ def _walk_field_shape(
             )
             return [*checks, *sub_checks], terminal
 
-        case UnionRef():
-            terminal_seg = path.segments[-1]
-            if isinstance(terminal_seg, ArraySegment) and terminal_seg.iter_count > 1:
-                # `list[list[Union]]` would build a multi-iter union target,
-                # but no schema field has that shape. The walker raises to
-                # keep the gap loud rather than silently emit one.
-                raise NotImplementedError(
-                    "Union nested under multiple list layers "
-                    "(list[list[Union]]) is not supported"
-                )
-            return _ref_terminal_checks(shape, path, required, required_gate)
-
-        case ModelRef():
+        case UnionRef() | ModelRef():
+            # A union or model reached under any array/map nesting (including
+            # `list[list[Union]]`) descends the same way: the fold wraps each
+            # variant-gated field check at the innermost element, where the
+            # `ElementGuard`'s discriminator co-locates with the leaf accessor.
             return _ref_terminal_checks(shape, path, required, required_gate)
 
         case Primitive() | LiteralScalar() | AnyScalar():
@@ -285,7 +263,7 @@ def _walk_field_shape(
             # required check and any map-level constraints (currently always
             # empty -- map-level length constraints are rejected at
             # extraction). The key and value layers are walked separately so
-            # their per-key/per-value constraints land on `MapPath` targets.
+            # their per-key/per-value constraints land on `Iterated` targets.
             # A `ModelRef`/`UnionRef` projection hands back a `_ShapeTerminal`
             # for the caller to descend into, exactly as a `list[Model]`
             # element does.
@@ -304,8 +282,17 @@ def _walk_field_shape(
                 value_shape, path, MapProjection.VALUE
             )
             if key_terminal is not None and value_terminal is not None:
+                # Not a representational limit: the taxonomy encodes
+                # `a{key}.kfield` and `a{value}.vfield` independently. The
+                # barrier is that `_walk_field_shape` returns a single
+                # `_ShapeTerminal`, so the FieldSpec recursion can descend only
+                # one projection's sub-model -- a `dict[Model, Model]` needs
+                # both descended. Lifting it means returning two terminals.
                 raise NotImplementedError(
-                    "map with a model key and a model value is not supported"
+                    "dict[Model, Model] reaches a sub-model through both its "
+                    "key and value projection, but _walk_field_shape returns a "
+                    "single terminal, so only one projection's sub-model can be "
+                    "descended"
                 )
             terminal = value_terminal if value_terminal is not None else key_terminal
             return [*field_checks, *key_checks, *value_checks], terminal
@@ -357,108 +344,31 @@ def _terminal_scalar_checks(
     return []
 
 
-@dataclass(frozen=True)
-class MapProjectionVerdict:
-    """Whether a map's projected key/value shape is representable as a `MapPath`.
-
-    `reason` names why an unrepresentable shape was rejected (for the
-    `NotImplementedError` message); it is `None` when `representable` is True.
-    `has_value_to_validate` reports whether the projected shape carries a
-    constraint or descends into a model -- the loud/quiet discriminator: an
-    unrepresentable shape with something to validate raises, an unrepresentable
-    shape with nothing to validate is silently dropped.
-    """
-
-    representable: bool
-    reason: str | None
-    has_value_to_validate: bool
-
-
-def classify_map_projection(
-    sub_shape: FieldShape,
-    map_path: FieldPath,
-) -> MapProjectionVerdict:
-    """Classify a map's projected key/value shape against the representable bound.
-
-    The single source of truth for which map projections a `MapPath` can
-    locate. The representable shape: a scalar terminal or `ModelRef`/`UnionRef`
-    terminal, reached WITHOUT array iteration (`map_path` is not an
-    `ArrayPath`), with no `ArrayOf` layer in the projected shape. Both
-    `_map_projection_checks` (shape-level) and the path-level guards in
-    `field_path.py` (`promote_terminal_map` rejecting an `ArrayPath`) enforce
-    this boundary; this classifier states it once so the prohibitions agree by
-    construction rather than by parallel maintenance.
-
-    Two shapes fall outside the bound and have no `MapPath`:
-
-    - a map reached through an array (`list[dict[K, V]]`, a `map_path` that is
-      an `ArrayPath`), whose key/value can't anchor a struct-prefixed `MapPath`;
-    - a key/value carrying an array layer (`dict[K, list[V]]`), whose scalar
-      terminal sits under an `ArrayOf` that `terminal_scalar` would unwrap.
-    """
-    is_ref_terminal = isinstance(terminal_of(sub_shape), (ModelRef, UnionRef))
-    has_value_to_validate = bool(all_constraints(sub_shape)) or is_ref_terminal
-    if isinstance(map_path, ArrayPath):
-        return MapProjectionVerdict(
-            representable=False,
-            reason="map reached through an array is not representable",
-            has_value_to_validate=has_value_to_validate,
-        )
-    if has_array_layer(sub_shape):
-        return MapProjectionVerdict(
-            representable=False,
-            reason="map value carrying a list layer (dict[K, list[V]]) is not representable",
-            has_value_to_validate=has_value_to_validate,
-        )
-    if not is_ref_terminal and terminal_scalar(sub_shape) is None:
-        return MapProjectionVerdict(
-            representable=False,
-            reason="constraint on a non-scalar terminal",
-            has_value_to_validate=has_value_to_validate,
-        )
-    return MapProjectionVerdict(
-        representable=True, reason=None, has_value_to_validate=has_value_to_validate
-    )
-
-
 def _map_projection_checks(
     sub_shape: FieldShape,
     map_path: FieldPath,
     projection: MapProjection,
 ) -> tuple[list[Check], _ShapeTerminal | None]:
-    """Walk a map's key or value shape, emitting checks on a `MapPath` target.
+    """Walk a map's key or value shape, emitting checks on an `Iterated` target.
 
-    Supports two shapes reached without array iteration: a scalar terminal
-    (`dict[K, scalar]` -- per-key/value constraints land on a bare `MapPath`)
-    and a `ModelRef`/`UnionRef` terminal (`dict[K, Model]` -- the returned
-    `_ShapeTerminal` lets the caller descend into the model's fields and
-    constraints on a `MapPath` leaf, mirroring a `list[Model]` element).
-
-    `classify_map_projection` is the arbiter of which shapes are
-    representable. An unrepresentable shape carrying something to validate
-    (`has_value_to_validate`) raises `NotImplementedError` to keep the dropped
-    check loud; an unrepresentable shape with nothing to validate yields no
-    checks. The constraint -- not the shape alone -- is what stays loud,
-    matching the silent treatment of unconstrained maps.
+    Promotes *map_path*'s terminal into a `MapSegment` projecting the chosen
+    side, then walks the projected shape unconditionally. Every map/array
+    nesting -- `dict[K, scalar]` (per-key/value constraints on a bare map
+    frame), `dict[K, Model]` (the returned `_ShapeTerminal` lets the caller
+    descend the value model on a map leaf), `dict[K, list]`, `dict[K, dict]`,
+    and a map reached through an array -- is now representable, so the walk
+    needs no representability gate: an unconstrained shape simply yields no
+    checks.
     """
-    verdict = classify_map_projection(sub_shape, map_path)
-    if not verdict.representable:
-        if verdict.has_value_to_validate:
-            raise NotImplementedError(
-                f"map {projection.value} on an unsupported shape "
-                f"({verdict.reason}) is not supported ({sub_shape!r})"
-            )
-        return [], None
     primitive = terminal_primitive(sub_shape)
-    sub_checks, terminal = _walk_field_shape(
+    return _walk_field_shape(
         sub_shape,
-        promote_terminal_map(map_path, projection),
+        promote_terminal(map_path, projection=projection),
         base_type=primitive.base_type if primitive is not None else None,
         required=False,
         required_gate=None,
         carried_element=[],
     )
-    return sub_checks, terminal
 
 
 def _ref_terminal_checks(
@@ -487,7 +397,7 @@ def _ref_terminal_checks(
 
 def _build_field_checks(
     field_spec: FieldSpec,
-    prefix: FieldPath = ScalarPath(),
+    prefix: FieldPath = Direct(),
     *,
     nullable_gate: FieldPath | None = None,
     arm: str | None = None,
@@ -499,9 +409,10 @@ def _build_field_checks(
     shared. It propagates to any model constraints discovered through this
     field's sub-models so per-arm test modules can filter them correctly.
     """
-    # `prefix` is a ScalarPath/ArrayPath, or a MapPath when descending into
-    # a `dict[K, Model]` value model -- all three define `append_struct`,
-    # which extends the path's struct leaf with this field's name.
+    # `prefix` is a `Direct` or an `Iterated` (the latter when descending
+    # into a list element or a `dict[K, Model]` value model) -- both define
+    # `append_struct`, which extends the path's struct leaf with this field's
+    # name.
     path = prefix.append_struct(field_spec.name)
     checks, terminal = _walk_field_shape(
         field_spec.shape,
@@ -546,7 +457,7 @@ def _build_field_checks(
 
 def _recurse_into_model(
     model_spec: RecordSpec,
-    prefix: FieldPath = ScalarPath(),
+    prefix: FieldPath = Direct(),
     is_optional: bool = False,
     nullable_gate: FieldPath | None = None,
     *,
@@ -555,7 +466,7 @@ def _recurse_into_model(
     """Walk a MODEL-kind field's children plus its model-level constraints.
 
     `prefix` is the terminal path the shape walker reached the `ModelRef`
-    at, defaulting to the empty `ScalarPath()` at the row root. Its terminal
+    at, defaulting to the empty `Direct()` at the row root. Its terminal
     segment is an `ArraySegment` (the field is a list) or a `MapSegment`
     (the field is a `dict[K, Model]` reached through its key/value
     projection) exactly when the model is reached through iteration, which
@@ -589,7 +500,7 @@ def _recurse_into_model(
     if model_spec.constraints:
         constraint_gate = (
             prefix
-            if is_optional and not field_is_iterated and isinstance(prefix, ArrayPath)
+            if is_optional and not field_is_iterated and isinstance(prefix, Iterated)
             else None
         )
         sub_model_constraint_checks = _dispatch_model_constraints(
@@ -606,14 +517,16 @@ def _recurse_into_model(
 
 
 def _is_struct_only_prefix(prefix: FieldPath) -> bool:
-    """Non-root struct path with no array traversal.
+    """Non-root struct path with no iteration.
 
-    True when `prefix` has one or more struct segments but no array
+    True when `prefix` has one or more struct segments but no array/map
     iteration -- meaning discriminator column access and model-constraint
     targeting cannot use the prefix without resolving it into a
-    struct-qualified path, which the current renderer does not support.
+    struct-qualified path, which the current renderer does not support. A
+    `Direct` with segments is the only struct-only prefix; any `Iterated`
+    (array- or map-reached) is a valid anchor.
     """
-    return not isinstance(prefix, ArrayPath) and bool(prefix.segments)
+    return isinstance(prefix, Direct) and bool(prefix.segments)
 
 
 def _reject_struct_only_prefix(prefix: FieldPath, message: str) -> None:
@@ -635,12 +548,12 @@ def _guard_struct_nested_anchor(prefix: FieldPath, name: str) -> None:
     collapses to the row root, which is wrong for any non-skipped
     constraint. Today only `NoExtraFieldsConstraint` reaches here (and
     dispatches to None); a real descriptor at this depth is a renderer
-    gap, not a normal case. A `MapPath` is exempt -- it is a valid anchor
-    (`_model_constraint_target` keeps it, and the renderer wraps the check
-    in `map_values_check`/`map_keys_check`).
+    gap, not a normal case. A map-reached `Iterated` prefix is a valid
+    anchor (`_model_constraint_target` keeps it, and the renderer wraps
+    the check in `map_values_check`/`map_keys_check`), so
+    `_is_struct_only_prefix` -- which is `False` for any `Iterated` --
+    exempts it automatically.
     """
-    if isinstance(prefix, MapPath):
-        return
     _reject_struct_only_prefix(
         prefix,
         f"Model constraint on struct-nested {name!r} "
@@ -668,18 +581,64 @@ def _guard_struct_nested_variant_fields(prefix: FieldPath, name: str) -> None:
     )
 
 
+def _iteration_depth(path: FieldPath) -> int:
+    """Number of iteration frames (`Array`/`Map` segments) in *path*.
+
+    Each iterating segment -- named or anonymous -- is one lambda frame in
+    the renderer's fold, so the count is the depth at which the innermost
+    element variable is bound. A `Direct` path binds no element variable
+    and has depth 0.
+    """
+    if isinstance(path, Iterated):
+        return sum(
+            1 for s in path.segments if isinstance(s, (ArraySegment, MapSegment))
+        )
+    return 0
+
+
+def _guard_variant_field_past_element(
+    prefix: FieldPath, checks: list[Check], name: str
+) -> None:
+    """Raise when an `ElementGuard`'d variant field iterates past its discriminator.
+
+    An `ElementGuard` carries the discriminator of a union reached at
+    *prefix*, and the renderer applies it at the innermost iteration
+    variable (`_render_iterated_check_expr`). That placement is correct only
+    when the guarded check binds the same element as the discriminator --
+    i.e. the check iterates no further than *prefix*. When a variant field is
+    itself an iterated container (e.g. `list[list[Union{codes: list[int]}]]`,
+    where `codes[]` adds a third iteration past the union element), the
+    innermost variable is that deeper element, where the discriminator does
+    not live. The renderer has no per-guard depth info to place the guard at
+    the discriminator's shallower iteration level, so the render would
+    silently gate on the wrong element. Raise instead.
+    """
+    prefix_depth = _iteration_depth(prefix)
+    for ck in checks:
+        if _iteration_depth(ck.target) > prefix_depth:
+            raise NotImplementedError(
+                f"Discriminated union {name!r}: variant field check reaches "
+                f"its value through iteration beyond the discriminator's "
+                f"element (discriminator element at {prefix!r}, check target "
+                f"{ck.target!r}). The ElementGuard is applied at the innermost "
+                f"iteration variable, so it cannot be placed at the "
+                f"discriminator's iteration level when the variant field "
+                f"iterates further."
+            )
+
+
 def _recurse_into_union(
     union_spec: UnionSpec,
-    prefix: FieldPath = ScalarPath(),
+    prefix: FieldPath = Direct(),
     *,
     arm: str | None = None,
 ) -> tuple[list[Check], list[ModelCheck]]:
     """Walk a UNION-kind field's variants, gathering Checks and ModelChecks.
 
     `prefix` is the terminal path the shape walker reached the `UnionRef`
-    at; the union's variant fields live directly under it. An `ArrayPath`
-    prefix means the union is reached through array iteration, so variant
-    gates are element-level and model constraints target that path.
+    at; the union's variant fields live directly under it. An `Iterated`
+    prefix means the union is reached through array or map iteration, so
+    variant gates are element-level and model constraints target that path.
 
     `arm` is the outer union arm whose variant-specific field reached this
     inner union. It tags any model constraints discovered here so they
@@ -706,32 +665,29 @@ def _recurse_into_union(
 def _model_constraint_target(prefix: FieldPath) -> FieldPath:
     """Where a model constraint's check should be anchored.
 
-    Three supported cases:
+    Two supported cases:
 
-    - `ArrayPath` -- constraints on a sub-model reached through array
-      iteration target the array path (so the renderer wraps the check
-      in `array_check`).
-    - `MapPath` -- constraints on a `dict[K, Model]` value model target the
-      map path (so the renderer wraps the check in `map_values_check`),
-      mirroring the array case.
-    - Empty or struct-only `ScalarPath` -- constraints anchor at the row
-      root. Pure struct nesting (e.g. `Names` reached at
-      `ScalarPath('names')`) collapses here because the renderer has no
-      anchor for nested-struct model constraints. The only constraint kind
-      currently reachable through pure struct nesting is
-      `NoExtraFieldsConstraint`, which `dispatch_model_constraint`
-      discards before the target is consulted, so the collapse is
-      observationally inert today; a non-skipped constraint at this depth
-      would surface as a wrong-anchor bug.
+    - `Iterated` -- constraints on a sub-model reached through array or map
+      iteration target that path (so the renderer wraps the check in the
+      iteration fold: `array_check` for an array-reached model,
+      `map_values_check` for a `dict[K, Model]` value model).
+    - Empty or struct-only `Direct` -- constraints anchor at the row root.
+      Pure struct nesting (e.g. `Names` reached at `Direct('names')`)
+      collapses here because the renderer has no anchor for nested-struct
+      model constraints. The only constraint kind currently reachable
+      through pure struct nesting is `NoExtraFieldsConstraint`, which
+      `dispatch_model_constraint` discards before the target is consulted,
+      so the collapse is observationally inert today; a non-skipped
+      constraint at this depth would surface as a wrong-anchor bug.
     """
-    return prefix if isinstance(prefix, (ArrayPath, MapPath)) else ScalarPath()
+    return prefix if isinstance(prefix, Iterated) else Direct()
 
 
 def _dispatch_model_constraints(
     constraints: tuple[ModelConstraint, ...],
     fields: list[FieldSpec],
     *,
-    target: FieldPath = ScalarPath(),
+    target: FieldPath = Direct(),
     arm: str | None = None,
     gate: FieldPath | None = None,
 ) -> list[ModelCheck]:
@@ -760,7 +716,7 @@ def _singleton_arm(values: tuple[str, ...]) -> str | None:
 def _field_checks_for_union(
     spec: UnionSpec,
     value_by_class: dict[type[BaseModel], str],
-    prefix: FieldPath = ScalarPath(),
+    prefix: FieldPath = Direct(),
     *,
     arm: str | None = None,
 ) -> tuple[list[Check], list[ModelCheck]]:
@@ -772,8 +728,10 @@ def _field_checks_for_union(
     discriminator is irrelevant to per-arm test filtering, which always
     keys on the outermost union's discriminator.
     """
+    # A union reached through any iterated container (array or map element)
+    # is element-gated; only a row-/struct-level union uses a column gate.
     guard_cls: type[Guard] = (
-        ElementGuard if isinstance(prefix, ArrayPath) else ColumnGuard
+        ElementGuard if isinstance(prefix, Iterated) else ColumnGuard
     )
     field_checks: list[Check] = []
     model_checks: list[ModelCheck] = []
@@ -802,6 +760,8 @@ def _field_checks_for_union(
             # then an `ElementGuard` from the nested union the field
             # lives in).
             guard: Guard = guard_cls(discriminator=discriminator, values=values)
+            if isinstance(guard, ElementGuard):
+                _guard_variant_field_past_element(prefix, checks, spec.name)
             checks = [replace(ck, guards=(guard, *ck.guards)) for ck in checks]
         field_checks.extend(checks)
     return field_checks, model_checks
@@ -810,7 +770,7 @@ def _field_checks_for_union(
 def _model_checks_for_union(
     spec: UnionSpec,
     arm_by_class: dict[type[BaseModel], str],
-    target: FieldPath = ScalarPath(),
+    target: FieldPath = Direct(),
     *,
     arm: str | None = None,
 ) -> list[ModelCheck]:
@@ -851,7 +811,7 @@ def _model_checks_for_union(
 def _exclusivity_checks_for_union(
     spec: UnionSpec,
     value_by_class: dict[type[BaseModel], str],
-    target: FieldPath = ScalarPath(),
+    target: FieldPath = Direct(),
     *,
     arm: str | None = None,
 ) -> list[ModelCheck]:
@@ -939,7 +899,7 @@ def build_checks(
 ) -> tuple[list[Check], list[ModelCheck]]:
     """Build all check IR for a feature spec.
 
-    Roots the walk at the empty `ScalarPath()` and delegates to the same
+    Roots the walk at the empty `Direct()` and delegates to the same
     helpers used at every nested level (`_recurse_into_union` for unions,
     `_recurse_into_model` for models), so the row-root and nested cases
     share one path.

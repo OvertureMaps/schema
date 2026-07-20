@@ -273,7 +273,7 @@ class TestMutateMapValueModelConstraint:
         )
         assert result["subs"]["en"]["inner"] == {"foo": None, "bar": None}
 
-    def test_nested_map_column_path(self) -> None:
+    def test_dotted_map_path(self) -> None:
         row = {"outer": {"subs": {"en": {"foo": 1, "bar": 2}}}}
         result = mutate_require_any_of(row, ["foo", "bar"], map_path="outer.subs")
         assert result["outer"]["subs"]["en"] == {"foo": None, "bar": None}
@@ -314,6 +314,150 @@ class TestMutateMapValueModelConstraint:
         value = result["subs"]["en"]
         assert value["subtype"] == "country"
         assert value["admin_level"] is not None
+
+
+class TestMutateCompositeElementPath:
+    """`element_path` threads a model mutation through mixed map/array nesting.
+
+    Neither a scalar `array_path` nor `map_path` expresses a container-after-
+    container descent. `element_path` carries the full descent to the target
+    model, walked generically: array segments iterate every element, map
+    `{value}` segments take the sole entry's value, struct segments navigate a
+    field. It composes in either order -- map-then-array (`subs{value}[]`,
+    dict[K, list[Model]]) and array-then-map (`items[].configs{value}`,
+    list[dict[K, Model]]) -- reaching the model where fields are nulled. With
+    only struct segments (`details`) it descends a plain struct-nested model.
+    """
+
+    def test_require_any_of_plain_struct(self) -> None:
+        """A struct-only `element_path` nulls a struct-nested model's fields.
+
+        A model constraint on a submodel reached through a plain struct field
+        (`details`, no array or map) emits `element_path="details"`; the descent
+        navigates the struct and nulls each field in place.
+        """
+        row = {"details": {"foo": 1, "bar": "x"}}
+        result = mutate_require_any_of(row, ["foo", "bar"], element_path="details")
+        assert result["details"] == {"foo": None, "bar": None}
+
+    def test_require_any_of_map_then_array(self) -> None:
+        row = {"subs": {"k": [{"foo": 1, "bar": 2}]}}
+        result = mutate_require_any_of(
+            row, ["foo", "bar"], element_path="subs{value}[]"
+        )
+        assert result["subs"]["k"] == [{"foo": None, "bar": None}]
+
+    def test_require_any_of_map_then_array_preserves_map_key(self) -> None:
+        row = {"subs": {"k": [{"foo": 1, "bar": 2}]}}
+        result = mutate_require_any_of(
+            row, ["foo", "bar"], element_path="subs{value}[]"
+        )
+        assert list(result["subs"]) == ["k"]
+
+    def test_require_any_of_array_then_map(self) -> None:
+        row = {"items": [{"configs": {"k": {"foo": 1, "bar": 2}}}]}
+        result = mutate_require_any_of(
+            row, ["foo", "bar"], element_path="items[].configs{value}"
+        )
+        assert result["items"][0]["configs"]["k"] == {"foo": None, "bar": None}
+
+    def test_require_any_of_array_then_map_nulls_every_element(self) -> None:
+        row = {
+            "items": [
+                {"configs": {"k": {"foo": 1, "bar": 2}}},
+                {"configs": {"j": {"foo": 3, "bar": 4}}},
+            ]
+        }
+        result = mutate_require_any_of(
+            row, ["foo", "bar"], element_path="items[].configs{value}"
+        )
+        assert result["items"][0]["configs"]["k"] == {"foo": None, "bar": None}
+        assert result["items"][1]["configs"]["j"] == {"foo": None, "bar": None}
+
+    def test_require_any_of_composite_does_not_mutate_original(self) -> None:
+        row = {"subs": {"k": [{"foo": 1, "bar": 2}]}}
+        mutate_require_any_of(row, ["foo", "bar"], element_path="subs{value}[]")
+        assert row["subs"]["k"] == [{"foo": 1, "bar": 2}]
+
+    def test_min_fields_set_composite_descent(self) -> None:
+        row = {"subs": {"k": [{"a": 1, "b": 2}]}}
+        result = mutate_min_fields_set(row, ["a", "b"], element_path="subs{value}[]")
+        assert result["subs"]["k"] == [{"a": None, "b": None}]
+
+    def test_require_if_array_then_map(self) -> None:
+        row = {"items": [{"configs": {"k": {"subtype": "other", "admin_level": 5}}}]}
+        result = mutate_require_if(
+            row,
+            ["admin_level"],
+            "subtype",
+            "country",
+            element_path="items[].configs{value}",
+        )
+        value = result["items"][0]["configs"]["k"]
+        assert value["subtype"] == "country"
+        assert value["admin_level"] is None
+
+    def test_require_any_of_map_then_array_stubs_absent_map(self) -> None:
+        """An absent map-then-array target stubs a list-shaped map value.
+
+        `subs{value}[]` (`dict[K, list[Model]]`) with no `subs` key at all:
+        the map's sole stubbed entry must itself be a list, since the map
+        value type is `list[Model]`, not `Model`. Before the shape-aware
+        stub, `_element_map_value` always stubbed a dict, and the trailing
+        anonymous array segment then required its parent to already be a
+        non-empty list -- raising `PathTraversalError` on this absent-map
+        case instead of producing a mutated row.
+        """
+        row: dict = {}
+        result = mutate_require_any_of(
+            row, ["foo", "bar"], element_path="subs{value}[]"
+        )
+        value = next(iter(result["subs"].values()))
+        assert value == [{"foo": None, "bar": None}]
+
+    def test_require_any_of_map_then_array_then_struct_leaf(self) -> None:
+        """`subs{value}[].inner` (map, array, then a struct field) also composes.
+
+        Backs the report's "generalizes for free" claim for a composite
+        descent with a trailing struct leaf, on both a present and an absent
+        map -- the absent case exercises the shape-aware stub together with
+        `_scaffold_struct_child`'s struct navigation.
+        """
+        row = {"subs": {"k": [{"inner": {"foo": 1, "bar": 2}}]}}
+        result = mutate_require_any_of(
+            row, ["foo", "bar"], element_path="subs{value}[].inner"
+        )
+        assert result["subs"]["k"] == [{"inner": {"foo": None, "bar": None}}]
+
+    def test_require_any_of_map_then_array_then_struct_leaf_stubs_absent_map(
+        self,
+    ) -> None:
+        row: dict = {}
+        result = mutate_require_any_of(
+            row, ["foo", "bar"], element_path="subs{value}[].inner"
+        )
+        value = next(iter(result["subs"].values()))
+        assert value == [{"inner": {"foo": None, "bar": None}}]
+
+    def test_forbid_if_composite_element_path_array_then_map(self) -> None:
+        """`forbid_if` walks a composite `element_path` (array-then-map) too.
+
+        Backs the report's "generalizes for free" claim: `mutate_forbid_if`
+        takes the same `element_path` kwarg as `mutate_require_any_of` /
+        `mutate_require_if`, threaded through the same `_apply_to_targets` ->
+        `_descend_to_targets` machinery.
+        """
+        row = {"items": [{"configs": {"k": {"subtype": "other", "extra": None}}}]}
+        result = mutate_forbid_if(
+            row,
+            ["extra"],
+            "subtype",
+            "country",
+            element_path="items[].configs{value}",
+        )
+        value = result["items"][0]["configs"]["k"]
+        assert value["subtype"] == "country"
+        assert value["extra"] is not None
 
 
 class TestMutateForbidIfNegate:

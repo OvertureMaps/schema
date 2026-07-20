@@ -17,10 +17,7 @@ from codegen_test_support import (
     union_spec_for,
 )
 from overture.schema.codegen.extraction.field import (
-    ArrayOf,
     ConstraintSource,
-    FieldShape,
-    MapOf,
     Primitive,
     UnionRef,
 )
@@ -33,7 +30,6 @@ from overture.schema.codegen.extraction.union_extraction import extract_union
 from overture.schema.codegen.pyspark._render_common import column_level_suffix
 from overture.schema.codegen.pyspark.check_builder import (
     build_checks,
-    classify_map_projection,
 )
 from overture.schema.codegen.pyspark.check_ir import (
     Check,
@@ -50,12 +46,12 @@ from overture.schema.codegen.pyspark.constraint_dispatch import (
 from overture.schema.common.scoping.lr import LinearlyReferencedRange
 from overture.schema.system.field_constraint.collection import UniqueItemsConstraint
 from overture.schema.system.field_path import (
-    ArrayPath,
     ArraySegment,
+    Direct,
     FieldPath,
-    MapPath,
+    Iterated,
     MapProjection,
-    ScalarPath,
+    MapSegment,
     parse,
 )
 from overture.schema.system.model_constraint import (
@@ -85,6 +81,23 @@ def _element_guard(check: Check) -> ElementGuard | None:
     for g in check.guards:
         if isinstance(g, ElementGuard):
             return g
+    return None
+
+
+def _map_seg(target: FieldPath) -> MapSegment | None:
+    """Return the sole `MapSegment` of a map-reached target, or None.
+
+    Captures the former map-path shape: an `Iterated` with exactly one
+    `MapSegment` and no `ArraySegment` (map reached struct-only). Tests use
+    it to filter map targets and read the projection now that the taxonomy
+    collapsed to `Direct` / `Iterated`.
+    """
+    if not isinstance(target, Iterated):
+        return None
+    maps = [s for s in target.segments if isinstance(s, MapSegment)]
+    arrays = [s for s in target.segments if isinstance(s, ArraySegment)]
+    if len(maps) == 1 and not arrays:
+        return maps[0]
     return None
 
 
@@ -381,13 +394,13 @@ class TestArrayChecks:
             if any(d.function == "check_array_min_length" for d in n.descriptors)
         ]
         assert len(length_nodes) == 1
-        assert isinstance(length_nodes[0].target, ScalarPath)
+        assert isinstance(length_nodes[0].target, Direct)
 
     def test_array_element_field_uses_bracket_notation(
         self, nodes: list[Check]
     ) -> None:
         paths = {n.target for n in nodes}
-        assert any(isinstance(p, ArrayPath) for p in paths)
+        assert any(isinstance(p, Iterated) for p in paths)
 
     def test_array_element_subfield_path(self, nodes: list[Check]) -> None:
         # ItemModel.value is required, so a check node for items[].value must exist
@@ -658,7 +671,7 @@ class TestBaseTypeDispatchInCheckBuilder:
             for n in nodes
             if any(d.function == "check_url_format" for d in n.descriptors)
         ]
-        assert isinstance(url_nodes[0].target, ArrayPath)
+        assert isinstance(url_nodes[0].target, Iterated)
 
 
 class _DeepInner(BaseModel):
@@ -710,14 +723,14 @@ class TestArrayElementListChecks:
         element_nodes = [n for n in nodes if n.target == _path("items[].tags[]")]
         assert len(element_nodes) >= 1
 
-    def test_list_subfield_column_path_is_enclosing_array(
+    def test_list_subfield_outer_column_is_enclosing_array(
         self, nodes: list[Check]
     ) -> None:
         tag_nodes = [n for n in nodes if str(n.target).startswith("items[].tags")]
         for node in tag_nodes:
-            assert isinstance(node.target, ArrayPath)
+            assert isinstance(node.target, Iterated)
             # the outermost iterated column is `items`, not the inner `tags` list
-            assert node.target.array_chunks[0] == ((), "items", 1)
+            assert node.target.iter_frames[0] == ((), ArraySegment(name="items"))
 
 
 class _ArrayElementWithNewtype(BaseModel):
@@ -953,7 +966,7 @@ class TestSyntheticUnionChecks:
         forbid_nodes = _filter_nodes(model_nodes, "check_forbid_if")
         assert len(forbid_nodes) == 2
         for node in forbid_nodes:
-            assert node.target == ScalarPath()
+            assert node.target == Direct()
 
 
 class TestUnionMemberModelConstraints:
@@ -1122,7 +1135,7 @@ class TestStructNestedUnionWithConstraint:
     """Non-list `UnionRef` reaching a union with model checks is unsupported.
 
     `_recurse_into_union` mirrors `_recurse_into_model`'s guard: when
-    the prefix is struct-nested (no `ArrayPath` segment) and the union
+    the prefix is struct-nested (no `Iterated` segment) and the union
     would emit either union-level constraints or synthesized
     exclusivity checks (`check_forbid_if`/`check_require_if`), the
     dispatch raises because `_model_constraint_target` would collapse
@@ -1180,14 +1193,14 @@ class TestStructNestedUnionWithVariantFields:
             build_checks(discriminated_union_ref_spec)
 
     def test_row_root_union_with_variant_fields_succeeds(self) -> None:
-        """Row-root union (empty `ScalarPath`) must still build checks without raising."""
+        """Row-root union (empty `Direct`) must still build checks without raising."""
         field_checks, _ = _union_checks(
             "Synthetic", _SyntheticUnionFixtures.SyntheticUnion
         )
         assert any(n.guards for n in field_checks)
 
     def test_array_reached_union_with_variant_fields_succeeds(self) -> None:
-        """Array-reached union (`ArrayPath` prefix) must still build checks without raising."""
+        """Array-reached union (`Iterated` prefix) must still build checks without raising."""
         field_checks, _ = _checks_for(_ListUnionContainer)
         assert any(n.guards for n in field_checks)
 
@@ -1623,7 +1636,7 @@ class TestSegmentUnionChecks:
         assert any("access_restrictions" in str(n.target) for n in dim_nodes)
 
         for node in dim_nodes:
-            assert isinstance(node.target, ArrayPath)
+            assert isinstance(node.target, Iterated)
             # vehicle[] is nested inside an outer array (speed_limits, etc.),
             # so the struct nav to `dimension` lands in the target's leaf.
             assert len(node.target.leaf) >= 1
@@ -1635,14 +1648,14 @@ class TestSegmentUnionChecks:
         vehicle_forbid = [
             n
             for n in _filter_nodes(model_nodes, "check_forbid_if")
-            if "unit" in n.descriptor.field_names and isinstance(n.target, ArrayPath)
+            if "unit" in n.descriptor.field_names and isinstance(n.target, Iterated)
         ]
         assert len(vehicle_forbid) > 0
 
         vehicle_require = [
             n
             for n in _filter_nodes(model_nodes, "check_require_if")
-            if "unit" in n.descriptor.field_names and isinstance(n.target, ArrayPath)
+            if "unit" in n.descriptor.field_names and isinstance(n.target, Iterated)
         ]
         assert len(vehicle_require) > 0
 
@@ -1653,10 +1666,10 @@ class TestSegmentUnionChecks:
         vehicle_constraint_nodes = [
             n
             for n in _filter_nodes(model_nodes, ("check_forbid_if", "check_require_if"))
-            if "unit" in n.descriptor.field_names and isinstance(n.target, ArrayPath)
+            if "unit" in n.descriptor.field_names and isinstance(n.target, Iterated)
         ]
         for node in vehicle_constraint_nodes:
-            assert isinstance(node.target, ArrayPath)
+            assert isinstance(node.target, Iterated)
             # The target reaches the inner vehicle[] via a second iteration:
             # one inner level navigating `when` to the `vehicle` array.
             iter_paths = node.target.iter_struct_paths
@@ -1718,7 +1731,7 @@ class TestUnionInsideArray:
         assert len(a_nodes) >= 1
 
     def test_a_field_is_array_shape(self, a_nodes: list[Check]) -> None:
-        assert isinstance(a_nodes[0].target, ArrayPath)
+        assert isinstance(a_nodes[0].target, Iterated)
 
     def test_a_field_target_is_items(self, a_nodes: list[Check]) -> None:
         assert a_nodes[0].target == _path("items[].a_field")
@@ -1727,7 +1740,7 @@ class TestUnionInsideArray:
         assert a_nodes[0].guards == (ElementGuard(discriminator="kind", values=("a",)),)
 
     def test_a_nodes_have_array_shape(self, a_nodes: list[Check]) -> None:
-        assert all(isinstance(n.target, ArrayPath) for n in a_nodes)
+        assert all(isinstance(n.target, Iterated) for n in a_nodes)
 
     def test_b_field_check_produced(self, b_nodes: list[Check]) -> None:
         assert len(b_nodes) >= 1
@@ -1736,20 +1749,20 @@ class TestUnionInsideArray:
         assert b_nodes[0].guards == (ElementGuard(discriminator="kind", values=("b",)),)
 
     def test_b_nodes_have_array_shape(self, b_nodes: list[Check]) -> None:
-        assert all(isinstance(n.target, ArrayPath) for n in b_nodes)
+        assert all(isinstance(n.target, Iterated) for n in b_nodes)
 
     def test_forbid_nodes_produced(self, model_nodes: list[ModelCheck]) -> None:
         forbid_nodes = _filter_nodes(model_nodes, "check_forbid_if")
         assert len(forbid_nodes) > 0
 
-    def test_forbid_nodes_have_array_column_path(
+    def test_forbid_nodes_have_array_target(
         self, model_nodes: list[ModelCheck]
     ) -> None:
         forbid_nodes = _filter_nodes(model_nodes, "check_forbid_if")
         for node in forbid_nodes:
             assert node.target == _path("items[]")
 
-    def test_require_if_model_nodes_have_array_column_path(
+    def test_require_if_model_nodes_have_array_target(
         self, model_nodes: list[ModelCheck]
     ) -> None:
         require_nodes = _filter_nodes(model_nodes, "check_require_if")
@@ -1758,24 +1771,22 @@ class TestUnionInsideArray:
 
 
 class TestTopLevelUnionColumnPath:
-    """Top-level union (not inside array) exclusivity nodes have column_path=None."""
+    """Top-level union (not inside array) exclusivity nodes have an empty Direct target."""
 
     @pytest.fixture(scope="class")
     def model_nodes(self) -> list[ModelCheck]:
         return _union_model_nodes("Synthetic", _SyntheticUnionFixtures.SyntheticUnion)
 
-    def test_forbid_if_column_path_is_none(self, model_nodes: list[ModelCheck]) -> None:
+    def test_forbid_if_target_is_row_root(self, model_nodes: list[ModelCheck]) -> None:
         forbid_nodes = _filter_nodes(model_nodes, "check_forbid_if")
         assert len(forbid_nodes) > 0
         for node in forbid_nodes:
-            assert node.target == ScalarPath()
+            assert node.target == Direct()
 
-    def test_require_if_column_path_is_none(
-        self, model_nodes: list[ModelCheck]
-    ) -> None:
+    def test_require_if_target_is_row_root(self, model_nodes: list[ModelCheck]) -> None:
         require_nodes = _filter_nodes(model_nodes, "check_require_if")
         for node in require_nodes:
-            assert node.target == ScalarPath()
+            assert node.target == Direct()
 
 
 class _ListUnionContainer(BaseModel):
@@ -1821,22 +1832,110 @@ class TestTopLevelListUnion:
 class _NestedListUnionContainer(BaseModel):
     """Top-level `list[list[DiscriminatedUnion]]` with a constrained member.
 
-    A union nested under multiple list layers would need the union
-    target to record `list_depth` iterations, but the rebase in
-    `_recurse_into_union` records only one. No real schema exercises
-    this path; `build_checks` raises rather than emit a target that
-    silently drops iterations.
+    A union nested under multiple list layers reaches its members through
+    a named `ArraySegment` plus an anonymous one. The fold wraps each
+    variant-gated field check at the innermost element, where the
+    `ElementGuard`'s discriminator co-locates with the leaf accessor, so
+    both the field checks and the member's model constraint target the full
+    `nested[][]` geometry.
     """
 
     nested: list[list[_SyntheticUnionFixtures.ConstrainedUnion]]
 
 
 class TestNestedListUnionModelConstraints:
-    """`list[list[Union]]` raises rather than emit a collapsed target."""
+    """`list[list[Union]]` renders with targets encoding both array levels."""
 
-    def test_build_checks_raises_not_implemented(self) -> None:
-        with pytest.raises(NotImplementedError, match="multiple list layers"):
-            _checks_for(_NestedListUnionContainer)
+    @pytest.fixture()
+    def checks(self) -> tuple[list[Check], list[ModelCheck]]:
+        return _checks_for(_NestedListUnionContainer)
+
+    def test_member_constraint_targets_both_array_levels(
+        self, checks: tuple[list[Check], list[ModelCheck]]
+    ) -> None:
+        # The constrained member's `require_any_of` reaches through both list
+        # layers; its target pins the full `nested[][]` geometry (arm-tagged to
+        # the member's discriminator value) rather than a collapsed single level.
+        _field_checks, model_checks = checks
+        any_of = _filter_nodes(model_checks, "check_require_any_of")
+        assert [str(n.target) for n in any_of] == ["nested[][]"]
+        assert any_of[0].arm == "c"
+
+    def test_variant_field_is_element_gated_at_both_levels(
+        self, checks: tuple[list[Check], list[ModelCheck]]
+    ) -> None:
+        field_checks, _model_checks = checks
+        node = _node_for(field_checks, "nested[][].a_field", "check_enum")
+        guard = _element_guard(node)
+        assert guard is not None and guard.discriminator == "kind"
+        assert guard.values == ("a",)
+
+
+class _VariantArmBase(BaseModel):
+    subtype: str
+
+
+class _VariantArmAList(_VariantArmBase):
+    subtype: Literal["a"]
+    codes: list[Annotated[int, Field(ge=0)]] | None = None
+
+
+class _VariantArmBLabel(_VariantArmBase):
+    subtype: Literal["b"]
+    label: str | None = None
+
+
+class _DeepUnionListVariant(BaseModel):
+    deep: list[
+        list[
+            Annotated[
+                _VariantArmAList | _VariantArmBLabel, Field(discriminator="subtype")
+            ]
+        ]
+    ]
+
+
+class TestUnionVariantFieldPastDiscriminator:
+    """A union variant field that iterates past its discriminator element raises.
+
+    `list[list[Union{codes: list[int>=0]}]]` reaches the `codes` element bound
+    through a third array iteration, past the `subtype`-discriminated union
+    element. The `ElementGuard` renders at the innermost iteration variable --
+    the `codes` element, where the discriminator does not live -- so the render
+    would silently gate on the wrong element. `build_checks` raises rather than
+    emit a mis-gated check.
+    """
+
+    def test_union_variant_iterates_past_element_raises(self) -> None:
+        with pytest.raises(
+            NotImplementedError, match="beyond the discriminator's element"
+        ):
+            _checks_for(_DeepUnionListVariant)
+
+
+class _MapKeyModel(BaseModel):
+    kf: str
+
+
+class _MapValModel(BaseModel):
+    vf: str
+
+
+class _MapModelKeyAndValue(BaseModel):
+    m: dict[_MapKeyModel, _MapValModel]
+
+
+class TestDictModelKeyAndValueGuard:
+    """`dict[Model, Model]` stays a single-terminal-return limit.
+
+    Both projections reach a sub-model, but `_walk_field_shape` returns a single
+    `_ShapeTerminal`, so only one projection's sub-model can be descended.
+    `build_checks` raises rather than silently drop the other.
+    """
+
+    def test_dict_model_model_raises(self) -> None:
+        with pytest.raises(NotImplementedError, match="single terminal"):
+            _checks_for(_MapModelKeyAndValue)
 
 
 class _DeepInnerModel(BaseModel):
@@ -1858,8 +1957,8 @@ class TestDoubleNestedArrayFieldChecks:
     def test_subfield_target_encodes_both_array_levels(
         self, nodes: list[Check]
     ) -> None:
-        # A `list[list[Model]]` sub-field reaches `value` through a single
-        # ArraySegment with iter_count=2; the target pins the full geometry.
+        # A `list[list[Model]]` sub-field reaches `value` through a named
+        # ArraySegment plus an anonymous one; the target pins the full geometry.
         assert any(n.target == _path("items[][].value") for n in nodes)
 
 
@@ -1879,9 +1978,9 @@ class _NestedScalarListModel(BaseModel):
     """list[list[scalar]] terminating directly in a constrained scalar.
 
     Exercises the one nested-array geometry the other tests miss: an
-    element-level check whose target's terminal ArraySegment carries
-    iter_count > 1 with no struct leaf after it (`grid[][]`, not
-    `grid[][].field`).
+    element-level check whose target's terminal is a named ArraySegment
+    followed by an anonymous one, with no struct leaf after it
+    (`grid[][]`, not `grid[][].field`).
     """
 
     grid: list[list[Annotated[str, MinLen(1)]]]
@@ -1890,15 +1989,16 @@ class _NestedScalarListModel(BaseModel):
 class TestNestedScalarListTarget:
     """Element-level check on list[list[scalar]] targets a bare `field[][]`."""
 
-    def test_terminal_target_carries_iter_count_two(self) -> None:
+    def test_terminal_target_carries_anonymous_segment(self) -> None:
         nodes, _ = _checks_for(_NestedScalarListModel)
         node = _node_for(nodes, "grid[][]", "check_string_min_length")
         target = node.target
-        assert isinstance(target, ArrayPath)
-        last = target.segments[-1]
-        assert isinstance(last, ArraySegment)
-        assert last.name == "grid"
-        assert last.iter_count == 2
+        assert isinstance(target, Iterated)
+        named, anon = target.segments[-2:]
+        assert isinstance(named, ArraySegment)
+        assert named.name == "grid"
+        assert isinstance(anon, ArraySegment)
+        assert anon.is_anonymous
 
 
 class TestPrimitiveBoundsFiltered:
@@ -2039,12 +2139,12 @@ class TestMapKeyValueConstraints:
         matches = [
             c
             for c in field_checks
-            if isinstance(c.target, MapPath)
-            and c.target.projection is projection
+            if (ms := _map_seg(c.target)) is not None
+            and ms.projection is projection
             and any(d.function == function for d in c.descriptors)
         ]
         assert len(matches) >= 1, (
-            f"no MapPath {projection} check with {function}; "
+            f"no map {projection} check with {function}; "
             f"targets={[str(c.target) for c in field_checks]}"
         )
         return matches[0]
@@ -2059,25 +2159,16 @@ class TestMapKeyValueConstraints:
 
     def test_map_field_with_unconstrained_value_emits_no_value_check(self) -> None:
         # metadata: dict[str, int] -- neither key nor value carries a
-        # constraint, so no MapPath checks are produced for it.
+        # constraint, so no map projection checks are produced for it.
         field_checks, _ = _checks_for(FeatureWithDict)
         metadata_maps = [
             c
             for c in field_checks
-            if isinstance(c.target, MapPath) and c.target.map_column == "metadata"
+            if _map_seg(c.target) is not None
+            and isinstance(c.target, Iterated)
+            and c.target.outer_column == "metadata"
         ]
         assert metadata_maps == []
-
-
-class _MapWithConstrainedListValueModel(BaseModel):
-    """`dict[K, list[constrained-scalar]]` -- a map value carrying an array layer.
-
-    `terminal_scalar` unwraps the `ArrayOf` to the inner scalar, so the
-    naive scalar guard lets this through; the value scalar's constraint
-    has no `MapPath` + `ArraySegment` geometry to land on.
-    """
-
-    items: dict[str, list[Annotated[str, MinLen(1)]]]
 
 
 class _MapWithUnconstrainedListValueModel(BaseModel):
@@ -2086,125 +2177,30 @@ class _MapWithUnconstrainedListValueModel(BaseModel):
     items: dict[str, list[int]]
 
 
-class _ListOfConstrainedMapModel(BaseModel):
-    """`list[dict[K, constrained-scalar]]` -- a map reached through an array."""
-
-    items: list[dict[str, Annotated[str, MinLen(1)]]]
-
-
 class _ListOfUnconstrainedMapModel(BaseModel):
     """`list[dict[K, scalar]]` with no key/value constraint -- nothing to emit."""
 
     items: list[dict[str, str]]
 
 
-class _PlainScalarMapModel(BaseModel):
-    items: dict[str, str]
+class TestUnconstrainedRicherMaps:
+    """Richer map/array nestings with no key/value constraint emit no checks.
 
-
-class _ConstrainedScalarMapModel(BaseModel):
-    items: dict[str, Annotated[str, MinLen(1)]]
-
-
-class TestClassifyMapProjection:
-    """`classify_map_projection` is the single arbiter of map-shape support.
-
-    Every map-shape prohibition in `_map_projection_checks` routes through
-    this classifier rather than restating the rule inline. The classifier
-    names the representable shape (struct-prefix -> one MapSegment -> scalar
-    or model/union terminal, reached without array iteration, no array layer
-    in the projected shape) and the reason each unsupported shape is rejected.
+    `dict[K, list[V]]` and `list[dict[K, V]]` are now representable -- the
+    former representability gate is gone -- but an unconstrained projection
+    has nothing to validate, so the walk yields no map-projection checks,
+    the same quiet treatment an unconstrained scalar map gets. The
+    constraint-carrying variants of these shapes are exercised by the
+    hand-built execution test, not here.
     """
-
-    def _scalar_shape(self, *, constrained: bool) -> FieldShape:
-        spec = spec_for_model(
-            _ConstrainedScalarMapModel if constrained else _PlainScalarMapModel
-        )
-        assert isinstance(spec, RecordSpec)
-        shape = spec.fields[0].shape
-        assert isinstance(shape, MapOf)
-        return shape.value
-
-    def test_scalar_terminal_reached_struct_only_is_representable(self) -> None:
-        verdict = classify_map_projection(
-            self._scalar_shape(constrained=True), _path("items{value}")
-        )
-        assert verdict.representable
-        assert verdict.reason is None
-
-    def test_map_reached_through_array_is_rejected(self) -> None:
-        # The classifier owns the path-structural rejection too: a map_path
-        # that is an ArrayPath cannot anchor a struct-prefixed MapPath.
-        verdict = classify_map_projection(
-            self._scalar_shape(constrained=True), _path("items[]")
-        )
-        assert not verdict.representable
-        assert verdict.reason is not None
-
-    def test_array_layer_in_projected_shape_is_rejected(self) -> None:
-        spec = spec_for_model(_MapWithConstrainedListValueModel)
-        assert isinstance(spec, RecordSpec)
-        shape = spec.fields[0].shape
-        assert isinstance(shape, MapOf)
-        verdict = classify_map_projection(shape.value, _path("items{value}"))
-        assert not verdict.representable
-        assert verdict.reason is not None
-
-    def test_classifier_rejects_dict_of_list_value(self) -> None:
-        # dict[K, list[V]]: the projected value shape carries an array layer.
-        # The classifier rejects it, and `_checks_for` raises -- the model
-        # raises iff the classifier rejects a shape with something to validate.
-        spec = spec_for_model(_MapWithConstrainedListValueModel)
-        assert isinstance(spec, RecordSpec)
-        shape = spec.fields[0].shape
-        assert isinstance(shape, MapOf)
-        verdict = classify_map_projection(shape.value, _path("items{value}"))
-        assert not verdict.representable
-        assert verdict.has_value_to_validate
-        with pytest.raises(NotImplementedError):
-            _checks_for(_MapWithConstrainedListValueModel)
-
-    def test_classifier_rejects_map_reached_through_array(self) -> None:
-        # list[dict[K, V]]: the map is reached through an array, so the
-        # map_path is an ArrayPath. The classifier rejects on the path alone.
-        spec = spec_for_model(_ListOfConstrainedMapModel)
-        assert isinstance(spec, RecordSpec)
-        outer = spec.fields[0].shape
-        assert isinstance(outer, ArrayOf)
-        inner_map = outer.element
-        assert isinstance(inner_map, MapOf)
-        verdict = classify_map_projection(inner_map.value, _path("items[]"))
-        assert not verdict.representable
-        assert verdict.has_value_to_validate
-        with pytest.raises(NotImplementedError):
-            _checks_for(_ListOfConstrainedMapModel)
-
-
-class TestMapProjectionUnsupportedShapes:
-    """`_map_projection_checks` is bounded to a scalar terminal reached struct-only.
-
-    Two shapes fall outside that bound -- a map value/key with an array
-    layer (`dict[K, list[V]]`), and a map reached through an array
-    (`list[dict[K, V]]`). For each, a key/value constraint raises to keep
-    the dropped check loud, and an unconstrained one yields no checks (a
-    `MapPath` cannot locate the value, but there is nothing to validate).
-    """
-
-    def test_constrained_list_value_raises(self) -> None:
-        with pytest.raises(NotImplementedError, match="map value"):
-            _checks_for(_MapWithConstrainedListValueModel)
 
     def test_unconstrained_list_value_emits_no_projection_check(self) -> None:
         field_checks, _ = _checks_for(_MapWithUnconstrainedListValueModel)
-        assert not any(isinstance(c.target, MapPath) for c in field_checks)
-
-    def test_constrained_map_in_array_raises(self) -> None:
-        with pytest.raises(NotImplementedError, match="map value"):
-            _checks_for(_ListOfConstrainedMapModel)
+        assert not any(_map_seg(c.target) is not None for c in field_checks)
 
     def test_unconstrained_map_in_array_emits_no_projection_check(self) -> None:
         field_checks, _ = _checks_for(_ListOfUnconstrainedMapModel)
-        assert not any(isinstance(c.target, MapPath) for c in field_checks)
+        assert not any(_map_seg(c.target) is not None for c in field_checks)
 
 
 class _InnerLabel(BaseModel):
@@ -2214,7 +2210,7 @@ class _InnerLabel(BaseModel):
 class _MapOfModel(BaseModel):
     """A `dict[K, Model]` value model with a constrained scalar field.
 
-    The value model's `label` field is validated on a `MapPath` leaf
+    The value model's `label` field is validated on a map leaf target
     (`items{value}.label`), the map analogue of a `list[Model]` element.
     """
 
@@ -2241,8 +2237,9 @@ class TestMapValueModelDescent:
     """check_builder descends into a `dict[K, Model]` value model.
 
     A `ModelRef`/`UnionRef` map value is walked for its field and
-    model-level constraints on a `MapPath` target, the map analogue of a
-    `list[Model]` element reached through the `ModelRef` walker arm.
+    model-level constraints on a map-leaf `Iterated` target, the map
+    analogue of a `list[Model]` element reached through the `ModelRef`
+    walker arm.
     """
 
     def test_value_field_constraint_targets_map_value_leaf(self) -> None:
@@ -2250,7 +2247,7 @@ class TestMapValueModelDescent:
         matches = [
             c
             for c in field_checks
-            if isinstance(c.target, MapPath)
+            if _map_seg(c.target) is not None
             and str(c.target) == "items{value}.label"
             and any(d.function == "check_string_min_length" for d in c.descriptors)
         ]
@@ -2261,7 +2258,7 @@ class TestMapValueModelDescent:
         leaf_checks = [
             c
             for c in field_checks
-            if isinstance(c.target, MapPath) and str(c.target) == "items{value}.label"
+            if _map_seg(c.target) is not None and str(c.target) == "items{value}.label"
         ]
         assert leaf_checks
         functions = {d.function for c in leaf_checks for d in c.descriptors}
@@ -2271,22 +2268,8 @@ class TestMapValueModelDescent:
         _, model_checks = _checks_for(_ModelConstraintAsMapValue)
         matches = _filter_nodes(model_checks, "check_require_any_of", ("foo", "bar"))
         assert len(matches) == 1
-        assert isinstance(matches[0].target, MapPath)
+        assert _map_seg(matches[0].target) is not None
         assert str(matches[0].target) == "subs{value}"
-
-
-class _MapValueWithList(BaseModel):
-    tags: list[Annotated[str, MinLen(1)]]
-
-
-class _ListInsideMapValueModel(BaseModel):
-    """A `dict[K, Model]` value model with a constrained list field.
-
-    A list nested inside a map element has no representable `MapPath`, so
-    the descent raises rather than emitting an unanchored target.
-    """
-
-    items: dict[str, _MapValueWithList]
 
 
 class _UrlOrEmptyModel(BaseModel):
@@ -2346,17 +2329,3 @@ class TestLiteralAlternativesBypass:
                     assert desc.allow_literals == (), (
                         f"check_required at {check.target} carries unexpected allow_literals"
                     )
-
-
-class TestMapValueModelDescentBoundary:
-    """Descent raises where a `MapPath` cannot represent the shape.
-
-    A map value model is descended into for scalar fields and model
-    constraints; a container (list or map) nested inside it has no
-    `MapPath` geometry, so the walker raises rather than emitting an
-    unvalidated target.
-    """
-
-    def test_list_inside_map_value_model_raises(self) -> None:
-        with pytest.raises(NotImplementedError, match="list nested inside a map"):
-            _checks_for(_ListInsideMapValueModel)

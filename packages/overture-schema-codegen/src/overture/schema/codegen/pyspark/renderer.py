@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
+from dataclasses import dataclass
 from enum import Enum
 
 from overture.schema.system.field_path import (
-    ArrayPath,
+    ArraySegment,
+    Direct,
     FieldPath,
-    MapPath,
+    Iterated,
     MapProjection,
-    ScalarPath,
+    MapSegment,
 )
 from overture.schema.system.primitive import GeometryType
 
@@ -224,66 +226,153 @@ def _wrap_element_gate(body: str, var: str, gate_parts: tuple[str, ...]) -> str:
     return f"F.when({gate_accessor}.isNotNull(), {body})"
 
 
-def _wrap_in_array_iteration(
-    column_path: str,
-    inner_struct_paths: tuple[tuple[str, ...], ...],
+def _map_iter_var(projection: MapProjection) -> str:
+    """Lambda variable name for a map projection: `k` for keys, `v` for values."""
+    return "k" if projection is MapProjection.KEY else "v"
+
+
+@dataclass(frozen=True, slots=True)
+class RenderFrame:
+    """One iteration frame enriched with its lambda var and runtime helper.
+
+    Attributes
+    ----------
+    prefix_structs
+        Struct segment names between the previous iterating segment (or the
+        start of the path) and this one. For the outermost frame this is the
+        column struct prefix; joined with `segment.name` it forms the frame's
+        `F.col(...)` column. For an inner named frame it is the descent from
+        the previous element; for an anonymous frame it is empty.
+    segment
+        The iterating segment (`ArraySegment` or `MapSegment`) this frame
+        iterates. Anonymous when the parent element is itself the container.
+    is_innermost
+        Whether this is the leaf-most iteration (the base runtime helper is
+        used; outer frames use the `nested_` flattening helper).
+    var_name
+        The lambda parameter name (`el` / `el2` / `inner` for arrays,
+        `k` / `v` for maps).
+    helper_name
+        The `column_patterns` helper this frame calls.
+    """
+
+    prefix_structs: tuple[str, ...]
+    segment: ArraySegment | MapSegment
+    is_innermost: bool
+    var_name: str
+    helper_name: str
+
+    @property
+    def descent(self) -> tuple[str, ...]:
+        """Struct accessor from the previous element to this container.
+
+        Empty for an anonymous frame (the parent element already IS this
+        container); `prefix_structs + segment.name` for a named frame.
+        """
+        if self.segment.is_anonymous:
+            return ()
+        return (*self.prefix_structs, self.segment.name)
+
+    @property
+    def column(self) -> str:
+        """Dotted `F.col(...)` name for the outermost frame."""
+        return ".".join((*self.prefix_structs, self.segment.name))
+
+
+def _render_frames(target: Iterated) -> tuple[RenderFrame, ...]:
+    """Enrich each iteration of *target* with its lambda var and runtime helper.
+
+    One `RenderFrame` per iteration -- every iterating segment, named and
+    anonymous, since each is its own `array_check` / `map_*_check` call.
+    Built once and consumed by the fold, `_pattern_imports_for`, and the
+    model-constraint context so var and helper names never drift (a hazard
+    with mixed nesting where two map frames both want `v`).
+
+    Array frames use `el` / `el2` / `inner` (indexed by overall iteration
+    position) with `array_check` (innermost) or `nested_array_check`; map
+    frames use `k` / `v` with `map_{keys,values}_check` (innermost) or the
+    `nested_map_*` flattening variant.
+    """
+    raw: list[tuple[tuple[str, ...], ArraySegment | MapSegment]] = []
+    prefix: list[str] = []
+    for seg in target.segments:
+        if isinstance(seg, (ArraySegment, MapSegment)):
+            raw.append((tuple(prefix), seg))
+            prefix = []
+        else:
+            prefix.append(seg.name)
+    total = len(raw)
+    frames: list[RenderFrame] = []
+    for i, (prefix_structs, seg) in enumerate(raw):
+        is_innermost = i == total - 1
+        if isinstance(seg, ArraySegment):
+            var = _iter_var_name(i, total)
+            helper = "array_check" if is_innermost else "nested_array_check"
+        else:
+            var = _map_iter_var(seg.projection)
+            helper = map_runtime_helper(seg.projection, flatten=not is_innermost)
+        frames.append(
+            RenderFrame(
+                prefix_structs=prefix_structs,
+                segment=seg,
+                is_innermost=is_innermost,
+                var_name=var,
+                helper_name=helper,
+            )
+        )
+    return tuple(frames)
+
+
+def _wrap_in_iteration(
+    frames: tuple[RenderFrame, ...],
     body: str,
     *,
     gate_parts: tuple[str, ...] = (),
 ) -> str:
-    """Wrap `body` in nested array_check / nested_array_check frames.
+    """Fold *frames* outermost->innermost into nested iteration helper calls.
 
-    One frame per iteration: `column_path` names the outermost array
-    column, `inner_struct_paths` gives the struct accessor from each
-    iteration's element to the next array (its length plus one is the
-    iteration count). `body` is the innermost lambda body. `gate_parts`,
-    when set, wraps the outermost lambda body in a nullable-parent
-    element gate.
-
-    The recursion descends one frame per call, carrying the frame index
-    and its lambda variable; the innermost frame is `array_check`, every
-    outer frame `nested_array_check`.
+    The outermost frame targets its `column` (an `F.col` string); each inner
+    frame targets an element accessor built from the outer frame's var and the
+    inner frame's `descent`. The innermost frame carries `body`. `gate_parts`,
+    when set, wraps the OUTERMOST frame's body in a nullable-parent element
+    gate (`element_relative_gate` is relative to the outer array element);
+    element guards are applied to `body` at the innermost var by the caller,
+    the two wrap points staying distinct.
     """
-    total = 1 + len(inner_struct_paths)
 
-    def frame(idx: int, accessor: str, var: str) -> str:
-        if idx == total - 1:
+    def build(i: int, accessor: str) -> str:
+        frame = frames[i]
+        if frame.is_innermost:
             inner = body
-            fn = "array_check"
         else:
-            child_var = _iter_var_name(idx + 1, total)
-            child_accessor = _element_accessor(var, inner_struct_paths[idx])
-            inner = frame(idx + 1, child_accessor, child_var)
-            fn = "nested_array_check"
-        if idx == 0 and gate_parts:
-            inner = _wrap_element_gate(inner, var, gate_parts)
-        return f"{fn}({accessor}, lambda {var}: {inner})"
+            child = frames[i + 1]
+            inner = build(i + 1, _element_accessor(frame.var_name, child.descent))
+        if i == 0 and gate_parts:
+            inner = _wrap_element_gate(inner, frame.var_name, gate_parts)
+        return f"{frame.helper_name}({accessor}, lambda {frame.var_name}: {inner})"
 
-    return frame(0, f'"{column_path}"', "el")
+    return build(0, f'"{frames[0].column}"')
 
 
-def _render_array_check_expr(
-    target: ArrayPath,
+def _render_iterated_check_expr(
+    target: Iterated,
     desc: ExpressionDescriptor,
     *,
     element_guards: tuple[ElementGuard, ...] = (),
     gate_parts: tuple[str, ...] = (),
 ) -> str:
-    """Render an ArrayPath target to an array_check / nested_array_check expression.
+    """Render an `Iterated` target to a nested iteration-fold expression.
 
     Element guards are applied at the innermost iteration variable. This
     assumes each guard's discriminator lives on the same struct level as
-    the leaf accessor -- which is true today because `ElementGuard`s only
-    arise from a union variant whose discriminator field is the
-    immediately enclosing array element. A future case where a check is
-    reached through further iteration *inside* a discriminated union
-    element would need per-guard depth info to apply the guard at the
-    correct frame.
+    the leaf accessor -- true today because `ElementGuard`s only arise from
+    a union variant whose discriminator field is the immediately enclosing
+    array element. A future case where a check is reached through further
+    iteration *inside* a discriminated union element would need per-guard
+    depth info to apply the guard at the correct frame.
     """
-    inner_struct_paths = target.iter_struct_paths
-    iteration_count = 1 + len(inner_struct_paths)
-
-    innermost_var = _iter_var_name(iteration_count - 1, iteration_count)
+    frames = _render_frames(target)
+    innermost_var = frames[-1].var_name
     leaf_accessor = _element_accessor(innermost_var, target.leaf)
     body = _render_expr_call(desc, leaf_accessor)
 
@@ -292,40 +381,7 @@ def _render_array_check_expr(
             body, guard.values, guard.discriminator, in_array=True, var=innermost_var
         )
 
-    return _wrap_in_array_iteration(
-        target.column_path, inner_struct_paths, body, gate_parts=gate_parts
-    )
-
-
-def _map_iter_var(projection: MapProjection) -> str:
-    """Lambda variable name for a map projection: `k` for keys, `v` for values."""
-    return "k" if projection is MapProjection.KEY else "v"
-
-
-def _wrap_in_map_iteration(target: MapPath, body: str) -> str:
-    """Wrap `body` in a map_keys_check / map_values_check projection lambda.
-
-    The map helper projects the map (`F.map_keys` / `F.map_values`) and
-    applies the lambda to each projected key or value, the map analogue of
-    `_wrap_in_array_iteration`. `body` references the projected element via
-    the same `_map_iter_var(target.projection)` name this builds the lambda
-    parameter from.
-    """
-    helper = map_runtime_helper(target.projection)
-    var = _map_iter_var(target.projection)
-    return f'{helper}("{target.map_column}", lambda {var}: {body})'
-
-
-def _render_map_check_expr(target: MapPath, desc: ExpressionDescriptor) -> str:
-    """Render a MapPath target to a map_keys_check / map_values_check expression.
-
-    A non-empty `target.leaf` navigates into a `dict[K, Model]` value struct
-    (`v["field"]`), mirroring an array element's leaf accessor; an empty leaf
-    applies the check to the projected scalar itself.
-    """
-    var = _map_iter_var(target.projection)
-    body = _render_expr_call(desc, _element_accessor(var, target.leaf))
-    return _wrap_in_map_iteration(target, body)
+    return _wrap_in_iteration(frames, body, gate_parts=gate_parts)
 
 
 def _render_variant_expr(
@@ -354,25 +410,20 @@ def _render_column_gate(expr: str, gate: FieldPath) -> str:
 def _model_check_func_name(check: ModelCheck, idx: int) -> str:
     """Build the private function name for a model-constraint check.
 
-    Array and map targets prefix the column path -- using the full encoded
-    `FieldPath` when the check is reached via inner iteration or leaf struct
-    navigation, otherwise the outer column name alone -- so collisions
-    across nested contexts get distinct identifiers. Row-root targets emit
-    `_{fn}_{idx}_check`.
+    An `Iterated` (array/map) target prefixes the column path -- using the
+    full encoded `FieldPath` when the check is reached via inner iteration or
+    leaf struct navigation, otherwise the outer column name alone -- so
+    collisions across nested contexts get distinct identifiers. Row-root
+    (`Direct`) targets emit `_{fn}_{idx}_check`.
     """
     fn = model_constraint_function(check.descriptor)
-    match check.target:
-        case ArrayPath() as target:
-            has_nested_path = bool(target.iter_struct_paths) or bool(target.leaf)
-            prefix_source = str(target) if has_nested_path else target.column_path
-            prefix = sanitize_field_name(prefix_source)
-            return f"_{prefix}_{fn}_{idx}_check"
-        case MapPath() as target:
-            prefix_source = str(target) if target.leaf else target.map_column
-            prefix = sanitize_field_name(prefix_source)
-            return f"_{prefix}_{fn}_{idx}_check"
-        case _:
-            return f"_{fn}_{idx}_check"
+    target = check.target
+    if isinstance(target, Iterated):
+        has_nested_path = bool(target.iter_struct_paths) or bool(target.leaf)
+        prefix_source = str(target) if has_nested_path else target.outer_column
+        prefix = sanitize_field_name(prefix_source)
+        return f"_{prefix}_{fn}_{idx}_check"
+    return f"_{fn}_{idx}_check"
 
 
 def _check_shape_token(target: FieldPath) -> str:
@@ -380,11 +431,11 @@ def _check_shape_token(target: FieldPath) -> str:
 
     Mirrors the member names of `overture.schema.pyspark.check.CheckShape`;
     the check-function template prefixes `CheckShape.` to the result. An
-    `ArrayPath` or `MapPath` target renders to an `array<string>`
-    expression (the map helper iterates the projected keys/values), every
-    other path to a nullable string.
+    `Iterated` target renders to an `array<string>` expression (array
+    iteration, or a map helper iterating the projected keys/values), a
+    `Direct` target to a nullable string.
     """
-    return "ARRAY" if isinstance(target, (ArrayPath, MapPath)) else "SCALAR"
+    return "ARRAY" if isinstance(target, Iterated) else "SCALAR"
 
 
 def _render_check_expr(check: Check, descriptor_idx: int) -> str:
@@ -394,34 +445,32 @@ def _render_check_expr(check: Check, descriptor_idx: int) -> str:
     element_guards = tuple(g for g in check.guards if isinstance(g, ElementGuard))
 
     match check.target:
-        case ScalarPath():
+        case Direct():
             expr = _render_expr_call(desc, f'F.col("{check.target}")')
             if desc.gate:
                 expr = _render_column_gate(expr, desc.gate)
-        case ArrayPath():
+        case Iterated():
             gate_parts: tuple[str, ...] = ()
             if desc.gate is not None:
                 # check_builder zeros the nullable gate when descending into
-                # a list (see `_recurse_into_model`), so a gate paired with
-                # an ArrayPath target should never occur today. If it does,
-                # the column-level fallback below would silently hide a
-                # codegen bug -- raise instead.
+                # any iterated container (see `_recurse_into_model`), so a
+                # gate paired with an Iterated target should never occur
+                # today. If it does, the column-level fallback below would
+                # silently hide a codegen bug -- raise instead.
                 element_relative = check.target.element_relative_gate(desc.gate)
                 if element_relative is None:
                     raise AssertionError(
-                        f"ArrayPath target with column-level gate is not "
+                        f"Iterated target with column-level gate is not "
                         f"produced by check_builder (gate={desc.gate!r}, "
                         f"target={check.target!r})"
                     )
                 gate_parts = element_relative
-            expr = _render_array_check_expr(
+            expr = _render_iterated_check_expr(
                 check.target,
                 desc,
                 element_guards=element_guards,
                 gate_parts=gate_parts,
             )
-        case MapPath():
-            expr = _render_map_check_expr(check.target, desc)
         case _:
             raise TypeError(
                 f"Unhandled FieldPath variant: {type(check.target).__name__}"
@@ -473,25 +522,29 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
     check = row.check
     desc = check.descriptor
     target = check.target
-    match target:
-        case ArrayPath():
-            in_array = True
-            var = "inner" if target.iter_struct_paths else "el"
-            struct_path: tuple[str, ...] = target.leaf
-        case MapPath():
-            # The map's values are iterated like an array element, so field
-            # references use the element accessor (`v["foo"]`) under the
-            # projected variable.
-            in_array = True
-            var = _map_iter_var(target.projection)
-            struct_path = target.leaf
-        case _:
-            in_array = False
-            var, struct_path = "el", ()
+    # Build the render frames once; both the field-reference context (var /
+    # struct_path) and the iteration wrap below read from them so nothing drifts.
+    frames: tuple[RenderFrame, ...] = ()
+    if isinstance(target, Iterated):
+        # The innermost element (array element or projected map value) is
+        # iterated, so field references use the element accessor
+        # (`inner["foo"]`, `v["foo"]`) under the innermost lambda variable.
+        frames = _render_frames(target)
+        in_array = True
+        var = frames[-1].var_name
+        struct_path: tuple[str, ...] = target.leaf
+    else:
+        in_array = False
+        var, struct_path = "el", ()
 
     def _field_ref(field_name: str) -> str:
         return _render_field_ref(
             field_name, in_array=in_array, struct_path=struct_path, var=var
+        )
+
+    def _condition_ref(parsed: FieldEq) -> str:
+        return _render_condition(
+            parsed, in_array=in_array, struct_path=struct_path, var=var
         )
 
     fn = model_constraint_function(desc)
@@ -508,23 +561,14 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
         case RequireAnyTrue():
             parsed_conditions = [require_field_eq(c) for c in desc.conditions]
             conds_list = (
-                "["
-                + ", ".join(
-                    _render_condition(
-                        p, in_array=in_array, struct_path=struct_path, var=var
-                    )
-                    for p in parsed_conditions
-                )
-                + "]"
+                "[" + ", ".join(_condition_ref(p) for p in parsed_conditions) + "]"
             )
             names_list = py_literal([p.field_name for p in parsed_conditions])
             inner_expr = f"{fn}({conds_list}, {names_list})"
         case RequireIf() | ForbidIf():
             target_name = desc.field_names[0]
             parsed = require_field_eq(desc.condition)
-            condition_expr = _render_condition(
-                parsed, in_array=in_array, struct_path=struct_path, var=var
-            )
+            condition_expr = _condition_ref(parsed)
             condition_desc = _render_condition_desc(parsed)
             target_ref = _field_ref(target_name)
             inner_expr = (
@@ -536,8 +580,12 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
         case _:
             raise TypeError(f"Unhandled model constraint descriptor: {desc!r}")
 
-    if isinstance(target, ArrayPath):
+    if isinstance(target, Iterated):
         if check.gate is not None:
+            # A gate reaches only an array-first target: check_builder zeros
+            # the gate for any iterated container, so a map-reached model
+            # carries none, and `element_relative_gate` asserts the array-first
+            # precondition. The wrap assumes a single array level.
             assert not target.iter_struct_paths, (
                 f"gated ModelCheck with a nested-array target ({target!r}) is unsupported; "
                 f"the element-gate wrap assumes a single array level"
@@ -545,27 +593,15 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
             element_relative = target.element_relative_gate(check.gate)
             assert element_relative is not None, (
                 f"ModelCheck gate={check.gate!r} is not reachable as an element-level "
-                f"accessor on target={target!r}; gates on ModelChecks must be ArrayPaths "
+                f"accessor on target={target!r}; gates on ModelChecks must be Iterated "
                 f"entering the same outer array as the target"
             )
             inner_expr = _wrap_element_gate(inner_expr, var, element_relative)
-        expr = _wrap_in_array_iteration(
-            target.column_path, target.iter_struct_paths, inner_expr
-        )
-    elif isinstance(target, MapPath):
-        # A `dict[K, Model]` value-model constraint wraps in map_values_check
-        # (or map_keys_check), iterating the projected values like an array.
-        # check_builder zeros the gate for iterated containers, so no gate
-        # reaches here.
-        assert check.gate is None, (
-            f"ModelCheck gate={check.gate!r} paired with MapPath target={target!r}; "
-            f"map iteration handles value nullability, so a gate is unexpected"
-        )
-        expr = _wrap_in_map_iteration(target, inner_expr)
+        expr = _wrap_in_iteration(frames, inner_expr)
     else:
         assert check.gate is None, (
-            f"ModelCheck gate={check.gate!r} paired with non-ArrayPath target={target!r}; "
-            f"a gate only makes sense when the constrained model is inside an array"
+            f"ModelCheck gate={check.gate!r} paired with a Direct target={target!r}; "
+            f"a gate only makes sense when the constrained model is inside a container"
         )
         expr = inner_expr
 
@@ -613,17 +649,15 @@ def _needs_geometry_type_import(field_checks: list[Check]) -> bool:
 
 
 def _pattern_imports_for(target: FieldPath) -> set[str]:
-    """Column-pattern helpers needed to iterate `target`."""
-    match target:
-        case ArrayPath():
-            names = {"array_check"}
-            if target.iter_struct_paths:
-                names.add("nested_array_check")
-            return names
-        case MapPath():
-            return {map_runtime_helper(target.projection)}
-        case _:
-            return set()
+    """Column-pattern helpers needed to iterate `target`.
+
+    Reads the helper names off `_render_frames` -- the single source of the
+    frame->helper mapping the fold also consumes -- so the imports never drift
+    from the emitted calls. A `Direct` target needs none.
+    """
+    if isinstance(target, Iterated):
+        return {frame.helper_name for frame in _render_frames(target)}
+    return set()
 
 
 def _collect_column_pattern_imports(
