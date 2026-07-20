@@ -41,8 +41,8 @@ from overture.schema.system.field_constraint.string import (
     StrippedConstraint,
 )
 from overture.schema.system.field_path import ArrayPath, ScalarPath, parse
+from overture.schema.system.geometric.geom import GeometryType
 from overture.schema.system.model_constraint import FieldEqCondition, Not
-from overture.schema.system.primitive.geom import GeometryType
 
 _path = parse
 

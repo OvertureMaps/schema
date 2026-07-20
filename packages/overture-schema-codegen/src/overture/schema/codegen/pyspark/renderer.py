@@ -13,7 +13,7 @@ from overture.schema.system.field_path import (
     MapProjection,
     ScalarPath,
 )
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 
 from ._render_common import (
     FieldCheckRow,

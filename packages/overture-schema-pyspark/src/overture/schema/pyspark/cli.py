@@ -11,7 +11,7 @@ from pyspark.errors import AnalysisException
 from pyspark.sql import DataFrame, SparkSession
 
 from overture.schema.system.discovery import resolve_entry_point_key
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 
 from ._registry import PARTITION_MAP, REGISTRY
 from .validate import (

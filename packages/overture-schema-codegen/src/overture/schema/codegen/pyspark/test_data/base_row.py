@@ -15,6 +15,11 @@ from enum import Enum
 from typing import Any
 
 from overture.schema.common.scoping.lr import LinearReferenceRangeConstraint
+from overture.schema.system.geometric.geom import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 from overture.schema.system.model_constraint import (
     ForbidIfConstraint,
     MinFieldsSetConstraint,
@@ -22,11 +27,6 @@ from overture.schema.system.model_constraint import (
     RequireAnyOfConstraint,
     RequireAnyTrueConstraint,
     RequireIfConstraint,
-)
-from overture.schema.system.primitive.geom import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
 )
 
 from ...extraction.field import (

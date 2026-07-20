@@ -21,7 +21,7 @@ from typing import Literal
 from pyspark.sql import Column
 from pyspark.sql import functions as F
 
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 
 from .column_patterns import error_msg
 

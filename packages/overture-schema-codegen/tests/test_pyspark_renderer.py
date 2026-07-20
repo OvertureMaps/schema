@@ -51,6 +51,11 @@ from overture.schema.system.field_path import (
     ScalarPath,
     parse,
 )
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     Not,
@@ -58,12 +63,7 @@ from overture.schema.system.model_constraint import (
     require_any_of,
     require_if,
 )
-from overture.schema.system.primitive import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
-    int32,
-)
+from overture.schema.system.numeric import int32
 from overture.schema.system.string import CountryCodeAlpha2
 from pydantic import BaseModel, HttpUrl
 from pydantic.fields import FieldInfo
@@ -574,7 +574,7 @@ class TestGeometryTypes:
             schema_fields,
             geometry_types=(GeometryType.POINT,),
         )
-        assert "from overture.schema.system.primitive import GeometryType" in source
+        assert "from overture.schema.system.geometric import GeometryType" in source
 
 
 class TestImports:
@@ -776,7 +776,7 @@ class TestGeometryTypeRendering:
 
     def test_geometry_type_import_present(self) -> None:
         source = _render(GeomModel, "geom")
-        assert "from overture.schema.system.primitive import GeometryType" in source
+        assert "from overture.schema.system.geometric import GeometryType" in source
 
     def test_no_geometry_type_import_without_geometry_field(
         self, literal_subtype_source: str

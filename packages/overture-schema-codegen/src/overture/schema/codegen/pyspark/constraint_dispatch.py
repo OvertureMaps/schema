@@ -24,6 +24,7 @@ from overture.schema.system.field_constraint.string import (
     StrippedConstraint,
 )
 from overture.schema.system.field_path import FieldPath
+from overture.schema.system.geometric import GeometryTypeConstraint
 from overture.schema.system.model_constraint import (
     Condition,
     FieldEqCondition,
@@ -36,7 +37,6 @@ from overture.schema.system.model_constraint import (
     RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
-from overture.schema.system.primitive import GeometryTypeConstraint
 from overture.schema.system.ref import Reference
 
 from ..extraction.docstring import first_docstring_line

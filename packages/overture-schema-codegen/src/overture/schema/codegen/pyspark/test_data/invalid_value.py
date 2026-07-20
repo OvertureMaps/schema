@@ -7,7 +7,7 @@ each constraint produces the expected violation.
 
 from __future__ import annotations
 
-from overture.schema.system.primitive.geom import GeometryType
+from overture.schema.system.geometric.geom import GeometryType
 
 from ..constraint_dispatch import ExpressionDescriptor
 from .constraint_values import (

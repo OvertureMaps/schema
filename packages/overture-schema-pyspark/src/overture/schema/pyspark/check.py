@@ -9,7 +9,7 @@ from enum import Enum
 from pyspark.sql import Column
 from pyspark.sql.types import StructType
 
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 
 
 class CheckShape(Enum):

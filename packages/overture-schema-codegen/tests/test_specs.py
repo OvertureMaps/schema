@@ -20,7 +20,7 @@ from overture.schema.codegen.extraction.specs import (
     TypeIdentity,
     is_union_alias,
 )
-from overture.schema.system.primitive import int32
+from overture.schema.system.numeric import int32
 from pydantic import BaseModel, Field
 
 

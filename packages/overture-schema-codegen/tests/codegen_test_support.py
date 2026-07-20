@@ -41,19 +41,18 @@ from overture.schema.system.discovery import (
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     radio_group,
     require_any_of,
     require_any_true,
 )
-from overture.schema.system.primitive import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
-    float64,
-    int32,
-)
+from overture.schema.system.numeric import float64, int32
 from overture.schema.system.ref import Id, Identified, Reference, Relationship
 from overture.schema.system.string import HexColor, LanguageTag, StrippedString
 from pydantic import BaseModel, EmailStr, Field, HttpUrl, RootModel

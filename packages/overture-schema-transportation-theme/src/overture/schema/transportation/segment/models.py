@@ -12,7 +12,7 @@ from overture.schema.common.names import (
 )
 from overture.schema.system.feature import Feature
 from overture.schema.system.field_constraint import UniqueItemsConstraint
-from overture.schema.system.primitive import (
+from overture.schema.system.geometric import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

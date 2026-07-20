@@ -31,7 +31,7 @@ from overture.schema.pyspark.expressions.constraint_expressions import (
     check_url_length,
     except_literals,
 )
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 from pyspark.sql import Row, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import DoubleType, StringType, StructField, StructType

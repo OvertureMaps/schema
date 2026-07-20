@@ -90,9 +90,9 @@ This workspace contains the following packages:
   convenient usage
 - **`overture-schema-common`** - Overture-specific models shared across themes: base
   feature class, scoping framework, names, sources, and cartographic hints
-- **`overture-schema-system`** - Portable primitive types, constraints, and a
-  GeoJSON-aware base model for building Pydantic schemas that serialize to
-  JSON, Parquet, and Spark
+- **`overture-schema-system`** - Portable numeric, geometric, and string types,
+  constraints, and a GeoJSON-aware base model for building Pydantic schemas that
+  serialize to JSON, Parquet, and Spark
 
 ### Theme Packages
 

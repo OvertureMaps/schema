@@ -10,8 +10,9 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
-import overture.schema.system.primitive as _system_primitive
-from overture.schema.system.primitive import GeometryType
+import overture.schema.system.geometric as _system_geometric
+import overture.schema.system.numeric as _system_numeric
+from overture.schema.system.geometric import GeometryType
 
 from ..extraction.examples import ExampleRecord, load_examples
 from ..extraction.numeric_extraction import extract_numerics
@@ -29,8 +30,8 @@ from ..extraction.type_analyzer import is_newtype
 from ..layout.type_collection import collect_all_supplementary_types
 from .link_computation import LinkContext
 from .path_assignment import (
-    GEOMETRY_PAGE,
-    PRIMITIVES_PAGE,
+    GEOMETRIC_PAGE,
+    NUMERIC_PAGE,
     build_placement_registry,
     resolve_output_path,
 )
@@ -39,7 +40,7 @@ from .renderer import (
     render_geometry_from_values,
     render_model,
     render_newtype,
-    render_primitives_from_specs,
+    render_numeric_from_specs,
     render_pydantic_type,
 )
 from .reverse_references import UsedByEntry, compute_reverse_references
@@ -114,22 +115,24 @@ def _render_supplement(
 
 
 def partition_numeric_and_geometry_types(
-    types_module: object,
+    numeric_module: object,
+    geometric_module: object,
 ) -> tuple[list[TypeIdentity], list[TypeIdentity]]:
-    """Discover numeric and geometry types from a module's exports.
+    """Discover numeric and geometry types from their source modules' exports.
 
-    NewType exports are numeric types.
-    Non-constraint class/enum exports are geometry types.
+    NewType exports of *numeric_module* are numeric types.
+    Non-constraint class/enum exports of *geometric_module* are geometry types.
     """
-    module_all: list[str] = getattr(types_module, "__all__", [])
     numerics: list[TypeIdentity] = []
-    geometries: list[TypeIdentity] = []
-
-    for name in module_all:
-        obj = getattr(types_module, name)
+    for name in getattr(numeric_module, "__all__", []):
+        obj = getattr(numeric_module, name)
         if is_newtype(obj):
             numerics.append(TypeIdentity(obj, name))
-        elif isinstance(obj, type) and not name.endswith("Constraint"):
+
+    geometries: list[TypeIdentity] = []
+    for name in getattr(geometric_module, "__all__", []):
+        obj = getattr(geometric_module, name)
+        if isinstance(obj, type) and not name.endswith("Constraint"):
             geometries.append(TypeIdentity(obj, name))
 
     return numerics, geometries
@@ -146,7 +149,7 @@ def generate_markdown_pages(
     (like Docusaurus category files).
     """
     numeric_names, geometry_names = partition_numeric_and_geometry_types(
-        _system_primitive
+        _system_numeric, _system_geometric
     )
     all_specs = collect_all_supplementary_types(model_specs)
     registry = build_placement_registry(
@@ -170,15 +173,15 @@ def generate_markdown_pages(
 
     pages.append(
         RenderedPage(
-            content=render_primitives_from_specs(extract_numerics(numeric_names)),
-            path=PRIMITIVES_PAGE,
+            content=render_numeric_from_specs(extract_numerics(numeric_names)),
+            path=NUMERIC_PAGE,
         )
     )
 
     pages.append(
         RenderedPage(
             content=render_geometry_from_values([m.value for m in GeometryType]),
-            path=GEOMETRY_PAGE,
+            path=GEOMETRIC_PAGE,
         )
     )
 

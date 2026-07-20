@@ -37,6 +37,7 @@ from overture.schema.system.field_constraint.string import (
     SnakeCaseConstraint,
     StrippedConstraint,
 )
+from overture.schema.system.geometric import GeometryType, GeometryTypeConstraint
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     ForbidIfConstraint,
@@ -48,7 +49,6 @@ from overture.schema.system.model_constraint import (
     RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
-from overture.schema.system.primitive import GeometryType, GeometryTypeConstraint
 from overture.schema.system.ref import Identified, Reference, Relationship
 from pydantic import Field, Strict
 
