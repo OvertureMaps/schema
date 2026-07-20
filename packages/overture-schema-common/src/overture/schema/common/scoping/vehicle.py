@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from overture.schema.common.unit import LengthUnit, WeightUnit
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import float64, uint8
+from overture.schema.system.primitive import float64
 
 
 class VehicleDimension(str, Enum):
@@ -54,7 +54,17 @@ class VehicleAxleCountSelector(VehicleSelectorBase):
     """Selects vehicles based on the number of axles they have."""
 
     dimension: Literal[VehicleDimension.AXLE_COUNT]
-    value: uint8 = Field(description="Number of axles on the vehicle")
+    # float64 to share the other vehicle dimensions' `value` type; `multiple_of`
+    # is what holds axle count to a whole number.
+    value: Annotated[
+        float64,
+        Field(
+            ge=1,
+            le=100,
+            multiple_of=1,
+            description="Number of axles on the vehicle",
+        ),
+    ]
 
 
 @no_extra_fields

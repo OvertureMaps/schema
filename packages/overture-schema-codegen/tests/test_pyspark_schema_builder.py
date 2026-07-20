@@ -211,3 +211,61 @@ class TestUnionSchemaDeduplicate:
     def test_color_field_is_string_type(self, fields: list[SchemaField]) -> None:
         color_field = next(f for f in fields if f.name == "color")
         assert color_field.type_expr == "StringType()"
+
+
+class _NumberA(BaseModel):
+    pass
+
+
+class _NumberB(BaseModel):
+    pass
+
+
+class TestUnionSchemaTypeDivergence:
+    """build_schema raises on ANY resolved-Spark-type divergence, always --
+    no numeric widening. A collision where both sides resolve to the same
+    Spark type (e.g. two distinct scalar types, both IntegerType) still
+    succeeds."""
+
+    def _fields_for(self, shape_a: Primitive, shape_b: Primitive) -> list[SchemaField]:
+        af_a = AnnotatedField(
+            field_spec=FieldSpec(name="value", shape=shape_a, is_required=True),
+            variant_sources=(_NumberA,),
+        )
+        af_b = AnnotatedField(
+            field_spec=FieldSpec(name="value", shape=shape_b, is_required=True),
+            variant_sources=(_NumberB,),
+        )
+        spec = UnionSpec(
+            name="TestNumberUnion",
+            description=None,
+            annotated_fields=[af_a, af_b],
+            members=[],
+            discriminator_field=None,
+            discriminator_mapping=None,
+            source_annotation=object(),
+            common_base=BaseModel,
+        )
+        return build_schema(spec)
+
+    def test_numeric_widening_now_raises(self) -> None:
+        """uint8 (IntegerType) vs float64 (DoubleType) previously widened
+        silently; it now raises like any other type mismatch."""
+        with pytest.raises(ValueError, match="incompatible"):
+            self._fields_for(
+                Primitive(base_type="uint8"), Primitive(base_type="float64")
+            )
+
+    def test_non_numeric_mismatch_still_raises(self) -> None:
+        with pytest.raises(ValueError, match="incompatible"):
+            self._fields_for(Primitive(base_type="str"), Primitive(base_type="bool"))
+
+    def test_same_resolved_type_does_not_raise(self) -> None:
+        """Two distinct scalar types resolving to the same Spark type
+        (e.g. int32 and uint16, both IntegerType) share a column cleanly."""
+        fields = self._fields_for(
+            Primitive(base_type="int32"), Primitive(base_type="uint16")
+        )
+        value_fields = [f for f in fields if f.name == "value"]
+        assert len(value_fields) == 1
+        assert value_fields[0].type_expr == "IntegerType()"

@@ -16,7 +16,7 @@ from ..extraction.field import (
     Scalar,
     UnionRef,
 )
-from ..extraction.field_walk import enum_source, terminal_scalar
+from ..extraction.field_walk import enum_source
 from ..extraction.specs import FieldSpec, ModelSpec, UnionSpec
 from ..extraction.type_registry import get_type_mapping
 
@@ -24,7 +24,6 @@ __all__ = [
     "SHARED_TYPE_REFS",
     "SchemaField",
     "build_schema",
-    "spark_type_rank",
 ]
 
 # Types whose base_type name maps to a _schema_structs.py StructType constant.
@@ -87,38 +86,28 @@ def _spark_for_scalar(scalar: Scalar) -> str:
     return _spark_for_base(scalar.base_type, scalar.source_type)
 
 
-# Spark numeric type widening precedence (higher rank = wider type).
-_SPARK_TYPE_WIDENING: dict[str, int] = {
-    "IntegerType()": 0,
-    "LongType()": 1,
-    "DoubleType()": 2,
-}
-
-
-def spark_type_rank(field_spec: FieldSpec) -> int:
-    """Return a widening rank for the field's resolved Spark type.
-
-    Fields with a higher rank are preferred when deduplicating union
-    members by name. Non-numeric types return -1 (no widening).
-    """
-    scalar = terminal_scalar(field_spec.shape)
-    if not isinstance(scalar, Primitive):
-        return -1
-    expr = _spark_for_base(scalar.base_type, scalar.source_type)
-    return _SPARK_TYPE_WIDENING.get(expr, -1)
-
-
 def _deduplicate_by_name(fields: list[FieldSpec]) -> list[FieldSpec]:
-    """Keep one FieldSpec per name, widening the Spark type on conflict.
+    """Keep one FieldSpec per name, requiring every arm to agree on Spark type.
 
-    Union annotated_fields may contain the same field name with different
-    type shapes (e.g. `value` as uint8 in one variant and float64 in
-    another). Parquet stores one column per name, so the schema needs
-    exactly one entry. When two fields share a name, the one with the
-    wider numeric Spark type wins (matching Parquet's type-widening
-    behavior). Two same-named fields whose Spark types are non-numeric and
-    not identical cannot share a column, so the collision fails loudly
-    rather than silently keeping whichever arm came first.
+    Union annotated_fields may contain the same field name declared by
+    multiple arms with different `FieldSpec`s -- a `Literal` discriminator
+    whose value differs per arm, or a field whose per-arm constraints
+    diverge (see `union_extraction.extract_union`). A columnar sink stores
+    one type per column name, so the schema needs exactly one entry. Two
+    same-named fields are compatible when they resolve to the SAME Spark
+    type -- the first-seen `FieldSpec`'s shape is kept (arbitrarily; the
+    column type is identical either way). Two same-named fields that resolve
+    to DIFFERENT Spark types cannot share one generated column, so this
+    always raises, whether the mismatch is numeric (a narrower int type vs a
+    float) or not.
+
+    Widening the two to their common type would often work in practice --
+    Spark and Parquet can promote a narrower numeric column to a wider one
+    (reading an int where the schema declares a double, say). It is forbidden
+    anyway: a widened column makes the union's type an implicit property
+    inferred from whichever arms happen to disagree, rather than a decision
+    stated in the model. Raising forces that decision to the surface at
+    generation instead of leaving it as a silent compatibility trap.
     """
     seen: dict[str, FieldSpec] = {}
     for f in fields:
@@ -126,19 +115,16 @@ def _deduplicate_by_name(fields: list[FieldSpec]) -> list[FieldSpec]:
         if existing is None:
             seen[f.name] = f
             continue
-        rank_f, rank_existing = spark_type_rank(f), spark_type_rank(existing)
-        if rank_f < 0 and rank_existing < 0:
-            spark_f = _shape_to_spark(f.shape)
-            spark_existing = _shape_to_spark(existing.shape)
-            if spark_f != spark_existing:
-                raise ValueError(
-                    f"Union field {f.name!r} resolves to incompatible "
-                    f"non-widening Spark types across arms "
-                    f"({spark_existing} vs {spark_f}); a single Parquet "
-                    "column cannot represent both."
-                )
-        if rank_f > rank_existing:
-            seen[f.name] = f
+        spark_f, spark_existing = (
+            _shape_to_spark(f.shape),
+            _shape_to_spark(existing.shape),
+        )
+        if spark_f != spark_existing:
+            raise ValueError(
+                f"Union field {f.name!r} resolves to incompatible Spark "
+                f"types across arms ({spark_existing} vs {spark_f}); a "
+                "single Parquet column cannot represent both."
+            )
     return list(seen.values())
 
 
