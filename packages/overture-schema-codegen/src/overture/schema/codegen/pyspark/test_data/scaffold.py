@@ -116,7 +116,7 @@ def _child_container_spec(
     """Resolve the model a path field descends into.
 
     Returns the field's terminal `ModelRef` model, or -- for a discriminated
-    union -- the member arm the `discriminator_value` selects (the widest
+    union -- the member arm the `discriminator_value` selects (the first
     member when the check is not arm-gated). `None` when the field has neither
     a model nor a union terminal.
     """
@@ -144,7 +144,7 @@ def _walk_to_target(
     (`generate_base_row` -- required fields populated and model constraints
     such as `require_any_of` satisfied), then the on-path child overrides its
     field. A discriminated-union element resolves to the arm the seeded
-    discriminator selects (or the widest member when the check is not
+    discriminator selects (or the first member when the check is not
     arm-gated), so the element is a valid instance of a concrete arm rather
     than an untagged `{}`.
 

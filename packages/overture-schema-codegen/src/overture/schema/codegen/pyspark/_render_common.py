@@ -33,7 +33,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from overture.schema.system.field_path import ArrayPath, MapProjection
 
-from .check_ir import Check, ModelCheck
+from .check_ir import Check, Guard, ModelCheck
 from .constraint_dispatch import ForbidIf, RequireIf, model_constraint_function
 
 __all__ = [
@@ -277,13 +277,58 @@ def _symmetric_label_suffixes(keys: list[_K]) -> list[str]:
     return [f"_{idx}" if total > 1 else "" for idx, total in _occurrence_indices(keys)]
 
 
+def _field_label_suffixes(
+    keys: list[tuple[str, str, tuple[Guard, ...]]],
+) -> list[str]:
+    """Per-row field-label collision suffixes.
+
+    `keys` carries `(base_label, check_name, guards)` per emitted row. A
+    field label collides for two reasons, resolved differently:
+
+    - Across union arms -- the same field appears in several discriminator
+      arms, each carrying its own guard tuple. Every check gated to one
+      arm shares that arm's `_N` suffix (`N` its first-appearance order
+      among the label's arms), so a split field reports one consistent
+      label per arm. This includes a check unique to one arm (the axle
+      arm's `integer` check, absent from the dimension arms), which would
+      otherwise escape suffixing and report the bare label alongside its
+      `_N`-suffixed siblings.
+    - Within a single arm -- one field carries two same-named checks (a
+      lower- and upper-`bounds` pair emitted as separate checks). These
+      take a per-occurrence `_N` suffix keyed on `(label, name)`; a field
+      whose check names are all distinct stays bare.
+
+    A label reached by a single arm uses the occurrence rule (leaving
+    unsplit fields untouched); a label reached by several uses the arm
+    rule.
+    """
+    arms_by_label: dict[str, list[tuple[Guard, ...]]] = {}
+    for label, _name, guards in keys:
+        arms = arms_by_label.setdefault(label, [])
+        if guards not in arms:
+            arms.append(guards)
+    occurrences = _occurrence_indices([(label, name) for label, name, _ in keys])
+    suffixes: list[str] = []
+    for (label, _name, guards), (occ_idx, occ_total) in zip(
+        keys, occurrences, strict=True
+    ):
+        arms = arms_by_label[label]
+        if len(arms) > 1:
+            suffixes.append(f"_{arms.index(guards)}")
+        elif occ_total > 1:
+            suffixes.append(f"_{occ_idx}")
+        else:
+            suffixes.append("")
+    return suffixes
+
+
 @dataclass(frozen=True, slots=True)
 class FieldCheckRow:
     """One emitted field-check row, with its final derived strings.
 
     The renderer emits one row per descriptor of each `Check`.
     `field_check_rows` flattens the check list into these rows once,
-    computing both the symmetric `label` collision suffix and the
+    computing both the arm-grouped `label` collision suffix and the
     asymmetric `func_name` disambiguation, so the renderer and test
     renderer agree without each re-deriving them by a positional index.
 
@@ -341,15 +386,25 @@ def field_check_rows(field_checks: list[Check]) -> list[FieldCheckRow]:
             raw_func_names.append(f"_{sanitize_field_name(label)}{func_suffix}_check")
             flattened.append((check, desc_idx, label, name))
     func_names = disambiguate(raw_func_names)
-    label_suffixes = _symmetric_label_suffixes(
-        [(label, name) for _check, _idx, label, name in flattened]
+    label_suffixes = _field_label_suffixes(
+        [(label, name, check.guards) for check, _idx, label, name in flattened]
     )
-    return [
+    rows = [
         FieldCheckRow(check, desc_idx, f"{label}{label_suffix}", name, func_name)
         for (check, desc_idx, label, name), label_suffix, func_name in zip(
             flattened, label_suffixes, func_names, strict=True
         )
     ]
+    # Arm-grouped suffixing cannot distinguish two same-name checks that
+    # land in one arm of a split field; fail generation loudly if a schema
+    # ever produces that instead of emitting indistinguishable violations.
+    identities = [(row.label, row.name) for row in rows]
+    duplicates = {i for i in identities if identities.count(i) > 1}
+    if duplicates:
+        raise ValueError(
+            f"Duplicate violation identities in generated checks: {sorted(duplicates)}"
+        )
+    return rows
 
 
 @dataclass(frozen=True, slots=True)

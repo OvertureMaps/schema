@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Any
 
 import pytest
-from annotated_types import Gt, Lt
+from annotated_types import Ge, Gt, Lt, MultipleOf
 from codegen_test_support import (
     FeatureWithDict,
     FeatureWithRequiredUrl,
@@ -27,6 +27,7 @@ from overture.schema.codegen.extraction.specs import (
     ModelSpec,
     UnionSpec,
 )
+from overture.schema.codegen.extraction.union_extraction import extract_union
 from overture.schema.codegen.pyspark.constraint_dispatch import ExpressionDescriptor
 from overture.schema.codegen.pyspark.test_data.base_row import (
     _primitive_default,
@@ -39,8 +40,10 @@ from overture.schema.codegen.pyspark.test_data.base_row import (
     generate_base_row,
     generate_populated_arm_rows,
     generate_populated_row,
+    resolve_arm_spec,
     value_for_field,
 )
+from overture.schema.common.scoping.vehicle import VehicleSelector
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     forbid_if,
@@ -131,6 +134,31 @@ class TestGenerateBaseRow:
         row = generate_base_row(connector_spec)
         assert "geometry" in row
         assert row["geometry"].startswith("POINT")
+
+
+class TestResolveArmSpecNoDiscriminatorValue:
+    """Without a discriminator value, resolve_arm_spec falls back deterministically.
+
+    Pre-widening-removal, the fallback picked the "widest" numeric member so a
+    narrower arm's int value wouldn't null out in a widened DoubleType column.
+    Now that `schema_builder._deduplicate_by_name` requires every arm to
+    resolve to the SAME Spark type for a shared field name, any arm's
+    synthesized value fits the shared column, so the fallback is just "first
+    member" -- exercised here via the real VehicleSelector union (five arms,
+    `value` now float64 on every arm).
+    """
+
+    def test_returns_first_member_deterministically(self) -> None:
+        spec = extract_union("VehicleAxleCountSelector", VehicleSelector)
+        result = resolve_arm_spec(spec)
+        assert result is spec.member_specs[0].spec
+
+    def test_value_for_shape_produces_valid_row_from_fallback_arm(self) -> None:
+        """The fallback arm's synthesized row validates against the union."""
+        spec = extract_union("VehicleAxleCountSelector", VehicleSelector)
+        row = generate_base_row(resolve_arm_spec(spec))
+        adapter: TypeAdapter[object] = TypeAdapter(spec.source_annotation)
+        adapter.validate_python(row)
 
 
 class TestGenerateArmRows:
@@ -587,3 +615,19 @@ class TestMultiBoundScalarConstraints:
         result = _value_from_scalar_constraints(scalar)
         assert isinstance(result, float)
         assert 0.0 < result < 1.0
+
+    def test_multiple_of_with_ge_returns_integral_value(self) -> None:
+        """A float64 `multiple_of=1` + ge=1 field synthesizes an integral value >= 1."""
+        scalar = Primitive(
+            base_type="float64",
+            constraints=(
+                ConstraintSource(
+                    source_ref=None, source_name=None, constraint=MultipleOf(1)
+                ),
+                ConstraintSource(source_ref=None, source_name=None, constraint=Ge(1)),
+            ),
+        )
+        result = _value_from_scalar_constraints(scalar)
+        assert isinstance(result, float)
+        assert result >= 1
+        assert result.is_integer()

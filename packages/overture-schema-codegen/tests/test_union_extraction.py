@@ -6,9 +6,11 @@ from typing import Any
 import pytest
 from annotated_types import MinLen
 from codegen_test_support import (
+    LongNamesSegment,
     RailSegment,
     RoadSegment,
     SegmentBase,
+    ShortNamesSegment,
     TestEnumDiscriminatorUnion,
     TestSegment,
     TestSegmentDivergingConstraints,
@@ -20,6 +22,7 @@ from overture.schema.codegen.extraction.field import (
     ConstraintSource,
     Primitive,
 )
+from overture.schema.codegen.extraction.length_constraints import ArrayMinLen
 from overture.schema.codegen.extraction.specs import FieldSpec, UnionSpec
 from overture.schema.codegen.extraction.union_extraction import (
     _constraints_fingerprint,
@@ -132,21 +135,50 @@ class TestExtractDiscriminatorWithEnumLiterals:
 
 
 class TestDivergingConstraints:
-    """Same-named fields with matching shape but diverging constraints fail loudly."""
+    """Same-named fields with matching shape but diverging constraints split
+    into separate arm-gated `AnnotatedField`s rather than raising.
 
-    def test_diverging_constraints_raise(self) -> None:
-        """A field shared by structure but not by constraints raises ValueError.
+    Field-level checks are already arm-gated by `Guard`s built from
+    `variant_sources` (see `check_builder._field_checks_for_union`), and the
+    renderer's collision resolver already disambiguates multiple `Check`s
+    that land on the same field label (e.g. the pre-existing `value_0`/
+    `value_1` split for a field required only on some arms). Keeping
+    diverging-constraint fields as separate rows reuses that machinery
+    instead of dropping one arm's constraints or refusing to extract.
+    """
 
-        `ShortNamesSegment` and `LongNamesSegment` both declare `aliases`
-        as `list[str] | None`, so the structural fingerprint collapses
-        them — but the `min_length` constraints differ. Dedup would
-        silently keep one member's `FieldSpec`, so extraction raises
-        instead.
+    def test_diverging_constraints_produce_separate_annotated_fields(self) -> None:
+        """`ShortNamesSegment` and `LongNamesSegment` both declare `aliases`
+        as `list[str] | None` -- structurally identical -- but their
+        `min_length` constraints differ (1 vs 5). Extraction keeps them as
+        two `AnnotatedField`s, each gated to the arm that declared it.
         """
-        with pytest.raises(ValueError, match="diverging constraints"):
-            extract_union(
-                "TestSegmentDivergingConstraints", TestSegmentDivergingConstraints
-            )
+        spec = extract_union(
+            "TestSegmentDivergingConstraints", TestSegmentDivergingConstraints
+        )
+        aliases_fields = [
+            af for af in spec.annotated_fields if af.field_spec.name == "aliases"
+        ]
+        assert len(aliases_fields) == 2
+
+        by_source = {af.variant_sources: af for af in aliases_fields}
+        assert (ShortNamesSegment,) in by_source
+        assert (LongNamesSegment,) in by_source
+
+        def min_length(af: object) -> int:
+            for cs in af.field_spec.shape.constraints:  # type: ignore[attr-defined]
+                if isinstance(cs.constraint, ArrayMinLen):
+                    return cs.constraint.min_length  # type: ignore[no-any-return]
+            raise AssertionError("no ArrayMinLen constraint found")
+
+        assert min_length(by_source[(ShortNamesSegment,)]) == 1
+        assert min_length(by_source[(LongNamesSegment,)]) == 5
+
+    def test_diverging_constraints_do_not_raise(self) -> None:
+        """Extraction succeeds where it previously raised ValueError."""
+        extract_union(
+            "TestSegmentDivergingConstraints", TestSegmentDivergingConstraints
+        )
 
 
 class TestUnionNameDerivation:

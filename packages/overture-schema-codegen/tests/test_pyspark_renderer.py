@@ -1125,6 +1125,44 @@ class TestFieldCheckLabelCollision:
         labels = [row.label for row in field_check_rows([first, second, first_copy])]
         assert labels == ["value_0", "value_1", "value_2"], labels
 
+    def test_arm_unique_check_shares_arm_suffix(self) -> None:
+        """A check present in only one arm takes that arm's suffix, not the bare label.
+
+        The axle arm carries an `integer` check the dimension arms lack.
+        Keyed on `(field, name)` the lone `integer` row is unique, so it
+        would escape suffixing and report the bare `value` beside its
+        `value_0` siblings. Grouping by arm keeps the whole axle arm on
+        `value_0`.
+        """
+        axle = (ElementGuard(discriminator="dimension", values=("axle_count",)),)
+        dimension = (
+            ElementGuard(discriminator="dimension", values=("height", "width")),
+        )
+        axle_required = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+            guards=axle,
+        )
+        axle_multiple_of = Check(
+            descriptors=(
+                ExpressionDescriptor(function="check_multiple_of", args=(1,)),
+            ),
+            target=_path("value"),
+            guards=axle,
+        )
+        dimension_required = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+            guards=dimension,
+        )
+        rows = field_check_rows([axle_required, axle_multiple_of, dimension_required])
+        labeled = {(row.name, row.label) for row in rows}
+        assert labeled == {
+            ("required", "value_0"),
+            ("multiple_of", "value_0"),
+            ("required", "value_1"),
+        }, labeled
+
 
 class TestMapPathRendering:
     """MapPath targets render to map_keys_check / map_values_check."""
