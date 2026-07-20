@@ -10,7 +10,7 @@ from overture.schema.system.field_constraint.string import (
     RegionCodeConstraint,
     StrippedConstraint,
 )
-from overture.schema.system.primitive.geom import GeometryType
+from overture.schema.system.geometric.geom import GeometryType
 
 
 class TestInvalidValueRequired:

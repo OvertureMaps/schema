@@ -351,12 +351,13 @@ discriminator attribute. For Segment, it finds `subtype` and builds the mapping:
 `{"road": RoadSegment, "rail": RailSegment, "water": WaterSegment}` by checking each
 member for single-value `Literal` fields on the discriminator.
 
-### Primitive extraction
+### Numeric and geometry extraction
 
-`partition_numeric_and_geometry_types` reads a module's `__all__` exports. NewType
-exports are numeric primitives; non-constraint class exports are geometry types.
+`partition_numeric_and_geometry_types` reads the numeric and geometric modules'
+`__all__` exports. NewType exports of the numeric module are numeric types;
+non-constraint class exports of the geometric module are geometry types.
 
-`extract_numerics` builds `NumericSpec` objects. For each primitive name it resolves
+`extract_numerics` builds `NumericSpec` objects. For each numeric type name it resolves
 the object from the module, calls `extract_newtype` for the type analysis, then extracts
 numeric bounds from constraints. `extract_numeric_bounds` scans constraint objects for
 `ge`/`gt`/`le`/`lt` attributes and packs them into an `Interval`.
@@ -443,9 +444,9 @@ independent `if` statements, not `elif`.
 `build_placement_registry` builds the complete `dict[TypeIdentity, PurePosixPath]`
 mapping each type to its output file path. Four tiers:
 
-Aggregate pages come first. All numeric primitives point to
-`system/primitive/primitives.md`. All geometry types point to
-`system/primitive/geometry.md`. These are hardcoded paths since the types share a single
+Aggregate pages come first. All numeric types point to
+`system/numeric.md`. All geometry types point to
+`system/geometric.md`. These are hardcoded paths since the types share a single
 reference page.
 
 Feature specs get individual pages. Output directories derive from
@@ -533,7 +534,7 @@ Six Jinja2 templates in `markdown/templates/`. `feature.md.jinja2` renders a fie
 with Name, Type, and Description columns, an optional Constraints section, an optional
 Examples section, and a "Used By" partial. `enum.md.jinja2` renders a bullet list of
 values. `newtype.md.jinja2` shows underlying type and constraints with provenance links.
-`primitives.md.jinja2` and `geometry.md.jinja2` render aggregate reference pages.
+`numeric.md.jinja2` and `geometric.md.jinja2` render aggregate reference pages.
 `_used_by.md.jinja2` is an included partial.
 
 The Jinja2 environment registers `linkify_urls` as a filter, which wraps bare URLs in
@@ -575,7 +576,7 @@ truncate at 100 characters. Lists and dicts use compact bracket/brace notation.
 
 ### Aggregate pages
 
-`render_primitives_from_specs` sorts primitives by bit-width key (prefix then numeric
+`render_numeric_from_specs` sorts numeric types by bit-width key (prefix then numeric
 width), groups into signed integers, unsigned integers, and floats, and formats ranges.
 Integer ranges show both bounds as a compact "lower to upper" form; `int64`-scale bounds
 use `2^63` notation for readability. `render_geometry_from_values` produces a
@@ -628,8 +629,8 @@ pipeline.
 feature specs and a schema root, returns rendered pages without touching the filesystem.
 Seven steps (tree expansion happens inside `extract_model`):
 
-1. **Partition primitive and geometry names** from the system primitive module's
-   `__all__` exports.
+1. **Partition numeric and geometry names** from the system numeric and geometric
+   modules' `__all__` exports.
 
 2. **Collect supplementary types** by walking feature trees.
 
@@ -642,7 +643,7 @@ Seven steps (tree expansion happens inside `extract_model`):
 6. **Render each supplementary type** -- dispatching to `render_enum`, `render_newtype`,
    `render_model` (for sub-models), or `render_pydantic_type` based on spec type.
 
-7. **Render aggregate pages** for primitives and geometry.
+7. **Render aggregate pages** for numeric types and geometry.
 
 The return value is `list[RenderedPage]` -- frozen dataclasses carrying content, output
 path, and a boolean `is_model` flag. The caller decides what to do with them.
@@ -703,7 +704,8 @@ values.
 Sub-model `FieldShape` trees are fully resolved -- `ModelRef` nodes already carry their
 `RecordSpec` from recursive `extract_model` calls. No separate expansion pass is needed.
 
-**Layout.** `partition_numeric_and_geometry_types` reads the system module's exports.
+**Layout.** `partition_numeric_and_geometry_types` reads the system numeric and
+geometric modules' exports.
 `collect_all_supplementary_types` walks Segment's field shapes and discovers referenced
 enums (like `Subtype`), semantic NewTypes (like `Id`, `Sources`), and sub-models. The
 walk follows `ModelRef.model` references down the tree, and for `UnionRef` shapes,

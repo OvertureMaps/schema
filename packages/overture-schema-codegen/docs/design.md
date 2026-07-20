@@ -258,7 +258,7 @@ to registered primitives.
 
 ### Markdown renderer
 
-Jinja2 templates for feature, enum, NewType, primitives, and geometry pages.
+Jinja2 templates for feature, enum, NewType, numeric, and geometry pages.
 `render_model()` walks each field's `FieldShape` tree and expands `ModelRef`
 terminals inline with dot-notation (e.g., `sources[].dataset`), stopping at
 `ModelRef.starts_cycle`. `format_type()` in `markdown/type_format.py` converts a

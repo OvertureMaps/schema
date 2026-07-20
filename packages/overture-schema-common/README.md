@@ -27,7 +27,7 @@ Many Overture values only apply under specific conditions -- a speed limit that 
 ```python
 from pydantic import BaseModel
 from overture.schema.common.scoping import Scope, scoped
-from overture.schema.system.primitive import float32
+from overture.schema.system.numeric import float32
 
 @scoped(Scope.GEOMETRIC_RANGE, Scope.TEMPORAL)
 class SpeedLimit(BaseModel):
@@ -92,6 +92,6 @@ Rendering hints for map-making: `prominence` (1--100 significance scale), `min_z
 
 ## Also Included
 
-- **Types** -- domain-specific aliases built on system primitives: `ConfidenceScore` (0.0--1.0), `Level` (z-order), `FeatureVersion`.
+- **Types** -- domain-specific aliases built on system numeric types: `ConfidenceScore` (0.0--1.0), `Level` (z-order), `FeatureVersion`.
 - **Units** -- measurement enumerations: `SpeedUnit`, `LengthUnit`, `WeightUnit`.
 - **Tag providers** -- `theme` provider for the discovery system in `overture-schema-system`. Tags `OvertureFeature`-derived models with `overture:theme={theme}`.

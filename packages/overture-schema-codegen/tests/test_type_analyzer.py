@@ -38,7 +38,7 @@ from overture.schema.codegen.extraction.type_analyzer import (
     unwrap_list,
 )
 from overture.schema.common.scoping.vehicle import VehicleSelector
-from overture.schema.system.primitive import int32
+from overture.schema.system.numeric import int32
 from overture.schema.system.ref import Id
 from overture.schema.system.string import (
     HexColor,

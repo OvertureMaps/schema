@@ -48,7 +48,7 @@ __all__ = [
     "render_model",
     "render_geometry_from_values",
     "render_newtype",
-    "render_primitives_from_specs",
+    "render_numeric_from_specs",
     "render_pydantic_type",
 ]
 
@@ -532,7 +532,7 @@ def render_pydantic_type(
     )
 
 
-# Matches the ge/le bounds of the int64 NewType in overture.schema.system.primitive.
+# Matches the ge/le bounds of the int64 NewType in overture.schema.system.numeric.
 _INT64_MIN = -(2**63)
 _INT64_MAX = 2**63 - 1
 
@@ -597,9 +597,9 @@ def _bit_width_key(name: str) -> tuple[str, int]:
     return (prefix, int(digits) if digits else 0)
 
 
-def render_primitives_from_specs(specs: list[NumericSpec]) -> str:
-    """Render the primitives.md page from pre-extracted NumericSpecs."""
-    template = _get_jinja_env().get_template("primitives.md.jinja2")
+def render_numeric_from_specs(specs: list[NumericSpec]) -> str:
+    """Render the numeric.md page from pre-extracted NumericSpecs."""
+    template = _get_jinja_env().get_template("numeric.md.jinja2")
 
     signed_ints: list[dict[str, str | None]] = []
     unsigned_ints: list[dict[str, str | None]] = []
@@ -635,7 +635,7 @@ def render_primitives_from_specs(specs: list[NumericSpec]) -> str:
 
 
 def render_geometry_from_values(geometry_type_values: list[str]) -> str:
-    """Render the geometry.md page from pre-extracted geometry type values."""
-    template = _get_jinja_env().get_template("geometry.md.jinja2")
+    """Render the geometric.md page from pre-extracted geometry type values."""
+    template = _get_jinja_env().get_template("geometric.md.jinja2")
     geometry_types = ", ".join(f"`{v}`" for v in geometry_type_values)
     return template.render(geometry_types=geometry_types)

@@ -22,7 +22,7 @@ from overture.schema.codegen.pyspark.pipeline import (
 )
 from overture.schema.codegen.spec_discovery import extract_model_spec
 from overture.schema.system.field_path import ScalarPath
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 from pydantic import BaseModel
 
 

@@ -5,9 +5,9 @@ This module provides a convenient set of reusable string types that can be used 
 Pydantic models to ensure the field values conform to well-known patterns, for example country
 codes, language tags, and color codes.
 
-While not considered "primitives", the fundamental string types are intended to provide specific,
-well-defined behavior for a wide range of serialization targets including not just Pydantic models
-and JSON, but also including targets such as the Parquet data formats and Spark dataframes.
+The fundamental string types are intended to provide specific, well-defined behavior for a wide
+range of serialization targets including not just Pydantic models and JSON, but also including
+targets such as the Parquet data formats and Spark dataframes.
 """
 
 from typing import Annotated, NewType

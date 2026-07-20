@@ -42,7 +42,7 @@ from pydantic import BaseModel, Field
 
 # Overture common models
 from overture.schema.common import OvertureFeature
-from overture.schema.system.primitive import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.system.geometric import Geometry, GeometryType, GeometryTypeConstraint
 
 # Validation system
 from overture.schema.system.field_constraint import UniqueItemsConstraint
@@ -57,8 +57,8 @@ from overture.schema.system.string import (
 from overture.schema.common.types import ConfidenceScore
 from overture.schema.system.string import LanguageTag
 
-# Numeric primitives (use these instead of int/float)
-from overture.schema.system.primitive import (
+# Numeric types (use these instead of int/float)
+from overture.schema.system.numeric import (
     int8, int32, int64,
     uint8, uint16, uint32,
     float32, float64
@@ -71,7 +71,7 @@ from overture.schema.system.primitive import (
 from typing import Annotated
 from pydantic import BaseModel, Field
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import int8, float64
+from overture.schema.system.numeric import int8, float64
 
 @no_extra_fields
 class MyCustomType(BaseModel):
@@ -101,7 +101,7 @@ class MyCustomType(BaseModel):
 from typing import Annotated, Literal
 from pydantic import Field
 from overture.schema.common import OvertureFeature
-from overture.schema.system.primitive import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.system.geometric import Geometry, GeometryType, GeometryTypeConstraint
 
 class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
     """Description of what this feature represents."""
@@ -152,7 +152,7 @@ class Address(BaseModel):
 ```python
 from typing import Literal
 from overture.schema.common import OvertureFeature
-from overture.schema.system.primitive import float64
+from overture.schema.system.numeric import float64
 
 class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
     """A building feature with strongly-typed theme and type."""
@@ -180,7 +180,7 @@ from typing import Literal
 from overture.schema.common import OvertureFeature
 from overture.schema.common.models import Stacked
 from overture.schema.common.names import Named
-from overture.schema.system.primitive import float64
+from overture.schema.system.numeric import float64
 
 class Building(OvertureFeature[Literal["buildings"], Literal["building"]], Named, Stacked):
     # Gets fields from Feature: id, theme, type, geometry, etc.
@@ -259,13 +259,13 @@ class Building(OvertureFeature):
 
 Keep the schema separate from business logic. The schema describes the shape of data, not the business rules about what missing values mean.
 
-#### Numeric Primitives
+#### Numeric Types
 
 **Always use specific numeric types instead of Python's generic `int`/`float`:**
 
 ```python
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import (
+from overture.schema.system.numeric import (
     int8, int32, int64,        # Signed integers
     uint8, uint16, uint32,     # Unsigned integers
     float32, float64           # Floating point
@@ -1174,7 +1174,7 @@ JSON Schema containers become **mixin classes** in Pydantic that you inherit fro
 from typing import Annotated
 from pydantic import BaseModel, Field
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import int8, float64
+from overture.schema.system.numeric import int8, float64
 
 @no_extra_fields
 class MyCustomType(BaseModel):
@@ -1204,7 +1204,7 @@ class MyCustomType(BaseModel):
 from typing import Annotated, Literal
 from pydantic import Field
 from overture.schema.common import OvertureFeature
-from overture.schema.system.primitive import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.system.geometric import Geometry, GeometryType, GeometryTypeConstraint
 
 class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
     """Description of what this feature represents."""
@@ -1263,7 +1263,7 @@ class Contact(BaseModel):
 from typing import Annotated, Literal
 from pydantic import Field
 from overture.schema.common import OvertureFeature
-from overture.schema.system.primitive import float64
+from overture.schema.system.numeric import float64
 from overture.schema.system.ref import Id, Reference, Relationship
 
 class MyAssociation(OvertureFeature[Literal["associations"], Literal["my_association"]]):
@@ -1349,7 +1349,7 @@ from pydantic import Field
 from overture.schema.common import OvertureFeature
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import int32, float64
+from overture.schema.system.numeric import int32, float64
 
 # For associations and references
 from overture.schema.system.ref import Id, Reference, Relationship

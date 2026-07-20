@@ -10,7 +10,7 @@ Create a feature type that can have a name:
 
 >>> from typing import Literal
 >>> from overture.schema.common import OvertureFeature
->>> from overture.schema.system.primitive import Geometry
+>>> from overture.schema.system.geometric import Geometry
 >>> class MyFeature(OvertureFeature[Literal["mytheme"], Literal["mytype"]], Named):
 ...     pass
 ...

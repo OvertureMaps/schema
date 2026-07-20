@@ -8,7 +8,7 @@ from _pytest.subtests import Subtests
 from pydantic import BaseModel, ValidationError
 from shapely import wkt
 
-from overture.schema.system.primitive import (
+from overture.schema.system.geometric import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

@@ -7,7 +7,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.common import (
     OvertureFeature,
 )
-from overture.schema.system.primitive import (
+from overture.schema.system.geometric import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from overture.schema.common.unit import LengthUnit, WeightUnit
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import float64
+from overture.schema.system.numeric import float64
 
 
 class VehicleDimension(str, Enum):

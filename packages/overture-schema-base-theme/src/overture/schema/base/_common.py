@@ -4,7 +4,7 @@ from typing import Annotated, Any, NewType
 
 from pydantic import BaseModel, Field
 
-from overture.schema.system.primitive import float64, int32
+from overture.schema.system.numeric import float64, int32
 from overture.schema.system.string import WikidataId
 
 Depth = NewType(

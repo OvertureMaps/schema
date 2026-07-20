@@ -4,7 +4,7 @@ from pydantic import (
     Field,
 )
 
-from overture.schema.system.primitive import float64, int32
+from overture.schema.system.numeric import float64, int32
 
 ConfidenceScore = NewType(
     "ConfidenceScore",

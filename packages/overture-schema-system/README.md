@@ -1,6 +1,6 @@
 # Overture Schema System
 
-Write Pydantic models once, get validated data that serializes correctly to JSON, Parquet, and Spark. This package provides the primitive types, constraint decorators, and GeoJSON-aware base class that make Pydantic models portable across serialization targets.
+Write Pydantic models once, get validated data that serializes correctly to JSON, Parquet, and Spark. This package provides the numeric and geometric types, constraint decorators, and GeoJSON-aware base class that make Pydantic models portable across serialization targets.
 
 ## Installation
 
@@ -14,7 +14,8 @@ GeoJSON-compatible Pydantic base model. Subclasses serialize to the GeoJSON form
 
 ```python
 from overture.schema.system.feature import Feature
-from overture.schema.system.primitive import Geometry, float32
+from overture.schema.system.geometric import Geometry
+from overture.schema.system.numeric import float32
 
 class Mountain(Feature):
     name: str
@@ -27,20 +28,30 @@ m = Mountain(
 )
 ```
 
-## Primitive Types
+## Numeric Types
 
-Using `int` and `float` in a Pydantic model produces valid Python but loses information downstream -- an `int` field becomes a 64-bit integer in Parquet, Arrow, and Spark StructTypes, even when the domain is 0--255. The primitive types (`uint8`, `int32`, `float32`, etc.) carry range constraints and map to the correct wire type so data round-trips cleanly between Python, Parquet files, PostgreSQL, and JSON Schema:
+Using `int` and `float` in a Pydantic model produces valid Python but loses information downstream -- an `int` field becomes a 64-bit integer in Parquet, Arrow, and Spark StructTypes, even when a single byte would hold every value. How wide a field needs to be is the schema author's choice, but `int` and `float` give Pydantic no way to record it. The numeric types (`uint8`, `int32`, `float32`, etc.) do: each declares a width that maps to the correct wire type in every serialization target, so a single portable declaration round-trips cleanly between Python, Parquet, Spark, and JSON Schema:
 
 ```python
 from pydantic import BaseModel
-from overture.schema.system.primitive import uint8, float32
+from overture.schema.system.numeric import uint8, float32
 
 class Building(BaseModel):
     height: float32 | None = None
     num_floors: uint8 | None = None
 ```
 
-Integer types: `uint8`, `uint16`, `uint32`, `int8`, `int16`, `int32`, `int64`. Float types: `float32`, `float64`. Geometry types: `Geometry`, `BBox`, `GeometryType`, `GeometryTypeConstraint`.
+Integer types: `uint8`, `uint16`, `uint32`, `int8`, `int16`, `int32`, `int64`. Float types: `float32`, `float64`.
+
+## Geometric Types
+
+`Geometry` and `BBox` wrap Shapely and GeoJSON-compatible geometry and bounding box values so they can participate in a Pydantic model as fields, with `GeometryType` and `GeometryTypeConstraint` available to restrict a `Geometry` field to specific geometry types:
+
+```python
+from overture.schema.system.geometric import Geometry, GeometryType, GeometryTypeConstraint
+```
+
+Types: `Geometry`, `BBox`, `GeometryType`, `GeometryTypeConstraint`.
 
 ## String Types
 

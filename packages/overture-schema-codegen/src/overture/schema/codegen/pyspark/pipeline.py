@@ -13,7 +13,7 @@ from pathlib import PurePosixPath
 
 from overture.schema.system.case import to_snake_case
 from overture.schema.system.discovery import entry_point_to_path
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 
 from ..extraction.specs import ModelSpec, UnionSpec
 from .check_builder import build_checks

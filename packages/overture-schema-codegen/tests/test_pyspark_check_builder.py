@@ -64,7 +64,7 @@ from overture.schema.system.model_constraint import (
     forbid_if,
     require_any_of,
 )
-from overture.schema.system.primitive import float64
+from overture.schema.system.numeric import float64
 from overture.schema.system.string import CountryCodeAlpha2
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo

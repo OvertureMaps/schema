@@ -18,15 +18,15 @@ from ..extraction.specs import (
 from ..layout.module_layout import compute_output_dir, output_dir_for_entry_point
 
 __all__ = [
-    "GEOMETRY_PAGE",
-    "PRIMITIVES_PAGE",
+    "GEOMETRIC_PAGE",
+    "NUMERIC_PAGE",
     "build_placement_registry",
     "resolve_output_path",
 ]
 
 # Aggregate page paths.
-PRIMITIVES_PAGE = PurePosixPath("system/primitive/primitives.md")
-GEOMETRY_PAGE = PurePosixPath("system/primitive/geometry.md")
+NUMERIC_PAGE = PurePosixPath("system/numeric.md")
+GEOMETRIC_PAGE = PurePosixPath("system/geometric.md")
 
 
 def build_placement_registry(
@@ -85,9 +85,9 @@ def _aggregate_page_entries(
 ) -> dict[TypeIdentity, PurePosixPath]:
     """Pre-populate registry entries for types documented on aggregate pages."""
     entries: dict[TypeIdentity, PurePosixPath] = dict.fromkeys(
-        numeric_names, PRIMITIVES_PAGE
+        numeric_names, NUMERIC_PAGE
     )
-    entries.update(dict.fromkeys(geometry_names, GEOMETRY_PAGE))
+    entries.update(dict.fromkeys(geometry_names, GEOMETRIC_PAGE))
     return entries
 
 

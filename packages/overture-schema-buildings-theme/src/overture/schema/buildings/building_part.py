@@ -11,7 +11,7 @@ from overture.schema.buildings.building import Building
 from overture.schema.common import OvertureFeature
 from overture.schema.common.models import Stacked
 from overture.schema.common.names import Named
-from overture.schema.system.primitive import (
+from overture.schema.system.geometric import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

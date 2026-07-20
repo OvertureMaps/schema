@@ -13,7 +13,7 @@ from collections.abc import Callable
 
 from annotated_types import Ge, Gt, Interval, Le, Lt, MultipleOf
 
-from overture.schema.system.primitive import GeometryTypeConstraint
+from overture.schema.system.geometric import GeometryTypeConstraint
 from overture.schema.system.ref import Reference
 
 from .docstring import first_docstring_line
