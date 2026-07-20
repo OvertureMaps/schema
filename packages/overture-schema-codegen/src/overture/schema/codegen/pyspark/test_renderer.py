@@ -8,6 +8,7 @@ from typing_extensions import assert_never
 
 from overture.schema.system.field_path import (
     ArraySegment,
+    Direct,
     FieldPath,
     Iterated,
     MapProjection,
@@ -427,6 +428,25 @@ def _render_model_scenarios(
     return entries, used_mutation_fns
 
 
+def _reject_non_row_root_target(target: FieldPath, mutation_fn: str) -> None:
+    """Raise unless *target* is the row root (empty `Direct`).
+
+    `mutate_radio_group` and `mutate_require_any_true` take no navigation
+    kwarg, so they only reach fields at the row root. An `Iterated` target
+    (array/map) or a struct-nested `Direct` target (a model reached through a
+    plain struct field) would need the constraint's fields nulled/set at a
+    nested node the mutation can't reach, so it raises rather than silently
+    corrupting top-level columns. No live schema declares `radio_group` or
+    `require_any_true` on a nested submodel; supporting one means teaching
+    these mutations an `element_path` descent.
+    """
+    if isinstance(target, Iterated) or (isinstance(target, Direct) and target.segments):
+        raise ValueError(
+            f"{mutation_fn} does not support a nested target "
+            f"(target={target!r}); it reaches only row-root fields"
+        )
+
+
 def _render_mutation_call(
     mutation_fn: str,
     desc: ModelConstraintDescriptor,
@@ -440,22 +460,14 @@ def _render_mutation_call(
             # Carries `conditions`, not `field_names`: the mutation disables
             # every condition via a per-field `{field: value}` dict rather than
             # the shared field-name list the other descriptors pass.
-            if isinstance(check.target, Iterated):
-                raise ValueError(
-                    "mutate_require_any_true does not accept array_path/map_path "
-                    f"(target={check.target!r})"
-                )
+            _reject_non_row_root_target(check.target, "mutate_require_any_true")
             return _render_require_any_true_mutation_call(mutation_fn, desc)
         case RequireIf() | ForbidIf():
             return _render_conditional_mutation_call(
                 mutation_fn, desc, check, fields_repr
             )
         case RadioGroup():
-            if isinstance(check.target, Iterated):
-                raise ValueError(
-                    "mutate_radio_group does not accept array_path/map_path "
-                    f"(target={check.target!r})"
-                )
+            _reject_non_row_root_target(check.target, "mutate_radio_group")
             return f"{mutation_fn}(row, {fields_repr})"
         case RequireAnyOf() | MinFieldsSet():
             parts = _iter_kwargs_leaf(check, mutation_fn)
@@ -608,6 +620,19 @@ def _map_kwargs(target: Iterated, mutation_fn: str, *, allow_leaf: bool) -> list
     return kwargs
 
 
+def _struct_nested_kwargs(target: Direct) -> list[str]:
+    """Container kwargs for a model constraint on a struct-nested submodel.
+
+    A row-root constraint (empty `Direct`) needs no navigation and yields no
+    kwargs. A model reached through one or more plain struct fields yields
+    `element_path=...` -- the pure-struct descent (`_descend_to_targets` in
+    `mutations.py`) that scaffolds each struct on the way and applies the
+    mutation to the constrained model, mirroring how iterated targets pass
+    `array_path` / `map_path`.
+    """
+    return [f'element_path="{target}"'] if target.segments else []
+
+
 def _iter_kwargs_leaf(check: ModelCheck, mutation_fn: str) -> list[str]:
     """Container kwargs for mutations accepting `struct_path` (a trailing leaf).
 
@@ -616,10 +641,13 @@ def _iter_kwargs_leaf(check: ModelCheck, mutation_fn: str) -> list[str]:
     consume only the outermost array level. For a map target (a
     `dict[K, Model]` value-model constraint), delegates to `_map_kwargs`,
     which yields `map_path=...` and an optional single-segment `struct_path`.
+    A struct-nested `Direct` target (a model reached through a plain struct
+    field) yields `element_path=...`, the pure-struct descent the mutation
+    walks to reach the constrained model.
     """
     target = check.target
-    if not isinstance(target, Iterated):
-        return []
+    if isinstance(target, Direct):
+        return _struct_nested_kwargs(target)
     if isinstance(_first_iter_segment(target), MapSegment):
         return _map_kwargs(target, mutation_fn, allow_leaf=True)
     composite = _array_first_map_kwargs(target)
@@ -649,11 +677,12 @@ def _iter_kwargs_inner(check: ModelCheck, mutation_fn: str) -> list[str]:
     `inner_array_path=...`; a trailing leaf path is rejected -- these
     mutations target an inner array directly, not a struct field on its
     elements. For a map target, delegates to `_map_kwargs` (no leaf: a map
-    value has no inner array layer to address).
+    value has no inner array layer to address). A struct-nested `Direct`
+    target yields `element_path=...` (the pure-struct descent to the model).
     """
     target = check.target
-    if not isinstance(target, Iterated):
-        return []
+    if isinstance(target, Direct):
+        return _struct_nested_kwargs(target)
     if isinstance(_first_iter_segment(target), MapSegment):
         return _map_kwargs(target, mutation_fn, allow_leaf=False)
     composite = _array_first_map_kwargs(target)

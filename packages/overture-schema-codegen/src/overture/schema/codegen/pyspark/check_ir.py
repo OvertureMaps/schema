@@ -192,6 +192,13 @@ class ModelCheck:
             if container_col is not None:
                 cols.add(container_col)
             return frozenset(cols)
+        # Struct-nested target (non-empty Direct): every field and condition
+        # reference qualifies to `<top>.<field>`, and the gate is a struct
+        # prefix of the target, so the sole top-level column read is the
+        # target's first segment.
+        struct_top = _path_top_column(self.target)
+        if struct_top is not None:
+            return frozenset({struct_top})
         # Row-root target: field_names and condition field render as F.col(...).
         match desc:
             case (
