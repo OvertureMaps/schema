@@ -498,20 +498,20 @@ def _recurse_into_model(
         model_checks.extend(sub_model_checks)
 
     if model_spec.constraints:
-        constraint_gate = (
-            prefix
-            if is_optional and not field_is_iterated and isinstance(prefix, Iterated)
-            else None
-        )
+        # The constraint applies wherever the model is reached, so it inherits
+        # the same nullable gate as the model's fields: `child_gate` is the
+        # optional-ancestor path (or the model's own optional prefix) that must
+        # be non-null for the constraint to apply, and `None` once inside any
+        # iterated container (the fold handles per-element nullability). The
+        # renderer wraps a Direct-target constraint in `F.when(gate.isNotNull())`
+        # and an Iterated-target one element-relatively.
         sub_model_constraint_checks = _dispatch_model_constraints(
             model_spec.constraints,
             model_spec.fields,
             target=_model_constraint_target(prefix),
             arm=arm,
-            gate=constraint_gate,
+            gate=child_gate,
         )
-        if sub_model_constraint_checks:
-            _guard_struct_nested_anchor(prefix, model_spec.name)
         model_checks.extend(sub_model_constraint_checks)
     return field_checks, model_checks
 
@@ -542,23 +542,24 @@ def _reject_struct_only_prefix(prefix: FieldPath, message: str) -> None:
 
 
 def _guard_struct_nested_anchor(prefix: FieldPath, name: str) -> None:
-    """Raise when emitting a model constraint at a struct-only prefix.
+    """Raise when a struct-nested UNION emits union-level or exclusivity checks.
 
-    See `_model_constraint_target`: in that case the constraint's target
-    collapses to the row root, which is wrong for any non-skipped
-    constraint. Today only `NoExtraFieldsConstraint` reaches here (and
-    dispatches to None); a real descriptor at this depth is a renderer
-    gap, not a normal case. A map-reached `Iterated` prefix is a valid
-    anchor (`_model_constraint_target` keeps it, and the renderer wraps
-    the check in `map_values_check`/`map_keys_check`), so
-    `_is_struct_only_prefix` -- which is `False` for any `Iterated` --
-    exempts it automatically.
+    A plain model constraint at a struct-only prefix is supported: the target
+    is the struct prefix and the renderer qualifies field references
+    (`F.col("details.foo")`, see `_model_constraint_target`). A discriminated
+    UNION reached through a plain struct is not: its synthesized exclusivity
+    checks and union-level constraints interlock with the variant-field
+    `ColumnGuard`s (`_guard_struct_nested_variant_fields`), which render the
+    discriminator as a top-level column rather than a struct-qualified path.
+    Gating the whole union case loudly keeps that mis-columning from shipping.
+    A map-reached `Iterated` prefix is a valid anchor, so `_is_struct_only_prefix`
+    -- `False` for any `Iterated` -- exempts it automatically.
     """
     _reject_struct_only_prefix(
         prefix,
-        f"Model constraint on struct-nested {name!r} "
-        f"(reached at {prefix!r}) -- the renderer has no anchor "
-        "for nested-struct model constraints.",
+        f"Model constraint on struct-nested union {name!r} "
+        f"(reached at {prefix!r}) -- the discriminator gating renders "
+        "as a top-level column, not a struct-qualified path.",
     )
 
 
@@ -663,24 +664,22 @@ def _recurse_into_union(
 
 
 def _model_constraint_target(prefix: FieldPath) -> FieldPath:
-    """Where a model constraint's check should be anchored.
+    """Where a model constraint's check should be anchored -- the prefix itself.
 
-    Two supported cases:
+    The check anchors exactly where the shape walker reached the constrained
+    model, so this is the identity on `prefix`:
 
-    - `Iterated` -- constraints on a sub-model reached through array or map
-      iteration target that path (so the renderer wraps the check in the
-      iteration fold: `array_check` for an array-reached model,
-      `map_values_check` for a `dict[K, Model]` value model).
-    - Empty or struct-only `Direct` -- constraints anchor at the row root.
-      Pure struct nesting (e.g. `Names` reached at `Direct('names')`)
-      collapses here because the renderer has no anchor for nested-struct
-      model constraints. The only constraint kind currently reachable
-      through pure struct nesting is `NoExtraFieldsConstraint`, which
-      `dispatch_model_constraint` discards before the target is consulted,
-      so the collapse is observationally inert today; a non-skipped
-      constraint at this depth would surface as a wrong-anchor bug.
+    - `Iterated` -- a sub-model reached through array or map iteration; the
+      renderer wraps the check in the iteration fold (`array_check` for an
+      array-reached model, `map_values_check` for a `dict[K, Model]` value
+      model), and field references become element-relative accessors.
+    - Struct-only `Direct` (e.g. `Details` reached at `Direct('details')`) --
+      a sub-model reached through a plain struct field; the renderer qualifies
+      every field reference with the struct prefix (`F.col("details.foo")`).
+    - Empty `Direct` -- a row-root constraint; field references are top-level
+      columns.
     """
-    return prefix if isinstance(prefix, Iterated) else Direct()
+    return prefix
 
 
 def _dispatch_model_constraints(

@@ -815,6 +815,50 @@ class TestRequireAnyOfStructUnwrapping:
         assert set(node.descriptor.field_names) == {"fast.value", "slow.value"}
 
 
+@require_any_of("foo", "bar")
+class _StructNestedConstrained(BaseModel):
+    foo: int | None = None
+    bar: str | None = None
+
+
+class _FeatureWithRequiredStruct(BaseModel):
+    details: _StructNestedConstrained
+
+
+class _FeatureWithOptionalStruct(BaseModel):
+    details: _StructNestedConstrained | None = None
+
+
+class TestStructNestedModelConstraint:
+    """A model constraint on a submodel reached through a plain struct field.
+
+    The constraint anchors at the struct prefix (`Direct('details')`), not the
+    row root, so the renderer qualifies each field reference with the prefix.
+    A required struct carries no gate; an optional one gates on the struct
+    being non-null. Both cases -- formerly `NotImplementedError` at
+    `build_checks` -- now build a `ModelCheck` cleanly.
+    """
+
+    def test_required_struct_targets_prefix_without_gate(self) -> None:
+        _, model_nodes = _checks_for(_FeatureWithRequiredStruct)
+        nodes = _filter_nodes(model_nodes, "check_require_any_of")
+        assert len(nodes) == 1
+        node = nodes[0]
+        assert node.target == _path("details")
+        assert node.gate is None
+        assert set(node.descriptor.field_names) == {"foo", "bar"}
+        assert node.read_columns == frozenset({"details"})
+
+    def test_optional_struct_gates_on_prefix(self) -> None:
+        _, model_nodes = _checks_for(_FeatureWithOptionalStruct)
+        nodes = _filter_nodes(model_nodes, "check_require_any_of")
+        assert len(nodes) == 1
+        node = nodes[0]
+        assert node.target == _path("details")
+        assert node.gate == _path("details")
+        assert node.read_columns == frozenset({"details"})
+
+
 class _SyntheticUnionFixtures:
     """Discriminated-union models exercising union check generation."""
 
@@ -1104,25 +1148,28 @@ _DirectModelRefConstraintUnion = Annotated[
 
 
 class TestVariantSpecificDirectModelRefConstraint:
-    """Variant-specific non-list `ModelRef` with a constrained sub-model is unsupported.
+    """Variant-specific non-list `ModelRef` with a constrained sub-model is supported.
 
-    The direct-ref path routes through `_recurse_into_model` rather
-    than the array branch of `_walk_field_shape`, and pure struct
-    nesting can't anchor a real model constraint -- the dispatch
-    raises `NotImplementedError`. Distinct from the `list[Model]`
-    case in `TestVariantSpecificFieldDiscoveredModelConstraints`,
-    which is supported.
+    The direct-ref path routes through `_recurse_into_model` rather than the
+    array branch of `_walk_field_shape`. The constraint anchors at the struct
+    prefix (`Direct('speed')`) and the renderer qualifies field references
+    (`F.col("speed.max_speed")`). Because the variant field is optional
+    (`speed: _SpeedLimitElement | None`), the check carries a nullable gate on
+    the struct so an absent `speed` skips the constraint, and it inherits the
+    contributing arm (`"d"`) rather than being broadcast to every arm.
     """
 
-    def test_direct_modelref_constraint_raises(self) -> None:
-        # Pure struct nesting can't anchor a real model constraint; today
-        # the only constraint kind that survives struct nesting raises.
-        with pytest.raises(
-            NotImplementedError, match="Model constraint on struct-nested"
-        ):
-            _union_model_nodes(
-                "DirectModelRefConstraint", _DirectModelRefConstraintUnion
-            )
+    def test_direct_modelref_constraint_emits_struct_nested_check(self) -> None:
+        model_nodes = _union_model_nodes(
+            "DirectModelRefConstraint", _DirectModelRefConstraintUnion
+        )
+        nodes = _filter_nodes(model_nodes, "check_require_any_of")
+        assert len(nodes) == 1
+        node = nodes[0]
+        assert node.target == _path("speed")
+        assert node.gate == _path("speed")
+        assert node.arm == "d"
+        assert node.read_columns == frozenset({"speed"})
 
 
 class _OuterWithStructNestedUnion(BaseModel):

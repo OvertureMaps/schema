@@ -758,6 +758,23 @@ class TestModelScenarios:
         assert 'element_path="subs{value}[]"' in source
         assert 'map_path="subs"' not in source
 
+    def test_require_any_of_struct_nested_uses_element_path(self) -> None:
+        """A struct-nested `Direct('details')` target descends via element_path.
+
+        A model constraint on a submodel reached through a plain struct field
+        emits the composite `element_path` -- the same kwarg map/array targets
+        use, now with only a struct segment -- rather than any container path.
+        """
+        model_nodes = [
+            ModelCheck(
+                descriptor=RequireAnyOf(field_names=("foo", "bar")),
+                target=_path("details"),
+            ),
+        ]
+        source = render_test_module("feature", [], model_nodes)
+        ast.parse(source)
+        assert 'element_path="details"' in source
+
     def test_require_any_of_array_of_map_uses_element_path(self) -> None:
         """A `list[dict[K, Model]]` target descends array-then-map.
 
@@ -827,7 +844,24 @@ class TestModelScenarios:
                 target=_path("subs{value}"),
             ),
         ]
-        with pytest.raises(ValueError, match="map_path"):
+        with pytest.raises(ValueError, match="nested target"):
+            render_test_module("test", [], model_nodes)
+
+    def test_radio_group_struct_nested_raises(self) -> None:
+        """radio_group on a struct-nested submodel raises: no element_path descent.
+
+        The validation renders correctly (field refs qualify to `details.a`),
+        but `mutate_radio_group` takes no navigation kwarg, so a struct-nested
+        target would set top-level `a`/`b` -- a silent misroute. Raising keeps
+        the two aligned; no live schema declares radio_group on a nested model.
+        """
+        model_nodes = [
+            ModelCheck(
+                descriptor=RadioGroup(field_names=("a", "b")),
+                target=_path("details"),
+            ),
+        ]
+        with pytest.raises(ValueError, match="nested target"):
             render_test_module("test", [], model_nodes)
 
     def test_require_any_of_map_key_projection_raises(self) -> None:
@@ -926,7 +960,7 @@ class TestModelScenarios:
                 target=_array("outer"),
             ),
         ]
-        with pytest.raises(ValueError, match="array_path"):
+        with pytest.raises(ValueError, match="nested target"):
             render_test_module("test", [], model_nodes)
 
     def test_require_any_true_iterated_raises(self) -> None:
@@ -945,7 +979,7 @@ class TestModelScenarios:
                 target=_array("outer"),
             ),
         ]
-        with pytest.raises(ValueError, match="array_path"):
+        with pytest.raises(ValueError, match="nested target"):
             render_test_module("test", [], model_nodes)
 
     def test_require_any_true_map_value_raises(self) -> None:
@@ -958,7 +992,7 @@ class TestModelScenarios:
                 target=_path("subs{value}"),
             ),
         ]
-        with pytest.raises(ValueError, match="map_path"):
+        with pytest.raises(ValueError, match="nested target"):
             render_test_module("test", [], model_nodes)
 
     def test_require_if_with_leaf_path_raises(self) -> None:
