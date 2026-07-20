@@ -106,16 +106,23 @@ def _render_condition(
     in_array: bool = False,
     struct_path: tuple[str, ...] = (),
     var: str = "el",
+    column_prefix: tuple[str, ...] = (),
 ) -> str:
     """Render a parsed condition to a PySpark Column expression string.
 
     `struct_path` is the leaf the constrained model was reached at; the
     condition field lives beside the target field on that same model, so
     its reference must navigate the same leaf (e.g. `el["inner"]["subtype"]`,
-    not `el["subtype"]`).
+    not `el["subtype"]`). `column_prefix` plays the same role for a
+    struct-nested (non-iterated) model, qualifying the condition to
+    `F.col("details.subtype")`.
     """
     ref = _render_field_ref(
-        parsed.field_name, in_array=in_array, struct_path=struct_path, var=var
+        parsed.field_name,
+        in_array=in_array,
+        struct_path=struct_path,
+        var=var,
+        column_prefix=column_prefix,
     )
     op = "!=" if parsed.negated else "=="
     # A bare `== True` / `== False` -- from any boolean condition, whether
@@ -136,16 +143,21 @@ def _render_field_ref(
     in_array: bool,
     struct_path: tuple[str, ...] = (),
     var: str = "el",
+    column_prefix: tuple[str, ...] = (),
 ) -> str:
     """Render a field reference as F.col("x"), el["x"], or el["struct"]["x"].
 
     `F.col` accepts dotted names directly so the top-level form keeps
-    `field_name` intact. The in-array form descends a struct via
-    `el[...]`, which requires the dotted name to be split into segments
-    before applying `struct_path` and the field's own parts.
+    `field_name` intact. `column_prefix` names the struct segments the model
+    was reached through (a struct-nested model constraint at
+    `Direct('details')`), so its fields resolve to `F.col("details.foo")`; it
+    is empty for a row-root constraint. The in-array form descends a struct via
+    `el[...]`, which requires the dotted name to be split into segments before
+    applying `struct_path` and the field's own parts.
     """
     if not in_array:
-        return f'F.col("{field_name}")'
+        qualified = ".".join((*column_prefix, field_name))
+        return f'F.col("{qualified}")'
     parts = (*struct_path, *field_name.split("."))
     return _element_accessor(var, parts)
 
@@ -525,6 +537,7 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
     # Build the render frames once; both the field-reference context (var /
     # struct_path) and the iteration wrap below read from them so nothing drifts.
     frames: tuple[RenderFrame, ...] = ()
+    column_prefix: tuple[str, ...] = ()
     if isinstance(target, Iterated):
         # The innermost element (array element or projected map value) is
         # iterated, so field references use the element accessor
@@ -534,17 +547,29 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
         var = frames[-1].var_name
         struct_path: tuple[str, ...] = target.leaf
     else:
+        # A struct-nested model constraint (`Direct` with segments) qualifies
+        # every field reference with the struct prefix (`F.col("details.foo")`);
+        # a row-root constraint (empty `Direct`) leaves the prefix empty.
         in_array = False
         var, struct_path = "el", ()
+        column_prefix = tuple(s.name for s in target.segments)
 
     def _field_ref(field_name: str) -> str:
         return _render_field_ref(
-            field_name, in_array=in_array, struct_path=struct_path, var=var
+            field_name,
+            in_array=in_array,
+            struct_path=struct_path,
+            var=var,
+            column_prefix=column_prefix,
         )
 
     def _condition_ref(parsed: FieldEq) -> str:
         return _render_condition(
-            parsed, in_array=in_array, struct_path=struct_path, var=var
+            parsed,
+            in_array=in_array,
+            struct_path=struct_path,
+            var=var,
+            column_prefix=column_prefix,
         )
 
     fn = model_constraint_function(desc)
@@ -598,11 +623,21 @@ def _render_model_constraint_function_context(row: ModelCheckRow) -> dict[str, o
             )
             inner_expr = _wrap_element_gate(inner_expr, var, element_relative)
         expr = _wrap_in_iteration(frames, inner_expr)
-    else:
-        assert check.gate is None, (
-            f"ModelCheck gate={check.gate!r} paired with a Direct target={target!r}; "
-            f"a gate only makes sense when the constrained model is inside a container"
+    elif check.gate is not None:
+        # A struct-nested model reached through an optional ancestor: skip the
+        # constraint when that ancestor is null (accessing a field of a null
+        # struct yields null, which would otherwise trip the constraint on an
+        # absent model). The gate is a struct prefix of the target, so it reads
+        # the target's top-level column and `_render_column_gate` renders
+        # `F.when(F.col("details").isNotNull(), ...)`. A gate on an empty
+        # (row-root) `Direct` target is meaningless -- check_builder never emits
+        # one -- so guard it rather than render a nonsensical `F.when`.
+        assert isinstance(target, Direct) and target.segments, (
+            f"ModelCheck gate={check.gate!r} on a row-root Direct target={target!r}; "
+            f"a gate only pairs with a struct-nested or iterated model"
         )
+        expr = _render_column_gate(inner_expr, check.gate)
+    else:
         expr = inner_expr
 
     return _check_function_context(

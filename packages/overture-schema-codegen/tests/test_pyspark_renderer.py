@@ -1775,8 +1775,13 @@ class TestGatedModelConstraintRendering:
         source = _render(_ArrayWithOptionalSubModel, "arr_optional_sub")
         ast.parse(source)
 
-    def test_gated_model_check_assertion_on_non_array_target(self) -> None:
-        """A gate paired with a `Direct` target raises AssertionError."""
+    def test_gated_model_check_assertion_on_row_root_target(self) -> None:
+        """A gate paired with an EMPTY (row-root) `Direct` target raises AssertionError.
+
+        A struct-nested `Direct` target legitimately carries a gate (rendered as
+        `F.when(F.col("details").isNotNull(), ...)`); an empty `Direct` is the row
+        root, where a gate is meaningless and check_builder never emits one.
+        """
         check = ModelCheck(
             descriptor=RequireAnyOf(field_names=("a", "b")),
             target=Direct(),
@@ -1784,6 +1789,36 @@ class TestGatedModelConstraintRendering:
         )
         with pytest.raises(AssertionError, match="gate.*Direct target"):
             _render_model_node(check)
+
+    def test_gated_struct_nested_model_check_wraps_in_f_when(self) -> None:
+        """A struct-nested `Direct` target with a gate wraps in F.col(gate).isNotNull()."""
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("foo", "bar")),
+            target=_path("details"),
+            gate=_path("details"),
+        )
+        source = _render_model_node(check)
+        assert 'F.when(F.col("details").isNotNull()' in source
+        assert (
+            'check_require_any_of([F.col("details.foo"), F.col("details.bar")]'
+            in source
+        )
+        ast.parse(source)
+
+    def test_ungated_struct_nested_model_check_qualifies_field_refs(self) -> None:
+        """A required struct-nested `Direct` target qualifies field refs, no gate."""
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("foo", "bar")),
+            target=_path("details"),
+            gate=None,
+        )
+        source = _render_model_node(check)
+        assert (
+            'check_require_any_of([F.col("details.foo"), F.col("details.bar")]'
+            in source
+        )
+        assert "isNotNull" not in source
+        ast.parse(source)
 
 
 class TestMapValueModelRendering:
