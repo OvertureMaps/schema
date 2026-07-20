@@ -95,7 +95,8 @@ class TestDictFields:
 
 class TestDivisionAreaSchema:
     @pytest.fixture(scope="class")
-    def fields(self) -> list[SchemaField]:
+    @classmethod
+    def fields(cls) -> list[SchemaField]:
         return build_schema(spec_for_model(DivisionArea))
 
     def test_id_field_is_string_type(self, fields: list[SchemaField]) -> None:

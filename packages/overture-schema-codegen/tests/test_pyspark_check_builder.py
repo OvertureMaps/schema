@@ -1193,7 +1193,8 @@ class TestStructNestedUnionWithVariantFields:
     """
 
     @pytest.fixture(scope="class")
-    def discriminated_union_ref_spec(self) -> RecordSpec:
+    @classmethod
+    def discriminated_union_ref_spec(cls) -> RecordSpec:
         """A `RecordSpec` whose `nested` field holds a `UnionRef` with a full discriminator."""
         union_spec = union_spec_for("Synthetic", _SyntheticUnionFixtures.SyntheticUnion)
         field = FieldSpec(
@@ -1508,24 +1509,28 @@ class TestDoubleNestedArrayModelConstraints:
 
 class TestSegmentUnionChecks:
     @pytest.fixture(scope="class")
-    def segment_spec(self) -> ModelSpec:
+    @classmethod
+    def segment_spec(cls) -> ModelSpec:
         return discover_feature("Segment")
 
     @pytest.fixture(scope="class")
+    @classmethod
     def segment_checks(
-        self, segment_spec: ModelSpec
+        cls, segment_spec: ModelSpec
     ) -> tuple[list[Check], list[ModelCheck]]:
         return build_checks(segment_spec)
 
     @pytest.fixture(scope="class")
+    @classmethod
     def field_nodes(
-        self, segment_checks: tuple[list[Check], list[ModelCheck]]
+        cls, segment_checks: tuple[list[Check], list[ModelCheck]]
     ) -> list[Check]:
         return segment_checks[0]
 
     @pytest.fixture(scope="class")
+    @classmethod
     def model_nodes(
-        self, segment_checks: tuple[list[Check], list[ModelCheck]]
+        cls, segment_checks: tuple[list[Check], list[ModelCheck]]
     ) -> list[ModelCheck]:
         return segment_checks[1]
 
@@ -1725,25 +1730,30 @@ class TestUnionInsideArray:
     """UNION-kind fields nested inside list[] produce variant-gated checks."""
 
     @pytest.fixture(scope="class")
-    def results(self) -> tuple[list[Check], list[ModelCheck]]:
+    @classmethod
+    def results(cls) -> tuple[list[Check], list[ModelCheck]]:
         return build_checks(spec_for_model(_Wrapper))
 
     @pytest.fixture(scope="class")
-    def field_nodes(self, results: tuple[list[Check], list[ModelCheck]]) -> list[Check]:
+    @classmethod
+    def field_nodes(cls, results: tuple[list[Check], list[ModelCheck]]) -> list[Check]:
         return results[0]
 
     @pytest.fixture(scope="class")
+    @classmethod
     def model_nodes(
-        self, results: tuple[list[Check], list[ModelCheck]]
+        cls, results: tuple[list[Check], list[ModelCheck]]
     ) -> list[ModelCheck]:
         return results[1]
 
     @pytest.fixture(scope="class")
-    def a_nodes(self, field_nodes: list[Check]) -> list[Check]:
+    @classmethod
+    def a_nodes(cls, field_nodes: list[Check]) -> list[Check]:
         return [n for n in field_nodes if n.target == _path("items[].a_field")]
 
     @pytest.fixture(scope="class")
-    def b_nodes(self, field_nodes: list[Check]) -> list[Check]:
+    @classmethod
+    def b_nodes(cls, field_nodes: list[Check]) -> list[Check]:
         return [n for n in field_nodes if n.target == _path("items[].b_field")]
 
     def test_a_field_check_produced(self, a_nodes: list[Check]) -> None:
@@ -1793,7 +1803,8 @@ class TestTopLevelUnionColumnPath:
     """Top-level union (not inside array) exclusivity nodes have column_path=None."""
 
     @pytest.fixture(scope="class")
-    def model_nodes(self) -> list[ModelCheck]:
+    @classmethod
+    def model_nodes(cls) -> list[ModelCheck]:
         return _union_model_nodes("Synthetic", _SyntheticUnionFixtures.SyntheticUnion)
 
     def test_forbid_if_column_path_is_none(self, model_nodes: list[ModelCheck]) -> None:
