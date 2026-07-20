@@ -6,7 +6,13 @@ from typing import Any, NamedTuple
 
 from typing_extensions import assert_never
 
-from overture.schema.system.field_path import ArrayPath, MapPath, MapProjection
+from overture.schema.system.field_path import (
+    ArraySegment,
+    FieldPath,
+    Iterated,
+    MapProjection,
+    MapSegment,
+)
 
 from ..extraction.field import FieldShape, Primitive
 from ..extraction.field_walk import has_array_layer, terminal_of
@@ -58,8 +64,7 @@ def _check_belongs_to_arm(check: Check, arm: str) -> bool:
     irrelevant to arm filtering. A check belongs to *arm* when every
     `ColumnGuard` admits it (guards are AND-composed).
     """
-    column_guards = [g for g in check.guards if isinstance(g, ColumnGuard)]
-    return all(arm in g.values for g in column_guards)
+    return all(arm in g.values for g in check.guards if isinstance(g, ColumnGuard))
 
 
 def _model_check_belongs_to_arm(check: ModelCheck, arm: str) -> bool:
@@ -70,6 +75,63 @@ def _model_check_belongs_to_arm(check: ModelCheck, arm: str) -> bool:
     constraints contributed by one specific member class.
     """
     return check.arm is None or check.arm == arm
+
+
+def _innermost_iter_segment(target: Iterated) -> ArraySegment | MapSegment:
+    """Return the innermost (leaf-most) named iterating segment of *target*."""
+    return target.iter_frames[-1][1]
+
+
+def _first_iter_segment(target: Iterated) -> ArraySegment | MapSegment:
+    """Return the outermost (first) named iterating segment of *target*."""
+    return target.iter_frames[0][1]
+
+
+def _is_map_target(target: FieldPath) -> bool:
+    """True when *target* reaches its value map-first: no array precedes the map.
+
+    Reads the FIRST iterating frame, matching `check_builder`
+    (`_model_constraint_target` and `generate_model_scaffold` both key off
+    the outermost frame). A bare or struct-prefixed map projection
+    (`names.common{key}`, `sources.license_priority{value}`) is a map target,
+    corrupted in place. A map reached only after array iteration
+    (`items[].tags{value}`) is array-first, not a map target: its mutation
+    descends the array via `set_at_path`'s map grammar. Reading the innermost
+    frame instead would misroute the array-first case to a top-level map
+    mutation on the array column.
+    """
+    return isinstance(target, Iterated) and isinstance(
+        _first_iter_segment(target), MapSegment
+    )
+
+
+def _is_sole_map_projection(target: Iterated) -> bool:
+    """True when *target* is a bare map projection with nothing trailing.
+
+    `names.common{key}`, `sources.license_priority{value}` -- one map frame,
+    no struct leaf, no further iteration. These corrupt the map's single
+    entry in place via `mutate_map_key` / `mutate_map_value`.
+    """
+    return not target.leaf and not target.iter_struct_paths
+
+
+def _map_trailing_iteration_only(target: Iterated) -> bool:
+    """True when a map projection is followed only by anonymous iteration.
+
+    `subs{value}[]` (dict[K, list[X]]) and `subs{value}{value}`
+    (dict[K, dict[K2, X]]) descend the map value into a container and reach
+    the constrained scalar through anonymous `[]` / `{value}` peels alone --
+    no named struct navigation, no struct leaf. `set_at_path` with the full
+    path peels each trailing container, so the mutation writes the scalar at
+    the located slot. A struct leaf (`subs{value}.label`) or a named further
+    container (`subs{value}.items[]`) is excluded: it needs navigation
+    `set_at_path`'s map-first routing does not cover here.
+    """
+    return (
+        not target.leaf
+        and bool(target.iter_struct_paths)
+        and all(not prefix for prefix in target.iter_struct_paths)
+    )
 
 
 def render_test_module(
@@ -171,21 +233,27 @@ def _field_mutate_expr(
 ) -> _MutateExpr:
     """Render the `mutate=` expression for one field-check descriptor.
 
-    A `MapPath` target corrupts the map's single valid entry via
+    A sole map projection corrupts the map's single valid entry via
     `mutate_map_key` / `mutate_map_value`; `check_struct_unique` calls
-    `mutate_unique_items` at the target path; every other descriptor
-    injects a constraint-violating literal via `set_at_path`.
+    `mutate_unique_items` at the target path; every other descriptor --
+    including a map value that is itself an iterated container
+    (`subs{value}[]`, `subs{value}{value}`) -- injects a constraint-violating
+    literal via `set_at_path`, whose path grammar peels each trailing
+    container to the constrained scalar.
     """
-    if isinstance(check.target, MapPath):
-        helper = (
-            "mutate_map_key"
-            if check.target.projection is MapProjection.KEY
-            else "mutate_map_value"
-        )
-        col_repr = py_literal(check.target.map_column)
-        iv_repr = py_literal(invalid_value(desc))
-        return _MutateExpr(f"lambda row: {helper}(row, {col_repr}, {iv_repr})", helper)
-    target_repr = py_literal(str(check.target))
+    target = check.target
+    if _is_map_target(target):
+        assert isinstance(target, Iterated)
+        if _is_sole_map_projection(target):
+            return _map_field_mutate_expr(target, desc)
+        if not _map_trailing_iteration_only(target):
+            raise NotImplementedError(
+                f"map-first field check {target!r} descends a struct leaf or a "
+                f"named container after the map; no conformance mutation covers it"
+            )
+        # Iteration-only trailing: fall through to set_at_path with the full
+        # path, which descends the map value and peels the trailing containers.
+    target_repr = py_literal(str(target))
     if desc.function == "check_struct_unique":
         return _MutateExpr(
             f"lambda row: mutate_unique_items(row, {target_repr})",
@@ -193,6 +261,24 @@ def _field_mutate_expr(
         )
     iv_val = _wrap_for_list_leaf(invalid_value(desc), check, spec)
     return _MutateExpr(f"set_at_path({target_repr}, {py_literal(iv_val)})", None)
+
+
+def _map_field_mutate_expr(target: Iterated, desc: ExpressionDescriptor) -> _MutateExpr:
+    """Render the `mutate=` for a sole map-projection field check.
+
+    `mutate_map_key` / `mutate_map_value` corrupt the map's single valid entry
+    in place (`names.common{key}`, `sources.license_priority{value}`). The
+    caller guarantees a sole projection (`_is_sole_map_projection`); a map
+    value that iterates further routes to `set_at_path` instead.
+    """
+    seg = _first_iter_segment(target)
+    assert isinstance(seg, MapSegment)
+    helper = (
+        "mutate_map_key" if seg.projection is MapProjection.KEY else "mutate_map_value"
+    )
+    col_repr = py_literal(target.outer_column)
+    iv_repr = py_literal(invalid_value(desc))
+    return _MutateExpr(f"lambda row: {helper}(row, {col_repr}, {iv_repr})", helper)
 
 
 def _render_field_check_scenarios(
@@ -254,14 +340,19 @@ def _render_field_check_scenarios(
 
 
 def _checks_array_element(check: Check) -> bool:
-    """True when the check fires on each element of an `ArrayPath` directly.
+    """True when the check fires on each element of an array target directly.
 
     The check target ends at the array (`leaf=()`), so the mutation
     replaces an array element rather than a struct field on one. For
     these checks, a `None` invalid value still needs list wrapping; for
     nested struct fields, `None` already sits at the right level.
     """
-    return isinstance(check.target, ArrayPath) and not check.target.leaf
+    target = check.target
+    return (
+        isinstance(target, Iterated)
+        and isinstance(_innermost_iter_segment(target), ArraySegment)
+        and not target.leaf
+    )
 
 
 def _wrap_for_list_leaf(
@@ -349,13 +440,18 @@ def _render_mutation_call(
             # Carries `conditions`, not `field_names`: the mutation disables
             # every condition via a per-field `{field: value}` dict rather than
             # the shared field-name list the other descriptors pass.
+            if isinstance(check.target, Iterated):
+                raise ValueError(
+                    "mutate_require_any_true does not accept array_path/map_path "
+                    f"(target={check.target!r})"
+                )
             return _render_require_any_true_mutation_call(mutation_fn, desc)
         case RequireIf() | ForbidIf():
             return _render_conditional_mutation_call(
                 mutation_fn, desc, check, fields_repr
             )
         case RadioGroup():
-            if isinstance(check.target, (ArrayPath, MapPath)):
+            if isinstance(check.target, Iterated):
                 raise ValueError(
                     "mutate_radio_group does not accept array_path/map_path "
                     f"(target={check.target!r})"
@@ -438,22 +534,65 @@ def _render_fill_values(desc: ForbidIf) -> str | None:
     return "{" + ", ".join(items) + "}"
 
 
-def _map_kwargs(target: MapPath, mutation_fn: str, *, allow_leaf: bool) -> list[str]:
+def _composite_element_path_kwargs(target: Iterated) -> list[str]:
+    """The `element_path=` kwarg carrying *target*'s full mixed map/array descent.
+
+    No scalar `array_path` / `map_path` expresses a container-after-container
+    boundary (a map value that is a list, or a map nested under array
+    iteration). The mutation helpers walk the full path generically, so emit
+    it verbatim. Every map frame must be a VALUE projection -- a model can't sit
+    on a map key -- so a KEY frame raises here rather than emitting a path the
+    walker would reject only at runtime (matching `_map_kwargs`'s codegen-time
+    guard for the map-first case).
+    """
+    for _prefix, seg in target.iter_frames:
+        if isinstance(seg, MapSegment) and seg.projection is not MapProjection.VALUE:
+            raise ValueError(
+                f"element_path cannot target a map key (target={target!r}); a "
+                "model-level constraint on a map key is not representable as a row"
+            )
+    return [f'element_path="{target}"']
+
+
+def _array_first_map_kwargs(target: Iterated) -> list[str] | None:
+    """Composite kwargs when a map value sits under array iteration, else None.
+
+    Called on the array-first branch (the first frame is an `ArraySegment`).
+    A `MapSegment` anywhere in the frames means the target reaches a
+    `dict[K, Model]` value nested under array iteration (e.g.
+    `items[].configs{value}`); no scalar array/inner kwarg expresses the map
+    boundary, so emit the composite descent path. A pure-array target has no
+    map frame and keeps its existing scalar kwargs (returns None).
+    """
+    if any(isinstance(seg, MapSegment) for _prefix, seg in target.iter_frames):
+        return _composite_element_path_kwargs(target)
+    return None
+
+
+def _map_kwargs(target: Iterated, mutation_fn: str, *, allow_leaf: bool) -> list[str]:
     """Mutation kwargs for a `dict[K, Model]` value-model constraint.
 
     Emits `map_path=...` (the map column) and, when `allow_leaf`, an
     optional single-segment `struct_path=...` for a sub-model reached
     through one struct field inside the value model -- the map analogue of
     `_iter_kwargs_leaf`'s array `struct_path`. A KEY projection is
-    unrepresentable (a model can't be a dict key) and raises; a multi-segment
-    leaf, or any leaf when `allow_leaf` is False, raises too.
+    unrepresentable (a model can't be a dict key) and raises. A map value that
+    is itself iterated (`dict[K, list[Model]]`, target `subs{value}[]`) folds
+    its trailing container into this same named frame, so `iter_struct_paths`
+    is non-empty; the map value is a container, not the model, so emit the
+    composite descent path the mutation walks instead of `map_path=...`. A
+    multi-segment leaf, or any leaf when `allow_leaf` is False, raises.
     """
-    if target.projection is not MapProjection.VALUE:
+    seg = _first_iter_segment(target)
+    assert isinstance(seg, MapSegment)
+    if seg.projection is not MapProjection.VALUE:
         raise ValueError(
             f"{mutation_fn} cannot target a map key (target={target!r}); a "
             "model-level constraint on a map key is not representable as a row"
         )
-    kwargs = [f'map_path="{target.map_column}"']
+    if target.iter_struct_paths:
+        return _composite_element_path_kwargs(target)
+    kwargs = [f'map_path="{target.outer_column}"']
     leaf = target.leaf
     if leaf:
         if not allow_leaf:
@@ -472,69 +611,71 @@ def _map_kwargs(target: MapPath, mutation_fn: str, *, allow_leaf: bool) -> list[
 def _iter_kwargs_leaf(check: ModelCheck, mutation_fn: str) -> list[str]:
     """Container kwargs for mutations accepting `struct_path` (a trailing leaf).
 
-    For an `ArrayPath`, yields `array_path=...` and optionally
+    For an array target, yields `array_path=...` and optionally
     `struct_path=...`; inner array iteration is rejected -- these mutations
-    consume only the outermost array level. For a `MapPath` (a
+    consume only the outermost array level. For a map target (a
     `dict[K, Model]` value-model constraint), delegates to `_map_kwargs`,
     which yields `map_path=...` and an optional single-segment `struct_path`.
     """
-    if isinstance(check.target, MapPath):
-        return _map_kwargs(check.target, mutation_fn, allow_leaf=True)
-    if not isinstance(check.target, ArrayPath):
+    target = check.target
+    if not isinstance(target, Iterated):
         return []
-    inner_struct_paths = check.target.iter_struct_paths
-    leaf_path = check.target.leaf
-
-    if inner_struct_paths:
+    if isinstance(_first_iter_segment(target), MapSegment):
+        return _map_kwargs(target, mutation_fn, allow_leaf=True)
+    composite = _array_first_map_kwargs(target)
+    if composite is not None:
+        return composite
+    if target.iter_struct_paths:
         raise ValueError(
             f"{mutation_fn} does not accept inner_array_path "
-            f"(inner struct paths={inner_struct_paths!r})"
+            f"(inner struct paths={target.iter_struct_paths!r})"
         )
 
-    kwargs = [f'array_path="{check.target.column_path}"']
-    if leaf_path:
-        if len(leaf_path) > 1:
+    kwargs = [f'array_path="{target.outer_column}"']
+    if target.leaf:
+        if len(target.leaf) > 1:
             raise ValueError(
-                f"multi-segment leaf_path {leaf_path!r} not supported by "
+                f"multi-segment leaf_path {target.leaf!r} not supported by "
                 f"{mutation_fn} (struct_path must be a single segment)"
             )
-        kwargs.append(f'struct_path="{leaf_path[0]}"')
+        kwargs.append(f'struct_path="{target.leaf[0]}"')
     return kwargs
 
 
 def _iter_kwargs_inner(check: ModelCheck, mutation_fn: str) -> list[str]:
     """Container kwargs for mutations accepting `inner_array_path`.
 
-    For an `ArrayPath`, yields `array_path=...` and optionally
+    For an array target, yields `array_path=...` and optionally
     `inner_array_path=...`; a trailing leaf path is rejected -- these
     mutations target an inner array directly, not a struct field on its
-    elements. For a `MapPath`, delegates to `_map_kwargs` (no leaf: a map
+    elements. For a map target, delegates to `_map_kwargs` (no leaf: a map
     value has no inner array layer to address).
     """
-    if isinstance(check.target, MapPath):
-        return _map_kwargs(check.target, mutation_fn, allow_leaf=False)
-    if not isinstance(check.target, ArrayPath):
+    target = check.target
+    if not isinstance(target, Iterated):
         return []
-    inner_struct_paths = check.target.iter_struct_paths
-    leaf_path = check.target.leaf
-
-    if leaf_path:
+    if isinstance(_first_iter_segment(target), MapSegment):
+        return _map_kwargs(target, mutation_fn, allow_leaf=False)
+    composite = _array_first_map_kwargs(target)
+    if composite is not None:
+        return composite
+    if target.leaf:
         raise ValueError(
-            f"{mutation_fn} does not accept struct_path (leaf_path={leaf_path!r})"
+            f"{mutation_fn} does not accept struct_path (leaf_path={target.leaf!r})"
         )
 
-    kwargs = [f'array_path="{check.target.column_path}"']
-    if inner_struct_paths:
-        if len(inner_struct_paths) > 1:
+    kwargs = [f'array_path="{target.outer_column}"']
+    if target.iter_struct_paths:
+        if len(target.iter_struct_paths) > 1:
             raise ValueError(
-                f"multi-level inner struct paths {inner_struct_paths!r} not supported by "
-                f"{mutation_fn} (inner_array_path consumes one iteration)"
+                f"multi-level inner struct paths {target.iter_struct_paths!r} not "
+                f"supported by {mutation_fn} (inner_array_path consumes one iteration)"
             )
-        if not inner_struct_paths[0]:
+        if not target.iter_struct_paths[0]:
             raise ValueError(
                 f"empty inner struct path not supported by {mutation_fn} "
-                f"(target={check.target!r}); nested-iteration arrays without "
+                f"(target={target!r}); nested-iteration arrays without "
                 f"intermediate struct fields cannot be addressed via inner_array_path"
             )
-        kwargs.append(f'inner_array_path="{".".join(inner_struct_paths[0])}"')
+        kwargs.append(f'inner_array_path="{".".join(target.iter_struct_paths[0])}"')
     return kwargs
