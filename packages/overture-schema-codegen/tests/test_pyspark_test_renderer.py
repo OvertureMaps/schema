@@ -776,7 +776,8 @@ class TestCrossArmModelCheckLabelCollision:
 
 class TestTestLayer:
     @pytest.fixture(scope="class")
-    def empty_source(self) -> str:
+    @classmethod
+    def empty_source(cls) -> str:
         return render_test_module("test", [], [])
 
     def test_test_scenario_sparse_present(self, empty_source: str) -> None:
