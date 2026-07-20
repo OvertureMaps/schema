@@ -64,6 +64,7 @@ from overture.schema.system.model_constraint import (
     forbid_if,
     require_any_of,
 )
+from overture.schema.system.primitive import float64
 from overture.schema.system.string import CountryCodeAlpha2
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
@@ -167,6 +168,37 @@ class TestScalarChecks:
         # name: str | None = None has no constraints, so no check node
         name_nodes = [n for n in nodes if n.target == _path("name")]
         assert len(name_nodes) == 0
+
+
+class _TwoSidedBoundModel(BaseModel):
+    v: Annotated[float64, Field(ge=1, le=100)]
+
+
+class _ConflictingBoundModel(BaseModel):
+    v: Annotated[float64, Ge(1), Ge(5)]
+
+
+class TestBoundsCoalesce:
+    def test_lower_and_upper_bound_merge_into_one_check_bounds(self) -> None:
+        # A field with both bounds yields separate Ge and Le constraints; they
+        # collapse into one check_bounds(ge, le) so a split union arm cannot end
+        # up with two indistinguishable `bounds` violation labels.
+        nodes, _ = _checks_for(_TwoSidedBoundModel)
+        bounds = [
+            d
+            for n in nodes
+            if n.target == _path("v")
+            for d in n.descriptors
+            if d.function == "check_bounds"
+        ]
+        assert len(bounds) == 1
+        assert dict(bounds[0].kwargs) == {"ge": 1.0, "le": 100.0}
+
+    def test_conflicting_same_kind_bounds_raise(self) -> None:
+        # Two `ge` values have no unambiguous merge -- fail loud rather than
+        # silently keep one.
+        with pytest.raises(ValueError, match="conflicting ge"):
+            _checks_for(_ConflictingBoundModel)
 
 
 class _RequiredNewtypeModel(BaseModel):

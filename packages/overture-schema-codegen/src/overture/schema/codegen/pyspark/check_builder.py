@@ -89,6 +89,59 @@ __all__ = [
 ]
 
 
+_BOUND_ORDER = ("ge", "gt", "le", "lt")
+
+
+def _coalesce_bounds(
+    descriptors: list[ExpressionDescriptor],
+) -> list[ExpressionDescriptor]:
+    """Merge multiple `check_bounds` descriptors into a single one.
+
+    A field with both a lower and an upper bound (`Field(ge=1, le=100)`)
+    yields separate `Ge` and `Le` constraints, each dispatched to its own
+    `check_bounds`. They target the same column and describe one range, so
+    they collapse into one `check_bounds(ge=1, le=100)`: one violation
+    identity instead of two same-name checks -- which a split union arm
+    cannot otherwise label distinctly (see `_render_common.field_check_rows`).
+
+    Merges only bounds of distinct kinds. Two constraints of the *same* kind
+    with different values (`ge=1` from a NewType, `ge=5` at the field) have no
+    unambiguous merge, so this raises rather than silently keeping one -- the
+    author should state the single intended bound.
+
+    Raises
+    ------
+    ValueError
+        When two bounds of the same kind carry different values.
+    """
+    bound_descs = [d for d in descriptors if d.function == "check_bounds"]
+    if len(bound_descs) <= 1:
+        return descriptors
+    merged: dict[str, object] = {}
+    for d in bound_descs:
+        for key, value in d.kwargs:
+            if key in merged and merged[key] != value:
+                raise ValueError(
+                    f"conflicting {key} bounds on one field: "
+                    f"{merged[key]!r} vs {value!r}; declare a single {key}"
+                )
+            merged[key] = value
+    merged_desc = ExpressionDescriptor(
+        function="check_bounds",
+        kwargs=tuple((k, merged[k]) for k in _BOUND_ORDER if k in merged),
+        check_nan=bound_descs[0].check_nan,
+    )
+    result: list[ExpressionDescriptor] = []
+    placed = False
+    for d in descriptors:
+        if d.function != "check_bounds":
+            result.append(d)
+        elif not placed:
+            result.append(merged_desc)
+            placed = True
+    return result
+
+
 def _dispatch_layer_constraints(
     constraints: tuple[ConstraintSource, ...],
     base_type: str | None,
@@ -101,7 +154,7 @@ def _dispatch_layer_constraints(
         desc = dispatch_constraint(cs.constraint, base_type=base_type)
         if desc is not None:
             descriptors.append(desc)
-    return descriptors
+    return _coalesce_bounds(descriptors)
 
 
 def _literal_alternatives(shape: Scalar | MapOf) -> tuple[object, ...]:
