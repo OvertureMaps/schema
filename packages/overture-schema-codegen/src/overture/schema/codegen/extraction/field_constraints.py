@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 
-from annotated_types import Ge, Gt, Interval, Le, Lt
+from annotated_types import Ge, Gt, Interval, Le, Lt, MultipleOf
 
 from overture.schema.system.primitive import GeometryTypeConstraint
 from overture.schema.system.ref import Reference
@@ -104,6 +104,10 @@ def describe_field_constraint(
         result = _first_bound(constraint)
         if result is not None:
             return result
+    if isinstance(constraint, MultipleOf):
+        if constraint.multiple_of == 1:
+            return "Must be a whole number"
+        return f"Must be a multiple of {constraint.multiple_of}"
     if isinstance(constraint, (ArrayMinLen, ScalarMinLen)):
         return f"Minimum length: {constraint.min_length}"
     if isinstance(constraint, (ArrayMaxLen, ScalarMaxLen)):

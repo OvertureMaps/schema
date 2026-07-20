@@ -2,7 +2,7 @@
 
 import re
 
-from annotated_types import Ge, Gt, Interval, Le, Lt
+from annotated_types import Ge, Gt, Interval, Le, Lt, MultipleOf
 from overture.schema.codegen.extraction.field_constraints import (
     constraint_display_text,
     describe_field_constraint,
@@ -543,6 +543,20 @@ class TestConstraintDisplayText:
         assert len(received) == 1
         assert received[0].obj is Target
         assert result == "References [`Target`](link) (composition)"
+
+    def test_multiple_of_one_renders_whole_number(self) -> None:
+        """`Field(multiple_of=1)` renders as whole-number prose."""
+        cs = ConstraintSource(
+            source_ref=None, source_name=None, constraint=MultipleOf(1)
+        )
+        assert constraint_display_text(cs) == "Must be a whole number"
+
+    def test_multiple_of_n_renders_multiple(self) -> None:
+        """`Field(multiple_of=n)` renders as multiple-of prose."""
+        cs = ConstraintSource(
+            source_ref=None, source_name=None, constraint=MultipleOf(5)
+        )
+        assert constraint_display_text(cs) == "Must be a multiple of 5"
 
 
 class TestConstraintPatternFlags:

@@ -116,6 +116,26 @@ def check_bounds(
     return F.coalesce(nan_check, *checks)
 
 
+def check_multiple_of(col: Column, divisor: float) -> Column:
+    """Multiple-of check: a float column's value must be a multiple of `divisor`.
+
+    Fires when `col % divisor` is non-zero. `divisor=1` is the integral
+    (whole-number) case -- rejecting a fractional `2.5` where a `float64`
+    column stands in for a count. Testing the remainder in double space
+    (`col % divisor != 0`) matches Pydantic's `multiple_of` exactly: for
+    `divisor=1`, large integral doubles like `1e30` -- whole numbers Pydantic
+    accepts ((1e30).is_integer() is True) -- pass, where a `floor`-based
+    integral check would saturate the LongType cast above 2^63 and wrongly
+    fire. NaN and infinity yield a NaN remainder (`!= 0`) and are rejected
+    directly, matching Pydantic. A null passes (presence is
+    `check_required`'s concern).
+    """
+    return F.when(
+        col.isNotNull() & (col % divisor != 0),
+        error_msg(f"must be a multiple of {divisor}, got ", col.cast("string")),
+    )
+
+
 def check_enum(
     col: Column,
     allowed: list[str],

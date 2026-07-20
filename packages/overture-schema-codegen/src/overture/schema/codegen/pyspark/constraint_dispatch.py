@@ -12,7 +12,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, NamedTuple, TypeAlias
 
-from annotated_types import Ge, Gt, Interval, Le, Lt
+from annotated_types import Ge, Gt, Interval, Le, Lt, MultipleOf
 from pydantic import Strict
 from pydantic._internal._fields import PydanticMetadata
 
@@ -235,6 +235,21 @@ def _dispatch_bounds(
     )
 
 
+def _dispatch_multiple_of(
+    constraint: MultipleOf,
+    _base_type: str | None,
+) -> ExpressionDescriptor:
+    """Map `Field(multiple_of=n)` to a check_multiple_of descriptor.
+
+    `check_multiple_of(col, n)` tests `col % n == 0`; `multiple_of=1` is the
+    integral (whole-number) case. The divisor rides in `args`, so any positive
+    `n` dispatches without special-casing.
+    """
+    return ExpressionDescriptor(
+        function="check_multiple_of", args=(constraint.multiple_of,)
+    )
+
+
 def _dispatch_pattern(
     constraint: PatternConstraint,
     _base_type: str | None,
@@ -346,6 +361,7 @@ _CONSTRAINT_DISPATCH: list[tuple[type | tuple[type, ...], _ConstraintHandler]] =
             function="check_geometry_type", args=tuple(c.allowed_types)
         ),
     ),
+    (MultipleOf, _dispatch_multiple_of),
 ]
 
 

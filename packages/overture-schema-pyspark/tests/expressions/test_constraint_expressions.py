@@ -17,6 +17,7 @@ from overture.schema.pyspark.expressions.constraint_expressions import (
     check_linear_range_length,
     check_linear_range_order,
     check_min_fields_set,
+    check_multiple_of,
     check_pattern,
     check_radio_group,
     check_require_any_of,
@@ -64,6 +65,69 @@ def test_except_literals_passes_through_valid_value(spark: SparkSession) -> None
 
 def test_except_literals_null_is_not_an_error(spark: SparkSession) -> None:
     assert _except_literals_error(spark, None) is None
+
+
+def test_check_multiple_of_integral_float_passes(spark: SparkSession) -> None:
+    df = spark.createDataFrame([Row(val=2.0)], schema="val double")
+    result = df.select(check_multiple_of(F.col("val"), 1).alias("err")).collect()
+    assert result[0]["err"] is None
+
+
+def test_check_multiple_of_negative_integral_float_passes(spark: SparkSession) -> None:
+    df = spark.createDataFrame([Row(val=-3.0)], schema="val double")
+    result = df.select(check_multiple_of(F.col("val"), 1).alias("err")).collect()
+    assert result[0]["err"] is None
+
+
+def test_check_multiple_of_fractional_float_violation(spark: SparkSession) -> None:
+    df = spark.createDataFrame([Row(val=2.5)], schema="val double")
+    result = df.select(check_multiple_of(F.col("val"), 1).alias("err")).collect()
+    assert result[0]["err"] is not None
+    assert "multiple of" in result[0]["err"]
+
+
+def test_check_multiple_of_null_passthrough(spark: SparkSession) -> None:
+    df = spark.createDataFrame([Row(val=None)], schema="val double")
+    result = df.select(check_multiple_of(F.col("val"), 1).alias("err")).collect()
+    assert result[0]["err"] is None
+
+
+def test_check_multiple_of_large_integral_double_passes(spark: SparkSession) -> None:
+    # Integral doubles beyond 2^63 are whole numbers Pydantic accepts
+    # ((1e30).is_integer() is True). A floor-based check would saturate the
+    # LongType cast and wrongly fire; the remainder check passes them.
+    df = spark.createDataFrame([Row(val=1e30)], schema="val double")
+    result = df.select(check_multiple_of(F.col("val"), 1).alias("err")).collect()
+    assert result[0]["err"] is None
+
+
+def test_check_multiple_of_nan_violation(spark: SparkSession) -> None:
+    df = spark.createDataFrame([Row(val=float("nan"))], schema="val double")
+    result = df.select(check_multiple_of(F.col("val"), 1).alias("err")).collect()
+    assert result[0]["err"] is not None
+    assert "multiple of" in result[0]["err"]
+
+
+def test_check_multiple_of_positive_infinity_violation(spark: SparkSession) -> None:
+    df = spark.createDataFrame([Row(val=float("inf"))], schema="val double")
+    result = df.select(check_multiple_of(F.col("val"), 1).alias("err")).collect()
+    assert result[0]["err"] is not None
+    assert "multiple of" in result[0]["err"]
+
+
+def test_check_multiple_of_negative_infinity_violation(spark: SparkSession) -> None:
+    df = spark.createDataFrame([Row(val=float("-inf"))], schema="val double")
+    result = df.select(check_multiple_of(F.col("val"), 1).alias("err")).collect()
+    assert result[0]["err"] is not None
+    assert "multiple of" in result[0]["err"]
+
+
+def test_check_multiple_of_non_unit_divisor(spark: SparkSession) -> None:
+    # Divisor need not be 1: 1.5 is a multiple of 0.5, 1.75 is not.
+    df = spark.createDataFrame([Row(val=1.5), Row(val=1.75)], schema="val double")
+    result = df.select(check_multiple_of(F.col("val"), 0.5).alias("err")).collect()
+    assert result[0]["err"] is None
+    assert result[1]["err"] is not None
 
 
 def test_check_bounds_ge_le_valid(spark: SparkSession) -> None:
