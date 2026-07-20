@@ -1255,7 +1255,8 @@ class TestVariantGatedArrayLambdaScope:
     """Variant gating for ARRAY-shaped nodes must be inside the lambda, not wrapping it."""
 
     @pytest.fixture(scope="class")
-    def rendered_source(self) -> str:
+    @classmethod
+    def rendered_source(cls) -> str:
         class _Base(BaseModel):
             kind: str
 
@@ -1308,7 +1309,8 @@ class TestTopLevelVariantGatedArray:
     """When the array column itself is variant-conditional, discriminator wraps array_check."""
 
     @pytest.fixture(scope="class")
-    def surface_check(self) -> Check:
+    @classmethod
+    def surface_check(cls) -> Check:
         """ARRAY check with top-level discriminator -- surface only exists for subtype='a'."""
         return Check(
             descriptors=(ExpressionDescriptor(function="check_required"),),
@@ -1317,7 +1319,8 @@ class TestTopLevelVariantGatedArray:
         )
 
     @pytest.fixture(scope="class")
-    def surface_value_check(self) -> Check:
+    @classmethod
+    def surface_value_check(cls) -> Check:
         """ARRAY check with leaf path and top-level discriminator."""
         return Check(
             descriptors=(ExpressionDescriptor(function="check_required"),),

@@ -213,7 +213,8 @@ class TestPydanticTypePages:
     _SCHEMA_ROOT = "overture.schema"
 
     @pytest.fixture(scope="class")
-    def pages(self) -> list:
+    @classmethod
+    def pages(cls) -> list:
         """Generate all pages from real discovered models."""
         models = discover_models()
         model_specs: list[ModelSpec] = [
@@ -221,7 +222,7 @@ class TestPydanticTypePages:
             for key, entry in models.items()
             if (spec := extract_model_spec(key, entry)) is not None
         ]
-        return generate_markdown_pages(model_specs, self._SCHEMA_ROOT)
+        return generate_markdown_pages(model_specs, cls._SCHEMA_ROOT)
 
     def test_http_url_page_exists(self, pages: list) -> None:
         """Pipeline produces a page for HttpUrl under pydantic/networks/."""
