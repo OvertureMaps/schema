@@ -1,23 +1,30 @@
 name: Release trigger
 
-# Runs on every push to main that touches the umbrella package's pyproject.toml.
-# Detects a <major>.<minor> version bump of `overture-schema` and cuts a DRAFT
-# GitHub Release tagged `v<major>.<minor>.0`.
+# Runs on every push to main that touches any package's pyproject.toml.
+# For each package whose <major>.<minor> was bumped, cuts a published GitHub
+# Release tagged `<package>-v<major>.<minor>.0`, titled `` `<package>` <version> ``,
+# with notes taken from that package's CHANGELOG.md section.
 #
-# A maintainer then writes the release notes and publishes the draft. The
-# `release: published` event is the ONLY trigger for a public PyPI publish
-# (Phase 3). Patch-level pushes and non-umbrella package bumps never reach
-# public PyPI — they publish to CodeArtifact only.
+# Packages version independently (see docs/versioning.md). The umbrella
+# `overture-schema` release is marked "Latest"; all others are not.
 #
-# Patch-only changes to the umbrella version are ignored: the patch component
-# is computed by CI (see .github/actions/compute-version), not by this
-# workflow.
+# Release notes come from towncrier: a release PR bumps the version and runs
+# `uvx towncrier build`, folding that package's changelog.d/ fragments into its
+# CHANGELOG.md (reviewed in the PR). This workflow reads back the section.
+#
+# Patch-only changes are ignored: the patch component is computed by CI (see
+# .github/actions/compute-version), not by this workflow.
+#
+# NOTE: releases are created with GITHUB_TOKEN, which by design does NOT trigger
+# further workflow runs. The Phase 3 publish workflow (#509) must therefore be
+# triggered by an app/PAT token here or via repository_dispatch, a plain
+# `on: release: published` listener will not fire for these releases.
 
 on:
   push:
     branches: [main]
     paths:
-      - packages/overture-schema/pyproject.toml
+      - packages/*/pyproject.toml
 
 permissions:
   contents: read
@@ -28,91 +35,151 @@ concurrency:
 
 jobs:
   release-trigger:
-    name: Detect major/minor bump
+    name: Detect version bumps
     if: github.event.repository.full_name == github.repository
     runs-on: ubuntu-slim
     permissions:
-      contents: write # Required to create the release and its tag
+      contents: write # Required to create releases and their tags
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Detect major/minor bump
+      - name: Detect version bumps
         id: detect
         env:
           BEFORE: ${{ github.event.before }}
-          AFTER: ${{ github.event.after }}
         run: |
           set -euo pipefail
 
-          PYPROJECT="packages/overture-schema/pyproject.toml"
-
-          # `before` can be unresolvable after a force-push or history rewrite.
-          # Treat that as "no bump" rather than failing every subsequent push.
-          if ! git cat-file -e "${BEFORE}:${PYPROJECT}" 2>/dev/null; then
-            echo "::warning::Cannot read ${PYPROJECT} at ${BEFORE} — skipping bump detection."
-            echo "bump=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          git show "${BEFORE}:${PYPROJECT}" > /tmp/pyproject-before.toml
-          git show "${AFTER}:${PYPROJECT}"  > /tmp/pyproject-after.toml
-
-          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          python3 - <<'EOF'
+          import glob
+          import os
+          import subprocess
           import sys
           import tomllib
 
-          def major_minor(path: str) -> tuple[int, int]:
-              with open(path, "rb") as f:
-                  version = tomllib.load(f)["project"]["version"]
+          before = os.environ["BEFORE"]
+          tsv_path = os.path.join(os.environ["RUNNER_TEMP"], "bumps.tsv")
+
+          def major_minor(blob: bytes) -> tuple[int, int]:
+              version = str(tomllib.loads(blob.decode("utf-8"))["project"]["version"])
               major, minor, *_ = version.split(".")
               return int(major), int(minor)
 
-          before = major_minor("/tmp/pyproject-before.toml")
-          after = major_minor("/tmp/pyproject-after.toml")
-          print(f"overture-schema: {before} -> {after}", file=sys.stderr)
+          bumps: list[tuple[str, str]] = []
+          errors: list[str] = []
 
-          if before == after:
-              print("bump=false")
-          elif after < before:
-              print(
-                  f"::error::overture-schema major/minor went backwards: "
-                  f"{before[0]}.{before[1]} -> {after[0]}.{after[1]}. "
-                  f"Version decreases must never land on main — revert or fix the version.",
-                  file=sys.stderr,
+          for pyproject in sorted(glob.glob("packages/*/pyproject.toml")):
+              package = pyproject.split("/")[1]
+
+              # `after` is the working tree, checked out at github.event.after.
+              with open(pyproject, "rb") as f:
+                  after = major_minor(f.read())
+
+              # `before` can be unreadable after a force-push, a history rewrite,
+              # or for a brand-new package. Treat that as "no release" rather
+              # than failing every subsequent push.
+              before_blob = subprocess.run(
+                  ["git", "show", f"{before}:{pyproject}"],
+                  capture_output=True,
               )
+              if before_blob.returncode != 0:
+                  print(f"No readable {pyproject} at {before}, skipping {package}.")
+                  continue
+
+              current = major_minor(before_blob.stdout)
+              if after == current:
+                  continue
+              if after < current:
+                  errors.append(
+                      f"{package}: {current[0]}.{current[1]} -> {after[0]}.{after[1]}"
+                  )
+                  continue
+
+              print(f"{package}: {current[0]}.{current[1]} -> {after[0]}.{after[1]} (bump)")
+              bumps.append((package, f"{after[0]}.{after[1]}.0"))
+
+          if errors:
+              for e in errors:
+                  print(
+                      f"::error::{e}: major/minor went backwards. Version decreases "
+                      "must never land on main; revert or fix the version."
+                  )
               sys.exit(1)
-          else:
-              print("bump=true")
-              print(f"tag=v{after[0]}.{after[1]}.0")
+
+          with open(tsv_path, "w", encoding="utf-8") as tsv:
+              for package, version in bumps:
+                  tsv.write(f"{package}\t{version}\t{package}-v{version}\n")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"count={len(bumps)}\n")
+
+          if not bumps:
+              print("No major/minor bumps detected.")
           EOF
 
-      - name: Create draft release
-        if: steps.detect.outputs.bump == 'true'
+      - name: Create releases
+        if: steps.detect.outputs.count != '0'
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.detect.outputs.tag }}
           TARGET: ${{ github.event.after }}
+          UMBRELLA: overture-schema
         run: |
           set -euo pipefail
 
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "::error::Release ${TAG} already exists. A duplicate major/minor bump landed on main — investigate before re-releasing."
-            exit 1
-          fi
+          cat > "${RUNNER_TEMP}/extract_notes.py" <<'EOF'
+          import pathlib
+          import sys
 
-          gh release create "$TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$TARGET" \
-            --title "$TAG" \
-            --draft \
-            --notes "Draft release for ${TAG}. Replace this with the release notes, then publish. Publishing fires the public PyPI release pipeline."
+          version, changelog = sys.argv[1], sys.argv[2]
+          path = pathlib.Path(changelog)
+          if not path.is_file():
+              sys.exit(0)
 
-          {
-            echo "## 📦 Draft release created: ${TAG}"
-            echo ""
-            echo "A maintainer must now write release notes and **publish** the draft."
-            echo "Publishing is the only trigger for the public PyPI release."
-          } >> "$GITHUB_STEP_SUMMARY"
+          lines = path.read_text(encoding="utf-8").splitlines()
+          start = next(
+              (i for i, line in enumerate(lines) if line.startswith(f"## [{version}]")),
+              None,
+          )
+          if start is None:
+              sys.exit(0)
+
+          end = next(
+              (j for j in range(start + 1, len(lines)) if lines[j].startswith("## [")),
+              len(lines),
+          )
+          sys.stdout.write("\n".join(lines[start:end]).strip())
+          EOF
+
+          while IFS=$'\t' read -r package version tag; do
+            [ -z "$package" ] && continue
+
+            if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "::error::Release ${tag} already exists. A duplicate ${package} ${version} bump landed on main; investigate before re-releasing."
+              exit 1
+            fi
+
+            notes=$(python3 "${RUNNER_TEMP}/extract_notes.py" "$version" "packages/${package}/CHANGELOG.md")
+            if [ -z "$notes" ]; then
+              notes="Release ${version} of \`${package}\`. No changelog section was found; add towncrier fragments under \`packages/${package}/changelog.d\` and run \`uvx towncrier build --config pyproject.toml --dir packages/${package}\`."
+            fi
+            printf '%s\n' "$notes" > "${RUNNER_TEMP}/notes.md"
+
+            latest="--latest=false"
+            [ "$package" = "$UMBRELLA" ] && latest="--latest"
+
+            gh release create "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$TARGET" \
+              --title "\`${package}\` ${version}" \
+              --notes-file "${RUNNER_TEMP}/notes.md" \
+              $latest
+
+            {
+              echo "## 📦 Released \`${package}\` ${version}"
+              echo ""
+              echo "Tag \`${tag}\`: published GitHub Release."
+            } >> "$GITHUB_STEP_SUMMARY"
+          done < "${RUNNER_TEMP}/bumps.tsv"

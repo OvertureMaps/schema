@@ -1,101 +1,120 @@
-# Versioning and Releases
+# Versioning and releases
 
-How package versions are computed, when they bump, and how a public release
-happens. For branch mechanics and CI guardrails see
-[CONTRIBUTING.md](../CONTRIBUTING.md).
+Reference and how-to for package versions and releases. Branch mechanics and the
+`vnext`/`main` workflow live in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-## Version scheme
+## Contents
 
-All packages under `packages/*` carry a static `<major>.<minor>.<patch>`
-version in their `pyproject.toml` (PEP 440).
+- [Reference](#reference)
+  - [Version scheme](#version-scheme)
+  - [Version → destination](#version--destination)
+  - [Tag scheme](#tag-scheme)
+  - [Guardrails](#guardrails)
+- [How to](#how-to)
+  - [Add a changelog fragment](#add-a-changelog-fragment)
+  - [Cut a release](#cut-a-release)
+- [Why](#why)
 
-| Component | Owner | Meaning |
-|-----------|-------|---------|
-| `<major>.<minor>` | Human | Deliberate, reviewed decision. Edited in `pyproject.toml` via PR. |
-| `<patch>` | CI | Computed at publish time by the [`compute-version`](../.github/actions/compute-version/action.yml) action. The `pyproject.toml` patch acts only as a floor (baselining). |
+## Reference
 
-> [!IMPORTANT]
-> The umbrella package `overture-schema` is special: only its
-> `<major>.<minor>` bump triggers a public release. All other packages
-> version independently but publish to CodeArtifact only, until they ride
-> along an umbrella release.
+### Version scheme
 
-## What CI does with the patch component
+Every distributable package under `packages/*` carries its own independent
+`<major>.<minor>.<patch>` (PEP 440) in its `pyproject.toml`.
 
-| Event | Version formula | Destination |
-|-------|-----------------|-------------|
+| Component | Owner | Set by |
+|-----------|-------|--------|
+| `<major>.<minor>` | Human | Edited in `pyproject.toml` via a reviewed PR. |
+| `<patch>` | CI | [`compute-version`](../.github/actions/compute-version/action.yml) at publish time. The `pyproject.toml` patch is only a floor. |
+
+### Version → destination
+
+| Event | Version | Destination |
+|-------|---------|-------------|
 | Push to `vnext` | `<last-published>+dev.<run#>` | CodeArtifact (dev) |
-| Push to `main`, no bump | `<major>.<minor>.<next-patch>` | CodeArtifact only |
-| Push to `main` with umbrella major/minor bump | `<major>.<minor>.0` | Public PyPI (via GitHub Release, see below) |
+| Push to `main`, no bump | `<major>.<minor>.<next-patch>` | CodeArtifact |
+| `major.minor` bump on `main` | `<major>.<minor>.0` | Public PyPI |
 
-> [!NOTE]
-> Patch commits to `main` never reach public PyPI. CodeArtifact is the only
-> destination for auto-versioned builds. The publish workflows themselves are
-> Phase 3 ([#509](https://github.com/OvertureMaps/schema/issues/509)).
+### Tag scheme
 
-## Bump rules
+Each package has its own release series: tag `<package>-v<major>.<minor>.<patch>`,
+title `` `<package>` <version> ``. The umbrella `overture-schema` release is
+flagged **Latest**.
 
-### Patch
-
-Never edit it manually (except baselining). CI computes it.
-
-### Minor
-
-Backward-compatible feature or schema addition. Edit `pyproject.toml` in your
-PR targeting `main`.
-
-### Major
-
-Breaking change. Edit `pyproject.toml` in your PR targeting `vnext`; it
-reaches `main` via the release merge below.
-
-> [!TIP]
-> When you bump `<major>` or `<minor>`, reset the patch component to `0`
-> (e.g. `1.17.1` to `1.18.0`).
-
-## Release process
-
-A public PyPI release happens only through this flow:
-
-1. A PR containing an `overture-schema` `<major>.<minor>` bump merges to
-   `main`. Minor bumps merge directly; major bumps arrive via a
-   `vnext` to `main` release PR (see below).
-2. The [`release-trigger`](../.github/workflows/release-trigger.yaml)
-   workflow detects the bump and creates a draft GitHub Release tagged
-   `v<major>.<minor>.0`.
-3. A maintainer writes the release notes on the draft and clicks
-   "Publish release". Release notes are authored manually at release time;
-   there is no fragment or auto-generation machinery.
-4. The `release: published` event fires the public PyPI publish pipeline
-   (Phase 3, [#509](https://github.com/OvertureMaps/schema/issues/509)),
-   which publishes the release's packages. Exact package scope is defined
-   by the Phase 3 publish workflows.
-
-```mermaid
-flowchart LR
-    A[major/minor bump<br/>merges to main] --> B[release-trigger:<br/>draft GH Release<br/>v&lt;maj&gt;.&lt;min&gt;.0]
-    B --> C[maintainer writes notes,<br/>publishes draft]
-    C --> D[release: published<br/>fires public PyPI publish]
-    E[patch commit<br/>to main] --> F[CodeArtifact only]
-```
-
-### vnext to main release PRs
-
-- Opened by a maintainer when a `vnext` milestone is ready to ship.
-- The `vnext compatibility check` and `post-merge vnext rebase` workflows
-  skip automatically when the PR head is `vnext`.
-
-> [!WARNING]
-> Use a regular merge commit, not squash, so `vnext` history is preserved
-> and the post-merge rebase can no-op.
+Historical single-series tags (`v0.4.0` … `v1.17.0`) remain valid. The
+package-prefixed scheme is new so packages can version independently. This is a
+deliberate, one-time discontinuity.
 
 ### Guardrails
 
-- `release-trigger` fails loudly if the target tag already exists. A
-  duplicate bump landing on `main` requires human investigation before
-  re-releasing.
-- Non-umbrella package bumps do not create releases. If a non-core package
-  needs a public release now, bump the umbrella package's minor in the same
-  PR. This is a one-line change and reflects that the umbrella
-  distribution's contents changed. Otherwise the package reaches public
-  PyPI with the next umbrella release.
+- A changelog update is **required** on any `major.minor` bump, enforced by the
+  `Changelog fragment verification` check.
+- `release-trigger` fails if the target tag already exists, or if a version goes
+  backwards.
+
+## How to
+
+### Add a changelog fragment
+
+Release notes are assembled from
+[towncrier](https://towncrier.readthedocs.io) fragments. Add one per user-facing
+change, under the affected package:
+
+```
+packages/<package>/changelog.d/<issue-or-pr>.<type>.md
+```
+
+| `<type>` | For |
+|----------|-----|
+| `breaking` | Backward-incompatible changes |
+| `feature` | New functionality |
+| `bugfix` | Bug fixes |
+| `docs` | Documentation-only changes |
+| `misc` | Tooling / internal changes |
+
+The file body is the note itself, written in past tense
+(e.g. `Added `provider` to the sources resource.`). Preview the rendered section:
+
+```bash
+# from the repo root
+uvx towncrier build --config pyproject.toml --dir packages/<package> --draft --version <major>.<minor>.0
+```
+
+A fragment (or an already-built `CHANGELOG.md` entry) is required on any PR that
+bumps that package's `major.minor`.
+
+> [!NOTE]
+> The towncrier categories above are defined once in the root `pyproject.toml`.
+> A package can override them by adding its own `[tool.towncrier]` block and
+> building from that package directory (towncrier replaces, not merges).
+
+### Cut a release
+
+1. Bump `<major>.<minor>` in the package's `pyproject.toml` (reset patch to `0`),
+   then run `uvx towncrier build --config pyproject.toml --dir packages/<package>`
+   from the repo root to fold its fragments into `CHANGELOG.md`. Minor bumps
+   target `main`; major bumps go via `vnext` and reach `main` through a release
+   merge.
+2. On merge to `main`, `release-trigger` publishes one GitHub Release per bumped
+   package: tag `<package>-v<major>.<minor>.0`, notes from that package's
+   `CHANGELOG.md`.
+3. Publishing the release starts the PyPI publish, gated by a maintainer
+   approval.
+
+```mermaid
+flowchart LR
+    A[bump + towncrier build<br/>merged to main] --> B[release-trigger:<br/>GitHub Release per package]
+    B --> C[PyPI publish<br/>maintainer approval] --> D[public PyPI]
+    E[patch to main] --> F[CodeArtifact only]
+```
+
+## Why
+
+- **Human owns `major.minor`, CI owns `patch`.** Release intent is a reviewed
+  decision; patch numbering is mechanical.
+- **Independent per-package versions.** Packages evolve at their own pace.
+  Consumers pin only `overture-schema`, which depends on the theme/support
+  packages, giving them a coherent set without tracking each one.
+- **towncrier fragments.** Notes are written in context per PR and assembled
+  automatically, with no merge conflicts on a shared changelog and no
+  hand-written notes at release time.

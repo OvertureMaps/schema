@@ -76,3 +76,40 @@ pythonpath = [
     "packages/overture-schema/tests",
 ]
 verbosity_subtests = 0
+
+# Shared changelog (towncrier) config for every package under packages/*.
+# Build a package's notes from the repo root:
+#   uvx towncrier build --config pyproject.toml --dir packages/<package> --version <major>.<minor>.0
+# A package may override these categories by adding its own [tool.towncrier]
+# block and building from that package directory (towncrier replaces, not merges).
+[tool.towncrier]
+directory = "changelog.d"
+filename = "CHANGELOG.md"
+title_format = "## [{version}] - {project_date}"
+issue_format = "[#{issue}](https://github.com/OvertureMaps/schema/issues/{issue})"
+ignore = ["README.md"]
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking Changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "Features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "docs"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Miscellaneous"
+showcontent = true
