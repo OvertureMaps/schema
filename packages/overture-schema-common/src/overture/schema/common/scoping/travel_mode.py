@@ -1,18 +1,18 @@
 """
-Types supporting the trravel mode scope.
+Types supporting the travel mode scope.
 """
 
-from enum import Enum
+from overture.schema.system.doc import DocumentedEnum
 
 
-class TravelMode(str, Enum):
+class TravelMode(str, DocumentedEnum):
     """Enumerates possible travel modes.
 
     Some modes represent groups of modes.
     """
 
     VEHICLE = "vehicle"
-    MOTOR_VEHICLE = "motor_vehicle"  # includes car, truck and motorcycle
+    MOTOR_VEHICLE = ("motor_vehicle", "Includes car, truck and motorcycle")
     CAR = "car"
     TRUCK = "truck"
     MOTORCYCLE = "motorcycle"

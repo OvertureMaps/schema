@@ -45,7 +45,7 @@ Overture Features Types are strongly-typed. Feature Types are defined by three c
 	All measurements are expressed in SI units. The exact unit is confirmed in the specification of the property but is not repeated in the data
 
 ### Regulations and restrictions
-	All quantities that related to posted or ordenance regulations and restrictions are expressed in the same units as as used in the regulation. The unit is explicitly included with the property in the data.
+	All quantities that relate to posted or ordinance regulations and restrictions are expressed in the same units as used in the regulation. The unit is explicitly included with the property in the data.
 
 ### Opening hours/validity Periods
 	Opening Hours and the time frame during which time dependent properties are applicable are indicated following the [OSM Opening Hours specification] (https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification)

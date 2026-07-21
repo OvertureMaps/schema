@@ -37,7 +37,7 @@ TypeT = TypeVar("TypeT", bound=str)
 class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
     """Base class for all Overture features."""
 
-    # Only used to suport `ext_*` fields, which are on a deprecation path.
+    # Only used to support `ext_*` fields, which are on a deprecation path.
     model_config = ConfigDict(extra="allow")
 
     # Required
@@ -89,7 +89,7 @@ class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
                 "description": textwrap.dedent("""
                     Additional top-level properties are allowed if prefixed by `ext_`.
 
-                    This feature is a on a deprecation path and will be removed once the schema is
+                    This feature is on a deprecation path and will be removed once the schema is
                     fully migrated to Pydantic.
                 """).strip(),
             }

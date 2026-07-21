@@ -41,14 +41,14 @@ Rendering            Output formatting, all presentation decisions
     ^
 Output Layout        What to generate, where it goes, how outputs link
     ^
-Extraction           TypeInfo, FieldSpec, ModelSpec, UnionSpec
+Extraction           TypeInfo, FieldSpec, RecordSpec, UnionSpec
     ^
 Discovery            discover_models() from overture-schema-common
 ```
 
 **Discovery** loads registered Pydantic models via entry points. The return dict
 includes both concrete `BaseModel` subclasses (like `Building`) and discriminated union
-type aliases (like `Segment`). Both satisfy the `FeatureSpec` protocol and flow through
+type aliases (like `Segment`). Both satisfy the `ModelSpec` protocol and flow through
 the same pipeline.
 
 **Extraction** unwraps type annotations into specs. `analyze_type()` is the central

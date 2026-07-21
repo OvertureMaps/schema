@@ -1,0 +1,129 @@
+# Auto-generated — do not edit.
+
+"""Generated conformance tests for {{ model_name }}."""
+
+from __future__ import annotations
+
+import pytest
+from {{ expression_import }} import (
+    {{ model_name | upper }}_SCHEMA,
+    {{ model_name }}_checks,
+)
+from pyspark.sql import SparkSession
+
+from {{ support_prefix }}_support.harness import (
+    ValidationResults,
+    run_validation_pipeline,
+)
+{% if mutation_imports %}
+from {{ support_prefix }}_support.mutations import {{ mutation_imports | join(", ") }}
+{% endif %}
+{% if needs_set_at_path %}
+from {{ support_prefix }}_support.helpers import set_at_path
+{% endif %}
+from {{ support_prefix }}_support.scenarios import Scenario
+
+BASE_ROW_SPARSE: dict = {{ base_row_sparse }}
+
+
+BASE_ROW_POPULATED: dict = {{ base_row_populated }}
+
+
+SCENARIOS: list[Scenario] = [
+{% for entry in scenarios %}
+    Scenario(
+        {% for k, v in entry %}
+        {{ k }}={{ v }},
+        {% endfor %}
+    ),
+{% endfor %}
+]
+
+
+@pytest.fixture(scope="module")
+def checks() -> list:
+    return {{ model_name }}_checks()
+
+
+@pytest.fixture(scope="module")
+def sparse_results(spark: SparkSession, checks: list) -> ValidationResults:
+    return run_validation_pipeline(
+        spark,
+        {{ schema_name }},
+        checks,
+        BASE_ROW_SPARSE,
+        SCENARIOS,
+        model_name="{{ model_name }}",
+    )
+
+
+@pytest.fixture(scope="module")
+def populated_results(spark: SparkSession, checks: list) -> ValidationResults:
+    return run_validation_pipeline(
+        spark,
+        {{ schema_name }},
+        checks,
+        BASE_ROW_POPULATED,
+        SCENARIOS,
+        model_name="{{ model_name }}",
+    )
+
+
+def test_baseline_sparse(sparse_results: ValidationResults) -> None:
+    """Sparse base row passes every check the codegen produced.
+
+    Catches drift between base_row synthesis, schema_builder, and
+    check_builder -- if any of those produce output inconsistent with
+    the others (e.g. a check that rejects values the synthesizer emits
+    for required-only fields), the baseline fails here before any
+    scenario runs.
+    """
+    baseline = sparse_results.violations.get("{{ model_name }}::baseline", set())
+    assert baseline == set(), f"Sparse baseline has violations: {baseline}"
+
+
+def test_baseline_populated(populated_results: ValidationResults) -> None:
+    """Fully-populated base row passes every check the codegen produced.
+
+    Mirrors `test_baseline_sparse` but with all optional fields
+    filled, exercising codegen paths that only fire when a value is
+    present.
+    """
+    baseline = populated_results.violations.get("{{ model_name }}::baseline", set())
+    assert baseline == set(), f"Populated baseline has violations: {baseline}"
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS, ids=lambda s: s.id)
+def test_scenario_sparse(
+    scenario: Scenario,
+    sparse_results: ValidationResults,
+) -> None:
+    _assert_scenario(scenario, sparse_results)
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS, ids=lambda s: s.id)
+def test_scenario_populated(
+    scenario: Scenario,
+    populated_results: ValidationResults,
+) -> None:
+    _assert_scenario(scenario, populated_results)
+
+
+def _assert_scenario(
+    scenario: Scenario,
+    validation_results: ValidationResults,
+) -> None:
+    expected = (scenario.expected_field, scenario.expected_check)
+    if scenario.id in validation_results.skipped:
+        # An unbuildable scenario exercises nothing; fail loud rather than skip
+        # (a skip reads as a pass and hides codegen/scaffold gaps).
+        pytest.fail(
+            f"unbuildable scenario {scenario.id!r}: "
+            f"{validation_results.skipped[scenario.id]}"
+        )
+    valid_violations = validation_results.violations.get(f"{scenario.id}::valid", set())
+    assert expected not in valid_violations
+    invalid_violations = validation_results.violations.get(
+        f"{scenario.id}::invalid", set()
+    )
+    assert expected in invalid_violations

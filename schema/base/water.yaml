@@ -25,7 +25,7 @@ properties:
       - class
     properties:
       subtype:
-        description: The type of water body such as an river, ocean or lake.
+        description: The type of water body such as a river, ocean or lake.
         default: [water]
         type: string
         enum:

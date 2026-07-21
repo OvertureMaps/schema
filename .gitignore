@@ -5,3 +5,8 @@
 docs/docusaurus
 __pycache__/
 .coverage
+.testmondata*
+
+# Generated PySpark expressions and conformance tests (make generate-pyspark)
+packages/overture-schema-pyspark/src/overture/schema/pyspark/expressions/generated/
+packages/overture-schema-pyspark/tests/generated/

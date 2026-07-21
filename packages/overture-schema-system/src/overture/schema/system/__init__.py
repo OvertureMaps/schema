@@ -22,7 +22,7 @@ Subpackages
   help a Pydantic model's optional fields behave closer to JSON Schema semantics.
 - :mod:`primitive <overture.schema.system.primitive>` Primitive data types, including numeric and
   geometry types.
-- :mod:`ref <overture.schema.system.ref>` Unique IDs and annotations to descrie relationships
+- :mod:`ref <overture.schema.system.ref>` Unique IDs and annotations to describe relationships
   between models based on unique IDs. (*i.e.*, foreign key relationships).
 - :mod:`string <overture.schema.system.string>` String types with built-in validation to conform to
   well-known patterns, for example a country code, a hexadecimal color code, a language tag, or just

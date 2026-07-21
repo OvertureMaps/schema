@@ -10,19 +10,37 @@ dependencies = [
     "overture-schema-common",
     "overture-schema-system",
     "tomli>=2.0; python_version < '3.11'",
+    "typing-extensions>=4.0",
 ]
 description = "Code generator that produces documentation and code from Pydantic models"
 version = "0.1.1"
 license = "MIT"
 name = "overture-schema-codegen"
+requires-python = ">=3.10"
 
 [project.scripts]
 overture-codegen = "overture.schema.codegen.cli:main"
 
 [tool.uv.sources]
+overture-schema-addresses-theme = { workspace = true }
+overture-schema-base-theme = { workspace = true }
+overture-schema-buildings-theme = { workspace = true }
 overture-schema-cli = { workspace = true }
 overture-schema-common = { workspace = true }
+overture-schema-divisions-theme = { workspace = true }
+overture-schema-places-theme = { workspace = true }
 overture-schema-system = { workspace = true }
+overture-schema-transportation-theme = { workspace = true }
+
+[dependency-groups]
+test = [
+    "overture-schema-addresses-theme",
+    "overture-schema-base-theme",
+    "overture-schema-buildings-theme",
+    "overture-schema-divisions-theme",
+    "overture-schema-places-theme",
+    "overture-schema-transportation-theme",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]

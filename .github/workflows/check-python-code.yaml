@@ -6,12 +6,16 @@ on:
       - 'packages/**'
       - 'pyproject.toml'
       - 'uv.lock'
+      - 'Makefile'
+      - '.github/workflows/check-python-code.yaml'
   push:
     branches: [main, dev]
     paths:
       - 'packages/**'
       - 'pyproject.toml'
       - 'uv.lock'
+      - 'Makefile'
+      - '.github/workflows/check-python-code.yaml'
 
 permissions:
   contents: read
@@ -31,7 +35,8 @@ jobs:
         # Default resolution exercises the committed lock against every
         # supported Python minor version. The lowest-direct cell pins each
         # direct dependency to its declared floor (see UV_RESOLUTION below)
-        # and runs only on the Python floor.
+        # and runs only on the Python floor, since the resolved-low pyspark
+        # 3.4 wheels exist for 3.10/3.11 only.
         python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         resolution: [default]
         include:
@@ -47,7 +52,7 @@ jobs:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
           version: "latest"
 
@@ -56,9 +61,19 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      # PySpark 3.4 (the declared minimum) does not support Java 21, which is
+      # the default JDK on ubuntu-latest runners. Pin to Java 17 for the
+      # lowest-direct cell so the resolved pyspark==3.4.0 can actually start.
+      - name: Set up JDK 17
+        if: matrix.resolution == 'lowest-direct'
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
       # UV_RESOLUTION=lowest-direct makes `uv sync` re-resolve every direct
       # dependency to the lowest version permitted by pyproject.toml. This
-      # exercises the declared floor (e.g. pydantic==2.12.0) instead of
+      # exercises the declared floor (e.g. pyspark==3.4.0) instead of
       # whatever the committed lock happens to point at. Failures here mean
       # a direct dep's minimum needs to be bumped. Set via GITHUB_ENV only
       # in the relevant cell so default cells run with no UV_RESOLUTION at

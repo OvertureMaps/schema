@@ -1,23 +1,43 @@
-.PHONY: default uv-sync check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only update-baselines
+.PHONY: default uv-sync clean-pyspark generate-pyspark check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only update-baselines
+
+TESTMON ?= --testmon
 
 default: test-all
 
 install: uv-sync
 
 uv-sync:
-	@output=$$(uv sync --all-packages 2>&1) || { echo "$$output" >&2; exit 1; }
+	@output=$$(uv sync --all-packages --all-extras 2>&1) || { echo "$$output" >&2; exit 1; }
 
-check: uv-sync
+PYSPARK_EXPRESSIONS := packages/overture-schema-pyspark/src/overture/schema/pyspark/expressions/generated
+PYSPARK_GENERATED_TESTS := packages/overture-schema-pyspark/tests/generated
+
+clean-pyspark:
+	@rm -rf $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS)
+
+generate-pyspark: uv-sync clean-pyspark
+	@uv run overture-codegen generate --format pyspark \
+		--output-dir $(PYSPARK_EXPRESSIONS) \
+		--test-output-dir $(PYSPARK_GENERATED_TESTS)
+	@uv run ruff check --fix --quiet $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS)
+	@uv run ruff format --quiet $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS)
+
+check: uv-sync generate-pyspark
 	@$(MAKE) -j test-only doctest-only lint-only mypy-only
 
-test-all: uv-sync
+# test-all is the unconditional full run -- testmon-independent, unlike the
+# incremental test/test-only targets -- so data-only changes (golden JSON,
+# [[examples]]) that testmon cannot see still get exercised. It regenerates
+# the PySpark output first: that tree is no longer tracked in git, so the
+# generated conformance tests only exist once generation has run.
+test-all: uv-sync generate-pyspark
 	@uv run pytest -W error packages/
 
 test: uv-sync
-	@uv run pytest -W error packages/ -x -q --tb=short
+	@uv run pytest -W error $(TESTMON) packages/ -x -q --tb=short
 
 test-only:
-	@uv run pytest -W error packages/ -x -q --tb=short
+	@uv run pytest -W error $(TESTMON) packages/ -x -q --tb=short
 
 coverage: uv-sync
 	@uv run pytest packages/ --cov overture.schema --cov-report=term --cov-report=html && open htmlcov/index.html

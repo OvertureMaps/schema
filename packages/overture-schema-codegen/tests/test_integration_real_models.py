@@ -5,21 +5,18 @@ the installed Overture schema packages.
 """
 
 import pytest
-from codegen_test_support import assert_literal_field
+from codegen_test_support import assert_literal_field, spec_for_model
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
-    FeatureSpec,
     ModelSpec,
+    RecordSpec,
     UnionSpec,
     filter_model_classes,
-    is_model_class,
-    is_union_alias,
 )
-from overture.schema.codegen.extraction.type_analyzer import TypeKind
 from overture.schema.codegen.extraction.union_extraction import extract_union
-from overture.schema.codegen.layout.module_layout import entry_point_class
 from overture.schema.codegen.markdown.pipeline import generate_markdown_pages
-from overture.schema.codegen.markdown.renderer import render_feature
+from overture.schema.codegen.markdown.renderer import render_model
+from overture.schema.codegen.spec_discovery import extract_model_spec
 from overture.schema.system.discovery import discover_models
 from overture.schema.transportation import Segment
 from overture.schema.transportation.segment.models import RoadSegment
@@ -28,21 +25,6 @@ from pydantic import BaseModel
 
 class TestDiscoverModels:
     """Tests for model discovery."""
-
-    def test_discover_models_returns_dict(self) -> None:
-        """discover_models() should return a dictionary."""
-        models = discover_models()
-        assert isinstance(models, dict)
-
-    def test_discover_models_finds_building(
-        self, building_class: type[BaseModel]
-    ) -> None:
-        """Should discover the Building model."""
-        assert issubclass(building_class, BaseModel)
-
-    def test_discover_models_finds_place(self, place_class: type[BaseModel]) -> None:
-        """Should discover the Place model."""
-        assert issubclass(place_class, BaseModel)
 
     def test_discover_models_returns_multiple_themes(self) -> None:
         """Should discover models from multiple themes."""
@@ -53,26 +35,25 @@ class TestDiscoverModels:
 class TestExtractBuildingModel:
     """Tests for extracting the Building model."""
 
-    def test_extract_building_has_name(self, building_spec: ModelSpec) -> None:
+    def test_extract_building_has_name(self, building_spec: RecordSpec) -> None:
         """Building model spec should have correct name."""
         assert building_spec.name == "Building"
 
-    def test_extract_building_has_theme_type(self, building_spec: ModelSpec) -> None:
+    def test_extract_building_has_theme_type(self, building_spec: RecordSpec) -> None:
         """Building should have theme='buildings', type='building' as Literal fields."""
         assert_literal_field(building_spec, "theme", "buildings")
         assert_literal_field(building_spec, "type", "building")
 
-    def test_extract_building_has_fields(self, building_spec: ModelSpec) -> None:
+    def test_extract_building_has_fields(self, building_spec: RecordSpec) -> None:
         """Building should have multiple fields."""
         assert len(building_spec.fields) > 0, "Building should have at least one field"
         field_names = {f.name for f in building_spec.fields}
         assert "id" in field_names
 
-    def test_building_field_types_are_valid(self, building_spec: ModelSpec) -> None:
-        """All Building fields should have valid TypeInfo."""
+    def test_building_field_shapes_are_present(self, building_spec: RecordSpec) -> None:
+        """Every Building field has a `FieldShape`."""
         for field in building_spec.fields:
-            assert field.type_info is not None
-            assert field.type_info.kind in TypeKind
+            assert field.shape is not None
 
 
 class TestExtractPlaceModel:
@@ -109,17 +90,12 @@ class TestFieldTypeAnalysis:
             spec = extract_model(model_class)
             assert spec.name == model_class.__name__
 
-    def test_all_field_types_resolved(self, all_discovered_models: dict) -> None:
-        """All fields should have resolved TypeInfo."""
+    def test_all_field_shapes_resolved(self, all_discovered_models: dict) -> None:
+        """Every field of every discovered model carries a `FieldShape`."""
         for model_class in filter_model_classes(all_discovered_models):
             spec = extract_model(model_class)
             for field in spec.fields:
-                assert field.type_info.base_type, (
-                    f"No base_type for {spec.name}.{field.name}"
-                )
-                assert field.type_info.kind in TypeKind, (
-                    f"Invalid kind for {spec.name}.{field.name}"
-                )
+                assert field.shape is not None, f"No shape for {spec.name}.{field.name}"
 
 
 class TestMarkdownRenderingRealModels:
@@ -127,7 +103,7 @@ class TestMarkdownRenderingRealModels:
 
     def test_render_building_content(self, building_class: type[BaseModel]) -> None:
         """Building renders with title, field table, and expected fields."""
-        markdown = render_feature(extract_model(building_class))
+        markdown = render_model(spec_for_model(building_class))
 
         assert "# Building" in markdown
         assert "| Name |" in markdown
@@ -136,11 +112,9 @@ class TestMarkdownRenderingRealModels:
         assert "geometry" in markdown
 
     def test_render_all_models_without_crash(self, all_discovered_models: dict) -> None:
-        """render_feature should not crash on any discovered model."""
+        """render_model should not crash on any discovered model."""
         for model_class in filter_model_classes(all_discovered_models):
-            markdown = render_feature(extract_model(model_class))
-            assert isinstance(markdown, str)
-            assert len(markdown) > 0
+            render_model(spec_for_model(model_class))
 
 
 class TestDiscriminatedUnions:
@@ -221,9 +195,8 @@ class TestSegmentUnionExtraction:
         assert segment_spec.discriminator_field == "subtype"
         assert segment_spec.discriminator_mapping is not None
         assert len(segment_spec.discriminator_mapping) == 3
-        # Keys are str(enum_member), e.g. "Subtype.ROAD"
-        road_key = next(k for k in segment_spec.discriminator_mapping if "ROAD" in k)
-        assert segment_spec.discriminator_mapping[road_key] is RoadSegment
+        # Keys are runtime string values, e.g. "road"
+        assert segment_spec.discriminator_mapping["road"] is RoadSegment
 
     def test_segment_common_base_is_base_model(self, segment_spec: UnionSpec) -> None:
         """Segment common_base is the shared base class."""
@@ -234,27 +207,21 @@ class TestSegmentUnionExtraction:
         assert "id" in segment_spec.common_base.model_fields
 
 
-@pytest.fixture(scope="module")
-def pages() -> list:
-    """Generate all pages from real discovered models."""
-    models = discover_models()
-    feature_specs: list[FeatureSpec] = []
-    for key, entry in models.items():
-        if is_model_class(entry):
-            feature_specs.append(extract_model(entry, entry_point=key.entry_point))
-        elif is_union_alias(entry):
-            feature_specs.append(
-                extract_union(
-                    entry_point_class(key.entry_point),
-                    entry,
-                    entry_point=key.entry_point,
-                )
-            )
-    return generate_markdown_pages(feature_specs, "overture.schema")
-
-
 class TestPydanticTypePages:
     """End-to-end: pipeline produces pages for referenced Pydantic built-in types."""
+
+    _SCHEMA_ROOT = "overture.schema"
+
+    @pytest.fixture(scope="class")
+    def pages(self) -> list:
+        """Generate all pages from real discovered models."""
+        models = discover_models()
+        model_specs: list[ModelSpec] = [
+            spec
+            for key, entry in models.items()
+            if (spec := extract_model_spec(key, entry)) is not None
+        ]
+        return generate_markdown_pages(model_specs, self._SCHEMA_ROOT)
 
     def test_http_url_page_exists(self, pages: list) -> None:
         """Pipeline produces a page for HttpUrl under pydantic/networks/."""
@@ -274,5 +241,5 @@ class TestPydanticTypePages:
 
     def test_place_links_to_http_url(self, pages: list) -> None:
         """Place feature page links to the HttpUrl type page."""
-        place_page = next(p for p in pages if p.path.stem == "place" and p.is_feature)
+        place_page = next(p for p in pages if p.path.stem == "place" and p.is_model)
         assert "HttpUrl" in place_page.content

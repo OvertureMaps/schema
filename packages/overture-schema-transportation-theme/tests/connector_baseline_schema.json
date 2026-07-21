@@ -141,7 +141,7 @@
       },
       "patternProperties": {
         "^ext_.*$": {
-          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is a on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
+          "description": "Additional top-level properties are allowed if prefixed by `ext_`.\n\nThis feature is on a deprecation path and will be removed once the schema is\nfully migrated to Pydantic."
         }
       },
       "properties": {

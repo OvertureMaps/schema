@@ -10,6 +10,8 @@ import sys
 from collections.abc import Iterable, Mapping
 from pathlib import PurePosixPath
 
+from overture.schema.system.discovery import split_entry_point
+
 __all__ = [
     "OUTPUT_ROOT",
     "compute_output_dir",
@@ -24,26 +26,13 @@ __all__ = [
 OUTPUT_ROOT = PurePosixPath(".")
 
 
-def _split_entry_point(entry_point_path: str) -> tuple[str, str]:
-    """Split `"module.path:ClassName"` into its two parts.
-
-    >>> _split_entry_point("overture.schema.buildings:Building")
-    ('overture.schema.buildings', 'Building')
-    """
-    if ":" not in entry_point_path:
-        msg = f"Expected 'module:Class' format, got {entry_point_path!r}"
-        raise ValueError(msg)
-    module, cls = entry_point_path.split(":", 1)
-    return module, cls
-
-
 def entry_point_module(entry_point_path: str) -> str:
     """Extract module path from entry-point-style path.
 
     >>> entry_point_module("overture.schema.buildings:Building")
     'overture.schema.buildings'
     """
-    return _split_entry_point(entry_point_path)[0]
+    return split_entry_point(entry_point_path)[0]
 
 
 def entry_point_class(entry_point_path: str) -> str:
@@ -52,7 +41,7 @@ def entry_point_class(entry_point_path: str) -> str:
     >>> entry_point_class("overture.schema.buildings:Building")
     'Building'
     """
-    return _split_entry_point(entry_point_path)[1]
+    return split_entry_point(entry_point_path)[1]
 
 
 def compute_schema_root(module_paths: Iterable[str]) -> str:

@@ -6,17 +6,26 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 
+from pydantic import BaseModel
+
+from ..extraction.field import (
+    FieldShape,
+    ModelRef,
+    NewTypeShape,
+    Primitive,
+    UnionRef,
+)
+from ..extraction.field_walk import all_constraints, walk_shape
 from ..extraction.specs import (
-    FeatureSpec,
     FieldSpec,
     ModelSpec,
     NewTypeSpec,
+    RecordSpec,
     SupplementarySpec,
     TypeIdentity,
     UnionSpec,
-    is_pydantic_type,
+    is_pydantic_sourced,
 )
-from ..extraction.type_analyzer import TypeInfo, TypeKind, walk_type_info
 
 __all__ = [
     "UsedByEntry",
@@ -41,7 +50,7 @@ class UsedByEntry:
 
 
 def compute_reverse_references(
-    feature_specs: Sequence[FeatureSpec],
+    model_specs: Sequence[ModelSpec],
     all_specs: Mapping[TypeIdentity, SupplementarySpec],
 ) -> dict[TypeIdentity, list[UsedByEntry]]:
     """Compute reverse references from types to their referrers.
@@ -51,121 +60,108 @@ def compute_reverse_references(
 
     Parameters
     ----------
-    feature_specs : Sequence[FeatureSpec]
-        Feature-level specs (ModelSpec or UnionSpec).
-    all_specs : Mapping[TypeIdentity, SupplementarySpec]
+    model_specs
+        Feature-level specs (RecordSpec or UnionSpec).
+    all_specs
         Supplementary types (enums, newtypes, sub-models).
-
-    Returns
-    -------
-    dict[TypeIdentity, list[UsedByEntry]]
-        Dict mapping TypeIdentity to sorted lists of UsedByEntry.
     """
-    # Track references with sets to deduplicate
-    references: dict[TypeIdentity, set[UsedByEntry]] = {}
+    # An insertion-ordered set (dict keys) per target: dedups like a set but
+    # iterates deterministically, so sorted()'s stable order breaks ties by
+    # insertion rather than by nondeterministic set-hash order.
+    references: dict[TypeIdentity, dict[UsedByEntry, None]] = {}
 
     def add_reference(
         target: TypeIdentity, referrer: TypeIdentity, kind: UsedByKind
     ) -> None:
-        """Add a reference from referrer to target, with deduplication."""
         if target == referrer or target not in all_specs:
             return
-        references.setdefault(target, set()).add(UsedByEntry(referrer, kind))
+        references.setdefault(target, {})[UsedByEntry(referrer, kind)] = None
 
-    def collect_from_type_info(
-        ti: TypeInfo, referrer: TypeIdentity, referrer_kind: UsedByKind
+    def collect_from_shape(
+        shape: FieldShape,
+        referrer: TypeIdentity,
+        referrer_kind: UsedByKind,
     ) -> None:
-        """Collect references from a TypeInfo."""
+        """Walk a shape and add references for every type it touches."""
 
-        def _visit(node: TypeInfo) -> None:
-            if node.newtype_ref is not None and node.newtype_name is not None:
-                add_reference(
-                    TypeIdentity(node.newtype_ref, node.newtype_name),
-                    referrer,
-                    referrer_kind,
-                )
-
-            # ENUM, MODEL, pydantic (PRIMITIVE), and UNION are mutually
-            # exclusive by TypeKind.
-            if (
-                node.kind in (TypeKind.ENUM, TypeKind.MODEL)
-                and node.source_type is not None
-            ):
-                add_reference(
-                    TypeIdentity.of(node.source_type),
-                    referrer,
-                    referrer_kind,
-                )
-            elif is_pydantic_type(node):
-                add_reference(
-                    TypeIdentity.of(node.source_type), referrer, referrer_kind
-                )
-            elif node.union_members is not None:
-                for member_cls in node.union_members:
+        def _visit(node: FieldShape) -> None:
+            match node:
+                case NewTypeShape(name=name, ref=ref):
+                    add_reference(TypeIdentity(ref, name), referrer, referrer_kind)
+                case ModelRef(model=m) if m.source_type is not None:
                     add_reference(
-                        TypeIdentity.of(member_cls),
-                        referrer,
-                        referrer_kind,
+                        TypeIdentity.of(m.source_type), referrer, referrer_kind
                     )
+                case UnionRef(union=u):
+                    for member_cls in u.members:
+                        add_reference(
+                            TypeIdentity.of(member_cls), referrer, referrer_kind
+                        )
+                case Primitive(source_type=cls) if cls is not None:
+                    if isinstance(cls, type) and (
+                        issubclass(cls, Enum)
+                        or issubclass(cls, BaseModel)
+                        or is_pydantic_sourced(cls)
+                    ):
+                        add_reference(TypeIdentity.of(cls), referrer, referrer_kind)
 
-        walk_type_info(ti, _visit)
+        walk_shape(shape, _visit)
 
     def collect_from_fields(
-        fields: list[FieldSpec], referrer: TypeIdentity, referrer_kind: UsedByKind
+        fields: list[FieldSpec],
+        referrer: TypeIdentity,
+        referrer_kind: UsedByKind,
     ) -> None:
-        """Collect references from model fields."""
+        """Collect references from each field's shape."""
         for field_spec in fields:
-            collect_from_type_info(field_spec.type_info, referrer, referrer_kind)
+            collect_from_shape(field_spec.shape, referrer, referrer_kind)
 
-    def collect_from_model_spec(spec: ModelSpec, referrer: TypeIdentity) -> None:
-        """Collect references from a ModelSpec."""
+    def collect_from_model_spec(spec: RecordSpec, referrer: TypeIdentity) -> None:
         collect_from_fields(spec.fields, referrer, UsedByKind.MODEL)
 
     def collect_from_union_spec(spec: UnionSpec) -> None:
-        """Collect references from a UnionSpec."""
         referrer = spec.identity
         # Union features reference their members
         for member_cls in spec.members:
-            add_reference(
-                TypeIdentity.of(member_cls),
-                referrer,
-                UsedByKind.MODEL,
-            )
-        # Also walk fields for other supplementary types
+            add_reference(TypeIdentity.of(member_cls), referrer, UsedByKind.MODEL)
         collect_from_fields(spec.fields, referrer, UsedByKind.MODEL)
 
     def collect_from_newtype_spec(spec: NewTypeSpec, referrer: TypeIdentity) -> None:
-        """Collect references from a NewTypeSpec."""
-        collect_from_type_info(spec.type_info, referrer, UsedByKind.NEWTYPE)
+        # The NewType's own identity isn't added here (self-reference).
+        # spec.shape already has the outer NewTypeShape stripped.
+        collect_from_shape(spec.shape, referrer, UsedByKind.NEWTYPE)
 
-        # Collect inherited NewTypes from constraint sources
-        for cs in spec.type_info.constraints:
+        # Inherited NewTypes from constraint sources at every layer
+        # (array / map / scalar), not just the terminal scalar -- a
+        # NewType chaining through an array NewType carries the inner
+        # NewType's provenance on the array layer.
+        for cs in all_constraints(spec.shape):
             if cs.source_ref is not None and cs.source_name is not None:
-                ref_id = TypeIdentity(cs.source_ref, cs.source_name)
-                add_reference(ref_id, referrer, UsedByKind.NEWTYPE)
+                add_reference(
+                    TypeIdentity(cs.source_ref, cs.source_name),
+                    referrer,
+                    UsedByKind.NEWTYPE,
+                )
 
     # Collect from features
-    for spec in feature_specs:
-        if isinstance(spec, ModelSpec):
+    for spec in model_specs:
+        if isinstance(spec, RecordSpec):
             collect_from_model_spec(spec, spec.identity)
         elif isinstance(spec, UnionSpec):
             collect_from_union_spec(spec)
 
-    # Collect from supplementary specs (NewTypes and sub-models reference
-    # other types; enums do not, so they need no processing here)
+    # Collect from supplementary specs (enums have no outgoing references)
     for tid, supp_spec in all_specs.items():
         if isinstance(supp_spec, NewTypeSpec):
             collect_from_newtype_spec(supp_spec, tid)
-        elif isinstance(supp_spec, ModelSpec):
+        elif isinstance(supp_spec, RecordSpec):
             collect_from_model_spec(supp_spec, tid)
 
-    # Sort into deterministic lists. (kind, name) handles the common case;
-    # module breaks ties when two referrers share the same display name
-    # (e.g. identically-named types from different themes/modules).
+    # Sort into deterministic lists.
     result: dict[TypeIdentity, list[UsedByEntry]] = {}
-    for target, ref_set in references.items():
+    for target, ref_map in references.items():
         entries = sorted(
-            ref_set,
+            ref_map,
             key=lambda e: (e.kind.value, e.identity.name, e.identity.module),
         )
         result[target] = entries

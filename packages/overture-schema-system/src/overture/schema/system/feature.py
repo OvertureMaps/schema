@@ -170,7 +170,7 @@ class Feature(BaseModel):
     ...         "subtype": "barb_wire_4"
     ...     }
     ... }''')
-    Fence(id=<MISSING>, bbox=<MISSING>, geometry=<<LINESTRING (0 0, 0 0.01)>>, type='fence', subtype='barb_wire_4', height=None)
+    Fence(id=MISSING, bbox=MISSING, geometry=<<LINESTRING (0 0, 0 0.01)>>, type='fence', subtype='barb_wire_4', height=None)
 
     You can model classes that are not `Feature` subclasses in `field_discriminator` to enable
     discriminated unions between features and non-features, as long as at least one model class is

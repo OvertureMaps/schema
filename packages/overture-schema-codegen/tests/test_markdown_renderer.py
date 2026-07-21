@@ -22,12 +22,10 @@ from codegen_test_support import (
     TreeNode,
     Venue,
     make_union_spec,
+    spec_for_model,
 )
 from overture.schema.codegen.extraction.examples import ExampleRecord
-from overture.schema.codegen.extraction.model_extraction import (
-    expand_model_tree,
-    extract_model,
-)
+from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
@@ -45,7 +43,7 @@ from overture.schema.codegen.markdown.renderer import (
     _linkify_bare_urls,
     _sanitize_for_table_cell,
     render_enum,
-    render_feature,
+    render_model,
     render_newtype,
     render_primitives_from_specs,
     render_pydantic_type,
@@ -186,12 +184,12 @@ class TestLinkifyBareUrls:
 
 
 class TestRenderFeatureBasic:
-    """Tests for render_feature with basic models."""
+    """Tests for render_model with basic models."""
 
     def test_renders_title_from_model_name(self) -> None:
         """Should render model name as H1 title."""
         spec = extract_model(SimpleModel)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "# SimpleModel" in result
 
@@ -204,7 +202,7 @@ class TestRenderFeatureBasic:
             value: int
 
         spec = extract_model(DescribedModel)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "This is the model description." in result
 
@@ -217,7 +215,7 @@ class TestRenderFeatureBasic:
             name: str
 
         spec = extract_model(ModelWithField)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "## Fields" in result
 
@@ -230,7 +228,7 @@ class TestRenderFeatureBasic:
             name: str
 
         spec = extract_model(ModelWithField)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "| Name | Type | Description |" in result
         assert "| -----: | :----: | ------------- |" in result
@@ -248,7 +246,7 @@ class TestRenderFeatureFieldTable:
             name: str = Field(description="The name")
 
         spec = extract_model(ModelWithRequired)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "| `name` |" in result
         assert "| `string` |" in result
@@ -263,7 +261,7 @@ class TestRenderFeatureFieldTable:
             nickname: str | None = Field(None, description="Optional nickname")
 
         spec = extract_model(ModelWithOptional)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "| `nickname` |" in result
         assert "(optional)" in result
@@ -280,7 +278,7 @@ class TestRenderFeatureFieldTable:
             active: bool
 
         spec = extract_model(ModelWithTypes)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         # Check that fields are present (exact type format may vary)
         assert "`count`" in result
@@ -296,7 +294,7 @@ class TestRenderFeatureFieldTable:
             name: str = Field(description="First line.\n\nSecond paragraph.")
 
         spec = extract_model(ModelWithMultilineDesc)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "First line.<br/><br/>Second paragraph." in result
         # The table should not be broken by a blank line
@@ -320,7 +318,7 @@ class TestRenderFeatureWithThemeType:
             name: str
 
         spec = extract_model(Place)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         # Theme and type should appear somewhere in output
         assert "places" in result
@@ -339,7 +337,7 @@ class TestRenderFeatureLiteralField:
             name: str
 
         spec = extract_model(TestFeature)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert '| `"test_theme"` |' in result
         assert '| `"test_type"` |' in result
@@ -365,9 +363,7 @@ class TestRenderFeatureNewTypeDisplay:
 
             sources: TestSources | None = None
 
-        spec = extract_model(ModelWithSources)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_model(spec_for_model(ModelWithSources))
 
         assert "`TestSources`" in result
         assert "(list, optional)" in result
@@ -381,7 +377,7 @@ class TestRenderFeatureNewTypeDisplay:
             color: HexColor | None = None
 
         spec = extract_model(ModelWithColor)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "`HexColor`" in result
         assert "(optional)" in result
@@ -395,7 +391,7 @@ class TestRenderFeatureNewTypeDisplay:
             count: int32
 
         spec = extract_model(ModelWithCount)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "| `int32` |" in result
         # Should NOT be linked
@@ -410,7 +406,7 @@ class TestRenderFeatureNewTypeDisplay:
             name: str
 
         spec = extract_model(ModelWithName)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "| `string` |" in result
 
@@ -426,7 +422,7 @@ class TestRenderFeatureNewTypeDisplay:
             status: Status
 
         spec = extract_model(ModelWithEnum)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "| `Status` |" in result
 
@@ -441,9 +437,7 @@ class TestRenderFeatureNewTypeDisplay:
 
             inner: Inner
 
-        spec = extract_model(Outer)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_model(spec_for_model(Outer))
 
         assert "| `Inner` |" in result
 
@@ -453,9 +447,7 @@ class TestRenderFeatureInlineExpansion:
 
     def test_direct_model_fields_expanded_with_dot_prefix(self) -> None:
         """Direct model field expands sub-fields with dot notation."""
-        spec = extract_model(FeatureWithAddress)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_model(spec_for_model(FeatureWithAddress))
 
         assert "| `address.street` |" in result
         assert "| `address.city` |" in result
@@ -463,18 +455,14 @@ class TestRenderFeatureInlineExpansion:
 
     def test_list_of_model_fields_expanded_with_bracket_dot_prefix(self) -> None:
         """List-of-model field expands sub-fields with []. notation."""
-        spec = extract_model(FeatureWithSources)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_model(spec_for_model(FeatureWithSources))
 
         assert "| `sources[]` |" in result
         assert "| `sources[].dataset` |" in result
 
     def test_cycle_detection_prevents_infinite_recursion(self) -> None:
         """Recursive model emits parent row but does not recurse."""
-        spec = extract_model(TreeNode)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_model(spec_for_model(TreeNode))
 
         # The parent field row appears
         assert "| `parent` |" in result
@@ -484,16 +472,14 @@ class TestRenderFeatureInlineExpansion:
     def test_primitive_field_unchanged(self) -> None:
         """Primitive fields produce a single row without expansion."""
         spec = extract_model(SimpleModel)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         lines = [line for line in result.splitlines() if "| `name` |" in line]
         assert len(lines) == 1
 
     def test_parent_row_preserved_before_expansion(self) -> None:
         """The parent field row still appears before expanded sub-fields."""
-        spec = extract_model(FeatureWithAddress)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_model(spec_for_model(FeatureWithAddress))
 
         # Parent row for 'address' itself appears
         assert "| `address` |" in result
@@ -514,7 +500,7 @@ class TestRenderFeatureConstraints:
     def test_venue_has_constraints_section(self) -> None:
         """Venue's @require_any_of renders as a Constraints section."""
         spec = extract_model(Venue)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "## Constraints" in result
         assert "At least one of `name`, `description` must be set" in result
@@ -523,7 +509,7 @@ class TestRenderFeatureConstraints:
         """Constraints section appears after Fields, before Examples."""
         spec = extract_model(Venue)
         examples = [ExampleRecord(rows=[("name", "test")])]
-        result = render_feature(spec, examples=examples)
+        result = render_model(spec, examples=examples)
 
         lines = result.splitlines()
         fields_line = next(i for i, line in enumerate(lines) if "## Fields" in line)
@@ -543,7 +529,7 @@ class TestRenderFeatureConstraints:
             name: str
 
         spec = extract_model(Plain)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "## Constraints" not in result
 
@@ -557,7 +543,7 @@ class TestRenderFeatureConstraints:
             name: str
 
         spec = extract_model(Strict)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "## Constraints" not in result
 
@@ -568,7 +554,7 @@ class TestRenderFeatureConstraintNotes:
     def test_venue_name_field_includes_constraint_note(self) -> None:
         """Venue's name field description cell includes constraint note in italics."""
         spec = extract_model(Venue)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         # Find the row for 'name' field
         lines = result.splitlines()
@@ -580,7 +566,7 @@ class TestRenderFeatureConstraintNotes:
     def test_field_with_no_description_gets_constraint_note(self) -> None:
         """Field with no existing description still gets the constraint note."""
         spec = extract_model(Venue)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         # description field on Venue has no Field(description=...)
         lines = result.splitlines()
@@ -589,13 +575,11 @@ class TestRenderFeatureConstraintNotes:
 
 
 class TestRenderFeatureFieldConstraints:
-    """Tests for field-level constraint annotation from TypeInfo."""
+    """Tests for field-level constraint annotation from the field's shape."""
 
     def test_venue_geometry_shows_allowed_types(self) -> None:
         """Venue's geometry field shows GeometryTypeConstraint as a note."""
-        spec = extract_model(Venue)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_model(spec_for_model(Venue))
 
         lines = result.splitlines()
         geo_line = next(line for line in lines if "| `geometry` |" in line)
@@ -603,8 +587,6 @@ class TestRenderFeatureFieldConstraints:
 
     def test_venue_reference_links_when_context_available(self) -> None:
         """Reference constraint links the target type when LinkContext has the page."""
-        spec = extract_model(Venue)
-        expand_model_tree(spec)
         ctx = LinkContext(
             page_path=PurePosixPath("music/venue.md"),
             registry={
@@ -613,7 +595,7 @@ class TestRenderFeatureFieldConstraints:
                 )
             },
         )
-        result = render_feature(spec, link_ctx=ctx)
+        result = render_model(spec_for_model(Venue), link_ctx=ctx)
 
         lines = result.splitlines()
         ref_line = next(line for line in lines if "| `resident_ensemble` |" in line)
@@ -622,14 +604,72 @@ class TestRenderFeatureFieldConstraints:
 
     def test_venue_reference_unlinked_without_context(self) -> None:
         """Reference constraint renders as plain code when no LinkContext."""
-        spec = extract_model(Venue)
-        expand_model_tree(spec)
-        result = render_feature(spec)
+        result = render_model(spec_for_model(Venue))
 
         lines = result.splitlines()
         ref_line = next(line for line in lines if "| `resident_ensemble` |" in line)
         assert "References `Instrument`" in ref_line
         assert "aggregation, part of" in ref_line
+
+
+class TestRenderFeatureMapConstraints:
+    """Tests for map key/value constraint notes in field description cells.
+
+    Mirrors `Sources.license_priority`, whose value bound was previously
+    dropped because `all_constraints` stopped at `MapOf`.
+    """
+
+    def test_map_value_bound_shows_value_note(self) -> None:
+        """A directly-applied map value bound renders as a 'value:' note."""
+
+        class ModelWithMapValueBound(BaseModel):
+            """Model with a bounded map value."""
+
+            priorities: dict[str, Annotated[int, Field(ge=0)]] = Field(
+                description="Priorities."
+            )
+
+        result = render_model(extract_model(ModelWithMapValueBound))
+        line = next(li for li in result.splitlines() if "| `priorities` |" in li)
+        assert "*value: `≥ 0`*" in line
+
+    def test_map_key_bound_shows_key_note(self) -> None:
+        """A directly-applied map key bound renders as a 'key:' note."""
+
+        class ModelWithMapKeyBound(BaseModel):
+            """Model with a bounded map key."""
+
+            counts: dict[Annotated[int, Field(ge=1)], str] = Field(
+                description="Counts."
+            )
+
+        result = render_model(extract_model(ModelWithMapKeyBound))
+        line = next(li for li in result.splitlines() if "| `counts` |" in li)
+        assert "*key: `≥ 1`*" in line
+
+
+class TestRenderFeatureMapModelValue:
+    """A model-valued map names its value, never a bare `?`.
+
+    `extract_model` resolves the value to a `ModelRef`, the case that
+    `resolve_type_name` could not name and silently rendered as `?`.
+    """
+
+    def test_model_valued_map_names_the_model(self) -> None:
+        class Inner(BaseModel):
+            """An inner model."""
+
+            x: int = Field(description="x")
+
+        class Outer(BaseModel):
+            """Outer with a model-valued map."""
+
+            by_key: dict[str, Inner] = Field(description="Map to inner models.")
+
+        result = render_model(extract_model(Outer))
+        line = next(li for li in result.splitlines() if "| `by_key` |" in li)
+        assert "map<string, Inner>" in line
+        assert "?" not in line
 
 
 class TestRenderEnumBasic:
@@ -827,7 +867,7 @@ class TestPlacementAwareLinks:
             },
         )
 
-        result = render_feature(spec, link_ctx=ctx)
+        result = render_model(spec, link_ctx=ctx)
 
         assert "[`HexColor`](../../types/strings/hex_color.md)" in result
 
@@ -853,7 +893,7 @@ class TestPlacementAwareLinks:
             },
         )
 
-        result = render_feature(spec, link_ctx=ctx)
+        result = render_model(spec, link_ctx=ctx)
 
         assert "[`RoofShape`](../roof_shape.md)" in result
 
@@ -879,7 +919,7 @@ class TestPlacementAwareLinks:
             },
         )
 
-        result = render_feature(spec, link_ctx=ctx)
+        result = render_model(spec, link_ctx=ctx)
 
         assert "[`BuildingClass`](building_class.md)" in result
 
@@ -892,7 +932,7 @@ class TestPlacementAwareLinks:
             color: HexColor | None = None
 
         spec = extract_model(ModelWithColor)
-        result = render_feature(spec)
+        result = render_model(spec)
 
         assert "`HexColor`" in result
         assert "hex_color.md" not in result
@@ -1028,15 +1068,15 @@ class TestFormatExampleValue:
 
 
 class TestRenderFeatureWithExamples:
-    """Tests for render_feature with examples support."""
+    """Tests for render_model with examples support."""
 
     def test_accepts_examples_parameter(self) -> None:
-        """render_feature accepts examples parameter."""
+        """render_model accepts examples parameter."""
         spec = extract_model(SimpleModel)
         examples = [ExampleRecord(rows=[("name", "test")])]
 
         # Should not raise
-        result = render_feature(spec, examples=examples)
+        result = render_model(spec, examples=examples)
         assert "# SimpleModel" in result
 
     def test_renders_single_example_without_heading(self) -> None:
@@ -1051,7 +1091,7 @@ class TestRenderFeatureWithExamples:
         spec = extract_model(ModelWithCount)
         examples = [ExampleRecord(rows=[("name", "test"), ("count", 42)])]
 
-        result = render_feature(spec, examples=examples)
+        result = render_model(spec, examples=examples)
         assert "## Examples" in result
         assert "| Column | Value |" in result
         assert "| `name` | `test` |" in result
@@ -1067,7 +1107,7 @@ class TestRenderFeatureWithExamples:
             ExampleRecord(rows=[("name", "second")]),
         ]
 
-        result = render_feature(spec, examples=examples)
+        result = render_model(spec, examples=examples)
         assert "## Examples" in result
         assert "### Example 1" in result
         assert "### Example 2" in result
@@ -1097,7 +1137,7 @@ class TestRenderFeatureWithExamples:
             )
         ]
 
-        result = render_feature(spec, examples=examples)
+        result = render_model(spec, examples=examples)
         # String with backticks
         assert "| `text` | `hello` |" in result
         # Number with backticks
@@ -1110,14 +1150,14 @@ class TestRenderFeatureWithExamples:
     def test_no_examples_omits_section(self) -> None:
         """When examples is None, Examples section is not rendered."""
         spec = extract_model(SimpleModel)
-        result = render_feature(spec, examples=None)
+        result = render_model(spec, examples=None)
 
         assert "## Examples" not in result
 
     def test_empty_examples_list_omits_section(self) -> None:
         """When examples is empty list, Examples section is not rendered."""
         spec = extract_model(SimpleModel)
-        result = render_feature(spec, examples=[])
+        result = render_model(spec, examples=[])
 
         assert "## Examples" not in result
 
@@ -1203,7 +1243,7 @@ class TestRenderUnionTemplate:
                 AnnotatedField(
                     field_spec=FieldSpec(
                         name="id",
-                        type_info=STR_TYPE,
+                        shape=STR_TYPE,
                         description="ID",
                         is_required=True,
                     ),
@@ -1211,27 +1251,31 @@ class TestRenderUnionTemplate:
                 ),
             ],
         )
-        result = render_feature(spec)
+        result = render_model(spec)
         assert "| `id` |" in result
         assert "*(" not in result  # no variant tag
 
     def test_variant_fields_have_inline_tag(self) -> None:
         """Variant-specific fields get *(Variant)* tag."""
+
+        class RoadSegment(BaseModel):
+            pass
+
         spec = make_union_spec(
             name="Segment",
             annotated_fields=[
                 AnnotatedField(
                     field_spec=FieldSpec(
                         name="speed_limit",
-                        type_info=STR_TYPE,
+                        shape=STR_TYPE,
                         description=None,
                         is_required=False,
                     ),
-                    variant_sources=("RoadSegment",),
+                    variant_sources=(RoadSegment,),
                 ),
             ],
         )
-        result = render_feature(spec)
+        result = render_model(spec)
         assert "| `speed_limit` *(Road)* |" in result
 
 
@@ -1283,7 +1327,7 @@ class TestFormatConstraintDisplay:
         assert "[`CountryCodeAlpha2Constraint`](" not in result.display
 
 
-def _feature_spec() -> object:
+def _model_spec() -> object:
     return extract_model(SimpleModel)
 
 
@@ -1296,7 +1340,7 @@ def _newtype_spec() -> object:
 
 
 _USED_BY_CASES = [
-    pytest.param(_feature_spec, render_feature, id="feature"),
+    pytest.param(_model_spec, render_model, id="feature"),
     pytest.param(_enum_spec, render_enum, id="enum"),
     pytest.param(_newtype_spec, render_newtype, id="newtype"),
 ]
@@ -1334,8 +1378,8 @@ class TestUsedByRendering:
         ("spec_factory", "render_fn", "page_path", "expected_link"),
         [
             pytest.param(
-                _feature_spec,
-                render_feature,
+                _model_spec,
+                render_model,
                 PurePosixPath("types/strings/hex_color.md"),
                 "../../buildings/building/building.md",
                 id="feature",

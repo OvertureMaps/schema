@@ -1,18 +1,44 @@
-"""Tests for type analysis."""
+"""Tests for `analyze_type`: annotation -> `FieldShape` analysis."""
 
 from enum import Enum
 from typing import Annotated, Any, Literal, NewType, Optional
 
 import pytest
-from annotated_types import Ge
+from annotated_types import Ge, MaxLen, MinLen
+from overture.schema.codegen.extraction.field import (
+    AnyScalar,
+    ArrayOf,
+    ConstraintSource,
+    FieldShape,
+    LiteralScalar,
+    MapOf,
+    ModelRef,
+    NewTypeShape,
+    Primitive,
+    UnionRef,
+)
+from overture.schema.codegen.extraction.field_walk import (
+    all_constraints,
+    list_depth,
+)
+from overture.schema.codegen.extraction.length_constraints import (
+    ArrayMinLen,
+    ScalarMinLen,
+)
+from overture.schema.codegen.extraction.literal_alternatives import (
+    LiteralAlternatives,
+)
+from overture.schema.codegen.extraction.specs import RecordSpec, UnionSpec
 from overture.schema.codegen.extraction.type_analyzer import (
-    TypeInfo,
-    TypeKind,
+    UnresolvedForwardRefError,
     UnsupportedUnionError,
     analyze_type,
+    attach_constraints,
     single_literal_value,
+    unwrap_list,
 )
-from overture.schema.system.primitive import float64, int32
+from overture.schema.common.scoping.vehicle import VehicleSelector
+from overture.schema.system.primitive import int32
 from overture.schema.system.ref import Id
 from overture.schema.system.string import (
     HexColor,
@@ -24,570 +50,441 @@ from pydantic import BaseModel, Field, Tag
 from typing_extensions import Sentinel
 
 
-@pytest.fixture()
-def id_type_info() -> TypeInfo:
-    return analyze_type(Id)
+def _shape(annotation: object) -> FieldShape:
+    shape, _, _ = analyze_type(annotation)
+    return shape
 
 
-@pytest.fixture()
-def hex_color_type_info() -> TypeInfo:
-    return analyze_type(HexColor)
+def _is_optional(annotation: object) -> bool:
+    _, is_optional, _ = analyze_type(annotation)
+    return is_optional
 
 
-class TestAnalyzeTypePrimitives:
-    """Tests for primitive type analysis."""
+def _description(annotation: object) -> str | None:
+    _, _, description = analyze_type(annotation)
+    return description
 
+
+class TestPrimitives:
     @pytest.mark.parametrize("annotation", [str, int, float, bool])
-    def test_builtin_returns_primitive_type_info(self, annotation: type) -> None:
-        """Builtin type annotations return PRIMITIVE TypeInfo with matching base_type."""
-        result = analyze_type(annotation)
+    def test_builtin_emits_primitive(self, annotation: type) -> None:
+        shape = _shape(annotation)
+        assert isinstance(shape, Primitive)
+        assert shape.base_type == annotation.__name__
+        assert shape.source_type is annotation
 
-        assert result.base_type == annotation.__name__
-        assert result.kind == TypeKind.PRIMITIVE
-        assert result.is_optional is False
-        assert result.is_list is False
+    def test_any_emits_any_scalar(self) -> None:
+        shape = _shape(Any)
+        assert isinstance(shape, AnyScalar)
 
 
-class TestAnalyzeTypeSentinel:
-    """Tests for Sentinel type filtering in unions.
-
-    Pydantic uses `typing_extensions.Sentinel` instances (like `<MISSING>`)
-    in union types for optional fields. The type analyzer filters these out
-    alongside `None` when processing unions.
-    """
+class TestSentinel:
+    """`Sentinel` arms in unions are filtered alongside `None`."""
 
     @pytest.fixture()
-    def missing_sentinel(self) -> object:
+    def missing(self) -> object:
         return Sentinel("MISSING")
 
-    def test_sentinel_filtered_from_union(self, missing_sentinel: object) -> None:
-        """Sentinel is filtered out, leaving the concrete type."""
-        result = analyze_type(str | missing_sentinel)  # type: ignore[arg-type]
+    def test_filtered_leaves_concrete_type(self, missing: object) -> None:
+        shape = _shape(str | missing)  # type: ignore[arg-type]
+        assert isinstance(shape, Primitive)
+        assert shape.base_type == "str"
+        assert _is_optional(str | missing) is False  # type: ignore[arg-type]
 
-        assert result.base_type == "str"
-        assert result.kind == TypeKind.PRIMITIVE
-        assert result.is_optional is False
-
-    def test_sentinel_with_none_sets_optional(self, missing_sentinel: object) -> None:
-        """Sentinel + None both filtered; None triggers is_optional."""
-        result = analyze_type(str | missing_sentinel | None)  # type: ignore[arg-type]
-
-        assert result.base_type == "str"
-        assert result.kind == TypeKind.PRIMITIVE
-        assert result.is_optional is True
+    def test_with_none_sets_optional(self, missing: object) -> None:
+        assert _is_optional(str | missing | None) is True  # type: ignore[arg-type]
 
 
-class TestAnalyzeTypeOptional:
-    """Tests for Optional type analysis."""
+class TestOptional:
+    def test_pipe_none(self) -> None:
+        assert _is_optional(str | None) is True
 
-    def test_pipe_none_sets_is_optional(self) -> None:
-        """str | None returns TypeInfo with is_optional=True."""
-        result = analyze_type(str | None)
+    def test_typing_optional(self) -> None:
+        assert _is_optional(Optional[str]) is True  # noqa: UP045
 
-        assert result.base_type == "str"
-        assert result.kind == TypeKind.PRIMITIVE
-        assert result.is_optional is True
-        assert result.is_list is False
-
-    def test_type_with_literal_and_none(self) -> None:
-        """str | Literal[""] | None filters Literal and marks optional."""
-        result = analyze_type(str | Literal[""] | None)
-
-        assert result.base_type == "str"
-        assert result.kind == TypeKind.PRIMITIVE
-        assert result.is_optional is True
-
-    def test_typing_optional_sets_is_optional(self) -> None:
-        """Optional[str] from typing module returns TypeInfo with is_optional=True."""
-        result = analyze_type(Optional[str])  # noqa: UP045
-
-        assert result.base_type == "str"
-        assert result.kind == TypeKind.PRIMITIVE
-        assert result.is_optional is True
-        assert result.is_list is False
+    def test_literal_arm_keeps_concrete_shape(self) -> None:
+        # The concrete arm is the field's shape; the literal rides along as a
+        # LiteralAlternatives constraint (see TestLiteralAlternatives).
+        shape, optional, _ = analyze_type(str | Literal[""] | None)
+        assert isinstance(shape, Primitive) and shape.base_type == "str"
+        assert optional is True
 
 
-class TestAnalyzeTypeUnionLiteralFiltering:
-    """Tests for filtering Literal arms out of unions."""
+class TestLiteralAlternatives:
+    """`X | Literal[c]` keeps the concrete arm but records the literal arms."""
 
-    def test_type_with_literal_alternative(self) -> None:
-        """str | Literal[""] filters out the Literal and analyzes the concrete type."""
-        result = analyze_type(str | Literal[""])
+    def _alternatives(self, annotation: object) -> tuple[object, ...] | None:
+        for cs in all_constraints(_shape(annotation)):
+            if isinstance(cs.constraint, LiteralAlternatives):
+                return cs.constraint.values
+        return None
 
-        assert result.base_type == "str"
-        assert result.kind == TypeKind.PRIMITIVE
-        assert result.is_optional is False
+    def test_scalar_literal_arm_preserved(self) -> None:
+        assert self._alternatives(str | Literal[""] | None) == ("",)
 
+    def test_literal_arm_preserved_inside_list(self) -> None:
+        shape = _shape(list[str | Literal["x"]])
+        assert isinstance(shape, ArrayOf) and isinstance(shape.element, Primitive)
+        assert self._alternatives(list[str | Literal["x"]]) == ("x",)
 
-class TestAnalyzeTypeList:
-    """Tests for list type analysis."""
+    def test_multiple_literal_values_preserved(self) -> None:
+        assert self._alternatives(str | Literal["a", "b"]) == ("a", "b")
 
-    def test_list_str_sets_is_list(self) -> None:
-        """list[str] returns TypeInfo with is_list=True."""
-        result = analyze_type(list[str])
-
-        assert result.base_type == "str"
-        assert result.kind == TypeKind.PRIMITIVE
-        assert result.is_optional is False
-        assert result.is_list is True
-
-    def test_nested_list_sets_depth_2(self) -> None:
-        """list[list[str]] records two levels of nesting."""
-        result = analyze_type(list[list[str]])
-
-        assert result.list_depth == 2
-        assert result.base_type == "str"
-        assert result.kind == TypeKind.PRIMITIVE
+    def test_pure_literal_union_has_no_alternatives(self) -> None:
+        # No concrete arm -> stays a LiteralScalar, no bypass constraint.
+        shape = _shape(Literal["a"] | None)
+        assert isinstance(shape, LiteralScalar)
+        assert self._alternatives(Literal["a"] | None) is None
 
 
-class TestAnalyzeTypeComposite:
-    """Tests for composite/nested type analysis."""
+class TestList:
+    def test_simple_list(self) -> None:
+        shape = _shape(list[str])
+        assert isinstance(shape, ArrayOf)
+        assert isinstance(shape.element, Primitive)
+        assert shape.element.base_type == "str"
 
-    def test_list_optional_str(self) -> None:
-        """list[str | None] sets both is_list and is_optional."""
-        result = analyze_type(list[str | None])
+    def test_nested_list_records_depth(self) -> None:
+        shape = _shape(list[list[str]])
+        assert list_depth(shape) == 2
 
-        assert result.base_type == "str"
-        assert result.is_list is True
-        assert result.is_optional is True
+    def test_optional_list(self) -> None:
+        shape, optional, _ = analyze_type(list[str] | None)
+        assert isinstance(shape, ArrayOf)
+        assert optional is True
 
-    def test_optional_list_str(self) -> None:
-        """list[str] | None sets both is_list and is_optional."""
-        result = analyze_type(list[str] | None)
+    def test_list_optional_element(self) -> None:
+        # list[str | None] is a required list whose *elements* may be None.
+        # Field-level optionality (list itself accepting None) is False;
+        # element nullability is an element-shape concern, not a field concern.
+        shape, optional, _ = analyze_type(list[str | None])
+        assert isinstance(shape, ArrayOf)
+        assert optional is False
 
-        assert result.base_type == "str"
-        assert result.is_list is True
-        assert result.is_optional is True
+    def test_optional_list_with_optional_element(self) -> None:
+        # list[str | None] | None: both the field and its elements accept None.
+        # Field optionality is True (the outer | None), independent of the element.
+        shape, optional, _ = analyze_type(list[str | None] | None)
+        assert isinstance(shape, ArrayOf)
+        assert optional is True
 
-    def test_annotated_optional_str(self) -> None:
-        """Annotated[str | None, ...] extracts constraints and sets is_optional."""
-        result = analyze_type(Annotated[str | None, "description"])
+    def test_list_inherits_element_description(self) -> None:
+        # A list field with no field-level description inherits its
+        # element's description -- losing it would leave the field
+        # undocumented when the only prose lives on the element.
+        desc = _description(list[Annotated[str, Field(description="element prose")]])
+        assert desc == "element prose"
 
-        assert result.base_type == "str"
-        assert result.is_optional is True
-        assert len(result.constraints) == 1
-        assert result.constraints[0].source_ref is None
-        assert result.constraints[0].constraint == "description"
-
-    def test_annotated_list_str(self) -> None:
-        """Annotated[list[str], ...] extracts constraints and sets is_list."""
-        result = analyze_type(Annotated[list[str], Field(min_length=1)])
-
-        assert result.base_type == "str"
-        assert result.is_list is True
-        assert len(result.constraints) == 1
-        assert result.constraints[0].source_ref is None
+    def test_list_optional_element_desc_is_none(self) -> None:
+        # Element nullability alone introduces no description: list[str | None]
+        # has no prose on either layer, so the field description stays None.
+        _, _, desc = analyze_type(list[str | None])
+        assert desc is None
 
 
-class TestAnalyzeTypeAnnotated:
-    """Tests for Annotated type analysis."""
-
-    def test_annotated_int_with_ge_extracts_constraint(self) -> None:
-        """Annotated[int, Field(ge=0)] unpacks FieldInfo to extract Ge constraint."""
-        result = analyze_type(Annotated[int, Field(ge=0)])
-
-        assert result.base_type == "int"
-        assert result.kind == TypeKind.PRIMITIVE
-        assert len(result.constraints) == 1
-        cs = result.constraints[0]
-        assert cs.source_ref is None
+class TestAnnotated:
+    def test_ge_collected_on_terminal(self) -> None:
+        shape = _shape(Annotated[int, Field(ge=0)])
+        assert isinstance(shape, Primitive)
+        assert len(shape.constraints) == 1
+        cs = shape.constraints[0]
         assert isinstance(cs.constraint, Ge)
-        assert cs.constraint.ge == 0
+        assert cs.source_ref is None
 
-    def test_annotated_without_constraints(self) -> None:
-        """Annotated[str, 'description'] extracts non-Field metadata."""
-        result = analyze_type(Annotated[str, "just a description"])
+    def test_non_field_metadata_collected(self) -> None:
+        shape = _shape(Annotated[str, "just a description"])
+        assert isinstance(shape, Primitive)
+        assert shape.constraints[0].constraint == "just a description"
 
-        assert result.base_type == "str"
-        assert len(result.constraints) == 1
-        assert result.constraints[0].source_ref is None
-        assert result.constraints[0].constraint == "just a description"
+    def test_list_level_minlen_lands_on_arrayof(self) -> None:
+        shape = _shape(Annotated[list[str], Field(min_length=1)])
+        assert isinstance(shape, ArrayOf)
+        assert len(shape.constraints) == 1
+        assert isinstance(shape.element, Primitive)
+        assert shape.element.constraints == ()
 
-
-class TestAnalyzeTypeLiteral:
-    """Tests for Literal type analysis."""
-
-    def test_literal_string_extracts_values(self) -> None:
-        """Literal["active"] stores the value in literal_values tuple."""
-        result = analyze_type(Literal["active"])
-
-        assert result.kind == TypeKind.LITERAL
-        assert result.literal_values == ("active",)
-
-    def test_literal_int_extracts_values(self) -> None:
-        """Literal[42] stores the value in literal_values tuple."""
-        result = analyze_type(Literal[42])
-
-        assert result.kind == TypeKind.LITERAL
-        assert result.literal_values == (42,)
-
-    def test_multi_value_literal_stores_all_args(self) -> None:
-        """Literal["a", "b"] stores all args in literal_values tuple."""
-        result = analyze_type(Literal["a", "b"])
-
-        assert result.kind == TypeKind.LITERAL
-        assert result.literal_values == ("a", "b")
-
-    def test_optional_literal_extracts_values(self) -> None:
-        """Optional[Literal["x"]] unwraps to Literal with is_optional set."""
-        result = analyze_type(Literal["x"] | None)
-
-        assert result.kind == TypeKind.LITERAL
-        assert result.literal_values == ("x",)
-        assert result.is_optional is True
+    def test_layered_constraints_anchor_separately(self) -> None:
+        shape = _shape(Annotated[list[Annotated[str, MinLen(2)]], MinLen(3)])
+        assert isinstance(shape, ArrayOf)
+        outer = shape.constraints
+        assert len(outer) == 1
+        assert outer[0].constraint == ArrayMinLen(min_length=3)
+        assert isinstance(shape.element, Primitive)
+        inner = shape.element.constraints
+        assert len(inner) == 1
+        assert inner[0].constraint == ScalarMinLen(min_length=2)
 
 
-class TestAnalyzeTypeEnum:
-    """Tests for Enum type analysis."""
+class TestAttachConstraintsOnModelTerminal:
+    """Constraints destined for a model/union terminal are rejected loudly."""
 
-    def test_enum_subclass_returns_kind_enum(self) -> None:
-        """Enum subclass returns TypeInfo with kind=ENUM."""
+    def _model_ref(self) -> FieldShape:
+        return ModelRef(model=RecordSpec(name="Person", description=None))
 
+    def _union_ref(self) -> FieldShape:
+        return UnionRef(
+            union=UnionSpec(
+                name="U",
+                description=None,
+                annotated_fields=[],
+                members=[],
+                discriminator_field=None,
+                discriminator_mapping=None,
+                source_annotation=object(),
+                common_base=BaseModel,
+            )
+        )
+
+    @pytest.mark.parametrize("ref_name", ["_model_ref", "_union_ref"])
+    def test_constraint_on_terminal_raises(self, ref_name: str) -> None:
+        shape = getattr(self, ref_name)()
+        cs = (ConstraintSource(source_ref=None, source_name=None, constraint=Ge(0)),)
+        with pytest.raises(NotImplementedError):
+            attach_constraints(shape, cs)
+
+    @pytest.mark.parametrize("ref_name", ["_model_ref", "_union_ref"])
+    def test_no_constraints_is_noop(self, ref_name: str) -> None:
+        shape = getattr(self, ref_name)()
+        assert attach_constraints(shape, ()) is shape
+
+
+class TestLiteral:
+    def test_single_value(self) -> None:
+        shape = _shape(Literal["active"])
+        assert isinstance(shape, LiteralScalar)
+        assert shape.values == ("active",)
+
+    def test_multi_value(self) -> None:
+        shape = _shape(Literal["a", "b"])
+        assert isinstance(shape, LiteralScalar)
+        assert shape.values == ("a", "b")
+
+    def test_optional_literal(self) -> None:
+        shape, optional, _ = analyze_type(Literal["x"] | None)
+        assert isinstance(shape, LiteralScalar)
+        assert shape.values == ("x",)
+        assert optional is True
+
+
+class TestEnumAndModel:
+    def test_enum_emits_primitive_with_source(self) -> None:
         class Color(Enum):
             RED = "red"
-            GREEN = "green"
 
-        result = analyze_type(Color)
+        shape = _shape(Color)
+        assert isinstance(shape, Primitive)
+        assert shape.source_type is Color
 
-        assert result.base_type == "Color"
-        assert result.kind == TypeKind.ENUM
-
-
-class TestAnalyzeTypeModel:
-    """Tests for BaseModel type analysis."""
-
-    def test_basemodel_subclass_returns_kind_model(self) -> None:
-        """BaseModel subclass returns TypeInfo with kind=MODEL."""
-
+    def test_model_without_resolver_falls_back_to_primitive(self) -> None:
         class Person(BaseModel):
             name: str
 
-        result = analyze_type(Person)
-
-        assert result.base_type == "Person"
-        assert result.kind == TypeKind.MODEL
-
-
-class TestAnalyzeTypeNewType:
-    """Tests for NewType primitive analysis."""
-
-    def test_int32_returns_newtype_name(self) -> None:
-        """int32 NewType returns TypeInfo with base_type='int32'."""
-        result = analyze_type(int32)
-
-        assert result.base_type == "int32"
-        assert result.kind == TypeKind.PRIMITIVE
-
-    def test_float64_returns_newtype_name(self) -> None:
-        """float64 NewType returns TypeInfo with base_type='float64'."""
-        result = analyze_type(float64)
-
-        assert result.base_type == "float64"
-        assert result.kind == TypeKind.PRIMITIVE
-
-    def test_optional_int32(self) -> None:
-        """int32 | None sets is_optional and preserves base_type."""
-        result = analyze_type(int32 | None)
-
-        assert result.base_type == "int32"
-        assert result.is_optional is True
+        shape = _shape(Person)
+        assert isinstance(shape, Primitive)
+        assert shape.source_type is Person
+        assert shape.base_type == "Person"
 
 
-class TestNewtypeName:
-    """Tests for outermost NewType name tracking."""
+class TestNewType:
+    def test_simple_newtype(self) -> None:
+        shape = _shape(int32)
+        assert isinstance(shape, NewTypeShape)
+        assert shape.name == "int32"
+        assert isinstance(shape.inner, Primitive)
+        assert shape.inner.base_type == "int32"
 
-    def test_single_layer_newtype(self) -> None:
-        """Single NewType like int32 sets newtype_name to its name."""
-        result = analyze_type(int32)
+    def test_outermost_newtype_is_outer_wrapper(self) -> None:
+        shape = _shape(Id)
+        assert isinstance(shape, NewTypeShape)
+        assert shape.name == "Id"
 
-        assert result.newtype_name == "int32"
-        assert result.base_type == "int32"
-
-    def test_nested_newtype_preserves_outermost(self, id_type_info: TypeInfo) -> None:
-        """Nested NewType chain uses outermost name for newtype_name."""
-        assert id_type_info.newtype_name == "Id"
-        assert id_type_info.base_type == "NoWhitespaceString"
-
-    def test_plain_type_has_no_newtype_name(self) -> None:
-        """Plain types without NewType wrapping have newtype_name=None."""
-        result = analyze_type(str)
-
-        assert result.newtype_name is None
-
-    def test_newtype_ref_set_for_newtype(self, id_type_info: TypeInfo) -> None:
-        """newtype_ref points to the outermost NewType callable."""
-        assert id_type_info.newtype_ref is Id
-
-    def test_newtype_ref_none_for_plain_type(self) -> None:
-        """Plain types have newtype_ref=None."""
-        result = analyze_type(str)
-
-        assert result.newtype_ref is None
+    def test_optional_newtype(self) -> None:
+        assert _is_optional(int32 | None) is True
 
 
-class TestNewtypeWrappingList:
-    """Tests for NewType wrapping a list type."""
-
-    def test_newtype_wrapping_list(self) -> None:
-        """NewType wrapping a list sets is_list and preserves newtype_name."""
+class TestNewTypeWrappingList:
+    def test_newtype_around_list(self) -> None:
         TestSources = NewType("TestSources", Annotated[list[str], Field(min_length=1)])
-        result = analyze_type(TestSources)
+        shape = _shape(TestSources)
+        assert isinstance(shape, NewTypeShape) and shape.name == "TestSources"
+        assert isinstance(shape.inner, ArrayOf)
 
-        assert result.is_list is True
-        assert result.newtype_name == "TestSources"
-
-    def test_scalar_newtype_is_not_list(self) -> None:
-        """Scalar NewType like int32 has is_list=False."""
-        result = analyze_type(int32)
-
-        assert result.is_list is False
-
-    def test_plain_list_has_no_newtype_name(self) -> None:
-        """Plain list[str] without NewType has newtype_name=None."""
-        result = analyze_type(list[str])
-
-        assert result.newtype_name is None
-        assert result.is_list is True
-
-    def test_newtype_wrapping_list_of_models(self) -> None:
-        """list[NewType wrapping list[Model]] records depth 2, outer depth 1."""
-
-        class _Item(BaseModel):
-            name: str
-
-        Inner = NewType("Inner", Annotated[list[_Item], Field(min_length=1)])
-        result = analyze_type(list[Inner])
-
-        assert result.list_depth == 2
-        assert result.newtype_outer_list_depth == 1
-        assert result.base_type == "Inner"
-        assert result.kind == TypeKind.MODEL
-        assert result.source_type is _Item
-
-
-class TestNewtypeOuterListDepth:
-    """Tests for newtype_outer_list_depth tracking."""
-
-    def test_list_of_scalar_newtype_has_outer_depth(self) -> None:
-        """list[ScalarNewType] records the list layer as outside the NewType."""
+    def test_list_around_scalar_newtype(self) -> None:
         ScalarNT = NewType("ScalarNT", str)
-        result = analyze_type(list[ScalarNT])
-
-        assert result.newtype_outer_list_depth == 1
-        assert result.list_depth == 1
-
-    def test_newtype_wrapping_list_has_zero_outer_depth(self) -> None:
-        """NewType wrapping list[X] records no list layers outside the NewType."""
-        ListNT = NewType("ListNT", Annotated[list[str], Field(min_length=1)])
-        result = analyze_type(ListNT)
-
-        assert result.newtype_outer_list_depth == 0
-        assert result.list_depth == 1
-
-    @pytest.mark.parametrize(
-        "annotation",
-        [
-            list[str],  # list without NewType
-            int32,  # scalar NewType
-            str,  # plain type
-        ],
-        ids=["plain_list", "scalar_newtype", "plain_type"],
-    )
-    def test_zero_outer_depth_without_newtype_boundary(
-        self, annotation: object
-    ) -> None:
-        """Types without a NewType inside a list have newtype_outer_list_depth=0."""
-        result = analyze_type(annotation)
-
-        assert result.newtype_outer_list_depth == 0
-
-    def test_nested_list_of_scalar_newtype_has_outer_depth_2(self) -> None:
-        """list[list[ScalarNewType]] records two outer list layers."""
-        ScalarNT = NewType("ScalarNT", str)
-        result = analyze_type(list[list[ScalarNT]])
-
-        assert result.newtype_outer_list_depth == 2
-        assert result.list_depth == 2
+        shape = _shape(list[ScalarNT])
+        assert isinstance(shape, ArrayOf)
+        assert isinstance(shape.element, NewTypeShape)
 
 
 class TestConstraintProvenance:
-    """Tests for flattened constraints with provenance tracking."""
-
-    def test_nested_newtype_flattens_constraints(self, id_type_info: TypeInfo) -> None:
-        """Id -> NoWhitespaceString -> str flattens all constraints with sources."""
-        source_names = {
-            cs.source_name for cs in id_type_info.constraints if cs.source_name
-        }
-        assert "Id" in source_names
-        assert "NoWhitespaceString" in source_names
-
-    def test_nested_newtype_includes_inner_constraints(
-        self, id_type_info: TypeInfo
-    ) -> None:
-        """Inner NewType constraints are collected with provenance."""
-        nws_constraints = [
-            cs for cs in id_type_info.constraints if cs.source_ref is NoWhitespaceString
-        ]
-        constraint_types = {type(cs.constraint) for cs in nws_constraints}
-        assert NoWhitespaceConstraint in constraint_types
-
-    def test_direct_annotation_has_none_source(self) -> None:
-        """Constraints from direct Annotated (no NewType) have source_ref=None."""
-        result = analyze_type(Annotated[str, "direct"])
-
-        assert len(result.constraints) == 1
-        assert result.constraints[0].source_ref is None
-        assert result.constraints[0].constraint == "direct"
-
-    def test_single_newtype_constraints_attributed(
-        self, hex_color_type_info: TypeInfo
-    ) -> None:
-        """HexColor constraints are attributed to the HexColor callable."""
-        assert all(cs.source_ref is HexColor for cs in hex_color_type_info.constraints)
-        assert len(hex_color_type_info.constraints) > 0
-
-    def test_source_ref_is_newtype_callable(
-        self, hex_color_type_info: TypeInfo
-    ) -> None:
-        """source_ref is the actual NewType callable, not a string."""
-        cs = hex_color_type_info.constraints[0]
-        assert cs.source_ref is HexColor
-
-    def test_constraint_preserves_original_object(
-        self, hex_color_type_info: TypeInfo
-    ) -> None:
-        """ConstraintSource.constraint holds the original constraint object."""
-        hcc = next(
-            cs
-            for cs in hex_color_type_info.constraints
-            if type(cs.constraint).__name__ == "HexColorConstraint"
-        )
-        assert hcc.constraint.__class__.__name__ == "HexColorConstraint"
-
-
-class TestTypeInfoDescription:
-    """Tests for TypeInfo.description from Field(description=...) metadata."""
-
-    def test_newtype_with_field_description(
-        self, hex_color_type_info: TypeInfo
-    ) -> None:
-        """Should extract Field description from HexColor."""
-        assert hex_color_type_info.description is not None
-        assert "color" in hex_color_type_info.description.lower()
-
-    def test_newtype_without_field_description(self) -> None:
-        """Should have None description for types without Field(description=...)."""
-        result = analyze_type(int)
-        assert result.description is None
-
-    def test_plain_annotated_with_field_description(self) -> None:
-        """Should extract description from Annotated with Field(description=...)."""
-        MyType = Annotated[str, Field(description="A test description")]
-        result = analyze_type(MyType)
-        assert result.description == "A test description"
-
-    def test_outermost_description_wins(self, id_type_info: TypeInfo) -> None:
-        """Outermost FieldInfo.description takes precedence in nested NewTypes."""
-        assert id_type_info.description is not None
-        assert "unique identifier" in id_type_info.description.lower()
-
-    def test_newtype_without_field_has_none_description(self) -> None:
-        """NewType with constraints but no Field(description=...) has None."""
-        result = analyze_type(SnakeCaseString)
-        assert result.description is None
-
-
-class TestAnalyzeTypeAny:
-    """Tests for typing.Any analysis."""
-
-    def test_any_returns_primitive(self) -> None:
-        """Any annotation returns TypeInfo with base_type='Any' and kind=PRIMITIVE."""
-        result = analyze_type(Any)
-
-        assert result.base_type == "Any"
-        assert result.kind == TypeKind.PRIMITIVE
-
-    def test_dict_with_any_value(self) -> None:
-        """dict[str, Any] analyzes without error."""
-        result = analyze_type(dict[str, Any])
-
-        assert result.is_dict is True
-        assert result.dict_value_type is not None
-        assert result.dict_value_type.base_type == "Any"
-
-
-class TestAnalyzeTypeDict:
-    """Tests for dict type analysis."""
+    """Constraints carry the NewType that contributed them."""
 
     @pytest.fixture()
-    def dict_str_int(self) -> TypeInfo:
-        return analyze_type(dict[str, int])
+    def id_shape(self) -> FieldShape:
+        return _shape(Id)
 
-    def test_dict_str_int_sets_is_dict(self, dict_str_int: TypeInfo) -> None:
-        """dict[str, int] returns TypeInfo with is_dict=True."""
-        assert dict_str_int.is_dict is True
-        assert dict_str_int.is_optional is False
-        assert dict_str_int.is_list is False
+    @pytest.fixture()
+    def hex_shape(self) -> FieldShape:
+        return _shape(HexColor)
 
-    def test_dict_key_type_analyzed(self, dict_str_int: TypeInfo) -> None:
-        """dict[str, int] has dict_key_type describing the key."""
-        assert dict_str_int.dict_key_type is not None
-        assert dict_str_int.dict_key_type.base_type == "str"
-        assert dict_str_int.dict_key_type.kind == TypeKind.PRIMITIVE
+    def test_nested_newtype_flattens_with_sources(self, id_shape: FieldShape) -> None:
+        sources = {cs.source_name for cs in all_constraints(id_shape)}
+        assert "Id" in sources
+        assert "NoWhitespaceString" in sources
 
-    def test_dict_value_type_analyzed(self, dict_str_int: TypeInfo) -> None:
-        """dict[str, int] has dict_value_type describing the value."""
-        assert dict_str_int.dict_value_type is not None
-        assert dict_str_int.dict_value_type.base_type == "int"
-        assert dict_str_int.dict_value_type.kind == TypeKind.PRIMITIVE
+    def test_inner_newtype_constraints_preserved(self, id_shape: FieldShape) -> None:
+        nws = [
+            cs
+            for cs in all_constraints(id_shape)
+            if cs.source_ref is NoWhitespaceString
+        ]
+        assert NoWhitespaceConstraint in {type(cs.constraint) for cs in nws}
+
+    def test_direct_annotation_has_none_source(self) -> None:
+        shape = _shape(Annotated[str, "direct"])
+        cs = all_constraints(shape)
+        assert len(cs) == 1
+        assert cs[0].source_ref is None
+
+    def test_single_newtype_attributed_to_itself(self, hex_shape: FieldShape) -> None:
+        cs = all_constraints(hex_shape)
+        assert cs and all(c.source_ref is HexColor for c in cs)
+
+
+class TestDescription:
+    def test_newtype_field_description(self) -> None:
+        desc = _description(HexColor)
+        assert desc is not None and "color" in desc.lower()
+
+    def test_plain_type_has_no_description(self) -> None:
+        assert _description(int) is None
+
+    def test_annotated_field_description(self) -> None:
+        MyType = Annotated[str, Field(description="A test description")]
+        assert _description(MyType) == "A test description"
+
+    def test_outermost_description_wins(self) -> None:
+        desc = _description(Id)
+        assert desc is not None and "unique identifier" in desc.lower()
+
+    def test_newtype_without_field_description(self) -> None:
+        assert _description(SnakeCaseString) is None
+
+
+class TestDict:
+    def test_simple_dict(self) -> None:
+        shape = _shape(dict[str, int])
+        assert isinstance(shape, MapOf)
+        assert isinstance(shape.key, Primitive) and shape.key.base_type == "str"
+        assert isinstance(shape.value, Primitive) and shape.value.base_type == "int"
 
     def test_optional_dict(self) -> None:
-        """dict[str, str] | None sets is_dict and is_optional."""
-        result = analyze_type(dict[str, str] | None)
+        shape, optional, _ = analyze_type(dict[str, str] | None)
+        assert isinstance(shape, MapOf)
+        assert optional is True
 
-        assert result.is_dict is True
-        assert result.is_optional is True
-
-    def test_newtype_wrapping_dict(self) -> None:
-        """NewType wrapping dict preserves newtype_name and sets is_dict."""
+    def test_newtype_around_dict(self) -> None:
         TestMapping = NewType("TestMapping", dict[str, str])
-        result = analyze_type(TestMapping)
+        shape = _shape(TestMapping)
+        assert isinstance(shape, NewTypeShape) and shape.name == "TestMapping"
+        assert isinstance(shape.inner, MapOf)
 
-        assert result.is_dict is True
-        assert result.newtype_name == "TestMapping"
+    def test_dict_with_any_value(self) -> None:
+        shape = _shape(dict[str, Any])
+        assert isinstance(shape, MapOf)
+        assert isinstance(shape.value, AnyScalar)
 
-    def test_bare_dict_raises_type_error(self) -> None:
-        """Bare dict without type arguments raises TypeError."""
+    def test_bare_dict_raises(self) -> None:
         with pytest.raises(TypeError, match="Bare dict"):
             analyze_type(dict)
 
+    def test_minlen_on_map_raises(self) -> None:
+        with pytest.raises(NotImplementedError, match="MinLen on a Map"):
+            _shape(Annotated[dict[str, int], MinLen(1)])
 
-class TestAnalyzeTypeErrors:
-    """Tests for error handling."""
+    def test_maxlen_on_map_raises(self) -> None:
+        with pytest.raises(NotImplementedError, match="MaxLen on a Map"):
+            _shape(Annotated[dict[str, int], MaxLen(10)])
 
-    def test_unsupported_annotation_raises_type_error(self) -> None:
-        """Unsupported annotation type raises TypeError."""
+
+class TestErrors:
+    def test_unsupported_annotation(self) -> None:
         with pytest.raises(TypeError, match="Unsupported annotation type"):
+            analyze_type(42)
+
+    def test_unresolvable_forward_ref_raises_named_error(self) -> None:
+        with pytest.raises(
+            UnresolvedForwardRefError, match="forward reference 'Missing'"
+        ):
+            analyze_type("Missing")
+
+    def test_malformed_forward_ref_raises_named_error(self) -> None:
+        with pytest.raises(UnresolvedForwardRefError, match="not a type"):
             analyze_type("not a type")
 
-    def test_multi_type_union_raises_clear_error(self) -> None:
-        """Multi-type unions like str | int raise UnsupportedUnionError."""
+    def test_dotted_forward_ref_missing_attr_raises_named_error(self) -> None:
+        """A dotted ref to a missing attribute fails as `UnresolvedForwardRefError`.
+
+        `evaluate_forward_ref` raises `AttributeError` (not `NameError`)
+        when the head of a dotted reference resolves but the attribute is
+        absent; the wrapping must catch it so the failure stays named.
+        """
+
+        class Outer(BaseModel):
+            x: int
+
         with pytest.raises(
-            UnsupportedUnionError, match="Multi-type unions not supported"
+            UnresolvedForwardRefError, match="forward reference 'Outer.Missing'"
         ):
+            analyze_type("Outer.Missing", owner=Outer)
+
+    def test_multi_type_union_without_resolver(self) -> None:
+        with pytest.raises(UnsupportedUnionError):
             analyze_type(str | int)
 
-    def test_multi_type_union_with_none_raises_clear_error(self) -> None:
-        """Multi-type optional unions like str | int | None raise UnsupportedUnionError."""
-        with pytest.raises(
-            UnsupportedUnionError, match="Multi-type unions not supported"
-        ):
-            analyze_type(str | int | None)
-
-    def test_bare_list_raises_type_error(self) -> None:
-        """Bare list without type argument raises TypeError."""
+    def test_bare_list(self) -> None:
         with pytest.raises(TypeError, match="Bare list without type argument"):
             analyze_type(list)
+
+
+class TestForwardRefs:
+    def test_bare_string_element_resolved_against_owner(self) -> None:
+        """`list["Self"]` resolves the bare-string element via the owner namespace.
+
+        With no `model_resolver` the resolved model terminal falls back
+        to a `Primitive` carrying the class as `source_type`; the point
+        is that the bare `str` was resolved rather than reaching the
+        terminal classifier unresolved.
+        """
+
+        class Node(BaseModel):
+            children: list["Node"]
+
+        annotation = Node.model_fields["children"].annotation
+        shape, _, _ = analyze_type(annotation, owner=Node)
+
+        assert isinstance(shape, ArrayOf)
+        assert isinstance(shape.element, Primitive)
+        assert shape.element.source_type is Node
+
+    def test_nested_class_forward_ref_resolved_against_owner(self) -> None:
+        """A bare forward ref to a nested class resolves via the owner's namespace.
+
+        `_resolve_forward_ref` merges `vars(owner)` into the resolution
+        namespace, so `"Inner"` reaches `Outer.Inner` rather than raising
+        `NameError`. The merge is explicit because passing any `locals` to
+        `evaluate_forward_ref` bypasses the library's own `vars(owner)`
+        fallback.
+        """
+
+        class Outer(BaseModel):
+            class Inner(BaseModel):
+                x: int
+
+        shape, _, _ = analyze_type("Inner", owner=Outer)
+
+        assert isinstance(shape, Primitive)
+        assert shape.source_type is Outer.Inner
 
 
 class UnionModelA(BaseModel):
@@ -598,79 +495,180 @@ class UnionModelB(BaseModel):
     y: str
 
 
-class TestAnalyzeTypeUnion:
-    """Tests for discriminated union analysis."""
+class TestUnionResolver:
+    """Multi-arm unions of models go through the resolver callback."""
 
-    def test_all_model_union_returns_union_kind(self) -> None:
-        """Annotated[Union of BaseModel subclasses] returns TypeKind.UNION."""
-        union_type = Annotated[UnionModelA | UnionModelB, Field(description="test")]
-        result = analyze_type(union_type)
+    def test_resolver_receives_annotation_members_and_description(self) -> None:
+        captured: list[tuple[object, tuple[type[BaseModel], ...], str | None]] = []
 
-        assert result.kind == TypeKind.UNION
-        assert result.union_members is not None
-        assert len(result.union_members) == 2
-        assert UnionModelA in result.union_members
-        assert UnionModelB in result.union_members
+        def resolver(
+            annotation: object,
+            members: tuple[type[BaseModel], ...],
+            description: str | None,
+        ) -> Primitive:
+            captured.append((annotation, members, description))
+            return Primitive(base_type="__captured__")
+
+        union_type = Annotated[UnionModelA | UnionModelB, Field(description="x")]
+        shape, _, _ = analyze_type(union_type, union_resolver=resolver)
+
+        assert isinstance(shape, Primitive)
+        assert shape.base_type == "__captured__"
+        _ann, members, description = captured[0]
+        expected: set[type[BaseModel]] = {UnionModelA, UnionModelB}
+        assert set(members) == expected
+        assert description == "x"
+
+    def test_no_resolver_raises_on_multi_arm(self) -> None:
+        union_type = Annotated[UnionModelA | UnionModelB, Field(description="x")]
+        with pytest.raises(UnsupportedUnionError):
+            analyze_type(union_type)
 
     def test_annotated_wrapped_members_unwrapped(self) -> None:
-        """Union members wrapped in Annotated[X, Tag(...)] are unwrapped."""
+        captured_members: list[tuple[type[BaseModel], ...]] = []
+
+        def resolver(
+            _ann: object,
+            members: tuple[type[BaseModel], ...],
+            _description: str | None,
+        ) -> Primitive:
+            captured_members.append(members)
+            return Primitive(base_type="x")
+
         union_type = Annotated[
             Annotated[UnionModelA, Tag("a")] | Annotated[UnionModelB, Tag("b")],
             Field(description="disc"),
         ]
-        result = analyze_type(union_type)
+        analyze_type(union_type, union_resolver=resolver)
+        expected: set[type[BaseModel]] = {UnionModelA, UnionModelB}
+        assert set(captured_members[0]) == expected
 
-        assert result.kind == TypeKind.UNION
-        assert result.union_members is not None
-        assert len(result.union_members) == 2
-        assert UnionModelA in result.union_members
-        assert UnionModelB in result.union_members
-
-    def test_mixed_model_nonmodel_union_still_raises(self) -> None:
-        """Union of model + non-model types still raises UnsupportedUnionError."""
+    def test_mixed_model_nonmodel_raises(self) -> None:
         with pytest.raises(UnsupportedUnionError):
             analyze_type(UnionModelA | str)
 
-    def test_non_model_multi_union_still_raises(self) -> None:
-        """Multi-type union of non-models still raises UnsupportedUnionError."""
-        with pytest.raises(UnsupportedUnionError):
-            analyze_type(str | int)
-
-    def test_union_base_type_is_first_member_name(self) -> None:
-        """UNION TypeInfo base_type is the first member's class name."""
-        result = analyze_type(
-            Annotated[UnionModelA | UnionModelB, Field(description="test")]
-        )
-        assert result.base_type == "UnionModelA"
-
-    def test_optional_union_sets_is_optional(self) -> None:
-        """Union with None among model members sets is_optional."""
-        result = analyze_type(
-            Annotated[UnionModelA | UnionModelB, Field(description="test")] | None
-        )
-        assert result.kind == TypeKind.UNION
-        assert result.is_optional is True
-
 
 class TestSingleLiteralValue:
-    """Tests for single_literal_value convenience accessor."""
-
-    def test_single_value_literal(self) -> None:
-        """Literal["x"] returns the literal value."""
+    def test_single_string(self) -> None:
         assert single_literal_value(Literal["x"]) == "x"
 
-    def test_single_int_literal(self) -> None:
-        """Literal[42] returns the integer value."""
+    def test_single_int(self) -> None:
         assert single_literal_value(Literal[42]) == 42
 
-    def test_multi_value_literal_returns_none(self) -> None:
-        """Multi-value Literal returns None (no single default)."""
+    def test_multi_value_returns_none(self) -> None:
         assert single_literal_value(Literal["a", "b"]) is None
 
     def test_non_literal_returns_none(self) -> None:
-        """Non-Literal types return None."""
         assert single_literal_value(str) is None
 
-    def test_unsupported_type_returns_none(self) -> None:
-        """Types that raise during analysis return None."""
+    def test_unsupported_returns_none(self) -> None:
         assert single_literal_value("not a type") is None
+
+
+class TestUnwrapList:
+    def test_plain_list(self) -> None:
+        assert unwrap_list(list[int]) is int
+
+    def test_nested_list(self) -> None:
+        assert unwrap_list(list[list[str]]) is str
+
+    def test_non_list_passthrough(self) -> None:
+        assert unwrap_list(int) is int
+
+    def test_optional_list(self) -> None:
+        assert unwrap_list(list[int] | None) is int
+
+    def test_optional_list_preserves_annotated(self) -> None:
+        assert unwrap_list(list[VehicleSelector] | None) is VehicleSelector
+
+
+class TestNestedArrayCharacterization:
+    """Pin analyze_type behavior on consecutive-list and NewType-chain shapes.
+
+    The schema has no genuine `list[list[X]]` field, so these are the only
+    coverage of the path the recursive _unwrap rewrite must preserve.
+    """
+
+    def test_list_of_list_nests_two_arrayofs(self) -> None:
+        shape = _shape(list[list[str]])
+        assert isinstance(shape, ArrayOf)
+        assert isinstance(shape.element, ArrayOf)
+        assert isinstance(shape.element.element, Primitive)
+        assert shape.element.element.base_type == "str"
+
+    def test_list_of_list_constraints_anchor_to_their_layer(self) -> None:
+        # Each MinLen lands on the ArrayOf layer it annotates, not flattened.
+        # Outer Annotated[..., Field(min_length=3)] targets the outer list.
+        # Inner Annotated[list[str], Field(min_length=2)] targets the inner list.
+        shape = _shape(
+            Annotated[
+                list[Annotated[list[str], Field(min_length=2)]], Field(min_length=3)
+            ]
+        )
+        assert isinstance(shape, ArrayOf)
+        inner = shape.element
+        assert isinstance(inner, ArrayOf)
+        outer_min_lens = [
+            cs.constraint.min_length
+            for cs in shape.constraints
+            if isinstance(cs.constraint, ArrayMinLen)
+        ]
+        inner_min_lens = [
+            cs.constraint.min_length
+            for cs in inner.constraints
+            if isinstance(cs.constraint, ArrayMinLen)
+        ]
+        assert outer_min_lens == [3]
+        assert inner_min_lens == [2]
+
+    def test_nested_newtype_chain_flattens_to_one_wrapper(self) -> None:
+        # Id = NewType("Id", Annotated[NoWhitespaceString, Field(min_length=1)])
+        shape = _shape(Id)
+        assert isinstance(shape, NewTypeShape)
+        assert shape.name == "Id"
+        # exactly one NewTypeShape -- the inner NoWhitespaceString does not nest
+        assert not isinstance(shape.inner, NewTypeShape)
+        assert isinstance(shape.inner, Primitive)
+        assert shape.inner.base_type == "NoWhitespaceString"
+
+    def test_nested_newtype_constraint_order_outer_first(self) -> None:
+        shape = _shape(Id)
+        names = [cs.source_name for cs in all_constraints(shape)]
+        # Id's own constraint precedes NoWhitespaceString's
+        assert names == ["Id", "NoWhitespaceString"]
+
+    def test_newtype_nested_as_list_element_flattens_under_outer_newtype(self) -> None:
+        # A NewType chain collapses to one NewTypeShape (the outermost) even
+        # when an inner NewType is nested across a list boundary -- the inner
+        # name survives only as the terminal `base_type`.
+        InnerElem = NewType("InnerElem", str)
+        OuterList = NewType("OuterList", list[InnerElem])
+        shape = _shape(OuterList)
+        assert isinstance(shape, NewTypeShape)
+        assert shape.name == "OuterList"
+        assert isinstance(shape.inner, ArrayOf)
+        # the InnerElem NewType does NOT produce its own NewTypeShape
+        assert isinstance(shape.inner.element, Primitive)
+        assert shape.inner.element.base_type == "InnerElem"
+
+    def test_sole_list_element_newtype_keeps_its_wrapper(self) -> None:
+        # With no outer NewType, a list-element NewType IS the outermost --
+        # it keeps its NewTypeShape (guards against over-erasing).
+        ElemOnly = NewType("ElemOnly", str)
+        shape = _shape(list[ElemOnly])
+        assert isinstance(shape, ArrayOf)
+        assert isinstance(shape.element, NewTypeShape)
+        assert shape.element.name == "ElemOnly"
+
+    def test_newtype_inside_dict_value_is_an_independent_spine(self) -> None:
+        # `dict` key/value are independent spines: a NewType in the value
+        # keeps its wrapper even under an outer NewType, because erasure
+        # stops at MapOf.
+        DictValue = NewType("DictValue", str)
+        DictWrap = NewType("DictWrap", dict[str, DictValue])
+        shape = _shape(DictWrap)
+        assert isinstance(shape, NewTypeShape)
+        assert shape.name == "DictWrap"
+        assert isinstance(shape.inner, MapOf)
+        assert isinstance(shape.inner.value, NewTypeShape)
+        assert shape.inner.value.name == "DictValue"

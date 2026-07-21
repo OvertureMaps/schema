@@ -36,7 +36,7 @@ jobs:
     if: github.event.repository.full_name == github.repository
     uses: ./.github/workflows/reusable-check-python-package-versions.yaml
     permissions:
-      contents: read # Required for checkout in reusable workflow
+      contents: read  # Required for checkout in reusable workflow
       id-token: write # Required for OIDC in reusable workflow to check AWS CodeArtifact
     with:
       before_commit: ${{ github.event.before }}
@@ -56,7 +56,7 @@ jobs:
         include: ${{ fromJson(needs.check.outputs.changed_packages) }}
     steps:
       - name: Install uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
           version: latest
 
@@ -69,7 +69,7 @@ jobs:
         run: uv sync --all-packages
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
+        uses: aws-actions/configure-aws-credentials@517a711dbcd0e402f90c77e7e2f81e849156e31d # v6.2.2
         with:
           aws-region: us-west-2
           role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
