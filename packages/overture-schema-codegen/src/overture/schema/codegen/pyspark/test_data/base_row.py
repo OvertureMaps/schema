@@ -244,7 +244,7 @@ def _build_arm_rows(
 
 
 def _condition_value(field_eq: FieldEq) -> object:
-    """The condition's comparison value, with an `Enum` unwrapped to its value.
+    """Return the condition's comparison value, with an `Enum` unwrapped to its value.
 
     Row dicts store raw scalar values, so an `Enum`-typed condition value is
     compared and written as its underlying `.value`.

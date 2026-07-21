@@ -153,14 +153,14 @@ def check_required(col: Column) -> Column:
 
 
 def check_pattern(col: Column, pattern: str, *, label: str) -> Column:
-    """Regex pattern check via rlike.  Returns error string or null.
+    r"""Regex pattern check via rlike.  Returns error string or null.
 
     Parameters
     ----------
     col
         Column to validate.
     pattern
-        Java regex pattern (use `\\z` for absolute end-of-input).
+        Java regex pattern (use `\z` for absolute end-of-input).
     label
         Human-readable description used in error messages:
         `"invalid {label}: got '...'"`
@@ -170,8 +170,8 @@ def check_pattern(col: Column, pattern: str, *, label: str) -> Column:
     `rlike` runs Java's regex engine against patterns authored for Python's
     `re` (the engine Pydantic validates with).  The dialects coincide on the
     ASCII character ranges the schema patterns use, but diverge on the
-    shorthand classes: Java's `\\d \\s \\w \\S` are ASCII-only while Python's
-    are Unicode, so e.g. `^\\S+$` accepts a non-breaking space here that
+    shorthand classes: Java's `\d \s \w \S` are ASCII-only while Python's
+    are Unicode, so e.g. `^\S+$` accepts a non-breaking space here that
     Pydantic rejects, and `.` excludes a different set of line terminators.
     These divergences are accepted -- the affected inputs (Unicode digits,
     exotic whitespace) do not occur in practice for the constrained fields.
@@ -263,12 +263,12 @@ def check_array_max_length(col: Column, max_len: int) -> Column:
 
 
 def check_string_min_length(col: Column, min_len: int) -> Column:
-    """String minimum character length check.  Returns error string or null."""
+    """Minimum character length check for strings.  Returns error string or null."""
     return _check_length(col, F.length(col), min_len, direction="minimum")
 
 
 def check_string_max_length(col: Column, max_len: int) -> Column:
-    """String maximum character length check.  Returns error string or null."""
+    """Maximum character length check for strings.  Returns error string or null."""
     return _check_length(col, F.length(col), max_len, direction="maximum")
 
 

@@ -173,11 +173,11 @@ def compiled_pattern_source(pattern: re.Pattern[str]) -> str:
 
 
 def normalize_anchor(pattern: str) -> str:
-    """Replace trailing `$` with `\\z` for Java/Spark regex compatibility.
+    r"""Replace trailing `$` with `\z` for Java/Spark regex compatibility.
 
     Uses backslash-parity to distinguish a real anchor from an escaped
     literal `$`. Counts the run of backslashes immediately before the
-    final `$`: an even count means `$` is unescaped (convert to `\\z`);
+    final `$`: an even count means `$` is unescaped (convert to `\z`);
     an odd count means it is an escaped literal `$` (leave unchanged).
     """
     if not pattern.endswith("$"):
