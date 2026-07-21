@@ -690,10 +690,16 @@ def _value_from_check_enum(
 
 
 def _value_from_check_string_min_length(
-    _desc: ExpressionDescriptor, _scalar: Primitive, _cs: ConstraintSource
+    desc: ExpressionDescriptor, _scalar: Primitive, _cs: ConstraintSource
 ) -> str:
-    """Return any single character; satisfies `min_length>=1` for every schema today."""
-    return "a"
+    """Return a filler string of exactly `min_length` characters.
+
+    The descriptor's sole arg is the `min_length` bound. A shorter string
+    (a single character against `min_length > 1`) would violate the
+    constraint, making the generated conformance ::valid row invalid.
+    """
+    min_length: int = desc.args[0]  # type: ignore[assignment]
+    return "a" * min_length
 
 
 def _value_from_check_pattern(
