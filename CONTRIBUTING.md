@@ -25,7 +25,8 @@ Three common paths take a branch to a merge. Expand each for the commit-level fl
 <summary><strong><code>main</code> &rarr; patch (no version bump)</strong></summary>
 
 Everyday bug fixes and schema tweaks. You do not touch the version; CI computes
-the patch at publish time and no GitHub Release is cut.
+the patch at publish time and no GitHub Release is cut. The fix ships in the next
+release someone cuts (the next minor or major), rolled into that version.
 
 ```mermaid
 gitGraph
@@ -45,7 +46,8 @@ gitGraph
 <summary><strong><code>main</code> &rarr; minor release (version bump)</strong></summary>
 
 A minor feature that bumps `major.minor` in the PR and builds the changelog. On
-merge, `release-trigger` cuts the release.
+merge, `release-trigger` cuts a published GitHub Release and the new version lands
+on PyPI, immediately available to consumers.
 
 ```mermaid
 gitGraph
@@ -65,7 +67,8 @@ gitGraph
 <summary><strong><code>vnext</code> &rarr; major release</strong></summary>
 
 Breaking changes stack on `vnext` until the milestone is ready. Then `vnext`
-merges into `main` as a regular merge (not a squash), which cuts the release.
+merges into `main` as a regular merge (not a squash), which cuts a published
+GitHub Release and puts the new major on PyPI for consumers.
 
 ```mermaid
 gitGraph
@@ -100,13 +103,14 @@ merge to `main`, CI cuts a published GitHub Release tagged
 
 ## Opening a PR
 
-A couple of CI checks comment on your PR when they need something. Each explains
-itself inline, so follow the comment it leaves rather than a copy here:
+Two CI checks may comment on your PR:
 
 - [vnext compatibility check](.github/workflows/vnext-compat.yaml): fails and
   posts the fix if your change clashes with unreleased `vnext` work.
-- [PR advisory check](.github/workflows/pr-advisory.yaml): nudges you on a likely
+- [PR advisory check](.github/workflows/pr-advisory.yaml): flags a likely
   change-type / target-branch mismatch. Advisory only; the reviewer decides.
+
+Follow the comment each check leaves on the PR.
 
 If you have an open PR against `vnext`, its base may be force-updated after a
 merge to `main`; run `git pull --rebase` before pushing again.
