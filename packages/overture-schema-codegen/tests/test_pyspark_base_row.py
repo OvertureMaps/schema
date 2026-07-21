@@ -21,6 +21,7 @@ from overture.schema.codegen.extraction.field import (
     Primitive,
 )
 from overture.schema.codegen.extraction.field_walk import terminal_of
+from overture.schema.codegen.extraction.length_constraints import ScalarMinLen
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
     FieldSpec,
@@ -361,6 +362,37 @@ class TestRawPatternFailsLoud:
         )
         with pytest.raises(ValueError, match="check_pattern"):
             value_for_field(field, "Foo")
+
+
+class TestStringMinLengthBaseRow:
+    """A string field with `min_length > 1` gets a value long enough to pass.
+
+    The synthesizer must emit a string of at least `min_length` characters:
+    a single character satisfies `min_length == 1` but violates any larger
+    bound, which would make the generated conformance ::valid row invalid.
+    """
+
+    def test_scalar_constraints_honor_min_length(self) -> None:
+        scalar = Primitive(
+            base_type="str",
+            constraints=(
+                ConstraintSource(
+                    source_ref=None,
+                    source_name=None,
+                    constraint=ScalarMinLen(min_length=3),
+                ),
+            ),
+        )
+        val = _value_from_scalar_constraints(scalar)
+        assert isinstance(val, str)
+        assert len(val) >= 3
+
+    def test_base_row_string_min_length_passes_pydantic(self) -> None:
+        class StringMinLengthModel(BaseModel):
+            code: str = Field(min_length=3)
+
+        row = generate_base_row(spec_for_model(StringMinLengthModel))
+        StringMinLengthModel(**row)
 
 
 class TestValueForShapeScalarVariants:
