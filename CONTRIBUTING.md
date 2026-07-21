@@ -19,11 +19,13 @@ wiki page breaks down what counts as a minor vs. major change.
 | `main` | Default branch. Bug fixes, minor features, schema improvements. |
 | `vnext` | Major or breaking changes tied to an active `vnext` milestone. |
 
-### Normal contribution (`main`)
+Three common paths take a branch to a merge. Expand each for the commit-level flow.
 
-Everyday bug fixes and minor features branch off `main` and merge back through a
-PR. Most merges ship as a CI-computed patch; a `major.minor` bump in the PR cuts
-a release when it lands.
+<details>
+<summary><strong><code>main</code> &rarr; patch (no version bump)</strong></summary>
+
+Everyday bug fixes and schema tweaks. You do not touch the version; CI computes
+the patch at publish time and no GitHub Release is cut.
 
 ```mermaid
 gitGraph
@@ -31,19 +33,36 @@ gitGraph
    branch fix-places-brand-enum
    checkout fix-places-brand-enum
    commit id: "fix brand enum values"
-   commit id: "add bugfix changelog fragment"
+   commit id: "add bugfix fragment"
    checkout main
-   merge fix-places-brand-enum id: "PR #561 (patch)"
+   merge fix-places-brand-enum id: "PR #561"
+   commit id: "more fixes"
+```
+
+</details>
+
+<details>
+<summary><strong><code>main</code> &rarr; minor release (version bump)</strong></summary>
+
+A minor feature that bumps `major.minor` in the PR and builds the changelog. On
+merge, `release-trigger` cuts the release.
+
+```mermaid
+gitGraph
+   commit id: "overture-schema-v1.17.0"
    branch feat-base-land-cover
    checkout feat-base-land-cover
    commit id: "add land_cover subtype"
    commit id: "bump 1.17 to 1.18 + build changelog"
    checkout main
-   merge feat-base-land-cover id: "PR #564 (minor)" tag: "overture-schema-v1.18.0"
-   commit id: "next fix"
+   merge feat-base-land-cover id: "PR #564" tag: "overture-schema-v1.18.0"
+   commit id: "next work"
 ```
 
-### Major / breaking change (`vnext`)
+</details>
+
+<details>
+<summary><strong><code>vnext</code> &rarr; major release</strong></summary>
 
 Breaking changes stack on `vnext` until the milestone is ready. Then `vnext`
 merges into `main` as a regular merge (not a squash), which cuts the release.
@@ -56,13 +75,13 @@ gitGraph
    branch feat-transportation-access
    checkout feat-transportation-access
    commit id: "breaking: restructure access"
-   commit id: "add breaking changelog fragment"
+   commit id: "add breaking fragment"
    checkout vnext
    merge feat-transportation-access id: "PR #570"
    branch feat-divisions-hierarchy
    checkout feat-divisions-hierarchy
    commit id: "breaking: new division hierarchy"
-   commit id: "add breaking changelog fragment"
+   commit id: "add breaking fragment"
    checkout vnext
    merge feat-divisions-hierarchy id: "PR #572"
    commit id: "bump 1.18 to 2.0 + build changelog"
@@ -71,24 +90,26 @@ gitGraph
    commit id: "next patch work"
 ```
 
+</details>
+
 The `bump ... + build changelog` commit edits the package version in
-`pyproject.toml` and folds its `changelog.d/` fragments into `CHANGELOG.md`. When
-the release merge lands on `main`, CI cuts a published GitHub Release tagged
+`pyproject.toml` and folds its `changelog.d/` fragments into `CHANGELOG.md`. On
+merge to `main`, CI cuts a published GitHub Release tagged
 `<package>-v<major>.<minor>.0` with those notes. See
 [docs/versioning.md](docs/versioning.md).
 
-
 ## Opening a PR
 
-- Both `main` and `vnext` require a PR and at least two approving reviews. No
-  direct pushes.
-- An advisory check nudges you if your change-type label and target branch look
-  mismatched. It never blocks a merge; the reviewer is the source of truth.
-- If your change would clash with upcoming `vnext` work, CI fails the PR and
-  comments the exact commands to fix it. Do not rebase your branch onto `vnext`
-  yourself; that pulls unreleased changes into `main`.
-- If you have an open PR against `vnext`, its base may be force-updated after a
-  merge to `main`. Run `git pull --rebase` before pushing again.
+A couple of CI checks comment on your PR when they need something. Each explains
+itself inline, so follow the comment it leaves rather than a copy here:
+
+- [vnext compatibility check](.github/workflows/vnext-compat.yaml): fails and
+  posts the fix if your change clashes with unreleased `vnext` work.
+- [PR advisory check](.github/workflows/pr-advisory.yaml): nudges you on a likely
+  change-type / target-branch mismatch. Advisory only; the reviewer decides.
+
+If you have an open PR against `vnext`, its base may be force-updated after a
+merge to `main`; run `git pull --rebase` before pushing again.
 
 ## Changing a package version
 
