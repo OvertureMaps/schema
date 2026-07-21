@@ -1,7 +1,8 @@
 # Changelog fragments
 
 [towncrier](https://towncrier.readthedocs.io) news fragments for this package.
-One file per user-facing change:
+One file per change to this package (including patch-level fixes and internal
+work):
 
 ```
 changelog.d/<issue-or-pr>.<type>.md
