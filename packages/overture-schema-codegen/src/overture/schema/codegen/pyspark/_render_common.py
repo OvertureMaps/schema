@@ -84,7 +84,7 @@ _MAP_RUNTIME_HELPERS: dict[MapProjection, str] = {
 
 
 def map_runtime_helper(projection: MapProjection) -> str:
-    """PySpark column-patterns helper name for a map projection.
+    """Map a projection to its PySpark column-patterns helper name.
 
     `MapProjection.KEY` -> `map_keys_check`;
     `MapProjection.VALUE` -> `map_values_check`. This is a pyspark-layer
