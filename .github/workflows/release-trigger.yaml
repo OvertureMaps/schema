@@ -50,75 +50,7 @@ jobs:
         id: detect
         env:
           BEFORE: ${{ github.event.before }}
-        run: |
-          set -euo pipefail
-
-          python3 - <<'EOF'
-          import glob
-          import os
-          import subprocess
-          import sys
-          import tomllib
-
-          before = os.environ["BEFORE"]
-          tsv_path = os.path.join(os.environ["RUNNER_TEMP"], "bumps.tsv")
-
-          def major_minor(blob: bytes) -> tuple[int, int]:
-              version = str(tomllib.loads(blob.decode("utf-8"))["project"]["version"])
-              major, minor, *_ = version.split(".")
-              return int(major), int(minor)
-
-          bumps: list[tuple[str, str]] = []
-          errors: list[str] = []
-
-          for pyproject in sorted(glob.glob("packages/*/pyproject.toml")):
-              package = pyproject.split("/")[1]
-
-              # `after` is the working tree, checked out at github.event.after.
-              with open(pyproject, "rb") as f:
-                  after = major_minor(f.read())
-
-              # `before` can be unreadable after a force-push, a history rewrite,
-              # or for a brand-new package. Treat that as "no release" rather
-              # than failing every subsequent push.
-              before_blob = subprocess.run(
-                  ["git", "show", f"{before}:{pyproject}"],
-                  capture_output=True,
-              )
-              if before_blob.returncode != 0:
-                  print(f"No readable {pyproject} at {before}, skipping {package}.")
-                  continue
-
-              current = major_minor(before_blob.stdout)
-              if after == current:
-                  continue
-              if after < current:
-                  errors.append(
-                      f"{package}: {current[0]}.{current[1]} -> {after[0]}.{after[1]}"
-                  )
-                  continue
-
-              print(f"{package}: {current[0]}.{current[1]} -> {after[0]}.{after[1]} (bump)")
-              bumps.append((package, f"{after[0]}.{after[1]}.0"))
-
-          if errors:
-              for e in errors:
-                  print(
-                      f"::error::{e}: major/minor went backwards. Version decreases "
-                      "must never land on main; revert or fix the version."
-                  )
-              sys.exit(1)
-
-          with open(tsv_path, "w", encoding="utf-8") as tsv:
-              for package, version in bumps:
-                  tsv.write(f"{package}\t{version}\t{package}-v{version}\n")
-
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write(f"count={len(bumps)}\n")
-
-          if not bumps:
-              print("No major/minor bumps detected.")
-          EOF
+        run: python3 ./.github/workflows/scripts/detect_version_bumps.py
 
       - name: Create releases
         if: steps.detect.outputs.count != '0'
@@ -129,30 +61,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          cat > "${RUNNER_TEMP}/extract_notes.py" <<'EOF'
-          import pathlib
-          import sys
-
-          version, changelog = sys.argv[1], sys.argv[2]
-          path = pathlib.Path(changelog)
-          if not path.is_file():
-              sys.exit(0)
-
-          lines = path.read_text(encoding="utf-8").splitlines()
-          start = next(
-              (i for i, line in enumerate(lines) if line.startswith(f"## [{version}]")),
-              None,
-          )
-          if start is None:
-              sys.exit(0)
-
-          end = next(
-              (j for j in range(start + 1, len(lines)) if lines[j].startswith("## [")),
-              len(lines),
-          )
-          sys.stdout.write("\n".join(lines[start:end]).strip())
-          EOF
-
           while IFS=$'\t' read -r package version tag; do
             [ -z "$package" ] && continue
 
@@ -161,7 +69,7 @@ jobs:
               exit 1
             fi
 
-            notes=$(python3 "${RUNNER_TEMP}/extract_notes.py" "$version" "packages/${package}/CHANGELOG.md")
+            notes=$(python3 ./.github/workflows/scripts/extract_release_notes.py "$version" "packages/${package}/CHANGELOG.md")
             if [ -z "$notes" ]; then
               notes="Release ${version} of \`${package}\`. No changelog section was found; add towncrier fragments under \`packages/${package}/changelog.d\` and run \`uvx towncrier build --config pyproject.toml --dir packages/${package}\`."
             fi

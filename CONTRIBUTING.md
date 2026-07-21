@@ -24,19 +24,20 @@ Three common paths take a branch to a merge. Expand each for the commit-level fl
 <details>
 <summary><strong><code>main</code> &rarr; patch (no version bump)</strong></summary>
 
-Everyday bug fixes and schema tweaks. You do not touch the version; CI computes
-the patch at publish time and no GitHub Release is cut. The fix ships in the next
-release someone cuts (the next minor or major), rolled into that version.
+Everyday bug fixes and schema tweaks. You do not touch the version; on merge CI
+publishes the next patch (`<major>.<minor>.<next-patch>`) to internal
+CodeArtifact. No GitHub Release or public PyPI release is cut; the fix reaches
+public PyPI with the next minor or major that ships.
 
 ```mermaid
 gitGraph
-   commit id: "overture-schema-v1.17.0"
+   commit id: "places-theme-v0.4.0"
    branch fix-places-brand-enum
    checkout fix-places-brand-enum
    commit id: "fix brand enum values"
    commit id: "add bugfix fragment"
    checkout main
-   merge fix-places-brand-enum id: "PR #561"
+   merge fix-places-brand-enum id: "PR #561 (CodeArtifact 0.4.1)"
    commit id: "more fixes"
 ```
 
@@ -51,13 +52,13 @@ on PyPI, immediately available to consumers.
 
 ```mermaid
 gitGraph
-   commit id: "overture-schema-v1.17.0"
+   commit id: "base-theme-v0.1.0"
    branch feat-base-land-cover
    checkout feat-base-land-cover
    commit id: "add land_cover subtype"
-   commit id: "bump 1.17 to 1.18 + build changelog"
+   commit id: "bump 0.1 to 0.2 + build changelog"
    checkout main
-   merge feat-base-land-cover id: "PR #564" tag: "overture-schema-v1.18.0"
+   merge feat-base-land-cover id: "PR #564" tag: "base-theme-v0.2.0"
    commit id: "next work"
 ```
 
@@ -72,24 +73,24 @@ GitHub Release and puts the new major on PyPI for consumers.
 
 ```mermaid
 gitGraph
-   commit id: "overture-schema-v1.18.0"
+   commit id: "transportation-theme-v0.5.0"
    branch vnext
    checkout vnext
-   branch feat-transportation-access
-   checkout feat-transportation-access
+   branch feat-access-restructure
+   checkout feat-access-restructure
    commit id: "breaking: restructure access"
    commit id: "add breaking fragment"
    checkout vnext
-   merge feat-transportation-access id: "PR #570"
-   branch feat-divisions-hierarchy
-   checkout feat-divisions-hierarchy
-   commit id: "breaking: new division hierarchy"
+   merge feat-access-restructure id: "PR #570"
+   branch feat-segment-model
+   checkout feat-segment-model
+   commit id: "breaking: new segment model"
    commit id: "add breaking fragment"
    checkout vnext
-   merge feat-divisions-hierarchy id: "PR #572"
-   commit id: "bump 1.18 to 2.0 + build changelog"
+   merge feat-segment-model id: "PR #572"
+   commit id: "bump 0.5 to 1.0 + build changelog"
    checkout main
-   merge vnext id: "release merge (not squash)" tag: "overture-schema-v2.0.0"
+   merge vnext id: "release merge (not squash)" tag: "transportation-theme-v1.0.0"
    commit id: "next patch work"
 ```
 
