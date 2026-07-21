@@ -34,12 +34,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release-trigger:
+  detect:
     name: Detect version bumps
     if: github.event.repository.full_name == github.repository
     runs-on: ubuntu-slim
     permissions:
-      contents: write # Required to create releases and their tags
+      contents: read # Read pyproject.toml history to detect bumps
+    outputs:
+      count: ${{ steps.detect.outputs.count }}
+      bumps: ${{ steps.detect.outputs.bumps }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -52,42 +55,28 @@ jobs:
           BEFORE: ${{ github.event.before }}
         run: python3 ./.github/workflows/scripts/detect_version_bumps.py
 
-      - name: Create releases
-        if: steps.detect.outputs.count != '0'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TARGET: ${{ github.event.after }}
-          UMBRELLA: overture-schema
-        run: |
-          set -euo pipefail
+  release:
+    name: Release ${{ matrix.package }} ${{ matrix.version }}
+    needs: detect
+    if: needs.detect.outputs.count != '0'
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write # Required to create releases and their tags
+    strategy:
+      fail-fast: false # One package's failure must not block sibling releases
+      matrix:
+        include: ${{ fromJSON(needs.detect.outputs.bumps) }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
-          while IFS=$'\t' read -r package version tag; do
-            [ -z "$package" ] && continue
-
-            if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-              echo "::error::Release ${tag} already exists. A duplicate ${package} ${version} bump landed on main; investigate before re-releasing."
-              exit 1
-            fi
-
-            notes=$(python3 ./.github/workflows/scripts/extract_release_notes.py "$version" "packages/${package}/CHANGELOG.md")
-            if [ -z "$notes" ]; then
-              notes="Release ${version} of \`${package}\`. No changelog section was found; add towncrier fragments under \`packages/${package}/changelog.d\` and run \`uvx towncrier build --config pyproject.toml --dir packages/${package}\`."
-            fi
-            printf '%s\n' "$notes" > "${RUNNER_TEMP}/notes.md"
-
-            latest="--latest=false"
-            [ "$package" = "$UMBRELLA" ] && latest="--latest"
-
-            gh release create "$tag" \
-              --repo "$GITHUB_REPOSITORY" \
-              --target "$TARGET" \
-              --title "\`${package}\` ${version}" \
-              --notes-file "${RUNNER_TEMP}/notes.md" \
-              $latest
-
-            {
-              echo "## 📦 Released \`${package}\` ${version}"
-              echo ""
-              echo "Tag \`${tag}\`: published GitHub Release."
-            } >> "$GITHUB_STEP_SUMMARY"
-          done < "${RUNNER_TEMP}/bumps.tsv"
+      - name: Create release
+        uses: ./.github/actions/create-package-release
+        with:
+          package: ${{ matrix.package }}
+          version: ${{ matrix.version }}
+          tag: ${{ matrix.tag }}
+          target: ${{ github.event.after }}
+          latest: ${{ matrix.package == 'overture-schema' }}
+          token: ${{ github.token }}

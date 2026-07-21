@@ -47,8 +47,8 @@ deliberate, one-time discontinuity.
 
 ### Guardrails
 
-- A changelog update is **required** on any `major.minor` bump, enforced by the
-  `Changelog fragment verification` check.
+- A changelog fragment is **required** on any change to a package, enforced by
+  the `Changelog fragment verification` check.
 - `release-trigger` fails if the target tag already exists, or if a version goes
   backwards.
 
@@ -57,8 +57,9 @@ deliberate, one-time discontinuity.
 ### Add a changelog fragment
 
 Release notes are assembled from
-[towncrier](https://towncrier.readthedocs.io) fragments. Add one per user-facing
-change, under the affected package:
+[towncrier](https://towncrier.readthedocs.io) fragments. Add one for every change
+to a package, including patch-level fixes and internal work (use the `misc`
+type), under the affected package:
 
 ```
 packages/<package>/changelog.d/<issue-or-pr>.<type>.md
@@ -81,7 +82,7 @@ uvx towncrier build --config pyproject.toml --dir packages/<package> --draft --v
 ```
 
 A fragment (or an already-built `CHANGELOG.md` entry) is required on any PR that
-bumps that package's `major.minor`.
+changes that package, whether or not it bumps the version.
 
 > [!NOTE]
 > The towncrier categories above are defined once in the root `pyproject.toml`.

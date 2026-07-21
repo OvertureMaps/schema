@@ -11,12 +11,12 @@ CI, not by humans (see docs/versioning.md).
 
 Environment:
     BEFORE         The `before` commit SHA (github.event.before).
-    RUNNER_TEMP    Directory for the emitted bumps.tsv.
-    GITHUB_OUTPUT  Step output file; receives `count=<n>`.
+    GITHUB_OUTPUT  Step output file; receives `count` and `bumps`.
 
-Outputs:
-    $RUNNER_TEMP/bumps.tsv   One `<package>\t<version>\t<tag>` row per bump.
-    count=<n>                Number of bumps, written to $GITHUB_OUTPUT.
+Outputs (written to $GITHUB_OUTPUT):
+    count=<n>      Number of bumped packages.
+    bumps=<json>   JSON array of {"package", "version", "tag"} objects, one per
+                   bump. Consumed as a matrix by the release job.
 
 Exit status:
     0  Success (including the no-bump case).
@@ -24,7 +24,7 @@ Exit status:
 """
 
 from pathlib import Path
-import glob
+import json
 import os
 import subprocess
 import sys
@@ -57,16 +57,15 @@ def before_major_minor(before: str, pyproject: str) -> tuple[int, int] | None:
 
 def main() -> None:
     before = os.environ["BEFORE"]
-    tsv_path = os.path.join(os.environ["RUNNER_TEMP"], "bumps.tsv")
 
-    bumps: list[tuple[str, str]] = []
+    bumps: list[dict[str, str]] = []
     errors: list[str] = []
 
-    for pyproject in sorted(glob.glob("packages/*/pyproject.toml")):
-        package = pyproject.split("/")[1]
+    for path in sorted(Path("packages").glob("*/pyproject.toml")):
+        package = path.parent.name
+        pyproject = path.as_posix()  # git wants forward slashes on every OS
 
-        with open(pyproject, "rb") as f:
-            after = major_minor(f.read())
+        after = major_minor(path.read_bytes())
 
         current = before_major_minor(before, pyproject)
         if current is None:
@@ -80,8 +79,9 @@ def main() -> None:
             errors.append(f"{package}: {current[0]}.{current[1]} -> {after[0]}.{after[1]}")
             continue
 
+        version = f"{after[0]}.{after[1]}.0"
         print(f"{package}: {current[0]}.{current[1]} -> {after[0]}.{after[1]} (bump)")
-        bumps.append((package, f"{after[0]}.{after[1]}.0"))
+        bumps.append({"package": package, "version": version, "tag": f"{package}-v{version}"})
 
     if errors:
         for e in errors:
@@ -91,12 +91,9 @@ def main() -> None:
             )
         sys.exit(1)
 
-    with open(tsv_path, "w", encoding="utf-8") as tsv:
-        for package, version in bumps:
-            tsv.write(f"{package}\t{version}\t{package}-v{version}\n")
-
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
         out.write(f"count={len(bumps)}\n")
+        out.write(f"bumps={json.dumps(bumps)}\n")
 
     if not bumps:
         print("No major/minor bumps detected.")

@@ -26,8 +26,9 @@ Three common paths take a branch to a merge. Expand each for the commit-level fl
 
 Everyday bug fixes and schema tweaks. You do not touch the version; on merge CI
 publishes the next patch (`<major>.<minor>.<next-patch>`) to internal
-CodeArtifact. No GitHub Release or public PyPI release is cut; the fix reaches
-public PyPI with the next minor or major that ships.
+CodeArtifact, where it is consumable immediately. No GitHub Release is cut and
+nothing new lands on public PyPI; the patch reaches public PyPI only when the
+next minor or major release ships.
 
 ```mermaid
 gitGraph
@@ -125,7 +126,7 @@ merge to `main`; run `git pull --rebase` before pushing again.
 - Every package versions and releases independently. Consumers pin only
   `overture-schema`, which pulls in the theme and support packages for a coherent
   set.
-- A `major.minor` bump **requires a changelog fragment**. Add one under
+- Any change to a package **requires a changelog fragment**. Add one under
   `packages/<package>/changelog.d/` and run
   `uvx towncrier build --config pyproject.toml --dir packages/<package>`. CI
   enforces it.
