@@ -383,11 +383,12 @@ def _unwrap(
         # (`RootModel[Annotated[list, MaxLen]]`) keeps its length-wrapped
         # variant on the unwrapped layer.
         #
-        # Precondition: the root type is not self-referential. Recursing into
-        # `root.annotation` bypasses the resolver's cycle detection, so a
-        # `RootModel[list["Self"]]` would recurse forever. Out of scope by the
-        # same convention `extract_model` states -- no schema defines one -- so
-        # this branch carries no cycle guard.
+        # Limitation: the root type must not be self-referential. Recursing
+        # into `root.annotation` bypasses the cycle detection that lives in the
+        # model-resolver layer, so a `RootModel[list["Self"]]` recurses to a
+        # RecursionError instead of terminating on a back-edge. Guarding it
+        # would thread cycle state through this otherwise-stateless unwrap --
+        # deferred until a use case (Overture or downstream) needs one.
         root = annotation.model_fields["root"]
         inner, opt, desc = _recurse(root.annotation, newtype_ctx)
         return attach_field_metadata(inner, root), opt, desc
