@@ -1155,6 +1155,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-pyspark"
+version = "0.1.1"
 source = { editable = "packages/overture-schema-pyspark" }
 dependencies = [
     { name = "click" },
