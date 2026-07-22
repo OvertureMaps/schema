@@ -10,6 +10,10 @@ extraction and layout.
 
 from __future__ import annotations
 
+import logging
+
+from pydantic import RootModel
+
 from overture.schema.system.discovery import ModelKey
 
 from .extraction.model_extraction import extract_model
@@ -24,15 +28,31 @@ from .layout.module_layout import entry_point_class
 
 __all__ = ["extract_model_spec"]
 
+log = logging.getLogger(__name__)
+
 
 def extract_model_spec(key: ModelKey, entry: object) -> ModelSpec | None:
     """Extract the `ModelSpec` for one discovered `(key, entry)` pair.
 
-    Returns None when `entry` is neither a concrete model class nor a union
-    alias, so callers can skip non-model entries with a single check.
+    Returns None when `entry` contributes no generatable spec: a non-model,
+    non-union entry, or a `RootModel`. Entry points are a contribution
+    mechanism, not only a generation one -- an extension may register a
+    RootModel as a type used as a field elsewhere -- so a RootModel is
+    skipped with a warning rather than an error. It has no record structure
+    of its own (it serializes as its bare root value), and wherever it is
+    used as a field `analyze_type` unwraps it to that shape.
     """
     partitions = partitions_from_tags(key.tags)
     if is_model_class(entry):
+        if issubclass(entry, RootModel):
+            log.warning(
+                "Skipping generation for RootModel entry point %s (%s): a "
+                "RootModel has no record structure of its own. It remains "
+                "usable as a field type.",
+                key.name,
+                key.entry_point,
+            )
+            return None
         return extract_model(entry, entry_point=key.entry_point, partitions=partitions)
     if is_union_alias(entry):
         return extract_union(
