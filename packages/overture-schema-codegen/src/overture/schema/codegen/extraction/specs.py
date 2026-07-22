@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any, TypeAlias, TypeGuard
 
 from annotated_types import Interval
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.model_constraint import ModelConstraint
@@ -32,6 +32,7 @@ __all__ = [
     "filter_model_classes",
     "is_model_class",
     "is_pydantic_sourced",
+    "is_rootmodel",
     "is_union_alias",
     "partitions_from_tags",
 ]
@@ -268,6 +269,17 @@ def is_pydantic_sourced(source_type: type | None) -> bool:
 def is_model_class(obj: object) -> TypeGuard[type[BaseModel]]:
     """Check whether *obj* is a concrete BaseModel subclass (not a type alias)."""
     return isinstance(obj, type) and issubclass(obj, BaseModel)
+
+
+def is_rootmodel(obj: object) -> TypeGuard[type[RootModel]]:
+    """Check whether *obj* is a `RootModel` subclass.
+
+    A RootModel is a `BaseModel` (so `is_model_class` also accepts it) but
+    serializes as its bare root value rather than a struct of fields. It
+    has no record structure to extract, so callers treat it apart from a
+    plain model class.
+    """
+    return isinstance(obj, type) and issubclass(obj, RootModel)
 
 
 def is_union_alias(obj: object) -> bool:
