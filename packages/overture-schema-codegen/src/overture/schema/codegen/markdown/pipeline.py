@@ -142,7 +142,7 @@ def generate_markdown_pages(
     model_specs: Sequence[ModelSpec],
     schema_root: str,
     *,
-    alias_specs: Mapping[TypeIdentity, SupplementarySpec] | None = None,
+    external_specs: Mapping[TypeIdentity, SupplementarySpec] | None = None,
 ) -> list[RenderedPage]:
     """Generate all markdown pages from feature specs.
 
@@ -150,7 +150,7 @@ def generate_markdown_pages(
     I/O, frontmatter injection, and any output-format-specific concerns
     (like Docusaurus category files).
 
-    `alias_specs` are supplementary types documented on their own but not
+    `external_specs` are supplementary types documented on their own but not
     reachable by walking feature field trees -- a `RootModel` entry point,
     which serializes as its bare root value and so appears in no feature as
     a named reference. They join the collected supplementary types and
@@ -160,8 +160,8 @@ def generate_markdown_pages(
         _system_numeric, _system_geometric
     )
     all_specs = collect_all_supplementary_types(model_specs)
-    if alias_specs:
-        all_specs = {**all_specs, **alias_specs}
+    if external_specs:
+        all_specs = {**all_specs, **external_specs}
     registry = build_placement_registry(
         model_specs, all_specs, numeric_names, geometry_names, schema_root
     )

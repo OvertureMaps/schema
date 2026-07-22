@@ -382,7 +382,7 @@ class TestCliEntryPoint:
             model_specs: list,
             schema_root: str,
             output_dir: object,
-            alias_specs: object = None,
+            external_specs: object = None,
         ) -> None:
             captured.extend(model_specs)
 

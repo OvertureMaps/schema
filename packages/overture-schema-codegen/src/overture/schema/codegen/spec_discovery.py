@@ -39,9 +39,9 @@ def extract_model_spec(key: ModelKey, entry: object) -> ModelSpec | None:
     `extract_alias_spec` documents it instead. Wherever a RootModel is used
     as a field, `analyze_type` unwraps it to that bare shape.
     """
-    partitions = partitions_from_tags(key.tags)
     if is_rootmodel(entry):
         return None
+    partitions = partitions_from_tags(key.tags)
     if is_model_class(entry):
         return extract_model(entry, entry_point=key.entry_point, partitions=partitions)
     if is_union_alias(entry):
