@@ -24,6 +24,10 @@ no resolver is supplied a MODEL terminal falls back to
 `UnsupportedUnionError`. Callers that need to recurse into sub-models
 pass resolvers that build a `ModelRef`/`UnionRef` with the resolved
 spec.
+
+A `RootModel` never reaches those terminals: it serializes as its bare
+root value, so it is unwrapped to the root type's shape (with any root
+metadata reattached) before terminal classification -- resolver or not.
 """
 
 from __future__ import annotations
@@ -43,7 +47,7 @@ from typing import (
 )
 
 from annotated_types import MaxLen, MinLen
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 from pydantic.fields import FieldInfo
 from typing_extensions import Sentinel, assert_never, evaluate_forward_ref
 
@@ -103,6 +107,7 @@ __all__ = [
     "UnsupportedUnionError",
     "analyze_type",
     "attach_constraints",
+    "attach_field_metadata",
     "capture_union_members",
     "is_newtype",
     "single_literal_value",
@@ -371,6 +376,16 @@ def _unwrap(
         value_shape, _, _ = _recurse(args[1], None)
         return MapOf(key=key_shape, value=value_shape, constraints=()), False, None
 
+    if isinstance(annotation, type) and issubclass(annotation, RootModel):
+        # A RootModel serializes as its bare root value, so unwrap to the
+        # root type's shape. Root-level constraints reattach exactly as
+        # field metadata does, so a constrained root
+        # (`RootModel[Annotated[list, MaxLen]]`) keeps its length-wrapped
+        # variant on the unwrapped layer.
+        root = annotation.model_fields["root"]
+        inner, opt, desc = _recurse(root.annotation, newtype_ctx)
+        return attach_field_metadata(inner, root), opt, desc
+
     return _terminal(annotation, newtype_ctx, model_resolver), False, None
 
 
@@ -490,6 +505,20 @@ def attach_constraints(
             )
         case _:
             assert_never(shape)
+
+
+def attach_field_metadata(shape: FieldShape, field_info: FieldInfo) -> FieldShape:
+    """Merge constraints from `field_info.metadata` onto *shape*.
+
+    Routes the metadata through `attach_constraints` so length-constraint
+    wrapping applies here just as it does during normal annotation
+    unwrapping: the constraints anchor at the topmost constraint-bearing
+    layer. Returns *shape* unchanged when there is no metadata.
+    """
+    if not field_info.metadata:
+        return shape
+    extra = tuple(ConstraintSource(None, None, m) for m in field_info.metadata)
+    return attach_constraints(shape, extra)
 
 
 def _wrap_length_for_array(cs: ConstraintSource) -> ConstraintSource:
