@@ -115,6 +115,12 @@ def extract_model(
     current extraction stack) produce a `ModelRef` pointing at the
     in-progress ancestor spec with `starts_cycle=True` so consumers
     stop recursion at the back-edge.
+
+    The caller must not pass a `RootModel`: it serializes as its bare
+    root value and has no record structure, so walking its fields yields
+    only a spurious `root` column. `extract_model_spec` filters RootModel
+    entry points before they reach here, and a RootModel reached as a
+    field is unwrapped to its bare shape by `analyze_type`.
     """
     return _extract_model_recursive(
         model_class,
