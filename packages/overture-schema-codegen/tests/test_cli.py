@@ -378,7 +378,12 @@ class TestCliEntryPoint:
     ) -> None:
         captured: list[RecordSpec] = []
 
-        def spy(model_specs: list, schema_root: str, output_dir: object) -> None:
+        def spy(
+            model_specs: list,
+            schema_root: str,
+            output_dir: object,
+            alias_specs: object = None,
+        ) -> None:
             captured.extend(model_specs)
 
         monkeypatch.setattr("overture.schema.codegen.cli._generate_markdown", spy)
