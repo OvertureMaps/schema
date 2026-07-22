@@ -5,6 +5,7 @@ from typing import Annotated, Any, Literal, NewType, Optional
 
 import pytest
 from annotated_types import Ge, MaxLen, MinLen
+from codegen_test_support import TollChargesByVehicleType
 from overture.schema.codegen.extraction.field import (
     AnyScalar,
     ArrayOf,
@@ -22,6 +23,7 @@ from overture.schema.codegen.extraction.field_walk import (
     list_depth,
 )
 from overture.schema.codegen.extraction.length_constraints import (
+    ArrayMaxLen,
     ArrayMinLen,
     ScalarMinLen,
 )
@@ -46,7 +48,7 @@ from overture.schema.system.string import (
     NoWhitespaceString,
     SnakeCaseString,
 )
-from pydantic import BaseModel, Field, Tag
+from pydantic import BaseModel, Field, RootModel, Tag
 from typing_extensions import Sentinel
 
 
@@ -283,6 +285,68 @@ class TestEnumAndModel:
         assert isinstance(shape, Primitive)
         assert shape.source_type is Person
         assert shape.base_type == "Person"
+
+
+class TestRootModel:
+    """A `RootModel` serializes as its bare root value.
+
+    So `analyze_type` unwraps it to the root type's shape, reattaching any
+    root-level metadata onto the unwrapped layer. `TollChargesByVehicleType`
+    is a map-rooted RootModel; the scalar and constrained roots below are
+    local because each exercises one path only.
+    """
+
+    def test_map_root_unwraps_to_mapof(self) -> None:
+        shape = _shape(TollChargesByVehicleType)
+        assert isinstance(shape, MapOf)
+        assert isinstance(shape.key, Primitive) and shape.key.base_type == "str"
+        assert isinstance(shape.value, Primitive) and shape.value.base_type == "int"
+
+    def test_scalar_root_unwraps_to_primitive(self) -> None:
+        class Slug(RootModel[str]):
+            pass
+
+        shape = _shape(Slug)
+        assert isinstance(shape, Primitive)
+        assert shape.base_type == "str"
+
+    def test_constrained_root_reattaches_constraints(self) -> None:
+        class Tags(RootModel[Annotated[list[str], MaxLen(3)]]):
+            pass
+
+        shape = _shape(Tags)
+        assert isinstance(shape, ArrayOf)
+        assert ArrayMaxLen in {type(cs.constraint) for cs in shape.constraints}
+
+    def test_constrained_scalar_root_reattaches_scalar_min_len(self) -> None:
+        class Code(RootModel[Annotated[str, MinLen(2)]]):
+            pass
+
+        shape = _shape(Code)
+        assert isinstance(shape, Primitive)
+        assert ScalarMinLen in {type(cs.constraint) for cs in shape.constraints}
+
+    def test_unwrap_bypasses_model_resolver(self) -> None:
+        """The RootModel is unwrapped before terminal classification.
+
+        A plain `BaseModel` terminal routes through `model_resolver`; a
+        RootModel resolves structurally into its root shape, so the
+        resolver is never invoked for it.
+        """
+        seen: list[type] = []
+
+        def resolver(cls: type[BaseModel]) -> FieldShape:
+            seen.append(cls)
+            return ModelRef(model=RecordSpec(name=cls.__name__, description=None))
+
+        shape, _, _ = analyze_type(TollChargesByVehicleType, model_resolver=resolver)
+        assert isinstance(shape, MapOf)
+        assert seen == []
+
+    def test_optional_rootmodel_field_is_optional(self) -> None:
+        shape, is_optional, _ = analyze_type(TollChargesByVehicleType | None)
+        assert isinstance(shape, MapOf)
+        assert is_optional is True
 
 
 class TestNewType:

@@ -56,7 +56,7 @@ from overture.schema.system.primitive import (
 )
 from overture.schema.system.ref import Id, Identified, Reference, Relationship
 from overture.schema.system.string import HexColor, LanguageTag, StrippedString
-from pydantic import BaseModel, EmailStr, Field, HttpUrl
+from pydantic import BaseModel, EmailStr, Field, HttpUrl, RootModel
 
 STR_TYPE = Primitive(base_type="str")
 
@@ -197,6 +197,22 @@ class TreeNode(BaseModel):
 class Widget(BaseModel):
     active: bool
     label: str = Field(description="Display label")
+
+
+class TollChargesByVehicleType(RootModel[dict[str, int]]):
+    """A map-rooted RootModel: a bare `dict[str, int]` in serialized data."""
+
+
+class FeatureWithRootModel(BaseModel):
+    """A feature carrying a `RootModel`-typed field.
+
+    The field serializes as its bare root value (a `map<string,int>`), so
+    codegen must extract it to that shape rather than a struct with a
+    synthetic `root` member.
+    """
+
+    road_class: str
+    toll_charges: TollChargesByVehicleType | None = None
 
 
 CommonNames = NewType("CommonNames", dict[LanguageTag, StrippedString])

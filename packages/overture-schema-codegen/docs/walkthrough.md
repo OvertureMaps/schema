@@ -144,6 +144,12 @@ outermost structural layer, which is exactly the `ArrayOf` that was just constru
 **dict** recurses separately for key and value types (with `newtype_ctx=None` for both,
 since dict keys and values are independent spines) and returns `MapOf`.
 
+**RootModel** subclasses are handled distinctly from other `BaseModel` terminals, since a
+RootModel serializes as its bare root value. `_unwrap` intercepts them just before the
+terminal, recurses into the `root` field's annotation, and reattaches any root metadata with
+`attach_field_metadata` -- exactly as a model field's own metadata reattaches. A
+`RootModel[dict[str, int]]` field yields a bare `MapOf` carrying the root type's shape.
+
 **Terminal** classification in `_terminal` handles the base case: `Any` becomes
 `AnyScalar`, `Literal` becomes `LiteralScalar`, `BaseModel` subclasses route through
 `model_resolver` (or fall back to `Primitive(source_type=cls)`), everything else becomes
@@ -275,7 +281,7 @@ classes.
 
 One subtlety: Pydantic strips the `Annotated` wrapper from some fields and moves the
 metadata to `field_info.metadata`. When this happens, `analyze_type` sees a bare type
-and misses the constraints. `_attach_field_metadata` routes them through
+and misses the constraints. `attach_field_metadata` routes them through
 `attach_constraints` -- tagging them with `source=None` since they came from the field's
 own annotation rather than a NewType chain -- so length-constraint typing happens here
 just as it does during normal `Annotated` unwrapping.

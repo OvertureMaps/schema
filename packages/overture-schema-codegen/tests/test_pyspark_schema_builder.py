@@ -3,7 +3,7 @@
 from enum import Enum
 
 import pytest
-from codegen_test_support import spec_for_model
+from codegen_test_support import FeatureWithRootModel, spec_for_model
 from overture.schema.codegen.extraction.field import Primitive
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
@@ -91,6 +91,23 @@ class TestDictFields:
     def test_dict_str_str_maps_to_map_type(self, fields: list[SchemaField]) -> None:
         labels_field = next(f for f in fields if f.name == "labels")
         assert labels_field.type_expr == "MapType(StringType(), StringType(), True)"
+
+
+class TestRootModelField:
+    """A `RootModel` field renders as its bare root type, not a struct.
+
+    Pydantic serializes a RootModel as its bare root value, so the Spark
+    schema must declare the value's type directly -- `MapType(...)` here,
+    never `StructType([StructField("root", ...)])`.
+    """
+
+    @pytest.fixture
+    def fields(self) -> list[SchemaField]:
+        return build_schema(spec_for_model(FeatureWithRootModel))
+
+    def test_rootmodel_field_maps_to_map_type(self, fields: list[SchemaField]) -> None:
+        toll = next(f for f in fields if f.name == "toll_charges")
+        assert toll.type_expr == "MapType(StringType(), LongType(), True)"
 
 
 class TestDivisionAreaSchema:
