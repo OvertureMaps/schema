@@ -22,7 +22,7 @@ def _pages_with_alias() -> list:
     feature = spec_for_model(Widget, entry_point="codegen_test_support:Widget")
     alias = extract_rootmodel_alias(TollChargesByVehicleType)
     return generate_markdown_pages(
-        [feature], _SCHEMA_ROOT, alias_specs={alias.identity: alias}
+        [feature], _SCHEMA_ROOT, external_specs={alias.identity: alias}
     )
 
 

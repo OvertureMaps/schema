@@ -55,6 +55,12 @@ def extract_rootmodel_alias(root_model: type[RootModel]) -> NewTypeSpec:
     description stands in. Pydantic moves that description onto the root
     `FieldInfo` (as it does for model fields), so read it there rather than
     from `analyze_type`, which recurses past it.
+
+    No `is_custom_docstring` guard is needed (again unlike `extract_newtype`):
+    a RootModel subclass with no docstring has `__doc__ = None` -- classes do
+    not inherit `RootModel`'s base docstring -- so there is no auto-generated
+    text to filter out, and `clean_docstring(None)` falls through to the root
+    description.
     """
     shape, _, _ = analyze_type(root_model)
     root = root_model.model_fields["root"]
