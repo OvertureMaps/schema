@@ -4,7 +4,7 @@
 One file per change to this package (including patch-level fixes and internal
 work):
 
-```
+```text
 changelog.d/<issue-or-pr>.<type>.md
 ```
 
