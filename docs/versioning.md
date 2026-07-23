@@ -20,7 +20,7 @@ Reference and how-to for package versions and releases. Branch mechanics and the
 ### Version scheme
 
 Every distributable package under `packages/*` carries its own independent
-`<major>.<minor>.<patch>` (PEP 440) in its `pyproject.toml`.
+`<major>.<minor>.<patch>` ([PEP 440](https://peps.python.org/pep-0440/)) in its `pyproject.toml`.
 
 | Component | Owner | Set by |
 |-----------|-------|--------|
