@@ -5,7 +5,7 @@ maintainers = [
 dependencies = [
     "overture-schema-common",
     "overture-schema-system",
-    "pydantic>=2.12.0",
+    "pydantic>=2.13.0",
 ]
 description = "Overture Maps divisions theme shared structures, division, division area and division boundary types"
 version = "0.1.1"
