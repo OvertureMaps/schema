@@ -61,7 +61,7 @@ Release notes are assembled from
 to a package, including patch-level fixes and internal work (use the `misc`
 type), under the affected package:
 
-```
+```text
 packages/<package>/changelog.d/<issue-or-pr>.<type>.md
 ```
 
