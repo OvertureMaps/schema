@@ -850,11 +850,11 @@ Instead of making classes abstract, we use **entry point registration** where on
 ```python
 # In packages/overture-schema-transportation-theme/pyproject.toml
 [project.entry-points."overture.models"]
-"transportation.connector" = "overture.schema.transportation.connector.models:Connector"
-"transportation.segment" = "overture.schema.transportation.segment.models:Segment"
+connector = "overture.schema.transportation:Connector"
+segment = "overture.schema.transportation:Segment"
 ```
 
-**Real example:** See [`packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/models.py`](packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/models.py) where:
+**Real example:** See [`packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/__init__.py`](packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/__init__.py) where:
 
 - **`Segment`** is a discriminated union: `RoadSegment | RailSegment | WaterSegment`
 - **`TransportationSegment`** is the concrete base class that all segment types inherit from
@@ -1095,7 +1095,7 @@ class Address(BaseModel):
     freeform: str | None = None
     locality: str | None = None
 
-# In overture-schema-buildings-theme/src/overture/schema/buildings/building/models.py
+# In overture-schema-buildings-theme/src/overture/schema/buildings/building.py
 class Building(OvertureFeature):
     address: Address | None = None
 ```

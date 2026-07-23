@@ -70,7 +70,7 @@ class DivisionBoundary(
     Some boundaries may be disputed by the divisions on one or both sides.
     """
 
-    model_config = ConfigDict(title="boundary")
+    model_config = ConfigDict(title="division_boundary")
 
     # Core
     geometry: Annotated[

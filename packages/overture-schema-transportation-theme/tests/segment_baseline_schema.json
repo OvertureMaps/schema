@@ -1,13 +1,14 @@
 {
   "$defs": {
-    "AccessRestrictionRule": {
+    "AccessRule": {
       "additionalProperties": false,
+      "description": "A single scoped rule about who or what can use a segment (or a sub-segment of a segment).\n\nThis rule can be scoped to apply only to linearly-referenced subsegment, a travel mode such as\nmotor vehicle, a heading such as forward or backward, and to various other scopes as well. See\nthe fields for the full list of available scopes.",
       "properties": {
         "access_type": {
           "$ref": "#/$defs/AccessType"
         },
         "between": {
-          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing AccessRestrictionRule applies to.",
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing AccessRule applies to.",
           "items": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -19,16 +20,17 @@
           "type": "array"
         },
         "when": {
-          "$ref": "#/$defs/overture__schema__transportation__models__AccessRestrictionRule__When"
+          "$ref": "#/$defs/overture__schema__transportation__segment___common__AccessRule__When"
         }
       },
       "required": [
         "access_type"
       ],
-      "title": "AccessRestrictionRule",
+      "title": "AccessRule",
       "type": "object"
     },
     "AccessType": {
+      "description": "Whether access is allowed, denied, or allowed as designated.",
       "enum": [
         "allowed",
         "denied",
@@ -124,13 +126,14 @@
           ]
         }
       ],
+      "description": "A single scoped rule describing the destinations reachable by following a transition from the\ncurrent segment onto the segment `to_segment_id` via the connector `to_connector_id` in\nthe `final_heading` direction.\n\nThe destination is described as it appears in real-world signage through text `labels` and/or\npictographic `symbols`. Heading-scoped to the approach direction on the current segment.",
       "properties": {
         "final_heading": {
           "$ref": "#/$defs/Heading",
-          "description": "Direction of travel on the segment identified by 'to_segment_id' that leads to the destination."
+          "description": "Direction of travel on the segment identified by 'to_segment_id' that leads to\nthe destination."
         },
         "from_connector_id": {
-          "description": "Identifies the point of physical connection on this segment before which the destination sign or marking is visible.",
+          "description": "Identifies the point of physical connection on this segment before which the\ndestination sign or marking is visible.",
           "minLength": 1,
           "pattern": "^\\S+$",
           "title": "From Connector Id",
@@ -147,7 +150,7 @@
           "uniqueItems": true
         },
         "symbols": {
-          "description": "A collection of symbols or icons present on the sign next to current destination label.",
+          "description": "A collection of symbols or icons present on the sign next to current destination\nlabel.",
           "items": {
             "$ref": "#/$defs/DestinationSignSymbol"
           },
@@ -156,21 +159,21 @@
           "uniqueItems": true
         },
         "to_connector_id": {
-          "description": "Identifies the point of physical connection on the segment identified by 'to_segment_id' to transition to for reaching the destination(s).",
+          "description": "Identifies the point of physical connection on the segment identified by\n'to_segment_id' to transition to for reaching the destination(s).",
           "minLength": 1,
           "pattern": "^\\S+$",
           "title": "To Connector Id",
           "type": "string"
         },
         "to_segment_id": {
-          "description": "Identifies the segment to transition to reach the destination(s) labeled on the sign or marking.",
+          "description": "Identifies the segment to transition to reach the destination(s) labeled on the\nsign or marking.",
           "minLength": 1,
           "pattern": "^\\S+$",
           "title": "To Segment Id",
           "type": "string"
         },
         "when": {
-          "$ref": "#/$defs/overture__schema__transportation__models__DestinationRule__When"
+          "$ref": "#/$defs/overture__schema__transportation__segment__road__DestinationRule__When"
         }
       },
       "required": [
@@ -404,6 +407,7 @@
     },
     "ProhibitedTransitionRule": {
       "additionalProperties": false,
+      "description": "A single scoped rule identifying a transition from the current segment (or a sub-segment of it)\nto a connected segment that is not allowed.\n\nThis rule can be scoped to apply only to linearly-referenced subsegment, a travel mode such as\nmotor vehicle, a heading such as forward or backward, and to various other scopes as well. See\nthe fields for the full list of available scopes.\n\nTerminology note: Prohibited transitions are more commonly referred to as turn restrictions.\nWhile the term turn restriction is simpler and more relatable, it is less precise because\ntransitions between segments don't always require maneuvers that a human would describe as being\na turn. For this reason, the Overture schema has opted for the more general and precise term\nprohibited transitions.",
       "properties": {
         "between": {
           "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing ProhibitedTransitionRule applies to.",
@@ -422,9 +426,9 @@
           "description": "Direction of travel that is prohibited on the destination segment of the sequence."
         },
         "sequence": {
-          "description": "Ordered sequence of connector/segment pairs that it is prohibited to follow from this segment.",
+          "description": "Ordered sequence of connector/segment pairs that it is prohibited to follow\nfrom this segment.",
           "items": {
-            "$ref": "#/$defs/SequenceEntry"
+            "$ref": "#/$defs/ProhibitedTransitionSequenceEntry"
           },
           "minItems": 1,
           "title": "Sequence",
@@ -432,7 +436,7 @@
           "uniqueItems": true
         },
         "when": {
-          "$ref": "#/$defs/overture__schema__transportation__models__ProhibitedTransitionRule__When"
+          "$ref": "#/$defs/overture__schema__transportation__segment___common__ProhibitedTransitionRule__When"
         }
       },
       "required": [
@@ -440,6 +444,32 @@
         "final_heading"
       ],
       "title": "ProhibitedTransitionRule",
+      "type": "object"
+    },
+    "ProhibitedTransitionSequenceEntry": {
+      "additionalProperties": false,
+      "description": "A segment/connector pair in a prohibited transition sequence.",
+      "properties": {
+        "connector_id": {
+          "description": "Identifies the point of physical connection between the previous segment in the\nsequence and the segment in this sequence entry.",
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Connector Id",
+          "type": "string"
+        },
+        "segment_id": {
+          "description": "Identifies the segment that the previous segment in the sequence is physically\nconnected to via the sequence entry's connector.",
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Segment Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "connector_id",
+        "segment_id"
+      ],
+      "title": "ProhibitedTransitionSequenceEntry",
       "type": "object"
     },
     "PurposeOfUse": {
@@ -518,7 +548,7 @@
     },
     "RailSegment": {
       "additionalProperties": false,
-      "description": "Rail Segment Properties.",
+      "description": "Rail segment properties.",
       "properties": {
         "bbox": {
           "description": "An optional bounding box for the feature",
@@ -589,7 +619,7 @@
             "access_restrictions": {
               "description": "Rules governing access to this road segment",
               "items": {
-                "$ref": "#/$defs/AccessRestrictionRule"
+                "$ref": "#/$defs/AccessRule"
               },
               "minItems": 1,
               "title": "Access Restrictions",
@@ -601,7 +631,7 @@
             },
             "connectors": {
               "default": [],
-              "description": "List of connectors which this segment is physically connected to and their relative location. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments which share the same connector.",
+              "description": "List of connectors which this segment is physically connected to and their\nrelative location. Each connector is a possible routing decision point,\nmeaning it defines a place along the segment in which there is possibility to\ntransition to other segments which share the same connector.",
               "items": {
                 "$ref": "#/$defs/ConnectorReference"
               },
@@ -623,7 +653,7 @@
               "description": "All known names by which the feature is called"
             },
             "rail_flags": {
-              "description": "Set of boolean attributes applicable to railways. May be specified either as a single flag array of flag values, or as an array of flag rules.",
+              "description": "Set of boolean attributes applicable to railways. May be specified either as a\nsingle flag array of flag values, or as an array of flag rules.",
               "items": {
                 "$ref": "#/$defs/RailFlagRule"
               },
@@ -631,14 +661,6 @@
               "title": "Rail Flags",
               "type": "array",
               "uniqueItems": true
-            },
-            "routes": {
-              "description": "Routes this segment belongs to",
-              "items": {
-                "$ref": "#/$defs/RouteReference"
-              },
-              "title": "Routes",
-              "type": "array"
             },
             "sources": {
               "description": "Information about the source data used to assemble the feature.",
@@ -649,14 +671,6 @@
               "title": "Sources",
               "type": "array",
               "uniqueItems": true
-            },
-            "subclass_rules": {
-              "description": "Set of subclasses scoped along segment",
-              "items": {
-                "$ref": "#/$defs/SubclassRule"
-              },
-              "title": "Subclass Rules",
-              "type": "array"
             },
             "subtype": {
               "const": "rail",
@@ -701,7 +715,7 @@
         "geometry",
         "properties"
       ],
-      "title": "Rail-Specific Properties",
+      "title": "segment (rail)",
       "type": "object"
     },
     "RecognizedStatus": {
@@ -788,7 +802,7 @@
     },
     "RoadSegment": {
       "additionalProperties": false,
-      "description": "Road Segment Properties.",
+      "description": "Road segment properties.",
       "properties": {
         "bbox": {
           "description": "An optional bounding box for the feature",
@@ -859,7 +873,7 @@
             "access_restrictions": {
               "description": "Rules governing access to this road segment",
               "items": {
-                "$ref": "#/$defs/AccessRestrictionRule"
+                "$ref": "#/$defs/AccessRule"
               },
               "minItems": 1,
               "title": "Access Restrictions",
@@ -871,7 +885,7 @@
             },
             "connectors": {
               "default": [],
-              "description": "List of connectors which this segment is physically connected to and their relative location. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments which share the same connector.",
+              "description": "List of connectors which this segment is physically connected to and their\nrelative location. Each connector is a possible routing decision point,\nmeaning it defines a place along the segment in which there is possibility to\ntransition to other segments which share the same connector.",
               "items": {
                 "$ref": "#/$defs/ConnectorReference"
               },
@@ -881,7 +895,7 @@
               "uniqueItems": true
             },
             "destinations": {
-              "description": "Describes objects that can be reached by following a transportation segment in the same way those objects are described on signposts or ground writing that a traveller following the segment would observe in the real world. This allows navigation systems to refer to signs and observable writing that a traveller actually sees.",
+              "description": "Describes objects that can be reached by following a transportation segment in the\nsame way those objects are described on signposts or ground writing that a\ntraveller following the segment would observe in the real world. This allows\nnavigation systems to refer to signs and observable writing that a traveller\nactually sees.",
               "items": {
                 "$ref": "#/$defs/DestinationRule"
               },
@@ -901,7 +915,7 @@
               "description": "All known names by which the feature is called"
             },
             "prohibited_transitions": {
-              "description": "Rules preventing transitions from this segment to another segment.",
+              "description": "Rules for when transition to a connected segment is not allowed (commonly known as turn\nrestrictions).",
               "items": {
                 "$ref": "#/$defs/ProhibitedTransitionRule"
               },
@@ -909,7 +923,7 @@
               "type": "array"
             },
             "road_flags": {
-              "description": "Set of boolean attributes applicable to roads. May be specified either as a single flag array of flag values, or as an array of flag rules.",
+              "description": "Set of boolean attributes applicable to roads. May be specified either as a\nsingle flag array of flag values, or as an array of flag rules.",
               "items": {
                 "$ref": "#/$defs/RoadFlagRule"
               },
@@ -919,9 +933,9 @@
               "uniqueItems": true
             },
             "road_surface": {
-              "description": "Physical surface of the road. May either be specified as a single global value for the segment, or as an array of surface rules.",
+              "description": "Rules describing the physical surface of the road.",
               "items": {
-                "$ref": "#/$defs/SurfaceRule"
+                "$ref": "#/$defs/RoadSurfaceRule"
               },
               "minItems": 1,
               "title": "Road Surface",
@@ -957,12 +971,12 @@
               "uniqueItems": true
             },
             "subclass": {
-              "$ref": "#/$defs/Subclass"
+              "$ref": "#/$defs/RoadSubclass"
             },
             "subclass_rules": {
               "description": "Set of subclasses scoped along segment",
               "items": {
-                "$ref": "#/$defs/SubclassRule"
+                "$ref": "#/$defs/RoadSubclassRule"
               },
               "title": "Subclass Rules",
               "type": "array"
@@ -990,7 +1004,7 @@
               "type": "integer"
             },
             "width_rules": {
-              "description": "Edge-to-edge width of the road modeled by this segment, in meters.\n\n        Examples: (1) If this segment models a carriageway without sidewalk, this value represents the edge-to-edge width of the carriageway, inclusive of any shoulder. (2) If this segment models a sidewalk by itself, this value represents the edge-to-edge width of the sidewalk. (3) If this segment models a combined sidewalk and carriageway, this value represents the edge-to-edge width inclusive of sidewalk.",
+              "description": "Edge-to-edge width of the feature modeled by this segment, in meters.\n\nExamples: (1) If this segment models a carriageway without sidewalk, this value\nrepresents the edge-to-edge width of the carriageway, inclusive of any shoulder.\n(2) If this segment models a sidewalk by itself, this value represents the\nedge-to-edge width of the sidewalk. (3) If this segment models a combined sidewalk\nand carriageway, this value represents the edge-to-edge width inclusive of sidewalk.",
               "items": {
                 "$ref": "#/$defs/WidthRule"
               },
@@ -1020,7 +1034,47 @@
         "geometry",
         "properties"
       ],
-      "title": "Road-Specific Properties",
+      "title": "segment (road)",
+      "type": "object"
+    },
+    "RoadSubclass": {
+      "description": "Refines expected usage of the segment, must not overlap.",
+      "enum": [
+        "link",
+        "sidewalk",
+        "crosswalk",
+        "parking_aisle",
+        "driveway",
+        "alley",
+        "cycle_crossing"
+      ],
+      "title": "RoadSubclass",
+      "type": "string"
+    },
+    "RoadSubclassRule": {
+      "additionalProperties": false,
+      "description": "Set of subclasses scoped along segment.",
+      "properties": {
+        "between": {
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing RoadSubclassRule applies to.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "value": {
+          "$ref": "#/$defs/RoadSubclass"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "RoadSubclassRule",
       "type": "object"
     },
     "RoadSurface": {
@@ -1036,6 +1090,32 @@
       ],
       "title": "RoadSurface",
       "type": "string"
+    },
+    "RoadSurfaceRule": {
+      "additionalProperties": false,
+      "description": "Specifies the physical surface of a road segment or a linearly-referenced subsegment of the road\nsegment.",
+      "properties": {
+        "between": {
+          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing RoadSurfaceRule applies to.",
+          "items": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "value": {
+          "$ref": "#/$defs/RoadSurface"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "RoadSurfaceRule",
+      "type": "object"
     },
     "RouteReference": {
       "additionalProperties": false,
@@ -1089,32 +1169,6 @@
         }
       },
       "title": "RouteReference",
-      "type": "object"
-    },
-    "SequenceEntry": {
-      "additionalProperties": false,
-      "description": "A segment/connector pair in a prohibited transition sequence.",
-      "properties": {
-        "connector_id": {
-          "description": "Identifies the point of physical connection between the previous segment in the sequence and the segment in this sequence entry.",
-          "minLength": 1,
-          "pattern": "^\\S+$",
-          "title": "Connector Id",
-          "type": "string"
-        },
-        "segment_id": {
-          "description": "Identifies the segment that the previous segment in the sequence is physically connected to via the sequence entry's connector.",
-          "minLength": 1,
-          "pattern": "^\\S+$",
-          "title": "Segment Id",
-          "type": "string"
-        }
-      },
-      "required": [
-        "connector_id",
-        "segment_id"
-      ],
-      "title": "SequenceEntry",
       "type": "object"
     },
     "Side": {
@@ -1282,7 +1336,7 @@
           "$ref": "#/$defs/Speed"
         },
         "when": {
-          "$ref": "#/$defs/overture__schema__transportation__models__SpeedLimitRule__When"
+          "$ref": "#/$defs/overture__schema__transportation__segment___common__SpeedLimitRule__When"
         }
       },
       "title": "SpeedLimitRule",
@@ -1296,71 +1350,6 @@
       ],
       "title": "SpeedUnit",
       "type": "string"
-    },
-    "Subclass": {
-      "description": "Refines expected usage of the segment, must not overlap.",
-      "enum": [
-        "link",
-        "sidewalk",
-        "crosswalk",
-        "parking_aisle",
-        "driveway",
-        "alley",
-        "cycle_crossing"
-      ],
-      "title": "Subclass",
-      "type": "string"
-    },
-    "SubclassRule": {
-      "additionalProperties": false,
-      "description": "Set of subclasses scoped along segment.",
-      "properties": {
-        "between": {
-          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SubclassRule applies to.",
-          "items": {
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "type": "number"
-          },
-          "maxItems": 2,
-          "minItems": 2,
-          "title": "Between",
-          "type": "array"
-        },
-        "value": {
-          "$ref": "#/$defs/Subclass"
-        }
-      },
-      "required": [
-        "value"
-      ],
-      "title": "SubclassRule",
-      "type": "object"
-    },
-    "SurfaceRule": {
-      "additionalProperties": false,
-      "properties": {
-        "between": {
-          "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing SurfaceRule applies to.",
-          "items": {
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "type": "number"
-          },
-          "maxItems": 2,
-          "minItems": 2,
-          "title": "Between",
-          "type": "array"
-        },
-        "value": {
-          "$ref": "#/$defs/RoadSurface"
-        }
-      },
-      "required": [
-        "value"
-      ],
-      "title": "SurfaceRule",
-      "type": "object"
     },
     "TravelMode": {
       "description": "Enumerates possible travel modes.\n\nSome modes represent groups of modes.",
@@ -1551,7 +1540,7 @@
     },
     "WaterSegment": {
       "additionalProperties": false,
-      "description": "Water Segment Properties.",
+      "description": "Water segment properties.",
       "properties": {
         "bbox": {
           "description": "An optional bounding box for the feature",
@@ -1622,7 +1611,7 @@
             "access_restrictions": {
               "description": "Rules governing access to this road segment",
               "items": {
-                "$ref": "#/$defs/AccessRestrictionRule"
+                "$ref": "#/$defs/AccessRule"
               },
               "minItems": 1,
               "title": "Access Restrictions",
@@ -1631,7 +1620,7 @@
             },
             "connectors": {
               "default": [],
-              "description": "List of connectors which this segment is physically connected to and their relative location. Each connector is a possible routing decision point, meaning it defines a place along the segment in which there is possibility to transition to other segments which share the same connector.",
+              "description": "List of connectors which this segment is physically connected to and their\nrelative location. Each connector is a possible routing decision point,\nmeaning it defines a place along the segment in which there is possibility to\ntransition to other segments which share the same connector.",
               "items": {
                 "$ref": "#/$defs/ConnectorReference"
               },
@@ -1652,14 +1641,6 @@
               "$ref": "#/$defs/Names",
               "description": "All known names by which the feature is called"
             },
-            "routes": {
-              "description": "Routes this segment belongs to",
-              "items": {
-                "$ref": "#/$defs/RouteReference"
-              },
-              "title": "Routes",
-              "type": "array"
-            },
             "sources": {
               "description": "Information about the source data used to assemble the feature.",
               "items": {
@@ -1669,14 +1650,6 @@
               "title": "Sources",
               "type": "array",
               "uniqueItems": true
-            },
-            "subclass_rules": {
-              "description": "Set of subclasses scoped along segment",
-              "items": {
-                "$ref": "#/$defs/SubclassRule"
-              },
-              "title": "Subclass Rules",
-              "type": "array"
             },
             "subtype": {
               "const": "water",
@@ -1720,7 +1693,7 @@
         "geometry",
         "properties"
       ],
-      "title": "Water-Specific Properties",
+      "title": "segment (water)",
       "type": "object"
     },
     "WeightUnit": {
@@ -1739,6 +1712,7 @@
     },
     "WidthRule": {
       "additionalProperties": false,
+      "description": "Specifies the width of a segment or a linearly-referenced subsegment of a segment.",
       "properties": {
         "between": {
           "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing WidthRule applies to.",
@@ -1753,6 +1727,7 @@
           "type": "array"
         },
         "value": {
+          "description": "Edge-to-edge width of the feature modeled by this segment, in meters.",
           "exclusiveMinimum": 0,
           "title": "Value",
           "type": "number"
@@ -1764,7 +1739,7 @@
       "title": "WidthRule",
       "type": "object"
     },
-    "overture__schema__transportation__models__AccessRestrictionRule__When": {
+    "overture__schema__transportation__segment___common__AccessRule__When": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -1840,19 +1815,19 @@
           ]
         }
       ],
-      "description": "Scopes for AccessRestrictionRule: Scope.HEADING, Scope.TEMPORAL, Scope.TRAVEL MODE, Scope.PURPOSE OF USE, Scope.RECOGNIZED STATUS and Scope.VEHICLE",
+      "description": "Scopes for AccessRule: Scope.HEADING, Scope.TEMPORAL, Scope.TRAVEL MODE, Scope.PURPOSE OF USE, Scope.RECOGNIZED STATUS and Scope.VEHICLE",
       "properties": {
         "during": {
-          "description": "The recurring time span, in the OpenStreetMap opening hours format, that the containing AccessRestrictionRule applies to. For the OSM opening hours specification, see https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification.",
+          "description": "The recurring time span, in the OpenStreetMap opening hours format, that the containing AccessRule applies to. For the OSM opening hours specification, see https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification.",
           "title": "During",
           "type": "string"
         },
         "heading": {
           "$ref": "#/$defs/Heading",
-          "description": "The heading, either forward or backward, that the containing AccessRestrictionRule applies to."
+          "description": "The heading, either forward or backward, that the containing AccessRule applies to."
         },
         "mode": {
-          "description": "A list of one or more travel modes, such as car, truck, or foot, that the containing AccessRestrictionRule applies to.",
+          "description": "A list of one or more travel modes, such as car, truck, or foot, that the containing AccessRule applies to.",
           "items": {
             "$ref": "#/$defs/TravelMode"
           },
@@ -1862,7 +1837,7 @@
           "uniqueItems": true
         },
         "recognized": {
-          "description": "A list of one or more recognized status values, such as employee or student, that the containing AccessRestrictionRule applies to.",
+          "description": "A list of one or more recognized status values, such as employee or student, that the containing AccessRule applies to.",
           "items": {
             "$ref": "#/$defs/RecognizedStatus"
           },
@@ -1872,7 +1847,7 @@
           "uniqueItems": true
         },
         "using": {
-          "description": "A list of one or more usage purposes, such as delivery or arrival at final destination, that the containing AccessRestrictionRule applies to.",
+          "description": "A list of one or more usage purposes, such as delivery or arrival at final destination, that the containing AccessRule applies to.",
           "items": {
             "$ref": "#/$defs/PurposeOfUse"
           },
@@ -1882,7 +1857,7 @@
           "uniqueItems": true
         },
         "vehicle": {
-          "description": "A list of one or more vehicle parameters that limit the vehicles the containing AccessRestrictionRule applies to.",
+          "description": "A list of one or more vehicle parameters that limit the vehicles the containing AccessRule applies to.",
           "items": {
             "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count.",
             "discriminator": {
@@ -1919,25 +1894,10 @@
           "uniqueItems": true
         }
       },
-      "title": "AccessRestrictionRule.When",
+      "title": "AccessRule.When",
       "type": "object"
     },
-    "overture__schema__transportation__models__DestinationRule__When": {
-      "additionalProperties": false,
-      "description": "Scope for DestinationRule: ",
-      "properties": {
-        "heading": {
-          "$ref": "#/$defs/Heading",
-          "description": "The heading, either forward or backward, that the containing DestinationRule applies to."
-        }
-      },
-      "required": [
-        "heading"
-      ],
-      "title": "DestinationRule.When",
-      "type": "object"
-    },
-    "overture__schema__transportation__models__ProhibitedTransitionRule__When": {
+    "overture__schema__transportation__segment___common__ProhibitedTransitionRule__When": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2095,7 +2055,7 @@
       "title": "ProhibitedTransitionRule.When",
       "type": "object"
     },
-    "overture__schema__transportation__models__SpeedLimitRule__When": {
+    "overture__schema__transportation__segment___common__SpeedLimitRule__When": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2251,6 +2211,21 @@
         }
       },
       "title": "SpeedLimitRule.When",
+      "type": "object"
+    },
+    "overture__schema__transportation__segment__road__DestinationRule__When": {
+      "additionalProperties": false,
+      "description": "Scope for DestinationRule: ",
+      "properties": {
+        "heading": {
+          "$ref": "#/$defs/Heading",
+          "description": "The heading, either forward or backward, that the containing DestinationRule applies to."
+        }
+      },
+      "required": [
+        "heading"
+      ],
+      "title": "DestinationRule.When",
       "type": "object"
     }
   },
