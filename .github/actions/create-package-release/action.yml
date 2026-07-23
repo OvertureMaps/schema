@@ -1,0 +1,115 @@
+name: Create package release
+description: >
+  Creates a published GitHub Release for a single package from its towncrier
+  CHANGELOG.md.
+
+  Reads the `## [<version>]` section of `packages/<package>/CHANGELOG.md` for
+  the release notes (falling back to a pointer message if absent), fails if the
+  target tag already exists, and creates the release tagged
+  `<package>-v<version>` at `target`.
+
+  Prerequisites: repo must be checked out and the GitHub CLI (`gh`) available
+  (both true on GitHub-hosted runners).
+
+inputs:
+  package:
+    description: Package directory name under packages/ (e.g. overture-schema).
+    required: true
+  version:
+    description: Release version, major.minor.0 (e.g. 1.18.0).
+    required: true
+  tag:
+    description: Release tag (e.g. overture-schema-v1.18.0).
+    required: true
+  target:
+    description: Commit SHA the tag should point at.
+    required: true
+  latest:
+    description: Whether to mark this release as "Latest" (true/false).
+    required: false
+    default: "false"
+  dry-run:
+    description: >
+      When "true", resolve and print what would be released without creating
+      anything. Read-only: a pre-existing tag is reported as a warning, not a
+      failure.
+    required: false
+    default: "false"
+  token:
+    description: "Token used to create the release (needs contents: write)."
+    required: true
+
+outputs:
+  release-url:
+    description: URL of the created release, or empty on a dry run.
+    value: ${{ steps.release.outputs.release-url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create release
+      id: release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        PACKAGE: ${{ inputs.package }}
+        VERSION: ${{ inputs.version }}
+        TAG: ${{ inputs.tag }}
+        TARGET: ${{ inputs.target }}
+        LATEST: ${{ inputs.latest }}
+        DRY_RUN: ${{ inputs.dry-run }}
+      run: |
+        set -euo pipefail
+
+        tag_exists=false
+        if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          tag_exists=true
+        fi
+
+        if [ "$tag_exists" = "true" ] && [ "$DRY_RUN" != "true" ]; then
+          echo "::error::Release ${TAG} already exists. A duplicate ${PACKAGE} ${VERSION} bump landed on main; investigate before re-releasing."
+          exit 1
+        fi
+
+        changelog="packages/${PACKAGE}/CHANGELOG.md"
+        notes=$(python3 "${GITHUB_ACTION_PATH}/extract_release_notes.py" "$VERSION" "$changelog")
+        if [ -z "$notes" ]; then
+          notes="Release ${VERSION} of \`${PACKAGE}\`. No changelog section was found; add towncrier fragments under \`packages/${PACKAGE}/changelog.d\` and run \`uvx towncrier build --config pyproject.toml --dir packages/${PACKAGE}\`."
+        fi
+        printf '%s\n' "$notes" > "${RUNNER_TEMP}/notes.md"
+
+        latest_flag="--latest=false"
+        [ "$LATEST" = "true" ] && latest_flag="--latest"
+
+        if [ "$DRY_RUN" = "true" ]; then
+          [ "$tag_exists" = "true" ] && echo "::warning::Release ${TAG} already exists; a real run would fail here."
+          {
+            echo "## 🔍 Dry run: \`${PACKAGE}\` ${VERSION}"
+            echo ""
+            echo "Would create tag \`${TAG}\` at \`${TARGET}\` (${latest_flag})."
+            echo ""
+            echo "<details><summary>Notes</summary>"
+            echo ""
+            cat "${RUNNER_TEMP}/notes.md"
+            echo ""
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "release-url=" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        gh release create "$TAG" \
+          --repo "$GITHUB_REPOSITORY" \
+          --target "$TARGET" \
+          --title "\`${PACKAGE}\` ${VERSION}" \
+          --notes-file "${RUNNER_TEMP}/notes.md" \
+          $latest_flag
+
+        url=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url --jq .url)
+        echo "release-url=${url}" >> "$GITHUB_OUTPUT"
+
+        {
+          echo "## 📦 Released \`${PACKAGE}\` ${VERSION}"
+          echo ""
+          echo "Tag \`${TAG}\`: [published GitHub Release](${url})."
+        } >> "$GITHUB_STEP_SUMMARY"

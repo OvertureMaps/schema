@@ -1,0 +1,80 @@
+name: Changelog fragment verification
+
+# Enforces the changelog policy: any PR that changes a package must also carry
+# that package's changelog update, either a new towncrier fragment under
+# changelog.d/, or a built CHANGELOG.md (the result of running
+# `uvx towncrier build`).
+#
+# "Changes a package" means any file under packages/<package>/ other than that
+# package's own changelog artifacts (changelog.d/ and CHANGELOG.md). Every
+# user-facing change gets a fragment, regardless of whether it bumps the
+# version (see docs/versioning.md).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-fragment:
+    name: Require changelog on package change
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Read PR file list
+      pull-requests: read # List PR files
+    steps:
+      - name: Require a changelog update for each changed package
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner, repo, pull_number: pr.number, per_page: 100,
+            });
+
+            const fragmentPattern = pkg =>
+              new RegExp(`^packages/${pkg}/changelog\\.d/.+\\.(breaking|feature|bugfix|docs|misc)\\.md$`);
+
+            // A package "changed" if any of its files changed other than its own
+            // changelog artifacts (the fragment or the built CHANGELOG.md).
+            const isChangelogArtifact = (pkg, path) =>
+              path.startsWith(`packages/${pkg}/changelog.d/`) ||
+              path === `packages/${pkg}/CHANGELOG.md`;
+
+            const touched = new Set();
+            for (const file of files) {
+              const match = file.filename.match(/^packages\/([^/]+)\//);
+              if (!match) continue;
+              const pkg = match[1];
+              if (!isChangelogArtifact(pkg, file.filename)) touched.add(pkg);
+            }
+
+            const missing = [];
+            for (const pkg of [...touched].sort()) {
+              const hasChangelog = files.some(f => f.filename === `packages/${pkg}/CHANGELOG.md`);
+              const hasFragment = files.some(f =>
+                f.status === 'added' && fragmentPattern(pkg).test(f.filename));
+
+              if (!hasChangelog && !hasFragment) missing.push(pkg);
+            }
+
+            if (missing.length > 0) {
+              core.setFailed(
+                `These packages changed but include no changelog update:\n` +
+                missing.map(m => `  - \`${m}\``).join('\n') + `\n\n` +
+                `Add a towncrier fragment at packages/<package>/changelog.d/<id>.<type>.md ` +
+                `(type: breaking | feature | bugfix | docs | misc), then run ` +
+                `\`uvx towncrier build --config pyproject.toml --dir packages/<package>\` to fold it into CHANGELOG.md. ` +
+                `See docs/versioning.md.`
+              );
+            } else {
+              core.info('Changelog fragment check passed.');
+            }

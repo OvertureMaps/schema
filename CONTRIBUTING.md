@@ -2,175 +2,133 @@
 
 Thank you for your interest in contributing.
 
-## Branching Strategy
+> **The branching and versioning strategy is rolling out in phases.** See the
+> [DevOps tracking issue #490](https://github.com/OvertureMaps/schema/issues/490)
+> for current status and what is planned next.
 
-> **Work in progress.** This strategy is being rolled out incrementally. See the [DevOps tracking issue #490](https://github.com/OvertureMaps/schema/issues/490) for current status and upcoming phases.
+## Where to send your change
 
-This repository uses a two-branch model. Choose your target branch based on the nature of your change. See the [Change Classification](https://lf-overturemaps.atlassian.net/wiki/spaces/SCHEM/pages/14286874/Schema+versioning+and+stability#Change-Classification) wiki page for a detailed breakdown of what constitutes a minor vs. major change.
+This repository uses a two-branch model. Target the branch that matches your
+change; when in doubt, target `main` and note in your PR if you think it belongs
+in `vnext`. The
+[Change Classification](https://lf-overturemaps.atlassian.net/wiki/spaces/SCHEM/pages/14286874/Schema+versioning+and+stability#Change-Classification)
+wiki page breaks down what counts as a minor vs. major change.
 
-| Branch | Purpose |
+| Branch | Use for |
 |--------|---------|
 | `main` | Default branch. Bug fixes, minor features, schema improvements. |
 | `vnext` | Major or breaking changes tied to an active `vnext` milestone. |
 
-When in doubt, target `main` and note in your PR description if you think it belongs in `vnext`.
+Three common paths take a branch to a merge. Expand each for the commit-level flow.
 
-### Normal contribution (`main`)
+<details>
+<summary><strong><code>main</code> &rarr; patch (no version bump)</strong></summary>
 
-```mermaid
-gitGraph
-   commit id: "prior work"
-   commit id: "prior work 2"
-   branch vnext
-   branch feature-branch
-   checkout feature-branch
-   commit id: "your work"
-   commit id: "your work 2"
-   checkout main
-   merge feature-branch id: "merge PR"
-   commit id: "next work"
-```
-
-### Major / breaking change (`vnext`)
+Everyday bug fixes and schema tweaks. You do not touch the version; on merge CI
+publishes the next patch (`<major>.<minor>.<next-patch>`) to internal
+CodeArtifact, where it is consumable immediately. No GitHub Release is cut and
+nothing new lands on public PyPI; the patch reaches public PyPI only when the
+next minor or major release ships.
 
 ```mermaid
 gitGraph
-   commit id: "prior work"
-   branch vnext
-   checkout vnext
-   branch feature-a
-   checkout feature-a
-   commit id: "work A"
-   checkout vnext
-   merge feature-a
-   branch feature-b
-   checkout feature-b
-   commit id: "work B"
-   checkout vnext
-   merge feature-b
+   commit id: "places-theme-v0.4.0"
+   branch fix-places-brand-enum
+   checkout fix-places-brand-enum
+   commit id: "fix brand enum values"
+   commit id: "add bugfix fragment"
    checkout main
-   merge vnext id: "release"
+   merge fix-places-brand-enum id: "PR #561 (CodeArtifact 0.4.1)"
+   commit id: "more fixes"
+```
+
+</details>
+
+<details>
+<summary><strong><code>main</code> &rarr; minor release (version bump)</strong></summary>
+
+A minor feature that bumps `major.minor` in the PR and builds the changelog. On
+merge, `release-trigger` cuts a published GitHub Release and the new version lands
+on PyPI, immediately available to consumers.
+
+```mermaid
+gitGraph
+   commit id: "base-theme-v0.1.0"
+   branch feat-base-land-cover
+   checkout feat-base-land-cover
+   commit id: "add land_cover subtype"
+   commit id: "bump 0.1 to 0.2 + build changelog"
+   checkout main
+   merge feat-base-land-cover id: "PR #564" tag: "base-theme-v0.2.0"
    commit id: "next work"
 ```
 
-## Branch Protections
+</details>
 
-Both `main` and `vnext` require a PR and at least two approving reviews before merge. No direct pushes.
+<details>
+<summary><strong><code>vnext</code> &rarr; major release</strong></summary>
 
-## CI Checks
+Breaking changes stack on `vnext` until the milestone is ready. Then `vnext`
+merges into `main` as a regular merge (not a squash), which cuts a published
+GitHub Release and puts the new major on PyPI for consumers.
 
-### PR target check (advisory)
+```mermaid
+gitGraph
+   commit id: "transportation-theme-v0.5.0"
+   branch vnext
+   checkout vnext
+   branch feat-access-restructure
+   checkout feat-access-restructure
+   commit id: "breaking: restructure access"
+   commit id: "add breaking fragment"
+   checkout vnext
+   merge feat-access-restructure id: "PR #570"
+   branch feat-segment-model
+   checkout feat-segment-model
+   commit id: "breaking: new segment model"
+   commit id: "add breaking fragment"
+   checkout vnext
+   merge feat-segment-model id: "PR #572"
+   commit id: "bump 0.5 to 1.0 + build changelog"
+   checkout main
+   merge vnext id: "release merge (not squash)" tag: "transportation-theme-v1.0.0"
+   commit id: "next patch work"
+```
 
-Every PR runs an advisory label-vs-target check. It **never blocks** a merge — the reviewer is the
-source of truth for change classification.
+</details>
 
-| Situation | Warning |
-|-----------|---------|
-| PR targets `vnext`, label is not `change type - major 🚨` | Consider targeting `main` instead |
-| PR targets `main`, label is `change type - major 🚨` | Consider targeting `vnext` instead |
+The `bump ... + build changelog` commit edits the package version in
+`pyproject.toml` and folds its `changelog.d/` fragments into `CHANGELOG.md`. On
+merge to `main`, CI cuts a published GitHub Release tagged
+`<package>-v<major>.<minor>.0` with those notes. See
+[docs/versioning.md](docs/versioning.md).
 
-### vnext compatibility check
+## Opening a PR
 
-Every PR targeting `main` runs a compatibility check:
+Two CI checks may comment on your PR:
 
-1. The PR is squash-simulated onto `main` in a throwaway clone.
-2. `vnext` is dry-run rebased onto the result.
-3. If there is no conflict — the check passes silently.
-4. If there is a conflict — the check **fails** and CI posts a comment with exact commands.
+- [vnext compatibility check](.github/workflows/vnext-compat.yaml): fails and
+  posts the fix if your change clashes with unreleased `vnext` work.
+- [PR advisory check](.github/workflows/pr-advisory.yaml): flags a likely
+  change-type / target-branch mismatch. Advisory only; the reviewer decides.
 
-**Skipped** for `vnext`→`main` release PRs.
+Follow the comment each check leaves on the PR.
 
-#### Resolving a vnext conflict
+If you have an open PR against `vnext`, its base may be force-updated after a
+merge to `main`; run `git pull --rebase` before pushing again.
 
-If this check flags your PR, CI will post a comment listing the conflicting files. Do **not** rebase
-your branch onto `vnext` — that would pull unreleased breaking changes into `main`.
+## Changing a package version
 
-1. See exactly what `vnext` changes in the conflicting files:
-   ```bash
-   git fetch origin
-   git diff origin/main...origin/vnext -- <conflicting files>
-   ```
-2. Open each conflicting file in your editor. The diff above shows what `vnext` adds or changes
-   there — adjust your edits so they no longer overlap with those lines.
-3. Commit the adjustment and push:
-   ```bash
-   git add <conflicting files>
-   git commit -m "fix: resolve vnext compatibility"
-   git push origin your-branch
-   ```
+- `<major>.<minor>` is your call: edit it in `pyproject.toml` and reset patch to
+  `0` (e.g. `1.17.1` becomes `1.18.0`). Minor bumps target `main`; major bumps
+  target `vnext`.
+- `<patch>` is computed by CI at publish time; never edit it manually.
+- Every package versions and releases independently. Consumers pin only
+  `overture-schema`, which pulls in the theme and support packages for a coherent
+  set.
+- Any change to a package **requires a changelog fragment**. Add one under
+  `packages/<package>/changelog.d/` and run
+  `uvx towncrier build --config pyproject.toml --dir packages/<package>`. CI
+  enforces it.
 
-After pushing, the check re-runs automatically.
-
-### Post-merge vnext rebase
-
-When any PR merges to `main`, `vnext` is automatically force-rebased onto the new `main` HEAD
-using the `overture-pull-requester` GitHub App.
-
-**Skipped** for `vnext`→`main` release merges — `vnext` is already equal to `main` at that point.
-
-If the automatic rebase fails, a GitHub issue is opened and assigned to the author of the merged PR.
-
-> **Accepted tradeoff — in-flight PRs targeting `vnext`:** after the automatic rebase, the base of
-> any open PR that targets `vnext` will be force-updated. If you have such a PR open, run
-> `git pull --rebase` (or `git fetch origin && git rebase origin/vnext`) on your branch before
-> pushing again.
-
-### Version dry-run (informational)
-
-After each push to `main` or `vnext`, CI runs the `compute-versions-dry-run` workflow. It logs what package versions **would** be stamped at publish time — no artifacts are actually produced. Check the workflow's job summary for a table of computed versions.
-
-This workflow will be replaced by actual publish workflows in Phase 3.
-
-## Migration Notes
-
-> **Roadmap:** this branching strategy is rolled out in phases, tracked under the parent
-> issue [#490](https://github.com/OvertureMaps/schema/issues/490). When Phases 0-4 are
-> complete, this section can be removed in favor of more permanent documentation.
-
-| Phase | Status | Delivers |
-|-------|--------|----------|
-| [0](https://github.com/OvertureMaps/schema/issues/506) | ✅ Done | Switch from `dev`/`staging` to the `main`/`vnext` model. |
-| [1](https://github.com/OvertureMaps/schema/issues/507) | ✅ Done | CI guardrails: PR target check, vnext compatibility check, automatic post-merge rebase. |
-| [2.A](https://github.com/OvertureMaps/schema/issues/508) | ✅ Done | Version baselines + `compute-version` action. Computes versions only — nothing is published yet. |
-| [2.B](https://github.com/OvertureMaps/schema/issues/533) | 🚧 Next | Detect a `<major>.<minor>` bump landing on `main` and cut the GitHub Release that triggers a public publish. |
-| [3](https://github.com/OvertureMaps/schema/issues/509) | ⏳ Planned | The actual publish workflows: `vnext` dev builds to CodeArtifact, `main` patch builds, and public PyPI releases. |
-| [4](https://github.com/OvertureMaps/schema/issues/510) | ⏳ Planned | Documentation polish — diagrams, contributor walkthroughs, FAQ. |
-
-### [Phase 0](https://github.com/OvertureMaps/schema/issues/506), May 2026
-
-- `main` was fast-forwarded to the former `dev` HEAD.
-- All open PRs were retargeted `dev` → `main` automatically.
-- `dev` and `staging` branches were deleted.
-- `vnext` was created from the new `main`.
-
-If your fork still references `dev` or `staging`, update your remotes accordingly.
-
-### [Phase 1](https://github.com/OvertureMaps/schema/issues/507), May 2026
-
-- Advisory PR target check added: warns when your change-type label and target branch look mismatched.
-- vnext compatibility check added: every PR to `main` verifies that `vnext` can rebase cleanly on top; posts exact fix commands on conflict.
-- Post-merge automatic rebase added: `vnext` is force-rebased onto `main` after every merge; if it fails, a GitHub issue is opened.
-
-### [Phase 2.A](https://github.com/OvertureMaps/schema/issues/508), May 2026
-
-- All packages baselined with static versions in `pyproject.toml` (`overture-schema` at `1.17.1`, others at `0.1.1`).
-- `compute-version` composite action added: computes PEP 440 versions for vnext (dev), main (patch), and main-bump (reset) contexts.
-- `code-artifact` composite action added: replaces the legacy shell script for AWS CodeArtifact auth.
-- `compute-versions-dry-run` workflow added for version visibility until Phase 3 publish workflows land.
-
-### [Phase 2.B](https://github.com/OvertureMaps/schema/issues/533)
-
-Not started. Will add a `p2-release-trigger` workflow that detects a `<major>.<minor>` bump
-landing on `main` and cuts a GitHub Release — the only trigger for a public PyPI publish.
-
-### [Phase 3](https://github.com/OvertureMaps/schema/issues/509)
-
-Not started. Will add the actual publish workflows (`p3-dev-builds-ca`, `p3-main-publish`,
-`p3-release-publish`) that call the `compute-version` action from Phase 2.A. Where patch
-builds on `main` publish to (CodeArtifact-only vs. public PyPI) is still an open decision —
-see the linked issue.
-
-### [Phase 4](https://github.com/OvertureMaps/schema/issues/510)
-
-Not started. Final documentation pass: diagrams, contributor walkthroughs, and an FAQ. No
-new procedures — this phase only makes the existing ones easier to read.
+Full version scheme, tag scheme, and release flow: [docs/versioning.md](docs/versioning.md).

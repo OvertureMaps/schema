@@ -1,0 +1,82 @@
+name: Release trigger
+
+# Runs on every push to main that touches any package's pyproject.toml.
+# For each package whose <major>.<minor> was bumped, cuts a published GitHub
+# Release tagged `<package>-v<major>.<minor>.0`, titled `` `<package>` <version> ``,
+# with notes taken from that package's CHANGELOG.md section.
+#
+# Packages version independently (see docs/versioning.md). The umbrella
+# `overture-schema` release is marked "Latest"; all others are not.
+#
+# Release notes come from towncrier: a release PR bumps the version and runs
+# `uvx towncrier build`, folding that package's changelog.d/ fragments into its
+# CHANGELOG.md (reviewed in the PR). This workflow reads back the section.
+#
+# Patch-only changes are ignored: the patch component is computed by CI (see
+# .github/actions/compute-version), not by this workflow.
+#
+# NOTE: releases are created with GITHUB_TOKEN, which by design does NOT trigger
+# further workflow runs. The Phase 3 publish workflow (#509) must therefore be
+# triggered by an app/PAT token here or via repository_dispatch, a plain
+# `on: release: published` listener will not fire for these releases.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - packages/*/pyproject.toml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    name: Detect version bumps
+    if: github.event.repository.full_name == github.repository
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read # Read pyproject.toml history to detect bumps
+    outputs:
+      count: ${{ steps.detect.outputs.count }}
+      bumps: ${{ steps.detect.outputs.bumps }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Detect version bumps
+        id: detect
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: python3 ./.github/workflows/scripts/detect_version_bumps.py
+
+  release:
+    name: Release ${{ matrix.package }} ${{ matrix.version }}
+    needs: detect
+    if: needs.detect.outputs.count != '0'
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write # Required to create releases and their tags
+    strategy:
+      fail-fast: false # One package's failure must not block sibling releases
+      matrix:
+        include: ${{ fromJSON(needs.detect.outputs.bumps) }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Create release
+        uses: ./.github/actions/create-package-release
+        with:
+          package: ${{ matrix.package }}
+          version: ${{ matrix.version }}
+          tag: ${{ matrix.tag }}
+          target: ${{ github.event.after }}
+          latest: ${{ matrix.package == 'overture-schema' }}
+          token: ${{ github.token }}
