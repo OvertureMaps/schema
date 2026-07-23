@@ -2,7 +2,7 @@
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
-dependencies = ["overture-schema-common", "overture-schema-system", "pydantic>=2.12.0"]
+dependencies = ["overture-schema-common", "overture-schema-system", "pydantic>=2.13.0"]
 description = "Add your description here"
 version = "0.1.1"
 license = "MIT"

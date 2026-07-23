@@ -6,7 +6,7 @@ caller decides what to do with them (write to disk, add frontmatter,
 stream to stdout, etc.).
 """
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
@@ -141,17 +141,27 @@ def partition_numeric_and_geometry_types(
 def generate_markdown_pages(
     model_specs: Sequence[ModelSpec],
     schema_root: str,
+    *,
+    external_specs: Mapping[TypeIdentity, SupplementarySpec] | None = None,
 ) -> list[RenderedPage]:
     """Generate all markdown pages from feature specs.
 
     Returns rendered pages without writing to disk. The caller handles
     I/O, frontmatter injection, and any output-format-specific concerns
     (like Docusaurus category files).
+
+    `external_specs` are supplementary types documented on their own but not
+    reachable by walking feature field trees -- a `RootModel` entry point,
+    which serializes as its bare root value and so appears in no feature as
+    a named reference. They join the collected supplementary types and
+    render, place, and cross-reference identically.
     """
     numeric_names, geometry_names = partition_numeric_and_geometry_types(
         _system_numeric, _system_geometric
     )
     all_specs = collect_all_supplementary_types(model_specs)
+    if external_specs:
+        all_specs = {**all_specs, **external_specs}
     registry = build_placement_registry(
         model_specs, all_specs, numeric_names, geometry_names, schema_root
     )

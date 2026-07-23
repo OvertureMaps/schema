@@ -287,6 +287,20 @@ class TestEnumAndModel:
         assert shape.base_type == "Person"
 
 
+class _SelfReferentialRoot(RootModel[list[int]]):
+    """A RootModel rewired to reference itself, to exercise the cycle guard.
+
+    A statically recursive base (`RootModel[list["_SelfReferentialRoot"]]`)
+    crashes mypy 2.3.0 -- an internal-error bug on recursive generic bases --
+    so the self-reference is installed after the class exists. `analyze_type`
+    reads `model_fields["root"].annotation`, which is all the guard needs to
+    re-enter the same RootModel.
+    """
+
+
+_SelfReferentialRoot.model_fields["root"].annotation = list[_SelfReferentialRoot]
+
+
 class TestRootModel:
     """A `RootModel` serializes as its bare root value.
 
@@ -295,6 +309,18 @@ class TestRootModel:
     is a map-rooted RootModel; the scalar and constrained roots below are
     local because each exercises one path only.
     """
+
+    def test_self_referential_root_raises(self) -> None:
+        """A self-referential root raises instead of recursing forever.
+
+        Unwrapping erases the RootModel identity, so -- unlike a
+        self-referential BaseModel, which the resolver terminates with a
+        `starts_cycle` back-edge -- a self-referential root has no node to
+        carry one. The seen-set guard detects the re-entry and raises a
+        `TypeError` rather than recursing to a `RecursionError`.
+        """
+        with pytest.raises(TypeError, match="[Ss]elf-referential"):
+            analyze_type(_SelfReferentialRoot)
 
     def test_map_root_unwraps_to_mapof(self) -> None:
         shape = _shape(TollChargesByVehicleType)

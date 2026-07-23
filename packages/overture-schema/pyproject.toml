@@ -10,7 +10,7 @@ dependencies = [
     "overture-schema-places-theme",
     "overture-schema-transportation-theme",
     "overture-schema-common",
-    "pydantic>=2.12.0",
+    "pydantic>=2.13.0",
     "pyyaml>=6.0.2",
     "overture-schema-cli",
 ]
