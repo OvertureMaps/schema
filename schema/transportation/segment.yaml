@@ -22,9 +22,7 @@ properties:
       - title: "Common Segment Properties"
         properties:
           # Classes are per-subtype following the addition of rail classes
-          subclass_rules: { "$ref": "#/$defs/propertyContainers/subclassRulesContainer" }
           access_restrictions: { "$ref": "#/$defs/propertyContainers/accessContainer" }
-          level: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/level" }
           level_rules: { "$ref": "#/$defs/propertyContainers/levelRulesContainer" }
       - "$ref": ../defs.yaml#/$defs/propertyContainers/overtureFeaturePropertiesContainer
       - "$ref": ../defs.yaml#/$defs/propertyContainers/namesContainer
@@ -41,6 +39,8 @@ properties:
           speed_limits: { "$ref": "#/$defs/propertyContainers/speedLimitsContainer" }
           width_rules: { "$ref": "#/$defs/propertyContainers/widthRulesContainer" }
           subclass: { "$ref": "#/$defs/propertyDefinitions/subclass" }
+          subclass_rules: { "$ref": "#/$defs/propertyContainers/subclassRulesContainer" }
+          routes: { "$ref": "#/$defs/propertyDefinitions/routes" }
       - title: "Rail-Specific Properties"
         required: [class]
         properties:
@@ -77,7 +77,6 @@ properties:
         uniqueItems: true
         minItems: 2
         default: []
-      routes: { "$ref": "#/$defs/propertyDefinitions/routes" }
 "$defs":
   propertyDefinitions:
     destinationLabelType:

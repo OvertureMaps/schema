@@ -18,8 +18,7 @@ from overture.schema.codegen.markdown.pipeline import generate_markdown_pages
 from overture.schema.codegen.markdown.renderer import render_model
 from overture.schema.codegen.spec_discovery import extract_model_spec
 from overture.schema.system.discovery import discover_models
-from overture.schema.transportation import Segment
-from overture.schema.transportation.segment.models import RoadSegment
+from overture.schema.transportation import RoadSegment, Segment
 from pydantic import BaseModel
 
 
