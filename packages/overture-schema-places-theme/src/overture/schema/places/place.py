@@ -11,11 +11,11 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 from overture.schema.common import (
     OvertureFeature,
 )
+from overture.schema.common.confidence import (
+    ConfidenceScore,
+)
 from overture.schema.common.names import (
     Named,
-)
-from overture.schema.common.types import (
-    ConfidenceScore,
 )
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,

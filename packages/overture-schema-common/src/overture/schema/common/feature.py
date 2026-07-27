@@ -1,8 +1,12 @@
+"""
+The Overture feature, an Overture-specific refinement of the base `Feature` type defined in the
+system package.
+"""
+
 import textwrap
-from typing import Annotated, Generic, TypeVar
+from typing import Annotated, Generic, NewType, TypeVar
 
 from pydantic import (
-    BaseModel,
     ConfigDict,
     Field,
     GetJsonSchemaHandler,
@@ -13,42 +17,42 @@ from pydantic_core import core_schema
 from typing_extensions import Self
 
 from overture.schema.system.feature import Feature
-from overture.schema.system.field_constraint import UniqueItemsConstraint
-from overture.schema.system.geometric import (
-    Geometry,
-)
-from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.numeric import int32
 from overture.schema.system.ref import Id, Identified
-from overture.schema.system.string import (
-    CountryCodeAlpha2,
-)
 
-from .enums import PerspectiveMode
 from .sources import Sources
-from .types import (
-    FeatureVersion,
-    Level,
-)
 
 ThemeT = TypeVar("ThemeT", bound=str)
 TypeT = TypeVar("TypeT", bound=str)
 
+FeatureVersion = NewType(
+    "FeatureVersion", Annotated[int32, Field(ge=0, description="")]
+)
+
 
 class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
-    """Base class for all Overture features."""
+    """
+    Overture feature, the base class for all Overture features types.
+
+    An `OvertureFeature` extends the fundamental `Feature` type by:
+    - Making the basic ``id`` field required instead of optional.
+    - Adding required fields ``theme``, ``type``, and ``version``.
+    - Adding the optional field ``sources``.
+    """
 
     # Only used to support `ext_*` fields, which are on a deprecation path.
     model_config = ConfigDict(extra="allow")
 
     # Required
 
+    # Repeating `id` from the superclass `Feature` to make it mandatory: it is optional in the
+    # superclass.
     id: Id = Field(
         description="A feature ID. This may be an ID associated with the Global Entity Reference System (GERS) if—and-only-if the feature represents an entity that is part of GERS."
     )  # type: ignore[assignment]
     theme: ThemeT
-    # this is an enum in the JSON Schema, but that prevents OvertureFeature from being extended
     type: TypeT
-    geometry: Geometry
+    # Superclass `Feature` provides `geometry` and `bbox`.
     version: FeatureVersion
 
     # Optional
@@ -97,30 +101,3 @@ class OvertureFeature(Identified, Feature, Generic[ThemeT, TypeT]):
         properties_object_schema["additionalProperties"] = False
 
         return json_schema
-
-
-@no_extra_fields
-class Perspectives(BaseModel):
-    """Political perspectives container."""
-
-    # Required
-
-    mode: Annotated[
-        PerspectiveMode,
-        Field(
-            description="Whether the perspective holder accepts or disputes this name."
-        ),
-    ]
-    countries: Annotated[
-        list[CountryCodeAlpha2],
-        Field(
-            min_length=1, description="Countries holding the given mode of perspective."
-        ),
-        UniqueItemsConstraint(),
-    ]
-
-
-class Stacked(BaseModel):
-    """Properties defining feature Z-order, i.e., stacking order."""
-
-    level: Level | None = 0  # type: ignore[assignment]

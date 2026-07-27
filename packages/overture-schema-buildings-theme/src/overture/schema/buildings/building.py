@@ -10,7 +10,7 @@ from pydantic import ConfigDict, Field
 
 from overture.schema.buildings._common import Appearance
 from overture.schema.common import OvertureFeature
-from overture.schema.common.models import Stacked
+from overture.schema.common.level import Stacked
 from overture.schema.common.names import Named
 from overture.schema.system.geometric import (
     Geometry,
