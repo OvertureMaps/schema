@@ -5,10 +5,10 @@ from typing import Annotated, NewType
 from pydantic import BaseModel, ConfigDict, Field
 
 from overture.schema.common import OvertureFeature
-from overture.schema.common.scoping import Heading, Scope, scoped
-from overture.schema.common.types import (
+from overture.schema.common.level import (
     Level,
 )
+from overture.schema.common.scoping import Heading, Scope, scoped
 from overture.schema.common.unit import SpeedUnit
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import (

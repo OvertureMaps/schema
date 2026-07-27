@@ -17,7 +17,7 @@ observations, and each observation would contain a linearly-referenced depth val
 
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel
->>> from overture.schema.common.models import OvertureFeature
+>>> from overture.schema.common.feature import OvertureFeature
 >>> from overture.schema.system.geometric import (
 ...     Geometry,
 ...     GeometryType,
@@ -71,7 +71,7 @@ along the path, `1.0` represents the end of the path, and so on.
 
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel
->>> from overture.schema.common.models import OvertureFeature
+>>> from overture.schema.common.feature import OvertureFeature
 >>> from overture.schema.system.geometric import (
 ...     Geometry,
 ...     GeometryType,
@@ -119,7 +119,7 @@ model.
 
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel, Field
->>> from overture.schema.common.models import OvertureFeature
+>>> from overture.schema.common.feature import OvertureFeature
 >>> from overture.schema.system.geometric import (
 ...     Geometry,
 ...     GeometryType,
@@ -212,7 +212,7 @@ is decorated with side scoping, a `side` field  is automatically added to the mo
 
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel
->>> from overture.schema.common.models import OvertureFeature
+>>> from overture.schema.common.feature import OvertureFeature
 >>> from overture.schema.system.geometric import (
 ...     Geometry,
 ...     GeometryType,

@@ -8,7 +8,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.common import (
     OvertureFeature,
 )
-from overture.schema.common.models import Perspectives
+from overture.schema.common.perspectives import Perspectives
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.geometric import (
