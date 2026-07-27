@@ -13,7 +13,7 @@ _SNAKE_CASE_RE = re.compile(r"^[a-z][a-z0-9]*(_[a-z0-9]+)*$")
 
 
 class Relationship(str, DocumentedEnum):
-    """
+    r"""
     The kind of relationship that exists between two entities.
 
     Relationships represent connections between different features or models. Think of them as links
@@ -33,9 +33,9 @@ class Relationship(str, DocumentedEnum):
     relationship, is at the bottom.
 
                COMPOSITION
-               /         \\
+               /         \
          AGGREGATION   HIERARCHY
-               \\          /
+               \         /
                ASSOCIATION
 
     Note that the *kind* of a relationship does not say anything about the *directionality* of the
