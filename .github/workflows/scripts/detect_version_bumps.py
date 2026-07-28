@@ -23,43 +23,17 @@ Exit status:
     1  A package's version went backwards; that must never land on main.
 """
 
-from collections.abc import Callable
 from pathlib import Path
 import json
 import os
-import re
 import subprocess
 import sys
 import tomllib
 
-VERSION_ASSIGNMENT = re.compile(rb"""^__version__\s*=\s*["']([^"']+)["']""", re.MULTILINE)
 
-
-def semver(
-    pyproject_blob: bytes,
-    package_dir: str,
-    read_file: Callable[[str], bytes | None],
-) -> tuple[int, int, int] | None:
-    """
-    Resolve a package's (major, minor, patch) from its pyproject.toml bytes.
-
-    Static `project.version` is read directly. A hatch dynamic version is
-    resolved by reading the declared version file through `read_file`, which
-    takes a repo-relative posix path and returns its bytes (or None if
-    unreadable, in which case the version is unresolvable).
-    """
-    doc = tomllib.loads(pyproject_blob.decode("utf-8"))
-    if "version" in doc["project"]:
-        version = str(doc["project"]["version"])
-    else:
-        version_path = f'{package_dir}/{doc["tool"]["hatch"]["version"]["path"]}'
-        content = read_file(version_path)
-        if content is None:
-            return None
-        match = VERSION_ASSIGNMENT.search(content)
-        if not match:
-            return None
-        version = match.group(1).decode("utf-8")
+def semver(pyproject_blob: bytes) -> tuple[int, int, int]:
+    """Parse `project.version` from pyproject.toml bytes into (major, minor, patch)."""
+    version = str(tomllib.loads(pyproject_blob.decode("utf-8"))["project"]["version"])
     major, minor, patch, *_ = version.split(".")
     return int(major), int(minor), int(patch)
 
@@ -85,31 +59,17 @@ def main() -> None:
     bumps: list[dict[str, str]] = []
     errors: list[str] = []
 
-    def read_working_tree(path: str) -> bytes | None:
-        try:
-            return Path(path).read_bytes()
-        except OSError:
-            return None
-
     for path in sorted(Path("packages").glob("*/pyproject.toml")):
         package = path.parent.name
-        package_dir = path.parent.as_posix()  # git wants forward slashes on every OS
-        pyproject = path.as_posix()
+        pyproject = path.as_posix()  # git wants forward slashes on every OS
 
-        after = semver(path.read_bytes(), package_dir, read_working_tree)
-        if after is None:
-            print(f"Cannot resolve version for {package} in the working tree, skipping.")
-            continue
+        after = semver(path.read_bytes())
 
         before_blob = git_show(before, pyproject)
-        current = (
-            semver(before_blob, package_dir, lambda p: git_show(before, p))
-            if before_blob is not None
-            else None
-        )
-        if current is None:
-            print(f"No resolvable version for {package} at {before}, skipping.")
+        if before_blob is None:
+            print(f"No readable {pyproject} at {before}, skipping {package}.")
             continue
+        current = semver(before_blob)
 
         if after == current:
             continue

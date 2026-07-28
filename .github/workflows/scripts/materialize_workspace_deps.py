@@ -44,30 +44,13 @@ PACKAGES_DIR = Path("packages")
 # A bare PEP 508 name: no extras, no specifier, no markers.
 BARE_NAME = re.compile(r"^[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9])?$")
 
-VERSION_ASSIGNMENT = re.compile(r"""^__version__\s*=\s*["']([^"']+)["']""", re.MULTILINE)
-
-
-def dynamic_version(package_dir: Path, doc: tomlkit.TOMLDocument) -> str:
-    """Resolve a hatch dynamic version from its declared version file."""
-    version_path = str(doc["tool"]["hatch"]["version"]["path"])
-    content = (package_dir / version_path).read_text(encoding="utf-8")
-    match = VERSION_ASSIGNMENT.search(content)
-    if not match:
-        raise ValueError(f"No __version__ assignment in {package_dir / version_path}")
-    return match.group(1)
-
 
 def workspace_versions() -> dict[str, str]:
     """Map every workspace member's distribution name to its in-repo version."""
     versions: dict[str, str] = {}
     for path in sorted(PACKAGES_DIR.glob("*/pyproject.toml")):
-        doc = tomlkit.parse(path.read_text(encoding="utf-8"))
-        project = doc["project"]
-        if "version" in project:
-            version = str(project["version"])
-        else:
-            version = dynamic_version(path.parent, doc)
-        versions[str(project["name"])] = version
+        project = tomlkit.parse(path.read_text(encoding="utf-8"))["project"]
+        versions[str(project["name"])] = str(project["version"])
     return versions
 
 

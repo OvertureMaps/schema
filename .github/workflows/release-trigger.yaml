@@ -26,8 +26,6 @@ on:
     branches: [main]
     paths:
       - packages/*/pyproject.toml
-      # Packages with a hatch dynamic version bump their version file instead.
-      - packages/*/**/__about__.py
 
 permissions:
   contents: read
