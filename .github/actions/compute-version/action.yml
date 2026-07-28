@@ -8,12 +8,17 @@ description: >
   between releases, using a PEP 440 post-release so they order AFTER the
   released version and are picked up by `>=<version>` specifiers:
 
-    - `main`:  `<version>.post<run_number>+main.<shortsha>`
-    - `vnext`: `<version>.post<run_number>+vnext.<shortsha>`
+    - `main`:  `<version>.post<N>+main.<shortsha>`
+    - `vnext`: `<version>.post<N>+vnext.<shortsha>`
+
+  `N` is a per-version sequence: the first internal build of a version is
+  `.post0` (communicating "identical to the release"), and each subsequent
+  build increments from the highest `.postN` already published to
+  CodeArtifact.
 
   The `+main`/`+vnext` local label distinguishes the two build streams; local
   labels are ignored during version comparison so ordering comes from
-  `.post<run_number>` alone. Local versions are rejected by public PyPI, which
+  `.post<N>` alone. Local versions are rejected by public PyPI, which
   guarantees these builds stay internal.
 
   Prerequisites: repo must be checked out and `uv` must be available.
@@ -26,6 +31,12 @@ inputs:
     description: >
       Branch context naming the build stream. Supported values: `main`,
       `vnext`.
+    required: true
+  index_url:
+    description: >
+      PyPI simple index URL with embedded credentials for querying
+      CodeArtifact. Obtain via the `.github/actions/code-artifact` action's
+      `index_url` output after configuring AWS credentials.
     required: true
 
 outputs:
@@ -42,7 +53,7 @@ runs:
       env:
         PACKAGE: ${{ inputs.package }}
         CONTEXT: ${{ inputs.context }}
-        RUN_NUMBER: ${{ github.run_number }}
+        INDEX_URL: ${{ inputs.index_url }}
         SHA: ${{ github.sha }}
       run: |
         set -euo pipefail
@@ -58,7 +69,34 @@ runs:
         SEED=$(cd "packages/${PACKAGE}" && uv version --short)
         SHORT_SHA=$(echo "$SHA" | cut -c1-7)
 
-        VERSION="${SEED}.post${RUN_NUMBER}+${CONTEXT}.${SHORT_SHA}"
+        # Resolve the highest published build of the seed version. The `.*`
+        # prefix match includes the release itself and its post-releases.
+        # uv pip compile exits non-zero both when nothing matches (a normal
+        # "not published yet" result) and on real failures (network/auth/etc).
+        # Only treat the former as benign; anything else must surface and fail.
+        LATEST=""
+        if ! OUTPUT=$(echo "${PACKAGE}==${SEED}.*" \
+          | uv pip compile - --index-url "$INDEX_URL" --no-deps --quiet 2>&1); then
+          if ! echo "$OUTPUT" | grep -qiE 'no solution found|could not find a version|not found in the package registry'; then
+            echo "ERROR: uv pip compile failed for '${PACKAGE}==${SEED}.*':" >&2
+            echo "$OUTPUT" >&2
+            exit 1
+          fi
+        else
+          LATEST=$(echo "$OUTPUT" | grep -oE "==[0-9][^ ]*" | head -1 | cut -c3-)
+        fi
+
+        # First build of this version is .post0; otherwise increment the
+        # highest published .postN.
+        if [[ "$LATEST" =~ \.post([0-9]+) ]]; then
+          N=$(( ${BASH_REMATCH[1]} + 1 ))
+          echo "Latest published build: ${LATEST} -> next N: ${N}"
+        else
+          N=0
+          echo "No published .post build for ${SEED} (latest: '${LATEST:-none}') -> N: 0"
+        fi
+
+        VERSION="${SEED}.post${N}+${CONTEXT}.${SHORT_SHA}"
 
         echo "Computed version for ${PACKAGE} (${CONTEXT}): ${VERSION}"
         echo "version=${VERSION}" >> "$GITHUB_OUTPUT"

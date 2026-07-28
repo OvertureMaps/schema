@@ -41,7 +41,9 @@ Internal builds use PEP 440 post-releases so they order after the released
 from CodeArtifact when present (verified with uv), while `==1.2.3` still
 selects the clean release. Pin with `>=`, never `>`: PEP 440 excludes
 post-releases from exclusive ordered comparisons, so `>1.2.3` matches no
-internal build. `N` is the workflow run number. The
+internal build. `N` is a per-version sequence: the first internal build of a
+version is `.post0` (identical contents to the release), incrementing from
+the highest `.postN` already published. The
 `+main`/`+vnext` local label names the build stream but does not participate
 in version ordering, so the two streams must never share a repository: in a
 shared repo, a `>=` consumer can resolve a `vnext` build (breaking changes)
