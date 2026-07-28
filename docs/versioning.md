@@ -32,9 +32,9 @@ Every distributable package under `packages/*` carries its own independent
 
 | Event | Version | Destination |
 |-------|---------|-------------|
-| Push to `vnext` | `<version>.postN+vnext.<sha>` | CodeArtifact |
 | Push to `main`, no bump | `<version>.postN+main.<sha>` | CodeArtifact |
 | Version bump on `main` | `<version>` | GitHub Release, then public PyPI |
+| Push to `vnext` | `<version>.postN+vnext.<sha>` | Blocked on a dedicated dev repository ([ops-team#299](https://github.com/OvertureMaps/ops-team/issues/299)) |
 
 Internal builds use PEP 440 post-releases so they order after the released
 `<version>`: a consumer pinning `>=1.2.3` resolves `1.2.3.post4+main.abc1234`
@@ -42,9 +42,12 @@ from CodeArtifact when present (verified with uv), while `==1.2.3` still
 selects the clean release. Pin with `>=`, never `>`: PEP 440 excludes
 post-releases from exclusive ordered comparisons, so `>1.2.3` matches no
 internal build. `N` is the workflow run number. The
-`+main`/`+vnext` local label names the build stream; local labels are ignored
-in version comparison and rejected by public PyPI, which keeps these builds
-internal by construction.
+`+main`/`+vnext` local label names the build stream but does not participate
+in version ordering, so the two streams must never share a repository: in a
+shared repo, a `>=` consumer can resolve a `vnext` build (breaking changes)
+over the `main` one. `vnext` builds publish only once a separate dev
+repository exists. Local labels are rejected by public PyPI, which keeps
+internal builds off the public index by construction.
 
 ### Dependency materialization
 
