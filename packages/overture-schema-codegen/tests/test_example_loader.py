@@ -9,6 +9,9 @@ from textwrap import dedent
 from typing import Annotated, Literal
 
 import pytest
+from pydantic import BaseModel, ConfigDict, Field, Tag, ValidationError
+from shapely.geometry import Point
+
 from overture.schema.buildings.building import Building
 from overture.schema.codegen.extraction.examples import (
     ExampleRecord,
@@ -27,8 +30,6 @@ from overture.schema.transportation.segment import (
     RoadSegment,
     TransportationSegment,
 )
-from pydantic import BaseModel, ConfigDict, Field, Tag, ValidationError
-from shapely.geometry import Point
 
 
 class TestOrderExampleRows:

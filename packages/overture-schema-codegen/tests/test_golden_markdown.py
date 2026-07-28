@@ -20,6 +20,8 @@ from codegen_test_support import (
     assert_golden,
     spec_for_model,
 )
+from pydantic import BaseModel
+
 from overture.schema.codegen.extraction.enum_extraction import extract_enum
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
 from overture.schema.codegen.extraction.specs import ModelSpec, TypeIdentity
@@ -35,7 +37,6 @@ from overture.schema.codegen.markdown.reverse_references import (
     UsedByEntry,
     compute_reverse_references,
 )
-from pydantic import BaseModel
 
 GOLDEN_DIR = Path(__file__).parent / "golden" / "markdown"
 

@@ -3,6 +3,10 @@ import re
 from typing import Annotated, cast, get_args, get_origin
 
 import pytest
+from pydantic import BaseModel
+from pydantic.fields import FieldInfo
+from pydantic_core import PydanticUndefined
+
 from overture.schema.common.scoping import (
     Heading,
     LinearlyReferencedPosition,
@@ -17,9 +21,6 @@ from overture.schema.system.model_constraint import (
     ModelConstraint,
     RequireAnyOfConstraint,
 )
-from pydantic import BaseModel
-from pydantic.fields import FieldInfo
-from pydantic_core import PydanticUndefined
 
 
 class TestScope:

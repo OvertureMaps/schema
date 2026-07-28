@@ -12,8 +12,6 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from overture.schema.pyspark.check import Check
-from overture.schema.pyspark.validate import evaluate_checks, explain_errors
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     ArrayType,
@@ -26,6 +24,9 @@ from pyspark.sql.types import (
     StructType,
 )
 from shapely import wkb, wkt
+
+from overture.schema.pyspark.check import Check
+from overture.schema.pyspark.validate import evaluate_checks, explain_errors
 
 from .helpers import PathTraversalError, deep_merge
 from .scenarios import Scenario

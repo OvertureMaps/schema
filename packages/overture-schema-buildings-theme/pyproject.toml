@@ -25,11 +25,11 @@ overture-schema-system = { workspace = true }
 
 
 [build-system]
-build-backend = "hatchling.build"
-requires = ["hatchling"]
+requires = ["uv_build>=0.11.32,<0.13"]
+build-backend = "uv_build"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/overture"]
+[tool.uv.build-backend]
+module-name = "overture.schema.buildings"
 
 [project.entry-points."overture.models"]
 building = "overture.schema.buildings:Building"

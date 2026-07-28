@@ -16,6 +16,8 @@ from codegen_test_support import (
     make_union_spec,
     spec_for_model,
 )
+from pydantic import BaseModel
+
 from overture.schema.codegen.extraction.enum_extraction import extract_enum
 from overture.schema.codegen.extraction.field import (
     ArrayOf,
@@ -38,7 +40,6 @@ from overture.schema.codegen.markdown.reverse_references import (
 )
 from overture.schema.system.ref import Id
 from overture.schema.system.string import NoWhitespaceString
-from pydantic import BaseModel
 
 
 @pytest.mark.parametrize(

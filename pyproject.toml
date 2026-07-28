@@ -15,6 +15,10 @@ members = ["packages/*"]
 [tool.ruff]
 line-length = 88
 target-version = "py310"
+# PEP 420 namespace packages carry no `overture/__init__.py`, so isort can no
+# longer walk up to the package root; name the src roots so it still classifies
+# `overture` as first-party (in source) without over-forcing it in tests.
+src = ["packages/*/src"]
 
 [tool.ruff.lint]
 ignore = [

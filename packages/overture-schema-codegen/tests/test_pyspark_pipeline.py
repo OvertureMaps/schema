@@ -7,6 +7,8 @@ from typing import Annotated, Literal
 import pytest
 from annotated_types import Ge
 from codegen_test_support import find_theme
+from pydantic import BaseModel
+
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
     ModelSpec,
@@ -23,7 +25,6 @@ from overture.schema.codegen.pyspark.pipeline import (
 from overture.schema.codegen.spec_discovery import extract_model_spec
 from overture.schema.system.field_path import Direct
 from overture.schema.system.geometric import GeometryType
-from pydantic import BaseModel
 
 
 class SimpleModel(BaseModel):

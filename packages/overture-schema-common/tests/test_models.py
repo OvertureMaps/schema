@@ -4,6 +4,9 @@ from typing import Any
 
 import pytest
 from deepdiff import DeepDiff
+from pydantic import ValidationError
+from shapely.geometry import LineString, Point
+
 from overture.schema.common.feature import OvertureFeature
 from overture.schema.common.sources import SourceItem
 from overture.schema.system.geometric import (
@@ -11,8 +14,6 @@ from overture.schema.system.geometric import (
     Geometry,
 )
 from overture.schema.system.json_schema import GenerateOmitNullableOptionalJsonSchema
-from pydantic import ValidationError
-from shapely.geometry import LineString, Point
 
 
 def prune_dict(

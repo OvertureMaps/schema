@@ -17,6 +17,9 @@ from codegen_test_support import (
     flat_specs_from_discovery,
     spec_for_model,
 )
+from pydantic import BaseModel, Field, HttpUrl
+from pydantic.fields import FieldInfo
+
 from overture.schema.codegen.extraction.specs import ModelSpec
 from overture.schema.codegen.pyspark._render_common import (
     field_check_rows,
@@ -65,8 +68,6 @@ from overture.schema.system.model_constraint import (
 )
 from overture.schema.system.numeric import int32
 from overture.schema.system.string import CountryCodeAlpha2
-from pydantic import BaseModel, Field, HttpUrl
-from pydantic.fields import FieldInfo
 
 _path = parse
 

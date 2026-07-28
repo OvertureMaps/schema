@@ -20,6 +20,10 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
+from pyspark.sql import Column, SparkSession
+from pyspark.sql import functions as F
+from shapely.geometry import LineString, MultiPolygon, Point, Polygon
+
 from overture.schema.pyspark.expressions.constraint_expressions import (
     check_array_max_length,
     check_array_min_length,
@@ -49,9 +53,6 @@ from overture.schema.pyspark.expressions.constraint_expressions import (
     except_literals,
 )
 from overture.schema.system.geometric import GeometryType
-from pyspark.sql import Column, SparkSession
-from pyspark.sql import functions as F
-from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 
 # PySpark 3.4's collect() leaves its result socket for the GC to finalize; under
 # -W error that ResourceWarning fails the batched `results` fixture. conftest's

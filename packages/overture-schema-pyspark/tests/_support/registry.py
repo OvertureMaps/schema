@@ -7,9 +7,10 @@ Provides a context manager that registers a model type in the runtime
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 
+from pyspark.sql.types import StructType
+
 from overture.schema.pyspark._registry import REGISTRY
 from overture.schema.pyspark.check import Check, ModelValidation
-from pyspark.sql.types import StructType
 
 
 @contextmanager

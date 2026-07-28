@@ -16,6 +16,10 @@ from codegen_test_support import (
     spec_for_model,
     union_spec_for,
 )
+from pydantic import BaseModel, Field
+from pydantic.fields import FieldInfo
+from pydantic.networks import HttpUrl
+
 from overture.schema.codegen.extraction.field import (
     ConstraintSource,
     Primitive,
@@ -62,9 +66,6 @@ from overture.schema.system.model_constraint import (
 )
 from overture.schema.system.numeric import float64
 from overture.schema.system.string import CountryCodeAlpha2
-from pydantic import BaseModel, Field
-from pydantic.fields import FieldInfo
-from pydantic.networks import HttpUrl
 
 _path = parse
 
