@@ -38,7 +38,10 @@ Every distributable package under `packages/*` carries its own independent
 
 Internal builds use PEP 440 post-releases so they order after the released
 `<version>`: a consumer pinning `>=1.2.3` resolves `1.2.3.post4+main.abc1234`
-from CodeArtifact when present. `N` is the workflow run number. The
+from CodeArtifact when present (verified with uv), while `==1.2.3` still
+selects the clean release. Pin with `>=`, never `>`: PEP 440 excludes
+post-releases from exclusive ordered comparisons, so `>1.2.3` matches no
+internal build. `N` is the workflow run number. The
 `+main`/`+vnext` local label names the build stream; local labels are ignored
 in version comparison and rejected by public PyPI, which keeps these builds
 internal by construction.
