@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.11.32,<0.13"]
+build-backend = "uv_build"
 
 [project]
 name = "overture-schema-common"
@@ -25,8 +25,8 @@ Issues = "https://github.com/OvertureMaps/schema/issues"
 [tool.uv.sources]
 overture-schema-system = { workspace = true }
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/overture"]
+[tool.uv.build-backend]
+module-name = "overture.schema.common"
 
 [dependency-groups]
 dev = [

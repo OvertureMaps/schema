@@ -13,6 +13,8 @@ from typing import Annotated, Generic, Literal, NewType, TypeVar
 
 import pytest
 from annotated_types import MinLen
+from pydantic import BaseModel, EmailStr, Field, HttpUrl, RootModel
+
 from overture.schema.codegen.extraction.field import LiteralScalar, Primitive
 from overture.schema.codegen.extraction.field_walk import terminal_of
 from overture.schema.codegen.extraction.model_extraction import extract_model
@@ -55,7 +57,6 @@ from overture.schema.system.model_constraint import (
 from overture.schema.system.numeric import float64, int32
 from overture.schema.system.ref import Id, Identified, Reference, Relationship
 from overture.schema.system.string import HexColor, LanguageTag, StrippedString
-from pydantic import BaseModel, EmailStr, Field, HttpUrl, RootModel
 
 STR_TYPE = Primitive(base_type="str")
 

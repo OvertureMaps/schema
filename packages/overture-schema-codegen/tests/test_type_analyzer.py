@@ -6,6 +6,9 @@ from typing import Annotated, Any, Literal, NewType, Optional
 import pytest
 from annotated_types import Ge, MaxLen, MinLen
 from codegen_test_support import TollChargesByVehicleType
+from pydantic import BaseModel, Field, RootModel, Tag
+from typing_extensions import Sentinel
+
 from overture.schema.codegen.extraction.field import (
     AnyScalar,
     ArrayOf,
@@ -48,8 +51,6 @@ from overture.schema.system.string import (
     NoWhitespaceString,
     SnakeCaseString,
 )
-from pydantic import BaseModel, Field, RootModel, Tag
-from typing_extensions import Sentinel
 
 
 def _shape(annotation: object) -> FieldShape:

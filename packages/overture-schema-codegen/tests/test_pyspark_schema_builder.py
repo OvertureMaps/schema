@@ -4,6 +4,8 @@ from enum import Enum
 
 import pytest
 from codegen_test_support import FeatureWithRootModel, spec_for_model
+from pydantic import BaseModel, Field
+
 from overture.schema.codegen.extraction.field import Primitive
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
@@ -12,7 +14,6 @@ from overture.schema.codegen.extraction.specs import (
 )
 from overture.schema.codegen.pyspark.schema_builder import SchemaField, build_schema
 from overture.schema.divisions import DivisionArea
-from pydantic import BaseModel, Field
 
 
 class SimpleModel(BaseModel):

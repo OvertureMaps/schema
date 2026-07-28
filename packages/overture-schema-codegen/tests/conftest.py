@@ -1,10 +1,12 @@
 """Shared pytest fixtures for overture-schema-codegen tests."""
 
-import overture.schema.system.geometric as _system_geometric
-import overture.schema.system.numeric as _system_numeric
 import pytest
 from click.testing import CliRunner
 from codegen_test_support import find_model_class
+from pydantic import BaseModel
+
+import overture.schema.system.geometric as _system_geometric
+import overture.schema.system.numeric as _system_numeric
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.numeric_extraction import extract_numerics
 from overture.schema.codegen.extraction.specs import RecordSpec
@@ -17,7 +19,6 @@ from overture.schema.codegen.markdown.renderer import (
 )
 from overture.schema.system.discovery import discover_models
 from overture.schema.system.geometric import GeometryType
-from pydantic import BaseModel
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

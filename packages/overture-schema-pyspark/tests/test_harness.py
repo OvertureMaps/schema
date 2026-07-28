@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 
 import pytest
-from overture.schema.pyspark.check import Check, CheckShape
 from pyspark.sql import Row, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
@@ -17,6 +16,8 @@ from pyspark.sql.types import (
     StructField,
     StructType,
 )
+
+from overture.schema.pyspark.check import Check, CheckShape
 
 from ._support.harness import (
     assert_schema_covers_checks,

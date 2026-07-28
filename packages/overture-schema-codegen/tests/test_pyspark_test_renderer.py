@@ -6,6 +6,8 @@ from enum import Enum
 from typing import Annotated
 
 import pytest
+from pydantic import BaseModel, Field
+
 from overture.schema.codegen.extraction.field import ArrayOf, ModelRef, Primitive
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import RecordSpec
@@ -50,7 +52,6 @@ from overture.schema.system.model_constraint import (
     Not,
     require_any_of,
 )
-from pydantic import BaseModel, Field
 
 _path = parse
 

@@ -6,6 +6,9 @@ from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
+from pydantic import BaseModel, Field, TypeAdapter, ValidationError
+from rich.console import Console
+
 from overture.schema.cli.commands import cli
 from overture.schema.cli.error_formatting import (
     format_path,
@@ -14,8 +17,6 @@ from overture.schema.cli.error_formatting import (
 )
 from overture.schema.cli.type_analysis import introspect_union
 from overture.schema.cli.types import ErrorLocation, ValidationErrorDict
-from pydantic import BaseModel, Field, TypeAdapter, ValidationError
-from rich.console import Console
 
 
 class TestErrorGrouping:

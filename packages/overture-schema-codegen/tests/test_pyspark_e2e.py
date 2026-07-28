@@ -7,13 +7,14 @@ from typing import Annotated, Literal
 import pytest
 from annotated_types import Ge
 from codegen_test_support import discover_feature
+from pydantic import BaseModel
+
 from overture.schema.codegen.cli import _generate_pyspark
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.pyspark.pipeline import (
     GeneratedModule,
     generate_pyspark_module,
 )
-from pydantic import BaseModel
 
 
 class SimpleModel(BaseModel):

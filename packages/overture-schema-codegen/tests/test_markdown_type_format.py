@@ -5,6 +5,8 @@ from pathlib import PurePosixPath
 from typing import Any, Literal, NewType
 
 import pytest
+from pydantic import BaseModel, HttpUrl
+
 from overture.schema.codegen.extraction.field import (
     AnyScalar,
     ArrayOf,
@@ -27,7 +29,6 @@ from overture.schema.codegen.markdown.type_format import (
 )
 from overture.schema.system.geometric import BBox, Geometry
 from overture.schema.system.numeric import int32
-from pydantic import BaseModel, HttpUrl
 
 
 class _ModelA(BaseModel):

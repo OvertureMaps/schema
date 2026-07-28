@@ -3,9 +3,10 @@
 import dataclasses
 
 import pytest
-from overture.schema.pyspark.check import Check, CheckShape
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+
+from overture.schema.pyspark.check import Check, CheckShape
 
 
 def test_check_is_frozen(spark: SparkSession) -> None:

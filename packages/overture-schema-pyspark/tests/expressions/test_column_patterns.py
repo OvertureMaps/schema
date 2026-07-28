@@ -15,6 +15,9 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
+from pyspark.sql import Column, SparkSession
+from pyspark.sql import functions as F
+
 from overture.schema.pyspark.expressions.column_patterns import (
     array_check,
     check_struct_unique,
@@ -31,8 +34,6 @@ from overture.schema.pyspark.expressions.constraint_expressions import (
     check_require_any_of,
     check_string_min_length,
 )
-from pyspark.sql import Column, SparkSession
-from pyspark.sql import functions as F
 
 # PySpark 3.4's collect() leaves its result socket for the GC to finalize; under
 # -W error that ResourceWarning fails the batched `results` fixture. conftest's

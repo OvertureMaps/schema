@@ -10,6 +10,8 @@ from codegen_test_support import (
     discover_feature,
     spec_for_model,
 )
+from pydantic import TypeAdapter
+
 from overture.schema.codegen.extraction.specs import ModelSpec, UnionSpec
 from overture.schema.codegen.pyspark.check_builder import build_checks
 from overture.schema.codegen.pyspark.check_ir import (
@@ -29,7 +31,6 @@ from overture.schema.codegen.pyspark.test_data.scaffold import (
     leaf_list_depth,
 )
 from overture.schema.system.field_path import ArraySegment, Iterated, parse
-from pydantic import TypeAdapter
 
 _path = parse
 

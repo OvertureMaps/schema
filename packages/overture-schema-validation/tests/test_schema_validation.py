@@ -5,9 +5,10 @@ from typing import Any
 
 import pytest
 import yaml
-from overture.schema.validation import validate, validate_json
 from pydantic import ValidationError
 from yamlcore import CoreLoader  # type: ignore
+
+from overture.schema.validation import validate, validate_json
 
 # Top-level constants for paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
