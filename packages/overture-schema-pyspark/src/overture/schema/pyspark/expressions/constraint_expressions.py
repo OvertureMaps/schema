@@ -18,10 +18,9 @@ from collections.abc import Callable
 from functools import reduce
 from typing import Literal
 
+from overture.schema.system.geometric import GeometryType
 from pyspark.sql import Column
 from pyspark.sql import functions as F
-
-from overture.schema.system.geometric import GeometryType
 
 from .column_patterns import error_msg
 

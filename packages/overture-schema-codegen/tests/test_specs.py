@@ -9,6 +9,8 @@ from codegen_test_support import (
     SimpleModel,
     make_union_spec,
 )
+from pydantic import BaseModel, Field
+
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
@@ -21,7 +23,6 @@ from overture.schema.codegen.extraction.specs import (
     is_union_alias,
 )
 from overture.schema.system.numeric import int32
-from pydantic import BaseModel, Field
 
 
 class TestModelSpec:

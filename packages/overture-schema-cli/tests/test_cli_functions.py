@@ -9,6 +9,8 @@ import pytest
 import yaml
 from click.exceptions import UsageError
 from conftest import build_feature
+from pydantic import BaseModel, ValidationError
+
 from overture.schema.cli.commands import (
     _best_fit_model,
     _revalidate_undiscriminatable_items,
@@ -19,7 +21,6 @@ from overture.schema.cli.commands import (
 from overture.schema.cli.type_analysis import get_item_index
 from overture.schema.cli.types import ValidationErrorDict
 from overture.schema.system.discovery import TagSelector
-from pydantic import BaseModel, ValidationError
 
 
 class TestLoadInput:

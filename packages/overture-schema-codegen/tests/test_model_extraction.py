@@ -3,6 +3,8 @@
 from typing import Annotated, Optional
 
 from codegen_test_support import FeatureWithRootModel
+from pydantic import BaseModel, Field
+
 from overture.schema.codegen.extraction.field import (
     ArrayOf,
     MapOf,
@@ -14,7 +16,6 @@ from overture.schema.codegen.extraction.field_walk import terminal_of
 from overture.schema.codegen.extraction.length_constraints import ArrayMinLen
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.common.scoping.vehicle import VehicleSelector
-from pydantic import BaseModel, Field
 
 
 def test_extract_model_populates_union_terminal() -> None:

@@ -4,6 +4,8 @@ import re
 
 import pytest
 from annotated_types import Ge, Gt, Interval, Le, Lt, MultipleOf
+from pydantic import Field, Strict
+
 from overture.schema.codegen.extraction.field import Primitive
 from overture.schema.codegen.extraction.length_constraints import (
     ArrayMaxLen,
@@ -50,7 +52,6 @@ from overture.schema.system.model_constraint import (
     RequireIfConstraint,
 )
 from overture.schema.system.ref import Identified, Reference, Relationship
-from pydantic import Field, Strict
 
 
 class _Stub(Identified):

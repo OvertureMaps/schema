@@ -4,6 +4,18 @@ import re
 from collections.abc import Iterator
 
 import pytest
+from pyspark.sql import DataFrame, Row, SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.types import (
+    ArrayType,
+    DoubleType,
+    IntegerType,
+    MapType,
+    StringType,
+    StructField,
+    StructType,
+)
+
 from overture.schema.pyspark._registry import REGISTRY
 from overture.schema.pyspark.check import Check, CheckShape
 from overture.schema.pyspark.expressions.column_patterns import map_values_check
@@ -16,17 +28,6 @@ from overture.schema.pyspark.validate import (
     model_keys,
     model_names,
     validate_model,
-)
-from pyspark.sql import DataFrame, Row, SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql.types import (
-    ArrayType,
-    DoubleType,
-    IntegerType,
-    MapType,
-    StringType,
-    StructField,
-    StructType,
 )
 
 from ._support.registry import register_model
