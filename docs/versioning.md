@@ -82,6 +82,10 @@ deliberate, one-time discontinuity.
   the `Changelog fragment verification` check.
 - `release-trigger` fails if the target tag already exists, or if a version goes
   backwards.
+- Major bumps cascade: a package whose workspace dependency takes a major bump
+  must take one itself, since its next publish materializes that dependency as
+  a breaking `>=` floor. Enforced at PR time by the version check and again by
+  `release-trigger`.
 
 ## How to
 

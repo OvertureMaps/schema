@@ -20,7 +20,8 @@ Outputs (written to $GITHUB_OUTPUT):
 
 Exit status:
     0  Success (including the no-bump case).
-    1  A package's version went backwards; that must never land on main.
+    1  A package's version went backwards, or a major bump does not cascade
+       to its dependents; neither must ever land on main.
 """
 
 from pathlib import Path
@@ -29,6 +30,8 @@ import os
 import subprocess
 import sys
 import tomllib
+
+from package_versions import check_major_cascade, package_manifests
 
 
 def semver(pyproject_blob: bytes) -> tuple[int, int, int]:
@@ -90,6 +93,19 @@ def main() -> None:
                 f"::error::{e}: version went backwards. Version decreases "
                 "must never land on main; revert or fix the version."
             )
+        sys.exit(1)
+
+    # Belt-and-braces re-check of the major-bump cascade (primary enforcement
+    # is the PR-time version check). Publishing releases with a non-cascaded
+    # major bump would poison dependents' materialized floors.
+    after_manifests = {
+        path.parent.name: tomllib.loads(path.read_text(encoding="utf-8"))
+        for path in sorted(Path("packages").glob("*/pyproject.toml"))
+    }
+    violations = check_major_cascade(package_manifests(before), after_manifests)
+    if violations:
+        for v in violations:
+            print(f"::error::{v}")
         sys.exit(1)
 
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
