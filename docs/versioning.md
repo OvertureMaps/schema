@@ -59,6 +59,13 @@ to rewrite each bare workspace dependency to a floor from the in-repo version
 (e.g. `overture-schema-common` becomes `overture-schema-common>=0.1.1`).
 Floors carry the released version only, never a `.postN` suffix.
 
+uv's documented alternative is
+[static dual declaration](https://docs.astral.sh/uv/concepts/projects/dependencies/#workspace-member):
+hand-maintained specifiers in `project.dependencies` alongside the workspace
+source. Not used here; with 13 interdependent packages, every bump PR would
+have to touch each dependent's floor by hand. The script derives the same
+specifiers at publish time instead.
+
 ### Tag scheme
 
 Each package has its own release series: tag `<package>-v<major>.<minor>.<patch>`,
