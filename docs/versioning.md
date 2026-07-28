@@ -8,6 +8,7 @@ Reference and how-to for package versions and releases. Branch mechanics and the
 - [Reference](#reference)
   - [Version scheme](#version-scheme)
   - [Version → destination](#version--destination)
+  - [Dependency materialization](#dependency-materialization)
   - [Tag scheme](#tag-scheme)
   - [Guardrails](#guardrails)
 - [How to](#how-to)
@@ -24,16 +25,33 @@ Every distributable package under `packages/*` carries its own independent
 
 | Component | Owner | Set by |
 |-----------|-------|--------|
-| `<major>.<minor>` | Human | Edited in `pyproject.toml` via a reviewed PR. |
-| `<patch>` | CI | [`compute-version`](../.github/actions/compute-version/action.yml) at publish time. The `pyproject.toml` patch is only a floor. |
+| `<major>.<minor>.<patch>` | Human | Edited in `pyproject.toml` via a reviewed PR. Any increase, patch included, is a release. |
+| `.post<N>+<stream>.<sha>` | CI | [`compute-version`](../.github/actions/compute-version/action.yml) stamps interim internal builds between releases. |
 
 ### Version → destination
 
 | Event | Version | Destination |
 |-------|---------|-------------|
-| Push to `vnext` | `<last-published>+dev.<run#>` | CodeArtifact (dev) |
-| Push to `main`, no bump | `<major>.<minor>.<next-patch>` | CodeArtifact |
-| `major.minor` bump on `main` | `<major>.<minor>.0` | Public PyPI |
+| Push to `vnext` | `<version>.postN+vnext.<sha>` | CodeArtifact |
+| Push to `main`, no bump | `<version>.postN+main.<sha>` | CodeArtifact |
+| Version bump on `main` | `<version>` | GitHub Release, then public PyPI |
+
+Internal builds use PEP 440 post-releases so they order after the released
+`<version>`: a consumer pinning `>=1.2.3` resolves `1.2.3.post4+main.abc1234`
+from CodeArtifact when present. `N` is the workflow run number. The
+`+main`/`+vnext` local label names the build stream; local labels are ignored
+in version comparison and rejected by public PyPI, which keeps these builds
+internal by construction.
+
+### Dependency materialization
+
+Intra-repo dependencies are declared as bare names and resolved at dev time
+via `[tool.uv.sources]` workspace entries, which uv drops at build time.
+Before publishing, CI runs
+[`materialize_workspace_deps.py`](../.github/workflows/scripts/materialize_workspace_deps.py)
+to rewrite each bare workspace dependency to a floor from the in-repo version
+(e.g. `overture-schema-common` becomes `overture-schema-common>=0.1.1`).
+Floors carry the released version only, never a `.postN` suffix.
 
 ### Tag scheme
 
@@ -78,7 +96,7 @@ The file body is the note itself, written in past tense
 
 ```bash
 # from the repo root
-uvx towncrier build --config pyproject.toml --dir packages/<package> --draft --version <major>.<minor>.0
+uvx towncrier build --config pyproject.toml --dir packages/<package> --draft --version <version>
 ```
 
 A fragment (or an already-built `CHANGELOG.md` entry) is required on any PR that
@@ -91,13 +109,13 @@ changes that package, whether or not it bumps the version.
 
 ### Cut a release
 
-1. Bump `<major>.<minor>` in the package's `pyproject.toml` (reset patch to `0`),
+1. Bump the version in the package's `pyproject.toml`,
    then run `uvx towncrier build --config pyproject.toml --dir packages/<package>`
-   from the repo root to fold its fragments into `CHANGELOG.md`. Minor bumps
-   target `main`; major bumps go via `vnext` and reach `main` through a release
-   merge.
+   from the repo root to fold its fragments into `CHANGELOG.md`. Patch and minor
+   bumps target `main`; major bumps go via `vnext` and reach `main` through a
+   release merge.
 2. On merge to `main`, `release-trigger` publishes one GitHub Release per bumped
-   package: tag `<package>-v<major>.<minor>.0`, notes from that package's
+   package: tag `<package>-v<version>`, notes from that package's
    `CHANGELOG.md`.
 3. Publishing the release starts the PyPI publish, gated by a maintainer
    approval.
@@ -106,13 +124,19 @@ changes that package, whether or not it bumps the version.
 flowchart LR
     A[bump + towncrier build<br/>merged to main] --> B[release-trigger:<br/>GitHub Release per package]
     B --> C[PyPI publish<br/>maintainer approval] --> D[public PyPI]
-    E[patch to main] --> F[CodeArtifact only]
+    E[no-bump merge] --> F[.postN internal build<br/>CodeArtifact only]
 ```
 
 ## Why
 
-- **Human owns `major.minor`, CI owns `patch`.** Release intent is a reviewed
-  decision; patch numbering is mechanical.
+- **Humans own the full version.** Every released `<major>.<minor>.<patch>` is
+  a reviewed decision, so patch-level bug fixes can ship to PyPI without
+  masquerading as minor releases. CI versions only the interim `.postN`
+  builds between releases.
+- **Post-releases for internal builds.** `.postN` orders after the released
+  version, so `>=<version>` specifiers pick up the freshest internal build
+  from CodeArtifact; the `+main`/`+vnext` label separates the two streams and
+  keeps the builds off public PyPI.
 - **Independent per-package versions.** Packages evolve at their own pace.
   Consumers pin only `overture-schema`, which depends on the theme/support
   packages, giving them a coherent set without tracking each one.

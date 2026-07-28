@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 """
-Detect per-package <major>.<minor> version bumps between two commits on main.
+Detect per-package version bumps between two commits on main.
 
 Run from the repository root by the `Release trigger` workflow. Compares each
 `packages/*/pyproject.toml` at the pushed commit (the working tree) against its
-content at the `before` commit, and records the packages whose <major>.<minor>
-increased. Patch-only changes are ignored: the patch component is computed by
-CI, not by humans (see docs/versioning.md).
+content at the `before` commit, and records the packages whose
+`<major>.<minor>.<patch>` increased. All three components are human-owned
+(see docs/versioning.md); any increase, including patch-only, cuts a release.
 
 Environment:
     BEFORE         The `before` commit SHA (github.event.before).
@@ -20,39 +20,63 @@ Outputs (written to $GITHUB_OUTPUT):
 
 Exit status:
     0  Success (including the no-bump case).
-    1  A package's <major>.<minor> went backwards; that must never land on main.
+    1  A package's version went backwards; that must never land on main.
 """
 
+from collections.abc import Callable
 from pathlib import Path
 import json
 import os
+import re
 import subprocess
 import sys
 import tomllib
 
-
-def major_minor(blob: bytes) -> tuple[int, int]:
-    """Parse `project.version` from pyproject.toml bytes into (major, minor)."""
-    version = str(tomllib.loads(blob.decode("utf-8"))["project"]["version"])
-    major, minor, *_ = version.split(".")
-    return int(major), int(minor)
+VERSION_ASSIGNMENT = re.compile(rb"""^__version__\s*=\s*["']([^"']+)["']""", re.MULTILINE)
 
 
-def before_major_minor(before: str, pyproject: str) -> tuple[int, int] | None:
+def semver(
+    pyproject_blob: bytes,
+    package_dir: str,
+    read_file: Callable[[str], bytes | None],
+) -> tuple[int, int, int] | None:
     """
-    Return the (major, minor) of `pyproject` at the `before` commit.
+    Resolve a package's (major, minor, patch) from its pyproject.toml bytes.
 
-    The `before` blob can be unreadable after a force-push, a history rewrite,
-    or for a brand-new package. Treat that as "no previous version" rather than
-    failing every subsequent push.
+    Static `project.version` is read directly. A hatch dynamic version is
+    resolved by reading the declared version file through `read_file`, which
+    takes a repo-relative posix path and returns its bytes (or None if
+    unreadable, in which case the version is unresolvable).
+    """
+    doc = tomllib.loads(pyproject_blob.decode("utf-8"))
+    if "version" in doc["project"]:
+        version = str(doc["project"]["version"])
+    else:
+        version_path = f'{package_dir}/{doc["tool"]["hatch"]["version"]["path"]}'
+        content = read_file(version_path)
+        if content is None:
+            return None
+        match = VERSION_ASSIGNMENT.search(content)
+        if not match:
+            return None
+        version = match.group(1).decode("utf-8")
+    major, minor, patch, *_ = version.split(".")
+    return int(major), int(minor), int(patch)
+
+
+def git_show(commit: str, path: str) -> bytes | None:
+    """
+    Return the bytes of `path` at `commit`, or None if unreadable.
+
+    A blob can be unreadable after a force-push, a history rewrite, or for a
+    brand-new file. Treat that as "no previous version" rather than failing
+    every subsequent push.
     """
     result = subprocess.run(
-        ["git", "show", f"{before}:{pyproject}"],
+        ["git", "show", f"{commit}:{path}"],
         capture_output=True,
     )
-    if result.returncode != 0:
-        return None
-    return major_minor(result.stdout)
+    return result.stdout if result.returncode == 0 else None
 
 
 def main() -> None:
@@ -61,32 +85,49 @@ def main() -> None:
     bumps: list[dict[str, str]] = []
     errors: list[str] = []
 
+    def read_working_tree(path: str) -> bytes | None:
+        try:
+            return Path(path).read_bytes()
+        except OSError:
+            return None
+
     for path in sorted(Path("packages").glob("*/pyproject.toml")):
         package = path.parent.name
-        pyproject = path.as_posix()  # git wants forward slashes on every OS
+        package_dir = path.parent.as_posix()  # git wants forward slashes on every OS
+        pyproject = path.as_posix()
 
-        after = major_minor(path.read_bytes())
+        after = semver(path.read_bytes(), package_dir, read_working_tree)
+        if after is None:
+            print(f"Cannot resolve version for {package} in the working tree, skipping.")
+            continue
 
-        current = before_major_minor(before, pyproject)
+        before_blob = git_show(before, pyproject)
+        current = (
+            semver(before_blob, package_dir, lambda p: git_show(before, p))
+            if before_blob is not None
+            else None
+        )
         if current is None:
-            print(f"No readable {pyproject} at {before}, skipping {package}.")
+            print(f"No resolvable version for {package} at {before}, skipping.")
             continue
 
         if after == current:
             continue
 
+        before_str = ".".join(map(str, current))
+        after_str = ".".join(map(str, after))
+
         if after < current:
-            errors.append(f"{package}: {current[0]}.{current[1]} -> {after[0]}.{after[1]}")
+            errors.append(f"{package}: {before_str} -> {after_str}")
             continue
 
-        version = f"{after[0]}.{after[1]}.0"
-        print(f"{package}: {current[0]}.{current[1]} -> {after[0]}.{after[1]} (bump)")
-        bumps.append({"package": package, "version": version, "tag": f"{package}-v{version}"})
+        print(f"{package}: {before_str} -> {after_str} (bump)")
+        bumps.append({"package": package, "version": after_str, "tag": f"{package}-v{after_str}"})
 
     if errors:
         for e in errors:
             print(
-                f"::error::{e}: major/minor went backwards. Version decreases "
+                f"::error::{e}: version went backwards. Version decreases "
                 "must never land on main; revert or fix the version."
             )
         sys.exit(1)
@@ -96,7 +137,7 @@ def main() -> None:
         out.write(f"bumps={json.dumps(bumps)}\n")
 
     if not bumps:
-        print("No major/minor bumps detected.")
+        print("No version bumps detected.")
 
 
 if __name__ == "__main__":

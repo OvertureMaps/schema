@@ -22,13 +22,14 @@ wiki page breaks down what counts as a minor vs. major change.
 Three common paths take a branch to a merge. Expand each for the commit-level flow.
 
 <details>
-<summary><strong><code>main</code> &rarr; patch (no version bump)</strong></summary>
+<summary><strong><code>main</code> &rarr; everyday change (no version bump)</strong></summary>
 
-Everyday bug fixes and schema tweaks. You do not touch the version; on merge CI
-publishes the next patch (`<major>.<minor>.<next-patch>`) to internal
-CodeArtifact, where it is consumable immediately. No GitHub Release is cut and
-nothing new lands on public PyPI; the patch reaches public PyPI only when the
-next minor or major release ships.
+Everyday fixes and schema tweaks that don't warrant an immediate release. You
+do not touch the version; on merge CI publishes an interim internal build
+(`<version>.postN+main.<sha>`) to CodeArtifact, where it is consumable
+immediately. No GitHub Release is cut and nothing lands on public PyPI; the
+change reaches public PyPI with the package's next version bump (patch, minor,
+or major).
 
 ```mermaid
 gitGraph
@@ -38,18 +39,18 @@ gitGraph
    commit id: "fix brand enum values"
    commit id: "add bugfix fragment"
    checkout main
-   merge fix-places-brand-enum id: "PR #561 (CodeArtifact 0.4.1)"
+   merge fix-places-brand-enum id: "PR #561 (CodeArtifact 0.4.0.postN)"
    commit id: "more fixes"
 ```
 
 </details>
 
 <details>
-<summary><strong><code>main</code> &rarr; minor release (version bump)</strong></summary>
+<summary><strong><code>main</code> &rarr; patch or minor release (version bump)</strong></summary>
 
-A minor feature that bumps `major.minor` in the PR and builds the changelog. On
-merge, `release-trigger` cuts a published GitHub Release and the new version lands
-on PyPI, immediately available to consumers.
+A bug fix or minor feature that bumps the version in the PR and builds the
+changelog. On merge, `release-trigger` cuts a published GitHub Release and the
+new version lands on PyPI, immediately available to consumers.
 
 ```mermaid
 gitGraph
@@ -100,7 +101,7 @@ gitGraph
 The `bump ... + build changelog` commit edits the package version in
 `pyproject.toml` and folds its `changelog.d/` fragments into `CHANGELOG.md`. On
 merge to `main`, CI cuts a published GitHub Release tagged
-`<package>-v<major>.<minor>.0` with those notes. See
+`<package>-v<version>` with those notes. See
 [docs/versioning.md](docs/versioning.md).
 
 ## Opening a PR
@@ -119,10 +120,12 @@ merge to `main`; run `git pull --rebase` before pushing again.
 
 ## Changing a package version
 
-- `<major>.<minor>` is your call: edit it in `pyproject.toml` and reset patch to
-  `0` (e.g. `1.17.1` becomes `1.18.0`). Minor bumps target `main`; major bumps
-  target `vnext`.
-- `<patch>` is computed by CI at publish time; never edit it manually.
+- The full `<major>.<minor>.<patch>` is your call: edit it in `pyproject.toml`
+  and any increase (patch included) ships a release. Patch and minor bumps
+  target `main`; major bumps target `vnext`.
+- Between releases, CI stamps interim internal builds as
+  `<version>.postN+main.<sha>` (or `+vnext.<sha>`); never write `.postN`
+  suffixes manually.
 - Every package versions and releases independently. Consumers pin only
   `overture-schema`, which pulls in the theme and support packages for a coherent
   set.

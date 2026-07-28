@@ -1,8 +1,8 @@
 name: Release trigger
 
 # Runs on every push to main that touches any package's pyproject.toml.
-# For each package whose <major>.<minor> was bumped, cuts a published GitHub
-# Release tagged `<package>-v<major>.<minor>.0`, titled `` `<package>` <version> ``,
+# For each package whose <major>.<minor>.<patch> was bumped, cuts a published
+# GitHub Release tagged `<package>-v<version>`, titled `` `<package>` <version> ``,
 # with notes taken from that package's CHANGELOG.md section.
 #
 # Packages version independently (see docs/versioning.md). The umbrella
@@ -12,8 +12,9 @@ name: Release trigger
 # `uvx towncrier build`, folding that package's changelog.d/ fragments into its
 # CHANGELOG.md (reviewed in the PR). This workflow reads back the section.
 #
-# Patch-only changes are ignored: the patch component is computed by CI (see
-# .github/actions/compute-version), not by this workflow.
+# All three version components are human-owned; any increase (patch included)
+# is a release. No-bump merges publish internal `.postN` builds instead (see
+# .github/actions/compute-version).
 #
 # NOTE: releases are created with GITHUB_TOKEN, which by design does NOT trigger
 # further workflow runs. The Phase 3 publish workflow (#509) must therefore be
@@ -25,6 +26,8 @@ on:
     branches: [main]
     paths:
       - packages/*/pyproject.toml
+      # Packages with a hatch dynamic version bump their version file instead.
+      - packages/*/**/__about__.py
 
 permissions:
   contents: read
