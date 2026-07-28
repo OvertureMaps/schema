@@ -27,13 +27,9 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      dev-dependencies:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
+      # uv doesn't yet support dependency-type filters in groups
+      # (dependabot-core#13202), so dev and production deps aren't split here.
       python-dependencies:
-        dependency-type: "production"
         update-types:
           - "minor"
           - "patch"
