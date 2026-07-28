@@ -24,57 +24,55 @@ concurrency:
 jobs:
   check-fragment:
     name: Require changelog on package change
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     permissions:
-      contents: read # Read PR file list
-      pull-requests: read # List PR files
+      contents: read
     steps:
-      - name: Require a changelog update for each changed package
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          script: |
-            const { owner, repo } = context.repo;
-            const pr = context.payload.pull_request;
+          fetch-depth: 0 # The merge base with the PR base branch must be reachable
+          persist-credentials: false
 
-            const files = await github.paginate(github.rest.pulls.listFiles, {
-              owner, repo, pull_number: pr.number, per_page: 100,
-            });
+      - name: Require a changelog update for each changed package
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
 
-            const fragmentPattern = pkg =>
-              new RegExp(`^packages/${pkg}/changelog\\.d/.+\\.(breaking|feature|bugfix|docs|misc)\\.md$`);
+          changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
 
-            // A package "changed" if any of its files changed other than its own
-            // changelog artifacts (the fragment or the built CHANGELOG.md).
-            const isChangelogArtifact = (pkg, path) =>
-              path.startsWith(`packages/${pkg}/changelog.d/`) ||
-              path === `packages/${pkg}/CHANGELOG.md`;
+          # Packages with changes outside their own changelog artifacts.
+          touched=$(echo "$changed" \
+            | grep -oE '^packages/[^/]+/' \
+            | sort -u \
+            | while read -r prefix; do
+                pkg=$(basename "$prefix")
+                if echo "$changed" | grep -E "^packages/${pkg}/" \
+                  | grep -vE "^packages/${pkg}/(changelog\.d/|CHANGELOG\.md$)" \
+                  | grep -q .; then
+                  echo "$pkg"
+                fi
+              done)
 
-            const touched = new Set();
-            for (const file of files) {
-              const match = file.filename.match(/^packages\/([^/]+)\//);
-              if (!match) continue;
-              const pkg = match[1];
-              if (!isChangelogArtifact(pkg, file.filename)) touched.add(pkg);
-            }
+          missing=""
+          for pkg in $touched; do
+            has_fragment=$(echo "$changed" \
+              | grep -cE "^packages/${pkg}/changelog\.d/.+\.(breaking|feature|bugfix|docs|misc)\.md$" || true)
+            has_changelog=$(echo "$changed" \
+              | grep -cE "^packages/${pkg}/CHANGELOG\.md$" || true)
+            if [ "$has_fragment" -eq 0 ] && [ "$has_changelog" -eq 0 ]; then
+              missing="${missing}  - ${pkg}"$'\n'
+            fi
+          done
 
-            const missing = [];
-            for (const pkg of [...touched].sort()) {
-              const hasChangelog = files.some(f => f.filename === `packages/${pkg}/CHANGELOG.md`);
-              const hasFragment = files.some(f =>
-                f.status === 'added' && fragmentPattern(pkg).test(f.filename));
-
-              if (!hasChangelog && !hasFragment) missing.push(pkg);
-            }
-
-            if (missing.length > 0) {
-              core.setFailed(
-                `These packages changed but include no changelog update:\n` +
-                missing.map(m => `  - \`${m}\``).join('\n') + `\n\n` +
-                `Add a towncrier fragment at packages/<package>/changelog.d/<id>.<type>.md ` +
-                `(type: breaking | feature | bugfix | docs | misc), then run ` +
-                `\`uvx towncrier build --config pyproject.toml --dir packages/<package>\` to fold it into CHANGELOG.md. ` +
-                `See docs/versioning.md.`
-              );
-            } else {
-              core.info('Changelog fragment check passed.');
-            }
+          if [ -n "$missing" ]; then
+            echo "::error::These packages changed but include no changelog update:"
+            printf '%s' "$missing"
+            echo ""
+            echo "Add a towncrier fragment at packages/<package>/changelog.d/<id>.<type>.md"
+            echo "(type: breaking | feature | bugfix | docs | misc), then run"
+            echo '`uvx towncrier build --config pyproject.toml --dir packages/<package>`'
+            echo "to fold it into CHANGELOG.md. See docs/versioning.md."
+            exit 1
+          fi
+          echo "Changelog fragment check passed."
