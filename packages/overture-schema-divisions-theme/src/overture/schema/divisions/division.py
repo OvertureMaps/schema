@@ -22,18 +22,18 @@ from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     forbid_if,
     no_extra_fields,
     require_if,
 )
-from overture.schema.system.primitive import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
-    int32,
-)
+from overture.schema.system.numeric import int32
 from overture.schema.system.ref import Id, Reference, Relationship
 from overture.schema.system.string import (
     CountryCodeAlpha2,

@@ -8,7 +8,7 @@ from pydantic import Field, GetJsonSchemaHandler, ValidationError, ValidationInf
 from pydantic_core import InitErrorDetails, core_schema
 
 from overture.schema.system.field_constraint import CollectionConstraint
-from overture.schema.system.primitive import float64
+from overture.schema.system.numeric import float64
 
 LinearlyReferencedPosition = NewType(
     "LinearlyReferencedPosition",

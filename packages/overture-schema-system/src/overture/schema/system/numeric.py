@@ -1,27 +1,21 @@
 """
-Primitive data types.
+Numeric types.
 
-This module provides a set of primitive types that can be used as fields in Pydantic models but are
-not themselves models. The primitive types include specific numeric types such as `int16` and
-`float64`; and geometric types including `Geometry` and `BBox`.
+This module provides a set of portable numeric types that can be used as fields in Pydantic models
+but are not themselves models: unsigned and signed integers of specific bit widths, and 32- and
+64-bit floating point numbers.
 
-Primitives are intended to provide specific, well-defined behavior for a wide range of serialization
-targets including not just Pydantic models and JSON, but also a range of other serialization
-targets, for example, the Parquet format or Spark dataframes. They come with built-in Pydantic
-constraints, but also specific documented behavior expectations so they can be supported by other
-serialization targets.
+These types are `int` or `float` at runtime, but using them for Pydantic model fields instead of the
+bare Python types makes them portable across different serialization and validation targets,
+including not just Pydantic models and JSON, but also a range of other serialization targets, for
+example, the Parquet format or Spark dataframes. They come with built-in Pydantic constraints, but
+also specific documented behavior expectations so they can be supported by other serialization
+targets.
 """
 
 from typing import Annotated, NewType
 
 from pydantic import Field
-
-from .bbox import BBox
-from .geom import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
-)
 
 uint8 = NewType("uint8", Annotated[int, Field(ge=0, le=255)])  # type: ignore [type-arg]
 uint8.__doc__ = """
@@ -97,16 +91,12 @@ them portable across different serialization and validation platforms.
 
 
 __all__ = [
-    "BBox",
-    "Geometry",
-    "GeometryType",
-    "GeometryTypeConstraint",
+    "float32",
+    "float64",
     "int8",
     "int16",
     "int32",
     "int64",
-    "float32",
-    "float64",
     "uint8",
     "uint16",
     "uint32",

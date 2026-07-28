@@ -15,6 +15,11 @@ from enum import Enum
 from typing import Any
 
 from overture.schema.common.scoping.lr import LinearReferenceRangeConstraint
+from overture.schema.system.geometric.geom import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 from overture.schema.system.model_constraint import (
     ForbidIfConstraint,
     MinFieldsSetConstraint,
@@ -22,11 +27,6 @@ from overture.schema.system.model_constraint import (
     RequireAnyOfConstraint,
     RequireAnyTrueConstraint,
     RequireIfConstraint,
-)
-from overture.schema.system.primitive.geom import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
 )
 
 from ...extraction.field import (
@@ -58,7 +58,6 @@ from ..constraint_dispatch import (
     require_bool_field_eq,
     require_field_eq,
 )
-from ..schema_builder import spark_type_rank
 from .constraint_values import (
     CONSTRAINT_VALUES,
     curated_pattern_values,
@@ -245,7 +244,7 @@ def _build_arm_rows(
 
 
 def _condition_value(field_eq: FieldEq) -> object:
-    """The condition's comparison value, with an `Enum` unwrapped to its value.
+    """Return the condition's comparison value, with an `Enum` unwrapped to its value.
 
     Row dicts store raw scalar values, so an `Enum`-typed condition value is
     compared and written as its underlying `.value`.
@@ -488,27 +487,18 @@ def value_for_field(
     )
 
 
-def _widest_union_member(union: UnionSpec) -> RecordSpec:
-    """Pick the union member whose fields have the highest cumulative Spark type rank.
+def _default_union_member(union: UnionSpec) -> RecordSpec:
+    """Return the union member used when no discriminator value is known.
 
-    When multiple union members share a field name with different numeric
-    types (e.g. `value: uint8` in one variant and `value: float64` in
-    another), PySpark widens the column to the broadest type (DoubleType).
-    Generating a row from the narrower member produces Python `int` values
-    that PySpark silently converts to null in `DoubleType` columns.
-
-    By selecting the member with the widest field types, the generated row
-    uses Python `float` values that PySpark accepts in `DoubleType` columns.
+    A field shared by name across arms always resolves to the same Spark
+    type in every arm (enforced by `schema_builder._deduplicate_by_name`,
+    which raises otherwise), so any arm's synthesized value is safe to
+    write into that shared column -- the member choice is arbitrary. Picks
+    the first member, deterministically, so regeneration is stable. See
+    `resolve_arm_spec` for why a *constraint* difference between arms never
+    reaches this fallback.
     """
-    best_spec = union.member_specs[0].spec
-    best_rank = -1
-    for member in union.member_specs:
-        field_ranks = [spark_type_rank(f) for f in member.spec.fields]
-        rank = sum(r for r in field_ranks if r >= 0)
-        if rank > best_rank:
-            best_rank = rank
-            best_spec = member.spec
-    return best_spec
+    return union.member_specs[0].spec
 
 
 def resolve_arm_spec(
@@ -516,12 +506,29 @@ def resolve_arm_spec(
 ) -> RecordSpec:
     """Return the member `RecordSpec` for one arm of a discriminated union.
 
-    Without a discriminator value (a check not gated to a specific arm),
-    returns the widest member -- the one whose float types survive PySpark
-    column widening, per `_widest_union_member`. With a value, returns the
-    member that value selects, and raises when it selects none: a seeded
-    discriminator that matches no arm is a check_builder/scaffold inconsistency,
-    not a reason to fall back to an arm whose fields contradict the seed.
+    Without a discriminator value, returns the union's first member. That
+    fallback is reached only for a check not gated to a specific arm, which
+    happens only when the check applies uniformly across arms -- so any arm
+    is representative and the first is a safe, deterministic choice.
+
+    Nothing is lost by not knowing the arm here. Two arms can share a field
+    name at the same Spark type but with *different* constraints (axle count
+    is discriminated on `dimension`, and its `value` carries `ge=1,
+    multiple_of=1` where the other `VehicleSelector` arms carry `ge=0`). Such
+    divergent-constraint fields are emitted as separate arm-gated checks, so
+    their base rows and scaffolds always arrive WITH a discriminator and
+    select the correct arm below -- they never reach the first-member
+    default. A raise here would therefore fire on the common, correct case
+    (uniform shared fields), not catch a bug; the loud guards against a
+    divergent field slipping through un-gated live where they can see the
+    divergence -- `_deduplicate_by_name` (Spark-type mismatch) and the
+    renderer's duplicate-violation-identity check (two checks colliding on
+    one arm's label).
+
+    With a value, returns the member that value selects, and raises when it
+    selects none: a seeded discriminator that matches no arm is a
+    check_builder/scaffold inconsistency, not a reason to fall back to an arm
+    whose fields contradict the seed.
 
     Parameters
     ----------
@@ -537,7 +544,7 @@ def resolve_arm_spec(
         When `discriminator_value` is given but selects no member arm.
     """
     if discriminator_value is None:
-        return _widest_union_member(union)
+        return _default_union_member(union)
     mapping = union.discriminator_mapping or {}
     member_cls = mapping.get(discriminator_value)  # type: ignore[call-overload]
     if member_cls is not None:
@@ -645,7 +652,7 @@ def _value_for_shape(
             # the sparse case the field is omitted from the dict and Pydantic
             # supplies the default during `TypeAdapter.validate_python()`.
             return _row_from_model_spec(
-                _widest_union_member(u),
+                _default_union_member(u),
                 index=index,
                 populate_optional=populate_optional,
             )
@@ -683,10 +690,16 @@ def _value_from_check_enum(
 
 
 def _value_from_check_string_min_length(
-    _desc: ExpressionDescriptor, _scalar: Primitive, _cs: ConstraintSource
+    desc: ExpressionDescriptor, _scalar: Primitive, _cs: ConstraintSource
 ) -> str:
-    """Return any single character; satisfies `min_length>=1` for every schema today."""
-    return "a"
+    """Return a filler string of exactly `min_length` characters.
+
+    The descriptor's sole arg is the `min_length` bound. A shorter string
+    (a single character against `min_length > 1`) would violate the
+    constraint, making the generated conformance ::valid row invalid.
+    """
+    min_length: int = desc.args[0]  # type: ignore[assignment]
+    return "a" * min_length
 
 
 def _value_from_check_pattern(

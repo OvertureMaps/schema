@@ -1,5 +1,5 @@
 """
-Bounding box primitive.
+Bounding box type.
 """
 
 from typing import Any
@@ -15,11 +15,11 @@ from pydantic_core import InitErrorDetails, core_schema
 
 class BBox:
     """
-    Immutable 2D bounding box primitive.
+    Immutable 2D bounding box type.
 
-    This type is a geometric primitive with representations that can differ significantly between
-    different data formats. Consequently, does not derive from the Pydantic `BaseModel` although it
-    can participate in a `BaseModel` as a field.
+    Representations of this type can differ significantly between different data formats.
+    Consequently, it does not derive from the Pydantic `BaseModel` although it can participate in a
+    `BaseModel` as a field.
 
     Parameters
     ----------

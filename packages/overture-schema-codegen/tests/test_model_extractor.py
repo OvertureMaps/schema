@@ -20,16 +20,16 @@ from overture.schema.codegen.extraction.field_walk import (
 )
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     FieldGroupConstraint,
     require_any_of,
     require_if,
-)
-from overture.schema.system.primitive import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
 )
 from overture.schema.system.string import HexColor
 from pydantic import BaseModel, Field

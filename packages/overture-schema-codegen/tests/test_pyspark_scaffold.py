@@ -28,7 +28,7 @@ from overture.schema.codegen.pyspark.test_data.scaffold import (
     generate_scaffold,
     leaf_list_depth,
 )
-from overture.schema.system.field_path import ArrayPath, parse
+from overture.schema.system.field_path import ArraySegment, Iterated, parse
 from pydantic import TypeAdapter
 
 _path = parse
@@ -253,7 +253,9 @@ class TestGenerateScaffoldSegment:
 # Spans a union with a union-in-array (`Segment`'s `when.vehicle[]`), record
 # specs with `require_any_of` and optional nested-model arrays, a map field
 # (`Infrastructure.source_tags`), and `list[list[...]]` arrays
-# (`Division.hierarchies[][]`, so iter_count>1 wrapping is covered). The
+# (`Division.hierarchies[][]`, whose inner `[]` is an anonymous array segment --
+# the nested list, carrying no field name of its own -- so anonymous-segment
+# wrapping is covered). The
 # conformance suite only asserts each scenario's own expected violation is
 # absent from its valid row -- whole-row validity of a scaffold is checked here,
 # so a model-specific scaffold defect can't hide behind it.
@@ -371,13 +373,18 @@ class TestGenerateModelScaffold:
         _, model_checks = build_checks(segment_spec)
         if not model_checks:
             pytest.skip("Segment has no model constraints")
-        # Find one with an array target.
-        nested = [c for c in model_checks if isinstance(c.target, ArrayPath)]
+        # Find one with an array target (array-first `Iterated`).
+        nested = [
+            c
+            for c in model_checks
+            if isinstance(c.target, Iterated)
+            and isinstance(c.target.iter_frames[0][1], ArraySegment)
+        ]
         if not nested:
             pytest.skip("No nested model constraints found")
         check = nested[0]
         scaffold = generate_model_scaffold(check, segment_spec)
         assert isinstance(scaffold, dict)
         # The scaffold should contain the column root (top-level column name).
-        assert isinstance(check.target, ArrayPath)
-        assert check.target.array_chunks[0][1] in scaffold
+        assert isinstance(check.target, Iterated)
+        assert check.target.iter_frames[0][1].name in scaffold

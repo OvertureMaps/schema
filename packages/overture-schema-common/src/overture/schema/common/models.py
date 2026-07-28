@@ -14,10 +14,10 @@ from typing_extensions import Self
 
 from overture.schema.system.feature import Feature
 from overture.schema.system.field_constraint import UniqueItemsConstraint
-from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import (
+from overture.schema.system.geometric import (
     Geometry,
 )
+from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.ref import Id, Identified
 from overture.schema.system.string import (
     CountryCodeAlpha2,

@@ -5,7 +5,7 @@ from pydantic import Field
 
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.model_constraint import FieldEqCondition
-from overture.schema.system.primitive import int32
+from overture.schema.system.numeric import int32
 
 AdminLevel = NewType(
     "AdminLevel",

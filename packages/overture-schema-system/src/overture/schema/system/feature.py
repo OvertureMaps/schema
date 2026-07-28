@@ -25,8 +25,8 @@ from pydantic_core import InitErrorDetails, core_schema
 from typing_extensions import Self
 
 from overture.schema.system import _json_schema
+from overture.schema.system.geometric import BBox, Geometry
 from overture.schema.system.optionality import Omitable
-from overture.schema.system.primitive import BBox, Geometry
 from overture.schema.system.ref import Id
 
 
@@ -70,7 +70,8 @@ class Feature(BaseModel):
 
     >>> from typing  import Annotated
     >>> from pydantic import Field
-    >>> from overture.schema.system.primitive import Geometry, float32
+    >>> from overture.schema.system.geometric import Geometry
+    >>> from overture.schema.system.numeric import float32
     ...
     >>> class Mountain(Feature):
     ...     name: str
@@ -108,7 +109,7 @@ class Feature(BaseModel):
     This can help maximize validation and data integrity by preventing geometries that do not make
     sense from being stored.
 
-    >>> from overture.schema.system.primitive import GeometryType, GeometryTypeConstraint
+    >>> from overture.schema.system.geometric import GeometryType, GeometryTypeConstraint
     ...
     >>> class River(Feature):
     ...     geometry: Annotated[
@@ -124,7 +125,7 @@ class Feature(BaseModel):
     union, use the `field_discriminator` method:
 
     >>> from typing import Annotated, Literal
-    >>> from overture.schema.system.primitive import float32
+    >>> from overture.schema.system.numeric import float32
     >>> import pydantic
     >>>
     >>> class Field(Feature):

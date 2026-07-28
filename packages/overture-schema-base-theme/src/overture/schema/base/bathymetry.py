@@ -10,7 +10,7 @@ from overture.schema.common import (
     OvertureFeature,
 )
 from overture.schema.common.cartography import CartographicallyHinted
-from overture.schema.system.primitive import (
+from overture.schema.system.geometric import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,

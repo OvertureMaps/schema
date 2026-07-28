@@ -41,22 +41,21 @@ from overture.schema.system.discovery import (
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     radio_group,
     require_any_of,
     require_any_true,
 )
-from overture.schema.system.primitive import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
-    float64,
-    int32,
-)
+from overture.schema.system.numeric import float64, int32
 from overture.schema.system.ref import Id, Identified, Reference, Relationship
 from overture.schema.system.string import HexColor, LanguageTag, StrippedString
-from pydantic import BaseModel, EmailStr, Field, HttpUrl
+from pydantic import BaseModel, EmailStr, Field, HttpUrl, RootModel
 
 STR_TYPE = Primitive(base_type="str")
 
@@ -197,6 +196,22 @@ class TreeNode(BaseModel):
 class Widget(BaseModel):
     active: bool
     label: str = Field(description="Display label")
+
+
+class TollChargesByVehicleType(RootModel[dict[str, int]]):
+    """A map-rooted RootModel: a bare `dict[str, int]` in serialized data."""
+
+
+class FeatureWithRootModel(BaseModel):
+    """A feature carrying a `RootModel`-typed field.
+
+    The field serializes as its bare root value (a `map<string,int>`), so
+    codegen must extract it to that shape rather than a struct with a
+    synthetic `root` member.
+    """
+
+    road_class: str
+    toll_charges: TollChargesByVehicleType | None = None
 
 
 CommonNames = NewType("CommonNames", dict[LanguageTag, StrippedString])

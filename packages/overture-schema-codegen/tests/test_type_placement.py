@@ -2,7 +2,8 @@
 
 from pathlib import PurePosixPath
 
-import overture.schema.system.primitive as _system_primitive
+import overture.schema.system.geometric as _system_geometric
+import overture.schema.system.numeric as _system_numeric
 from codegen_test_support import (
     EMAIL_STR_SPEC,
     HTTP_URL_SPEC,
@@ -24,8 +25,8 @@ from overture.schema.codegen.layout.type_collection import (
 )
 from overture.schema.codegen.markdown.link_computation import LinkContext, relative_link
 from overture.schema.codegen.markdown.path_assignment import (
-    GEOMETRY_PAGE,
-    PRIMITIVES_PAGE,
+    GEOMETRIC_PAGE,
+    NUMERIC_PAGE,
     build_placement_registry,
 )
 from overture.schema.codegen.markdown.pipeline import (
@@ -34,7 +35,7 @@ from overture.schema.codegen.markdown.pipeline import (
 from pydantic import BaseModel
 
 _NUMERIC_NAMES, _GEOMETRY_NAMES = partition_numeric_and_geometry_types(
-    _system_primitive
+    _system_numeric, _system_geometric
 )
 
 _SCHEMA_ROOT = "overture.schema"
@@ -71,8 +72,8 @@ class TestRelativeLink:
 
     def test_to_aggregate_page(self) -> None:
         source = PurePosixPath("common/names/names.md")
-        target = PurePosixPath("system/primitive/primitives.md")
-        assert relative_link(source, target) == "../../system/primitive/primitives.md"
+        target = PurePosixPath("system/numeric.md")
+        assert relative_link(source, target) == "../../system/numeric.md"
 
 
 class TestBuildPlacementRegistry:
@@ -105,18 +106,18 @@ class TestBuildPlacementRegistry:
         registry, _ = _build_registry(specs)
 
         aggregate_pages = {
-            PurePosixPath("system/primitive/primitives.md"),
-            PurePosixPath("system/primitive/geometry.md"),
+            PurePosixPath("system/numeric.md"),
+            PurePosixPath("system/geometric.md"),
         }
         individual = [p for p in registry.values() if p not in aggregate_pages]
         assert len(individual) == len(set(individual)), (
             "Duplicate output paths detected"
         )
 
-    def test_aggregate_pages_at_system_primitive(self) -> None:
-        """Primitive and geometry aggregate pages under system/primitive/."""
-        assert PRIMITIVES_PAGE == PurePosixPath("system/primitive/primitives.md")
-        assert GEOMETRY_PAGE == PurePosixPath("system/primitive/geometry.md")
+    def test_aggregate_pages_under_system(self) -> None:
+        """Numeric and geometry aggregate pages sit directly under system/."""
+        assert NUMERIC_PAGE == PurePosixPath("system/numeric.md")
+        assert GEOMETRIC_PAGE == PurePosixPath("system/geometric.md")
 
     def test_supplementary_types_nested_under_types(self) -> None:
         """Supplementary types in a feature directory go under types/."""

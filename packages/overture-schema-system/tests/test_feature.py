@@ -19,6 +19,12 @@ from pydantic.json_schema import JsonSchemaValue, JsonValue
 from util import assert_subset
 
 from overture.schema.system.feature import Feature, _FieldLevel, _maybe_refactor_schema
+from overture.schema.system.geometric import (
+    BBox,
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     forbid_if,
@@ -27,12 +33,6 @@ from overture.schema.system.model_constraint import (
     require_if,
 )
 from overture.schema.system.optionality import Omitable
-from overture.schema.system.primitive import (
-    BBox,
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
-)
 
 
 class TestFieldDiscriminator:

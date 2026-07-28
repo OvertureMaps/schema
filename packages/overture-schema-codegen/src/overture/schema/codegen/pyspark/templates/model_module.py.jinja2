@@ -14,7 +14,7 @@ from pyspark.sql.types import (
 )
 {% endif %}
 {% if geometry_type %}
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 
 {% endif %}
 from overture.schema.pyspark.check import Check, CheckShape, ModelValidation

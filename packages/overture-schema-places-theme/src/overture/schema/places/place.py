@@ -20,12 +20,12 @@ from overture.schema.common.types import (
 from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
-from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import (
+from overture.schema.system.geometric import (
     Geometry,
     GeometryType,
     GeometryTypeConstraint,
 )
+from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.string import (
     CountryCodeAlpha2,
     PhoneNumber,

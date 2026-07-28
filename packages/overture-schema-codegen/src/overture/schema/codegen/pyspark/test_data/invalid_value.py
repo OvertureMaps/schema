@@ -7,7 +7,7 @@ each constraint produces the expected violation.
 
 from __future__ import annotations
 
-from overture.schema.system.primitive.geom import GeometryType
+from overture.schema.system.geometric.geom import GeometryType
 
 from ..constraint_dispatch import ExpressionDescriptor
 from .constraint_values import (
@@ -70,6 +70,15 @@ def invalid_value(desc: ExpressionDescriptor) -> object:
         return _INVALID_LITERALS[fn]
     if fn == "check_bounds":
         return invalid_bound(desc)
+    if fn == "check_multiple_of":
+        # A non-multiple of the divisor: `divisor * 1.5` leaves a remainder of
+        # `divisor / 2`. For divisor=1 this is 1.5, kept inside a typical
+        # [1, N] bound range so a co-located bounds check does not also fire
+        # and the scenario isolates the multiple-of check. Isolation is a
+        # convenience, not a requirement: the harness asserts the expected
+        # check is among those raised, so an extra bounds violation is
+        # tolerated.
+        return float(desc.args[0]) * 1.5  # type: ignore[arg-type]
     if fn == "check_pattern":
         if (curated := curated_pattern_values(desc)) is not None:
             return curated.invalid

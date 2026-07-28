@@ -1,6 +1,7 @@
 """Shared pytest fixtures for overture-schema-codegen tests."""
 
-import overture.schema.system.primitive as _system_primitive
+import overture.schema.system.geometric as _system_geometric
+import overture.schema.system.numeric as _system_numeric
 import pytest
 from click.testing import CliRunner
 from codegen_test_support import find_model_class
@@ -12,10 +13,10 @@ from overture.schema.codegen.markdown.pipeline import (
 )
 from overture.schema.codegen.markdown.renderer import (
     render_geometry_from_values,
-    render_primitives_from_specs,
+    render_numeric_from_specs,
 )
 from overture.schema.system.discovery import discover_models
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 from pydantic import BaseModel
 
 
@@ -70,13 +71,15 @@ def division_class(all_discovered_models: dict) -> type[BaseModel]:
 
 
 @pytest.fixture(scope="module")
-def primitives_markdown() -> str:
-    """Render the primitives.md page from the system primitive module."""
-    numeric_names, _ = partition_numeric_and_geometry_types(_system_primitive)
-    return render_primitives_from_specs(extract_numerics(numeric_names))
+def numeric_markdown() -> str:
+    """Render the numeric.md page from the system numeric module."""
+    numeric_names, _ = partition_numeric_and_geometry_types(
+        _system_numeric, _system_geometric
+    )
+    return render_numeric_from_specs(extract_numerics(numeric_names))
 
 
 @pytest.fixture(scope="module")
 def geometry_markdown() -> str:
-    """Render the geometry.md page from system GeometryType values."""
+    """Render the geometric.md page from system GeometryType values."""
     return render_geometry_from_values([m.value for m in GeometryType])

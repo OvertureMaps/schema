@@ -1394,10 +1394,11 @@
         },
         "value": {
           "description": "Number of axles on the vehicle",
-          "maximum": 255,
-          "minimum": 0,
+          "maximum": 100,
+          "minimum": 1,
+          "multipleOf": 1,
           "title": "Value",
-          "type": "integer"
+          "type": "number"
         }
       },
       "required": [

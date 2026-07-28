@@ -48,8 +48,13 @@ from overture.schema.codegen.pyspark.renderer import (
 )
 from overture.schema.codegen.pyspark.schema_builder import SchemaField, build_schema
 from overture.schema.system.field_path import (
-    ScalarPath,
+    Direct,
     parse,
+)
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
 )
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
@@ -58,14 +63,9 @@ from overture.schema.system.model_constraint import (
     require_any_of,
     require_if,
 )
-from overture.schema.system.primitive import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
-    int32,
-)
+from overture.schema.system.numeric import int32
 from overture.schema.system.string import CountryCodeAlpha2
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl
 from pydantic.fields import FieldInfo
 
 _path = parse
@@ -168,7 +168,6 @@ class TestCheckIRReadColumns:
         )
         assert check.read_columns == frozenset({"items"})
 
-    # IMPORTANT 1 — descriptor gate on scalar vs array target
     def test_scalar_target_gate_column_included(self) -> None:
         # A descriptor gate on a scalar target renders as F.col("{gate}").isNotNull(),
         # a row-level read; the gate's top-level column must appear in read_columns.
@@ -191,7 +190,6 @@ class TestCheckIRReadColumns:
         )
         assert check.read_columns == frozenset({"items"})
 
-    # IMPORTANT 2 — RequireIf condition field exclusion on array target
     def test_model_check_require_if_array_target_excludes_condition_field(self) -> None:
         # On an array target, the condition is el["cond"] (element-relative), not
         # F.col("cond"); only the outer array column is a row-level read.
@@ -215,7 +213,8 @@ class TestCheckIRReadColumns:
         )
         assert check.read_columns == frozenset({"items"})
 
-    # MINOR 3 — RadioGroup and MinFieldsSet share the RequireAnyOf match arm
+    # RadioGroup and MinFieldsSet share the RequireAnyOf match arm, so all
+    # three variants derive read_columns identically.
     @pytest.mark.parametrize(
         "descriptor",
         [
@@ -231,11 +230,10 @@ class TestCheckIRReadColumns:
         check = ModelCheck(descriptor=descriptor)
         assert check.read_columns == frozenset({"a", "b"})
 
-    # MINOR 4 — ModelCheck on a MapPath target
-    def test_model_check_map_target_reads_only_map_column(self) -> None:
-        # A dict[K, Model] value-model constraint targets a MapPath; field references
-        # use the projected element variable (v["field"]), not F.col. Only the map
-        # column itself is a row-level read.
+    def test_model_check_map_target_reads_only_outer_column(self) -> None:
+        # A dict[K, Model] value-model constraint targets a map-projection
+        # `Iterated`; field references use the projected element variable
+        # (v["field"]), not F.col. Only the map column itself is a row-level read.
         check = ModelCheck(
             descriptor=RequireAnyOf(field_names=("label", "value")),
             target=_path("names.common{value}"),
@@ -574,7 +572,7 @@ class TestGeometryTypes:
             schema_fields,
             geometry_types=(GeometryType.POINT,),
         )
-        assert "from overture.schema.system.primitive import GeometryType" in source
+        assert "from overture.schema.system.geometric import GeometryType" in source
 
 
 class TestImports:
@@ -776,7 +774,7 @@ class TestGeometryTypeRendering:
 
     def test_geometry_type_import_present(self) -> None:
         source = _render(GeomModel, "geom")
-        assert "from overture.schema.system.primitive import GeometryType" in source
+        assert "from overture.schema.system.geometric import GeometryType" in source
 
     def test_no_geometry_type_import_without_geometry_field(
         self, literal_subtype_source: str
@@ -1125,9 +1123,47 @@ class TestFieldCheckLabelCollision:
         labels = [row.label for row in field_check_rows([first, second, first_copy])]
         assert labels == ["value_0", "value_1", "value_2"], labels
 
+    def test_arm_unique_check_shares_arm_suffix(self) -> None:
+        """A check present in only one arm takes that arm's suffix, not the bare label.
 
-class TestMapPathRendering:
-    """MapPath targets render to map_keys_check / map_values_check."""
+        The axle arm carries an `integer` check the dimension arms lack.
+        Keyed on `(field, name)` the lone `integer` row is unique, so it
+        would escape suffixing and report the bare `value` beside its
+        `value_0` siblings. Grouping by arm keeps the whole axle arm on
+        `value_0`.
+        """
+        axle = (ElementGuard(discriminator="dimension", values=("axle_count",)),)
+        dimension = (
+            ElementGuard(discriminator="dimension", values=("height", "width")),
+        )
+        axle_required = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+            guards=axle,
+        )
+        axle_multiple_of = Check(
+            descriptors=(
+                ExpressionDescriptor(function="check_multiple_of", args=(1,)),
+            ),
+            target=_path("value"),
+            guards=axle,
+        )
+        dimension_required = Check(
+            descriptors=(ExpressionDescriptor(function="check_required"),),
+            target=_path("value"),
+            guards=dimension,
+        )
+        rows = field_check_rows([axle_required, axle_multiple_of, dimension_required])
+        labeled = {(row.name, row.label) for row in rows}
+        assert labeled == {
+            ("required", "value_0"),
+            ("multiple_of", "value_0"),
+            ("required", "value_1"),
+        }, labeled
+
+
+class TestMapProjectionRendering:
+    """Map-projection targets render to map_keys_check / map_values_check."""
 
     def test_map_key_renders_map_keys_check(self) -> None:
         check = Check(
@@ -1255,7 +1291,8 @@ class TestVariantGatedArrayLambdaScope:
     """Variant gating for ARRAY-shaped nodes must be inside the lambda, not wrapping it."""
 
     @pytest.fixture(scope="class")
-    def rendered_source(self) -> str:
+    @classmethod
+    def rendered_source(cls) -> str:
         class _Base(BaseModel):
             kind: str
 
@@ -1308,7 +1345,8 @@ class TestTopLevelVariantGatedArray:
     """When the array column itself is variant-conditional, discriminator wraps array_check."""
 
     @pytest.fixture(scope="class")
-    def surface_check(self) -> Check:
+    @classmethod
+    def surface_check(cls) -> Check:
         """ARRAY check with top-level discriminator -- surface only exists for subtype='a'."""
         return Check(
             descriptors=(ExpressionDescriptor(function="check_required"),),
@@ -1317,7 +1355,8 @@ class TestTopLevelVariantGatedArray:
         )
 
     @pytest.fixture(scope="class")
-    def surface_value_check(self) -> Check:
+    @classmethod
+    def surface_value_check(cls) -> Check:
         """ARRAY check with leaf path and top-level discriminator."""
         return Check(
             descriptors=(ExpressionDescriptor(function="check_required"),),
@@ -1428,6 +1467,45 @@ class TestRenderNestedArrayCheckStructure:
         assert "nested_array_check" in source
         assert 'F.col("kind")' not in source
         assert 'inner["kind"]' in source
+
+
+class _TagItem(BaseModel):
+    tags: dict[str, Annotated[str, Field(min_length=3)]]
+
+
+class _TagItemList(BaseModel):
+    items: list[_TagItem]
+
+
+class _NestedIntMap(BaseModel):
+    subs: dict[str, dict[str, Annotated[int, Field(ge=0)]]]
+
+
+class TestMapValueUnderContainerRendering:
+    """A map value checked under a further container folds a flattening helper
+    around `map_values_check`.
+
+    The two mixed nestings -- a map value inside an array element and inside
+    another map value -- are the pairings no other renderer test pins;
+    `test_column_patterns` runs the same pairings in Spark.
+    """
+
+    def test_map_value_inside_array_element(self) -> None:
+        field_checks, _ = build_checks(spec_for_model(_TagItemList))
+        assert any(str(c.target) == "items[].tags{value}" for c in field_checks)
+        source = _render(_TagItemList, "item_list")
+        assert "nested_array_check(" in source
+        assert "map_values_check(" in source
+        assert 'el["tags"]' in source
+        assert "check_string_min_length" in source
+
+    def test_map_value_inside_map_value(self) -> None:
+        field_checks, _ = build_checks(spec_for_model(_NestedIntMap))
+        assert any(str(c.target) == "subs{value}{value}" for c in field_checks)
+        source = _render(_NestedIntMap, "map_of_map")
+        assert "nested_map_values_check(" in source
+        assert "map_values_check(" in source
+        assert "check_bounds(" in source
 
 
 @require_any_of("a", "b")
@@ -1609,7 +1687,7 @@ class TestGatedArrayRendering:
         ast.parse(source)
 
     def test_column_level_gate_on_array_target_raises(self) -> None:
-        """A column-level gate on an ArrayPath target is not produced by check_builder."""
+        """A column-level gate on an Iterated target is not produced by check_builder."""
         check = Check(
             descriptors=(
                 ExpressionDescriptor(
@@ -1697,15 +1775,50 @@ class TestGatedModelConstraintRendering:
         source = _render(_ArrayWithOptionalSubModel, "arr_optional_sub")
         ast.parse(source)
 
-    def test_gated_model_check_assertion_on_non_array_target(self) -> None:
-        """A gate paired with a non-ArrayPath target raises AssertionError."""
+    def test_gated_model_check_assertion_on_row_root_target(self) -> None:
+        """A gate paired with an EMPTY (row-root) `Direct` target raises AssertionError.
+
+        A struct-nested `Direct` target legitimately carries a gate (rendered as
+        `F.when(F.col("details").isNotNull(), ...)`); an empty `Direct` is the row
+        root, where a gate is meaningless and check_builder never emits one.
+        """
         check = ModelCheck(
             descriptor=RequireAnyOf(field_names=("a", "b")),
-            target=ScalarPath(),
+            target=Direct(),
             gate=_path("items[].nested"),
         )
-        with pytest.raises(AssertionError, match="gate.*non-ArrayPath"):
+        with pytest.raises(AssertionError, match="gate.*Direct target"):
             _render_model_node(check)
+
+    def test_gated_struct_nested_model_check_wraps_in_f_when(self) -> None:
+        """A struct-nested `Direct` target with a gate wraps in F.col(gate).isNotNull()."""
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("foo", "bar")),
+            target=_path("details"),
+            gate=_path("details"),
+        )
+        source = _render_model_node(check)
+        assert 'F.when(F.col("details").isNotNull()' in source
+        assert (
+            'check_require_any_of([F.col("details.foo"), F.col("details.bar")]'
+            in source
+        )
+        ast.parse(source)
+
+    def test_ungated_struct_nested_model_check_qualifies_field_refs(self) -> None:
+        """A required struct-nested `Direct` target qualifies field refs, no gate."""
+        check = ModelCheck(
+            descriptor=RequireAnyOf(field_names=("foo", "bar")),
+            target=_path("details"),
+            gate=None,
+        )
+        source = _render_model_node(check)
+        assert (
+            'check_require_any_of([F.col("details.foo"), F.col("details.bar")]'
+            in source
+        )
+        assert "isNotNull" not in source
+        ast.parse(source)
 
 
 class TestMapValueModelRendering:
@@ -1763,8 +1876,8 @@ class TestMapValueModelRendering:
         ast.parse(source)
         assert "map_values_check(" in source
 
-    def test_model_constraint_func_name_prefixes_map_column(self) -> None:
-        # Mirrors the ArrayPath naming so distinct map columns yield distinct
+    def test_model_constraint_func_name_prefixes_outer_column(self) -> None:
+        # Mirrors the array-target naming so distinct map columns yield distinct
         # generated function names rather than colliding on `_<fn>_<idx>`.
         check = self._model_check(MapValueConstraintModel)
         source = _render_model_node(check)

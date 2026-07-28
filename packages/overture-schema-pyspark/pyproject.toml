@@ -9,19 +9,16 @@ dependencies = [
     "pyspark>=3.4",
 ]
 description = "PySpark validation expressions for Overture Maps data"
-dynamic = ["version"]
 license = "MIT"
 name = "overture-schema-pyspark"
 requires-python = ">=3.10"
+version = "0.1.1"
 
 [project.scripts]
 overture-validate = "overture.schema.pyspark.cli:validate_cli"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]
-
-[tool.hatch.version]
-path = "src/overture/schema/pyspark/__about__.py"
 
 [tool.uv.sources]
 overture-schema-system = { workspace = true }

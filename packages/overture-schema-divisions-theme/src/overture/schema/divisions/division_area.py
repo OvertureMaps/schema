@@ -13,15 +13,15 @@ from overture.schema.common.names import (
     Names,
 )
 from overture.schema.system.doc import DocumentedEnum
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     require_any_true,
     require_if,
-)
-from overture.schema.system.primitive import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
 )
 from overture.schema.system.ref import Id, Reference, Relationship
 from overture.schema.system.string import CountryCodeAlpha2, RegionCode

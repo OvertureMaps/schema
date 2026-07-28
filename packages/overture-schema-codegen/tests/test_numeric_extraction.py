@@ -2,7 +2,8 @@
 
 from typing import Annotated, NewType
 
-import overture.schema.system.primitive as _system_primitive
+import overture.schema.system.geometric as _system_geometric
+import overture.schema.system.numeric as _system_numeric
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
 from overture.schema.codegen.extraction.numeric_extraction import (
     extract_numeric_bounds,
@@ -13,7 +14,7 @@ from overture.schema.codegen.extraction.type_analyzer import analyze_type
 from overture.schema.codegen.markdown.pipeline import (
     partition_numeric_and_geometry_types,
 )
-from overture.schema.system.primitive import float32, int32, int64, uint8
+from overture.schema.system.numeric import float32, int32, int64, uint8
 from pydantic import Field
 
 
@@ -21,28 +22,36 @@ class TestPartitionNumericAndGeometryTypes:
     """Tests for partition_numeric_and_geometry_types function."""
 
     def test_returns_type_identities(self) -> None:
-        nums, geoms = partition_numeric_and_geometry_types(_system_primitive)
+        nums, geoms = partition_numeric_and_geometry_types(
+            _system_numeric, _system_geometric
+        )
         assert all(isinstance(p, TypeIdentity) for p in nums)
         assert all(isinstance(g, TypeIdentity) for g in geoms)
 
     def test_identity_obj_is_actual_callable(self) -> None:
-        nums, _ = partition_numeric_and_geometry_types(_system_primitive)
+        nums, _ = partition_numeric_and_geometry_types(
+            _system_numeric, _system_geometric
+        )
         int32_id = next(p for p in nums if p.name == "int32")
-        assert int32_id.obj is _system_primitive.int32
+        assert int32_id.obj is _system_numeric.int32
 
 
 class TestExtractNumerics:
     """Tests for extract_numerics function."""
 
     def test_accepts_type_identities(self) -> None:
-        nums, _ = partition_numeric_and_geometry_types(_system_primitive)
+        nums, _ = partition_numeric_and_geometry_types(
+            _system_numeric, _system_geometric
+        )
         specs = extract_numerics(nums)
         assert len(specs) > 0
         names = [s.name for s in specs]
         assert "int32" in names
 
     def test_extracts_bounds(self) -> None:
-        nums, _ = partition_numeric_and_geometry_types(_system_primitive)
+        nums, _ = partition_numeric_and_geometry_types(
+            _system_numeric, _system_geometric
+        )
         specs = extract_numerics(nums)
         int32_spec = next(s for s in specs if s.name == "int32")
         assert int32_spec.bounds.ge == -(2**31)

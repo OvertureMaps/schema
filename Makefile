@@ -4,7 +4,7 @@ TESTMON ?= --testmon
 
 default: test-all
 
-install: uv-sync
+install: uv-sync generate-pyspark
 
 uv-sync:
 	@output=$$(uv sync --all-packages --all-extras 2>&1) || { echo "$$output" >&2; exit 1; }

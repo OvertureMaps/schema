@@ -21,7 +21,7 @@ from overture.schema.codegen.extraction.examples import (
     resolve_pyproject_path,
     validate_example,
 )
-from overture.schema.system.primitive import BBox, Geometry
+from overture.schema.system.geometric import BBox, Geometry
 from overture.schema.transportation import Segment
 from overture.schema.transportation.segment.models import (
     RoadSegment,

@@ -1,9 +1,9 @@
-"""Tests for primitive data types functionality."""
+"""Tests for numeric data types functionality."""
 
 from typing import Annotated
 
 import pytest
-from overture.schema.system.primitive import (
+from overture.schema.system.numeric import (
     float32,
     float64,
     int32,
@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 
 class TestValidation:
-    """Test validation behavior of primitive types."""
+    """Test validation behavior of numeric types."""
 
     def test_uint8_validation(self) -> None:
         """Test UInt8 validation constraints."""
@@ -51,7 +51,7 @@ class TestValidation:
             TestModel(value=2**31)
 
     def test_optional_fields(self) -> None:
-        """Test optional primitive type fields."""
+        """Test optional numeric type fields."""
 
         class TestModel(BaseModel):
             required_value: uint8
@@ -68,7 +68,7 @@ class TestValidation:
         assert model.optional_value is None
 
     def test_float_types(self) -> None:
-        """Test float primitive types."""
+        """Test float numeric types."""
 
         class TestModel(BaseModel):
             f32: float32
@@ -79,7 +79,7 @@ class TestValidation:
         assert model.f64 == 2.71828
 
     def test_conflicting_validation_criteria(self) -> None:
-        """Test that Field constraints closest to use take precedence over primitive
+        """Test that Field constraints closest to use take precedence over numeric
         type constraints."""
 
         # Int32 has built-in constraints: ge=-(2**31), le=2**31-1
@@ -93,7 +93,7 @@ class TestValidation:
         assert TestModelRestrictive(value=5).value == 5
         assert TestModelRestrictive(value=-5).value == -5
 
-        # Should fail with the more restrictive constraint (le=5), not the primitive type constraint
+        # Should fail with the more restrictive constraint (le=5), not the numeric type constraint
         with pytest.raises(ValidationError) as exc_info:
             TestModelRestrictive(value=6)
 
@@ -110,7 +110,7 @@ class TestValidation:
         assert TestModelPermissive(value=-10).value == -10
         assert TestModelPermissive(value=0).value == 0
 
-        # Should fail with the closer constraint (ge=-10), not the primitive type constraint
+        # Should fail with the closer constraint (ge=-10), not the numeric type constraint
         with pytest.raises(ValidationError) as exc_info:
             TestModelPermissive(value=-11)
 

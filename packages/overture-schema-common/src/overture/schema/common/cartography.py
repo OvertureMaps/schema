@@ -8,7 +8,7 @@ from typing import Annotated, NewType
 from pydantic import BaseModel, Field
 
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import int32
+from overture.schema.system.numeric import int32
 
 Prominence = NewType(
     "Prominence",

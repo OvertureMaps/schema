@@ -21,7 +21,7 @@ from typing import Literal
 from pyspark.sql import Column
 from pyspark.sql import functions as F
 
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 
 from .column_patterns import error_msg
 
@@ -116,6 +116,26 @@ def check_bounds(
     return F.coalesce(nan_check, *checks)
 
 
+def check_multiple_of(col: Column, divisor: float) -> Column:
+    """Multiple-of check: a float column's value must be a multiple of `divisor`.
+
+    Fires when `col % divisor` is non-zero. `divisor=1` is the integral
+    (whole-number) case -- rejecting a fractional `2.5` where a `float64`
+    column stands in for a count. Testing the remainder in double space
+    (`col % divisor != 0`) matches Pydantic's `multiple_of` exactly: for
+    `divisor=1`, large integral doubles like `1e30` -- whole numbers Pydantic
+    accepts ((1e30).is_integer() is True) -- pass, where a `floor`-based
+    integral check would saturate the LongType cast above 2^63 and wrongly
+    fire. NaN and infinity yield a NaN remainder (`!= 0`) and are rejected
+    directly, matching Pydantic. A null passes (presence is
+    `check_required`'s concern).
+    """
+    return F.when(
+        col.isNotNull() & (col % divisor != 0),
+        error_msg(f"must be a multiple of {divisor}, got ", col.cast("string")),
+    )
+
+
 def check_enum(
     col: Column,
     allowed: list[str],
@@ -133,14 +153,14 @@ def check_required(col: Column) -> Column:
 
 
 def check_pattern(col: Column, pattern: str, *, label: str) -> Column:
-    """Regex pattern check via rlike.  Returns error string or null.
+    r"""Regex pattern check via rlike.  Returns error string or null.
 
     Parameters
     ----------
     col
         Column to validate.
     pattern
-        Java regex pattern (use `\\z` for absolute end-of-input).
+        Java regex pattern (use `\z` for absolute end-of-input).
     label
         Human-readable description used in error messages:
         `"invalid {label}: got '...'"`
@@ -150,8 +170,8 @@ def check_pattern(col: Column, pattern: str, *, label: str) -> Column:
     `rlike` runs Java's regex engine against patterns authored for Python's
     `re` (the engine Pydantic validates with).  The dialects coincide on the
     ASCII character ranges the schema patterns use, but diverge on the
-    shorthand classes: Java's `\\d \\s \\w \\S` are ASCII-only while Python's
-    are Unicode, so e.g. `^\\S+$` accepts a non-breaking space here that
+    shorthand classes: Java's `\d \s \w \S` are ASCII-only while Python's
+    are Unicode, so e.g. `^\S+$` accepts a non-breaking space here that
     Pydantic rejects, and `.` excludes a different set of line terminators.
     These divergences are accepted -- the affected inputs (Unicode digits,
     exotic whitespace) do not occur in practice for the constrained fields.
@@ -243,12 +263,12 @@ def check_array_max_length(col: Column, max_len: int) -> Column:
 
 
 def check_string_min_length(col: Column, min_len: int) -> Column:
-    """String minimum character length check.  Returns error string or null."""
+    """Minimum character length check for strings.  Returns error string or null."""
     return _check_length(col, F.length(col), min_len, direction="minimum")
 
 
 def check_string_max_length(col: Column, max_len: int) -> Column:
-    """String maximum character length check.  Returns error string or null."""
+    """Maximum character length check for strings.  Returns error string or null."""
     return _check_length(col, F.length(col), max_len, direction="maximum")
 
 

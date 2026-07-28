@@ -45,7 +45,7 @@ from overture.schema.codegen.markdown.renderer import (
     render_enum,
     render_model,
     render_newtype,
-    render_primitives_from_specs,
+    render_numeric_from_specs,
     render_pydantic_type,
 )
 from overture.schema.codegen.markdown.reverse_references import UsedByEntry, UsedByKind
@@ -55,7 +55,7 @@ from overture.schema.system.field_constraint import (
     UniqueItemsConstraint,
 )
 from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.primitive import int32
+from overture.schema.system.numeric import int32
 from overture.schema.system.ref import Id
 from overture.schema.system.string import HexColor, NoWhitespaceString
 from pydantic import BaseModel, Field
@@ -1162,50 +1162,50 @@ class TestRenderFeatureWithExamples:
         assert "## Examples" not in result
 
 
-class TestRenderPrimitivesPage:
-    """Tests for the aggregate primitives page."""
+class TestRenderNumericPage:
+    """Tests for the aggregate numeric types page."""
 
-    def test_contains_title(self, primitives_markdown: str) -> None:
-        assert "# Primitive Types" in primitives_markdown
+    def test_contains_title(self, numeric_markdown: str) -> None:
+        assert "# Numeric Types" in numeric_markdown
 
-    def test_contains_signed_integers(self, primitives_markdown: str) -> None:
-        assert "| `int8` |" in primitives_markdown
-        assert "| `int16` |" in primitives_markdown
-        assert "| `int32` |" in primitives_markdown
-        assert "| `int64` |" in primitives_markdown
+    def test_contains_signed_integers(self, numeric_markdown: str) -> None:
+        assert "| `int8` |" in numeric_markdown
+        assert "| `int16` |" in numeric_markdown
+        assert "| `int32` |" in numeric_markdown
+        assert "| `int64` |" in numeric_markdown
 
-    def test_contains_unsigned_integers(self, primitives_markdown: str) -> None:
-        assert "| `uint8` |" in primitives_markdown
-        assert "| `uint16` |" in primitives_markdown
-        assert "| `uint32` |" in primitives_markdown
+    def test_contains_unsigned_integers(self, numeric_markdown: str) -> None:
+        assert "| `uint8` |" in numeric_markdown
+        assert "| `uint16` |" in numeric_markdown
+        assert "| `uint32` |" in numeric_markdown
 
-    def test_contains_floats(self, primitives_markdown: str) -> None:
-        assert "| `float32` |" in primitives_markdown
-        assert "| `float64` |" in primitives_markdown
+    def test_contains_floats(self, numeric_markdown: str) -> None:
+        assert "| `float32` |" in numeric_markdown
+        assert "| `float64` |" in numeric_markdown
 
-    def test_ranges_match_schema_constraints(self, primitives_markdown: str) -> None:
+    def test_ranges_match_schema_constraints(self, numeric_markdown: str) -> None:
         """Range strings derive from ge/le constraints in the schema."""
-        assert "-128 to 127" in primitives_markdown
-        assert "-32,768 to 32,767" in primitives_markdown
-        assert "-2,147,483,648 to 2,147,483,647" in primitives_markdown
-        assert "-2^63 to 2^63-1" in primitives_markdown
-        assert "0 to 255" in primitives_markdown
-        assert "0 to 65,535" in primitives_markdown
-        assert "0 to 4,294,967,295" in primitives_markdown
+        assert "-128 to 127" in numeric_markdown
+        assert "-32,768 to 32,767" in numeric_markdown
+        assert "-2,147,483,648 to 2,147,483,647" in numeric_markdown
+        assert "-2^63 to 2^63-1" in numeric_markdown
+        assert "0 to 255" in numeric_markdown
+        assert "0 to 65,535" in numeric_markdown
+        assert "0 to 4,294,967,295" in numeric_markdown
 
-    def test_descriptions_from_docstrings(self, primitives_markdown: str) -> None:
+    def test_descriptions_from_docstrings(self, numeric_markdown: str) -> None:
         """Descriptions derive from first line of NewType docstrings."""
-        assert "Portable 8-bit signed integer." in primitives_markdown
-        assert "Portable 16-bit unsigned integer." in primitives_markdown
-        assert "Portable IEEE 32-bit floating point number." in primitives_markdown
+        assert "Portable 8-bit signed integer." in numeric_markdown
+        assert "Portable 16-bit unsigned integer." in numeric_markdown
+        assert "Portable IEEE 32-bit floating point number." in numeric_markdown
 
-    def test_float_precision(self, primitives_markdown: str) -> None:
+    def test_float_precision(self, numeric_markdown: str) -> None:
         """Float entries show IEEE 754 precision."""
-        assert "~7 decimal digits" in primitives_markdown
-        assert "~15 decimal digits" in primitives_markdown
+        assert "~7 decimal digits" in numeric_markdown
+        assert "~15 decimal digits" in numeric_markdown
 
     def test_pipe_in_description_escaped(self) -> None:
-        """Pipe characters in primitive descriptions are escaped."""
+        """Pipe characters in numeric type descriptions are escaped."""
         specs = [
             NumericSpec(
                 name="int8",
@@ -1213,7 +1213,7 @@ class TestRenderPrimitivesPage:
                 bounds=Interval(ge=-128, le=127),
             ),
         ]
-        result = render_primitives_from_specs(specs)
+        result = render_numeric_from_specs(specs)
         assert "Range: -128 \\| 127" in result
 
 

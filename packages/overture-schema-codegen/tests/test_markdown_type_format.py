@@ -25,7 +25,8 @@ from overture.schema.codegen.markdown.type_format import (
     format_type,
     format_underlying_type,
 )
-from overture.schema.system.primitive import BBox, Geometry, int32
+from overture.schema.system.geometric import BBox, Geometry
+from overture.schema.system.numeric import int32
 from pydantic import BaseModel, HttpUrl
 
 
@@ -101,27 +102,18 @@ class TestFormatType:
         ctx = LinkContext(
             page_path=PurePosixPath("buildings/building/building.md"),
             registry={
-                TypeIdentity(Geometry, "Geometry"): PurePosixPath(
-                    "system/primitive/geometry.md"
-                )
+                TypeIdentity(Geometry, "Geometry"): PurePosixPath("system/geometric.md")
             },
         )
-        assert (
-            format_type(field, ctx)
-            == "[`geometry`](../../system/primitive/geometry.md)"
-        )
+        assert format_type(field, ctx) == "[`geometry`](../../system/geometric.md)"
 
     def test_bbox_links_to_aggregate_page(self) -> None:
         field = _make_field(BBox)
         ctx = LinkContext(
             page_path=PurePosixPath("base/feature/feature.md"),
-            registry={
-                TypeIdentity(BBox, "BBox"): PurePosixPath(
-                    "system/primitive/geometry.md"
-                )
-            },
+            registry={TypeIdentity(BBox, "BBox"): PurePosixPath("system/geometric.md")},
         )
-        assert format_type(field, ctx) == "[`bbox`](../../system/primitive/geometry.md)"
+        assert format_type(field, ctx) == "[`bbox`](../../system/geometric.md)"
 
     def test_geometry_without_context_renders_plain_code(self) -> None:
         assert format_type(_make_field(Geometry)) == "`geometry`"
@@ -298,18 +290,14 @@ class TestPydanticTypeLinking:
         assert "pydantic/networks/http_url.md" in result
 
     def test_registered_primitive_links_to_aggregate_page(self) -> None:
-        """int32 links to the primitives aggregate page when in registry."""
+        """int32 links to the numeric types aggregate page when in registry."""
         ctx = LinkContext(
             page_path=PurePosixPath("places/place/place.md"),
-            registry={
-                TypeIdentity(int32, "int32"): PurePosixPath(
-                    "system/primitive/primitives.md"
-                )
-            },
+            registry={TypeIdentity(int32, "int32"): PurePosixPath("system/numeric.md")},
         )
         result = format_type(_make_field(int32), ctx)
         assert "[`int32`]" in result
-        assert "system/primitive/primitives.md" in result
+        assert "system/numeric.md" in result
 
 
 class TestListOfSemanticNewtype:
@@ -491,10 +479,10 @@ class TestFormatMapType:
         The map-side link decision shares `_scalar_identity`'s coverage, so a
         Geometry value links rather than rendering bare.
         """
-        ctx = _link_ctx((Geometry, "geometry", "system/primitive/geometry.md"))
+        ctx = _link_ctx((Geometry, "geometry", "system/geometric.md"))
         result = format_type(_make_field(dict[str, Geometry]), ctx)
         assert "[`geometry`]" in result
-        assert "system/primitive/geometry.md" in result
+        assert "system/geometric.md" in result
         assert "``" not in result
 
     def test_map_value_pydantic_type_links_in_field_cell(self) -> None:
@@ -520,13 +508,11 @@ class TestFormatUnderlyingScalarType:
         ctx = LinkContext(
             page_path=PurePosixPath("system/types/geom_alias.md"),
             registry={
-                TypeIdentity(Geometry, "geometry"): PurePosixPath(
-                    "system/primitive/geometry.md"
-                )
+                TypeIdentity(Geometry, "geometry"): PurePosixPath("system/geometric.md")
             },
         )
         result = format_underlying_type(shape, ctx)
-        assert "[`geometry`](../primitive/geometry.md)" in result
+        assert "[`geometry`](../geometric.md)" in result
 
     def test_numeric_underlying_type_stays_bare(self) -> None:
         """A NewType over a numeric primitive renders bare, not over-linked.

@@ -21,7 +21,7 @@ from overture.schema.codegen.extraction.specs import (
 from overture.schema.codegen.layout.type_collection import (
     collect_all_supplementary_types,
 )
-from overture.schema.system.primitive import uint8
+from overture.schema.system.numeric import uint8
 from overture.schema.system.string import HexColor
 from pydantic import BaseModel
 

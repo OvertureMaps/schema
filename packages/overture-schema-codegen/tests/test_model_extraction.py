@@ -2,8 +2,10 @@
 
 from typing import Annotated, Optional
 
+from codegen_test_support import FeatureWithRootModel
 from overture.schema.codegen.extraction.field import (
     ArrayOf,
+    MapOf,
     ModelRef,
     Primitive,
     UnionRef,
@@ -27,6 +29,21 @@ def test_extract_model_populates_union_terminal() -> None:
     terminal = terminal_of(items_field.shape)
     assert isinstance(terminal, UnionRef)
     assert terminal.union.discriminator_field == "dimension"
+
+
+def test_rootmodel_field_extracts_bare_root() -> None:
+    """A `RootModel`-typed field extracts to its bare root shape.
+
+    Pydantic validates and serializes a RootModel as its bare root value,
+    so extraction must not produce a `ModelRef` struct with a synthetic
+    `root` member -- the generated schema would then declare a wrapper the
+    data never carries.
+    """
+    spec = extract_model(FeatureWithRootModel)
+    toll = next(f for f in spec.fields if f.name == "toll_charges")
+
+    assert isinstance(toll.shape, MapOf)
+    assert toll.is_optional is True
 
 
 def test_required_list_with_optional_element_is_required() -> None:

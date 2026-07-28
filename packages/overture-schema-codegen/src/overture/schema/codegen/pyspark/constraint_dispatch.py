@@ -12,7 +12,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, NamedTuple, TypeAlias
 
-from annotated_types import Ge, Gt, Interval, Le, Lt
+from annotated_types import Ge, Gt, Interval, Le, Lt, MultipleOf
 from pydantic import Strict
 from pydantic._internal._fields import PydanticMetadata
 
@@ -24,6 +24,7 @@ from overture.schema.system.field_constraint.string import (
     StrippedConstraint,
 )
 from overture.schema.system.field_path import FieldPath
+from overture.schema.system.geometric import GeometryTypeConstraint
 from overture.schema.system.model_constraint import (
     Condition,
     FieldEqCondition,
@@ -36,7 +37,6 @@ from overture.schema.system.model_constraint import (
     RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
-from overture.schema.system.primitive import GeometryTypeConstraint
 from overture.schema.system.ref import Reference
 
 from ..extraction.docstring import first_docstring_line
@@ -173,11 +173,11 @@ def compiled_pattern_source(pattern: re.Pattern[str]) -> str:
 
 
 def normalize_anchor(pattern: str) -> str:
-    """Replace trailing `$` with `\\z` for Java/Spark regex compatibility.
+    r"""Replace trailing `$` with `\z` for Java/Spark regex compatibility.
 
     Uses backslash-parity to distinguish a real anchor from an escaped
     literal `$`. Counts the run of backslashes immediately before the
-    final `$`: an even count means `$` is unescaped (convert to `\\z`);
+    final `$`: an even count means `$` is unescaped (convert to `\z`);
     an odd count means it is an escaped literal `$` (leave unchanged).
     """
     if not pattern.endswith("$"):
@@ -232,6 +232,21 @@ def _dispatch_bounds(
     check_nan: bool | None = False if base_type is not None and not is_float else None
     return ExpressionDescriptor(
         function="check_bounds", kwargs=tuple(kwargs), check_nan=check_nan
+    )
+
+
+def _dispatch_multiple_of(
+    constraint: MultipleOf,
+    _base_type: str | None,
+) -> ExpressionDescriptor:
+    """Map `Field(multiple_of=n)` to a check_multiple_of descriptor.
+
+    `check_multiple_of(col, n)` tests `col % n == 0`; `multiple_of=1` is the
+    integral (whole-number) case. The divisor rides in `args`, so any positive
+    `n` dispatches without special-casing.
+    """
+    return ExpressionDescriptor(
+        function="check_multiple_of", args=(constraint.multiple_of,)
     )
 
 
@@ -346,6 +361,7 @@ _CONSTRAINT_DISPATCH: list[tuple[type | tuple[type, ...], _ConstraintHandler]] =
             function="check_geometry_type", args=tuple(c.allowed_types)
         ),
     ),
+    (MultipleOf, _dispatch_multiple_of),
 ]
 
 

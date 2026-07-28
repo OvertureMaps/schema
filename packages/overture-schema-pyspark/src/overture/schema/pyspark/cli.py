@@ -11,7 +11,7 @@ from pyspark.errors import AnalysisException
 from pyspark.sql import DataFrame, SparkSession
 
 from overture.schema.system.discovery import resolve_entry_point_key
-from overture.schema.system.primitive import GeometryType
+from overture.schema.system.geometric import GeometryType
 
 from ._registry import PARTITION_MAP, REGISTRY
 from .validate import (
@@ -34,7 +34,7 @@ class ReadSpec:
 
 
 def absent_column(exc: AnalysisException, columns: Collection[str]) -> str | None:
-    """The top-level column an unresolved-column error names, if absent from data.
+    """Return the top-level column named by an unresolved-column error, if absent.
 
     Returns the column name only when `exc` is an `UNRESOLVED_COLUMN` error
     whose target is genuinely missing from `columns` -- the case a re-run with

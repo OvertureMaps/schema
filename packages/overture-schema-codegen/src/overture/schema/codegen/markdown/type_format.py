@@ -238,7 +238,7 @@ def _map_side_link(shape: FieldShape, ctx: LinkContext | None) -> str | None:
 
 
 def _bare_map_side_name(shape: FieldShape) -> str:
-    """Bare markdown name for a map key/value, recursing through containers.
+    r"""Bare markdown name for a map key/value, recursing through containers.
 
     Every variant resolves to a real name: `list<...>` / `map<...>`
     wrappers recurse, scalars use their registry name (so `Any` is `Any`,
@@ -248,7 +248,7 @@ def _bare_map_side_name(shape: FieldShape) -> str:
     bug, not a placeholder.
 
     A union-valued map is the one shape left unrendered: no schema field
-    uses one, and its `\\|`-separated members do not compose cleanly into
+    uses one, and its `\|`-separated members do not compose cleanly into
     a bare `map<...>` span. It raises so the gap surfaces loudly when a
     field first needs it, rather than shipping a half-rendered value.
     """

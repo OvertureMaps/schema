@@ -1,5 +1,5 @@
 """
-Geometry primitive and geometry type constraint.
+The `Geometry` value type and its geometry type constraint.
 
 Use `Geometry` as the type for fields containing geometry values. Use `GeometryTypeConstraint` if
 you need to constrain allowed types of geometries.
@@ -10,7 +10,7 @@ Create a Pydantic model with a geometry field that is constrained to only allow 
 
 >>> from typing import Annotated
 >>> from pydantic import BaseModel
->>> from overture.schema.system.primitive import float32
+>>> from overture.schema.system.numeric import float32
 >>> class Peak(BaseModel):
 ...     position: Annotated[
 ...                  Geometry,
@@ -210,11 +210,11 @@ _ALL_GEOMETRY_ALLOWED = GeometryTypeConstraint(*GeometryType)
 
 class Geometry:
     """
-    Immutable vector geometry primitive.
+    Immutable vector geometry type.
 
-    This type is a geometric primitive with representations that can differ significantly between
-    different data formats. Consequently, does not derive from the Pydantic `BaseModel` although it
-    can participate in a `BaseModel` as a field.
+    Representations of this type can differ significantly between different data formats.
+    Consequently, it does not derive from the Pydantic `BaseModel` although it can participate in a
+    `BaseModel` as a field.
 
     Parameters
     ----------
@@ -407,7 +407,7 @@ class Geometry:
 
 
 ########################################################################
-# JSON Schema primitives for GeoJSON geometry
+# Base JSON Schema for GeoJSON geometry
 ########################################################################
 
 # This is the `bbox` schema for a GeoJSON *geometry* object, not for a

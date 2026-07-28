@@ -3,7 +3,7 @@
 import re
 
 import pytest
-from annotated_types import Ge, Gt, Interval, Le, Lt
+from annotated_types import Ge, Gt, Interval, Le, Lt, MultipleOf
 from overture.schema.codegen.extraction.field import Primitive
 from overture.schema.codegen.extraction.length_constraints import (
     ArrayMaxLen,
@@ -37,6 +37,7 @@ from overture.schema.system.field_constraint.string import (
     SnakeCaseConstraint,
     StrippedConstraint,
 )
+from overture.schema.system.geometric import GeometryType, GeometryTypeConstraint
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     ForbidIfConstraint,
@@ -48,7 +49,6 @@ from overture.schema.system.model_constraint import (
     RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
-from overture.schema.system.primitive import GeometryType, GeometryTypeConstraint
 from overture.schema.system.ref import Identified, Reference, Relationship
 from pydantic import Field, Strict
 
@@ -312,6 +312,18 @@ class TestStructuralConstraintDispatch:
         assert desc is not None
         assert desc.function == "check_geometry_type"
         assert GeometryType.POINT in desc.args
+
+    def test_multiple_of_dispatches_to_check_multiple_of(self) -> None:
+        desc = dispatch_constraint(MultipleOf(1), base_type="float64")
+        assert desc is not None
+        assert desc.function == "check_multiple_of"
+        assert desc.args == (1,)
+
+    def test_multiple_of_non_unit_divisor(self) -> None:
+        desc = dispatch_constraint(MultipleOf(0.5), base_type="float64")
+        assert desc is not None
+        assert desc.function == "check_multiple_of"
+        assert desc.args == (0.5,)
 
 
 class TestSkippedConstraints:

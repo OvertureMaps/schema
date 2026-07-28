@@ -10,7 +10,7 @@ from overture.schema.system.field_constraint.string import (
     RegionCodeConstraint,
     StrippedConstraint,
 )
-from overture.schema.system.primitive.geom import GeometryType
+from overture.schema.system.geometric.geom import GeometryType
 
 
 class TestInvalidValueRequired:
@@ -51,6 +51,20 @@ class TestInvalidValueBounds:
         desc = ExpressionDescriptor(function="check_bounds", kwargs=(("unknown", 5),))
         with pytest.raises(ValueError):
             invalid_value(desc)
+
+
+class TestInvalidValueMultipleOf:
+    def test_returns_non_integral_float_for_unit_divisor(self) -> None:
+        desc = ExpressionDescriptor(function="check_multiple_of", args=(1,))
+        value = invalid_value(desc)
+        assert isinstance(value, float)
+        assert not value.is_integer()
+
+    def test_returns_non_multiple_for_non_unit_divisor(self) -> None:
+        desc = ExpressionDescriptor(function="check_multiple_of", args=(0.5,))
+        value = invalid_value(desc)
+        assert isinstance(value, float)
+        assert value % 0.5 != 0
 
 
 class TestInvalidValuePattern:

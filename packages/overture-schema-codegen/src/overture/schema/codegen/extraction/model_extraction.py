@@ -12,8 +12,6 @@ from overture.schema.system.model_constraint import ModelConstraint
 
 from .docstring import clean_docstring
 from .field import (
-    ConstraintSource,
-    FieldShape,
     ModelRef,
     UnionRef,
 )
@@ -22,7 +20,7 @@ from .type_analyzer import (
     ModelResolver,
     UnionResolver,
     analyze_type,
-    attach_constraints,
+    attach_field_metadata,
     unwrap_list,
 )
 
@@ -55,23 +53,6 @@ def _is_field_required(field_info: FieldInfo, is_optional: bool) -> bool:
         or field_info.default_factory is not None
     )
     return not has_default and not is_optional
-
-
-def _attach_field_metadata(shape: FieldShape, field_info: FieldInfo) -> FieldShape:
-    """Merge constraints from `field_info.metadata` onto *shape*.
-
-    Pydantic strips the outermost Annotated wrapper from some fields
-    (non-optional, non-union) and moves its metadata to
-    `field_info.metadata`. When that happens `analyze_type` sees a bare
-    type and misses those constraints. They anchor at the topmost
-    constraint-bearing layer, so we route them through
-    `attach_constraints` so that length-constraint wrapping applies here
-    just as it does during normal annotation unwrapping.
-    """
-    if not field_info.metadata:
-        return shape
-    extra = tuple(ConstraintSource(None, None, m) for m in field_info.metadata)
-    return attach_constraints(shape, extra)
 
 
 def _basemodel_bases(cls: type) -> list[type[BaseModel]]:
@@ -185,7 +166,12 @@ def _extract_model_recursive(
             model_resolver=model_resolver,
             union_resolver=union_resolver,
         )
-        shape = _attach_field_metadata(shape, field_info)
+        # Pydantic strips the outermost Annotated wrapper from some fields
+        # (non-optional, non-union) and moves its metadata to
+        # `field_info.metadata`; `analyze_type` then sees a bare type and
+        # misses those constraints. Reattach them at the topmost
+        # constraint-bearing layer.
+        shape = attach_field_metadata(shape, field_info)
         fields.append(
             FieldSpec(
                 name=resolve_field_alias(field_name, field_info),

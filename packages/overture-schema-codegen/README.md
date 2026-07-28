@@ -65,7 +65,7 @@ module structure. Link computation and reverse references enable cross-page navi
 
 **Rendering** consumes specs and owns all presentation decisions. Markdown output uses
 Jinja2 templates for feature pages (with field tables, constraint sections, and
-examples), enum pages, NewType pages, and aggregate primitive/geometry reference pages.
+examples), enum pages, NewType pages, and aggregate numeric/geometry reference pages.
 
 `markdown/pipeline.py` orchestrates the full pipeline without I/O, returning
 `list[RenderedPage]`. The CLI writes files to disk with Docusaurus frontmatter.

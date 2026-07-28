@@ -97,7 +97,7 @@ def extract_discriminator(
 
 
 _TypeShape = tuple[object, ...]
-_FieldKey = tuple[str, _TypeShape]
+_FieldKey = tuple[str, _TypeShape, frozenset[object]]
 
 
 def _structural_fingerprint(spec: FieldSpec) -> _TypeShape:
@@ -231,16 +231,20 @@ def extract_union(
         for fs in member.spec.fields:
             if fs.name in shared_field_names:
                 continue
-            key = (fs.name, _structural_fingerprint(fs))
+            # The key includes the constraints fingerprint alongside the
+            # structural one: two arms with the same name and shape but
+            # different constraints (e.g. VehicleAxleCountSelector's
+            # `ge=1, le=100, multiple_of=1` vs the other selectors' `ge=0`)
+            # must not collapse into one `AnnotatedField` sharing a single
+            # constraint set -- that would silently drop one arm's rules.
+            # Keeping them as separate rows, each gated to its own
+            # `variant_sources`, reuses the same per-arm `Guard` mechanism
+            # that already handles a field present on only some arms
+            # (`check_builder._field_checks_for_union`), and the renderer's
+            # collision resolver already disambiguates multiple `Check`s
+            # landing on the same field label.
+            key = (fs.name, _structural_fingerprint(fs), _constraints_fingerprint(fs))
             existing = seen.get(key)
-            if existing is not None:
-                existing_constraints = _constraints_fingerprint(existing.field_spec)
-                if _constraints_fingerprint(fs) != existing_constraints:
-                    raise ValueError(
-                        f"Union {name!r} field {fs.name!r} has the same structural "
-                        f"shape across members but diverging constraints; dedup "
-                        f"would silently drop one member's constraints"
-                    )
             prior_sources = existing.variant_sources or () if existing else ()
             seen[key] = AnnotatedField(
                 field_spec=fs,

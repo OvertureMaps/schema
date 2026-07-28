@@ -18,12 +18,12 @@ observations, and each observation would contain a linearly-referenced depth val
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel
 >>> from overture.schema.common.models import OvertureFeature
->>> from overture.schema.system.primitive import (
-...     float32,
+>>> from overture.schema.system.geometric import (
 ...     Geometry,
 ...     GeometryType,
-...     GeometryTypeConstraint
+...     GeometryTypeConstraint,
 ... )
+>>> from overture.schema.system.numeric import float32
 ...
 >>> @scoped(Scope.GEOMETRIC_RANGE)
 ... class Depth(BaseModel):
@@ -72,12 +72,12 @@ along the path, `1.0` represents the end of the path, and so on.
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel
 >>> from overture.schema.common.models import OvertureFeature
->>> from overture.schema.system.primitive import (
+>>> from overture.schema.system.geometric import (
 ...     Geometry,
 ...     GeometryType,
 ...     GeometryTypeConstraint,
-...     uint32,
 ... )
+>>> from overture.schema.system.numeric import uint32
 ...
 >>> @scoped(required=Scope.GEOMETRIC_POSITION)
 ... class Transformer(BaseModel):
@@ -120,12 +120,12 @@ model.
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel, Field
 >>> from overture.schema.common.models import OvertureFeature
->>> from overture.schema.system.primitive import (
+>>> from overture.schema.system.geometric import (
 ...     Geometry,
 ...     GeometryType,
 ...     GeometryTypeConstraint,
-...     uint32,
 ... )
+>>> from overture.schema.system.numeric import uint32
 >>> from overture.schema.system.string import StrippedString
 ...
 >>> @scoped(required=Scope.HEADING)
@@ -213,7 +213,7 @@ is decorated with side scoping, a `side` field  is automatically added to the mo
 >>> from typing import Annotated, Literal
 >>> from pydantic import BaseModel
 >>> from overture.schema.common.models import OvertureFeature
->>> from overture.schema.system.primitive import (
+>>> from overture.schema.system.geometric import (
 ...     Geometry,
 ...     GeometryType,
 ...     GeometryTypeConstraint,
@@ -255,7 +255,7 @@ bridges or entering garages, applying differential speed limits to different cla
 added to the model.
 
 >>> from overture.schema.common.unit import LengthUnit
->>> from overture.schema.system.primitive import float32
+>>> from overture.schema.system.numeric import float32
 ...
 >>> @scoped(Scope.VEHICLE)
 ... class Fare(BaseModel):
@@ -341,7 +341,7 @@ are added as children of a synthetic `when` field.
 If a `when` field is added to the model, the model is also decorated with a nested `When` class to
 simplify instantiating values for the `when` field, for example:
 
->>> from overture.schema.system.primitive import uint8
+>>> from overture.schema.system.numeric import uint8
 ...
 >>> @scoped(Scope.HEADING)
 ... class MyModel(BaseModel):
