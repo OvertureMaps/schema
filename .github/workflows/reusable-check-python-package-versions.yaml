@@ -71,63 +71,13 @@ jobs:
       changed_packages: ${{ steps.save-changes.outputs.changed_packages }}
       num_changed_packages: ${{ steps.save-changes.outputs.num_changed_packages }}
     steps:
-<<<<<<< HEAD
       - name: Check out code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-=======
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
-        with:
-          version: latest
-
-      - name: Check out code before change
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
->>>>>>> origin/main
         with:
           fetch-depth: 0 # Both comparison commits must be reachable
           persist-credentials: false
 
-<<<<<<< HEAD
       - name: Diff package versions
-=======
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version-file: .python-version
-
-      - name: Sync code before change to make packages visible to Python
-        run: uv sync --all-packages
-
-      - name: Capture package versions before change
-        run: uv run python ./.github/workflows/scripts/package-versions.py collect > /tmp/package-versions-before.json
-
-      - name: Check out code after change
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.after_commit }}
-          persist-credentials: false
-
-      - name: Sync code after change to make packages visible to Python
-        run: uv sync --all-packages --refresh
-
-      - name: Capture package versions after change
-        run: uv run python ./.github/workflows/scripts/package-versions.py collect > /tmp/package-versions-after.json
-
-      - name: Compare package versions before and after change
-        run: |
-          uv run python ./.github/workflows/scripts/package-versions.py compare \
-            /tmp/package-versions-before.json \
-            /tmp/package-versions-after.json \
-            >/tmp/package-version-diff.json
-
-      - name: Print changed versions
-        run: cat /tmp/package-version-diff.json
-
-      - name: Save changed versions as output
->>>>>>> origin/main
         id: save-changes
         env:
           BEFORE: ${{ inputs.before_commit }}
@@ -145,11 +95,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: steps.save-changes.outputs.num_changed_packages > 0
-<<<<<<< HEAD
-        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
-=======
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
->>>>>>> origin/main
         with:
           aws-region: ${{ inputs.aws_region }}
           role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.aws_iam_role_name }}
