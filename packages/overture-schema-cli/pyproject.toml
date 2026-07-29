@@ -34,7 +34,7 @@ requires = ["hatchling"]
 [dependency-groups]
 dev = [
     "pytest>=9.0.0",
-    "ruff>=0.13.0",
+    "ruff>=0.15.22",
     "mypy>=1.17.0",
 ]
 
