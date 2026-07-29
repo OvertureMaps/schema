@@ -10,7 +10,7 @@ changelog.d/<issue-or-pr>.<type>.md
 
 Types, body format, the preview command, and when a fragment is required are
 documented once in
-[docs/versioning.md -> Add a changelog fragment](../../../docs/versioning.md#add-a-changelog-fragment).
+[docs/versioning.md -> Changelog quick start](../../../docs/versioning.md#changelog-quick-start).
 
 > [!NOTE]
 > This README also keeps `changelog.d/` tracked in git, so no `.gitkeep` is

@@ -12,6 +12,7 @@ Reference and how-to for package versions and releases. Branch mechanics and the
   - [Tag scheme](#tag-scheme)
   - [Guardrails](#guardrails)
 - [How to](#how-to)
+  - [Changelog quick start](#changelog-quick-start)
   - [Add a changelog fragment](#add-a-changelog-fragment)
   - [Cut a release](#cut-a-release)
 - [Why](#why)
@@ -87,6 +88,27 @@ deliberate, one-time discontinuity.
   version check and again by `release-trigger`.
 
 ## How to
+
+### Changelog quick start
+
+The `Changelog fragment verification` check failed, or you're about to open a
+PR that touches a package. The whole fix, using a places-theme bugfix as the
+example:
+
+```bash
+# 1. One small markdown file, named <issue-or-pr>.<type>.md
+echo 'Fixed brand enum values rejecting valid entries.' \
+  > packages/overture-schema-places-theme/changelog.d/561.bugfix.md
+
+# 2. Commit it with your change
+git add packages/overture-schema-places-theme/changelog.d/561.bugfix.md
+git commit -m 'Add changelog fragment'
+```
+
+That's the entire contribution-time cost: one sentence in one file, one per
+changed package. No tool to install, no config to touch. towncrier only runs
+at release time, when a maintainer folds the accumulated fragments into
+`CHANGELOG.md` (see [Cut a release](#cut-a-release)).
 
 ### Add a changelog fragment
 

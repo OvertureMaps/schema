@@ -69,10 +69,9 @@ jobs:
             echo "::error::These packages changed but include no changelog update:"
             printf '%s' "$missing"
             echo ""
-            echo "Add a towncrier fragment at packages/<package>/changelog.d/<id>.<type>.md"
-            echo "(type: breaking | feature | bugfix | docs | misc), then run"
-            echo '`uvx towncrier build --config pyproject.toml --dir packages/<package>`'
-            echo "to fold it into CHANGELOG.md. See docs/versioning.md."
+            echo "Fix: one markdown file per package, named packages/<package>/changelog.d/<id>.<type>.md"
+            echo "(type: breaking | feature | bugfix | docs | misc), body = one past-tense sentence."
+            echo "Quick start: docs/versioning.md#changelog-quick-start"
             exit 1
           fi
           echo "Changelog fragment check passed."
