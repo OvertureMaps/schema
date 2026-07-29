@@ -97,7 +97,7 @@ def main() -> None:
 
     # Belt-and-braces re-check of the major-bump cascade (primary enforcement
     # is the PR-time version check). Publishing releases with a non-cascaded
-    # major bump would poison dependents' materialized floors.
+    # major bump would poison dependents' declared floors.
     after_manifests = {
         path.parent.name: tomllib.loads(path.read_text(encoding="utf-8"))
         for path in sorted(Path("packages").glob("*/pyproject.toml"))

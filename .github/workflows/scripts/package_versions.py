@@ -102,9 +102,9 @@ def check_major_cascade(
     """
     Enforce that major bumps cascade up the dependency tree.
 
-    Workspace dependency floors are materialized from in-repo versions at
-    publish time, so a major bump of a dependency silently becomes a breaking
-    constraint change in every dependent's next publish. A package whose
+    Workspace dependency floors are declared statically in each package's
+    `project.dependencies`, so a major bump of a dependency is a breaking
+    change behind every dependent's existing floor. A package whose
     direct workspace dependency takes a major bump must therefore take a
     major bump in the same change. Checking direct dependencies is enough:
     each unbumped link in a longer chain fails its own check.

@@ -8,7 +8,7 @@ Reference and how-to for package versions and releases. Branch mechanics and the
 - [Reference](#reference)
   - [Version scheme](#version-scheme)
   - [Version → destination](#version--destination)
-  - [Dependency materialization](#dependency-materialization)
+  - [Workspace dependency floors](#workspace-dependency-floors)
   - [Tag scheme](#tag-scheme)
   - [Guardrails](#guardrails)
 - [How to](#how-to)
@@ -51,22 +51,19 @@ over the `main` one. `vnext` builds publish only once a separate dev
 repository exists. Local labels are rejected by public PyPI, which keeps
 internal builds off the public index by construction.
 
-### Dependency materialization
+### Workspace dependency floors
 
-Intra-repo dependencies are declared as bare names and resolved at dev time
-via `[tool.uv.sources]` workspace entries, which uv drops at build time.
-Before publishing, CI runs
-[`materialize_workspace_deps.py`](../.github/workflows/scripts/materialize_workspace_deps.py)
-to rewrite each bare workspace dependency to a floor from the in-repo version
-(e.g. `overture-schema-common` becomes `overture-schema-common>=0.1.1`).
-Floors carry the released version only, never a `.postN` suffix.
+Intra-repo dependencies follow uv's
+[dual declaration](https://docs.astral.sh/uv/concepts/projects/dependencies/#workspace-member)
+pattern: an explicit specifier in `project.dependencies` (e.g.
+`overture-schema-common>=0.1.1`) alongside a `[tool.uv.sources]` workspace
+entry. Development resolves against the workspace source; built wheels carry
+the specifier.
 
-uv's documented alternative is
-[static dual declaration](https://docs.astral.sh/uv/concepts/projects/dependencies/#workspace-member):
-hand-maintained specifiers in `project.dependencies` alongside the workspace
-source. Not used here; with 13 interdependent packages, every bump PR would
-have to touch each dependent's floor by hand. The script derives the same
-specifiers at publish time instead.
+Floors are maintained by hand. Raise a floor only when your package needs
+something from the newer dependency version; floors carry released versions
+only, never a `.postN` suffix. Major bumps are the exception, they must
+cascade (see [Guardrails](#guardrails)).
 
 ### Tag scheme
 
@@ -85,9 +82,9 @@ deliberate, one-time discontinuity.
 - `release-trigger` fails if the target tag already exists, or if a version goes
   backwards.
 - Major bumps cascade: a package whose workspace dependency takes a major bump
-  must take one itself, since its next publish materializes that dependency as
-  a breaking `>=` floor. Enforced at PR time by the version check and again by
-  `release-trigger`.
+  must take one itself, and its floor on that dependency must be raised, since
+  the old floor would admit a breaking version. Enforced at PR time by the
+  version check and again by `release-trigger`.
 
 ## How to
 
