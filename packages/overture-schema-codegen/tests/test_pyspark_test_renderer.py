@@ -68,15 +68,13 @@ _CATEGORY_BASE_TYPE: dict[str, str] = {
 
 
 def render_test_module(*args: object, **kwargs: object) -> str:
-    """Invoke the renderer with placeholder `expression_import`/`support_prefix`.
+    """Invoke the renderer with a placeholder `expression_import`.
 
-    Tests parse the rendered source rather than executing it, so neither
-    the expression import target nor the relative `_support` package depth
-    needs to match a real layout. Defining this as a free function (rather
-    than a fixture) keeps test bodies terse.
+    Tests parse the rendered source rather than executing it, so the
+    expression import target need not match a real layout. Defining this
+    as a free function (rather than a fixture) keeps test bodies terse.
     """
     kwargs.setdefault("expression_import", _TEST_EXPRESSION_IMPORT)
-    kwargs.setdefault("support_prefix", "..")
     return _real_render_test_module(*args, **kwargs)  # type: ignore[arg-type]
 
 
@@ -935,7 +933,7 @@ class TestModelScenarios:
         source = render_test_module("test", [], model_nodes)
         assert "mutate_min_fields_set(row, ['x', 'y'])" in source
         import_match = re.search(
-            r"from \.\._support\.mutations\s+import\s+(.+?)(?:\n\n|\Z)",
+            r"from _support\.mutations\s+import\s+(.+?)(?:\n\n|\Z)",
             source,
             re.DOTALL,
         )
@@ -1093,12 +1091,12 @@ class TestTestLayer:
         assert "Scenario" in empty_source
 
     def test_uses_harness_imports(self, empty_source: str) -> None:
-        assert "from .._support.harness import" in empty_source
+        assert "from _support.harness import" in empty_source
 
     def test_imports_set_at_path_only_when_field_scenarios_present(self) -> None:
         # No field checks -> no set_at_path scenarios -> no import
         empty = render_test_module("test", [], [])
-        assert "from .._support.helpers import set_at_path" not in empty
+        assert "from _support.helpers import set_at_path" not in empty
 
         # Field check -> set_at_path used -> import emitted
         with_field = render_test_module(
@@ -1106,7 +1104,7 @@ class TestTestLayer:
             [make_check("check_required", _path("country"))],
             [],
         )
-        assert "from .._support.helpers import set_at_path" in with_field
+        assert "from _support.helpers import set_at_path" in with_field
 
     def test_scenario_checks_valid_and_invalid(self, empty_source: str) -> None:
         assert "::valid" in empty_source
@@ -1135,7 +1133,7 @@ class TestStructUniqueCheckScenarios:
         self, sources_unique_output: str
     ) -> None:
         assert (
-            "from .._support.mutations import mutate_unique_items"
+            "from _support.mutations import mutate_unique_items"
             in sources_unique_output
         )
 

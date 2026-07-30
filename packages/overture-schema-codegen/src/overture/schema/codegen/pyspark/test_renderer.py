@@ -141,7 +141,6 @@ def render_test_module(
     model_checks: list[ModelCheck],
     *,
     expression_import: str,
-    support_prefix: str,
     base_row_sparse: dict[str, Any] | None = None,
     base_row_populated: dict[str, Any] | None = None,
     arm: str | None = None,
@@ -187,7 +186,6 @@ def render_test_module(
         base_row_populated=populated_repr,
         scenarios=all_scenarios,
         expression_import=expression_import,
-        support_prefix=support_prefix,
     )
 
 

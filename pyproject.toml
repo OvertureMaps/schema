@@ -46,6 +46,10 @@ select = [
 disallow_untyped_defs = true
 explicit_package_bases = true
 files = "packages/**/*.py"
+# The pyspark test tree is PEP 420 and its tests import `_support` as a
+# top-level package (mirroring pytest's pythonpath). Put that tests dir on
+# the mypy path so `_support` resolves the same way for the type checker.
+mypy_path = "packages/overture-schema-pyspark/tests"
 namespace_packages = true
 plugins = ["pydantic.mypy"]
 python_version = "3.10"
@@ -65,6 +69,12 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+# The generated pyspark conformance tree is PEP 420 (no `__init__.py`), so its
+# subdirectories are namespace packages. The default `prepend` import mode
+# mishandles them during collection; `importlib` mode (no ini form -- only
+# `addopts`) plus `consider_namespace_packages` collects them correctly.
+addopts = ["--import-mode=importlib"]
+consider_namespace_packages = true
 markers = [
     "baseline: golden file baseline tests",
 ]

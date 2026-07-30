@@ -83,10 +83,6 @@ def _two_specs() -> list[ModelSpec]:
     ]
 
 
-def _features(modules: list[GeneratedModule]) -> list[GeneratedModule]:
-    return [m for m in modules if m.path.name != "__init__.py"]
-
-
 class TestGeneratePysparkModules:
     @pytest.fixture
     def two_spec_modules(self) -> PipelineOutput:
@@ -98,7 +94,7 @@ class TestGeneratePysparkModules:
         assert result.test == []
 
     def test_one_module_per_spec(self, two_spec_modules: PipelineOutput) -> None:
-        assert len(_features(two_spec_modules.source)) == 2
+        assert len(two_spec_modules.source) == 2
 
     def test_paths_unique_per_tree(self, two_spec_modules: PipelineOutput) -> None:
         # source and test trees mirror the same dirs; uniqueness is
@@ -136,10 +132,10 @@ class TestTestModuleGeneration:
         return generate_pyspark_modules(_two_specs())
 
     def test_generates_test_modules(self, all_modules: PipelineOutput) -> None:
-        assert len(_features(all_modules.test)) == 2  # one per feature spec
+        assert len(all_modules.test) == 2  # one per feature spec
 
     def test_test_module_paths(self, all_modules: PipelineOutput) -> None:
-        paths = {m.path.name for m in _features(all_modules.test)}
+        paths = {m.path.name for m in all_modules.test}
         assert "test_simple_model.py" in paths
         assert "test_bounds_model.py" in paths
 
@@ -148,7 +144,7 @@ class TestTestModuleGeneration:
             ast.parse(mod.content)
 
     def test_test_module_contains_imports(self, all_modules: PipelineOutput) -> None:
-        for mod in _features(all_modules.test):
+        for mod in all_modules.test:
             assert "_support.harness import" in mod.content
             assert "_support.scenarios import" in mod.content
 
@@ -175,13 +171,13 @@ class TestPerArmTestGeneration:
         return generate_pyspark_modules(specs)
 
     def test_produces_per_arm_test_files(self, segment_modules: PipelineOutput) -> None:
-        paths = {m.path.name for m in _features(segment_modules.test)}
+        paths = {m.path.name for m in segment_modules.test}
         assert "test_segment_road.py" in paths
         assert "test_segment_rail.py" in paths
 
     def test_no_monolithic_test_file(self, segment_modules: PipelineOutput) -> None:
         """When per-arm tests exist, no undifferentiated test_segment.py."""
-        paths = {m.path.name for m in _features(segment_modules.test)}
+        paths = {m.path.name for m in segment_modules.test}
         assert "test_segment.py" not in paths
 
     def test_per_arm_modules_are_valid_python(
@@ -229,7 +225,7 @@ class TestPerArmTestGeneration:
                 )
             ]
         )
-        tests = _features(modules.test)
+        tests = modules.test
         assert len(tests) == 1
         assert tests[0].path.name == "test_simple_model.py"
 
@@ -240,7 +236,7 @@ class TestNestedSourcePaths:
             SimpleModel, entry_point="overture.schema.simple:SimpleModel"
         )
         modules = generate_pyspark_modules([spec])
-        features = _features(modules.source)
+        features = modules.source
         assert len(features) == 1
         assert features[0].path == PurePosixPath(
             "overture/schema/simple/simple_model.py"
@@ -250,45 +246,20 @@ class TestNestedSourcePaths:
         a = extract_model(SimpleModel, entry_point="overture.schema.places:Place")
         b = extract_model(SimpleModel, entry_point="annex.schema.places:Place")
         modules = generate_pyspark_modules([a, b])
-        paths = {m.path for m in _features(modules.source)}
+        paths = {m.path for m in modules.source}
         assert PurePosixPath("overture/schema/places/place.py") in paths
         assert PurePosixPath("annex/schema/places/place.py") in paths
 
 
-_EXPECTED_INIT_PATHS = {
-    PurePosixPath("__init__.py"),
-    PurePosixPath("overture/__init__.py"),
-    PurePosixPath("overture/schema/__init__.py"),
-    PurePosixPath("overture/schema/simple/__init__.py"),
-}
-
-
-def _init_paths(modules: list[GeneratedModule]) -> set[PurePosixPath]:
-    return {m.path for m in modules if m.path.name == "__init__.py"}
-
-
-class TestInitModuleEmission:
-    def test_intermediate_dirs_get_init_modules(self) -> None:
+class TestNoInitModulesEmitted:
+    def test_neither_tree_has_init_modules(self) -> None:
+        # The generated tree is PEP 420; codegen emits no `__init__.py`.
         spec = extract_model(
             SimpleModel, entry_point="overture.schema.simple:SimpleModel"
         )
         modules = generate_pyspark_modules([spec])
-        assert _init_paths(modules.source) == _EXPECTED_INIT_PATHS
-
-    def test_init_modules_are_empty(self) -> None:
-        spec = extract_model(
-            SimpleModel, entry_point="overture.schema.simple:SimpleModel"
-        )
-        modules = generate_pyspark_modules([spec])
-        init = next(m for m in modules.source if m.path.name == "__init__.py")
-        assert init.content == ""
-
-    def test_shared_dirs_emitted_once(self) -> None:
-        a = extract_model(SimpleModel, entry_point="overture.schema.simple:SimpleModel")
-        b = extract_model(BoundsModel, entry_point="overture.schema.simple:BoundsModel")
-        modules = generate_pyspark_modules([a, b])
-        init_paths = [m.path for m in modules.source if m.path.name == "__init__.py"]
-        assert len(init_paths) == len(set(init_paths))
+        for tree in (modules.source, modules.test):
+            assert all(m.path.name != "__init__.py" for m in tree)
 
 
 class TestNoRegistryEmitted:
@@ -309,7 +280,7 @@ class TestNestedTestPaths:
             SimpleModel, entry_point="overture.schema.simple:SimpleModel"
         )
         modules = generate_pyspark_modules([spec])
-        tests = _features(modules.test)
+        tests = modules.test
         assert len(tests) == 1
         assert tests[0].path == PurePosixPath(
             "overture/schema/simple/test_simple_model.py"
@@ -320,20 +291,11 @@ class TestNestedTestPaths:
             SimpleModel, entry_point="overture.schema.simple:SimpleModel"
         )
         modules = generate_pyspark_modules([spec])
-        test_mod = next(iter(_features(modules.test)))
+        test_mod = next(iter(modules.test))
         assert (
             "from overture.schema.pyspark.expressions.generated.overture.schema.simple.simple_model import"
             in test_mod.content
         )
-
-    def test_test_dirs_get_init_modules(self) -> None:
-        spec = extract_model(
-            SimpleModel, entry_point="overture.schema.simple:SimpleModel"
-        )
-        modules = generate_pyspark_modules([spec])
-        # Source-tree init modules already covered in TestInitModuleEmission.
-        # The test tree must mirror the same package layout.
-        assert _init_paths(modules.test) == _EXPECTED_INIT_PATHS
 
 
 class TestExtractGeometryTypes:

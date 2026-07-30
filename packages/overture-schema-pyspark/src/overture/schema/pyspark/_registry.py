@@ -15,13 +15,32 @@ from __future__ import annotations
 
 import importlib
 import logging
-import pkgutil
+from pathlib import Path
 
 from .check import ModelValidation
 
 logger = logging.getLogger(__name__)
 
 _GENERATED_ROOT = "overture.schema.pyspark.expressions.generated"
+
+
+def _iter_generated_module_names(root_paths: list[str]) -> list[str]:
+    """Return the dotted names of every generated module on disk.
+
+    The generated tree is PEP 420 (no `__init__.py`), so its subdirectories
+    are namespace packages. `pkgutil.walk_packages` skips those, so the tree
+    is walked as files instead: every `.py` under the namespace roots, keyed
+    to a dotted name relative to `_GENERATED_ROOT`.
+    """
+    names: list[str] = []
+    for root_path in root_paths:
+        base = Path(root_path)
+        for path in sorted(base.rglob("*.py")):
+            if path.name == "__init__.py":
+                continue
+            relative = path.relative_to(base).with_suffix("")
+            names.append(".".join([_GENERATED_ROOT, *relative.parts]))
+    return names
 
 
 def _walk() -> tuple[dict[str, ModelValidation], dict[str, dict[str, str]]]:
@@ -47,10 +66,8 @@ def _walk() -> tuple[dict[str, ModelValidation], dict[str, dict[str, str]]]:
     except ImportError:
         return registry, partition_map
 
-    for info in pkgutil.walk_packages(root.__path__, prefix=root.__name__ + "."):
-        if info.ispkg:
-            continue
-        module = importlib.import_module(info.name)
+    for name in _iter_generated_module_names(list(root.__path__)):
+        module = importlib.import_module(name)
         entry_point = getattr(module, "ENTRY_POINT", None)
         validation = getattr(module, "MODEL_VALIDATION", None)
         if entry_point is None or validation is None:
@@ -58,7 +75,7 @@ def _walk() -> tuple[dict[str, ModelValidation], dict[str, dict[str, str]]]:
         registry[entry_point] = validation
         partitions = getattr(module, "PARTITIONS", None) or {}
         if partitions:
-            feature_type = info.name.rsplit(".", 1)[-1]
+            feature_type = name.rsplit(".", 1)[-1]
             partition_map[entry_point] = {**partitions, "type": feature_type}
 
     return registry, partition_map
