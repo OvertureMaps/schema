@@ -1,0 +1,54 @@
+name: Refresh uv.lock (transitive deps)
+
+# Dependabot's uv ecosystem runs lockfile-only (see .github/dependabot.yml) and
+# does not refresh transitive-only entries (dependabot-core#14073). This job does
+# that: `uv lock --upgrade` re-resolves every dependency to the newest version
+# each pyproject.toml already allows, touching only uv.lock.
+#
+# Remove this workflow once dependabot-core#14073 is fixed -- tracked in #614.
+
+on:
+  schedule:
+    - cron: "0 8 * * 4" # Thursdays -- offset from Dependabot's Monday run
+  workflow_dispatch: {}
+
+permissions: {}
+
+concurrency:
+  group: uv-lock-refresh
+  cancel-in-progress: false
+
+jobs:
+  lock:
+    name: Refresh uv.lock
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write # create-pull-request pushes the refresh branch
+      pull-requests: write # create-pull-request opens/updates the PR
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+
+      - run: uv lock --upgrade
+
+      # NOTE: PRs opened with the default GITHUB_TOKEN do not trigger other
+      # workflows, so CI won't run on this PR. Provide a PAT/App token via
+      # `token:` if the lockfile refresh needs to be gated on CI before merge.
+      # create-pull-request stages the diff, commits, pushes a branch, and
+      # opens/updates the PR idempotently; a gh pr create script would
+      # re-implement that and need persisted checkout credentials to push.
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with: # zizmor: ignore[superfluous-actions]
+          commit-message: |
+            [CHORE](deps) refresh uv.lock
+
+            Signed-off-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          branch: uv-lock-refresh
+          title: "[CHORE](deps) weekly uv.lock refresh"
+          labels: "bot,automation 🦾"
+          body: "Automated `uv lock --upgrade` at the workspace root. Resolves transitive deps that Dependabot's uv ecosystem does not touch. pyproject.toml files are unchanged."
