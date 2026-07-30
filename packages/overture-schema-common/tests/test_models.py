@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 from deepdiff import DeepDiff
-from overture.schema.common.models import OvertureFeature
+from overture.schema.common.feature import OvertureFeature
 from overture.schema.common.sources import SourceItem
 from overture.schema.system.geometric import (
     BBox,

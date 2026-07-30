@@ -54,7 +54,7 @@ from overture.schema.system.string import (
     NoWhitespaceString,
     StrippedString,
 )
-from overture.schema.common.types import ConfidenceScore
+from overture.schema.common.confidence import ConfidenceScore
 from overture.schema.system.string import LanguageTag
 
 # Numeric types (use these instead of int/float)
@@ -178,7 +178,7 @@ By specifying `OvertureFeature[Literal["buildings"], Literal["building"]]`, you'
 ```python
 from typing import Literal
 from overture.schema.common import OvertureFeature
-from overture.schema.common.models import Stacked
+from overture.schema.common.level import Stacked
 from overture.schema.common.names import Named
 from overture.schema.system.numeric import float64
 
@@ -850,11 +850,11 @@ Instead of making classes abstract, we use **entry point registration** where on
 ```python
 # In packages/overture-schema-transportation-theme/pyproject.toml
 [project.entry-points."overture.models"]
-"transportation.connector" = "overture.schema.transportation.connector.models:Connector"
-"transportation.segment" = "overture.schema.transportation.segment.models:Segment"
+connector = "overture.schema.transportation:Connector"
+segment = "overture.schema.transportation:Segment"
 ```
 
-**Real example:** See [`packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/models.py`](packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/models.py) where:
+**Real example:** See [`packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/__init__.py`](packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/__init__.py) where:
 
 - **`Segment`** is a discriminated union: `RoadSegment | RailSegment | WaterSegment`
 - **`TransportationSegment`** is the concrete base class that all segment types inherit from
@@ -1088,14 +1088,14 @@ properties:
 **Pydantic approach:**
 
 ```python
-# In overture-schema-common/src/overture/schema/common/models.py
+# In overture-schema-addresses-theme/src/overture/schema/addresses/address.py
 @no_extra_fields
 class Address(BaseModel):
     """A postal address."""
     freeform: str | None = None
     locality: str | None = None
 
-# In overture-schema-buildings-theme/src/overture/schema/buildings/building/models.py
+# In overture-schema-buildings-theme/src/overture/schema/buildings/building.py
 class Building(OvertureFeature):
     address: Address | None = None
 ```
@@ -1131,7 +1131,7 @@ allOf:
 **Pydantic equivalent** uses **mixin classes**:
 
 ```python
-# In common/models.py
+# In common/names.py
 class Named(BaseModel):
     """Properties defining the names of a feature."""
     names: Names | None = None

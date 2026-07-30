@@ -23,7 +23,7 @@ from overture.schema.codegen.extraction.examples import (
 )
 from overture.schema.system.geometric import BBox, Geometry
 from overture.schema.transportation import Segment
-from overture.schema.transportation.segment.models import (
+from overture.schema.transportation.segment import (
     RoadSegment,
     TransportationSegment,
 )

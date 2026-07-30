@@ -564,6 +564,6 @@
     "geometry",
     "properties"
   ],
-  "title": "boundary",
+  "title": "division_boundary",
   "type": "object"
 }
