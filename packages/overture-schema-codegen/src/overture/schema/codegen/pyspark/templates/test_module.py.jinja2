@@ -11,17 +11,17 @@ from {{ expression_import }} import (
 )
 from pyspark.sql import SparkSession
 
-from {{ support_prefix }}_support.harness import (
+from _support.harness import (
     ValidationResults,
     run_validation_pipeline,
 )
 {% if mutation_imports %}
-from {{ support_prefix }}_support.mutations import {{ mutation_imports | join(", ") }}
+from _support.mutations import {{ mutation_imports | join(", ") }}
 {% endif %}
 {% if needs_set_at_path %}
-from {{ support_prefix }}_support.helpers import set_at_path
+from _support.helpers import set_at_path
 {% endif %}
-from {{ support_prefix }}_support.scenarios import Scenario
+from _support.scenarios import Scenario
 
 BASE_ROW_SPARSE: dict = {{ base_row_sparse }}
 

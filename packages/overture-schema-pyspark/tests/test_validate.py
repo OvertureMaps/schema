@@ -4,6 +4,7 @@ import re
 from collections.abc import Iterator
 
 import pytest
+from _support.registry import register_model
 from pyspark.sql import DataFrame, Row, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
@@ -29,8 +30,6 @@ from overture.schema.pyspark.validate import (
     model_names,
     validate_model,
 )
-
-from ._support.registry import register_model
 
 
 def _scalar_check(

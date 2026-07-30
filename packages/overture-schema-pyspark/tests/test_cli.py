@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from _support.registry import register_model
 from click.testing import CliRunner
 from pyspark.errors import AnalysisException
 from pyspark.sql import Row, SparkSession
@@ -20,8 +21,6 @@ from overture.schema.pyspark.cli import (
     resolve_read,
     validate_cli,
 )
-
-from ._support.registry import register_model
 
 _TEST_TYPE = "_test_cli"
 
