@@ -157,6 +157,84 @@ def analyze_collection_heterogeneity(
     return item_types, is_heterogeneous
 
 
+def _suppress_sibling_tag_noise(
+    error_groups: dict[ErrorLocation, list[ValidationErrorDict]],
+) -> dict[ErrorLocation, list[ValidationErrorDict]]:
+    """Drop `union_tag_not_found` noise for items that already matched a type.
+
+    When validating against a union that mixes a tagged-union with other
+    (also discriminated) members, an item that cleanly matches one branch still
+    produces a `union_tag_not_found` error from every *sibling* branch whose
+    discriminator it fails to satisfy. Those errors carry an empty discriminator
+    path `()`, forming a spurious group that can tie with the real match and
+    trigger a false "Ambiguous" warning.
+
+    This helper removes such noise for any list item that already has a concrete
+    (non-`union_tag_not_found`) error. Items whose *only* errors are
+    `union_tag_not_found` are left untouched, so genuinely undiscriminatable
+    input is still reported. Groups left empty after filtering are dropped.
+
+    Parameters
+    ----------
+    error_groups : dict[ErrorLocation, list[ValidationErrorDict]]
+        Mapping of discriminator paths to their error lists.
+
+    Returns
+    -------
+    dict[ErrorLocation, list[ValidationErrorDict]]
+        A new error-groups dict with sibling-branch tag noise removed.
+
+    Examples
+    --------
+        >>> # Item 0 matched 'building' but the sibling 'segment' branch emitted
+        >>> # a union_tag_not_found error, creating a spurious () group.
+        >>> error_groups = {
+        ...     ('building',): [
+        ...         {'loc': (0, 'tagged-union[type]', 'building', 'id'),
+        ...          'msg': 'Field required', 'type': 'missing'},
+        ...     ],
+        ...     (): [
+        ...         {'loc': (0, 'tagged-union[subtype]'),
+        ...          'msg': 'Unable to extract tag', 'type': 'union_tag_not_found'},
+        ...     ],
+        ... }
+        >>> cleaned = _suppress_sibling_tag_noise(error_groups)
+        >>> list(cleaned.keys())  # the () noise group is gone
+        [('building',)]
+
+        >>> # An item whose ONLY error is union_tag_not_found is preserved.
+        >>> error_groups = {
+        ...     (): [
+        ...         {'loc': (2, 'tagged-union[type]'),
+        ...          'msg': 'Unable to extract tag', 'type': 'union_tag_not_found'},
+        ...     ],
+        ... }
+        >>> _suppress_sibling_tag_noise(error_groups) == error_groups
+        True
+    """
+    # Identify which items have at least one concrete (non tag-not-found) error.
+    items_with_concrete_error: set[int | None] = set()
+    for errors in error_groups.values():
+        for error in errors:
+            if error.get("type") != "union_tag_not_found":
+                items_with_concrete_error.add(get_item_index(error["loc"]))
+
+    cleaned: dict[ErrorLocation, list[ValidationErrorDict]] = {}
+    for disc_path, errors in error_groups.items():
+        kept = [
+            error
+            for error in errors
+            if not (
+                error.get("type") == "union_tag_not_found"
+                and get_item_index(error["loc"]) in items_with_concrete_error
+            )
+        ]
+        if kept:
+            cleaned[disc_path] = kept
+
+    return cleaned
+
+
 def select_most_likely_errors(
     error_groups: dict[ErrorLocation, list[ValidationErrorDict]],
     metadata: UnionMetadata | None = None,
@@ -170,6 +248,12 @@ def select_most_likely_errors(
 
     When multiple groups have the same minimum error count (a tie), returns
     all tied groups to indicate ambiguity to the user.
+
+    Before tie detection, sibling-branch `union_tag_not_found` noise is
+    suppressed for any item that already matched a concrete type (see
+    `_suppress_sibling_tag_noise`), so a clean match is not falsely
+    reported as ambiguous. Items whose only errors are `union_tag_not_found`
+    are left intact.
 
     For heterogeneous collections, returns ALL errors since different items
     may have different intended types.
@@ -218,6 +302,11 @@ def select_most_likely_errors(
                 filtered_errors.append(error)
 
         return filtered_errors, False, True, _item_types
+
+    # Suppress sibling-branch discriminator noise before tie detection.
+    error_groups = _suppress_sibling_tag_noise(error_groups)
+    if not error_groups:
+        return [], False, is_heterogeneous, _item_types
 
     # Find the minimum error count
     min_error_count = min(len(errors) for errors in error_groups.values())
