@@ -1,4 +1,4 @@
-.PHONY: default uv-sync clean-pyspark generate-pyspark check test-all test test-only docformat doctest doctest-only mypy mypy-only lint-only update-baselines
+.PHONY: default uv-sync clean-pyspark generate-pyspark check test-all test test-only docformat docformat-only doctest doctest-only mypy mypy-only lint-only update-baselines
 
 TESTMON ?= --testmon
 
@@ -23,7 +23,7 @@ generate-pyspark: uv-sync clean-pyspark
 	@uv run ruff format --quiet $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS)
 
 check: uv-sync generate-pyspark
-	@$(MAKE) -j test-only doctest-only lint-only mypy-only
+	@$(MAKE) -j test-only docformat-only doctest-only lint-only mypy-only
 
 # test-all is the unconditional full run -- testmon-independent, unlike the
 # incremental test/test-only targets -- so data-only changes (golden JSON,
@@ -42,7 +42,9 @@ test-only:
 coverage: uv-sync
 	@uv run pytest packages/ --cov overture.schema --cov-report=term --cov-report=html && open htmlcov/index.html
 
-docformat:
+docformat: uv-sync docformat-only
+
+docformat-only:
 	@find packages/*/src -name "*.py" -type f -not -name "__*" \
 		| xargs uv run pydocstyle --convention=numpy --add-ignore=D102,D105,D200,D205,D400
 
