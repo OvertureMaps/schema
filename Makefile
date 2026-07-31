@@ -1,4 +1,4 @@
-.PHONY: default uv-sync clean-pyspark generate-pyspark check test-all test test-only docformat docformat-only doctest doctest-only mypy mypy-only lint-only update-baselines
+.PHONY: default uv-sync clean-pyspark generate-pyspark check check-namespace test-all test test-only docformat docformat-only doctest doctest-only mypy mypy-only lint-only update-baselines
 
 TESTMON ?= --testmon
 
@@ -23,7 +23,23 @@ generate-pyspark: uv-sync clean-pyspark
 	@uv run ruff format --quiet $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS)
 
 check: uv-sync generate-pyspark
-	@$(MAKE) -j test-only docformat-only doctest-only lint-only mypy-only
+	@$(MAKE) -j test-only docformat-only doctest-only lint-only mypy-only check-namespace
+
+# Guard the PEP 420 namespace roots. overture/ and overture/schema/ are
+# implicit namespace packages -- no __init__.py -- so every workspace package
+# contributes its own leaf under the shared namespace. An __init__.py at either
+# root turns that package into a regular package that shadows every other
+# distribution's contribution at import time. -path patterns (not shell globs)
+# keep this shell-independent and match only the two roots, never the leaves.
+check-namespace:
+	@found=$$(find packages -type f -path '*/src/overture/__init__.py' \
+	              -o -type f -path '*/src/overture/schema/__init__.py'); \
+	if [ -n "$$found" ]; then \
+		echo "ERROR: __init__.py at PEP 420 namespace root(s) -- delete these:" >&2; \
+		echo "$$found" >&2; \
+		echo "overture/ and overture/schema/ must stay implicit namespace packages." >&2; \
+		exit 1; \
+	fi
 
 # test-all is the unconditional full run -- testmon-independent, unlike the
 # incremental test/test-only targets -- so data-only changes (golden JSON,
