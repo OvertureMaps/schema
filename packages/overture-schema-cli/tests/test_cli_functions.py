@@ -3,14 +3,23 @@
 import io
 import json
 from pathlib import Path
+from typing import Literal, cast
 
 import pytest
 import yaml
 from click.exceptions import UsageError
 from conftest import build_feature
-from overture.schema.cli.commands import load_input, perform_validation, resolve_types
+from overture.schema.cli.commands import (
+    _best_fit_model,
+    _revalidate_undiscriminatable_items,
+    load_input,
+    perform_validation,
+    resolve_types,
+)
+from overture.schema.cli.type_analysis import get_item_index
+from overture.schema.cli.types import ValidationErrorDict
 from overture.schema.system.discovery import TagSelector
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 
 class TestLoadInput:
@@ -266,3 +275,134 @@ class TestPerformValidation:
         places_type = resolve_types(TagSelector(include_any=("overture:theme=places",)))
         with pytest.raises(ValidationError):
             perform_validation(data, places_type)
+
+
+class _Building(BaseModel):
+    type: Literal["building"]
+    id: str
+
+
+class _Place(BaseModel):
+    type: Literal["place"]
+    id: str
+    name: str
+
+
+class _Sources(BaseModel):
+    """A plain, non-discriminated model (no literal `type` field)."""
+
+    datasets: list[str]
+
+
+class TestRevalidateUndiscriminatableItems:
+    """Tests for the best-fit re-validation of undiscriminatable list items.
+
+    Covers an all-discriminated union (a typeless item yields only
+    `union_tag_not_found` and must be re-validated to surface field errors) and
+    a union that includes a plain, non-discriminated member (the typeless item
+    already has concrete field errors, so the helper must be a no-op).
+    """
+
+    def test_all_discriminated_union_substitutes_best_fit_field_errors(
+        self,
+    ) -> None:
+        """All-discriminated union: typeless item (only union_tag_not_found) -> field errors.
+
+        With an all-discriminated union, a typeless item produces only
+        `union_tag_not_found`. The helper must re-validate it against the
+        candidates, pick the best fit (fewest errors -> `_Building`, which
+        only needs `type`, over `_Place` which needs `type` and `name`),
+        and re-home concrete field errors under the item index.
+        """
+        errors = cast(
+            list[ValidationErrorDict],
+            [
+                {
+                    "loc": (0, "tagged-union[type]"),
+                    "msg": "Unable to extract tag",
+                    "type": "union_tag_not_found",
+                },
+            ],
+        )
+        typeless_item = {"id": "x"}  # missing the 'type' discriminator
+
+        augmented, best_fit_types = _revalidate_undiscriminatable_items(
+            errors, [typeless_item], (_Building, _Place)
+        )
+
+        # Best fit is the fewest-error candidate.
+        assert best_fit_types == {0: _Building}
+
+        item0 = [e for e in augmented if get_item_index(e["loc"]) == 0]
+        assert item0, "item 0 should still have errors"
+        # The opaque tag-not-found noise is gone; concrete field errors remain.
+        assert all(e["type"] != "union_tag_not_found" for e in item0)
+        assert any(e["type"] == "missing" for e in item0)
+        # Errors are re-homed under the item index.
+        assert all(e["loc"][0] == 0 for e in item0)
+
+    def test_noop_when_concrete_errors_coexist_with_tag_not_found(self) -> None:
+        """A plain member yields concrete errors, so the helper is a no-op.
+
+        When the union includes a plain (non-discriminated) member, a typeless
+        item also matches that member and produces concrete `missing` errors
+        alongside the discriminated branch's `union_tag_not_found`. Because the
+        item already has a concrete error, the helper must leave the errors
+        untouched and infer no best-fit type.
+        """
+        errors = cast(
+            list[ValidationErrorDict],
+            [
+                {
+                    "loc": (0, "tagged-union[type]"),
+                    "msg": "Unable to extract tag",
+                    "type": "union_tag_not_found",
+                },
+                {
+                    "loc": (0, "_Sources", "datasets"),
+                    "msg": "Field required",
+                    "type": "missing",
+                },
+            ],
+        )
+
+        augmented, best_fit_types = _revalidate_undiscriminatable_items(
+            errors, [{"id": "x"}], (_Building,)
+        )
+
+        assert best_fit_types == {}, "helper must not fire when concrete errors exist"
+        assert augmented == errors, "errors must be left unchanged"
+
+    def test_noop_when_original_data_is_not_a_list(self) -> None:
+        """Graceful degradation: without list data there is nothing to re-home."""
+        errors = cast(
+            list[ValidationErrorDict],
+            [
+                {
+                    "loc": ("tagged-union[type]",),
+                    "msg": "Unable to extract tag",
+                    "type": "union_tag_not_found",
+                },
+            ],
+        )
+
+        augmented, best_fit_types = _revalidate_undiscriminatable_items(
+            errors, None, (_Building,)
+        )
+
+        assert best_fit_types == {}
+        assert augmented == errors
+
+
+class TestBestFitModel:
+    """Tests for the `_best_fit_model` best-fit candidate selection helper."""
+
+    def test_best_fit_model_prefers_fewest_errors(self) -> None:
+        """_best_fit_model returns the candidate needing the fewest changes."""
+        result = _best_fit_model({"id": "x"}, (_Place, _Building))
+
+        assert result is not None
+        model, errs = result
+        # _Building needs only 'type'; _Place needs 'type' and 'name'.
+        assert model is _Building
+        assert len(errs) < 2
