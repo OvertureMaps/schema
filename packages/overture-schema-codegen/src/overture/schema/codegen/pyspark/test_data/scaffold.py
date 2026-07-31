@@ -74,7 +74,7 @@ class _ElementDiscriminator:
 
 
 def _is_anonymous_iter(seg: FieldSegment) -> bool:
-    """True when *seg* iterates a container nested directly inside another.
+    """Return True when *seg* iterates a container nested directly inside another.
 
     In a run of nested containers the first takes the field's name; each
     further level is *anonymous*, because no field name introduces it -- the
