@@ -113,16 +113,35 @@ def check_major_cascade(
 
     Workspace dependency floors are declared statically in each package's
     `project.dependencies`, so a major bump of a dependency is a breaking
-    change behind every dependent's existing floor. A package whose
-    direct workspace dependency takes a major bump must therefore take a
-    major bump in the same change. Checking direct dependencies is enough:
-    each unbumped link in a longer chain fails its own check.
+    change behind every dependent's existing floor. A package whose direct
+    workspace dependency takes a major bump must therefore, in the same
+    change, take a major bump itself and raise its floor on that dependency
+    to the new major. Checking direct dependencies is enough: each unbumped
+    link in a longer chain fails its own check.
 
     Returns a list of violation descriptions (empty when compliant).
     """
 
     def major(version: str | None) -> int | None:
         return int(version.split(".")[0]) if version else None
+
+    def floor_major(manifests: dict[str, dict], package: str, dep: str) -> int | None:
+        """Major of `package`'s declared floor on distribution `dep`, if any."""
+        manifest = manifests.get(package)
+        if manifest is None:
+            return None
+        for requirement in manifest["project"].get("dependencies", []):
+            requirement = str(requirement)
+            match = REQUIREMENT_NAME.match(requirement)
+            if not match or match.group(1) != dep:
+                continue
+            version_match = re.search(r">=\s*(\d+)", requirement)
+            return int(version_match.group(1)) if version_match else None
+        return None
+
+    dist_names = {
+        package: str(m["project"]["name"]) for package, m in after_manifests.items()
+    }
 
     errors = []
     for package, deps in dependency_graph(after_manifests).items():
@@ -140,6 +159,13 @@ def check_major_cascade(
                     f"{package} depends on {dep}, which takes a major bump "
                     f"({dep_before}.x -> {dep_after}.x), but {package} does not. "
                     "Major bumps must cascade to dependents."
+                )
+            floor = floor_major(after_manifests, package, dist_names[dep])
+            if floor is not None and floor < dep_after:
+                errors.append(
+                    f"{package} declares a floor of {dist_names[dep]}>={floor} "
+                    f"but {dep} is now {dep_after}.x. Raise the floor to the "
+                    "new major so published metadata cannot admit the old one."
                 )
     return errors
 
