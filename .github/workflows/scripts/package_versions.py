@@ -51,8 +51,17 @@ def package_manifests(commit: str) -> dict[str, dict]:
     """Map package directory name -> parsed pyproject.toml at `commit`."""
     try:
         listing = git("ls-tree", "--name-only", commit, f"{PACKAGES_DIR}/")
-    except subprocess.CalledProcessError:
-        return {}  # commit unreadable (force-push) or no packages dir yet
+    except subprocess.CalledProcessError as e:
+        # Expected when the commit is unreadable (force-push, history rewrite)
+        # or predates the packages directory; anything else deserves eyes.
+        print(
+            f"::notice::No readable {PACKAGES_DIR}/ tree at {commit} "
+            "(force-push or no packages directory yet); treating as empty.",
+            file=sys.stderr,
+        )
+        stderr = e.stderr.decode("utf-8", errors="replace").strip()
+        print(f"::debug::git ls-tree failed: {stderr}", file=sys.stderr)
+        return {}
 
     manifests: dict[str, dict] = {}
     for line in listing.splitlines():

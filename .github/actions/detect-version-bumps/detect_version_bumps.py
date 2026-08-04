@@ -73,7 +73,7 @@ def info(message: str) -> None:
     print(message, file=sys.stderr)
 
 
-def main(before: str) -> None:
+def main(before_commit: str) -> None:
     bumps: list[dict[str, str]] = []
     errors: list[str] = []
 
@@ -83,19 +83,19 @@ def main(before: str) -> None:
 
         after = semver(path.read_bytes())
 
-        before_blob = git_show(before, pyproject)
+        before_blob = git_show(before_commit, pyproject)
         if before_blob is None:
-            info(f"No readable {pyproject} at {before}, skipping {package}.")
+            info(f"No readable {pyproject} at {before_commit}, skipping {package}.")
             continue
-        current = semver(before_blob)
+        before = semver(before_blob)
 
-        if after == current:
+        if after == before:
             continue
 
-        before_str = ".".join(map(str, current))
+        before_str = ".".join(map(str, before))
         after_str = ".".join(map(str, after))
 
-        if after < current:
+        if after < before:
             errors.append(f"{package}: {before_str} -> {after_str}")
             continue
 
@@ -117,7 +117,7 @@ def main(before: str) -> None:
         path.parent.name: tomllib.loads(path.read_text(encoding="utf-8"))
         for path in sorted(Path("packages").glob("*/pyproject.toml"))
     }
-    violations = check_major_cascade(package_manifests(before), after_manifests)
+    violations = check_major_cascade(package_manifests(before_commit), after_manifests)
     if violations:
         for v in violations:
             info(f"::error::{v}")
