@@ -19,21 +19,28 @@ inputs:
 outputs:
   count:
     description: Number of bumped packages.
-    value: ${{ steps.detect.outputs.count }}
+    value: ${{ steps.filter.outputs.count }}
   bumps:
     description: >
       JSON array of {"package", "version", "tag"} objects, one per bump.
       Suitable as a matrix include list.
-    value: ${{ steps.detect.outputs.bumps }}
+    value: ${{ steps.filter.outputs.bumps }}
 
 runs:
   using: composite
   steps:
-    - name: Detect version bumps
-      id: detect
+    - name: Diff package versions
+      id: diff
       shell: bash
       env:
         BEFORE: ${{ inputs.before }}
       run: |
         python3 ./.github/workflows/scripts/package_versions.py diff "$BEFORE" HEAD \
-          | python3 "${GITHUB_ACTION_PATH}/detect_version_bumps.py" >> "$GITHUB_OUTPUT"
+          > "${RUNNER_TEMP}/package-version-diff.json"
+
+    - name: Filter to releasable bumps
+      id: filter
+      shell: bash
+      run: |
+        python3 "${GITHUB_ACTION_PATH}/detect_version_bumps.py" \
+          < "${RUNNER_TEMP}/package-version-diff.json" >> "$GITHUB_OUTPUT"
