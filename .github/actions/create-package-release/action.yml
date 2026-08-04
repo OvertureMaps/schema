@@ -6,7 +6,8 @@ description: >
   Reads the `## [<version>]` section of `packages/<package>/CHANGELOG.md` for
   the release notes (falling back to a pointer message if absent), fails if the
   target tag already exists, and creates the release tagged
-  `<package>-v<version>` at `target`.
+  `<package>-v<version>` at `target`. Optionally also creates a bare vanity
+  tag (no second GitHub Release) to continue a legacy tag series.
 
   Prerequisites: repo must be checked out and the GitHub CLI (`gh`) available
   (both true on GitHub-hosted runners).
@@ -28,6 +29,14 @@ inputs:
     description: Whether to mark this release as "Latest" (true/false).
     required: false
     default: "false"
+  vanity-tag:
+    description: >
+      Optional additional bare git tag to create at `target` (e.g. v1.18.0),
+      with no GitHub Release attached. A pre-existing tag warns instead of
+      failing; the vanity tag is cosmetic and must not fail a completed
+      release.
+    required: false
+    default: ""
   dry-run:
     description: >
       When "true", resolve and print what would be released without creating
@@ -57,6 +66,7 @@ runs:
         TAG: ${{ inputs.tag }}
         TARGET: ${{ inputs.target }}
         LATEST: ${{ inputs.latest }}
+        VANITY_TAG: ${{ inputs.vanity-tag }}
         DRY_RUN: ${{ inputs.dry-run }}
       run: |
         set -euo pipefail
@@ -87,6 +97,9 @@ runs:
             echo "## 🔍 Dry run: \`${PACKAGE}\` ${VERSION}"
             echo ""
             echo "Would create tag \`${TAG}\` at \`${TARGET}\` (${latest_flag})."
+            if [ -n "$VANITY_TAG" ]; then
+              echo "Would also create vanity tag \`${VANITY_TAG}\` (no release)."
+            fi
             echo ""
             echo "<details><summary>Notes</summary>"
             echo ""
@@ -108,8 +121,26 @@ runs:
         url=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url --jq .url)
         echo "release-url=${url}" >> "$GITHUB_OUTPUT"
 
+        # Vanity tag: a bare ref continuing the legacy series, no second
+        # release. Cosmetic, so a collision warns rather than failing the
+        # already-published release.
+        if [ -n "$VANITY_TAG" ]; then
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${VANITY_TAG}" >/dev/null 2>&1; then
+            echo "::warning::Vanity tag ${VANITY_TAG} already exists; leaving it untouched."
+          else
+            gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f ref="refs/tags/${VANITY_TAG}" \
+              -f sha="$TARGET" >/dev/null
+            echo "Created vanity tag ${VANITY_TAG} at ${TARGET}."
+          fi
+        fi
+
         {
           echo "## 📦 Released \`${PACKAGE}\` ${VERSION}"
           echo ""
           echo "Tag \`${TAG}\`: [published GitHub Release](${url})."
+          if [ -n "$VANITY_TAG" ]; then
+            echo ""
+            echo "Vanity tag \`${VANITY_TAG}\` continues the legacy series (no separate release)."
+          fi
         } >> "$GITHUB_STEP_SUMMARY"

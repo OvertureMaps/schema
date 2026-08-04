@@ -70,11 +70,12 @@ cascade (see [Guardrails](#guardrails)).
 
 Each package has its own release series: tag `<package>-v<major>.<minor>.<patch>`,
 title `` `<package>` <version> ``. The umbrella `overture-schema` release is
-flagged **Latest**.
-
-Historical single-series tags (`v0.4.0` … `v1.17.0`) remain valid. The
-package-prefixed scheme is new so packages can version independently. This is a
-deliberate, one-time discontinuity.
+flagged **Latest**, and additionally continues the historical bare series
+(`v0.4.0` … `v1.17.0`) as a vanity tag: each umbrella release also creates a
+bare `v<version>` git tag at the same commit, with no second GitHub Release
+attached. The umbrella package is the primary entrypoint for most consumers,
+so its bare tags keep the long-standing convention alive; all other packages
+use only the package-prefixed scheme.
 
 ### Guardrails
 

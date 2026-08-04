@@ -80,4 +80,7 @@ jobs:
           tag: ${{ matrix.tag }}
           target: ${{ github.event.after }}
           latest: ${{ matrix.package == 'overture-schema' }}
+          # The umbrella package continues the legacy bare tag series as a
+          # vanity tag (no second release); see docs/versioning.md.
+          vanity-tag: ${{ matrix.package == 'overture-schema' && format('v{0}', matrix.version) || '' }}
           token: ${{ github.token }}
