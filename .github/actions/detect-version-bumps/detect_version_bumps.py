@@ -29,18 +29,29 @@ Exit status:
 
 from pathlib import Path
 import json
+import re
 import subprocess
 import sys
 import tomllib
 
 from package_versions import check_major_cascade, package_manifests
 
+# Released versions are plain X.Y.Z by policy (docs/versioning.md); PEP 440
+# variants like 1.2.3rc4 or 1.2.3.post1 must not appear in pyproject.toml.
+PLAIN_SEMVER = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
+
 
 def semver(pyproject_blob: bytes) -> tuple[int, int, int]:
     """Parse `project.version` from pyproject.toml bytes into (major, minor, patch)."""
     version = str(tomllib.loads(pyproject_blob.decode("utf-8"))["project"]["version"])
-    major, minor, patch, *_ = version.split(".")
-    return int(major), int(minor), int(patch)
+    match = PLAIN_SEMVER.match(version)
+    if not match:
+        raise ValueError(
+            f"version {version!r} is not plain <major>.<minor>.<patch>; "
+            "pre-release/post-release segments are not allowed in pyproject.toml "
+            "(see docs/versioning.md)"
+        )
+    return int(match.group(1)), int(match.group(2)), int(match.group(3))
 
 
 def git_show(commit: str, path: str) -> bytes | None:
