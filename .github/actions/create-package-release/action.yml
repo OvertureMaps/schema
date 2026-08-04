@@ -16,7 +16,7 @@ inputs:
     description: Package directory name under packages/ (e.g. overture-schema).
     required: true
   version:
-    description: Release version, major.minor.0 (e.g. 1.18.0).
+    description: Release version, major.minor.patch (e.g. 1.18.0).
     required: true
   tag:
     description: Release tag (e.g. overture-schema-v1.18.0).
