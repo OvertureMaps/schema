@@ -110,6 +110,12 @@ changed package. No tool to install, no config to touch. towncrier only runs
 at release time, when a maintainer folds the accumulated fragments into
 `CHANGELOG.md` (see [Cut a release](#cut-a-release)).
 
+> [!NOTE]
+> `towncrier build` consumes fragments: it deletes them from `changelog.d/`
+> as it folds them into `CHANGELOG.md`. The fragment directory only ever
+> holds unreleased changes, and the committed `CHANGELOG.md` is the sole
+> durable record of past releases.
+
 ### Add a changelog fragment
 
 Release notes are assembled from
