@@ -17,9 +17,11 @@ from overture.schema.system.feature import Feature
 from overture.schema.system.geometric import Geometry
 from overture.schema.system.numeric import float32
 
+
 class Mountain(Feature):
     name: str
     max_elevation: float32
+
 
 m = Mountain(
     geometry=Geometry.from_wkt("POINT(86.9252 27.9888)"),
@@ -36,6 +38,7 @@ Using `int` and `float` in a Pydantic model produces valid Python but loses info
 from pydantic import BaseModel
 from overture.schema.system.numeric import uint8, float32
 
+
 class Building(BaseModel):
     height: float32 | None = None
     num_floors: uint8 | None = None
@@ -48,7 +51,11 @@ Integer types: `uint8`, `uint16`, `uint32`, `int8`, `int16`, `int32`, `int64`. F
 `Geometry` and `BBox` wrap Shapely and GeoJSON-compatible geometry and bounding box values so they can participate in a Pydantic model as fields, with `GeometryType` and `GeometryTypeConstraint` available to restrict a `Geometry` field to specific geometry types:
 
 ```python
-from overture.schema.system.geometric import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 ```
 
 Types: `Geometry`, `BBox`, `GeometryType`, `GeometryTypeConstraint`.
@@ -70,12 +77,16 @@ Annotations for Pydantic fields that enforce domain rules beyond what the type a
 ```python
 from typing import Annotated
 from pydantic import BaseModel, Field
-from overture.schema.system.field_constraint import UniqueItemsConstraint, PatternConstraint
+from overture.schema.system.field_constraint import (
+    UniqueItemsConstraint,
+    PatternConstraint,
+)
 
 OsmIdConstraint = PatternConstraint(
     pattern=r"^[nwr]\d+$",
     error_message="invalid OSM ID format: {value}. Must be n123, w123, or r123.",
 )
+
 
 class MyModel(BaseModel):
     osm_id: Annotated[str, OsmIdConstraint]
@@ -91,6 +102,7 @@ Class-level decorators for cross-field validation -- relationships between field
 ```python
 from pydantic import BaseModel
 from overture.schema.system.model_constraint import require_any_of
+
 
 @require_any_of("email", "phone")
 class Contact(BaseModel):
@@ -114,8 +126,10 @@ Foreign-key-style annotations that describe relationships between models. These 
 from typing import Annotated
 from overture.schema.system.ref import Id, Identified, Reference, Relationship
 
+
 class Park(Identified):
     pass
+
 
 class ParkBench(Identified):
     park_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Park)]
@@ -179,6 +193,7 @@ from collections.abc import Iterable
 from pydantic import BaseModel
 from overture.schema.system.discovery import ModelKey
 from overture.schema.system.feature import Feature
+
 
 def feature_provider(
     types: Iterable[type[BaseModel]],
