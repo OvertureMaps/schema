@@ -134,7 +134,7 @@ merge to `main`; run `git pull --rebase` before pushing again.
   [changelog quick start](docs/versioning.md#changelog-quick-start). Add one
   under
   `packages/<package>/changelog.d/` and run
-  `uvx towncrier build --config pyproject.toml --dir packages/<package>`. CI
+  `uv run towncrier build --config pyproject.toml --dir packages/<package>`. CI
   enforces it.
 
 Full version scheme, tag scheme, and release flow: [docs/versioning.md](docs/versioning.md).

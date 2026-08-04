@@ -3,7 +3,7 @@ name: Changelog fragment verification
 # Enforces the changelog policy: any PR that changes a package must also carry
 # that package's changelog update, either a new towncrier fragment under
 # changelog.d/, or a built CHANGELOG.md (the result of running
-# `uvx towncrier build`).
+# `uv run towncrier build`).
 #
 # "Changes a package" means any file under packages/<package>/ other than that
 # package's own changelog artifacts (changelog.d/ and CHANGELOG.md). Every

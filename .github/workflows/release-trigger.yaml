@@ -9,7 +9,7 @@ name: Publish GitHub release
 # `overture-schema` release is marked "Latest"; all others are not.
 #
 # Release notes come from towncrier: a release PR bumps the version and runs
-# `uvx towncrier build`, folding that package's changelog.d/ fragments into its
+# `uv run towncrier build`, folding that package's changelog.d/ fragments into its
 # CHANGELOG.md (reviewed in the PR). This workflow reads back the section.
 #
 # All three version components are human-owned; any increase (patch included)

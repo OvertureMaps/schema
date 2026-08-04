@@ -57,6 +57,7 @@ dev = [
     "pytest-cov>=7.0.0",
     "pytest-testmon>=2.2.0",
     "ruff>=0.13.0",
+    "towncrier>=25.8.0",
 ]
 
 [tool.pytest.ini_options]
@@ -81,7 +82,7 @@ verbosity_subtests = 0
 
 # Shared changelog (towncrier) config for every package under packages/*.
 # Build a package's notes from the repo root:
-#   uvx towncrier build --config pyproject.toml --dir packages/<package> --version <major>.<minor>.0
+#   uv run towncrier build --config pyproject.toml --dir packages/<package> --version <major>.<minor>.0
 # A package may override these categories by adding its own [tool.towncrier]
 # block and building from that package directory (towncrier replaces, not merges).
 [tool.towncrier]

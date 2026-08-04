@@ -140,7 +140,7 @@ The file body is the note itself, written in past tense
 
 ```bash
 # from the repo root
-uvx towncrier build --config pyproject.toml --dir packages/<package> --draft --version <version>
+uv run towncrier build --config pyproject.toml --dir packages/<package> --draft --version <version>
 ```
 
 A fragment (or an already-built `CHANGELOG.md` entry) is required on any PR that
@@ -154,7 +154,7 @@ changes that package, whether or not it bumps the version.
 ### Cut a release
 
 1. Bump the version in the package's `pyproject.toml`,
-   then run `uvx towncrier build --config pyproject.toml --dir packages/<package>`
+   then run `uv run towncrier build --config pyproject.toml --dir packages/<package>`
    from the repo root to fold its fragments into `CHANGELOG.md`. Patch and minor
    bumps target `main`; major bumps go via `vnext` and reach `main` through a
    release merge.
