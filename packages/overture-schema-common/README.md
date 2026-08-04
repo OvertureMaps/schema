@@ -16,6 +16,7 @@ Every Overture feature type inherits from `OvertureFeature`, which extends `syst
 from typing import Literal
 from overture.schema.common import OvertureFeature
 
+
 class Park(OvertureFeature[Literal["places"], Literal["park"]]):
     area_hectares: float | None = None
 ```
@@ -28,6 +29,7 @@ Many Overture values only apply under specific conditions -- a speed limit that 
 from pydantic import BaseModel
 from overture.schema.common.scoping import Scope, scoped
 from overture.schema.system.numeric import float32
+
 
 @scoped(Scope.GEOMETRIC_RANGE, Scope.TEMPORAL)
 class SpeedLimit(BaseModel):
@@ -64,6 +66,7 @@ Multilingual naming with support for common names, name rules (official, alterna
 from typing import Literal
 from overture.schema.common import OvertureFeature
 from overture.schema.common.names import Named
+
 
 class Lake(OvertureFeature[Literal["base"], Literal["water"]], Named):
     pass  # inherits names: Names | None from Named
