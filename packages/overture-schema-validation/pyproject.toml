@@ -3,18 +3,19 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "overture-schema-common"
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
+name = "overture-schema-validation"
 version = "0.1.1"
-description = "Common components that are shared across Overture theme schemas"
+description = "Validation helpers for the union of all discovered Overture models"
 requires-python = ">=3.10"
 license = "MIT"
+readme = "README.md"
 dependencies = [
-    "overture-schema-system>=0.1.1",
+    "overture-schema-common",
+    "overture-schema-system",
     "pydantic>=2.12.0",
-    "shapely>=2.1.1",
 ]
 
 [project.urls]
@@ -23,18 +24,14 @@ Source = "https://github.com/OvertureMaps/schema"
 Issues = "https://github.com/OvertureMaps/schema/issues"
 
 [tool.uv.sources]
+overture-schema-common = { workspace = true }
 overture-schema-system = { workspace = true }
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/overture"]
 
 [dependency-groups]
 dev = [
-    "deepdiff>=8.6.0",
-    "jsonpath-ng>=1.7.0",
-    "types-pyyaml>=6.0.12.20250516",
-    "types-shapely>=2.1.0.20250710",
+    "pyyaml>=6.0.2",
+    "yamlcore>=0.0.4",
 ]
 
-[project.entry-points."overture.tag_providers"]
-theme = "overture.schema.common.tag_providers:theme_provider"
+[tool.hatch.build.targets.wheel]
+packages = ["src/overture"]

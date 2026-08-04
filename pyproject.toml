@@ -76,7 +76,7 @@ pythonpath = [
     "packages/overture-schema-pyspark/tests",
     "packages/overture-schema-system/tests",
     "packages/overture-schema-transportation-theme/tests",
-    "packages/overture-schema/tests",
+    "packages/overture-schema-validation/tests",
 ]
 verbosity_subtests = 0
 
