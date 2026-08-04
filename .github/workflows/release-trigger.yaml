@@ -52,9 +52,9 @@ jobs:
 
       - name: Detect version bumps
         id: detect
-        env:
-          BEFORE: ${{ github.event.before }}
-        run: python3 ./.github/workflows/scripts/detect_version_bumps.py
+        uses: ./.github/actions/detect-version-bumps
+        with:
+          before: ${{ github.event.before }}
 
   release:
     name: Release ${{ matrix.package }} ${{ matrix.version }}

@@ -3,30 +3,32 @@
 """
 Detect per-package version bumps between two commits on main.
 
-Run from the repository root by the `Release trigger` workflow. Compares each
-`packages/*/pyproject.toml` at the pushed commit (the working tree) against its
+Run from the repository root:
+
+    python3 detect_version_bumps.py <before-commit>
+
+Compares each `packages/*/pyproject.toml` at the working tree against its
 content at the `before` commit, and records the packages whose
 `<major>.<minor>.<patch>` increased. All three components are human-owned
 (see docs/versioning.md); any increase, including patch-only, cuts a release.
 
-Environment:
-    BEFORE         The `before` commit SHA (github.event.before).
-    GITHUB_OUTPUT  Step output file; receives `count` and `bumps`.
+Requires the shared `package_versions` module on PYTHONPATH (it lives in
+`.github/workflows/scripts/`); the `detect-version-bumps` action wires this
+up.
 
-Outputs (written to $GITHUB_OUTPUT):
+Output (stdout, `$GITHUB_OUTPUT` format; progress goes to stderr):
     count=<n>      Number of bumped packages.
     bumps=<json>   JSON array of {"package", "version", "tag"} objects, one per
                    bump. Consumed as a matrix by the release job.
 
 Exit status:
     0  Success (including the no-bump case).
-    1  A package's version went backwards, or a major bump does not cascade
-       to its dependents; neither must ever land on main.
+    1  Usage error, a package's version went backwards, or a major bump does
+       not cascade to its dependents; none of these must ever land on main.
 """
 
 from pathlib import Path
 import json
-import os
 import subprocess
 import sys
 import tomllib
@@ -56,9 +58,11 @@ def git_show(commit: str, path: str) -> bytes | None:
     return result.stdout if result.returncode == 0 else None
 
 
-def main() -> None:
-    before = os.environ["BEFORE"]
+def info(message: str) -> None:
+    print(message, file=sys.stderr)
 
+
+def main(before: str) -> None:
     bumps: list[dict[str, str]] = []
     errors: list[str] = []
 
@@ -70,7 +74,7 @@ def main() -> None:
 
         before_blob = git_show(before, pyproject)
         if before_blob is None:
-            print(f"No readable {pyproject} at {before}, skipping {package}.")
+            info(f"No readable {pyproject} at {before}, skipping {package}.")
             continue
         current = semver(before_blob)
 
@@ -84,12 +88,12 @@ def main() -> None:
             errors.append(f"{package}: {before_str} -> {after_str}")
             continue
 
-        print(f"{package}: {before_str} -> {after_str} (bump)")
+        info(f"{package}: {before_str} -> {after_str} (bump)")
         bumps.append({"package": package, "version": after_str, "tag": f"{package}-v{after_str}"})
 
     if errors:
         for e in errors:
-            print(
+            info(
                 f"::error::{e}: version went backwards. Version decreases "
                 "must never land on main; revert or fix the version."
             )
@@ -105,16 +109,18 @@ def main() -> None:
     violations = check_major_cascade(package_manifests(before), after_manifests)
     if violations:
         for v in violations:
-            print(f"::error::{v}")
+            info(f"::error::{v}")
         sys.exit(1)
 
-    with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-        out.write(f"count={len(bumps)}\n")
-        out.write(f"bumps={json.dumps(bumps)}\n")
-
     if not bumps:
-        print("No version bumps detected.")
+        info("No version bumps detected.")
+
+    print(f"count={len(bumps)}")
+    print(f"bumps={json.dumps(bumps)}")
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 2:
+        print(f"Usage: {sys.argv[0]} BEFORE_COMMIT", file=sys.stderr)
+        sys.exit(1)
+    main(sys.argv[1])

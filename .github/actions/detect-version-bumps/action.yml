@@ -1,0 +1,39 @@
+name: Detect version bumps
+description: >
+  Detects per-package version bumps between two commits.
+
+  Compares each `packages/*/pyproject.toml` at the checked-out tree against
+  its content at `before`. Any `<major>.<minor>.<patch>` increase is a bump;
+  version decreases and non-cascaded major bumps fail the action (see
+  docs/versioning.md).
+
+  Prerequisites: repo must be checked out with `fetch-depth: 0` so `before`
+  is reachable.
+
+inputs:
+  before:
+    description: The base commit SHA to compare against (e.g. github.event.before).
+    required: true
+
+outputs:
+  count:
+    description: Number of bumped packages.
+    value: ${{ steps.detect.outputs.count }}
+  bumps:
+    description: >
+      JSON array of {"package", "version", "tag"} objects, one per bump.
+      Suitable as a matrix include list.
+    value: ${{ steps.detect.outputs.bumps }}
+
+runs:
+  using: composite
+  steps:
+    - name: Detect version bumps
+      id: detect
+      shell: bash
+      env:
+        BEFORE: ${{ inputs.before }}
+        # The script imports the shared package_versions module.
+        PYTHONPATH: .github/workflows/scripts
+      run: |
+        python3 "${GITHUB_ACTION_PATH}/detect_version_bumps.py" "$BEFORE" >> "$GITHUB_OUTPUT"
