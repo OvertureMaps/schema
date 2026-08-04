@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 import yaml
-from overture.schema import validate, validate_json
+from overture.schema.validation import validate, validate_json
 from pydantic import ValidationError
 from yamlcore import CoreLoader  # type: ignore
 

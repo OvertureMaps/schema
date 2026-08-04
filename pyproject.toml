@@ -76,7 +76,7 @@ pythonpath = [
     "packages/overture-schema-theme-divisions/tests",
     "packages/overture-schema-theme-places/tests",
     "packages/overture-schema-theme-transportation/tests",
-    "packages/overture-schema/tests",
+    "packages/overture-schema-validation/tests",
 ]
 verbosity_subtests = 0
 
