@@ -1,7 +1,7 @@
 """Tests for error formatting and grouping logic."""
 
 from io import StringIO
-from typing import Annotated, Literal
+from typing import Annotated, Literal, cast
 from unittest.mock import patch
 
 import pytest
@@ -13,12 +13,140 @@ from overture.schema.cli.error_formatting import (
     select_most_likely_errors,
 )
 from overture.schema.cli.type_analysis import introspect_union
+from overture.schema.cli.types import ErrorLocation, ValidationErrorDict
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 from rich.console import Console
 
 
 class TestErrorGrouping:
     """Tests for error grouping and selection logic."""
+
+    def test_sibling_tag_not_found_noise_does_not_cause_false_tie(self) -> None:
+        """Sibling-branch union_tag_not_found noise must not tie with a real match.
+
+        When validating a list against a union that mixes a tagged-union with
+        another discriminated member (e.g. Segment), each item that cleanly
+        matches one branch still emits a `union_tag_not_found` error from the
+        sibling branch. Those empty-path `()` errors must not form a group that
+        ties with the real discriminator group and raises a false "Ambiguous"
+        warning. Regression guard for a union-shape invariant: error grouping
+        must not depend on how many non-discriminated members the union
+        contains.
+        """
+        # Two list items, each with one real 'missing' error (building) plus one
+        # sibling-branch union_tag_not_found error (empty discriminator path).
+        error_groups = cast(
+            dict[ErrorLocation, list[ValidationErrorDict]],
+            {
+                ("building",): [
+                    {
+                        "loc": (0, "tagged-union[type]", "building", "id"),
+                        "msg": "Field required",
+                        "type": "missing",
+                    },
+                    {
+                        "loc": (1, "tagged-union[type]", "building", "id"),
+                        "msg": "Field required",
+                        "type": "missing",
+                    },
+                ],
+                (): [
+                    {
+                        "loc": (0, "tagged-union[subtype]"),
+                        "msg": "Unable to extract tag",
+                        "type": "union_tag_not_found",
+                    },
+                    {
+                        "loc": (1, "tagged-union[subtype]"),
+                        "msg": "Unable to extract tag",
+                        "type": "union_tag_not_found",
+                    },
+                ],
+            },
+        )
+
+        selected, is_tied, is_heterogeneous, _ = select_most_likely_errors(error_groups)
+
+        assert not is_tied, "Sibling tag-not-found noise must not create a tie"
+        assert not is_heterogeneous
+        # Only the real building errors survive; the () noise group is dropped.
+        assert len(selected) == 2
+        assert all(error["type"] == "missing" for error in selected)
+
+    def test_only_tag_not_found_errors_are_preserved(self) -> None:
+        """An item whose ONLY errors are union_tag_not_found must be preserved.
+
+        The sibling-noise suppression must not strip tag-not-found errors from a
+        genuinely undiscriminatable item (one with no concrete match), otherwise
+        there would be nothing to report for it.
+        """
+        error_groups = cast(
+            dict[ErrorLocation, list[ValidationErrorDict]],
+            {
+                (): [
+                    {
+                        "loc": (2, "tagged-union[type]"),
+                        "msg": "Unable to extract tag",
+                        "type": "union_tag_not_found",
+                    },
+                ],
+            },
+        )
+
+        selected, is_tied, _, _ = select_most_likely_errors(error_groups)
+
+        assert not is_tied
+        assert len(selected) == 1
+        assert selected[0]["type"] == "union_tag_not_found"
+
+    def test_genuine_tie_between_real_types_is_still_reported(self) -> None:
+        """A genuine tie between two real candidate types must still be reported.
+
+        When the union contains a plain (non-discriminated) member alongside
+        discriminated types, data can match two real types equally well (each
+        with the same number of concrete `missing` errors), producing
+        legitimate ambiguity. The sibling-noise suppression only removes
+        `union_tag_not_found` errors, so a genuine tie built from concrete
+        errors must remain a tie. Guards against the suppression logic being
+        broadened to swallow real ambiguity.
+        """
+        # Two real candidate groups, equal concrete 'missing' counts, no noise.
+        error_groups = cast(
+            dict[ErrorLocation, list[ValidationErrorDict]],
+            {
+                ("building",): [
+                    {
+                        "loc": ("building", "id"),
+                        "msg": "Field required",
+                        "type": "missing",
+                    },
+                    {
+                        "loc": ("building", "height"),
+                        "msg": "Field required",
+                        "type": "missing",
+                    },
+                ],
+                ("Sources",): [
+                    {
+                        "loc": ("Sources", "datasets"),
+                        "msg": "Field required",
+                        "type": "missing",
+                    },
+                    {
+                        "loc": ("Sources", "license_priority"),
+                        "msg": "Field required",
+                        "type": "missing",
+                    },
+                ],
+            },
+        )
+
+        selected, is_tied, is_heterogeneous, _ = select_most_likely_errors(error_groups)
+
+        assert is_tied, "A genuine tie between two real types must still be reported"
+        assert not is_heterogeneous
+        # All errors from both tied groups are returned.
+        assert len(selected) == 4
 
     def test_ambiguous_data_shows_most_likely_errors(
         self, cli_runner: CliRunner

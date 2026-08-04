@@ -636,7 +636,7 @@ def _guard_struct_nested_variant_fields(prefix: FieldPath, name: str) -> None:
 
 
 def _iteration_depth(path: FieldPath) -> int:
-    """Number of iteration frames (`Array`/`Map` segments) in *path*.
+    """Return the number of iteration frames (`Array`/`Map` segments) in *path*.
 
     Each iterating segment -- named or anonymous -- is one lambda frame in
     the renderer's fold, so the count is the depth at which the innermost

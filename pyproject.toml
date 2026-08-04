@@ -65,7 +65,6 @@ markers = [
 ]
 pythonpath = [
     "packages/overture-schema-addresses-theme/tests",
-    "packages/overture-schema-annex/tests",
     "packages/overture-schema-base-theme/tests",
     "packages/overture-schema-buildings-theme/tests",
     "packages/overture-schema-cli/tests",

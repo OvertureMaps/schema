@@ -37,7 +37,7 @@ from .error_formatting import (
 )
 from .tag_options import build_selector, tag_selection_options
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
-from .types import ErrorLocation, UnionType
+from .types import ErrorLocation, UnionType, ValidationErrorDict
 
 # Console instances for rich output
 stdout = Console(highlight=False)
@@ -443,6 +443,119 @@ def print_collection_statistics(
     stderr.print()
 
 
+def _best_fit_model(
+    item_data: object,
+    candidate_models: tuple[type[BaseModel], ...],
+) -> tuple[type[BaseModel], list[ValidationErrorDict]] | None:
+    """Find the candidate model that a single item best fits.
+
+    Validates `item_data` against each candidate and returns the model with
+    the fewest validation errors (the fewest changes needed to make the data
+    valid), together with those errors. Ties are broken deterministically by
+    candidate order. Returns `None` if no candidate produced errors (nothing
+    to re-home).
+
+    Parameters
+    ----------
+    item_data : object
+        The single feature's data (GeoJSON or flat dict).
+    candidate_models : tuple[type[BaseModel], ...]
+        Candidate model classes to try, in a stable order.
+
+    Returns
+    -------
+    tuple[type[BaseModel], list[ValidationErrorDict]] | None
+        A (model, errors) tuple for the best fit, or None if no candidate
+        produced errors.
+    """
+    best: tuple[int, type[BaseModel], list[ValidationErrorDict]] | None = None
+    for model in candidate_models:
+        try:
+            validate_feature(cast(dict, item_data), model)
+        except ValidationError as exc:
+            errs = exc.errors()
+        else:
+            # Item validated cleanly against this candidate; it is not the
+            # source of a failure, so it is not a useful "best fit" to report.
+            continue
+        if best is None or len(errs) < best[0]:
+            best = (len(errs), model, errs)
+    if best is None:
+        return None
+    return best[1], best[2]
+
+
+def _revalidate_undiscriminatable_items(
+    errors: list[ValidationErrorDict],
+    original_data: dict | list | None,
+    candidate_models: tuple[type[BaseModel], ...],
+) -> tuple[list[ValidationErrorDict], dict[int, type[BaseModel]]]:
+    """Replace undiscriminatable-item noise with best-fit field errors.
+
+    When a list item cannot be discriminated (its errors are *entirely*
+    `union_tag_not_found`), pydantic cannot select a union branch and reports
+    only the opaque "unable to extract tag" message with no field-level detail,
+    resulting in useless validation output.
+
+    This function re-validates those non-discriminatable items against each
+    candidate model, picks the best fitting candidate model (fewest errors, see
+    `_best_fit_model`), and replaces the item's errors with that model's field
+    errors.
+
+    Items that already have at least one concrete (non-`union_tag_not_found`)
+    error are left untouched because for them, pydantic has already produced
+    useful field-level detail (as happens when the union contains a plain,
+    non-discriminated member).
+
+    Parameters
+    ----------
+    errors : list[ValidationErrorDict]
+        The raw validation errors from `ValidationError.errors()`.
+    original_data : dict | list | None
+        The original parsed input (only lists are handled here).
+    candidate_models : tuple[type[BaseModel], ...]
+        Candidate model classes to try, in a stable order.
+
+    Returns
+    -------
+    tuple[list[ValidationErrorDict], dict[int, type[BaseModel]]]
+        A tuple of (possibly-augmented errors, {item_index: best_fit_model}).
+        The mapping is used to label each re-homed item's type in the display.
+    """
+    if not isinstance(original_data, list):
+        return errors, {}
+
+    errors_by_item: dict[int | None, list[ValidationErrorDict]] = defaultdict(list)
+    for error in errors:
+        errors_by_item[get_item_index(error["loc"])].append(error)
+
+    augmented: list[ValidationErrorDict] = []
+    best_fit_types: dict[int, type[BaseModel]] = {}
+
+    for item_idx, item_errors in errors_by_item.items():
+        if (
+            item_idx is None
+            or not (0 <= item_idx < len(original_data))
+            or not all(e.get("type") == "union_tag_not_found" for e in item_errors)
+        ):
+            augmented.extend(item_errors)
+            continue
+
+        best = _best_fit_model(original_data[item_idx], candidate_models)
+        if best is None:
+            augmented.extend(item_errors)
+            continue
+
+        best_model, best_errors = best
+        best_fit_types[item_idx] = best_model
+        for err in best_errors:
+            rehomed = dict(err)
+            rehomed["loc"] = (item_idx, *err["loc"])
+            augmented.append(cast(ValidationErrorDict, rehomed))
+
+    return augmented, best_fit_types
+
+
 def handle_validation_error(
     e: ValidationError,
     model_type: UnionType,
@@ -474,14 +587,27 @@ def handle_validation_error(
     # Create cache for structural tuple computation (optimizes systematic errors)
     structural_cache: dict[ErrorLocation, StructuralTuple] = {}
 
+    # For list items that cannot be discriminated at all (errors are entirely
+    # union_tag_not_found), replace the opaque "unable to extract tag" noise
+    # with field-level errors from the best-fit candidate model, re-homed under
+    # the item index so they render as normal field errors.
+    errors, best_fit_item_types = _revalidate_undiscriminatable_items(
+        e.errors(),
+        original_data,
+        tuple(dict.fromkeys(metadata.discriminator_to_model.values())),
+    )
+
     # Group errors by discriminator path and select most likely group(s)
-    error_groups = group_errors_by_discriminator(e.errors(), metadata, structural_cache)
+    error_groups = group_errors_by_discriminator(errors, metadata, structural_cache)
     filtered_errors, is_tied, is_heterogeneous, item_types = select_most_likely_errors(
         error_groups,
         metadata=metadata,
-        all_errors=e.errors(),
+        all_errors=errors,
         structural_cache=structural_cache,
     )
+
+    # Label re-homed best-fit items with their inferred type.
+    item_types.update(best_fit_item_types)
 
     # Show heterogeneity warning if collection has mixed types
     if is_heterogeneous:
