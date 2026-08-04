@@ -3,7 +3,7 @@
 """
 Extract one package's release notes from its CHANGELOG.md.
 
-Run by the `Release trigger` workflow. Prints the changelog section for the
+Run by the `Publish GitHub release` workflow. Prints the changelog section for the
 given version (the block from `## [<version>]` up to the next `## [` heading,
 stripped). Prints nothing if the changelog or the section is absent, so the
 caller can fall back to a default message.

@@ -1,4 +1,4 @@
-name: Release trigger
+name: Publish GitHub release
 
 # Runs on every push to main that touches any package's pyproject.toml.
 # For each package whose <major>.<minor>.<patch> was bumped, cuts a published
