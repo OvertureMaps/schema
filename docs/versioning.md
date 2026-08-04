@@ -187,3 +187,12 @@ flowchart LR
 - **towncrier fragments.** Notes are written in context per PR and assembled
   automatically, with no merge conflicts on a shared changelog and no
   hand-written notes at release time.
+- **CI never writes to `main`.** Every commit on `main` arrives through a
+  reviewed PR; CI is a pure reader. Automation that commits back to `main`
+  needs a bot identity with branch-protection bypass (a compromised workflow
+  can then push arbitrary code), skip-guards against re-triggering
+  push-driven workflows on its own commits, and retry logic for races with
+  human merges, and every synthetic commit is an unreviewed change on the
+  protected branch. Designs that require a write-back (e.g. on-demand
+  changelog generation with post-release fragment cleanup) are rejected on
+  this principle.
