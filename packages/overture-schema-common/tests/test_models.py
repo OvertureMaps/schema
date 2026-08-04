@@ -85,7 +85,7 @@ def test_feature_json_schema() -> None:
                     },
                     "confidence": {"maximum": 1.0, "minimum": 0.0, "type": "number"},
                 },
-                "required": ["property", "dataset"],
+                "required": ["property"],
                 "type": "object",
             }
         },
