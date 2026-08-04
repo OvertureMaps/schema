@@ -269,7 +269,7 @@ description: Common schema definitions shared by all themes
         Additional metadata such as license, record_id, update_time, and
         confidence may also be provided.
       type: object
-      required: [property, dataset]
+      required: [property]
       allOf:
         - { "$ref": "#/$defs/propertyContainers/geometricRangeScopeContainer" }
       unevaluatedProperties: false
