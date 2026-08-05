@@ -848,13 +848,13 @@ road_segment = RoadSegment(subtype=Subtype.ROAD, ...)  # Valid
 Instead of making classes abstract, we use **entry point registration** where only specific concrete types are discoverable as map features:
 
 ```python
-# In packages/overture-schema-transportation-theme/pyproject.toml
+# In packages/overture-schema-theme-transportation/pyproject.toml
 [project.entry-points."overture.models"]
 connector = "overture.schema.transportation:Connector"
 segment = "overture.schema.transportation:Segment"
 ```
 
-**Real example:** See [`packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/__init__.py`](packages/overture-schema-transportation-theme/src/overture/schema/transportation/segment/__init__.py) where:
+**Real example:** See [`packages/overture-schema-theme-transportation/src/overture/schema/transportation/segment/__init__.py`](packages/overture-schema-theme-transportation/src/overture/schema/transportation/segment/__init__.py) where:
 
 - **`Segment`** is a discriminated union: `RoadSegment | RailSegment | WaterSegment`
 - **`TransportationSegment`** is the concrete base class that all segment types inherit from
@@ -1003,11 +1003,11 @@ Organize code by scope and avoid circular imports:
 
 - Used by multiple themes (e.g., `OvertureFeature`, `Names`, `Sources`, `Scope`)
 
-**Theme-level shared**: Theme package root (e.g., `overture-schema-transportation-theme/src/overture/schema/transportation/`)
+**Theme-level shared**: Theme package root (e.g., `overture-schema-theme-transportation/src/overture/schema/transportation/`)
 
 - Used by multiple types within a theme (e.g., `AccessRules`, `RoadSurface`)
 
-**Type-specific**: Type subdirectory (e.g., `overture-schema-transportation-theme/src/overture/schema/transportation/segment/`)
+**Type-specific**: Type subdirectory (e.g., `overture-schema-theme-transportation/src/overture/schema/transportation/segment/`)
 
 - Only used by one specific type (e.g., `SegmentType`, `LaneConfiguration`)
 
@@ -1088,14 +1088,14 @@ properties:
 **Pydantic approach:**
 
 ```python
-# In overture-schema-addresses-theme/src/overture/schema/addresses/address.py
+# In overture-schema-theme-addresses/src/overture/schema/addresses/address.py
 @no_extra_fields
 class Address(BaseModel):
     """A postal address."""
     freeform: str | None = None
     locality: str | None = None
 
-# In overture-schema-buildings-theme/src/overture/schema/buildings/building.py
+# In overture-schema-theme-buildings/src/overture/schema/buildings/building.py
 class Building(OvertureFeature):
     address: Address | None = None
 ```

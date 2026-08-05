@@ -10,7 +10,7 @@ dependencies = [
 description = "Overture Maps places theme with place type models"
 version = "0.1.1"
 license = "MIT"
-name = "overture-schema-places-theme"
+name = "overture-schema-theme-places"
 readme = "README.md"
 requires-python = ">=3.10"
 
