@@ -42,6 +42,10 @@ jobs:
           changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
 
           # Packages with changes outside their own changelog artifacts.
+          # `|| true`: on a PR that touches no package, grep -oE finds no match
+          # and exits 1, which under `set -euo pipefail` would abort the job
+          # with a bare exit 1 and no output -- the same guard the has_* greps
+          # below already use.
           touched=$(echo "$changed" \
             | grep -oE '^packages/[^/]+/' \
             | sort -u \
@@ -52,7 +56,7 @@ jobs:
                   | grep -q .; then
                   echo "$pkg"
                 fi
-              done)
+              done || true)
 
           missing=""
           for pkg in $touched; do
