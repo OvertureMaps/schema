@@ -10,7 +10,7 @@ dependencies = [
 description = "Overture Maps base theme shared structures and models (bathymetry, infrastructure, land, land_cover, land_use, water)"
 version = "0.1.1"
 license = "MIT"
-name = "overture-schema-base-theme"
+name = "overture-schema-theme-base"
 readme = "README.md"
 requires-python = ">=3.10"
 

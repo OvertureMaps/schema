@@ -65,17 +65,17 @@ markers = [
     "baseline: golden file baseline tests",
 ]
 pythonpath = [
-    "packages/overture-schema-addresses-theme/tests",
-    "packages/overture-schema-base-theme/tests",
-    "packages/overture-schema-buildings-theme/tests",
     "packages/overture-schema-cli/tests",
     "packages/overture-schema-codegen/tests",
     "packages/overture-schema-common/tests",
-    "packages/overture-schema-divisions-theme/tests",
-    "packages/overture-schema-places-theme/tests",
     "packages/overture-schema-pyspark/tests",
     "packages/overture-schema-system/tests",
-    "packages/overture-schema-transportation-theme/tests",
+    "packages/overture-schema-theme-addresses/tests",
+    "packages/overture-schema-theme-base/tests",
+    "packages/overture-schema-theme-buildings/tests",
+    "packages/overture-schema-theme-divisions/tests",
+    "packages/overture-schema-theme-places/tests",
+    "packages/overture-schema-theme-transportation/tests",
     "packages/overture-schema/tests",
 ]
 verbosity_subtests = 0

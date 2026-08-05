@@ -29,7 +29,7 @@ overture-codegen list
 ```
 
 The generator discovers models via `overture.models` entry points (provided by theme
-packages like `overture-schema-buildings-theme`), extracts type information, and renders
+packages like `overture-schema-theme-buildings`), extracts type information, and renders
 output pages with cross-page links, constraint descriptions, and validated examples.
 
 ## Architecture

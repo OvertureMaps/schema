@@ -10,7 +10,7 @@ dependencies = [
 description = "Overture Maps transportation theme with shared structures and connector and segment types"
 version = "0.1.1"
 license = "MIT"
-name = "overture-schema-transportation-theme"
+name = "overture-schema-theme-transportation"
 readme = "README.md"
 requires-python = ">=3.10"
 
