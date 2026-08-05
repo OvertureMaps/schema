@@ -86,7 +86,7 @@ RoadSubclassRules = NewType(
 class RoadFlag(str, DocumentedEnum):
     """Simple flags that can be on or off for a road segment.
 
-    Specifies physical characteristics and can overlap.
+    Specifies physical characteristics and other properties of the road and can overlap.
     """
 
     IS_BRIDGE = "is_bridge"
@@ -99,12 +99,28 @@ class RoadFlag(str, DocumentedEnum):
     IS_ABANDONED = "is_abandoned"
     IS_COVERED = "is_covered"
     IS_INDOOR = "is_indoor"
+    DYNAMIC_SPEED = (
+        "dynamic_speed",
+        "Speed limits on the road are dynamic (e.g. displayed on variable signs in a dynamic speed corridor)",
+    )
+    UNLIMITED_SPEED = (
+        "unlimited_speed",
+        "No regulatory maximum speed applies (e.g. parts of the German Autobahn)",
+    )
 
 
 @no_extra_fields
-@scoped(Scope.GEOMETRIC_RANGE)
+@scoped(
+    Scope.GEOMETRIC_RANGE,
+    Scope.HEADING,
+    Scope.PURPOSE_OF_USE,
+    Scope.RECOGNIZED_STATUS,
+    Scope.TEMPORAL,
+    Scope.TRAVEL_MODE,
+    Scope.VEHICLE,
+)
 class RoadFlagRule(BaseModel):
-    """Road-specific flag rule with geometric scoping only."""
+    """Road-specific flag rule."""
 
     values: Annotated[list[RoadFlag], Field(min_length=1), UniqueItemsConstraint()]
 

@@ -33,7 +33,7 @@ from overture.schema.system.numeric import float32
 
 @scoped(Scope.GEOMETRIC_RANGE, Scope.TEMPORAL)
 class SpeedLimit(BaseModel):
-    max_speed: float32
+    speed: float32
 ```
 
 This produces a model with `between` (geometric range) and `when.during` (temporal) fields, both optional. The full set of scopes and the fields they inject:
