@@ -82,7 +82,7 @@ verbosity_subtests = 0
 
 # Shared changelog (towncrier) config for every package under packages/*.
 # Build a package's notes from the repo root:
-#   uv run towncrier build --config pyproject.toml --dir packages/<package> --version <major>.<minor>.0
+#   uv run towncrier build --config pyproject.toml --dir packages/<package> --version <major>.<minor>.<patch>
 # A package may override these categories by adding its own [tool.towncrier]
 # block and building from that package directory (towncrier replaces, not merges).
 [tool.towncrier]

@@ -130,11 +130,9 @@ merge to `main`; run `git pull --rebase` before pushing again.
   `overture-schema`, which pulls in the theme and support packages for a coherent
   set.
 - Any change to a package **requires a changelog fragment**: one sentence in
-  one file, see the
-  [changelog quick start](docs/versioning.md#changelog-quick-start). Add one
-  under
-  `packages/<package>/changelog.d/` and run
-  `uv run towncrier build --config pyproject.toml --dir packages/<package>`. CI
-  enforces it.
+  one file under `packages/<package>/changelog.d/`, see the
+  [changelog quick start](docs/versioning.md#changelog-quick-start). CI
+  enforces it. Fragments are folded into `CHANGELOG.md` at release time, not
+  in your PR.
 
 Full version scheme, tag scheme, and release flow: [docs/versioning.md](docs/versioning.md).

@@ -154,11 +154,21 @@ changes that package, whether or not it bumps the version.
 
 ### Cut a release
 
-1. Bump the version in the package's `pyproject.toml`,
-   then run `uv run towncrier build --config pyproject.toml --dir packages/<package>`
-   from the repo root to fold its fragments into `CHANGELOG.md`. Patch and minor
-   bumps target `main`; major bumps go via `vnext` and reach `main` through a
-   release merge.
+1. Bump the version in the package's `pyproject.toml`, then fold its fragments
+   into `CHANGELOG.md` from the repo root:
+
+   ```bash
+   uv run towncrier build --config pyproject.toml --dir packages/<package> --version <version>
+   ```
+
+   `--version` is required: towncrier only discovers a version from its
+   [config file](https://towncrier.readthedocs.io/en/stable/configuration.html)
+   (`version` or `package` key), and our config is the shared root
+   `pyproject.toml`, which deliberately has neither so one number can't stamp
+   every package. Pass the version you just bumped to.
+
+   Patch and minor bumps target `main`; major bumps go via `vnext` and reach
+   `main` through a release merge.
 2. On merge to `main`, `release-trigger` publishes one GitHub Release per bumped
    package: tag `<package>-v<version>`, notes from that package's
    `CHANGELOG.md`.

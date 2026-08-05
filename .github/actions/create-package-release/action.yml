@@ -84,7 +84,7 @@ runs:
         changelog="packages/${PACKAGE}/CHANGELOG.md"
         notes=$(python3 "${GITHUB_ACTION_PATH}/extract_release_notes.py" "$VERSION" "$changelog")
         if [ -z "$notes" ]; then
-          notes="Release ${VERSION} of \`${PACKAGE}\`. No changelog section was found; add towncrier fragments under \`packages/${PACKAGE}/changelog.d\` and run \`uv run towncrier build --config pyproject.toml --dir packages/${PACKAGE}\`."
+          notes="Release ${VERSION} of \`${PACKAGE}\`. No changelog section was found; add towncrier fragments under \`packages/${PACKAGE}/changelog.d\` and run \`uv run towncrier build --config pyproject.toml --dir packages/${PACKAGE} --version ${VERSION}\`."
         fi
         printf '%s\n' "$notes" > "${RUNNER_TEMP}/notes.md"
 
