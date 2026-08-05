@@ -317,18 +317,33 @@ Four dispatch mechanisms:
 ### Check Builder
 
 `pyspark/check_builder.py` walks `FieldSpec` trees to produce `Check` and `ModelCheck`
-IR. Resolves the mapping from nested field paths to PySpark array iteration patterns,
-producing a `FieldPath` (`ScalarPath` or `ArrayPath`) on each `Check`:
+IR. Resolves the mapping from nested field paths to PySpark iteration patterns,
+producing a `FieldPath` (`Direct` or `Iterated`) on each `Check`. A `Direct` locates
+a value reached with no iteration; an `Iterated` mixes struct segments with one or
+more iterating segments (`ArraySegment` for a `list`, `MapSegment` for a `dict[K,
+V]` projected to its keys or values); at render time each iterating segment --
+named or anonymous alike -- becomes its own render frame (one `array_check`/
+`map_*_check` call). A container nested directly inside another with no field
+name between them (`list[list[X]]`, `dict[K, list[X]]`, `list[dict]`, a map
+projected inside an array element, an array inside a map value) is an
+*anonymous* iterating segment (`is_anonymous`) -- its render frame carries no
+struct descent from the previous one. `promote_terminal` performs the entry
+into a container at the point the walker reaches it, replacing a struct
+terminal with a named iterating segment or appending an anonymous one when the
+terminal already iterates:
 
-- **Scalar field** -- `ScalarPath`; renders as `F.col("field")`
-- **Top-level array** -- `ArrayPath` with one `ArraySegment`; renders as
-  `array_check("field", lambda el: ...)`
-- **Field inside an array element** -- `ArrayPath` with struct navigation after the
-  array segment; renders as `array_check("array_col", lambda el: el["field"])`
-- **Nested array inside an array** -- `ArrayPath` with multiple `ArraySegment`s;
-  renders as `nested_array_check("outer", lambda el: array_check(el["inner"], ...))`
-- **Multiple nesting levels** -- chained `nested_array_check` with struct segments
-  navigating between array iterations
+- **Scalar field** -- `Direct`; renders as `F.col("field")`
+- **Top-level array or map** -- `Iterated` with one named iterating segment;
+  renders as `array_check("field", lambda el: ...)` or
+  `map_keys_check`/`map_values_check("field", lambda k_or_v: ...)`
+- **Field inside an array or map element** -- struct segments after the iterating
+  segment; renders as `array_check("col", lambda el: el["field"])`
+- **`list[list[X]]`, `dict[K, list[X]]`, a nested map, or a map projected inside
+  an array** -- an anonymous or named second iterating segment adds another
+  render frame, rendered by folding the flattening variant (`nested_array_check`,
+  `nested_map_{keys,values}_check`) around the inner render frame's helper
+- **Multiple nesting levels** -- chained flattening helpers with struct segments
+  navigating between render frames
 
 Union handling: variant-specific fields are annotated with `ColumnGuard` or
 `ElementGuard` discriminator gates. `Check.guards` is AND-composed at render time.

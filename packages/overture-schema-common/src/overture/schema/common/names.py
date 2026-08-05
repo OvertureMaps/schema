@@ -75,7 +75,7 @@ from typing import Annotated, NewType
 
 from pydantic import BaseModel, Field
 
-from overture.schema.common.models import Perspectives
+from overture.schema.common.perspectives import Perspectives
 from overture.schema.common.scoping import Scope, scoped
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.model_constraint import no_extra_fields

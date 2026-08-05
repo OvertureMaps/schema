@@ -7,69 +7,86 @@ import re
 import pytest
 
 from overture.schema.system.field_path import (
-    ArrayPath,
     ArraySegment,
-    MapPath,
+    Direct,
+    Iterated,
     MapProjection,
     MapSegment,
-    ScalarPath,
     StructSegment,
     coerce,
     parse,
-    promote_terminal_array,
-    promote_terminal_map,
+    promote_terminal,
+    terminal_run_start,
 )
 
 
 class TestParseAndRoundTrip:
-    def test_empty_path_parses_to_empty_scalar(self) -> None:
-        assert parse("") == ScalarPath(segments=())
+    def test_empty_path_parses_to_empty_direct(self) -> None:
+        assert parse("") == Direct(segments=())
 
     def test_single_segment(self) -> None:
         path = parse("name")
-        assert path == ScalarPath(segments=(StructSegment(name="name"),))
+        assert path == Direct(segments=(StructSegment(name="name"),))
 
     def test_dotted_path(self) -> None:
         path = parse("bbox.xmin")
-        assert path == ScalarPath(
+        assert path == Direct(
             segments=(StructSegment(name="bbox"), StructSegment(name="xmin"))
         )
 
     def test_array_segment(self) -> None:
         path = parse("items[]")
-        assert path == ArrayPath(segments=(ArraySegment(name="items", iter_count=1),))
+        assert path == Iterated(segments=(ArraySegment(name="items"),))
 
     def test_array_with_nested_field(self) -> None:
         path = parse("items[].value")
-        assert path == ArrayPath(
+        assert path == Iterated(
             segments=(
-                ArraySegment(name="items", iter_count=1),
+                ArraySegment(name="items"),
                 StructSegment(name="value"),
             )
         )
 
-    def test_nested_list_depth(self) -> None:
-        path = parse("hierarchies[][]")
-        assert path == ArrayPath(
-            segments=(ArraySegment(name="hierarchies", iter_count=2),)
+    def test_nested_list_parses_to_anonymous_segments(self) -> None:
+        assert parse("hierarchies[][]") == Iterated(
+            segments=(
+                ArraySegment(name="hierarchies"),
+                ArraySegment(name=""),
+            )
         )
 
     def test_nested_list_with_leaf(self) -> None:
         path = parse("hierarchies[][].value")
-        assert path == ArrayPath(
+        assert path == Iterated(
             segments=(
-                ArraySegment(name="hierarchies", iter_count=2),
+                ArraySegment(name="hierarchies"),
+                ArraySegment(name=""),
                 StructSegment(name="value"),
             )
         )
 
+    def test_is_anonymous_property(self) -> None:
+        assert ArraySegment(name="").is_anonymous is True
+        assert ArraySegment(name="grid").is_anonymous is False
+        assert MapSegment(name="", projection=MapProjection.VALUE).is_anonymous is True
+        assert (
+            MapSegment(name="subs", projection=MapProjection.VALUE).is_anonymous
+            is False
+        )
+
+    def test_nested_list_round_trips(self) -> None:
+        assert str(parse("hierarchies[][]")) == "hierarchies[][]"
+
+    def test_nested_list_with_leaf_round_trips(self) -> None:
+        assert str(parse("hierarchies[][].value")) == "hierarchies[][].value"
+
     def test_complex_path(self) -> None:
         path = parse("speed_limits[].when.vehicle[].dimension")
-        assert path == ArrayPath(
+        assert path == Iterated(
             segments=(
-                ArraySegment(name="speed_limits", iter_count=1),
+                ArraySegment(name="speed_limits"),
                 StructSegment(name="when"),
-                ArraySegment(name="vehicle", iter_count=1),
+                ArraySegment(name="vehicle"),
                 StructSegment(name="dimension"),
             )
         )
@@ -86,274 +103,451 @@ class TestParseAndRoundTrip:
             "hierarchies[][].value",
             "speed_limits[].when.vehicle[].dimension",
             "tags_min_length",
+            "tags{key}",
+            "tags{value}",
+            "names.common{key}",
+            "subs{value}.label",
         ],
     )
     def test_str_round_trip(self, encoded: str) -> None:
         assert str(parse(encoded)) == encoded
 
 
-class TestScalarVsArrayPartition:
-    def test_no_array_returns_scalar_path(self) -> None:
-        assert isinstance(parse("a.b.c"), ScalarPath)
+class TestTypes:
+    def test_types(self) -> None:
+        assert isinstance(parse("a.b.c"), Direct)
+        assert isinstance(parse("a.b[].c"), Iterated)
+        assert isinstance(parse("names.common{key}"), Iterated)
 
-    def test_with_array_returns_array_path(self) -> None:
-        assert isinstance(parse("a.b[].c"), ArrayPath)
+    def test_empty_is_direct(self) -> None:
+        assert isinstance(parse(""), Direct)
 
-    def test_empty_is_scalar(self) -> None:
-        assert isinstance(parse(""), ScalarPath)
+    def test_map_first_is_iterated(self) -> None:
+        assert isinstance(parse("tags{value}"), Iterated)
+
+
+class TestInterleavedGrammar:
+    @pytest.mark.parametrize(
+        "encoded",
+        [
+            "hierarchies[][]",
+            "subs{value}[]",
+            "items[]{value}",
+            "a{value}{value}",
+            "subs{value}.label",
+            "items[].tags{value}",
+            "names.common{key}",
+            "dict_field{value}.label",
+        ],
+    )
+    def test_interleaved_round_trip(self, encoded: str) -> None:
+        assert str(parse(encoded)) == encoded
+
+    def test_dict_of_list_segments(self) -> None:
+        assert parse("subs{value}[]").segments == (
+            MapSegment(name="subs", projection=MapProjection.VALUE),
+            ArraySegment(name=""),
+        )
+
+    def test_list_of_dict_segments(self) -> None:
+        assert parse("items[]{value}").segments == (
+            ArraySegment(name="items"),
+            MapSegment(name="", projection=MapProjection.VALUE),
+        )
+
+    def test_map_of_map_segments(self) -> None:
+        assert parse("a{value}{value}").segments == (
+            MapSegment(name="a", projection=MapProjection.VALUE),
+            MapSegment(name="", projection=MapProjection.VALUE),
+        )
+
+    def test_named_map_in_array_segments(self) -> None:
+        assert parse("items[].tags{value}").segments == (
+            ArraySegment(name="items"),
+            MapSegment(name="tags", projection=MapProjection.VALUE),
+        )
+
+    def test_map_with_struct_leaf_segments(self) -> None:
+        assert parse("subs{value}.label").segments == (
+            MapSegment(name="subs", projection=MapProjection.VALUE),
+            StructSegment(name="label"),
+        )
 
 
 class TestStr:
     def test_empty_renders_as_empty(self) -> None:
-        assert str(ScalarPath()) == ""
+        assert str(Direct()) == ""
 
-    def test_scalar_path_renders_dotted(self) -> None:
-        path = ScalarPath(
-            segments=(StructSegment(name="bbox"), StructSegment(name="xmin"))
-        )
+    def test_direct_renders_dotted(self) -> None:
+        path = Direct(segments=(StructSegment(name="bbox"), StructSegment(name="xmin")))
         assert str(path) == "bbox.xmin"
 
-    def test_array_path_renders_with_brackets(self) -> None:
-        path = ArrayPath(
+    def test_iterated_renders_with_brackets(self) -> None:
+        path = Iterated(
             segments=(
-                ArraySegment(name="speed_limits", iter_count=1),
+                ArraySegment(name="speed_limits"),
                 StructSegment(name="when"),
             )
         )
         assert str(path) == "speed_limits[].when"
 
-    def test_array_path_renders_multi_depth(self) -> None:
-        path = ArrayPath(segments=(ArraySegment(name="hierarchies", iter_count=2),))
+    def test_iterated_renders_multi_depth(self) -> None:
+        path = Iterated(
+            segments=(ArraySegment(name="hierarchies"), ArraySegment(name=""))
+        )
         assert str(path) == "hierarchies[][]"
+
+    def test_map_renders_with_projection(self) -> None:
+        path = Iterated(
+            segments=(
+                StructSegment(name="names"),
+                MapSegment(name="common", projection=MapProjection.KEY),
+            )
+        )
+        assert str(path) == "names.common{key}"
 
 
 class TestAppendStruct:
-    def test_scalar_append_struct_returns_scalar(self) -> None:
-        path = ScalarPath().append_struct("name")
+    def test_direct_append_struct_returns_direct(self) -> None:
+        path = Direct().append_struct("name")
         assert path == parse("name")
-        assert isinstance(path, ScalarPath)
+        assert isinstance(path, Direct)
 
-    def test_scalar_chain_struct(self) -> None:
-        path = ScalarPath().append_struct("bbox").append_struct("xmin")
+    def test_direct_chain_struct(self) -> None:
+        path = Direct().append_struct("bbox").append_struct("xmin")
         assert path == parse("bbox.xmin")
 
-    def test_array_append_struct_returns_array(self) -> None:
+    def test_iterated_append_struct_returns_iterated(self) -> None:
         path = parse("items[]")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         result = path.append_struct("value")
         assert result == parse("items[].value")
-        assert isinstance(result, ArrayPath)
+        assert isinstance(result, Iterated)
+
+    def test_map_append_struct_extends_leaf(self) -> None:
+        path = parse("subs{value}")
+        assert isinstance(path, Iterated)
+        result = path.append_struct("label")
+        assert result == parse("subs{value}.label")
 
 
 class TestAppendArray:
-    def test_scalar_append_array_returns_array_path(self) -> None:
-        path = ScalarPath().append_array("items")
+    def test_direct_append_array_returns_iterated(self) -> None:
+        path = Direct().append_array("items")
         assert path == parse("items[]")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
 
-    def test_scalar_append_array_after_struct(self) -> None:
-        path = ScalarPath().append_struct("outer").append_array("items")
+    def test_direct_append_array_after_struct(self) -> None:
+        path = Direct().append_struct("outer").append_array("items")
         assert path == parse("outer.items[]")
 
-    def test_scalar_append_array_multi_depth(self) -> None:
-        path = ScalarPath().append_array("hierarchies", iter_count=2)
-        assert path == parse("hierarchies[][]")
-
-    def test_array_append_array(self) -> None:
+    def test_iterated_append_array(self) -> None:
         path = parse("outer[]")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         result = path.append_array("inner")
         assert result == parse("outer[].inner[]")
 
 
-class TestPromoteTerminalArray:
-    def test_scalar_struct_terminal_becomes_array(self) -> None:
-        assert promote_terminal_array(parse("tags")) == parse("tags[]")
+class TestPromoteTerminal:
+    def test_struct_terminal_becomes_array(self) -> None:
+        assert promote_terminal(parse("tags")) == parse("tags[]")
 
     def test_struct_prefix_is_preserved(self) -> None:
-        assert promote_terminal_array(parse("outer.tags")) == parse("outer.tags[]")
+        assert promote_terminal(parse("outer.tags")) == parse("outer.tags[]")
 
-    def test_struct_terminal_inside_array_path(self) -> None:
-        assert promote_terminal_array(parse("items[].tags")) == parse("items[].tags[]")
+    def test_struct_terminal_inside_iterated(self) -> None:
+        assert promote_terminal(parse("items[].tags")) == parse("items[].tags[]")
 
-    def test_array_terminal_increments_iter_count(self) -> None:
-        assert promote_terminal_array(parse("tags[]")) == parse("tags[][]")
+    def test_promote_array_terminal_appends_anonymous(self) -> None:
+        assert promote_terminal(parse("tags[]")) == parse("tags[][]")
+        assert promote_terminal(parse("tags[]")).segments == (
+            ArraySegment(name="tags"),
+            ArraySegment(name=""),
+        )
 
     def test_consecutive_promotions_stack(self) -> None:
-        assert promote_terminal_array(promote_terminal_array(parse("grid"))) == parse(
-            "grid[][]"
+        assert promote_terminal(promote_terminal(parse("grid"))) == parse("grid[][]")
+
+    def test_array_terminal_inside_iterated(self) -> None:
+        assert promote_terminal(parse("items[].grid[]")) == parse("items[].grid[][]")
+
+    def test_struct_terminal_becomes_map_key(self) -> None:
+        assert promote_terminal(parse("tags"), projection=MapProjection.KEY) == parse(
+            "tags{key}"
         )
 
-    def test_array_terminal_inside_array_path(self) -> None:
-        assert promote_terminal_array(parse("items[].grid[]")) == parse(
-            "items[].grid[][]"
+    def test_struct_prefix_preserved_for_map_value(self) -> None:
+        assert promote_terminal(
+            parse("names.common"), projection=MapProjection.VALUE
+        ) == parse("names.common{value}")
+
+    def test_promote_terminal_to_array_on_map(self) -> None:  # dict[K, list]
+        assert promote_terminal(parse("subs{value}")).segments[-1] == ArraySegment(
+            name=""
         )
+
+    def test_promote_terminal_to_map_on_array(self) -> None:  # list[dict]
+        assert promote_terminal(
+            parse("items[]"), projection=MapProjection.VALUE
+        ).segments[-1] == MapSegment(name="", projection=MapProjection.VALUE)
 
     def test_empty_path_raises(self) -> None:
         with pytest.raises(ValueError, match="empty path"):
-            promote_terminal_array(ScalarPath())
+            promote_terminal(Direct())
 
-    def test_map_path_raises(self) -> None:
-        with pytest.raises(NotImplementedError, match="map"):
-            promote_terminal_array(parse("subs{value}.inner"))
+    def test_empty_path_raises_for_map(self) -> None:
+        with pytest.raises(ValueError, match="empty path"):
+            promote_terminal(Direct(), projection=MapProjection.KEY)
+
+
+class TestOuterColumn:
+    @staticmethod
+    def _outer_column(encoded: str) -> str:
+        path = parse(encoded)
+        assert isinstance(path, Iterated)
+        return path.outer_column
+
+    def test_array_at_start(self) -> None:
+        assert self._outer_column("items[].value") == "items"
+
+    def test_struct_prefix_before_array(self) -> None:
+        assert self._outer_column("parent.items[].value") == "parent.items"
+
+    def test_map_outer_column(self) -> None:
+        assert self._outer_column("names.common{value}.label") == "names.common"
+
+    def test_map_at_start(self) -> None:
+        assert self._outer_column("tags{key}") == "tags"
 
 
 class TestColumnPrefix:
     def test_array_at_start_has_empty_prefix(self) -> None:
         path = parse("items[].value")
-        assert isinstance(path, ArrayPath)
-        assert path.column_prefix == ScalarPath(())
+        assert isinstance(path, Iterated)
+        assert path.column_prefix == Direct(())
 
     def test_struct_prefix_before_array(self) -> None:
         path = parse("parent.items[].value")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.column_prefix == parse("parent")
 
     def test_dotted_struct_prefix(self) -> None:
         path = parse("a.b.c[].d")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.column_prefix == parse("a.b")
+
+    def test_struct_prefix_before_map(self) -> None:
+        path = parse("names.common{value}")
+        assert isinstance(path, Iterated)
+        assert path.column_prefix == parse("names")
 
 
 class TestLeaf:
     def test_no_leaf_after_array(self) -> None:
         path = parse("items[]")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.leaf == ()
 
     def test_single_struct_leaf(self) -> None:
         path = parse("items[].value")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.leaf == ("value",)
 
     def test_nested_struct_leaf(self) -> None:
         path = parse("items[].nested.value")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.leaf == ("nested", "value")
 
-    def test_uses_last_array(self) -> None:
+    def test_uses_last_iterating_segment(self) -> None:
         path = parse("speed_limits[].when.vehicle[].dimension")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.leaf == ("dimension",)
 
+    def test_map_leaf(self) -> None:
+        path = parse("subs{value}.inner.label")
+        assert isinstance(path, Iterated)
+        assert path.leaf == ("inner", "label")
 
-class TestArrayChunks:
+    def test_bare_map_has_empty_leaf(self) -> None:
+        path = parse("subs{value}")
+        assert isinstance(path, Iterated)
+        assert path.leaf == ()
+
+
+class TestIterFrames:
     def test_single_top_level_array(self) -> None:
         path = parse("items[]")
-        assert isinstance(path, ArrayPath)
-        assert path.array_chunks == (((), "items", 1),)
+        assert isinstance(path, Iterated)
+        assert path.iter_frames == (((), ArraySegment(name="items")),)
 
     def test_single_array_with_struct_prefix(self) -> None:
         path = parse("parent.items[].value")
-        assert isinstance(path, ArrayPath)
-        assert path.array_chunks == ((("parent",), "items", 1),)
+        assert isinstance(path, Iterated)
+        assert path.iter_frames == ((("parent",), ArraySegment(name="items")),)
 
     def test_nested_arrays(self) -> None:
         path = parse("speed_limits[].when.vehicle[].dimension")
-        assert isinstance(path, ArrayPath)
-        assert path.array_chunks == (
-            ((), "speed_limits", 1),
-            (("when",), "vehicle", 1),
+        assert isinstance(path, Iterated)
+        assert path.iter_frames == (
+            ((), ArraySegment(name="speed_limits")),
+            (("when",), ArraySegment(name="vehicle")),
         )
 
-    def test_multi_depth_array(self) -> None:
+    def test_multi_depth_folds_anonymous(self) -> None:
         path = parse("hierarchies[][].value")
-        assert isinstance(path, ArrayPath)
-        assert path.array_chunks == (((), "hierarchies", 2),)
+        assert isinstance(path, Iterated)
+        assert path.iter_frames == (((), ArraySegment(name="hierarchies")),)
+
+    def test_map_frame(self) -> None:
+        path = parse("names.common{key}")
+        assert isinstance(path, Iterated)
+        assert path.iter_frames == (
+            (("names",), MapSegment(name="common", projection=MapProjection.KEY)),
+        )
+
+    def test_mixed_map_in_array(self) -> None:
+        path = parse("items[].tags{value}")
+        assert isinstance(path, Iterated)
+        assert path.iter_frames == (
+            ((), ArraySegment(name="items")),
+            ((), MapSegment(name="tags", projection=MapProjection.VALUE)),
+        )
 
 
 class TestIterStructPaths:
     def test_single_iteration_is_empty(self) -> None:
         path = parse("items[].value")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.iter_struct_paths == ()
 
     def test_nested_arrays_emit_navigation_path(self) -> None:
         path = parse("speed_limits[].when.vehicle[].dimension")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.iter_struct_paths == (("when", "vehicle"),)
 
-    def test_multi_depth_array_expands_extra_iterations(self) -> None:
+    def test_multi_depth_iter_struct_paths(self) -> None:
+        # inner anonymous frame contributes () (no navigation)
         path = parse("hierarchies[][].value")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.iter_struct_paths == ((),)
 
     def test_multi_depth_inner_array_combines_navigation_and_expansion(self) -> None:
         path = parse("rules[].tags[][].value")
-        assert isinstance(path, ArrayPath)
+        assert isinstance(path, Iterated)
         assert path.iter_struct_paths == (("tags",), ())
+
+    def test_mixed_map_in_array_navigation(self) -> None:
+        path = parse("items[].tags{value}")
+        assert isinstance(path, Iterated)
+        assert path.iter_struct_paths == (("tags",),)
+
+
+class TestTerminalRunStart:
+    def test_named_array_terminal(self) -> None:
+        path = parse("items[]")
+        assert terminal_run_start(path.segments) == 0
+
+    def test_multi_bracket_terminal_starts_at_named_segment(self) -> None:
+        path = parse("hierarchies[][]")
+        assert terminal_run_start(path.segments) == 0
+
+    def test_struct_leaf_after_array_is_its_own_run(self) -> None:
+        path = parse("items[].value")
+        assert terminal_run_start(path.segments) == 1
+
+    def test_struct_only_path_returns_last_index(self) -> None:
+        path = parse("a.b.c")
+        assert terminal_run_start(path.segments) == 2
+
+    def test_single_segment_returns_zero(self) -> None:
+        path = parse("a")
+        assert terminal_run_start(path.segments) == 0
 
 
 class TestElementRelativeGate:
     def test_gate_inside_same_outer_array(self) -> None:
         target = parse("items[].value")
         gate = parse("items[].nested")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         assert target.element_relative_gate(gate) == ("nested",)
 
     def test_gate_at_outer_array_root_returns_empty(self) -> None:
         target = parse("items[].value")
         gate = parse("items[]")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         assert target.element_relative_gate(gate) == ()
 
     def test_gate_with_dotted_struct_inside_element(self) -> None:
         target = parse("items[].value")
         gate = parse("items[].a.b")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         assert target.element_relative_gate(gate) == ("a", "b")
 
     def test_scalar_gate_returns_none(self) -> None:
         target = parse("items[].value")
         gate = parse("other")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         assert target.element_relative_gate(gate) is None
 
     def test_different_outer_array_returns_none(self) -> None:
         target = parse("items[].value")
         gate = parse("other[].x")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         assert target.element_relative_gate(gate) is None
 
     def test_struct_prefix_must_match(self) -> None:
         target = parse("parent.items[].value")
         gate = parse("items[].x")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         assert target.element_relative_gate(gate) is None
 
     def test_matching_struct_prefix(self) -> None:
         target = parse("parent.items[].value")
         gate = parse("parent.items[].x")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         assert target.element_relative_gate(gate) == ("x",)
 
     def test_inner_array_segment_raises(self) -> None:
         target = parse("items[].value")
         gate = parse("items[].nested[]")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         with pytest.raises(NotImplementedError, match="nested array segment"):
             target.element_relative_gate(gate)
 
-    def test_mismatched_iter_count_returns_none(self) -> None:
-        # target iterates items[] (iter_count=1); gate enters items[][] (iter_count=2)
-        # -- same name, different iteration depth -- not the same element scope
+    def test_mismatched_iteration_depth_returns_none(self) -> None:
         target = parse("items[].value")
         gate = parse("items[][].nested")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         assert target.element_relative_gate(gate) is None
 
-    def test_matching_iter_count_still_returns_element_relative_tuple(self) -> None:
-        # regression: matching iter_count must remain reachable after the fix
+    def test_matching_iteration_depth_still_returns_element_relative_tuple(
+        self,
+    ) -> None:
         target = parse("items[][].value")
         gate = parse("items[][].nested")
-        assert isinstance(target, ArrayPath)
+        assert isinstance(target, Iterated)
         assert target.element_relative_gate(gate) == ("nested",)
 
 
-class TestArrayPathInvariant:
-    def test_rejects_segments_without_array(self) -> None:
-        with pytest.raises(ValueError, match="at least one ArraySegment"):
-            ArrayPath(segments=(StructSegment(name="a"),))
+class TestIteratedInvariant:
+    def test_iterated_requires_iterating_segment(self) -> None:
+        with pytest.raises(ValueError, match="at least one"):
+            Iterated(segments=(StructSegment(name="a"),))
+
+    def test_first_iterating_segment_named_invariant(self) -> None:
+        with pytest.raises(ValueError, match="first"):
+            Iterated(segments=(ArraySegment(name=""),))
+
+    def test_first_iterating_map_segment_named_invariant(self) -> None:
+        with pytest.raises(ValueError, match="first"):
+            Iterated(segments=(MapSegment(name="", projection=MapProjection.VALUE),))
+
+    def test_struct_prefix_before_first_iterating_is_allowed(self) -> None:
+        # a struct PREFIX before the first iterating segment is fine
+        path = Iterated(
+            segments=(StructSegment(name="parent"), ArraySegment(name="items"))
+        )
+        assert path.outer_column == "parent.items"
 
 
 class TestEqualityAndHashing:
@@ -363,7 +557,7 @@ class TestEqualityAndHashing:
     def test_different_paths_unequal(self) -> None:
         assert parse("items[].value") != parse("items[].other")
 
-    def test_scalar_array_unequal(self) -> None:
+    def test_direct_iterated_unequal(self) -> None:
         assert parse("items") != parse("items[]")
 
     def test_hashable(self) -> None:
@@ -375,11 +569,11 @@ class TestEqualityAndHashing:
 
 
 class TestCoerce:
-    def test_passes_through_scalar(self) -> None:
+    def test_passes_through_direct(self) -> None:
         path = parse("a.b")
         assert coerce(path) is path
 
-    def test_passes_through_array(self) -> None:
+    def test_passes_through_iterated(self) -> None:
         path = parse("items[].value")
         assert coerce(path) is path
 
@@ -387,224 +581,8 @@ class TestCoerce:
         assert coerce("items[].value") == parse("items[].value")
 
 
-class TestMapPath:
-    def test_str_top_level_key(self) -> None:
-        path = MapPath(
-            segments=(MapSegment(name="tags", projection=MapProjection.KEY),)
-        )
-        assert str(path) == "tags{key}"
-
-    def test_str_top_level_value(self) -> None:
-        path = MapPath(
-            segments=(MapSegment(name="tags", projection=MapProjection.VALUE),)
-        )
-        assert str(path) == "tags{value}"
-
-    def test_str_nested_under_struct(self) -> None:
-        path = MapPath(
-            segments=(
-                StructSegment(name="names"),
-                MapSegment(name="common", projection=MapProjection.KEY),
-            )
-        )
-        assert str(path) == "names.common{key}"
-
-    def test_projection_property(self) -> None:
-        path = MapPath(
-            segments=(MapSegment(name="tags", projection=MapProjection.VALUE),)
-        )
-        assert path.projection is MapProjection.VALUE
-
-    def test_map_column_top_level(self) -> None:
-        path = MapPath(
-            segments=(MapSegment(name="tags", projection=MapProjection.KEY),)
-        )
-        assert path.map_column == "tags"
-
-    def test_map_column_nested(self) -> None:
-        path = MapPath(
-            segments=(
-                StructSegment(name="names"),
-                MapSegment(name="common", projection=MapProjection.VALUE),
-            )
-        )
-        assert path.map_column == "names.common"
-
-    def test_must_contain_a_map_segment(self) -> None:
-        with pytest.raises(ValueError, match="MapSegment"):
-            MapPath(segments=(StructSegment(name="names"),))
-
-    def test_rejects_array_segment_before_map(self) -> None:
-        with pytest.raises(ValueError, match="struct"):
-            MapPath(
-                segments=(  # type: ignore[arg-type]  # invalid by design: runtime guard under test
-                    ArraySegment(name="items"),
-                    MapSegment(name="tags", projection=MapProjection.KEY),
-                )
-            )
-
-    def test_rejects_two_map_segments(self) -> None:
-        with pytest.raises(ValueError, match="MapSegment"):
-            MapPath(
-                segments=(
-                    MapSegment(name="a", projection=MapProjection.KEY),
-                    MapSegment(name="b", projection=MapProjection.VALUE),
-                )
-            )
-
-    @pytest.mark.parametrize(
-        "encoded",
-        ["tags{key}", "tags{value}", "names.common{key}", "names.common{value}"],
-    )
-    def test_str_round_trip(self, encoded: str) -> None:
-        assert str(parse(encoded)) == encoded
-
-    def test_parse_returns_map_path(self) -> None:
-        assert isinstance(parse("names.common{key}"), MapPath)
-
-    def test_parse_key(self) -> None:
-        assert parse("tags{key}") == MapPath(
-            segments=(MapSegment(name="tags", projection=MapProjection.KEY),)
-        )
-
-    def test_parse_nested_value(self) -> None:
-        assert parse("names.common{value}") == MapPath(
-            segments=(
-                StructSegment(name="names"),
-                MapSegment(name="common", projection=MapProjection.VALUE),
-            )
-        )
-
-
-class TestMapPathLeaf:
-    """A `MapPath` may carry struct segments after the `MapSegment`.
-
-    These name a value inside a `dict[K, Model]`'s value (or key) struct,
-    mirroring `ArrayPath.leaf` for `list[Model]`. The `MapSegment` is the
-    iteration boundary; the leaf is the struct navigation inside each
-    projected element.
-    """
-
-    def test_leaf_empty_for_bare_projection(self) -> None:
-        path = MapPath(
-            segments=(MapSegment(name="subs", projection=MapProjection.VALUE),)
-        )
-        assert path.leaf == ()
-
-    def test_leaf_names_struct_segments_after_map(self) -> None:
-        path = MapPath(
-            segments=(
-                MapSegment(name="subs", projection=MapProjection.VALUE),
-                StructSegment(name="label"),
-            )
-        )
-        assert path.leaf == ("label",)
-
-    def test_leaf_spans_nested_struct_navigation(self) -> None:
-        path = MapPath(
-            segments=(
-                MapSegment(name="subs", projection=MapProjection.VALUE),
-                StructSegment(name="inner"),
-                StructSegment(name="label"),
-            )
-        )
-        assert path.leaf == ("inner", "label")
-
-    def test_map_column_excludes_leaf(self) -> None:
-        path = MapPath(
-            segments=(
-                StructSegment(name="names"),
-                MapSegment(name="common", projection=MapProjection.VALUE),
-                StructSegment(name="label"),
-            )
-        )
-        assert path.map_column == "names.common"
-
-    def test_projection_found_with_leaf_present(self) -> None:
-        path = MapPath(
-            segments=(
-                MapSegment(name="subs", projection=MapProjection.KEY),
-                StructSegment(name="label"),
-            )
-        )
-        assert path.projection is MapProjection.KEY
-
-    def test_str_appends_leaf_after_marker(self) -> None:
-        path = MapPath(
-            segments=(
-                MapSegment(name="subs", projection=MapProjection.VALUE),
-                StructSegment(name="label"),
-            )
-        )
-        assert str(path) == "subs{value}.label"
-
-    def test_append_struct_extends_leaf(self) -> None:
-        path = MapPath(
-            segments=(MapSegment(name="subs", projection=MapProjection.VALUE),)
-        )
-        extended = path.append_struct("label")
-        assert extended == MapPath(
-            segments=(
-                MapSegment(name="subs", projection=MapProjection.VALUE),
-                StructSegment(name="label"),
-            )
-        )
-
-    def test_rejects_array_segment_in_leaf(self) -> None:
-        with pytest.raises(ValueError, match="struct"):
-            MapPath(
-                segments=(  # type: ignore[arg-type]  # invalid by design: runtime guard under test
-                    MapSegment(name="subs", projection=MapProjection.VALUE),
-                    ArraySegment(name="items"),
-                )
-            )
-
-    @pytest.mark.parametrize(
-        "encoded",
-        ["subs{value}.label", "names.common{key}.tag", "subs{value}.inner.label"],
-    )
-    def test_str_round_trip_with_leaf(self, encoded: str) -> None:
-        assert str(parse(encoded)) == encoded
-
-    def test_parse_value_with_leaf(self) -> None:
-        assert parse("subs{value}.label") == MapPath(
-            segments=(
-                MapSegment(name="subs", projection=MapProjection.VALUE),
-                StructSegment(name="label"),
-            )
-        )
-
-    def test_parse_rejects_array_marker_in_leaf(self) -> None:
-        with pytest.raises(ValueError, match="map projection"):
-            parse("subs{value}.items[]")
-
-
-class TestPromoteTerminalMap:
-    def test_top_level_struct_becomes_map_key(self) -> None:
-        assert promote_terminal_map(parse("tags"), MapProjection.KEY) == parse(
-            "tags{key}"
-        )
-
-    def test_struct_prefix_preserved_for_value(self) -> None:
-        assert promote_terminal_map(
-            parse("names.common"), MapProjection.VALUE
-        ) == parse("names.common{value}")
-
-    def test_empty_path_raises(self) -> None:
-        with pytest.raises(ValueError, match="empty path"):
-            promote_terminal_map(ScalarPath(), MapProjection.KEY)
-
-    def test_array_path_raises(self) -> None:
-        with pytest.raises(NotImplementedError, match="list"):
-            promote_terminal_map(parse("items[].tags"), MapProjection.KEY)
-
-    def test_map_path_raises(self) -> None:
-        with pytest.raises(NotImplementedError, match="map"):
-            promote_terminal_map(parse("subs{value}.inner"), MapProjection.VALUE)
-
-
 class TestParseRejectsEmptyParts:
-    @pytest.mark.parametrize("encoded", [".a", "a..b", "[]", "a.[]", ".[]"])
+    @pytest.mark.parametrize("encoded", [".a", "a..b", "[]", "a.[]", ".[]", "a.{key}"])
     def test_raises_value_error_on_empty_part(self, encoded: str) -> None:
         with pytest.raises(ValueError, match="empty name"):
             parse(encoded)

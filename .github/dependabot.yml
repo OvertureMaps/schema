@@ -20,3 +20,30 @@ updates:
       include: "scope"
     cooldown:
       default-days: 7
+
+  # Maintain Python dependencies across the uv workspace (root + packages/*)
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # lockfile-only updates uv.lock only -- never pyproject.toml -- and covers
+    # the direct deps declared in the manifests. It does not refresh
+    # transitive-only entries in uv.lock (dependabot-core#14073); the weekly
+    # uv-lock-refresh.yml workflow runs `uv lock --upgrade` for those.
+    versioning-strategy: lockfile-only
+    groups:
+      # uv doesn't yet support dependency-type filters in groups
+      # (dependabot-core#13202), so dev and production deps aren't split here.
+      python-dependencies:
+        update-types:
+          - "minor"
+          - "patch"
+    open-pull-requests-limit: 10
+    labels:
+      - "bot"
+      - "automation 🦾" # Required for enforce-change-type-label.yaml check
+    commit-message:
+      prefix: "[CHORE](deps)"
+      include: "scope"
+    cooldown:
+      default-days: 7

@@ -21,7 +21,7 @@ from overture.schema.codegen.pyspark.pipeline import (
     generate_pyspark_modules,
 )
 from overture.schema.codegen.spec_discovery import extract_model_spec
-from overture.schema.system.field_path import ScalarPath
+from overture.schema.system.field_path import Direct
 from overture.schema.system.geometric import GeometryType
 from pydantic import BaseModel
 
@@ -347,7 +347,7 @@ class TestExtractGeometryTypes:
                         args=(GeometryType.POINT,),
                     ),
                 ),
-                target=ScalarPath(),
+                target=Direct(),
             ),
             Check(
                 descriptors=(
@@ -356,7 +356,7 @@ class TestExtractGeometryTypes:
                         args=(GeometryType.POLYGON, GeometryType.LINE_STRING),
                     ),
                 ),
-                target=ScalarPath(),
+                target=Direct(),
             ),
         ]
         assert _extract_geometry_types(checks) == (

@@ -81,16 +81,21 @@ def _map_projection_check(
     column: str | Column,
     projector: Callable[[Column], Column],
     check_fn: Callable[[Column], Column],
+    flatten: bool = False,
 ) -> Column:
     """Project a map column to an array, then null-guard and transform it.
 
-    *projector* is `F.map_keys` or `F.map_values`.  The projection already
-    yields a Column, so this calls `_null_guarded_transform` directly --
-    routing through `array_check` would re-resolve an already-resolved
-    Column.  A null map column projects to null, which the guard yields
-    through as null.
+    *projector* is `F.map_keys` or `F.map_values`. The projection already yields
+    a resolved Column, so this calls `_null_guarded_transform` directly rather
+    than routing through `array_check` (which would re-resolve the column).
+    When *flatten* is True the projected-element checks each return an
+    `array<string>` (the map holds further iteration, e.g. `dict[K, list]`),
+    so the `array<array<string>>` is flattened before compaction -- the map
+    analogue of `nested_array_check`.
     """
-    return _null_guarded_transform(projector(_resolve_column(column)), check_fn)
+    return _null_guarded_transform(
+        projector(_resolve_column(column)), check_fn, flatten=flatten
+    )
 
 
 def map_keys_check(
@@ -113,6 +118,29 @@ def map_values_check(
     message) or null. A null map column yields null.
     """
     return _map_projection_check(column, F.map_values, check_fn)
+
+
+def nested_map_keys_check(
+    column: str | Column, check_fn: Callable[[Column], Column]
+) -> Column:
+    """Validate a map's keys when each key-check returns an `array<string>`.
+
+    The flattening analogue of `map_keys_check`; use when a map key holds
+    further iteration (a nested container). A null map column yields null.
+    """
+    return _map_projection_check(column, F.map_keys, check_fn, flatten=True)
+
+
+def nested_map_values_check(
+    column: str | Column, check_fn: Callable[[Column], Column]
+) -> Column:
+    """Validate a map's values when each value-check returns an `array<string>`.
+
+    The flattening analogue of `map_values_check`; use when a map value holds
+    further iteration (`dict[K, list]`, `dict[K, dict]`). A null map column
+    yields null.
+    """
+    return _map_projection_check(column, F.map_values, check_fn, flatten=True)
 
 
 def check_struct_unique(column: str | Column) -> Column:

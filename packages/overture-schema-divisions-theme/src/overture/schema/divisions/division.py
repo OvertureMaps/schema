@@ -13,10 +13,10 @@ from overture.schema.common import (
     OvertureFeature,
 )
 from overture.schema.common.cartography import CartographicallyHinted
-from overture.schema.common.models import (
+from overture.schema.common.names import CommonNames, Named, Names
+from overture.schema.common.perspectives import (
     Perspectives,
 )
-from overture.schema.common.names import CommonNames, Named, Names
 from overture.schema.common.scoping.side import Side
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import (

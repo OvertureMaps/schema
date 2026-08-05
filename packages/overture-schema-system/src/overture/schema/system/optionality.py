@@ -1,4 +1,7 @@
-from enum import Enum
+"""
+Optional types.
+"""
+
 from types import NoneType, UnionType
 from typing import Annotated, Any, Generic, TypeVar, Union, get_args, get_origin
 
@@ -69,18 +72,6 @@ class Omitable(Generic[T]):
                 f"`None` not allowed in `{Omitable.__name__}` args, but found `None` in {item}"
             )
         return Annotated[item | MISSING, Field(default=MISSING)]
-
-
-# todo - Vic - finish this
-class Optionality(str, Enum):
-    # This is for implementing the model constraints more cleverly.
-    #       Noneable -> It is allowed to be `null` in JSON Schema.
-    #                   To make it @required, need to take away the right to set `null`.
-    #
-    #
-    OMITABLE = ("omitable",)
-    NONEABLE = ("noneable",)
-    NOT_OPTIONAL = ("not_optional",)
 
 
 def _has_none(value: Any) -> bool:

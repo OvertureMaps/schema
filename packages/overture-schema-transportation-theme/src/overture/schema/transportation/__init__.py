@@ -1,15 +1,75 @@
 """Transportation theme.
 
-Transportation infrastructure including network segments (roads, rail, water) and
-connection points between segments.
+Transportation infrastructure including network segments (road, rail, water) and the
+connection points that join them.
 """
 
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
 from .connector import Connector
-from .segment import Segment
+from .segment import (
+    AccessRule,
+    AccessType,
+    ConnectorReference,
+    DestinationLabels,
+    DestinationLabelType,
+    DestinationRule,
+    DestinationSignSymbol,
+    LevelRule,
+    ProhibitedTransitionRule,
+    ProhibitedTransitionSequenceEntry,
+    RailClass,
+    RailFlag,
+    RailFlagRule,
+    RailSegment,
+    RoadClass,
+    RoadFlag,
+    RoadFlagRule,
+    RoadSegment,
+    RoadSubclass,
+    RoadSubclassRule,
+    RoadSurface,
+    RoadSurfaceRule,
+    RouteReference,
+    Segment,
+    SegmentSubtype,
+    Speed,
+    SpeedLimitRule,
+    TransportationSegment,
+    WaterSegment,
+    WidthRule,
+)
 
 __all__ = [
+    "AccessRule",
+    "AccessType",
     "Connector",
+    "ConnectorReference",
+    "DestinationLabelType",
+    "DestinationLabels",
+    "DestinationRule",
+    "DestinationSignSymbol",
+    "LevelRule",
+    "ProhibitedTransitionRule",
+    "ProhibitedTransitionSequenceEntry",
+    "RailClass",
+    "RailFlag",
+    "RailFlagRule",
+    "RailSegment",
+    "RoadClass",
+    "RoadFlag",
+    "RoadFlagRule",
+    "RoadSegment",
+    "RoadSubclass",
+    "RoadSubclassRule",
+    "RoadSurface",
+    "RoadSurfaceRule",
+    "RouteReference",
     "Segment",
+    "SegmentSubtype",
+    "Speed",
+    "SpeedLimitRule",
+    "TransportationSegment",
+    "WaterSegment",
+    "WidthRule",
 ]

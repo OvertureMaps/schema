@@ -8,7 +8,7 @@ from pydantic import ConfigDict, Field
 from overture.schema.common import (
     OvertureFeature,
 )
-from overture.schema.common.models import Perspectives
+from overture.schema.common.perspectives import Perspectives
 from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.geometric import (
@@ -70,7 +70,7 @@ class DivisionBoundary(
     Some boundaries may be disputed by the divisions on one or both sides.
     """
 
-    model_config = ConfigDict(title="boundary")
+    model_config = ConfigDict(title="division_boundary")
 
     # Core
     geometry: Annotated[

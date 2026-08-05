@@ -21,8 +21,8 @@ __all__ = [
     "CapitalOfDivisionItem",
     "Division",
     "DivisionArea",
+    "DivisionBoundary",
     "DivisionClass",
     "DivisionSubtype",
-    "DivisionBoundary",
     "Norms",
 ]

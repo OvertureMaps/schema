@@ -1,49 +1,61 @@
 """Structural representation of a field path through a nested schema.
 
-A `FieldPath` is one of three variants:
+A `FieldPath` is one of two variants:
 
-- `ScalarPath` -- a sequence of `StructSegment` values locating a value
-  that requires no iteration to reach.
-- `ArrayPath` -- a sequence of `StructSegment` and `ArraySegment` values,
-  with at least one `ArraySegment`, locating a value reached by iterating
-  one or more arrays. Each `ArraySegment` carries `iter_count`, the number
-  of `[]` markers on its name in the canonical encoding (multi-depth
-  segments encode nested-list iteration without an intervening struct,
-  e.g. `list[list[X]]` parses as a single `ArraySegment` with
-  `iter_count=2`).
-- `MapPath` -- struct segments leading to a map column, a single
-  `MapSegment` projecting the map to its keys or values, then a struct-only
-  leaf (possibly empty). Locates a value reached by iterating a
-  `dict[K, V]`'s keys or values, encoded with a `{key}` / `{value}` marker
-  on the map column and the leaf appended after it (e.g. `names.common{key}`
-  for a scalar value, `subs{value}.label` for a field inside a
-  `dict[K, Model]` value).
+- `Direct` -- a sequence of `StructSegment` values locating a value that
+  requires no iteration to reach.
+- `Iterated` -- a sequence of `StructSegment`, `ArraySegment`, and
+  `MapSegment` values with at least one iterating (`Array`/`Map`) segment,
+  locating a value reached by iterating one or more arrays or maps. Each
+  iterating segment is exactly one iteration frame. A container nested
+  directly inside another container with no field name between (e.g.
+  `list[list[X]]`, `dict[K, list[X]]`) is an *anonymous* iterating segment
+  -- an `ArraySegment` or `MapSegment` whose `name` is empty, meaning "the
+  parent element is itself this container." Anonymity is read through
+  `is_anonymous`, never `name == ""` directly.
 
-The canonical string form (`str(path)`) round-trips through `parse`.
-Code that needs to emit a path into source or labels calls `str(path)`
-at the boundary; everything else operates on segments.
+Examples map a Pydantic field annotation to the canonical string form of
+a check on its innermost value:
+
+    x: int                              -> "x"                (Direct)
+    parent: Parent (field `value`)      -> "parent.value"     (Direct)
+    items: list[Item] (field `v`)       -> "items[].v"        (Iterated)
+    tags: dict[str, str] (values)       -> "tags{value}"      (Iterated)
+    tags: dict[str, str] (keys)         -> "tags{key}"        (Iterated)
+    grid: list[list[int]]               -> "grid[][]"         (Iterated)
+    subs: dict[str, list[X]] (values)   -> "subs{value}[]"    (Iterated)
+    items: list[dict[str, X]] (values)  -> "items[]{value}"   (Iterated)
+
+In the multi-container forms the first marker is a *named* segment (it
+carries the field name) and each trailing marker is *anonymous* -- the
+parent element is itself the next container, so no field name separates
+them. The canonical string (`str(path)`) round-trips through `parse`;
+the `[]` / `{key}` / `{value}` sugar is unchanged, so existing encodings
+round-trip and only the internal segment list generalizes. Code that
+emits a path into source or labels calls `str(path)` at that boundary;
+everything else operates on segments.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import TypeAlias
 
 __all__ = [
-    "ArrayPath",
     "ArraySegment",
+    "Direct",
     "FieldPath",
     "FieldSegment",
-    "MapPath",
+    "Iterated",
     "MapProjection",
     "MapSegment",
-    "ScalarPath",
     "StructSegment",
     "coerce",
     "parse",
-    "promote_terminal_array",
-    "promote_terminal_map",
+    "promote_terminal",
+    "terminal_run_start",
 ]
 
 
@@ -56,15 +68,19 @@ class StructSegment:
 
 @dataclass(frozen=True, slots=True)
 class ArraySegment:
-    """An array column entered with one or more levels of iteration.
+    """An array column entered with one level of iteration.
 
-    `iter_count` records the number of `[]` markers immediately following
-    the segment name; values > 1 correspond to nested lists like
-    `list[list[X]]`.
+    An empty `name` marks an *anonymous* segment: the parent element is
+    itself a list (`list[list[...]]`), iterated once more with no field
+    navigation. Read anonymity via `is_anonymous`, never `name == ""`.
     """
 
-    name: str
-    iter_count: int = 1
+    name: str = ""
+
+    @property
+    def is_anonymous(self) -> bool:
+        """Whether this segment is a nameless extra iteration of the prior container."""
+        return self.name == ""
 
 
 class MapProjection(Enum):
@@ -80,121 +96,197 @@ class MapSegment:
 
     `projection` selects keys or values; the projected side is iterated
     like an array, so checks on a `MapSegment` render through the same
-    element machinery as `ArraySegment`.
+    element machinery as `ArraySegment`. An empty `name` marks an
+    *anonymous* segment: the parent element is itself a map
+    (`dict[K, dict[K2, V]]`, `list[dict]`), projected once more with no
+    field navigation. Read anonymity via `is_anonymous`, never `name == ""`.
     """
 
     name: str
     projection: MapProjection
 
+    @property
+    def is_anonymous(self) -> bool:
+        """Whether this segment is a nameless extra projection of the prior container."""
+        return self.name == ""
+
+
+# The element type of any `FieldPath.segments`. A `Direct` holds only
+# `StructSegment`s; an `Iterated` mixes all three.
+FieldSegment: TypeAlias = StructSegment | ArraySegment | MapSegment
+
+
+def _is_iterating(seg: FieldSegment) -> bool:
+    """Whether *seg* is an iterating (`Array`/`Map`) segment."""
+    return isinstance(seg, (ArraySegment, MapSegment))
+
+
+def _first_iterating(segments: tuple[FieldSegment, ...]) -> ArraySegment | MapSegment:
+    """Return the first iterating segment (Array/Map) in *segments*.
+
+    Callers guarantee at least one exists (the `Iterated` invariant).
+    """
+    for seg in segments:
+        if isinstance(seg, (ArraySegment, MapSegment)):
+            return seg
+    raise AssertionError("no iterating segment; caller violated the invariant")
+
 
 @dataclass(frozen=True, slots=True)
-class ScalarPath:
+class Direct:
     """Locate a non-iterated value in a row."""
 
     segments: tuple[StructSegment, ...] = ()
 
-    def append_struct(self, name: str) -> ScalarPath:
-        return ScalarPath(segments=self.segments + (StructSegment(name=name),))
+    def append_struct(self, name: str) -> Direct:
+        """Return a new `Direct` with *name* appended as a struct segment."""
+        return Direct(segments=self.segments + (StructSegment(name=name),))
 
-    def append_array(self, name: str, iter_count: int = 1) -> ArrayPath:
-        return ArrayPath(
-            segments=self.segments + (ArraySegment(name=name, iter_count=iter_count),)
-        )
+    def append_array(self, name: str) -> Iterated:
+        """Return an `Iterated` with *name* appended as a named array segment."""
+        return Iterated(segments=self.segments + (ArraySegment(name=name),))
 
     def __str__(self) -> str:
         return ".".join(s.name for s in self.segments)
 
 
 @dataclass(frozen=True, slots=True)
-class ArrayPath:
+class Iterated:
     """Locate an iterated value; iteration structure is part of the location.
 
-    Invariant: `segments` contains at least one `ArraySegment`.
+    Segments mix `StructSegment`, `ArraySegment`, and `MapSegment`.
+    Invariants (enforced in `__post_init__`): at least one iterating
+    (`Array`/`Map`) segment, and the first iterating segment is named
+    (anonymity only ever follows another iterating segment). A struct
+    prefix before the first iterating segment is allowed (e.g.
+    `parent.items[].value`).
     """
 
-    segments: tuple[StructSegment | ArraySegment, ...]
+    segments: tuple[FieldSegment, ...]
 
     def __post_init__(self) -> None:
-        if not any(isinstance(s, ArraySegment) for s in self.segments):
-            raise ValueError("ArrayPath must contain at least one ArraySegment")
+        if not any(_is_iterating(s) for s in self.segments):
+            raise ValueError("Iterated must contain at least one Array/Map segment")
+        if _first_iterating(self.segments).is_anonymous:
+            raise ValueError("first iterating segment must be named, not anonymous")
 
-    def append_struct(self, name: str) -> ArrayPath:
-        return ArrayPath(segments=self.segments + (StructSegment(name=name),))
+    def append_struct(self, name: str) -> Iterated:
+        """Return a new `Iterated` with *name* appended to the struct leaf."""
+        return Iterated(segments=self.segments + (StructSegment(name=name),))
 
-    def append_array(self, name: str, iter_count: int = 1) -> ArrayPath:
-        return ArrayPath(
-            segments=self.segments + (ArraySegment(name=name, iter_count=iter_count),)
-        )
+    def append_array(self, name: str) -> Iterated:
+        """Return a new `Iterated` with *name* appended as a named array segment."""
+        return Iterated(segments=self.segments + (ArraySegment(name=name),))
 
     @property
-    def column_prefix(self) -> ScalarPath:
-        """Struct segments before the first ArraySegment.
+    def outer_column(self) -> str:
+        """Dotted name of the outermost iterated column.
 
-        Returns an empty `ScalarPath(())` when the array is the first
-        segment.
+        The struct prefix plus the first iterating segment's name
+        (unbracketed, unprojected). This is what `F.col(...)`,
+        `array_check("...", ...)`, or `map_values_check("...", ...)`
+        consumes.
+        """
+        names: list[str] = []
+        for seg in self.segments:
+            names.append(seg.name)
+            if _is_iterating(seg):
+                break
+        return ".".join(names)
+
+    @property
+    def column_prefix(self) -> Direct:
+        """Struct segments before the first iterating segment.
+
+        Returns an empty `Direct(())` when an iterating segment is first.
         """
         prefix: list[StructSegment] = []
         for seg in self.segments:
-            if isinstance(seg, ArraySegment):
+            if _is_iterating(seg):
                 break
+            assert isinstance(seg, StructSegment)
             prefix.append(seg)
-        return ScalarPath(segments=tuple(prefix))
-
-    @property
-    def column_path(self) -> str:
-        """Dotted name of the outermost array column.
-
-        The struct prefix plus the first ArraySegment's name (unbracketed).
-        This is what `F.col(...)` or `array_check("...", ...)` consumes.
-        """
-        first_prefix, first_array, _first_iter = self.array_chunks[0]
-        return ".".join((*first_prefix, first_array))
+        return Direct(segments=tuple(prefix))
 
     @property
     def leaf(self) -> tuple[str, ...]:
-        """Names of struct segments after the last ArraySegment."""
-        last_array = next(
-            i
-            for i in range(len(self.segments) - 1, -1, -1)
-            if isinstance(self.segments[i], ArraySegment)
-        )
-        return tuple(s.name for s in self.segments[last_array + 1 :])
+        """Names of struct segments after the last iterating segment."""
+        last_iter = max(i for i, s in enumerate(self.segments) if _is_iterating(s))
+        return tuple(s.name for s in self.segments[last_iter + 1 :])
 
     @property
-    def array_chunks(
+    def iter_frames(
         self,
-    ) -> tuple[tuple[tuple[str, ...], str, int], ...]:
-        """One chunk per ArraySegment.
+    ) -> tuple[tuple[tuple[str, ...], ArraySegment | MapSegment], ...]:
+        """One frame per *named* iterating segment.
 
-        Each entry is `(prefix_structs, array_name, iter_count)` where
-        `prefix_structs` is the sequence of struct segment names between
-        the previous ArraySegment (or the start of the path) and this
-        ArraySegment.
+        Each entry is `(prefix_structs, segment)` where `prefix_structs` is
+        the sequence of struct segment names between the previous named
+        iterating segment (or the start of the path) and this one. An
+        anonymous iterating segment does not start a new frame -- it is an
+        extra iteration folded into the preceding named frame, surfaced
+        separately by `iter_struct_paths`. Carrying the segment lets
+        downstream pick the runtime helper and read `projection`.
         """
-        chunks: list[tuple[tuple[str, ...], str, int]] = []
+        frames: list[tuple[tuple[str, ...], ArraySegment | MapSegment]] = []
         prefix: list[str] = []
         for seg in self.segments:
-            if isinstance(seg, ArraySegment):
-                chunks.append((tuple(prefix), seg.name, seg.iter_count))
+            if isinstance(seg, (ArraySegment, MapSegment)):
+                if not seg.is_anonymous:
+                    frames.append((tuple(prefix), seg))
                 prefix = []
             else:
                 prefix.append(seg.name)
-        return tuple(chunks)
+        return tuple(frames)
+
+    @property
+    def iter_struct_paths(self) -> tuple[tuple[str, ...], ...]:
+        """Per non-outermost iteration: the struct path that reaches its container.
+
+        For each named iterating segment past the first, emit `(prefix_structs
+        + segment_name)` -- the navigation FROM the previous iteration's
+        element TO this container. For each anonymous iterating segment, emit
+        `()` -- the parent element is already the next container, so there is
+        no navigation.
+
+        Returns an empty tuple when the path iterates only once.
+        """
+        paths: list[tuple[str, ...]] = []
+        prefix: list[str] = []
+        first = True
+        for seg in self.segments:
+            if isinstance(seg, (ArraySegment, MapSegment)):
+                if first:
+                    first = False
+                elif seg.is_anonymous:
+                    paths.append(())
+                else:
+                    paths.append((*prefix, seg.name))
+                prefix = []
+            else:
+                prefix.append(seg.name)
+        return tuple(paths)
 
     def element_relative_gate(self, gate: FieldPath) -> tuple[str, ...] | None:
         """Path inside this array's element scope that names *gate*.
 
+        **Precondition (stated loudly):** valid only when the first iterating
+        segment is an `ArraySegment`; guaranteed because `check_builder`
+        zeros the nullable gate whenever it enters any iterated container, so
+        a map-first path never carries a gate. The `assert` below on the
+        boundary segment makes the precondition a hard failure if violated.
+
         Three return states:
 
-        - ``tuple[str, ...]`` (non-empty) -- "reachable with descent":
+        - `tuple[str, ...]` (non-empty) -- "reachable with descent":
           `gate` enters the same outer array as this path and names a
           struct descendant inside its element. The returned segments
           name that descendant relative to the element.
-        - ``()`` -- "reachable, no descent": `gate` is the outer array
+        - `()` -- "reachable, no descent": `gate` is the outer array
           itself; the element variable IS the gated value.
-        - ``None`` -- "not reachable": `gate` does not cross into this
+        - `None` -- "not reachable": `gate` does not cross into this
           path's element scope (different outer array, scalar gate,
-          mismatched struct prefix, mismatched boundary `iter_count`,
+          mismatched struct prefix, mismatched boundary iteration depth,
           etc.). Callers must apply the gate at column level instead.
 
         Raises `NotImplementedError` when `gate` enters the same outer
@@ -207,7 +299,7 @@ class ArrayPath:
         """
         column_prefix = self.column_prefix.segments
         n_prefix = len(column_prefix)
-        if not isinstance(gate, ArrayPath):
+        if not isinstance(gate, Iterated):
             return None
         gate_segs = gate.segments
         if len(gate_segs) <= n_prefix:
@@ -224,9 +316,11 @@ class ArrayPath:
             return None
         if gate_boundary.name != target_boundary.name:
             return None
-        if gate_boundary.iter_count != target_boundary.iter_count:
+        target_run = _array_run_length(self.segments, n_prefix)
+        gate_run = _array_run_length(gate_segs, n_prefix)
+        if gate_run != target_run:
             return None
-        inner_segments = gate_segs[n_prefix + 1 :]
+        inner_segments = gate_segs[n_prefix + gate_run :]
         for seg in inner_segments:
             if not isinstance(seg, StructSegment):
                 raise NotImplementedError(
@@ -235,178 +329,121 @@ class ArrayPath:
                 )
         return tuple(s.name for s in inner_segments)
 
-    @property
-    def iter_struct_paths(self) -> tuple[tuple[str, ...], ...]:
-        """Per non-outermost iteration: the struct path that reaches its array.
-
-        For each ArraySegment past the first, emit `(prefix_structs +
-        array_name)` -- the navigation FROM the previous iteration's
-        element TO this array. For each `iter_count > 1` on an
-        ArraySegment, emit `iter_count - 1` additional `()` entries
-        representing extra iterations inside the same (already-named)
-        array.
-
-        Returns an empty tuple when the path iterates only once.
-        """
-        paths: list[tuple[str, ...]] = []
-        for chunk_idx, (prefix_structs, arr_name, iter_count) in enumerate(
-            self.array_chunks
-        ):
-            if chunk_idx > 0:
-                paths.append(prefix_structs + (arr_name,))
-            for _ in range(iter_count - 1):
-                paths.append(())
-        return tuple(paths)
-
     def __str__(self) -> str:
-        return ".".join(_segment_str(s) for s in self.segments)
+        parts: list[str] = []
+        for seg in self.segments:
+            token = _segment_str(seg)
+            if isinstance(seg, (ArraySegment, MapSegment)) and seg.is_anonymous:
+                parts[-1] += token
+            else:
+                parts.append(token)
+        return ".".join(parts)
 
 
-@dataclass(frozen=True, slots=True)
-class MapPath:
-    """Locate a value inside a map's keys or values via one `MapSegment`.
-
-    Invariant: `segments` is a struct prefix, exactly one `MapSegment`
-    boundary, then a struct-only leaf (possibly empty). The `MapSegment`
-    iterates the projected keys or values like an array; the leaf navigates
-    structs inside each projected element, mirroring `ArrayPath.leaf` for a
-    `list[Model]`. An empty leaf locates the projected scalar itself
-    (`dict[K, scalar]`); a non-empty leaf locates a field inside a
-    `dict[K, Model]` value (or key).
-
-    The map must be reachable without array iteration, and the leaf must be
-    struct-only -- a map nested inside an array element or a container
-    nested inside a map element is not representable (and
-    `promote_terminal_map` / `promote_terminal_array` raise rather than
-    fabricate one).
-    """
-
-    segments: tuple[StructSegment | MapSegment, ...]
-
-    def __post_init__(self) -> None:
-        map_count = sum(isinstance(s, MapSegment) for s in self.segments)
-        if map_count != 1:
-            raise ValueError("MapPath must contain exactly one MapSegment")
-        if not all(isinstance(s, (StructSegment, MapSegment)) for s in self.segments):
-            raise ValueError("MapPath segments outside the map must be struct segments")
-
-    @property
-    def _map_index(self) -> int:
-        return next(i for i, s in enumerate(self.segments) if isinstance(s, MapSegment))
-
-    @property
-    def projection(self) -> MapProjection:
-        seg = self.segments[self._map_index]
-        assert isinstance(seg, MapSegment)
-        return seg.projection
-
-    @property
-    def map_column(self) -> str:
-        """Dotted name of the map column (struct prefix + map field name).
-
-        This is what `F.col(...)` consumes; the `{key}` / `{value}` marker
-        and the leaf belong to `str(path)`, not to the column reference.
-        """
-        return ".".join(s.name for s in self.segments[: self._map_index + 1])
-
-    @property
-    def leaf(self) -> tuple[str, ...]:
-        """Names of struct segments after the `MapSegment`.
-
-        Empty for a bare key/value projection; the field path inside each
-        projected element otherwise.
-        """
-        return tuple(s.name for s in self.segments[self._map_index + 1 :])
-
-    def append_struct(self, name: str) -> MapPath:
-        return MapPath(segments=self.segments + (StructSegment(name=name),))
-
-    def __str__(self) -> str:
-        base = f"{self.map_column}{{{self.projection.value}}}"
-        return base + "".join(f".{n}" for n in self.leaf)
+FieldPath: TypeAlias = Direct | Iterated
 
 
-FieldPath: TypeAlias = ScalarPath | ArrayPath | MapPath
-
-
-# The element type of any `FieldPath.segments`, across all three variants.
-# Broader than an `ArrayPath`'s `StructSegment | ArraySegment`: a `MapPath`
-# adds a trailing `MapSegment`. Consumers that walk an arbitrary
-# `FieldPath`'s segments -- rather than a statically known `ArrayPath` --
-# annotate with this so a `MapSegment` is not a type error.
-FieldSegment: TypeAlias = StructSegment | ArraySegment | MapSegment
-
-
-def _segment_str(seg: StructSegment | ArraySegment) -> str:
+def _segment_str(seg: FieldSegment) -> str:
     if isinstance(seg, ArraySegment):
-        return seg.name + "[]" * seg.iter_count
+        return "[]" if seg.is_anonymous else seg.name + "[]"
+    if isinstance(seg, MapSegment):
+        marker = f"{{{seg.projection.value}}}"
+        return marker if seg.is_anonymous else seg.name + marker
     return seg.name
 
 
-def _strip_map_suffix(part: str) -> MapProjection | None:
-    """Return the `MapProjection` named by a trailing `{key}`/`{value}`, or None."""
-    for proj in MapProjection:
-        if part.endswith(f"{{{proj.value}}}"):
-            return proj
-    return None
+def _array_run_length(segments: tuple[FieldSegment, ...], start: int) -> int:
+    """Count the ArraySegment run starting at *start*.
+
+    The run is the named segment at `segments[start]` (which must be an
+    `ArraySegment`) plus any immediately-following anonymous ArraySegments
+    -- the total iteration depth of a multi-bracket terminal like
+    `hierarchies[][]`.
+    """
+    length = 1
+    idx = start + 1
+    while idx < len(segments):
+        candidate = segments[idx]
+        if not (isinstance(candidate, ArraySegment) and candidate.is_anonymous):
+            break
+        length += 1
+        idx += 1
+    return length
+
+
+def terminal_run_start(segments: tuple[FieldSegment, ...]) -> int:
+    """Return the index where the trailing bracket run's named segment sits.
+
+    Scans backward from the last segment while it is an anonymous
+    `ArraySegment`, stopping at the first segment that isn't (or at index
+    0). The result names the run's *named* segment -- e.g. the first of
+    the two segments behind a multi-bracket terminal like
+    `hierarchies[][]` -- or simply the last segment when the path doesn't
+    end in a bracket run at all.
+
+    The `Iterated` invariant (the first iterating segment is always named)
+    guarantees the scan never needs to pass index 0. The mirror of
+    `_array_run_length`, which counts the same run forward from this index:
+    `_array_run_length(segments, terminal_run_start(segments))` gives the
+    run's length whenever the terminal segment is an `ArraySegment`.
+    """
+    index = len(segments) - 1
+    while index > 0:
+        candidate = segments[index]
+        if not (isinstance(candidate, ArraySegment) and candidate.is_anonymous):
+            break
+        index -= 1
+    return index
+
+
+_MARKER = re.compile(r"\[\]|\{(key|value)\}")
 
 
 def parse(encoded: str) -> FieldPath:
     """Parse a canonical encoded path like `"items[].nested.value"`.
 
-    Trailing `[]` markers on a dotted part produce an `ArraySegment`
-    with matching `iter_count`; a `{key}`/`{value}` marker produces a
-    `MapSegment` (and a `MapPath`), with any dotted parts after it forming
-    the map's struct leaf (e.g. `subs{value}.label`). The empty string
-    returns the empty `ScalarPath`. Raises `ValueError` when any dotted
-    part has an empty name (e.g. `".a"`, `"a..b"`, `"[]"`), when more than
-    one map marker appears, or when an array marker combines with a map
-    projection (`dict[K, list[V]]` is not representable as a `MapPath`).
+    A left-to-right marker tokenizer. Splits on `.`; for each dotted part,
+    reads the `name` up to the first marker (`[` or `{`), then scans markers
+    (`[]`, `{key}`, `{value}`) left to right against the remainder. A part
+    with no marker becomes a `StructSegment`. The first marker on a part
+    becomes a *named* container segment on `name`; each subsequent marker
+    becomes an *anonymous* container segment (its parent element is itself a
+    container). Because anonymous segments attach to the previous token,
+    every `.`-delimited part begins with a name.
+
+    Examples: `hierarchies[][]` -> two `ArraySegment`s (named, anonymous);
+    `subs{value}[]` -> `MapSegment` then anonymous `ArraySegment`;
+    `items[]{value}` -> `ArraySegment` then anonymous `MapSegment`;
+    `subs{value}.label` -> `MapSegment` then `StructSegment` leaf. The empty
+    string returns the empty `Direct`. Raises `ValueError` when any dotted
+    part has an empty name (e.g. `".a"`, `"a..b"`, `"[]"`, `"a.{key}"`).
     """
     if not encoded:
-        return ScalarPath()
-    segments: list[StructSegment | ArraySegment | MapSegment] = []
-    struct_segments: list[StructSegment] = []
-    has_array = False
-    map_seen = False
-    parts = encoded.split(".")
-    for part in parts:
-        projection = _strip_map_suffix(part)
-        if projection is not None:
-            if map_seen:
-                raise ValueError(f"FieldPath has multiple map markers in {encoded!r}")
-            part = part[: -(len(projection.value) + 2)]
-        depth = 0
-        while part.endswith("[]"):
-            part = part[:-2]
-            depth += 1
-        if not part:
+        return Direct()
+    segments: list[FieldSegment] = []
+    has_iter = False
+    for part in encoded.split("."):
+        m = _MARKER.search(part)
+        name = part if m is None else part[: m.start()]
+        if not name:
             raise ValueError(f"FieldPath part has empty name in {encoded!r}")
-        if projection is not None:
-            if depth > 0:
-                raise ValueError(
-                    f"map projection marker cannot follow array markers in {encoded!r}"
+        if m is None:
+            segments.append(StructSegment(name=name))
+            continue
+        has_iter = True
+        first = True
+        for mk in _MARKER.finditer(part):
+            seg_name = name if first else ""
+            if mk.group() == "[]":
+                segments.append(ArraySegment(name=seg_name))
+            else:
+                segments.append(
+                    MapSegment(name=seg_name, projection=MapProjection(mk.group(1)))
                 )
-            map_seen = True
-            segments.append(MapSegment(name=part, projection=projection))
-        elif depth > 0:
-            has_array = True
-            segments.append(ArraySegment(name=part, iter_count=depth))
-        else:
-            struct = StructSegment(name=part)
-            segments.append(struct)
-            struct_segments.append(struct)
-    if map_seen:
-        if has_array:
-            raise ValueError(
-                f"map projection cannot combine with array markers in {encoded!r}"
-            )
-        return MapPath(segments=tuple(segments))  # type: ignore[arg-type]
-    if has_array:
-        # No MapSegment reached this branch (map_seen is False), so the
-        # tuple holds only Struct/Array segments.
-        return ArrayPath(segments=tuple(segments))  # type: ignore[arg-type]
-    return ScalarPath(segments=tuple(struct_segments))
+            first = False
+    if has_iter:
+        return Iterated(segments=tuple(segments))
+    return Direct(segments=tuple(segments))  # type: ignore[arg-type]
 
 
 def coerce(value: FieldPath | str) -> FieldPath:
@@ -416,49 +453,33 @@ def coerce(value: FieldPath | str) -> FieldPath:
     return value
 
 
-def promote_terminal_array(path: FieldPath) -> ArrayPath:
-    """Promote *path*'s terminal segment to an iterated `ArraySegment`.
+def promote_terminal(
+    path: FieldPath, *, projection: MapProjection | None = None
+) -> Iterated:
+    """Promote *path*'s terminal into an iterating segment.
 
-    A `StructSegment` terminal is *replaced* with `ArraySegment(name,
-    iter_count=1)`; an `ArraySegment` terminal has its `iter_count`
-    incremented. This is how a walker records entering a `list[...]`
-    layer on the field it is already pointing at -- unlike `append_array`,
-    which adds a new segment for a fresh nested array. Repeated calls
-    build the multi-iteration terminal of a `list[list[X]]` field.
+    Records a walker entering a container (`list[...]` when *projection* is
+    `None`, `dict[K, V]` when set) on the field it already points at:
 
-    Raises `ValueError` on an empty path: there is no terminal segment
-    to promote. Raises `NotImplementedError` for a `MapPath`: a list nested
-    inside a map element has no representable path, so the gap stays loud.
+    - a `StructSegment` terminal is *replaced* with a *named* container
+      segment taking the struct's name;
+    - an iterating terminal has an *anonymous* container segment *appended*
+      (the parent element is itself a container).
+
+    Every nesting a walker can enter -- struct into a list or map, and a
+    container directly inside another container -- is representable this way,
+    so the promotion always succeeds. Raises `ValueError` on an empty path:
+    there is no terminal segment to promote.
     """
     if not path.segments:
         raise ValueError("cannot promote the terminal of an empty path")
-    if isinstance(path, MapPath):
-        raise NotImplementedError("list nested inside a map element is not supported")
     *prefix, last = path.segments
-    if isinstance(last, ArraySegment):
-        promoted = ArraySegment(name=last.name, iter_count=last.iter_count + 1)
-    else:
-        promoted = ArraySegment(name=last.name, iter_count=1)
-    return ArrayPath(segments=(*prefix, promoted))
-
-
-def promote_terminal_map(path: FieldPath, projection: MapProjection) -> MapPath:
-    """Promote *path*'s terminal struct segment to a `MapSegment`.
-
-    Records a walker entering a `dict[K, V]` layer on the field it already
-    points at, projecting to keys or values. Raises `ValueError` on an
-    empty path and `NotImplementedError` when the map is reached through
-    array iteration or already projects another map -- a map nested inside
-    an array element or another map element has no schema field today and
-    no representable `MapPath`, so the gap stays loud.
-    """
-    if not path.segments:
-        raise ValueError("cannot promote the terminal of an empty path")
-    if isinstance(path, ArrayPath):
-        raise NotImplementedError("map nested under a list layer is not supported")
-    if isinstance(path, MapPath):
-        raise NotImplementedError("map nested inside a map element is not supported")
-    *prefix, last = path.segments
-    return MapPath(
-        segments=(*prefix, MapSegment(name=last.name, projection=projection))  # type: ignore[arg-type]
+    named = last.name if isinstance(last, StructSegment) else ""
+    new: ArraySegment | MapSegment = (
+        ArraySegment(name=named)
+        if projection is None
+        else MapSegment(name=named, projection=projection)
     )
+    if isinstance(last, StructSegment):
+        return Iterated(segments=(*prefix, new))
+    return Iterated(segments=(*path.segments, new))

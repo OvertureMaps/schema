@@ -85,6 +85,7 @@ time, captures their `__doc__` attributes, then deletes the instances:
 class _DocstringProbeEnum(Enum):
     pass
 
+
 _ENUM_DEFAULT_DOCSTRING = _DocstringProbeEnum.__doc__
 del _DocstringProbeEnum
 ```
