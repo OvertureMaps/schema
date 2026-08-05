@@ -28,7 +28,7 @@ from overture.schema.system.geometric import (
     GeometryType,
     GeometryTypeConstraint,
 )
-from overture.schema.system.model_constraint import no_extra_fields, require_any_of
+from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.numeric import float64, int32
 from overture.schema.system.ref import Id, Reference, Relationship
 
@@ -297,8 +297,18 @@ class Speed(BaseModel):
     unit: SpeedUnit
 
 
+class SpeedLimitType(str, DocumentedEnum):
+    """The kind of speed limit."""
+
+    ADVISORY = (
+        "advisory",
+        "A recommended safe speed (e.g. before sharp curves or on ramps)",
+    )
+    MAXIMUM = "maximum"
+    MINIMUM = "minimum"
+
+
 @no_extra_fields
-@require_any_of("max_speed", "min_speed")
 @scoped(
     Scope.GEOMETRIC_RANGE,
     Scope.HEADING,
@@ -311,17 +321,10 @@ class Speed(BaseModel):
 class SpeedLimitRule(BaseModel):
     """An individual speed limit rule."""
 
-    # Optional
+    # Required
 
-    max_speed: Speed | None = None
-    min_speed: Speed | None = None
-    is_max_speed_variable: Annotated[
-        bool | None,
-        Field(
-            description="Indicates a variable speed corridor",
-            strict=True,
-        ),
-    ] = False
+    type: SpeedLimitType
+    speed: Speed
 
 
 SpeedLimits = NewType(

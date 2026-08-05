@@ -135,8 +135,9 @@ unit = "m"
 value = 5.2
 
 [[examples.Segment.speed_limits]]
+type = "maximum"
 
-[examples.Segment.speed_limits.max_speed]
+[examples.Segment.speed_limits.speed]
 unit = "km/h"
 value = 60
 
