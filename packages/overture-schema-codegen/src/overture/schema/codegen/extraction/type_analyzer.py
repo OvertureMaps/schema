@@ -250,6 +250,7 @@ def _unwrap(
     owner: type | None,
     model_resolver: ModelResolver | None,
     union_resolver: UnionResolver | None,
+    seen_rootmodels: frozenset[type] = frozenset(),
 ) -> tuple[FieldShape, bool, str | None]:
     """Recurse one annotation layer, returning its `FieldShape` subtree.
 
@@ -271,15 +272,23 @@ def _unwrap(
     """
 
     def _recurse(
-        annotation: object, newtype_ctx: _NewTypeCtx | None
+        annotation: object,
+        newtype_ctx: _NewTypeCtx | None,
+        seen_rootmodels: frozenset[type] = seen_rootmodels,
     ) -> tuple[FieldShape, bool, str | None]:
-        """Recurse into a child annotation, carrying the invariant resolvers."""
+        """Recurse into a child annotation, carrying the invariant resolvers.
+
+        `seen_rootmodels` defaults to the current frame's set, so ordinary
+        descents thread it unchanged; the RootModel branch passes an
+        augmented set to detect a self-referential root.
+        """
         return _unwrap(
             annotation,
             newtype_ctx=newtype_ctx,
             owner=owner,
             model_resolver=model_resolver,
             union_resolver=union_resolver,
+            seen_rootmodels=seen_rootmodels,
         )
 
     if isinstance(annotation, (str, ForwardRef)):
@@ -382,8 +391,20 @@ def _unwrap(
         # field metadata does, so a constrained root
         # (`RootModel[Annotated[list, MaxLen]]`) keeps its length-wrapped
         # variant on the unwrapped layer.
+        #
+        # Unwrapping erases the RootModel identity, so -- unlike a
+        # self-referential BaseModel, which the resolver terminates with a
+        # `starts_cycle` back-edge -- a self-referential root has no node to
+        # carry one and no finite bare-shape form. `seen_rootmodels` detects
+        # the re-entry and raises; without it the recurse below never returns.
+        if annotation in seen_rootmodels:
+            raise TypeError(
+                f"Self-referential RootModel {annotation.__name__} is not supported"
+            )
         root = annotation.model_fields["root"]
-        inner, opt, desc = _recurse(root.annotation, newtype_ctx)
+        inner, opt, desc = _recurse(
+            root.annotation, newtype_ctx, seen_rootmodels | {annotation}
+        )
         return attach_field_metadata(inner, root), opt, desc
 
     return _terminal(annotation, newtype_ctx, model_resolver), False, None
