@@ -31,16 +31,14 @@ runs:
   steps:
     - name: Diff package versions
       id: diff
-      shell: bash
-      env:
-        BEFORE: ${{ inputs.before }}
-      run: |
-        python3 ./.github/workflows/scripts/package_versions.py diff "$BEFORE" HEAD \
-          > "${RUNNER_TEMP}/package-version-diff.json"
+      uses: ./.github/actions/diff-package-versions
+      with:
+        before: ${{ inputs.before }}
 
     - name: Filter to releasable bumps
       id: filter
       shell: bash
+      env:
+        DIFF: ${{ steps.diff.outputs.diff }}
       run: |
-        python3 "${GITHUB_ACTION_PATH}/detect_version_bumps.py" \
-          < "${RUNNER_TEMP}/package-version-diff.json" >> "$GITHUB_OUTPUT"
+        echo "$DIFF" | python3 "${GITHUB_ACTION_PATH}/detect_version_bumps.py" >> "$GITHUB_OUTPUT"

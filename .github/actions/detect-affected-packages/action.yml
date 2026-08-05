@@ -43,16 +43,13 @@ runs:
         matrix: true
 
     # Independent of the step above (neither reads the other's output); runs
-    # after it only so both Python steps land back to back.
+    # after it only so both feed the final filter step back to back.
     - name: Diff package versions
       id: diff
-      shell: bash
-      env:
-        BEFORE: ${{ inputs.before }}
-        AFTER: ${{ inputs.after }}
-      run: |
-        python3 ./.github/workflows/scripts/package_versions.py diff "$BEFORE" "$AFTER" \
-          > "${RUNNER_TEMP}/package-version-diff.json"
+      uses: ./.github/actions/diff-package-versions
+      with:
+        before: ${{ inputs.before }}
+        after: ${{ inputs.after }}
 
     - name: Detect affected packages
       id: filter
@@ -62,6 +59,6 @@ runs:
         # file removed from a package without a version bump still changes
         # the built wheel.
         CHANGED_DIRS: ${{ steps.changed-dirs.outputs.all_modified_files }}
+        DIFF: ${{ steps.diff.outputs.diff }}
       run: |
-        python3 "${GITHUB_ACTION_PATH}/detect_affected_packages.py" \
-          < "${RUNNER_TEMP}/package-version-diff.json" >> "$GITHUB_OUTPUT"
+        echo "$DIFF" | python3 "${GITHUB_ACTION_PATH}/detect_affected_packages.py" >> "$GITHUB_OUTPUT"
