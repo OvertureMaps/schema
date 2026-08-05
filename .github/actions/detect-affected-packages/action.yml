@@ -1,0 +1,52 @@
+name: Detect affected packages
+description: >
+  Detects packages affected by a no-bump push to main, i.e. any file changed
+  under packages/<pkg>/ between two commits, excluding packages whose
+  pyproject.toml version was also bumped in the same range (those release via
+  release-trigger instead; see docs/versioning.md) and packages removed in the
+  range (nothing left to build).
+
+  Prerequisites: repo must be checked out with `fetch-depth: 0` so `before` is
+  reachable.
+
+inputs:
+  before:
+    description: The base commit SHA to compare against (e.g. github.event.before).
+    required: true
+  after:
+    description: The head commit SHA to compare to. Defaults to the checked-out HEAD.
+    required: false
+    default: HEAD
+
+outputs:
+  count:
+    description: Number of affected packages.
+    value: ${{ steps.filter.outputs.count }}
+  packages:
+    description: >
+      JSON array of affected package directory names, e.g.
+      ["overture-schema-common"]. Suitable as a matrix input.
+    value: ${{ steps.filter.outputs.packages }}
+
+runs:
+  using: composite
+  steps:
+    - name: Diff package versions
+      id: diff
+      shell: bash
+      env:
+        BEFORE: ${{ inputs.before }}
+        AFTER: ${{ inputs.after }}
+      run: |
+        python3 ./.github/workflows/scripts/package_versions.py diff "$BEFORE" "$AFTER" \
+          > "${RUNNER_TEMP}/package-version-diff.json"
+
+    - name: Detect affected packages
+      id: filter
+      shell: bash
+      env:
+        BEFORE: ${{ inputs.before }}
+        AFTER: ${{ inputs.after }}
+      run: |
+        python3 "${GITHUB_ACTION_PATH}/detect_affected_packages.py" "$BEFORE" "$AFTER" \
+          < "${RUNNER_TEMP}/package-version-diff.json" >> "$GITHUB_OUTPUT"

@@ -16,10 +16,10 @@ name: Publish GitHub release
 # is a release. No-bump merges publish internal `.postN` builds instead (see
 # .github/actions/compute-version).
 #
-# NOTE: releases are created with GITHUB_TOKEN, which by design does NOT trigger
-# further workflow runs. The Phase 3 publish workflow (#509) must therefore be
-# triggered by an app/PAT token here or via repository_dispatch, a plain
-# `on: release: published` listener will not fire for these releases.
+# Releases are created with the overture-release-publisher app's installation
+# token, not GITHUB_TOKEN: GITHUB_TOKEN-created releases don't fire downstream
+# `release: published` events, which release-publish.yaml needs to pick up
+# each release individually. See #637 for provisioning that app.
 
 on:
   push:
@@ -62,12 +62,23 @@ jobs:
     if: needs.detect.outputs.count != '0'
     runs-on: ubuntu-slim
     permissions:
-      contents: write # Required to create releases and their tags
+      contents: read # App token below carries the actual release-creation grant
     strategy:
       fail-fast: false # One package's failure must not block sibling releases
       matrix:
         include: ${{ fromJSON(needs.detect.outputs.bumps) }}
     steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_PUBLISHER_APP_ID }} # zizmor: ignore[secrets-outside-env]
+          private-key: ${{ secrets.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
+          # Explicitly scope the app token instead of inheriting all
+          # installation permissions: creating a release/tag is the only
+          # write this workflow performs.
+          permission-contents: write
+
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
@@ -83,4 +94,6 @@ jobs:
           # The umbrella package continues the legacy bare tag series as a
           # vanity tag (no second release); see docs/versioning.md.
           vanity-tag: ${{ matrix.package == 'overture-schema' && format('v{0}', matrix.version) || '' }}
-          token: ${{ github.token }}
+          # App token so the release fires its own `release: published` event
+          # for release-publish.yaml (GITHUB_TOKEN would not); see #637.
+          token: ${{ steps.app-token.outputs.token }}
