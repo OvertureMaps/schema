@@ -6,9 +6,9 @@ requires = ["hatchling"]
 dependencies = [
     "click>=8.1",
     "jinja2>=3.0",
-    "overture-schema-cli",
-    "overture-schema-common",
-    "overture-schema-system",
+    "overture-schema-cli>=0.1.1",
+    "overture-schema-common>=0.1.1",
+    "overture-schema-system>=0.1.1",
     "tomli>=2.0; python_version < '3.11'",
     "typing-extensions>=4.0",
 ]

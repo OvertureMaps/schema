@@ -1,0 +1,77 @@
+name: Changelog fragment verification
+
+# Enforces the changelog policy: any PR that changes a package must also carry
+# that package's changelog update, either a new towncrier fragment under
+# changelog.d/, or a built CHANGELOG.md (the result of running
+# `uv run towncrier build`).
+#
+# "Changes a package" means any file under packages/<package>/ other than that
+# package's own changelog artifacts (changelog.d/ and CHANGELOG.md). Every
+# user-facing change gets a fragment, regardless of whether it bumps the
+# version (see docs/versioning.md).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-fragment:
+    name: Require changelog on package change
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0 # The merge base with the PR base branch must be reachable
+          persist-credentials: false
+
+      - name: Require a changelog update for each changed package
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+
+          changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+
+          # Packages with changes outside their own changelog artifacts.
+          touched=$(echo "$changed" \
+            | grep -oE '^packages/[^/]+/' \
+            | sort -u \
+            | while read -r prefix; do
+                pkg=$(basename "$prefix")
+                if echo "$changed" | grep -E "^packages/${pkg}/" \
+                  | grep -vE "^packages/${pkg}/(changelog\.d/|CHANGELOG\.md$)" \
+                  | grep -q .; then
+                  echo "$pkg"
+                fi
+              done)
+
+          missing=""
+          for pkg in $touched; do
+            has_fragment=$(echo "$changed" \
+              | grep -cE "^packages/${pkg}/changelog\.d/.+\.(breaking|feature|bugfix|docs|misc)\.md$" || true)
+            has_changelog=$(echo "$changed" \
+              | grep -cE "^packages/${pkg}/CHANGELOG\.md$" || true)
+            if [ "$has_fragment" -eq 0 ] && [ "$has_changelog" -eq 0 ]; then
+              missing="${missing}  - ${pkg}"$'\n'
+            fi
+          done
+
+          if [ -n "$missing" ]; then
+            echo "::error::These packages changed but include no changelog update:"
+            printf '%s' "$missing"
+            echo ""
+            echo "Fix: one markdown file per package, named packages/<package>/changelog.d/<id>.<type>.md"
+            echo "(type: breaking | feature | bugfix | docs | misc), body = one past-tense sentence."
+            echo "Quick start: docs/versioning.md#changelog-quick-start"
+            exit 1
+          fi
+          echo "Changelog fragment check passed."

@@ -1,0 +1,46 @@
+name: Detect version bumps
+description: >
+  Detects per-package version bumps between two commits.
+
+  Composes the shared `package_versions.py diff` (reads versions from git,
+  enforces the major-bump cascade) with `detect_version_bumps.py` (filters
+  the diff to releasable bumps). Any `<major>.<minor>.<patch>` increase is a
+  bump; version decreases and non-cascaded major bumps fail the action (see
+  docs/versioning.md).
+
+  Prerequisites: repo must be checked out with `fetch-depth: 0` so `before`
+  is reachable.
+
+inputs:
+  before:
+    description: The base commit SHA to compare against (e.g. github.event.before).
+    required: true
+
+outputs:
+  count:
+    description: Number of bumped packages.
+    value: ${{ steps.filter.outputs.count }}
+  bumps:
+    description: >
+      JSON array of {"package", "version", "tag"} objects, one per bump.
+      Suitable as a matrix include list.
+    value: ${{ steps.filter.outputs.bumps }}
+
+runs:
+  using: composite
+  steps:
+    - name: Diff package versions
+      id: diff
+      shell: bash
+      env:
+        BEFORE: ${{ inputs.before }}
+      run: |
+        python3 ./.github/workflows/scripts/package_versions.py diff "$BEFORE" HEAD \
+          > "${RUNNER_TEMP}/package-version-diff.json"
+
+    - name: Filter to releasable bumps
+      id: filter
+      shell: bash
+      run: |
+        python3 "${GITHUB_ACTION_PATH}/detect_version_bumps.py" \
+          < "${RUNNER_TEMP}/package-version-diff.json" >> "$GITHUB_OUTPUT"

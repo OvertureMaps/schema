@@ -14,34 +14,35 @@ concurrency:
 jobs:
   check-label:
     name: Check label
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     permissions:
       contents: read # Required for reading PR labels
 
     steps:
       - name: Require exactly one change type label
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          script: |
-            const allChangeTypeLabels = new Set([
-              'change type - cosmetic 🌹',
-              'change type - documentation - docs team 📝',
-              'change type - documentation - member 📝',
-              'change type - major 🚨',
-              'change type - minor 🤏',
-              'automation 🦾',
-            ]);
-            const prLabels = context.payload.pull_request.labels.map(label => label.name);
-            const appliedChangeTypeLabels = prLabels.filter(prLabel => allChangeTypeLabels.has(prLabel));
-            if (appliedChangeTypeLabels.length !== 1) {
-              const baseMessage = `The PR must have EXACTLY one of the following CHANGE TYPE labels: ${Array.from(allChangeTypeLabels).sort().join(', ')}. `
-              const n = appliedChangeTypeLabels.length;
-              let contextualMessage;
-              if (n === 0) {
-                contextualMessage = 'It currently has no change type label. Please ➕ add one label. 🙏'
-              } else {
-                contextualMessage = `It currently has ${n} change type labels (${JSON.stringify(appliedChangeTypeLabels)}). 🙏 Please ❌ remove ${n-1} label(s).`
-              }
-              core.setFailed(baseMessage + contextualMessage);
-            }
+        run: |
+          set -euo pipefail
+
+          change_type_labels='change type - cosmetic 🌹
+          change type - documentation - docs team 📝
+          change type - documentation - member 📝
+          change type - major 🚨
+          change type - minor 🤏
+          automation 🦾'
+
+          applied=$(jq -r '.pull_request.labels[].name' "$GITHUB_EVENT_PATH" \
+            | grep -Fxf <(echo "$change_type_labels" | sed 's/^[[:space:]]*//') || true)
+          count=$(echo "$applied" | grep -c . || true)
+
+          if [ "$count" -ne 1 ]; then
+            echo "::error::The PR must have EXACTLY one change type label; it has ${count}."
+            echo "Allowed labels:"
+            echo "$change_type_labels" | sed 's/^[[:space:]]*/  - /'
+            if [ "$count" -gt 1 ]; then
+              echo "Currently applied:"
+              echo "$applied" | sed 's/^/  - /'
+            fi
+            exit 1
+          fi
+          echo "Change type label check passed: ${applied}"
