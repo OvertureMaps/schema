@@ -38,7 +38,7 @@ runs:
         BEFORE: ${{ inputs.before }}
         AFTER: ${{ inputs.after }}
       run: |
-        python3 ./.github/workflows/scripts/package_versions.py diff "$BEFORE" "$AFTER" \
+        python3 "${GITHUB_ACTION_PATH}/package_versions.py" diff "$BEFORE" "$AFTER" \
           > "${RUNNER_TEMP}/package-version-diff.json"
         {
           echo "count=$(jq 'length' "${RUNNER_TEMP}/package-version-diff.json")"
