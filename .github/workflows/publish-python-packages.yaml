@@ -79,6 +79,16 @@ jobs:
         id: get-code-artifact-params
         uses: ./.github/actions/code-artifact
 
+      # overture-schema-pyspark ships generated validation expressions that are
+      # not committed to git -- they are regenerated on demand from the Pydantic
+      # models. `uv build` packages whatever is on disk under the module root, so
+      # the tree must be generated here before the build, or the published wheel
+      # ships without its `expressions/generated/` modules and validate_model()
+      # discovers nothing to run.
+      - name: Generate PySpark expressions before build
+        if: matrix.package == 'overture-schema-pyspark'
+        run: make generate-pyspark
+
       - name: Publish package ${{ matrix.package }} version ${{ matrix.after }} to PyPI
         env:
           CA_TOKEN: ${{ steps.get-code-artifact-params.outputs.token }}
@@ -92,6 +102,14 @@ jobs:
           wheel="dist/${PACKAGE//-/_}-${AFTER}-py3-none-any.whl"
           if [ ! -f "$wheel" ]; then
             echo "    Wheel file [$wheel] not found. Aborting!"
+            exit 1
+          fi
+          # Guard against a silently empty wheel: if the generate step above ever
+          # regresses, overture-schema-pyspark would publish with no validation
+          # expressions. Fail loudly instead of shipping a hollow package.
+          if [ "$PACKAGE" = "overture-schema-pyspark" ] && \
+             ! unzip -l "$wheel" | grep -q 'expressions/generated/.*\.py'; then
+            echo "    Wheel [$wheel] has no generated expressions -- codegen did not run. Aborting!"
             exit 1
           fi
           tarball="dist/${PACKAGE//-/_}-${AFTER}.tar.gz"
