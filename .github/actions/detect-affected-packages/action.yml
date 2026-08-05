@@ -41,12 +41,25 @@ runs:
         python3 ./.github/workflows/scripts/package_versions.py diff "$BEFORE" "$AFTER" \
           > "${RUNNER_TEMP}/package-version-diff.json"
 
+    - name: List changed package directories
+      id: changed-dirs
+      uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+      with:
+        base_sha: ${{ inputs.before }}
+        sha: ${{ inputs.after }}
+        files: packages/**
+        dir_names: true
+        dir_names_max_depth: 2
+        matrix: true
+
     - name: Detect affected packages
       id: filter
       shell: bash
       env:
-        BEFORE: ${{ inputs.before }}
-        AFTER: ${{ inputs.after }}
+        # all_modified_files (not all_changed_files) so deletions count too: a
+        # file removed from a package without a version bump still changes
+        # the built wheel.
+        CHANGED_DIRS: ${{ steps.changed-dirs.outputs.all_modified_files }}
       run: |
-        python3 "${GITHUB_ACTION_PATH}/detect_affected_packages.py" "$BEFORE" "$AFTER" \
+        python3 "${GITHUB_ACTION_PATH}/detect_affected_packages.py" \
           < "${RUNNER_TEMP}/package-version-diff.json" >> "$GITHUB_OUTPUT"

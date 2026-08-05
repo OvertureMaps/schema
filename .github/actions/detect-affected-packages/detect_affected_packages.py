@@ -4,16 +4,18 @@
 Detect packages affected by a no-bump push to main.
 
 Composes `package_versions.py diff`'s version-diff JSON (read from stdin) with
-a file-level `git diff` to find packages whose directory changed without also
-changing their pyproject.toml version. Those need an internal `.postN` build
-(see docs/versioning.md). Packages with a version bump in the same range are
-excluded because they release via `release-trigger` instead, and removed
-packages are excluded because there is nothing left to build.
+a JSON array of changed package directories (env var `CHANGED_DIRS`, from
+tj-actions/changed-files' `dir_names` output) to find packages whose directory
+changed without also changing their pyproject.toml version. Those need an
+internal `.postN` build (see docs/versioning.md). Packages with a version bump
+in the same range are excluded because they release via `release-trigger`
+instead, and removed packages are excluded because there is nothing left to
+build.
 
 Run from the repository root, piping `package_versions.py diff`'s output in:
 
     python3 package_versions.py diff BEFORE AFTER \\
-      | python3 detect_affected_packages.py BEFORE AFTER
+      | CHANGED_DIRS='["packages/overture-schema-common"]' python3 detect_affected_packages.py
 
 Prints `$GITHUB_OUTPUT` lines on stdout (progress goes to stderr):
 
@@ -26,34 +28,11 @@ Exit status:
 """
 
 import json
-import subprocess
+import os
 import sys
-
-PACKAGES_DIR = "packages"
-
-
-def git(*args: str) -> str:
-    result = subprocess.run(["git", *args], capture_output=True, check=True)
-    return result.stdout.decode("utf-8")
-
-
-def changed_package_dirs(before: str, after: str) -> set[str]:
-    """Package directory names with any file change under packages/<pkg>/."""
-    diff = git("diff", "--name-only", f"{before}..{after}", "--", f"{PACKAGES_DIR}/")
-    names = set()
-    for line in diff.splitlines():
-        parts = line.split("/", 2)
-        if len(parts) >= 2:
-            names.add(parts[1])
-    return names
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
-        print(f"Usage: {sys.argv[0]} BEFORE_COMMIT AFTER_COMMIT", file=sys.stderr)
-        sys.exit(1)
-    before, after = sys.argv[1], sys.argv[2]
-
     version_diff = json.load(sys.stdin)
     bumped = {
         change["package"]
@@ -62,7 +41,8 @@ def main() -> None:
     }
     removed = {change["package"] for change in version_diff if change["after"] is None}
 
-    changed = changed_package_dirs(before, after)
+    changed_paths = json.loads(os.environ.get("CHANGED_DIRS") or "[]")
+    changed = {path.split("/", 1)[1] for path in changed_paths}
     affected = sorted(changed - bumped - removed)
 
     for package in sorted(changed):
