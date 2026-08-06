@@ -18,6 +18,7 @@ from ._common import (
     SegmentSubtype,
     Speed,
     SpeedLimitRule,
+    SpeedLimitType,
     TransportationSegment,
     WidthRule,
 )
@@ -91,6 +92,7 @@ __all__ = [
     "SegmentSubtype",
     "Speed",
     "SpeedLimitRule",
+    "SpeedLimitType",
     "TransportationSegment",
     "WaterSegment",
     "WidthRule",
