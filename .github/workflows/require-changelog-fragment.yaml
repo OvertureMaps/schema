@@ -9,6 +9,9 @@ name: Changelog fragment verification
 # package's own changelog artifacts (changelog.d/ and CHANGELOG.md). Every
 # user-facing change gets a fragment, regardless of whether it bumps the
 # version (see docs/versioning.md).
+#
+# PRs labeled `bot` (e.g. Dependabot) skip this check: automated dependency
+# bumps don't carry user-facing changes worth a fragment.
 
 on:
   pull_request:
@@ -25,6 +28,7 @@ jobs:
   check-fragment:
     name: Require changelog on package change
     runs-on: ubuntu-slim
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'bot') }}
     permissions:
       contents: read
     steps:
