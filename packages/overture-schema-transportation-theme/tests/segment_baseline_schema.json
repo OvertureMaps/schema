@@ -1253,8 +1253,7 @@
         }
       },
       "required": [
-        "property",
-        "dataset"
+        "property"
       ],
       "title": "SourceItem",
       "type": "object"

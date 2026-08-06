@@ -140,8 +140,9 @@ class TestGenerateScaffoldConnector:
         assert isinstance(scaffold["sources"], list)
         assert len(scaffold["sources"]) == 1
         elem = scaffold["sources"][0]
-        # Required sibling 'dataset' populated
-        assert "dataset" in elem
+        # Required sibling 'property' populated; optional 'dataset' omitted
+        assert "property" in elem
+        assert "dataset" not in elem
 
     def test_scaffold_is_dict(self, connector_spec: ModelSpec) -> None:
         field_nodes, _ = build_checks(connector_spec)

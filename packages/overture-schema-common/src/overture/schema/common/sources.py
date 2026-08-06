@@ -44,14 +44,17 @@ class SourceItem(BaseModel):
             it applies to the feature geometry.
         """).strip()
     )
-    dataset: str = Field(
-        description=textwrap.dedent("""
-            Name of the dataset where the source data can be found.
-        """).strip()
-    )
 
     # Optional
 
+    dataset: Annotated[
+        str | None,
+        Field(
+            description=textwrap.dedent("""
+                Name of the dataset where the source data can be found.
+            """).strip()
+        ),
+    ] = None
     license: Annotated[
         StrippedString | None,
         Field(
