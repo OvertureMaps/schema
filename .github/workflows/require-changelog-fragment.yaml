@@ -14,9 +14,9 @@ name: Changelog fragment verification
 # label, and it's scoped to uv.lock and GitHub Actions version bumps, neither
 # of which touches consumer-facing behavior.
 #
-# PRs that only touch .github/ also skip: workflow and CI config aren't
-# packages, so detect-scope's tj-actions/changed-files check (ignoring
-# .github/**) reports no changes and check-fragment never runs.
+# PRs that don't touch packages/ at all also skip: docs, CI config, and
+# other root-level changes were never going to need a fragment, since
+# check-fragment only ever looks at packages/<package>/ paths.
 
 on:
   pull_request:
@@ -31,12 +31,12 @@ concurrency:
 
 jobs:
   detect-scope:
-    name: Detect non-.github changes
+    name: Detect package changes
     runs-on: ubuntu-slim
     permissions:
       contents: read
     outputs:
-      non-github-changed: ${{ steps.changed.outputs.any_changed }}
+      packages-changed: ${{ steps.changed.outputs.any_changed }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -46,14 +46,14 @@ jobs:
       - id: changed
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
-          files_ignore: .github/**
+          files: packages/**
 
   check-fragment:
     name: Require changelog on package change
     runs-on: ubuntu-slim
     needs: [detect-scope]
     if: >-
-      needs.detect-scope.outputs.non-github-changed == 'true' &&
+      needs.detect-scope.outputs.packages-changed == 'true' &&
       !contains(github.event.pull_request.labels.*.name, 'bot')
     permissions:
       contents: read
@@ -106,11 +106,11 @@ jobs:
           fi
           echo "Changelog fragment check passed."
 
-  # check-fragment skips for bot-labeled and .github-only PRs, and branch
-  # protection can't require a job that sometimes doesn't run. This gate
-  # always runs and passes on either a real success or an accepted skip, so
-  # it's the check to require in branch protection instead of check-fragment
-  # directly.
+  # check-fragment skips for bot-labeled PRs and PRs that don't touch
+  # packages/, and branch protection can't require a job that sometimes
+  # doesn't run. This gate always runs and passes on either a real success
+  # or an accepted skip, so it's the check to require in branch protection
+  # instead of check-fragment directly.
   changelog-fragment-status:
     name: Changelog fragment check status
     runs-on: ubuntu-slim
