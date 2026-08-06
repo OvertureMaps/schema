@@ -52,6 +52,16 @@ over the `main` one. `vnext` builds publish only once a separate dev
 repository exists. Local labels are rejected by public PyPI, which keeps
 internal builds off the public index by construction.
 
+| Event | Workflow |
+|-------|----------|
+| Push to `main` | [`main-publish.yaml`](../.github/workflows/main-publish.yaml) detects packages changed without a version bump and publishes their `.postN` build to CodeArtifact. |
+| Version bump merged to `main` | [`release-trigger.yaml`](../.github/workflows/release-trigger.yaml) cuts a GitHub Release per bumped package. |
+| Release published | [`release-publish.yaml`](../.github/workflows/release-publish.yaml) builds that package at its released version and publishes to PyPI, gated by the `pypi-release` Environment. |
+
+`release-trigger` creates releases with the `overture-release-publisher` app's
+installation token, not `GITHUB_TOKEN`: a `GITHUB_TOKEN`-created release does
+not fire the `release: published` event `release-publish` listens for.
+
 ### Workspace dependency floors
 
 Intra-repo dependencies follow uv's
@@ -172,8 +182,15 @@ changes that package, whether or not it bumps the version.
 2. On merge to `main`, `release-trigger` publishes one GitHub Release per bumped
    package: tag `<package>-v<version>`, notes from that package's
    `CHANGELOG.md`.
-3. Publishing the release starts the PyPI publish, gated by a maintainer
-   approval.
+3. Publishing the release starts the PyPI publish. The `pypi-release`
+   [GitHub Environment](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manage-environments-for-deployment)'s
+   required reviewers gate the publish job; approve or reject from the
+   workflow run's summary page. To get gate notifications in Slack instead of
+   polling GitHub, subscribe a channel to this repository's deployment
+   reviews with the
+   [GitHub app for Slack](https://github.com/integrations/slack#subscribing-to-a-repository) —
+   no workflow change needed, the gate itself stays entirely in the
+   Environment's reviewer list.
 
 ```mermaid
 flowchart LR

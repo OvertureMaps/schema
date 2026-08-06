@@ -1,0 +1,118 @@
+name: Release publish
+
+# Triggered when a GitHub Release is published (created by release-trigger.yaml
+# using the overture-release-publisher app token -- see #637 -- so the native
+# `release: published` event actually fires; GITHUB_TOKEN would not).
+#
+# Builds the released package at its released version and publishes it to
+# public PyPI via Trusted Publishing (OIDC) + attestations, gated by the
+# pypi-release GitHub Environment's required reviewers.
+#
+# Vanity tags (the legacy bare v<version> series continued by overture-schema
+# releases; see docs/versioning.md) never get a second GitHub Release object,
+# so this only ever fires once per <package>-v<version> release.
+#
+# To route approval notifications to Slack instead of the GitHub UI, install
+# the GitHub app in the target channel and subscribe it to this repository's
+# deployment reviews -- see
+# https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manage-environments-for-deployment
+# and https://github.com/integrations/slack#subscribing-to-a-repository.
+# No workflow changes needed; approval gating stays entirely in the
+# pypi-release Environment.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  # One release event per package version; never cancel an in-flight publish.
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  parse:
+    name: Parse release tag
+    if: github.event.repository.full_name == github.repository
+    runs-on: ubuntu-slim
+    outputs:
+      package: ${{ steps.parse.outputs.package }}
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - name: Parse package and version from tag
+        id: parse
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^(.+)-v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "::error::Release tag '${TAG}' is not <package>-v<major>.<minor>.<patch>; nothing to publish."
+            exit 1
+          fi
+          echo "package=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          echo "version=${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: Publish ${{ needs.parse.outputs.package }} ${{ needs.parse.outputs.version }} to PyPI
+    needs: parse
+    runs-on: ubuntu-latest
+    environment: pypi-release # Required reviewers gate the PyPI publish step
+    permissions:
+      contents: read
+      id-token: write # Required for PyPI Trusted Publishing (OIDC)
+    env:
+      PACKAGE: ${{ needs.parse.outputs.package }}
+      VERSION: ${{ needs.parse.outputs.version }}
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: latest
+          enable-cache: false # Publish job builds and ships immediately; no cache to poison downstream runs
+
+      - name: Check out released commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+          persist-credentials: false
+
+      - name: Sync code to make packages visible to Python
+        run: uv sync --locked --all-packages
+
+      # overture-schema-pyspark ships generated validation expressions that are
+      # not committed to git -- they are regenerated on demand from the
+      # Pydantic models. `uv build` packages whatever is on disk under the
+      # module root, so the tree must be generated here before the build, or
+      # the published wheel ships without its expressions/generated/ modules.
+      - name: Generate PySpark expressions before build
+        if: env.PACKAGE == 'overture-schema-pyspark'
+        run: make generate-pyspark
+
+      - name: Build ${{ env.PACKAGE }} ${{ env.VERSION }}
+        run: uv build --package "${PACKAGE}"
+
+      - name: Verify built version matches the release
+        run: |
+          set -euo pipefail
+          wheel="dist/${PACKAGE//-/_}-${VERSION}-py3-none-any.whl"
+          if [ ! -f "$wheel" ]; then
+            echo "    Wheel file [$wheel] not found (built version does not match release ${VERSION}). Aborting!"
+            exit 1
+          fi
+          # Guard against a silently empty wheel: if the generate step above
+          # ever regresses, overture-schema-pyspark would publish with no
+          # validation expressions. Fail loudly instead of shipping a hollow
+          # package to public PyPI.
+          if [ "$PACKAGE" = "overture-schema-pyspark" ] && \
+             ! unzip -l "$wheel" | grep -q 'expressions/generated/.*\.py'; then
+            echo "    Wheel [$wheel] has no generated expressions -- codegen did not run. Aborting!"
+            exit 1
+          fi
+
+      - name: Publish ${{ env.PACKAGE }} ${{ env.VERSION }} to PyPI
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
+        with:
+          packages-dir: dist/
+          attestations: true

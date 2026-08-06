@@ -1,0 +1,64 @@
+name: Detect affected packages
+description: >
+  Detects packages affected by a no-bump push to main, i.e. any file changed
+  under packages/<pkg>/ between two commits, excluding packages whose
+  pyproject.toml version was also bumped in the same range (those release via
+  release-trigger instead; see docs/versioning.md) and packages removed in the
+  range (nothing left to build).
+
+  Prerequisites: repo must be checked out with `fetch-depth: 0` so `before` is
+  reachable.
+
+inputs:
+  before:
+    description: The base commit SHA to compare against (e.g. github.event.before).
+    required: true
+  after:
+    description: The head commit SHA to compare to. Defaults to the checked-out HEAD.
+    required: false
+    default: HEAD
+
+outputs:
+  count:
+    description: Number of affected packages.
+    value: ${{ steps.filter.outputs.count }}
+  packages:
+    description: >
+      JSON array of affected package directory names, e.g.
+      ["overture-schema-common"]. Suitable as a matrix input.
+    value: ${{ steps.filter.outputs.packages }}
+
+runs:
+  using: composite
+  steps:
+    - name: List changed package directories
+      id: changed-dirs
+      uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+      with:
+        base_sha: ${{ inputs.before }}
+        sha: ${{ inputs.after }}
+        files: packages/**
+        dir_names: true
+        dir_names_max_depth: 2
+        matrix: true
+
+    # Independent of the step above (neither reads the other's output); runs
+    # after it only so both feed the final filter step back to back.
+    - name: Diff package versions
+      id: diff
+      uses: ./.github/actions/diff-package-versions
+      with:
+        before: ${{ inputs.before }}
+        after: ${{ inputs.after }}
+
+    - name: Detect affected packages
+      id: filter
+      shell: bash
+      env:
+        # all_modified_files (not all_changed_files) so deletions count too: a
+        # file removed from a package without a version bump still changes
+        # the built wheel.
+        CHANGED_DIRS: ${{ steps.changed-dirs.outputs.all_modified_files }}
+        DIFF: ${{ steps.diff.outputs.diff }}
+      run: |
+        echo "$DIFF" | python3 "${GITHUB_ACTION_PATH}/detect_affected_packages.py" >> "$GITHUB_OUTPUT"
