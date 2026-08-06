@@ -13,6 +13,10 @@ name: Changelog fragment verification
 # PRs labeled `bot` skip this check. Dependabot is the only source of that
 # label, and it's scoped to uv.lock and GitHub Actions version bumps, neither
 # of which touches consumer-facing behavior.
+#
+# PRs that only touch .github/ also skip: workflow and CI config aren't
+# packages, so detect-scope's tj-actions/changed-files check (ignoring
+# .github/**) reports no changes and check-fragment never runs.
 
 on:
   pull_request:
@@ -26,10 +30,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  detect-scope:
+    name: Detect non-.github changes
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    outputs:
+      non-github-changed: ${{ steps.changed.outputs.any_changed }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0 # The merge base with the PR base branch must be reachable
+          persist-credentials: false
+
+      - id: changed
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          files_ignore: .github/**
+
   check-fragment:
     name: Require changelog on package change
     runs-on: ubuntu-slim
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'bot') }}
+    needs: [detect-scope]
+    if: >-
+      needs.detect-scope.outputs.non-github-changed == 'true' &&
+      !contains(github.event.pull_request.labels.*.name, 'bot')
     permissions:
       contents: read
     steps:
@@ -81,14 +106,15 @@ jobs:
           fi
           echo "Changelog fragment check passed."
 
-  # check-fragment skips for bot-labeled PRs, and branch protection can't
-  # require a job that sometimes doesn't run. This gate always runs and
-  # passes on either a real success or an accepted skip, so it's the check
-  # to require in branch protection instead of check-fragment directly.
+  # check-fragment skips for bot-labeled and .github-only PRs, and branch
+  # protection can't require a job that sometimes doesn't run. This gate
+  # always runs and passes on either a real success or an accepted skip, so
+  # it's the check to require in branch protection instead of check-fragment
+  # directly.
   changelog-fragment-status:
     name: Changelog fragment check status
     runs-on: ubuntu-slim
-    needs: [check-fragment]
+    needs: [detect-scope, check-fragment]
     if: always()
     permissions:
       contents: read
