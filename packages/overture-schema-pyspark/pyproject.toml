@@ -5,7 +5,7 @@ requires = ["hatchling"]
 [project]
 dependencies = [
     "click>=8.0",
-    "overture-schema-system",
+    "overture-schema-system>=0.1.1",
     "pyspark>=3.4",
 ]
 description = "PySpark validation expressions for Overture Maps data"

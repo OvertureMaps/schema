@@ -36,7 +36,6 @@ geojson_output = building.model_dump(mode="json")
 from overture.schema import (
     # Addresses theme
     Address,
-
     # Base theme
     Bathymetry,
     Infrastructure,
@@ -44,19 +43,15 @@ from overture.schema import (
     LandCover,
     LandUse,
     Water,
-
     # Buildings theme
     Building,
     BuildingPart,
-
     # Divisions theme
     Division,
     DivisionArea,
     DivisionBoundary,
-
     # Places theme
     Place,
-
     # Transportation theme
     Connector,
     Segment,
@@ -72,7 +67,7 @@ from overture.schema import parse, discover_models, json_schema
 from overture.schema import Building
 
 # Parse any Overture feature (auto-discovers all registered models)
-validated_feature = parse(feature_data, mode="json")    # Parses GeoJSON format
+validated_feature = parse(feature_data, mode="json")  # Parses GeoJSON format
 validated_feature = parse(feature_data, mode="python")  # Parses flat format
 
 # Discover all registered models programmatically

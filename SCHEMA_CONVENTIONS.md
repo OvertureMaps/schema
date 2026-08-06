@@ -48,10 +48,10 @@ Overture Features Types are strongly-typed. Feature Types are defined by three c
 	All quantities that relate to posted or ordinance regulations and restrictions are expressed in the same units as used in the regulation. The unit is explicitly included with the property in the data.
 
 ### Opening hours/validity Periods
-	Opening Hours and the time frame during which time dependent properties are applicable are indicated following the [OSM Opening Hours specification] (https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification)
+	Opening Hours and the time frame during which time dependent properties are applicable are indicated following the [OSM Opening Hours specification](https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification)
 
 ## Extensions
-Overture allows for add hoc extensions beyond what is described in the schema. All extensions are prefixed with `ext`
+Overture allows for ad hoc extensions beyond what is described in the schema. All extensions are prefixed with `ext`
 Extensions can be provided at the theme level, the type level or the property level.
 
     -insert example for property, feature and theme-

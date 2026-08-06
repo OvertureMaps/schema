@@ -27,7 +27,7 @@ on:
       context:
         description: "Version context to simulate"
         type: choice
-        options: [vnext, main, main-bump]
+        options: [vnext, main]
         default: vnext
 
 permissions:
