@@ -80,3 +80,19 @@ jobs:
             exit 1
           fi
           echo "Changelog fragment check passed."
+
+  # check-fragment skips for bot-labeled PRs, and branch protection can't
+  # require a job that sometimes doesn't run. This gate always runs and
+  # passes on either a real success or an accepted skip, so it's the check
+  # to require in branch protection instead of check-fragment directly.
+  changelog-fragment-status:
+    name: Changelog fragment check status
+    runs-on: ubuntu-slim
+    needs: [check-fragment]
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - uses: lowlydba/are-we-good@f506ed6324f55ec5e4ff5d92204a72c7f1c2b4f8 # v1.0.5
+        with:
+          jobs: ${{ toJSON(needs) }}
