@@ -3,6 +3,7 @@
 import enum
 
 import pytest
+
 from overture.schema.codegen.extraction.field import (
     AnyScalar,
     ArrayOf,

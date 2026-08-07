@@ -3,6 +3,8 @@
 from typing import Annotated, NewType
 
 from codegen_test_support import STR_TYPE
+from pydantic import BaseModel, Field
+
 from overture.schema.codegen.extraction.field import ArrayOf, Primitive
 from overture.schema.codegen.extraction.field_walk import terminal_scalar
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
@@ -10,7 +12,6 @@ from overture.schema.codegen.extraction.specs import NewTypeSpec
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.ref import Id
 from overture.schema.system.string import HexColor
-from pydantic import BaseModel, Field
 
 
 class TestExtractNewType:

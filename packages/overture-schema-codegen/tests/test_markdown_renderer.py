@@ -24,6 +24,8 @@ from codegen_test_support import (
     make_union_spec,
     spec_for_model,
 )
+from pydantic import BaseModel, Field
+
 from overture.schema.codegen.extraction.examples import ExampleRecord
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
@@ -58,7 +60,6 @@ from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.numeric import int32
 from overture.schema.system.ref import Id
 from overture.schema.system.string import HexColor, NoWhitespaceString
-from pydantic import BaseModel, Field
 
 _FLAT_MEMBER = EnumMemberSpec(name="FLAT", value="flat", description=None)
 

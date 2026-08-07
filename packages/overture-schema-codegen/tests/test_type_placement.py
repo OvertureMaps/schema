@@ -2,8 +2,6 @@
 
 from pathlib import PurePosixPath
 
-import overture.schema.system.geometric as _system_geometric
-import overture.schema.system.numeric as _system_numeric
 from codegen_test_support import (
     EMAIL_STR_SPEC,
     HTTP_URL_SPEC,
@@ -12,6 +10,10 @@ from codegen_test_support import (
     lookup_by_name,
     make_union_spec,
 )
+from pydantic import BaseModel
+
+import overture.schema.system.geometric as _system_geometric
+import overture.schema.system.numeric as _system_numeric
 from overture.schema.codegen.extraction.specs import (
     AnnotatedField,
     FieldSpec,
@@ -32,7 +34,6 @@ from overture.schema.codegen.markdown.path_assignment import (
 from overture.schema.codegen.markdown.pipeline import (
     partition_numeric_and_geometry_types,
 )
-from pydantic import BaseModel
 
 _NUMERIC_NAMES, _GEOMETRY_NAMES = partition_numeric_and_geometry_types(
     _system_numeric, _system_geometric

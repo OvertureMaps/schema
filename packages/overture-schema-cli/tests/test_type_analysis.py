@@ -3,6 +3,8 @@
 from typing import Annotated, Literal
 
 import pytest
+from pydantic import BaseModel, Discriminator, Field
+
 from overture.schema.cli.type_analysis import (
     StructuralTuple,
     create_structural_tuple,
@@ -10,7 +12,6 @@ from overture.schema.cli.type_analysis import (
     get_or_create_structural_tuple,
     introspect_union,
 )
-from pydantic import BaseModel, Discriminator, Field
 
 
 class TestStructuralTuples:

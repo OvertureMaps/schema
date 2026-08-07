@@ -4,7 +4,13 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from _support.registry import register_model
 from click.testing import CliRunner
+from pyspark.errors import AnalysisException
+from pyspark.sql import Row, SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.types import StringType, StructField, StructType
+
 from overture.schema.pyspark._registry import REGISTRY
 from overture.schema.pyspark.check import Check, CheckShape
 from overture.schema.pyspark.cli import (
@@ -15,12 +21,6 @@ from overture.schema.pyspark.cli import (
     resolve_read,
     validate_cli,
 )
-from pyspark.errors import AnalysisException
-from pyspark.sql import Row, SparkSession
-from pyspark.sql import functions as F
-from pyspark.sql.types import StringType, StructField, StructType
-
-from ._support.registry import register_model
 
 _TEST_TYPE = "_test_cli"
 

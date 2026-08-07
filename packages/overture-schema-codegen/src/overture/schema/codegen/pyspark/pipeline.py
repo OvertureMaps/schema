@@ -7,7 +7,7 @@ to disk, stream to stdout, etc.).
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
@@ -48,12 +48,10 @@ class GeneratedModule:
 class PipelineOutput:
     """PySpark modules emitted by the pipeline, split by output tree.
 
-    The source and test trees are written to separate directories and
-    mirror the same relative layout, so a path is meaningful only
-    relative to its tree. Splitting at the boundary keeps each tree
-    self-contained -- in practice the overlap today is just
-    `__init__.py`, but any path duplicated between trees would be
-    ambiguous in a single flat list.
+    Source and test modules write to separate directories
+    (`--output-dir` and `--test-output-dir`), so they travel as two
+    lists rather than one. Both trees mirror the same relative layout,
+    so a path is meaningful only relative to its own tree.
     """
 
     source: list[GeneratedModule]
@@ -61,21 +59,6 @@ class PipelineOutput:
 
 
 _OUTPUT_PACKAGE = "overture.schema.pyspark.expressions.generated"
-
-# Dots in `from ...x import y` from a generated test module to reach
-# `tests/`: one to leave the file's package, one to leave `generated/`.
-# Each additional directory component under `generated/` adds another.
-_DOTS_FROM_TEST_TO_TESTS_ROOT = 2
-
-
-def _support_prefix(directory: PurePosixPath) -> str:
-    """Relative-import prefix used by generated test modules to reach `_support`.
-
-    Each leading dot climbs one package level; the first two dots step
-    out of `tests/generated/` to `tests/`, and an extra dot is appended
-    for every component of *directory* under `generated/`.
-    """
-    return "." * (len(directory.parts) + _DOTS_FROM_TEST_TO_TESTS_ROOT)
 
 
 def _require_entry_point(spec: ModelSpec) -> str:
@@ -117,21 +100,6 @@ def _extract_geometry_types(
     return tuple(sorted(seen, key=lambda g: g.name))
 
 
-def _init_modules(paths: Iterable[PurePosixPath]) -> list[GeneratedModule]:
-    """Emit empty `__init__.py` for every directory of `paths`.
-
-    Includes the output root so the top-level package exists after a
-    full `rm -rf` of the generated tree.
-    """
-    paths = list(paths)
-    if not paths:
-        return []
-    dirs: set[PurePosixPath] = set()
-    for path in paths:
-        dirs.update(path.parents)
-    return [GeneratedModule(content="", path=d / "__init__.py") for d in sorted(dirs)]
-
-
 def generate_pyspark_module(spec: ModelSpec) -> GeneratedModule:
     """Generate a PySpark validation module from a model spec.
 
@@ -162,16 +130,14 @@ def generate_pyspark_modules(
     Returns
     -------
     PipelineOutput
-        Source-tree model modules and test-tree modules. Each tree
-        includes the `__init__.py` files needed for its package layout.
+        Source-tree model modules and test-tree modules. The generated
+        tree is PEP 420, so no `__init__.py` files are emitted.
     """
     items = [(spec, build_checks(spec)) for spec in model_specs]
     source = [_render_module(spec, checks) for spec, checks in items]
     test: list[GeneratedModule] = []
     for spec, checks in items:
         test.extend(_render_test_modules(spec, checks))
-    source.extend(_init_modules(m.path for m in source))
-    test.extend(_init_modules(m.path for m in test))
     return PipelineOutput(source=source, test=test)
 
 
@@ -232,7 +198,6 @@ def _render_test_modules(
     field_checks, model_checks = checks
     directory, model_name = _directory_and_model_name(spec)
     expression_import = ".".join([_OUTPUT_PACKAGE, *directory.parts, model_name])
-    support_prefix = _support_prefix(directory)
 
     modules: list[GeneratedModule] = []
     for arm, (base_row_sparse, base_row_populated) in _select_arm_rows(spec).items():
@@ -248,7 +213,6 @@ def _render_test_modules(
                     arm=arm,
                     spec=spec,
                     expression_import=expression_import,
-                    support_prefix=support_prefix,
                 ),
                 path=directory / f"test_{model_name}{suffix}.py",
             )

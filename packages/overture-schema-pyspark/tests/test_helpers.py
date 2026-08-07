@@ -5,8 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
-from ._support.helpers import PathTraversalError, deep_merge, set_at_path
+from _support.helpers import PathTraversalError, deep_merge, set_at_path
 
 
 class TestSetAtPath:

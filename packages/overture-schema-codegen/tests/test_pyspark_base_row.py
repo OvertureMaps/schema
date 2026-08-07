@@ -13,6 +13,8 @@ from codegen_test_support import (
     discover_feature,
     spec_for_model,
 )
+from pydantic import BaseModel, Field, HttpUrl, TypeAdapter
+
 from overture.schema.codegen.extraction.field import (
     AnyScalar,
     ConstraintSource,
@@ -51,7 +53,6 @@ from overture.schema.system.model_constraint import (
     min_fields_set,
     require_if,
 )
-from pydantic import BaseModel, Field, HttpUrl, TypeAdapter
 
 
 @pytest.fixture(scope="module")

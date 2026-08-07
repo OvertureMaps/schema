@@ -1,6 +1,7 @@
 """Tests for the paired constraint value table."""
 
 import pytest
+
 from overture.schema.codegen.pyspark.constraint_dispatch import ExpressionDescriptor
 from overture.schema.codegen.pyspark.test_data.constraint_values import (
     CONSTRAINT_VALUES,

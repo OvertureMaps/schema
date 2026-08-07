@@ -7,13 +7,14 @@ from typing import Annotated, Literal
 import pytest
 from annotated_types import Ge
 from codegen_test_support import discover_feature
+from pydantic import BaseModel
+
 from overture.schema.codegen.cli import _generate_pyspark
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.pyspark.pipeline import (
     GeneratedModule,
     generate_pyspark_module,
 )
-from pydantic import BaseModel
 
 
 class SimpleModel(BaseModel):
@@ -197,14 +198,15 @@ class TestSegmentGeneration:
         assert 'F.col("subtype")' in generated.content
 
 
-def test_cli_writes_init_modules(tmp_path: Path) -> None:
+def test_cli_writes_pep420_tree(tmp_path: Path) -> None:
+    """The CLI writes model and test modules but no `__init__.py` (PEP 420)."""
     spec = extract_model(SimpleModel, entry_point="overture.schema.simple:SimpleModel")
     out = tmp_path / "src"
     test_out = tmp_path / "tests"
     _generate_pyspark([spec], out, test_out)
-    assert (out / "overture" / "schema" / "simple" / "__init__.py").exists()
     assert (out / "overture" / "schema" / "simple" / "simple_model.py").exists()
-    assert (test_out / "overture" / "schema" / "simple" / "__init__.py").exists()
     assert (
         test_out / "overture" / "schema" / "simple" / "test_simple_model.py"
     ).exists()
+    assert not list(out.rglob("__init__.py"))
+    assert not list(test_out.rglob("__init__.py"))
