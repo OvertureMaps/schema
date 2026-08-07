@@ -9,9 +9,7 @@ dependencies = [
     "overture-schema-divisions-theme>=0.1.1",
     "overture-schema-places-theme>=0.1.1",
     "overture-schema-transportation-theme>=0.1.1",
-    "overture-schema-common>=0.1.1",
-    "pydantic>=2.12.0",
-    "pyyaml>=6.0.2",
+    "overture-schema-validation>=0.1.1",
     "overture-schema-cli>=0.1.1",
 ]
 description = "Complete Overture Maps schema collection with all themes and types"
@@ -31,7 +29,7 @@ overture-schema-addresses-theme = { workspace = true }
 overture-schema-base-theme = { workspace = true }
 overture-schema-buildings-theme = { workspace = true }
 overture-schema-cli = { workspace = true }
-overture-schema-common = { workspace = true }
+overture-schema-validation = { workspace = true }
 overture-schema-divisions-theme = { workspace = true }
 overture-schema-places-theme = { workspace = true }
 overture-schema-transportation-theme = { workspace = true }
@@ -39,13 +37,6 @@ overture-schema-transportation-theme = { workspace = true }
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
-
-[dependency-groups]
-dev = [
-    "pyyaml>=6.0.2",
-    "deepdiff>=8.6.0",
-    "yamlcore>=0.0.4",
-]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/overture"]
