@@ -92,3 +92,18 @@ jobs:
 
       - name: Run make check
         run: make check
+
+  # Single stable check-run name for the whole matrix, so a required-status-
+  # check rule never has to track individual Python-version cells. Add or
+  # drop a cell above and this job's name still covers it.
+  all-python-checks-pass:
+    name: All Python checks pass
+    needs: [check]
+    if: always()
+    runs-on: ubuntu-slim
+    permissions: {}
+
+    steps:
+      - uses: lowlydba/are-we-good@f506ed6324f55ec5e4ff5d92204a72c7f1c2b4f8 # v1.0.5
+        with:
+          jobs: ${{ toJSON(needs) }}
