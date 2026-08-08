@@ -6,10 +6,6 @@ geometry:
   coordinates: [0, 0]
 properties:
   basic_category: casual_eatery
-  categories:
-    primary: gas_station_sushi
-    alternate:
-      - just_for_fun
   confidence: 0.9
   websites:
     - https://www.example.com/
