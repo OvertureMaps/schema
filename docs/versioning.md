@@ -58,7 +58,7 @@ internal builds off the public index by construction.
 | Version bump merged to `main` | [`release-trigger.yaml`](../.github/workflows/release-trigger.yaml) cuts a GitHub Release per bumped package. |
 | Release published | [`release-publish.yaml`](../.github/workflows/release-publish.yaml) builds that package at its released version and publishes to PyPI, gated by the `pypi-release` Environment. |
 
-`release-trigger` creates releases with the `overture-release-publisher` app's
+`release-trigger` creates releases with the `overture-releaser` app's
 installation token, not `GITHUB_TOKEN`: a `GITHUB_TOKEN`-created release does
 not fire the `release: published` event `release-publish` listens for.
 

@@ -16,10 +16,14 @@ name: Publish GitHub release
 # is a release. No-bump merges publish internal `.postN` builds instead (see
 # .github/actions/compute-version).
 #
-# Releases are created with the overture-release-publisher app's installation
-# token, not GITHUB_TOKEN: GITHUB_TOKEN-created releases don't fire downstream
+# Releases are created with the overture-releaser app's installation token,
+# not GITHUB_TOKEN: GITHUB_TOKEN-created releases don't fire downstream
 # `release: published` events, which release-publish.yaml needs to pick up
 # each release individually. See #637 for provisioning that app.
+#
+# The app's PEM lives in AWS Secrets Manager (omf-github-terraform), fetched
+# here via the narrowly-scoped gha-releaser-secrets-reader OIDC role -- same
+# pattern as the safe-settings and project-manager app PEMs.
 
 on:
   push:
@@ -63,17 +67,34 @@ jobs:
     runs-on: ubuntu-slim
     permissions:
       contents: read # App token below carries the actual release-creation grant
+      id-token: write # Required for OIDC authentication to AWS
     strategy:
       fail-fast: false # One package's failure must not block sibling releases
       matrix:
         include: ${{ fromJSON(needs.detect.outputs.bumps) }}
     steps:
+      # Narrow OIDC role (omf-github-terraform's oidc-aws.tf) that can only
+      # read the releaser app's PEM secret.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-region: us-west-2
+          role-to-assume: arn:aws:iam::816069134238:role/gha-releaser-secrets-reader
+          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
+
+      # Exports the PEM as env.RELEASE_PUBLISHER_APP_PEM, masked (incl. multi-line).
+      - name: Fetch releaser PEM from Secrets Manager
+        uses: aws-actions/aws-secretsmanager-get-secrets@2cb1a461cbd4865ac4299648312e4704c646cd53 # v3.0.1
+        with:
+          secret-ids: |
+            RELEASE_PUBLISHER_APP_PEM, omf-github-terraform/releaser/pem
+
       - name: Generate app token
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          client-id: ${{ secrets.RELEASE_PUBLISHER_APP_ID }} # zizmor: ignore[secrets-outside-env]
-          private-key: ${{ secrets.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
+          client-id: Iv23lijru2e660v1zJQO # overture-releaser app ID, not sensitive
+          private-key: ${{ env.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
           # Explicitly scope the app token instead of inheriting all
           # installation permissions: creating a release/tag is the only
           # write this workflow performs.

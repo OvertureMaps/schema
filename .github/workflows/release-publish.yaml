@@ -1,7 +1,7 @@
 name: Release publish
 
 # Triggered when a GitHub Release is published (created by release-trigger.yaml
-# using the overture-release-publisher app token -- see #637 -- so the native
+# using the overture-releaser app token -- see #637 -- so the native
 # `release: published` event actually fires; GITHUB_TOKEN would not).
 #
 # Builds the released package at its released version and publishes it to
