@@ -9,12 +9,19 @@ on:
       - 'schema/**'
       - 'examples/**'
       - 'counterexamples/**'
+  pull_request:
+    paths:
+      - 'schema/**'
+      - 'examples/**'
+      - 'counterexamples/**'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # push never fires for fork PRs, so pull_request is the only trigger a
+  # required check can rely on from external contributors.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
