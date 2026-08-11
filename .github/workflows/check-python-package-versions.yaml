@@ -1,9 +1,10 @@
 name: Check Python package version numbers
 
 on:
-  pull_request:
-    paths:
-      - '**/pyproject.toml'
+  # No path filter: "check / Check Python package versions" is a required
+  # status check (see schema.yml in omf-github-terraform), and GitHub never
+  # satisfies a required check that a path filter prevents from running.
+  pull_request: {}
 permissions:
   contents: read
 

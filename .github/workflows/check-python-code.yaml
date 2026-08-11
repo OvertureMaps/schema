@@ -1,13 +1,10 @@
 name: Check Python package code
 
 on:
-  pull_request:
-    paths:
-      - 'packages/**'
-      - 'pyproject.toml'
-      - 'uv.lock'
-      - 'Makefile'
-      - '.github/workflows/check-python-code.yaml'
+  # No path filter on pull_request: "All Python checks pass" is a required
+  # status check (see schema.yml in omf-github-terraform), and GitHub never
+  # satisfies a required check that a path filter prevents from running.
+  pull_request: {}
   push:
     branches: [main, dev]
     paths:

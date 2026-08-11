@@ -9,11 +9,10 @@ on:
       - 'schema/**'
       - 'examples/**'
       - 'counterexamples/**'
-  pull_request:
-    paths:
-      - 'schema/**'
-      - 'examples/**'
-      - 'counterexamples/**'
+  # No path filter on pull_request: "Build" is a required status check (see
+  # schema.yml in omf-github-terraform), and GitHub never satisfies a
+  # required check that a path filter prevents from running.
+  pull_request: {}
 
 permissions:
   contents: read
