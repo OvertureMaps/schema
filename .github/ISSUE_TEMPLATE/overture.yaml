@@ -38,8 +38,6 @@ body:
         - data science
         - dev ops
         - engineering
-    validations:
-      required: true
   - type: textarea
     id: description
     attributes:
