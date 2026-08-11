@@ -65,10 +65,12 @@ doctest-only:
 mypy: uv-sync mypy-only
 
 mypy-only:
-	@# $$ escapes $ for make - sed needs literal $ for end-of-line anchor
+	@# $$ escapes $ for make - sed replaces the -theme- infix (packages were
+	@# renamed overture-schema-<t>-theme -> overture-schema-theme-<t>) so the
+	@# derived mypy module stays overture.schema.<t>
 	@find packages -maxdepth 1 -type d -name "overture-schema*" \
 		| sort \
-		| sed 's|-theme$$||' \
+		| sed 's|-theme-|-|' \
 		| tr - . \
 		| sed 's|^packages/|-p |' \
 		| xargs uv run mypy --no-error-summary

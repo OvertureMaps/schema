@@ -22,24 +22,24 @@ requires-python = ">=3.10"
 overture-codegen = "overture.schema.codegen.cli:main"
 
 [tool.uv.sources]
-overture-schema-addresses-theme = { workspace = true }
-overture-schema-base-theme = { workspace = true }
-overture-schema-buildings-theme = { workspace = true }
 overture-schema-cli = { workspace = true }
 overture-schema-common = { workspace = true }
-overture-schema-divisions-theme = { workspace = true }
-overture-schema-places-theme = { workspace = true }
 overture-schema-system = { workspace = true }
-overture-schema-transportation-theme = { workspace = true }
+overture-schema-theme-addresses = { workspace = true }
+overture-schema-theme-base = { workspace = true }
+overture-schema-theme-buildings = { workspace = true }
+overture-schema-theme-divisions = { workspace = true }
+overture-schema-theme-places = { workspace = true }
+overture-schema-theme-transportation = { workspace = true }
 
 [dependency-groups]
 test = [
-    "overture-schema-addresses-theme",
-    "overture-schema-base-theme",
-    "overture-schema-buildings-theme",
-    "overture-schema-divisions-theme",
-    "overture-schema-places-theme",
-    "overture-schema-transportation-theme",
+    "overture-schema-theme-addresses",
+    "overture-schema-theme-base",
+    "overture-schema-theme-buildings",
+    "overture-schema-theme-divisions",
+    "overture-schema-theme-places",
+    "overture-schema-theme-transportation",
 ]
 
 [tool.hatch.build.targets.wheel]

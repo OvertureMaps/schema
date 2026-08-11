@@ -3,12 +3,12 @@ maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
 dependencies = [
-    "overture-schema-addresses-theme>=0.1.1",
-    "overture-schema-base-theme>=0.1.1",
-    "overture-schema-buildings-theme>=0.1.1",
-    "overture-schema-divisions-theme>=0.1.1",
-    "overture-schema-places-theme>=0.1.1",
-    "overture-schema-transportation-theme>=0.1.1",
+    "overture-schema-theme-addresses>=0.1.1",
+    "overture-schema-theme-base>=0.1.1",
+    "overture-schema-theme-buildings>=0.1.1",
+    "overture-schema-theme-divisions>=0.1.1",
+    "overture-schema-theme-places>=0.1.1",
+    "overture-schema-theme-transportation>=0.1.1",
     "overture-schema-common>=0.1.1",
     "pydantic>=2.12.0",
     "pyyaml>=6.0.2",
@@ -27,14 +27,14 @@ Source = "https://github.com/OvertureMaps/schema"
 Issues = "https://github.com/OvertureMaps/schema/issues"
 
 [tool.uv.sources]
-overture-schema-addresses-theme = { workspace = true }
-overture-schema-base-theme = { workspace = true }
-overture-schema-buildings-theme = { workspace = true }
 overture-schema-cli = { workspace = true }
 overture-schema-common = { workspace = true }
-overture-schema-divisions-theme = { workspace = true }
-overture-schema-places-theme = { workspace = true }
-overture-schema-transportation-theme = { workspace = true }
+overture-schema-theme-addresses = { workspace = true }
+overture-schema-theme-base = { workspace = true }
+overture-schema-theme-buildings = { workspace = true }
+overture-schema-theme-divisions = { workspace = true }
+overture-schema-theme-places = { workspace = true }
+overture-schema-theme-transportation = { workspace = true }
 
 [build-system]
 build-backend = "hatchling.build"
