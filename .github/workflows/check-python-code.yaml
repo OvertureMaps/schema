@@ -61,15 +61,9 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      # PySpark 3.4 (the declared minimum) does not support Java 21, which is
-      # the default JDK on ubuntu-latest runners. Pin to Java 17 for the
-      # lowest-direct cell so the resolved pyspark==3.4.0 can actually start.
-      - name: Set up JDK 17
-        if: matrix.resolution == 'lowest-direct'
-        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
-        with:
-          distribution: temurin
-          java-version: '17'
+      # No setup-java: the test suite runs on the jdk4py JDK from the dev
+      # group. Its floor (JDK 17) is what lowest-direct resolves, matching
+      # pyspark 3.4, which does not support the runners' default Java 21.
 
       # UV_RESOLUTION=lowest-direct makes `uv sync` re-resolve every direct
       # dependency to the lowest version permitted by pyproject.toml. This

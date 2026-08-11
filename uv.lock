@@ -9,7 +9,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer = "2026-08-04T18:57:39.255576Z"
 exclude-newer-span = "P1W"
 
 [manifest]
@@ -362,7 +362,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -385,6 +385,17 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/72/34/14ca021ce8e5dfedc35312d08ba8bf51fdd999c576889fc2c24cb97f4f10/iniconfig-2.3.0.tar.gz", hash = "sha256:c76315c77db068650d49c5b56314774a7804df16fee4402c1f19d6d15d8c4730", size = 20503, upload-time = "2025-10-18T21:55:43.219Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl", hash = "sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12", size = 7484, upload-time = "2025-10-18T21:55:41.639Z" },
+]
+
+[[package]]
+name = "jdk4py"
+version = "21.0.8.2"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9b/91/faab5f5b2bdcaf74c20304c5c3a6a9e304a6c609a1d755e927c07a87f883/jdk4py-21.0.8.2-py3-none-macosx_10_9_x86_64.whl", hash = "sha256:7b2b397f2999e5a71728691477857a5a41215b3c95f6e8b15a4d53bc76203dff", size = 30900008, upload-time = "2026-04-10T20:50:45.913Z" },
+    { url = "https://files.pythonhosted.org/packages/e6/19/449f69b8706c2cb5fa46fdc3e75650983e44e4e025d6ade78580b2c8572d/jdk4py-21.0.8.2-py3-none-macosx_11_0_arm64.whl", hash = "sha256:0667b81b3ddc60157f773e0d05d00f4d46530f82bdc59e295b322b8d33f69417", size = 29692099, upload-time = "2026-04-10T20:50:37.405Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/0c/24a7d8e4c96c3843b8163ba7a9be939b48fc181fb3263bd4fd9289ed8f41/jdk4py-21.0.8.2-py3-none-manylinux_2_17_aarch64.whl", hash = "sha256:2519dce230b3ed13a93a3efed15c6b8b163aeacd77859ddf59eef3faa69c635d", size = 33195566, upload-time = "2026-04-10T20:50:34.609Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/61/f3b5936908ff6de66c61aef69bf1074cb468fb883f5a0bb9e15e67a6b484/jdk4py-21.0.8.2-py3-none-manylinux_2_17_x86_64.whl", hash = "sha256:85addfcb57c7051dad6145b9f816fc519337e9a0c705ef01edc9dc7818ee0356", size = 33794570, upload-time = "2026-04-10T20:50:40.113Z" },
 ]
 
 [[package]]
@@ -1207,6 +1218,7 @@ source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "jdk4py", marker = "sys_platform == 'darwin' or sys_platform == 'linux'" },
     { name = "mypy" },
     { name = "pdoc" },
     { name = "pydocstyle" },
@@ -1221,6 +1233,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "jdk4py", marker = "sys_platform == 'darwin' or sys_platform == 'linux'", specifier = ">=17.0.9.2,<22" },
     { name = "mypy", specifier = ">=1.17.0" },
     { name = "pdoc", specifier = ">=15.0.4" },
     { name = "pydocstyle", specifier = ">=6.3.0" },

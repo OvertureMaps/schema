@@ -50,6 +50,14 @@ warn_unused_configs = true
 
 [dependency-groups]
 dev = [
+    # Bundled JDK for the pyspark test suite, so tests never depend on the
+    # machine's Java. <22 keeps every resolution inside Spark's supported
+    # range: the floor (17.0.9.2 = JDK 17) is what lowest-direct resolves
+    # for pyspark 3.4, and the lock picks the maintained 21.x line for
+    # pyspark 4.x. jdk4py ships wheels only and the conftest shim that
+    # adapts it for Spark is POSIX shell, so gate it to darwin/linux;
+    # elsewhere conftest falls back to the system Java.
+    "jdk4py>=17.0.9.2,<22; sys_platform == 'darwin' or sys_platform == 'linux'",
     "mypy>=1.17.0",
     "pdoc>=15.0.4",
     "pydocstyle>=6.3.0",
