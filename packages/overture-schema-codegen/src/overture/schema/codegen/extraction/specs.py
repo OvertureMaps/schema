@@ -14,9 +14,9 @@ from typing_extensions import TypeForm
 
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.model_constraint import ModelConstraint
+from overture.schema.system.typing_util import is_model_union
 
 from .field import FieldShape
-from .type_analyzer import capture_union_members
 
 __all__ = [
     "AnnotatedField",
@@ -313,7 +313,7 @@ def is_rootmodel(obj: object) -> TypeGuard[type[RootModel]]:
 
 def is_union_alias(obj: object) -> TypeGuard[TypeForm[BaseModel]]:
     """Check whether *obj* is a discriminated union type alias of BaseModel subclasses."""
-    return capture_union_members(obj) is not None
+    return is_model_union(obj)
 
 
 def filter_model_classes(models: dict[Any, Any]) -> list[type[BaseModel]]:

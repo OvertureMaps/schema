@@ -141,12 +141,13 @@ class ModelCheck:
     construction sites and is the common case; `Check.target` has no
     sensible default and is required.
 
-    `arm` records the discriminator value of the union member that
-    contributed the constraint, or `None` when the constraint applies to
-    every arm. The test renderer filters per-arm test modules by this
-    value. Constraints discovered through a variant-specific field's
-    sub-model or sub-union inherit the contributing outer arm, so they
-    land only in that arm's test module.
+    `arms` records the discriminator values of the union member that
+    contributed the constraint (a member may accept several literal tag
+    values), or `None` when the constraint applies to every arm. The test
+    renderer filters per-arm test modules by membership. Constraints
+    discovered through a variant-specific field's sub-model or sub-union
+    inherit the contributing outer member's values, so they land only in
+    that member's test modules.
 
     `gate` is the optional-ancestor path that must be non-null for the
     constraint to apply. Set when the constrained model is reached via
@@ -160,7 +161,7 @@ class ModelCheck:
 
     descriptor: ModelConstraintDescriptor
     target: FieldPath = Direct()
-    arm: str | None = None
+    arms: tuple[str, ...] | None = None
     gate: FieldPath | None = None
 
     @property

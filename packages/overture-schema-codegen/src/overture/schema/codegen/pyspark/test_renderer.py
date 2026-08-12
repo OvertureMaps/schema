@@ -71,11 +71,12 @@ def _check_belongs_to_arm(check: Check, arm: str) -> bool:
 def _model_check_belongs_to_arm(check: ModelCheck, arm: str) -> bool:
     """Return True when a ModelCheck applies to a given union arm.
 
-    `ModelCheck.arm` is `None` for union-level constraints (which apply
-    regardless of discriminator) and set to a discriminator value for
-    constraints contributed by one specific member class.
+    `ModelCheck.arms` is `None` for union-level constraints (which apply
+    regardless of discriminator) and set to a member's discriminator
+    values for constraints contributed by one specific member class (a
+    member may accept several literal tag values).
     """
-    return check.arm is None or check.arm == arm
+    return check.arms is None or arm in check.arms
 
 
 def _innermost_iter_segment(target: Iterated) -> ArraySegment | MapSegment:
