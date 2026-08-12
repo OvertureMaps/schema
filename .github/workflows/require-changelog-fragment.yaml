@@ -9,6 +9,14 @@ name: Changelog fragment verification
 # package's own changelog artifacts (changelog.d/ and CHANGELOG.md). Every
 # user-facing change gets a fragment, regardless of whether it bumps the
 # version (see docs/versioning.md).
+#
+# PRs labeled `bot` skip this check. Dependabot is the only source of that
+# label, and it's scoped to uv.lock and GitHub Actions version bumps, neither
+# of which touches consumer-facing behavior.
+#
+# PRs that don't touch packages/ at all also skip: docs, CI config, and
+# other root-level changes were never going to need a fragment, since
+# check-fragment only ever looks at packages/<package>/ paths.
 
 on:
   pull_request:
@@ -22,13 +30,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-fragment:
-    name: Require changelog on package change
+  detect-scope:
+    name: Detect package changes
     runs-on: ubuntu-slim
     permissions:
       contents: read
+    outputs:
+      packages-changed: ${{ steps.changed.outputs.any_changed }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0 # The merge base with the PR base branch must be reachable
+          persist-credentials: false
+
+      - id: changed
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          files: packages/**
+
+  check-fragment:
+    name: Require changelog on package change
+    runs-on: ubuntu-slim
+    needs: [detect-scope]
+    if: >-
+      needs.detect-scope.outputs.packages-changed == 'true' &&
+      !contains(github.event.pull_request.labels.*.name, 'bot')
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # The merge base with the PR base branch must be reachable
           persist-credentials: false
@@ -75,3 +105,20 @@ jobs:
             exit 1
           fi
           echo "Changelog fragment check passed."
+
+  # check-fragment skips for bot-labeled PRs and PRs that don't touch
+  # packages/, and branch protection can't require a job that sometimes
+  # doesn't run. This gate always runs and passes on either a real success
+  # or an accepted skip, so it's the check to require in branch protection
+  # instead of check-fragment directly.
+  changelog-fragment-status:
+    name: Changelog fragment check status
+    runs-on: ubuntu-slim
+    needs: [detect-scope, check-fragment]
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - uses: lowlydba/are-we-good@f506ed6324f55ec5e4ff5d92204a72c7f1c2b4f8 # v1.0.5
+        with:
+          jobs: ${{ toJSON(needs) }}

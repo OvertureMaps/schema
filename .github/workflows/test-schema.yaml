@@ -9,12 +9,18 @@ on:
       - 'schema/**'
       - 'examples/**'
       - 'counterexamples/**'
+  # No path filter on pull_request: "Build" is a required status check (see
+  # schema.yml in omf-github-terraform), and GitHub never satisfies a
+  # required check that a path filter prevents from running.
+  pull_request: {}
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # push never fires for fork PRs, so pull_request is the only trigger a
+  # required check can rely on from external contributors.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

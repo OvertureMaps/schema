@@ -99,10 +99,10 @@ example:
 ```bash
 # 1. One small markdown file, named <issue-or-pr>.<type>.md
 echo 'Fixed brand enum values rejecting valid entries.' \
-  > packages/overture-schema-places-theme/changelog.d/561.bugfix.md
+  > packages/overture-schema-theme-places/changelog.d/561.bugfix.md
 
 # 2. Commit it with your change
-git add packages/overture-schema-places-theme/changelog.d/561.bugfix.md
+git add packages/overture-schema-theme-places/changelog.d/561.bugfix.md
 git commit -m 'Add changelog fragment'
 ```
 
