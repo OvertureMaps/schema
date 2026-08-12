@@ -1,7 +1,7 @@
 name: Release publish
 
 # Triggered when a GitHub Release is published (created by release-trigger.yaml
-# using the overture-releaser app token -- see #637 -- so the native
+# using the overture-release-publisher app token -- see #637 -- so the native
 # `release: published` event actually fires; GITHUB_TOKEN would not).
 #
 # Builds the released package at its released version and publishes it to
@@ -107,7 +107,9 @@ jobs:
       - name: Check out released commit
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.release.target_commitish }}
+          # target_commitish can be a branch name, which may have moved past
+          # the release; the tag itself pins the exact released commit.
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.release.tag_name }}
           persist-credentials: false
 
       - name: Sync code to make packages visible to Python

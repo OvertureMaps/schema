@@ -59,7 +59,7 @@ internal builds off the public index by construction.
 | Release published | [`release-publish.yaml`](../.github/workflows/release-publish.yaml) builds that package at its released version and publishes to PyPI. |
 | Manual dispatch | `release-publish.yaml` also runs on `workflow_dispatch`: pick a package, build it at its current on-disk version, and publish to Test PyPI. Exercises the pipeline end to end without a real release or the production index. |
 
-`release-trigger` creates releases with the `overture-releaser` app's
+`release-trigger` creates releases with the `overture-release-publisher` app's
 installation token, not `GITHUB_TOKEN`: a `GITHUB_TOKEN`-created release does
 not fire the `release: published` event `release-publish` listens for.
 

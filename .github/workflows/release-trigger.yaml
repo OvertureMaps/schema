@@ -16,8 +16,8 @@ name: Publish GitHub release
 # is a release. No-bump merges publish internal `.postN` builds instead (see
 # .github/actions/compute-version).
 #
-# Releases are created with the overture-releaser app's installation token,
-# not GITHUB_TOKEN: GITHUB_TOKEN-created releases don't fire downstream
+# Releases are created with the overture-release-publisher app's installation
+# token, not GITHUB_TOKEN: GITHUB_TOKEN-created releases don't fire downstream
 # `release: published` events, which release-publish.yaml needs to pick up
 # each release individually. See #637 for provisioning that app.
 #
@@ -93,7 +93,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          client-id: Iv23lijru2e660v1zJQO # overture-releaser app ID, not sensitive
+          client-id: Iv23lijru2e660v1zJQO # overture-release-publisher app ID, not sensitive
           private-key: ${{ env.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
           permission-contents: write
 
