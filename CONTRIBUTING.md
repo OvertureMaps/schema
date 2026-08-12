@@ -46,8 +46,8 @@ gitGraph
 
 A bug fix or minor feature that bumps the version in the PR and builds the
 changelog. On merge, `release-trigger` cuts a published GitHub Release, which
-starts the PyPI publish; a maintainer approves it in the `pypi-release`
-environment before it reaches consumers.
+starts the PyPI publish via Trusted Publishing; the version-bump PR review is
+the approval, so nothing further gates it before reaching consumers.
 
 ```mermaid
 gitGraph
@@ -68,8 +68,7 @@ gitGraph
 
 Breaking changes stack on `vnext` until the milestone is ready. Then `vnext`
 merges into `main` as a regular merge (not a squash), which cuts a published
-GitHub Release and starts the same maintainer-gated PyPI publish as any other
-release.
+GitHub Release and starts the same PyPI publish as any other release.
 
 ```mermaid
 gitGraph

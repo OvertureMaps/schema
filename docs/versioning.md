@@ -56,8 +56,8 @@ internal builds off the public index by construction.
 |-------|----------|
 | Push to `main` | [`main-publish.yaml`](../.github/workflows/main-publish.yaml) detects packages changed without a version bump and publishes their `.postN` build to CodeArtifact. |
 | Version bump merged to `main` | [`release-trigger.yaml`](../.github/workflows/release-trigger.yaml) cuts a GitHub Release per bumped package. |
-| Release published | [`release-publish.yaml`](../.github/workflows/release-publish.yaml) builds that package at its released version and publishes to PyPI, gated by the `pypi-release` Environment. |
-| Manual dispatch | `release-publish.yaml` also runs on `workflow_dispatch`: pick a package, build it at its current on-disk version, and publish to Test PyPI (`test-pypi` Environment, no approval gate). Exercises the pipeline end to end without a real release or the production index. |
+| Release published | [`release-publish.yaml`](../.github/workflows/release-publish.yaml) builds that package at its released version and publishes to PyPI. |
+| Manual dispatch | `release-publish.yaml` also runs on `workflow_dispatch`: pick a package, build it at its current on-disk version, and publish to Test PyPI. Exercises the pipeline end to end without a real release or the production index. |
 
 `release-trigger` creates releases with the `overture-releaser` app's
 installation token, not `GITHUB_TOKEN`: a `GITHUB_TOKEN`-created release does
@@ -183,20 +183,14 @@ changes that package, whether or not it bumps the version.
 2. On merge to `main`, `release-trigger` publishes one GitHub Release per bumped
    package: tag `<package>-v<version>`, notes from that package's
    `CHANGELOG.md`.
-3. Publishing the release starts the PyPI publish. The `pypi-release`
-   [GitHub Environment](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manage-environments-for-deployment)'s
-   required reviewers gate the publish job; approve or reject from the
-   workflow run's summary page. To get gate notifications in Slack instead of
-   polling GitHub, subscribe a channel to this repository's deployment
-   reviews with the
-   [GitHub app for Slack](https://github.com/integrations/slack#subscribing-to-a-repository) —
-   no workflow change needed, the gate itself stays entirely in the
-   Environment's reviewer list.
+3. Publishing the release starts the PyPI publish via Trusted Publishing
+   (OIDC); no further manual approval gates it. The version-bump PR review
+   is the approval.
 
 ```mermaid
 flowchart LR
     A[bump + towncrier build<br/>merged to main] --> B[release-trigger:<br/>GitHub Release per package]
-    B --> C[PyPI publish<br/>maintainer approval] --> D[public PyPI]
+    B --> C[PyPI publish<br/>Trusted Publishing] --> D[public PyPI]
     E[no-bump merge] --> F[.postN internal build<br/>CodeArtifact only]
 ```
 

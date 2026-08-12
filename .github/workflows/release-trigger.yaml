@@ -95,9 +95,6 @@ jobs:
         with:
           client-id: Iv23lijru2e660v1zJQO # overture-releaser app ID, not sensitive
           private-key: ${{ env.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
-          # Explicitly scope the app token instead of inheriting all
-          # installation permissions: creating a release/tag is the only
-          # write this workflow performs.
           permission-contents: write
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

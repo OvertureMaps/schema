@@ -5,21 +5,15 @@ name: Release publish
 # `release: published` event actually fires; GITHUB_TOKEN would not).
 #
 # Builds the released package at its released version and publishes it to
-# public PyPI via Trusted Publishing (OIDC) + attestations, gated by that
-# package's pypi-release-<package> Environment's required reviewers.
+# public PyPI via Trusted Publishing (OIDC) + attestations. The version-bump
+# PR review is the approval gate; nothing further blocks the publish once a
+# release exists.
 #
-# Each package gets its own environment pair rather than one shared
-# pypi-release/test-pypi pair: a PyPI Trusted Publisher's identity is (repo,
-# workflow filename, environment), so a shared name across packages would let
-# only one package's project name ever bind to it (see #653).
-#
-# To route approval notifications to Slack instead of the GitHub UI, install
-# the GitHub app in the target channel and subscribe it to this repository's
-# deployment reviews -- see
-# https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manage-environments-for-deployment
-# and https://github.com/integrations/slack#subscribing-to-a-repository.
-# No workflow changes needed; approval gating stays entirely in each
-# pypi-release-<package> Environment.
+# Each package gets its own pypi-release-<package>/test-pypi-<package>
+# environment pair, used only to scope the Trusted Publisher identity, not
+# for approval: a PyPI Trusted Publisher's identity is (repo, workflow
+# filename, environment), so a shared name across packages would let only one
+# package's project name ever bind to it (see #653).
 
 on:
   release:
@@ -94,8 +88,8 @@ jobs:
     name: Publish ${{ needs.parse.outputs.package }} ${{ needs.parse.outputs.version }} to ${{ github.event_name == 'workflow_dispatch' && 'Test PyPI' || 'PyPI' }}
     needs: parse
     runs-on: ubuntu-latest
-    # Per-package environment name: see #653 (shared name across packages
-    # would break Trusted Publisher registration).
+    # Per-package environment name, scoping the Trusted Publisher identity
+    # only (see #653); not an approval gate.
     environment: ${{ github.event_name == 'workflow_dispatch' && format('test-pypi-{0}', needs.parse.outputs.package) || format('pypi-release-{0}', needs.parse.outputs.package) }}
     permissions:
       contents: read
