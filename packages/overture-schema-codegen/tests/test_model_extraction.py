@@ -1,6 +1,6 @@
 """Tests for `extract_model`."""
 
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 
 from annotated_types import Ge
 from codegen_test_support import FeatureWithRootModel
@@ -225,3 +225,60 @@ def test_field_metadata_minlen_wrapped_as_array_min_len() -> None:
     assert isinstance(items_field.shape, ArrayOf)
     constraints = [cs.constraint for cs in items_field.shape.constraints]
     assert ArrayMinLen(min_length=2) in constraints
+
+
+def test_optional_discriminated_union_inside_annotated_extracts() -> None:
+    """`Annotated[A | B | None, Field(discriminator=...)]` must extract.
+
+    The `None` arm lives *inside* the `Annotated`, so no outer-optional
+    stripping applies; the union-alias check must tolerate the vacuous arm.
+    """
+
+    class RideBase(BaseModel):
+        pass
+
+    class CarArm(RideBase):
+        kind: Literal["car"] = "car"
+
+    class BikeArm(RideBase):
+        kind: Literal["bike"] = "bike"
+
+    class Holder(BaseModel):
+        ride: Annotated[CarArm | BikeArm | None, Field(discriminator="kind")] = None
+
+    spec = extract_model(Holder)
+    (ride,) = [f for f in spec.fields if f.name == "ride"]
+    terminal = terminal_of(ride.shape)
+    assert isinstance(terminal, UnionRef)
+    assert terminal.union.discriminator_field == "kind"
+    assert set(terminal.union.discriminator_mapping or {}) == {"car", "bike"}
+    assert ride.is_optional
+
+
+def test_direct_union_alias_field_keeps_discriminator() -> None:
+    """A bare union-alias field must keep its discriminator.
+
+    Pydantic hoists the discriminator onto `FieldInfo.discriminator` for a
+    direct alias field, leaving a bare union in `field_info.annotation`.
+    """
+
+    class RideBase(BaseModel):
+        pass
+
+    class CarArm(RideBase):
+        kind: Literal["car"] = "car"
+
+    class BikeArm(RideBase):
+        kind: Literal["bike"] = "bike"
+
+    Ride = Annotated[CarArm | BikeArm, Field(discriminator="kind")]
+
+    class Holder(BaseModel):
+        ride: Ride
+
+    spec = extract_model(Holder)
+    (ride,) = [f for f in spec.fields if f.name == "ride"]
+    terminal = terminal_of(ride.shape)
+    assert isinstance(terminal, UnionRef)
+    assert terminal.union.discriminator_field == "kind"
+    assert set(terminal.union.discriminator_mapping or {}) == {"car", "bike"}

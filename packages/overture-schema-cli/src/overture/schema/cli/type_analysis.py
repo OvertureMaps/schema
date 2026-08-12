@@ -1,14 +1,15 @@
 """Type introspection and structural analysis for union types."""
 
-import inspect
 from dataclasses import dataclass
-from typing import Annotated as AnnotatedType
 from typing import Any, Literal, get_args, get_origin
 
 from pydantic import BaseModel
-from pydantic.fields import FieldInfo
 
-from overture.schema.system.feature import resolve_discriminator_field_name
+from overture.schema.system.typing_util import (
+    discriminator_values,
+    model_variants,
+    union_discriminator,
+)
 
 from .types import ErrorLocation, ValidationErrorDict
 
@@ -27,86 +28,20 @@ class UnionMetadata:
     discriminator_to_model: dict[str, type[BaseModel]]
     # Map model class names to their types (for non-discriminated unions)
     model_name_to_model: dict[str, type[BaseModel]]
-    # Nested union metadata for union members that are themselves unions
-    nested_unions: dict[str, "UnionMetadata"]
 
 
-def _extract_literal_value(model: type[BaseModel], field_name: str) -> str | None:
-    """Extract the single Literal value from a model field as a string, if present."""
+def _discriminator_keys(model: type[BaseModel], field_name: str) -> tuple[str, ...]:
+    """Return the normalized discriminator keys a model field accepts.
+
+    Delegates to `typing_util.discriminator_values` -- the same convention
+    codegen's discriminator mapping uses, and the form pydantic reports in
+    error locs. Pydantic accepts multi-value literal tags, so a member may
+    contribute several keys; all of them must route to the model.
+    """
     field_info = model.model_fields.get(field_name)
     if field_info is None or field_info.annotation is None:
-        return None
-    if get_origin(field_info.annotation) is Literal:
-        args = get_args(field_info.annotation)
-        return str(args[0]) if args else None
-    return None
-
-
-def _process_union_member(
-    member: Any,  # noqa: ANN401
-    discriminator_to_model: dict[str, type[BaseModel]],
-    model_name_to_model: dict[str, type[BaseModel]],
-    nested_unions: dict[str, UnionMetadata],
-    discriminator_field: str | None = None,
-) -> None:
-    """Process a single union member, handling nesting recursively.
-
-    Args
-    ----
-        member: A union member type (could be Annotated, BaseModel, or nested union)
-        discriminator_to_model: Dict to populate with discriminator value mappings
-        model_name_to_model: Dict to populate with model name mappings
-        nested_unions: Dict to populate with nested union metadata
-        discriminator_field: The discriminator field name from the parent union annotation
-    """
-    member_origin = get_origin(member)
-
-    # Case 1: Annotated type (might contain nested union or Tag)
-    if member_origin is AnnotatedType:
-        member_args = get_args(member)
-        if not member_args:
-            return
-
-        # Check for discriminator in annotations
-        has_discriminator = any(
-            isinstance(metadata, FieldInfo) and hasattr(metadata, "discriminator")
-            for metadata in member_args[1:]
-        )
-
-        if has_discriminator or get_origin(member_args[0]) is not None:
-            # Nested union (with or without discriminator)
-            nested_metadata = introspect_union(member)
-            nested_unions[str(member)] = nested_metadata
-            discriminator_to_model.update(nested_metadata.discriminator_to_model)
-            # The nested union's discriminator_to_model uses the nested discriminator
-            # field (e.g. "subtype"). Re-extract using the parent discriminator field
-            # (e.g. "type") so leaf models are also reachable by the parent's values.
-            if discriminator_field is not None:
-                for model in nested_metadata.model_name_to_model.values():
-                    value = _extract_literal_value(model, discriminator_field)
-                    if value is not None:
-                        discriminator_to_model[value] = model
-            return
-
-        # Unwrap Annotated to get the actual type (e.g., Annotated[Building, Tag('building')])
-        # and process it recursively
-        _process_union_member(
-            member_args[0],
-            discriminator_to_model,
-            model_name_to_model,
-            nested_unions,
-            discriminator_field,
-        )
-        return
-
-    # Case 2: BaseModel class
-    if inspect.isclass(member) and issubclass(member, BaseModel):
-        model_name_to_model[member.__name__] = member
-
-        if discriminator_field is not None:
-            value = _extract_literal_value(member, discriminator_field)
-            if value is not None:
-                discriminator_to_model[value] = member
+        return ()
+    return discriminator_values(field_info.annotation) or ()
 
 
 def introspect_union(union_type: Any) -> UnionMetadata:  # noqa: ANN401
@@ -160,62 +95,32 @@ def introspect_union(union_type: Any) -> UnionMetadata:  # noqa: ANN401
         True
     """
     # Check if this is a list type - unwrap to get the element type
-    origin = get_origin(union_type)
-    if origin is list:
+    if get_origin(union_type) is list:
         args = get_args(union_type)
         if args:
             # Recursively introspect the list element type
             return introspect_union(args[0])
 
-    # Check if this is an Annotated type with a discriminator
-    discriminator_field = None
-    actual_union = union_type
+    variants = model_variants(union_type)
 
-    # Unwrap Annotated ONLY if the top level is Annotated
-    if origin is AnnotatedType:
-        # This is Annotated[Union[...], ...]
-        args = get_args(union_type)
-        if args:
-            # First arg is the actual type, rest are metadata
-            actual_union = args[0]
-            # Look for Field with discriminator in metadata
-            for metadata in args[1:]:
-                if isinstance(metadata, FieldInfo) and hasattr(
-                    metadata, "discriminator"
-                ):
-                    discriminator_field = resolve_discriminator_field_name(
-                        metadata.discriminator
-                    )
-                    break
+    model_name_to_model = {v.model.__name__: v.model for v in variants}
 
-    # Get union members
-    union_origin = get_origin(actual_union)
-    if union_origin is None:
-        # Not a union, might be a single model
-        union_members = [actual_union]
-    else:
-        union_members = list(get_args(actual_union))
-
+    # Each variant's discriminator_path carries every discriminator field on the
+    # way to the model (e.g. ("type", "subtype") for a nested discriminated
+    # union), so nested models are reachable by the parent's discriminator
+    # values as well as their own.
     discriminator_to_model: dict[str, type[BaseModel]] = {}
-    model_name_to_model: dict[str, type[BaseModel]] = {}
-    nested_unions: dict[str, UnionMetadata] = {}
+    for variant in variants:
+        for field_name in variant.discriminator_path:
+            for key in _discriminator_keys(variant.model, field_name):
+                discriminator_to_model[key] = variant.model
 
-    # Process each union member
-    for member in union_members:
-        _process_union_member(
-            member,
-            discriminator_to_model,
-            model_name_to_model,
-            nested_unions,
-            discriminator_field,
-        )
-
+    discriminator_field = union_discriminator(union_type)
     return UnionMetadata(
         is_discriminated=discriminator_field is not None,
         discriminator_field=discriminator_field,
         discriminator_to_model=discriminator_to_model,
         model_name_to_model=model_name_to_model,
-        nested_unions=nested_unions,
     )
 
 

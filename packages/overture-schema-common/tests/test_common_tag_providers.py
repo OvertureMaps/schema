@@ -71,5 +71,5 @@ def test_theme_provider_raises_on_non_literal_theme() -> None:
         # bug we want to surface.
         pass
 
-    with pytest.raises(TypeError, match="must be annotated Literal"):
+    with pytest.raises(TypeError, match="must be a single-value str Literal"):
         theme_provider((BadFeature,), _empty_key(), set())

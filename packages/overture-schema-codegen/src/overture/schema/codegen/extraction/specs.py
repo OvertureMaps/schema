@@ -12,9 +12,9 @@ from pydantic import BaseModel
 
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.model_constraint import ModelConstraint
+from overture.schema.system.typing_util import is_model_union
 
 from .field import FieldShape
-from .type_analyzer import capture_union_members
 
 __all__ = [
     "AnnotatedField",
@@ -273,7 +273,7 @@ def is_model_class(obj: object) -> TypeGuard[type[BaseModel]]:
 
 def is_union_alias(obj: object) -> bool:
     """Check whether *obj* is a discriminated union type alias of BaseModel subclasses."""
-    return capture_union_members(obj) is not None
+    return is_model_union(obj)
 
 
 def filter_model_classes(models: dict[Any, Any]) -> list[type[BaseModel]]:

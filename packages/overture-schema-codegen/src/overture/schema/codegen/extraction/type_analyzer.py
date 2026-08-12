@@ -40,7 +40,6 @@ from typing import (
     Any,
     ForwardRef,
     Literal,
-    NoReturn,
     Union,
     get_args,
     get_origin,
@@ -52,6 +51,17 @@ from pydantic.fields import FieldInfo
 from typing_extensions import Sentinel, assert_never, evaluate_forward_ref
 
 from overture.schema.system.extension import Extends
+from overture.schema.system.typing_util import (
+    accepts_none,
+    model_types,
+    resolves_to_models,
+)
+from overture.schema.system.typing_util import (
+    is_newtype as _is_newtype,
+)
+from overture.schema.system.typing_util import (
+    single_literal_value as _single_literal_value,
+)
 
 from .docstring import clean_docstring
 from .field import (
@@ -66,7 +76,6 @@ from .field import (
     Primitive,
     UnionRef,
 )
-from .field_walk import terminal_of
 from .length_constraints import ArrayMaxLen, ArrayMinLen, ScalarMaxLen, ScalarMinLen
 from .literal_alternatives import LiteralAlternatives
 
@@ -110,7 +119,6 @@ __all__ = [
     "analyze_type",
     "attach_constraints",
     "attach_field_metadata",
-    "capture_union_members",
     "is_newtype",
     "single_literal_value",
     "unwrap_list",
@@ -141,53 +149,9 @@ and the description accumulated from enclosing `Annotated` layers.
 """
 
 
-def is_newtype(annotation: object) -> bool:
-    """Check whether *annotation* is a `typing.NewType`.
-
-    NewType creates a callable with a `__supertype__` attribute pointing
-    to the wrapped type. No public API exists for this check.
-    """
-    return callable(annotation) and hasattr(annotation, "__supertype__")
-
-
-class _UnionCaptured(Exception):  # noqa: N818 - control flow, not a true error
-    """Raised by the capturing union resolver to short-circuit analyze_type."""
-
-    def __init__(
-        self, members: tuple[type[BaseModel], ...], description: str | None
-    ) -> None:
-        self.members = members
-        self.description = description
-
-
-def capture_union_members(
-    annotation: object,
-) -> tuple[tuple[type[BaseModel], ...], str | None] | None:
-    """Peel wrappers from *annotation* and return its union members.
-
-    Returns `(members, description)` when *annotation* (possibly wrapped
-    in `Annotated`) terminates in a multi-arm union of `BaseModel`
-    subclasses, otherwise `None`. Internally drives `analyze_type` with
-    a capturing resolver and unwinds via an exception once the union
-    terminal is reached. The resolver fires only after every enclosing
-    `Annotated` layer is peeled, so the captured description matches what
-    `analyze_type` would return.
-    """
-
-    def _capture(
-        _ann: object,
-        members: tuple[type[BaseModel], ...],
-        description: str | None,
-    ) -> NoReturn:
-        raise _UnionCaptured(members, description)
-
-    try:
-        analyze_type(annotation, union_resolver=_capture)
-    except _UnionCaptured as captured:
-        return captured.members, captured.description
-    except (TypeError, UnsupportedUnionError):
-        return None
-    return None
+# Re-exported for existing importers; the shared predicate recognizes both
+# `typing.NewType` and `typing_extensions.NewType` (distinct classes on 3.10/3.11).
+is_newtype = _is_newtype
 
 
 def _is_union(origin: object) -> bool:
@@ -612,7 +576,10 @@ def _peel_union(
     discriminator metadata that the `Annotated` peeling step consumed.
     """
     args = get_args(annotation)
-    is_optional = any(a is types.NoneType for a in args)
+    # Optionality comes from the complete expression, not just the direct
+    # args: arm classification flattens nested unions, so a `None` inside a
+    # nested arm (`Annotated[A | None, ...] | B`) must surface here too.
+    is_optional = accepts_none(annotation)
 
     non_none_args = _filter_sentinel_arms(args)
     concrete_args = [a for a in non_none_args if get_origin(a) is not Literal]
@@ -628,17 +595,18 @@ def _peel_union(
         literal_alternatives = tuple(v for a in literal_args for v in get_args(a))
 
     if len(real_args) > 1:
+        # Skeleton classification is typing_util's: an arm qualifies when it
+        # resolves purely to models (nested union aliases flatten, NewType and
+        # stacked-Annotated arms unwrap), matching what extract_union derives
+        # from the same annotation. `resolves_to_models` -- not
+        # `non_model_parts`, which deliberately reports vacuous arms.
         members: list[type[BaseModel]] = []
         for arg in real_args:
-            inner = arg
-            if get_origin(inner) is Annotated:
-                inner = get_args(inner)[0]
-            if isinstance(inner, type) and issubclass(inner, BaseModel):
-                members.append(inner)
-            else:
+            if not resolves_to_models(arg):
                 raise UnsupportedUnionError(
                     f"Multi-type unions not supported: {annotation}"
                 )
+            members.extend(model_types(arg))
         if union_resolver is None:
             raise UnsupportedUnionError(
                 f"No union_resolver supplied for multi-arm union: {annotation}"
@@ -668,18 +636,7 @@ def unwrap_list(annotation: object) -> object:
     return annotation
 
 
-def single_literal_value(annotation: object) -> object | None:
-    """Extract a single literal value from a type annotation, or `None`.
-
-    Returns `None` for multi-value Literals -- callers needing all
-    values should use `analyze_type` and inspect the terminal
-    `LiteralScalar`'s `values`.
-    """
-    try:
-        shape, _, _ = analyze_type(annotation)
-    except (TypeError, UnsupportedUnionError):
-        return None
-    terminal = terminal_of(shape)
-    if isinstance(terminal, LiteralScalar) and len(terminal.values) == 1:
-        return terminal.values[0]
-    return None
+# Re-exported for existing importers; the implementation is the shared
+# typing_util walk. (Unlike the old analyze_type-driven version it does not
+# see through `list[...]` -- no caller passes container types.)
+single_literal_value = _single_literal_value

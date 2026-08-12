@@ -6,12 +6,12 @@ that should be attached. Registered via the
 """
 
 from collections.abc import Iterable
-from typing import Literal, get_args, get_origin
 
 from pydantic import BaseModel
 
 from overture.schema.common import OvertureFeature
 from overture.schema.system.discovery import ModelKey
+from overture.schema.system.typing_util import single_literal_value
 
 
 def theme_provider(
@@ -64,18 +64,15 @@ def _theme_literal(model_class: type[OvertureFeature]) -> str:
     Raises
     ------
     TypeError
-        If `theme` is not annotated as a single-value `Literal`.
+        If `theme` is not annotated as (or wrapped around) a single-value
+        str `Literal`. Discovery only logs provider errors, so this raise is
+        the sole signal of a malformed feature class -- keep it loud.
     """
     annotation = model_class.model_fields["theme"].annotation
-    if get_origin(annotation) is not Literal:
-        raise TypeError(
-            f"{model_class.__name__}.theme must be annotated Literal[...]; "
-            f"got {annotation!r}"
-        )
-    args = get_args(annotation)
-    if len(args) != 1 or not isinstance(args[0], str):
+    value = single_literal_value(annotation)
+    if not isinstance(value, str):
         raise TypeError(
             f"{model_class.__name__}.theme must be a single-value str Literal; "
             f"got {annotation!r}"
         )
-    return args[0]
+    return value

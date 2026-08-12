@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import Annotated
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -162,6 +163,15 @@ def _extract_model_recursive(
         annotation = field_info.annotation
         if annotation is None:
             continue
+        # Pydantic hoists a field-level discriminator out of the annotation
+        # onto `field_info.discriminator` (for a bare alias field or when the
+        # `None` arm sits inside the `Annotated`); `analyze_type` then sees a
+        # bare union and the extracted `UnionSpec` would silently lose its
+        # discriminator. Rewrap so the annotation carries it again.
+        if field_info.discriminator is not None:
+            annotation = Annotated[  # type: ignore[assignment]
+                annotation, Field(discriminator=field_info.discriminator)
+            ]
         shape, is_optional, ti_description = analyze_type(
             annotation,
             owner=model_class,

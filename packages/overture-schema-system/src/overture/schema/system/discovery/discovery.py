@@ -23,7 +23,7 @@ from overture.schema.system.extension import (
     extension_targets,
     wrap_extension,
 )
-from overture.schema.system.typing_util import collect_types
+from overture.schema.system.typing_util import model_types
 
 log = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def _generate_tags(
 ) -> set[str]:
     """Generate tags for a model class using tag providers.
 
-    The model is walked once via `collect_types` to find every concrete
+    The model is walked once via `model_types` to find every concrete
     `BaseModel` arm, and each provider is called with the result. Tags
     a provider adds are filtered for validity and permission before
     being included. Provider errors are caught and logged as warnings
@@ -71,7 +71,7 @@ def _generate_tags(
     set[str]
         Tags generated for the model.
     """
-    types = collect_types(model_class)
+    types = model_types(model_class)
     tags: set[str] = set()
     for provider_key, provider in providers.items():
         try:
@@ -419,7 +419,7 @@ def select_models(
     }
 
 
-def get_registered_model(model_name: str) -> type[BaseModel] | None:
+def get_registered_model(model_name: str) -> object | None:
     """Get the model by name.
 
     Loads all models via entry points and returns the first with a matching name.
@@ -432,8 +432,9 @@ def get_registered_model(model_name: str) -> type[BaseModel] | None:
 
     Returns
     -------
-    type[BaseModel] or None
-        Model class if found, otherwise `None`.
+    object
+        The entry-point value if found -- usually a `BaseModel` subclass, but
+        possibly a union alias or `NewType` (see `ModelDict`) -- otherwise `None`.
     """
     models = discover_models()
     for key, model_class in models.items():

@@ -48,16 +48,33 @@ import keyword
 import logging
 import types
 from collections.abc import Callable, Iterable, Iterator, Mapping
-from typing import Annotated, Any, NewType, TypeVar, Union, get_args, get_origin
+from typing import (
+    Annotated,
+    Any,
+    NewType,
+    TypeAlias,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+)
 
 from pydantic import AliasChoices, AliasPath, BaseModel, RootModel
+from typing_extensions import TypeForm
 
 from overture.schema.system.create_model import create_model
+from overture.schema.system.typing_util import (
+    is_newtype,
+    model_types,
+    non_model_parts,
+)
 
 log = logging.getLogger(__name__)
 
 __all__ = [
     "Extends",
+    "ExtensionTarget",
     "SelfReferentialRootError",
     "applied_extension_names",
     "applied_extensions",
@@ -76,6 +93,14 @@ class SelfReferentialRootError(TypeError):
     class lets callers that must tolerate exactly this case (e.g. warning
     aggregation) catch it without swallowing unrelated `TypeError`s.
     """
+
+
+# What an extension may declare it extends: a type expression -- model class,
+# model union, `Annotated`, `NewType`, `RootModel` -- whose meaning resolves to
+# `BaseModel`. Static checkers verify this shape at the declaration site;
+# `_validate_targets` remains the runtime gate for what they cannot see
+# (scalar `RootModel` roots, self-referential roots).
+ExtensionTarget: TypeAlias = TypeForm[BaseModel]
 
 
 # Class attributes this mechanism sets: qualified non-identifier names (the
@@ -99,17 +124,17 @@ def applied_extensions(model_class: type[BaseModel]) -> frozenset[str]:
     return getattr(model_class, _APPLIED_ATTR, frozenset())
 
 
-def applied_extension_names(obj: Any) -> frozenset[str]:  # noqa: ANN401
+def applied_extension_names(obj: object) -> frozenset[str]:
     """Return the names of the extensions applied anywhere in a model-bearing type expression.
 
-    Aggregates `applied_extensions` over every `BaseModel` leaf of `obj`, so it also covers
+    Aggregates `applied_extensions` over every model type of `obj`, so it also covers
     union/`Annotated`/`NewType`/`RootModel` registry entries whose arms were extended
     individually. A self-referential `RootModel` yields the empty set instead of raising:
     such an entry cannot have been extended (`create_extended_model` refuses it), and this
     function feeds warning aggregation, which must not abort the extension pass.
     """
     try:
-        classes = _unwrap_model_classes(obj)
+        classes = _target_model_types(obj)
     except SelfReferentialRootError:
         return frozenset()
     names: frozenset[str] = frozenset()
@@ -118,9 +143,12 @@ def applied_extension_names(obj: Any) -> frozenset[str]:  # noqa: ANN401
     return names
 
 
-def _dedupe_targets(targets: Iterable[Any]) -> tuple[Any, ...]:
+_ItemT = TypeVar("_ItemT")
+
+
+def _dedupe_targets(targets: Iterable[_ItemT]) -> tuple[_ItemT, ...]:
     """Deduplicate targets by equality, preserving order (targets may be unhashable)."""
-    merged: list[Any] = []
+    merged: list[_ItemT] = []
     for target in targets:
         if target not in merged:
             merged.append(target)
@@ -133,66 +161,57 @@ def _self_referential_root_error(tp: type) -> SelfReferentialRootError:
     )
 
 
-def _unwrap_model_classes(
-    tp: Any,  # noqa: ANN401
-    _seen: frozenset[type] = frozenset(),
+def _target_model_types(
+    tp: object, _seen: frozenset[type] = frozenset()
 ) -> tuple[type[BaseModel], ...]:
-    """Collect the concrete `BaseModel` classes a type expression resolves to.
+    """Model types of a type expression, with `RootModel` treated as an alias over its root.
 
-    Unwraps `Annotated`, `Union` (including `X | Y`), `NewType`, and `RootModel` (an alias over
-    its root value, so its root's classes are collected instead of the RootModel itself).
-    Non-model leaves are ignored.
+    Each `RootModel` is replaced by its root annotation's model types, recursively; a
+    self-referential root raises `TypeError` (it has no finite shape).
     """
-    origin = get_origin(tp)
-    if origin is Annotated:
-        return _unwrap_model_classes(get_args(tp)[0], _seen)
-    if origin is Union or origin is types.UnionType:
-        classes: list[type[BaseModel]] = []
-        for arg in get_args(tp):
-            classes.extend(_unwrap_model_classes(arg, _seen))
-        return tuple(classes)
-    if hasattr(tp, "__supertype__"):
-        return _unwrap_model_classes(tp.__supertype__, _seen)
-    if isinstance(tp, type) and issubclass(tp, RootModel):
-        if tp in _seen:
-            raise _self_referential_root_error(tp)
-        return _unwrap_model_classes(tp.model_fields["root"].annotation, _seen | {tp})
-    if isinstance(tp, type) and issubclass(tp, BaseModel):
-        return (tp,)
-    return ()
+    classes: list[type[BaseModel]] = []
+    for model_type in model_types(tp):
+        if issubclass(model_type, RootModel):
+            if model_type in _seen:
+                raise _self_referential_root_error(model_type)
+            classes.extend(
+                _target_model_types(
+                    model_type.model_fields["root"].annotation, _seen | {model_type}
+                )
+            )
+        else:
+            classes.append(model_type)
+    return tuple(classes)
 
 
-def _is_model_target(
-    tp: Any,  # noqa: ANN401
-    _seen: frozenset[type] = frozenset(),
-) -> bool:
+def _is_valid_target(tp: object, _seen: frozenset[type] = frozenset()) -> bool:
     """Whether a type expression resolves *entirely* to extendable `BaseModel` subclasses.
 
-    Unlike `_unwrap_model_classes`, a union must have *every* arm resolve to a model for the whole
-    expression to qualify — a partially-model union (e.g. `Place | int`) is not a valid target.
-    A `RootModel` qualifies exactly when its root does: it is an alias over its root value, so
-    `RootModel[Road | Rail]` targets the arms while `RootModel[int]` resolves to no model.
+    A partially-model union (e.g. `Place | int`) does not qualify. A `RootModel` qualifies
+    exactly when its root does: it is an alias over its root value, so `RootModel[Road | Rail]`
+    targets the arms while `RootModel[int]` resolves to no model.
     """
-    origin = get_origin(tp)
-    if origin is Annotated:
-        return _is_model_target(get_args(tp)[0], _seen)
-    if origin is Union or origin is types.UnionType:
-        args = get_args(tp)
-        return bool(args) and all(_is_model_target(arg, _seen) for arg in args)
-    if hasattr(tp, "__supertype__"):
-        return _is_model_target(tp.__supertype__, _seen)
-    if isinstance(tp, type) and issubclass(tp, RootModel):
-        if tp in _seen:
-            raise _self_referential_root_error(tp)
-        return _is_model_target(tp.model_fields["root"].annotation, _seen | {tp})
-    return isinstance(tp, type) and issubclass(tp, BaseModel)
+    if non_model_parts(tp):
+        return False
+    resolved = model_types(tp)
+    if not resolved:
+        return False
+    for model_type in resolved:
+        if issubclass(model_type, RootModel):
+            if model_type in _seen:
+                raise _self_referential_root_error(model_type)
+            if not _is_valid_target(
+                model_type.model_fields["root"].annotation, _seen | {model_type}
+            ):
+                return False
+    return True
 
 
-def _validate_targets(name: str, targets: tuple[Any, ...]) -> None:
+def _validate_targets(name: str, targets: tuple[object, ...]) -> None:
     if not targets:
         raise TypeError(f"`{name}` requires at least one target model")
     for target in targets:
-        if not _is_model_target(target):
+        if not _is_valid_target(target):
             raise TypeError(
                 f"`{name}` targets must be (or resolve to) pydantic `BaseModel` subclasses, "
                 f"but {target!r} does not qualify. A `RootModel` target is an alias over its "
@@ -208,19 +227,19 @@ class Extends:
     model extensions, prefer the `@extends` decorator.
     """
 
-    def __init__(self, *targets: Any) -> None:  # noqa: ANN401
+    def __init__(self, *targets: ExtensionTarget) -> None:
         _validate_targets(type(self).__name__, targets)
         self.__targets = targets
 
     @property
-    def extends(self) -> tuple[Any, ...]:
+    def extends(self) -> tuple[ExtensionTarget, ...]:
         return self.__targets
 
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
 
 
-def extends(*targets: Any) -> Callable[[type[ModelT]], type[ModelT]]:  # noqa: ANN401
+def extends(*targets: ExtensionTarget) -> Callable[[type[ModelT]], type[ModelT]]:
     """
     Decorate a Pydantic model to declare it is an extension of one or more target models.
 
@@ -257,14 +276,14 @@ def extends(*targets: Any) -> Callable[[type[ModelT]], type[ModelT]]:  # noqa: A
     return decorator
 
 
-def _find_extends_metadata(tp: Any) -> tuple[Any, ...]:  # noqa: ANN401
+def _find_extends_metadata(tp: object) -> tuple[ExtensionTarget, ...]:
     """Find `Extends` metadata attached to a `NewType`/`Annotated` expression.
 
     Multiple declarations in one `Annotated` frame merge; the nearest frame
     declaring any `Extends` decides.
     """
-    if hasattr(tp, "__supertype__"):
-        return _find_extends_metadata(tp.__supertype__)
+    if is_newtype(tp):
+        return _find_extends_metadata(tp.__supertype__)  # type: ignore[attr-defined]
     if get_origin(tp) is Annotated:
         args = get_args(tp)
         found = _dedupe_targets(
@@ -279,7 +298,7 @@ def _find_extends_metadata(tp: Any) -> tuple[Any, ...]:  # noqa: ANN401
     return ()
 
 
-def extension_targets(obj: Any) -> tuple[Any, ...]:  # noqa: ANN401
+def extension_targets(obj: object) -> tuple[ExtensionTarget, ...]:
     """
     Return the target models an extension declares, or `()` if `obj` is not an extension.
 
@@ -318,7 +337,7 @@ def _validate_extension_name(name: str) -> None:
 
 def wrap_extension(
     name: str,
-    obj: Any,  # noqa: ANN401
+    obj: object,
     *,
     module: str | None = None,
 ) -> type[BaseModel] | None:
@@ -348,14 +367,14 @@ def wrap_extension(
         _wrapper_name(name),
         __module__=owner_module,
         __doc__=f"Standalone wrapper model for the `{name}` extension.",
-        **{name: (obj | None, None)},  # type: ignore[arg-type]
+        **{name: (cast(Any, obj) | None, None)},  # type: ignore[arg-type]
     )
     setattr(wrapper, _EXTENDS_ATTR, Extends(*targets))
     setattr(wrapper, _EXTENSION_ATTR, obj)
     return wrapper
 
 
-def _alias_strings(alias: object) -> Iterator[str]:
+def _alias_strings(alias: str | AliasPath | AliasChoices | None) -> Iterator[str]:
     """Yield the payload-level key names an alias declaration can claim."""
     if isinstance(alias, str):
         yield alias
@@ -393,10 +412,9 @@ def _occupied_names(model: type[BaseModel]) -> set[str]:
 
 
 def create_extended_model(
-    model: Any,  # noqa: ANN401
+    model: object,
     extensions: Mapping[str, type[BaseModel]],
-    _seen: frozenset[type] = frozenset(),
-) -> Any:  # noqa: ANN401
+) -> object:
     """
     Apply extension wrappers to a model (or model-bearing type expression).
 
@@ -407,6 +425,10 @@ def create_extended_model(
     preserved for untouched types. Container types (`list[...]`, `dict[...]`) are opaque: models
     inside them are not rewritten.
 
+    The signature is deliberately `object -> object`: the transformation rewrites arbitrary
+    runtime type expressions, and no static type describes it meaningfully. A caller that knows
+    it supplied a model class must narrow the result before using it as one.
+
     Parameters
     ----------
     model
@@ -415,99 +437,115 @@ def create_extended_model(
         Mapping of extension field name to wrapper model (as produced by `wrap_extension`).
         A raw `@extends` model class is also accepted and applies as its own field type.
     """
-    origin = get_origin(model)
+    return _extend_type_expression(model, extensions, frozenset())
+
+
+def _extend_type_expression(
+    expression: object,
+    extensions: Mapping[str, type[BaseModel]],
+    seen: frozenset[type],
+) -> object:
+    """Recursive worker for `create_extended_model`.
+
+    `seen` carries the `RootModel` classes on the current descent so a
+    self-referential root fails loudly instead of recursing forever; keeping
+    it here leaves the public signature free of cycle-detection state.
+    """
+    origin = get_origin(expression)
 
     if origin is Annotated:
-        tp, *metadata = get_args(model)
-        extended = create_extended_model(tp, extensions, _seen)
+        tp, *metadata = get_args(expression)
+        extended = _extend_type_expression(tp, extensions, seen)
         if extended is tp:
-            return model
-        return Annotated.__class_getitem__((extended, *metadata))  # type: ignore[attr-defined]
+            return expression
+        return Annotated.__class_getitem__(  # type: ignore[attr-defined]
+            (extended, *metadata)
+        )
 
     if origin is Union or origin is types.UnionType:
-        args = get_args(model)
+        args = get_args(expression)
         extended_args = tuple(
-            create_extended_model(arg, extensions, _seen) for arg in args
+            _extend_type_expression(arg, extensions, seen) for arg in args
         )
         if all(new is old for new, old in zip(extended_args, args, strict=True)):
-            return model
+            return expression
         # Rebuild via `Union[...]` rather than `reduce(or_, ...)`: `|` raises
         # on arms that don't implement it (e.g. an unresolved `ForwardRef`),
         # while `Union` accepts any type argument.
         return Union[extended_args]  # noqa: UP007
 
-    if hasattr(model, "__supertype__"):
-        supertype = model.__supertype__
-        extended = create_extended_model(supertype, extensions, _seen)
+    if is_newtype(expression):
+        supertype = expression.__supertype__  # type: ignore[attr-defined]
+        extended = _extend_type_expression(supertype, extensions, seen)
         if extended is supertype:
-            return model
-        extended_alias = NewType(model.__name__, extended)  # type: ignore[misc, valid-type]
+            return expression
+        extended_alias = NewType(expression.__name__, extended)  # type: ignore[misc, valid-type, attr-defined]
         # `NewType` stamps `__module__` from the calling frame and resets
         # `__qualname__`/`__doc__`; restore the original alias's identity so
         # the rebuilt alias doesn't appear to originate here and keeps any
         # custom docstring (which codegen renders).
-        extended_alias.__module__ = model.__module__
-        extended_alias.__qualname__ = model.__qualname__
-        extended_alias.__doc__ = model.__doc__
+        extended_alias.__module__ = expression.__module__  # type: ignore[attr-defined]
+        extended_alias.__qualname__ = expression.__qualname__  # type: ignore[attr-defined]
+        extended_alias.__doc__ = expression.__doc__
         return extended_alias
 
-    if not (isinstance(model, type) and issubclass(model, BaseModel)):
-        return model
-    if issubclass(model, RootModel):
+    if not (isinstance(expression, type) and issubclass(expression, BaseModel)):
+        return expression
+    if issubclass(expression, RootModel):
         # A RootModel is an alias over its root value: rewrite the root annotation and
         # rebuild as a subclass, reusing the root FieldInfo so its metadata, default,
         # and requiredness carry over.
-        if model in _seen:
-            raise _self_referential_root_error(model)
-        root_field = model.model_fields["root"]
-        extended = create_extended_model(
-            root_field.annotation, extensions, _seen | {model}
+        if expression in seen:
+            raise _self_referential_root_error(expression)
+        root_field = expression.model_fields["root"]
+        extended = _extend_type_expression(
+            root_field.annotation, extensions, seen | {expression}
         )
         if extended is root_field.annotation:
-            return model
+            return expression
         return create_model(
-            model.__name__,
-            __base__=model,
-            __module__=model.__module__,
-            __doc__=model.__doc__,
+            expression.__name__,
+            __base__=expression,
+            __module__=expression.__module__,
+            __doc__=expression.__doc__,
             root=(extended, root_field),
         )
 
-    applied: frozenset[str] = getattr(model, _APPLIED_ATTR, frozenset())
+    applied = applied_extensions(expression)
     occupied: set[str] | None = None
     fields: dict[str, tuple[Any, None]] = {}
     for field_name, wrapper in extensions.items():
         if field_name in applied:
             continue
         if not any(
-            issubclass(model, cls)
+            issubclass(expression, target_model)
             for target in extension_targets(wrapper)
-            for cls in _unwrap_model_classes(target)
+            for target_model in _target_model_types(target)
         ):
             continue
         if occupied is None:
-            occupied = _occupied_names(model)
+            occupied = _occupied_names(expression)
         if field_name in occupied:
             log.warning(
                 "Extension '%s' collides with an existing field, alias, or attribute on "
                 "model '%s'; skipping.",
                 field_name,
-                model.__name__,
+                expression.__name__,
             )
             continue
         # A wrapper built by `wrap_extension` stashes the original extension type;
         # a raw `@extends` model is itself the extension type.
-        extension_type = getattr(wrapper, _EXTENSION_ATTR, wrapper)
-        fields[field_name] = (extension_type | None, None)
+        extension_type: object = getattr(wrapper, _EXTENSION_ATTR, wrapper)
+        fields[field_name] = (cast(Any, extension_type) | None, None)
 
     if not fields:
-        return model
+        return expression
 
     extended_model = create_model(
-        model.__name__,
-        __base__=model,
-        __doc__=model.__doc__,
-        __module__=model.__module__,
+        expression.__name__,
+        __base__=expression,
+        __doc__=expression.__doc__,
+        __module__=expression.__module__,
         **fields,  # type: ignore[arg-type]
     )
     setattr(extended_model, _APPLIED_ATTR, applied | frozenset(fields))

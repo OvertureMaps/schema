@@ -1,9 +1,10 @@
 """Tests for `analyze_type`: annotation -> `FieldShape` analysis."""
 
 from enum import Enum
-from typing import Annotated, Any, Literal, NewType, Optional
+from typing import Annotated, Any, ForwardRef, Literal, NewType, Optional
 
 import pytest
+import typing_extensions as te
 from annotated_types import Ge, MaxLen, MinLen
 from codegen_test_support import TollChargesByVehicleType
 from overture.schema.codegen.extraction.field import (
@@ -32,6 +33,7 @@ from overture.schema.codegen.extraction.literal_alternatives import (
 )
 from overture.schema.codegen.extraction.specs import RecordSpec, UnionSpec
 from overture.schema.codegen.extraction.type_analyzer import (
+    UnionResolver,
     UnresolvedForwardRefError,
     UnsupportedUnionError,
     analyze_type,
@@ -579,6 +581,31 @@ class TestForwardRefs:
         assert isinstance(shape, Primitive)
         assert shape.source_type is Outer.Inner
 
+    def test_optional_forward_ref_resolves_before_optionality_check(self) -> None:
+        """`Optional["Inner"]` must not trip the optionality walk on the raw ref.
+
+        `_peel_union` derives `is_optional` from the whole expression; that
+        walk must tolerate the still-unresolved `ForwardRef` arm, leaving
+        resolution to the analyzer's own owner-based pass one frame later.
+        (Pydantic leaves exactly this shape in `model_fields` when the
+        referenced class is defined after the referring one.)
+        """
+
+        class Outer(BaseModel):
+            class Inner(BaseModel):
+                x: int
+
+        # Built via an explicit ForwardRef so mypy doesn't try to resolve the
+        # string; runtime-wise identical to `Optional["Inner"]` left
+        # unevaluated by pydantic.
+        ref = ForwardRef("Inner")
+        annotation: object = Optional[ref]  # type: ignore[valid-type]  # noqa: UP045
+        shape, is_optional, _ = analyze_type(annotation, owner=Outer)
+
+        assert is_optional is True
+        assert isinstance(shape, Primitive)
+        assert shape.source_type is Outer.Inner
+
 
 class UnionModelA(BaseModel):
     x: int
@@ -586,6 +613,10 @@ class UnionModelA(BaseModel):
 
 class UnionModelB(BaseModel):
     y: str
+
+
+class UnionModelC(BaseModel):
+    z: bool
 
 
 class TestUnionResolver:
@@ -639,6 +670,40 @@ class TestUnionResolver:
     def test_mixed_model_nonmodel_raises(self) -> None:
         with pytest.raises(UnsupportedUnionError):
             analyze_type(UnionModelA | str)
+
+    @staticmethod
+    def _capturing_resolver(
+        captured: list[tuple[type[BaseModel], ...]],
+    ) -> UnionResolver:
+        def resolver(
+            _ann: object,
+            members: tuple[type[BaseModel], ...],
+            _description: str | None,
+        ) -> Primitive:
+            captured.append(members)
+            return Primitive(base_type="x")
+
+        return resolver
+
+    def test_nested_union_alias_arm_flattens(self) -> None:
+        # A union arm that is itself a union alias flattens into leaves --
+        # the same answer extract_union derives from the annotation.
+        captured: list[tuple[type[BaseModel], ...]] = []
+        inner = Annotated[UnionModelA | UnionModelB, Field(description="inner")]
+        analyze_type(
+            inner | UnionModelC, union_resolver=self._capturing_resolver(captured)
+        )
+        expected: set[type[BaseModel]] = {UnionModelA, UnionModelB, UnionModelC}
+        assert set(captured[0]) == expected
+
+    def test_newtype_arm_unwraps(self) -> None:
+        captured: list[tuple[type[BaseModel], ...]] = []
+        Aliased = NewType("Aliased", UnionModelA)
+        analyze_type(
+            Aliased | UnionModelB, union_resolver=self._capturing_resolver(captured)
+        )
+        expected: set[type[BaseModel]] = {UnionModelA, UnionModelB}
+        assert set(captured[0]) == expected
 
 
 class TestSingleLiteralValue:
@@ -765,3 +830,35 @@ class TestNestedArrayCharacterization:
         assert isinstance(shape.inner, MapOf)
         assert isinstance(shape.inner.value, NewTypeShape)
         assert shape.inner.value.name == "DictValue"
+
+
+class TestNestedOptionality:
+    """A None arm nested inside a union arm makes the whole field optional."""
+
+    def test_nested_none_inside_annotated_arm(self) -> None:
+        captured: list[tuple[type[BaseModel], ...]] = []
+
+        def resolver(
+            _ann: object,
+            members: tuple[type[BaseModel], ...],
+            _description: str | None,
+        ) -> Primitive:
+            captured.append(members)
+            return Primitive(base_type="x")
+
+        annotation = Annotated[UnionModelA | None, "meta"] | UnionModelB
+        _, is_optional, _ = analyze_type(annotation, union_resolver=resolver)
+        expected: set[type[BaseModel]] = {UnionModelA, UnionModelB}
+        assert set(captured[0]) == expected
+        assert is_optional is True
+
+
+class TestTypingExtensionsNewType:
+    def test_typing_extensions_newtype_unwraps(self) -> None:
+        # typing_extensions.NewType is a distinct class from typing.NewType on
+        # 3.10/3.11; the analyzer must unwrap both.
+        X = te.NewType("X", Annotated[int, Field(ge=0)])
+        shape = _shape(X)
+        assert isinstance(shape, NewTypeShape)
+        assert shape.name == "X"
+        assert isinstance(shape.inner, Primitive)

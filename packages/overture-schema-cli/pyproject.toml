@@ -35,7 +35,7 @@ requires = ["hatchling"]
 dev = [
     "pytest>=9.0.0",
     "ruff>=0.13.0",
-    "mypy>=1.17.0",
+    "mypy>=2.2.0",
 ]
 
 [tool.hatch.build.targets.wheel]

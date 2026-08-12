@@ -1,6 +1,6 @@
 """Tests for spec data structures and predicates."""
 
-from typing import Annotated
+from typing import Annotated, Union
 
 import pytest
 from codegen_test_support import (
@@ -88,6 +88,14 @@ class TestIsUnionAlias:
 
     def test_non_model_union_returns_false(self) -> None:
         assert is_union_alias(str | int) is False
+
+    def test_unresolved_forward_ref_arm_returns_false(self) -> None:
+        # A boolean classifier must answer, not raise: one malformed registry
+        # entry would otherwise abort codegen's model-spec loop entirely.
+        class A(BaseModel):
+            x: int
+
+        assert is_union_alias(Union[A, "NeverDefinedAnywhere"]) is False  # noqa: F821
 
 
 class TestUnionSpec:

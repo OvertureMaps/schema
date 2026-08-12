@@ -1,7 +1,7 @@
 """Tests for union extraction."""
 
 import re
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 import pytest
 from annotated_types import MinLen
@@ -39,7 +39,7 @@ from overture.schema.system.field_constraint.string import (
     JsonPointerConstraint,
     PatternConstraint,
 )
-from pydantic import Discriminator, Field, GetCoreSchemaHandler
+from pydantic import BaseModel, Discriminator, Field, GetCoreSchemaHandler
 from pydantic_core import core_schema
 
 
@@ -49,7 +49,7 @@ def test_extract_discriminator_resolves_discriminator_object() -> None:
         RoadSegment | RailSegment,
         Field(discriminator=Discriminator("subtype")),
     ]
-    field_name, mapping = extract_discriminator(ann, [RoadSegment, RailSegment])
+    field_name, mapping = extract_discriminator(ann)
     assert field_name == "subtype"
     assert mapping == {"road": RoadSegment, "rail": RailSegment}
 
@@ -317,3 +317,70 @@ class TestConstraintsFingerprint:
         fs1 = _make_scalar_field(Field(pattern=r"^[a-z]+$").metadata[0])
         fs2 = _make_scalar_field(Field(pattern=r"^[0-9]+$").metadata[0])
         assert _constraints_fingerprint(fs1) != _constraints_fingerprint(fs2)
+
+
+class TestDiscriminatorBijection:
+    """Every member needs >=1 key; every key selects exactly one member."""
+
+    def test_multi_value_literal_member_maps_every_value(self) -> None:
+        class ArmBase(BaseModel):
+            pass
+
+        class Cat(ArmBase):
+            kind: Literal["cat", "feline"] = "cat"
+
+        class Dog(ArmBase):
+            kind: Literal["dog"] = "dog"
+
+        alias = Annotated[Cat | Dog, Field(discriminator="kind")]
+        field, mapping = extract_discriminator(alias)
+        assert field == "kind"
+        assert mapping == {"cat": Cat, "feline": Cat, "dog": Dog}
+
+    def test_unmapped_member_raises(self) -> None:
+        class ArmBase(BaseModel):
+            pass
+
+        class Tagged(ArmBase):
+            kind: Literal["tagged"] = "tagged"
+
+        class Untagged(ArmBase):
+            kind: str = "free-form"  # no Literal -- unmappable
+
+        alias = Annotated[Tagged | Untagged, Field(discriminator="kind")]
+        with pytest.raises(TypeError, match="Untagged has no literal"):
+            extract_discriminator(alias)
+
+    def test_colliding_values_raise(self) -> None:
+        class ArmBase(BaseModel):
+            pass
+
+        class First(ArmBase):
+            kind: Literal["same"] = "same"
+
+        class Second(ArmBase):
+            kind: Literal["same"] = "same"
+
+        alias = Annotated[First | Second, Field(discriminator="kind")]
+        with pytest.raises(TypeError, match="'same' maps to both"):
+            extract_discriminator(alias)
+
+    def test_nested_discriminator_path_raises(self) -> None:
+        class ArmBase(BaseModel):
+            pass
+
+        class InnerA(ArmBase):
+            outer: Literal["nested"] = "nested"
+            inner: Literal["a"] = "a"
+
+        class InnerB(ArmBase):
+            outer: Literal["nested"] = "nested"
+            inner: Literal["b"] = "b"
+
+        class Flat(ArmBase):
+            outer: Literal["flat"] = "flat"
+
+        NestedAlias = Annotated[InnerA | InnerB, Field(discriminator="inner")]
+        alias = Annotated[NestedAlias | Flat, Field(discriminator="outer")]
+        with pytest.raises(NotImplementedError, match="Nested discriminated union"):
+            extract_discriminator(alias)

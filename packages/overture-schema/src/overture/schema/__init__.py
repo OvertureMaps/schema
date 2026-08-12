@@ -1,16 +1,16 @@
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
-from collections.abc import Generator
 from functools import reduce
 from operator import or_
 from types import UnionType
-from typing import Annotated, Any, Literal, cast, get_args, get_origin
+from typing import Annotated, Any, cast
 
 from pydantic import BaseModel, Field, Tag, TypeAdapter
 
 from overture.schema.common import OvertureFeature
 from overture.schema.system.discovery import discover_models, select_models
 from overture.schema.system.feature import Feature
+from overture.schema.system.typing_util import single_literal_value
 
 
 def validate(data: object) -> BaseModel:
@@ -84,11 +84,13 @@ def _union_type_adapter() -> TypeAdapter:
     )
     discriminated_union: UnionType | None = _discriminated_union(discriminated_models)
 
-    non_discriminated_models: Generator[type[BaseModel], None, None] = (
-        m for m in models.values() if not _can_discriminate(m)
-    )
-    non_discriminated_union: UnionType | None = reduce(
-        or_, non_discriminated_models, None
+    # Runtime type expressions have no precise static type, so keep the cast at
+    # the point where the expressions are combined with `|`.
+    non_discriminated_models = [
+        cast(Any, m) for m in models.values() if not _can_discriminate(m)
+    ]
+    non_discriminated_union: object | None = (
+        reduce(or_, non_discriminated_models) if non_discriminated_models else None
     )
 
     if discriminated_union and non_discriminated_union:
@@ -118,7 +120,7 @@ def _discriminated_union(
             reduce(
                 or_,
                 (
-                    Annotated[f, Tag(cast(str, _typeliteral(f)))]
+                    Annotated[f, Tag(cast(str, _type_literal(f)))]
                     for f in feature_classes
                 ),
             ),
@@ -134,11 +136,11 @@ def _can_discriminate(model_class: object) -> bool:
     return (
         isinstance(model_class, type)
         and issubclass(model_class, OvertureFeature)
-        and _typeliteral(cast(type[OvertureFeature], model_class)) is not None
+        and _type_literal(cast(type[OvertureFeature], model_class)) is not None
     )
 
 
-def _typeliteral(feature_class: type[OvertureFeature]) -> object:
+def _type_literal(feature_class: type[OvertureFeature]) -> object:
     """
     Return the literal value of the Overture Feature model's `type` field, if it has one, or `None`
     if it does not.
@@ -152,22 +154,9 @@ def _typeliteral(feature_class: type[OvertureFeature]) -> object:
     -------
     object
         The literal constrained value of the model class' `type` field, or `None` if the `type`
-        field does not have a literal value
-
-    Raises
-    ------
-    TypeError
-        If the `type` field is constrained to `Literal[None]`, as this is absurd
+        field does not have a single literal value (an absurd `Literal[None]` collapses to `None`
+        too -- the model then simply doesn't participate in the discriminated fast path).
     """
-    type_type = feature_class.model_fields["type"].annotation
-    while get_origin(type_type) is Annotated:
-        type_type = get_args(type_type)[0]
-    if get_origin(type_type) is not Literal:
+    if "type" not in feature_class.model_fields:
         return None
-    literal = get_args(type_type)[0]
-    if literal is None:
-        raise TypeError(
-            f"literal value of `type` field for `{OvertureFeature.__name__}` class "
-            f"`{feature_class.__name__}` is constrained to `None`"
-        )
-    return literal
+    return single_literal_value(feature_class.model_fields["type"].annotation)

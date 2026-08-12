@@ -2,14 +2,12 @@
 JSON Schemas of Overture-based Pydantic models.
 """
 
-from enum import Enum
-from types import UnionType
-from typing import Annotated, Any, Union, cast, get_args, get_origin
-
-from pydantic import BaseModel, TypeAdapter
+from pydantic import TypeAdapter
 from pydantic.json_schema import GenerateJsonSchema, JsonSchemaValue
 from pydantic_core import core_schema
 from typing_extensions import override
+
+from overture.schema.system.typing_util import model_types, non_model_parts
 
 
 class GenerateOmitNullableOptionalJsonSchema(GenerateJsonSchema):
@@ -162,43 +160,13 @@ def json_schema(thing: object) -> JsonSchemaValue:
     TypeError
         If `models` is not a Pydantic model or union of Pydantic models
     """
-    match _Kind.of(thing):
-        case _Kind.BASE_MODEL:
-            return cast(BaseModel, thing).model_json_schema(
-                schema_generator=GenerateOmitNullableOptionalJsonSchema
-            )
-        case _Kind.UNION:
-            tap: TypeAdapter = TypeAdapter(thing)
-            return tap.json_schema(
-                schema_generator=GenerateOmitNullableOptionalJsonSchema
-            )
-        case _:
-            raise TypeError(
-                f"`models` must be a subclass of `BaseModel` or a union of subclasses of "
-                f"`BaseModel`, but {repr(thing)} is a "
-                f"`{thing.__name__ if isinstance(thing, type) else type(thing).__name__}`"
-            )
-
-
-class _Kind(str, Enum):
-    BASE_MODEL = "base_model"
-    UNION = "union"
-
-    @staticmethod
-    def of(thing: Any) -> Union["_Kind", None]:
-        if isinstance(thing, type) and issubclass(thing, BaseModel):
-            return _Kind.BASE_MODEL
-        else:
-            match get_origin(thing):
-                case a if a is Annotated:
-                    return _Kind.of(get_args(thing)[0])
-                case u if (u is UnionType or u is Union) and _Kind._union_args(thing):
-                    return _Kind.UNION
-                case _:
-                    return None
-
-    @staticmethod
-    def _union_args(thing: Any) -> bool:
-        return all(
-            _Kind.of(a) in [_Kind.BASE_MODEL, _Kind.UNION] for a in get_args(thing)
+    if not model_types(thing) or non_model_parts(thing):
+        raise TypeError(
+            f"`models` must be a subclass of `BaseModel` or a union of subclasses of "
+            f"`BaseModel`, but {repr(thing)} is a "
+            f"`{thing.__name__ if isinstance(thing, type) else type(thing).__name__}`"
         )
+    # Pass the original expression through so `Annotated` metadata is preserved for
+    # single models as well as unions. `TypeAdapter` also understands `NewType`.
+    tap: TypeAdapter = TypeAdapter(thing)
+    return tap.json_schema(schema_generator=GenerateOmitNullableOptionalJsonSchema)

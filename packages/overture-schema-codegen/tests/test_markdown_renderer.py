@@ -328,6 +328,7 @@ class TestRenderFeatureExtensionFields:
         wrapper = wrap_extension("ext", Ext)
         assert wrapper is not None
         extended = create_extended_model(Target, {"ext": wrapper})
+        assert isinstance(extended, type) and issubclass(extended, BaseModel)
 
         spec = extract_model(extended)
         result = render_model(spec)
@@ -351,6 +352,7 @@ class TestRenderFeatureExtensionFields:
         wrapper = wrap_extension("capacity", Capacity)
         assert wrapper is not None
         extended = create_extended_model(Place, {"capacity": wrapper})
+        assert isinstance(extended, type) and issubclass(extended, BaseModel)
 
         spec = extract_model(extended)
         result = render_model(spec)

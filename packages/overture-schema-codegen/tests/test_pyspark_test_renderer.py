@@ -1040,14 +1040,14 @@ class TestCrossArmModelCheckLabelCollision:
                 field_names=("class",),
                 condition=FieldEqCondition("subtype", "road"),
             ),
-            arm="road",
+            arms=("road",),
         )
         rail = ModelCheck(
             descriptor=RequireIf(
                 field_names=("class",),
                 condition=FieldEqCondition("subtype", "rail"),
             ),
-            arm="rail",
+            arms=("rail",),
         )
         model_checks = [road, rail]
 
@@ -1244,7 +1244,7 @@ class TestArmFiltering:
         assert "rail_flags" in source
 
     def test_arm_includes_model_checks(self) -> None:
-        """Arm-agnostic ModelChecks (arm=None) reach every arm test."""
+        """Arm-agnostic ModelChecks (arms=None) reach every arm test."""
         model_nodes = [
             ModelCheck(
                 descriptor=ForbidIf(
@@ -1261,7 +1261,7 @@ class TestArmFiltering:
         """A ModelCheck tagged for one arm does not appear in another arm's tests."""
         road_only = ModelCheck(
             descriptor=RadioGroup(field_names=("road_flag_a", "road_flag_b")),
-            arm="road",
+            arms=("road",),
         )
         road_source = render_test_module("test", [], [road_only], arm="road")
         assert "mutate_radio_group" in road_source
@@ -1289,7 +1289,7 @@ class TestArmFiltering:
                 ColumnGuard(discriminator="subtype", values=("road",)),
                 # ElementGuard values include "rail" by coincidence -- it's
                 # a vehicle dimension, not a segment subtype. Filtering by
-                # `any(...)` would let arm="rail" include the check.
+                # a lax membership test would let arm="rail" include the check.
                 ElementGuard(discriminator="dimension", values=("rail",)),
             ),
         )

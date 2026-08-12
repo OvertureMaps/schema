@@ -570,6 +570,7 @@ class TestExtensionFields:
         wrapper = wrap_extension("ext", Ext)
         assert wrapper is not None
         extended = create_extended_model(Target, {"ext": wrapper})
+        assert isinstance(extended, type) and issubclass(extended, BaseModel)
 
         spec = extract_model(extended)
 

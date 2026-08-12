@@ -921,6 +921,10 @@ class _SyntheticUnionFixtures:
         FieldInfo(discriminator="kind"),
     ]
 
+    # Same members, no discriminator: exercises union-level constraint handling
+    # without any variant gating.
+    ConstrainedUnionNoDiscriminator = Union[TypeA, ConstrainedMember]  # noqa: UP007
+
     class MemberX(Base):
         kind: Literal["x"] = "x"
         shared_name: Literal["x1", "x2"]
@@ -1063,7 +1067,7 @@ class TestUnionMemberModelConstraints:
         """Constraint from ConstrainedMember carries that member's discriminator value."""
         require_any_of_nodes = _filter_nodes(model_nodes, "check_require_any_of")
         assert len(require_any_of_nodes) == 1
-        assert require_any_of_nodes[0].arm == "c"
+        assert require_any_of_nodes[0].arms == ("c",)
 
     def test_exclusivity_checks_have_no_arm(
         self, model_nodes: list[ModelCheck]
@@ -1074,7 +1078,7 @@ class TestUnionMemberModelConstraints:
         )
         assert exclusivity_nodes
         for node in exclusivity_nodes:
-            assert node.arm is None
+            assert node.arms is None
 
 
 class TestUnionMemberStructAndCompoundConstraints:
@@ -1163,7 +1167,7 @@ class TestVariantSpecificFieldDiscoveredModelConstraints:
             if n.target == _path("speed_limits[]")
         ]
         assert len(nodes) == 1
-        assert nodes[0].arm == "v"
+        assert nodes[0].arms == ("v",)
 
 
 class _VariantWithConstrainedModelRef(_SyntheticUnionFixtures.Base):
@@ -1200,14 +1204,20 @@ class TestVariantSpecificDirectModelRefConstraint:
         node = nodes[0]
         assert node.target == _path("speed")
         assert node.gate == _path("speed")
-        assert node.arm == "d"
+        assert node.arms == ("d",)
         assert node.read_columns == frozenset({"speed"})
 
 
 class _OuterWithStructNestedUnion(BaseModel):
-    """Non-list `UnionRef` field reaches a union with a constrained member."""
+    """Non-list `UnionRef` field reaches a union with a constrained member.
 
-    nested: _SyntheticUnionFixtures.ConstrainedUnion
+    Deliberately non-discriminated: a direct *discriminated* alias field keeps
+    its discriminator (extraction rewraps the `FieldInfo.discriminator` that
+    Pydantic hoists off the annotation) and would trip the variant-gated raise
+    before ever reaching the union-level constraint branch under test here.
+    """
+
+    nested: _SyntheticUnionFixtures.ConstrainedUnionNoDiscriminator
 
 
 class TestStructNestedUnionWithConstraint:
@@ -1229,6 +1239,17 @@ class TestStructNestedUnionWithConstraint:
             NotImplementedError, match="Model constraint on struct-nested"
         ):
             build_checks(spec_for_model(_OuterWithStructNestedUnion))
+
+    def test_struct_nested_discriminated_union_raises_on_variant_gates(self) -> None:
+        # The discriminated sibling fixture keeps its discriminator on a
+        # direct field, so the variant-gate guard fires first.
+        class Outer(BaseModel):
+            nested: _SyntheticUnionFixtures.ConstrainedUnion
+
+        with pytest.raises(
+            NotImplementedError, match="variant-gated field checks at struct-nested"
+        ):
+            build_checks(spec_for_model(Outer))
 
 
 class TestStructNestedUnionWithVariantFields:
@@ -1343,7 +1364,7 @@ class TestNestedUnionThroughVariantField:
     ) -> None:
         require_any_of_nodes = _filter_nodes(model_nodes, "check_require_any_of")
         assert len(require_any_of_nodes) == 1
-        assert require_any_of_nodes[0].arm == "n"
+        assert require_any_of_nodes[0].arms == ("n",)
 
 
 class _MultiArmContributorA(_SyntheticUnionFixtures.Base):
@@ -1371,7 +1392,7 @@ _MultiArmVariantSourcesUnion = Annotated[
 
 
 class TestMultiArmVariantSourcesPolicy:
-    """Tombstone: a 2-of-N variant-specific field collapses to `arm=None`.
+    """Tombstone: a 2-of-N variant-specific field collapses to `arms=None`.
 
     No real schema today declares a variant-specific field on a proper
     subset of arms (2-of-N). When/if that pattern surfaces with a
@@ -1398,10 +1419,10 @@ class TestMultiArmVariantSourcesPolicy:
         ]
         assert len(nodes) == 1
         # The 2-of-N case can't pick a single arm, so the constraint
-        # carries arm=None -- broadcasting to every arm, including the
+        # carries arms=None -- broadcasting to every arm, including the
         # third member that doesn't declare shared_limits at all.
         # Tracked for resolution if/when a real schema surfaces this.
-        assert nodes[0].arm is None
+        assert nodes[0].arms is None
 
 
 class TestGroupedExclusivityChecks:
@@ -1949,7 +1970,7 @@ class TestNestedListUnionModelConstraints:
         _field_checks, model_checks = checks
         any_of = _filter_nodes(model_checks, "check_require_any_of")
         assert [str(n.target) for n in any_of] == ["nested[][]"]
-        assert any_of[0].arm == "c"
+        assert any_of[0].arms == ("c",)
 
     def test_variant_field_is_element_gated_at_both_levels(
         self, checks: tuple[list[Check], list[ModelCheck]]
@@ -2419,3 +2440,63 @@ class TestLiteralAlternativesBypass:
                     assert desc.allow_literals == (), (
                         f"check_required at {check.target} carries unexpected allow_literals"
                     )
+
+
+class _MultiValueTagFixtures:
+    """A union member accepting two discriminator values (pydantic-valid)."""
+
+    class Base(BaseModel):
+        kind: str
+
+    @require_any_of("p", "q")
+    class Cat(Base):
+        kind: Literal["cat", "feline"] = "cat"
+        whiskers: Literal["long", "short"] | None = None
+        p: str | None = None
+        q: str | None = None
+
+    class Dog(Base):
+        kind: Literal["dog"] = "dog"
+
+    MultiTagUnion = Annotated[
+        Union[Cat, Dog],  # noqa: UP007
+        FieldInfo(discriminator="kind"),
+    ]
+
+
+class TestMultiValueDiscriminatorTags:
+    """Every accepted tag value guards, excludes, and routes its member."""
+
+    @pytest.fixture
+    def checks(self) -> tuple[list[Check], list[ModelCheck]]:
+        return _union_checks("MultiTag", _MultiValueTagFixtures.MultiTagUnion)
+
+    def test_variant_field_guard_covers_every_value(
+        self, checks: tuple[list[Check], list[ModelCheck]]
+    ) -> None:
+        field_checks, _ = checks
+        whisker_checks = [c for c in field_checks if c.target == _path("whiskers")]
+        assert whisker_checks
+        for check in whisker_checks:
+            guards = [g for g in check.guards if isinstance(g, ColumnGuard)]
+            assert guards and guards[0].values == ("cat", "feline")
+
+    def test_member_constraint_carries_every_value(
+        self, checks: tuple[list[Check], list[ModelCheck]]
+    ) -> None:
+        _, model_nodes = checks
+        any_of = _filter_nodes(model_nodes, "check_require_any_of")
+        assert len(any_of) == 1
+        assert any_of[0].arms == ("cat", "feline")
+
+    def test_exclusivity_excludes_only_foreign_values(
+        self, checks: tuple[list[Check], list[ModelCheck]]
+    ) -> None:
+        _, model_nodes = checks
+        forbid = _filter_nodes(model_nodes, "check_forbid_if")
+        # `whiskers`/`p`/`q` are Cat-only: forbidden exactly when kind == "dog",
+        # never for either of Cat's own accepted values.
+        conditions = [_condition_of(n) for n in forbid]
+        for condition in conditions:
+            assert isinstance(condition, FieldEqCondition)
+            assert condition.value == "dog"

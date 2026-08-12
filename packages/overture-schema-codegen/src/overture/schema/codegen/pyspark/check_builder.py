@@ -453,14 +453,15 @@ def _build_field_checks(
     prefix: FieldPath = Direct(),
     *,
     nullable_gate: FieldPath | None = None,
-    arm: str | None = None,
+    arms: tuple[str, ...] | None = None,
 ) -> tuple[list[Check], list[ModelCheck]]:
     """Build Checks for a single field by walking its shape tree.
 
-    `arm` is the singleton union-arm discriminator value the field belongs
-    to (when it lives in exactly one arm), or `None` when the field is
-    shared. It propagates to any model constraints discovered through this
-    field's sub-models so per-arm test modules can filter them correctly.
+    `arms` is the set of discriminator values of the sole union member the
+    field belongs to (a member may accept several literal tag values), or
+    `None` when the field is shared. It propagates to any model constraints
+    discovered through this field's sub-models so per-arm test modules can
+    filter them correctly.
     """
     # `prefix` is a `Direct` or an `Iterated` (the latter when descending
     # into a list element or a `dict[K, Model]` value model) -- both define
@@ -486,7 +487,7 @@ def _build_field_checks(
             pass
         case _ShapeTerminal(ref=UnionRef(union=union_spec), path=terminal_path):
             sub_field_checks, sub_model_checks = _recurse_into_union(
-                union_spec, terminal_path, arm=arm
+                union_spec, terminal_path, arms=arms
             )
             checks.extend(sub_field_checks)
             model_checks.extend(sub_model_checks)
@@ -496,7 +497,7 @@ def _build_field_checks(
                 terminal_path,
                 field_spec.is_optional,
                 nullable_gate,
-                arm=arm,
+                arms=arms,
             )
             checks.extend(sub_field_checks)
             model_checks.extend(sub_model_checks)
@@ -514,7 +515,7 @@ def _recurse_into_model(
     is_optional: bool = False,
     nullable_gate: FieldPath | None = None,
     *,
-    arm: str | None = None,
+    arms: tuple[str, ...] | None = None,
 ) -> tuple[list[Check], list[ModelCheck]]:
     """Walk a MODEL-kind field's children plus its model-level constraints.
 
@@ -526,10 +527,10 @@ def _recurse_into_model(
     resets the nullable gate (the iteration itself handles per-element
     nullability).
 
-    `arm` propagates from the union arm whose variant-specific field led
-    here, so model constraints declared on the sub-model are tagged with
-    that arm rather than `None` (which would route them to every per-arm
-    test).
+    `arms` propagates from the union member whose variant-specific field
+    led here, so model constraints declared on the sub-model are tagged
+    with that member's values rather than `None` (which would route them
+    to every per-arm test).
     """
     last_seg = prefix.segments[-1] if prefix.segments else None
     field_is_iterated = isinstance(last_seg, (ArraySegment, MapSegment))
@@ -545,7 +546,7 @@ def _recurse_into_model(
             sub_field,
             prefix=prefix,
             nullable_gate=child_gate,
-            arm=arm,
+            arms=arms,
         )
         field_checks.extend(sub_field_checks)
         model_checks.extend(sub_model_checks)
@@ -562,7 +563,7 @@ def _recurse_into_model(
             model_spec.constraints,
             model_spec.fields,
             target=_model_constraint_target(prefix),
-            arm=arm,
+            arms=arms,
             gate=child_gate,
         )
         model_checks.extend(sub_model_constraint_checks)
@@ -685,7 +686,7 @@ def _recurse_into_union(
     union_spec: UnionSpec,
     prefix: FieldPath = Direct(),
     *,
-    arm: str | None = None,
+    arms: tuple[str, ...] | None = None,
 ) -> tuple[list[Check], list[ModelCheck]]:
     """Walk a UNION-kind field's variants, gathering Checks and ModelChecks.
 
@@ -694,22 +695,27 @@ def _recurse_into_union(
     prefix means the union is reached through array or map iteration, so
     variant gates are element-level and model constraints target that path.
 
-    `arm` is the outer union arm whose variant-specific field reached this
-    inner union. It tags any model constraints discovered here so they
-    aren't propagated to other arms' test modules.
+    `arms` is the outer union member's value set whose variant-specific
+    field reached this inner union. It tags any model constraints
+    discovered here so they aren't propagated to other members' test
+    modules.
     """
     mapping = union_spec.discriminator_mapping or {}
-    value_by_class = {cls: value for value, cls in mapping.items()}
+    # A member may accept several discriminator values (multi-value literal
+    # tags); collect every value per class, in mapping order.
+    values_by_class: dict[type[BaseModel], tuple[str, ...]] = {}
+    for value, cls in mapping.items():
+        values_by_class[cls] = (*values_by_class.get(cls, ()), value)
     union_target = _model_constraint_target(prefix)
 
     field_checks, field_model_checks = _field_checks_for_union(
-        union_spec, value_by_class, prefix=prefix, arm=arm
+        union_spec, values_by_class, prefix=prefix, arms=arms
     )
     union_level_checks = _model_checks_for_union(
-        union_spec, value_by_class, union_target, arm=arm
+        union_spec, values_by_class, union_target, arms=arms
     )
     exclusivity_checks = _exclusivity_checks_for_union(
-        union_spec, value_by_class, union_target, arm=arm
+        union_spec, values_by_class, union_target, arms=arms
     )
     if union_level_checks or exclusivity_checks:
         _guard_struct_nested_anchor(prefix, union_spec.name)
@@ -740,43 +746,50 @@ def _dispatch_model_constraints(
     fields: list[FieldSpec],
     *,
     target: FieldPath = Direct(),
-    arm: str | None = None,
+    arms: tuple[str, ...] | None = None,
     gate: FieldPath | None = None,
 ) -> list[ModelCheck]:
     """Dispatch model constraints to ModelChecks."""
     return [
-        ModelCheck(descriptor=desc, target=target, arm=arm, gate=gate)
+        ModelCheck(descriptor=desc, target=target, arms=arms, gate=gate)
         for mc in constraints
         for desc in dispatch_model_constraint(mc, fields)
     ]
 
 
-def _singleton_arm(values: tuple[str, ...]) -> str | None:
-    """Return the sole arm in `values`, or None when there isn't exactly one.
+def _sole_member_values(
+    variant_sources: tuple[type[BaseModel], ...],
+    values_by_class: dict[type[BaseModel], tuple[str, ...]],
+) -> tuple[str, ...] | None:
+    """Return the value set of the sole member a field belongs to, or None.
 
     No real schema today has a variant-specific field belonging to a
-    proper subset of arms (2-of-N): every variant-specific field is
-    declared on exactly one arm. If a future schema introduces a 2-of-N
-    field whose sub-model declares model constraints, this collapse
-    would broadcast those constraints to every arm (including the ones
-    the field doesn't belong to). `TestMultiArmVariantSourcesPolicy`
-    pins the current behaviour as a tombstone.
+    proper subset of members (2-of-N): every variant-specific field is
+    declared on exactly one member. If a future schema introduces a
+    2-of-N field whose sub-model declares model constraints, this
+    collapse would broadcast those constraints to every arm (including
+    the ones the field doesn't belong to).
+    `TestMultiArmVariantSourcesPolicy` pins the current behaviour as a
+    tombstone.
     """
-    return values[0] if len(values) == 1 else None
+    mapped = [src for src in variant_sources if src in values_by_class]
+    if len(mapped) != 1:
+        return None
+    return values_by_class[mapped[0]]
 
 
 def _field_checks_for_union(
     spec: UnionSpec,
-    value_by_class: dict[type[BaseModel], str],
+    values_by_class: dict[type[BaseModel], tuple[str, ...]],
     prefix: FieldPath = Direct(),
     *,
-    arm: str | None = None,
+    arms: tuple[str, ...] | None = None,
 ) -> tuple[list[Check], list[ModelCheck]]:
     """Build field checks for a union spec's annotated fields.
 
-    `arm` is the outer-union arm threaded through from an enclosing
-    `_recurse_into_union`. When present, every sub-model constraint
-    reached from here inherits that arm -- the inner union's own
+    `arms` is the outer-union member's value set threaded through from an
+    enclosing `_recurse_into_union`. When present, every sub-model
+    constraint reached from here inherits it -- the inner union's own
     discriminator is irrelevant to per-arm test filtering, which always
     keys on the outermost union's discriminator.
     """
@@ -792,17 +805,25 @@ def _field_checks_for_union(
         values: tuple[str, ...] = ()
         if af.variant_sources is not None and discriminator is not None:
             values = tuple(
-                value_by_class[src]
+                value
                 for src in af.variant_sources
-                if src in value_by_class
+                for value in values_by_class.get(src, ())
             )
-        # Outer arm dominates: when this is a nested union, every sub-model
-        # constraint discovered here belongs to the outer arm. Only the
-        # outermost union picks a `field_arm` from its own variant sources,
-        # and only when the field is variant-specific to a single arm.
-        field_arm = arm if arm is not None else _singleton_arm(values)
+        # Outer arms dominate: when this is a nested union, every sub-model
+        # constraint discovered here belongs to the outer member. Only the
+        # outermost union picks `field_arms` from its own variant sources,
+        # and only when the field is variant-specific to a single member.
+        field_arms = (
+            arms
+            if arms is not None
+            else (
+                _sole_member_values(af.variant_sources, values_by_class)
+                if af.variant_sources is not None
+                else None
+            )
+        )
         checks, sub_model_checks = _build_field_checks(
-            af.field_spec, prefix=prefix, arm=field_arm
+            af.field_spec, prefix=prefix, arms=field_arms
         )
         model_checks.extend(sub_model_checks)
         if values and discriminator is not None:
@@ -821,40 +842,42 @@ def _field_checks_for_union(
 
 def _model_checks_for_union(
     spec: UnionSpec,
-    arm_by_class: dict[type[BaseModel], str],
+    values_by_class: dict[type[BaseModel], tuple[str, ...]],
     target: FieldPath = Direct(),
     *,
-    arm: str | None = None,
+    arms: tuple[str, ...] | None = None,
 ) -> list[ModelCheck]:
     """Build ModelChecks for the union itself plus each member's own constraints.
 
-    When `arm` is None (top-level union): union-level constraints carry
-    `arm=None` because they apply regardless of which arm matches.
+    When `arms` is None (top-level union): union-level constraints carry
+    `arms=None` because they apply regardless of which arm matches.
     Member-class constraints (e.g. `@radio_group` on `RoadSegment`) are
-    tagged with the discriminator value mapped to that class so the test
-    renderer can confine them to the right per-arm test module.
+    tagged with every discriminator value mapped to that class so the
+    test renderer can confine them to the right per-arm test modules.
 
-    When `arm` is set (nested union reached from an outer arm): every
+    When `arms` is set (nested union reached from an outer member): every
     check produced -- union-level and member-level -- inherits that outer
-    arm. The inner union's own discriminator is irrelevant to per-arm
-    test filtering, which always keys on the outermost union's
+    value set. The inner union's own discriminator is irrelevant to
+    per-arm test filtering, which always keys on the outermost union's
     discriminator.
     """
     model_checks = _dispatch_model_constraints(
         spec.constraints,
         spec.fields,
         target=target,
-        arm=arm,
+        arms=arms,
     )
     for member in spec.member_specs:
         member_constraints = ModelConstraint.get_model_constraints(member.member_cls)
-        member_arm = arm if arm is not None else arm_by_class.get(member.member_cls)
+        member_arms = (
+            arms if arms is not None else values_by_class.get(member.member_cls)
+        )
         model_checks.extend(
             _dispatch_model_constraints(
                 member_constraints,
                 member.spec.fields,
                 target=target,
-                arm=member_arm,
+                arms=member_arms,
             )
         )
     return model_checks
@@ -862,10 +885,10 @@ def _model_checks_for_union(
 
 def _exclusivity_checks_for_union(
     spec: UnionSpec,
-    value_by_class: dict[type[BaseModel], str],
+    values_by_class: dict[type[BaseModel], tuple[str, ...]],
     target: FieldPath = Direct(),
     *,
-    arm: str | None = None,
+    arms: tuple[str, ...] | None = None,
 ) -> list[ModelCheck]:
     """Generate forbid_if/require_if checks from union variant structure.
 
@@ -876,9 +899,9 @@ def _exclusivity_checks_for_union(
     declared constraint, so there is no source `ModelConstraint` to
     dispatch from.
 
-    `arm` is the outer-union arm threaded through when this union is
-    nested inside another. Inner exclusivity checks belong to that outer
-    arm rather than being broadcast to every arm.
+    `arms` is the outer-union member's value set threaded through when
+    this union is nested inside another. Inner exclusivity checks belong
+    to that outer member rather than being broadcast to every arm.
     """
     if spec.discriminator_mapping is None or spec.discriminator_field is None:
         return []
@@ -894,7 +917,7 @@ def _exclusivity_checks_for_union(
         name = af.field_spec.name
         shape_by_field[name] = af.field_spec.shape
         for src in af.variant_sources:
-            if src in value_by_class:
+            if src in values_by_class:
                 grouped[name].add(src)
                 if af.field_spec.is_required:
                     required_by_field[name].add(src)
@@ -907,20 +930,22 @@ def _exclusivity_checks_for_union(
                 field_shapes=forbid_if_field_shapes((field_name,), shape_by_field),
             ),
             target=target,
-            arm=arm,
+            arms=arms,
         )
 
     def require_check(field_name: str, condition: FieldEqCondition | Not) -> ModelCheck:
         return ModelCheck(
             descriptor=RequireIf(field_names=(field_name,), condition=condition),
             target=target,
-            arm=arm,
+            arms=arms,
         )
 
     checks: list[ModelCheck] = []
     disc_field = spec.discriminator_field
     for field_name, variant_classes in grouped.items():
-        variant_values = {value_by_class[cls] for cls in variant_classes}
+        variant_values = {
+            value for cls in variant_classes for value in values_by_class[cls]
+        }
         excluded_values = all_values - variant_values
         if not excluded_values:
             continue
@@ -937,7 +962,9 @@ def _exclusivity_checks_for_union(
                 )
 
         required_classes = required_by_field[field_name]
-        required_values = {value_by_class[cls] for cls in required_classes}
+        required_values = {
+            value for cls in required_classes for value in values_by_class[cls]
+        }
         for req_val in sorted(required_values):
             checks.append(
                 require_check(field_name, FieldEqCondition(disc_field, req_val))

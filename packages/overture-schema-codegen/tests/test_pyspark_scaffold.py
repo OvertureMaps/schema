@@ -333,7 +333,7 @@ class TestScaffoldsProduceValidRows:
         for check in model_checks:
             scaffold = generate_model_scaffold(check, spec)
             for arm, base in arm_rows.items():
-                if not (check.arm is None or check.arm == arm):
+                if not (check.arms is None or arm in check.arms):
                     continue
                 adapter.validate_python(_deep_merge(base, scaffold))
 
