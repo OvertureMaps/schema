@@ -17,8 +17,9 @@ Policy applied (see docs/versioning.md):
   - Released versions must be plain `<major>.<minor>.<patch>`; PEP 440
     variants like `1.2.3rc4` fail loudly.
   - A version decrease fails: it must never land on main.
-  - Added packages (`before` null) and removed packages (`after` null) are
-    not releases; they are skipped.
+  - Added packages (`before` null) count as a bump: a package's first
+    version releases to PyPI like any other. Removed packages (`after`
+    null) are not releases; they are skipped.
 
 The `detect-version-bumps` action composes this with `package_versions.py`,
 which owns reading versions from git (and enforces the major-bump cascade
@@ -64,12 +65,18 @@ def main() -> None:
         before_raw = change["before"]
         after_raw = change["after"]
 
-        if before_raw is None or after_raw is None:
-            info(f"{package}: added or removed, not a release. Skipping.")
+        if after_raw is None:
+            info(f"{package}: removed, not a release. Skipping.")
+            continue
+
+        after = semver(package, after_raw)
+
+        if before_raw is None:
+            info(f"{package}: new package at {after_raw} (bump)")
+            bumps.append({"package": package, "version": after_raw, "tag": f"{package}-v{after_raw}"})
             continue
 
         before = semver(package, before_raw)
-        after = semver(package, after_raw)
 
         if after < before:
             errors.append(f"{package}: {before_raw} -> {after_raw}")

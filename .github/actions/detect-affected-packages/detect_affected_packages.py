@@ -34,11 +34,7 @@ import sys
 
 def main() -> None:
     version_diff = json.load(sys.stdin)
-    bumped = {
-        change["package"]
-        for change in version_diff
-        if change["before"] is not None and change["after"] is not None
-    }
+    bumped = {change["package"] for change in version_diff if change["after"] is not None}
     removed = {change["package"] for change in version_diff if change["after"] is None}
 
     changed_paths = json.loads(os.environ.get("CHANGED_DIRS") or "[]")
