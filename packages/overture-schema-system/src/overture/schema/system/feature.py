@@ -28,33 +28,9 @@ from overture.schema.system import _json_schema
 from overture.schema.system.geometric import BBox, Geometry
 from overture.schema.system.optionality import Omitable
 from overture.schema.system.ref import Id
-
-
-def resolve_discriminator_field_name(discriminator: object) -> str | None:
-    """Resolve a Pydantic discriminator value to its field name string.
-
-    Handles the three forms a discriminator can take:
-    - A plain string (used directly as the field name).
-    - A `pydantic.Discriminator` whose `.discriminator` attribute is a string.
-    - A `pydantic.Discriminator` whose `.discriminator` is a callable
-      produced by `Feature.field_discriminator`, which stores the field name
-      as `_field_name` on the callable.
-
-    Returns None if *discriminator* is None or its field name cannot be
-    determined.
-    """
-    if discriminator is None:
-        return None
-    if isinstance(discriminator, str):
-        return discriminator
-    inner = getattr(discriminator, "discriminator", None)
-    if isinstance(inner, str):
-        return inner
-    if callable(inner):
-        field_name = getattr(inner, "_field_name", None)
-        if isinstance(field_name, str):
-            return field_name
-    return None
+from overture.schema.system.typing_util import (
+    resolve_discriminator_field_name as resolve_discriminator_field_name,
+)
 
 
 class Feature(BaseModel):

@@ -3,14 +3,20 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import Enum
-from typing import Annotated, get_args, get_origin
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
-from overture.schema.system.feature import resolve_discriminator_field_name
+from overture.schema.system.typing_util import (
+    discriminator_values,
+    is_model_union,
+    model_types,
+    model_variants,
+    root_annotated_metadata,
+    union_discriminator,
+)
 
+from .docstring import clean_docstring
 from .field import (
     AnyScalar,
     ArrayOf,
@@ -25,10 +31,6 @@ from .field import (
 from .field_walk import list_depth, terminal_of, walk_shape
 from .model_extraction import extract_model, resolve_field_alias
 from .specs import AnnotatedField, FieldSpec, MemberSpec, UnionSpec, is_model_class
-from .type_analyzer import (
-    capture_union_members,
-    single_literal_value,
-)
 
 __all__ = ["extract_discriminator", "extract_union"]
 
@@ -68,32 +70,63 @@ def _find_field_by_alias(model: type[BaseModel], alias: str) -> FieldInfo | None
 
 def extract_discriminator(
     annotation: object,
-    members: list[type[BaseModel]],
 ) -> tuple[str | None, dict[str, type[BaseModel]] | None]:
-    """Extract discriminator field name and value-to-type mapping."""
-    if get_origin(annotation) is not Annotated:
-        return None, None
+    """Extract discriminator field name and value-to-type mapping.
 
-    disc_field_name: str | None = None
-    for metadata in get_args(annotation)[1:]:
-        if isinstance(metadata, FieldInfo):
-            disc_field_name = resolve_discriminator_field_name(metadata.discriminator)
-            if disc_field_name is not None:
-                break
+    The members come from the annotation itself (via `model_variants`), so the
+    mapping and the arm list cannot disagree. When a discriminator exists,
+    the mapping must cover every member with at least one key, and every key
+    must select exactly one member; a member may contribute several keys
+    (pydantic accepts multi-value literal tags -- each value routes to the
+    same member). Anything less used to degrade silently -- a member skipped
+    here later produced *unguarded* pyspark checks (`check_builder` gates
+    variant fields via this mapping) -- so partial or colliding mappings
+    raise instead. Nested discriminated unions (a leaf governed by more than
+    one discriminator) are rejected the same way: a flat mapping keyed on
+    the outer discriminator cannot represent them.
 
+    Raises
+    ------
+    NotImplementedError
+        If a member sits behind a nested discriminator path.
+    TypeError
+        If a member has no literal discriminator values, two members share a
+        key, or a member appears twice.
+    """
+    disc_field_name = union_discriminator(annotation)
     if disc_field_name is None:
         return None, None
 
     mapping: dict[str, type[BaseModel]] = {}
-    for member in members:
+    for variant in model_variants(annotation):
+        if len(variant.discriminator_path) > 1:
+            raise NotImplementedError(
+                f"Nested discriminated union: {variant.model.__qualname__} is "
+                f"governed by discriminator path {variant.discriminator_path!r}; "
+                f"a flat '{disc_field_name}' mapping cannot represent it"
+            )
+        member = variant.model
         field_info = _find_field_by_alias(member, disc_field_name)
-        if field_info and field_info.annotation is not None:
-            lit_val = single_literal_value(field_info.annotation)
-            if lit_val is not None:
-                key = lit_val.value if isinstance(lit_val, Enum) else str(lit_val)
-                mapping[key] = member
+        keys = (
+            discriminator_values(field_info.annotation)
+            if field_info is not None and field_info.annotation is not None
+            else None
+        )
+        if not keys:
+            raise TypeError(
+                f"Union member {member.__qualname__} has no literal "
+                f"'{disc_field_name}' values; the discriminator mapping must "
+                f"cover every member"
+            )
+        for key in keys:
+            if key in mapping:
+                raise TypeError(
+                    f"Discriminator value {key!r} maps to both "
+                    f"{mapping[key].__qualname__} and {member.__qualname__}"
+                )
+            mapping[key] = member
 
-    return disc_field_name, mapping or None
+    return disc_field_name, mapping
 
 
 _TypeShape = tuple[object, ...]
@@ -189,12 +222,18 @@ def extract_union(
     partitions: Mapping[str, str] | None = None,
 ) -> UnionSpec:
     """Extract a `UnionSpec` from a discriminated union type alias."""
-    extracted = capture_union_members(annotation)
-    if extracted is None:
+    if not is_model_union(annotation):
         raise TypeError(f"{name} is not a union type alias")
-    member_tuple, description = extracted
-    members = list(member_tuple)
 
+    members = list(model_types(annotation))
+    description = next(
+        (
+            clean_docstring(m.description)
+            for m in root_annotated_metadata(annotation)
+            if isinstance(m, FieldInfo) and m.description is not None
+        ),
+        None,
+    )
     common_base = _find_common_base(members)
 
     # Plain Python type aliases (`Foo = Annotated[...]`) don't preserve
@@ -260,7 +299,7 @@ def extract_union(
 
     annotated_fields.extend(seen.values())
 
-    disc_field, disc_mapping = extract_discriminator(annotation, members)
+    disc_field, disc_mapping = extract_discriminator(annotation)
 
     return UnionSpec(
         name=name,

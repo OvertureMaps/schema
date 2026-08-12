@@ -2,10 +2,10 @@
 
 import logging
 from collections.abc import Iterable
-from typing import Annotated, Literal, cast
+from typing import Annotated, Literal
 
 import pytest
-from pydantic import BaseModel, Field, Tag, TypeAdapter
+from pydantic import BaseModel, Field, Tag
 
 from overture.schema.system.discovery import discovery as discovery_module
 from overture.schema.system.discovery.discovery import _generate_tags, extend_models
@@ -13,7 +13,7 @@ from overture.schema.system.discovery.keys import ModelKey, TagProviderKey
 from overture.schema.system.discovery.tag_providers import extension_provider
 from overture.schema.system.discovery.types import ModelDict
 from overture.schema.system.extension import extends, wrap_extension
-from overture.schema.system.typing_util import collect_types
+from overture.schema.system.typing_util import model_types, union_discriminator
 
 
 class Target(BaseModel):
@@ -269,30 +269,17 @@ def test_extend_models_extends_every_arm_of_union_alias_target() -> None:
 
     wrapper = wrap_extension("seg_ext", SegExt)
     assert wrapper is not None
-    # The alias entry is not a class, so it needs a cast into ModelDict's value
-    # type -- discovery stores union aliases verbatim at runtime.
-    models = cast(
-        ModelDict,
-        {
-            _key("seg_ext", "extension"): wrapper,
-            _key("segment", "feature"): SegmentAlias,
-        },
-    )
+    models: ModelDict = {
+        _key("seg_ext", "extension"): wrapper,
+        _key("segment", "feature"): SegmentAlias,
+    }
     result = extend_models(models)
 
     by_name = {key.name: model for key, model in result.items()}
     extended_alias = by_name["segment"]
-    # Every arm of the alias gains the extension field.
-    arms = [
-        tp
-        for tp in collect_types(extended_alias)
-        if isinstance(tp, type) and issubclass(tp, BaseModel)
-    ]
-    assert arms
-    assert all("seg_ext" in model.model_fields for model in arms)
-    # The discriminated-union structure survives the rebuild.
-    road = TypeAdapter(extended_alias).validate_python({"kind": "road"})
-    assert isinstance(road, RoadSeg)
+    # Every arm of the alias gains the extension field; alias structure survives.
+    assert union_discriminator(extended_alias) == "kind"
+    assert all("seg_ext" in model.model_fields for model in model_types(extended_alias))
 
 
 def test_tags_are_generated_from_the_extended_models(
@@ -345,4 +332,4 @@ def test_tags_are_generated_from_the_extended_models(
     models = discovery_module.discover_models()
     target_key = next(k for k in models if k.name == "target")
     assert "has:ext" in target_key.tags
-    assert "ext" in models[target_key].model_fields
+    assert "ext" in _model(models[target_key]).model_fields

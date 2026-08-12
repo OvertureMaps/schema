@@ -8,7 +8,7 @@ from collections import Counter, defaultdict
 from functools import reduce
 from operator import or_
 from pathlib import Path
-from typing import Annotated, Any, Literal, cast, get_args, get_origin
+from typing import Annotated, Any, cast
 
 import click
 import yaml
@@ -28,6 +28,7 @@ from overture.schema.system.discovery import (
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.feature import Feature
 from overture.schema.system.json_schema import json_schema
+from overture.schema.system.typing_util import single_literal_value
 
 from .error_formatting import (
     format_validation_error,
@@ -66,24 +67,12 @@ def _can_discriminate(model_class: object) -> bool:
 def _type_literal(feature_class: type[OvertureFeature]) -> str | None:
     """Extract the literal value from an OvertureFeature's 'type' field.
 
-    Returns the literal type value, or None if not a single literal.
+    Returns the literal type value, or None if not a single string literal.
     """
     if "type" not in feature_class.model_fields:
         return None
-
-    type_annotation = feature_class.model_fields["type"].annotation
-
-    # Unwrap Annotated if present
-    while get_origin(type_annotation) is Annotated:
-        type_annotation = get_args(type_annotation)[0]
-
-    # Check if it's a Literal with a single value
-    if get_origin(type_annotation) is Literal:
-        args = get_args(type_annotation)
-        if len(args) == 1 and isinstance(args[0], str):
-            return args[0]
-
-    return None
+    value = single_literal_value(feature_class.model_fields["type"].annotation)
+    return value if isinstance(value, str) else None
 
 
 def _discriminated_union(feature_classes: tuple[type[OvertureFeature], ...]) -> Any:  # noqa: ANN401

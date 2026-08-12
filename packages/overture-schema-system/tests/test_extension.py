@@ -5,20 +5,35 @@ pydantic `BaseModel`, not tied to Overture's `Feature` base class.
 """
 
 import logging
-from typing import Annotated, ForwardRef, Literal, NewType, Union, get_args
+from typing import Annotated, ForwardRef, Literal, NewType, Union, cast, get_args
 
 import pytest
-from pydantic import BaseModel, Field, RootModel, ValidationError, computed_field
+import typing_extensions as te
+from pydantic import (
+    BaseModel,
+    Field,
+    RootModel,
+    Tag,
+    TypeAdapter,
+    ValidationError,
+    computed_field,
+)
 
 from overture.schema.system.extension import (
     _EXTENSION_ATTR,
     Extends,
     SelfReferentialRootError,
     applied_extension_names,
+    applied_extensions,
     create_extended_model,
     extends,
     extension_targets,
     wrap_extension,
+)
+from overture.schema.system.typing_util import (
+    is_newtype,
+    model_types,
+    union_discriminator,
 )
 
 
@@ -51,17 +66,19 @@ def test_extends_accepts_union_and_newtype_targets() -> None:
 
 
 def test_extends_rejects_non_model_targets() -> None:
+    # The ignores feed deliberately invalid targets past `ExtensionTarget` to
+    # exercise the runtime gate that backs the static one.
     with pytest.raises(TypeError):
-        Extends(int)
+        Extends(int)  # type: ignore[arg-type]
     with pytest.raises(TypeError):
-        Extends("not a model")
+        Extends("not a model")  # type: ignore[arg-type]
     with pytest.raises(TypeError):
         Extends()  # at least one target required
 
 
 def test_extends_rejects_partial_model_union() -> None:
     with pytest.raises(TypeError):
-        Extends(Target | int)
+        Extends(Target | int)  # type: ignore[arg-type]
 
 
 def test_extends_rejects_rootmodel_with_non_model_root() -> None:
@@ -174,10 +191,25 @@ def test_wrap_extension_rejects_unsafe_field_names(name: str) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _as_model_class(extended: object) -> type[BaseModel]:
+    """Narrow a rewritten type expression back to a model class for assertions.
+
+    `create_extended_model` is deliberately `object -> object`; tests that
+    assert model behaviour narrow the result first, like any caller that
+    knows it supplied a model class must.
+    """
+    assert isinstance(extended, type) and issubclass(extended, BaseModel)
+    return extended
+
+
 def _wrap(name: str, obj: object) -> type[BaseModel]:
     wrapper = wrap_extension(name, obj)
     assert wrapper is not None
     return wrapper
+
+
+def _field(model: BaseModel, name: str) -> object:
+    return cast(object, getattr(model, name))
 
 
 def test_create_extended_model_adds_field_to_target() -> None:
@@ -186,15 +218,17 @@ def test_create_extended_model_adds_field_to_target() -> None:
         note: str
 
     extensions = {"ext": _wrap("ext", Ext)}
-    extended = create_extended_model(Target, extensions)
+    extended = _as_model_class(create_extended_model(Target, extensions))
 
     assert extended is not Target
     assert issubclass(extended, Target)
     assert "ext" in extended.model_fields
     # Field is optional with default None.
-    assert extended(name="x").ext is None
+    assert _field(extended(name="x"), "ext") is None
     instance = extended(name="x", ext=Ext(note="hello"))
-    assert instance.ext.note == "hello"
+    ext = _field(instance, "ext")
+    assert isinstance(ext, Ext)
+    assert ext.note == "hello"
 
 
 def test_create_extended_model_identity_for_non_matching_target() -> None:
@@ -371,7 +405,7 @@ def test_create_extended_model_rewrites_rootmodel_union_root() -> None:
         note: str
 
     extensions = {"ext": _wrap("ext", Ext)}
-    rebuilt = create_extended_model(Segment, extensions)
+    rebuilt = _as_model_class(create_extended_model(Segment, extensions))
 
     # Rebuilt as a subclass: identity changes, construction and methods survive.
     assert rebuilt is not Segment
@@ -381,10 +415,12 @@ def test_create_extended_model_rewrites_rootmodel_union_root() -> None:
     # The targeted arm accepts extension data through the root; the other arm and
     # `root=` construction still work.
     v = rebuilt.model_validate({"kind": "road", "ext": {"note": "hi"}})
+    assert isinstance(v, Segment)
     assert v.which() == "road"
-    assert v.root.ext.note == "hi"
-    assert rebuilt(root=Rail()).which() == "rail"
-    assert isinstance(rebuilt(root=Rail()), Segment)
+    assert v.model_dump()["ext"]["note"] == "hi"
+    rail_instance = rebuilt(root=Rail())
+    assert isinstance(rail_instance, Segment)
+    assert rail_instance.which() == "rail"
 
 
 def test_create_extended_model_rootmodel_identity_when_nothing_applies() -> None:
@@ -426,7 +462,7 @@ def test_create_extended_model_rootmodel_target_applies_to_arms() -> None:
         x: int
 
     extensions = {"ext": _wrap("ext", Ext)}
-    extended_target = create_extended_model(Target, extensions)
+    extended_target = _as_model_class(create_extended_model(Target, extensions))
     assert extended_target is not Target
     assert "ext" in extended_target.model_fields
     assert create_extended_model(Unrelated, extensions) is Unrelated
@@ -457,9 +493,9 @@ def test_wrap_extension_accepts_rootmodel_extension() -> None:
     wrapper = _wrap("hours", Hours)
     validated = wrapper.model_validate({"hours": ["09:00-17:00"]})
     assert validated.model_dump()["hours"] == ["09:00-17:00"]
-    extended = create_extended_model(Target, {"hours": wrapper})
+    extended = _as_model_class(create_extended_model(Target, {"hours": wrapper}))
     v = extended.model_validate({"name": "x", "hours": ["09:00-17:00"]})
-    assert v.hours.root == ["09:00-17:00"]
+    assert v.model_dump()["hours"] == ["09:00-17:00"]
 
 
 def test_create_extended_model_recurses_into_union() -> None:
@@ -477,6 +513,79 @@ def test_create_extended_model_recurses_into_union() -> None:
     assert arms["Unrelated"] is Unrelated
 
 
+def test_extends_union_alias_target_end_to_end() -> None:
+    class RoadSeg(BaseModel):
+        kind: Literal["road"] = "road"
+
+    class RailSeg(BaseModel):
+        kind: Literal["rail"] = "rail"
+
+    # A Segment-shaped discriminated union alias used as the extension *target*.
+    SegmentAlias = Annotated[
+        Annotated[RoadSeg, Tag("road")] | Annotated[RailSeg, Tag("rail")],
+        Field(discriminator="kind"),
+    ]
+
+    @extends(SegmentAlias)
+    class Ext(BaseModel):
+        note: str
+
+    extensions = {"ext": _wrap("ext", Ext)}
+
+    # Each member model gains the field, matched through the union-alias target.
+    for member in (RoadSeg, RailSeg):
+        extended_member = _as_model_class(create_extended_model(member, extensions))
+        assert "ext" in extended_member.model_fields
+
+    # Rebuilding the alias itself keeps its shape: discriminator and per-arm tags survive.
+    extended_alias = create_extended_model(SegmentAlias, extensions)
+    assert union_discriminator(extended_alias) == "kind"
+    assert all("ext" in model.model_fields for model in model_types(extended_alias))
+
+    # A discriminated payload carrying the extension field validates against the alias.
+    segment: object = TypeAdapter(extended_alias).validate_python(
+        {"kind": "rail", "ext": {"note": "hi"}}
+    )
+    assert isinstance(segment, RailSeg)
+    ext = _field(segment, "ext")
+    assert isinstance(ext, Ext)
+    assert ext.note == "hi"
+
+
+def test_create_extended_model_accepts_raw_extends_model() -> None:
+    @extends(Target)
+    class RawExt(BaseModel):
+        note: str
+
+    # Passed directly, without going through wrap_extension: the model itself is
+    # the extension type.
+    extended = _as_model_class(create_extended_model(Target, {"raw_ext": RawExt}))
+    assert "raw_ext" in extended.model_fields
+    instance = extended(name="x", raw_ext=RawExt(note="hi"))
+    raw_ext = _field(instance, "raw_ext")
+    assert isinstance(raw_ext, RawExt)
+    assert raw_ext.note == "hi"
+
+
+def test_create_extended_model_no_collision_warning_for_untargeted_model(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    @extends(Target)
+    class Ext(BaseModel):
+        note: str
+
+    class HasExtField(BaseModel):
+        ext: str
+
+    extensions = {"ext": _wrap("ext", Ext)}
+    # HasExtField is not a target of the extension, so its `ext` field is not a
+    # collision worth warning about.
+    with caplog.at_level(logging.WARNING):
+        result = create_extended_model(HasExtField, extensions)
+    assert result is HasExtField
+    assert not caplog.records
+
+
 def test_create_extended_model_recurses_into_newtype() -> None:
     @extends(Target)
     class Ext(BaseModel):
@@ -485,20 +594,41 @@ def test_create_extended_model_recurses_into_newtype() -> None:
     extensions = {"ext": _wrap("ext", Ext)}
     Aliased = NewType("Aliased", Target)
     extended = create_extended_model(Aliased, extensions)
-    assert hasattr(extended, "__supertype__")
-    assert "ext" in extended.__supertype__.model_fields
+    assert is_newtype(extended)
+    supertype = _as_model_class(
+        extended.__supertype__  # type: ignore[attr-defined]
+    )
+    assert "ext" in supertype.model_fields
+    # The rebuilt alias keeps the original's identity attributes.
+    assert extended.__name__ == "Aliased"  # type: ignore[attr-defined]
+    assert extended.__module__ == Aliased.__module__  # type: ignore[attr-defined]
 
 
 def test_create_extended_model_scalar_extension_field_type() -> None:
     Scalar = NewType("Scalar", Annotated[int, Field(ge=0, le=10), Extends(Target)])
     extensions = {"scalar": _wrap("scalar", Scalar)}
-    extended = create_extended_model(Target, extensions)
+    extended = _as_model_class(create_extended_model(Target, extensions))
 
     assert "scalar" in extended.model_fields
-    assert extended(name="x", scalar=5).scalar == 5
+    assert _field(extended(name="x", scalar=5), "scalar") == 5
     # The uint-like constraint carried by the NewType is enforced on the target.
     with pytest.raises(ValidationError):
         extended(name="x", scalar=99)
+
+
+def test_applied_extensions_reflects_merged_fields() -> None:
+    @extends(Target)
+    class Ext(BaseModel):
+        note: str
+
+    extensions = {"ext": _wrap("ext", Ext)}
+    extended = _as_model_class(create_extended_model(Target, extensions))
+
+    assert applied_extensions(extended) == frozenset({"ext"})
+
+
+def test_applied_extensions_empty_for_plain_model() -> None:
+    assert applied_extensions(Target) == frozenset()
 
 
 def test_standalone_wrapper_join_pattern() -> None:
@@ -509,15 +639,17 @@ def test_standalone_wrapper_join_pattern() -> None:
         note: str
 
     wrapper = _wrap("ext", Ext)
-    extended = create_extended_model(Target, {"ext": wrapper})
+    extended = _as_model_class(create_extended_model(Target, {"ext": wrapper}))
 
     base = Target(name="x")
     ext_payload = wrapper.model_validate({"ext": {"note": "joined"}})
     joined = extended.model_validate(
         base.model_dump(exclude_unset=True) | ext_payload.model_dump(exclude_unset=True)
     )
-    assert joined.name == "x"
-    assert joined.ext.note == "joined"
+    assert joined.model_dump()["name"] == "x"
+    ext = _field(joined, "ext")
+    assert isinstance(ext, Ext)
+    assert ext.note == "joined"
 
 
 class TestDuplicateDeclarationsMerge:
@@ -618,6 +750,14 @@ class TestWrapperModuleProvenance:
 
 
 class TestContractHardening:
+    def test_typing_extensions_newtype_extension_is_recognized(self) -> None:
+        # `typing_extensions.NewType` instances are not instances of
+        # `typing.NewType`; declaration detection must accept both.
+        te_capacity = te.NewType("te_capacity", Annotated[int, Extends(Target)])
+        assert extension_targets(te_capacity) == (Target,)
+        wrapper = wrap_extension("te_capacity", te_capacity)
+        assert wrapper is not None
+
     def test_raw_extends_model_in_mapping_applies_as_itself(self) -> None:
         # A raw @extends model passed directly (instead of its wrap_extension
         # wrapper) is coherent: the model itself becomes the optional field's
@@ -647,7 +787,7 @@ class TestContractHardening:
         extended_alias = create_extended_model(Alias, {"cap": wrapper})
         assert extended_alias is not Alias
         assert extended_alias.__module__ == Alias.__module__
-        assert extended_alias.__qualname__ == "SomeNamespace.Alias"
+        assert getattr(extended_alias, "__qualname__", None) == "SomeNamespace.Alias"
         assert extended_alias.__doc__ == "An alias with prose."
 
     def test_self_referential_root_raises_dedicated_error(self) -> None:
@@ -677,13 +817,17 @@ class TestContractHardening:
     def test_applied_extension_names_propagates_unrelated_type_errors(self) -> None:
         # Only the self-referential root case is tolerated; any other
         # TypeError raised while inspecting the input must propagate.
-        class Hostile:
-            @property
+        class HostileAlias(NewType):
+            @property  # type: ignore[override]
             def __supertype__(self) -> object:
-                raise TypeError("not a NewType")
+                raise TypeError("hostile supertype")
 
-        with pytest.raises(TypeError, match="not a NewType"):
-            applied_extension_names(Hostile())
+            @__supertype__.setter
+            def __supertype__(self, value: object) -> None:
+                pass
+
+        with pytest.raises(TypeError, match="hostile supertype"):
+            applied_extension_names(HostileAlias("HostileAlias", Target))
 
 
 class TestRootModelDefaultFidelity:
@@ -702,34 +846,36 @@ class TestRootModelDefaultFidelity:
         class DefaultedRoot(RootModel[Target]):
             root: Target = Target(name="d")
 
-        extended = create_extended_model(
-            DefaultedRoot, {"fidelity_ext": self._wrapper()}
+        extended = _as_model_class(
+            create_extended_model(DefaultedRoot, {"fidelity_ext": self._wrapper()})
         )
         assert extended is not DefaultedRoot
         assert extended.model_fields["root"].is_required() is False
         instance = extended()
-        assert instance.root.name == "d"
+        assert instance.root.name == "d"  # type: ignore[attr-defined]
         # The default is carried verbatim (defaults are not re-validated),
         # while explicit payloads validate against the extended root.
         validated = extended.model_validate(
             {"name": "x", "fidelity_ext": {"note": "n"}}
         )
-        assert validated.root.fidelity_ext.note == "n"
+        assert validated.root.fidelity_ext.note == "n"  # type: ignore[attr-defined]
 
     def test_default_factory_root_preserved(self) -> None:
         class FactoryRoot(RootModel[Target]):
             root: Target = Field(default_factory=lambda: Target(name="f"))
 
-        extended = create_extended_model(FactoryRoot, {"fidelity_ext": self._wrapper()})
+        extended = _as_model_class(
+            create_extended_model(FactoryRoot, {"fidelity_ext": self._wrapper()})
+        )
         assert extended is not FactoryRoot
-        assert extended().root.name == "f"
+        assert extended().root.name == "f"  # type: ignore[attr-defined]
 
     def test_required_root_stays_required(self) -> None:
         class RequiredRoot(RootModel[Target]):
             pass
 
-        extended = create_extended_model(
-            RequiredRoot, {"fidelity_ext": self._wrapper()}
+        extended = _as_model_class(
+            create_extended_model(RequiredRoot, {"fidelity_ext": self._wrapper()})
         )
         assert extended is not RequiredRoot
         assert extended.model_fields["root"].is_required() is True

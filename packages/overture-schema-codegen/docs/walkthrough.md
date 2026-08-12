@@ -63,8 +63,8 @@ it. The entry point `overture:transportation:segment` maps to
 `overture.schema.transportation:Segment`, which loads the alias itself.
 
 The codegen classifies these at the CLI boundary: `is_model_class` identifies concrete
-`BaseModel` subclasses, `is_union_alias` calls `analyze_type` to identify discriminated
-unions. From that point forward both records and unions are `ModelSpec` values
+`BaseModel` subclasses, `is_union_alias` asks `typing_util.is_model_union` whether the
+expression is a union of two or more models (tolerating `None`/sentinel arms). From that point forward both records and unions are `ModelSpec` values
 (`RecordSpec | UnionSpec`) and flow through the same pipeline.
 
 ## 2. Leaf utilities
@@ -232,9 +232,8 @@ excluded because they render on aggregate pages rather than individual ones.
 
 Three functions at the bottom of `extraction/specs.py` classify discovery results.
 `is_model_class` is a `TypeGuard` that checks `isinstance(obj, type) and issubclass(obj,
-BaseModel)`. `is_union_alias` calls `analyze_type` with a sentinel `union_resolver` that
-raises immediately on detection -- the only place outside the type analyzer that touches
-Python type annotations. `filter_model_classes` applies the model guard across the
+BaseModel)`. `is_union_alias` delegates to `typing_util.is_model_union`, the shared skeleton
+walker that `analyze_type` also leans on for arm classification. `filter_model_classes` applies the model guard across the
 discovery dict's values.
 
 ## 5. Type registry
@@ -326,10 +325,10 @@ metadata chain.
 
 The most involved extractor. Walk through `Segment` concretely.
 
-`extract_union("Segment", annotation)` calls `_union_members`, which runs `analyze_type`
-with a capturing `union_resolver` that raises out of the analysis as soon as it sees a
-multi-arm union of `BaseModel` subclasses. The captured tuple gives the three member
-types plus any description from enclosing `Annotated` layers.
+`extract_union("Segment", annotation)` derives the three member types from
+`typing_util.model_types` and the union description from
+`typing_util.root_annotated_metadata` -- the same shared walker `analyze_type` uses for arm
+classification, so the field-level and entry-level answers cannot drift apart.
 
 Next, `_find_common_base` intersects each member's filtered MRO (BaseModel subclasses
 only, excluding `BaseModel` itself). All three share `TransportationSegment` in their
@@ -688,12 +687,12 @@ A reader who reached this point has seen every module in isolation. This section
 entry_point="overture.schema.transportation:Segment")`.
 
 **Classification.** The CLI tests each entry. `is_model_class(Segment)` returns false --
-`Segment` is not a class. `is_union_alias(Segment)` calls `analyze_type` with a sentinel
-`union_resolver` that raises on detection. The CLI routes Segment to `extract_union`.
+`Segment` is not a class. `is_union_alias(Segment)` asks `typing_util.is_model_union`, which
+decomposes the alias to its model arms. The CLI routes Segment to `extract_union`.
 
-**Extraction.** `extract_union("Segment", annotation)` calls `_union_members`, which
-runs `analyze_type` with a capturing `union_resolver` to grab the three member types
-plus the union description. `_find_common_base` picks `TransportationSegment` as the
+**Extraction.** `extract_union("Segment", annotation)` derives the three member types
+via `typing_util.model_types` and the union description via
+`typing_util.root_annotated_metadata`. `_find_common_base` picks `TransportationSegment` as the
 shared parent. The extractor calls `extract_model` on the common base and on each
 member -- the results are cached on the `UnionSpec` as `member_specs` -- and partitions
 the non-shared fields into `AnnotatedField` entries with variant provenance.

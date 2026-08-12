@@ -9,7 +9,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer = "2026-08-05T13:21:59.4293Z"
 exclude-newer-span = "P1W"
 
 [manifest]
@@ -1083,7 +1083,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "mypy", specifier = ">=1.17.0" },
+    { name = "mypy", specifier = ">=2.2.0" },
     { name = "pytest", specifier = ">=9.0.0" },
     { name = "ruff", specifier = ">=0.16.0" },
 ]
@@ -1218,7 +1218,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "mypy", specifier = ">=1.17.0" },
+    { name = "mypy", specifier = ">=2.2.0" },
     { name = "pytest", specifier = ">=9.0.0" },
     { name = "ruff", specifier = ">=0.16.0" },
 ]
@@ -1375,7 +1375,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "mypy", specifier = ">=1.17.0" },
+    { name = "mypy", specifier = ">=2.2.0" },
     { name = "pdoc", specifier = ">=15.0.4" },
     { name = "pydocstyle", specifier = ">=6.3.0" },
     { name = "pytest", specifier = ">=9.0.0" },

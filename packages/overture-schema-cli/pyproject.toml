@@ -35,7 +35,7 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.0.0",
     "ruff>=0.16.0",
-    "mypy>=1.17.0",
+    "mypy>=2.2.0",
 ]
 
 [tool.uv.build-backend]
