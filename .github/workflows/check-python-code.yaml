@@ -1,13 +1,10 @@
 name: Check Python package code
 
 on:
-  pull_request:
-    paths:
-      - 'packages/**'
-      - 'pyproject.toml'
-      - 'uv.lock'
-      - 'Makefile'
-      - '.github/workflows/check-python-code.yaml'
+  # No path filter on pull_request: "All Python checks pass" is a required
+  # status check (see schema.yml in omf-github-terraform), and GitHub never
+  # satisfies a required check that a path filter prevents from running.
+  pull_request: {}
   push:
     branches: [main, dev]
     paths:
@@ -92,3 +89,18 @@ jobs:
 
       - name: Run make check
         run: make check
+
+  # Single stable check-run name for the whole matrix, so a required-status-
+  # check rule never has to track individual Python-version cells. Add or
+  # drop a cell above and this job's name still covers it.
+  all-python-checks-pass:
+    name: All Python checks pass
+    needs: [check]
+    if: always()
+    runs-on: ubuntu-slim
+    permissions: {}
+
+    steps:
+      - uses: lowlydba/are-we-good@f506ed6324f55ec5e4ff5d92204a72c7f1c2b4f8 # v1.0.5
+        with:
+          jobs: ${{ toJSON(needs) }}

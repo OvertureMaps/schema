@@ -96,16 +96,16 @@ This workspace contains the following packages:
 
 ### Theme Packages
 
-- **`overture-schema-addresses-theme`** - Address features
-- **`overture-schema-base-theme`** - Foundational geographic features (land, water,
+- **`overture-schema-theme-addresses`** - Address features
+- **`overture-schema-theme-base`** - Foundational geographic features (land, water,
   infrastructure, bathymetry, land cover, land use)
-- **`overture-schema-buildings-theme`** - Building footprints and building parts with
+- **`overture-schema-theme-buildings`** - Building footprints and building parts with
   architectural details
-- **`overture-schema-divisions-theme`** - Administrative boundaries, division areas, and
+- **`overture-schema-theme-divisions`** - Administrative boundaries, division areas, and
   political boundaries
-- **`overture-schema-places-theme`** - Points of interest, businesses, and named
+- **`overture-schema-theme-places`** - Points of interest, businesses, and named
   locations
-- **`overture-schema-transportation-theme`** - Road segments and transportation network
+- **`overture-schema-theme-transportation`** - Road segments and transportation network
   connectors
 
 ### Usage (Python)
@@ -218,7 +218,7 @@ uv sync --all-packages
 make check
 
 # Run tests for a specific package
-uv run pytest packages/overture-schema-buildings-theme/
+uv run pytest packages/overture-schema-theme-buildings/
 
 # Run tests matching a pattern
 uv run pytest -k "buildings"

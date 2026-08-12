@@ -1,0 +1,47 @@
+name: Overture
+description: General issue for work tracked in the Overture project.
+projects: ["OvertureMaps/84"]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      description: What kind of work is this? Used to populate the organization-level `Type` field during triage.
+      options:
+        - Task
+        - Bug
+        - Agenda
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Primary theme or platform impacted. Used to populate the organization-level `Scope` field during triage.
+      options:
+        - Addresses
+        - Base
+        - Buildings
+        - Divisions
+        - Places
+        - Transportation
+        - Multi-theme or Platform
+    validations:
+      required: true
+  - type: dropdown
+    id: skillset
+    attributes:
+      label: Skillset
+      description: Primary skill needed to complete this task. Used to populate the organization-level `Skillset` field during triage.
+      options:
+        - data analysis
+        - data science
+        - dev ops
+        - engineering
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: Describe what this issue is trying to accomplish (what), context (why), constraints, acceptance criteria, design details (how), and testing
+    validations:
+      required: true
