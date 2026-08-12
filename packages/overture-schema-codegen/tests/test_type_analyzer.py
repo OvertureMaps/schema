@@ -40,6 +40,7 @@ from overture.schema.codegen.extraction.type_analyzer import (
     unwrap_list,
 )
 from overture.schema.common.scoping.vehicle import VehicleSelector
+from overture.schema.system.extension import Extends
 from overture.schema.system.numeric import int32
 from overture.schema.system.ref import Id
 from overture.schema.system.string import (
@@ -197,6 +198,34 @@ class TestAnnotated:
         shape = _shape(Annotated[str, "just a description"])
         assert isinstance(shape, Primitive)
         assert shape.constraints[0].constraint == "just a description"
+
+    def test_annotated_extends_metadata_is_not_a_constraint(self) -> None:
+        """`Extends` declares an extension's targets, not a field constraint.
+
+        Regression test: it must not leak into the shape's constraints,
+        where it would render in generated docs via its class docstring
+        (see `field_constraints.py`).
+        """
+
+        class Target(BaseModel):
+            name: str
+
+        shape = _shape(Annotated[int, Field(ge=0), Extends(Target)])
+
+        assert isinstance(shape, Primitive)
+        assert len(shape.constraints) == 1
+        assert isinstance(shape.constraints[0].constraint, Ge)
+
+    def test_annotated_bare_extends_metadata_is_not_a_constraint(self) -> None:
+        """`Extends` as the sole (non-FieldInfo) metadata item is also excluded."""
+
+        class Target(BaseModel):
+            name: str
+
+        shape = _shape(Annotated[int, Extends(Target)])
+
+        assert isinstance(shape, Primitive)
+        assert shape.constraints == ()
 
     def test_list_level_minlen_lands_on_arrayof(self) -> None:
         shape = _shape(Annotated[list[str], Field(min_length=1)])

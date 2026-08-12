@@ -157,12 +157,12 @@ Tags classify discovered models. A package registers [tag providers](#providers)
 from overture.schema.system.discovery import (
     TagSelector,
     discover_models,
-    filter_models,
+    select_models,
 )
 
 models = discover_models()
 
-selected = filter_models(
+selected = select_models(
     models,
     TagSelector(include_any=("feature",), exclude_any=("draft",)),
 )
@@ -233,13 +233,15 @@ When a provider attempts to set a reserved tag from an unauthorized package, dis
 
 ### Selecting Models by Tag
 
-`filter_models(models, selector)` applies `TagSelector` predicates against each `ModelKey.tags`:
+`select_models(models, selector)` applies `TagSelector` predicates against each `ModelKey.tags`:
 
 - `include_any` -- OR scope; at least one tag must match (empty: no scope filter)
 - `require_all` -- AND narrowing; every tag must be present (empty: no narrowing)
 - `exclude_any` -- OR-NOT subtraction; any match drops the model
 
-An empty selector returns the input unchanged.
+An empty selector returns the input unchanged, except that standalone extension
+entries are hidden by default; pass `include_extension_entries=True` (or engage the
+`extension` tag in the selector) to include them.
 
 ## Also Included
 

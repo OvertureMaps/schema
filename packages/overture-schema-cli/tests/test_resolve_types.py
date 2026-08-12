@@ -1,6 +1,6 @@
-"""Tests for resolve_types — CLI glue between filter_models and union creation.
+"""Tests for resolve_types — CLI glue between select_models and union creation.
 
-The combinator algebra of filter_models itself is covered in
+The selector combinator algebra itself is covered in
 `test_discovery_filter_models.py` in the system package.
 """
 

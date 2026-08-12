@@ -2,6 +2,7 @@
 
 from typing import Annotated, Optional
 
+from annotated_types import Ge
 from codegen_test_support import FeatureWithRootModel
 from overture.schema.codegen.extraction.field import (
     ArrayOf,
@@ -14,7 +15,8 @@ from overture.schema.codegen.extraction.field_walk import terminal_of
 from overture.schema.codegen.extraction.length_constraints import ArrayMinLen
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.common.scoping.vehicle import VehicleSelector
-from pydantic import BaseModel, Field
+from overture.schema.system.extension import Extends
+from pydantic import BaseModel, Field, RootModel
 
 
 def test_extract_model_populates_union_terminal() -> None:
@@ -157,6 +159,51 @@ def test_nested_list_forward_ref_resolves_to_cycle() -> None:
     inner = grid.shape.element.element
     assert isinstance(inner, ModelRef)
     assert inner.starts_cycle is True
+
+
+def test_extends_hoisted_into_field_metadata_is_not_a_constraint() -> None:
+    """`Extends` must be excluded from the `FieldInfo.metadata` path too.
+
+    Pydantic strips a top-level `Annotated` and hoists its metadata into
+    `FieldInfo.metadata`, bypassing the Annotated-frame exclusion; without
+    a filter in `attach_field_metadata`, the extension-target declaration
+    would render as a constraint in generated docs.
+    """
+
+    class Place(BaseModel):
+        name: str
+
+    class Venue(BaseModel):
+        capacity: Annotated[int, Field(ge=0), Extends(Place)]
+
+    spec = extract_model(Venue)
+    cap = next(f for f in spec.fields if f.name == "capacity")
+
+    assert isinstance(cap.shape, Primitive)
+    constraints = [cs.constraint for cs in cap.shape.constraints]
+    assert any(isinstance(c, Ge) for c in constraints)
+    assert not any(isinstance(c, Extends) for c in constraints)
+
+
+def test_extends_in_rootmodel_root_metadata_is_not_a_constraint() -> None:
+    """The `RootModel` root's hoisted metadata path excludes `Extends` too."""
+
+    class Place(BaseModel):
+        name: str
+
+    class CapRoot(RootModel[Annotated[int, Field(ge=0), Extends(Place)]]):
+        pass
+
+    class Venue(BaseModel):
+        capacity: CapRoot
+
+    spec = extract_model(Venue)
+    cap = next(f for f in spec.fields if f.name == "capacity")
+
+    assert isinstance(cap.shape, Primitive)
+    constraints = [cs.constraint for cs in cap.shape.constraints]
+    assert any(isinstance(c, Ge) for c in constraints)
+    assert not any(isinstance(c, Extends) for c in constraints)
 
 
 def test_field_metadata_minlen_wrapped_as_array_min_len() -> None:

@@ -9,7 +9,7 @@ from typing import Annotated, Any, Literal, cast, get_args, get_origin
 from pydantic import BaseModel, Field, Tag, TypeAdapter
 
 from overture.schema.common import OvertureFeature
-from overture.schema.system.discovery import discover_models
+from overture.schema.system.discovery import discover_models, select_models
 from overture.schema.system.feature import Feature
 
 
@@ -73,7 +73,9 @@ def _union_type_adapter() -> TypeAdapter:
     Return a Pydantic type adapter that can validate the union of all models discovered using entry
     points.
     """
-    models = discover_models()
+    # Extension data validates through the feature models it was merged into; the
+    # permissive standalone wrappers are dropped by `select_models`' default hiding.
+    models = select_models(discover_models())
     if not models:
         raise RuntimeError("no registered models found via entry points")
 
@@ -159,7 +161,7 @@ def _typeliteral(feature_class: type[OvertureFeature]) -> object:
     """
     type_type = feature_class.model_fields["type"].annotation
     while get_origin(type_type) is Annotated:
-        type_type = get_args(Annotated)[0]
+        type_type = get_args(type_type)[0]
     if get_origin(type_type) is not Literal:
         return None
     literal = get_args(type_type)[0]
