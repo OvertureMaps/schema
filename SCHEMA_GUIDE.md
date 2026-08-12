@@ -719,17 +719,20 @@ A `ModelKey` carries `.name`, `.entry_point` (`"module:Class"`), and `.tags`
 (a `frozenset[str]`). Filter the same way the CLI does:
 
 ```python
-from overture.schema.system.discovery import TagSelector, discover_models, filter_models
+from overture.schema.system.discovery import TagSelector, discover_models, select_models
 
-models = discover_models()
+models = discover_models(apply_extensions=False)
 
-buildings = filter_models(
+buildings = select_models(
     models, TagSelector(include_any=("overture:theme=buildings",))
 )
 ```
 
 `TagSelector` takes `include_any` (OR scope), `require_all` (AND narrowing), and
-`exclude_any` (OR-NOT). An empty selector returns the input unchanged.
+`exclude_any` (OR-NOT). An empty selector selects everything. `select_models` expects
+the raw registry (`apply_extensions=False`) and applies the surviving extensions after
+selection; standalone extension wrapper entries stay hidden unless
+`include_extension_entries=True` is passed.
 
 ### 2.7 Reading enum member documentation
 
@@ -1727,7 +1730,7 @@ covers new themes and third-party extensions.
 
 ```python
 import click
-from overture.schema.system.discovery import discover_models, filter_models, TagSelector
+from overture.schema.system.discovery import discover_models, select_models, TagSelector
 from overture.schema.cli.tag_options import tag_selection_options, build_selector
 
 
@@ -1735,7 +1738,9 @@ from overture.schema.cli.tag_options import tag_selection_options, build_selecto
 @tag_selection_options  # gives you --tag / --filter / --exclude for free
 def report(tags, filters, excludes):
     """Report field counts for the selected feature types."""
-    models = filter_models(discover_models(), build_selector(tags, filters, excludes))
+    models = select_models(
+        discover_models(apply_extensions=False), build_selector(tags, filters, excludes)
+    )
     for key, model in sorted(models.items(), key=lambda kv: kv[0].name):
         n = len(model.model_fields) if hasattr(model, "model_fields") else "—"
         click.echo(f"{key.name:20} {n}")
