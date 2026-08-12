@@ -57,6 +57,7 @@ internal builds off the public index by construction.
 | Push to `main` | [`main-publish.yaml`](../.github/workflows/main-publish.yaml) detects packages changed without a version bump and publishes their `.postN` build to CodeArtifact. |
 | Version bump merged to `main` | [`release-trigger.yaml`](../.github/workflows/release-trigger.yaml) cuts a GitHub Release per bumped package. |
 | Release published | [`release-publish.yaml`](../.github/workflows/release-publish.yaml) builds that package at its released version and publishes to PyPI, gated by the `pypi-release` Environment. |
+| Manual dispatch | `release-publish.yaml` also runs on `workflow_dispatch`: pick a package, build it at its current on-disk version, and publish to Test PyPI (`test-pypi` Environment, no approval gate). Exercises the pipeline end to end without a real release or the production index. |
 
 `release-trigger` creates releases with the `overture-releaser` app's
 installation token, not `GITHUB_TOKEN`: a `GITHUB_TOKEN`-created release does
