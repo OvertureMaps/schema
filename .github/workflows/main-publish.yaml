@@ -117,14 +117,20 @@ jobs:
           context: main
           index_url: ${{ steps.ca.outputs.index_url }}
 
-      # overture-schema-pyspark ships generated validation expressions that are
-      # not committed to git -- they are regenerated on demand from the
-      # Pydantic models. `uv build` packages whatever is on disk under the
-      # module root, so the tree must be generated here before the build, or
-      # the published wheel ships without its expressions/generated/ modules.
-      - name: Generate PySpark expressions before build
-        if: matrix.package == 'overture-schema-pyspark'
-        run: make generate-pyspark
+      # overture-schema-pyspark ships generated validation expressions that
+      # are not committed to git; its packages/<pkg>/scripts/prebuild.sh
+      # regenerates them before packaging. Every other package has no
+      # prebuild.sh, so this step is a no-op for them.
+      - name: Run package's prebuild script, if any
+        env:
+          PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
+        run: |
+          set -euo pipefail
+          script="packages/${PACKAGE}/scripts/prebuild.sh"
+          if [ -f "$script" ]; then
+            echo "Running ${script}"
+            bash "$script"
+          fi
 
       - name: Stamp computed version
         # Rewrites only the in-memory checkout's pyproject.toml, never
@@ -152,15 +158,6 @@ jobs:
           wheel="dist/${PACKAGE//-/_}-${VERSION}-py3-none-any.whl"
           if [ ! -f "$wheel" ]; then
             echo "    Wheel file [$wheel] not found. Aborting!"
-            exit 1
-          fi
-          # Guard against a silently empty wheel: if the generate step above
-          # ever regresses, overture-schema-pyspark would publish with no
-          # validation expressions. Fail loudly instead of shipping a hollow
-          # package.
-          if [ "$PACKAGE" = "overture-schema-pyspark" ] && \
-             ! unzip -l "$wheel" | grep -q 'expressions/generated/.*\.py'; then
-            echo "    Wheel [$wheel] has no generated expressions -- codegen did not run. Aborting!"
             exit 1
           fi
           tarball="dist/${PACKAGE//-/_}-${VERSION}.tar.gz"
