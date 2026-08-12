@@ -6,10 +6,13 @@ from pathlib import Path, PurePosixPath
 
 import click
 
-from overture.schema.cli.tag_options import build_selector, tag_selection_options
+from overture.schema.cli.tag_options import (
+    build_selector,
+    tag_selection_options,
+)
 from overture.schema.system.discovery import (
     discover_models,
-    filter_models,
+    select_models,
 )
 
 from .extraction.specs import ModelSpec
@@ -57,7 +60,9 @@ def cli() -> None:
 @cli.command("list")
 def list_models() -> None:
     """List all discovered models."""
-    models = discover_models()
+    # A listing is introspection, not selection: show every discoverable
+    # entry, extension wrappers included.
+    models = select_models(discover_models(), include_extension_entries=True)
     names = sorted(
         model.__name__ if isinstance(model, type) else str(model)
         for model in models.values()
@@ -103,7 +108,7 @@ def generate(
 
     all_models = discover_models()
 
-    models = filter_models(all_models, build_selector(tags, filters, excludes))
+    models = select_models(all_models, build_selector(tags, filters, excludes))
 
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)

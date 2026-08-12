@@ -36,7 +36,7 @@ from overture.schema.codegen.spec_discovery import extract_model_spec
 from overture.schema.system.discovery import (
     TagSelector,
     discover_models,
-    filter_models,
+    select_models,
 )
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.doc import DocumentedEnum
@@ -436,8 +436,10 @@ def flat_specs_from_discovery(
     """Build a flat list of RecordSpecs from discovery, with entry_point set."""
     models = discover_models()
     if theme:
-        models = filter_models(
-            models, TagSelector(include_any=(f"overture:theme={theme}",))
+        models = select_models(
+            models,
+            TagSelector(include_any=(f"overture:theme={theme}",)),
+            include_extension_entries=True,
         )
     return [
         spec

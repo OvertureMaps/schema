@@ -181,7 +181,7 @@ to filter the working set without importing every model:
 from overture.schema.system.discovery import (
     TagSelector,
     discover_models,
-    filter_models,
+    select_models,
 )
 
 models = discover_models()
@@ -193,7 +193,7 @@ models = discover_models()
 #   ...
 # }
 
-buildings = filter_models(
+buildings = select_models(
     models,
     TagSelector(include_any=("overture:theme=buildings",)),
 )
@@ -205,6 +205,63 @@ entry-point group. The `system` and `common` packages ship the built-in provider
 to attach custom tags during discovery. See the [`overture-schema-system`
 README](packages/overture-schema-system/README.md#tagging) for tag format,
 reserved namespaces, and provider authoring.
+
+### Model Extensions
+
+A data producer can attach optional fields to models it does not own. An
+extension is registered on the same `overture.models` entry-point group as any
+other model; discovery recognizes it as an extension by its `Extends` metadata.
+A model extension declares its targets with `@extends`:
+
+```python
+from overture.schema.system.extension import extends
+
+@extends(Place)
+class OperatingHours(BaseModel):
+    primary: list[str]
+```
+
+Non-model extensions (e.g. a scalar `NewType`) use `Extends(...)` inside
+`Annotated` metadata instead. During discovery each extension is exposed as a
+standalone one-field wrapper model (hidden by `select_models` unless the
+`extension` tag is engaged), and the extension pass adds the field -- optional,
+named after the entry point -- to every registered model the targets resolve
+to.
+
+#### How Targets Resolve
+
+A target may be a model class or a type expression resolving to model classes:
+unions, `Annotated`, `NewType`, and `RootModel`. Two rules govern resolution:
+
+- A union qualifies only if *every* arm resolves to models -- `Place | int` is
+  rejected as a target.
+- A `RootModel` subclass is never a model leaf itself, even though it is a
+  `BaseModel` subclass. It is an alias for its root annotation, and resolution
+  recurses into the root -- at any nesting depth.
+
+The second rule cuts both ways: a `RootModel` over models is an alias for its
+arms, while a `RootModel` over a scalar resolves to no model at all, even when
+nested inside an otherwise valid expression:
+
+```python
+class Segment(RootModel[RoadSegment | RailSegment]):
+    pass
+
+class Version(RootModel[int]):
+    pass
+
+Extends(Segment)            # OK -- extends RoadSegment and RailSegment
+Extends(Version)            # TypeError -- scalar root resolves to no models
+Extends(Segment | Version)  # TypeError -- every union arm must resolve
+```
+
+The extension pass applies the same alias view to registered entries: a
+registered `Segment` is rebuilt as a subclass whose root annotation carries the
+extended arms, while a registered `Version` passes through unchanged, since its
+scalar root contains nothing to extend. Container types (`list[Place]`,
+`dict[str, Place]`) are opaque on both sides: models nested inside them are
+neither valid targets nor rewritten. A self-referential root has no finite
+shape and is rejected.
 
 ## Development
 

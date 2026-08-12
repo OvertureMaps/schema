@@ -51,6 +51,8 @@ from pydantic import BaseModel, RootModel
 from pydantic.fields import FieldInfo
 from typing_extensions import Sentinel, assert_never, evaluate_forward_ref
 
+from overture.schema.system.extension import Extends
+
 from .docstring import clean_docstring
 from .field import (
     AnyScalar,
@@ -294,18 +296,21 @@ def _unwrap(
         return NewTypeShape(name=ctx.name, ref=ctx.ref, inner=inner), opt, desc
 
     if origin is Annotated:
-        args = get_args(annotation)
-        inner_annotation = args[0]
+        inner_annotation, *metadata = get_args(annotation)
         own_desc: str | None = None
         collected: list[ConstraintSource] = []
-        for c in args[1:]:
-            if isinstance(c, FieldInfo):
-                if c.description is not None and own_desc is None:
-                    own_desc = clean_docstring(c.description)
-                for m in c.metadata:
-                    collected.append(_constraint_source(m, newtype_ctx))
+        for item in metadata:
+            constraint_items: tuple[object, ...]
+            if isinstance(item, FieldInfo):
+                if own_desc is None and item.description is not None:
+                    own_desc = clean_docstring(item.description)
+                constraint_items = tuple(item.metadata)
             else:
-                collected.append(_constraint_source(c, newtype_ctx))
+                constraint_items = (item,)
+            for constraint in constraint_items:
+                # `Extends` is extension-target metadata, not a field constraint.
+                if not isinstance(constraint, Extends):
+                    collected.append(_constraint_source(constraint, newtype_ctx))
 
         # Pick the annotation to recurse into and the optionality this
         # Annotated layer contributes. A directly-wrapped union is peeled
@@ -514,10 +519,18 @@ def attach_field_metadata(shape: FieldShape, field_info: FieldInfo) -> FieldShap
     wrapping applies here just as it does during normal annotation
     unwrapping: the constraints anchor at the topmost constraint-bearing
     layer. Returns *shape* unchanged when there is no metadata.
+
+    `Extends` is excluded here as well as in the `Annotated` frame: pydantic
+    hoists a top-level `Annotated`'s metadata into `field_info.metadata`, so
+    extension-target declarations would otherwise re-enter as constraints.
     """
-    if not field_info.metadata:
+    extra = tuple(
+        ConstraintSource(None, None, m)
+        for m in field_info.metadata
+        if not isinstance(m, Extends)
+    )
+    if not extra:
         return shape
-    extra = tuple(ConstraintSource(None, None, m) for m in field_info.metadata)
     return attach_constraints(shape, extra)
 
 

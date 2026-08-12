@@ -49,6 +49,12 @@ from overture.schema.codegen.markdown.renderer import (
     render_pydantic_type,
 )
 from overture.schema.codegen.markdown.reverse_references import UsedByEntry, UsedByKind
+from overture.schema.system.extension import (
+    Extends,
+    create_extended_model,
+    extends,
+    wrap_extension,
+)
 from overture.schema.system.field_constraint import (
     CountryCodeAlpha2Constraint,
     JsonPointerConstraint,
@@ -304,6 +310,54 @@ class TestRenderFeatureFieldTable:
             if lines[i].strip() == "":
                 break
             assert lines[i].startswith("|"), f"Table broken at line {i}: {lines[i]}"
+
+
+class TestRenderFeatureExtensionFields:
+    """Extension-contributed fields are visibly tagged in rendered markdown."""
+
+    def test_extension_field_gets_badge(self) -> None:
+        class Target(BaseModel):
+            """A target model."""
+
+            name: str
+
+        @extends(Target)
+        class Ext(BaseModel):
+            note: str
+
+        wrapper = wrap_extension("ext", Ext)
+        assert wrapper is not None
+        extended = create_extended_model(Target, {"ext": wrapper})
+
+        spec = extract_model(extended)
+        result = render_model(spec)
+
+        assert "`ext` *(extension)*" in result
+        # The native field is untagged.
+        assert "`name` *(extension)*" not in result
+        assert "| `name` |" in result
+
+    def test_scalar_extension_does_not_render_extends_as_a_constraint(self) -> None:
+        """Regression test: a scalar extension's `Extends` metadata must not appear as a
+        rendered constraint (it previously leaked its docstring into the Constraints column).
+        """
+
+        class Place(BaseModel):
+            """A place."""
+
+            name: str
+
+        Capacity = NewType("Capacity", Annotated[int, Field(ge=0), Extends(Place)])
+        wrapper = wrap_extension("capacity", Capacity)
+        assert wrapper is not None
+        extended = create_extended_model(Place, {"capacity": wrapper})
+
+        spec = extract_model(extended)
+        result = render_model(spec)
+
+        assert "`capacity` *(extension)*" in result
+        assert "Extends" not in result
+        assert "non-model extension targets" not in result
 
 
 class TestRenderFeatureWithThemeType:

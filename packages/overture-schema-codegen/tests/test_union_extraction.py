@@ -1,7 +1,7 @@
 """Tests for union extraction."""
 
 import re
-from typing import Any
+from typing import Annotated, Any
 
 import pytest
 from annotated_types import MinLen
@@ -26,6 +26,7 @@ from overture.schema.codegen.extraction.length_constraints import ArrayMinLen
 from overture.schema.codegen.extraction.specs import FieldSpec, UnionSpec
 from overture.schema.codegen.extraction.union_extraction import (
     _constraints_fingerprint,
+    extract_discriminator,
     extract_union,
 )
 from overture.schema.common.scoping.vehicle import VehicleSelector
@@ -38,8 +39,19 @@ from overture.schema.system.field_constraint.string import (
     JsonPointerConstraint,
     PatternConstraint,
 )
-from pydantic import Field, GetCoreSchemaHandler
+from pydantic import Discriminator, Field, GetCoreSchemaHandler
 from pydantic_core import core_schema
+
+
+def test_extract_discriminator_resolves_discriminator_object() -> None:
+    """Field name resolution handles the `pydantic.Discriminator` object form."""
+    ann = Annotated[
+        RoadSegment | RailSegment,
+        Field(discriminator=Discriminator("subtype")),
+    ]
+    field_name, mapping = extract_discriminator(ann, [RoadSegment, RailSegment])
+    assert field_name == "subtype"
+    assert mapping == {"road": RoadSegment, "rail": RailSegment}
 
 
 class TestExtractUnion:

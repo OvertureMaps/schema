@@ -19,6 +19,11 @@ from overture.schema.codegen.extraction.field_walk import (
     terminal_of,
 )
 from overture.schema.codegen.extraction.model_extraction import extract_model
+from overture.schema.system.extension import (
+    create_extended_model,
+    extends,
+    wrap_extension,
+)
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.geometric import (
     Geometry,
@@ -549,3 +554,32 @@ class TestFieldDescriptionFallback:
         spec = extract_model(TestModel)
         field = find_field(spec, "name")
         assert field.description is None
+
+
+class TestExtensionFields:
+    """`FieldSpec.is_extension` propagation for extension-contributed fields."""
+
+    def test_extension_field_is_flagged(self) -> None:
+        class Target(BaseModel):
+            name: str
+
+        @extends(Target)
+        class Ext(BaseModel):
+            note: str
+
+        wrapper = wrap_extension("ext", Ext)
+        assert wrapper is not None
+        extended = create_extended_model(Target, {"ext": wrapper})
+
+        spec = extract_model(extended)
+
+        assert find_field(spec, "name").is_extension is False
+        assert find_field(spec, "ext").is_extension is True
+
+    def test_model_without_extensions_has_no_flagged_fields(self) -> None:
+        class Plain(BaseModel):
+            name: str
+
+        spec = extract_model(Plain)
+
+        assert all(not field.is_extension for field in spec.fields)

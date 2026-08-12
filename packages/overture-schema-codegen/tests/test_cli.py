@@ -56,8 +56,8 @@ class TestCliGenerate:
         )
 
         assert result.exit_code == 0
-        assert "Building" in result.output
-        assert "Place" not in result.output
+        assert "# Building" in result.output
+        assert "# Place" not in result.output
 
     def test_generate_accepts_filter_flag(self, cli_runner: CliRunner) -> None:
         """generate accepts --filter without error.
