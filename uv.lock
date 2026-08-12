@@ -9,7 +9,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer = "2026-08-03T19:20:07.546671Z"
 exclude-newer-span = "P1W"
 
 [manifest]
@@ -18,6 +18,8 @@ members = [
     "overture-schema-cli",
     "overture-schema-codegen",
     "overture-schema-common",
+    "overture-schema-extensions-capacity",
+    "overture-schema-extensions-operating-hours",
     "overture-schema-pyspark",
     "overture-schema-system",
     "overture-schema-theme-addresses",
@@ -362,7 +364,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -1048,6 +1050,40 @@ dev = [
     { name = "jsonpath-ng", specifier = ">=1.7.0" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250516" },
     { name = "types-shapely", specifier = ">=2.1.0.20250710" },
+]
+
+[[package]]
+name = "overture-schema-extensions-capacity"
+source = { editable = "packages/overture-schema-extensions-capacity" }
+dependencies = [
+    { name = "overture-schema-system" },
+    { name = "overture-schema-theme-buildings" },
+    { name = "overture-schema-theme-places" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-system", editable = "packages/overture-schema-system" },
+    { name = "overture-schema-theme-buildings", editable = "packages/overture-schema-theme-buildings" },
+    { name = "overture-schema-theme-places", editable = "packages/overture-schema-theme-places" },
+    { name = "pydantic", specifier = ">=2.12.0" },
+]
+
+[[package]]
+name = "overture-schema-extensions-operating-hours"
+source = { editable = "packages/overture-schema-extensions-operating-hours" }
+dependencies = [
+    { name = "overture-schema-system" },
+    { name = "overture-schema-theme-places" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "overture-schema-system", editable = "packages/overture-schema-system" },
+    { name = "overture-schema-theme-places", editable = "packages/overture-schema-theme-places" },
+    { name = "pydantic", specifier = ">=2.12.0" },
 ]
 
 [[package]]

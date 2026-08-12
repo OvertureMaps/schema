@@ -67,11 +67,13 @@ mypy: uv-sync mypy-only
 mypy-only:
 	@# $$ escapes $ for make - sed replaces the -theme- infix (packages were
 	@# renamed overture-schema-<t>-theme -> overture-schema-theme-<t>) so the
-	@# derived mypy module stays overture.schema.<t>
+	@# derived mypy module stays overture.schema.<t>. Module leaves that are
+	@# snake_case (e.g. the operating_hours extension) keep their underscore.
 	@find packages -maxdepth 1 -type d -name "overture-schema*" \
 		| sort \
 		| sed 's|-theme-|-|' \
 		| tr - . \
+		| sed 's|\.operating\.hours$$|.operating_hours|' \
 		| sed 's|^packages/|-p |' \
 		| xargs uv run mypy --no-error-summary
 	@for d in packages/*/tests; do find "$$d" -name "*.py" | sort | xargs uv run mypy --no-error-summary || exit 1; done
