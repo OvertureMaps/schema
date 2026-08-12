@@ -87,6 +87,10 @@ PATTERN_VALUES: dict[str, ConstraintValues] = {
     normalize_anchor(r"^[A-Za-z0-9._+\-]+$"): ConstraintValues(
         valid="ODbL-1.0", invalid="bad license!"
     ),
+    # operating-hours extension HH:MM times: `^([01]\d|2[0-3]):[0-5]\d$`.
+    normalize_anchor(r"^([01]\d|2[0-3]):[0-5]\d$"): ConstraintValues(
+        valid="09:30", invalid="25:99"
+    ),
 }
 
 
