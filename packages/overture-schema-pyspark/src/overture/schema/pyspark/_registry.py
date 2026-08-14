@@ -1,15 +1,17 @@
 """Runtime registry of feature validations.
 
-Built at import time from the `overture.pyspark_validations` entry points,
-one per generated validation module, declared by this package. Reading them
-through `importlib.metadata` resolves the same whether the package is
-installed to a real directory or loaded straight from a wheel on `sys.path`
-(as on Glue, via `--extra-py-files`), so discovery does not depend on the
-generated tree being reachable as filesystem paths.
+Built at import time from this package's `overture.pyspark_validations`
+entry points, one per generated validation module. Reading them through
+`importlib.metadata` resolves the same whether the package is installed to a
+real directory or loaded straight from a wheel on `sys.path` (as on Glue, via
+`--extra-py-files`), so discovery does not depend on the generated tree being
+reachable as filesystem paths.
 
-An entry point whose module is absent -- a build without the generated tree,
-or a stale declaration -- is skipped, so a package missing its generated
-modules still imports cleanly with an empty registry.
+An entry point whose module is simply absent -- a build without the generated
+tree, or a stale declaration -- is skipped, so a package missing its generated
+modules still imports cleanly with an empty registry. A module that is present
+but fails to import (a missing dependency, a codegen bug) raises, rather than
+silently dropping that validation.
 """
 
 from __future__ import annotations
@@ -23,6 +25,26 @@ from .check import ModelValidation
 logger = logging.getLogger(__name__)
 
 _ENTRY_POINT_GROUP = "overture.pyspark_validations"
+_DIST_NAME = "overture-schema-pyspark"
+
+
+def _canonical(name: str) -> str:
+    """Normalize a distribution name for comparison (PEP 503)."""
+    return name.replace("_", "-").lower()
+
+
+def _own_entry_points() -> list[importlib.metadata.EntryPoint]:
+    """This distribution's validation entry points.
+
+    `importlib.metadata.entry_points(group=...)` returns matching entry points
+    from every installed distribution. Filtering to this one keeps a foreign
+    package that happens to declare the same group from injecting validations.
+    """
+    return [
+        ep
+        for ep in importlib.metadata.entry_points(group=_ENTRY_POINT_GROUP)
+        if _canonical(getattr(ep.dist, "name", "") or "") == _DIST_NAME
+    ]
 
 
 def _walk() -> tuple[dict[str, ModelValidation], dict[str, dict[str, str]]]:
@@ -42,11 +64,18 @@ def _walk() -> tuple[dict[str, ModelValidation], dict[str, dict[str, str]]]:
     registry: dict[str, ModelValidation] = {}
     partition_map: dict[str, dict[str, str]] = {}
 
-    for ep in importlib.metadata.entry_points(group=_ENTRY_POINT_GROUP):
+    for ep in _own_entry_points():
         try:
             module = importlib.import_module(ep.module)
-        except ModuleNotFoundError:
-            continue
+        except ModuleNotFoundError as e:
+            missing = e.name or ""
+            # Skip only when the generated module itself (or an ancestor
+            # namespace of it) is absent -- a build without the generated tree.
+            # A dependency missing *inside* a module that is present is a real
+            # failure; re-raise it instead of silently dropping the validation.
+            if missing == ep.module or ep.module.startswith(f"{missing}."):
+                continue
+            raise
         entry_point = getattr(module, "ENTRY_POINT", None)
         validation = getattr(module, "MODEL_VALIDATION", None)
         if entry_point is None or validation is None:

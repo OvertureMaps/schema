@@ -11,15 +11,13 @@ rather than silently dropping a feature type at runtime.
 from __future__ import annotations
 
 import importlib
-import importlib.metadata
 from pathlib import Path
 
 import pytest
 
-from overture.schema.pyspark._registry import REGISTRY
+from overture.schema.pyspark._registry import REGISTRY, _own_entry_points
 
 _GENERATED_ROOT = "overture.schema.pyspark.expressions.generated"
-_ENTRY_POINT_GROUP = "overture.pyspark_validations"
 
 
 def _generated_module_names() -> set[str]:
@@ -43,9 +41,13 @@ def _generated_module_names() -> set[str]:
 
 
 def _declared_entry_point_modules() -> set[str]:
-    """Modules targeted by the declared `overture.pyspark_validations` entry points."""
-    eps = importlib.metadata.entry_points(group=_ENTRY_POINT_GROUP)
-    return {ep.module for ep in eps}
+    """Modules targeted by this distribution's declared entry points.
+
+    Uses the registry's own filtered lookup so the test checks exactly the
+    table the registry reads, without picking up a same-named group from
+    another distribution in the environment.
+    """
+    return {ep.module for ep in _own_entry_points()}
 
 
 def test_registry_discovers_generated_models() -> None:
