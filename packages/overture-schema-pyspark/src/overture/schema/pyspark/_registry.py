@@ -34,7 +34,7 @@ def _canonical(name: str) -> str:
 
 
 def _own_entry_points() -> list[importlib.metadata.EntryPoint]:
-    """This distribution's validation entry points.
+    """Return this distribution's own validation entry points.
 
     `importlib.metadata.entry_points(group=...)` returns matching entry points
     from every installed distribution. Filtering to this one keeps a foreign
