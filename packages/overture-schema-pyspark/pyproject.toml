@@ -20,6 +20,36 @@ spark = ["pyspark>=3.4"]
 [project.scripts]
 overture-validate = "overture.schema.pyspark.cli:validate_cli"
 
+# One entry point per generated validation, keyed by feature type, pointing at
+# the module's MODEL_VALIDATION. The registry reads these through
+# importlib.metadata, which resolves the same whether the package is installed
+# to a directory or loaded as a wheel on sys.path -- so discovery no longer
+# depends on the generated tree being reachable as filesystem paths.
+#
+# This list is maintained by hand, the same way theme packages declare their
+# `overture.models` entry points, and changes only when a feature type is
+# added or removed. `tests/test_registry.py` fails if it drifts from the tree
+# `make generate-pyspark` produces. Values point into that generated tree,
+# which is built rather than committed; before it exists an entry point cannot
+# load, and the registry skips it (an absent tree yields an empty registry, as
+# documented).
+[project.entry-points."overture.pyspark_validations"]
+address = "overture.schema.pyspark.expressions.generated.overture.schema.addresses.address:MODEL_VALIDATION"
+bathymetry = "overture.schema.pyspark.expressions.generated.overture.schema.base.bathymetry:MODEL_VALIDATION"
+infrastructure = "overture.schema.pyspark.expressions.generated.overture.schema.base.infrastructure:MODEL_VALIDATION"
+land = "overture.schema.pyspark.expressions.generated.overture.schema.base.land:MODEL_VALIDATION"
+land_cover = "overture.schema.pyspark.expressions.generated.overture.schema.base.land_cover:MODEL_VALIDATION"
+land_use = "overture.schema.pyspark.expressions.generated.overture.schema.base.land_use:MODEL_VALIDATION"
+water = "overture.schema.pyspark.expressions.generated.overture.schema.base.water:MODEL_VALIDATION"
+building = "overture.schema.pyspark.expressions.generated.overture.schema.buildings.building:MODEL_VALIDATION"
+building_part = "overture.schema.pyspark.expressions.generated.overture.schema.buildings.building_part:MODEL_VALIDATION"
+division = "overture.schema.pyspark.expressions.generated.overture.schema.divisions.division:MODEL_VALIDATION"
+division_area = "overture.schema.pyspark.expressions.generated.overture.schema.divisions.division_area:MODEL_VALIDATION"
+division_boundary = "overture.schema.pyspark.expressions.generated.overture.schema.divisions.division_boundary:MODEL_VALIDATION"
+place = "overture.schema.pyspark.expressions.generated.overture.schema.places.place:MODEL_VALIDATION"
+connector = "overture.schema.pyspark.expressions.generated.overture.schema.transportation.connector:MODEL_VALIDATION"
+segment = "overture.schema.pyspark.expressions.generated.overture.schema.transportation.segment:MODEL_VALIDATION"
+
 [tool.uv.build-backend]
 module-name = "overture.schema.pyspark"
 
