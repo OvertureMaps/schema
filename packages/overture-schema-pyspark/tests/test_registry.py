@@ -2,9 +2,9 @@
 
 The generated expression tree is PEP 420 (no `__init__.py`), so the
 registry must walk it as a namespace package. No other test exercises the
-real on-disk walk -- conformance tests import expression modules directly
-and `test_validate.py` registers models through a test shim -- so an empty
-registry would otherwise pass the suite unnoticed.
+real on-disk walk, since conformance tests import expression modules
+directly and `test_validate.py` registers models through a test shim, so an
+empty registry would otherwise pass the suite unnoticed.
 
 The zip branch of the walk (a namespace portion inside a wheel on
 `sys.path`, as on Glue) has no such incidental coverage either, so it is
@@ -29,8 +29,8 @@ from overture.schema.pyspark._registry import (
 def _generated_leaf_count() -> int:
     """Count generated model modules on disk (excludes namespace dirs).
 
-    Returns 0 when the generated tree is absent -- mirroring the registry's
-    own `ImportError` handling -- so the test skips rather than errors.
+    Returns 0 when the generated tree is absent, matching the registry's own
+    `ImportError` handling, so the test skips cleanly.
     """
     try:
         root = importlib.import_module(_GENERATED_ROOT)
@@ -59,10 +59,10 @@ def test_iter_generated_module_names_reads_zip(tmp_path: Path) -> None:
     """The zip branch lists generated modules inside a wheel on `sys.path`.
 
     Mirrors how Glue loads the package via `--extra-py-files`: the namespace
-    portion is `<wheel>/overture/schema/pyspark/expressions/generated`, whose
-    leading segment is a real zip file rather than a directory. Namespace
-    `__init__.py` markers and members outside the generated prefix are
-    excluded, and the two feature modules come back as dotted names.
+    portion is `<wheel>/overture/schema/pyspark/expressions/generated`, and
+    its leading `<wheel>` segment is a real zip file. Namespace `__init__.py`
+    markers and members outside the generated prefix are excluded, and the
+    two feature modules come back as dotted names.
     """
     prefix = "overture/schema/pyspark/expressions/generated"
     wheel = tmp_path / "overture_schema_pyspark-0.0.0-py3-none-any.whl"

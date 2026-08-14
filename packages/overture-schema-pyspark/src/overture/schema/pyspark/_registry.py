@@ -7,7 +7,7 @@ codegen-emitted `ENTRY_POINT` and `MODEL_VALIDATION` constants.
 The generated tree on disk is the runtime source of truth: the
 registry contains exactly what was generated, regardless of which
 theme packages are installed alongside the pyspark package. A missing
-`expressions/generated/` subtree simply yields an empty registry --
+`expressions/generated/` subtree simply yields an empty registry, and
 the package still imports cleanly.
 """
 
@@ -28,15 +28,15 @@ _GENERATED_ROOT = "overture.schema.pyspark.expressions.generated"
 def _zip_boundary(root_path: str) -> tuple[str, str] | None:
     """Split a namespace portion into `(zip file path, internal prefix)`.
 
-    Returns `None` if `root_path` isn't a real directory and isn't inside a
-    zip either (e.g. an empty/nonexistent portion). A namespace portion
-    loaded straight from a wheel on `sys.path` -- as happens on Glue, via
-    `--extra-py-files` -- looks like `.../some_pkg-1.0-py3-none-any.whl/a/b/c`:
-    not a directory on disk, but the leading `.../some_pkg....whl` segment is
-    a real zip file. `importlib.resources`'s `Traversable` API is meant to
-    cover exactly this, but its `MultiplexedPath` (at least through Python
-    3.10) raises `NotADirectoryError` the moment any namespace portion isn't
-    a real directory, so it can't be used here either.
+    Returns `None` when `root_path` is neither a real directory nor inside a
+    zip, such as an empty or nonexistent portion. When Glue loads the package
+    from a wheel via `--extra-py-files`, a namespace portion looks like
+    `.../some_pkg-1.0-py3-none-any.whl/a/b/c`, where the leading
+    `.../some_pkg....whl` segment is a real zip file even though the whole
+    path is not a directory on disk. `importlib.resources`'s `Traversable`
+    API is meant to cover this, but its `MultiplexedPath` (at least through
+    Python 3.10) raises `NotADirectoryError` the moment any namespace portion
+    is not a real directory, so it does not work here.
     """
     path = Path(root_path)
     for parent in (path, *path.parents):
@@ -49,10 +49,11 @@ def _iter_generated_module_names(root_paths: list[str]) -> list[str]:
     """Return the dotted names of every generated module under `root_paths`.
 
     The generated tree is PEP 420 (no `__init__.py`), so its subdirectories
-    are namespace packages; `pkgutil.walk_packages` skips those, so each
-    namespace portion is walked directly instead: as a real directory via
-    `pathlib`, or as a zip member list via `zipfile` when the portion is
-    inside a wheel on `sys.path` rather than extracted to disk.
+    are namespace packages, which `pkgutil.walk_packages` skips. Each
+    namespace portion is therefore walked directly. A portion that is a real
+    directory is walked with `pathlib`; one that sits inside a wheel on
+    `sys.path`, as under Glue's `--extra-py-files`, is read from the archive
+    with `zipfile`.
     """
     names: list[str] = []
     for root_path in root_paths:
