@@ -3,19 +3,22 @@
 """
 Detect packages affected by a no-bump push to main.
 
-Composes `package_versions.py diff`'s version-diff JSON (read from stdin) with
-a JSON array of changed package directories (env var `CHANGED_DIRS`, from
-tj-actions/changed-files' `dir_names` output) to find packages whose directory
-changed without also changing their pyproject.toml version. Those need an
-internal `.postN` build (see docs/versioning.md). Packages with a version bump
-in the same range are excluded because they release via `release-trigger`
-instead, and removed packages are excluded because there is nothing left to
-build.
+Composes `package_versions.py diff`'s version-diff JSON with a JSON array of
+changed package directories (tj-actions/changed-files' `dir_names` output) to
+find packages whose directory changed without also changing their
+pyproject.toml version. Those need an internal `.postN` build (see
+docs/versioning.md). Packages with a version bump in the same range are
+excluded because they release via `release-trigger` instead, and removed
+packages are excluded because there is nothing left to build.
 
-Run from the repository root, piping `package_versions.py diff`'s output in:
+Reads a single JSON object from stdin: {"version_diff": [...], "changed_dirs":
+[...]}. Run from the repository root:
 
-    python3 package_versions.py diff BEFORE AFTER \\
-      | CHANGED_DIRS='["packages/overture-schema-common"]' python3 detect_affected_packages.py
+    jq -n \\
+        --argjson version_diff "$(python3 package_versions.py diff BEFORE AFTER)" \\
+        --argjson changed_dirs '["packages/overture-schema-common"]' \\
+        '{version_diff: $version_diff, changed_dirs: $changed_dirs}' \\
+      | python3 detect_affected_packages.py
 
 Prints `$GITHUB_OUTPUT` lines on stdout (progress goes to stderr):
 
@@ -25,20 +28,33 @@ Prints `$GITHUB_OUTPUT` lines on stdout (progress goes to stderr):
 
 Exit status:
     0  Success (including the no-affected case).
+    1  Malformed input: a changed_dirs entry isn't packages/<pkg>.
 """
 
 import json
-import os
 import sys
 
 
+def _package_name(path: str) -> str:
+    """Extract <pkg> from a packages/<pkg> changed-directory entry."""
+    parts = path.split("/", 1)
+    if len(parts) < 2:
+        raise ValueError(
+            f"Expected a 'packages/<pkg>' changed-directory entry, got {path!r}. "
+            "Check dir_names_max_depth on the changed-files step."
+        )
+    return parts[1]
+
+
 def main() -> None:
-    version_diff = json.load(sys.stdin)
+    payload = json.load(sys.stdin)
+    version_diff = payload["version_diff"]
+    changed_paths = payload["changed_dirs"]
+
     bumped = {change["package"] for change in version_diff if change["after"] is not None}
     removed = {change["package"] for change in version_diff if change["after"] is None}
 
-    changed_paths = json.loads(os.environ.get("CHANGED_DIRS") or "[]")
-    changed = {path.split("/", 1)[1] for path in changed_paths}
+    changed = {_package_name(path) for path in changed_paths}
     affected = sorted(changed - bumped - removed)
 
     for package in sorted(changed):

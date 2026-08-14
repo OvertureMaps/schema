@@ -61,4 +61,7 @@ runs:
         CHANGED_DIRS: ${{ steps.changed-dirs.outputs.all_modified_files }}
         DIFF: ${{ steps.diff.outputs.diff }}
       run: |
-        echo "$DIFF" | python3 "${GITHUB_ACTION_PATH}/detect_affected_packages.py" >> "$GITHUB_OUTPUT"
+        set -euo pipefail
+        jq -n --argjson version_diff "$DIFF" --argjson changed_dirs "$CHANGED_DIRS" \
+          '{version_diff: $version_diff, changed_dirs: $changed_dirs}' \
+          | python3 "${GITHUB_ACTION_PATH}/detect_affected_packages.py" >> "$GITHUB_OUTPUT"

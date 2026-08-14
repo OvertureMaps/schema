@@ -45,7 +45,7 @@ jobs:
       count: ${{ steps.discover.outputs.count || steps.detect.outputs.count }}
       packages: ${{ steps.discover.outputs.packages || steps.detect.outputs.packages }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -89,18 +89,22 @@ jobs:
           version: latest
 
       - name: Check out code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Sync code to make packages visible to Python
         run: uv sync --locked --all-packages
 
+      # PR smoke test only queries CodeArtifact (via compute-version, below)
+      # and never publishes -- the publish step is skipped for pull_request.
+      # Assume the read-only role there so a wiring mistake can't turn the
+      # smoke test into a real publish.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           aws-region: us-west-2
-          role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
+          role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_${{ github.event_name == 'pull_request' && 'ReadOnly' || 'Publish' }}
           role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
 
       - name: Get CodeArtifact credentials
@@ -133,7 +137,7 @@ jobs:
           fi
 
       - name: Stamp computed version
-        # Rewrites only the in-memory checkout's pyproject.toml, never
+        # Rewrites pyproject.toml only in this job's temporary checkout, never
         # committed: the released <major>.<minor>.<patch> stays human-owned,
         # this just labels the artifact this job builds and publishes.
         env:

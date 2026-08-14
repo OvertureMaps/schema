@@ -45,12 +45,14 @@ jobs:
       package: ${{ steps.parse.outputs.package }}
       version: ${{ steps.parse.outputs.version }}
     steps:
-      # workflow_dispatch has no release tag to parse; read the package's
-      # current on-disk version instead, so checkout/uv only run on that path.
+      # Checked out unconditionally (both arms) so the package-existence check
+      # below applies to a bad release tag too, not just a bad workflow_dispatch
+      # input. Same ref selection the publish job below uses, so both jobs
+      # build from the same commit for a given event.
       - name: Check out repo
-        if: github.event_name == 'workflow_dispatch'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.release.tag_name }}
           persist-credentials: false
 
       - name: Install uv
@@ -68,12 +70,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            if [[ ! -d "packages/${INPUT_PACKAGE}" ]]; then
-              echo "::error::No such package: packages/${INPUT_PACKAGE}"
-              exit 1
-            fi
             package="$INPUT_PACKAGE"
-            version=$(cd "packages/${package}" && uv version --short)
           elif [[ "$TAG" =~ ^(.+)-v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
             package="${BASH_REMATCH[1]}"
             version="${BASH_REMATCH[2]}"
@@ -81,6 +78,16 @@ jobs:
             echo "::error::Release tag '${TAG}' is not <package>-v<major>.<minor>.<patch>; nothing to publish."
             exit 1
           fi
+
+          if [[ ! -d "packages/${package}" ]]; then
+            echo "::error::No such package: packages/${package}"
+            exit 1
+          fi
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            version=$(cd "packages/${package}" && uv version --short)
+          fi
+
           echo "package=${package}" >> "$GITHUB_OUTPUT"
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
@@ -105,7 +112,7 @@ jobs:
           enable-cache: false # Publish job builds and ships immediately; no cache to poison downstream runs
 
       - name: Check out released commit
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # target_commitish can be a branch name, which may have moved past
           # the release; the tag itself pins the exact released commit.
