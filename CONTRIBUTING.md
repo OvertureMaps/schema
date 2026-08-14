@@ -2,10 +2,6 @@
 
 Thank you for your interest in contributing.
 
-> **The branching and versioning strategy is rolling out in phases.** See the
-> [DevOps tracking issue #490](https://github.com/OvertureMaps/schema/issues/490)
-> for current status and what is planned next.
-
 ## Where to send your change
 
 This repository uses a two-branch model. Target the branch that matches your
@@ -49,8 +45,9 @@ gitGraph
 <summary><strong><code>main</code> &rarr; patch or minor release (version bump)</strong></summary>
 
 A bug fix or minor feature that bumps the version in the PR and builds the
-changelog. On merge, `release-trigger` cuts a published GitHub Release and the
-new version lands on PyPI, immediately available to consumers.
+changelog. On merge, `release-trigger` cuts a published GitHub Release, which
+starts the PyPI publish via Trusted Publishing; the version-bump PR review is
+the approval, so nothing further gates it before reaching consumers.
 
 ```mermaid
 gitGraph
@@ -71,7 +68,7 @@ gitGraph
 
 Breaking changes stack on `vnext` until the milestone is ready. Then `vnext`
 merges into `main` as a regular merge (not a squash), which cuts a published
-GitHub Release and puts the new major on PyPI for consumers.
+GitHub Release and starts the same PyPI publish as any other release.
 
 ```mermaid
 gitGraph

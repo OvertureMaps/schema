@@ -1,0 +1,174 @@
+name: Main publish
+
+# Runs on every push to main that touches packages/**. For each package whose
+# directory changed WITHOUT a version bump, computes an internal build version
+# (main context; see .github/actions/compute-version) and publishes it to
+# CodeArtifact. Bumped packages release via release-trigger + release-publish
+# instead (see docs/versioning.md) -- publishing a .postN for them here too
+# would be redundant.
+#
+# Also runs (read-only) on PRs that touch the compute-version/code-artifact/
+# detect-affected-packages composite actions or this workflow itself, as a
+# smoke test for their wiring: the version is computed but nothing is
+# published.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - packages/**
+  pull_request:
+    paths:
+      - '.github/actions/compute-version/**'
+      - '.github/actions/code-artifact/**'
+      - '.github/actions/detect-affected-packages/**'
+      - '.github/workflows/main-publish.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # A real push must never be cancelled by a later one: every no-bump push
+  # needs its own .postN build recorded in CodeArtifact. Only the PR smoke
+  # test is safe to supersede.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  detect:
+    name: Detect affected packages${{ github.event_name == 'pull_request' && ' (test)' || '' }}
+    if: github.event.repository.full_name == github.repository
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read # Read pyproject.toml/file history to detect affected packages
+    outputs:
+      count: ${{ steps.discover.outputs.count || steps.detect.outputs.count }}
+      packages: ${{ steps.discover.outputs.packages || steps.detect.outputs.packages }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # A PR touching the composite actions rarely also touches packages/**,
+      # so the real affected-package diff below would come back empty and
+      # skip the smoke test entirely. Test every package's wiring instead.
+      - name: Discover all packages (test)
+        id: discover
+        if: github.event_name == 'pull_request'
+        run: |
+          packages=$(for pkg_dir in packages/overture-schema*/; do
+            [ -f "${pkg_dir}/pyproject.toml" ] && basename "$pkg_dir"
+          done | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "count=$(echo "$packages" | jq 'length')" >> "$GITHUB_OUTPUT"
+          echo "packages=${packages}" >> "$GITHUB_OUTPUT"
+
+      - name: Detect affected packages
+        id: detect
+        if: github.event_name != 'pull_request'
+        uses: ./.github/actions/detect-affected-packages
+        with:
+          before: ${{ github.event.before }}
+
+  publish:
+    name: Publish ${{ matrix.package }}${{ github.event_name == 'pull_request' && ' (test)' || '' }}
+    needs: detect
+    if: needs.detect.outputs.count != '0'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC authentication to AWS
+    strategy:
+      fail-fast: false # One package's failure must not block sibling publishes
+      matrix:
+        package: ${{ fromJSON(needs.detect.outputs.packages) }}
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: latest
+
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Sync code to make packages visible to Python
+        run: uv sync --locked --all-packages
+
+      # PR smoke test only queries CodeArtifact (via compute-version, below)
+      # and never publishes -- the publish step is skipped for pull_request.
+      # Assume the read-only role there so a wiring mistake can't turn the
+      # smoke test into a real publish.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-region: us-west-2
+          role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_${{ github.event_name == 'pull_request' && 'ReadOnly' || 'Publish' }}
+          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
+
+      - name: Get CodeArtifact credentials
+        id: ca
+        uses: ./.github/actions/code-artifact
+
+      # Delegates to the same composite action the PR smoke test exercises, so
+      # the version formula only has one implementation to keep correct.
+      - name: Compute version
+        id: compute
+        uses: ./.github/actions/compute-version
+        with:
+          package: ${{ matrix.package }}
+          context: main
+          index_url: ${{ steps.ca.outputs.index_url }}
+
+      # overture-schema-pyspark ships generated validation expressions that
+      # are not committed to git; its packages/<pkg>/scripts/prebuild.sh
+      # regenerates them before packaging. Every other package has no
+      # prebuild.sh, so this step is a no-op for them.
+      - name: Run package's prebuild script, if any
+        env:
+          PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
+        run: |
+          set -euo pipefail
+          script="packages/${PACKAGE}/scripts/prebuild.sh"
+          if [ -f "$script" ]; then
+            echo "Running ${script}"
+            bash "$script"
+          fi
+
+      - name: Stamp computed version
+        # Rewrites pyproject.toml only in this job's temporary checkout, never
+        # committed: the released <major>.<minor>.<patch> stays human-owned,
+        # this just labels the artifact this job builds and publishes.
+        env:
+          PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
+          VERSION: ${{ steps.compute.outputs.version }} # zizmor: ignore[template-injection]
+        run: uv version "${VERSION}" --package "${PACKAGE}" --frozen
+
+      - name: Build ${{ matrix.package }} ${{ steps.compute.outputs.version }}
+        env:
+          PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
+        run: uv build --package "${PACKAGE}"
+
+      - name: Publish ${{ matrix.package }} ${{ steps.compute.outputs.version }} to CodeArtifact
+        if: github.event_name != 'pull_request'
+        env:
+          CA_TOKEN: ${{ steps.ca.outputs.token }}
+          CA_PUBLISH_URL: ${{ steps.ca.outputs.publish_url }}
+          PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
+          VERSION: ${{ steps.compute.outputs.version }} # zizmor: ignore[template-injection]
+        run: |
+          set -euo pipefail
+          wheel="dist/${PACKAGE//-/_}-${VERSION}-py3-none-any.whl"
+          if [ ! -f "$wheel" ]; then
+            echo "    Wheel file [$wheel] not found. Aborting!"
+            exit 1
+          fi
+          tarball="dist/${PACKAGE//-/_}-${VERSION}.tar.gz"
+          if [ ! -f "$tarball" ]; then
+            echo "    Source tarball file [$tarball] not found. Aborting!"
+            exit 1
+          fi
+          uv publish "$wheel" "$tarball" \
+             -t "${CA_TOKEN}" \
+            --publish-url "${CA_PUBLISH_URL}"

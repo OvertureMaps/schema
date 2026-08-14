@@ -1,0 +1,46 @@
+name: Diff package versions
+description: >
+  Diffs packages/*/pyproject.toml versions between two commits (see
+  package_versions.py), reading blobs directly from git. Enforces the
+  major-bump cascade: a package whose direct workspace dependency takes a
+  major bump must take one itself; the action fails otherwise.
+
+  Prerequisites: repo must be checked out with `fetch-depth: 0` so `before`
+  is reachable.
+
+inputs:
+  before:
+    description: The base commit SHA to compare against (e.g. github.event.before).
+    required: true
+  after:
+    description: The head commit SHA to compare to. Defaults to the checked-out HEAD.
+    required: false
+    default: HEAD
+
+outputs:
+  count:
+    description: Number of packages with a version change (added, removed, or bumped).
+    value: ${{ steps.diff.outputs.count }}
+  diff:
+    description: >
+      JSON array of {"package", "before", "after"} objects, topologically
+      sorted (dependencies before dependents). `before`/`after` are null when
+      the package didn't exist at that commit.
+    value: ${{ steps.diff.outputs.diff }}
+
+runs:
+  using: composite
+  steps:
+    - name: Diff package versions
+      id: diff
+      shell: bash
+      env:
+        BEFORE: ${{ inputs.before }}
+        AFTER: ${{ inputs.after }}
+      run: |
+        python3 "${GITHUB_ACTION_PATH}/package_versions.py" diff "$BEFORE" "$AFTER" \
+          > "${RUNNER_TEMP}/package-version-diff.json"
+        {
+          echo "count=$(jq 'length' "${RUNNER_TEMP}/package-version-diff.json")"
+          echo "diff=$(jq -c . "${RUNNER_TEMP}/package-version-diff.json")"
+        } >> "$GITHUB_OUTPUT"
