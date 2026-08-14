@@ -74,10 +74,10 @@ def _iter_generated_module_names(root_paths: list[str]) -> list[str]:
             for entry in archive.namelist():
                 if not entry.startswith(prefix) or not entry.endswith(".py"):
                     continue
-                relative = PurePosixPath(entry[len(prefix) :])
-                if relative.name == "__init__.py":
+                member = PurePosixPath(entry[len(prefix) :])
+                if member.name == "__init__.py":
                     continue
-                dotted = relative.with_suffix("").as_posix().replace("/", ".")
+                dotted = member.with_suffix("").as_posix().replace("/", ".")
                 names.append(".".join([_GENERATED_ROOT, dotted]))
     return sorted(names)
 
