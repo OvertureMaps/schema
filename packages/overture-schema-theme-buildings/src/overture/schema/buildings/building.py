@@ -112,6 +112,7 @@ class BuildingClass(str, Enum):
     SEMIDETACHED_HOUSE = "semidetached_house"
     SERVICE = "service"
     SHED = "shed"
+    SHELTER = "shelter"
     SHRINE = "shrine"
     SILO = "silo"
     SLURRY_TANK = "slurry_tank"
