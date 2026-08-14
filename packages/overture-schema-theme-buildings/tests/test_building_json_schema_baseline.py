@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+
 from overture.schema.buildings.building import Building
 from overture.schema.system.testing import assert_json_schema_golden
 

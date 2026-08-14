@@ -1,0 +1,37 @@
+[build-system]
+requires = ["uv_build>=0.11.32,<0.13"]
+build-backend = "uv_build"
+
+[project]
+maintainers = [
+    {name = "Overture Maps Schema Working Group"},
+]
+name = "overture-schema-validation"
+version = "0.1.1"
+description = "Validation helpers for the union of all discovered Overture models"
+requires-python = ">=3.10"
+license = "MIT"
+readme = "README.md"
+dependencies = [
+    "overture-schema-common",
+    "overture-schema-system",
+    "pydantic>=2.12.0",
+]
+
+[project.urls]
+Homepage = "https://overturemaps.org"
+Source = "https://github.com/OvertureMaps/schema"
+Issues = "https://github.com/OvertureMaps/schema/issues"
+
+[tool.uv.sources]
+overture-schema-common = { workspace = true }
+overture-schema-system = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pyyaml>=6.0.2",
+    "yamlcore>=0.0.4",
+]
+
+[tool.uv.build-backend]
+module-name = "overture.schema.validation"

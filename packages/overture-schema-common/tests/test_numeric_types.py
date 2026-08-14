@@ -3,6 +3,8 @@
 from typing import Annotated
 
 import pytest
+from pydantic import BaseModel, Field, ValidationError
+
 from overture.schema.system.numeric import (
     float32,
     float64,
@@ -10,7 +12,6 @@ from overture.schema.system.numeric import (
     uint8,
     uint16,
 )
-from pydantic import BaseModel, Field, ValidationError
 
 
 class TestValidation:

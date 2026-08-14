@@ -10,6 +10,8 @@ from codegen_test_support import (
     discover_feature,
     spec_for_model,
 )
+from pydantic import TypeAdapter
+
 from overture.schema.codegen.extraction.specs import ModelSpec, UnionSpec
 from overture.schema.codegen.pyspark.check_builder import build_checks
 from overture.schema.codegen.pyspark.check_ir import (
@@ -29,7 +31,6 @@ from overture.schema.codegen.pyspark.test_data.scaffold import (
     leaf_list_depth,
 )
 from overture.schema.system.field_path import ArraySegment, Iterated, parse
-from pydantic import TypeAdapter
 
 _path = parse
 
@@ -140,8 +141,9 @@ class TestGenerateScaffoldConnector:
         assert isinstance(scaffold["sources"], list)
         assert len(scaffold["sources"]) == 1
         elem = scaffold["sources"][0]
-        # Required sibling 'dataset' populated
-        assert "dataset" in elem
+        # Required sibling 'property' populated; optional 'dataset' omitted
+        assert "property" in elem
+        assert "dataset" not in elem
 
     def test_scaffold_is_dict(self, connector_spec: ModelSpec) -> None:
         field_nodes, _ = build_checks(connector_spec)

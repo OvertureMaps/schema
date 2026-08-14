@@ -9,6 +9,7 @@ from typing import get_args
 from unittest.mock import patch
 
 import pytest
+
 from overture.schema.cli.commands import resolve_types
 from overture.schema.system.discovery import ModelKey, TagSelector
 

@@ -17,6 +17,9 @@ from codegen_test_support import (
     TestSegmentEqualConstraints,
     WaterSegment,
 )
+from pydantic import Field, GetCoreSchemaHandler
+from pydantic_core import core_schema
+
 from overture.schema.codegen.extraction.field import (
     ArrayOf,
     ConstraintSource,
@@ -38,8 +41,6 @@ from overture.schema.system.field_constraint.string import (
     JsonPointerConstraint,
     PatternConstraint,
 )
-from pydantic import Field, GetCoreSchemaHandler
-from pydantic_core import core_schema
 
 
 class TestExtractUnion:

@@ -5,7 +5,17 @@ from __future__ import annotations
 import re
 
 import pytest
-from overture.schema.pyspark.check import Check, CheckShape
+from _support.harness import (
+    assert_schema_covers_checks,
+    build_scenario_map,
+    build_scenario_rows,
+    coerce_to_schema,
+    index_violations,
+    sanitize_row,
+    scenario_uuid,
+)
+from _support.helpers import PathTraversalError, set_at_path
+from _support.scenarios import Scenario
 from pyspark.sql import Row, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
@@ -18,17 +28,7 @@ from pyspark.sql.types import (
     StructType,
 )
 
-from ._support.harness import (
-    assert_schema_covers_checks,
-    build_scenario_map,
-    build_scenario_rows,
-    coerce_to_schema,
-    index_violations,
-    sanitize_row,
-    scenario_uuid,
-)
-from ._support.helpers import PathTraversalError, set_at_path
-from ._support.scenarios import Scenario
+from overture.schema.pyspark.check import Check, CheckShape
 
 
 class TestScenarioUuid:
