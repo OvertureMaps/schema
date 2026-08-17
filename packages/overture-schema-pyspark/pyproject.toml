@@ -5,6 +5,9 @@ build-backend = "uv_build"
 [project]
 dependencies = [
     "click>=8.0",
+    # 6.2 is the first release whose `files()` resolves a namespace portion
+    # inside a zip; the stdlib gained the same fix in 3.13.
+    "importlib-resources>=6.2; python_version < '3.13'",
     "overture-schema-system>=0.1.1",
     "packaging>=22",
 ]
