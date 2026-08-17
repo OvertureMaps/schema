@@ -7,10 +7,11 @@ and `test_validate.py` registers models through a test shim -- so an empty
 registry would otherwise pass the suite unnoticed.
 
 The walk has to work for a namespace portion inside a zip as well as one on
-disk, because a wheel placed straight on `sys.path` is zipimported rather
-than installed (AWS Glue's `--extra-py-files`). Both shapes are exercised
-here against a synthetic package put on `sys.path`, so the portion strings
-under test come from real import machinery rather than being hand-written.
+disk, because any wheel left unextracted on `sys.path` is zipimported --
+Spark's `--py-files` and Glue's `--extra-py-files` both ship wheels that way.
+Both shapes are exercised here against a synthetic package put on `sys.path`,
+so the portion strings under test come from real import machinery rather than
+being hand-written.
 """
 
 from __future__ import annotations
@@ -117,8 +118,8 @@ def test_registry_discovers_generated_models() -> None:
 def test_iter_generated_module_names_reads_a_zipimported_tree(tmp_path: Path) -> None:
     """Modules inside a wheel on `sys.path` are discovered.
 
-    Mirrors Glue's `--extra-py-files`: the wheel is never unpacked, so the
-    namespace portion `__path__` points inside the archive.
+    The wheel is never unpacked, so the namespace portion's `__path__` points
+    inside the archive.
     """
     wheel = tmp_path / "zipimport_probe-0.0.0-py3-none-any.whl"
     _write_probe_wheel(wheel, ["schema/base/water.py", "schema/buildings/building.py"])

@@ -12,9 +12,9 @@ the package still imports cleanly.
 
 The tree is read through `importlib.resources`, which resolves a
 namespace portion whether it is a directory on disk or a member of an
-archive. A wheel placed straight on `sys.path` is zipimported rather
-than installed -- AWS Glue does this with `--extra-py-files` -- and
-`pathlib` cannot traverse into one.
+archive. Any wheel left unextracted on `sys.path` is zipimported and
+`pathlib` cannot traverse into it -- Spark ships wheels that way with
+`--py-files`, as does AWS Glue with `--extra-py-files`.
 """
 
 from __future__ import annotations
@@ -30,8 +30,10 @@ if sys.version_info >= (3, 13):
 else:
     # `importlib.resources.files` raises `NotADirectoryError` for a namespace
     # package with any non-directory portion through Python 3.12; the backport
-    # carries the 3.13 fix. AWS Glue 4.0 runs Python 3.10 and Glue 5.0 runs
-    # 3.11, so on Glue this is always the branch taken.
+    # carries the 3.13 fix. Runtimes known to sit below it, where this is always
+    # the branch taken: AWS Glue 4.0 (Python 3.10) and Glue 5.0 (3.11). Other
+    # runtimes that ship wheels unextracted belong on that list -- if you hit
+    # this somewhere else, please add what you find.
     from importlib_resources import files
     from importlib_resources.abc import Traversable
 
