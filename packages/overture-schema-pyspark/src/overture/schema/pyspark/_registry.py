@@ -4,18 +4,36 @@ Built at import time by walking the generated `expressions.generated`
 namespace and collecting every module that exposes the
 codegen-emitted `ENTRY_POINT` and `MODEL_VALIDATION` constants.
 
-The generated tree on disk is the runtime source of truth: the
-registry contains exactly what was generated, regardless of which
-theme packages are installed alongside the pyspark package. A missing
+The generated tree is the runtime source of truth: the registry
+contains exactly what was generated, regardless of which theme
+packages are installed alongside the pyspark package. A missing
 `expressions/generated/` subtree simply yields an empty registry --
 the package still imports cleanly.
+
+The tree is read through `importlib.resources`, which resolves a
+namespace portion whether it is a directory on disk or a member of an
+archive. A wheel placed straight on `sys.path` is zipimported rather
+than installed -- AWS Glue does this with `--extra-py-files` -- and
+`pathlib` cannot traverse into one.
 """
 
 from __future__ import annotations
 
 import importlib
 import logging
-from pathlib import Path
+import sys
+from collections.abc import Iterator
+
+if sys.version_info >= (3, 13):
+    from importlib.resources import files
+    from importlib.resources.abc import Traversable
+else:
+    # `importlib.resources.files` raises `NotADirectoryError` for a namespace
+    # package with any non-directory portion through Python 3.12; the backport
+    # carries the 3.13 fix. AWS Glue 4.0 runs Python 3.10 and Glue 5.0 runs
+    # 3.11, so on Glue this is always the branch taken.
+    from importlib_resources import files
+    from importlib_resources.abc import Traversable
 
 from .check import ModelValidation
 
@@ -24,23 +42,28 @@ logger = logging.getLogger(__name__)
 _GENERATED_ROOT = "overture.schema.pyspark.expressions.generated"
 
 
-def _iter_generated_module_names(root_paths: list[str]) -> list[str]:
-    """Return the dotted names of every generated module on disk.
+def _iter_generated_module_names(root: str = _GENERATED_ROOT) -> list[str]:
+    """Return the dotted names of every generated module under `root`.
 
     The generated tree is PEP 420 (no `__init__.py`), so its subdirectories
-    are namespace packages. `pkgutil.walk_packages` skips those, so the tree
-    is walked as files instead: every `.py` under the namespace roots, keyed
-    to a dotted name relative to `_GENERATED_ROOT`.
+    are namespace packages, which `pkgutil.walk_packages` skips. It is walked
+    as resources instead: every `.py` below `root`, keyed to a dotted name.
+    `files` multiplexes every portion of the namespace, so a tree assembled
+    from more than one distribution is walked whole.
     """
-    names: list[str] = []
-    for root_path in root_paths:
-        base = Path(root_path)
-        for path in sorted(base.rglob("*.py")):
-            if path.name == "__init__.py":
-                continue
-            relative = path.relative_to(base).with_suffix("")
-            names.append(".".join([_GENERATED_ROOT, *relative.parts]))
-    return names
+
+    def walk(node: Traversable, prefix: tuple[str, ...]) -> Iterator[str]:
+        for child in node.iterdir():
+            if child.is_dir():
+                yield from walk(child, (*prefix, child.name))
+            elif child.name.endswith(".py") and child.name != "__init__.py":
+                yield ".".join([root, *prefix, child.name[: -len(".py")]])
+
+    try:
+        anchor = files(root)
+    except ModuleNotFoundError:
+        return []
+    return sorted(walk(anchor, ()))
 
 
 def _walk() -> tuple[dict[str, ModelValidation], dict[str, dict[str, str]]]:
@@ -61,12 +84,7 @@ def _walk() -> tuple[dict[str, ModelValidation], dict[str, dict[str, str]]]:
     registry: dict[str, ModelValidation] = {}
     partition_map: dict[str, dict[str, str]] = {}
 
-    try:
-        root = importlib.import_module(_GENERATED_ROOT)
-    except ImportError:
-        return registry, partition_map
-
-    for name in _iter_generated_module_names(list(root.__path__)):
+    for name in _iter_generated_module_names():
         module = importlib.import_module(name)
         entry_point = getattr(module, "ENTRY_POINT", None)
         validation = getattr(module, "MODEL_VALIDATION", None)
