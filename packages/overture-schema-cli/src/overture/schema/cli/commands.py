@@ -225,10 +225,17 @@ def get_source_name(filename: Path) -> str:
     return "<stdin>" if str(filename) == "-" else str(filename)
 
 
+# Every `# noqa: D301` below is the same waiver, against `pydocstyle` (see
+# the docformat-only target). D301 wants a raw string wherever a docstring
+# contains a backslash, but `\b` here is Click's no-rewrap marker: a raw
+# string hands Click two literal characters and every example block collapses
+# into one paragraph. Any new command with an Examples block needs the waiver
+# too. Note the placement is pydocstyle's -- ruff reports D301 at the
+# docstring line instead, so selecting ruff's `D` rules would need its own.
 @click.group()
 @click.version_option(package_name="overture-schema")
-def cli() -> None:
-    r"""Overture Schema command-line interface.
+def cli() -> None:  # noqa: D301
+    """Overture Schema command-line interface.
 
     Provides validation, schema generation, and type discovery for Overture Maps data.
 
@@ -737,8 +744,8 @@ def validate(
     excludes: tuple[str, ...],
     types: tuple[str, ...],
     show_fields: tuple[str, ...],
-) -> None:
-    r"""Validate Overture Maps data against schemas.
+) -> None:  # noqa: D301
+    """Validate Overture Maps data against schemas.
 
     Read from FILENAME or stdin if FILENAME is '-'.
     Supports JSON, YAML, and GeoJSON formats.
@@ -757,8 +764,12 @@ def validate(
       # Validate specific type
       $ overture-schema validate --type building data.json
     \b
-      # Official Overture types only
-      $ overture-schema validate --tag overture --tag feature data.json
+      # Two themes at once (repeatable; scope is their union)
+      $ overture-schema validate --tag overture:theme=buildings \\
+          --tag overture:theme=places data.json
+    \b
+      # Only types built on the Overture feature model
+      $ overture-schema validate --tag overture data.json
     """
     # Resolve model type first (errors here are ValueErrors, not ValidationErrors)
     try:
@@ -803,8 +814,8 @@ def json_schema_command(
     filters: tuple[str, ...],
     excludes: tuple[str, ...],
     types: tuple[str, ...],
-) -> None:
-    r"""Generate JSON schema for Overture Maps types.
+) -> None:  # noqa: D301
+    """Generate JSON schema for Overture Maps types.
 
     Outputs a JSON Schema document to stdout that can be used for validation
     or documentation purposes.
@@ -820,8 +831,12 @@ def json_schema_command(
       # Specific types
       $ overture-schema json-schema --type building
     \b
-      # Official Overture types only
-      $ overture-schema json-schema --tag overture --tag feature
+      # Two themes at once (repeatable; scope is their union)
+      $ overture-schema json-schema --tag overture:theme=buildings \\
+          --tag overture:theme=places
+    \b
+      # Only types built on the Overture feature model
+      $ overture-schema json-schema --tag overture
     """
     try:
         model_type = resolve_types(
@@ -838,7 +853,8 @@ def json_schema_command(
 @tag_selection_options
 @click.option(
     "--group-by",
-    help="Group types by a key/value tag's key (e.g. 'overture:theme'). "
+    help="Group types by a key/value tag's key, as in "
+    "--group-by overture:theme. "
     "Plain and namespaced tags have no value to group by and are "
     "ignored here.",
 )
@@ -847,8 +863,8 @@ def list_types(
     filters: tuple[str, ...],
     excludes: tuple[str, ...],
     group_by: str | None,
-) -> None:
-    r"""List all available types.
+) -> None:  # noqa: D301
+    """List all available types.
 
     Displays all registered models and can be organized by grouping.
 
@@ -856,6 +872,12 @@ def list_types(
     Examples:
       # List all types
       $ overture-schema list-types
+    \b
+      # One theme
+      $ overture-schema list-types --tag overture:theme=buildings
+    \b
+      # Group the listing by theme
+      $ overture-schema list-types --group-by overture:theme
     """
     try:
         models = discover_models()
