@@ -116,21 +116,28 @@ Install the main package using `pip` (or your package manager of choice):
 pip install overture-schema
 ```
 
+Overture publishes data in one shape: flat and tabular, the column layout of the
+Parquet release, which Pydantic's Python mode reads. The models also accept and
+emit GeoJSON, through JSON mode, so the schema works with tools that expect
+features rather than rows -- and it is the representation the generated JSON
+Schema describes. The modes are not interchangeable: a GeoJSON dict passed to
+`model_validate` reports `theme` and `version` missing and `type` set to
+`'Feature'`.
+
 ```python
-from overture.schema.buildings.building import Building
-from overture.schema.places.place import Place
-import json
+from overture.schema.buildings import Building
+from overture.schema.places import Place
 
-# Validate data - supports both flat/tabular- (Parquet-style) and GeoJSON-formatted
-# dicts
-building = Building.model_validate(feature_data)
-building_geojson = Building.model_validate(geojson_feature)
+# Flat / tabular dict -- Python mode
+building = Building.model_validate(feature_row)
 
-# Parse and validate JSON strings
-building_from_json = Building.model_validate_json(json_string)
+# GeoJSON, as a string or bytes -- JSON mode
+building = Building.model_validate_json(geojson_text)
 
-# Convert to GeoJSON format
-geojson_output = building.model_dump(mode="json")
+# Serialize back to GeoJSON. by_alias=True is required: without it, aliased
+# fields serialize under their Python names (`class_`, not `class`) and the
+# output will not re-validate.
+geojson_output = building.model_dump(mode="json", by_alias=True, exclude_none=True)
 ```
 
 ## Schema Extension
@@ -187,9 +194,9 @@ from overture.schema.system.discovery import (
 models = discover_models()
 # {
 #   ModelKey(name="building", entry_point="overture.schema.buildings:Building",
-#            tags=frozenset({"feature", "overture", "overture:theme=buildings"})): BuildingModel,
+#            tags=frozenset({"feature", "overture", "overture:theme=buildings"})): Building,
 #   ModelKey(name="place",    entry_point="overture.schema.places:Place",
-#            tags=frozenset({"feature", "overture", "overture:theme=places"})):    PlaceModel,
+#            tags=frozenset({"feature", "overture", "overture:theme=places"})):    Place,
 #   ...
 # }
 

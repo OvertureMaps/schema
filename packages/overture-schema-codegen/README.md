@@ -10,10 +10,10 @@ structure collapses into `anyOf` arrays with duplicated fields.
 
 Navigating Python's type annotation machinery -- NewType chains, nested `Annotated`
 wrappers, union filtering, generic resolution -- is complex. The codegen does it once.
-`analyze_type()` unwraps annotations into `TypeInfo`, a flat target-independent
-representation. Extractors build specs from `TypeInfo`. Renderers consume specs without
-touching the type system. New output targets (Arrow schemas, PySpark expressions) add
-renderers, not extraction logic.
+`analyze_type()` unwraps an annotation into a `FieldShape`, a tree-shaped
+target-independent representation. Extractors build specs from `FieldShape`. Renderers
+consume specs without touching the type system. New output targets (Arrow schemas,
+PySpark expressions) add renderers, not extraction logic.
 
 ## Usage
 
@@ -41,9 +41,9 @@ Rendering            Output formatting, all presentation decisions
     ^
 Output Layout        What to generate, where it goes, how outputs link
     ^
-Extraction           TypeInfo, FieldSpec, RecordSpec, UnionSpec
+Extraction           FieldShape, FieldSpec, RecordSpec, UnionSpec
     ^
-Discovery            discover_models() from overture-schema-common
+Discovery            discover_models() from overture-schema-system
 ```
 
 **Discovery** loads registered Pydantic models via entry points. The return dict
@@ -72,16 +72,38 @@ examples), enum pages, NewType pages, and aggregate numeric/geometry reference p
 
 ## Programmatic use
 
-```python
-from overture.schema.codegen.extraction.type_analyzer import analyze_type, TypeKind
+`analyze_type()` returns a 3-tuple: the annotation's `FieldShape`, whether the
+field accepts `None`, and the first `Field(description=...)` encountered while
+unwrapping.
 
-info = analyze_type(some_annotation)
-assert info.kind == TypeKind.PRIMITIVE
-assert info.base_type == "int32"
-assert info.newtype_name == "FeatureVersion"
-# Constraints carry provenance:
-for cs in info.constraints:
-    print(f"{cs.constraint} from {cs.source}")
+```python
+from overture.schema.buildings import Building
+from overture.schema.codegen.extraction.type_analyzer import analyze_type
+
+annotation = Building.model_fields["version"].rebuild_annotation()
+shape, nullable, description = analyze_type(annotation, owner=Building)
+
+# NewTypeShape(name='FeatureVersion', ref=..., inner=Primitive(base_type='int32', ...))
+assert shape.name == "FeatureVersion"
+assert shape.inner.base_type == "int32"
+assert nullable is False
+```
+
+`FieldShape` is a tree, not a flat record: `NewTypeShape`, `ArrayOf`, and `MapOf`
+wrap an inner shape, and the three terminals (`Primitive`, `LiteralScalar`,
+`AnyScalar`) sit at the leaves. Nesting order is meaningful --
+`NewTypeShape(inner=ArrayOf(...))` is a NewType over `list[X]`, while
+`ArrayOf(element=NewTypeShape(...))` is a list of NewType-wrapped values.
+
+Constraints attach to the layer they target and carry the NewType that
+contributed them:
+
+```python
+for source in shape.inner.constraints:
+    print(f"{source.constraint} from {source.source_name}")
+# Ge(ge=0) from FeatureVersion
+# Ge(ge=-2147483648) from int32
+# Le(le=2147483647) from int32
 ```
 
 ## Fetching sample data
