@@ -6,13 +6,15 @@ build-backend = "uv_build"
 dependencies = [
     "click>=8.0",
     "overture-schema-system>=0.1.1",
-    "pyspark>=3.4",
 ]
 description = "PySpark validation expressions for Overture Maps data"
 license = "MIT"
 name = "overture-schema-pyspark"
 requires-python = ">=3.10"
 version = "0.1.1"
+
+[project.optional-dependencies]
+spark = ["pyspark>=3.4"]
 
 [project.scripts]
 overture-validate = "overture.schema.pyspark.cli:validate_cli"
