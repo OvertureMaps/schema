@@ -122,7 +122,7 @@ The GeoJSON form of a feature, where most properties are tucked under a `propert
 alongside a top-level `type: "Feature"`. Distinct from the [flat shape](#flat-shape), and
 the single most common source of confusion when validating: `model_validate()` rejects it,
 `model_validate_json()` accepts it. See
-[Two data shapes](SCHEMA_GUIDE.md#32-the-one-thing-to-understand-two-data-shapes).
+[Two representations](SCHEMA_GUIDE.md#32-the-one-thing-to-understand-two-representations).
 
 ### Discriminated union
 
@@ -149,9 +149,11 @@ that assumes either will break.
 A string attached to a model during discovery, classifying it orthogonally to its name —
 `feature`, or `overture:theme=buildings`. Tags are what the CLI's `--tag` / `--filter` /
 `--exclude` options select on. They are produced by *tag providers* registered on the
-`overture.tag_providers` entry-point group; third parties can register their own. Seven
-tags exist today: `feature` plus one `overture:theme=*` per theme. There is no plain
-`overture` tag, despite what some help text suggests.
+`overture.tag_providers` entry-point group; third parties can register their own. Eight
+tags exist today: `feature`, `overture`, and one `overture:theme=*` per theme. `overture`
+marks a model built on Overture's feature model — it subclasses `OvertureFeature` — which
+a third party's own type can also be; it is not a claim that the type belongs to the
+Overture schema.
 
 ### Spec
 
