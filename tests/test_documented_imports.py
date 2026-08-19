@@ -37,13 +37,15 @@ _PYTHON_BLOCK = re.compile(
 # bare total stays put when one block breaks as another is fixed. The identity
 # is a digest of the block body, so reordering a document does not trip it but
 # editing one of these blocks does.
-_EXPECTED_UNPARSEABLE = {
-    "PYDANTIC_GUIDE.md:43488ef4",
-}
+_EXPECTED_UNPARSEABLE: set[str] = set()
 
 # An import statement, matched textually -- used to police the excuse list,
 # where by definition `ast` cannot be applied.
 _OVERTURE_IMPORT = re.compile(r"^\s*(?:from|import)\s+overture\b", re.MULTILINE)
+
+# Docs sometimes have to show what does *not* work. A line carrying this
+# marker is such a case, and is exempt from resolving.
+COUNTER_EXAMPLE_MARKER = "\u2717"
 
 # Golden files are generated fixtures, not documentation.
 _EXCLUDED = "tests/golden/"
@@ -102,9 +104,16 @@ def parse_imports(source: str) -> list[tuple[str, str | None]]:
 
     Returns `(module, attribute)` pairs; `attribute` is None for a plain
     `import overture.x`. Raises `SyntaxError` if the block is not valid Python.
+
+    A REPL transcript is unwrapped first, and an import on a line marked
+    with `COUNTER_EXAMPLE_MARKER` is skipped -- the docs are showing what fails, and a
+    counter-example that resolved would be the real bug.
     """
+    lines = _strip_repl_prompts(source).splitlines()
     found: list[tuple[str, str | None]] = []
-    for node in ast.walk(ast.parse(source)):
+    for node in ast.walk(ast.parse("\n".join(lines))):
+        if _is_counter_example(lines, node):
+            continue
         if isinstance(node, ast.ImportFrom):
             # A relative import (`from . import x`) has no absolute module.
             if node.level or not node.module or not _is_overture(node.module):
@@ -119,6 +128,29 @@ def parse_imports(source: str) -> list[tuple[str, str | None]]:
     return found
 
 
+def _strip_repl_prompts(source: str) -> str:
+    """Unwrap a `>>>` transcript to the statements it contains.
+
+    Without this a whole REPL block fails to parse and drops out of the
+    sweep -- silently, which is the failure mode this module exists to
+    prevent.
+    """
+    if not any(line.startswith(">>> ") for line in source.splitlines()):
+        return source
+    return "\n".join(
+        line[4:] for line in source.splitlines() if line.startswith((">>> ", "... "))
+    )
+
+
+def _is_counter_example(lines: list[str], node: ast.AST) -> bool:
+    """True if the statement's source carries the counter-example marker."""
+    start = getattr(node, "lineno", None)
+    if start is None:
+        return False
+    end = getattr(node, "end_lineno", None) or start
+    return any(COUNTER_EXAMPLE_MARKER in line for line in lines[start - 1 : end])
+
+
 def _is_overture(module: str) -> bool:
     return module == "overture" or module.startswith("overture.")
 
@@ -130,7 +162,7 @@ def enum_references(source: str) -> list[tuple[str, str, str]]:
     their members really are class attributes, whereas a Pydantic model's
     fields are not, so `Place.addresses` would read as missing.
     """
-    tree = ast.parse(source)
+    tree = ast.parse(_strip_repl_prompts(source))
     imported = {
         alias.asname or alias.name: node.module
         for node in ast.walk(tree)
@@ -285,6 +317,23 @@ class TestParser:
     def test_indented_import(self) -> None:
         source = "def f():\n    from overture.schema.places import Place\n"
         assert parse_imports(source) == [("overture.schema.places", "Place")]
+
+    def test_repl_transcript(self) -> None:
+        """A `>>>` block would not parse at all without unwrapping."""
+        source = (
+            ">>> from overture.schema.buildings import Building\n"
+            ">>> Building.model_fields.keys()\n"
+            "dict_keys(['id', 'geometry'])\n"
+        )
+        assert parse_imports(source) == [("overture.schema.buildings", "Building")]
+
+    def test_counter_example_is_skipped(self) -> None:
+        """Docs showing what fails are exempt; the neighbouring line is not."""
+        source = (
+            "from overture.schema.buildings import Building\n"
+            f"from overture.schema import Building  # {COUNTER_EXAMPLE_MARKER} ImportError\n"
+        )
+        assert parse_imports(source) == [("overture.schema.buildings", "Building")]
 
     def test_invalid_source_raises(self) -> None:
         with pytest.raises(SyntaxError):

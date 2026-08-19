@@ -371,21 +371,21 @@ overture-schema, version 1.17.1
 uv run overture-schema list-types
 ```
 ```
-address            feature  overture:theme=addresses
-bathymetry         feature  overture:theme=base
-building           feature  overture:theme=buildings
-building_part      feature  overture:theme=buildings
-connector          feature  overture:theme=transportation
-division           feature  overture:theme=divisions
-division_area      feature  overture:theme=divisions
-division_boundary  feature  overture:theme=divisions
-infrastructure     feature  overture:theme=base
-land               feature  overture:theme=base
-land_cover         feature  overture:theme=base
-land_use           feature  overture:theme=base
-place              feature  overture:theme=places
-segment            feature  overture:theme=transportation
-water              feature  overture:theme=base
+address            feature  overture  overture:theme=addresses
+bathymetry         feature  overture  overture:theme=base
+building           feature  overture  overture:theme=buildings
+building_part      feature  overture  overture:theme=buildings
+connector          feature  overture  overture:theme=transportation
+division           feature  overture  overture:theme=divisions
+division_area      feature  overture  overture:theme=divisions
+division_boundary  feature  overture  overture:theme=divisions
+infrastructure     feature  overture  overture:theme=base
+land               feature  overture  overture:theme=base
+land_cover         feature  overture  overture:theme=base
+land_use           feature  overture  overture:theme=base
+place              feature  overture  overture:theme=places
+segment            feature  overture  overture:theme=transportation
+water              feature  overture  overture:theme=base
 ```
 
 ```bash
@@ -732,8 +732,8 @@ snake-cased:
 ```python
 from overture.schema.system.discovery.entry_point import entry_point_class_alias
 
-entry_point_class_alias("overture.schema.divisions:DivisionArea")   # 'division_area'
-entry_point_class_alias("overture.schema.places:Place")             # 'place'
+entry_point_class_alias("overture.schema.divisions:DivisionArea")  # 'division_area'
+entry_point_class_alias("overture.schema.places:Place")  # 'place'
 ```
 
 Short names are *not* guaranteed unique. Anyone can
@@ -755,7 +755,9 @@ resolve_entry_point_key("place", registry)
 # ValueError: Entry-point alias 'place' is ambiguous.
 #             Specify one of: acme.parks:Place, overture.schema.places:Place
 
-resolve_entry_point_key("acme.parks:Place", registry)   # 'acme.parks:Place' — always works
+resolve_entry_point_key(
+    "acme.parks:Place", registry
+)  # 'acme.parks:Place' — always works
 ```
 
 Install a package that collides and `place` simply stops being accepted, with an error
@@ -1164,21 +1166,21 @@ uv run overture-schema list-types
 ```
 
 ```
-address            feature  overture:theme=addresses
-bathymetry         feature  overture:theme=base
-building           feature  overture:theme=buildings
-building_part      feature  overture:theme=buildings
-connector          feature  overture:theme=transportation
-division           feature  overture:theme=divisions
-division_area      feature  overture:theme=divisions
-division_boundary  feature  overture:theme=divisions
-infrastructure     feature  overture:theme=base
-land               feature  overture:theme=base
-land_cover         feature  overture:theme=base
-land_use           feature  overture:theme=base
-place              feature  overture:theme=places
-segment            feature  overture:theme=transportation
-water              feature  overture:theme=base
+address            feature  overture  overture:theme=addresses
+bathymetry         feature  overture  overture:theme=base
+building           feature  overture  overture:theme=buildings
+building_part      feature  overture  overture:theme=buildings
+connector          feature  overture  overture:theme=transportation
+division           feature  overture  overture:theme=divisions
+division_area      feature  overture  overture:theme=divisions
+division_boundary  feature  overture  overture:theme=divisions
+infrastructure     feature  overture  overture:theme=base
+land               feature  overture  overture:theme=base
+land_cover         feature  overture  overture:theme=base
+land_use           feature  overture  overture:theme=base
+place              feature  overture  overture:theme=places
+segment            feature  overture  overture:theme=transportation
+water              feature  overture  overture:theme=base
 ```
 
 Columns are: **type name**, then its **tags**. Group by a tag key:
@@ -1188,9 +1190,10 @@ uv run overture-schema list-types --group-by overture:theme
 ```
 
 ```
-overture:theme=buildings (2)
-→ building           feature  overture:theme=buildings
-→ building_part      feature  overture:theme=buildings
+overture:theme=addresses (1)
+→ address            feature  overture  overture:theme=addresses
+
+overture:theme=base (6)
 ...
 ```
 
@@ -1271,10 +1274,10 @@ Each entry carries the documentation and constraints from the model declaration:
 
 ```python
 f = Building.model_fields["height"]
-print(f.description)   # 'Height of the building or part in meters.\n\n...'
-print(f.metadata)      # [Gt(gt=0)]
-print(f.alias)         # None
-print(Building.model_fields["class_"].alias)   # 'class'
+print(f.description)  # 'Height of the building or part in meters.\n\n...'
+print(f.metadata)  # [Gt(gt=0)]
+print(f.alias)  # None
+print(Building.model_fields["class_"].alias)  # 'class'
 ```
 
 Note `class_` and its alias `class`. `class` is a Python keyword, so the field is named
@@ -1902,18 +1905,18 @@ The entire GeoJSON transformation is those ten lines, in `Feature`
 ```python
 @model_serializer(mode="wrap")
 def __serialize_with_geo_json_support__(self, serializer, info):
-    data = serializer(self)                    # <- the flat dict, produced first
+    data = serializer(self)  # <- the flat dict, produced first
 
-    if info.mode == "json":                    # <- only in JSON mode
+    if info.mode == "json":  # <- only in JSON mode
         return {
             "type": "Feature",
             **({"id": data.pop("id")} if "id" in data else {}),
             **({"bbox": data.pop("bbox")} if "bbox" in data else {}),
             "geometry": data.pop("geometry"),
-            "properties": data,                # <- everything else goes here
+            "properties": data,  # <- everything else goes here
         }
 
-    return data                                # <- Python mode: flat, untouched
+    return data  # <- Python mode: flat, untouched
 ```
 
 Read the first line: Pydantic produces the **flat** dictionary, and only then does this
@@ -2073,7 +2076,9 @@ from overture.schema.system.discovery import TagSelector, discover_models, filte
 
 models = discover_models()
 
-buildings = filter_models(models, TagSelector(include_any=("overture:theme=buildings",)))
+buildings = filter_models(
+    models, TagSelector(include_any=("overture:theme=buildings",))
+)
 ```
 
 `TagSelector` takes `include_any` (OR scope), `require_all` (AND narrowing), and
@@ -2087,7 +2092,8 @@ results:
 
 ```python
 from overture.schema.buildings import RoofShape
-[ (m.value, m.__doc__.strip()[:30]) for m in list(RoofShape)[:2] ]
+
+[(m.value, m.__doc__.strip()[:30]) for m in list(RoofShape)[:2]]
 # [('dome', 'The shape of the roof.'), ('flat', 'The shape of the roof.')]
 #   ^ that's the class docstring repeated, not per-member documentation
 ```
@@ -2204,17 +2210,20 @@ Three lines in there are load-bearing, and each gets a subsection below:
 
 | Line | Why it's written that way | Where |
 |---|---|---|
-| `model_validate_json(json.dumps(doc))` | the file is GeoJSON, which needs JSON mode | [3.2](#32-the-one-thing-to-understand-two-data-shapes) |
+| `model_validate_json(json.dumps(doc))` | the file is GeoJSON, which needs JSON mode | [3.2](#32-the-one-thing-to-understand-two-representations) |
 | `b.class_.value` | the field is `class_` in Python, `class` in the data | [3.3](#33-reading-fields) |
 | `by_alias=True, exclude_none=True` | without them the output won't re-validate | [3.4](#34-writing-data-back-out) |
 
 If the snippet above ran, you already know enough to be useful. Read on when one of those
 lines bites you, or read straight through if you'd rather know why now.
 
-### 3.2 The one thing to understand: two data shapes
+### 3.2 The one thing to understand: two representations
 
-Overture data shows up in two shapes, and the models handle both — but **which one you
-get depends on the Pydantic mode you use, not on the data you pass**.
+Overture publishes data in one shape — flat and tabular, the column layout of the
+Parquet release. The models also read and write GeoJSON, so the schema works with tools
+that expect features rather than rows, and because that is the representation the
+generated [JSON Schema](#61-json-schema) describes. **Which one you get depends on the
+Pydantic mode you use, not on the data you pass.**
 
 | Shape | Looks like | Pydantic mode | Validate with | Dump with |
 |---|---|---|---|---|
@@ -2243,7 +2252,7 @@ The `type: Feature` in the error message is the tell: it read the GeoJSON envelo
 The fix — round-trip through JSON so you're in JSON mode:
 
 ```python
-building = Building.model_validate_json(json.dumps(doc))   # works
+building = Building.model_validate_json(json.dumps(doc))  # works
 ```
 
 Or, if you're already reading from a file or an HTTP response, skip the parse entirely:
@@ -2257,8 +2266,8 @@ building = Building.model_validate_json(open("building.geojson").read())
 No. It's the obvious thing to try, and neither knob does it:
 
 ```python
-Building.model_validate(doc, context={"mode": "json"})   # still ValidationError
-Building.model_validate(doc, strict=False)               # still ValidationError
+Building.model_validate(doc, context={"mode": "json"})  # still ValidationError
+Building.model_validate(doc, strict=False)  # still ValidationError
 ```
 
 The mode isn't a setting you pass — in Pydantic it's determined by *which method you
@@ -2268,8 +2277,8 @@ call*. `model_validate` is Python mode; `model_validate_json` is JSON mode. The 
 ```python
 @model_validator(mode="wrap")
 def __validate_with_geo_json_support__(cls, data, handler, info):
-    if info.mode == "json":        # <- set by the method, not by an argument
-        ...                        #    unpack the GeoJSON envelope
+    if info.mode == "json":  # <- set by the method, not by an argument
+        ...  #    unpack the GeoJSON envelope
 ```
 
 So if you have a GeoJSON **dict** in hand, `json.dumps` it and use
@@ -2305,8 +2314,15 @@ For flat data — a Parquet row, a DuckDB result, a dict of columns — `model_v
 the right call:
 
 ```python
-row = {"id": "...", "theme": "buildings", "type": "building", "version": 1,
-       "geometry": ..., "height": 21.34, "class": "parking"}
+row = {
+    "id": "...",
+    "theme": "buildings",
+    "type": "building",
+    "version": 1,
+    "geometry": ...,
+    "height": 21.34,
+    "class": "parking",
+}
 building = Building.model_validate(row)
 ```
 
@@ -2316,10 +2332,10 @@ Model attributes are plain Python. Enums come back as enum members, geometry as 
 `Geometry` wrapper around Shapely:
 
 ```python
-building.height          # 21.34
-building.class_          # <BuildingClass.PARKING: 'parking'>
-building.class_.value    # 'parking'
-building.num_floors      # 4
+building.height  # 21.34
+building.class_  # <BuildingClass.PARKING: 'parking'>
+building.class_.value  # 'parking'
+building.num_floors  # 4
 type(building.geometry)  # <class 'overture.schema.system.geometric.geom.Geometry'>
 ```
 
@@ -2345,15 +2361,17 @@ geojson = building.model_dump(mode="json", by_alias=True, exclude_none=True)
 sorted(geojson["properties"])
 # ['class', 'ext_bar', 'height', 'is_underground', 'level', 'num_floors', ...]
 
-Building.model_validate_json(json.dumps(geojson))          # OK
-Building.model_validate(building.model_dump(mode="python", by_alias=True, exclude_none=True))  # OK
+Building.model_validate_json(json.dumps(geojson))  # OK
+Building.model_validate(
+    building.model_dump(mode="python", by_alias=True, exclude_none=True)
+)  # OK
 ```
 
 Same for `model_dump_json()`:
 
 ```python
-'"class":' in building.model_dump_json()                 # False  ← emits "class_"
-'"class":' in building.model_dump_json(by_alias=True)    # True
+'"class":' in building.model_dump_json()  # False  ← emits "class_"
+'"class":' in building.model_dump_json(by_alias=True)  # True
 ```
 
 **Rule of thumb: `by_alias=True` on every dump, unless you specifically want Python
@@ -2368,7 +2386,7 @@ every unset optional field as an explicit `null`.
 ```python
 from overture.schema.transportation import Segment
 
-type(Segment)            # <class 'typing._AnnotatedAlias'>
+type(Segment)  # <class 'typing._AnnotatedAlias'>
 Segment.model_validate({...})
 # AttributeError: model_validate
 ```
@@ -2381,9 +2399,9 @@ from overture.schema.transportation import Segment
 
 segments = TypeAdapter(Segment)
 
-seg = segments.validate_json(raw_geojson_string)   # JSON mode  → GeoJSON
-seg = segments.validate_python(flat_row)           # Python mode → flat
-type(seg).__name__                                 # 'RoadSegment'
+seg = segments.validate_json(raw_geojson_string)  # JSON mode  → GeoJSON
+seg = segments.validate_python(flat_row)  # Python mode → flat
+type(seg).__name__  # 'RoadSegment'
 ```
 
 Build the `TypeAdapter` once and reuse it; construction is the expensive part.
@@ -2402,14 +2420,14 @@ whichever matched:
 ```python
 from overture.schema.validation import validate, validate_json
 
-feature = validate_json(geojson_string)   # JSON mode  → GeoJSON shape
-type(feature).__name__                    # 'Building'
+feature = validate_json(geojson_string)  # JSON mode  → GeoJSON shape
+type(feature).__name__  # 'Building'
 
-feature = validate(flat_dict)             # Python mode → flat shape
+feature = validate(flat_dict)  # Python mode → flat shape
 ```
 
 Both raise `pydantic.ValidationError` when nothing matches. The same mode rule from
-[The one thing to understand first](#32-the-one-thing-to-understand-two-data-shapes) applies: `validate()` is
+[The one thing to understand first](#32-the-one-thing-to-understand-two-representations) applies: `validate()` is
 Python mode and wants flat data, `validate_json()` is JSON mode and wants GeoJSON.
 
 Which models participate is resolved at runtime by entry-point discovery — install more
@@ -2423,11 +2441,11 @@ from overture.schema.buildings import Building
 from overture.schema.places import Place
 
 schema = json_schema(Building)
-schema["title"]              # 'building'
-sorted(schema)               # ['$defs', 'additionalProperties', 'description',
-                             #  'properties', 'required', 'title', 'type']
+schema["title"]  # 'building'
+sorted(schema)  # ['$defs', 'additionalProperties', 'description',
+#  'properties', 'required', 'title', 'type']
 
-union = json_schema(Building | Place)   # unions work too → anyOf
+union = json_schema(Building | Place)  # unions work too → anyOf
 ```
 
 Use this rather than Pydantic's `model_json_schema()`. The Overture generator treats
@@ -2694,6 +2712,7 @@ If you know the type, validate against it directly for better errors and speed:
 
 ```python
 from overture.schema.buildings import Building
+
 Building.model_validate_json(line)
 ```
 
@@ -2844,7 +2863,7 @@ from overture.schema.pyspark.validate import resolve_entry_point_key
 key = resolve_entry_point_key("building", REGISTRY)
 struct = REGISTRY[key].schema
 
-type(struct).__name__                  # 'StructType'
+type(struct).__name__  # 'StructType'
 [(f.name, f.dataType.simpleString()) for f in struct.fields][:5]
 ```
 
@@ -2940,8 +2959,8 @@ that ships only a `py.typed` marker — no models, no functions. Always import f
 theme packages:
 
 ```python
-from overture.schema.buildings import Building     # ✓
-from overture.schema import Building               # ✗ ImportError
+from overture.schema.buildings import Building  # ✓
+from overture.schema import Building  # ✗ ImportError
 ```
 
 
@@ -2990,7 +3009,7 @@ version bumps reaching public PyPI while interim builds stay internal. Either wa
 consumer instruction is a one-line install — only the index URL differs.
 
 Nothing in sections 2 through 9 changes. The behavior you learn there — entry-point
-discovery, the two data shapes, `by_alias`, `TypeAdapter` for `Segment` — is independent
+discovery, the two representations, `by_alias`, `TypeAdapter` for `Segment` — is independent
 of how the packages get onto your machine.
 
 ---
@@ -3068,8 +3087,9 @@ import click
 from overture.schema.system.discovery import discover_models, filter_models, TagSelector
 from overture.schema.cli.tag_options import tag_selection_options, build_selector
 
+
 @click.command()
-@tag_selection_options          # gives you --tag / --filter / --exclude for free
+@tag_selection_options  # gives you --tag / --filter / --exclude for free
 def report(tags, filters, excludes):
     """Report field counts for the selected feature types."""
     models = filter_models(discover_models(), build_selector(tags, filters, excludes))
@@ -3095,8 +3115,10 @@ from typing import Literal
 from overture.schema.common import OvertureFeature
 from overture.schema.system.numeric import float32
 
+
 class Vineyard(OvertureFeature[Literal["agriculture"], Literal["vineyard"]]):
     """A cultivated area planted with grapevines."""
+
     area_hectares: float32 | None = None
 ```
 
@@ -3160,9 +3182,9 @@ from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.buildings import Building
 
 spec = extract_model(Building)
-spec.name          # 'Building'
-spec.description   # the class docstring
-spec.constraints   # model-level constraints
+spec.name  # 'Building'
+spec.description  # the class docstring
+spec.constraints  # model-level constraints
 
 for f in spec.fields[:6]:
     print(f"{f.name:12} required={f.is_required!s:5} {type(f.shape).__name__}")
@@ -3267,9 +3289,9 @@ from overture.schema.system.discovery import (
 models = discover_models()
 # {
 #   ModelKey(name="building", entry_point="overture.schema.buildings:Building",
-#            tags=frozenset({"feature", "overture:theme=buildings"})): BuildingModel,
+#            tags=frozenset({"feature", "overture", "overture:theme=buildings"})): Building,
 #   ModelKey(name="place",    entry_point="overture.schema.places:Place",
-#            tags=frozenset({"feature", "overture:theme=places"})):    PlaceModel,
+#            tags=frozenset({"feature", "overture", "overture:theme=places"})):    Place,
 #   ...
 # }
 
@@ -3307,7 +3329,11 @@ from pydantic import BaseModel, Field
 
 # Overture common models
 from overture.schema.common import OvertureFeature
-from overture.schema.system.geometric import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
 
 # Validation system
 from overture.schema.system.field_constraint import UniqueItemsConstraint
@@ -3324,9 +3350,14 @@ from overture.schema.system.string import LanguageTag
 
 # Numeric types (use these instead of int/float)
 from overture.schema.system.numeric import (
-    int8, int32, int64,
-    uint8, uint16, uint32,
-    float32, float64
+    int8,
+    int32,
+    int64,
+    uint8,
+    uint16,
+    uint32,
+    float32,
+    float64,
 )
 ```
 
@@ -3358,9 +3389,11 @@ Pydantic models are Python classes that define data structures and their constra
 ```python
 from overture.schema.system.model_constraint import no_extra_fields
 
+
 @no_extra_fields
 class Address(BaseModel):
     """A postal address - no extra fields allowed."""
+
     street: str
     city: str
     postal_code: str | None = None
@@ -3374,8 +3407,10 @@ from typing import Literal
 from overture.schema.common import OvertureFeature
 from overture.schema.system.numeric import float64
 
+
 class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
     """A building feature with strongly-typed theme and type."""
+
     # Inherits: id, theme, type, geometry, bbox, version, sources
     height: float64 | None = None
 ```
@@ -3402,7 +3437,10 @@ from overture.schema.common.level import Stacked
 from overture.schema.common.names import Named
 from overture.schema.system.numeric import float64
 
-class Building(OvertureFeature[Literal["buildings"], Literal["building"]], Named, Stacked):
+
+class Building(
+    OvertureFeature[Literal["buildings"], Literal["building"]], Named, Stacked
+):
     # Gets fields from Feature: id, theme, type, geometry, etc.
     # Gets fields from Named: names
     # Gets fields from Stacked: level
@@ -3417,6 +3455,7 @@ Sometimes you need a field name that conflicts with Python keywords or conventio
 ```python
 from typing import Annotated
 from pydantic import Field
+
 
 class Building(OvertureFeature):
     # Use class_ in Python code, but "class" in the actual data
@@ -3466,7 +3505,7 @@ class Building(OvertureFeature):
    ```python
    access_policy: Annotated[
        str | None,
-       Field(description="Access policy for the place. When absent, assume 'open'")
+       Field(description="Access policy for the place. When absent, assume 'open'"),
    ] = None
    ```
 
@@ -3486,26 +3525,32 @@ Keep the schema separate from business logic. The schema describes the shape of 
 ```python
 from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.numeric import (
-    int8, int32, int64,        # Signed integers
-    uint8, uint16, uint32,     # Unsigned integers
-    float32, float64           # Floating point
+    int8,
+    int32,
+    int64,  # Signed integers
+    uint8,
+    uint16,
+    uint32,  # Unsigned integers
+    float32,
+    float64,  # Floating point
 )
+
 
 @no_extra_fields
 class MyModel(BaseModel):
     # Signed integers with specific ranges
-    level: int8 | None = None           # -128 to 127
-    year: int32 | None = None           # -2,147,483,648 to 2,147,483,647
-    timestamp: int64 | None = None      # Full 64-bit range
+    level: int8 | None = None  # -128 to 127
+    year: int32 | None = None  # -2,147,483,648 to 2,147,483,647
+    timestamp: int64 | None = None  # Full 64-bit range
 
     # Unsigned integers (0 and positive only)
-    red_value: uint8 | None = None      # 0 to 255 (like RGB values)
-    port: uint16 | None = None          # 0 to 65,535 (like network ports)
-    population: uint32 | None = None    # 0 to 4,294,967,295
+    red_value: uint8 | None = None  # 0 to 255 (like RGB values)
+    port: uint16 | None = None  # 0 to 65,535 (like network ports)
+    population: uint32 | None = None  # 0 to 4,294,967,295
 
     # Floating point numbers
-    height: float64 | None = None       # Double precision (recommended)
-    ratio: float32 | None = None        # Single precision
+    height: float64 | None = None  # Double precision (recommended)
+    ratio: float32 | None = None  # Single precision
 ```
 
 **When to use each:**
@@ -3536,6 +3581,7 @@ Union types allow a field to accept multiple different types. The `|` symbol mea
 ```python
 from typing import Literal
 
+
 class Building(OvertureFeature):
     # This field can be either a string OR None (most common union)
     name: str | None = None
@@ -3548,7 +3594,7 @@ class Building(OvertureFeature):
 
 ```python
 # Optional field (most common union)
-height: float64 | None = None          # Can be a number or missing
+height: float64 | None = None  # Can be a number or missing
 
 # Specific string values (an alternative to enums where descriptions aren't needed)
 priority: Literal["low", "medium", "high"] | None = None
@@ -3584,8 +3630,8 @@ height: float64 | None = None
 
 # With Annotated - type + extra information
 height: Annotated[
-    float64 | None,        # The actual type (what kind of data)
-    Field(description="Height in meters")  # Extra metadata
+    float64 | None,  # The actual type (what kind of data)
+    Field(description="Height in meters"),  # Extra metadata
 ] = None
 ```
 
@@ -3604,17 +3650,16 @@ Use Pydantic's `Field()` function to add constraints and descriptions:
 from typing import Annotated
 from pydantic import Field
 
+
 class Building(OvertureFeature):
     # Range constraints
     height: Annotated[
-        float64 | None,
-        Field(ge=0, le=1000, description="Height in meters (0-1000m)")
+        float64 | None, Field(ge=0, le=1000, description="Height in meters (0-1000m)")
     ] = None
 
     # Integer constraints
     floors: Annotated[
-        int32 | None,
-        Field(gt=0, lt=200, description="Number of floors (1-199)")
+        int32 | None, Field(gt=0, lt=200, description="Number of floors (1-199)")
     ] = None
 ```
 
@@ -3632,13 +3677,12 @@ class Place(OvertureFeature):
     # Length constraints
     name: Annotated[
         str | None,
-        Field(min_length=1, max_length=100, description="Place name (1-100 chars)")
+        Field(min_length=1, max_length=100, description="Place name (1-100 chars)"),
     ] = None
 
     # Pattern matching
     postal_code: Annotated[
-        str | None,
-        Field(pattern=r"^\d{5}(-\d{4})?$", description="US postal code")
+        str | None, Field(pattern=r"^\d{5}(-\d{4})?$", description="US postal code")
     ] = None
 ```
 
@@ -3666,12 +3710,13 @@ class Building(Feature):
 ```python
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 
+
 class Building(OvertureFeature):
     # List with size and uniqueness constraints
     categories: Annotated[
         list[str] | None,
         Field(min_length=1, max_length=10, description="1-10 categories"),
-        UniqueItemsConstraint()  # Must come AFTER Field()
+        UniqueItemsConstraint(),  # Must come AFTER Field()
     ] = None
 ```
 
@@ -3707,6 +3752,7 @@ Enums define a fixed set of allowed values:
 ```python
 from enum import Enum
 
+
 class BuildingClass(str, Enum):
     """Further delineation of the building's built purpose."""
 
@@ -3714,6 +3760,7 @@ class BuildingClass(str, Enum):
     COMMERCIAL = "commercial"
     INDUSTRIAL = "industrial"
     CIVIC = "civic"
+
 
 # Usage in a model
 class Building(OvertureFeature):
@@ -3728,6 +3775,7 @@ Use `DocumentedEnum` from `overture.schema.system.doc` when enum members need th
 
 ```python
 from overture.schema.system.doc import DocumentedEnum
+
 
 class VehicleType(str, DocumentedEnum):
     """Types of vehicles for transportation."""
@@ -3850,8 +3898,12 @@ parent_division_id: Annotated[Id, Reference(Relationship.HIERARCHY, Division)]
 capital_division_ids: Annotated[list[Id], Reference(Relationship.HIERARCHY, Division)]
 
 # With role: unambiguous
-parent_division_id: Annotated[Id, Reference(Relationship.HIERARCHY, Division, role="child_of")]
-capital_division_ids: Annotated[list[Id], Reference(Relationship.HIERARCHY, Division, role="has_as_capital")]
+parent_division_id: Annotated[
+    Id, Reference(Relationship.HIERARCHY, Division, role="child_of")
+]
+capital_division_ids: Annotated[
+    list[Id], Reference(Relationship.HIERARCHY, Division, role="has_as_capital")
+]
 ```
 
 The `role` must be a non-empty snake_case string (lowercase letters, digits, underscores). It describes the source's role relative to the target using source-perspective phrasing.
@@ -3870,30 +3922,35 @@ from pydantic import Field
 from overture.schema.common import OvertureFeature
 from overture.schema.system.ref import Id, Reference, Relationship
 
+
 # COMPOSITION — part points to its whole
 class BuildingPart(OvertureFeature[Literal["buildings"], Literal["building_part"]]):
     """A structural part of a building."""
+
     building_id: Annotated[
         Id,
         Reference(Relationship.COMPOSITION, Building, role="part_of"),
-        Field(description="The building to which this part belongs")
+        Field(description="The building to which this part belongs"),
     ]
+
 
 # HIERARCHY — child points to parent
 class DivisionArea(OvertureFeature[Literal["divisions"], Literal["division_area"]]):
     """Area polygon nested under a division."""
+
     division_id: Annotated[
         Id,
         Reference(Relationship.HIERARCHY, Division, role="child_of"),
-        Field(description="Division ID of the parent division of this area.")
+        Field(description="Division ID of the parent division of this area."),
     ]
+
 
 # ASSOCIATION — peer reference, no ownership
 class ConnectorReference(BaseModel):
     """Reference to a connector feature."""
+
     connector_id: Annotated[
-        Id,
-        Reference(Relationship.ASSOCIATION, Connector, role="connects_to")
+        Id, Reference(Relationship.ASSOCIATION, Connector, role="connects_to")
     ]
 ```
 
@@ -3913,14 +3970,8 @@ class AdminCityCenterAssociation(
 ):
     """Describes how an administrative area relates to a city center."""
 
-    admin_area_id: Annotated[
-        Id,
-        Reference(Relationship.ASSOCIATION, AdminArea)
-    ]
-    city_center_id: Annotated[
-        Id,
-        Reference(Relationship.ASSOCIATION, CityCenter)
-    ]
+    admin_area_id: Annotated[Id, Reference(Relationship.ASSOCIATION, AdminArea)]
+    city_center_id: Annotated[Id, Reference(Relationship.ASSOCIATION, CityCenter)]
 
     # Information about the relationship itself
     relationship_type: Literal["primary_center", "secondary_center"] = "primary_center"
@@ -3939,16 +3990,25 @@ When a feature needs to reference multiple other features, use a list of referen
 
 ```python
 # COMPOSITION — boundary defines two divisions
-class DivisionBoundary(OvertureFeature[Literal["divisions"], Literal["division_boundary"]]):
+class DivisionBoundary(
+    OvertureFeature[Literal["divisions"], Literal["division_boundary"]]
+):
     """A boundary line between two divisions."""
+
     division_ids: Annotated[
-        list[Annotated[Id, Reference(Relationship.COMPOSITION, Division, role="boundary_of")]],
+        list[
+            Annotated[
+                Id, Reference(Relationship.COMPOSITION, Division, role="boundary_of")
+            ]
+        ],
         Field(min_length=2, max_length=2, description="Left and right divisions"),
     ]
+
 
 # AGGREGATION — route groups segments
 class Route(OvertureFeature[Literal["transportation"], Literal["route"]]):
     """A transportation route passing through multiple segments."""
+
     segment_ids: Annotated[
         list[Id],
         Reference(Relationship.AGGREGATION, TransportationSegment, role="groups"),
@@ -3970,7 +4030,7 @@ Include `Reference` annotations for semantic clarity and documentation:
 division_id: Annotated[
     Id,
     Reference(Relationship.HIERARCHY, Division, role="child_of"),
-    Field(description="Division ID of the parent division of this area.")
+    Field(description="Division ID of the parent division of this area."),
 ]
 
 # Avoid — missing semantic information
@@ -3994,10 +4054,14 @@ from typing import Annotated, Literal
 from pydantic import Field
 from overture.schema.common import OvertureFeature
 
+
 # Base class with common fields
-class TransportationSegment(OvertureFeature[Literal["transportation"], Literal["segment"]]):
+class TransportationSegment(
+    OvertureFeature[Literal["transportation"], Literal["segment"]]
+):
     subtype: Subtype  # This is the discriminator field
     # ... common fields for all segments
+
 
 # Specific segment types
 class RoadSegment(TransportationSegment):
@@ -4006,16 +4070,17 @@ class RoadSegment(TransportationSegment):
     speed_limits: SpeedLimits | None = None
     # ... road-specific fields
 
+
 class RailSegment(TransportationSegment):
     subtype: Literal[Subtype.RAIL]  # Must be "rail"
     class_: Annotated[RailClass, Field(alias="class")]
     rail_flags: RailFlags | None = None
     # ... rail-specific fields
 
+
 # Union type that automatically picks the right model based on subtype
 Segment = Annotated[
-    RoadSegment | RailSegment | WaterSegment,
-    Field(discriminator="subtype")
+    RoadSegment | RailSegment | WaterSegment, Field(discriminator="subtype")
 ]
 ```
 
@@ -4040,7 +4105,10 @@ from abc import ABC, abstractmethod
 from typing import Annotated, Literal
 from pydantic import Field
 
-class TransportationSegment(OvertureFeature[Literal["transportation"], Literal["segment"]], ABC):
+
+class TransportationSegment(
+    OvertureFeature[Literal["transportation"], Literal["segment"]], ABC
+):
     """Abstract base - cannot be instantiated directly."""
 
     subtype: Subtype  # Discriminator field
@@ -4050,13 +4118,16 @@ class TransportationSegment(OvertureFeature[Literal["transportation"], Literal["
         """Each concrete type must implement this."""
         pass
 
+
 class RoadSegment(TransportationSegment):
     """Concrete class - can be instantiated."""
+
     subtype: Literal[Subtype.ROAD]
     speed_limits: SpeedLimits | None = None
 
     def get_speed_limit(self) -> float:
         return self.speed_limits.max_speed if self.speed_limits else 50.0
+
 
 # Now only concrete classes can be instantiated
 # base_segment = TransportationSegment(...)  # TypeError: Can't instantiate abstract class
@@ -4094,25 +4165,29 @@ segment = "overture.schema.transportation:Segment"
 from typing import Annotated
 from pydantic import BaseModel, Field
 
+
 @no_extra_fields
 class Names(BaseModel):
     primary: str
 
     # Keys (strings) must match a language tag pattern, values are strings
-    common: Annotated[
-        dict[
-            # The key type
-            Annotated[
-                str,
-                Field(
-                    pattern=r"^[a-z]{2,3}(-[A-Z]{2})?$",
-                    description="Language tag (e.g., 'en', 'es-MX')"
-                )
+    common: (
+        Annotated[
+            dict[
+                # The key type
+                Annotated[
+                    str,
+                    Field(
+                        pattern=r"^[a-z]{2,3}(-[A-Z]{2})?$",
+                        description="Language tag (e.g., 'en', 'es-MX')",
+                    ),
+                ],
+                str,  # The value type
             ],
-            str,  # The value type
-        ],
-        Field(json_schema_extra={"additionalProperties": False}),
-    ] | None = None
+            Field(json_schema_extra={"additionalProperties": False}),
+        ]
+        | None
+    ) = None
 ```
 
 **Example data:**
@@ -4138,11 +4213,13 @@ The `additionalProperties: False` ensures only keys matching the pattern are all
 from typing import Annotated
 from pydantic import Field
 
+
 # Each item has its own field validation
 @no_extra_fields
 class HierarchyItem(BaseModel):
     division_id: str
     name: str
+
 
 class Division(OvertureFeature):
     # Nested list validation: outer list AND inner lists both have length constraints
@@ -4150,10 +4227,10 @@ class Division(OvertureFeature):
         list[  # Outer list
             Annotated[
                 list[HierarchyItem],  # Inner list
-                Field(min_length=1)   # Inner list must have at least 1 item
+                Field(min_length=1),  # Inner list must have at least 1 item
             ]
         ],
-        Field(min_length=1)  # Outer list must have at least 1 hierarchy
+        Field(min_length=1),  # Outer list must have at least 1 hierarchy
     ]
 ```
 
@@ -4189,10 +4266,11 @@ SegmentId = NewType("SegmentId", str)  # IDs are strings, but distinct
 CountryCode = NewType("CountryCode", str)  # Country codes are strings, but distinct
 
 # Create aliases for complex field patterns
-EmailList = NewType("EmailList", Annotated[
-    list[str],
-    Field(min_length=1, description="List of email addresses")
-])
+EmailList = NewType(
+    "EmailList",
+    Annotated[list[str], Field(min_length=1, description="List of email addresses")],
+)
+
 
 @no_extra_fields
 class Contact(BaseModel):
@@ -4217,44 +4295,75 @@ class Contact(BaseModel):
 
 ##### File Organization
 
-Organize code by scope and avoid circular imports:
+Organize code by scope, and avoid circular imports.
 
-**Cross-theme shared**: `overture-schema-common` package
+**Cross-theme shared**: the `overture-schema-common` package. Definitions more than
+one theme needs -- `OvertureFeature`, `Names`, `Sources`, the scoping framework.
 
-- Used by multiple themes (e.g., `OvertureFeature`, `Names`, `Sources`, `Scope`)
+**One module per feature type**: at the theme package root, named after the type in
+snake_case.
 
-**Theme-level shared**: Theme package root (e.g., `overture-schema-theme-transportation/src/overture/schema/transportation/`)
+```text
+packages/overture-schema-theme-buildings/src/overture/schema/buildings/
+    __init__.py         # re-exports the public names, declares __all__
+    _common.py          # shared by Building and BuildingPart
+    building.py         # Building, BuildingSubtype, BuildingClass
+    building_part.py    # BuildingPart
+```
 
-- Used by multiple types within a theme (e.g., `AccessRules`, `RoadSurface`)
+The module owns everything specific to its type: the `Feature` subclass, its enums,
+its NewTypes, and its supporting models. `building.py` defines `BuildingSubtype` and
+`BuildingClass` next to `Building`, because nothing else uses them.
 
-**Type-specific**: Type subdirectory (e.g., `overture-schema-theme-transportation/src/overture/schema/transportation/segment/`)
+**Theme-level shared**: `_common.py` at the theme package root, for definitions two
+or more types in the theme need. `buildings/_common.py` holds `Appearance`,
+`RoofShape`, and the material enums that both `Building` and `BuildingPart` use. The
+leading underscore marks the module private -- the theme's `__init__.py` re-exports
+the public names from it.
 
-- Only used by one specific type (e.g., `SegmentType`, `LaneConfiguration`)
+**A type large enough to split**: a subpackage named after the type, applying the
+same rules one level down.
 
-**File type rules:**
+```text
+packages/overture-schema-theme-transportation/src/overture/schema/transportation/
+    __init__.py         # re-exports from connector and segment
+    connector.py        # Connector
+    segment/
+        __init__.py     # assembles the Segment discriminated union, re-exports
+        _common.py      # TransportationSegment and what the arms share
+        road.py         # RoadSegment and its supporting types
+        rail.py         # RailSegment and its supporting types
+        water.py        # WaterSegment
+```
 
-- **`models.py`**: Pydantic model classes (and type aliases that reference models)
-- **`enums.py`**: Enum classes only, no project imports
-- **`types.py`**: Type aliases that don't reference models, no project imports
+Every `__init__.py` re-exports its public names and declares `__all__`, so consumers
+import from the package rather than reaching into the defining module:
+`from overture.schema.buildings import Building`, not
+`from overture.schema.buildings.building import Building`. Entry points name the
+package root for the same reason -- `building = "overture.schema.buildings:Building"`.
+
+There is no `models.py` / `enums.py` / `types.py` split. An enum lives in the module
+whose type uses it, and moves up to `_common.py` when a second type needs it.
 
 ##### Import Organization
 
 ```python
 # Standard library imports first
-from typing import Annotated, Literal, NewType
 from enum import Enum
+from typing import Annotated, Literal, NewType
 
 # Third-party imports
 from pydantic import BaseModel, ConfigDict, Field
 
-# Cross-theme imports
-from overture.schema.common import OvertureFeature
+# Cross-theme and system imports
+from overture.schema.common.scoping import Heading, Scope, scoped
+from overture.schema.system.doc import DocumentedEnum
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
 
-# Local imports last
-from .enums import SegmentType
-from .types import SegmentId, LaneWidth  # Only non-model type aliases
+# Local imports last -- siblings in the theme, then the module's own package
+from ..connector import Connector
+from ._common import SegmentSubtype, TransportationSegment
 ```
 
 `uv run ruff format <file>` will sort your imports in this order automatically.
@@ -4265,20 +4374,22 @@ This project uses a custom validation system that generates better JSON Schema o
 
 ```python
 # Don't do this
-@field_validator('categories')
+@field_validator("categories")
 def validate_categories_unique(cls, v):
     if v and len(v) != len(set(v)):
-        raise ValueError('Categories must be unique')
+        raise ValueError("Categories must be unique")
     return v
+
 
 # Do this instead
 from overture.schema.system.field_constraint import UniqueItemsConstraint
+
 
 class Building(OvertureFeature):
     categories: Annotated[
         list[str] | None,
         Field(min_length=1, description="Building categories"),
-        UniqueItemsConstraint()
+        UniqueItemsConstraint(),
     ] = None
 ```
 
@@ -4312,8 +4423,10 @@ properties:
 @no_extra_fields
 class Address(BaseModel):
     """A postal address."""
+
     freeform: str | None = None
     locality: str | None = None
+
 
 # In overture-schema-theme-buildings/src/overture/schema/buildings/building.py
 class Building(OvertureFeature):
@@ -4351,20 +4464,31 @@ allOf:
 **Pydantic equivalent** uses **mixin classes**:
 
 ```python
-# In common/names.py
+# namesContainer -> Named, in
+# overture-schema-common/src/overture/schema/common/names.py
 class Named(BaseModel):
     """Properties defining the names of a feature."""
+
     names: Names | None = None
 
-# In buildings/models.py
-class Shape(BaseModel):
-    """Properties of the building's shape."""
+
+# shapeContainer -> Appearance, in buildings/_common.py,
+# shared by Building and BuildingPart
+class Appearance(BaseModel):
+    """Physical and visual properties of a building."""
+
     height: float64 | None = None
     num_floors: int32 | None = None
+    # ... roof and facade fields
 
-# Usage with multiple inheritance
-class Building(Feature, Named, Shape):
-    pass  # "pass" means "do nothing" - Building inherits names, height, num_floors, etc. from its parents
+
+# Usage with multiple inheritance -- this is how Building is actually declared
+class Building(
+    OvertureFeature[Literal["buildings"], Literal["building"]],
+    Named,
+    Stacked,
+    Appearance,
+): ...  # inherits names, level, height, num_floors, and the rest from its parents
 ```
 
 JSON Schema containers become **mixin classes** in Pydantic that you inherit from.
@@ -4437,11 +4561,13 @@ absent on the way back out.
 
 ```python
 segments = TypeAdapter(Segment)
-seg = segments.validate_json(open("road-indoors.yaml-as-json").read())   # no `connectors` key
-seg.connectors            # []      ← not None
+seg = segments.validate_json(
+    open("road-indoors.yaml-as-json").read()
+)  # no `connectors` key
+seg.connectors  # []      ← not None
 
 flat = seg.model_dump(mode="python", by_alias=True, exclude_none=True)
-flat["connectors"]        # []      ← exclude_none doesn't drop it
+flat["connectors"]  # []      ← exclude_none doesn't drop it
 segments.validate_python(flat)
 # ValidationError: road.connectors
 #   List should have at least 2 items after validation, not 0
@@ -4452,29 +4578,11 @@ back. `exclude_defaults=True` avoids it, as does pruning empty lists before re-v
 
 ### Docs in the repo that are currently wrong
 
-Worth knowing so you don't follow them into a wall:
-
-- **`pip install overture-schema`** — in every package README. Nothing is on PyPI yet.
-- **`from overture.schema import Building, Place`** — in
-  `packages/overture-schema/README.md`. `overture.schema` is a bare namespace root that
-  ships only `py.typed`. Import from `overture.schema.buildings` etc.
-- **`from overture.schema import parse, discover_models, json_schema`** — `parse()` does
-  not exist anywhere in the codebase. `discover_models` is in
-  `overture.schema.system.discovery`; `json_schema` is in
-  `overture.schema.system.json_schema`.
-- **`Building.model_validate(geojson_feature)`** — documented as supported in
-  `packages/overture-schema/README.md`. It isn't; see the table above.
-- **The plain `overture` tag** — `overture-schema --help` suggests
-  `--tag overture --tag feature` for "official Overture types only". Discovery actually
-  emits only `feature` and `overture:theme=*` (seven tags in all), so that filter matches
-  nothing.
-- **`analyze_type()` returning `TypeInfo` with `.kind`/`.base_type`** — in the codegen
-  README. It returns a 3-tuple now, and `TypeKind` no longer exists.
-- **`overture-codegen list`** prints the raw `typing.Annotated[...]` repr for `Segment`
-  instead of a name, because the union alias has no `__name__`.
-- **CLI `--help` examples render literal `\b`** — the docstrings use raw strings
-  (`r"""`), so Click's escape sequence isn't interpreted and the example formatting
-  collapses.
+- **`pip install overture-schema`** — in every package README. Nothing is on PyPI yet;
+  see [7.3](#73-what-changes-once-these-packages-are-published). Every other item that
+  stood here has been fixed, and `tests/test_documented_imports.py` now imports every
+  `overture.*` statement in every tracked Markdown file, so a broken one fails the suite
+  rather than accumulating here.
 
 ---
 
@@ -4486,11 +4594,12 @@ Worth knowing so you don't follow them into a wall:
 
 ##### Basic Model Template
 
-```python models.py
+```python
 from typing import Annotated
 from pydantic import BaseModel, Field
 from overture.schema.system.model_constraint import no_extra_fields
 from overture.schema.system.numeric import int8, float64
+
 
 @no_extra_fields
 class MyCustomType(BaseModel):
@@ -4507,20 +4616,23 @@ class MyCustomType(BaseModel):
     priority: Annotated[
         int8 | None,
         Field(
-            ge=1,
-            le=10,
-            description="Priority level from 1 (lowest) to 10 (highest)"
-        )
+            ge=1, le=10, description="Priority level from 1 (lowest) to 10 (highest)"
+        ),
     ] = None
 ```
 
 ##### Feature Template
 
-```python models.py
+```python
 from typing import Annotated, Literal
 from pydantic import Field
 from overture.schema.common import OvertureFeature
-from overture.schema.system.geometric import Geometry, GeometryType, GeometryTypeConstraint
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
+
 
 class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
     """Description of what this feature represents."""
@@ -4538,8 +4650,9 @@ class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
 
 ##### Enum Template
 
-```python enums.py
+```python
 from enum import Enum
+
 
 class MyEnum(str, Enum):
     """Description of what this enum represents."""
@@ -4551,11 +4664,12 @@ class MyEnum(str, Enum):
 
 ##### Model with Validation Constraints
 
-```python models.py
+```python
 from typing import Annotated
 from pydantic import BaseModel, Field
 from overture.schema.system.field_constraint import UniqueItemsConstraint
 from overture.schema.system.model_constraint import no_extra_fields
+
 
 @no_extra_fields
 class Contact(BaseModel):
@@ -4569,20 +4683,23 @@ class Contact(BaseModel):
     tags: Annotated[
         list[str] | None,
         Field(min_length=1, description="Contact tags"),
-        UniqueItemsConstraint()  # No duplicate tags
+        UniqueItemsConstraint(),  # No duplicate tags
     ] = None
 ```
 
 ##### Association Feature Template
 
-```python models.py
+```python
 from typing import Annotated, Literal
 from pydantic import Field
 from overture.schema.common import OvertureFeature
 from overture.schema.system.numeric import float64
 from overture.schema.system.ref import Id, Reference, Relationship
 
-class MyAssociation(OvertureFeature[Literal["associations"], Literal["my_association"]]):
+
+class MyAssociation(
+    OvertureFeature[Literal["associations"], Literal["my_association"]]
+):
     """Represents a relationship between two features with metadata."""
 
     # References to the associated features
@@ -4592,13 +4709,13 @@ class MyAssociation(OvertureFeature[Literal["associations"], Literal["my_associa
     feature_a_id: Annotated[
         Id,
         Reference(Relationship.ASSOCIATION, FeatureA, role="connects_from"),
-        Field(description="First feature in the relationship")
+        Field(description="First feature in the relationship"),
     ]
 
     feature_b_id: Annotated[
         Id,
         Reference(Relationship.ASSOCIATION, FeatureB, role="connects_to"),
-        Field(description="Second feature in the relationship")
+        Field(description="Second feature in the relationship"),
     ]
 
     # Relationship metadata
@@ -4615,9 +4732,9 @@ class MyAssociation(OvertureFeature[Literal["associations"], Literal["my_associa
 
 ```python
 # Basic field types
-name: str                    # Required string
-name: str | None = None     # Optional string
-count: int32                # Required integer
+name: str  # Required string
+name: str | None = None  # Optional string
+count: int32  # Required integer
 priority: Literal["high", "medium", "low"] | None = None  # Constrained values
 
 # Validated fields
@@ -4641,10 +4758,12 @@ class Address(BaseModel):
     street: str
     city: str | None = None
 
+
 # Feature model
 class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
     geometry: Geometry
     height: float64 | None = None
+
 
 # Enum
 class Status(str, Enum):
