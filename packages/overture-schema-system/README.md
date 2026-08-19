@@ -132,7 +132,7 @@ class Park(Identified):
 
 
 class ParkBench(Identified):
-    park_id: Annotated[Id, Reference(Relationship.BELONGS_TO, Park)]
+    park_id: Annotated[Id, Reference(Relationship.COMPOSITION, Park, role="part_of")]
 ```
 
 ## Discovery
@@ -222,6 +222,7 @@ Specific plain tags and namespaces are reserved for designated packages. For exa
 |---|---|
 | `feature` (tag) | `overture-schema-system` |
 | `system:` (namespace) | `overture-schema-system` |
+| `overture` (tag) | `overture-schema-common` |
 | `overture:` (namespace) | `overture-schema-common` |
 
 When a provider attempts to set a reserved tag from an unauthorized package, discovery logs a warning and discards the tag.
@@ -229,6 +230,7 @@ When a provider attempts to set a reserved tag from an unauthorized package, dis
 ### Built-in Providers
 
 - **`feature`** (in `system`) -- adds `feature` if any concrete arm is a `Feature` subclass.
+- **`overture`** (in `common`) -- adds `overture` if any concrete arm is an `OvertureFeature` subclass: the model is built on Overture's feature model, as distinct from `feature`, which says only that it is a `Feature`. Consumers that need to ask that question read the tag rather than importing `OvertureFeature`. The tag does not assert that the type belongs to the Overture schema -- a third-party `OvertureFeature` subclass receives it too, and the reservation governs who may emit the tag, not which models get it.
 - **`theme`** (in `common`) -- adds `overture:theme={theme}` for each `OvertureFeature` referenced. A discriminated-union feature whose arms span multiple themes contributes one tag per distinct theme.
 
 ### Selecting Models by Tag
