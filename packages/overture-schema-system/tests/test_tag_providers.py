@@ -123,6 +123,25 @@ def test_allowed_reserved_tag(
     assert _generate_tags(any_model, any_key, system_providers) == {"feature"}
 
 
+def test_reserved_overture_tag(
+    other_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
+) -> None:
+    providers = {other_tag_provider: fake_provider("overture", "valid")}
+    result = _generate_tags(any_model, any_key, providers)
+    assert result == {"valid"}
+
+
+def test_allowed_reserved_overture_tag(
+    common_tag_provider: TagProviderKey,
+    any_key: ModelKey,
+    any_model: type[BaseModel],
+) -> None:
+    common_providers = {common_tag_provider: fake_provider("overture")}
+    assert _generate_tags(any_model, any_key, common_providers) == {"overture"}
+
+
 def test_reserved_namespace(
     other_tag_provider: TagProviderKey,
     any_key: ModelKey,
