@@ -963,7 +963,7 @@ requires-dist = [
 dev = [
     { name = "mypy", specifier = ">=1.17.0" },
     { name = "pytest", specifier = ">=9.0.0" },
-    { name = "ruff", specifier = ">=0.13.0" },
+    { name = "ruff", specifier = ">=0.16.0" },
 ]
 
 [[package]]
@@ -1098,7 +1098,7 @@ requires-dist = [
 dev = [
     { name = "mypy", specifier = ">=1.17.0" },
     { name = "pytest", specifier = ">=9.0.0" },
-    { name = "ruff", specifier = ">=0.13.0" },
+    { name = "ruff", specifier = ">=0.16.0" },
 ]
 
 [[package]]
@@ -1259,7 +1259,7 @@ dev = [
     { name = "pytest", specifier = ">=9.0.0" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-testmon", specifier = ">=2.2.0" },
-    { name = "ruff", specifier = ">=0.13.0" },
+    { name = "ruff", specifier = ">=0.16.0" },
     { name = "towncrier", specifier = ">=25.8.0" },
 ]
 
