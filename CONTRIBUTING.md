@@ -6,6 +6,13 @@ Thank you for your interest in contributing.
 > [DevOps tracking issue #490](https://github.com/OvertureMaps/schema/issues/490)
 > for current status and what is planned next.
 
+## Working with the Python packages
+
+The schema is authored as Pydantic models. [SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) covers the
+whole toolchain: Part I for installing and using the packages, Part II for authoring new
+schema models and the development workflow (`uv sync`, `make check`, ruff and
+docformatter).
+
 ## Where to send your change
 
 This repository uses a two-branch model. Target the branch that matches your
