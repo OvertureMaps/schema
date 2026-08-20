@@ -1042,6 +1042,7 @@ source = { editable = "packages/overture-schema-pyspark" }
 dependencies = [
     { name = "click" },
     { name = "overture-schema-system" },
+    { name = "packaging" },
 ]
 
 [package.optional-dependencies]
@@ -1053,6 +1054,7 @@ spark = [
 requires-dist = [
     { name = "click", specifier = ">=8.0" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
+    { name = "packaging", specifier = ">=22" },
     { name = "pyspark", marker = "extra == 'spark'", specifier = ">=3.4" },
 ]
 provides-extras = ["spark"]

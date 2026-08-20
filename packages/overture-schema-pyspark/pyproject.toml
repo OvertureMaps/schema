@@ -6,6 +6,7 @@ build-backend = "uv_build"
 dependencies = [
     "click>=8.0",
     "overture-schema-system>=0.1.1",
+    "packaging>=22",
 ]
 description = "PySpark validation expressions for Overture Maps data"
 license = "MIT"
