@@ -1,6 +1,6 @@
 # Overture Schema Guide
 
-A practical guide to installing the Overture Maps schema packages, exploring the models,
+This is a practical guide to installing the Overture schema packages, exploring the models,
 writing code against them, validating data, and generating artifacts from the schema.
 
 Three other pages cover material this guide points to rather than repeats:
