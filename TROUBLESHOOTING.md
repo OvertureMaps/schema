@@ -1,13 +1,8 @@
 # Troubleshooting
 
-Symptom-first. Find the error you actually saw, read that entry, and skip the rest.
-**Nothing on this page is setup you need to perform.** If your commands run cleanly,
-you do not need this page at all.
+This page is meant to help you handle **errors** and navigate **gotchas** when you are installing and working with the schema models. It's written for early testers of the Pydantic schema who are installing locally, prior to the publication of the packages on PyPI and the `v2.0.0` launch of the schema.
 
-The page has two halves. Most of it is **errors** — something failed and printed a
-message you can search for. The last section is **gotchas**: cases where nothing fails,
-and you get wrong output instead of an error. Those are worth reading once before you
-trust a round-trip.
+
 
 | Symptom | Section |
 |---|---|
@@ -55,7 +50,7 @@ warning: Failed to parse `pyproject.toml` during settings discovery:
 > uv run overture-schema --version
 > ```
 >
-> A single line of output means you're fine. A wall of warning text above it means read on.
+> A single line of output means you're fine. A wall of warning text above it means you have a problem to sort out.
 
 **If you do see it: this is not cosmetic. Fix it before you do anything else.**
 
@@ -328,8 +323,7 @@ one-liners, `{value!r}` can always be written `{repr(value)}` instead — no `!`
 
 ## Model gotchas
 
-Things that cost time if you don't know them. Every one of these is a consequence of
-[the two representations](SCHEMA_GUIDE.md#32-the-one-thing-to-understand-two-representations).
+Navigating [the two representations](SCHEMA_GUIDE.md#32-the-one-thing-to-understand-two-representations) of the models can be challenging.
 
 | Gotcha | What happens | Fix |
 |---|---|---|
@@ -340,8 +334,7 @@ Things that cost time if you don't know them. Every one of these is a consequenc
 | Dumps full of `null` | Unset optionals serialize explicitly | `exclude_none=True` |
 | Absent list → `[]` → won't re-validate | An omitted optional list defaults to `[]` on the model, dumps as `[]`, then fails a `min_length` check on the way back in | `exclude_defaults=True`, or drop empty lists before re-validating |
 
-Asymmetric round-trip, worth knowing about: an optional list that is simply *absent*
-from the input becomes an empty list on the model, and an empty list is not the same as
+Note: optional list that is simply *absent* from the input becomes an empty list on the model, and an empty list is not the same as
 absent on the way back out.
 
 ```python

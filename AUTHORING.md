@@ -1,8 +1,8 @@
 # Authoring and Extending the Schema
 
-For people **writing** schema — adding feature types, building tools on top of the models,
+This page is for people **writing** to the schema: adding feature types, building tools on top of the models,
 or authoring new Pydantic models for Overture itself. If you only want to *use* the
-schema — validate data, explore models, generate artifacts — you want
+schema to validate data, explore models, or generate artifacts, you want
 [SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) instead.
 
 | If you want to | Read |
@@ -24,7 +24,7 @@ package's `README.md` under `packages/`, versioned alongside the code it documen
 page covers what spans packages.
 
 See also [CONCEPTS.md](CONCEPTS.md) for why the schema is Pydantic and how the packages
-fit together, and [SCHEMA_CONVENTIONS.md](SCHEMA_CONVENTIONS.md) for naming rules.
+fit together.
 
 *Every code block on this page has been executed against the repo;
 `tests/test_documented_imports.py` keeps the imports honest.*
