@@ -8,9 +8,19 @@ The contents of this repository are presented in a more human-friendly format at
 
 ## Python packages
 The schema is authored as [Pydantic](https://docs.pydantic.dev/latest/) models, published
-as a set of Python packages under `packages/`. See
-[SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) for installing them, validating data, generating
-artifacts, and authoring new schema models.
+as a set of Python packages under `packages/`.
+
+These pages are for people working with the packages in code. **To read the schema itself
+— what feature types exist, what fields they carry, what values are valid — use
+[docs.overturemaps.org](https://docs.overturemaps.org/).**
+
+- [SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) — install the packages, explore the models, validate
+  data, generate artifacts. **Start here.**
+- [AUTHORING.md](AUTHORING.md) — register your own feature types, author new schema
+  models, build an SDK or CLI on the models.
+- [CONCEPTS.md](CONCEPTS.md) — why the schema is Pydantic, why it is many packages, and
+  what the GeoJSON envelope is.
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — symptom-indexed fixes and known gotchas.
 
 ## Schema reference
 
@@ -20,7 +30,7 @@ artifacts, and authoring new schema models.
   **Out of date:** it predates the Pydantic packages and still describes JSON Schema as
   the way the schema is defined, spells `subtype` as `subType`, and leaves the extensions
   section unfinished. Useful for the conventions themselves; check anything structural
-  against [SCHEMA_GUIDE.md](SCHEMA_GUIDE.md).
+  against [SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) and [AUTHORING.md](AUTHORING.md).
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branching strategy, workflow, and contribution guidelines.

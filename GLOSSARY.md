@@ -4,8 +4,10 @@ Two vocabularies meet in this repository. The first describes the map: what an e
 what a feature is, how feature types are named. The second describes the Python packages
 that define the schema: workspaces, entry points, specs. Both are collected here.
 
-Terms in the second group are cross-referenced to the section of
-[SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) that covers them in full.
+Terms in the second group are cross-referenced to the page and section that covers them
+in full — [SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) for using the schema,
+[AUTHORING.md](AUTHORING.md) for extending it, and [CONCEPTS.md](CONCEPTS.md) for
+background.
 
 ---
 
@@ -93,14 +95,14 @@ environment, declared in `pyproject.toml`. Nothing imports these directly; they 
 discovered at runtime. The schema uses four groups: `overture.models` (feature types),
 `overture.tag_providers` ([tags](#tag)), `project.scripts` (the CLIs), and `pytest11`
 (test plugins). Registering your own model is a matter of adding an entry point — see
-[Register your own feature types](SCHEMA_GUIDE.md#83-register-your-own-feature-types).
+[Register your own feature types](AUTHORING.md#register-your-own-feature-types).
 
 ### Workspace
 
 One repository containing several independently-versioned packages that share a single
 lockfile and a single virtual environment. Declared by `[tool.uv.workspace]` in the root
 `pyproject.toml`. The schema repo is a `uv` workspace of thirteen packages. See
-[What "workspace" means](SCHEMA_GUIDE.md#what-workspace-means).
+[What "workspace" means](CONCEPTS.md#what-workspace-means).
 
 ### Metapackage
 
@@ -162,7 +164,7 @@ before any output format is chosen — `RecordSpec` for a model, `UnionSpec` for
 discriminated union, `FieldSpec` for a field, `EnumSpec` for an enum. Renderers consume
 specs; they never touch Pydantic models directly. This split is what lets a new output
 format be a new renderer rather than new extraction logic. See
-[Write a new codegen target](SCHEMA_GUIDE.md#84-write-a-new-codegen-target).
+[Write a new codegen target](AUTHORING.md#write-a-new-codegen-target).
 
 ### Extra
 
