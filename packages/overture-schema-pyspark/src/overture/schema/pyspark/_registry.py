@@ -7,7 +7,7 @@ codegen-emitted `ENTRY_POINT` and `MODEL_VALIDATION` constants.
 The generated tree on disk is the runtime source of truth: the
 registry contains exactly what was generated, regardless of which
 theme packages are installed alongside the pyspark package. A missing
-`expressions/generated/` subtree simply yields an empty registry --
+`expressions/generated/` subtree simply yields an empty registry, and
 the package still imports cleanly.
 """
 
@@ -15,7 +15,8 @@ from __future__ import annotations
 
 import importlib
 import logging
-from pathlib import Path
+import zipfile
+from pathlib import Path, PurePosixPath
 
 from .check import ModelValidation
 
@@ -24,23 +25,62 @@ logger = logging.getLogger(__name__)
 _GENERATED_ROOT = "overture.schema.pyspark.expressions.generated"
 
 
+def _zip_boundary(root_path: str) -> tuple[str, str] | None:
+    """Split a namespace portion into `(zip file path, internal prefix)`.
+
+    Returns `None` when `root_path` is neither a real directory nor inside a
+    zip, such as an empty or nonexistent portion. When Glue loads the package
+    from a wheel via `--extra-py-files`, a namespace portion looks like
+    `.../some_pkg-1.0-py3-none-any.whl/a/b/c`, where the leading
+    `.../some_pkg....whl` segment is a real zip file even though the whole
+    path is not a directory on disk. `importlib.resources`'s `Traversable`
+    API is meant to cover this, but its `MultiplexedPath` (at least through
+    Python 3.10) raises `NotADirectoryError` the moment any namespace portion
+    is not a real directory, so it does not work here.
+    """
+    path = Path(root_path)
+    for parent in (path, *path.parents):
+        if parent.is_file() and zipfile.is_zipfile(parent):
+            return str(parent), path.relative_to(parent).as_posix()
+    return None
+
+
 def _iter_generated_module_names(root_paths: list[str]) -> list[str]:
-    """Return the dotted names of every generated module on disk.
+    """Return the dotted names of every generated module under `root_paths`.
 
     The generated tree is PEP 420 (no `__init__.py`), so its subdirectories
-    are namespace packages. `pkgutil.walk_packages` skips those, so the tree
-    is walked as files instead: every `.py` under the namespace roots, keyed
-    to a dotted name relative to `_GENERATED_ROOT`.
+    are namespace packages, which `pkgutil.walk_packages` skips. Each
+    namespace portion is therefore walked directly. A portion that is a real
+    directory is walked with `pathlib`; one that sits inside a wheel on
+    `sys.path`, as under Glue's `--extra-py-files`, is read from the archive
+    with `zipfile`.
     """
     names: list[str] = []
     for root_path in root_paths:
         base = Path(root_path)
-        for path in sorted(base.rglob("*.py")):
-            if path.name == "__init__.py":
-                continue
-            relative = path.relative_to(base).with_suffix("")
-            names.append(".".join([_GENERATED_ROOT, *relative.parts]))
-    return names
+        if base.is_dir():
+            for path in sorted(base.rglob("*.py")):
+                if path.name == "__init__.py":
+                    continue
+                relative = path.relative_to(base).with_suffix("")
+                names.append(".".join([_GENERATED_ROOT, *relative.parts]))
+            continue
+
+        boundary = _zip_boundary(root_path)
+        if boundary is None:
+            continue
+        zip_path, prefix = boundary
+        prefix = f"{prefix}/" if prefix else ""
+        with zipfile.ZipFile(zip_path) as archive:
+            for entry in archive.namelist():
+                if not entry.startswith(prefix) or not entry.endswith(".py"):
+                    continue
+                member = PurePosixPath(entry[len(prefix) :])
+                if member.name == "__init__.py":
+                    continue
+                dotted = member.with_suffix("").as_posix().replace("/", ".")
+                names.append(".".join([_GENERATED_ROOT, dotted]))
+    return sorted(names)
 
 
 def _walk() -> tuple[dict[str, ModelValidation], dict[str, dict[str, str]]]:
