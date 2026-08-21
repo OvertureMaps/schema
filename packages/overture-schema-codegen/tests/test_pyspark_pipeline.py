@@ -94,7 +94,15 @@ class TestGeneratePysparkModules:
         assert result.test == []
 
     def test_one_module_per_spec(self, two_spec_modules: PipelineOutput) -> None:
-        assert len(two_spec_modules.source) == 2
+        model_modules = [
+            m for m in two_spec_modules.source if m.path.name != "_index.py"
+        ]
+        assert len(model_modules) == 2
+
+    def test_emits_index_module(self, two_spec_modules: PipelineOutput) -> None:
+        index = [m for m in two_spec_modules.source if m.path.name == "_index.py"]
+        assert len(index) == 1
+        assert index[0].path == PurePosixPath("_index.py")
 
     def test_paths_unique_per_tree(self, two_spec_modules: PipelineOutput) -> None:
         # source and test trees mirror the same dirs; uniqueness is
@@ -236,7 +244,7 @@ class TestNestedSourcePaths:
             SimpleModel, entry_point="overture.schema.simple:SimpleModel"
         )
         modules = generate_pyspark_modules([spec])
-        features = modules.source
+        features = [m for m in modules.source if m.path.name != "_index.py"]
         assert len(features) == 1
         assert features[0].path == PurePosixPath(
             "overture/schema/simple/simple_model.py"
@@ -264,8 +272,8 @@ class TestNoInitModulesEmitted:
 
 class TestNoRegistryEmitted:
     def test_registry_module_is_no_longer_generated(self) -> None:
-        # The runtime builds the registry via entry-point discovery; codegen
-        # must not emit `_registry.py`.
+        # The runtime builds the registry from the generated `_index` module;
+        # codegen emits that index but never a hand-written `_registry.py`.
         spec = extract_model(
             SimpleModel, entry_point="overture.schema.simple:SimpleModel"
         )
