@@ -9,10 +9,13 @@ from overture.schema.system.discovery import TagSelector
 
 F = TypeVar("F", bound=Callable[..., object])
 
+# Every tag named here must be one discovery actually emits -- a tag in help
+# text reads as runnable. The namespaced form has no shipped example, so it is
+# described rather than illustrated.
 _TAG_SYNTAX_NOTE = (
-    "Accepts plain tags (e.g. feature), namespaced tags "
-    "(e.g. overture:approved), or compound key/value tags "
-    "(e.g. overture:theme=buildings)."
+    "Accepts plain tags (e.g. feature, overture) and compound key/value tags "
+    "(e.g. overture:theme=buildings). A namespaced form, namespace:predicate, "
+    "is also accepted for tags that third-party packages register."
 )
 
 

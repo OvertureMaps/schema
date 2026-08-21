@@ -45,7 +45,7 @@ select = [
 [tool.mypy]
 disallow_untyped_defs = true
 explicit_package_bases = true
-files = "packages/**/*.py"
+files = ["packages/**/*.py", "tests/**/*.py"]
 # The pyspark test tree is PEP 420 and its tests import `_support` as a
 # top-level package (mirroring pytest's pythonpath). Put that tests dir on
 # the mypy path so `_support` resolves the same way for the type checker.
@@ -64,7 +64,7 @@ dev = [
     "pytest>=9.0.0",
     "pytest-cov>=7.0.0",
     "pytest-testmon>=2.2.0",
-    "ruff>=0.13.0",
+    "ruff>=0.16.0",
     "towncrier>=25.8.0",
 ]
 

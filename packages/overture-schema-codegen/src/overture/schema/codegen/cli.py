@@ -11,6 +11,7 @@ from overture.schema.cli.tag_options import build_selector, tag_selection_option
 from overture.schema.system.discovery import (
     discover_models,
     filter_models,
+    split_entry_point,
 )
 
 from .extraction.specs import ModelSpec, SupplementarySpec, TypeIdentity
@@ -59,11 +60,14 @@ def cli() -> None:
 def list_models() -> None:
     """List all discovered models."""
     models = discover_models()
-    names = sorted(
-        model.__name__ if isinstance(model, type) else str(model)
-        for model in models.values()
-    )
-    for name in names:
+    # Name every entry from its entry point, not the loaded object: a
+    # discriminated union loads as an `Annotated[...]` alias with no
+    # `__name__`, so `str(model)` would print the whole type expression.
+    names = []
+    for key in models:
+        _, class_name = split_entry_point(key.entry_point)
+        names.append(class_name)
+    for name in sorted(names):
         click.echo(name)
 
 

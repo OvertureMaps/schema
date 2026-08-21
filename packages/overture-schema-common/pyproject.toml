@@ -37,4 +37,5 @@ dev = [
 ]
 
 [project.entry-points."overture.tag_providers"]
+overture = "overture.schema.common.tag_providers:overture_provider"
 theme = "overture.schema.common.tag_providers:theme_provider"
