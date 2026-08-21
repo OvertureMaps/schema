@@ -1,4 +1,4 @@
-.PHONY: default uv-sync clean-pyspark generate-pyspark check check-namespace test-all test test-only docformat docformat-only doctest doctest-only mypy mypy-only lint-only update-baselines
+.PHONY: default uv-sync clean-pyspark generate-pyspark check check-namespace test-all test test-only docformat docformat-only doctest doctest-only mypy mypy-only lint-only format update-baselines
 
 TESTMON ?= --testmon
 
@@ -47,13 +47,13 @@ check-namespace:
 # the PySpark output first: that tree is no longer tracked in git, so the
 # generated conformance tests only exist once generation has run.
 test-all: uv-sync generate-pyspark
-	@uv run pytest -W error packages/
+	@uv run pytest -W error packages/ tests/
 
 test: uv-sync
-	@uv run pytest -W error $(TESTMON) packages/ -x -q --tb=short
+	@uv run pytest -W error $(TESTMON) packages/ tests/ -x -q --tb=short
 
 test-only:
-	@uv run pytest -W error $(TESTMON) packages/ -x -q --tb=short
+	@uv run pytest -W error $(TESTMON) packages/ tests/ -x -q --tb=short
 
 coverage: uv-sync
 	@uv run pytest packages/ --cov overture.schema --cov-report=term --cov-report=html && open htmlcov/index.html
@@ -90,11 +90,20 @@ mypy-only:
 		| tr - . \
 		| sed 's|^packages/|-p |' \
 		| xargs uv run mypy --no-error-summary
-	@for d in packages/*/tests; do find "$$d" -name "*.py" | sort | xargs uv run mypy --no-error-summary || exit 1; done
+	@for d in packages/*/tests tests; do find "$$d" -name "*.py" | sort | xargs uv run mypy --no-error-summary || exit 1; done
 
 lint-only:
-	@uv run ruff check -q packages/
-	@uv run ruff format --check packages/
+	@uv run ruff check -q packages/ tests/
+	@uv run ruff format --check packages/ tests/
+	@# Python embedded in Markdown -- keeps documented snippets in the
+	@# same style as the code they describe.
+	@git ls-files -z '*.md' | xargs -0 --no-run-if-empty uv run ruff format -q --check
+
+# The fixing counterpart to lint-only: what to run when that gate fires.
+format:
+	@uv run ruff check -q --fix packages/ tests/
+	@uv run ruff format -q packages/ tests/
+	@git ls-files -z '*.md' | xargs -0 --no-run-if-empty uv run ruff format -q
 
 update-baselines:
 	@uv run pytest --update-baselines -m baseline -q packages/
