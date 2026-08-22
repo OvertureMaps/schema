@@ -755,7 +755,7 @@
       "type": "string"
     },
     "RoadFlag": {
-      "description": "Simple flags that can be on or off for a road segment.\n\nSpecifies physical characteristics and can overlap.",
+      "description": "Simple flags that can be on or off for a road segment.\n\nSpecifies physical characteristics and other properties of the road and can overlap.",
       "enum": [
         "is_bridge",
         "is_link",
@@ -763,14 +763,16 @@
         "is_under_construction",
         "is_abandoned",
         "is_covered",
-        "is_indoor"
+        "is_indoor",
+        "dynamic_speed",
+        "unlimited_speed"
       ],
       "title": "RoadFlag",
       "type": "string"
     },
     "RoadFlagRule": {
       "additionalProperties": false,
-      "description": "Road-specific flag rule with geometric scoping only.",
+      "description": "Road-specific flag rule.",
       "properties": {
         "between": {
           "description": "The linearly-referenced sub-segment of the geometry, specified as a range (pair) of percentage displacements from the start of the geometry, that the containing RoadFlagRule applies to.",
@@ -792,6 +794,9 @@
           "title": "Values",
           "type": "array",
           "uniqueItems": true
+        },
+        "when": {
+          "$ref": "#/$defs/overture__schema__transportation__segment__road__RoadFlagRule__When"
         }
       },
       "required": [
@@ -1282,32 +1287,6 @@
     },
     "SpeedLimitRule": {
       "additionalProperties": false,
-      "anyOf": [
-        {
-          "properties": {
-            "max_speed": {
-              "not": {
-                "type": "null"
-              }
-            }
-          },
-          "required": [
-            "max_speed"
-          ]
-        },
-        {
-          "properties": {
-            "min_speed": {
-              "not": {
-                "type": "null"
-              }
-            }
-          },
-          "required": [
-            "min_speed"
-          ]
-        }
-      ],
       "description": "An individual speed limit rule.",
       "properties": {
         "between": {
@@ -1322,24 +1301,32 @@
           "title": "Between",
           "type": "array"
         },
-        "is_max_speed_variable": {
-          "default": false,
-          "description": "Indicates a variable speed corridor",
-          "title": "Is Max Speed Variable",
-          "type": "boolean"
-        },
-        "max_speed": {
+        "speed": {
           "$ref": "#/$defs/Speed"
         },
-        "min_speed": {
-          "$ref": "#/$defs/Speed"
+        "type": {
+          "$ref": "#/$defs/SpeedLimitType"
         },
         "when": {
           "$ref": "#/$defs/overture__schema__transportation__segment___common__SpeedLimitRule__When"
         }
       },
+      "required": [
+        "type",
+        "speed"
+      ],
       "title": "SpeedLimitRule",
       "type": "object"
+    },
+    "SpeedLimitType": {
+      "description": "The kind of speed limit.",
+      "enum": [
+        "advisory",
+        "maximum",
+        "minimum"
+      ],
+      "title": "SpeedLimitType",
+      "type": "string"
     },
     "SpeedUnit": {
       "description": "Unit of speed.",
@@ -2225,6 +2212,164 @@
         "heading"
       ],
       "title": "DestinationRule.When",
+      "type": "object"
+    },
+    "overture__schema__transportation__segment__road__RoadFlagRule__When": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "heading": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "heading"
+          ]
+        },
+        {
+          "properties": {
+            "during": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "during"
+          ]
+        },
+        {
+          "properties": {
+            "mode": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "mode"
+          ]
+        },
+        {
+          "properties": {
+            "using": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "using"
+          ]
+        },
+        {
+          "properties": {
+            "recognized": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "recognized"
+          ]
+        },
+        {
+          "properties": {
+            "vehicle": {
+              "not": {
+                "type": "null"
+              }
+            }
+          },
+          "required": [
+            "vehicle"
+          ]
+        }
+      ],
+      "description": "Scopes for RoadFlagRule: Scope.HEADING, Scope.TEMPORAL, Scope.TRAVEL MODE, Scope.PURPOSE OF USE, Scope.RECOGNIZED STATUS and Scope.VEHICLE",
+      "properties": {
+        "during": {
+          "description": "The recurring time span, in the OpenStreetMap opening hours format, that the containing RoadFlagRule applies to. For the OSM opening hours specification, see https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification.",
+          "title": "During",
+          "type": "string"
+        },
+        "heading": {
+          "$ref": "#/$defs/Heading",
+          "description": "The heading, either forward or backward, that the containing RoadFlagRule applies to."
+        },
+        "mode": {
+          "description": "A list of one or more travel modes, such as car, truck, or foot, that the containing RoadFlagRule applies to.",
+          "items": {
+            "$ref": "#/$defs/TravelMode"
+          },
+          "minItems": 1,
+          "title": "Mode",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "recognized": {
+          "description": "A list of one or more recognized status values, such as employee or student, that the containing RoadFlagRule applies to.",
+          "items": {
+            "$ref": "#/$defs/RecognizedStatus"
+          },
+          "minItems": 1,
+          "title": "Recognized",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "using": {
+          "description": "A list of one or more usage purposes, such as delivery or arrival at final destination, that the containing RoadFlagRule applies to.",
+          "items": {
+            "$ref": "#/$defs/PurposeOfUse"
+          },
+          "minItems": 1,
+          "title": "Using",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "vehicle": {
+          "description": "A list of one or more vehicle parameters that limit the vehicles the containing RoadFlagRule applies to.",
+          "items": {
+            "description": "Selects vehicles that a scope applies to based on criteria such as height, weight, or axle count.",
+            "discriminator": {
+              "mapping": {
+                "axle_count": "#/$defs/VehicleAxleCountSelector",
+                "height": "#/$defs/VehicleHeightSelector",
+                "length": "#/$defs/VehicleLengthSelector",
+                "weight": "#/$defs/VehicleWeightSelector",
+                "width": "#/$defs/VehicleWidthSelector"
+              },
+              "propertyName": "dimension"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/VehicleAxleCountSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleHeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleLengthSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWeightSelector"
+              },
+              {
+                "$ref": "#/$defs/VehicleWidthSelector"
+              }
+            ]
+          },
+          "minItems": 1,
+          "title": "Vehicle",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "title": "RoadFlagRule.When",
       "type": "object"
     }
   },

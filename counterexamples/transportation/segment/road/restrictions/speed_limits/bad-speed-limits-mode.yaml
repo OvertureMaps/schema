@@ -21,7 +21,8 @@ properties:
     - connector_id: barConnector
       at: 1
   speed_limits:
-    - max_speed:
+    - type: maximum
+      speed:
         value: 110
         unit: mph
       when: {mode: [foo]}
