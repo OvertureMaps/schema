@@ -201,13 +201,8 @@ changes that package, whether or not it bumps the version.
    stays in sync (see #679). The tag push is the trigger and the filter:
    no other package's release creates a bare `v*` tag, and the tag itself is
    passed straight through as the docs build's `schema-ref`, no lookup
-   needed. One edge case: if the vanity tag step is ever skipped because
-   that tag already exists (a re-cut release reusing a version), no tag push
-   fires and the docs rebuild silently doesn't dispatch; re-run
-   `docs-publish.yaml` by hand against the existing tag in that case.
-   Dispatching cross-repo reuses the `overture-releaser` app (#637) with an
-   added `Actions: write` permission and an install on the docs repo (#689),
-   rather than a new app.
+   needed. Dispatching cross-repo uses the `overture-releaser` app (#637,
+   #689).
 
 ```mermaid
 flowchart LR
