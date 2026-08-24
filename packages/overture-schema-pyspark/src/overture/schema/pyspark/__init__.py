@@ -1,7 +1,5 @@
 """PySpark validation expressions for Overture Maps data."""
 
-import importlib.util
-
 from ._pyspark_version import pyspark_version_problem
 
 # pyspark is an optional extra (the `spark` extra): a bare install lets this
@@ -10,14 +8,16 @@ from ._pyspark_version import pyspark_version_problem
 # import of any submodule -- so a bare install gets an actionable message. A
 # pyspark that is present but broken still raises its own error, because the
 # imports below run for real.
-if importlib.util.find_spec("pyspark") is None:
+try:
+    import pyspark
+except ModuleNotFoundError as exc:
+    if exc.name != "pyspark":
+        raise
     raise ModuleNotFoundError(
         "overture-schema-pyspark requires PySpark, which isn't installed. "
         "Install it with `pip install overture-schema-pyspark[spark]`, or run "
         "in an environment that already provides PySpark (e.g. a Spark cluster)."
-    )
-
-import pyspark
+    ) from exc
 
 # Installing without the extra leaves no resolver to enforce the version floor
 # declared alongside it, so enforce it here, against the PySpark that actually
