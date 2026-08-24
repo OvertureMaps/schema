@@ -1,34 +1,9 @@
 name: Trigger docs publication
 
-# Fires on the bare `v<version>` vanity tag that .github/actions/create-
-# package-release creates only for the umbrella overture-schema package's
-# release (see docs/versioning.md's tag scheme), and dispatches a production
-# rebuild of OvertureMaps/docs so its generated schema reference
-# (docs/schema/reference/**, built via the OvertureMaps/workflows
-# generate-schema-docs action) stays in sync with schema releases.
-#
-# The `v*` tag glob is the filter: no other package's release creates a bare
-# `v*` tag, so this only ever fires for overture-schema. github.ref_name is
-# the vanity tag itself, used directly as schema-ref with no lookup needed.
-#
-# Caveat: create-package-release skips (warns, doesn't fail) the vanity tag
-# step if that tag already exists, e.g. a re-cut release reusing a version.
-# No new tag means no push event, so that rare case silently doesn't
-# dispatch a docs rebuild; a maintainer can always re-run this workflow by
-# hand (workflow_dispatch isn't wired up here, but `gh workflow run
-# docs-publish.yml --ref v<version>` works against the existing tag).
-#
-# Requires the overture-releaser app (release-trigger.yaml's app, #637) to
-# also be installed on OvertureMaps/docs with an added `actions: write`
-# permission -- it's schema-repo-only with `contents: write` today, and
-# can't dispatch workflows on another repo. Extending it (deliberately
-# bending omf-github-terraform's "one app per concern" convention rather
-# than provisioning a new app) is a manual prerequisite tracked in #689.
-#
-# Reuses release-trigger.yaml's exact PEM fetch: same AWS Secrets Manager
-# entry (omf-github-terraform/releaser/pem), same gha-releaser-secrets-reader
-# OIDC role, same client ID, just scoped to permission-actions instead of
-# permission-contents.
+# Fires on overture-schema's vanity tag push and dispatches a production
+# rebuild of OvertureMaps/docs so its generated schema reference stays in
+# sync. See "Cut a release" in docs/versioning.md for the trigger mechanics
+# and edge cases, and #637/#689 for the overture-releaser app this reuses.
 
 on:
   push:
