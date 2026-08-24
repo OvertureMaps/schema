@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
+
 from overture.schema.codegen.cli import cli
 from overture.schema.codegen.extraction.specs import RecordSpec
 
@@ -378,7 +379,12 @@ class TestCliEntryPoint:
     ) -> None:
         captured: list[RecordSpec] = []
 
-        def spy(model_specs: list, schema_root: str, output_dir: object) -> None:
+        def spy(
+            model_specs: list,
+            schema_root: str,
+            output_dir: object,
+            external_specs: object = None,
+        ) -> None:
             captured.extend(model_specs)
 
         monkeypatch.setattr("overture.schema.codegen.cli._generate_markdown", spy)

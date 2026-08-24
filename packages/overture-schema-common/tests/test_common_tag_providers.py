@@ -3,6 +3,8 @@
 from typing import Annotated, Literal
 
 import pytest
+from pydantic import BaseModel, Field, Tag
+
 from overture.schema.common import OvertureFeature
 from overture.schema.common.tag_providers import (
     theme_provider,
@@ -10,7 +12,6 @@ from overture.schema.common.tag_providers import (
 from overture.schema.system.discovery import ModelKey
 from overture.schema.system.discovery.discovery import _generate_tags
 from overture.schema.system.discovery.types import TagProviderDict, TagProviderKey
-from pydantic import BaseModel, Field, Tag
 
 
 @pytest.fixture

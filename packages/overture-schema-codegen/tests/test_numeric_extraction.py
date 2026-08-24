@@ -2,6 +2,8 @@
 
 from typing import Annotated, NewType
 
+from pydantic import Field
+
 import overture.schema.system.geometric as _system_geometric
 import overture.schema.system.numeric as _system_numeric
 from overture.schema.codegen.extraction.newtype_extraction import extract_newtype
@@ -15,7 +17,6 @@ from overture.schema.codegen.markdown.pipeline import (
     partition_numeric_and_geometry_types,
 )
 from overture.schema.system.numeric import float32, int32, int64, uint8
-from pydantic import Field
 
 
 class TestPartitionNumericAndGeometryTypes:

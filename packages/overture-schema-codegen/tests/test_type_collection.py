@@ -10,6 +10,8 @@ from codegen_test_support import (
     lookup_by_name,
     spec_for_model,
 )
+from pydantic import BaseModel
+
 from overture.schema.codegen.extraction.specs import (
     EnumSpec,
     NewTypeSpec,
@@ -23,7 +25,6 @@ from overture.schema.codegen.layout.type_collection import (
 )
 from overture.schema.system.numeric import uint8
 from overture.schema.system.string import HexColor
-from pydantic import BaseModel
 
 
 def _make_feature_with_sub_model(sub_model: type) -> type[BaseModel]:

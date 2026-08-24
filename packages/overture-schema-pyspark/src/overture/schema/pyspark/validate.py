@@ -16,14 +16,13 @@ from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from pyspark.sql import DataFrame
-from pyspark.sql import functions as F
-from pyspark.sql.types import StringType, StructField, StructType
-
 from overture.schema.system.discovery import (
     entry_point_class_alias,
     resolve_entry_point_key,
 )
+from pyspark.sql import DataFrame
+from pyspark.sql import functions as F
+from pyspark.sql.types import StringType, StructField, StructType
 
 from ._registry import REGISTRY
 from .check import Check, CheckShape

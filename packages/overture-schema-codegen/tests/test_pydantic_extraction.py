@@ -1,8 +1,9 @@
 """Tests for Pydantic type extraction."""
 
+from pydantic import EmailStr, HttpUrl
+
 from overture.schema.codegen.extraction.pydantic_extraction import extract_pydantic_type
 from overture.schema.codegen.extraction.specs import PydanticTypeSpec
-from pydantic import EmailStr, HttpUrl
 
 
 class TestExtractPydanticType:

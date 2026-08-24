@@ -3,9 +3,8 @@
 from typing import Any
 
 import pytest
-
-from ._support.helpers import PathTraversalError
-from ._support.mutations import (
+from _support.helpers import PathTraversalError
+from _support.mutations import (
     _get_nested,
     _set_nested,
     _walk_strict,

@@ -6,10 +6,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 
+from overture.schema.system.geometric import GeometryType
 from pyspark.sql import Column
 from pyspark.sql.types import StructType
-
-from overture.schema.system.geometric import GeometryType
 
 
 class CheckShape(Enum):

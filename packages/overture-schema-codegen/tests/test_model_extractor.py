@@ -12,6 +12,8 @@ from codegen_test_support import (
     assert_literal_field,
     find_field,
 )
+from pydantic import BaseModel, Field
+
 from overture.schema.codegen.extraction.field import ModelRef, Primitive
 from overture.schema.codegen.extraction.field_walk import (
     all_constraints,
@@ -32,7 +34,6 @@ from overture.schema.system.model_constraint import (
     require_if,
 )
 from overture.schema.system.string import HexColor
-from pydantic import BaseModel, Field
 
 
 class TestModelConstraints:

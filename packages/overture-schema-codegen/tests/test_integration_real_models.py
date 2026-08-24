@@ -6,6 +6,8 @@ the installed Overture schema packages.
 
 import pytest
 from codegen_test_support import assert_literal_field, spec_for_model
+from pydantic import BaseModel
+
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
     ModelSpec,
@@ -19,7 +21,6 @@ from overture.schema.codegen.markdown.renderer import render_model
 from overture.schema.codegen.spec_discovery import extract_model_spec
 from overture.schema.system.discovery import discover_models
 from overture.schema.transportation import RoadSegment, Segment
-from pydantic import BaseModel
 
 
 class TestDiscoverModels:

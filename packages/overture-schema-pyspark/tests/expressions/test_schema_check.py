@@ -1,9 +1,5 @@
 """Tests for schema comparison."""
 
-from overture.schema.pyspark.schema_check import (
-    SchemaMismatch,
-    compare_schemas,
-)
 from pyspark.sql.types import (
     ArrayType,
     DoubleType,
@@ -12,6 +8,11 @@ from pyspark.sql.types import (
     StringType,
     StructField,
     StructType,
+)
+
+from overture.schema.pyspark.schema_check import (
+    SchemaMismatch,
+    compare_schemas,
 )
 
 

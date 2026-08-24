@@ -2,6 +2,7 @@
 
 import json
 import logging
+from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 
 import click
@@ -12,7 +13,7 @@ from overture.schema.system.discovery import (
     filter_models,
 )
 
-from .extraction.specs import ModelSpec
+from .extraction.specs import ModelSpec, SupplementarySpec, TypeIdentity
 from .layout.module_layout import (
     OUTPUT_ROOT,
     compute_schema_root,
@@ -20,7 +21,7 @@ from .layout.module_layout import (
 )
 from .markdown.pipeline import generate_markdown_pages
 from .pyspark.pipeline import generate_pyspark_modules
-from .spec_discovery import extract_model_spec
+from .spec_discovery import extract_alias_spec, extract_model_spec
 
 log = logging.getLogger(__name__)
 
@@ -117,18 +118,29 @@ def generate(
     if output_format == "pyspark":
         _generate_pyspark(model_specs, output_dir, test_output_dir)
     else:
+        # RootModel entry points yield no ModelSpec, so they document as
+        # named aliases -- reachable no other way, since a RootModel field
+        # unwraps to its bare shape and names no type.
+        external_specs: dict[TypeIdentity, SupplementarySpec] = {
+            alias.identity: alias
+            for entry in models.values()
+            if (alias := extract_alias_spec(entry)) is not None
+        }
         module_paths = [entry_point_module(k.entry_point) for k in all_models]
         schema_root = compute_schema_root(module_paths)
-        _generate_markdown(model_specs, schema_root, output_dir)
+        _generate_markdown(model_specs, schema_root, output_dir, external_specs)
 
 
 def _generate_markdown(
     model_specs: list[ModelSpec],
     schema_root: str,
     output_dir: Path | None,
+    external_specs: Mapping[TypeIdentity, SupplementarySpec],
 ) -> None:
     """Generate markdown with directory layout and placement-aware links."""
-    pages = generate_markdown_pages(model_specs, schema_root)
+    pages = generate_markdown_pages(
+        model_specs, schema_root, external_specs=external_specs
+    )
 
     for page in pages:
         content = (

@@ -6,6 +6,7 @@ from io import StringIO
 import pytest
 from click.testing import CliRunner
 from conftest import build_feature
+
 from overture.schema.cli.commands import cli
 
 
