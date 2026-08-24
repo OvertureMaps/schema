@@ -24,8 +24,7 @@ jobs:
     permissions:
       id-token: write # Required for OIDC authentication to AWS
     steps:
-      # Narrow OIDC role (omf-github-terraform's oidc-aws.tf) that can only
-      # read the releaser app's PEM secret.
+      # Narrow OIDC role that can only read the releaser app's PEM secret.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
