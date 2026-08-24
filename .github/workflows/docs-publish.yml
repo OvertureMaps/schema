@@ -1,17 +1,22 @@
 name: Trigger docs publication
 
-# Fires when the umbrella overture-schema package's GitHub Release is
-# published (see release-trigger.yaml and docs/versioning.md for the tag
-# scheme) and dispatches a production rebuild of OvertureMaps/docs so its
-# generated schema reference (docs/schema/reference/**, built via the
-# OvertureMaps/workflows generate-schema-docs action) stays in sync with
-# schema releases.
+# Fires on the bare `v<version>` vanity tag that .github/actions/create-
+# package-release creates only for the umbrella overture-schema package's
+# release (see docs/versioning.md's tag scheme), and dispatches a production
+# rebuild of OvertureMaps/docs so its generated schema reference
+# (docs/schema/reference/**, built via the OvertureMaps/workflows
+# generate-schema-docs action) stays in sync with schema releases.
 #
-# Only the overture-schema release is dispatched: it's the sole release
-# marked "Latest" and the only one carrying the vanity `v<version>` tag docs
-# consumes as its recognized public schema version (see docs/versioning.md).
-# Per-theme package releases (overture-schema-theme-*) don't independently
-# version the docs site's reference and are skipped.
+# The `v*` tag glob is the filter: no other package's release creates a bare
+# `v*` tag, so this only ever fires for overture-schema. github.ref_name is
+# the vanity tag itself, used directly as schema-ref with no lookup needed.
+#
+# Caveat: create-package-release skips (warns, doesn't fail) the vanity tag
+# step if that tag already exists, e.g. a re-cut release reusing a version.
+# No new tag means no push event, so that rare case silently doesn't
+# dispatch a docs rebuild; a maintainer can always re-run this workflow by
+# hand (workflow_dispatch isn't wired up here, but `gh workflow run
+# docs-publish.yml --ref v<version>` works against the existing tag).
 #
 # Requires the overture-releaser app (release-trigger.yaml's app, #637) to
 # also be installed on OvertureMaps/docs with an added `actions: write`
@@ -26,8 +31,8 @@ name: Trigger docs publication
 # permission-contents.
 
 on:
-  release:
-    types: [published]
+  push:
+    tags: ["v*"]
 
 permissions:
   contents: read
@@ -39,34 +44,10 @@ concurrency:
 jobs:
   dispatch-docs-build:
     name: Dispatch docs production build
-    if: startsWith(github.event.release.tag_name, 'overture-schema-v')
     runs-on: ubuntu-slim
     permissions:
-      contents: read # Read the vanity tag to resolve schema-ref
       id-token: write # Required for OIDC authentication to AWS
     steps:
-      - name: Resolve schema-ref
-        id: resolve-ref
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ github.event.release.tag_name }}
-        run: |
-          set -euo pipefail
-
-          # The umbrella release always ships alongside a bare vanity tag
-          # (v<version>, see .github/actions/create-package-release and
-          # docs/versioning.md); that's the recognized public schema version,
-          # so prefer it over the package-prefixed release tag.
-          version="${TAG_NAME#overture-schema-v}"
-          vanity_tag="v${version}"
-
-          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${vanity_tag}" >/dev/null 2>&1; then
-            echo "schema-ref=${vanity_tag}" >> "$GITHUB_OUTPUT"
-          else
-            echo "::warning::Vanity tag ${vanity_tag} not found for ${TAG_NAME}; falling back to the release tag."
-            echo "schema-ref=${TAG_NAME}" >> "$GITHUB_OUTPUT"
-          fi
-
       # Narrow OIDC role (omf-github-terraform's oidc-aws.tf) that can only
       # read the releaser app's PEM secret.
       - name: Configure AWS credentials
@@ -96,7 +77,7 @@ jobs:
       - name: Trigger docs production build
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          SCHEMA_REF: ${{ steps.resolve-ref.outputs.schema-ref }}
+          SCHEMA_REF: ${{ github.ref_name }}
         run: |
           gh workflow run production_deploy_documentation.yml \
             --repo OvertureMaps/docs \
