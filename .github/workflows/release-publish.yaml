@@ -9,23 +9,43 @@ name: Release publish
 # PR review is the approval gate; nothing further blocks the publish once a
 # release exists.
 #
-# Each package gets its own pypi-release-<package>/test-pypi-<package>
-# environment pair, used only to scope the Trusted Publisher identity, not
-# for approval: a PyPI Trusted Publisher's identity is (repo, workflow
+# Each package gets its own pypi-release-<package>/test-pypi-<package>/
+# pypi-dispatch-<package> environment set, used to scope the Trusted
+# Publisher identity: a PyPI Trusted Publisher's identity is (repo, workflow
 # filename, environment), so a shared name across packages would let only one
-# package's project name ever bind to it (see #653).
+# package's project name ever bind to it (see #653). pypi-release-<package>
+# is not an approval gate, the PR review is. pypi-dispatch-<package> DOES
+# carry a required-reviewer gate: it's the one path that publishes to real
+# PyPI without a version-bump PR behind it.
+#
+# workflow_dispatch is a manual priming tool, not a release path: it always
+# publishes a synthetic <on-disk-version>.dev0, never the real version, so it
+# can safely convert a package's Trusted Publisher from "pending" to "normal"
+# (see docs.pypi.org/trusted-publishers/creating-a-project-through-oidc)
+# ahead of that package's actual v2.0 release, on either Test PyPI or real
+# PyPI. This exists to work around PyPI's per-account rate limit on pending
+# publishers (applies to both pypi.org and test.pypi.org independently, ~3 at
+# a time per our testing): register a batch, prime them via dispatch to
+# convert them, then register the next batch. Tracked for removal once all
+# packages are primed for the v2.0 launch: see #653.
 
 on:
   release:
     types: [published]
-  # Dry-run: publish a package's current on-disk version to Test PyPI
-  # instead.
   workflow_dispatch:
     inputs:
       package:
-        description: Package directory name to dry-run publish to Test PyPI (e.g. overture-schema-common)
+        description: Package directory name to prime (e.g. overture-schema-common)
         required: true
         type: string
+      target:
+        description: Where to publish the priming release
+        required: false
+        type: choice
+        default: test-pypi
+        options:
+          - test-pypi
+          - pypi
 
 permissions:
   contents: read
@@ -85,19 +105,25 @@ jobs:
           fi
 
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            version=$(cd "packages/${package}" && uv version --short)
+            # .devN is real PEP 440 (unlike the .postN+context.sha local
+            # versions main-publish.yaml ships, which PyPI/Test PyPI reject
+            # outright): it never collides with the eventual human-owned
+            # release version, and default resolvers ignore dev releases, so
+            # it's safe to actually publish without affecting consumers. Used
+            # only to prime a package's Trusted Publisher (see #653); never
+            # the real v2.0 launch artifact.
+            version="$(cd "packages/${package}" && uv version --short).dev0"
           fi
 
           echo "package=${package}" >> "$GITHUB_OUTPUT"
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
   publish:
-    name: Publish ${{ needs.parse.outputs.package }} ${{ needs.parse.outputs.version }} to ${{ github.event_name == 'workflow_dispatch' && 'Test PyPI' || 'PyPI' }}
+    name: Publish ${{ needs.parse.outputs.package }} ${{ needs.parse.outputs.version }} to ${{ github.event_name != 'workflow_dispatch' && 'PyPI' || inputs.target == 'pypi' && 'PyPI (priming dispatch)' || 'Test PyPI' }}
     needs: parse
     runs-on: ubuntu-latest
-    # Per-package environment name, scoping the Trusted Publisher identity
-    # only (see #653); not an approval gate.
-    environment: ${{ github.event_name == 'workflow_dispatch' && format('test-pypi-{0}', needs.parse.outputs.package) || format('pypi-release-{0}', needs.parse.outputs.package) }}
+    # See the header comment for what gates which environment.
+    environment: ${{ github.event_name != 'workflow_dispatch' && format('pypi-release-{0}', needs.parse.outputs.package) || inputs.target == 'pypi' && format('pypi-dispatch-{0}', needs.parse.outputs.package) || format('test-pypi-{0}', needs.parse.outputs.package) }}
     permissions:
       contents: read
       id-token: write # Required for PyPI Trusted Publishing (OIDC)
@@ -135,7 +161,11 @@ jobs:
 
       # Fails fast if the checked-out commit's version doesn't match the
       # release tag. uv has no built-in check for this (astral-sh/uv#9653).
+      # Only meaningful for a real release: workflow_dispatch intentionally
+      # publishes a synthetic .devN (see the parse job), not the on-disk
+      # version, so there's nothing to verify here on that path.
       - name: Verify on-disk version matches the release
+        if: github.event_name != 'workflow_dispatch'
         run: |
           set -euo pipefail
           on_disk="$(cd "packages/${PACKAGE}" && uv version --short)"
@@ -144,13 +174,20 @@ jobs:
             exit 1
           fi
 
+      # workflow_dispatch publishes a synthetic <version>.dev0, not the
+      # on-disk version; stamp it here so the built artifact actually matches
+      # what gets published. Never committed, this checkout is temporary.
+      - name: Stamp dispatched version
+        if: github.event_name == 'workflow_dispatch'
+        run: uv version "${VERSION}" --package "${PACKAGE}" --frozen
+
       - name: Build ${{ env.PACKAGE }} ${{ env.VERSION }}
         run: uv build --package "${PACKAGE}"
 
-      - name: Publish ${{ env.PACKAGE }} ${{ env.VERSION }} to ${{ github.event_name == 'workflow_dispatch' && 'Test PyPI' || 'PyPI' }}
+      - name: Publish ${{ env.PACKAGE }} ${{ env.VERSION }} to ${{ github.event_name != 'workflow_dispatch' && 'PyPI' || inputs.target == 'pypi' && 'PyPI (priming dispatch)' || 'Test PyPI' }}
         uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
         with:
           packages-dir: dist/
           attestations: true
-          repository-url: ${{ github.event_name == 'workflow_dispatch' && 'https://test.pypi.org/legacy/' || '' }}
-          skip-existing: ${{ github.event_name == 'workflow_dispatch' }} # Don't fail on version conflicts during dry-runs
+          repository-url: ${{ github.event_name == 'workflow_dispatch' && inputs.target != 'pypi' && 'https://test.pypi.org/legacy/' || '' }}
+          skip-existing: ${{ github.event_name == 'workflow_dispatch' }} # Idempotent reruns of a priming dispatch; never true for a real release
