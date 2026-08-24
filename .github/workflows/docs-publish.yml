@@ -7,6 +7,7 @@ name: Trigger docs publication
 
 on:
   push:
+    # Proxy for "a new overture-schema version was released."
     tags: ["v*"]
 
 permissions:
