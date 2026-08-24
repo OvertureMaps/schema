@@ -168,12 +168,9 @@ class TransportationSegment(
         SegmentSubtype, Field(description="Broad category of transportation segment.")
     ]
 
-    # Optional
-
-    access_restrictions: AccessRules | None = None
     # Contains the GERS ID and relative position between 0 and 1 of a connector feature along the segment.
     connectors: Annotated[
-        list[ConnectorReference] | None,
+        list[ConnectorReference],
         Field(
             min_length=2,
             description=textwrap.dedent("""
@@ -184,7 +181,11 @@ class TransportationSegment(
             """).strip(),
         ),
         UniqueItemsConstraint(),
-    ] = []
+    ]
+
+    # Optional
+
+    access_restrictions: AccessRules | None = None
     level_rules: LevelRules | None = None
 
 
