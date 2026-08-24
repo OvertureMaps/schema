@@ -10,3 +10,8 @@ properties:
   version: 5
   subtype: road
   class: path
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1

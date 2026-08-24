@@ -12,5 +12,10 @@ properties:
   version: 1
   subtype: road
   class: invalid_road_class  # This should trigger Pydantic validation error
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   ext_expected_errors:
     - "value must be one of 'motorway', 'primary', 'secondary', 'tertiary', 'residential', 'living_street', 'trunk', 'unclassified', 'service', 'pedestrian', 'footway', 'steps', 'path', 'track', 'cycleway', 'bridleway', 'unknown'"
