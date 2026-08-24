@@ -174,11 +174,15 @@ changes that package, whether or not it bumps the version.
    `CHANGELOG.md`.
 3. Publishing the release starts the PyPI publish, gated by a maintainer
    approval.
+4. Publishing the `overture-schema` release also fires `docs-publish.yaml`,
+   which dispatches a production rebuild of the docs site so its generated
+   schema reference stays in sync (see #679).
 
 ```mermaid
 flowchart LR
     A[bump + towncrier build<br/>merged to main] --> B[release-trigger:<br/>GitHub Release per package]
     B --> C[PyPI publish<br/>maintainer approval] --> D[public PyPI]
+    B --> G[docs-publish:<br/>overture-schema release only] --> H[docs site rebuild]
     E[no-bump merge] --> F[.postN internal build<br/>CodeArtifact only]
 ```
 
