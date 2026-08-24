@@ -195,6 +195,9 @@ changes that package, whether or not it bumps the version.
 3. Publishing the release starts the PyPI publish via Trusted Publishing
    (OIDC); no further manual approval gates it. The version-bump PR review
    is the approval.
+4. Publishing the `overture-schema` release also fires `docs-publish.yaml`,
+   which dispatches a production rebuild of the docs site so its generated
+   schema reference stays in sync (see #679).
 
 ```mermaid
 flowchart LR
