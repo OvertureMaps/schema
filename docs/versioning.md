@@ -175,7 +175,7 @@ changes that package, whether or not it bumps the version.
 3. Publishing the release starts the PyPI publish, gated by a maintainer
    approval.
 4. Publishing the `overture-schema` release also pushes its vanity tag (see
-   [Tag scheme](#tag-scheme)), which `docs-publish.yaml` reacts to to
+   [Tag scheme](#tag-scheme)), which `docs-publish.yml` reacts to
    dispatch a production docs rebuild so the generated schema reference
    stays in sync (see #679). The tag push is the trigger and the filter:
    no other package's release creates a bare `v*` tag, and the tag itself is
