@@ -13,11 +13,17 @@ name: Trigger docs publication
 # Per-theme package releases (overture-schema-theme-*) don't independently
 # version the docs site's reference and are skipped.
 #
-# Requires a GitHub App installed on OvertureMaps/docs with `actions: write`
-# (schema's own overture-release-publisher app is schema-repo-only with
-# contents: write, see #637, and can't dispatch workflows on another repo).
-# Provisioning that app and its secrets is a manual prerequisite tracked in
-# #689.
+# Requires the overture-releaser app (release-trigger.yaml's app, #637) to
+# also be installed on OvertureMaps/docs with an added `actions: write`
+# permission -- it's schema-repo-only with `contents: write` today, and
+# can't dispatch workflows on another repo. Extending it (deliberately
+# bending omf-github-terraform's "one app per concern" convention rather
+# than provisioning a new app) is a manual prerequisite tracked in #689.
+#
+# Reuses release-trigger.yaml's exact PEM fetch: same AWS Secrets Manager
+# entry (omf-github-terraform/releaser/pem), same gha-releaser-secrets-reader
+# OIDC role, same client ID, just scoped to permission-actions instead of
+# permission-contents.
 
 on:
   release:
@@ -37,6 +43,7 @@ jobs:
     runs-on: ubuntu-slim
     permissions:
       contents: read # Read the vanity tag to resolve schema-ref
+      id-token: write # Required for OIDC authentication to AWS
     steps:
       - name: Resolve schema-ref
         id: resolve-ref
@@ -60,15 +67,28 @@ jobs:
             echo "schema-ref=${TAG_NAME}" >> "$GITHUB_OUTPUT"
           fi
 
-      # Manual prerequisite: the overture-docs-publisher app, its
-      # installation on OvertureMaps/docs, and these two secrets are tracked
-      # in #689 and don't exist yet.
+      # Narrow OIDC role (omf-github-terraform's oidc-aws.tf) that can only
+      # read the releaser app's PEM secret.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-region: us-west-2
+          role-to-assume: arn:aws:iam::816069134238:role/gha-releaser-secrets-reader
+          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
+
+      # Exports the PEM as env.RELEASE_PUBLISHER_APP_PEM, masked (incl. multi-line).
+      - name: Fetch releaser PEM from Secrets Manager
+        uses: aws-actions/aws-secretsmanager-get-secrets@2cb1a461cbd4865ac4299648312e4704c646cd53 # v3.0.1
+        with:
+          secret-ids: |
+            RELEASE_PUBLISHER_APP_PEM, omf-github-terraform/releaser/pem
+
       - name: Generate docs publisher app token
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          client-id: ${{ secrets.DOCS_PUBLISHER_APP_ID }} # zizmor: ignore[secrets-outside-env]
-          private-key: ${{ secrets.DOCS_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
+          client-id: Iv23lijru2e660v1zJQO # overture-releaser app ID, not sensitive
+          private-key: ${{ env.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
           owner: OvertureMaps
           repositories: docs
           permission-actions: write # Required to dispatch a workflow run on OvertureMaps/docs
