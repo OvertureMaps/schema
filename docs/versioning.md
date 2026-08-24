@@ -195,16 +195,32 @@ changes that package, whether or not it bumps the version.
 3. Publishing the release starts the PyPI publish via Trusted Publishing
    (OIDC); no further manual approval gates it. The version-bump PR review
    is the approval.
-4. Publishing the `overture-schema` release also fires `docs-publish.yaml`,
-   which dispatches a production rebuild of the docs site so its generated
-   schema reference stays in sync (see #679).
+4. Publishing the `overture-schema` release also pushes its vanity tag (see
+   [Tag scheme](#tag-scheme)), which `docs-publish.yaml` reacts to to
+   dispatch a production docs rebuild so the generated schema reference
+   stays in sync (see #679). The tag push is the trigger and the filter:
+   no other package's release creates a bare `v*` tag, and the tag itself is
+   passed straight through as the docs build's `schema-ref`, no lookup
+   needed. One edge case: if the vanity tag step is ever skipped because
+   that tag already exists (a re-cut release reusing a version), no tag push
+   fires and the docs rebuild silently doesn't dispatch; re-run
+   `docs-publish.yaml` by hand against the existing tag in that case.
+   Dispatching cross-repo reuses the `overture-releaser` app (#637) with an
+   added `Actions: write` permission and an install on the docs repo (#689),
+   rather than a new app.
 
 ```mermaid
 flowchart LR
     A[bump + towncrier build<br/>merged to main] --> B[release-trigger:<br/>GitHub Release per package]
+<<<<<<< HEAD
     B --> C[PyPI publish<br/>Trusted Publishing] --> D[public PyPI]
     B --> E[overture-schema.json<br/>attached to umbrella overture-schema GitHub release]
     F[no-bump merge] --> G[.postN internal build<br/>CodeArtifact only]
+=======
+    B --> C[PyPI publish<br/>maintainer approval] --> D[public PyPI]
+    B --> G[docs-publish:<br/>overture-schema vanity tag] --> H[docs site rebuild]
+    E[no-bump merge] --> F[.postN internal build<br/>CodeArtifact only]
+>>>>>>> bd6a7143 (Move docs-publish.yml's in-depth comments into versioning.md)
 ```
 
 ## Why
