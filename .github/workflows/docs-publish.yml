@@ -3,7 +3,7 @@ name: Trigger docs publication
 # Fires on overture-schema's vanity tag push and dispatches a production
 # rebuild of OvertureMaps/docs so its generated schema reference stays in
 # sync. See "Cut a release" in docs/versioning.md for the trigger mechanics
-# and edge cases, and #637/#689 for the overture-releaser app this reuses.
+# and edge cases.
 
 on:
   push:
