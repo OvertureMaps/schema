@@ -11,6 +11,11 @@ properties:
   type: segment
   version: 1
   subtype: road  # This is road subtype, but we're using rail_flags
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   rail_flags:
     - values: [is_bridge]
   ext_expected_errors:

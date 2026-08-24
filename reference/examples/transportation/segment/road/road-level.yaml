@@ -10,6 +10,11 @@ properties:
   subtype: road
   version: 2
   class: residential
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   level_rules:
     - value: -1
       between: [0, 0.5]

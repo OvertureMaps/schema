@@ -11,6 +11,10 @@
     "version": 26,
     "subtype": "road",
     "class": "primary",
+    "connectors": [
+      { "connector_id": "fooConnector", "at": 0 },
+      { "connector_id": "barConnector", "at": 1 }
+    ],
     "width_rules": [],
     "ext_expected_errors": [
       "minItems: got 0, want 1"
