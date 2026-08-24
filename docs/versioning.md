@@ -52,6 +52,17 @@ over the `main` one. `vnext` builds publish only once a separate dev
 repository exists. Local labels are rejected by public PyPI, which keeps
 internal builds off the public index by construction.
 
+| Event | Workflow |
+|-------|----------|
+| Push to `main` | [`main-publish.yaml`](../.github/workflows/main-publish.yaml) detects packages changed without a version bump and publishes their `.postN` build to CodeArtifact. |
+| Version bump merged to `main` | [`release-trigger.yaml`](../.github/workflows/release-trigger.yaml) cuts a GitHub Release per bumped package. |
+| Release published | [`release-publish.yaml`](../.github/workflows/release-publish.yaml) builds that package at its released version and publishes to PyPI. |
+| Manual dispatch | `release-publish.yaml` also runs on `workflow_dispatch`: pick a package and a target (Test PyPI or real PyPI), build a synthetic `<version>.dev0` (never the on-disk release version), and publish it. Used to prime a package's PyPI Trusted Publisher from "pending" to "normal" ahead of its real release (see [#653](https://github.com/OvertureMaps/schema/issues/653)); real-PyPI dispatches require `pypi-dispatch-<package>` approval since they skip PR review entirely. |
+
+`release-trigger` creates releases with the `overture-release-publisher` app's
+installation token, not `GITHUB_TOKEN`: a `GITHUB_TOKEN`-created release does
+not fire the `release: published` event `release-publish` listens for.
+
 ### Workspace dependency floors
 
 Intra-repo dependencies follow uv's
@@ -172,13 +183,14 @@ changes that package, whether or not it bumps the version.
 2. On merge to `main`, `release-trigger` publishes one GitHub Release per bumped
    package: tag `<package>-v<version>`, notes from that package's
    `CHANGELOG.md`.
-3. Publishing the release starts the PyPI publish, gated by a maintainer
-   approval.
+3. Publishing the release starts the PyPI publish via Trusted Publishing
+   (OIDC); no further manual approval gates it. The version-bump PR review
+   is the approval.
 
 ```mermaid
 flowchart LR
     A[bump + towncrier build<br/>merged to main] --> B[release-trigger:<br/>GitHub Release per package]
-    B --> C[PyPI publish<br/>maintainer approval] --> D[public PyPI]
+    B --> C[PyPI publish<br/>Trusted Publishing] --> D[public PyPI]
     E[no-bump merge] --> F[.postN internal build<br/>CodeArtifact only]
 ```
 

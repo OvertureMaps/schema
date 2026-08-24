@@ -1,0 +1,209 @@
+name: Release publish
+
+# Triggered when a GitHub Release is published (created by release-trigger.yaml
+# using the overture-release-publisher app token -- see #637 -- so the native
+# `release: published` event actually fires; GITHUB_TOKEN would not).
+#
+# Builds the released package at its released version and publishes it to
+# public PyPI via Trusted Publishing (OIDC) + attestations. The version-bump
+# PR review is the approval gate; nothing further blocks the publish once a
+# release exists.
+#
+# Each package gets its own pypi-release-<package>/test-pypi-<package>
+# environment pair, used to scope the Trusted Publisher identity: a PyPI
+# Trusted Publisher's identity is (repo, workflow filename, environment), so
+# a shared name across packages would let only one package's project name
+# ever bind to it (see #653). Neither environment is an approval gate: the
+# version-bump PR review gates real releases, and workflow_dispatch already
+# requires repo write access to trigger at all, gate enough for a
+# disposable .dev0 priming publish.
+#
+# workflow_dispatch is a manual priming tool, not a release path: it always
+# publishes a synthetic <on-disk-version>.dev0, never the real version, so it
+# can safely convert a package's Trusted Publisher from "pending" to "normal"
+# (see docs.pypi.org/trusted-publishers/creating-a-project-through-oidc)
+# ahead of that package's actual v2.0 release, on either Test PyPI or real
+# PyPI. This exists to work around PyPI's per-account rate limit on pending
+# publishers (applies to both pypi.org and test.pypi.org independently, ~3 at
+# a time per our testing): register a batch, prime them via dispatch to
+# convert them, then register the next batch.
+#
+# TEMPORARY (see #688): the `target: pypi` option below, and everything
+# gated on `inputs.target == 'pypi'`, exists only to prime real PyPI's
+# Trusted Publishers for the initial v2.0 launch. Tear it out once every
+# package has published for real at least once -- `target: test-pypi` (the
+# default) is the only permanent path and stays indefinitely for ongoing
+# pipeline verification.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package directory name to prime (e.g. overture-schema-common)
+        required: true
+        type: string
+      target:
+        description: Where to publish the priming release
+        required: false
+        type: choice
+        default: test-pypi
+        # TODO(#688): drop the `pypi` option (and this input entirely, once
+        # test-pypi is the only choice) after all packages are primed.
+        options:
+          - test-pypi
+          - pypi
+
+permissions:
+  contents: read
+
+concurrency:
+  # One release event per package version; never cancel an in-flight publish.
+  # workflow_dispatch runs key off the chosen package instead of a tag.
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || inputs.package }}
+  cancel-in-progress: false
+
+jobs:
+  parse:
+    name: Parse package and version
+    if: github.event_name == 'workflow_dispatch' || github.event.repository.full_name == github.repository
+    runs-on: ubuntu-slim
+    outputs:
+      package: ${{ steps.parse.outputs.package }}
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      # Checked out unconditionally (both arms) so the package-existence check
+      # below applies to a bad release tag too, not just a bad workflow_dispatch
+      # input. Same ref selection the publish job below uses, so both jobs
+      # build from the same commit for a given event.
+      - name: Check out repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Install uv
+        if: github.event_name == 'workflow_dispatch'
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: false
+
+      - name: Parse package and version
+        id: parse
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TAG: ${{ github.event.release.tag_name }}
+          INPUT_PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            package="$INPUT_PACKAGE"
+          elif [[ "$TAG" =~ ^(.+)-v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            package="${BASH_REMATCH[1]}"
+            version="${BASH_REMATCH[2]}"
+          else
+            echo "::error::Release tag '${TAG}' is not <package>-v<major>.<minor>.<patch>; nothing to publish."
+            exit 1
+          fi
+
+          if [[ ! -d "packages/${package}" ]]; then
+            echo "::error::No such package: packages/${package}"
+            exit 1
+          fi
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            # .devN is real PEP 440 (unlike the .postN+context.sha local
+            # versions main-publish.yaml ships, which PyPI/Test PyPI reject
+            # outright): it never collides with the eventual human-owned
+            # release version, and default resolvers ignore dev releases, so
+            # it's safe to actually publish without affecting consumers. Used
+            # only to prime a package's Trusted Publisher (see #653); never
+            # the real v2.0 launch artifact.
+            version="$(cd "packages/${package}" && uv version --short).dev0"
+          fi
+
+          echo "package=${package}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+  publish:
+    # TODO(#688): the "PyPI (priming dispatch)" branch below goes away with
+    # the pypi target.
+    name: Publish ${{ needs.parse.outputs.package }} ${{ needs.parse.outputs.version }} to ${{ github.event_name != 'workflow_dispatch' && 'PyPI' || inputs.target == 'pypi' && 'PyPI (priming dispatch)' || 'Test PyPI' }}
+    needs: parse
+    runs-on: ubuntu-latest
+    # See the header comment for what gates which environment.
+    # TODO(#688): the `inputs.target == 'pypi' && ...` branch goes away with
+    # the pypi target -- dispatch will only ever mean Test PyPI at that
+    # point.
+    environment: ${{ (github.event_name != 'workflow_dispatch' || inputs.target == 'pypi') && format('pypi-release-{0}', needs.parse.outputs.package) || format('test-pypi-{0}', needs.parse.outputs.package) }}
+    permissions:
+      contents: read
+      id-token: write # Required for PyPI Trusted Publishing (OIDC)
+    env:
+      PACKAGE: ${{ needs.parse.outputs.package }}
+      VERSION: ${{ needs.parse.outputs.version }}
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: latest
+          enable-cache: false # Publish job builds and ships immediately; no cache to poison downstream runs
+
+      - name: Check out released commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # target_commitish can be a branch name, which may have moved past
+          # the release; the tag itself pins the exact released commit.
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Sync code to make packages visible to Python
+        run: uv sync --locked --all-packages
+
+      # overture-schema-pyspark's scripts/prebuild.sh regenerates its
+      # not-committed expressions before packaging; other packages have none.
+      - name: Run package's prebuild script, if any
+        run: |
+          set -euo pipefail
+          script="packages/${PACKAGE}/scripts/prebuild.sh"
+          if [ -f "$script" ]; then
+            echo "Running ${script}"
+            bash "$script"
+          fi
+
+      # Fails fast if the checked-out commit's version doesn't match the
+      # release tag. uv has no built-in check for this (astral-sh/uv#9653).
+      # Only meaningful for a real release: workflow_dispatch intentionally
+      # publishes a synthetic .devN (see the parse job), not the on-disk
+      # version, so there's nothing to verify here on that path.
+      - name: Verify on-disk version matches the release
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          set -euo pipefail
+          on_disk="$(cd "packages/${PACKAGE}" && uv version --short)"
+          if [ "$on_disk" != "$VERSION" ]; then
+            echo "::error::packages/${PACKAGE} is at version ${on_disk}, but the release tag says ${VERSION}. Aborting!"
+            exit 1
+          fi
+
+      # workflow_dispatch publishes a synthetic <version>.dev0, not the
+      # on-disk version; stamp it here so the built artifact actually matches
+      # what gets published. Never committed, this checkout is temporary.
+      - name: Stamp dispatched version
+        if: github.event_name == 'workflow_dispatch'
+        run: uv version "${VERSION}" --package "${PACKAGE}" --frozen
+
+      - name: Build ${{ env.PACKAGE }} ${{ env.VERSION }}
+        run: uv build --package "${PACKAGE}"
+
+      - name: Publish ${{ env.PACKAGE }} ${{ env.VERSION }} to ${{ github.event_name != 'workflow_dispatch' && 'PyPI' || inputs.target == 'pypi' && 'PyPI (priming dispatch)' || 'Test PyPI' }}
+        # TODO(#688): once the pypi target is gone, this simplifies back to
+        # `github.event_name == 'workflow_dispatch'` (dispatch always means
+        # Test PyPI at that point).
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
+        with:
+          packages-dir: dist/
+          attestations: true
+          repository-url: ${{ github.event_name == 'workflow_dispatch' && inputs.target != 'pypi' && 'https://test.pypi.org/legacy/' || '' }}
+          skip-existing: ${{ github.event_name == 'workflow_dispatch' }} # Idempotent reruns of a priming dispatch; never true for a real release

@@ -3,9 +3,11 @@
 """
 Diff per-package versions between two git commits.
 
-Run from the repository root:
+Run with the repository root as the working directory (git commands need it
+as CWD); the script itself can live anywhere, e.g. the `diff-package-versions`
+action invokes it via `$GITHUB_ACTION_PATH`:
 
-    python3 package_versions.py diff <before-commit> <after-commit>
+    python3 path/to/package_versions.py diff <before-commit> <after-commit>
 
 Reads each `packages/*/pyproject.toml` blob directly from git at both commits
 (no checkout switching, no environment sync) and prints the packages whose

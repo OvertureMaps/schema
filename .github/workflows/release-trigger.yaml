@@ -16,10 +16,14 @@ name: Publish GitHub release
 # is a release. No-bump merges publish internal `.postN` builds instead (see
 # .github/actions/compute-version).
 #
-# NOTE: releases are created with GITHUB_TOKEN, which by design does NOT trigger
-# further workflow runs. The Phase 3 publish workflow (#509) must therefore be
-# triggered by an app/PAT token here or via repository_dispatch, a plain
-# `on: release: published` listener will not fire for these releases.
+# Releases are created with the overture-release-publisher app's installation
+# token, not GITHUB_TOKEN: GITHUB_TOKEN-created releases don't fire downstream
+# `release: published` events, which release-publish.yaml needs to pick up
+# each release individually. See #637 for provisioning that app.
+#
+# The app's PEM lives in AWS Secrets Manager (omf-github-terraform), fetched
+# here via the narrowly-scoped gha-releaser-secrets-reader OIDC role -- same
+# pattern as the safe-settings and project-manager app PEMs.
 
 on:
   push:
@@ -62,12 +66,37 @@ jobs:
     if: needs.detect.outputs.count != '0'
     runs-on: ubuntu-slim
     permissions:
-      contents: write # Required to create releases and their tags
+      contents: read # App token below carries the actual release-creation grant
+      id-token: write # Required for OIDC authentication to AWS
     strategy:
       fail-fast: false # One package's failure must not block sibling releases
       matrix:
         include: ${{ fromJSON(needs.detect.outputs.bumps) }}
     steps:
+      # Narrow OIDC role (omf-github-terraform's oidc-aws.tf) that can only
+      # read the releaser app's PEM secret.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-region: us-west-2
+          role-to-assume: arn:aws:iam::816069134238:role/gha-releaser-secrets-reader
+          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
+
+      # Exports the PEM as env.RELEASE_PUBLISHER_APP_PEM, masked (incl. multi-line).
+      - name: Fetch releaser PEM from Secrets Manager
+        uses: aws-actions/aws-secretsmanager-get-secrets@2cb1a461cbd4865ac4299648312e4704c646cd53 # v3.0.1
+        with:
+          secret-ids: |
+            RELEASE_PUBLISHER_APP_PEM, omf-github-terraform/releaser/pem
+
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: Iv23lijru2e660v1zJQO # overture-release-publisher app ID, not sensitive
+          private-key: ${{ env.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
+          permission-contents: write
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -83,4 +112,6 @@ jobs:
           # The umbrella package continues the legacy bare tag series as a
           # vanity tag (no second release); see docs/versioning.md.
           vanity-tag: ${{ matrix.package == 'overture-schema' && format('v{0}', matrix.version) || '' }}
-          token: ${{ github.token }}
+          # App token so the release fires its own `release: published` event
+          # for release-publish.yaml (GITHUB_TOKEN would not); see #637.
+          token: ${{ steps.app-token.outputs.token }}
