@@ -681,7 +681,7 @@ from overture.schema.buildings import Building
 
 d = yaml.safe_load(open("examples/buildings/building-polygon.yaml"))
 d["properties"]["height"] = 5
-d["properties"]["min_height"] = 100      # a floor above the roof
+d["properties"]["min_height"] = 100  # a floor above the roof
 print("accepted:", Building.model_validate_json(json.dumps(d)).height)
 ```
 
@@ -1633,19 +1633,23 @@ or, for everything:
 uv add overture-schema
 ```
 
-**On the PySpark step specifically:** the release pipeline already handles it.
-`.github/workflows/publish-python-packages.yaml` runs `make generate-pyspark` before
-`uv build`, and aborts the release if the resulting wheel contains no
-`expressions/generated/*.py`. Its own comment explains why:
+**On the PySpark step specifically:** the release pipeline already handles it. Both
+publish workflows run `packages/<package>/scripts/prebuild.sh` before
+`uv build --package <package>`, if the package has one. Only
+`overture-schema-pyspark` does; it regenerates the expression tree and aborts if codegen
+produced nothing. Its own comment explains why:
 
-> the tree must be generated here before the build, or the published wheel ships without
-> its `expressions/generated/` modules and `validate_model()` discovers nothing to run
+> the `expressions/generated/` tree is not committed to git, and `uv build` packages
+> whatever is on disk under the module root, so this must run before building or
+> packaging this package or the wheel ships without it
 
 So consumers of a published wheel never run that step.
 
-**Which index?** The publish workflow currently pushes to AWS CodeArtifact (the
-`overture-pypi` domain), even though its step names say PyPI. `CONTRIBUTING.md` describes
-version bumps reaching public PyPI while interim builds stay internal. Either way the
+**Which index?** It depends on which pipeline built it. `main-publish.yaml` pushes
+interim `.postN` builds of every merge to AWS CodeArtifact (the `overture-pypi` domain),
+where they are consumable internally. `release-publish.yaml` handles version bumps: a
+merged bump cuts a GitHub Release, which publishes to public PyPI via Trusted Publishing
+(OIDC) with attestations. `CONTRIBUTING.md` walks through both paths. Either way the
 consumer instruction is a one-line install — only the index URL differs.
 
 Nothing in sections 2 through 7 changes. The behavior you learn there — entry-point

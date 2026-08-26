@@ -26,7 +26,7 @@ drifted apart; when you add a case, add it under `reference/`.
 
 ## Python packages
 
-Fourteen packages under `packages/`, versioned and released independently:
+Thirteen packages under `packages/`, versioned and released independently:
 
 - **`overture-schema`** — the umbrella package. Depends on all themes and support
   packages for a coherent set. **This is what consumers pin.**
@@ -38,7 +38,6 @@ Fourteen packages under `packages/`, versioned and released independently:
 - **Tooling** — `cli` (validate data, generate JSON Schema), `codegen` (generate docs and
   code from the models), `validation` (validate against the union of all discovered
   models), `pyspark` (validation expressions for Spark).
-- **Extensions** — `extensions-operating-hours`, an optional add-on.
 
 These pages are for people working with the packages in code:
 

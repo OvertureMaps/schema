@@ -299,6 +299,7 @@ can land text somewhere the shell *will* execute.
 
 ```python
 from overture.schema.buildings import Building
+
 print(f"{Building.__name__!r} is safe here")
 ```
 

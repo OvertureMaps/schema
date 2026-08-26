@@ -203,7 +203,8 @@ import json, yaml
 from overture.schema.buildings import Building
 
 b = Building.model_validate_json(
-    json.dumps(yaml.safe_load(open("examples/buildings/building-polygon.yaml"))))
+    json.dumps(yaml.safe_load(open("examples/buildings/building-polygon.yaml")))
+)
 gj = b.model_dump(mode="json", by_alias=True, exclude_none=True)
 
 print("envelope keys:", sorted(gj))
@@ -245,10 +246,11 @@ List them yourself:
 
 ```python
 import yaml
-d = yaml.safe_load(open('examples/buildings/building-polygon.yaml'))
-print('type            =', d['type'])
-print('geometry.type   =', d['geometry']['type'])
-print('properties.type =', d['properties']['type'])
+
+d = yaml.safe_load(open("examples/buildings/building-polygon.yaml"))
+print("type            =", d["type"])
+print("geometry.type   =", d["geometry"]["type"])
+print("properties.type =", d["properties"]["type"])
 ```
 
 ```
@@ -340,15 +342,16 @@ import json, yaml
 from overture.schema.buildings import Building
 
 b = Building.model_validate_json(
-    json.dumps(yaml.safe_load(open("examples/buildings/building-polygon.yaml"))))
-gj   = b.model_dump(mode="json",   by_alias=True, exclude_none=True)
+    json.dumps(yaml.safe_load(open("examples/buildings/building-polygon.yaml")))
+)
+gj = b.model_dump(mode="json", by_alias=True, exclude_none=True)
 flat = b.model_dump(mode="python", by_alias=True, exclude_none=True)
 flat["geometry"] = str(flat["geometry"])
 
 n = 10_000
-doc  = json.dumps({"type": "FeatureCollection", "features": [gj] * n})
+doc = json.dumps({"type": "FeatureCollection", "features": [gj] * n})
 cols = list(flat)
-tbl  = json.dumps({"columns": cols, "rows": [[flat[k] for k in cols]] * n})
+tbl = json.dumps({"columns": cols, "rows": [[flat[k] for k in cols]] * n})
 print(f"{n:,} features as GeoJSON      : {len(doc):>10,} bytes")
 print(f"{n:,} features, names stored once: {len(tbl):>10,} bytes")
 ```
@@ -470,6 +473,7 @@ GeoJSON is a costume the model puts on for one specific audience. It isn't the b
 
 ```python
 from overture.schema.buildings import Building
+
 print("id in model_fields       :", "id" in Building.model_fields)
 print("geometry in model_fields :", "geometry" in Building.model_fields)
 print("a 'properties' field?    :", "properties" in Building.model_fields)
@@ -492,10 +496,16 @@ import json, yaml
 from overture.schema.buildings import Building
 
 b = Building.model_validate_json(
-    json.dumps(yaml.safe_load(open("examples/buildings/building-polygon.yaml"))))
+    json.dumps(yaml.safe_load(open("examples/buildings/building-polygon.yaml")))
+)
 
-print("python mode:", sorted(b.model_dump(mode="python", by_alias=True, exclude_none=True))[:8])
-print("json mode  :", sorted(b.model_dump(mode="json",   by_alias=True, exclude_none=True)))
+print(
+    "python mode:",
+    sorted(b.model_dump(mode="python", by_alias=True, exclude_none=True))[:8],
+)
+print(
+    "json mode  :", sorted(b.model_dump(mode="json", by_alias=True, exclude_none=True))
+)
 ```
 
 ```
@@ -814,22 +824,34 @@ It's the same reasoning that keeps `dist/`, `*.o`, and `node_modules/` out of gi
 This is the part worth being clear about, since it sounds like these files are somehow
 optional for users. **They are not.** Published wheels contain them.
 
-`.github/workflows/publish-python-packages.yaml` runs `make generate-pyspark` before
-`uv build`, then refuses to publish a wheel that lacks them:
+Both publish workflows (`.github/workflows/main-publish.yaml` and
+`release-publish.yaml`) run a package's prebuild script, if it has one, before
+`uv build --package <package>`:
 
 ```yaml
-- name: Generate PySpark expressions before build
-  if: matrix.package == 'overture-schema-pyspark'
-  run: make generate-pyspark
+- name: Run package's prebuild script, if any
+  run: |
+    script="packages/${PACKAGE}/scripts/prebuild.sh"
+    if [ -f "$script" ]; then
+      bash "$script"
+    fi
 ```
 
+Neither workflow knows that PySpark is special. The knowledge lives in the package:
+`packages/overture-schema-pyspark/scripts/prebuild.sh` regenerates the tree and refuses
+to hand a hollow package to the build:
+
 ```bash
-if [ "$PACKAGE" = "overture-schema-pyspark" ] && \
-   ! unzip -l "$wheel" | grep -q 'expressions/generated/.*\.py'; then
-  echo "    Wheel [$wheel] has no generated expressions -- codegen did not run. Aborting!"
+rm -rf "$output_dir"
+uv run overture-codegen generate --format pyspark --output-dir "$output_dir"
+
+if ! find "$output_dir" -name '*.py' -print -quit | grep -q .; then
+  echo "::error::No expressions generated under ${output_dir} -- codegen produced nothing." >&2
   exit 1
 fi
 ```
+
+Every other package simply has no `prebuild.sh`, so the step is a no-op for them.
 
 So the only people who ever run `make generate-pyspark` are people working **from a git
 clone** — because a clone is the one place these files don't already exist. Install from
