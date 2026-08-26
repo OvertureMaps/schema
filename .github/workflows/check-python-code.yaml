@@ -29,13 +29,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Default resolution exercises the committed lock against every
-        # supported Python minor version. The lowest-direct cell pins each
-        # direct dependency to its declared floor (see UV_RESOLUTION below)
-        # and runs only on the Python floor, since the resolved-low pyspark
-        # 3.4 wheels exist for 3.10/3.11 only.
+        # locked exercises the committed lock against every supported Python
+        # minor version. The lowest-direct cell pins each direct dependency
+        # to its declared floor (see UV_RESOLUTION below) and runs only on
+        # the Python floor, since the resolved-low pyspark 3.4 wheels exist
+        # for 3.10/3.11 only.
         python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        resolution: [default]
+        resolution: [locked]
         include:
           - python: "3.10"
             resolution: lowest-direct
@@ -80,11 +80,11 @@ jobs:
         run: echo "UV_RESOLUTION=lowest-direct" >> "$GITHUB_ENV"
 
       # Fail fast if uv.lock is stale (e.g. a pyproject.toml version bump
-      # landed without a matching `uv lock` run). Only for the default
+      # landed without a matching `uv lock` run). Only for the locked
       # resolution cells -- lowest-direct intentionally re-resolves away
       # from the committed lock, so `--locked` would always fail there.
       - name: Configure lock check
-        if: matrix.resolution == 'default'
+        if: matrix.resolution == 'locked'
         run: echo "UV_LOCKED=1" >> "$GITHUB_ENV"
 
       - name: Run make check

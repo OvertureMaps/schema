@@ -10,76 +10,118 @@ This package provides Pydantic models for validating and working with Overture M
 pip install overture-schema
 ```
 
+`overture-schema` is a metapackage: it pulls in every theme package plus the
+validation library and the CLI, and ships no code of its own. `overture.schema`
+is a namespace root, so import from the theme and system packages rather than
+from `overture.schema` directly.
+
 ## Usage
 
-Import and use schemas:
+Import models from the theme package that defines them:
 
 ```python
-from overture.schema import Building, Place
-import json
+from overture.schema.buildings import Building
+from overture.schema.places import Place
+```
 
-# Validate Overture Maps data (supports both flat/tabular and GeoJSON formats)
-building = Building.model_validate(feature_data)
-place = Place.model_validate(geojson_feature)
+### Tabular data, and GeoJSON for compatibility
 
-# Parse and validate JSON strings
-building_from_json = Building.model_validate_json(json_string)
+Overture publishes data in one shape: flat and tabular -- the column layout of the
+Parquet release, with `theme`, `type`, and `version` as top-level columns and
+geometry as WKT. That is what **Python mode** (`model_validate`) reads.
 
-# Convert to GeoJSON format for output
-geojson_output = building.model_dump(mode="json")
+The models also accept and emit GeoJSON, through **JSON mode**
+(`model_validate_json`), so the schema works with tools that expect features
+rather than rows. The generated JSON Schema describes that representation.
+
+The modes are not interchangeable. Passing a GeoJSON dict to `model_validate`
+reports `theme`/`version` missing and `type` set to `'Feature'`, because it is
+reading GeoJSON keys as flat columns.
+
+```python
+# Flat / tabular (Parquet-shaped) dict
+building = Building.model_validate(feature_row)
+
+# GeoJSON -- JSON mode, from a string or bytes
+building = Building.model_validate_json(geojson_text)
+
+# Serialize back to GeoJSON. by_alias=True is required: without it,
+# aliased fields serialize under their Python names (`class_`, not
+# `class`) and the output will not re-validate.
+geojson_output = building.model_dump(mode="json", by_alias=True, exclude_none=True)
 ```
 
 ### Available Models
 
+Each model lives in its theme package. The metapackage installs all of them:
+
 ```python
-# All models are re-exported from their respective theme packages for convenience
-from overture.schema import (
-    # Addresses theme
-    Address,
-    # Base theme
+from overture.schema.addresses import Address
+from overture.schema.base import (
     Bathymetry,
     Infrastructure,
     Land,
     LandCover,
     LandUse,
     Water,
-    # Buildings theme
-    Building,
-    BuildingPart,
-    # Divisions theme
-    Division,
-    DivisionArea,
-    DivisionBoundary,
-    # Places theme
-    Place,
-    # Transportation theme
-    Connector,
-    Segment,
 )
+from overture.schema.buildings import Building, BuildingPart
+from overture.schema.divisions import Division, DivisionArea, DivisionBoundary
+from overture.schema.places import Place
+from overture.schema.transportation import Connector, Segment
 ```
 
-### Utility Functions
-
-The package also exports several utility functions:
+`Segment` is a discriminated union alias rather than a class, so it validates
+through a `TypeAdapter`:
 
 ```python
-from overture.schema import parse, discover_models, json_schema
-from overture.schema import Building
+from pydantic import TypeAdapter
 
-# Parse any Overture feature (auto-discovers all registered models)
-validated_feature = parse(feature_data, mode="json")  # Parses GeoJSON format
-validated_feature = parse(feature_data, mode="python")  # Parses flat format
+segments = TypeAdapter(Segment)
+segment = segments.validate_json(geojson_text)
+```
 
-# Discover all registered models programmatically
+### Validating without knowing the type
+
+`overture-schema-validation` validates against the union of every installed
+model, picking the right one from the data:
+
+```python
+from overture.schema.validation import validate, validate_json
+
+feature = validate(feature_row)  # flat / tabular dict
+feature = validate_json(geojson_text)  # GeoJSON
+```
+
+### Discovering models programmatically
+
+Discovery lives in `overture-schema-system`. `discover_models()` returns a dict
+keyed by `ModelKey` -- entry point `name`, its `entry_point` value, and the set
+of tags attached during discovery:
+
+```python
+from overture.schema.system.discovery import discover_models, get_registered_model
+
 all_models = discover_models()
-# Returns:
 # {
-#   ("buildings", "building"): BuildingModel,
-#   ("places", "place"): PlaceModel,
-# ...
+#   ModelKey(name="building", entry_point="overture.schema.buildings:Building",
+#            tags=frozenset({"feature", "overture", "overture:theme=buildings"})): Building,
+#   ModelKey(name="place", entry_point="overture.schema.places:Place",
+#            tags=frozenset({"feature", "overture", "overture:theme=places"})): Place,
+#   ...
 # }
 
-# Generate JSON Schema for models or unions
-schema = json_schema(Building)
-union_schema = json_schema(Building | Place)  # Works with unions too
+building_model = get_registered_model("building")  # None if not installed
 ```
+
+### Generating JSON Schema
+
+```python
+from overture.schema.system.json_schema import json_schema
+
+schema = json_schema(Building)
+union_schema = json_schema(Building | Place)  # emits an anyOf
+```
+
+See the [`overture-schema-system` README](../overture-schema-system/README.md)
+for tag format, tag providers, and the discovery API in full.

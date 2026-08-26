@@ -7,11 +7,16 @@ from pydantic import BaseModel, Field, Tag
 
 from overture.schema.common import OvertureFeature
 from overture.schema.common.tag_providers import (
+    overture_provider,
     theme_provider,
 )
 from overture.schema.system.discovery import ModelKey
 from overture.schema.system.discovery.discovery import _generate_tags
-from overture.schema.system.discovery.types import TagProviderDict, TagProviderKey
+from overture.schema.system.discovery.types import (
+    TagProvider,
+    TagProviderDict,
+    TagProviderKey,
+)
 
 
 @pytest.fixture
@@ -34,30 +39,41 @@ def _empty_key(name: str = "x", entry_point: str = "mod:X") -> ModelKey:
     return ModelKey(name=name, entry_point=entry_point, tags=frozenset())
 
 
-def test_theme_provider_plain_class(building: type[OvertureFeature]) -> None:
-    tags = theme_provider((building,), _empty_key(), set())
-    assert tags == {"overture:theme=buildings"}
+@pytest.fixture
+def transportation_union() -> object:
+    """A two-arm transportation union. `_generate_tags` walks it to the arms."""
 
-
-def test_theme_provider_discriminated_union() -> None:
-    # `_generate_tags` is responsible for walking the union to concrete arms.
     class Road(OvertureFeature[Literal["transportation"], Literal["road"]]):
         pass
 
     class Rail(OvertureFeature[Literal["transportation"], Literal["rail"]]):
         pass
 
-    union = Annotated[
+    return Annotated[
         Annotated[Road, Tag("road")] | Annotated[Rail, Tag("rail")],
         Field(discriminator="type"),
     ]
-    provider_key = TagProviderKey(
-        name="theme",
-        entry_point="common:theme_provider",
+
+
+def _providers(provider: TagProvider) -> TagProviderDict:
+    """Register one provider under a key this package is allowed to use."""
+    key = TagProviderKey(
+        name=provider.__name__.removesuffix("_provider"),
+        entry_point=f"common:{provider.__name__}",
         package_name="overture-schema-common",
     )
-    providers: TagProviderDict = {provider_key: theme_provider}
-    tags = _generate_tags(union, _empty_key(), providers)
+    return {key: provider}
+
+
+def test_theme_provider_plain_class(building: type[OvertureFeature]) -> None:
+    tags = theme_provider((building,), _empty_key(), set())
+    assert tags == {"overture:theme=buildings"}
+
+
+def test_theme_provider_discriminated_union(transportation_union: object) -> None:
+    tags = _generate_tags(
+        transportation_union, _empty_key(), _providers(theme_provider)
+    )
     assert tags == {"overture:theme=transportation"}
 
 
@@ -74,3 +90,32 @@ def test_theme_provider_raises_on_non_literal_theme() -> None:
 
     with pytest.raises(TypeError, match="must be annotated Literal"):
         theme_provider((BadFeature,), _empty_key(), set())
+
+
+def test_overture_provider_plain_class(building: type[OvertureFeature]) -> None:
+    tags = overture_provider((building,), _empty_key(), set())
+    assert tags == {"overture"}
+
+
+def test_overture_provider_discriminated_union(transportation_union: object) -> None:
+    tags = _generate_tags(
+        transportation_union, _empty_key(), _providers(overture_provider)
+    )
+    assert tags == {"overture"}
+
+
+def test_overture_provider_skips_non_overture(not_overture: type[BaseModel]) -> None:
+    tags = overture_provider((not_overture,), _empty_key(), set())
+    assert tags == set()
+
+
+def test_overture_provider_partial_union_still_tags(
+    not_overture: type[BaseModel],
+) -> None:
+    """One Overture arm is enough; a mixed union still counts as Overture."""
+
+    class Road(OvertureFeature[Literal["transportation"], Literal["road"]]):
+        pass
+
+    tags = overture_provider((not_overture, Road), _empty_key(), set())
+    assert tags == {"overture"}

@@ -15,11 +15,13 @@ pip install overture-schema-validation
 ```python
 from overture.schema.validation import validate, validate_json
 
-# Validate a Python object (a dict or a model instance)
-feature = validate({"type": "segment", "id": "...", "geometry": "..."})
+# A Python object -- the flat, tabular (Parquet-style) shape
+feature = validate(feature_row)
 
-# Validate a JSON document
-feature = validate_json('{"type": "segment", "id": "...", "geometry": "..."}')
+# A JSON document -- GeoJSON
+feature = validate_json(geojson_text)
 ```
+
+The two entry points are not interchangeable. `validate` runs Pydantic's Python mode, which reads the flat column layout of the Parquet release -- the shape Overture publishes. `validate_json` runs JSON mode, which reads the GeoJSON representation the models support for compatibility with tools that expect features rather than rows. Handing a GeoJSON dict to `validate` reports `theme` and `version` missing and `type` set to `'Feature'`.
 
 Both raise `pydantic.ValidationError` when the input matches no model. Which models participate is resolved at runtime by entry-point discovery, so installing additional Overture theme packages widens what these functions accept.

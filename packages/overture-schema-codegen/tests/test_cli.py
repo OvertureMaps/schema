@@ -26,6 +26,13 @@ class TestCliList:
         assert "Building" in result.output
         assert "Place" in result.output
 
+    def test_list_names_union_alias_entry_points(self, cli_runner: CliRunner) -> None:
+        """A union alias lists by its entry-point class name, not its repr."""
+        result = cli_runner.invoke(cli, ["list"])
+
+        assert "Segment" in result.output.split()
+        assert "typing.Annotated" not in result.output
+
 
 class TestCliGenerate:
     """Tests for the generate command."""

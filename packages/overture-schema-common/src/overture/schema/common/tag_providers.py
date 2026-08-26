@@ -14,6 +14,55 @@ from overture.schema.common import OvertureFeature
 from overture.schema.system.discovery import ModelKey
 
 
+def overture_provider(
+    types: Iterable[type[BaseModel]],
+    key: ModelKey,
+    tags: set[str],
+) -> set[str]:
+    """Add `"overture"` when the entry point references an `OvertureFeature`.
+
+    The tag says the model is built on Overture's feature model -- that it
+    carries the theme/type/id/version/sources contract `OvertureFeature`
+    defines -- as distinct from `feature`, which says only that it is a
+    `Feature`. It exists so that question is answerable by tag:
+    `overture-schema list-types --tag overture` selects those types, and a
+    consumer filtering on them needs no dependency on this package and no
+    `issubclass` call.
+
+    It is *not* a claim that the type belongs to the Overture schema. Any
+    package can subclass `OvertureFeature` and register an entry point, and
+    this provider tags it like any other. Reserving the tag to this package
+    governs who may *emit* it, not which models receive it.
+
+    One qualifying arm is enough: a discriminated union with any
+    `OvertureFeature` arm is an Overture feature type.
+
+    This shares its predicate with `theme_provider` below, so `overture` is
+    also derivable as "carries any `overture:theme=` tag". It is emitted
+    separately because a selector a user can type is worth more than the
+    derivation, and because a future non-themed `OvertureFeature` would
+    break the equivalence.
+
+    Parameters
+    ----------
+    types
+        Concrete `BaseModel` subclasses for the entry point. For
+        discriminated-union features this is every arm.
+    key
+        Key identifying the model.
+    tags
+        Current tags; may be extended.
+
+    Returns
+    -------
+    set[str]
+        Updated tags, with `"overture"` added if applicable.
+    """
+    if any(issubclass(tp, OvertureFeature) for tp in types):
+        tags.add("overture")
+    return tags
+
+
 def theme_provider(
     types: Iterable[type[BaseModel]],
     key: ModelKey,

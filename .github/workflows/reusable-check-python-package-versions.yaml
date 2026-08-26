@@ -78,19 +78,21 @@ jobs:
           persist-credentials: false
 
       - name: Diff package versions
+        id: diff
+        uses: ./.github/actions/diff-package-versions
+        with:
+          before: ${{ inputs.before_commit }}
+          after: ${{ inputs.after_commit }}
+
+      - name: Save changed packages
         id: save-changes
         env:
-          BEFORE: ${{ inputs.before_commit }}
-          AFTER: ${{ inputs.after_commit }}
+          DIFF: ${{ steps.diff.outputs.diff }}
+          COUNT: ${{ steps.diff.outputs.count }}
         run: |
-          python3 ./.github/workflows/scripts/package_versions.py diff "$BEFORE" "$AFTER" \
-            > /tmp/package-version-diff.json
-          cat /tmp/package-version-diff.json
           {
-            echo 'changed_packages<<EOF'
-            cat /tmp/package-version-diff.json
-            echo EOF
-            printf 'num_changed_packages=%s\n' "$(jq -c '. | length' /tmp/package-version-diff.json)"
+            echo "changed_packages=${DIFF}"
+            echo "num_changed_packages=${COUNT}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Configure AWS credentials
@@ -115,9 +117,10 @@ jobs:
         if: steps.save-changes.outputs.num_changed_packages > 0
         env:
           INDEX_URL: ${{ steps.get-code-artifact-index-url.outputs.index_url }}
+          DIFF: ${{ steps.diff.outputs.diff }}
           # zizmor: ignore[template-injection]
         run: |
-          jq -c '.[]' /tmp/package-version-diff.json | while read -r entry; do
+          jq -c '.[]' <<< "$DIFF" | while read -r entry; do
             package=$(echo "$entry" | jq -r '.package')
             after=$(echo "$entry" | jq -r '.after')
             if [ "$after" = "null" ]; then
