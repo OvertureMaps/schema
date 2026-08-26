@@ -1,33 +1,251 @@
-# Overture Maps Pydantic Schema Guide
+# Authoring and Extending the Schema
 
-This guide helps you work with Overture Maps Pydantic schemas - Python models that define geospatial data structures with automatic validation. Whether you're new to Pydantic or migrating from JSON Schema, this guide provides a progressive learning path from basics to advanced patterns.
+This page is for people **writing** to the schema: adding feature types, building tools on top of the models,
+or authoring new Pydantic models for Overture itself. If you only want to *use* the
+schema to validate data, explore models, or generate artifacts, you want
+[SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) instead.
 
-## Table of Contents
+| If you want to | Read |
+|---|---|
+| Make your own feature types visible to the Overture tooling | [Register your own feature types](#register-your-own-feature-types) |
+| Generate an SDK in another language, or build your own CLI | [SCHEMA_GUIDE.md §8](SCHEMA_GUIDE.md#8-building-tools-on-the-models) — that's consumer work |
+| Understand entry-point registration and tags | [Registering models and tagging](#registering-models-and-tagging) |
+| Author a new Pydantic model for the schema | [Authoring new schema models](#authoring-new-schema-models) |
+| Run the tests and checks | [Development workflow](#development-workflow) |
+| Copy a working starting point | [Templates and quick reference](#templates-and-quick-reference) |
 
-- [Quick Start](#quick-start)
-- [Basic Concepts](#basic-concepts)
-  - [Models and Inheritance](#models-and-inheritance)
-  - [Field Types](#field-types)
-  - [Field Enhancement](#field-enhancement)
-  - [Collections and Lists](#collections-and-lists)
-  - [Enumerations](#enumerations)
-- [Advanced Patterns](#advanced-patterns)
-  - [Relationship Patterns](#relationship-patterns)
-  - [Discriminated Unions](#discriminated-unions)
-  - [Pattern Properties (Constrained Key-Value Maps)](#pattern-properties-constrained-key-value-maps)
-  - [Nested List Validation](#nested-list-validation)
-  - [Type Aliases for Reusable Patterns](#type-aliases-for-reusable-patterns)
-- [Integration Guide](#integration-guide)
-  - [Project Architecture](#project-architecture)
-  - [Migrating from JSON Schema](#migrating-from-json-schema)
-- [Reference](#reference)
-  - [Quick Reference](#quick-reference)
+This page is the successor to the repo's old `PYDANTIC_GUIDE.md` — the contributor-facing
+authoring guide, corrected and re-tested. It was folded into `SCHEMA_GUIDE.md` as Part II
+during the docs consolidation and is broken back out here so the contributor material
+stands on its own, as the consolidation set out to do.
+
+Per-package reference — installation, usage, and API for one package — lives in that
+package's `README.md` under `packages/`, versioned alongside the code it documents. This
+page covers what spans packages.
+
+See also [CONCEPTS.md](CONCEPTS.md) for why the schema is Pydantic and how the packages
+fit together.
+
+*Every code block on this page has been executed against the repo;
+`tests/test_documented_imports.py` keeps the imports honest.*
 
 ---
 
-## Quick Start
+## Extending the schema with your own types
 
-### Essential Imports
+### Register your own feature types
+
+Your models become first-class: discovered by the CLI, accepted by `validate()`,
+included in generated docs and JSON Schema. Nothing in the tooling special-cases
+Overture.
+
+```python
+# mypkg/models.py
+from typing import Literal
+from overture.schema.common import OvertureFeature
+from overture.schema.system.numeric import float32
+
+
+class Vineyard(OvertureFeature[Literal["agriculture"], Literal["vineyard"]]):
+    """A cultivated area planted with grapevines."""
+
+    area_hectares: float32 | None = None
+```
+
+```toml
+# mypkg/pyproject.toml
+[project.entry-points."overture.models"]
+vineyard = "mypkg.models:Vineyard"
+```
+
+Install it, and:
+
+```bash
+overture-schema list-types
+overture-schema validate vineyard.json
+overture-codegen generate --format markdown --output-dir out
+```
+
+To attach your own tags, register a **tag provider** on `overture.tag_providers`:
+
+```python
+def experimental_provider(types, key, tags):
+    if any(getattr(t, "__experimental__", False) for t in types):
+        tags.add("mypkg:experimental")
+    return tags
+```
+
+```toml
+[project.entry-points."overture.tag_providers"]
+experimental = "mypkg.tags:experimental_provider"
+```
+
+Tag namespaces are reserved: `feature` and `system:` belong to `overture-schema-system`,
+`overture:` to `overture-schema-common`. A provider that tries to set a reserved tag from
+an unauthorized package gets a logged warning and the tag is discarded. Use your own
+namespace.
+
+You don't have to build on `OvertureFeature` — subclass `system.Feature` directly for a
+GeoJSON-serializing model with none of the Overture conventions.
+
+### Write a new codegen target
+
+For a format nobody else generates — Arrow schemas, Avro, Go structs, protobuf — add a
+renderer to the codegen rather than parsing JSON Schema back out. You get the full
+semantic model: NewType names, constraint provenance, discriminated union structure — all
+the things JSON Schema flattens away.
+
+The pipeline is four layers with strictly downward imports:
+
+```
+Rendering        →  output formatting, all presentation decisions
+Output Layout    →  what to generate, where it goes, how outputs link
+Extraction       →  FieldShape, FieldSpec, RecordSpec, UnionSpec, EnumSpec
+Discovery        →  discover_models()
+```
+
+Extraction is target-independent, so a new target is a new renderer, not new extraction
+logic. The entry point:
+
+```python
+from overture.schema.codegen.extraction.model_extraction import extract_model
+from overture.schema.buildings import Building
+
+spec = extract_model(Building)
+spec.name  # 'Building'
+spec.description  # the class docstring
+spec.constraints  # model-level constraints
+
+for f in spec.fields[:6]:
+    print(f"{f.name:12} required={f.is_required!s:5} {type(f.shape).__name__}")
+```
+
+```
+id           required=True  NewTypeShape
+bbox         required=False Primitive
+geometry     required=True  Primitive
+theme        required=True  LiteralScalar
+type         required=True  LiteralScalar
+version      required=True  NewTypeShape
+```
+
+`FieldSpec` is `(name, shape, description, is_required, is_optional)`. The `shape` is a
+`FieldShape` tree — `NewTypeShape`, `Primitive`, `LiteralScalar`, `ModelRef`,
+`UnionRef`, and container variants — with sub-models and sub-unions already resolved.
+Constraints carry provenance, so you can tell which NewType contributed which bound:
+
+```python
+from overture.schema.codegen.extraction.type_analyzer import analyze_type
+from overture.schema.common.feature import FeatureVersion
+
+shape, is_nullable, description = analyze_type(FeatureVersion)
+# shape → NewTypeShape(name='FeatureVersion', inner=Primitive(base_type='int32',
+#           constraints=(ConstraintSource(source_name='FeatureVersion', constraint=Ge(ge=0)), ...)))
+```
+
+`analyze_type` returns a **3-tuple** `(FieldShape, bool, str | None)` — the structural
+shape, whether the field accepts `None`, and the first description found while
+unwrapping. (The codegen README shows an older `TypeInfo`/`TypeKind` API that no longer
+exists.)
+
+To wire up a new format: add a column to `TypeMapping` in
+`extraction/type_registry.py` for type-name resolution, write a pipeline module
+consuming `ModelSpec` trees plus a renderer, and register the format in `cli.py`.
+
+Further reading in the repo:
+
+- `packages/overture-schema-codegen/docs/design.md` — architecture, data flow, extension points
+- `packages/overture-schema-codegen/docs/walkthrough.md` — module-by-module trace of `Segment` through the pipeline
+
+---
+
+---
+
+## Registering models and tagging
+
+How feature types make themselves known to the tooling. This is the mechanism that
+lets your own models slot in alongside Overture's — see
+[Register your own feature types](#register-your-own-feature-types) for a worked example.
+
+The library is designed to support data producer extensions through multiple patterns.
+This extensibility is a core feature that allows organizations to add custom fields and
+types while maintaining compatibility with the base Overture schema. We are in the
+process of determining how this should work.
+
+### Model Registration via Entry Points
+
+Models are registered using [setuptools entry
+points](https://setuptools.pypa.io/en/latest/userguide/entry_point.html) in each
+package's `pyproject.toml` file. This enables automatic discovery and loading of models
+at runtime without requiring explicit imports.
+
+Registration is done in the `[project.entry-points."overture.models"]` section:
+
+```toml
+[project.entry-points."overture.models"]
+building = "overture.schema.buildings:Building"
+building_part = "overture.schema.buildings:BuildingPart"
+```
+
+The discovery system provides programmatic access to registered models:
+
+```python
+from overture.schema.system.discovery import discover_models, get_registered_model
+
+# Discover all registered models, keyed by ModelKey
+all_models = discover_models()
+
+# Get a specific model by name
+building_model = get_registered_model("building")
+if building_model:
+    building = building_model.model_validate(building_data)
+```
+
+### Tagging
+
+Each `ModelKey` returned by `discover_models()` carries a `frozenset[str]` of tags
+that classify the model orthogonally to its entry-point name -- whether the model
+is a `Feature` subclass, which Overture theme it belongs to, which package shipped
+it, and so on. Downstream tools (the CLI, codegen, third-party consumers) use tags
+to filter the working set without importing every model:
+
+```python
+from overture.schema.system.discovery import (
+    TagSelector,
+    discover_models,
+    filter_models,
+)
+
+models = discover_models()
+# {
+#   ModelKey(name="building", entry_point="overture.schema.buildings:Building",
+#            tags=frozenset({"feature", "overture", "overture:theme=buildings"})): Building,
+#   ModelKey(name="place",    entry_point="overture.schema.places:Place",
+#            tags=frozenset({"feature", "overture", "overture:theme=places"})):    Place,
+#   ...
+# }
+
+buildings = filter_models(
+    models,
+    TagSelector(include_any=("overture:theme=buildings",)),
+)
+```
+
+Tags are produced by *tag providers* registered on the `overture.tag_providers`
+entry-point group. The `system` and `common` packages ship the built-in providers
+(`feature` and `overture:theme=*`); third parties can register their own
+to attach custom tags during discovery. See the [`overture-schema-system`
+README](packages/overture-schema-system/README.md#tagging) for tag format,
+reserved namespaces, and provider authoring.
+
+
+---
+
+## Authoring new schema models
+
+### Quick Start
+
+#### Essential Imports
 
 Copy what you need for most models:
 
@@ -73,73 +291,24 @@ from overture.schema.system.numeric import (
 )
 ```
 
-### Basic Model Template
+#### Templates
 
-```python
-from typing import Annotated
-from pydantic import BaseModel, Field
-from overture.schema.system.model_constraint import no_extra_fields
-from overture.schema.system.numeric import int8, float64
-
-
-@no_extra_fields
-class MyCustomType(BaseModel):
-    """Brief description of what this represents."""
-
-    # Required fields (no default value)
-    name: str
-    category: str
-
-    # Optional fields (with None default)
-    description: str | None = None
-
-    # Field with constraints and description
-    priority: Annotated[
-        int8 | None,
-        Field(
-            ge=1, le=10, description="Priority level from 1 (lowest) to 10 (highest)"
-        ),
-    ] = None
-```
-
-### Feature Template
-
-```python
-from typing import Annotated, Literal
-from pydantic import Field
-from overture.schema.common import OvertureFeature
-from overture.schema.system.geometric import (
-    Geometry,
-    GeometryType,
-    GeometryTypeConstraint,
-)
-
-
-class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
-    """Description of what this feature represents."""
-
-    # Geometry with constraints
-    geometry: Annotated[
-        Geometry,
-        GeometryTypeConstraint(GeometryType.POINT),
-        Field(description="Location of this feature"),
-    ]
-
-    # Custom fields
-    my_field: str | None = None
-```
+Copy-paste starting points for the four shapes you'll write most often — a plain
+model, a feature, an enum, and a model with validation constraints — live together in
+[Templates and quick reference](#templates-and-quick-reference) rather than being
+repeated here.
 
 ---
 
-## Basic Concepts
+### Basic Concepts
 
-### Models and Inheritance
+#### Models and Inheritance
 
-#### What are Pydantic models?
+##### What are Pydantic models?
 
 Pydantic models are Python classes that define data structures and their constraints. Think of them like UML classes with built-in data validation - each model defines what fields are allowed and what types of data they can contain.
 
-#### Model Base Classes and Inheritance
+##### Model Base Classes and Inheritance
 
 **What is a "base class"?** A base class defines common fields and behaviors that other classes can reuse. Think of it like a slide template - you create one layout, then make specific slides that use that structure.
 
@@ -187,7 +356,7 @@ class Building(OvertureFeature[Literal["buildings"], Literal["building"]]):
 
 By specifying `OvertureFeature[Literal["buildings"], Literal["building"]]`, you're saying "this is a Feature that must have theme='buildings' and type='building'" - no other values are allowed. This prevents mistakes like accidentally creating a building with theme="places".
 
-#### Inheritance Patterns
+##### Inheritance Patterns
 
 **Multiple inheritance** combines fields from several base classes:
 
@@ -209,7 +378,7 @@ class Building(
     height: float64 | None = None
 ```
 
-#### Field Aliases
+##### Field Aliases
 
 Sometimes you need a field name that conflicts with Python keywords or conventions (hint: you'll get an error when you try to use it). Use `Field(alias="<data field name>")` to map between Python-friendly field names and the actual data field names:
 
@@ -229,9 +398,9 @@ class Building(OvertureFeature):
 
 A common example is `class_` with `Field(alias="class")` since "class" is a Python keyword but a common field name in data schemas.
 
-### Field Types
+#### Field Types
 
-#### Required vs Optional Fields
+##### Required vs Optional Fields
 
 ```python
 class Building(OvertureFeature):
@@ -279,7 +448,7 @@ class Building(OvertureFeature):
 
 Keep the schema separate from business logic. The schema describes the shape of data, not the business rules about what missing values mean.
 
-#### Numeric Types
+##### Numeric Types
 
 **Always use specific numeric types instead of Python's generic `int`/`float`:**
 
@@ -335,7 +504,7 @@ The specific numeric types are crucial for data interchange and storage compatib
 - **Storage efficiency**: `uint8` uses 1 byte vs `int64` which uses 8 bytes
 - **Built-in validation**: These types use Pydantic `Field()` constraints to validate ranges (e.g., `Field(ge=0, le=100)` ensures values stay within bounds)
 
-#### Union Types
+##### Union Types
 
 Union types allow a field to accept multiple different types. The `|` symbol means "or":
 
@@ -374,9 +543,9 @@ is_verified: bool | None = None
 > [!WARNING]
 > **Storage compatibility**: Mixed-type unions (combining different basic types like `str | int32`) don't work with Parquet and other storage layers. Use `Literal` values or separate fields instead.
 
-### Field Enhancement
+#### Field Enhancement
 
-#### Adding Descriptions and Constraints with Annotated
+##### Adding Descriptions and Constraints with Annotated
 
 `Annotated` is Python's way to add extra information (metadata) to a type without changing the type itself. Think of it like adding notes or constraints to a field definition.
 
@@ -401,7 +570,7 @@ height: Annotated[
 1. **First argument**: The actual type (`str`, `int32`, `list[str]`, etc.)
 2. **Additional arguments**: Metadata like constraints, descriptions, validation rules
 
-#### Field Constraints
+##### Field Constraints
 
 Use Pydantic's `Field()` function to add constraints and descriptions:
 
@@ -453,9 +622,9 @@ class Place(OvertureFeature):
 - **`max_length`**: Maximum string length
 - **`pattern`**: Regular expression pattern (regex)
 
-### Collections and Lists
+#### Collections and Lists
 
-#### Basic List Fields
+##### Basic List Fields
 
 ```python
 class Building(Feature):
@@ -466,7 +635,7 @@ class Building(Feature):
     access_rules: list[AccessRule] | None = None
 ```
 
-#### List Constraints
+##### List Constraints
 
 ```python
 from overture.schema.system.field_constraint import UniqueItemsConstraint
@@ -494,11 +663,11 @@ class Building(OvertureFeature):
 >
 > **Why**: Pydantic processes annotations in order for JSON Schema generation. `Field()` must come first to set up the field properly. For lists, `Field(min_length=1)` creates a `minItems` constraint in the JSON Schema because the type immediately before it is a list. If `UniqueItemsConstraint()` comes first, Pydantic doesn't see the list type and treats `min_length` as a string constraint (`minLength`).
 
-#### List Behavior
+##### List Behavior
 
 Lists maintain their **insertion order** (the order data exists in the field), but they are **not automatically sorted**.
 
-### Enumerations
+#### Enumerations
 
 **What is an enumeration (enum)?** An enumeration is a way to define a fixed set of allowed values for a field. Think of it like a multiple-choice question - you define all the valid answers ahead of time, and users can only pick from those options.
 
@@ -506,7 +675,7 @@ For example, instead of allowing any string for a "status" field (which could le
 
 **Enums vs Literal:** You can achieve similar results with `Literal["active", "inactive", "pending"]`, but formal enums are better when you need descriptions, documentation, or want to reuse the same set of values across multiple fields.
 
-#### Creating Enums
+##### Creating Enums
 
 Enums define a fixed set of allowed values:
 
@@ -528,7 +697,7 @@ class Building(OvertureFeature):
     class_: Annotated[BuildingClass | None, Field(alias="class")] = None
 ```
 
-#### Documenting Enum Values
+##### Documenting Enum Values
 
 Add documentation to describe what the enum and its values mean. In Python, you do this with **docstrings** - text enclosed in triple quotes `"""` that describes what something does:
 
@@ -561,17 +730,17 @@ class ConnectionState(str, DocumentedEnum):
 
 Use `DocumentedEnum` over plain `str, Enum` when the enum members' semantics aren't obvious from their names and downstream tools (code generators, documentation renderers) need access to member-level descriptions. Use plain `str, Enum` for self-explanatory values.
 
-#### Why str, Enum?
+##### Why str, Enum?
 
 Inheriting from `str, Enum` makes enum values work as both enums and strings, which is useful for JSON serialization and compatibility.
 
 ---
 
-## Advanced Patterns
+### Advanced Patterns
 
-### Relationship Patterns
+#### Relationship Patterns
 
-#### What are relationships?
+##### What are relationships?
 
 Relationships represent connections between different features or models. Think of them like links that connect related pieces of information — for example, a building part that is structurally part of a building, or a division area that is administratively nested under a division.
 
@@ -579,11 +748,11 @@ Pydantic provides several ways to express these relationships, each suited to di
 
 ---
 
-#### Semantic Relationship Types
+##### Semantic Relationship Types
 
 Every relationship between two features carries a semantic meaning about coupling strength, lifecycle dependency, and ownership. The schema defines four relationship types, ordered from strongest to weakest coupling. The types describe the *nature* of the link, not which feature is "parent" or "child." Direction is implicit: the feature holding the reference is the source, and the type it references is the destination.
 
-##### `COMPOSITION` — Structural Whole-Part
+###### `COMPOSITION` — Structural Whole-Part
 
 A structural whole-part relationship with lifecycle dependency. The part has no independent meaning outside the whole. Deleting the whole invalidates the part.
 
@@ -593,7 +762,7 @@ A structural whole-part relationship with lifecycle dependency. The part has no 
 - `BuildingPart` → `Building` — part *is part of* building
 - `DivisionBoundary` → `Division` — boundary line *defines the boundary of* division
 
-##### `AGGREGATION` — Grouping Without Lifecycle Dependency
+###### `AGGREGATION` — Grouping Without Lifecycle Dependency
 
 A grouping or collection relationship where both members are independently viable. No lifecycle dependency — the member survives reassignment to another group or orphaning.
 
@@ -603,7 +772,7 @@ A grouping or collection relationship where both members are independently viabl
 - `Route` → `Segment` — route *groups* segments
 - `TrailSegment` → `NationalPark` — segment *is grouped by* park
 
-##### `HIERARCHY` — Organizational Nesting
+###### `HIERARCHY` — Organizational Nesting
 
 An organizational or classificatory nesting relationship. This is not about structural assembly — it's about administrative parentage, taxonomy, or categorization.
 
@@ -613,7 +782,7 @@ An organizational or classificatory nesting relationship. This is not about stru
 - `DivisionArea` → `Division` — area *is child of* division
 - `Division` → `Division` — child division nested under parent
 
-##### `ASSOCIATION` — Peer-Level Reference
+###### `ASSOCIATION` — Peer-Level Reference
 
 A peer-level reference with no ownership, containment, or nesting. Neither feature depends on or contains the other. This is the fallback when none of the stronger types apply.
 
@@ -625,7 +794,7 @@ A peer-level reference with no ownership, containment, or nesting. Neither featu
 
 ---
 
-#### Selection Priority
+##### Selection Priority
 
 When a relationship could fit multiple types, the choice follows a **diamond decision**: start at the top, fork in the middle based on the *kind* of coupling, and fall through to the bottom only when no stronger type applies.
 
@@ -647,7 +816,7 @@ AGGREGATION  HIERARCHY
 
 ---
 
-#### The `role` Field
+##### The `role` Field
 
 The `Reference` annotation accepts an optional `role` parameter — a snake_case string that further qualifies the relationship from the source's perspective. It has no effect on schema validation; it is informational metadata for documentation and tooling.
 
@@ -671,9 +840,9 @@ The `role` must be a non-empty snake_case string (lowercase letters, digits, und
 
 ---
 
-#### Implementation Patterns
+##### Implementation Patterns
 
-##### 1. Direct References (Foreign Keys)
+###### 1. Direct References (Foreign Keys)
 
 The fundamental pattern is a direct reference where one feature "points to" another using an ID field with type safety and semantic information.
 
@@ -715,7 +884,7 @@ class ConnectorReference(BaseModel):
     ]
 ```
 
-##### 2. Association as a Separate Feature (Complex Relationships)
+###### 2. Association as a Separate Feature (Complex Relationships)
 
 When the relationship itself needs to store information, create a dedicated feature to represent it. This applies regardless of the semantic type — any of the four types can carry metadata.
 
@@ -745,7 +914,7 @@ class AdminCityCenterAssociation(
 - Many-to-many connections exist.
 - You need to query the relationships independently.
 
-##### 3. Collection References
+###### 3. Collection References
 
 When a feature needs to reference multiple other features, use a list of references. The semantic type still matters.
 
@@ -780,9 +949,9 @@ class Route(OvertureFeature[Literal["transportation"], Literal["route"]]):
 
 ---
 
-#### Best Practices
+##### Best Practices
 
-##### Always Use Reference Annotations
+###### Always Use Reference Annotations
 
 Include `Reference` annotations for semantic clarity and documentation:
 
@@ -798,7 +967,7 @@ division_id: Annotated[
 division_id: Id
 ```
 
-##### Choose the Right Semantic Type First, Then the Right Pattern
+###### Choose the Right Semantic Type First, Then the Right Pattern
 
 1. **Determine the semantic type** using the selection priority and test questions above.
 2. **Then choose the implementation pattern:**
@@ -806,7 +975,7 @@ division_id: Id
    - Relationships with metadata → Separate association features (Pattern 2)
    - One-to-many references → Collection references (Pattern 3)
 
-### Discriminated Unions
+#### Discriminated Unions
 
 **What is a discriminated union?** A discriminated union is a type that can be backed by one of several different models, where a specific field (the "discriminator") determines which model it actually is. Think of it like a form that changes its fields based on a category selection.
 
@@ -847,7 +1016,7 @@ Segment = Annotated[
 
 The `discriminator="subtype"` tells Pydantic to look at the `subtype` field to determine which specific model to use. If `subtype` is "road", it uses `RoadSegment`; if "rail", it uses `RailSegment`.
 
-#### Abstract vs Concrete Classes
+##### Abstract vs Concrete Classes
 
 **What's the difference?** In UML and traditional OOP, abstract classes cannot be instantiated - they serve as templates for concrete classes. In Pydantic, by default, **all classes are concrete** (can be instantiated), but you can make classes abstract when needed.
 
@@ -866,7 +1035,10 @@ from abc import ABC, abstractmethod
 from typing import Annotated, Literal
 from pydantic import Field
 
-class TransportationSegment(OvertureFeature[Literal["transportation"], Literal["segment"]], ABC):
+
+class TransportationSegment(
+    OvertureFeature[Literal["transportation"], Literal["segment"]], ABC
+):
     """Abstract base - cannot be instantiated directly."""
 
     subtype: Subtype  # Discriminator field
@@ -876,17 +1048,20 @@ class TransportationSegment(OvertureFeature[Literal["transportation"], Literal["
         """Each concrete type must implement this."""
         pass
 
+
 class RoadSegment(TransportationSegment):
     """Concrete class - can be instantiated."""
+
     subtype: Literal[Subtype.ROAD]
     speed_limits: SpeedLimits | None = None
 
     def get_speed_limit(self) -> float:
         return self.speed_limits.max_speed if self.speed_limits else 50.0
 
+
 # Now only concrete classes can be instantiated
 # base_segment = TransportationSegment(...)  # TypeError: Can't instantiate abstract class
-road_segment = RoadSegment(subtype=Subtype.ROAD, ...)  # Valid
+road_segment = RoadSegment(subtype=Subtype.ROAD, geometry=...)  # Valid
 ```
 
 **Registration pattern (recommended when working with Overture models):**
@@ -912,7 +1087,7 @@ segment = "overture.schema.transportation:Segment"
 2. The union automatically resolves to the correct concrete type based on the `subtype` field
 3. All classes (`TransportationSegment`, `RoadSegment`, etc.) can be reused as base classes for alternate implementations
 
-### Pattern Properties (Constrained Key-Value Maps)
+#### Pattern Properties (Constrained Key-Value Maps)
 
 **What are pattern properties?** Pattern properties let you create key-value maps where the keys must follow a specific pattern (like language codes) and values have specific types.
 
@@ -960,7 +1135,7 @@ class Names(BaseModel):
 
 The `additionalProperties: False` ensures only keys matching the pattern are allowed when generated JSON Schema is used.
 
-### Nested List Validation
+#### Nested List Validation
 
 **What is nested list validation?** This pattern validates both the outer list and the inner structure of each item, with constraints at multiple levels.
 
@@ -995,7 +1170,7 @@ This creates validation at three levels:
 2. **Inner lists**: Each inner list must have at least 1 item (`min_length=1`)
 3. **Outer list**: The `hierarchies` field must have at least 1 inner list (`min_length=1`)
 
-### Type Aliases for Reusable Patterns
+#### Type Aliases for Reusable Patterns
 
 **What are type aliases?** Type aliases let you create custom names for complex or frequently-used types. Think of them like creating shortcuts or nicknames for long type definitions.
 
@@ -1044,11 +1219,11 @@ class Contact(BaseModel):
 
 ---
 
-## Integration Guide
+### Integration Guide
 
-### Project Architecture
+#### Project Architecture
 
-#### File Organization
+##### File Organization
 
 Organize code by scope, and avoid circular imports.
 
@@ -1097,10 +1272,10 @@ import from the package rather than reaching into the defining module:
 `from overture.schema.buildings.building import Building`. Entry points name the
 package root for the same reason -- `building = "overture.schema.buildings:Building"`.
 
-Modules are named for the thing they define, not the kind of thing: an enum lives in
-the module whose type uses it, and moves up to `_common.py` once a second type needs it.
+There is no `models.py` / `enums.py` / `types.py` split. An enum lives in the module
+whose type uses it, and moves up to `_common.py` when a second type needs it.
 
-#### Import Organization
+##### Import Organization
 
 ```python
 # Standard library imports first
@@ -1123,7 +1298,7 @@ from ._common import SegmentSubtype, TransportationSegment
 
 `uv run ruff format <file>` will sort your imports in this order automatically.
 
-#### Why Not Use @field_validator or @model_validator?
+##### Why Not Use @field_validator or @model_validator?
 
 This project uses a custom validation system that generates better JSON Schema output and supports code generation (without additional work, `@field_validator` and `@model_validator` don't make their constraints discoverable). Always use constraints from `overture.schema.system` instead of using Pydantic validation decorators:
 
@@ -1148,11 +1323,11 @@ class Building(OvertureFeature):
     ] = None
 ```
 
-### Migrating from JSON Schema
+#### Migrating from JSON Schema
 
 If you're familiar with JSON Schema files (like `schema/schema.yaml`), this section helps translate those patterns to Pydantic models.
 
-#### How $defs and $ref Translate
+##### How $defs and $ref Translate
 
 **JSON Schema approach:**
 
@@ -1174,7 +1349,7 @@ properties:
 **Pydantic approach:**
 
 ```python
-# In overture-schema-theme-places/src/overture/schema/places/place.py
+# In overture-schema-theme-addresses/src/overture/schema/addresses/address.py
 @no_extra_fields
 class Address(BaseModel):
     """A postal address."""
@@ -1183,9 +1358,9 @@ class Address(BaseModel):
     locality: str | None = None
 
 
-# Same module -- Place is the type that carries one.
-class Place(OvertureFeature):
-    addresses: list[Address] | None = None
+# In overture-schema-theme-buildings/src/overture/schema/buildings/building.py
+class Building(OvertureFeature):
+    address: Address | None = None
 ```
 
 **Primary differences:**
@@ -1194,7 +1369,7 @@ class Place(OvertureFeature):
 - JSON Schema definitions live in `$defs`; Pydantic models are regular Python classes grouped into modules
 - JSON Schema allows inline definitions; Pydantic encourages separate model classes
 
-#### How Containers Work
+##### How Containers Work
 
 **JSON Schema containers** (like `namesContainer`, `shapeContainer`) are reusable property groups:
 
@@ -1248,7 +1423,7 @@ class Building(
 
 JSON Schema containers become **mixin classes** in Pydantic that you inherit from.
 
-#### Common Translation Patterns
+##### Common Translation Patterns
 
 | JSON Schema | Pydantic | Notes |
 |-------------|----------|-------|
@@ -1263,11 +1438,181 @@ JSON Schema containers become **mixin classes** in Pydantic that you inherit fro
 
 ---
 
-## Reference
 
-### Quick Reference
+---
 
-#### Essential Patterns (Most Common)
+## Development workflow
+
+
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management:
+
+```bash
+# Install dependencies for the entire workspace
+uv sync --all-packages
+
+# Run all tests and type/code quality checks
+make check
+
+# Run tests for a specific package
+uv run pytest packages/overture-schema-theme-buildings/
+
+# Run tests matching a pattern
+uv run pytest -k "buildings"
+```
+
+Auto-format / fix code to align with project expectations:
+
+```shell
+uv run ruff check --fix
+uv run ruff format
+uv run docformatter --in-place --recursive packages/
+```
+
+---
+
+## Templates and quick reference
+
+### Reference
+
+#### Complete Templates
+
+##### Basic Model Template
+
+```python
+from typing import Annotated
+from pydantic import BaseModel, Field
+from overture.schema.system.model_constraint import no_extra_fields
+from overture.schema.system.numeric import int8, float64
+
+
+@no_extra_fields
+class MyCustomType(BaseModel):
+    """Brief description of what this represents."""
+
+    # Required fields (no default value)
+    name: str
+    category: str
+
+    # Optional fields (with default values)
+    description: str | None = None
+
+    # Field with constraints and description
+    priority: Annotated[
+        int8 | None,
+        Field(
+            ge=1, le=10, description="Priority level from 1 (lowest) to 10 (highest)"
+        ),
+    ] = None
+```
+
+##### Feature Template
+
+```python
+from typing import Annotated, Literal
+from pydantic import Field
+from overture.schema.common import OvertureFeature
+from overture.schema.system.geometric import (
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
+
+
+class MyFeature(OvertureFeature[Literal["my_theme"], Literal["my_type"]]):
+    """Description of what this feature represents."""
+
+    # Geometry with constraints
+    geometry: Annotated[
+        Geometry,
+        GeometryTypeConstraint(GeometryType.POINT),
+        Field(description="Location of this feature"),
+    ]
+
+    # Custom fields
+    my_field: str | None = None
+```
+
+##### Enum Template
+
+```python
+from enum import Enum
+
+
+class MyEnum(str, Enum):
+    """Description of what this enum represents."""
+
+    VALUE_ONE = "value_one"
+    VALUE_TWO = "value_two"
+    VALUE_THREE = "value_three"
+```
+
+##### Model with Validation Constraints
+
+```python
+from typing import Annotated
+from pydantic import BaseModel, Field
+from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.model_constraint import no_extra_fields
+
+
+@no_extra_fields
+class Contact(BaseModel):
+    """Contact information with validation constraints."""
+
+    name: str
+    email: str | None = None
+    phone: str | None = None
+
+    # List with constraints
+    tags: Annotated[
+        list[str] | None,
+        Field(min_length=1, description="Contact tags"),
+        UniqueItemsConstraint(),  # No duplicate tags
+    ] = None
+```
+
+##### Association Feature Template
+
+```python
+from typing import Annotated, Literal
+from pydantic import Field
+from overture.schema.common import OvertureFeature
+from overture.schema.system.numeric import float64
+from overture.schema.system.ref import Id, Reference, Relationship
+
+
+class MyAssociation(
+    OvertureFeature[Literal["associations"], Literal["my_association"]]
+):
+    """Represents a relationship between two features with metadata."""
+
+    # References to the associated features
+    # Relationship takes a *kind* (COMPOSITION / AGGREGATION / HIERARCHY /
+    # ASSOCIATION); what the reference means is carried by `role`. Two
+    # references to related features need distinct roles to stay unambiguous.
+    feature_a_id: Annotated[
+        Id,
+        Reference(Relationship.ASSOCIATION, FeatureA, role="connects_from"),
+        Field(description="First feature in the relationship"),
+    ]
+
+    feature_b_id: Annotated[
+        Id,
+        Reference(Relationship.ASSOCIATION, FeatureB, role="connects_to"),
+        Field(description="Second feature in the relationship"),
+    ]
+
+    # Relationship metadata
+    relationship_type: Literal["primary", "secondary"] = "primary"
+    confidence: Annotated[float64 | None, Field(ge=0.0, le=1.0)] = None
+
+    # Optional contextual information
+    notes: str | None = None
+```
+
+#### Quick Reference
+
+##### Essential Patterns (Most Common)
 
 ```python
 # Basic field types
@@ -1282,12 +1627,13 @@ tags: Annotated[list[str] | None, Field(min_length=1), UniqueItemsConstraint()] 
 
 # Association patterns -- Relationship is the kind, role is the meaning
 parent_id: Annotated[
-    Id | None, Reference(Relationship.HIERARCHY, ParentModel, role="child_of")
+    Id | None,
+    Reference(Relationship.HIERARCHY, ParentModel, role="child_of"),
 ] = None
 connector_ids: list[Id]  # References to multiple related features
 ```
 
-#### Model Templates
+##### Model Templates
 
 ```python
 # Non-feature model
@@ -1309,7 +1655,7 @@ class Status(str, Enum):
     INACTIVE = "inactive"
 ```
 
-#### Constraint Reference
+##### Constraint Reference
 
 | Type | Constraint | JSON Schema | Example |
 |------|------------|-------------|---------|
@@ -1318,7 +1664,7 @@ class Status(str, Enum):
 | **List** | `min_length=1, UniqueItemsConstraint()` | `minItems`, `uniqueItems` | `Field(min_length=1), UniqueItemsConstraint()` |
 | **Custom** | `LanguageTagConstraint()` | Custom validation | `LanguageTagConstraint()` |
 
-#### Import Cheatsheet
+##### Import Cheatsheet
 
 ```python
 # Essential imports for most models
@@ -1334,7 +1680,7 @@ from overture.schema.system.numeric import int32, float64
 from overture.schema.system.ref import Id, Reference, Relationship
 ```
 
-#### Naming Conventions
+##### Naming Conventions
 
 - **Classes**: `PascalCase` (`Building`, `AccessRule`)
 - **Fields**: `snake_case` (`construction_year`, `has_parts`)

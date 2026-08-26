@@ -2,6 +2,14 @@
 
 Thank you for your interest in contributing.
 
+## Working with the Python packages
+
+The schema is authored as Pydantic models. [SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) covers
+installing and using the packages; [AUTHORING.md](AUTHORING.md) covers authoring new
+schema models and the development workflow (`uv sync`, `make check`, ruff and
+docformatter). [TROUBLESHOOTING.md](TROUBLESHOOTING.md) collects the errors that cost
+people time.
+
 ## Where to send your change
 
 This repository uses a two-branch model. Target the branch that matches your
