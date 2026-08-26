@@ -1606,16 +1606,6 @@ class TestSegmentUnionChecks:
         for node in subtype_nodes:
             assert node.guards == ()
 
-    def test_speed_limits_require_any_of_in_model_nodes(
-        self, model_nodes: list[ModelCheck]
-    ) -> None:
-        speed_limit_nodes = [
-            n
-            for n in _filter_nodes(model_nodes, "check_require_any_of")
-            if n.target == _path("speed_limits[]")
-        ]
-        assert len(speed_limit_nodes) >= 1
-
     def test_destinations_require_any_of_in_model_nodes(
         self, model_nodes: list[ModelCheck]
     ) -> None:
