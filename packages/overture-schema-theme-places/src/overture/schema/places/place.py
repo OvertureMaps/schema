@@ -200,7 +200,11 @@ class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
                 The basic level category of a place.
 
                 This field classifies places into categories at a level that most people find
-                intuitive. The full list of possible values it may hold can be found at (TODO).
+                intuitive.
+
+                It is populated based on the taxonomy hierarchy and is intended to provide a
+                simplified, human-intuitive label, typically near the middle of the general-to-
+                specific hierarchy.
 
                 The basic level category, or simply basic category, is based on a cognitive science
                 model use in taxonomy and ontology development. The idea is to provide the category

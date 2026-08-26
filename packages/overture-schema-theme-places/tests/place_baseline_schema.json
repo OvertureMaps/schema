@@ -413,7 +413,7 @@
           "type": "array"
         },
         "basic_category": {
-          "description": "The basic level category of a place.\n\nThis field classifies places into categories at a level that most people find\nintuitive. The full list of possible values it may hold can be found at (TODO).\n\nThe basic level category, or simply basic category, is based on a cognitive science\nmodel use in taxonomy and ontology development. The idea is to provide the category\nname at the level of generality that is preferred by humans in learning and memory\ntasks. This category to be roughly in the middle of the general-to-specific category\nhierarchy.\n\nThe full list of basic level categories is available at https://docs.overturemaps.org/guides/places/",
+          "description": "The basic level category of a place.\n\nThis field classifies places into categories at a level that most people find\nintuitive.\n\nIt is populated based on the taxonomy hierarchy and is intended to provide a\nsimplified, human-intuitive label, typically near the middle of the general-to-\nspecific hierarchy.\n\nThe basic level category, or simply basic category, is based on a cognitive science\nmodel use in taxonomy and ontology development. The idea is to provide the category\nname at the level of generality that is preferred by humans in learning and memory\ntasks. This category to be roughly in the middle of the general-to-specific category\nhierarchy.\n\nThe full list of basic level categories is available at https://docs.overturemaps.org/guides/places/",
           "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$",
           "title": "Basic Category",
           "type": "string"

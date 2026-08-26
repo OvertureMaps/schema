@@ -9,7 +9,7 @@ import StringifyObject from "@site/src/components/shared-libs/stringifyObject"
 import yamlLoad from "@site/src/components/yamlLoad"
 import PlaceSchema from "!!raw-loader!@site/docs/_schema/places/place.yaml";
 import PlaceExample from "!!raw-loader!@site/docs/_examples/places/place.yaml";
-import PlaceExampleAlternateCategories from "!!raw-loader!@site/docs/_examples/places/place-alternate-categories.yaml";
+import PlaceExampleWithTaxonomy from "!!raw-loader!@site/docs/_examples/places/place-with-taxonomy.yaml";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -52,8 +52,8 @@ A place is point of interest in the real world.
   <TabItem value="1" label="Place" default>
     <CodeBlock language="json">{ JSON.stringify(yamlLoad(PlaceExample), null, 2) }</CodeBlock>
   </TabItem>
-  <TabItem value="2" label="Alternate Categories" default>
-    <CodeBlock language="json">{ JSON.stringify(yamlLoad(PlaceExampleAlternateCategories), null, 2) }</CodeBlock>
+  <TabItem value="2" label="Taxonomy" default>
+    <CodeBlock language="json">{ JSON.stringify(yamlLoad(PlaceExampleWithTaxonomy), null, 2) }</CodeBlock>
   </TabItem>
 
 </Tabs>
