@@ -56,7 +56,7 @@ In the Overture schema, all features have a unique `id` called a [GERS ID](https
 Most but not all of the feature types in the Overture schema require data for the `names`, `subtype`, and `class` properties. The `names` property is complex enough to have its own schema, which we describe in detail [here](/schema/concepts/names). 
 
 ### Properties may be specific to a feature type
-Some properties in the Overture schema are only populated with data for specific feature types. For example, the `place` feature type must include data for the `categories` property, as required by the schema. The `division_area` and `address` feature types require the `country` property to be populated with ISO 3166-1 alpha-2 country codes. The `segment` feature type in the transportation theme is the only feature type that includes data for a complex set of properties that describe roads. The [schema concepts](concepts) section of this documentation describes these complexities in detail.
+Some properties in the Overture schema are only populated with data for specific feature types. For example, the `place` feature type includes the `taxonomy` property. The `division_area` and `address` feature types require the `country` property to be populated with ISO 3166-1 alpha-2 country codes. The `segment` feature type in the transportation theme is the only feature type that includes data for a complex set of properties that describe roads. The [schema concepts](concepts) section of this documentation describes these complexities in detail.
 
 
 ## Schema conventions
