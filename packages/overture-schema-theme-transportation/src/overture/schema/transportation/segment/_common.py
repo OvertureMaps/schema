@@ -322,7 +322,7 @@ class SpeedLimitRule(BaseModel):
             description="Indicates a variable speed corridor",
             strict=True,
         ),
-    ] = False
+    ] = None
 
 
 SpeedLimits = NewType(

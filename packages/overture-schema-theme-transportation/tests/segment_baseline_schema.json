@@ -1323,7 +1323,6 @@
           "type": "array"
         },
         "is_max_speed_variable": {
-          "default": false,
           "description": "Indicates a variable speed corridor",
           "title": "Is Max Speed Variable",
           "type": "boolean"
