@@ -468,8 +468,7 @@
       },
       "properties": {
         "class": {
-          "$ref": "#/$defs/WaterClass",
-          "default": "water"
+          "$ref": "#/$defs/WaterClass"
         },
         "is_intermittent": {
           "description": "Whether the water body exists intermittently, not permanently",
@@ -482,8 +481,7 @@
           "type": "boolean"
         },
         "level": {
-          "default": 0,
-          "description": "Z-order of the feature where 0 is visual level",
+          "description": "Z-order of the feature where 0 is visual level. A feature without a level is at visual level.",
           "maximum": 2147483647,
           "minimum": -2147483648,
           "title": "Level",
@@ -510,8 +508,7 @@
           "uniqueItems": true
         },
         "subtype": {
-          "$ref": "#/$defs/WaterSubtype",
-          "default": "water"
+          "$ref": "#/$defs/WaterSubtype"
         },
         "theme": {
           "const": "base",
@@ -540,7 +537,9 @@
       "required": [
         "theme",
         "type",
-        "version"
+        "version",
+        "class",
+        "subtype"
       ],
       "type": "object"
     },

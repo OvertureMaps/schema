@@ -139,10 +139,8 @@ class Land(
 
     # Required
 
-    class_: Annotated[LandClass, Field(default=LandClass.LAND, alias="class")] = (
-        LandClass.LAND
-    )
-    subtype: Annotated[LandSubtype, Field(default=LandSubtype.LAND)] = LandSubtype.LAND
+    class_: Annotated[LandClass, Field(alias="class")]
+    subtype: LandSubtype
 
     # Optional
 
