@@ -170,7 +170,8 @@ jobs:
     needs: [compat-check, noop]
     if: always()
     runs-on: ubuntu-slim
+    permissions: {}
     steps:
-      - uses: lowlydba/are-we-good@375b418aa07a163e0614537a3fa5c51e53a757e9 # v1.0.0
+      - uses: lowlydba/are-we-good@f506ed6324f55ec5e4ff5d92204a72c7f1c2b4f8 # v1.0.5
         with:
           jobs: ${{ toJSON(needs) }}
