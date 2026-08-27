@@ -51,6 +51,7 @@ phones = [
   "+81977009000"
 ]
 operating_status = "open"
+basic_category = "hotel"
 theme = "places"
 type = "place"
 
@@ -70,8 +71,9 @@ confidence = 0.7337175792507205
 [examples.Place.names]
 primary = "スーパーホテル別府駅前"
 
-[examples.Place.categories]
+[examples.Place.taxonomy]
 primary = "hotel"
+hierarchy = ["lodging", "hotel"]
 
 [examples.Place.brand]
 
