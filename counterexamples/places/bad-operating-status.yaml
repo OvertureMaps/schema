@@ -6,6 +6,7 @@ geometry:
   coordinates: [0, 0]
 properties:
   confidence: 0.9
+  websites:
     - https://www.example.com/
   emails:
     - info@example.com
