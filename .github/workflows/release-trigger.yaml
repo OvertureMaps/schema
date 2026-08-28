@@ -101,6 +101,21 @@ jobs:
         with:
           persist-credentials: false
 
+      # For the `overture-schema package, `uv` is needed to generate the
+      # official JSON Schema release asset.
+      - name: Install uv
+        if: matrix.package == 'overture-schema'
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: false
+
+      - name: Generate unified JSON schema
+        if: matrix.package == 'overture-schema'
+        run: |
+          set -euo pipefail
+          uv sync --locked --all-packages
+          uv run overture-schema json-schema --tag overture > overture-schema.json
+
       - name: Create release
         uses: ./.github/actions/create-package-release
         with:
@@ -112,6 +127,8 @@ jobs:
           # The umbrella package continues the legacy bare tag series as a
           # vanity tag (no second release); see docs/versioning.md.
           vanity-tag: ${{ matrix.package == 'overture-schema' && format('v{0}', matrix.version) || '' }}
+          # Only the umbrella release carries the unified JSON schema artifact.
+          assets: ${{ matrix.package == 'overture-schema' && 'overture-schema.json' || '' }}
           # App token so the release fires its own `release: published` event
           # for release-publish.yaml (GITHUB_TOKEN would not); see #637.
           token: ${{ steps.app-token.outputs.token }}

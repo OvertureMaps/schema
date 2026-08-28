@@ -289,6 +289,7 @@
       "type": "string"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Water features represent ocean and inland water bodies.\n\nIn Overture data releases, water features are sourced from OpenStreetMap. There are two main\ncategories of water feature: ocean and inland water bodies.\n\nOcean\n-----\nThe `subytpe` value `\"ocean\"` indicates an ocean area feature whose geometry represents the\nsurface area of an ocean or part of an ocean. Ocean area may be tiled into many small polygons\nof consistent complexity to ensure manageable geometry. In Overture data releases, ocean area\nfeatures are created from OpenStreetMap coastlines data (`natural=coastline`) using a QA'd\nversion of the output from the OSMCoastline tool. In aggregate, all the ocean area features\nrepresent the inverse of the land features with subtype `\"land\"` and class `\"land\"`.\n\nThe names and recommended label position for oceans and seas can be found in features with the\nsubtype `\"physical\"` and the class `\"ocean\"` or `\"sea\"`.\n\nInland Water\n------------\nSubtypes other than `\"ocean\"` (and `\"physical\"`) represent inland water bodies. In Overture data\nreleases, these features are sourced from the OpenStreetMap tag `natural=*` where the tag value\nindicates a water body, as well as the tags `natural=water`,  `waterway=*`,\nand `water=*`.",
   "properties": {

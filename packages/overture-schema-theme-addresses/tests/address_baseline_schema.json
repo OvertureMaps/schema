@@ -94,6 +94,7 @@
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Addresses are structured labels for the geographic locations where businesses and individuals\nreside.\n\nWhile address formats around the world have some general points in common, the specifics vary\nextensively from place to place. The rules for dividing an address up into parts or fields vary,\nas do the names of those parts or fields.\n\nThe address schema uses a simplified approach to capture the common structure of addresses\nworldwide while accommodating local variance. The schema is heavily based on the OpenAddresses\n(www.openaddresses.io) project.\n\nFor sub-country administrative levels (and non-administrative levels such as neighborhoods), the\nschema provides the `address_levels` field. This is where the names of cities and towns,\nprovinces, state, and regions, and similar addressing units are found.",
   "properties": {
