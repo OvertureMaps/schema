@@ -47,6 +47,13 @@ inputs:
   token:
     description: "Token used to create the release (needs contents: write)."
     required: true
+  assets:
+    description: >
+      Optional whitespace-separated list of asset files to attach to the
+      release (e.g. overture-schema.json). Uploaded atomically as part of
+      `gh release create`. Ignored on a dry run.
+    required: false
+    default: ""
 
 outputs:
   release-url:
@@ -68,6 +75,7 @@ runs:
         LATEST: ${{ inputs.latest }}
         VANITY_TAG: ${{ inputs.vanity-tag }}
         DRY_RUN: ${{ inputs.dry-run }}
+        ASSETS: ${{ inputs.assets }}
       run: |
         set -euo pipefail
 
@@ -91,6 +99,16 @@ runs:
         latest_flag="--latest=false"
         [ "$LATEST" = "true" ] && latest_flag="--latest"
 
+        # Validate requested assets exist before the dry-run branch, so a dry
+        # run catches a missing or misnamed asset.
+        read -ra assets <<< "$ASSETS"
+        for asset in "${assets[@]}"; do
+          if [ ! -f "$asset" ]; then
+            echo "::error::Release asset not found: ${asset}"
+            exit 1
+          fi
+        done
+
         if [ "$DRY_RUN" = "true" ]; then
           [ "$tag_exists" = "true" ] && echo "::warning::Release ${TAG} already exists; a real run would fail here."
           {
@@ -99,6 +117,9 @@ runs:
             echo "Would create tag \`${TAG}\` at \`${TARGET}\` (${latest_flag})."
             if [ -n "$VANITY_TAG" ]; then
               echo "Would also create vanity tag \`${VANITY_TAG}\` (no release)."
+            fi
+            if [ ${#assets[@]} -gt 0 ]; then
+              echo "Would attach assets: \`${assets[*]}\`."
             fi
             echo ""
             echo "<details><summary>Notes</summary>"
@@ -116,7 +137,8 @@ runs:
           --target "$TARGET" \
           --title "\`${PACKAGE}\` ${VERSION}" \
           --notes-file "${RUNNER_TEMP}/notes.md" \
-          $latest_flag
+          $latest_flag \
+          "${assets[@]}"
 
         url=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url --jq .url)
         echo "release-url=${url}" >> "$GITHUB_OUTPUT"
@@ -142,5 +164,9 @@ runs:
           if [ -n "$VANITY_TAG" ]; then
             echo ""
             echo "Vanity tag \`${VANITY_TAG}\` continues the legacy series (no separate release)."
+          fi
+          if [ -n "$ASSETS" ]; then
+            echo ""
+            echo "Attached assets: \`${ASSETS}\`."
           fi
         } >> "$GITHUB_STEP_SUMMARY"

@@ -297,6 +297,7 @@
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Building parts represent parts of larger building features. They allow buildings to be modeled\nin rich detail suitable for creating realistic 3D models.\n\nEvery building part is associated with a parent `Building` feature via the `building_id` field.\nIn addition, a building part has a footprint geometry and may include additional details such as\nits height, the number of floors, and the color and material of its facade and roof.\n\nBuilding parts can float or be stacked on top of each other. The `min_height`, `min_floor`,\n`height`, and `num_floors`, fields can be used to arrange the parts correctly along the\nvertical dimension.",
   "properties": {

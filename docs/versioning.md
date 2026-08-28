@@ -88,6 +88,15 @@ attached. The umbrella package is the primary entrypoint for most consumers,
 so its bare tags keep the long-standing convention alive; all other packages
 use only the package-prefixed scheme.
 
+The umbrella `overture-schema` release additionally carries **`overture-schema.json`**
+as a release asset. This is the Pydantic-generated unified JSON Schema for the
+whole official Overture schema, generated at release time by
+`$ overture-schema json-schema --tag overture`. Including `overture-schema.json`
+as a release artifact provides a bridge for any consumers who were using the
+now-deprecated hand-authored YAML-mastered JSON Schema under `schema/` and want
+to continue consuming JSON Schema. We attach this artifact only to the umbrella
+`overture-schema` release, not for any other package.
+
 ### Guardrails
 
 - A changelog fragment is **required** on any change to a package, enforced by
@@ -191,7 +200,8 @@ changes that package, whether or not it bumps the version.
 flowchart LR
     A[bump + towncrier build<br/>merged to main] --> B[release-trigger:<br/>GitHub Release per package]
     B --> C[PyPI publish<br/>Trusted Publishing] --> D[public PyPI]
-    E[no-bump merge] --> F[.postN internal build<br/>CodeArtifact only]
+    B --> E[overture-schema.json<br/>attached to umbrella overture-schema GitHub release]
+    F[no-bump merge] --> G[.postN internal build<br/>CodeArtifact only]
 ```
 
 ## Why

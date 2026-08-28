@@ -132,6 +132,7 @@
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Land cover features indicate the primary natural or artificial surface material covering a land\narea on the earth, including vegetation types like forests and crops, built environments like\ncities, and natural surfaces like wetlands or barren ground.\n\nLand cover features relate to `LandUse` features in the following way: land cover is the\nphysical thing covering the land, while land use is the human use to which the land is being\nput.\n\nTODO: Explain relationship to `Land` features.",
   "properties": {

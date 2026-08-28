@@ -359,6 +359,7 @@
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Divisions are recognized official or non-official organizations of people as seen from a given\npolitical perspective.\n\nExamples include countries, provinces, cities, towns, neighborhoods, etc.",
   "properties": {
