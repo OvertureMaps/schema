@@ -164,12 +164,12 @@ def json_schema(thing: object) -> JsonSchemaValue:
     """
     match _Kind.of(thing):
         case _Kind.BASE_MODEL:
-            return cast(BaseModel, thing).model_json_schema(
+            schema = cast(BaseModel, thing).model_json_schema(
                 schema_generator=GenerateOmitNullableOptionalJsonSchema
             )
         case _Kind.UNION:
             tap: TypeAdapter = TypeAdapter(thing)
-            return tap.json_schema(
+            schema = tap.json_schema(
                 schema_generator=GenerateOmitNullableOptionalJsonSchema
             )
         case _:
@@ -178,6 +178,11 @@ def json_schema(thing: object) -> JsonSchemaValue:
                 f"`BaseModel`, but {repr(thing)} is a "
                 f"`{thing.__name__ if isinstance(thing, type) else type(thing).__name__}`"
             )
+
+    # Declare the JSON Schema dialect on the root document because Pydantic doesn't do this.
+    schema["$schema"] = GenerateOmitNullableOptionalJsonSchema.schema_dialect
+
+    return schema
 
 
 class _Kind(str, Enum):

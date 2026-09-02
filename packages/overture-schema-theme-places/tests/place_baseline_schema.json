@@ -365,6 +365,7 @@
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Places are point representations of real-world facilities, businesses, services, or amenities.",
   "properties": {

@@ -16,24 +16,15 @@ name: Release publish
 # ever bind to it (see #653). Neither environment is an approval gate: the
 # version-bump PR review gates real releases, and workflow_dispatch already
 # requires repo write access to trigger at all, gate enough for a
-# disposable .dev0 priming publish.
+# disposable .dev0 Test PyPI publish.
 #
-# workflow_dispatch is a manual priming tool, not a release path: it always
-# publishes a synthetic <on-disk-version>.dev0, never the real version, so it
-# can safely convert a package's Trusted Publisher from "pending" to "normal"
-# (see docs.pypi.org/trusted-publishers/creating-a-project-through-oidc)
-# ahead of that package's actual v2.0 release, on either Test PyPI or real
-# PyPI. This exists to work around PyPI's per-account rate limit on pending
-# publishers (applies to both pypi.org and test.pypi.org independently, ~3 at
-# a time per our testing): register a batch, prime them via dispatch to
-# convert them, then register the next batch.
-#
-# TEMPORARY (see #688): the `target: pypi` option below, and everything
-# gated on `inputs.target == 'pypi'`, exists only to prime real PyPI's
-# Trusted Publishers for the initial v2.0 launch. Tear it out once every
-# package has published for real at least once -- `target: test-pypi` (the
-# default) is the only permanent path and stays indefinitely for ongoing
-# pipeline verification.
+# workflow_dispatch is a manual Test PyPI publish, not a release path: it
+# always publishes a synthetic <on-disk-version>.dev0, never the real
+# version, through the test-pypi-<package> environment. Originally built to
+# prime a package's real-PyPI Trusted Publisher from "pending" to "normal"
+# (see #653); that path was removed once all 12 packages were primed (#688).
+# What's left is a permanent Test PyPI dry run for verifying the build-and-
+# publish pipeline without a real release.
 
 on:
   release:
@@ -41,19 +32,9 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: Package directory name to prime (e.g. overture-schema-common)
+        description: Package directory name to publish to Test PyPI (e.g. overture-schema-common)
         required: true
         type: string
-      target:
-        description: Where to publish the priming release
-        required: false
-        type: choice
-        default: test-pypi
-        # TODO(#688): drop the `pypi` option (and this input entirely, once
-        # test-pypi is the only choice) after all packages are primed.
-        options:
-          - test-pypi
-          - pypi
 
 permissions:
   contents: read
@@ -118,8 +99,8 @@ jobs:
             # outright): it never collides with the eventual human-owned
             # release version, and default resolvers ignore dev releases, so
             # it's safe to actually publish without affecting consumers. Used
-            # only to prime a package's Trusted Publisher (see #653); never
-            # the real v2.0 launch artifact.
+            # for a manual Test PyPI dispatch (see #653); never the real
+            # release artifact.
             version="$(cd "packages/${package}" && uv version --short).dev0"
           fi
 
@@ -127,16 +108,11 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
   publish:
-    # TODO(#688): the "PyPI (priming dispatch)" branch below goes away with
-    # the pypi target.
-    name: Publish ${{ needs.parse.outputs.package }} ${{ needs.parse.outputs.version }} to ${{ github.event_name != 'workflow_dispatch' && 'PyPI' || inputs.target == 'pypi' && 'PyPI (priming dispatch)' || 'Test PyPI' }}
+    name: Publish ${{ needs.parse.outputs.package }} ${{ needs.parse.outputs.version }} to ${{ github.event_name != 'workflow_dispatch' && 'PyPI' || 'Test PyPI' }}
     needs: parse
     runs-on: ubuntu-latest
     # See the header comment for what gates which environment.
-    # TODO(#688): the `inputs.target == 'pypi' && ...` branch goes away with
-    # the pypi target -- dispatch will only ever mean Test PyPI at that
-    # point.
-    environment: ${{ (github.event_name != 'workflow_dispatch' || inputs.target == 'pypi') && format('pypi-release-{0}', needs.parse.outputs.package) || format('test-pypi-{0}', needs.parse.outputs.package) }}
+    environment: ${{ github.event_name != 'workflow_dispatch' && format('pypi-release-{0}', needs.parse.outputs.package) || format('test-pypi-{0}', needs.parse.outputs.package) }}
     permissions:
       contents: read
       id-token: write # Required for PyPI Trusted Publishing (OIDC)
@@ -197,13 +173,10 @@ jobs:
       - name: Build ${{ env.PACKAGE }} ${{ env.VERSION }}
         run: uv build --package "${PACKAGE}"
 
-      - name: Publish ${{ env.PACKAGE }} ${{ env.VERSION }} to ${{ github.event_name != 'workflow_dispatch' && 'PyPI' || inputs.target == 'pypi' && 'PyPI (priming dispatch)' || 'Test PyPI' }}
-        # TODO(#688): once the pypi target is gone, this simplifies back to
-        # `github.event_name == 'workflow_dispatch'` (dispatch always means
-        # Test PyPI at that point).
+      - name: Publish ${{ env.PACKAGE }} ${{ env.VERSION }} to ${{ github.event_name != 'workflow_dispatch' && 'PyPI' || 'Test PyPI' }}
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
           packages-dir: dist/
           attestations: true
-          repository-url: ${{ github.event_name == 'workflow_dispatch' && inputs.target != 'pypi' && 'https://test.pypi.org/legacy/' || '' }}
-          skip-existing: ${{ github.event_name == 'workflow_dispatch' }} # Idempotent reruns of a priming dispatch; never true for a real release
+          repository-url: ${{ github.event_name == 'workflow_dispatch' && 'https://test.pypi.org/legacy/' || '' }}
+          skip-existing: ${{ github.event_name == 'workflow_dispatch' }} # Idempotent reruns of a Test PyPI dispatch; never true for a real release

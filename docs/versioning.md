@@ -57,7 +57,7 @@ internal builds off the public index by construction.
 | Push to `main` | [`main-publish.yaml`](../.github/workflows/main-publish.yaml) detects packages changed without a version bump and publishes their `.postN` build to CodeArtifact. |
 | Version bump merged to `main` | [`release-trigger.yaml`](../.github/workflows/release-trigger.yaml) cuts a GitHub Release per bumped package. |
 | Release published | [`release-publish.yaml`](../.github/workflows/release-publish.yaml) builds that package at its released version and publishes to PyPI. |
-| Manual dispatch | `release-publish.yaml` also runs on `workflow_dispatch`: pick a package and a target (Test PyPI or real PyPI), build a synthetic `<version>.dev0` (never the on-disk release version), and publish it. Used to prime a package's PyPI Trusted Publisher from "pending" to "normal" ahead of its real release (see [#653](https://github.com/OvertureMaps/schema/issues/653)); real-PyPI dispatches require `pypi-dispatch-<package>` approval since they skip PR review entirely. |
+| Manual dispatch | `release-publish.yaml` also runs on `workflow_dispatch`: pick a package, build a synthetic `<version>.dev0` (never the on-disk release version), and publish it to Test PyPI via that package's `test-pypi-<package>` environment. `workflow_dispatch` already requires repo write access to trigger; there's no separate approval gate. Originally also primed real PyPI's Trusted Publishers (see [#653](https://github.com/OvertureMaps/schema/issues/653)); that path was removed once all 12 packages were primed ([#688](https://github.com/OvertureMaps/schema/issues/688)). |
 
 `release-trigger` creates releases with the `overture-release-publisher` app's
 installation token, not `GITHUB_TOKEN`: a `GITHUB_TOKEN`-created release does
@@ -87,6 +87,15 @@ bare `v<version>` git tag at the same commit, with no second GitHub Release
 attached. The umbrella package is the primary entrypoint for most consumers,
 so its bare tags keep the long-standing convention alive; all other packages
 use only the package-prefixed scheme.
+
+The umbrella `overture-schema` release additionally carries **`overture-schema.json`**
+as a release asset. This is the Pydantic-generated unified JSON Schema for the
+whole official Overture schema, generated at release time by
+`$ overture-schema json-schema --tag overture`. Including `overture-schema.json`
+as a release artifact provides a bridge for any consumers who were using the
+now-deprecated hand-authored YAML-mastered JSON Schema under `schema/` and want
+to continue consuming JSON Schema. We attach this artifact only to the umbrella
+`overture-schema` release, not for any other package.
 
 ### Guardrails
 
@@ -191,7 +200,8 @@ changes that package, whether or not it bumps the version.
 flowchart LR
     A[bump + towncrier build<br/>merged to main] --> B[release-trigger:<br/>GitHub Release per package]
     B --> C[PyPI publish<br/>Trusted Publishing] --> D[public PyPI]
-    E[no-bump merge] --> F[.postN internal build<br/>CodeArtifact only]
+    B --> E[overture-schema.json<br/>attached to umbrella overture-schema GitHub release]
+    F[no-bump merge] --> G[.postN internal build<br/>CodeArtifact only]
 ```
 
 ## Why
