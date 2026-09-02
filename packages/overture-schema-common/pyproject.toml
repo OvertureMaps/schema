@@ -7,12 +7,12 @@ name = "overture-schema-common"
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
-version = "0.1.1"
+version = "2.0.0"
 description = "Common components that are shared across Overture theme schemas"
 requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
-    "overture-schema-system>=0.1.1",
+    "overture-schema-system>=2.0.0",
     "pydantic>=2.13.0",
     "shapely>=2.1.1",
 ]

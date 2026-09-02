@@ -3,17 +3,17 @@ maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
 dependencies = [
-    "overture-schema-theme-addresses>=0.1.1",
-    "overture-schema-theme-base>=0.1.1",
-    "overture-schema-theme-buildings>=0.1.1",
-    "overture-schema-theme-divisions>=0.1.1",
-    "overture-schema-theme-places>=0.1.1",
-    "overture-schema-theme-transportation>=0.1.1",
-    "overture-schema-validation>=0.1.1",
-    "overture-schema-cli>=0.1.1",
+    "overture-schema-theme-addresses>=2.0.0",
+    "overture-schema-theme-base>=2.0.0",
+    "overture-schema-theme-buildings>=2.0.0",
+    "overture-schema-theme-divisions>=2.0.0",
+    "overture-schema-theme-places>=2.0.0",
+    "overture-schema-theme-transportation>=2.0.0",
+    "overture-schema-validation>=2.0.0",
+    "overture-schema-cli>=2.0.0",
 ]
 description = "Complete Overture Maps schema collection with all themes and types"
-version = "1.17.1"
+version = "2.0.0"
 license = "MIT"
 name = "overture-schema"
 readme = "README.md"

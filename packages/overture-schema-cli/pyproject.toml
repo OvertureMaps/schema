@@ -3,8 +3,8 @@ maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
 dependencies = [
-    "overture-schema-common>=0.1.1",
-    "overture-schema-system>=0.1.1",
+    "overture-schema-common>=2.0.0",
+    "overture-schema-system>=2.0.0",
     "pydantic>=2.13.0",
     "pyyaml>=6.0.2",
     "click>=8.1",
@@ -12,7 +12,7 @@ dependencies = [
     "yamlcore>=0.0.4",
 ]
 description = "Command-line interface for Overture Maps schema validation and JSON Schema generation"
-version = "0.1.1"
+version = "2.0.0"
 license = "MIT"
 name = "overture-schema-cli"
 readme = "README.md"

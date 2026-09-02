@@ -363,7 +363,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -909,7 +909,7 @@ wheels = [
 
 [[package]]
 name = "overture-schema"
-version = "1.17.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema" }
 dependencies = [
     { name = "overture-schema-cli" },
@@ -936,7 +936,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-cli"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-cli" }
 dependencies = [
     { name = "click" },
@@ -975,7 +975,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-codegen"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-codegen" }
 dependencies = [
     { name = "click" },
@@ -1020,7 +1020,7 @@ test = [
 
 [[package]]
 name = "overture-schema-common"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-common" }
 dependencies = [
     { name = "overture-schema-system" },
@@ -1053,7 +1053,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-pyspark"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-pyspark" }
 dependencies = [
     { name = "click" },
@@ -1079,7 +1079,7 @@ provides-extras = ["spark"]
 
 [[package]]
 name = "overture-schema-system"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-system" }
 dependencies = [
     { name = "pydantic" },
@@ -1110,7 +1110,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-theme-addresses"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-theme-addresses" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1127,7 +1127,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-base"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-theme-base" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1144,7 +1144,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-buildings"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-theme-buildings" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1161,7 +1161,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-divisions"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-theme-divisions" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1178,7 +1178,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-places"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-theme-places" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1195,7 +1195,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-transportation"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-theme-transportation" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1212,7 +1212,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-validation"
-version = "0.1.1"
+version = "2.0.0"
 source = { editable = "packages/overture-schema-validation" }
 dependencies = [
     { name = "overture-schema-common" },
