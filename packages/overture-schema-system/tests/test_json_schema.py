@@ -1,10 +1,13 @@
 from pydantic import BaseModel
 from pydantic.json_schema import GenerateJsonSchema, JsonSchemaValue
 
-from overture.schema.system.json_schema import GenerateOmitNullableOptionalJsonSchema
+from overture.schema.system.json_schema import (
+    GenerateOmitNullableOptionalJsonSchema,
+    json_schema,
+)
 
 
-class TestenerateOmitOptionalJsonSchema:
+class TestGenerateOmitOptionalJsonSchema:
     def test_nullable_with_none_default_becomes_optional(self) -> None:
         """Test that X | None = None becomes optional without default."""
 
@@ -200,3 +203,29 @@ class TestenerateOmitOptionalJsonSchema:
         types = {item["type"] for item in union_schema["anyOf"]}
         assert types == {"string", "integer"}
         assert "null" not in types
+
+
+class TestJsonSchema:
+    def test_model_schema_declares_dialect(self) -> None:
+        class Model(BaseModel):
+            x: str
+
+        schema = json_schema(Model)
+
+        assert (
+            schema["$schema"] == GenerateOmitNullableOptionalJsonSchema.schema_dialect
+        )
+        assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+
+    def test_union_schema_declares_dialect(self) -> None:
+        class A(BaseModel):
+            a: str
+
+        class B(BaseModel):
+            b: int
+
+        schema = json_schema(A | B)
+
+        assert (
+            schema["$schema"] == GenerateOmitNullableOptionalJsonSchema.schema_dialect
+        )
