@@ -160,6 +160,21 @@ class TestJsonSchemaCommand:
         schema = json.loads(result.output)
         assert isinstance(schema, dict)
 
+    def test_official_unified_schema_release_artifact(
+        self, cli_runner: CliRunner
+    ) -> None:
+        """Test the exact command the release workflow uses to build `overture-schema.json` as a
+        release artifact and sanity-check that the output seems reasonable.
+        """
+        result = cli_runner.invoke(cli, ["json-schema", "--tag", "overture"])
+        assert result.exit_code == 0
+
+        schema = json.loads(result.output)
+
+        assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+        assert "$defs" in schema and schema["$defs"]
+        assert any(k in schema for k in ("anyOf", "oneOf"))
+
 
 class TestValidateCommand:
     """Tests for the validate command."""

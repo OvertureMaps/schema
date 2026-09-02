@@ -455,6 +455,7 @@
       "type": "string"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Infrastructure features provide basic information about real-world infrastructure entities\nsuch as bridges, airports, runways, aerialways, communication towers, and power lines.",
   "properties": {

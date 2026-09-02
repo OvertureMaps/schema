@@ -146,6 +146,7 @@
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Boundaries represent borders between divisions of the same subtype.\n\nSome boundaries may be disputed by the divisions on one or both sides.",
   "properties": {

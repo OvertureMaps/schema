@@ -328,6 +328,7 @@
       "type": "string"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Land features are representations of physical land surfaces.\n\nIn Overture data releases, land features are sourced from OpenStreetMap. TODO. Finish this when\nI get more info from Jennings.\n\n\n\nPhysical representations of land surfaces.\n\nGlobal land derived from the inverse of OSM Coastlines. Translates `natural` tags from OpenStreetMap.\n\nTODO: Update this description when the relationship to `land_cover` is better understood.",
   "properties": {

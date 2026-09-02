@@ -115,6 +115,7 @@
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Bathymetry features provide topographic representations of underwater areas, such as parts of\nlake beds or ocean floors.",
   "properties": {
