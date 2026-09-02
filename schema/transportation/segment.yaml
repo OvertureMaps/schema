@@ -47,9 +47,10 @@ properties:
           subtype: { const: rail }
           class: { "$ref": "#/$defs/propertyDefinitions/railClass" }
           rail_flags: { "$ref": "#/$defs/propertyContainers/railFlagsContainer" }
-      - title: "Water-Specific Properties" # Placeholder for future water properties
+      - title: "Water-Specific Properties"
         properties:
           subtype: { const: water }
+          travel_time: { "$ref": "#/$defs/propertyDefinitions/travelTime" }
     properties:
       subtype:
         description: Broad category of transportation segment.
@@ -305,6 +306,17 @@ properties:
         - driveway         # Service road intended for deliveries
         - alley            # Service road intended for rear entrances, fire exits
         - cycle_crossing   # Cycleway that intersects with other roads
+    travelTime:
+      description: >-
+        Scheduled travel time, in seconds, to traverse the full segment
+        from end to end, including time spent docking, loading, and
+        unloading.
+      type: integer
+      minimum: 1
+      "$comment": >-
+        Sourced from the OSM duration tag on ferry routes. Unlike a speed
+        limit, this value captures the scheduled end-to-end crossing time,
+        so routers can compute realistic ETAs for ferry crossings.
     speed:
       description: >-
         A speed value, i.e. a certain number of distance units

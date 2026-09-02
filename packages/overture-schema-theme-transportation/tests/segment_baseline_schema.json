@@ -1660,6 +1660,13 @@
               "title": "Theme",
               "type": "string"
             },
+            "travel_time": {
+              "description": "Scheduled travel time, in seconds, to traverse the full segment from end\nto end, including time spent docking, loading, and unloading. Sourced\nfrom the OSM duration tag on ferry routes.",
+              "maximum": 2147483647,
+              "minimum": 1,
+              "title": "Travel Time",
+              "type": "integer"
+            },
             "type": {
               "const": "segment",
               "title": "Type",
