@@ -3,6 +3,7 @@
 ### Breaking Changes
 
 - Made `class` and `subtype` required on `Land` and `Water`, matching `Infrastructure` and `LandUse`; constructing either without them now raises instead of falling back to `land`/`water`. ([#696](https://github.com/OvertureMaps/schema/issues/696))
+- Base feature models that inherit `Stacked` (`Infrastructure`, `Land`, `LandUse`, and `Water`) now yield `None` instead of `0` when parsed without a `level`. ([#696](https://github.com/OvertureMaps/schema/issues/696))
 
 ### Miscellaneous
 
