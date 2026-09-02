@@ -17,7 +17,7 @@ properties:
       - "$ref": https://geojson.org/schema/LineString.json
   properties:
     unevaluatedProperties: false
-    required: [subtype]
+    required: [subtype, connectors]
     allOf:
       - title: "Common Segment Properties"
         properties:
@@ -76,7 +76,6 @@ properties:
             at: { "$ref": "../defs.yaml#/$defs/propertyDefinitions/linearlyReferencedPosition" }
         uniqueItems: true
         minItems: 2
-        default: []
 "$defs":
   propertyDefinitions:
     destinationLabelType:

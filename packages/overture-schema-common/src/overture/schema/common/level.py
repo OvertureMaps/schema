@@ -20,4 +20,12 @@ Level = NewType(
 class Stacked(BaseModel):
     """Properties defining feature Z-order, i.e., stacking order."""
 
-    level: Level | None = 0  # type: ignore[assignment]
+    level: Annotated[
+        Level | None,
+        Field(
+            description=(
+                "Z-order of the feature where 0 is visual level. A feature "
+                "without a level is at visual level."
+            )
+        ),
+    ] = None

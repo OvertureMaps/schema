@@ -7,7 +7,7 @@ name = "overture-schema-system"
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
-version = "0.1.1"
+version = "2.0.0"
 description = "Foundational types at the base of the Overture Maps schema system"
 readme = "README.md"
 requires-python = ">=3.10"

@@ -1,5 +1,5 @@
 ---
-id: counterexample:place:bad-categories-values
+id: counterexample:place:bad-basic-category-values
 type: Feature
 geometry:
   type: Point

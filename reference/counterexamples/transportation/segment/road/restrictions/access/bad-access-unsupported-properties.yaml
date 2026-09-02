@@ -8,6 +8,11 @@ properties:
   type: segment
   subtype: road
   class: tertiary
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   version: 1
   access_restrictions:
     - foo: bar

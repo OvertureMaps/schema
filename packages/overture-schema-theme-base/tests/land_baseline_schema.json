@@ -507,8 +507,7 @@
       },
       "properties": {
         "class": {
-          "$ref": "#/$defs/LandClass",
-          "default": "land"
+          "$ref": "#/$defs/LandClass"
         },
         "elevation": {
           "description": "Elevation above sea level of the feature in meters.",
@@ -518,8 +517,7 @@
           "type": "integer"
         },
         "level": {
-          "default": 0,
-          "description": "Z-order of the feature where 0 is visual level",
+          "description": "Z-order of the feature where 0 is visual level. A feature without a level is at visual level.",
           "maximum": 2147483647,
           "minimum": -2147483648,
           "title": "Level",
@@ -546,8 +544,7 @@
           "uniqueItems": true
         },
         "subtype": {
-          "$ref": "#/$defs/LandSubtype",
-          "default": "land"
+          "$ref": "#/$defs/LandSubtype"
         },
         "surface": {
           "$ref": "#/$defs/SurfaceMaterial"
@@ -579,7 +576,9 @@
       "required": [
         "theme",
         "type",
-        "version"
+        "version",
+        "class",
+        "subtype"
       ],
       "type": "object"
     },

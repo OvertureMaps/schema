@@ -630,7 +630,6 @@
               "$ref": "#/$defs/RailClass"
             },
             "connectors": {
-              "default": [],
               "description": "List of connectors which this segment is physically connected to and their\nrelative location. Each connector is a possible routing decision point,\nmeaning it defines a place along the segment in which there is possibility to\ntransition to other segments which share the same connector.",
               "items": {
                 "$ref": "#/$defs/ConnectorReference"
@@ -700,6 +699,7 @@
             "type",
             "version",
             "subtype",
+            "connectors",
             "class"
           ],
           "type": "object"
@@ -884,7 +884,6 @@
               "$ref": "#/$defs/RoadClass"
             },
             "connectors": {
-              "default": [],
               "description": "List of connectors which this segment is physically connected to and their\nrelative location. Each connector is a possible routing decision point,\nmeaning it defines a place along the segment in which there is possibility to\ntransition to other segments which share the same connector.",
               "items": {
                 "$ref": "#/$defs/ConnectorReference"
@@ -1019,6 +1018,7 @@
             "type",
             "version",
             "subtype",
+            "connectors",
             "class"
           ],
           "type": "object"
@@ -1323,7 +1323,6 @@
           "type": "array"
         },
         "is_max_speed_variable": {
-          "default": false,
           "description": "Indicates a variable speed corridor",
           "title": "Is Max Speed Variable",
           "type": "boolean"
@@ -1618,7 +1617,6 @@
               "uniqueItems": true
             },
             "connectors": {
-              "default": [],
               "description": "List of connectors which this segment is physically connected to and their\nrelative location. Each connector is a possible routing decision point,\nmeaning it defines a place along the segment in which there is possibility to\ntransition to other segments which share the same connector.",
               "items": {
                 "$ref": "#/$defs/ConnectorReference"
@@ -1677,7 +1675,8 @@
             "theme",
             "type",
             "version",
-            "subtype"
+            "subtype",
+            "connectors"
           ],
           "type": "object"
         },

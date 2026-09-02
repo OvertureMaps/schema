@@ -3,12 +3,12 @@ maintainers = [
     { name = "Overture Maps Schema Working Group" },
 ]
 dependencies = [
-    "overture-schema-common>=0.1.1",
-    "overture-schema-system>=0.1.1",
+    "overture-schema-common>=2.0.0",
+    "overture-schema-system>=2.0.0",
     "pydantic>=2.13.0",
 ]
 description = "Overture Maps divisions theme shared structures, division, division area and division boundary types"
-version = "0.1.1"
+version = "2.0.0"
 license = "MIT"
 name = "overture-schema-theme-divisions"
 readme = "README.md"

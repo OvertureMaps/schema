@@ -11,6 +11,10 @@
     ],
     "theme": "transportation",
     "type": "segment",
-    "version": 26
+    "version": 26,
+    "connectors": [
+      { "connector_id": "fooConnector", "at": 0 },
+      { "connector_id": "barConnector", "at": 1 }
+    ]
   }
 }

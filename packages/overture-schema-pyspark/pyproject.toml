@@ -8,14 +8,14 @@ dependencies = [
     # 6.2 is the first release whose `files()` resolves a namespace portion
     # inside a zip; the stdlib gained the same fix in 3.13.
     "importlib-resources>=6.2; python_version < '3.13'",
-    "overture-schema-system>=0.1.1",
+    "overture-schema-system>=2.0.0",
     "packaging>=22",
 ]
 description = "PySpark validation expressions for Overture Maps data"
 license = "MIT"
 name = "overture-schema-pyspark"
 requires-python = ">=3.10"
-version = "0.1.1"
+version = "2.0.0"
 
 [project.optional-dependencies]
 spark = ["pyspark>=3.4"]

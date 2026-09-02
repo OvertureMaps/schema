@@ -52,37 +52,6 @@ class OperatingStatus(str, Enum):
 
 
 @no_extra_fields
-class Categories(BaseModel):
-    """
-    Categories a place belongs to.
-
-    Complete list is available on GitHub: https://github.com/OvertureMaps/schema/blob/main/docs/schema/concepts/by-theme/places/overture_categories.csv
-    """
-
-    # Required
-
-    primary: Annotated[
-        SnakeCaseString,
-        Field(description="The primary or main category of the place."),
-    ]
-
-    # Optional
-
-    alternate: Annotated[
-        list[SnakeCaseString] | None,
-        Field(
-            description=textwrap.dedent("""
-                Alternate categories of the place.
-
-                Some places might fit into two categories, e.g., a book store and a coffee shop. In
-                these cases, the primary category can be augmented with additional categories.
-            """).strip(),
-        ),
-        UniqueItemsConstraint(),
-    ] = None
-
-
-@no_extra_fields
 class Taxonomy(BaseModel):
     """
     A structured representation of the place's category within the Overture taxonomy.
@@ -223,7 +192,6 @@ class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
         ),
     ] = None
 
-    categories: Categories | None = None
     basic_category: Annotated[
         SnakeCaseString | None,
         Field(
@@ -232,7 +200,7 @@ class Place(OvertureFeature[Literal["places"], Literal["place"]], Named):
                 The basic level category of a place.
 
                 This field classifies places into categories at a level that most people find
-                intuitive. The full list of possible values it may hold can be found at (TODO).
+                intuitive.
 
                 The basic level category, or simply basic category, is based on a cognitive science
                 model use in taxonomy and ontology development. The idea is to provide the category

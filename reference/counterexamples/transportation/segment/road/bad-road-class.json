@@ -13,6 +13,10 @@
     "type": "segment",
     "version": 18,
     "subtype": "road",
-    "class": "foo"
+    "class": "foo",
+    "connectors": [
+      { "connector_id": "fooConnector", "at": 0 },
+      { "connector_id": "barConnector", "at": 1 }
+    ]
   }
 }

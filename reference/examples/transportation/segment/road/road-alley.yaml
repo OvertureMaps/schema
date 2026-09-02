@@ -10,6 +10,11 @@ properties:
   version: 5
   subtype: road
   class: service
+  connectors:
+    - connector_id: fooConnector
+      at: 0
+    - connector_id: barConnector
+      at: 1
   subclass_rules:
     - value: alley
       between: [0, 0.5]

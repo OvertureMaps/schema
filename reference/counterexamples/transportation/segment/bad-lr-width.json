@@ -11,6 +11,10 @@
     "version": 26,
     "subtype": "road",
     "class": "primary",
+    "connectors": [
+      { "connector_id": "fooConnector", "at": 0 },
+      { "connector_id": "barConnector", "at": 1 }
+    ],
     "width_rules": [
       {
         "between" : [0, 0.5],

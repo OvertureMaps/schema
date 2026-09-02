@@ -138,19 +138,8 @@ class Water(
 
     # Required
 
-    class_: Annotated[
-        WaterClass,
-        Field(
-            default=WaterClass.WATER,
-            alias="class",
-        ),
-    ] = WaterClass.WATER
-    subtype: Annotated[
-        WaterSubtype,
-        Field(
-            default=WaterSubtype.WATER,
-        ),
-    ] = WaterSubtype.WATER
+    class_: Annotated[WaterClass, Field(alias="class")]
+    subtype: WaterSubtype
 
     # Optional
 

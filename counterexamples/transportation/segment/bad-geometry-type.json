@@ -12,6 +12,10 @@
     "theme": "transportation",
     "type": "segment",
     "subtype": "water",
+    "connectors": [
+      { "connector_id": "fooConnector", "at": 0 },
+      { "connector_id": "barConnector", "at": 1 }
+    ],
     "version": 15
   }
 }
