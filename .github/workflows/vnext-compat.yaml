@@ -194,7 +194,7 @@ jobs:
     if: github.event.pull_request.base.ref != 'main' || needs.detect-release.outputs.is_release == 'true'
     runs-on: ubuntu-slim
     steps:
-      - run: echo "Base isn't main, or this is the vnext release merge — nothing to check here."
+      - run: echo "::notice::Base isn't main, or this is the vnext release merge — nothing to check here."
 
   vnext-status:
     name: vnext compatibility status

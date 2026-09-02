@@ -71,7 +71,7 @@ jobs:
           PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.user.login // empty' 2>/dev/null || true)
 
           if git merge-base --is-ancestor origin/vnext "$MAIN_SHA"; then
-            echo "Skipping: origin/vnext is already an ancestor of main, this is a release merge."
+            echo "::notice::Skipping rebase: origin/vnext is already an ancestor of main, this is a release merge."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false"      >> "$GITHUB_OUTPUT"
