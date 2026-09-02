@@ -99,6 +99,11 @@ runs:
         latest_flag="--latest=false"
         [ "$LATEST" = "true" ] && latest_flag="--latest"
 
+        # A release that continues the legacy bare series takes that tag as its
+        # title (v1.18.0 -> v2.0.0); everything else is "<package> v<version>".
+        title="${PACKAGE} v${VERSION}"
+        [ -n "$VANITY_TAG" ] && title="$VANITY_TAG"
+
         # Validate requested assets exist before the dry-run branch, so a dry
         # run catches a missing or misnamed asset.
         read -ra assets <<< "$ASSETS"
@@ -114,7 +119,7 @@ runs:
           {
             echo "## 🔍 Dry run: \`${PACKAGE}\` ${VERSION}"
             echo ""
-            echo "Would create tag \`${TAG}\` at \`${TARGET}\` (${latest_flag})."
+            echo "Would create tag \`${TAG}\` at \`${TARGET}\` titled \`${title}\` (${latest_flag})."
             if [ -n "$VANITY_TAG" ]; then
               echo "Would also create vanity tag \`${VANITY_TAG}\` (no release)."
             fi
@@ -135,7 +140,7 @@ runs:
         gh release create "$TAG" \
           --repo "$GITHUB_REPOSITORY" \
           --target "$TARGET" \
-          --title "\`${PACKAGE}\` ${VERSION}" \
+          --title "$title" \
           --notes-file "${RUNNER_TEMP}/notes.md" \
           $latest_flag \
           "${assets[@]}"
