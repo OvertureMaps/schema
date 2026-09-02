@@ -7,9 +7,12 @@ name: vnext compatibility check
 # exact commands to resolve it.
 #
 # Only PRs targeting main do that real work — compat-check is a no-op for
-# anything else (including vnext→main release PRs, head_ref == 'vnext'). The
-# noop job covers that inverse case, and both paths feed vnext-status so
-# there's always a single, consistently-named check to require.
+# anything else, including a vnext release merge. A release merge is detected
+# by ancestry (origin/vnext is an ancestor of the PR head), not by branch name,
+# so a staging branch built on top of vnext's tip (e.g. `2_0_0`) is recognized
+# the same as a PR literally named `vnext`. The noop job covers that inverse
+# case, and both paths feed vnext-status so there's always a single,
+# consistently-named check to require.
 
 on:
   pull_request:
@@ -23,9 +26,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  detect-release:
+    name: Detect vnext release merge
+    if: github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    outputs:
+      is_release: ${{ steps.check.outputs.is_release }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check whether origin/vnext is an ancestor of this PR's head
+        id: check
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git fetch origin vnext
+          if git merge-base --is-ancestor origin/vnext "$PR_HEAD_SHA"; then
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
   compat-check:
     name: Check vnext compatibility
-    if: github.event.pull_request.base.ref == 'main' && github.head_ref != 'vnext'
+    needs: detect-release
+    if: github.event.pull_request.base.ref == 'main' && needs.detect-release.outputs.is_release != 'true'
     runs-on: ubuntu-slim
     permissions:
       contents: read
@@ -160,10 +190,11 @@ jobs:
 
   noop:
     name: Skip vnext compatibility check
-    if: github.event.pull_request.base.ref != 'main' || github.head_ref == 'vnext'
+    needs: detect-release
+    if: github.event.pull_request.base.ref != 'main' || needs.detect-release.outputs.is_release == 'true'
     runs-on: ubuntu-slim
     steps:
-      - run: echo "Base isn't main, or this is the vnext release PR — nothing to check here."
+      - run: echo "Base isn't main, or this is the vnext release merge — nothing to check here."
 
   vnext-status:
     name: vnext compatibility status

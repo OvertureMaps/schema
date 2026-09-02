@@ -109,6 +109,15 @@ merge to `main`, CI cuts a published GitHub Release tagged
 `<package>-v<version>` with those notes. See
 [docs/versioning.md](docs/versioning.md).
 
+The PR that carries the release merge doesn't have to be `vnext` itself: you
+can stage it on a branch built on top of `vnext`'s tip (for example `2_0_0`)
+instead, useful when `vnext` needs to stay open for more breaking work while
+the release stabilizes. Either way it still has to land on `main` as a regular
+merge commit, not a squash. [vnext-compat.yaml](.github/workflows/vnext-compat.yaml)
+and [rebase-vnext.yaml](.github/workflows/rebase-vnext.yaml) detect the
+release merge by ancestry (`git merge-base --is-ancestor origin/vnext <head>`)
+rather than by branch name, so either path is recognized the same way.
+
 ## Opening a PR
 
 Two CI checks may comment on your PR:

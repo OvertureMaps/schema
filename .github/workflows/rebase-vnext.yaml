@@ -3,8 +3,11 @@ name: Rebase vnext onto main
 # Triggered on every push to main. Force-rebases vnext onto the new main HEAD
 # using the overture-pull-requester GitHub App (which has branch-protection bypass).
 #
-# Skipped for vnext→main release merges — vnext is already equal to main at that
-# point so a rebase would be a no-op, and the GitHub API check catches this.
+# Skipped for a vnext release merge — detected by ancestry (origin/vnext is
+# already an ancestor of the new main HEAD), not by branch name, so a staging
+# branch built on top of vnext's tip (e.g. `2_0_0`) is skipped the same as a
+# PR literally named `vnext`. vnext is already equal to main at that point so
+# a rebase would be a no-op.
 #
 # If the rebase fails a GitHub issue is opened and assigned to the PR author
 # so the conflict can be resolved manually.
@@ -41,37 +44,40 @@ jobs:
           permission-pull-requests: read    # read PR on merge commit to detect vnext→main release
           permission-workflows: write       # vnext commits may touch .github/workflows/**
 
-      # Detect whether this push was a vnext→main release merge.
-      # The GitHub API returns the PR(s) associated with the merge commit.
-      - name: Detect vnext→main release merge
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          # Use the app token so the subsequent force-push is authenticated.
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true
+
+      # Detect whether this push was a vnext release merge, by ancestry rather
+      # than branch name: if origin/vnext is already an ancestor of the new
+      # main HEAD, all of vnext's commits are in main and rebasing is a no-op.
+      # The GitHub API additionally returns the PR associated with the merge
+      # commit, so a failure issue can still be filed against its author.
+      - name: Detect vnext release merge
         id: skip
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           MAIN_SHA: ${{ github.sha }}
         run: |
+          git fetch origin vnext
+
           PR_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${MAIN_SHA}/pulls" \
             --jq '.[0] // empty' 2>/dev/null || true)
 
-          HEAD_REF=$(echo "$PR_JSON"  | jq -r '.head.ref   // empty' 2>/dev/null || true)
           PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number     // empty' 2>/dev/null || true)
           PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.user.login // empty' 2>/dev/null || true)
 
-          if [ "$HEAD_REF" = "vnext" ]; then
-            echo "Skipping: this is a vnext→main release merge."
+          if git merge-base --is-ancestor origin/vnext "$MAIN_SHA"; then
+            echo "Skipping: origin/vnext is already an ancestor of main, this is a release merge."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false"      >> "$GITHUB_OUTPUT"
             echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
             echo "pr_author=${PR_AUTHOR}" >> "$GITHUB_OUTPUT"
           fi
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: steps.skip.outputs.skip != 'true'
-        with:
-          fetch-depth: 0
-          # Use the app token so the subsequent force-push is authenticated.
-          token: ${{ steps.app-token.outputs.token }}
-          persist-credentials: true
 
       - name: Rebase vnext onto new main HEAD
         if: steps.skip.outputs.skip != 'true'
