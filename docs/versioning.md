@@ -195,13 +195,21 @@ changes that package, whether or not it bumps the version.
 3. Publishing the release starts the PyPI publish via Trusted Publishing
    (OIDC); no further manual approval gates it. The version-bump PR review
    is the approval.
+4. Publishing the `overture-schema` release also pushes its vanity tag (see
+   [Tag scheme](#tag-scheme)), which `docs-publish.yml` reacts to dispatch
+   a production docs rebuild so the generated schema reference stays in sync
+   (see #679). The tag push is the trigger and the filter: no other
+   package's release creates a bare `v*` tag, and the tag itself is passed
+   straight through as the docs build's `schema-ref`, no lookup needed.
+   Dispatching cross-repo uses the `overture-releaser` app (#637, #689).
 
 ```mermaid
 flowchart LR
     A[bump + towncrier build<br/>merged to main] --> B[release-trigger:<br/>GitHub Release per package]
     B --> C[PyPI publish<br/>Trusted Publishing] --> D[public PyPI]
     B --> E[overture-schema.json<br/>attached to umbrella overture-schema GitHub release]
-    F[no-bump merge] --> G[.postN internal build<br/>CodeArtifact only]
+    B --> G[docs-publish:<br/>overture-schema vanity tag] --> H[docs site rebuild]
+    I[no-bump merge] --> F[.postN internal build<br/>CodeArtifact only]
 ```
 
 ## Why

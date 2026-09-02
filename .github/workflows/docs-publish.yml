@@ -1,0 +1,59 @@
+name: Trigger docs publication
+
+# Fires on overture-schema's vanity tag push and dispatches a production
+# rebuild of OvertureMaps/docs so its generated schema reference stays in
+# sync. See "Cut a release" in docs/versioning.md for the trigger mechanics
+# and edge cases.
+
+on:
+  push:
+    # Proxy for "a new overture-schema version was released."
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch-docs-build:
+    name: Dispatch docs production build
+    runs-on: ubuntu-slim
+    permissions:
+      id-token: write # Required for OIDC authentication to AWS
+    steps:
+      # Narrow OIDC role that can only read the releaser app's PEM secret.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-region: us-west-2
+          role-to-assume: arn:aws:iam::816069134238:role/gha-releaser-secrets-reader
+          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
+
+      # Exports the PEM as env.RELEASE_PUBLISHER_APP_PEM, masked (incl. multi-line).
+      - name: Fetch releaser PEM from Secrets Manager
+        uses: aws-actions/aws-secretsmanager-get-secrets@2cb1a461cbd4865ac4299648312e4704c646cd53 # v3.0.1
+        with:
+          secret-ids: |
+            RELEASE_PUBLISHER_APP_PEM, omf-github-terraform/releaser/pem
+
+      - name: Generate docs publisher app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: Iv23lijru2e660v1zJQO # overture-releaser app client ID, not sensitive
+          private-key: ${{ env.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
+          owner: OvertureMaps
+          repositories: docs
+          permission-actions: write # Required to dispatch a workflow run on OvertureMaps/docs
+
+      - name: Trigger docs production build
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SCHEMA_REF: ${{ github.ref_name }}
+        run: |
+          gh workflow run production_deploy_documentation.yml \
+            --repo OvertureMaps/docs \
+            --field schema-ref="${SCHEMA_REF}"
