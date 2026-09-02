@@ -28,14 +28,17 @@ concurrency:
 jobs:
   detect-release:
     name: Detect vnext release merge
-    if: github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-slim
     permissions:
       contents: read
     outputs:
       is_release: ${{ steps.check.outputs.is_release }}
     steps:
+      # Runs unconditionally so noop/compat-check (which `need` this job) never
+      # get skipped by dependency propagation for non-main bases; skip the
+      # actual check with a fast is_release=false instead.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event.pull_request.base.ref == 'main'
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -44,7 +47,13 @@ jobs:
         id: check
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
+          if [ "$PR_BASE_REF" != "main" ]; then
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           git fetch origin vnext
           if git merge-base --is-ancestor origin/vnext "$PR_HEAD_SHA"; then
             echo "is_release=true" >> "$GITHUB_OUTPUT"
