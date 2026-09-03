@@ -247,3 +247,34 @@ def test_counterexample_validation_flat(counterexample_file: str) -> None:
     assert not is_valid, (
         f"Counterexample should have failed validation (Python): {counterexample_file}"
     )
+
+
+def test_validate_none_raises() -> None:
+    """
+    `validate(None)` must raise `ValidationError` rather than succeed. Regression test for the
+    non-discriminated union's `reduce(or_, non_discriminated_models, None)` call, which seeded the
+    reduction with `None` and so built a union that admitted `None` as valid.
+    """
+    with pytest.raises(ValidationError):
+        validate(None)
+
+
+def test_validate_json_null_raises() -> None:
+    """`validate_json("null")` must raise `ValidationError` rather than succeed."""
+    with pytest.raises(ValidationError):
+        validate_json("null")
+
+
+def test_validate_still_accepts_a_genuine_feature() -> None:
+    """
+    Paired with `test_validate_none_raises` and `test_validate_json_null_raises`: confirms the
+    union still validates a genuinely valid feature, so a regression that broke the adapter into
+    rejecting everything could not pass those tests by accident.
+    """
+    example_file = EXAMPLES_DIR / "buildings" / "empire-state-building.json"
+    json_input = load_example_file(str(example_file))
+
+    model = validate_json(json.dumps(json_input))
+    assert (
+        model.model_dump(exclude_unset=True, by_alias=True, mode="json") == json_input
+    )

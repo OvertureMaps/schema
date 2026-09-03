@@ -1,4 +1,3 @@
-from collections.abc import Generator
 from functools import reduce
 from operator import or_
 from types import UnionType
@@ -80,13 +79,14 @@ def _union_type_adapter() -> TypeAdapter:
     )
     discriminated_union: UnionType | None = _discriminated_union(discriminated_models)
 
-    non_discriminated_models: Generator[type[BaseModel], None, None] = (
+    non_discriminated_models: tuple[type[BaseModel], ...] = tuple(
         m for m in models.values() if not _can_discriminate(m)
     )
-    non_discriminated_union: UnionType | None = reduce(
-        or_, non_discriminated_models, None
+    non_discriminated_union: type[BaseModel] | UnionType | None = (
+        reduce(or_, non_discriminated_models) if non_discriminated_models else None
     )
 
+    model_union: type[BaseModel] | UnionType
     if discriminated_union and non_discriminated_union:
         model_union = discriminated_union | non_discriminated_union
     elif discriminated_union:
