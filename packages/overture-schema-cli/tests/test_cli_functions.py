@@ -8,6 +8,7 @@ from typing import Literal, cast
 import pytest
 import yaml
 from click.exceptions import UsageError
+from click.testing import CliRunner
 from conftest import build_feature
 from pydantic import BaseModel, ValidationError
 
@@ -38,9 +39,7 @@ class TestLoadInput:
 
         assert "is not a file" in str(exc_info.value)
 
-    def test_load_input_path_is_directory(
-        self, cli_runner: pytest.FixtureRequest
-    ) -> None:
+    def test_load_input_path_is_directory(self, cli_runner: CliRunner) -> None:
         """Test that load_input raises UsageError when path is a directory.
 
         Note: cli_runner provides isolated filesystem for test file creation.
@@ -54,7 +53,7 @@ class TestLoadInput:
 
         assert "is not a file" in str(exc_info.value)
 
-    def test_load_input_invalid_yaml(self, cli_runner: pytest.FixtureRequest) -> None:
+    def test_load_input_invalid_yaml(self, cli_runner: CliRunner) -> None:
         """Test that load_input raises YAMLError for invalid YAML.
 
         Note: cli_runner provides isolated filesystem for test file creation.
@@ -66,7 +65,7 @@ class TestLoadInput:
         with pytest.raises(yaml.YAMLError):
             load_input(Path(invalid_yaml))
 
-    def test_load_input_handles_json(self, cli_runner: pytest.FixtureRequest) -> None:
+    def test_load_input_handles_json(self, cli_runner: CliRunner) -> None:
         """Test that load_input can parse JSON files.
 
         Note: cli_runner provides isolated filesystem for test file creation.
@@ -82,7 +81,7 @@ class TestLoadInput:
         assert data["id"] == "test"
         assert source_name == json_file
 
-    def test_load_input_handles_list(self, cli_runner: pytest.FixtureRequest) -> None:
+    def test_load_input_handles_list(self, cli_runner: CliRunner) -> None:
         """Test that load_input can parse YAML lists.
 
         Note: cli_runner provides isolated filesystem for test file creation.
@@ -105,7 +104,7 @@ class TestLoadInput:
     )
     def test_load_input_warns_unexpected_extension(
         self,
-        cli_runner: pytest.FixtureRequest,
+        cli_runner: CliRunner,
         capsys: pytest.CaptureFixture,
         extension: str,
     ) -> None:
@@ -131,7 +130,7 @@ class TestLoadInput:
     )
     def test_load_input_no_warning_expected_extension(
         self,
-        cli_runner: pytest.FixtureRequest,
+        cli_runner: CliRunner,
         capsys: pytest.CaptureFixture,
         extension: str,
     ) -> None:
@@ -149,7 +148,7 @@ class TestLoadInput:
         captured = capsys.readouterr()
         assert captured.err == ""
 
-    def test_load_input_binary_file(self, cli_runner: pytest.FixtureRequest) -> None:
+    def test_load_input_binary_file(self, cli_runner: CliRunner) -> None:
         """Test graceful failure on binary files.
 
         Note: cli_runner provides isolated filesystem for test file creation.
@@ -161,9 +160,7 @@ class TestLoadInput:
         with pytest.raises((yaml.YAMLError, UnicodeDecodeError)):
             load_input(Path(binary_file))
 
-    def test_load_input_unicode_filenames(
-        self, cli_runner: pytest.FixtureRequest
-    ) -> None:
+    def test_load_input_unicode_filenames(self, cli_runner: CliRunner) -> None:
         """Test files with unicode names.
 
         Note: cli_runner provides isolated filesystem for test file creation.
@@ -180,7 +177,7 @@ class TestLoadInput:
         assert source_name == unicode_filename
 
     def test_load_input_jsonl_from_stdin(
-        self, cli_runner: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+        self, cli_runner: CliRunner, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test that load_input handles newline-delimited JSON (JSONL) from stdin.
 
