@@ -23,12 +23,13 @@ from .layout.module_layout import (
 from .markdown.pipeline import generate_markdown_pages
 from .pyspark.pipeline import generate_pyspark_modules
 from .spec_discovery import extract_alias_spec, extract_model_spec
+from .stac_table_columns.pipeline import generate_table_columns_documents
 
 log = logging.getLogger(__name__)
 
 __all__ = ["cli"]
 
-_OUTPUT_FORMATS = ("markdown", "pyspark")
+_OUTPUT_FORMATS = ("markdown", "pyspark", "stac-table-columns")
 
 _FEATURE_FRONTMATTER = "---\nsidebar_position: 1\n---\n\n"
 
@@ -121,6 +122,8 @@ def generate(
 
     if output_format == "pyspark":
         _generate_pyspark(model_specs, output_dir, test_output_dir)
+    elif output_format == "stac-table-columns":
+        _generate_table_columns(model_specs, output_dir)
     else:
         # RootModel entry points yield no ModelSpec, so they document as
         # named aliases -- reachable no other way, since a RootModel field
@@ -174,6 +177,22 @@ def _generate_pyspark(
     if test_output_dir is not None:
         for mod in modules.test:
             _write_output(mod.content, test_output_dir, mod.path)
+
+
+def _generate_table_columns(
+    model_specs: list[ModelSpec],
+    output_dir: Path | None,
+) -> None:
+    """Generate one STAC `table:` properties fragment per model.
+
+    Every model emits, including the discriminated-union root: a flat column
+    list is what a columnar sink stores for a union. The gap count is logged
+    per model because it, not the fragment, is what a flattening target has to
+    be judged on.
+    """
+    for doc in generate_table_columns_documents(model_specs):
+        _write_output(doc.stac, output_dir, doc.stac_path)
+        log.info("%s: %d gaps", doc.model, len(doc.gaps))
 
 
 def _ancestor_dirs(paths: set[PurePosixPath]) -> set[PurePosixPath]:
