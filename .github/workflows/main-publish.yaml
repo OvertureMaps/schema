@@ -183,7 +183,7 @@ jobs:
           path: dist/
 
       - name: Publish ${{ matrix.package }} to legacy CodeArtifact
-        uses: OvertureMaps/workflows/.github/actions/uv-publish-to-codeartifact@f75f9fce8a30b4403905b09020aee07076a20a3e # workflows#97, pending merge
+        uses: OvertureMaps/workflows/.github/actions/uv-publish-to-codeartifact@main # zizmor: ignore[unpinned-uses] intentionally track main
         with:
           aws-role-arn: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
           codeartifact-domain: overture-pypi
@@ -210,7 +210,7 @@ jobs:
           path: dist/
 
       - name: Publish ${{ matrix.package }} to MCD CodeArtifact
-        uses: OvertureMaps/workflows/.github/actions/uv-publish-to-codeartifact@f75f9fce8a30b4403905b09020aee07076a20a3e # workflows#97, pending merge
+        uses: OvertureMaps/workflows/.github/actions/uv-publish-to-codeartifact@main # zizmor: ignore[unpinned-uses] intentionally track main
         with:
           aws-role-arn: arn:aws:iam::763944545891:role/codeartifact-pypi-publish-oidc-overturemaps
           codeartifact-domain: overture-pypi
