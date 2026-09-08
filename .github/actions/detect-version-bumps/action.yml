@@ -31,7 +31,7 @@ runs:
   steps:
     - name: Diff package versions
       id: diff
-      uses: ./.github/actions/diff-package-versions
+      uses: $/.github/actions/diff-package-versions
       with:
         before: ${{ inputs.before }}
 
