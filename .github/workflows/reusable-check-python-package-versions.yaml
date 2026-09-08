@@ -95,28 +95,22 @@ jobs:
             echo "num_changed_packages=${COUNT}"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Configure AWS credentials
-        if: steps.save-changes.outputs.num_changed_packages > 0
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
-        with:
-          aws-region: ${{ inputs.aws_region }}
-          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.aws_iam_role_name }}
-          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
-
       - name: Get CodeArtifact index URL
         id: get-code-artifact-index-url
         if: steps.save-changes.outputs.num_changed_packages > 0
-        uses: ./.github/actions/code-artifact
+        uses: OvertureMaps/workflows/.github/actions/setup-codeartifact@a926f0a586b3f1e639dade180af9d794547e4303 # main, includes pypi format support (workflows#80)
         with:
-          aws_account_id: ${{ inputs.aws_account_id }}
-          aws_region: ${{ inputs.aws_region }}
-          domain: ${{ inputs.domain }}
-          repository: ${{ inputs.repository }}
+          aws-role-arn: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.aws_iam_role_name }}
+          aws-region: ${{ inputs.aws_region }}
+          codeartifact-domain: ${{ inputs.domain }}
+          codeartifact-domain-owner: ${{ inputs.aws_account_id }}
+          codeartifact-repository: ${{ inputs.repository }}
+          format: pypi
 
       - name: Fail if any of the new versions already exist in the repo
         if: steps.save-changes.outputs.num_changed_packages > 0
         env:
-          INDEX_URL: ${{ steps.get-code-artifact-index-url.outputs.index_url }}
+          INDEX_URL: ${{ steps.get-code-artifact-index-url.outputs.pypi-index-url }}
           DIFF: ${{ steps.diff.outputs.diff }}
           # zizmor: ignore[template-injection]
         run: |
