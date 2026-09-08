@@ -97,11 +97,9 @@ jobs:
         run: uv sync --locked --all-packages
 
       # PR smoke test only queries CodeArtifact (via compute-version, below)
-      # and never publishes -- the publish step is skipped for pull_request.
-      # Assume the read-only role there so a wiring mistake can't turn the
-      # smoke test into a real publish. Dual-published per ops-team#466: the
-      # legacy Airflow account is being phased out in favor of the MCD
-      # account, so both get every build until the migration completes.
+      # and never publishes -- the publish steps are skipped for
+      # pull_request. Assume the read-only role there so a wiring mistake
+      # can't turn the smoke test into a real publish.
       - name: Get legacy CodeArtifact credentials
         id: ca-legacy
         uses: OvertureMaps/workflows/.github/actions/setup-codeartifact@a926f0a586b3f1e639dade180af9d794547e4303 # main, includes pypi format support (workflows#80)
@@ -112,25 +110,12 @@ jobs:
           codeartifact-repository: overture
           format: pypi
 
-      # MCD role (omf-core-data-opentofu#91) has no separate read-only
-      # variant, so the PR smoke test reuses the publish role here too --
-      # it's still never invoked to publish outside a real push (see the
-      # if: on the publish step below).
-      - name: Get MCD CodeArtifact credentials
-        id: ca-mcd
-        uses: OvertureMaps/workflows/.github/actions/setup-codeartifact@a926f0a586b3f1e639dade180af9d794547e4303 # main, includes pypi format support (workflows#80)
-        with:
-          aws-role-arn: arn:aws:iam::763944545891:role/codeartifact-pypi-publish-oidc-overturemaps
-          codeartifact-domain: overture-pypi
-          codeartifact-domain-owner: "763944545891"
-          codeartifact-repository: overture
-          format: pypi
-
       # Delegates to the same composite action the PR smoke test exercises, so
       # the version formula only has one implementation to keep correct.
       # Anchored to the legacy account only: both accounts host the same
       # package history, so either would compute the same version, and
-      # picking one keeps this step from depending on the MCD dual-publish.
+      # picking one keeps this step from depending on the MCD dual-publish
+      # below (which authenticates for itself via uv-publish-to-codeartifact).
       - name: Compute version
         id: compute
         uses: ./.github/actions/compute-version
@@ -168,20 +153,14 @@ jobs:
           PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
         run: uv build --package "${PACKAGE}"
 
-      # Publishes to both accounts even if one fails, so a legacy outage
-      # doesn't hold back the MCD build (or vice versa) -- the step still
-      # fails the job overall if either uv publish call does.
-      - name: Publish ${{ matrix.package }} ${{ steps.compute.outputs.version }} to CodeArtifact
+      - name: Locate built artifacts for ${{ matrix.package }} ${{ steps.compute.outputs.version }}
+        id: artifacts
         if: github.event_name != 'pull_request'
         env:
-          LEGACY_TOKEN: ${{ steps.ca-legacy.outputs.token }}
-          LEGACY_PUBLISH_URL: ${{ steps.ca-legacy.outputs.pypi-publish-url }}
-          MCD_TOKEN: ${{ steps.ca-mcd.outputs.token }}
-          MCD_PUBLISH_URL: ${{ steps.ca-mcd.outputs.pypi-publish-url }}
           PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
           VERSION: ${{ steps.compute.outputs.version }} # zizmor: ignore[template-injection]
         run: |
-          set -uo pipefail
+          set -euo pipefail
           wheel="dist/${PACKAGE//-/_}-${VERSION}-py3-none-any.whl"
           if [ ! -f "$wheel" ]; then
             echo "    Wheel file [$wheel] not found. Aborting!"
@@ -192,13 +171,35 @@ jobs:
             echo "    Source tarball file [$tarball] not found. Aborting!"
             exit 1
           fi
+          echo "files=${wheel} ${tarball}" >> "$GITHUB_OUTPUT"
 
-          status=0
+      # continue-on-error on both publish steps below, plus the explicit
+      # failure check after, so a legacy outage doesn't hold back the MCD
+      # publish (or vice versa) -- the job still fails overall if either did.
+      - name: Publish ${{ matrix.package }} ${{ steps.compute.outputs.version }} to legacy CodeArtifact
+        id: publish-legacy
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        uses: OvertureMaps/workflows/.github/actions/uv-publish-to-codeartifact@f75f9fce8a30b4403905b09020aee07076a20a3e # workflows#97, pending merge
+        with:
+          aws-role-arn: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
+          codeartifact-domain: overture-pypi
+          codeartifact-domain-owner: "505071440022"
+          codeartifact-repository: overture
+          files: ${{ steps.artifacts.outputs.files }}
 
-          echo "Publishing to legacy CodeArtifact account (505071440022)"
-          uv publish "$wheel" "$tarball" -t "${LEGACY_TOKEN}" --publish-url "${LEGACY_PUBLISH_URL}" || status=1
+      - name: Publish ${{ matrix.package }} ${{ steps.compute.outputs.version }} to MCD CodeArtifact
+        id: publish-mcd
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        uses: OvertureMaps/workflows/.github/actions/uv-publish-to-codeartifact@f75f9fce8a30b4403905b09020aee07076a20a3e # workflows#97, pending merge
+        with:
+          aws-role-arn: arn:aws:iam::763944545891:role/codeartifact-pypi-publish-oidc-overturemaps
+          codeartifact-domain: overture-pypi
+          codeartifact-domain-owner: "763944545891"
+          codeartifact-repository: overture
+          files: ${{ steps.artifacts.outputs.files }}
 
-          echo "Publishing to MCD CodeArtifact account (763944545891)"
-          uv publish "$wheel" "$tarball" -t "${MCD_TOKEN}" --publish-url "${MCD_PUBLISH_URL}" || status=1
-
-          exit "$status"
+      - name: Fail if either CodeArtifact publish failed
+        if: github.event_name != 'pull_request' && (steps.publish-legacy.outcome == 'failure' || steps.publish-mcd.outcome == 'failure')
+        run: exit 1
