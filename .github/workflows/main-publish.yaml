@@ -233,7 +233,16 @@ jobs:
     needs: [publish-legacy, publish-mcd]
     if: always()
     runs-on: ubuntu-slim
+    permissions:
+      checks: write # Required by create-check-run below
     steps:
+      # create-check-run opts into a standalone check named "Main publish /
+      # are-we-good", instead of the native per-workflow "Are we good?" job
+      # check: the latter collides across any other workflow using the same
+      # job name, so branch protection would treat them as one check
+      # satisfied by whichever runs first.
       - uses: lowlydba/are-we-good@0f90ea9fa5e47188fcb69d9306fb8b3abb656018 # v1.2.0
         with:
           jobs: ${{ toJSON(needs) }}
+          create-check-run: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
