@@ -166,7 +166,12 @@ jobs:
   publish-legacy:
     name: Publish ${{ matrix.package }} to legacy CodeArtifact
     needs: [detect, build]
-    if: github.event_name != 'pull_request'
+    # (success() || failure()), not the implicit success(): build is a matrix
+    # job, so its overall result is failure if any single package failed to
+    # build. Running anyway (skipping only on cancellation) lets the
+    # per-package download-artifact step below fail just that package's leg,
+    # instead of skipping every package's publish.
+    if: (success() || failure()) && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -193,7 +198,7 @@ jobs:
   publish-mcd:
     name: Publish ${{ matrix.package }} to MCD CodeArtifact
     needs: [detect, build]
-    if: github.event_name != 'pull_request'
+    if: (success() || failure()) && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
