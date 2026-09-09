@@ -66,7 +66,7 @@ jobs:
       - name: Detect affected packages
         id: detect
         if: github.event_name != 'pull_request'
-        uses: ./.github/actions/detect-affected-packages
+        uses: $/.github/actions/detect-affected-packages
         with:
           before: ${{ github.event.before }}
 
@@ -109,13 +109,13 @@ jobs:
 
       - name: Get CodeArtifact credentials
         id: ca
-        uses: ./.github/actions/code-artifact
+        uses: $/.github/actions/code-artifact
 
       # Delegates to the same composite action the PR smoke test exercises, so
       # the version formula only has one implementation to keep correct.
       - name: Compute version
         id: compute
-        uses: ./.github/actions/compute-version
+        uses: $/.github/actions/compute-version
         with:
           package: ${{ matrix.package }}
           context: main
