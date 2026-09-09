@@ -1,4 +1,12 @@
 # {{ model.name }}
+{% if model.deprecated %}
+
+:::warning[Deprecated]
+
+{{ model.deprecated }}
+
+:::
+{% endif %}
 {% if model.description %}
 
 {{ model.description | linkify_urls }}
