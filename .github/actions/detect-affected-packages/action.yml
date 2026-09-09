@@ -46,7 +46,7 @@ runs:
     # after it only so both feed the final filter step back to back.
     - name: Diff package versions
       id: diff
-      uses: ./.github/actions/diff-package-versions
+      uses: $/.github/actions/diff-package-versions
       with:
         before: ${{ inputs.before }}
         after: ${{ inputs.after }}

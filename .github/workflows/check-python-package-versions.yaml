@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   check:
-    uses: ./.github/workflows/reusable-check-python-package-versions.yaml
+    uses: $/.github/workflows/reusable-check-python-package-versions.yaml
     permissions:
       id-token: write # Required for AWS CodeArtifact OIDC authentication
       contents: read

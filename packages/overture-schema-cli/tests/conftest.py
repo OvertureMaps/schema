@@ -2,6 +2,7 @@
 
 from collections.abc import Generator
 from io import StringIO
+from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
@@ -11,11 +12,10 @@ from rich.console import Console
 
 
 @pytest.fixture
-def cli_runner() -> Generator[CliRunner, None, None]:
-    """Provide a CliRunner within an isolated filesystem."""
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        yield runner
+def cli_runner(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> CliRunner:
+    """Provide a CliRunner running in an empty working directory."""
+    monkeypatch.chdir(tmp_path)
+    return CliRunner()
 
 
 @pytest.fixture
