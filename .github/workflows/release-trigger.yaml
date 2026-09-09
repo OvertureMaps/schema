@@ -56,7 +56,7 @@ jobs:
 
       - name: Detect version bumps
         id: detect
-        uses: ./.github/actions/detect-version-bumps
+        uses: $/.github/actions/detect-version-bumps
         with:
           before: ${{ github.event.before }}
 
@@ -117,7 +117,7 @@ jobs:
           uv run overture-schema json-schema --tag overture > overture-schema.json
 
       - name: Create release
-        uses: ./.github/actions/create-package-release
+        uses: $/.github/actions/create-package-release
         with:
           package: ${{ matrix.package }}
           version: ${{ matrix.version }}

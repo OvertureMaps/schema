@@ -79,7 +79,7 @@ jobs:
 
       - name: Diff package versions
         id: diff
-        uses: ./.github/actions/diff-package-versions
+        uses: $/.github/actions/diff-package-versions
         with:
           before: ${{ inputs.before_commit }}
           after: ${{ inputs.after_commit }}
@@ -106,7 +106,7 @@ jobs:
       - name: Get CodeArtifact index URL
         id: get-code-artifact-index-url
         if: steps.save-changes.outputs.num_changed_packages > 0
-        uses: ./.github/actions/code-artifact
+        uses: $/.github/actions/code-artifact
         with:
           aws_account_id: ${{ inputs.aws_account_id }}
           aws_region: ${{ inputs.aws_region }}
