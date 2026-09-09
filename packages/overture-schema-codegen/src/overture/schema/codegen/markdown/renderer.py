@@ -204,6 +204,23 @@ def _format_example_value(value: object) -> str:
     return f"`{_truncate(str(value))}`"
 
 
+_GENERIC_FIELD_DEPRECATION_MESSAGE = "This field is deprecated."
+
+
+def _field_deprecation_note(field: FieldSpec) -> str:
+    """Render a field's deprecation as a note for `_annotate_notes`.
+
+    A bare `deprecated=True` carries no prose of its own, so the generic
+    message stands in rather than letting a message-less flag render as
+    nothing at all. The message lands in a table cell, so it is sanitized
+    as a description is.
+    """
+    message = _sanitize_for_table_cell(
+        field.deprecation_message or _GENERIC_FIELD_DEPRECATION_MESSAGE
+    )
+    return f"**Deprecated:** {message}"
+
+
 def _field_template_context(
     field: FieldSpec,
     ctx: LinkContext | None = None,
@@ -212,11 +229,17 @@ def _field_template_context(
     description = (
         _sanitize_for_table_cell(field.description) if field.description else None
     )
-    return _FieldRow(
+    row = _FieldRow(
         name=field.name,
         type_str=format_type(field, ctx),
         description=description,
     )
+    if field.is_deprecated:
+        # Through the same appender default and constraint notes use: a
+        # deprecation note is one more thing said about the field, not a
+        # separate rendering mechanism.
+        _annotate_notes(row, [_field_deprecation_note(field)])
+    return row
 
 
 def _annotate_notes(
@@ -407,30 +430,54 @@ def _expand_union_fields(
     """Expand UnionSpec fields with inline variant tags.
 
     Shared fields (variant_sources=None) render normally. Variant-specific
-    fields get *(ShortName)* tag after the field name.
+    fields get *(ShortName)* tag after the field name. A field split into
+    several rows -- members disagreeing on its constraints or deprecation --
+    expands its sub-model once, after the rows that reference it, rather
+    than repeating the same sub-rows under each.
     """
-    result: list[_FieldRow] = []
+    by_name: dict[str, dict[object, list[AnnotatedField]]] = {}
     for annotated in spec.annotated_fields:
-        field_spec = annotated.field_spec
-        row = _field_template_context(field_spec, ctx)
-        name = field_spec.name
-        suffix = _expandable_list_suffix(field_spec)
+        model_ref = terminal_model_ref(annotated.field_spec.shape)
+        model_key = None if model_ref is None else model_ref.model.name
+        by_name.setdefault(annotated.field_spec.name, {}).setdefault(
+            model_key, []
+        ).append(annotated)
 
-        _annotate_default(row, field_spec)
-        _annotate_field_constraints(row, field_spec, ctx)
-        if constraint_notes and field_spec.name in constraint_notes:
-            _annotate_notes(row, constraint_notes[field_spec.name])
-
-        tag = _variant_tag(annotated, spec.name)
-        if tag is not None:
-            row["name"] = f"`{name}{suffix}`{tag}"
-            row["pre_formatted"] = True
-        else:
-            row["name"] = f"{name}{suffix}"
-
-        result.append(row)
-        _expand_sub_model(field_spec, name, ctx, result)
+    result: list[_FieldRow] = []
+    for name, by_model in by_name.items():
+        for rows in by_model.values():
+            for annotated in rows:
+                result.append(
+                    _union_field_row(annotated, spec.name, ctx, constraint_notes)
+                )
+            _expand_sub_model(rows[0].field_spec, name, ctx, result)
     return result
+
+
+def _union_field_row(
+    annotated: AnnotatedField,
+    union_name: str,
+    ctx: LinkContext | None,
+    constraint_notes: dict[str, list[str]] | None,
+) -> _FieldRow:
+    """Build one union field row, variant-tagged when only some members declare it."""
+    field_spec = annotated.field_spec
+    row = _field_template_context(field_spec, ctx)
+    name = field_spec.name
+    suffix = _expandable_list_suffix(field_spec)
+
+    _annotate_default(row, field_spec)
+    _annotate_field_constraints(row, field_spec, ctx)
+    if constraint_notes and name in constraint_notes:
+        _annotate_notes(row, constraint_notes[name])
+
+    tag = _variant_tag(annotated, union_name)
+    if tag is not None:
+        row["name"] = f"`{name}{suffix}`{tag}"
+        row["pre_formatted"] = True
+    else:
+        row["name"] = f"{name}{suffix}"
+    return row
 
 
 def render_model(

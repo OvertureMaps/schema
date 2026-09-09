@@ -1,7 +1,7 @@
 """Tests for union extraction."""
 
 import re
-from typing import Any
+from typing import Annotated, Any, Literal, cast
 
 import pytest
 from annotated_types import MinLen
@@ -189,6 +189,35 @@ class TestDivergingConstraints:
         extract_union(
             "TestSegmentDivergingConstraints", TestSegmentDivergingConstraints
         )
+
+
+class TestDivergingDeprecation:
+    """Same-named fields that differ only in deprecation split like constraints."""
+
+    def test_deprecated_and_current_declarations_stay_separate(self) -> None:
+        """Each member keeps its own deprecation, whichever member comes last."""
+
+        class CurrentAliasesSegment(SegmentBase):
+            subtype: Literal["current"]
+            aliases: list[str] | None = None
+
+        class OldAliasesSegment(SegmentBase):
+            subtype: Literal["old"]
+            aliases: list[str] | None = Field(default=None, deprecated="Gone.")
+
+        for members in (
+            CurrentAliasesSegment | OldAliasesSegment,
+            OldAliasesSegment | CurrentAliasesSegment,
+        ):
+            spec = extract_union("Segment", cast(Any, Annotated[members, Field()]))
+            by_source = {
+                af.variant_sources: af.field_spec
+                for af in spec.annotated_fields
+                if af.field_spec.name == "aliases"
+            }
+            assert set(by_source) == {(CurrentAliasesSegment,), (OldAliasesSegment,)}
+            assert by_source[(OldAliasesSegment,)].deprecation_message == "Gone."
+            assert by_source[(CurrentAliasesSegment,)].is_deprecated is False
 
 
 class TestUnionNameDerivation:
