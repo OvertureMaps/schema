@@ -153,6 +153,27 @@ jobs:
           PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
         run: uv build --package "${PACKAGE}"
 
+      # Catches a stamp/build mismatch (e.g. the previous step silently no-op'd
+      # or uv build picked up a stale version) before it reaches either
+      # CodeArtifact account, instead of failing only one publish leg's
+      # generic dist/* glob after the fact.
+      - name: Verify built artifact matches computed version
+        env:
+          PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
+          VERSION: ${{ steps.compute.outputs.version }} # zizmor: ignore[template-injection]
+        run: |
+          set -euo pipefail
+          wheel="dist/${PACKAGE//-/_}-${VERSION}-py3-none-any.whl"
+          if [ ! -f "$wheel" ]; then
+            echo "    Wheel file [$wheel] not found. Aborting!"
+            exit 1
+          fi
+          tarball="dist/${PACKAGE//-/_}-${VERSION}.tar.gz"
+          if [ ! -f "$tarball" ]; then
+            echo "    Source tarball file [$tarball] not found. Aborting!"
+            exit 1
+          fi
+
       # Only the real push path needs the wheel/sdist in a later job -- the PR
       # smoke test stops here, its build output is never published.
       - name: Upload built artifacts for ${{ matrix.package }}
