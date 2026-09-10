@@ -2,12 +2,13 @@ name: Main publish
 
 # Runs on every push to main that touches packages/**. For each package whose
 # directory changed WITHOUT a version bump, computes an internal build version
-# (main context; see .github/actions/compute-version) and publishes it to
-# CodeArtifact. Bumped packages release via release-trigger + release-publish
-# instead (see docs/versioning.md) -- publishing a .postN for them here too
-# would be redundant.
+# (main context; see .github/actions/compute-version) and dual-publishes it to
+# both the legacy and MCD CodeArtifact accounts (ops-team#466). Bumped
+# packages release via release-trigger + release-publish instead (see
+# docs/versioning.md) -- publishing a .postN for them here too would be
+# redundant.
 #
-# Also runs (read-only) on PRs that touch the compute-version/code-artifact/
+# Also runs (read-only) on PRs that touch the compute-version/
 # detect-affected-packages composite actions or this workflow itself, as a
 # smoke test for their wiring: the version is computed but nothing is
 # published.
@@ -20,7 +21,6 @@ on:
   pull_request:
     paths:
       - '.github/actions/compute-version/**'
-      - '.github/actions/code-artifact/**'
       - '.github/actions/detect-affected-packages/**'
       - '.github/workflows/main-publish.yaml'
 
@@ -70,16 +70,16 @@ jobs:
         with:
           before: ${{ github.event.before }}
 
-  publish:
-    name: Publish ${{ matrix.package }}${{ github.event_name == 'pull_request' && ' (test)' || '' }}
+  build:
+    name: Build ${{ matrix.package }}${{ github.event_name == 'pull_request' && ' (test)' || '' }}
     needs: detect
     if: needs.detect.outputs.count != '0'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # Required for OIDC authentication to AWS
+      id-token: write # Required for OIDC authentication to AWS (read-only version query)
     strategy:
-      fail-fast: false # One package's failure must not block sibling publishes
+      fail-fast: false # One package's failure must not block sibling builds
       matrix:
         package: ${{ fromJSON(needs.detect.outputs.packages) }}
     steps:
@@ -97,29 +97,32 @@ jobs:
         run: uv sync --locked --all-packages
 
       # PR smoke test only queries CodeArtifact (via compute-version, below)
-      # and never publishes -- the publish step is skipped for pull_request.
-      # Assume the read-only role there so a wiring mistake can't turn the
-      # smoke test into a real publish.
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+      # and never publishes -- the publish jobs are skipped for
+      # pull_request. Assume the read-only role there so a wiring mistake
+      # can't turn the smoke test into a real publish.
+      - name: Get legacy CodeArtifact credentials
+        id: ca-legacy
+        uses: OvertureMaps/workflows/.github/actions/setup-codeartifact@main # zizmor: ignore[unpinned-uses] intentionally track main
         with:
-          aws-region: us-west-2
-          role-to-assume: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_${{ github.event_name == 'pull_request' && 'ReadOnly' || 'Publish' }}
-          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
-
-      - name: Get CodeArtifact credentials
-        id: ca
-        uses: $/.github/actions/code-artifact
+          aws-role-arn: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_${{ github.event_name == 'pull_request' && 'ReadOnly' || 'Publish' }}
+          codeartifact-domain: overture-pypi
+          codeartifact-domain-owner: "505071440022"
+          codeartifact-repository: overture
+          format: pypi
 
       # Delegates to the same composite action the PR smoke test exercises, so
       # the version formula only has one implementation to keep correct.
+      # Anchored to the legacy account only: both accounts host the same
+      # package history, so either would compute the same version, and
+      # picking one keeps this step from depending on the MCD dual-publish
+      # (which authenticates for itself via uv-publish-to-codeartifact).
       - name: Compute version
         id: compute
         uses: $/.github/actions/compute-version
         with:
           package: ${{ matrix.package }}
           context: main
-          index_url: ${{ steps.ca.outputs.index_url }}
+          index_url: ${{ steps.ca-legacy.outputs.pypi-index-url }}
 
       # overture-schema-pyspark ships generated validation expressions that
       # are not committed to git; its packages/<pkg>/scripts/prebuild.sh
@@ -150,11 +153,12 @@ jobs:
           PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
         run: uv build --package "${PACKAGE}"
 
-      - name: Publish ${{ matrix.package }} ${{ steps.compute.outputs.version }} to CodeArtifact
-        if: github.event_name != 'pull_request'
+      # Catches a stamp/build mismatch (e.g. the previous step silently no-op'd
+      # or uv build picked up a stale version) before it reaches either
+      # CodeArtifact account, instead of failing only one publish leg's
+      # generic dist/* glob after the fact.
+      - name: Verify built artifact matches computed version
         env:
-          CA_TOKEN: ${{ steps.ca.outputs.token }}
-          CA_PUBLISH_URL: ${{ steps.ca.outputs.publish_url }}
           PACKAGE: ${{ matrix.package }} # zizmor: ignore[template-injection]
           VERSION: ${{ steps.compute.outputs.version }} # zizmor: ignore[template-injection]
         run: |
@@ -169,6 +173,97 @@ jobs:
             echo "    Source tarball file [$tarball] not found. Aborting!"
             exit 1
           fi
-          uv publish "$wheel" "$tarball" \
-             -t "${CA_TOKEN}" \
-            --publish-url "${CA_PUBLISH_URL}"
+
+      # Only the real push path needs the wheel/sdist in a later job -- the PR
+      # smoke test stops here, its build output is never published.
+      - name: Upload built artifacts for ${{ matrix.package }}
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist-${{ matrix.package }} # zizmor: ignore[template-injection]
+          path: dist/
+          if-no-files-found: error
+
+  publish-legacy:
+    name: Publish ${{ matrix.package }} to legacy CodeArtifact
+    needs: [detect, build]
+    # (success() || failure()), not the implicit success(): build is a matrix
+    # job, so its overall result is failure if any single package failed to
+    # build. Running anyway (skipping only on cancellation) lets the
+    # per-package download-artifact step below fail just that package's leg,
+    # instead of skipping every package's publish.
+    if: (success() || failure()) && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC authentication to AWS
+    strategy:
+      fail-fast: false # One package's failure must not block sibling publishes
+      matrix:
+        package: ${{ fromJSON(needs.detect.outputs.packages) }}
+    steps:
+      - name: Download built artifacts for ${{ matrix.package }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist-${{ matrix.package }} # zizmor: ignore[template-injection]
+          path: dist/
+
+      - name: Publish ${{ matrix.package }} to legacy CodeArtifact
+        uses: OvertureMaps/workflows/.github/actions/uv-publish-to-codeartifact@main # zizmor: ignore[unpinned-uses] intentionally track main
+        with:
+          aws-role-arn: arn:aws:iam::505071440022:role/GithubActions_Schema_CodeArtifact_Publish
+          codeartifact-domain: overture-pypi
+          codeartifact-domain-owner: "505071440022"
+          codeartifact-repository: overture
+
+  publish-mcd:
+    name: Publish ${{ matrix.package }} to MCD CodeArtifact
+    needs: [detect, build]
+    if: (success() || failure()) && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC authentication to AWS
+    strategy:
+      fail-fast: false # One package's failure must not block sibling publishes
+      matrix:
+        package: ${{ fromJSON(needs.detect.outputs.packages) }}
+    steps:
+      - name: Download built artifacts for ${{ matrix.package }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist-${{ matrix.package }} # zizmor: ignore[template-injection]
+          path: dist/
+
+      - name: Publish ${{ matrix.package }} to MCD CodeArtifact
+        uses: OvertureMaps/workflows/.github/actions/uv-publish-to-codeartifact@main # zizmor: ignore[unpinned-uses] intentionally track main
+        with:
+          aws-role-arn: arn:aws:iam::763944545891:role/codeartifact-pypi-publish-oidc-overturemaps
+          codeartifact-domain: overture-pypi
+          codeartifact-domain-owner: "763944545891"
+          codeartifact-repository: overture
+
+  # A single named check that stays stable as the package matrix grows,
+  # instead of branch protection tracking every "Publish <package> to <X>
+  # CodeArtifact" leg by name. Skipped is fine by default (both publish jobs
+  # are skipped entirely for pull_request), and each account's job already
+  # runs independently of the other's outcome, so one account's outage still
+  # can't block the other.
+  are-we-good:
+    name: Are we good?
+    needs: [publish-legacy, publish-mcd]
+    if: always()
+    runs-on: ubuntu-slim
+    permissions:
+      checks: write # Required by create-check-run below
+    steps:
+      # create-check-run opts into a standalone check named "Main publish /
+      # are-we-good", instead of the native per-workflow "Are we good?" job
+      # check: the latter collides across any other workflow using the same
+      # job name, so branch protection would treat them as one check
+      # satisfied by whichever runs first.
+      - uses: lowlydba/are-we-good@0f90ea9fa5e47188fcb69d9306fb8b3abb656018 # v1.2.0
+        with:
+          jobs: ${{ toJSON(needs) }}
+          create-check-run: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
