@@ -2,10 +2,11 @@
 
 A Column Object is `name`, `type`, `description`, so most of what this renderer
 knows it cannot say. These cover the decisions that survive that flattening: how
-an absent description is spelled, what happens at a union collision, and the two
+an absent description is rendered, what happens at a union collision, and the two
 cases where guessing is worse than refusing.
 """
 
+import json
 from typing import Annotated, Literal
 
 import pytest
@@ -15,12 +16,29 @@ from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.stac_table_columns.exceptions import (
     TableColumnsUnrepresentable,
 )
-from overture.schema.codegen.stac_table_columns.renderer import render_table_columns
-from overture.schema.system.geometric import Geometry
+from overture.schema.codegen.stac_table_columns.pipeline import (
+    generate_table_columns_documents,
+)
+from overture.schema.codegen.stac_table_columns.renderer import (
+    VECTOR_EXTENSION_URI,
+    render_table_columns,
+)
+from overture.schema.system.geometric import (
+    BBox,
+    Geometry,
+    GeometryType,
+    GeometryTypeConstraint,
+)
+from overture.schema.system.numeric import float32, float64, int32, int64
 
 
 def _capabilities(doc: object) -> set[str]:
     return {g.capability for g in doc.gaps}  # type: ignore[attr-defined]
+
+
+def _columns(model: type[BaseModel]) -> dict[str, dict[str, object]]:
+    doc = render_table_columns(extract_model(model))
+    return {c["name"]: c for c in doc.stac_fields()["table:columns"]}
 
 
 def test_undescribed_column_omits_the_key_entirely() -> None:
@@ -145,6 +163,231 @@ def test_strict_mode_raises_rather_than_returning_a_gap_log() -> None:
 
     with pytest.raises(TableColumnsUnrepresentable):
         render_table_columns(extract_model(M), strict=True)
+
+
+def test_scalar_columns_use_arrow_names() -> None:
+    """`type` uses Arrow's names, the ones a reader of the released GeoParquet
+    reports -- `double` and `float`, not `float64`/`float32`, and `string`,
+    `bool`, `binary` rather than DuckDB's `varchar`, `boolean`, `blob`. Every
+    name here came from `pyarrow`'s own stringifier."""
+
+    class M(BaseModel):
+        big: float64
+        small: float32
+        label: str
+        flag: bool
+        raw: bytes
+        count: int64
+
+    columns = _columns(M)
+
+    assert columns["big"]["type"] == "double"
+    assert columns["small"]["type"] == "float"
+    assert columns["label"]["type"] == "string"
+    assert columns["flag"]["type"] == "bool"
+    assert columns["raw"]["type"] == "binary"
+    assert columns["count"]["type"] == "int64"
+
+
+def test_composite_columns_use_arrow_angle_bracket_grammar() -> None:
+    """Structs, lists and maps are the part most likely to drift.
+
+    DuckDB wrote these `struct(name type, ...)`, `type[]` and
+    `map(varchar, varchar)`; Arrow uses angle brackets and names a
+    list's child `item`. Pinning the whole nested string is the point -- a
+    per-scalar check would pass against either grammar.
+    """
+
+    class Inner(BaseModel):
+        depth: float64
+        tag: str
+
+    class M(BaseModel):
+        nested: Inner
+        labels: list[str]
+        matrix: list[list[int32]]
+        lookup: dict[str, str]
+
+    columns = _columns(M)
+
+    assert columns["nested"]["type"] == "struct<depth: double, tag: string>"
+    assert columns["labels"]["type"] == "list<item: string>"
+    assert columns["matrix"]["type"] == "list<item: list<item: int32>>"
+    assert columns["lookup"]["type"] == "map<string, string>"
+
+
+def test_geometry_is_binary_and_the_erasure_is_logged() -> None:
+    """Arrow has no geometry type; GeoParquet stores WKB in a binary column.
+
+    `binary` is what an Arrow reader reports for Overture's own released
+    geometry column, so it is what this renderer emits. The semantic the
+    DuckDB name carried in the type string is gone, and the gap log is
+    what records that -- `vector:geometry_types` carries only the part the
+    schema can assert.
+    """
+
+    class M(BaseModel):
+        geometry: Annotated[Geometry, GeometryTypeConstraint(GeometryType.POINT)]
+
+    doc = render_table_columns(extract_model(M))
+    columns = {c["name"]: c for c in doc.stac_fields()["table:columns"]}
+
+    assert columns["geometry"]["type"] == "binary"
+    assert columns["geometry"]["vector:geometry_types"] == ["Point"]
+    assert any(g.kind == "target-dialect" and "geometry" in g.detail for g in doc.gaps)
+
+
+def test_type_and_data_type_differ_for_floats_on_purpose() -> None:
+    """The two fields speak different vocabularies, and neither is bent.
+
+    `data_type` is bound to STAC common metadata, which names floats
+    `float32`/`float64`; `type` is bound to Arrow, which names the same two
+    `float`/`double`.
+    """
+
+    class M(BaseModel):
+        small: float32
+        big: float64
+
+    columns = _columns(M)
+
+    assert columns["small"]["type"] == "float"
+    assert columns["small"]["data_type"] == "float32"
+    assert columns["big"]["type"] == "double"
+    assert columns["big"]["data_type"] == "float64"
+
+
+def test_bbox_struct_members_follow_the_model_not_a_publisher() -> None:
+    """The bbox struct's member order is the `BBox` class's declaration order.
+
+    It does not match the order Overture ships (`xmin, xmax, ymin, ymax`, what
+    the PySpark `BBOX_STRUCT` declares). That discrepancy is accepted: this
+    renderer derives types from models, and matching one publisher's file
+    layout would encode a fact about that publisher rather than the schema.
+    """
+
+    class M(BaseModel):
+        bbox: BBox
+
+    assert (
+        _columns(M)["bbox"]["type"]
+        == "struct<xmin: double, ymin: double, xmax: double, ymax: double>"
+    )
+
+
+def test_data_type_maps_a_numeric_column_to_the_stac_vocabulary() -> None:
+    """A numeric base type resolves to STAC common metadata's own name.
+
+    Overture's `int32`/`float64` names already ARE the vocabulary's names, so
+    this is a pass-through, not a translation.
+    """
+
+    class M(BaseModel):
+        count: int32
+        ratio: float64
+
+    doc = render_table_columns(extract_model(M))
+    columns = {c["name"]: c for c in doc.stac_fields()["table:columns"]}
+
+    assert columns["count"]["data_type"] == "int32"
+    assert columns["ratio"]["data_type"] == "float64"
+
+
+def test_data_type_falls_back_to_other_for_a_non_numeric_column() -> None:
+    """A string, a struct, and everything else with no numeric identity get
+    `other` -- a member of the STAC vocabulary, not an omission."""
+
+    class Nested(BaseModel):
+        value: str
+
+    class M(BaseModel):
+        label: str
+        nested: Nested
+
+    doc = render_table_columns(extract_model(M))
+    columns = {c["name"]: c for c in doc.stac_fields()["table:columns"]}
+
+    assert columns["label"]["data_type"] == "other"
+    assert columns["nested"]["data_type"] == "other"
+
+
+def test_geometry_type_constraint_becomes_vector_geometry_types() -> None:
+    """A single allowed geometry type becomes a one-element `vector:geometry_types`.
+
+    v1.3.0's README defines no `geometry_type` on the Column Object at all,
+    only `vector:geometry_types` from the separate Vector extension (see the
+    renderer module docstring).
+    """
+
+    class M(BaseModel):
+        geometry: Annotated[
+            Geometry,
+            GeometryTypeConstraint(GeometryType.POINT),
+            Field(description="the shape"),
+        ]
+
+    doc = render_table_columns(extract_model(M))
+    columns = {c["name"]: c for c in doc.stac_fields()["table:columns"]}
+
+    assert columns["geometry"]["vector:geometry_types"] == ["Point"]
+
+
+def test_multiple_allowed_geometry_types_are_sorted_geojson_names() -> None:
+    """Several allowed types become a sorted list of GeoJSON (not snake_case) names."""
+
+    class M(BaseModel):
+        geometry: Annotated[
+            Geometry,
+            GeometryTypeConstraint(GeometryType.MULTI_POLYGON, GeometryType.POLYGON),
+        ]
+
+    doc = render_table_columns(extract_model(M))
+    columns = {c["name"]: c for c in doc.stac_fields()["table:columns"]}
+
+    assert columns["geometry"]["vector:geometry_types"] == ["MultiPolygon", "Polygon"]
+
+
+def test_unconstrained_geometry_omits_vector_geometry_types_and_logs_a_gap() -> None:
+    """No `GeometryTypeConstraint` means no claim about which types can appear.
+
+    Emitting all seven would assert something the schema never said; omitting
+    silently would look identical to forgetting the field. The gap log is the
+    only record.
+    """
+
+    class M(BaseModel):
+        geometry: Geometry
+
+    doc = render_table_columns(extract_model(M))
+    columns = {c["name"]: c for c in doc.stac_fields()["table:columns"]}
+
+    assert "vector:geometry_types" not in columns["geometry"]
+    assert any(
+        g.kind == "ir-gap" and g.capability == "geometry types" for g in doc.gaps
+    )
+
+
+def test_pipeline_declares_the_vector_extension_only_when_used() -> None:
+    """`stac_extensions` gains the Vector extension exactly when a column needs it.
+
+    A `vector:` field with its extension undeclared would not validate; a
+    model with no geometry constraint should not carry a URI for a field it
+    never emits.
+    """
+
+    class Constrained(BaseModel):
+        geometry: Annotated[Geometry, GeometryTypeConstraint(GeometryType.POINT)]
+
+    class Unconstrained(BaseModel):
+        geometry: Geometry
+
+    [with_vector] = generate_table_columns_documents([extract_model(Constrained)])
+    [without_vector] = generate_table_columns_documents([extract_model(Unconstrained)])
+
+    assert VECTOR_EXTENSION_URI in json.loads(with_vector.stac)["stac_extensions"]
+    assert (
+        VECTOR_EXTENSION_URI not in json.loads(without_vector.stac)["stac_extensions"]
+    )
 
 
 def test_gap_log_is_non_empty_for_a_real_model() -> None:

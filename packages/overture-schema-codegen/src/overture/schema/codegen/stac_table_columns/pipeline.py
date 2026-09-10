@@ -16,7 +16,7 @@ from overture.schema.system.case import to_snake_case
 
 from ..extraction.specs import ModelSpec
 from .exceptions import TableColumnsGap
-from .renderer import TABLE_EXTENSION_URI, render_table_columns
+from .renderer import TABLE_EXTENSION_URI, VECTOR_EXTENSION_URI, render_table_columns
 
 __all__ = ["TableColumnsOutput", "generate_table_columns_documents"]
 
@@ -42,8 +42,17 @@ def generate_table_columns_documents(
         # A bare properties fragment rather than a whole Item: the extension
         # fields are what this target emits, and an Item would need id, geometry,
         # bbox, datetime and links, none of which come from a schema.
+        extensions = [TABLE_EXTENSION_URI]
+        if rendered.uses_vector_extension:
+            # A `vector:` field without the Vector extension declared here
+            # would not validate against either extension's schema. Every
+            # feature type currently emits one, so this is unconditional in
+            # practice; it is a condition because a model with no geometry
+            # column, or a geometry column carrying no `GeometryTypeConstraint`,
+            # must not declare an extension it never uses.
+            extensions.append(VECTOR_EXTENSION_URI)
         fragment = {
-            "stac_extensions": [TABLE_EXTENSION_URI],
+            "stac_extensions": extensions,
             "properties": rendered.stac_fields(),
         }
         outputs.append(
