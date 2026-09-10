@@ -35,8 +35,8 @@ inputs:
   index_url:
     description: >
       PyPI simple index URL with embedded credentials for querying
-      CodeArtifact. Obtain via the `.github/actions/code-artifact` action's
-      `index_url` output after configuring AWS credentials.
+      CodeArtifact. Obtain via the `setup-codeartifact` action's
+      (`OvertureMaps/workflows`) `pypi-index-url` output, `format: pypi`.
     required: true
 
 outputs:
