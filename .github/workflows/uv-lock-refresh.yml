@@ -58,7 +58,7 @@ jobs:
           commit-message: |
             [CHORE](deps) refresh uv.lock
 
-            Signed-off-by: overture-pull-requester[bot] <280063256+overture-pull-requester[bot]@users.noreply.github.com>
+            Signed-off-by: overture-pull-requester[bot] <overture-pull-requester[bot]@users.noreply.github.com>
           branch: uv-lock-refresh
           title: "[CHORE](deps) weekly uv.lock refresh"
           labels: "bot,automation 🦾"
