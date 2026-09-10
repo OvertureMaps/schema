@@ -23,9 +23,22 @@ jobs:
     name: Refresh uv.lock
     runs-on: ubuntu-slim
     permissions:
-      contents: write # create-pull-request pushes the refresh branch
-      pull-requests: write # create-pull-request opens/updates the PR
+      contents: read
     steps:
+      # The default GITHUB_TOKEN can't clear the required "OMF PR Check" linked-issue
+      # check -- a scheduled lockfile refresh has no issue to link. The
+      # overture-pull-requester app (same one rebase-vnext.yaml uses) has a
+      # bypass for that, so open the PR as the app instead; this also means the PR
+      # triggers CI normally, unlike a GITHUB_TOKEN-authored PR.
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: Iv23liiN80WEARreTV7m
+          private-key: ${{ secrets.OVERTURE_PULL_REQUESTER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
+          permission-contents: write
+          permission-pull-requests: write
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -36,18 +49,16 @@ jobs:
 
       - run: uv lock --upgrade
 
-      # NOTE: PRs opened with the default GITHUB_TOKEN do not trigger other
-      # workflows, so CI won't run on this PR. Provide a PAT/App token via
-      # `token:` if the lockfile refresh needs to be gated on CI before merge.
       # create-pull-request stages the diff, commits, pushes a branch, and
       # opens/updates the PR idempotently; a gh pr create script would
       # re-implement that and need persisted checkout credentials to push.
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with: # zizmor: ignore[superfluous-actions]
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: |
             [CHORE](deps) refresh uv.lock
 
-            Signed-off-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+            Signed-off-by: overture-pull-requester[bot] <280063256+overture-pull-requester[bot]@users.noreply.github.com>
           branch: uv-lock-refresh
           title: "[CHORE](deps) weekly uv.lock refresh"
           labels: "bot,automation 🦾"
