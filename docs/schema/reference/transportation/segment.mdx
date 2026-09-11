@@ -103,7 +103,11 @@ The schema for `rail` segments is under development.
       </tbody>
     </table>
 
-The schema for `water` segments is under development.
+The schema for `water` segments is under development. Water segments support
+an optional `travel_time` property that captures the scheduled time, in
+seconds, to traverse the full segment from end to end, including time spent
+docking, loading, and unloading (sourced from the OSM `duration` tag on ferry
+routes).
   </TabItem>
 </Tabs>
 

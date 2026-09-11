@@ -1,0 +1,14 @@
+---
+# Counterexample: travel_time is only allowed on water segments.
+id: bad-travel-time-wrong-subtype
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: road
+  class: primary
+  travel_time: 900

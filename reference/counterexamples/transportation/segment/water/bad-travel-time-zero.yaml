@@ -1,0 +1,13 @@
+---
+# Counterexample: travel_time must be a positive number of seconds.
+id: bad-travel-time-zero
+type: Feature
+geometry:
+  type: LineString
+  coordinates: [[0, 0], [1, 1]]
+properties:
+  theme: transportation
+  type: segment
+  version: 1
+  subtype: water
+  travel_time: 0
