@@ -2129,3 +2129,10 @@ class TestRefactoring:
             assert expect_properties_object_schema == _properties_object_schema
         else:
             assert properties_object_schema == _properties_object_schema
+
+
+def test_feature_is_exported_from_package_root() -> None:
+    import overture.schema.system as system
+
+    assert system.Feature is Feature
+    assert "Feature" in system.__all__
