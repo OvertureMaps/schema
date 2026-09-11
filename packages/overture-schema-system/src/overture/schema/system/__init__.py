@@ -163,10 +163,12 @@ from . import (
     string,
 )
 from .create_model import create_model
+from .feature import Feature
 
 __all__ = [
     "create_model",
     "doc",
+    "Feature",
     "feature",
     "field_constraint",
     "geometric",
