@@ -13,9 +13,18 @@ dependencies = [
 ]
 description = "PySpark validation expressions for Overture Maps data"
 license = "MIT"
+maintainers = [
+    {name = "Overture Maps Schema Working Group"},
+]
 name = "overture-schema-pyspark"
+readme = "README.md"
 requires-python = ">=3.10"
 version = "2.0.0"
+
+[project.urls]
+Homepage = "https://overturemaps.org"
+Source = "https://github.com/OvertureMaps/schema"
+Issues = "https://github.com/OvertureMaps/schema/issues"
 
 [project.optional-dependencies]
 spark = ["pyspark>=3.4"]
