@@ -55,6 +55,11 @@ jobs:
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with: # zizmor: ignore[superfluous-actions]
           token: ${{ steps.app-token.outputs.token }}
+          # author/committer must match the Signed-off-by address for DCO to pass.
+          # create-pull-request otherwise defaults author to whoever triggered the
+          # run (github.actor), which fails DCO on a manual workflow_dispatch.
+          author: overture-pull-requester[bot] <overture-pull-requester[bot]@users.noreply.github.com>
+          committer: overture-pull-requester[bot] <overture-pull-requester[bot]@users.noreply.github.com>
           commit-message: |
             [CHORE](deps) refresh uv.lock
 
