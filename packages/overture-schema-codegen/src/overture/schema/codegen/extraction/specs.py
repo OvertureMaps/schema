@@ -120,6 +120,23 @@ class EnumSpec(_SourceTypeIdentityMixin):
     source_type: type | None = None
 
 
+class _NoDefault:
+    """The absence of a default, distinct from a default of `None`.
+
+    `None` is a legal default value, so `default=None` cannot mean "no default"
+    without collapsing the two. A dedicated sentinel keeps them apart, and reads
+    at a use site (`spec.default is NO_DEFAULT`) as the question being asked.
+    """
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:  # pragma: no cover - debugging aid
+        return "NO_DEFAULT"
+
+
+NO_DEFAULT = _NoDefault()
+
+
 @dataclass
 class FieldSpec:
     """Specification for a model field: header metadata plus structural shape.
@@ -134,6 +151,21 @@ class FieldSpec:
     description: str | None = None
     is_required: bool = True
     is_optional: bool = False
+    # The field's declared default, or `NO_DEFAULT` when it has none. A
+    # `default_factory` does NOT land here: a factory is behavior, and calling it
+    # at extraction time would freeze one sample of a value whose whole point is
+    # to be produced per instance.
+    default: Any = NO_DEFAULT
+    # Pydantic's `deprecated`, normalized to a flag. Pydantic admits `True` or a
+    # deprecation *message*; a message narrows to `True` here, because every
+    # target this IR feeds has a boolean keyword and none has anywhere to put the
+    # prose. The renderer logs that narrowing where it applies -- the IR's job is
+    # to carry the fact, not to decide what a target does about it.
+    is_deprecated: bool = False
+    # The message form of `deprecated`, kept beside the flag so a target that
+    # grows somewhere to put it does not have to re-extract. `None` when the
+    # field declared a bare `True`, or nothing at all.
+    deprecation_message: str | None = None
 
 
 @dataclass
