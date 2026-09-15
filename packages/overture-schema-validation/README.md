@@ -1,4 +1,4 @@
-# Overture Schema Validation
+# overture-schema-validation
 
 Validate data against the union of all discovered Overture Maps models.
 
