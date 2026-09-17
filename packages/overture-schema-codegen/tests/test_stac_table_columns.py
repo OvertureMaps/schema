@@ -405,3 +405,27 @@ def test_gap_log_is_non_empty_for_a_real_model() -> None:
 
     assert doc.gaps
     assert "constraint" in _capabilities(doc)
+
+
+def test_fragment_carries_non_ascii_text_literally() -> None:
+    """Descriptions serialize as UTF-8, not as `\\uXXXX` escapes.
+
+    Both spellings parse to the same string, so nothing downstream depends on
+    this -- but the fragment is read by people as often as by parsers, and an
+    escaped em-dash reads as a defect in a document whose whole content is
+    prose lifted from the models.
+    """
+
+    class M(BaseModel):
+        field: str = Field(description="An em-dash — and a café.")
+
+    [doc] = generate_table_columns_documents([extract_model(M)])
+    [column] = [
+        c
+        for c in json.loads(doc.stac)["properties"]["table:columns"]
+        if c["name"] == "field"
+    ]
+
+    assert "An em-dash — and a café." in doc.stac
+    assert "\\u" not in doc.stac
+    assert column["description"] == "An em-dash — and a café."

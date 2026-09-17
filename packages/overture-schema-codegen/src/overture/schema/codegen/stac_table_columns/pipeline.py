@@ -58,7 +58,10 @@ def generate_table_columns_documents(
         outputs.append(
             TableColumnsOutput(
                 model=spec.name,
-                stac=json.dumps(fragment, indent=2) + "\n",
+                # ensure_ascii=False: RFC 8259 mandates UTF-8 for interchange,
+                # and these fragments carry model prose -- an escaped em-dash
+                # parses the same and reads as a defect.
+                stac=json.dumps(fragment, indent=2, ensure_ascii=False) + "\n",
                 stac_path=PurePosixPath(f"{stem}.json"),
                 gaps=rendered.gaps,
             )
