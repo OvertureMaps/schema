@@ -43,7 +43,10 @@ def _write_output(
     if output_dir:
         file_path = output_dir / output_path
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path.write_text(content)
+        # UTF-8, not the locale's encoding: generated Python is decoded as
+        # UTF-8 (PEP 3120) and JSON is UTF-8 by RFC 8259, and on an ASCII
+        # locale the default raises on the first em-dash in a description.
+        file_path.write_text(content, encoding="utf-8")
     else:
         click.echo(content)
         click.echo()  # separate entries with a blank line in stdout mode
@@ -235,7 +238,7 @@ def _write_category_files(
 
         file_path = output_dir / dir_path / "_category_.json"
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path.write_text(json.dumps(category, indent=2) + "\n")
+        file_path.write_text(json.dumps(category, indent=2) + "\n", encoding="utf-8")
 
 
 def main() -> None:
