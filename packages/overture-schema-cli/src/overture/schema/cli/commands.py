@@ -23,7 +23,7 @@ from overture.schema.system.discovery import (
     ModelKey,
     TagSelector,
     discover_models,
-    filter_models,
+    select_models,
 )
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.feature import Feature
@@ -35,7 +35,10 @@ from .error_formatting import (
     group_errors_by_discriminator,
     select_most_likely_errors,
 )
-from .tag_options import build_selector, tag_selection_options
+from .tag_options import (
+    build_selector,
+    tag_selection_options,
+)
 from .type_analysis import StructuralTuple, get_item_index, introspect_union
 from .types import ErrorLocation, UnionType, ValidationErrorDict
 
@@ -201,9 +204,18 @@ def resolve_types(
     *,
     type_names: tuple[str, ...] = (),
 ) -> UnionType:
-    """Resolve a TagSelector + type-names into a Pydantic union type."""
-    models = discover_models()
-    models = filter_models(models, selector, type_names=type_names)
+    """Resolve a TagSelector + type-names into a Pydantic union type.
+
+    Discovers the raw registry and lets `select_models` apply extensions after
+    selection, so the selector's excludes opt out of extension fields
+    (``--exclude extension`` yields the un-extended models) while includes and
+    type names only narrow which models are validated against. Standalone
+    extension wrapper models are internal merge machinery and never resolve
+    to a validatable type; the extension *fields* they contribute remain
+    available on the feature models they target.
+    """
+    models = discover_models(apply_extensions=False)
+    models = select_models(models, selector, type_names=type_names)
 
     if not models:
         raise ValueError("No models found matching the specified criteria")
@@ -880,8 +892,14 @@ def list_types(
       $ overture-schema list-types --group-by overture:theme
     """
     try:
-        models = discover_models()
-        models = filter_models(models, build_selector(tags, filters, excludes))
+        models = discover_models(apply_extensions=False)
+        # A listing is introspection, not selection: show every discoverable
+        # entry, extension wrappers included.
+        models = select_models(
+            models,
+            build_selector(tags, filters, excludes),
+            include_extension_entries=True,
+        )
 
         if group_by:
             grouped_models: dict[str, set[ModelKey]] = {}
