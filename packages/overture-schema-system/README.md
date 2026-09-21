@@ -157,12 +157,12 @@ Tags classify discovered models. A package registers [tag providers](#providers)
 from overture.schema.system.discovery import (
     TagSelector,
     discover_models,
-    filter_models,
+    select_models,
 )
 
 models = discover_models()
 
-selected = filter_models(
+selected = select_models(
     models,
     TagSelector(include_any=("feature",), exclude_any=("draft",)),
 )
@@ -235,13 +235,20 @@ When a provider attempts to set a reserved tag from an unauthorized package, dis
 
 ### Selecting Models by Tag
 
-`filter_models(models, selector)` applies `TagSelector` predicates against each `ModelKey.tags`:
+`select_models(models, selector)` applies `TagSelector` predicates against each `ModelKey.tags`:
 
 - `include_any` -- OR scope; at least one tag must match (empty: no scope filter)
 - `require_all` -- AND narrowing; every tag must be present (empty: no narrowing)
 - `exclude_any` -- OR-NOT subtraction; any match drops the model
 
-An empty selector returns the input unchanged.
+`select_models` expects the raw registry from
+`discover_models(apply_extensions=False)` and applies the surviving extensions
+*after* selection, so `exclude_any` is also the extension opt-out: excluding the
+`extension` tag skips every merge, and excluding a more specific tag skips the
+extensions carrying it (`include_any`/`require_all`/`type_names` never gate
+merging -- narrowing a selection does not strip fields from it). Standalone
+extension wrapper entries are internal merge machinery, hidden from results
+unless `include_extension_entries=True` is passed explicitly.
 
 ## Also Included
 
