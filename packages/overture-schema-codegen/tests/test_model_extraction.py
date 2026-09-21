@@ -15,6 +15,7 @@ from overture.schema.codegen.extraction.field import (
 from overture.schema.codegen.extraction.field_walk import terminal_of
 from overture.schema.codegen.extraction.length_constraints import ArrayMinLen
 from overture.schema.codegen.extraction.model_extraction import extract_model
+from overture.schema.codegen.extraction.specs import NO_DEFAULT
 from overture.schema.common.scoping.vehicle import VehicleSelector
 
 
@@ -179,3 +180,93 @@ def test_field_metadata_minlen_wrapped_as_array_min_len() -> None:
     assert isinstance(items_field.shape, ArrayOf)
     constraints = [cs.constraint for cs in items_field.shape.constraints]
     assert ArrayMinLen(min_length=2) in constraints
+
+
+def test_declared_default_reaches_field_spec() -> None:
+    """A field's declared default lands on `FieldSpec.default`."""
+
+    class M(BaseModel):
+        level: int = 3
+
+    spec = extract_model(M)
+    field = next(f for f in spec.fields if f.name == "level")
+
+    assert field.default == 3
+
+
+def test_field_without_default_is_no_default_not_none() -> None:
+    """No default extracts as `NO_DEFAULT`, which `None` cannot stand in for.
+
+    `default=None` is a legal declaration, so collapsing the two would make a
+    field that defaults to null indistinguishable from one that has no default.
+    """
+
+    class M(BaseModel):
+        required: int
+        nullable_default: int | None = None
+
+    spec = extract_model(M)
+    fields = {f.name: f for f in spec.fields}
+
+    assert fields["required"].default is NO_DEFAULT
+    assert fields["nullable_default"].default is None
+
+
+def test_default_factory_does_not_become_a_default() -> None:
+    """A `default_factory` extracts as `NO_DEFAULT`.
+
+    Calling it here would freeze one sample of a value whose whole point is to
+    be produced per instance, so extraction records that there is no static
+    default rather than inventing one.
+    """
+
+    class M(BaseModel):
+        tags: list[str] = Field(default_factory=list)
+
+    spec = extract_model(M)
+    field = next(f for f in spec.fields if f.name == "tags")
+
+    assert field.default is NO_DEFAULT
+
+
+def test_deprecated_message_sets_flag_and_keeps_prose() -> None:
+    """A string `deprecated` sets the flag and preserves the message beside it."""
+
+    class M(BaseModel):
+        old: Annotated[str, Field(deprecated="use `new`")] = "x"
+
+    spec = extract_model(M)
+    field = next(f for f in spec.fields if f.name == "old")
+
+    assert field.is_deprecated is True
+    assert field.deprecation_message == "use `new`"
+
+
+def test_bare_deprecated_true_carries_no_message() -> None:
+    """A bare `deprecated=True` sets the flag with no prose to carry."""
+
+    class M(BaseModel):
+        old: Annotated[str, Field(deprecated=True)] = "x"
+
+    spec = extract_model(M)
+    field = next(f for f in spec.fields if f.name == "old")
+
+    assert field.is_deprecated is True
+    assert field.deprecation_message is None
+
+
+def test_undeclared_deprecation_is_false() -> None:
+    """A field that says nothing about deprecation is not deprecated.
+
+    The did-happen half of the pair above: without this, a reader cannot tell a
+    working flag from one that is wired to a slot nothing ever sets.
+    """
+
+    class M(BaseModel):
+        current: str
+
+    spec = extract_model(M)
+    field = next(f for f in spec.fields if f.name == "current")
+
+    assert field.is_deprecated is False
+    assert field.deprecation_message is None
