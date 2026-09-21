@@ -59,7 +59,7 @@ jobs:
       - name: Generate schema markdown docs
         uses: OvertureMaps/workflows/.github/actions/generate-schema-docs@main # zizmor: ignore[ref-version-mismatch,unpinned-uses] Internal action, always use main
         with:
-          output-dir: ${{ github.workspace }}/${{ env.DOCS_PATH }}/docs/schema/reference
+          output-dir: ${{ github.workspace }}/${{ env.DOCS_PATH }}/schema/reference
           schema-path: .
           skip-checkout: 'true' # Repo is already checked out at root, and action defaults to looking there
 
