@@ -66,20 +66,42 @@ def _field_default(field_info: FieldInfo) -> object:
     return field_info.default
 
 
+def _reject_default_factory(
+    model_class: type[BaseModel], field_name: str, field_info: FieldInfo
+) -> None:
+    """Refuse a `default_factory`, naming the field that declared one.
+
+    A factory is a Python callable, and no target this IR feeds can render
+    one. Invoking it here would freeze one sample of a value meant to be
+    produced per instance, and recording it as "no default" would hide a
+    declared default from every consumer, including any check looking for
+    declared defaults. Refusing is the only one of the three that the author
+    can see.
+    """
+    if field_info.default_factory is None:
+        return
+    raise TypeError(
+        f"{model_class.__name__}.{field_name} declares default_factory, which "
+        "the extraction IR does not carry: a factory is a callable and no "
+        "target can render one. Declare a literal default, or none."
+    )
+
+
 def _is_field_required(field_info: FieldInfo, is_optional: bool) -> bool:
     """Determine whether a field is required (no default and not Optional).
 
+    `default_factory` is not consulted: `_reject_default_factory` has already
+    refused any field declaring one, so a factory cannot reach here. Restore
+    the check if that refusal is ever relaxed.
+
     `MISSING` counts as a default here even though `_field_default` reports it
-    as none. That is not a contradiction: `Omitable[T]` means the key may be
-    absent, so the field is not required -- but the sentinel is not a value the
-    author declared, so it is not a default either. The comparison spells
-    `PydanticUndefined` rather than the `UNDEFINED` that re-exports it,
-    because what it reads is a `FieldInfo`, not a `FieldSpec`.
+    as none: `Omitable[T]` means the key may be absent, so the field is not
+    required, but the sentinel is not a value the author declared, so it is not
+    a default either. It compares against `PydanticUndefined` rather than the
+    `UNDEFINED` that re-exports it, because what it reads is a `FieldInfo`,
+    not a `FieldSpec`.
     """
-    has_default = (
-        field_info.default is not PydanticUndefined
-        or field_info.default_factory is not None
-    )
+    has_default = field_info.default is not PydanticUndefined
     return not has_default and not is_optional
 
 
@@ -191,6 +213,7 @@ def _extract_model_recursive(
     fields: list[FieldSpec] = []
     for field_name in _field_order(model_class):
         field_info = model_class.model_fields[field_name]
+        _reject_default_factory(model_class, field_name, field_info)
         annotation = field_info.annotation
         if annotation is None:
             continue

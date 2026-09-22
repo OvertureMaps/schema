@@ -2,6 +2,7 @@
 
 from typing import Annotated, Optional
 
+import pytest
 from codegen_test_support import FeatureWithRootModel
 from pydantic import BaseModel, Field
 from pydantic.experimental.missing_sentinel import MISSING
@@ -112,7 +113,7 @@ def test_self_referential_list_forward_ref_resolves_to_cycle() -> None:
 
     class Node(BaseModel):
         val: Annotated[int, Field(ge=0)]
-        children: list["Node"] = Field(default_factory=list)
+        children: list["Node"]
 
     spec = extract_model(Node)
     children = next(f for f in spec.fields if f.name == "children")
@@ -151,7 +152,7 @@ def test_nested_list_forward_ref_resolves_to_cycle() -> None:
 
     class Node(BaseModel):
         val: int
-        grid: list[list["Node"]] = Field(default_factory=list)
+        grid: list[list["Node"]]
 
     spec = extract_model(Node)
     grid = next(f for f in spec.fields if f.name == "grid")
@@ -229,6 +230,24 @@ def test_field_with_none_default_is_distinguished_from_no_default() -> None:
 
     assert note_field.default is None
     assert note_field.default is not UNDEFINED
+
+
+def test_default_factory_is_refused_by_name() -> None:
+    """A `default_factory` field is refused, naming the model and field.
+
+    A factory is a Python callable. No target this IR feeds can render
+    one -- not Markdown, not a PySpark expression, not JSON Schema -- and
+    invoking it at extraction would freeze one sample of a value meant to
+    be produced per instance. Carrying it as "no default" instead hides a
+    declared default from anything reading the IR, so extraction refuses
+    it where the author can still see which field is at fault.
+    """
+
+    class M(BaseModel):
+        children: list[str] = Field(default_factory=list)
+
+    with pytest.raises(TypeError, match=r"M\.children.*default_factory"):
+        extract_model(M)
 
 
 def test_omitable_field_reports_no_default_not_the_missing_sentinel() -> None:
