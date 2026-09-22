@@ -575,6 +575,16 @@ named source live on the NewType's own page.
 Model-level constraints annotate top-level field rows (those without dot-notation
 prefixes) using the `field_notes` dict from `analyze_model_constraints`.
 
+### Default annotation
+
+A declared default annotates its field's row as an italic `Default:` note, ahead of any
+constraint notes. Every row gets one, including dot-notation rows expanded from a
+sub-model. Enum members show their value, the form a record
+carries. A default of `None` gets no note: `= None` is how a Pydantic field is
+declared optional, and the `(optional)` qualifier in the type column already says so.
+The Overture schema forbids non-null defaults (#695), so the note appears only for
+models outside it.
+
 ### Example formatting
 
 Example values render in backticks for monospace consistency. Booleans use
