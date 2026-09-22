@@ -1,5 +1,6 @@
 """Tests for spec data structures and predicates."""
 
+import copy
 from typing import Annotated
 
 import pytest
@@ -10,9 +11,11 @@ from codegen_test_support import (
     make_union_spec,
 )
 from pydantic import BaseModel, Field
+from pydantic_core import PydanticUndefined
 
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import (
+    UNDEFINED,
     AnnotatedField,
     EnumSpec,
     FieldSpec,
@@ -50,6 +53,22 @@ class TestFieldSpec:
         assert fs.shape is STR_TYPE
         assert fs.is_required is False
         assert fs.is_optional is True
+
+    def test_undefined_is_pydantics_own_sentinel_re_exported(self) -> None:
+        """`UNDEFINED` is `PydanticUndefined` under another name.
+
+        Two things a consumer relies on. Code comparing a `FieldInfo.default`
+        against `PydanticUndefined` and code comparing a `FieldSpec.default`
+        against `UNDEFINED` reach the same verdict, so the IR's name can be
+        used without checking which sentinel produced the value. And
+        `copy.deepcopy` returns the same object: a freshly minted singleton
+        comes back as a different one, which then reads as a declared default
+        of some opaque value.
+        """
+        assert UNDEFINED is PydanticUndefined
+
+        fs = FieldSpec(name="x", shape=STR_TYPE)
+        assert copy.deepcopy(fs).default is UNDEFINED
 
 
 class TestAnnotatedField:

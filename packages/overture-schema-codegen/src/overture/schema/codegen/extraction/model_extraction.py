@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from pydantic import BaseModel
+from pydantic.experimental.missing_sentinel import MISSING
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
@@ -15,7 +16,7 @@ from .field import (
     ModelRef,
     UnionRef,
 )
-from .specs import FieldSpec, RecordSpec, is_model_class
+from .specs import UNDEFINED, FieldSpec, RecordSpec, is_model_class
 from .type_analyzer import (
     ModelResolver,
     UnionResolver,
@@ -46,8 +47,35 @@ def resolve_field_alias(field_name: str, field_info: FieldInfo) -> str:
     return field_name
 
 
+def _field_default(field_info: FieldInfo) -> object:
+    """Return the field's declared default, or `UNDEFINED`.
+
+    Two sentinels mean "no declared default", not one. `PydanticUndefined` is
+    Pydantic's, which `UNDEFINED` re-exports. `MISSING` is the one
+    `Omitable[T]` installs (`Field(default=MISSING)`) to get JSON Schema
+    omissibility instead of Pydantic nullability -- see
+    `overture.schema.system.optionality`. It is machinery for "this key may be
+    absent", never a value anyone declared, so carrying it through as a default
+    makes every `Omitable` field claim a default it does not have. `Feature.bbox`
+    and `Feature.id` are both `Omitable`, and every feature model inherits them,
+    so a check built on this carrier to warn on declared defaults would warn on
+    every feature type twice over.
+    """
+    if field_info.default is MISSING:
+        return UNDEFINED
+    return field_info.default
+
+
 def _is_field_required(field_info: FieldInfo, is_optional: bool) -> bool:
-    """Determine whether a field is required (no default and not Optional)."""
+    """Determine whether a field is required (no default and not Optional).
+
+    `MISSING` counts as a default here even though `_field_default` reports it
+    as none. That is not a contradiction: `Omitable[T]` means the key may be
+    absent, so the field is not required -- but the sentinel is not a value the
+    author declared, so it is not a default either. The comparison spells
+    `PydanticUndefined` rather than the `UNDEFINED` that re-exports it,
+    because what it reads is a `FieldInfo`, not a `FieldSpec`.
+    """
     has_default = (
         field_info.default is not PydanticUndefined
         or field_info.default_factory is not None
@@ -185,6 +213,7 @@ def _extract_model_recursive(
                 description=field_info.description or ti_description,
                 is_required=_is_field_required(field_info, is_optional),
                 is_optional=is_optional,
+                default=_field_default(field_info),
             )
         )
 
