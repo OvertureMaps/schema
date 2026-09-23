@@ -9,12 +9,18 @@ from pydantic.json_schema import JsonDict
 from typing_extensions import override
 
 from .._json_schema import get_static_json_schema_extra, put_any_of
-from .model_constraint import Condition, FieldEqCondition, ModelConstraint, apply_alias
+from ..create_model import ModelT
+from .model_constraint import (
+    Condition,
+    FieldEqCondition,
+    ModelConstraint,
+    apply_alias,
+)
 
 
 def require_any_true(
     *conditions: Condition,
-) -> Callable[[type[BaseModel]], type[BaseModel]]:
+) -> Callable[[type[ModelT]], type[ModelT]]:
     """
     Decorate a Pydantic model class with a constraint requiring at least one condition in a group
     of conditions to evaluate to `True`.
@@ -28,8 +34,8 @@ def require_any_true(
 
     Returns
     -------
-    Callable
-        Decorator factory
+    Callable[[type[ModelT]], type[ModelT]]
+        Decorator that applies the constraint to a Pydantic model class
 
     Example
     -------
