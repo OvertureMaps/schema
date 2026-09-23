@@ -2,8 +2,10 @@
 
 from typing import Annotated, Optional
 
+import pytest
 from codegen_test_support import FeatureWithRootModel
 from pydantic import BaseModel, Field
+from pydantic.experimental.missing_sentinel import MISSING
 
 from overture.schema.codegen.extraction.field import (
     ArrayOf,
@@ -15,7 +17,9 @@ from overture.schema.codegen.extraction.field import (
 from overture.schema.codegen.extraction.field_walk import terminal_of
 from overture.schema.codegen.extraction.length_constraints import ArrayMinLen
 from overture.schema.codegen.extraction.model_extraction import extract_model
+from overture.schema.codegen.extraction.specs import UNDEFINED
 from overture.schema.common.scoping.vehicle import VehicleSelector
+from overture.schema.system.optionality import Omitable
 
 
 def test_extract_model_populates_union_terminal() -> None:
@@ -109,7 +113,7 @@ def test_self_referential_list_forward_ref_resolves_to_cycle() -> None:
 
     class Node(BaseModel):
         val: Annotated[int, Field(ge=0)]
-        children: list["Node"] = Field(default_factory=list)
+        children: list["Node"]
 
     spec = extract_model(Node)
     children = next(f for f in spec.fields if f.name == "children")
@@ -148,7 +152,7 @@ def test_nested_list_forward_ref_resolves_to_cycle() -> None:
 
     class Node(BaseModel):
         val: int
-        grid: list[list["Node"]] = Field(default_factory=list)
+        grid: list[list["Node"]]
 
     spec = extract_model(Node)
     grid = next(f for f in spec.fields if f.name == "grid")
@@ -179,3 +183,95 @@ def test_field_metadata_minlen_wrapped_as_array_min_len() -> None:
     assert isinstance(items_field.shape, ArrayOf)
     constraints = [cs.constraint for cs in items_field.shape.constraints]
     assert ArrayMinLen(min_length=2) in constraints
+
+
+def test_field_with_no_default_carries_undefined() -> None:
+    """A field with no declared default reports `UNDEFINED`, not `None`.
+
+    `None` is a legal declared default (see below); collapsing "no
+    default" into `None` would make the two indistinguishable to a
+    consumer trying to warn on declared defaults.
+    """
+
+    class M(BaseModel):
+        name: str
+
+    spec = extract_model(M)
+    name_field = next(f for f in spec.fields if f.name == "name")
+
+    assert name_field.default is UNDEFINED
+
+
+def test_field_with_non_none_default_carries_declared_value() -> None:
+    """A field with a plain non-None default carries that value on the spec."""
+
+    class M(BaseModel):
+        count: int = 3
+
+    spec = extract_model(M)
+    count_field = next(f for f in spec.fields if f.name == "count")
+
+    assert count_field.default == 3
+
+
+def test_field_with_none_default_is_distinguished_from_no_default() -> None:
+    """A field whose declared default IS `None` must not read as "no default".
+
+    This is the load-bearing case: `field_info.default` is `None` here,
+    not `UNDEFINED`, so a consumer can tell "declares a default
+    of None" apart from "declares no default at all".
+    """
+
+    class M(BaseModel):
+        note: str | None = None
+
+    spec = extract_model(M)
+    note_field = next(f for f in spec.fields if f.name == "note")
+
+    assert note_field.default is None
+    assert note_field.default is not UNDEFINED
+
+
+def test_default_factory_is_refused_by_name() -> None:
+    """A `default_factory` field is refused, naming the model and field.
+
+    A factory is a Python callable. No target this IR feeds can render
+    one -- not Markdown, not a PySpark expression, not JSON Schema -- and
+    invoking it at extraction would freeze one sample of a value meant to
+    be produced per instance. Carrying it as "no default" instead hides a
+    declared default from anything reading the IR, so extraction refuses
+    it where the author can still see which field is at fault.
+    """
+
+    class M(BaseModel):
+        children: list[str] = Field(default_factory=list)
+
+    with pytest.raises(TypeError, match=r"M\.children.*default_factory"):
+        extract_model(M)
+
+
+def test_omitable_field_reports_no_default_not_the_missing_sentinel() -> None:
+    """`Omitable[T]` must not read as declaring a default.
+
+    `Omitable[T]` is `Field(default=MISSING)` -- machinery for "this key may
+    be absent", chosen to get JSON Schema omissibility instead of Pydantic
+    nullability. `MISSING` is not a value anyone declared, so carrying it
+    through would make every `Omitable` field claim a default it does not
+    have. The carrier exists so a consumer can warn on declared defaults, and
+    `Feature.bbox` and `Feature.id` are both `Omitable`, so every feature model
+    in the schema inherits two of them -- each one a false warning.
+
+    The over-reach direction -- normalizing away a genuine default too -- is
+    covered by `test_field_with_none_default_is_distinguished_from_no_default`,
+    confirmed by mutation: replacing the body with an unconditional
+    `return UNDEFINED` fails that test.
+    """
+
+    class M(BaseModel):
+        maybe: Omitable[int]
+
+    spec = extract_model(M)
+    maybe_field = next(f for f in spec.fields if f.name == "maybe")
+
+    assert maybe_field.default is UNDEFINED
+    assert maybe_field.default is not MISSING
