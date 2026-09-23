@@ -24,7 +24,7 @@ from pydantic import (
 from pydantic.json_schema import JsonDict, to_jsonable_python
 from typing_extensions import override
 
-from ..create_model import create_model
+from ..create_model import ModelT, create_model
 from ..metadata import Key, Metadata
 
 
@@ -62,7 +62,7 @@ class ModelConstraint:
         return self.__name
 
     @final
-    def decorate(self, model_class: type[BaseModel]) -> type[BaseModel]:
+    def decorate(self, model_class: type[ModelT]) -> type[ModelT]:
         """
         Decorate a Pydantic model, returning a new version of the model that has this constraint
         applied to it.
@@ -71,13 +71,13 @@ class ModelConstraint:
 
         Parameters
         ----------
-        model_class : type[BaseModel]
+        model_class : type[ModelT]
             Pydantic model to decorate. It is not decorated in-place, rather a new version of the
             model class is returned with this constraint attached to it.
 
         Returns
         -------
-        type[BaseModel]
+        type[ModelT]
             New version of `model_class` with this constraint applied to it
 
         Example
@@ -94,7 +94,7 @@ class ModelConstraint:
         ...             raise ValueError('the `foo` field must equal "bar"')
         ...
         >>> # Define a decorator.
-        >>> def foo(model_class: type[BaseModel]) -> type[BaseModel]:
+        >>> def foo(model_class: type[ModelT]) -> type[ModelT]:
         ...     return FooConstraint().decorate(model_class)
         ...
         >>> # Apply the decorator.
@@ -131,7 +131,7 @@ class ModelConstraint:
             constraint.validate_instance(model_instance)
             return model_instance
 
-        new_model_class = create_model(
+        return create_model(
             model_class.__name__,
             __config__=config,
             __doc__=model_class.__doc__,
@@ -145,7 +145,6 @@ class ModelConstraint:
             },
             __metadata__=metadata,
         )
-        return new_model_class
 
     def validate_class(self, model_class: type[BaseModel]) -> None:
         """
