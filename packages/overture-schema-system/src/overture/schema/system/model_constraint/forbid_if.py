@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 
 from .._json_schema import get_static_json_schema_extra, put_if, required_non_null
+from ..create_model import ModelT
 from .model_constraint import (
     Condition,
     OptionalFieldGroupConstraint,
@@ -19,7 +20,7 @@ from .model_constraint import (
 def forbid_if(
     field_names: list[str] | tuple[str, ...],
     condition: Condition,
-) -> Callable[[type[BaseModel]], type[BaseModel]]:
+) -> Callable[[type[ModelT]], type[ModelT]]:
     """
     Decorate a Pydantic model class with a constraint forbidding any of the named fields from
     holding a non-`None` value, but only if a field value condition is true.
@@ -37,8 +38,8 @@ def forbid_if(
 
     Returns
     -------
-    Callable
-        Decorator factory
+    Callable[[type[ModelT]], type[ModelT]]
+        Decorator that applies the constraint to a Pydantic model class
 
     Example
     -------
