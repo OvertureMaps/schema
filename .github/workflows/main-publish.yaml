@@ -3,8 +3,7 @@ name: Main publish
 # Runs on every push to main that touches packages/**. For each package whose
 # directory changed WITHOUT a version bump, computes an internal build version
 # (main context; see .github/actions/compute-version) and publishes it to the
-# MCD CodeArtifact account (ops-team#562; the legacy account's publish leg was
-# removed once consumers cut over, ops-team#520). Bumped packages release via
+# MCD CodeArtifact account (ops-team#562). Bumped packages release via
 # release-trigger + release-publish instead (see docs/versioning.md) --
 # publishing a .postN for them here too would be redundant.
 #
