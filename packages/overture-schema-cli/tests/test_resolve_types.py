@@ -1,6 +1,6 @@
-"""Tests for resolve_types — CLI glue between filter_models and union creation.
+"""Tests for resolve_types — CLI glue between select_models and union creation.
 
-The combinator algebra of filter_models itself is covered in
+The selector combinator algebra itself is covered in
 `test_discovery_filter_models.py` in the system package.
 """
 
@@ -9,9 +9,11 @@ from typing import get_args
 from unittest.mock import patch
 
 import pytest
+from pydantic import BaseModel
 
 from overture.schema.cli.commands import resolve_types
 from overture.schema.system.discovery import ModelKey, TagSelector
+from overture.schema.system.extension import extends, wrap_extension
 
 DISCOVER_MODELS = "overture.schema.cli.commands.discover_models"
 
@@ -80,3 +82,57 @@ def test_type_names_are_case_sensitive() -> None:
     # Uppercase doesn't.
     with pytest.raises(ValueError, match="No models found"):
         resolve_types(TagSelector(), type_names=("BUILDING",))
+
+
+# ---------------------------------------------------------------------------
+# Extension application at resolution time
+# ---------------------------------------------------------------------------
+
+
+class Diner(BaseModel):
+    name: str
+
+
+@extends(Diner)
+class OpeningHours(BaseModel):
+    primary: str | None = None
+
+
+_maybe_wrapper = wrap_extension("opening_hours", OpeningHours)
+assert _maybe_wrapper is not None
+
+DINER_KEY = ModelKey(
+    name="diner", entry_point="mock:Diner", tags=frozenset({"feature"})
+)
+WRAPPER_KEY = ModelKey(
+    name="opening_hours",
+    entry_point="mock:OpeningHours",
+    tags=frozenset({"extension"}),
+)
+EXTENSION_MODELS = {DINER_KEY: Diner, WRAPPER_KEY: _maybe_wrapper}
+
+
+class TestExtensionApplication:
+    """Extensions apply at selection time, so the selector's excludes opt out.
+
+    Pins the load-bearing ordering: were extensions merged before the selector
+    ran, `--exclude extension` would remove the wrapper entry but leave the
+    merged field on the feature models.
+    """
+
+    def test_default_resolution_merges_extension_fields(self) -> None:
+        with patch(DISCOVER_MODELS, return_value=EXTENSION_MODELS):
+            resolved = resolve_types(TagSelector())
+        assert isinstance(resolved, type) and issubclass(resolved, Diner)
+        assert "opening_hours" in resolved.model_fields
+
+    def test_exclude_extension_yields_unextended_models(self) -> None:
+        with patch(DISCOVER_MODELS, return_value=EXTENSION_MODELS):
+            resolved = resolve_types(TagSelector(exclude_any=("extension",)))
+        assert resolved is Diner
+
+    def test_type_name_narrowing_keeps_extension_fields(self) -> None:
+        with patch(DISCOVER_MODELS, return_value=EXTENSION_MODELS):
+            resolved = resolve_types(TagSelector(), type_names=("diner",))
+        assert isinstance(resolved, type) and issubclass(resolved, Diner)
+        assert "opening_hours" in resolved.model_fields
