@@ -11,10 +11,11 @@ from pydantic.json_schema import JsonDict
 from typing_extensions import override
 
 from .._json_schema import get_static_json_schema_extra, put_one_of
+from ..create_model import ModelT
 from .model_constraint import FieldGroupConstraint, apply_alias
 
 
-def radio_group(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel]]:
+def radio_group(*field_names: str) -> Callable[[type[ModelT]], type[ModelT]]:
     """
     Decorate a Pydantic model class with a constraint requiring that exactly one field in a group of
     `bool` fields has the value `True`.
@@ -34,8 +35,8 @@ def radio_group(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel
 
     Returns
     -------
-    Callable
-        Decorator factory
+    Callable[[type[ModelT]], type[ModelT]]
+        Decorator that applies the constraint to a Pydantic model class
 
     Example
     -------
