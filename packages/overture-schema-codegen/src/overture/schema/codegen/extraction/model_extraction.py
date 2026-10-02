@@ -46,6 +46,39 @@ def resolve_field_alias(field_name: str, field_info: FieldInfo) -> str:
     return field_name
 
 
+def _field_deprecation(field_info: FieldInfo) -> tuple[bool, str | None]:
+    """Return `(is_deprecated, message)` from Pydantic's `deprecated`.
+
+    Pydantic admits three forms on `field_info.deprecated`: a bare `True`, a
+    string message, or a [PEP 702](https://peps.python.org/pep-0702/)
+    `deprecated(...)` marker (`warnings.deprecated` /
+    `typing_extensions.deprecated`) -- usable directly as `Annotated` metadata
+    as well as inside `Field(deprecated=...)`. All three mean deprecated; the
+    string and the marker also carry prose, the marker's on its `.message`.
+    """
+    deprecated = field_info.deprecated
+    if deprecated is None or deprecated is False:
+        return False, None
+    if isinstance(deprecated, str):
+        return True, deprecated
+    message = getattr(deprecated, "message", None)
+    return True, message if isinstance(message, str) else None
+
+
+def _model_deprecation(model_class: type[BaseModel]) -> str | None:
+    """Return the class's own `@deprecated` message, or None.
+
+    [PEP 702](https://peps.python.org/pep-0702/)'s `@deprecated("message")`
+    sets `__deprecated__` on the decorated class, and `message` is a required
+    argument, so there is no bare-flag form to normalize. Read from
+    `__dict__` rather than with `getattr`: attribute lookup walks the MRO, so
+    a subclass of a deprecated model would report its parent's message and
+    render a deprecation it never declared.
+    """
+    deprecated = model_class.__dict__.get("__deprecated__")
+    return deprecated if isinstance(deprecated, str) else None
+
+
 def _is_field_required(field_info: FieldInfo, is_optional: bool) -> bool:
     """Determine whether a field is required (no default and not Optional)."""
     has_default = (
@@ -154,6 +187,7 @@ def _extract_model_recursive(
         entry_point=entry_point,
         partitions=partitions,
         constraints=ModelConstraint.get_model_constraints(model_class),
+        deprecated=_model_deprecation(model_class),
     )
     cache[model_class] = spec
     descendant_ancestors = ancestors | {model_class}
@@ -178,6 +212,7 @@ def _extract_model_recursive(
         # misses those constraints. Reattach them at the topmost
         # constraint-bearing layer.
         shape = attach_field_metadata(shape, field_info)
+        is_deprecated, deprecation_message = _field_deprecation(field_info)
         fields.append(
             FieldSpec(
                 name=resolve_field_alias(field_name, field_info),
@@ -185,6 +220,8 @@ def _extract_model_recursive(
                 description=field_info.description or ti_description,
                 is_required=_is_field_required(field_info, is_optional),
                 is_optional=is_optional,
+                is_deprecated=is_deprecated,
+                deprecation_message=deprecation_message,
             )
         )
 
