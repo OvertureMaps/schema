@@ -1450,8 +1450,11 @@ This project uses [uv](https://docs.astral.sh/uv/) for dependency management:
 # Install dependencies for the entire workspace
 uv sync --all-packages
 
-# Run all tests and type/code quality checks
+# Run the tests affected by your changes, plus type/code quality checks
 make check
+
+# Run every test, regardless of what changed
+make test-all
 
 # Run tests for a specific package
 uv run pytest packages/overture-schema-theme-buildings/
@@ -1459,6 +1462,17 @@ uv run pytest packages/overture-schema-theme-buildings/
 # Run tests matching a pattern
 uv run pytest -k "buildings"
 ```
+
+`make check` and `make test` select tests with
+[pytest-testmon](https://testmon.org/). Testmon records which code each test ran (in
+`.testmondata`) and runs only the tests whose code has changed since they last passed. Its
+record is independent of git: an uncommitted edit that an earlier run already tested
+counts as clean. So when `make check` prints `no tests ran` and exits 0, every test that
+touches the current code has passed against it. The suite wasn't skipped.
+
+Testmon tracks Python code, not data. A change to a golden baseline file or to the
+`[[examples.<Model>]]` tables in a theme's `pyproject.toml` selects no tests, so run
+`make test-all` after one.
 
 Auto-format / fix code to align with project expectations:
 
