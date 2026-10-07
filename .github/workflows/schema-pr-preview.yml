@@ -50,7 +50,7 @@ jobs:
           node-version-file: ${{ env.DOCS_PATH }}/package.json
 
       # Configure npm for faster CI context installs
-      - uses: lowlydba/sustainable-npm@31d51025884f424f58f22e4e6578178bb4e79632 # v3.0.0
+      - uses: lowlydba/sustainable-npm@4cc1da285e5a589a7b3816122f791c21ec6ff3e6 # v4.0.0
 
       - name: Install NPM dependencies
         working-directory: ${{ env.DOCS_PATH }}
