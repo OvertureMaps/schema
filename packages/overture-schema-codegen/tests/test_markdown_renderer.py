@@ -613,6 +613,99 @@ class TestRenderFeatureFieldConstraints:
         assert "aggregation, part of" in ref_line
 
 
+class TestRenderFeatureDefaults:
+    """A declared default renders as a note in the field's description cell.
+
+    `None` does not: `= None` is how a Pydantic field is declared optional,
+    so the `(optional)` qualifier already says what it would.
+    """
+
+    @staticmethod
+    def _row(result: str, name: str) -> str:
+        return next(li for li in result.splitlines() if f"| `{name}` |" in li)
+
+    def test_literal_default_shows_note(self) -> None:
+        class ModelWithLevel(BaseModel):
+            """Model."""
+
+            level: int = Field(0, description="Z-order.")
+
+        result = render_model(extract_model(ModelWithLevel))
+        assert "Z-order.<br/><br/>*Default: `0`*" in self._row(result, "level")
+
+    def test_none_default_shows_no_note(self) -> None:
+        class ModelWithOptional(BaseModel):
+            """Model."""
+
+            nickname: str | None = Field(None, description="Nickname.")
+
+        result = render_model(extract_model(ModelWithOptional))
+        assert "Default" not in self._row(result, "nickname")
+
+    def test_field_without_default_shows_no_note(self) -> None:
+        class ModelWithRequired(BaseModel):
+            """Model."""
+
+            name: str = Field(description="Name.")
+
+        result = render_model(extract_model(ModelWithRequired))
+        assert "Default" not in self._row(result, "name")
+
+    def test_enum_default_shows_member_value(self) -> None:
+        class Surface(Enum):
+            PAVED = "paved"
+            UNPAVED = "unpaved"
+
+        class ModelWithEnumDefault(BaseModel):
+            """Model."""
+
+            surface: Surface = Surface.PAVED
+
+        result = render_model(extract_model(ModelWithEnumDefault))
+        assert "*Default: `paved`*" in self._row(result, "surface")
+
+    def test_empty_string_default_is_visible(self) -> None:
+        class ModelWithEmptyDefault(BaseModel):
+            """Model."""
+
+            label: str = ""
+
+        result = render_model(extract_model(ModelWithEmptyDefault))
+        assert '*Default: `""`*' in self._row(result, "label")
+
+    def test_nested_field_default_shows_note(self) -> None:
+        class Inner(BaseModel):
+            """Inner."""
+
+            level: int = 0
+
+        class Outer(BaseModel):
+            """Outer."""
+
+            inner: Inner
+            inners: list[Inner]
+
+        result = render_model(extract_model(Outer))
+        assert "*Default: `0`*" in self._row(result, "inner.level")
+        assert "*Default: `0`*" in self._row(result, "inners[].level")
+
+    def test_union_field_default_shows_note(self) -> None:
+        spec = make_union_spec(
+            annotated_fields=[
+                AnnotatedField(
+                    field_spec=FieldSpec(
+                        name="flag",
+                        shape=STR_TYPE,
+                        is_required=False,
+                        default=False,
+                    ),
+                    variant_sources=None,
+                ),
+            ],
+        )
+        assert "*Default: `false`*" in self._row(render_model(spec), "flag")
+
+
 class TestRenderFeatureMapConstraints:
     """Tests for map key/value constraint notes in field description cells.
 

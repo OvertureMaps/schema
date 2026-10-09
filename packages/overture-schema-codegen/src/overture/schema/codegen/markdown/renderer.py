@@ -6,6 +6,7 @@ import json
 import re
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import TypedDict, cast
 
@@ -24,6 +25,7 @@ from ..extraction.field_walk import (
 )
 from ..extraction.model_constraints import analyze_model_constraints
 from ..extraction.specs import (
+    UNDEFINED,
     AnnotatedField,
     EnumSpec,
     FieldSpec,
@@ -215,16 +217,40 @@ def _field_template_context(
     )
 
 
-def _annotate_constraint_notes(
+def _annotate_notes(
     row: _FieldRow,
     notes: list[str],
 ) -> None:
-    """Append italic constraint descriptions to a field's description cell."""
+    """Append italic notes to a field's description cell."""
     formatted = "<br/>".join(f"*{note}*" for note in notes)
     if row["description"]:
         row["description"] = f"{row['description']}<br/><br/>{formatted}"
     else:
         row["description"] = formatted
+
+
+def _format_default(value: object) -> str:
+    """Format a declared default as the value a record would carry.
+
+    An enum member shows its value, which is what appears in data. An empty
+    string shows as `""`, where an example cell would be left blank.
+    """
+    if isinstance(value, Enum):
+        value = value.value
+    if value == "":
+        return '`""`'
+    return _format_example_value(value)
+
+
+def _annotate_default(row: _FieldRow, field: FieldSpec) -> None:
+    """Annotate a field row with its declared default.
+
+    A default of `None` is not shown: `= None` is how a Pydantic field is
+    declared optional, and the `(optional)` qualifier already says so.
+    """
+    if field.default is UNDEFINED or field.default is None:
+        return
+    _annotate_notes(row, [f"Default: {_format_default(field.default)}"])
 
 
 def _link_fn_from_ctx(ctx: LinkContext | None) -> _LinkFn:
@@ -259,7 +285,7 @@ def _annotate_field_constraints(
     notes += directly_applied("key: ", key_constraints)
     notes += directly_applied("value: ", value_constraints)
     if notes:
-        _annotate_constraint_notes(row, notes)
+        _annotate_notes(row, notes)
 
 
 def _expandable_list_suffix(field_spec: FieldSpec) -> str:
@@ -303,7 +329,7 @@ def _annotate_top_level_constraints(
             continue
         field_name = name.split("[")[0]
         if field_name in constraint_notes:
-            _annotate_constraint_notes(row, constraint_notes[field_name])
+            _annotate_notes(row, constraint_notes[field_name])
 
 
 def _expand_model_fields(
@@ -321,6 +347,7 @@ def _expand_model_fields(
         row = _field_template_context(field_spec, ctx)
         name = f"{prefix}{field_spec.name}" if prefix else field_spec.name
         row["name"] = f"{name}{_expandable_list_suffix(field_spec)}"
+        _annotate_default(row, field_spec)
         if not prefix:
             _annotate_field_constraints(row, field_spec, ctx)
         result.append(row)
@@ -375,9 +402,10 @@ def _expand_union_fields(
         name = field_spec.name
         suffix = _expandable_list_suffix(field_spec)
 
+        _annotate_default(row, field_spec)
         _annotate_field_constraints(row, field_spec, ctx)
         if constraint_notes and field_spec.name in constraint_notes:
-            _annotate_constraint_notes(row, constraint_notes[field_spec.name])
+            _annotate_notes(row, constraint_notes[field_spec.name])
 
         tag = _variant_tag(annotated, spec.name)
         if tag is not None:
