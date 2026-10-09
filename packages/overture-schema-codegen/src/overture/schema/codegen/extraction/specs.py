@@ -134,6 +134,7 @@ class FieldSpec:
     description: str | None = None
     is_required: bool = True
     is_optional: bool = False
+    is_extension: bool = False
 
 
 @dataclass

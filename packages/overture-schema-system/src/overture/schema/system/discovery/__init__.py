@@ -2,8 +2,9 @@ from . import tag
 from .discovery import (
     TagSelector,
     discover_models,
-    filter_models,
+    extend_models,
     get_registered_model,
+    select_models,
 )
 from .entry_point import (
     entry_point_class_alias,
@@ -21,7 +22,8 @@ __all__ = [
     "discover_models",
     "entry_point_class_alias",
     "entry_point_to_path",
-    "filter_models",
+    "extend_models",
+    "select_models",
     "get_registered_model",
     "resolve_entry_point_key",
     "split_entry_point",
