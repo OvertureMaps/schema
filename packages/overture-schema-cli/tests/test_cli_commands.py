@@ -3,6 +3,7 @@
 import json
 import re
 from io import StringIO
+from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
@@ -276,6 +277,23 @@ class TestValidateCommand:
         )
         assert result.exit_code == 2  # Usage error
         assert "Missing argument" in result.output or "Usage:" in result.output
+
+    @pytest.mark.parametrize("content", ["", "\n  \n"], ids=["empty", "whitespace"])
+    def test_validate_empty_input_is_usage_error(
+        self, cli_runner: CliRunner, content: str
+    ) -> None:
+        """Test that empty input exits with a usage error instead of validating."""
+        Path("empty.json").write_text(content)
+
+        for argv, stdin, source in [
+            (["validate", "--type", "division", "-"], content, "<stdin>"),
+            (["validate", "--type", "division", "empty.json"], None, "empty.json"),
+        ]:
+            result = cli_runner.invoke(cli, argv, input=stdin)
+
+            assert result.exit_code == 2, result.output
+            assert f"no input received on {source}" in result.output
+            assert "valid dictionary" not in result.output
 
     @pytest.mark.parametrize(
         "has_error,expected_exit_code,check_index",
