@@ -280,6 +280,8 @@ def format_type(field: FieldSpec, ctx: LinkContext | None = None) -> str:
     display = _format_shape(field.shape, ctx, qualifiers)
     if not field.is_required:
         qualifiers.append("optional")
+    if field.is_deprecated:
+        qualifiers.append("deprecated")
     if qualifiers:
         return f"{display} ({', '.join(qualifiers)})"
     return display

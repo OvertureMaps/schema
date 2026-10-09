@@ -134,6 +134,11 @@ class FieldSpec:
     description: str | None = None
     is_required: bool = True
     is_optional: bool = False
+    # Pydantic's `deprecated`, normalized. The flag and the message are
+    # separate because `Field(deprecated=True)` is deprecated with no prose,
+    # which a lone `str | None` can express only as a sentinel string.
+    is_deprecated: bool = False
+    deprecation_message: str | None = None
 
 
 @dataclass
@@ -147,6 +152,9 @@ class RecordSpec(_SourceTypeIdentityMixin):
     entry_point: str | None = None
     partitions: Mapping[str, str] = field(default_factory=dict)
     constraints: tuple[ModelConstraint, ...] = ()
+    # The class's own `@deprecated` message. A single `str | None` suffices
+    # here, unlike on `FieldSpec`: the decorator's `message` is required.
+    deprecated: str | None = None
 
 
 @dataclass
