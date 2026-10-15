@@ -91,29 +91,40 @@ class Water(
     SourcedFromOpenStreetMap,
 ):
     """
-    Water features represent ocean and inland water bodies.
+    Water features represent ocean and inland water bodies, as well as named physical water
+    features such as bays and straits.
 
-    In Overture data releases, water features are sourced from OpenStreetMap. There are two main
-    categories of water feature: ocean and inland water bodies.
+    In Overture data releases, water features are sourced from OpenStreetMap. There are three main
+    categories of water feature: ocean area, inland water bodies, and physical features.
 
     Ocean
     -----
-    The `subytpe` value `"ocean"` indicates an ocean area feature whose geometry represents the
+    The `subtype` value `"ocean"` indicates an ocean area feature whose geometry represents the
     surface area of an ocean or part of an ocean. Ocean area may be tiled into many small polygons
     of consistent complexity to ensure manageable geometry. In Overture data releases, ocean area
     features are created from OpenStreetMap coastlines data (`natural=coastline`) using a QA'd
     version of the output from the OSMCoastline tool. In aggregate, all the ocean area features
     represent the inverse of the land features with subtype `"land"` and class `"land"`.
 
-    The names and recommended label position for oceans and seas can be found in features with the
-    subtype `"physical"` and the class `"ocean"` or `"sea"`.
+    Physical
+    --------
+    The `subtype` value `"physical"` indicates a named geographic water feature rather than a water
+    surface. Classes include `"ocean"`, `"sea"`, `"bay"`, `"strait"`, `"shoal"`, `"cape"`, and
+    `"waterfall"`, and geometries may be points, lines, or polygons. In Overture data releases,
+    these features are sourced from the OpenStreetMap tags `place=ocean`, `place=sea`,
+    `natural=bay`, `natural=strait`, `natural=shoal`, `natural=cape`, and `waterway=waterfall`.
+
+    Physical features overlap other water features by design. For example, the `"bay"` polygon for
+    the Bay of Bengal covers the same area as the `"ocean"` features beneath it, and a bay within a
+    lake overlaps that lake. Use physical features for names and label placement, and exclude them
+    when rendering water fills or computing water area so the same water isn't drawn or counted
+    twice.
 
     Inland Water
     ------------
-    Subtypes other than `"ocean"` (and `"physical"`) represent inland water bodies. In Overture data
+    Subtypes other than `"ocean"` and `"physical"` represent inland water bodies. In Overture data
     releases, these features are sourced from the OpenStreetMap tag `natural=*` where the tag value
-    indicates a water body, as well as the tags `natural=water`,  `waterway=*`,
-    and `water=*`.
+    indicates a water body, as well as the tags `natural=water`, `waterway=*`, and `water=*`.
     """
 
     model_config = ConfigDict(title="water")
