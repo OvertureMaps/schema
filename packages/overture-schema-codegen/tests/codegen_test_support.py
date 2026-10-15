@@ -369,6 +369,14 @@ TestIntEnumDiscriminatorUnion = Annotated[
 ]
 
 
+class NamedVehicleUnion(RootModel[TestEnumDiscriminatorUnion]):
+    """A vehicle segment, named by a RootModel over a discriminated union."""
+
+
+class RenamedVehicleUnion(RootModel[NamedVehicleUnion]):
+    """A RootModel over a union-rooted RootModel."""
+
+
 class ContactInfo(BaseModel):
     """Contact information for a venue."""
 

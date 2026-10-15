@@ -122,9 +122,10 @@ def generate(
     if output_format == "pyspark":
         _generate_pyspark(model_specs, output_dir, test_output_dir)
     else:
-        # RootModel entry points yield no ModelSpec, so they document as
-        # named aliases -- reachable no other way, since a RootModel field
-        # unwraps to its bare shape and names no type.
+        # A scalar- or container-rooted RootModel entry point yields no
+        # ModelSpec, so it documents as a named alias -- reachable no other
+        # way, since a RootModel field unwraps to its bare shape and names
+        # no type.
         external_specs: dict[TypeIdentity, SupplementarySpec] = {
             alias.identity: alias
             for entry in models.values()
