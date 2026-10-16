@@ -2,6 +2,12 @@
 
 TESTMON ?= --testmon
 
+# testmon records per-test coverage contexts, which coverage's sys.monitoring
+# core (the default on Python 3.14) does not support; coverage warns, and
+# `-W error` turns the warning into an INTERNALERROR. ctrace is the default
+# core on 3.10-3.13, so this changes nothing there.
+export COVERAGE_CORE ?= ctrace
+
 default: test-all
 
 install: uv-sync generate-pyspark
