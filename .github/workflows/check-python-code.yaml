@@ -43,6 +43,11 @@ jobs:
     permissions:
       contents: read
 
+    # uv picks its interpreter from .python-version (the 3.10 floor) ahead of
+    # whatever Python is on PATH, so without this every cell would run 3.10.
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
