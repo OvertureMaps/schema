@@ -97,7 +97,7 @@ def extract_discriminator(
 
 
 _TypeShape = tuple[object, ...]
-_FieldKey = tuple[str, _TypeShape, frozenset[object]]
+_FieldKey = tuple[str, _TypeShape, frozenset[object], bool]
 
 
 def _structural_fingerprint(spec: FieldSpec) -> _TypeShape:
@@ -242,8 +242,15 @@ def extract_union(
             # that already handles a field present on only some arms
             # (`check_builder._field_checks_for_union`), and the renderer's
             # collision resolver already disambiguates multiple `Check`s
-            # landing on the same field label.
-            key = (fs.name, _structural_fingerprint(fs), _constraints_fingerprint(fs))
+            # landing on the same field label. Provenance joins the key so a
+            # native field and an identically-shaped extension field never
+            # collapse into one row.
+            key = (
+                fs.name,
+                _structural_fingerprint(fs),
+                _constraints_fingerprint(fs),
+                fs.is_extension,
+            )
             existing = seen.get(key)
             prior_sources = existing.variant_sources or () if existing else ()
             seen[key] = AnnotatedField(
