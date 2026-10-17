@@ -200,6 +200,20 @@ def _format_example_value(value: object) -> str:
     return f"`{_truncate(str(value))}`"
 
 
+_GENERIC_FIELD_DEPRECATION_MESSAGE = "This field is deprecated."
+
+
+def _field_deprecation_note(field: FieldSpec) -> str:
+    """Render a field's deprecation as a note for the constraint appender.
+
+    A bare `deprecated=True` carries no prose of its own, so the generic
+    message stands in rather than letting a message-less flag render as
+    nothing at all.
+    """
+    message = field.deprecation_message or _GENERIC_FIELD_DEPRECATION_MESSAGE
+    return f"**Deprecated:** {message}"
+
+
 def _field_template_context(
     field: FieldSpec,
     ctx: LinkContext | None = None,
@@ -208,11 +222,17 @@ def _field_template_context(
     description = (
         _sanitize_for_table_cell(field.description) if field.description else None
     )
-    return _FieldRow(
+    row = _FieldRow(
         name=field.name,
         type_str=format_type(field, ctx),
         description=description,
     )
+    if field.is_deprecated:
+        # Through the same appender constraint notes use: a deprecation note
+        # is one more thing said about the field, not a separate rendering
+        # mechanism.
+        _annotate_constraint_notes(row, [_field_deprecation_note(field)])
+    return row
 
 
 def _annotate_constraint_notes(
