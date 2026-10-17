@@ -9,6 +9,7 @@ from typing import Any, TypeAlias, TypeGuard
 
 from annotated_types import Interval
 from pydantic import BaseModel, RootModel
+from pydantic_core import PydanticUndefined
 
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.model_constraint import ModelConstraint
@@ -120,6 +121,20 @@ class EnumSpec(_SourceTypeIdentityMixin):
     source_type: type | None = None
 
 
+# Sentinel for "this field declares no default", distinct from a declared
+# default of `None`, which is legal and different.
+#
+# This is Pydantic's own `PydanticUndefined`, re-exported from the IR under a
+# shorter name. Re-exporting rather than minting a second sentinel keeps a
+# renderer from reaching past the IR into `pydantic_core` to read a
+# `FieldSpec`, and keeps the two values that already mean this -- the one
+# extraction compares against, and the one the IR hands out -- from drifting
+# apart. It also inherits `PydanticUndefined`'s identity under
+# `copy.deepcopy` and `pickle`; a freshly minted singleton comes back from
+# either as a different object, and `is UNDEFINED` then reads false.
+UNDEFINED = PydanticUndefined
+
+
 @dataclass
 class FieldSpec:
     """Specification for a model field: header metadata plus structural shape.
@@ -127,6 +142,17 @@ class FieldSpec:
     `shape` is the full `FieldShape` tree, including any sub-model
     (`ModelRef`) and sub-union (`UnionRef`) references already
     resolved during extraction.
+
+    `default` carries the field's declared literal default, or
+    `UNDEFINED` when it declares none. A declared default of `None` is
+    stored as `None` and is not the absent case -- the distinction
+    `_is_field_required` already draws on `FieldInfo.default`.
+
+    `= None` is also how a Pydantic field is declared optional -- the IR
+    reports the declared default it finds and does not judge whether one
+    was meant, because nothing in the source distinguishes the two. A
+    consumer that cares about real defaults tests for `not None` as well
+    as `not UNDEFINED`.
     """
 
     name: str
@@ -134,6 +160,7 @@ class FieldSpec:
     description: str | None = None
     is_required: bool = True
     is_optional: bool = False
+    default: Any = UNDEFINED
 
 
 @dataclass
