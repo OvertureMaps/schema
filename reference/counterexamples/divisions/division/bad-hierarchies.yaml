@@ -9,6 +9,7 @@ properties:
   type: division
   version: 0
   subtype: county
+  admin_level: 2
   names:
     primary: A division with an invalid hierarchies property
   country: ZZ
