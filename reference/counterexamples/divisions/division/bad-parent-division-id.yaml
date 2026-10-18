@@ -9,6 +9,7 @@ properties:
   type: division
   version: 0
   subtype: region
+  admin_level: 1
   names:
     primary: A division with an invalid parent division ID
   country: ZZ

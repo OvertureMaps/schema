@@ -9,6 +9,7 @@ properties:
   type: division
   version: 0
   subtype: region
+  admin_level: 1
   names:
     primary: A sub-country division that lacks a parent ID
   country: ZZ

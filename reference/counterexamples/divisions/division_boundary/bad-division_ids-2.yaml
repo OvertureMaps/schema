@@ -9,6 +9,7 @@ properties:
   type: division_boundary
   version: 1
   subtype: county
+  admin_level: 2
   country: "XX"
   class: land
   division_ids: ["example:division:country:lonelylhsdivision"]
