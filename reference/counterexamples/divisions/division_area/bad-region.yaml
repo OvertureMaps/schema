@@ -9,6 +9,7 @@ properties:
   type: division_area
   version: 0
   subtype: region
+  admin_level: 1
   class: maritime
   division_id: counterexample:division:some-division
   names:

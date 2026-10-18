@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+import pytest
+from pydantic import BaseModel, ValidationError
 from util import assert_subset
 
 from overture.schema.system.model_constraint import (
@@ -81,3 +82,39 @@ def test_many_constraints() -> None:
 
     # Verify a valid instance.
     TestModel(foo=None, bar=True, baz=False, qux="world", corge=42, garply=0.25)
+
+
+class _FooBarBaz(BaseModel):
+    foo: str
+    bar: int | None = None
+    baz: int | None = None
+
+
+def test_stacked_same_kind_constraints_all_enforced() -> None:
+    @forbid_if(["bar"], FieldEqCondition("foo", "a"))
+    @forbid_if(["baz"], FieldEqCondition("foo", "b"))
+    class TestModel(_FooBarBaz):
+        pass
+
+    with pytest.raises(ValidationError):
+        TestModel(foo="b", baz=1)  # inner rule
+    with pytest.raises(ValidationError):
+        TestModel(foo="a", bar=1)  # outer rule
+    TestModel(foo="a", baz=1)
+
+
+def test_subclass_constraint_keeps_parent_constraint_of_same_kind() -> None:
+    @forbid_if(["bar"], FieldEqCondition("foo", "a"))
+    class Parent(_FooBarBaz):
+        pass
+
+    @forbid_if(["baz"], FieldEqCondition("foo", "b"))
+    class Child(Parent):
+        pass
+
+    with pytest.raises(ValidationError):
+        Child(foo="a", bar=1)  # parent rule
+    with pytest.raises(ValidationError):
+        Child(foo="b", baz=1)  # child rule
+    Child(foo="a", baz=1)
+    Child(foo="b", bar=1)
