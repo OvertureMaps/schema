@@ -92,6 +92,11 @@ jobs:
         if: matrix.resolution == 'locked'
         run: echo "UV_LOCKED=1" >> "$GITHUB_ENV"
 
+      # make check silences `uv sync`, so without this no line in a passing
+      # cell's log names the interpreter it ran.
+      - name: Report the cell's Python
+        run: uv run --no-project python -VV
+
       - name: Run make check
         run: make check
 
