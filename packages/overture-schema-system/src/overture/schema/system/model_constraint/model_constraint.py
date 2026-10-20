@@ -126,6 +126,10 @@ class ModelConstraint:
         # Some Pydantic versions unwrap bound methods passed through __validators__
         # and rebind `self` to the model instance, breaking the dispatch.
         constraint = self
+        # Pydantic keys model validators by attribute name, and a subclass's validator replaces an
+        # inherited one with the same key. Each constraint's position in the accumulated tuple,
+        # which subclasses extend, gives a key unique along a single-inheritance chain.
+        validator_key = f"{self.name}[{len(model_constraints) - 1}]"
 
         def _after_validator(model_instance: BaseModel) -> BaseModel:
             constraint.validate_instance(model_instance)
@@ -138,7 +142,7 @@ class ModelConstraint:
             __base__=model_class,
             __module__=model_class.__module__,
             __validators__={
-                self.name: cast(
+                validator_key: cast(
                     Callable[..., Any],
                     model_validator(mode="after")(_after_validator),
                 )
