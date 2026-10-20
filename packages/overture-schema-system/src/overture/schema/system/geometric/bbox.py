@@ -160,7 +160,7 @@ class BBox:
 
         Returns
         -------
-        tuple of float
+        tuple[float | int, ...]
             GeoJSON-compliant bounding box coordinates array.
         """
         return (self.xmin, self.ymin, self.xmax, self.ymax)
@@ -174,7 +174,7 @@ class BBox:
 
         Parameters
         ----------
-        bbox : tuple[float | int, ...] | list[float | int]
+        *bbox : float | int | tuple[float | int, ...] | list[float | int]
             GeoJSON-compliant `bbox` array containing 4 numbers
 
         Returns

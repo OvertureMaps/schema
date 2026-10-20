@@ -15,11 +15,11 @@ def assert_golden(actual: str, golden_path: Path, *, update: bool) -> None:
 
     Parameters
     ----------
-    actual
+    actual : str
         Generated content to compare.
-    golden_path
+    golden_path : Path
         Path to the golden file.
-    update
+    update : bool
         When True, write actual to golden_path instead of comparing.
     """
     if update:
@@ -52,11 +52,11 @@ def assert_json_schema_golden(
 
     Parameters
     ----------
-    model_or_union
+    model_or_union : TypeForm[BaseModel]
         Pydantic model class or union type alias.
-    golden_path
+    golden_path : Path
         Path to the baseline JSON file.
-    update
+    update : bool
         When True, write generated schema to golden_path instead of comparing.
     """
     schema = json_schema(model_or_union)

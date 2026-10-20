@@ -45,12 +45,12 @@ def overture_provider(
 
     Parameters
     ----------
-    types
+    types : Iterable[type[BaseModel]]
         Concrete `BaseModel` subclasses for the entry point. For
         discriminated-union features this is every arm.
-    key
+    key : ModelKey
         Key identifying the model.
-    tags
+    tags : set[str]
         Current tags; may be extended.
 
     Returns
@@ -82,12 +82,12 @@ def theme_provider(
 
     Parameters
     ----------
-    types
+    types : Iterable[type[BaseModel]]
         Concrete `BaseModel` subclasses for the entry point. For
         discriminated-union features this is every arm.
-    key
+    key : ModelKey
         Key identifying the model.
-    tags
+    tags : set[str]
         Current tags; may be extended.
 
     Returns
@@ -109,6 +109,16 @@ def theme_provider(
 
 def _theme_literal(model_class: type[OvertureFeature]) -> str:
     """Extract the literal `theme` value from an `OvertureFeature` subclass.
+
+    Parameters
+    ----------
+    model_class : type[OvertureFeature]
+        Feature class whose `theme` field is read.
+
+    Returns
+    -------
+    str
+        The `theme` literal value.
 
     Raises
     ------

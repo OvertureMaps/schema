@@ -109,12 +109,12 @@ def enum_source(shape: FieldShape) -> type[Enum] | None:
 
     Parameters
     ----------
-    shape
+    shape : FieldShape
         The shape to inspect.
 
     Returns
     -------
-    type[Enum] or None
+    type[Enum] | None
         The `Enum` class when `shape` is a `Primitive` backed by one,
         `None` otherwise.
     """

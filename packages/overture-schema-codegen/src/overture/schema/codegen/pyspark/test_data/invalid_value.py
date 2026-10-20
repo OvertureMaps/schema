@@ -50,8 +50,13 @@ def invalid_value(desc: ExpressionDescriptor) -> object:
 
     Parameters
     ----------
-    desc
+    desc : ExpressionDescriptor
         The expression descriptor to produce an invalid value for.
+
+    Returns
+    -------
+    object
+        A value that violates the check.
 
     Raises
     ------

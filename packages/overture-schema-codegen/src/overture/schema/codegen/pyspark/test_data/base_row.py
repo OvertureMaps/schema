@@ -131,11 +131,16 @@ def generate_base_row(spec: ModelSpec, *, index: int = 0) -> dict[str, Any]:
 
     Parameters
     ----------
-    spec
+    spec : ModelSpec
         An expanded feature spec.
-    index
+    index : int
         Position within a parent list. Non-zero values suffix string fields
         to ensure uniqueness across list items.
+
+    Returns
+    -------
+    dict[str, Any]
+        Field name to valid value.
     """
     return _build_row(spec, index=index, populate_optional=False)
 
@@ -147,11 +152,16 @@ def generate_populated_row(spec: ModelSpec, *, index: int = 0) -> dict[str, Any]
 
     Parameters
     ----------
-    spec
+    spec : ModelSpec
         An expanded feature spec.
-    index
+    index : int
         Position within a parent list. Non-zero values suffix string fields
         to ensure uniqueness across list items.
+
+    Returns
+    -------
+    dict[str, Any]
+        Field name to valid value, optional fields included.
     """
     return _build_row(spec, index=index, populate_optional=True)
 
@@ -164,8 +174,13 @@ def generate_arm_rows(spec: ModelSpec) -> dict[str, dict[str, Any]]:
 
     Parameters
     ----------
-    spec
+    spec : ModelSpec
         An expanded union spec.
+
+    Returns
+    -------
+    dict[str, dict[str, Any]]
+        Row for each discriminator value.
     """
     return _build_arm_rows(_require_union(spec), populate_optional=False)
 
@@ -180,8 +195,13 @@ def generate_populated_arm_rows(
 
     Parameters
     ----------
-    spec
+    spec : ModelSpec
         An expanded union spec.
+
+    Returns
+    -------
+    dict[str, dict[str, Any]]
+        Populated row for each discriminator value.
     """
     return _build_arm_rows(_require_union(spec), populate_optional=True)
 
@@ -262,10 +282,15 @@ def _row_satisfies_condition(row: dict[str, Any], condition: object) -> bool:
 
     Parameters
     ----------
-    row
+    row : dict[str, Any]
         Current row dict being built.
-    condition
+    condition : object
         A `Condition` from a `RequireIfConstraint` or `ForbidIfConstraint`.
+
+    Returns
+    -------
+    bool
+        Whether the row satisfies the condition.
     """
     field_eq = require_field_eq(condition)  # type: ignore[arg-type]
     matches = row.get(field_eq.field_name) == _condition_value(field_eq)
@@ -351,10 +376,15 @@ def _condition_disabling_value(field_eq: FieldEq, field_spec: FieldSpec) -> obje
 
     Parameters
     ----------
-    field_eq
+    field_eq : FieldEq
         The unwrapped field-equality condition.
-    field_spec
+    field_spec : FieldSpec
         Spec of the condition field, used to enumerate alternative values.
+
+    Returns
+    -------
+    object
+        A value for the condition field that makes the condition false.
     """
     forbidden = _condition_value(field_eq)
     if field_eq.negated:
@@ -392,10 +422,15 @@ def condition_overrides_for_present_field(
 
     Parameters
     ----------
-    spec
+    spec : ModelSpec
         The model whose constraints govern `field_name`.
-    field_name
+    field_name : str
         A direct field of `spec` the scaffold needs to set.
+
+    Returns
+    -------
+    dict[str, Any]
+        Field name to override value; empty when no `forbid_if` gates the field.
     """
     forbidding = [
         c
@@ -442,17 +477,22 @@ def value_for_field(
 
     Parameters
     ----------
-    field
+    field : FieldSpec
         The field spec to produce a value for.
-    spec_name
+    spec_name : str
         The name of the containing spec, used for deterministic UUID generation.
-    index
+    index : int
         Position within a parent list. Non-zero values suffix string fields
         to ensure uniqueness across list items.
-    populate_optional
+    populate_optional : bool
         When True, MODEL and UNION sub-rows include optional fields via
         `generate_populated_row`. When False (default), sub-rows are sparse
         via `generate_base_row`.
+
+    Returns
+    -------
+    object
+        A valid value for the field.
     """
     special = _SPECIAL_FIELD_VALUES.get(field.name)
     if special is not None:
@@ -532,11 +572,16 @@ def resolve_arm_spec(
 
     Parameters
     ----------
-    union
+    union : UnionSpec
         The union to resolve an arm from.
-    discriminator_value
+    discriminator_value : object | None
         The discriminator value identifying the arm (e.g. a scaffold's seeded
         `ElementGuard` value), matching a `discriminator_mapping` key.
+
+    Returns
+    -------
+    RecordSpec
+        The member spec for the selected arm.
 
     Raises
     ------
@@ -585,17 +630,22 @@ def _value_for_shape(
 
     Parameters
     ----------
-    shape
+    shape : FieldShape
         The field shape to produce a value for.
-    index
+    index : int
         Array element index, used to suffix strings for uniqueness.
-    check_constraints
+    check_constraints : bool
         When True, attempt constraint-driven value generation at the
         terminal Scalar before falling back to a primitive default.
-    populate_optional
+    populate_optional : bool
         When True, MODEL and UNION sub-rows include optional fields via
         `generate_populated_row`. When False (default), sub-rows are
         sparse via `generate_base_row`.
+
+    Returns
+    -------
+    object
+        A valid value for the shape.
     """
     match shape:
         case ArrayOf(element=element, constraints=array_constraints):
@@ -713,6 +763,20 @@ def _value_from_check_pattern(
     matching strings can't be generated generically, and silently falling
     back to the primitive default would emit a row that fails the pattern,
     surfacing later as a misleading "row should be valid" Pydantic error.
+
+    Parameters
+    ----------
+    desc : ExpressionDescriptor
+        The `check_pattern` descriptor.
+    _scalar : Primitive
+        Unused; part of the value-resolver signature.
+    _cs : ConstraintSource
+        Unused; part of the value-resolver signature.
+
+    Returns
+    -------
+    object
+        A value matching the curated pattern.
 
     Raises
     ------

@@ -66,11 +66,11 @@ class PatternConstraint(StringConstraint):
         value (the only available placeholder).
     flags : int
         Regex flags passed to `re.compile`.
-    description : str or None
+    description : str | None
         JSON Schema `description` annotation.
-    min_length : int or None
+    min_length : int | None
         JSON Schema `minLength` annotation.
-    max_length : int or None
+    max_length : int | None
         JSON Schema `maxLength` annotation.
     """
 

@@ -97,7 +97,7 @@ def primitive_spark_category(base_type: str) -> SparkCategory:
 
     Parameters
     ----------
-    base_type
+    base_type : str
         A primitive type name (`"int32"`, `"float64"`, `"bool"`, `"str"`, ...).
 
     Returns

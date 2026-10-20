@@ -152,6 +152,16 @@ def compiled_pattern_source(pattern: re.Pattern[str]) -> str:
     The ASCII/Unicode case-folding divergence between Java and Python is the
     same accepted divergence documented at `check_pattern`.
 
+    Parameters
+    ----------
+    pattern : re.Pattern[str]
+        The compiled pattern.
+
+    Returns
+    -------
+    str
+        The pattern source with inline flag prefixes.
+
     Raises
     ------
     NotImplementedError
@@ -374,18 +384,18 @@ def dispatch_constraint(
 
     Parameters
     ----------
-    constraint
+    constraint : object
         The constraint object from `ConstraintSource.constraint`. Length
         constraints arrive as `ArrayMinLen` / `ArrayMaxLen` /
         `ScalarMinLen` / `ScalarMaxLen` -- the typed variants emitted
         by `extraction.type_analyzer.attach_constraints`.
-    base_type
+    base_type : str | None
         The field's terminal-scalar base type, used to detect float
         bounds.
 
     Returns
     -------
-    ExpressionDescriptor or None
+    ExpressionDescriptor | None
         `None` for explicitly skipped constraints (Reference, Strict).
 
     Raises
@@ -664,16 +674,16 @@ def dispatch_model_constraint(
 
     Parameters
     ----------
-    constraint
+    constraint : object
         The model constraint object.
-    fields
+    fields : list[FieldSpec]
         All fields of the model. Branches consult them as needed --
         `RequireAnyOf` and `ForbidIf` index by name, `MinFieldsSet`
         enumerates every field (required and optional).
 
     Returns
     -------
-    tuple of ModelConstraintDescriptor
+    tuple[ModelConstraintDescriptor, ...]
         Empty tuple for explicitly skipped constraints (NoExtraFields).
         Most kinds return a single-element tuple. Multi-field
         `@require_if` / `@forbid_if` split into one descriptor per

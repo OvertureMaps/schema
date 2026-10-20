@@ -28,11 +28,11 @@ def register_model(
 
     Parameters
     ----------
-    model_type
+    model_type : str
         The registry key string (e.g. `"_test_cli"`).
-    schema
+    schema : StructType
         StructType to associate with the model type.
-    checks
+    checks : Callable[[], list[Check]]
         Callable returning the list of `Check` objects for the model type.
 
     Yields

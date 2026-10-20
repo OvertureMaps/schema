@@ -25,13 +25,13 @@ _STEP_MARKER = re.compile(r"[.\[{]")
 class SchemaMismatch:
     """One structural difference between actual and expected schemas.
 
-    Parameters
+    Attributes
     ----------
-    path
+    path : str
         Dot-notation path to the field (e.g. `"bbox.xmin"`).
-    actual
+    actual : str
         Actual type name, or `"missing"` if the field is absent.
-    expected
+    expected : str
         Expected type name, or `"missing"` if the field is unexpected.
     """
 
@@ -108,9 +108,9 @@ def compare_schemas(actual: StructType, expected: StructType) -> list[SchemaMism
 
     Parameters
     ----------
-    actual
+    actual : StructType
         Schema inferred from the data (e.g. `df.schema`).
-    expected
+    expected : StructType
         Declared expected schema for the feature type.
 
     Returns

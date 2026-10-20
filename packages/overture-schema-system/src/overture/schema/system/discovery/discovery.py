@@ -48,12 +48,12 @@ def _generate_tags(
 
     Parameters
     ----------
-    model_class
+    model_class : Any
         Value loaded from an `overture.models` entry point — usually a
         `type[BaseModel]`, or a discriminated-union expression.
-    key
+    key : ModelKey
         Key identifying the model.
-    providers
+    providers : TagProviderDict
         Tag providers to invoke.
 
     Returns
@@ -134,7 +134,7 @@ def discover_tag_providers(
 
     Parameters
     ----------
-    tag_providers_group : str, optional
+    tag_providers_group : str
         Entry point group to search (default: `"overture.tag_providers"`).
 
     Returns
@@ -167,7 +167,7 @@ def discover_models(
 
     Parameters
     ----------
-    model_group : str, optional
+    model_group : str
         Entry point group to search (default: `"overture.models"`).
 
     Returns
@@ -210,11 +210,11 @@ class TagSelector:
 
     Attributes
     ----------
-    include_any
+    include_any : tuple[str, ...]
         Scope (OR) — tags that bring models into the result.
-    require_all
+    require_all : tuple[str, ...]
         Narrow (AND) — tags every kept model must have.
-    exclude_any
+    exclude_any : tuple[str, ...]
         Subtract (OR-NOT) — tags that drop a model from the result.
     """
 
@@ -239,11 +239,11 @@ def filter_models(
 
     Parameters
     ----------
-    models
+    models : ModelDict
         Models to filter.
-    selector
+    selector : TagSelector
         Tag predicates to apply.
-    type_names
+    type_names : tuple[str, ...]
         If non-empty, only models whose `key.name` is in the list
         are kept. Orthogonal to the tag predicate algebra.
 
@@ -284,7 +284,7 @@ def get_registered_model(model_name: str) -> type[BaseModel] | None:
 
     Returns
     -------
-    type[BaseModel] or None
+    type[BaseModel] | None
         Model class if found, otherwise `None`.
     """
     models = discover_models()

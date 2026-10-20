@@ -45,10 +45,15 @@ def absent_column(exc: AnalysisException, columns: Collection[str]) -> str | Non
 
     Parameters
     ----------
-    exc
+    exc : AnalysisException
         The exception raised while Spark planned the check expressions.
-    columns
+    columns : Collection[str]
         The data's top-level column names (`df.columns`).
+
+    Returns
+    -------
+    str | None
+        The absent top-level column name, or None.
     """
     # getCondition() is pyspark 4.0+; the 3.4 floor exposes the same value as
     # getErrorClass() (renamed, then deprecated, in 4.0).

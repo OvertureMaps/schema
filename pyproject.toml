@@ -56,10 +56,19 @@ plugins = ["pydantic.mypy"]
 warn_return_any = true
 warn_unused_configs = true
 
+# numpydoc Parameters and Returns sections, with types that match the
+# signature's annotations. Raises sections are not checked: they document
+# exceptions a function propagates as well as the ones it raises itself.
+[tool.pydoclint]
+style = "numpy"
+exclude = '\.git|/generated/'
+skip-checking-raises = true
+
 [dependency-groups]
 dev = [
     "mypy>=2.2.0",
     "pdoc>=15.0.4",
+    "pydoclint>=0.11.0",
     "pydocstyle>=6.3.0",
     "pytest>=9.0.0",
     "pytest-cov>=7.0.0",

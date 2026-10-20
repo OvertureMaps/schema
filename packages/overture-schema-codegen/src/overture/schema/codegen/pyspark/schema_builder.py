@@ -41,11 +41,11 @@ _STRING_FALLBACK = "StringType()"
 class SchemaField:
     """One field in the generated StructType.
 
-    Parameters
+    Attributes
     ----------
-    name
+    name : str
         Column name.
-    type_expr
+    type_expr : str
         Spark type expression string (e.g. `"StringType()"`) or
         a `_schema_structs.py` constant name.
     """
@@ -168,7 +168,7 @@ def build_schema(spec: ModelSpec) -> list[SchemaField]:
 
     Parameters
     ----------
-    spec
+    spec : ModelSpec
         The feature spec to build schema fields for.
 
     Returns

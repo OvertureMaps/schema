@@ -47,7 +47,7 @@ def get_values_for_key(tags: frozenset[str] | set[str], key: str) -> set[str]:
 
     Parameters
     ----------
-    tags : frozenset[str] or set[str]
+    tags : frozenset[str] | set[str]
         Tags to search.
     key : str
         Key to match, e.g. `"overture:theme"`.

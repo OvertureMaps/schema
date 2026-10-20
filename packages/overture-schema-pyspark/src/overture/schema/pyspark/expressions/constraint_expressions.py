@@ -73,15 +73,26 @@ def check_bounds(
 
     Parameters
     ----------
-    col
+    col : Column
         Column to validate.
-    ge, gt, le, lt
-        Inclusive/exclusive lower and upper bounds.
-    check_nan
+    ge : float | int | None
+        Inclusive lower bound.
+    gt : float | int | None
+        Exclusive lower bound.
+    le : float | int | None
+        Inclusive upper bound.
+    lt : float | int | None
+        Exclusive upper bound.
+    check_nan : bool
         When True (default), prepend an explicit NaN guard so that NaN values
         are rejected even on lower bounds (Spark sorts NaN above all values,
         so a lower bound never fires on NaN without this guard). Set to False
         for integer columns, where NaN is impossible and the guard is dead work.
+
+    Returns
+    -------
+    Column
+        Error string on violation, null on success.
     """
     checks: list[Column] = []
     for key, value in (("ge", ge), ("gt", gt), ("le", le), ("lt", lt)):
@@ -156,13 +167,18 @@ def check_pattern(col: Column, pattern: str, *, label: str) -> Column:
 
     Parameters
     ----------
-    col
+    col : Column
         Column to validate.
-    pattern
+    pattern : str
         Java regex pattern (use `\z` for absolute end-of-input).
-    label
+    label : str
         Human-readable description used in error messages:
         `"invalid {label}: got '...'"`
+
+    Returns
+    -------
+    Column
+        Error string on violation, null on success.
 
     Notes
     -----
@@ -444,11 +460,11 @@ def check_min_fields_set(
 
     Parameters
     ----------
-    cols
+    cols : list[Column]
         Column expressions to test for non-null.
-    field_names
+    field_names : list[str]
         Human-readable names for each column, used in the error message.
-    count
+    count : int
         Minimum number of non-null columns required.
 
     Returns

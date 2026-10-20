@@ -60,9 +60,9 @@ def build_scenario_map(
 
     Parameters
     ----------
-    scenarios
+    scenarios : Sequence[Scenario]
         All scenarios for a model type.
-    model_name
+    model_name : str
         Model name for the baseline row ID.
 
     Returns
@@ -101,19 +101,21 @@ def build_scenario_rows(
 
     Parameters
     ----------
-    base_row
+    base_row : dict[str, Any]
         Valid base row dict from the example loader.
-    scenarios
+    scenarios : Sequence[Scenario]
         Scenarios to apply.
-    model_name
+    model_name : str
         Model name for baseline ID and UUID namespace.
 
     Returns
     -------
-    tuple
-        (rows, scenario_map, skipped) where rows is a list of row dicts,
-        scenario_map maps _scenario_id values to scenario IDs, and skipped
-        maps scenario IDs to skip reasons.
+    list[dict[str, Any]]
+        Row dicts: the baseline row followed by one mutated row per scenario.
+    dict[str, str]
+        Maps _scenario_id values to scenario IDs.
+    dict[str, str]
+        Maps scenario IDs to skip reasons.
     """
     scenario_map = build_scenario_map(scenarios, model_name=model_name)
     base_row = sanitize_row(base_row)
@@ -293,10 +295,15 @@ def index_violations(
 
     Parameters
     ----------
-    violation_rows
+    violation_rows : list[Any]
         Collected rows from `explain().collect()`.
-    scenario_map
+    scenario_map : dict[str, str]
         Mapping from _scenario_id values to scenario IDs.
+
+    Returns
+    -------
+    dict[str, set[tuple[str, str]]]
+        Maps scenario IDs to their `(field, check)` violation pairs.
     """
     result: dict[str, set[tuple[str, str]]] = {}
     for row in violation_rows:

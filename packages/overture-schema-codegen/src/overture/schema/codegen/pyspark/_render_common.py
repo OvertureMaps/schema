@@ -345,15 +345,15 @@ class FieldCheckRow:
 
     Attributes
     ----------
-    check
+    check : Check
         The originating field check.
-    descriptor_idx
+    descriptor_idx : int
         Index of this row's descriptor within `check.descriptors`.
-    label
+    label : str
         The violation `field=` label, including any collision suffix.
-    name
+    name : str
         The check name (`check_name(desc.function, desc.check_name)`).
-    func_name
+    func_name : str
         The disambiguated private `_..._check` function name.
     """
 
@@ -376,13 +376,13 @@ def field_check_rows(field_checks: list[Check]) -> list[FieldCheckRow]:
 
     Parameters
     ----------
-    field_checks
+    field_checks : list[Check]
         The complete field-check list for one generated module, before
         any per-arm filtering.
 
     Returns
     -------
-    list
+    list[FieldCheckRow]
         One `FieldCheckRow` per emitted `(check, descriptor)`, in
         flattened emission order.
     """
@@ -427,14 +427,14 @@ class ModelCheckRow:
 
     Attributes
     ----------
-    check
+    check : ModelCheck
         The originating model check.
-    idx
+    idx : int
         Position of this check in the unfiltered model-check list; the
         renderer embeds it in the private function name.
-    label
+    label : str
         The violation `field=` label, including any collision suffix.
-    name
+    name : str
         The check name (`check_name(model_constraint_function(...))`).
     """
 
@@ -453,13 +453,13 @@ def model_check_rows(model_checks: list[ModelCheck]) -> list[ModelCheckRow]:
 
     Parameters
     ----------
-    model_checks
+    model_checks : list[ModelCheck]
         The complete model-check list for one generated module, before
         any per-arm filtering.
 
     Returns
     -------
-    list
+    list[ModelCheckRow]
         One `ModelCheckRow` per model check, in list order.
     """
     base_labels = [_model_check_base_label(check) for check in model_checks]

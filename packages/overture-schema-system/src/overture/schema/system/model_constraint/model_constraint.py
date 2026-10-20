@@ -155,7 +155,7 @@ class ModelConstraint:
 
         Parameters
         ----------
-        model_class : type
+        model_class : type[BaseModel]
             Pydantic model class being validated
 
         Raises
@@ -198,7 +198,7 @@ class ModelConstraint:
 
         Parameters
         ----------
-        model_class : type
+        model_class : type[BaseModel]
             Pydantic model class being validated
         config : ConfigDict
             Config dictionary to edit
@@ -218,6 +218,16 @@ class ModelConstraint:
         The purpose of this method is to support code generation: code generators need to know which
         system-level constraints have been applied to the model in order to generate target-specific
         validation code for those constraints.
+
+        Parameters
+        ----------
+        model_class : type[BaseModel]
+            Pydantic model class to inspect.
+
+        Returns
+        -------
+        tuple["ModelConstraint", ...]
+            Constraints applied to `model_class`.
 
         Example
         -------
@@ -414,6 +424,11 @@ class Condition(ABC):
         """
         Return a condition that represents the logical negation of this condition.
 
+        Returns
+        -------
+        "Condition"
+            The negated condition.
+
         Examples
         --------
         >>> FieldEqCondition('foo', 'bar').negate()
@@ -510,7 +525,7 @@ class FieldEqCondition(__FieldCondition):
     """
     Represents a condition that is true when a Pydantic field is set to a specific value.
 
-    Attributes
+    Parameters
     ----------
     field_name : str
         Name of the model field to check as part of the condition
@@ -556,7 +571,7 @@ def apply_alias(model_class: type[BaseModel], field_name: str) -> str:
 
     Parameters
     ----------
-    model_class : type
+    model_class : type[BaseModel]
         Base model class that contains the field
     field_name : str
         Field name
