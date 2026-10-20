@@ -8,7 +8,7 @@ dependencies = [
     "pydantic[email]>=2.14.0",
 ]
 description = "Overture Maps places theme with place type models"
-version = "2.0.0"
+version = "2.0.1"
 license = "MIT"
 name = "overture-schema-theme-places"
 readme = "README.md"

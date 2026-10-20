@@ -8,7 +8,7 @@ dependencies = [
     "pydantic>=2.14.0",
 ]
 description = "Overture Maps addresses theme models and structures"
-version = "2.0.0"
+version = "2.0.1"
 license = "MIT"
 name = "overture-schema-theme-addresses"
 readme = "README.md"
