@@ -7,8 +7,8 @@ from rich.text import Text
 def rewrap(text: str, console: Console, indent: int = 0, padding_right: int = 0) -> str:
     """Unwrap and re-wrap text at console width with indentation.
 
-    Args
-    ----
+    Parameters
+    ----------
     text : str
         The text to rewrap
     console : Console

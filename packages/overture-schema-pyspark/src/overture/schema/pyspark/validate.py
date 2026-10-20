@@ -56,7 +56,7 @@ def _normalize_suppress(
 
     Parameters
     ----------
-    suppress
+    suppress : Iterable[str | tuple[str, str] | Check]
         Mix of bare field name strings, `(field, name)` tuples, and
         `Check` objects.
 
@@ -101,9 +101,9 @@ def _reject_reserved_collisions(collisions: Iterable[str], reserved_label: str) 
 
     Parameters
     ----------
-    collisions
+    collisions : Iterable[str]
         Input column names that collide with the reserved set.
-    reserved_label
+    reserved_label : str
         Human-readable description of the reserved names, completing the
         sentence `... collide with {reserved_label}`.
 
@@ -124,8 +124,20 @@ def _reject_reserved_collisions(collisions: Iterable[str], reserved_label: str) 
 def evaluate_checks(df: DataFrame, checks: list[Check]) -> DataFrame:
     """Append `_err_N` columns for each check.
 
-    Returns the input DataFrame with one `array<string>` column per check,
-    containing error messages (non-empty) or null/empty (no error).
+    Each added column contains error messages (non-empty) or null/empty (no
+    error).
+
+    Parameters
+    ----------
+    df : DataFrame
+        Input DataFrame.
+    checks : list[Check]
+        Checks to evaluate, one `_err_N` column each.
+
+    Returns
+    -------
+    DataFrame
+        The input DataFrame with one `array<string>` column per check.
 
     Raises
     ------
@@ -168,9 +180,9 @@ def filter_errors(evaluated: DataFrame, checks: list[Check]) -> DataFrame:
 
     Parameters
     ----------
-    evaluated
+    evaluated : DataFrame
         DataFrame produced by `evaluate_checks()`.
-    checks
+    checks : list[Check]
         Same check list passed to `evaluate_checks()`.
 
     Returns
@@ -188,9 +200,9 @@ def explain_errors(evaluated: DataFrame, checks: list[Check]) -> DataFrame:
 
     Parameters
     ----------
-    evaluated
+    evaluated : DataFrame
         DataFrame produced by `evaluate_checks()`.
-    checks
+    checks : list[Check]
         Same check list passed to `evaluate_checks()`.
 
     Returns
@@ -306,21 +318,26 @@ def validate_model(
 
     Parameters
     ----------
-    df
+    df : DataFrame
         Input DataFrame to validate.
-    model_type
+    model_type : str
         Registered model type name (e.g. `"building"`).
-    skip_columns
+    skip_columns : Iterable[str]
         Columns declared absent from the data.  Raises `ValueError`
         if any are present in `df.columns`.
-    ignore_extra_columns
+    ignore_extra_columns : Iterable[str]
         Columns that may be present in the data but absent from the
         expected schema.
-    suppress
+    suppress : Iterable[str | tuple[str, str] | Check]
         Checks to remove before evaluation.  Bare strings suppress by
         root field; tuples by exact `(field, name)`; Check objects
         by extracting `(field, name)`.  Raises `ValueError` if any
         entry doesn't match a registered check.
+
+    Returns
+    -------
+    ValidationResult
+        Validation outcome for the DataFrame.
 
     Raises
     ------

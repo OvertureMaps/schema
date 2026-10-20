@@ -37,13 +37,15 @@ def entry_point_to_path(entry_point_path: str) -> tuple[PurePosixPath, str]:
 
     Parameters
     ----------
-    entry_point_path
+    entry_point_path : str
         String in `"module.path:ClassName"` form.
 
     Returns
     -------
-    tuple[PurePosixPath, str]
-        Directory derived from the module path, and the class name.
+    PurePosixPath
+        Directory derived from the module path.
+    str
+        The class name.
 
     Examples
     --------
@@ -65,8 +67,13 @@ def entry_point_class_alias(entry_point_path: str) -> str:
 
     Parameters
     ----------
-    entry_point_path
+    entry_point_path : str
         String in `"module.path:ClassName"` form, or a bare name.
+
+    Returns
+    -------
+    str
+        Snake-case class name.
 
     Examples
     --------
@@ -86,10 +93,10 @@ def resolve_entry_point_key(name: str, registry: Mapping[str, object]) -> str:
 
     Parameters
     ----------
-    name
+    name : str
         User-supplied identifier: an entry-point key or a snake-case
         class-name alias.
-    registry
+    registry : Mapping[str, object]
         Mapping whose keys are entry-point strings.
 
     Returns

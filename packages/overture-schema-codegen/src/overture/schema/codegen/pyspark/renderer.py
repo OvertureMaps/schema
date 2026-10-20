@@ -249,22 +249,22 @@ class RenderFrame:
 
     Attributes
     ----------
-    prefix_structs
+    prefix_structs : tuple[str, ...]
         Struct segment names between the previous iterating segment (or the
         start of the path) and this one. For the outermost frame this is the
         column struct prefix; joined with `segment.name` it forms the frame's
         `F.col(...)` column. For an inner named frame it is the descent from
         the previous element; for an anonymous frame it is empty.
-    segment
+    segment : ArraySegment | MapSegment
         The iterating segment (`ArraySegment` or `MapSegment`) this frame
         iterates. Anonymous when the parent element is itself the container.
-    is_innermost
+    is_innermost : bool
         Whether this is the leaf-most iteration (the base runtime helper is
         used; outer frames use the `nested_` flattening helper).
-    var_name
+    var_name : str
         The lambda parameter name (`el` / `el2` / `inner` for arrays,
         `k` / `v` for maps).
-    helper_name
+    helper_name : str
         The `column_patterns` helper this frame calls.
     """
 

@@ -82,17 +82,28 @@ def build_feature(
 ) -> dict[str, Any]:
     """Build a feature dictionary with the specified parameters.
 
-    Args:
-        id: Feature ID (None to omit)
-        theme: Theme name (None to omit)
-        type: Feature type
-        geometry_type: Geometry type (Point, Polygon, etc.)
-        coordinates: Custom coordinates (None for sensible defaults)
-        version: Feature version (None to omit)
-        geojson_format: If True, use GeoJSON format; if False, use flat format
-        **properties: Additional properties to include
+    Parameters
+    ----------
+    id : str | None
+        Feature ID (None to omit)
+    theme : str | None
+        Theme name (None to omit)
+    type : str
+        Feature type
+    geometry_type : str
+        Geometry type (Point, Polygon, etc.)
+    coordinates : list | None
+        Custom coordinates (None for sensible defaults)
+    version : int | None
+        Feature version (None to omit)
+    geojson_format : bool
+        If True, use GeoJSON format; if False, use flat format
+    **properties : Any
+        Additional properties to include
 
-    Returns:
+    Returns
+    -------
+    dict[str, Any]
         Feature dictionary in the requested format
     """
     # Default coordinates based on geometry type

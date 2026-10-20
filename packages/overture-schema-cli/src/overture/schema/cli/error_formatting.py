@@ -33,14 +33,18 @@ def group_errors_by_discriminator(
     likely intended type, rather than overwhelming the user with errors from all
     possible union variants.
 
-    Args
-    ----
-        errors: List of Pydantic validation error dicts
-        metadata: Pre-computed UnionMetadata from introspect_union()
-        structural_cache: Optional cache for structural tuple computation
+    Parameters
+    ----------
+    errors : list[ValidationErrorDict]
+        List of Pydantic validation error dicts
+    metadata : UnionMetadata
+        Pre-computed UnionMetadata from introspect_union()
+    structural_cache : dict[ErrorLocation, StructuralTuple] | None
+        Optional cache for structural tuple computation
 
     Returns
     -------
+    dict[ErrorLocation, list[ValidationErrorDict]]
         Dictionary mapping discriminator paths to lists of errors
 
     Examples
@@ -106,14 +110,18 @@ def analyze_collection_heterogeneity(
 ) -> tuple[dict[int, type[BaseModel] | None], bool]:
     """Analyze a collection to detect type heterogeneity.
 
-    Args
-    ----
-        errors: List of Pydantic validation error dicts
-        metadata: Pre-computed UnionMetadata from introspect_union()
-        structural_cache: Optional cache for structural tuple computation
+    Parameters
+    ----------
+    errors : list[ValidationErrorDict]
+        List of Pydantic validation error dicts
+    metadata : UnionMetadata
+        Pre-computed UnionMetadata from introspect_union()
+    structural_cache : dict[ErrorLocation, StructuralTuple] | None
+        Optional cache for structural tuple computation
 
     Returns
     -------
+    tuple[dict[int, type[BaseModel] | None], bool]
         Tuple of (item_types, is_heterogeneous) where:
         - item_types: Dict mapping item index to inferred model type
         - is_heterogeneous: True if collection contains multiple model types
@@ -258,15 +266,20 @@ def select_most_likely_errors(
     For heterogeneous collections, returns ALL errors since different items
     may have different intended types.
 
-    Args
-    ----
-        error_groups: Dictionary mapping discriminator paths to error lists
-        metadata: Optional UnionMetadata for heterogeneity detection
-        all_errors: Optional list of all errors for heterogeneity analysis
-        structural_cache: Optional cache for structural tuple computation
+    Parameters
+    ----------
+    error_groups : dict[ErrorLocation, list[ValidationErrorDict]]
+        Dictionary mapping discriminator paths to error lists
+    metadata : UnionMetadata | None
+        Optional UnionMetadata for heterogeneity detection
+    all_errors : list[ValidationErrorDict] | None
+        Optional list of all errors for heterogeneity analysis
+    structural_cache : dict[ErrorLocation, StructuralTuple] | None
+        Optional cache for structural tuple computation
 
     Returns
     -------
+    tuple[list[ValidationErrorDict], bool, bool, dict[int, type[BaseModel] | None]]
         Tuple of (errors_list, is_tied, is_heterogeneous, item_types) where:
         - errors_list: List of errors to display
         - is_tied: True if multiple groups had the same minimum error count
@@ -328,12 +341,14 @@ def select_most_likely_errors(
 def format_path(filtered_loc: list[str | int]) -> str:
     """Convert filtered location path to dot-separated string.
 
-    Args
-    ----
-        filtered_loc: List of path components (strings and integers)
+    Parameters
+    ----------
+    filtered_loc : list[str | int]
+        List of path components (strings and integers)
 
     Returns
     -------
+    str
         Formatted path string (e.g., "properties.name" or "items[0].value")
     """
     path_str = ""
@@ -363,19 +378,28 @@ def format_validation_errors_verbose(
 ) -> bool:
     """Format and display multiple validation errors for a single item in verbose mode.
 
-    Args
-    ----
-        errors: List of validation errors for this item
-        console: Rich Console instance for output
-        metadata: Pre-computed UnionMetadata from introspect_union() (optional)
-        item_type: The inferred type for this item
-        structural_cache: Optional cache for structural tuple computation
-        original_data: Original input data for extracting feature details
-        item_index: Index of item in collection
-        show_fields: List of field names to display alongside errors
+    Parameters
+    ----------
+    errors : list[ValidationErrorDict]
+        List of validation errors for this item
+    console : Console
+        Rich Console instance for output
+    metadata : UnionMetadata | None
+        Pre-computed UnionMetadata from introspect_union() (optional)
+    item_type : type[BaseModel] | None
+        The inferred type for this item
+    structural_cache : dict[ErrorLocation, StructuralTuple] | None
+        Optional cache for structural tuple computation
+    original_data : dict[str, Any] | list[Any] | None
+        Original input data for extracting feature details
+    item_index : int | None
+        Index of item in collection
+    show_fields : list[str] | None
+        List of field names to display alongside errors
 
     Returns
     -------
+    bool
         True if errors were displayed, False otherwise
     """
     if not errors or not original_data:
@@ -469,17 +493,26 @@ def format_validation_error(
 ) -> None:
     """Format and print a single validation error.
 
-    Args
-    ----
-        error: Pydantic validation error dict
-        console: Rich Console instance for output
-        metadata: Pre-computed UnionMetadata from introspect_union() (optional)
-        show_model_hint: Show which model was selected for validation (first error only)
-        item_type: The inferred type for this item (always provided if available)
-        show_item_type: Whether to display the item type in the path (True for heterogeneous collections)
-        structural_cache: Optional cache for structural tuple computation
-        original_data: Original input data for extracting feature details (optional)
-        show_feature_data: Whether to display feature data with error (verbose mode)
+    Parameters
+    ----------
+    error : ValidationErrorDict
+        Pydantic validation error dict
+    console : Console
+        Rich Console instance for output
+    metadata : UnionMetadata | None
+        Pre-computed UnionMetadata from introspect_union() (optional)
+    show_model_hint : bool
+        Show which model was selected for validation (first error only)
+    item_type : type[BaseModel] | None
+        The inferred type for this item (always provided if available)
+    show_item_type : bool
+        Whether to display the item type in the path (True for heterogeneous collections)
+    structural_cache : dict[ErrorLocation, StructuralTuple] | None
+        Optional cache for structural tuple computation
+    original_data : dict[str, Any] | list[Any] | None
+        Original input data for extracting feature details (optional)
+    show_feature_data : bool
+        Whether to display feature data with error (verbose mode)
     """
     loc = error["loc"]
 

@@ -1,4 +1,4 @@
-.PHONY: default uv-sync clean-pyspark generate-pyspark check check-namespace test-all test test-only docformat docformat-only doctest doctest-only mypy mypy-only lint-only format update-baselines
+.PHONY: default uv-sync clean-pyspark generate-pyspark check check-namespace test-all test test-only docformat docformat-only doclint doclint-only doctest doctest-only mypy mypy-only lint-only format update-baselines
 
 TESTMON ?= --testmon
 
@@ -29,7 +29,7 @@ generate-pyspark: uv-sync clean-pyspark
 	@uv run ruff format --quiet $(PYSPARK_EXPRESSIONS) $(PYSPARK_GENERATED_TESTS)
 
 check: uv-sync generate-pyspark
-	@$(MAKE) -j test-only docformat-only doctest-only lint-only mypy-only check-namespace
+	@$(MAKE) -j test-only docformat-only doclint-only doctest-only lint-only mypy-only check-namespace
 
 # Guard the PEP 420 namespace roots. overture/ and overture/schema/ are
 # implicit namespace packages -- no __init__.py -- so every workspace package
@@ -69,6 +69,17 @@ docformat: uv-sync docformat-only
 docformat-only:
 	@find packages/*/src -name "*.py" -type f -not -name "__*" \
 		| xargs uv run pydocstyle --convention=numpy --add-ignore=D102,D105,D200,D205,D400
+
+# pydoclint compares docstrings with signatures; [tool.pydoclint] in
+# pyproject.toml has the rules. It skips a docstring with no numpy section,
+# so a Google-style `Args:` heading passes it; the git grep catches those.
+# git grep exits 1 for no match, 0 for a match, >1 on error: only 1 passes.
+doclint: uv-sync doclint-only
+
+doclint-only:
+	@uv run pydoclint --quiet packages/ tests/
+	@git grep -nE '^[[:space:]]+(Args|Arguments|Returns|Raises|Yields):[[:space:]]*$$' -- '*.py'; \
+		test $$? -eq 1 || { echo "Google-style docstring sections above; use numpydoc" >&2; exit 1; }
 
 doctest: uv-sync doctest-only
 

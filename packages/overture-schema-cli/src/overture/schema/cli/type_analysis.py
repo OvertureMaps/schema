@@ -54,13 +54,18 @@ def _process_union_member(
 ) -> None:
     """Process a single union member, handling nesting recursively.
 
-    Args
-    ----
-        member: A union member type (could be Annotated, BaseModel, or nested union)
-        discriminator_to_model: Dict to populate with discriminator value mappings
-        model_name_to_model: Dict to populate with model name mappings
-        nested_unions: Dict to populate with nested union metadata
-        discriminator_field: The discriminator field name from the parent union annotation
+    Parameters
+    ----------
+    member : Any
+        A union member type (could be Annotated, BaseModel, or nested union)
+    discriminator_to_model : dict[str, type[BaseModel]]
+        Dict to populate with discriminator value mappings
+    model_name_to_model : dict[str, type[BaseModel]]
+        Dict to populate with model name mappings
+    nested_unions : dict[str, UnionMetadata]
+        Dict to populate with nested union metadata
+    discriminator_field : str | None
+        The discriminator field name from the parent union annotation
     """
     member_origin = get_origin(member)
 
@@ -120,12 +125,14 @@ def introspect_union(union_type: "TypeForm[object]") -> UnionMetadata:
     mappings, and nested union information. This metadata is used for structural
     analysis of validation error paths.
 
-    Args
-    ----
-        union_type: A union type (may be Annotated with discriminator)
+    Parameters
+    ----------
+    union_type : TypeForm[object]
+        A union type (may be Annotated with discriminator)
 
     Returns
     -------
+    UnionMetadata
         UnionMetadata describing the structure of the union
 
     Examples
@@ -232,14 +239,18 @@ def get_or_create_structural_tuple(
     When validating collections with systematic errors (e.g., same field missing
     across many rows), this cache dramatically reduces redundant classification work.
 
-    Args
-    ----
-        loc: The location tuple from a Pydantic validation error
-        metadata: Pre-computed UnionMetadata from introspect_union()
-        cache: Optional dict to cache results (same cache used across all errors)
+    Parameters
+    ----------
+    loc : ErrorLocation
+        The location tuple from a Pydantic validation error
+    metadata : UnionMetadata
+        Pre-computed UnionMetadata from introspect_union()
+    cache : dict[ErrorLocation, StructuralTuple] | None
+        Optional dict to cache results (same cache used across all errors)
 
     Returns
     -------
+    StructuralTuple
         Tuple of same length as loc with structural labels for each element
     """
     if cache is not None and loc in cache:
@@ -266,13 +277,16 @@ def create_structural_tuple(
     - model: Model class names in non-discriminated unions (e.g., 'Segment')
     - field: Actual data field names (e.g., 'height', 'id')
 
-    Args
-    ----
-        loc: The location tuple from a Pydantic validation error
-        metadata: Pre-computed UnionMetadata from introspect_union()
+    Parameters
+    ----------
+    loc : ErrorLocation
+        The location tuple from a Pydantic validation error
+    metadata : UnionMetadata
+        Pre-computed UnionMetadata from introspect_union()
 
     Returns
     -------
+    StructuralTuple
         Tuple of same length as loc with structural labels for each element
 
     Examples
@@ -329,12 +343,14 @@ def create_structural_tuple(
 def get_item_index(loc: ErrorLocation) -> int | None:
     """Extract the top-level list index from an error location, if present.
 
-    Args
-    ----
-        loc: The location tuple from a Pydantic validation error
+    Parameters
+    ----------
+    loc : ErrorLocation
+        The location tuple from a Pydantic validation error
 
     Returns
     -------
+    int | None
         The list index if the error is within a list item, otherwise None
     """
     if loc and isinstance(loc[0], int):
@@ -352,14 +368,18 @@ def infer_model_from_error(
     Uses the LAST (most specific) discriminator or model name found in the
     error path, as nested unions may have multiple discriminators.
 
-    Args
-    ----
-        error: Pydantic validation error dict
-        metadata: Pre-computed UnionMetadata from introspect_union()
-        structural_cache: Optional cache for structural tuple computation
+    Parameters
+    ----------
+    error : ValidationErrorDict
+        Pydantic validation error dict
+    metadata : UnionMetadata
+        Pre-computed UnionMetadata from introspect_union()
+    structural_cache : dict[ErrorLocation, StructuralTuple] | None
+        Optional cache for structural tuple computation
 
     Returns
     -------
+    type[BaseModel] | None
         The inferred model type, or None if it cannot be determined
     """
     loc = error["loc"]
@@ -401,13 +421,16 @@ def extract_discriminator_path(
     This path uniquely identifies which model variant was selected during validation,
     allowing errors to be grouped by the type they're associated with.
 
-    Args
-    ----
-        loc: The location tuple from a Pydantic validation error
-        structural: The parallel structural tuple
+    Parameters
+    ----------
+    loc : ErrorLocation
+        The location tuple from a Pydantic validation error
+    structural : StructuralTuple
+        The parallel structural tuple
 
     Returns
     -------
+    ErrorLocation
         The discriminator path portion of the location tuple (excluding list_index and union)
 
     Examples

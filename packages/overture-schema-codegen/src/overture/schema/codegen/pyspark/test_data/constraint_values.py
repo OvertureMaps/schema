@@ -113,10 +113,15 @@ def uncurated_pattern_error(desc: ExpressionDescriptor, *, side: str) -> ValueEr
 
     Parameters
     ----------
-    desc
+    desc : ExpressionDescriptor
         The uncurated `check_pattern` descriptor.
-    side
+    side : str
         Which value could not be produced -- `"valid"` or `"invalid"`.
+
+    Returns
+    -------
+    ValueError
+        The error for the caller to raise.
     """
     return ValueError(
         f"No {side} value defined for check_pattern with "
@@ -136,7 +141,7 @@ def valid_bound(desc: ExpressionDescriptor) -> object:
 
     Parameters
     ----------
-    desc
+    desc : ExpressionDescriptor
         A `check_bounds` descriptor with at least one bound kwarg.
 
     Returns
@@ -183,8 +188,13 @@ def invalid_bound(desc: ExpressionDescriptor) -> object:
 
     Parameters
     ----------
-    desc
+    desc : ExpressionDescriptor
         A `check_bounds` descriptor with at least one bound kwarg.
+
+    Returns
+    -------
+    object
+        A value that violates the bounds.
 
     Raises
     ------

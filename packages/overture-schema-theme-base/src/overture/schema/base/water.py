@@ -97,8 +97,8 @@ class Water(
     In Overture data releases, water features are sourced from OpenStreetMap. There are three main
     categories of water feature: ocean area, inland water bodies, and physical features.
 
-    Ocean
-    -----
+    **Ocean**
+
     The `subtype` value `"ocean"` indicates an ocean area feature whose geometry represents the
     surface area of an ocean or part of an ocean. Ocean area may be tiled into many small polygons
     of consistent complexity to ensure manageable geometry. In Overture data releases, ocean area
@@ -106,8 +106,8 @@ class Water(
     version of the output from the OSMCoastline tool. In aggregate, all the ocean area features
     represent the inverse of the land features with subtype `"land"` and class `"land"`.
 
-    Physical
-    --------
+    **Physical**
+
     The `subtype` value `"physical"` indicates a named geographic water feature rather than a water
     surface. Classes include `"ocean"`, `"sea"`, `"bay"`, `"strait"`, `"shoal"`, `"cape"`, and
     `"waterfall"`, and geometries may be points, lines, or polygons. In Overture data releases,
@@ -120,8 +120,8 @@ class Water(
     when rendering water fills or computing water area so the same water isn't drawn or counted
     twice.
 
-    Inland Water
-    ------------
+    **Inland Water**
+
     Subtypes other than `"ocean"` and `"physical"` represent inland water bodies. In Overture data
     releases, these features are sourced from the OpenStreetMap tag `natural=*` where the tag value
     indicates a water body, as well as the tags `natural=water`, `waterway=*`, and `water=*`.

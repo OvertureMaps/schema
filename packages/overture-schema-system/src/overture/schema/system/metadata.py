@@ -102,7 +102,7 @@ class Metadata(MutableMapping[Key, object]):
 
     Parameters
     ----------
-    data : Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None
+    data : Mapping[Key, object] | Iterable[tuple[Key, object]] | None
         Source data to build the `Metadata` dictionary
 
     Examples
@@ -236,7 +236,7 @@ class Metadata(MutableMapping[Key, object]):
 
         Parameters
         ----------
-        data : Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None
+        data : Mapping[Key, object] | Iterable[tuple[Key, object]] | None
             New data to insert (ignored if the value is `None`)
         """
         if data:
@@ -273,7 +273,7 @@ class Metadata(MutableMapping[Key, object]):
         ----------
         source : object
             Value to retrieve the metadata from
-        default : default: Mapping[Key, object] | Iterable[tuple[Key, object]] | None = None
+        default : Mapping[Key, object] | Iterable[tuple[Key, object]] | None
             Default value to return if `source` has no attached metadata
 
         Returns

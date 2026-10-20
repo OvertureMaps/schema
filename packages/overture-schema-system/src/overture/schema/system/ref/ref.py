@@ -65,7 +65,7 @@ class Reference:
     instance of this class ("the thing that relates"). The relatee is type that is the object or
     target of the relationship ("the thing related to").
 
-    Parameters
+    Attributes
     ----------
     relationship : Relationship
         The category of the relationship between the relator and the relatee.

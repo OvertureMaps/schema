@@ -103,6 +103,17 @@ def _coalesce_bounds(
     unambiguous merge, so this raises rather than silently keeping one -- the
     author should state the single intended bound.
 
+    Parameters
+    ----------
+    descriptors : list[ExpressionDescriptor]
+        A field's expression descriptors, possibly including several
+        `check_bounds` descriptors.
+
+    Returns
+    -------
+    list[ExpressionDescriptor]
+        The descriptors with `check_bounds` merged into one.
+
     Raises
     ------
     ValueError
@@ -228,20 +239,34 @@ def _walk_field_shape(
 
     Parameters
     ----------
-    path
+    shape : FieldShape
+        The shape to descend.
+    path : FieldPath
         The path reached so far, promoted once per `ArrayOf` layer
         crossed. `required` and `path` move together: a field's path
         starts as a plain struct path and is promoted exactly when the
         first `ArrayOf` clears `required`, so while `required` holds the
         path is still the plain struct path -- a standalone
         `check_required` always lands there.
-    required
+    base_type : str | None
+        The field's terminal-scalar base type, if known.
+    required : bool
         Whether the field still needs a `check_required`. Cleared by the
         first `ArrayOf`: before it, `check_required` merges into the
         terminal Check; from it on, it is a standalone column-level Check.
-    carried_element
+    required_gate : FieldPath | None
+        The path gating the field's `check_required`, if any.
+    carried_element : list[ExpressionDescriptor]
         Element-level descriptors from `ArrayOf` layers above, prepended
         to the terminal's own element-level descriptors.
+
+    Returns
+    -------
+    list[Check]
+        The Checks emitted for the field.
+    _ShapeTerminal | None
+        The terminal for the `FieldSpec` recursion, or `None` when the
+        walker fully handles the terminal.
     """
     match shape:
         case NewTypeShape(name=name, inner=inner):

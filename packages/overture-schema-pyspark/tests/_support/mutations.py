@@ -41,24 +41,33 @@ def mutate_require_any_of(
 ) -> dict:
     """Null every named field so `require_any_of` fires.
 
+    See `_null_all_named_fields` for the full nesting semantics.
+
     Parameters
     ----------
-    array_path
+    row_dict : dict
+        Row to mutate.
+    field_names : list[FieldPath | str]
+        Fields to null.
+    array_path : FieldPath | str | None
         Array column the constrained model lives inside. When None, the
         fields live at the row root.
-    struct_path
+    struct_path : str | None
         Optional single intermediate struct field between the array
         element (or map value) and the target fields.
-    map_path
+    map_path : FieldPath | str | None
         Map column whose `dict[K, Model]` value carries the constraint.
         Mutually exclusive with `array_path`.
-    element_path
+    element_path : FieldPath | str | None
         Full element-relative descent to the constrained model, walked
         generically when the nesting mixes map and array boundaries
         (`subs{value}[]`, `items[].configs{value}`) that no scalar path
         expresses. Mutually exclusive with the scalar paths above.
 
-    See `_null_all_named_fields` for the full nesting semantics.
+    Returns
+    -------
+    dict
+        The mutated row.
     """
     return _null_all_named_fields(
         row_dict,

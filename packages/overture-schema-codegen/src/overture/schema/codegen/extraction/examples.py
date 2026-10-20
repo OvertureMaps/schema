@@ -203,9 +203,9 @@ def flatten_model_instance(
 
     Parameters
     ----------
-    instance
+    instance : BaseModel
         The Pydantic model instance to flatten.
-    prefix
+    prefix : str
         Dot-notation prefix accumulated from parent fields.
 
     Returns
@@ -244,9 +244,9 @@ def augment_missing_fields(
 
     Parameters
     ----------
-    rows
+    rows : list[tuple[str, Any]]
         Flattened key-value pairs from a concrete model instance.
-    field_names
+    field_names : list[str]
         Merged field name list from the union spec.
 
     Returns
@@ -321,12 +321,17 @@ def load_examples(
         Name of the model to load examples for.
     field_names : list[str]
         List of field names for ordering output.
-    pyproject_source : type or None
+    pyproject_source : type | None
         Type to use for finding pyproject.toml. If None,
         uses validation_type if it's a class.
-    model_fields : dict[str, FieldInfo] or None
+    model_fields : dict[str, FieldInfo] | None
         Field info dict for Literal injection. If None, infers
         from validation_type if it's a BaseModel class.
+
+    Returns
+    -------
+    list[ExampleRecord]
+        Examples flattened and ordered by `field_names`; empty on any failure.
     """
     source_type = pyproject_source if pyproject_source is not None else validation_type
     if not isinstance(source_type, type):

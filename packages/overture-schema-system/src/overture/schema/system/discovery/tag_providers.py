@@ -17,12 +17,12 @@ def feature_provider(
 
     Parameters
     ----------
-    types
+    types : Iterable[type[BaseModel]]
         Concrete `BaseModel` subclasses for the entry point. For
         discriminated-union features this is every arm.
-    key
+    key : ModelKey
         Key identifying the model.
-    tags
+    tags : set[str]
         Current tags; may be extended.
 
     Returns

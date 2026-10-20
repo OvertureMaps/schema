@@ -107,12 +107,14 @@ def create_union_type_from_models(
 
     Uses discriminated unions for OvertureFeatures when possible for better performance.
 
-    Args
-    ----
-        models: Dict mapping ModelKey to Pydantic model classes
+    Parameters
+    ----------
+    models : ModelDict
+        Dict mapping ModelKey to Pydantic model classes
 
     Returns
     -------
+    UnionType
         Union type suitable for TypeAdapter
     """
     if not models:
@@ -146,18 +148,22 @@ def create_union_type_from_models(
 def validate_feature(data: dict, model_type: UnionType) -> BaseModel:
     """Validate a single feature against the model type.
 
-    Args
-    ----
-        data: Feature data to validate (GeoJSON or flat format)
-        model_type: Union type for validation
+    Parameters
+    ----------
+    data : dict
+        Feature data to validate (GeoJSON or flat format)
+    model_type : UnionType
+        Union type for validation
 
     Returns
     -------
+    BaseModel
         Validated model instance
 
     Raises
     ------
-        ValidationError: If validation fails
+    ValidationError
+        If validation fails
     """
     adapter = TypeAdapter(model_type)
     if isinstance(data, dict) and _is_geojson_feature(data):
@@ -169,18 +175,22 @@ def validate_feature(data: dict, model_type: UnionType) -> BaseModel:
 def validate_features(data: list, model_type: UnionType) -> list[BaseModel]:
     """Validate a list of features against the model type.
 
-    Args
-    ----
-        data: List of feature data to validate (GeoJSON or flat format)
-        model_type: Union type for validation
+    Parameters
+    ----------
+    data : list
+        List of feature data to validate (GeoJSON or flat format)
+    model_type : UnionType
+        Union type for validation
 
     Returns
     -------
+    list[BaseModel]
         List of validated model instances
 
     Raises
     ------
-        ValidationError: If validation fails
+    ValidationError
+        If validation fails
     """
     # Check if any items are GeoJSON features
     has_geojson = any(
@@ -214,12 +224,14 @@ def resolve_types(
 def get_source_name(filename: Path) -> str:
     """Get display name for input source.
 
-    Args
-    ----
-        filename: Path to input file or "-" for stdin
+    Parameters
+    ----------
+    filename : Path
+        Path to input file or "-" for stdin
 
     Returns
     -------
+    str
         Display name: "<stdin>" for stdin input, otherwise the filename
     """
     return "<stdin>" if str(filename) == "-" else str(filename)
@@ -262,18 +274,22 @@ def cli() -> None:  # noqa: D301
 def load_input(filename: Path) -> tuple[dict | list, str]:
     """Load and parse input from file or stdin.
 
-    Args
-    ----
-        filename: Path to input file, or "-" for stdin
+    Parameters
+    ----------
+    filename : Path
+        Path to input file, or "-" for stdin.
 
     Returns
     -------
-        Tuple of (parsed_data, source_name)
+    tuple[dict | list, str]
+        The parsed data and the name of its source.
 
     Raises
     ------
-        yaml.YAMLError: If input is invalid YAML/JSON
-        SystemExit: If filename doesn't exist or isn't a file
+    yaml.YAMLError
+        If input is invalid YAML/JSON.
+    SystemExit
+        If filename doesn't exist or isn't a file.
     """
     if str(filename) == "-":
         # Read all stdin content
@@ -322,8 +338,8 @@ def perform_validation(data: dict | list, model_type: UnionType) -> None:
     - List of features (list)
     - GeoJSON FeatureCollection (dict with type="FeatureCollection")
 
-    Args
-    ----
+    Parameters
+    ----------
     data : dict | list
         Parsed data to validate
     model_type : UnionType
@@ -355,17 +371,21 @@ def compute_collection_statistics(
 ]:
     """Compute validation statistics for heterogeneous collections.
 
-    Args
-    ----
-    item_types : dict[int, type[BaseModel] | None]
+    Parameters
+    ----------
+    item_types : dict[int, builtins.type[BaseModel] | None]
         Mapping from item index to detected model type
     filtered_errors : list
         List of filtered validation errors
 
     Returns
     -------
-    tuple
-        Tuple of (items_without_errors, type_counts, items_with_errors_by_type)
+    items_without_errors : int
+        Count of items with no validation errors
+    type_counts : Counter[builtins.type[BaseModel] | None]
+        Counter of items by model type
+    items_with_errors_by_type : dict[builtins.type[BaseModel], set[int]]
+        Mapping from model type to set of item indices with errors
     """
     # Compute statistics: group items by type
     type_counts: Counter[builtins.type[BaseModel] | None] = Counter(item_types.values())
@@ -405,13 +425,13 @@ def print_collection_statistics(
 ) -> None:
     """Print validation statistics for heterogeneous collections.
 
-    Args
-    ----
+    Parameters
+    ----------
     items_without_errors : int
         Count of items with no validation errors
-    type_counts : Counter[type[BaseModel] | None]
+    type_counts : Counter[builtins.type[BaseModel] | None]
         Counter of items by model type
-    items_with_errors_by_type : dict[type[BaseModel], set[int]]
+    items_with_errors_by_type : dict[builtins.type[BaseModel], set[int]]
         Mapping from model type to set of item indices with errors
     stderr : Console
         Console for stderr output
@@ -575,8 +595,8 @@ def handle_validation_error(
     Groups errors by discriminator, selects most likely error groups, and provides
     helpful diagnostics for heterogeneous collections and ambiguous types.
 
-    Args
-    ----
+    Parameters
+    ----------
     e : ValidationError
         ValidationError from pydantic
     model_type : UnionType
@@ -696,8 +716,8 @@ def handle_validation_error(
 def handle_generic_error(e: Exception, filename: Path, error_type: str) -> None:
     """Handle generic errors during validation.
 
-    Args
-    ----
+    Parameters
+    ----------
     e : Exception
         Exception that occurred
     filename : Path

@@ -55,15 +55,18 @@ def compute_reverse_references(
 ) -> dict[TypeIdentity, list[UsedByEntry]]:
     """Compute reverse references from types to their referrers.
 
-    Returns a dict mapping TypeIdentity to lists of UsedByEntry, sorted with
-    models before NewTypes, alphabetical within each group.
-
     Parameters
     ----------
-    model_specs
+    model_specs : Sequence[ModelSpec]
         Feature-level specs (RecordSpec or UnionSpec).
-    all_specs
+    all_specs : Mapping[TypeIdentity, SupplementarySpec]
         Supplementary types (enums, newtypes, sub-models).
+
+    Returns
+    -------
+    dict[TypeIdentity, list[UsedByEntry]]
+        Lists of referrers keyed by `TypeIdentity`, sorted with models
+        before NewTypes, alphabetical within each group.
     """
     # An insertion-ordered set (dict keys) per target: dedups like a set but
     # iterates deterministically, so sorted()'s stable order breaks ties by

@@ -332,6 +332,18 @@ def _expand_model_fields(
 def _short_variant_name(class_name: str, union_name: str) -> str:
     """Strip common suffix to produce short variant name.
 
+    Parameters
+    ----------
+    class_name : str
+        The variant class name.
+    union_name : str
+        The union name whose suffix `class_name` may share.
+
+    Returns
+    -------
+    str
+        `class_name` without the shared suffix.
+
     Examples
     --------
     >>> _short_variant_name("RoadSegment", "Segment")

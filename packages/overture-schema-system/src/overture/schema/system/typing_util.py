@@ -23,7 +23,7 @@ def collect_types(tp: TypeForm[object]) -> set[type]:
 
     Parameters
     ----------
-    tp
+    tp : TypeForm[object]
         A type annotation. Typically a class, an `Annotated[...]`
         wrapper, or a discriminated union of classes.
 

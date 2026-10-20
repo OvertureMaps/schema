@@ -209,20 +209,20 @@ def analyze_type(
 
     Parameters
     ----------
-    annotation
+    annotation : object
         The annotation to analyze.
-    owner
+    owner : type | None
         The model class these annotations belong to. Supplies the
         namespace for resolving forward references (`list["Node"]`
         stores `"Node"` as a bare string). When None, an unresolvable
         forward ref raises `UnresolvedForwardRefError`.
-    model_resolver
+    model_resolver : ModelResolver | None
         Optional callback invoked when the terminal is a `BaseModel`
         subclass. Returns the `FieldShape` to use at that position --
         typically a `ModelRef` with a resolved `RecordSpec`. Defaults to
         a `Scalar` carrying the class as `source_type` for callers that
         cannot resolve sub-models (e.g. dict key/value analysis).
-    union_resolver
+    union_resolver : UnionResolver | None
         Optional callback invoked when the terminal is a multi-arm
         union of `BaseModel` subclasses. Returns the `FieldShape` to
         use -- typically a `UnionRef` with a resolved `UnionSpec`.
@@ -230,9 +230,12 @@ def analyze_type(
 
     Returns
     -------
-    tuple[FieldShape, bool, str | None]
-        The structural shape, whether the field accepts `None`, and
-        the first `FieldInfo.description` encountered during unwrapping.
+    FieldShape
+        The structural shape.
+    bool
+        Whether the field accepts `None`.
+    str | None
+        The first `FieldInfo.description` encountered during unwrapping.
     """
     return _unwrap(
         annotation,
@@ -256,19 +259,30 @@ def _unwrap(
 
     Parameters
     ----------
-    newtype_ctx
+    annotation : object
+        The annotation layer to unwrap.
+    newtype_ctx : _NewTypeCtx | None
         The innermost `NewType` currently in scope, or None. Sets the
         terminal `Primitive.base_type` and tags constraints with their
         contributing `NewType`.
-    owner
+    owner : type | None
         The model class supplying the namespace for forward-ref
         resolution; invariant across the walk.
+    model_resolver : ModelResolver | None
+        Callback resolving `BaseModel` terminals; see `analyze_type`.
+    union_resolver : UnionResolver | None
+        Callback resolving multi-arm union terminals; see `analyze_type`.
+    seen_rootmodels : frozenset[type]
+        `RootModel` subclasses already unwrapped on this path.
 
     Returns
     -------
-    tuple
-        The shape subtree, whether this layer or any descendant accepts
-        `None`, and the first `FieldInfo.description` found.
+    FieldShape
+        The shape subtree.
+    bool
+        Whether this layer or any descendant accepts `None`.
+    str | None
+        The first `FieldInfo.description` found.
     """
 
     def _recurse(

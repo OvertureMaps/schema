@@ -105,7 +105,7 @@ def generate_pyspark_module(spec: ModelSpec) -> GeneratedModule:
 
     Parameters
     ----------
-    spec
+    spec : ModelSpec
         The extracted model spec to generate from.
 
     Returns
@@ -124,7 +124,7 @@ def generate_pyspark_modules(
 
     Parameters
     ----------
-    model_specs
+    model_specs : Sequence[ModelSpec]
         Extracted model specs to generate from.
 
     Returns

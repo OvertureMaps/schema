@@ -118,9 +118,9 @@ def set_at_path(path: FieldPath | str, value: object) -> Callable[[dict], dict]:
 
     Parameters
     ----------
-    path
+    path : FieldPath | str
         A `FieldPath` or its canonical encoded form (`"rules[].tags[].v"`).
-    value
+    value : object
         The value to set at the resolved path.
 
     Returns

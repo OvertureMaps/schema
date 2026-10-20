@@ -40,9 +40,7 @@ class GenerateOmitNullableOptionalJsonSchema(GenerateJsonSchema):
     }
 
 
-    ⚠️ Warning
-    ----------
-    When using this class to generate a JSON Schema, you must dump your model JSON carefully to
+    **Warning.** When using this class to generate a JSON Schema, you must dump your model JSON carefully to
     ensure that it matches the JSON Schema.
 
     When using `BaseModel.model_dump_json` or `TypeAdapter.dump_json`, use the argument
@@ -55,9 +53,7 @@ class GenerateOmitNullableOptionalJsonSchema(GenerateJsonSchema):
     >>> print(FooModel().model_dump_json(exclude_unset=True))
     {}
 
-    Background
-    ----------
-    An optional field in Pydantic is a field with a default value. If a model field has a specified
+    **Background.** An optional field in Pydantic is a field with a default value. If a model field has a specified
     default value, the field does not need to be explicitly set on a model instance. Optional
     fields, and only optional fields, can be "unset" in a Pydantic model.
 
@@ -105,9 +101,7 @@ class GenerateOmitNullableOptionalJsonSchema(GenerateJsonSchema):
     where nullable optional fields are omitted from the JSON rather than assigned the literal value
     `null`.
 
-    Transformations
-    ---------------
-    This class makes the following changes to the default Pydantic JSON Schema for nullable optional
+    **Transformations.** This class makes the following changes to the default Pydantic JSON Schema for nullable optional
     fields only:
 
     1. The JSON Schema type `null` is removed as an allowed type from the field's schema, which will

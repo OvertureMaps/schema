@@ -16,12 +16,14 @@ def _format_nested_path(error_path: list[str | int]) -> str:
 
     Converts paths like ["sources", 0, "confidence"] into "sources[0].confidence".
 
-    Args
-    ----
-        error_path: List of field names (str) and array indices (int)
+    Parameters
+    ----------
+    error_path : list[str | int]
+        List of field names (str) and array indices (int)
 
     Returns
     -------
+    str
         Formatted path string with dots and brackets
     """
     parts: list[str] = []
@@ -45,12 +47,14 @@ def _has_nested_context(error_path: list[str | int]) -> bool:
 
     Returns True if the path has multiple fields or contains array indices.
 
-    Args
-    ----
-        error_path: Path to error field
+    Parameters
+    ----------
+    error_path : list[str | int]
+        Path to error field
 
     Returns
     -------
+    bool
         True if path is nested (multiple fields or has array index)
     """
     string_elements = sum(1 for e in error_path if isinstance(e, str))
@@ -68,13 +72,16 @@ def extract_feature_data(
     Flattens GeoJSON format (properties nested under 'properties' key) to
     flat format (properties at top level).
 
-    Args
-    ----
-        data: Input data (dict, list, or FeatureCollection)
-        item_index: Index of item in list/collection, or None for single feature
+    Parameters
+    ----------
+    data : dict[str, Any] | list[Any] | Any
+        Input data (dict, list, or FeatureCollection)
+    item_index : int | None
+        Index of item in list/collection, or None for single feature
 
     Returns
     -------
+    dict[str, Any]
         Flattened feature dict, or empty dict if extraction fails
     """
     try:
@@ -132,14 +139,18 @@ def _select_context_for_array_index_error(
     we can't select "sibling fields" because array items don't have siblings.
     Instead, show the parent array field with context.
 
-    Args
-    ----
-        feature: Flattened feature dict
-        error_path: Path ending with an array index
-        context_size: Number of neighboring fields to include
+    Parameters
+    ----------
+    feature : dict[str, Any]
+        Flattened feature dict
+    error_path : list[str | int]
+        Path ending with an array index
+    context_size : int
+        Number of neighboring fields to include
 
     Returns
     -------
+    dict[str, Any]
         Dict of selected fields showing context around the array
     """
     # Find the path up to the last string field (the array field itself)
@@ -240,15 +251,20 @@ def select_context_fields(
     error paths (e.g., ["geometry", "type"] or ["sources", 0, "confidence"]),
     navigates into the structure and selects the specific nested value.
 
-    Args
-    ----
-        feature: Flattened feature dict
-        error_path: Path to error field (may include array indices)
-        context_size: Number of neighboring fields to include on each side
-        pinned_fields: List of field names to always include (even outside context window)
+    Parameters
+    ----------
+    feature : dict[str, Any]
+        Flattened feature dict
+    error_path : list[str | int]
+        Path to error field (may include array indices)
+    context_size : int
+        Number of neighboring fields to include on each side
+    pinned_fields : list[str] | None
+        List of field names to always include (even outside context window)
 
     Returns
     -------
+    dict[str, Any]
         Dict of selected fields with their values
     """
     if not error_path:
@@ -507,13 +523,16 @@ def format_field_value(
 ) -> str:
     """Format a field value for display.
 
-    Args
-    ----
-        value: Field value to format
-        max_length: Maximum length before truncation
+    Parameters
+    ----------
+    value : object
+        Field value to format
+    max_length : int
+        Maximum length before truncation
 
     Returns
     -------
+    str
         Formatted string representation
     """
     # Handle None (missing fields)
@@ -589,17 +608,24 @@ def create_feature_display(
     wrapped in a Panel with rounded borders. All error fields are annotated with
     arrows and error messages, and highlighted in bright red.
 
-    Args
-    ----
-        fields: Dict of field names to values (in desired display order)
-        errors: List of (error_path, error_msg) tuples for all errors in this feature
-        item_index: Optional index of item in collection (for panel title)
-        item_type: Optional type name to display in panel title (e.g., "Building")
-        show_fields: List of field names to display in header
-        feature: Full feature dict for extracting show_fields values
+    Parameters
+    ----------
+    fields : dict[str, Any]
+        Dict of field names to values (in desired display order)
+    errors : list[tuple[list[str | int], str]]
+        List of (error_path, error_msg) tuples for all errors in this feature
+    item_index : int | None
+        Optional index of item in collection (for panel title)
+    item_type : str | None
+        Optional type name to display in panel title (e.g., "Building")
+    show_fields : list[str] | None
+        List of field names to display in header
+    feature : dict[str, Any] | None
+        Full feature dict for extracting show_fields values
 
     Returns
     -------
+    Panel
         Rich Panel containing the table, ready to print
     """
     # Create table without borders (for alignment only)
