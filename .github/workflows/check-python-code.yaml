@@ -43,6 +43,11 @@ jobs:
     permissions:
       contents: read
 
+    # uv picks its interpreter from .python-version (the 3.10 floor) ahead of
+    # whatever Python is on PATH, so without this every cell would run 3.10.
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -86,6 +91,11 @@ jobs:
       - name: Configure lock check
         if: matrix.resolution == 'locked'
         run: echo "UV_LOCKED=1" >> "$GITHUB_ENV"
+
+      # make check silences `uv sync`, so without this no line in a passing
+      # cell's log names the interpreter it ran.
+      - name: Report the cell's Python
+        run: uv run --no-project python -VV
 
       - name: Run make check
         run: make check
