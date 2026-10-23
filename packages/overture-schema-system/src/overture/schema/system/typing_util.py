@@ -3,8 +3,10 @@
 import types
 from typing import Annotated, Any, Union, get_args, get_origin
 
+from typing_extensions import TypeForm
 
-def collect_types(tp: Any) -> set[type]:  # noqa: ANN401
+
+def collect_types(tp: TypeForm[object]) -> set[type]:
     """Collect concrete classes referenced by a type annotation.
 
     Unwraps `Annotated[X, ...]` and `Union[X, Y]` (including `X | Y`) to

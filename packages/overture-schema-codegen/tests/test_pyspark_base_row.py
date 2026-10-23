@@ -159,7 +159,7 @@ class TestResolveArmSpecNoDiscriminatorValue:
         """The fallback arm's synthesized row validates against the union."""
         spec = extract_union("VehicleAxleCountSelector", VehicleSelector)
         row = generate_base_row(resolve_arm_spec(spec))
-        adapter: TypeAdapter[object] = TypeAdapter(spec.source_annotation)
+        adapter: TypeAdapter[BaseModel] = TypeAdapter(spec.source_annotation)
         adapter.validate_python(row)
 
 
@@ -175,7 +175,7 @@ class TestGenerateArmRows:
         self, segment_spec: ModelSpec, segment_union: UnionSpec
     ) -> None:
         rows = generate_arm_rows(segment_spec)
-        adapter: TypeAdapter[object] = TypeAdapter(segment_union.source_annotation)
+        adapter: TypeAdapter[BaseModel] = TypeAdapter(segment_union.source_annotation)
         for _arm_val, row in rows.items():
             adapter.validate_python(row)
 
@@ -282,7 +282,7 @@ class TestGeneratePopulatedArmRows:
         self, segment_spec: ModelSpec, segment_union: UnionSpec
     ) -> None:
         rows = generate_populated_arm_rows(segment_spec)
-        adapter: TypeAdapter[object] = TypeAdapter(segment_union.source_annotation)
+        adapter: TypeAdapter[BaseModel] = TypeAdapter(segment_union.source_annotation)
         for _arm_val, row in rows.items():
             adapter.validate_python(row)
 

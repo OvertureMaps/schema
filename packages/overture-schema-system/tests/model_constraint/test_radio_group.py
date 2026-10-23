@@ -3,6 +3,7 @@ from typing import Annotated, Union
 import pytest
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.json_schema import JsonDict
+from typing_extensions import TypeForm
 from util import assert_subset
 
 from overture.schema.system import create_model
@@ -39,7 +40,9 @@ def test_error_not_enough_field_names(field_names: list[str]) -> None:
         (
             RadioGroupConstraint("foo", "bar", "baz"),
             create_model(
-                "case3", foo=(bool | None, ...), bar=(Annotated[bool, "qux"], ...)
+                "case3",
+                foo=(bool | None, ...),
+                bar=(TypeForm(Annotated[bool, "qux"]), ...),
             ),
         ),
     ],

@@ -3,9 +3,10 @@ Dynamic Pydantic model creation with preservation of Overture metadata.
 """
 
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 import pydantic
+from typing_extensions import TypeForm
 
 from .metadata import Metadata
 
@@ -24,7 +25,7 @@ def create_model(
     __cls_kwargs__: dict[str, Any] | None = None,
     __qualname__: str | None = None,
     __metadata__: Metadata | None = None,
-    **field_definitions: Any | tuple[str, Any],
+    **field_definitions: TypeForm[object] | tuple[TypeForm[object], Any],
 ) -> type[ModelT]:
     """
     Dynamically create and return a new Pydantic model, preserving Overture metadata.
@@ -49,7 +50,9 @@ def create_model(
         __validators__=__validators__,
         __cls_kwargs__=__cls_kwargs__,
         __qualname__=__qualname__,
-        **field_definitions,
+        # mypy checks an unpacked dict against every keyword parameter, `__base__` included,
+        # so the field definitions go through as `Any`.
+        **cast(dict[str, Any], field_definitions),
     )
     if __metadata__ is not None:
         __metadata__.attach_to(model_class)

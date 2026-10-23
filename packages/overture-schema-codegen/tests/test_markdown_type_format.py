@@ -5,6 +5,7 @@ from pathlib import PurePosixPath
 from typing import Any, Literal, NewType
 
 import pytest
+from codegen_test_support import placeholder_union
 from pydantic import BaseModel, HttpUrl
 
 from overture.schema.codegen.extraction.field import (
@@ -151,7 +152,7 @@ def _union_ref(members: list[type]) -> UnionRef:
         members=members,  # type: ignore[arg-type]
         discriminator_field=None,
         discriminator_mapping=None,
-        source_annotation=object(),
+        source_annotation=placeholder_union(),
         common_base=BaseModel,
     )
     return UnionRef(union=union_spec)

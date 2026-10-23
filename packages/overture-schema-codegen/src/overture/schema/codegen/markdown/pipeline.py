@@ -10,6 +10,9 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
+from pydantic import BaseModel
+from typing_extensions import TypeForm
+
 import overture.schema.system.geometric as _system_geometric
 import overture.schema.system.numeric as _system_numeric
 from overture.schema.system.geometric import GeometryType
@@ -65,6 +68,7 @@ def _load_model_examples(
     spec: ModelSpec,
 ) -> list[ExampleRecord] | None:
     """Load examples for a feature spec, returning None when absent."""
+    validation_type: TypeForm[BaseModel] | None
     if isinstance(spec, UnionSpec):
         pyproject_source = spec.members[0] if spec.members else None
         validation_type = spec.source_annotation
@@ -73,7 +77,7 @@ def _load_model_examples(
         pyproject_source = spec.source_type
         validation_type = spec.source_type
         model_fields = spec.source_type.model_fields if spec.source_type else {}
-    if not pyproject_source:
+    if not pyproject_source or validation_type is None:
         return None
     field_names = [f.name for f in spec.fields]
     examples = load_examples(

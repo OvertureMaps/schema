@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import cast
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
+from typing_extensions import TypeForm
 
 from overture.schema.system.model_constraint import ModelConstraint
 
@@ -234,7 +236,9 @@ def _make_resolvers(
         # (plain `Foo = Annotated[...]` doesn't preserve it pre-PEP-695).
         # Convention: members extend `<Alias>Base`.
         placeholder = members[0].__name__ if members else ""
-        sub_union = extract_union(placeholder, unwrap_list(annotation))
+        # `analyze_type` resolves a union only once every arm is a model class.
+        union = cast(TypeForm[BaseModel], unwrap_list(annotation))
+        sub_union = extract_union(placeholder, union)
         return UnionRef(union=sub_union)
 
     return resolve_model, resolve_union

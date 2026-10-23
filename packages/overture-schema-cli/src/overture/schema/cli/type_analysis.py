@@ -2,8 +2,8 @@
 
 import inspect
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Literal, get_args, get_origin
 from typing import Annotated as AnnotatedType
-from typing import Any, Literal, get_args, get_origin
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
@@ -11,6 +11,9 @@ from pydantic.fields import FieldInfo
 from overture.schema.system.feature import resolve_discriminator_field_name
 
 from .types import ErrorLocation, ValidationErrorDict
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeForm
 
 # Type aliases for structural tuple elements
 StructuralElement = Literal["list_index", "union", "model", "discriminator", "field"]
@@ -109,7 +112,7 @@ def _process_union_member(
                 discriminator_to_model[value] = member
 
 
-def introspect_union(union_type: Any) -> UnionMetadata:  # noqa: ANN401
+def introspect_union(union_type: "TypeForm[object]") -> UnionMetadata:
     """Introspect a union type to extract structural information.
 
     Analyzes a union type (which may be discriminated or non-discriminated) to

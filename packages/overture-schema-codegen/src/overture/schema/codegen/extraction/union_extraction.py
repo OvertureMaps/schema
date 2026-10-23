@@ -8,6 +8,7 @@ from typing import Annotated, get_args, get_origin
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
+from typing_extensions import TypeForm
 
 from overture.schema.system.feature import resolve_discriminator_field_name
 
@@ -183,7 +184,7 @@ def _constraints_fingerprint(spec: FieldSpec) -> frozenset[object]:
 
 def extract_union(
     name: str,
-    annotation: object,
+    annotation: TypeForm[BaseModel],
     *,
     entry_point: str | None = None,
     partitions: Mapping[str, str] | None = None,

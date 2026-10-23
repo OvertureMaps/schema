@@ -19,6 +19,7 @@ from codegen_test_support import (
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 from pydantic.networks import HttpUrl
+from typing_extensions import TypeForm
 
 from overture.schema.codegen.extraction.field import (
     ConstraintSource,
@@ -133,12 +134,12 @@ def _filter_nodes(
 
 
 def _union_checks(
-    name: str, union_type: object
+    name: str, union_type: TypeForm[BaseModel]
 ) -> tuple[list[Check], list[ModelCheck]]:
     return build_checks(union_spec_for(name, union_type))
 
 
-def _union_model_nodes(name: str, union_type: object) -> list[ModelCheck]:
+def _union_model_nodes(name: str, union_type: TypeForm[BaseModel]) -> list[ModelCheck]:
     _, model_nodes = _union_checks(name, union_type)
     return model_nodes
 
