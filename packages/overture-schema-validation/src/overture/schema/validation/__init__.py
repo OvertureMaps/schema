@@ -1,13 +1,16 @@
 from functools import reduce
 from operator import or_
 from types import UnionType
-from typing import Annotated, Any, Literal, cast, get_args, get_origin
+from typing import TYPE_CHECKING, Annotated, Any, Literal, cast, get_args, get_origin
 
 from pydantic import BaseModel, Field, Tag, TypeAdapter
 
 from overture.schema.common import OvertureFeature
 from overture.schema.system.discovery import discover_models
 from overture.schema.system.feature import Feature
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeForm
 
 
 def validate(data: object) -> BaseModel:
@@ -32,7 +35,7 @@ def validate(data: object) -> BaseModel:
     """
     tap = _union_type_adapter()
 
-    return cast(BaseModel, tap.validate_python(data))
+    return tap.validate_python(data)
 
 
 def validate_json(json_data: str | bytes | bytearray) -> BaseModel:
@@ -56,7 +59,7 @@ def validate_json(json_data: str | bytes | bytearray) -> BaseModel:
     """
     tap = _union_type_adapter()
 
-    return cast(BaseModel, tap.validate_json(json_data))
+    return tap.validate_json(json_data)
 
 
 __all__ = [
@@ -65,7 +68,7 @@ __all__ = [
 ]
 
 
-def _union_type_adapter() -> TypeAdapter:
+def _union_type_adapter() -> TypeAdapter[BaseModel]:
     """
     Return a Pydantic type adapter that can validate the union of all models discovered using entry
     points.
@@ -96,7 +99,7 @@ def _union_type_adapter() -> TypeAdapter:
     else:
         raise RuntimeError("logic error: unreachable code")
 
-    return TypeAdapter(model_union)
+    return TypeAdapter(cast("TypeForm[BaseModel]", model_union))
 
 
 def _discriminated_union(

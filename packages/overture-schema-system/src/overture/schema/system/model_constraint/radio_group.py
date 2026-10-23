@@ -4,7 +4,7 @@ Require at least one field in a group of `bool` fields to have the value `True`.
 
 from collections.abc import Callable
 from types import NoneType, UnionType
-from typing import Annotated, Any, Union, get_args, get_origin
+from typing import Annotated, Union, get_args, get_origin
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.json_schema import JsonDict
@@ -99,7 +99,7 @@ class RadioGroupConstraint(FieldGroupConstraint):
     def validate_class(self, model_class: type[BaseModel]) -> None:
         super().validate_class(model_class)
 
-        def is_bool(annotation: type[Any] | None) -> bool:
+        def is_bool(annotation: object) -> bool:
             if annotation is bool:
                 return True
             origin = get_origin(annotation)

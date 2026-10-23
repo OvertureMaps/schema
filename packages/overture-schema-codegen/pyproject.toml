@@ -10,7 +10,7 @@ dependencies = [
     "overture-schema-common>=2.0.0",
     "overture-schema-system>=2.0.0",
     "tomli>=2.0; python_version < '3.11'",
-    "typing-extensions>=4.0",
+    "typing-extensions>=4.13.0",
 ]
 description = "Code generator that produces documentation and code from Pydantic models"
 readme = "README.md"

@@ -16,6 +16,7 @@ from pydantic import (
     create_model,
 )
 from pydantic.json_schema import JsonSchemaValue, JsonValue
+from typing_extensions import TypeForm
 from util import assert_subset
 
 from overture.schema.system.feature import Feature, _FieldLevel, _maybe_refactor_schema
@@ -169,13 +170,20 @@ class TestFieldDiscriminator:
         for value1, value2 in DISCRIMINATORS:
             with subtests.test(value1=value1, value2=value2):
                 Model1 = create_model(
-                    "Model1", __base__=Feature, discriminator_field=Literal[value1]
+                    "Model1",
+                    __base__=Feature,
+                    discriminator_field=cast(TypeForm[object], Literal[value1]),
                 )
                 Model2 = create_model(
                     "Model2",
-                    discriminator_field=Annotated[
-                        Literal[value2], "random value", Field(description="something")
-                    ],
+                    discriminator_field=cast(
+                        TypeForm[object],
+                        Annotated[
+                            Literal[value2],
+                            "random value",
+                            Field(description="something"),
+                        ],
+                    ),
                 )
 
                 tap: TypeAdapter = TypeAdapter(

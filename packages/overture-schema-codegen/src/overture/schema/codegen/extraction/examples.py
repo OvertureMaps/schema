@@ -8,6 +8,7 @@ from typing import Any
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 from pydantic.fields import FieldInfo
+from typing_extensions import TypeForm
 
 from .model_extraction import resolve_field_alias
 from .type_analyzer import single_literal_value
@@ -86,7 +87,7 @@ def _strip_null_unknown_fields(
 
 
 def validate_example(
-    validation_type: object,
+    validation_type: TypeForm[BaseModel],
     raw: dict[str, Any],
     *,
     model_fields: dict[str, FieldInfo] | None = None,
@@ -107,10 +108,7 @@ def validate_example(
     known_keys = _known_field_keys(model_fields)
     preprocessed = _inject_literal_fields(model_fields, raw)
     preprocessed = _strip_null_unknown_fields(preprocessed, known_keys)
-    result: object = TypeAdapter(validation_type).validate_python(preprocessed)
-    if not isinstance(result, BaseModel):
-        raise TypeError(f"Expected BaseModel instance, got {type(result).__name__}")
-    return result
+    return TypeAdapter(validation_type).validate_python(preprocessed)
 
 
 def extract_base_field(key: str) -> str:
@@ -302,7 +300,7 @@ def resolve_pyproject_path(model_class: type) -> Path | None:
 
 
 def load_examples(
-    validation_type: object,
+    validation_type: TypeForm[BaseModel],
     model_name: str,
     field_names: list[str],
     *,
@@ -317,7 +315,7 @@ def load_examples(
 
     Parameters
     ----------
-    validation_type : type[BaseModel] | object
+    validation_type : TypeForm[BaseModel]
         Model class or union alias to validate against.
     model_name : str
         Name of the model to load examples for.

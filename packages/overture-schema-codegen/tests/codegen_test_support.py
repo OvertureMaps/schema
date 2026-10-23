@@ -14,6 +14,7 @@ from typing import Annotated, Generic, Literal, NewType, TypeVar
 import pytest
 from annotated_types import MinLen
 from pydantic import BaseModel, EmailStr, Field, HttpUrl, RootModel
+from typing_extensions import TypeForm
 
 from overture.schema.codegen.extraction.field import LiteralScalar, Primitive
 from overture.schema.codegen.extraction.field_walk import terminal_of
@@ -349,13 +350,22 @@ TestSegmentWithSubModel = Annotated[
 ]
 
 
+def placeholder_union() -> TypeForm[BaseModel]:
+    """Return a stand-in union annotation, distinct from every other.
+
+    `UnionSpec.identity` compares `source_annotation` by object identity, so
+    each placeholder is a fresh `Annotated` alias.
+    """
+    return Annotated[BaseModel, object()]
+
+
 def make_union_spec(
     name: str = "TestUnion",
     *,
     description: str | None = None,
     annotated_fields: list[AnnotatedField] | None = None,
     members: list[type[BaseModel]] | None = None,
-    source_annotation: object = None,
+    source_annotation: TypeForm[BaseModel] | None = None,
     common_base: type[BaseModel] | None = None,
     entry_point: str | None = None,
 ) -> UnionSpec:
@@ -373,7 +383,9 @@ def make_union_spec(
         members=members,
         discriminator_field=None,
         discriminator_mapping=None,
-        source_annotation=source_annotation,
+        source_annotation=source_annotation
+        if source_annotation is not None
+        else placeholder_union(),
         common_base=common_base or BaseModel,
         member_specs=[MemberSpec(m, extract_model(m)) for m in members],
         entry_point=entry_point,
@@ -528,7 +540,7 @@ def spec_for_model(
     return extract_model(cls, entry_point=entry_point, partitions=partitions)
 
 
-def union_spec_for(name: str, union_type: object) -> UnionSpec:
+def union_spec_for(name: str, union_type: TypeForm[BaseModel]) -> UnionSpec:
     """Extract a discriminated-union annotation for tests."""
     return extract_union(name, union_type)
 

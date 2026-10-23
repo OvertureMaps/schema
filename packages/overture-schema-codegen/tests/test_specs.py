@@ -8,6 +8,7 @@ from codegen_test_support import (
     InstrumentFamily,
     SimpleModel,
     make_union_spec,
+    placeholder_union,
 )
 from pydantic import BaseModel, Field
 
@@ -151,7 +152,7 @@ class TestSpecIdentity:
         assert spec.identity.obj is int32
 
     def test_union_spec_identity(self) -> None:
-        sentinel = object()
+        sentinel = placeholder_union()
         spec = make_union_spec("TestUnion", source_annotation=sentinel)
         assert spec.identity.obj is sentinel
         assert spec.identity.name == "TestUnion"

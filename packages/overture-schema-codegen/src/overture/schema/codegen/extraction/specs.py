@@ -9,6 +9,7 @@ from typing import Any, TypeAlias, TypeGuard
 
 from annotated_types import Interval
 from pydantic import BaseModel, RootModel
+from typing_extensions import TypeForm
 
 from overture.schema.system.discovery.tag import get_values_for_key
 from overture.schema.system.model_constraint import ModelConstraint
@@ -184,7 +185,7 @@ class UnionSpec:
     members: list[type[BaseModel]]
     discriminator_field: str | None
     discriminator_mapping: dict[str, type[BaseModel]] | None
-    source_annotation: object
+    source_annotation: TypeForm[BaseModel]
     common_base: type[BaseModel]
     member_specs: list[MemberSpec] = field(default_factory=list)
     source_type: type[BaseModel] | None = field(default=None, init=False)
@@ -282,7 +283,7 @@ def is_rootmodel(obj: object) -> TypeGuard[type[RootModel]]:
     return isinstance(obj, type) and issubclass(obj, RootModel)
 
 
-def is_union_alias(obj: object) -> bool:
+def is_union_alias(obj: object) -> TypeGuard[TypeForm[BaseModel]]:
     """Check whether *obj* is a discriminated union type alias of BaseModel subclasses."""
     return capture_union_members(obj) is not None
 
