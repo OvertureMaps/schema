@@ -53,13 +53,13 @@ check-namespace:
 # the PySpark output first: that tree is no longer tracked in git, so the
 # generated conformance tests only exist once generation has run.
 test-all: uv-sync generate-pyspark
-	@uv run pytest -W error packages/ tests/
+	@uv run pytest -W error packages/ tests/ .github/scripts/
 
 test: uv-sync
-	@uv run pytest -W error $(TESTMON) packages/ tests/ -x -q --tb=short
+	@uv run pytest -W error $(TESTMON) packages/ tests/ .github/scripts/ -x -q --tb=short
 
 test-only:
-	@uv run pytest -W error $(TESTMON) packages/ tests/ -x -q --tb=short
+	@uv run pytest -W error $(TESTMON) packages/ tests/ .github/scripts/ -x -q --tb=short
 
 coverage: uv-sync
 	@uv run pytest packages/ --cov overture.schema --cov-report=term --cov-report=html && open htmlcov/index.html
@@ -99,16 +99,16 @@ mypy-only:
 	@for d in packages/*/tests tests; do find "$$d" -name "*.py" | sort | xargs uv run mypy --no-error-summary || exit 1; done
 
 lint-only:
-	@uv run ruff check -q packages/ tests/
-	@uv run ruff format --check packages/ tests/
+	@uv run ruff check -q packages/ tests/ .github/scripts/
+	@uv run ruff format --check packages/ tests/ .github/scripts/
 	@# Python embedded in Markdown -- keeps documented snippets in the
 	@# same style as the code they describe.
 	@git ls-files -z '*.md' | xargs -0 --no-run-if-empty uv run ruff format -q --check
 
 # The fixing counterpart to lint-only: what to run when that gate fires.
 format:
-	@uv run ruff check -q --fix packages/ tests/
-	@uv run ruff format -q packages/ tests/
+	@uv run ruff check -q --fix packages/ tests/ .github/scripts/
+	@uv run ruff format -q packages/ tests/ .github/scripts/
 	@git ls-files -z '*.md' | xargs -0 --no-run-if-empty uv run ruff format -q
 
 update-baselines:
