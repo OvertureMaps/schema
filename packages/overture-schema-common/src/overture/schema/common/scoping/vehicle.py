@@ -49,7 +49,6 @@ class VehicleSelectorBase(BaseModel):
     comparison: VehicleRelation
 
 
-@no_extra_fields
 class VehicleAxleCountSelector(VehicleSelectorBase):
     """Selects vehicles based on the number of axles they have."""
 
@@ -67,7 +66,6 @@ class VehicleAxleCountSelector(VehicleSelectorBase):
     ]
 
 
-@no_extra_fields
 class VehicleHeightSelector(VehicleSelectorBase):
     """Selects vehicles based on their height."""
 
@@ -81,7 +79,6 @@ class VehicleHeightSelector(VehicleSelectorBase):
     unit: LengthUnit = Field(description="Height unit in which `value` is expressed")
 
 
-@no_extra_fields
 class VehicleLengthSelector(VehicleSelectorBase):
     """Selects vehicles based on their length."""
 
@@ -95,7 +92,6 @@ class VehicleLengthSelector(VehicleSelectorBase):
     unit: LengthUnit = Field(description="Length unit in which `value` is expressed")
 
 
-@no_extra_fields
 class VehicleWeightSelector(VehicleSelectorBase):
     """Selects vehicles based on their weight."""
 
@@ -109,7 +105,6 @@ class VehicleWeightSelector(VehicleSelectorBase):
     unit: WeightUnit = Field(description="Weight unit in which `value` is expressed")
 
 
-@no_extra_fields
 class VehicleWidthSelector(VehicleSelectorBase):
     """Selects vehicles based on their width."""
 
