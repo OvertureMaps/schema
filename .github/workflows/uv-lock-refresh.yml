@@ -51,6 +51,18 @@ jobs:
 
       - run: uv lock --upgrade
 
+      # List each package whose locked version changed in the PR body, so a
+      # reviewer need not read a uv.lock diff that is mostly hashes. HEAD still
+      # has the lock from before the upgrade.
+      - name: Write PR body
+        run: |
+          git show HEAD:uv.lock > "$RUNNER_TEMP/uv.lock.before"
+          {
+            echo "Automated \`uv lock --upgrade\` at the workspace root. Re-resolves every dependency, direct and transitive, to the newest version pyproject.toml allows. pyproject.toml files are unchanged."
+            echo
+            uv run --script .github/scripts/uv_lock_changes.py "$RUNNER_TEMP/uv.lock.before" uv.lock
+          } > "$RUNNER_TEMP/pr-body.md"
+
       # create-pull-request stages the diff, commits, pushes a branch, and
       # opens/updates the PR idempotently; a gh pr create script would
       # re-implement that and need persisted checkout credentials to push.
@@ -69,4 +81,4 @@ jobs:
           branch: uv-lock-refresh
           title: "[CHORE](deps) weekly uv.lock refresh"
           labels: "bot,automation 🦾"
-          body: "Automated `uv lock --upgrade` at the workspace root. Resolves transitive deps that Dependabot's uv ecosystem does not touch. pyproject.toml files are unchanged."
+          body-path: ${{ runner.temp }}/pr-body.md

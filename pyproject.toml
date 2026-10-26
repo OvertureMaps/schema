@@ -40,6 +40,7 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/*.py" = ["ANN401"]
+".github/scripts/test_*.py" = ["ANN401"]
 "__init__.py" = ["F401"]
 
 [tool.mypy]
