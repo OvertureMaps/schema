@@ -51,7 +51,7 @@ These pages are for people working with the packages in code:
 - [GLOSSARY.md](GLOSSARY.md) — vocabulary for both the data model (entity, feature type,
   theme) and the Python toolchain (entry point, workspace, discriminated union).
 
-Run the full test and quality suite with:
+Run the tests affected by your changes, plus the quality checks, with:
 
 ```bash
 make check
