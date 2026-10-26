@@ -63,6 +63,16 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      # make check silences `uv sync`, so without this no line in a passing
+      # cell's log names the interpreter it ran. Fail the cell if uv picked a
+      # different Python than the one in its name.
+      - name: Verify the cell's Python
+        run: >-
+          uv run --no-project python -c
+          'import os, sys; print(sys.version); want = os.environ["UV_PYTHON"];
+          got = "%d.%d" % sys.version_info[:2];
+          sys.exit(None if got == want else f"cell expects Python {want}, uv picked {got}")'
+
       # PySpark 3.4 (the declared minimum) does not support Java 21, which is
       # the default JDK on ubuntu-latest runners. Pin to Java 17 for the
       # lowest-direct cell so the resolved pyspark==3.4.0 can actually start.
@@ -91,11 +101,6 @@ jobs:
       - name: Configure lock check
         if: matrix.resolution == 'locked'
         run: echo "UV_LOCKED=1" >> "$GITHUB_ENV"
-
-      # make check silences `uv sync`, so without this no line in a passing
-      # cell's log names the interpreter it ran.
-      - name: Report the cell's Python
-        run: uv run --no-project python -VV
 
       - name: Run make check
         run: make check
