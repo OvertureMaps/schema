@@ -10,9 +10,9 @@ name: Changelog fragment verification
 # user-facing change gets a fragment, regardless of whether it bumps the
 # version (see docs/versioning.md).
 #
-# PRs labeled `bot` skip this check. Dependabot is the only source of that
-# label, and it's scoped to uv.lock and GitHub Actions version bumps, neither
-# of which touches consumer-facing behavior.
+# PRs labeled `bot` skip this check. Its only sources are Dependabot's GitHub
+# Actions bumps and uv.lock security updates, and uv-lock-refresh.yml's uv.lock
+# refreshes, none of which touches consumer-facing behavior.
 #
 # PRs that don't touch packages/ at all also skip: docs, CI config, and
 # other root-level changes were never going to need a fragment, since
