@@ -1,15 +1,17 @@
-name: Refresh uv.lock (transitive deps)
+name: Refresh uv.lock
 
-# Dependabot's uv ecosystem runs lockfile-only (see .github/dependabot.yml) and
-# does not refresh transitive-only entries (dependabot-core#14073). This job does
-# that: `uv lock --upgrade` re-resolves every dependency to the newest version
-# each pyproject.toml already allows, touching only uv.lock.
+# Stands in for Dependabot's uv version updates, which are paused
+# (open-pull-requests-limit: 0 in .github/dependabot.yml) until
+# dependabot-core#14073 is fixed (tracked in #614). `uv lock --upgrade`
+# re-resolves every dependency, direct and transitive, to the newest version each
+# pyproject.toml already allows, touching only uv.lock. pyproject.toml ranges
+# change only by hand, for a reason (a needed capability, or avoiding a fixed bug).
 #
-# Remove this workflow once dependabot-core#14073 is fixed -- tracked in #614.
+# Once #614 is fixed, raise that limit and remove this workflow.
 
 on:
   schedule:
-    - cron: "0 8 * * 4" # Thursdays -- offset from Dependabot's Monday run
+    - cron: "0 8 * * 4" # Thursdays
   workflow_dispatch: {}
 
 permissions: {}
