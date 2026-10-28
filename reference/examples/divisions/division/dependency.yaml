@@ -9,6 +9,7 @@ properties:
   type: division
   version: 0
   subtype: dependency
+  admin_level: 1
   local_type:
     en: territory
   names:
