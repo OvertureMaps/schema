@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import cast
 
 from pydantic import BaseModel
+from pydantic.experimental.missing_sentinel import MISSING
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 from typing_extensions import TypeForm
@@ -17,7 +18,7 @@ from .field import (
     ModelRef,
     UnionRef,
 )
-from .specs import FieldSpec, RecordSpec, is_model_class
+from .specs import NO_DEFAULT, FieldSpec, RecordSpec, is_model_class
 from .type_analyzer import (
     ModelResolver,
     UnionResolver,
@@ -46,6 +47,44 @@ def resolve_field_alias(field_name: str, field_info: FieldInfo) -> str:
     if isinstance(alias, str):
         return alias
     return field_name
+
+
+def _field_default(field_info: FieldInfo) -> object:
+    """Return the field's declared default, or `NO_DEFAULT`.
+
+    Typed `object` rather than `Any`: a default really is an arbitrary value, but
+    `object` says so without switching off type checking at every call site.
+
+    `default_factory` is deliberately not consulted: a factory is behavior, and
+    calling it here would capture one sample of a value meant to be produced per
+    instance. A field with only a factory extracts as `NO_DEFAULT` -- which is
+    accurate about what a static schema can carry, not a silent drop.
+
+    Two sentinels mean "no default", not one. `PydanticUndefined` is Pydantic's,
+    and `MISSING` is the one `Omitable[T]` installs (`Field(default=MISSING)`) to
+    get JSON Schema omissibility instead of Pydantic nullability -- see
+    `overture.schema.system.optionality`. `MISSING` is machinery for "this key may
+    be absent", never a value anyone declared, so extracting it as a default makes
+    every `Omitable` field claim a default it does not have.
+    """
+    if field_info.default is PydanticUndefined or field_info.default is MISSING:
+        return NO_DEFAULT
+    return field_info.default
+
+
+def _field_deprecation(field_info: FieldInfo) -> tuple[bool, str | None]:
+    """Return `(is_deprecated, message)` from Pydantic's `deprecated`.
+
+    Pydantic admits `True`, a string message, or a `warnings.deprecated`
+    instance. All three mean deprecated; only the string carries prose, and it is
+    kept beside the flag rather than folded into it.
+    """
+    deprecated = field_info.deprecated
+    if deprecated is None or deprecated is False:
+        return False, None
+    if isinstance(deprecated, str):
+        return True, deprecated
+    return True, None
 
 
 def _is_field_required(field_info: FieldInfo, is_optional: bool) -> bool:
@@ -180,6 +219,7 @@ def _extract_model_recursive(
         # misses those constraints. Reattach them at the topmost
         # constraint-bearing layer.
         shape = attach_field_metadata(shape, field_info)
+        is_deprecated, deprecation_message = _field_deprecation(field_info)
         fields.append(
             FieldSpec(
                 name=resolve_field_alias(field_name, field_info),
@@ -187,6 +227,9 @@ def _extract_model_recursive(
                 description=field_info.description or ti_description,
                 is_required=_is_field_required(field_info, is_optional),
                 is_optional=is_optional,
+                default=_field_default(field_info),
+                is_deprecated=is_deprecated,
+                deprecation_message=deprecation_message,
             )
         )
 

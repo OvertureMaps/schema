@@ -1,7 +1,10 @@
 """Tests for CLI entrypoint."""
 
 import json
+import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -541,3 +544,53 @@ class TestReverseReferences:
                 break
 
         assert has_used_by, "No 'Used By' sections found in any generated markdown"
+
+
+_NON_ASCII = "em-dash — café"
+
+_WRITE_PROBE = """
+import json, locale, sys, tempfile
+from pathlib import Path, PurePosixPath
+from overture.schema.codegen.cli import _write_output
+
+out = Path(tempfile.mkdtemp())
+_write_output({text!r}, out, PurePosixPath("probe.txt"))
+print(json.dumps({{
+    "encoding": locale.getpreferredencoding(False),
+    "text": (out / "probe.txt").read_bytes().decode("utf-8"),
+}}))
+"""
+
+
+def test_generated_files_are_utf8_under_a_non_utf8_locale() -> None:
+    """Written artifacts are UTF-8 regardless of the machine's locale.
+
+    `Path.write_text` with no `encoding` uses the locale's, which through
+    Python 3.14 is whatever the environment says -- so on an ASCII locale
+    every description carrying an em-dash raised `UnicodeEncodeError` and no
+    file was written at all. Generated Python is decoded as UTF-8 by PEP
+    3120 and JSON is UTF-8 by RFC 8259, so the locale is never the right
+    answer here.
+
+    The subprocess is the point: the encoding is bound at interpreter start,
+    so an in-process check would read this machine's UTF-8 and pass either
+    way.
+    """
+    proc = subprocess.run(
+        [sys.executable, "-c", _WRITE_PROBE.format(text=_NON_ASCII)],
+        capture_output=True,
+        text=True,
+        env={
+            **os.environ,
+            "LC_ALL": "C",
+            "LANG": "C",
+            "PYTHONUTF8": "0",
+            "PYTHONCOERCECLOCALE": "0",
+        },
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    payload = json.loads(proc.stdout)
+    if payload["encoding"].lower().replace("-", "") in {"utf8", "utf"}:
+        pytest.skip(f"locale could not be forced off UTF-8: {payload['encoding']}")
+    assert payload["text"] == _NON_ASCII
