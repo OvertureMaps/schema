@@ -2,6 +2,7 @@
 
 import logging
 import sys
+import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -22,12 +23,6 @@ __all__ = [
     "load_examples",
     "validate_example",
 ]
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    # tomli is the 3.10 backport of the stdlib tomllib.
-    import tomli as tomllib
 
 
 @dataclass

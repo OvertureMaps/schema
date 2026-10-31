@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from enum import Enum
+from typing import assert_never
 
 from pydantic import BaseModel
-from typing_extensions import assert_never
 
 from ..extraction.field import (
     AnyScalar,
