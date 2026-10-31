@@ -7,11 +7,10 @@ import re
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import NotRequired, TypedDict, cast
 
 from annotated_types import Interval
 from jinja2 import Environment, FileSystemLoader
-from typing_extensions import NotRequired
 
 from ..extraction.examples import ExampleRecord
 from ..extraction.field import ConstraintSource

@@ -24,13 +24,12 @@ PyPI (workspace members) get no link.
 import json
 import re
 import sys
+import tomllib
 import urllib.request
 from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, NamedTuple
-
-import tomllib
 
 PYPI_INDEX = "https://pypi.org/simple"
 
