@@ -3,7 +3,7 @@
 [project]
 license = "MIT"
 name = "overture-schema-workspace"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 version = "0.0.0"
 
 [tool.uv]
@@ -14,7 +14,7 @@ members = ["packages/*"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 # PEP 420 namespace packages carry no `overture/__init__.py`, so isort can no
 # longer walk up to the package root; name the src roots so it still classifies
 # `overture` as first-party (in source) without over-forcing it in tests.
@@ -25,6 +25,9 @@ ignore = [
     "E501", # line too long
     "B008", # do not perform function calls in argument defaults
     "C901", # too complex
+    # (str, Enum) -> StrEnum changes str() of a member from `Class.MEMBER`
+    # to its value: a behavior change, not a syntax upgrade.
+    "UP042",
 ]
 select = [
     "E",   # pycodestyle errors

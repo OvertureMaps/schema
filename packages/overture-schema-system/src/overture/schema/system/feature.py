@@ -5,7 +5,7 @@ Geospatial feature model with GeoJSON-compatible JSON Schema.
 import inspect
 from enum import Enum
 from functools import reduce
-from typing import Any
+from typing import Any, Self
 
 from pydantic import (
     BaseModel,
@@ -22,7 +22,6 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue, JsonValue
 from pydantic_core import InitErrorDetails, core_schema
-from typing_extensions import Self
 
 from overture.schema.system import _json_schema
 from overture.schema.system.geometric import BBox, Geometry
