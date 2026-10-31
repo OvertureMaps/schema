@@ -31,9 +31,9 @@ else:
     # `importlib.resources.files` raises `NotADirectoryError` for a namespace
     # package with any non-directory portion through Python 3.12; the backport
     # carries the 3.13 fix. Runtimes known to sit below it, where this is always
-    # the branch taken: AWS Glue 4.0 (Python 3.10) and Glue 5.0 (3.11). Other
-    # runtimes that ship wheels unextracted belong on that list -- if you hit
-    # this somewhere else, please add what you find.
+    # the branch taken: AWS Glue 5.0 (Python 3.11). Other runtimes that ship
+    # wheels unextracted belong on that list -- if you hit this somewhere else,
+    # please add what you find.
     from importlib_resources import files
     from importlib_resources.abc import Traversable
 

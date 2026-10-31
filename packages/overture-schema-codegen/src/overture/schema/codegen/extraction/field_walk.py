@@ -12,8 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator
 from enum import Enum
-
-from typing_extensions import assert_never
+from typing import assert_never
 
 from .field import (
     AnyScalar,

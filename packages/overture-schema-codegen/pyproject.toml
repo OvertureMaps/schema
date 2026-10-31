@@ -9,7 +9,6 @@ dependencies = [
     "overture-schema-cli>=2.0.0",
     "overture-schema-common>=2.0.0",
     "overture-schema-system>=2.0.0",
-    "tomli>=2.0; python_version < '3.11'",
     "typing-extensions>=4.13.0",
 ]
 description = "Code generator that produces documentation and code from Pydantic models"
@@ -20,7 +19,7 @@ name = "overture-schema-codegen"
 maintainers = [
     {name = "Overture Maps Schema Working Group"},
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 [project.urls]
 Homepage = "https://overturemaps.org"
