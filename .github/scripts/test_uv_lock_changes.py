@@ -13,11 +13,6 @@ from typing import Any
 
 import pytest
 
-# The script needs `tomllib` (3.11+); `uv run --script` selects a 3.11+
-# interpreter to satisfy its `requires-python`, while the workspace still
-# supports 3.10.
-pytest.importorskip("tomllib")
-
 _SCRIPT = Path(__file__).with_name("uv_lock_changes.py")
 _spec = importlib.util.spec_from_file_location("uv_lock_changes", _SCRIPT)
 assert _spec is not None and _spec.loader is not None

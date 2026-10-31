@@ -96,7 +96,7 @@ The tooling layer never hardcodes feature types. It discovers them. That's why y
 
 ### 1.2 Prerequisites
 
-- **Python 3.10 or newer.** You don't need to install this yourself — `uv` will fetch a
+- **Python 3.11 or newer.** You don't need to install this yourself — `uv` will fetch a
   suitable Python if your system one is too old.
 - **[`uv`](https://docs.astral.sh/uv/getting-started/installation/).**
 
@@ -284,7 +284,7 @@ uv run python
 ```
 
 ```
-Python 3.10.18
+Python 3.11.18
 >>> from overture.schema.buildings import Building
 >>> len(Building.model_fields)
 26
@@ -1540,7 +1540,7 @@ Depend on the **theme packages you actually need**, not the workspace root:
 [project]
 name = "myapp"
 version = "0.1.0"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "overture-schema-theme-buildings",
     "overture-schema-cli",

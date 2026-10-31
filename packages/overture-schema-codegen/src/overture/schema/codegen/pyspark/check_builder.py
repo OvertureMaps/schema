@@ -20,9 +20,9 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, replace
+from typing import assert_never
 
 from pydantic import BaseModel
-from typing_extensions import assert_never
 
 from overture.schema.system.field_path import (
     ArraySegment,

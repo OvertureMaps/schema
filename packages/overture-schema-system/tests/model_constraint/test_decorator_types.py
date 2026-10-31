@@ -6,8 +6,9 @@ even when the decorator erases the class (as pyright and ty then do). Calling ea
 function puts its return type in front of mypy.
 """
 
+from typing import assert_type
+
 from pydantic import BaseModel
-from typing_extensions import assert_type
 
 from overture.schema.system.model_constraint import (
     FieldEqCondition,

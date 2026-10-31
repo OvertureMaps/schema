@@ -42,6 +42,7 @@ from typing import (
     Literal,
     NoReturn,
     Union,
+    assert_never,
     get_args,
     get_origin,
 )
@@ -49,7 +50,7 @@ from typing import (
 from annotated_types import MaxLen, MinLen
 from pydantic import BaseModel, RootModel
 from pydantic.fields import FieldInfo
-from typing_extensions import Sentinel, assert_never, evaluate_forward_ref
+from typing_extensions import Sentinel, evaluate_forward_ref
 
 from .docstring import clean_docstring
 from .field import (
