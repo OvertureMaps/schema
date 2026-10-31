@@ -4,7 +4,7 @@ system package.
 """
 
 import textwrap
-from typing import Annotated, Generic, NewType, TypeVar
+from typing import Annotated, Generic, NewType, Self, TypeVar
 
 from pydantic import (
     ConfigDict,
@@ -14,7 +14,6 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
-from typing_extensions import Self
 
 from overture.schema.system.feature import Feature
 from overture.schema.system.numeric import int32

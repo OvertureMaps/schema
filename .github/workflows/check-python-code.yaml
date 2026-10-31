@@ -33,18 +33,18 @@ jobs:
         # minor version. The lowest-direct cell pins each direct dependency
         # to its declared floor (see UV_RESOLUTION below) and runs only on
         # the Python floor, since the resolved-low pyspark 3.4 wheels exist
-        # for 3.10/3.11 only.
-        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        # for 3.11 and below.
+        python: ["3.11", "3.12", "3.13", "3.14"]
         resolution: [locked]
         include:
-          - python: "3.10"
+          - python: "3.11"
             resolution: lowest-direct
 
     permissions:
       contents: read
 
-    # uv picks its interpreter from .python-version (the 3.10 floor) ahead of
-    # whatever Python is on PATH, so without this every cell would run 3.10.
+    # uv picks its interpreter from .python-version (the 3.11 floor) ahead of
+    # whatever Python is on PATH, so without this every cell would run 3.11.
     env:
       UV_PYTHON: ${{ matrix.python }}
 

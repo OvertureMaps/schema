@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, NamedTuple
-
-from typing_extensions import assert_never
+from typing import Any, NamedTuple, assert_never
 
 from overture.schema.system.field_path import (
     ArraySegment,
