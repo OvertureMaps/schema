@@ -23,10 +23,10 @@ __all__ = [
 ]
 
 # tomllib is stdlib from 3.11+; tomli is the backport for 3.10.
-try:
-    import tomllib  # type: ignore[import-not-found]
-except ModuleNotFoundError:
-    import tomli as tomllib  # type: ignore[import-not-found]
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 
 @dataclass
