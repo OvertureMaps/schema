@@ -5,7 +5,7 @@ from typing import Annotated, Any, Literal, NewType, Optional
 
 import pytest
 from annotated_types import Ge, MaxLen, MinLen
-from codegen_test_support import TollChargesByVehicleType
+from codegen_test_support import TollChargesByVehicleType, placeholder_union
 from pydantic import BaseModel, Field, RootModel, Tag
 from typing_extensions import Sentinel
 
@@ -233,7 +233,7 @@ class TestAttachConstraintsOnModelTerminal:
                 members=[],
                 discriminator_field=None,
                 discriminator_mapping=None,
-                source_annotation=object(),
+                source_annotation=placeholder_union(),
                 common_base=BaseModel,
             )
         )

@@ -4,6 +4,9 @@ import json
 from difflib import unified_diff
 from pathlib import Path
 
+from pydantic import BaseModel
+from typing_extensions import TypeForm
+
 from overture.schema.system.json_schema import json_schema
 
 
@@ -43,7 +46,7 @@ def assert_golden(actual: str, golden_path: Path, *, update: bool) -> None:
 
 
 def assert_json_schema_golden(
-    model_or_union: object, golden_path: Path, *, update: bool
+    model_or_union: TypeForm[BaseModel], golden_path: Path, *, update: bool
 ) -> None:
     """Generate JSON Schema and compare against a golden file.
 

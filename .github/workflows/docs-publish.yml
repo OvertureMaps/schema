@@ -26,7 +26,7 @@ jobs:
     steps:
       # Narrow OIDC role that can only read the releaser app's PEM secret.
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           aws-region: us-west-2
           role-to-assume: arn:aws:iam::816069134238:role/gha-releaser-secrets-reader
@@ -41,7 +41,7 @@ jobs:
 
       - name: Generate docs publisher app token
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           client-id: Iv23lijru2e660v1zJQO # overture-releaser app client ID, not sensitive
           private-key: ${{ env.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]

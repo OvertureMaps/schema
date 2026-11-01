@@ -43,27 +43,42 @@ jobs:
     permissions:
       contents: read
 
+    # uv picks its interpreter from .python-version (the 3.10 floor) ahead of
+    # whatever Python is on PATH, so without this every cell would run 3.10.
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         with:
           version: "latest"
 
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python }}
+
+      # make check silences `uv sync`, so without this no line in a passing
+      # cell's log names the interpreter it ran. Fail the cell if uv picked a
+      # different Python than the one in its name.
+      - name: Verify the cell's Python
+        run: >-
+          uv run --no-project python -c
+          'import os, sys; print(sys.version); want = os.environ["UV_PYTHON"];
+          got = "%d.%d" % sys.version_info[:2];
+          sys.exit(None if got == want else f"cell expects Python {want}, uv picked {got}")'
 
       # PySpark 3.4 (the declared minimum) does not support Java 21, which is
       # the default JDK on ubuntu-latest runners. Pin to Java 17 for the
       # lowest-direct cell so the resolved pyspark==3.4.0 can actually start.
       - name: Set up JDK 17
         if: matrix.resolution == 'lowest-direct'
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: '17'
@@ -101,6 +116,6 @@ jobs:
     permissions: {}
 
     steps:
-      - uses: lowlydba/are-we-good@0f90ea9fa5e47188fcb69d9306fb8b3abb656018 # v1.2.0
+      - uses: lowlydba/are-we-good@6b10e5f2697555fbaf7f8f37ce38d4454c954a4c # v1.2.2
         with:
           jobs: ${{ toJSON(needs) }}

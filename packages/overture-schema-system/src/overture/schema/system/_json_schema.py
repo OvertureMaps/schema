@@ -382,7 +382,7 @@ def _verify_operands_not_empty(tp: type[T], operands: list[T]) -> None:
     mismatches = [a for a in operands if not isinstance(a, target)]
     if mismatches:
         raise TypeError(
-            "`operands` items must be `{target.__name__}` values, but these items are not: {mismatches}"
+            f"`operands` items must be `{target.__name__}` values, but these items are not: {mismatches}"
         )
 
 

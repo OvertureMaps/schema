@@ -9,7 +9,7 @@ from typing import Annotated, Any, Union, cast, get_args, get_origin
 from pydantic import BaseModel, TypeAdapter
 from pydantic.json_schema import GenerateJsonSchema, JsonSchemaValue
 from pydantic_core import core_schema
-from typing_extensions import override
+from typing_extensions import TypeForm, override
 
 
 class GenerateOmitNullableOptionalJsonSchema(GenerateJsonSchema):
@@ -143,13 +143,13 @@ class GenerateOmitNullableOptionalJsonSchema(GenerateJsonSchema):
                 return None
 
 
-def json_schema(thing: object) -> JsonSchemaValue:
+def json_schema(thing: TypeForm[BaseModel]) -> JsonSchemaValue:
     """
     Generate JSON Schema for a Pydantic model or union of models.
 
     Parameters
     ----------
-    thing : object
+    thing : TypeForm[BaseModel]
         Either a Pydantic model or a union of Pydantic models
 
     Returns
@@ -164,11 +164,13 @@ def json_schema(thing: object) -> JsonSchemaValue:
     """
     match _Kind.of(thing):
         case _Kind.BASE_MODEL:
-            schema = cast(BaseModel, thing).model_json_schema(
+            schema = cast(type[BaseModel], thing).model_json_schema(
                 schema_generator=GenerateOmitNullableOptionalJsonSchema
             )
         case _Kind.UNION:
-            tap: TypeAdapter = TypeAdapter(thing)
+            # pydantic < 2.14 has no TypeForm overload to infer this from; drop the
+            # annotation when the pydantic floor reaches 2.14.
+            tap: TypeAdapter[BaseModel] = TypeAdapter(thing)
             schema = tap.json_schema(
                 schema_generator=GenerateOmitNullableOptionalJsonSchema
             )

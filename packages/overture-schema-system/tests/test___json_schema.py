@@ -381,6 +381,14 @@ def test_put_required_error_invalid_operands(
         put_required({}, cast(list[str], operands))
 
 
+def test_put_required_error_message_names_type_and_mismatches() -> None:
+    with pytest.raises(TypeError) as exc_info:
+        put_required({}, cast(list[str], ["foo", 42]))
+    assert str(exc_info.value) == (
+        "`operands` items must be `str` values, but these items are not: [42]"
+    )
+
+
 @pytest.mark.parametrize(
     "json_schema,operands,expect",
     [

@@ -8,10 +8,11 @@ from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 
 from .._json_schema import get_static_json_schema_extra
+from ..create_model import ModelT
 from .model_constraint import ModelConstraint
 
 
-def min_fields_set(count: int) -> Callable[[type[BaseModel]], type[BaseModel]]:
+def min_fields_set(count: int) -> Callable[[type[ModelT]], type[ModelT]]:
     """
     Decorate a Pydantic model class with a constraint that requires a minimum number of fields in
     the model to be set to a non-`None` value.
@@ -26,8 +27,8 @@ def min_fields_set(count: int) -> Callable[[type[BaseModel]], type[BaseModel]]:
 
     Returns
     -------
-    type[BaseModel]
-        Decorated Pydantic model class
+    Callable[[type[ModelT]], type[ModelT]]
+        Decorator that applies the constraint to a Pydantic model class
 
     Example
     -------

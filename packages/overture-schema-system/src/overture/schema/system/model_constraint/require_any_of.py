@@ -8,10 +8,11 @@ from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 
 from .._json_schema import get_static_json_schema_extra, put_any_of, required_non_null
+from ..create_model import ModelT
 from .model_constraint import OptionalFieldGroupConstraint, apply_alias
 
 
-def require_any_of(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel]]:
+def require_any_of(*field_names: str) -> Callable[[type[ModelT]], type[ModelT]]:
     """
     Decorate a Pydantic model class with a constraint requiring that at least one of the named
     fields has a non-`None` value.
@@ -29,8 +30,8 @@ def require_any_of(*field_names: str) -> Callable[[type[BaseModel]], type[BaseMo
 
     Returns
     -------
-    Callable
-        Decorator factory
+    Callable[[type[ModelT]], type[ModelT]]
+        Decorator that applies the constraint to a Pydantic model class
 
     Example
     -------

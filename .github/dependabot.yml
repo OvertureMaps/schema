@@ -26,10 +26,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    # lockfile-only updates uv.lock only -- never pyproject.toml -- and covers
-    # the direct deps declared in the manifests. It does not refresh
-    # transitive-only entries in uv.lock (dependabot-core#14073); the weekly
-    # uv-lock-refresh.yml workflow runs `uv lock --upgrade` for those.
+    # Version updates are paused (open-pull-requests-limit: 0 below) until
+    # dependabot-core#14073 is fixed (#614); until then the weekly
+    # uv-lock-refresh.yml workflow updates uv.lock. Security updates still open,
+    # with the labels, prefix and lockfile-only versioning below (uv.lock only,
+    # never pyproject.toml).
     versioning-strategy: lockfile-only
     groups:
       # uv doesn't yet support dependency-type filters in groups
@@ -38,7 +39,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0
     labels:
       - "bot"
       - "automation 🦾" # Required for enforce-change-type-label.yaml check

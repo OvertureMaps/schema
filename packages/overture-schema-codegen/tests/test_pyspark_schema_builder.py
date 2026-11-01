@@ -3,7 +3,7 @@
 from enum import Enum
 
 import pytest
-from codegen_test_support import FeatureWithRootModel, spec_for_model
+from codegen_test_support import FeatureWithRootModel, placeholder_union, spec_for_model
 from pydantic import BaseModel, Field
 
 from overture.schema.codegen.extraction.field import Primitive
@@ -218,7 +218,7 @@ class TestUnionSchemaDeduplicate:
             members=[],
             discriminator_field=None,
             discriminator_mapping=None,
-            source_annotation=object(),
+            source_annotation=placeholder_union(),
             common_base=BaseModel,
         )
         return build_schema(spec)
@@ -262,7 +262,7 @@ class TestUnionSchemaTypeDivergence:
             members=[],
             discriminator_field=None,
             discriminator_mapping=None,
-            source_annotation=object(),
+            source_annotation=placeholder_union(),
             common_base=BaseModel,
         )
         return build_schema(spec)

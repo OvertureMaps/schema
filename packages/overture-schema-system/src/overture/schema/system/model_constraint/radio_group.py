@@ -4,17 +4,18 @@ Require at least one field in a group of `bool` fields to have the value `True`.
 
 from collections.abc import Callable
 from types import NoneType, UnionType
-from typing import Annotated, Any, Union, get_args, get_origin
+from typing import Annotated, Union, get_args, get_origin
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.json_schema import JsonDict
 from typing_extensions import override
 
 from .._json_schema import get_static_json_schema_extra, put_one_of
+from ..create_model import ModelT
 from .model_constraint import FieldGroupConstraint, apply_alias
 
 
-def radio_group(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel]]:
+def radio_group(*field_names: str) -> Callable[[type[ModelT]], type[ModelT]]:
     """
     Decorate a Pydantic model class with a constraint requiring that exactly one field in a group of
     `bool` fields has the value `True`.
@@ -34,8 +35,8 @@ def radio_group(*field_names: str) -> Callable[[type[BaseModel]], type[BaseModel
 
     Returns
     -------
-    Callable
-        Decorator factory
+    Callable[[type[ModelT]], type[ModelT]]
+        Decorator that applies the constraint to a Pydantic model class
 
     Example
     -------
@@ -98,7 +99,7 @@ class RadioGroupConstraint(FieldGroupConstraint):
     def validate_class(self, model_class: type[BaseModel]) -> None:
         super().validate_class(model_class)
 
-        def is_bool(annotation: type[Any] | None) -> bool:
+        def is_bool(annotation: object) -> bool:
             if annotation is bool:
                 return True
             origin = get_origin(annotation)
