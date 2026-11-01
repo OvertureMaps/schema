@@ -17,6 +17,7 @@ from overture.schema.codegen.extraction.length_constraints import ArrayMinLen
 from overture.schema.codegen.extraction.model_extraction import extract_model
 from overture.schema.codegen.extraction.specs import NO_DEFAULT
 from overture.schema.common.scoping.vehicle import VehicleSelector
+from overture.schema.system.optionality import Omitable
 
 
 def test_extract_model_populates_union_terminal() -> None:
@@ -210,6 +211,18 @@ def test_field_without_default_is_no_default_not_none() -> None:
 
     assert fields["required"].default is NO_DEFAULT
     assert fields["nullable_default"].default is None
+
+
+def test_omitable_sentinel_is_not_a_declared_default() -> None:
+    """Omitable's sentinel must match the one recognized by extraction."""
+
+    class M(BaseModel):
+        value: Omitable[int]
+
+    spec = extract_model(M)
+    field = next(f for f in spec.fields if f.name == "value")
+
+    assert field.default is NO_DEFAULT
 
 
 def test_default_factory_does_not_become_a_default() -> None:

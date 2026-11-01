@@ -554,7 +554,7 @@ from pathlib import Path, PurePosixPath
 from overture.schema.codegen.cli import _write_output
 
 out = Path(tempfile.mkdtemp())
-_write_output({text!r}, out, PurePosixPath("probe.txt"))
+_write_output({text!a}, out, PurePosixPath("probe.txt"))
 print(json.dumps({{
     "encoding": locale.getpreferredencoding(False),
     "text": (out / "probe.txt").read_bytes().decode("utf-8"),
@@ -576,8 +576,10 @@ def test_generated_files_are_utf8_under_a_non_utf8_locale() -> None:
     so an in-process check would read this machine's UTF-8 and pass either
     way.
     """
+    source = _WRITE_PROBE.format(text=_NON_ASCII)
+    assert source.isascii(), "python -c must be decodable under an ASCII locale"
     proc = subprocess.run(
-        [sys.executable, "-c", _WRITE_PROBE.format(text=_NON_ASCII)],
+        [sys.executable, "-c", source],
         capture_output=True,
         text=True,
         env={

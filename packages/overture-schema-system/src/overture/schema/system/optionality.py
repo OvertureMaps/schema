@@ -6,7 +6,7 @@ from types import NoneType, UnionType
 from typing import Annotated, Any, Generic, TypeVar, Union, get_args, get_origin
 
 from pydantic import Field
-from pydantic.experimental.missing_sentinel import MISSING
+from pydantic_core import MISSING
 
 T = TypeVar("T")
 

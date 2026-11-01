@@ -6,9 +6,8 @@ from collections.abc import Mapping
 from typing import cast
 
 from pydantic import BaseModel
-from pydantic.experimental.missing_sentinel import MISSING
 from pydantic.fields import FieldInfo
-from pydantic_core import PydanticUndefined
+from pydantic_core import MISSING, PydanticUndefined
 from typing_extensions import TypeForm
 
 from overture.schema.system.model_constraint import ModelConstraint
