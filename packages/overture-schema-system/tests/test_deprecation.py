@@ -3,9 +3,13 @@ Deprecation belongs to the class that declares it.
 
 PEP 702's `@deprecated` sets `__deprecated__` on the class it decorates and warns when that class
 is instantiated or subclassed. A subclass is not itself deprecated: instantiating it does not warn.
-A model-constraint decorator returns a new subclass of the class it decorates. When it is applied over
-`@deprecated`, the returned class is the one the module exports, so it must declare the deprecation
-itself, and its own subclassing must not raise PEP 702's subclass warning.
+Two consequences are tested here:
+
+- A model-constraint decorator returns a new subclass of the class it decorates. When it is applied
+  over `@deprecated`, the returned class is the one the module exports, so it must declare the
+  deprecation itself, and its own subclassing must not raise PEP 702's subclass warning.
+- The project JSON Schema generator marks a model `deprecated` only when the model declares it,
+  not when it inherits `__deprecated__` from a base.
 """
 
 import warnings
@@ -218,3 +222,53 @@ class TestDeprecatedOverDecorator:
         with pytest.warns(DeprecationWarning, match="NewModel"):
             OldModel(name="x")
         assert json_schema(OldModel).get("deprecated") is True
+
+
+class TestSubclassOfDeprecated:
+    def test_does_not_warn_on_use(self) -> None:
+        @deprecated(MESSAGE)
+        class OldModel(BaseModel):
+            name: str
+
+        with pytest.warns(DeprecationWarning):
+
+            class NewModel(OldModel):
+                pass
+
+        with recorded_warnings() as caught:
+            NewModel(name="x")
+            NewModel.model_validate({"name": "x"})
+
+        assert deprecation_warnings(caught) == []
+
+    def test_json_schema_does_not_mark_deprecated(self) -> None:
+        @deprecated(MESSAGE)
+        class OldModel(BaseModel):
+            name: str
+
+        with pytest.warns(DeprecationWarning):
+
+            class NewModel(OldModel):
+                pass
+
+        assert "deprecated" not in json_schema(NewModel)
+        assert json_schema(OldModel).get("deprecated") is True
+
+    def test_json_schema_marks_only_the_declaring_class_among_definitions(self) -> None:
+        @deprecated(MESSAGE)
+        class OldModel(BaseModel):
+            name: str
+
+        with pytest.warns(DeprecationWarning):
+
+            class NewModel(OldModel):
+                pass
+
+        class Holder(BaseModel):
+            old: OldModel
+            new: NewModel
+
+        defs = json_schema(Holder)["$defs"]
+
+        assert defs["OldModel"].get("deprecated") is True
+        assert "deprecated" not in defs["NewModel"]
