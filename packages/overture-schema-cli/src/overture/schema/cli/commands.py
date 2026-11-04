@@ -1,7 +1,6 @@
 """Click-based CLI for overture-schema package."""
 
 import builtins
-import io
 import json
 import sys
 from collections import Counter, defaultdict
@@ -262,22 +261,27 @@ def cli() -> None:  # noqa: D301
 def load_input(filename: Path) -> tuple[dict | list, str]:
     """Load and parse input from file or stdin.
 
-    Args
-    ----
-        filename: Path to input file, or "-" for stdin
+    Parameters
+    ----------
+    filename
+        Path to the input file, or "-" for stdin.
 
     Returns
     -------
-        Tuple of (parsed_data, source_name)
+    tuple
+        The parsed data and the name of its source.
 
     Raises
     ------
-        yaml.YAMLError: If input is invalid YAML/JSON
-        SystemExit: If filename doesn't exist or isn't a file
+    click.UsageError
+        If `filename` is not a file, or the input is empty or whitespace.
+    yaml.YAMLError
+        If the input is not valid YAML or JSON.
     """
+    source_name = get_source_name(filename)
+
     if str(filename) == "-":
-        # Read all stdin content
-        content = sys.stdin.read()
+        content = _require_content(sys.stdin.read(), source_name)
 
         # Try to detect JSONL format (newline-delimited JSON)
         # JSONL has multiple non-empty lines, each containing a complete JSON object
@@ -287,14 +291,14 @@ def load_input(filename: Path) -> tuple[dict | list, str]:
             # Attempt to parse as JSONL
             try:
                 parsed_lines = [json.loads(line) for line in lines]
-                return parsed_lines, "<stdin>"
+                return parsed_lines, source_name
             except json.JSONDecodeError:
                 # Not valid JSONL, fall through to YAML parser
                 pass
 
         # Parse as single YAML/JSON document
-        data = yaml.load(io.StringIO(content), Loader=CoreLoader)
-        return data, "<stdin>"
+        data = yaml.load(content, Loader=CoreLoader)
+        return data, source_name
 
     if not filename.is_file():
         raise click.UsageError(f"'{filename}' is not a file.")
@@ -307,11 +311,22 @@ def load_input(filename: Path) -> tuple[dict | list, str]:
             err=True,
         )
 
-    # Use YAML-1.2-compliant loader (YAML-1.2 dropped support for yes/no boolean values)
-    with filename.open("r", encoding="utf-8") as f:
-        data = yaml.load(f, Loader=CoreLoader)
+    content = _require_content(filename.read_text(encoding="utf-8"), source_name)
 
-    return data, str(filename)
+    # Use YAML-1.2-compliant loader (YAML-1.2 dropped support for yes/no boolean values)
+    data = yaml.load(content, Loader=CoreLoader)
+    return data, source_name
+
+
+def _require_content(content: str, source_name: str) -> str:
+    """Return `content`, rejecting input that is empty or only whitespace.
+
+    YAML parses an empty document as None, which validation would otherwise
+    report as a malformed feature rather than as missing input.
+    """
+    if not content.strip():
+        raise click.UsageError(f"no input received on {source_name}")
+    return content
 
 
 def perform_validation(data: dict | list, model_type: UnionType) -> None:
