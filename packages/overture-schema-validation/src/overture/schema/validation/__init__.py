@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal, cast, get_args, get_o
 from pydantic import BaseModel, Field, Tag, TypeAdapter
 
 from overture.schema.common import OvertureFeature
-from overture.schema.system.discovery import discover_models
+from overture.schema.system.discovery import discover_models, select_models
 from overture.schema.system.feature import Feature
 
 if TYPE_CHECKING:
@@ -73,7 +73,10 @@ def _union_type_adapter() -> TypeAdapter[BaseModel]:
     Return a Pydantic type adapter that can validate the union of all models discovered using entry
     points.
     """
-    models = discover_models()
+    # Extension data validates through the feature models it was merged into
+    # (`select_models` applies extensions after selection); the permissive
+    # standalone wrappers are dropped by its default hiding.
+    models = select_models(discover_models(apply_extensions=False))
     if not models:
         raise RuntimeError("no registered models found via entry points")
 

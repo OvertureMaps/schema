@@ -7,10 +7,13 @@ from pathlib import Path, PurePosixPath
 
 import click
 
-from overture.schema.cli.tag_options import build_selector, tag_selection_options
+from overture.schema.cli.tag_options import (
+    build_selector,
+    tag_selection_options,
+)
 from overture.schema.system.discovery import (
     discover_models,
-    filter_models,
+    select_models,
     split_entry_point,
 )
 
@@ -59,7 +62,11 @@ def cli() -> None:
 @cli.command("list")
 def list_models() -> None:
     """List all discovered models."""
-    models = discover_models()
+    # A listing is introspection, not selection: show every discoverable
+    # entry, extension wrappers included.
+    models = select_models(
+        discover_models(apply_extensions=False), include_extension_entries=True
+    )
     # Name every entry from its entry point, not the loaded object: a
     # discriminated union loads as an `Annotated[...]` alias with no
     # `__name__`, so `str(model)` would print the whole type expression.
@@ -106,9 +113,9 @@ def generate(
     if output_format != "pyspark" and test_output_dir is not None:
         raise click.UsageError("--test-output-dir is only valid with --format pyspark")
 
-    all_models = discover_models()
+    all_models = discover_models(apply_extensions=False)
 
-    models = filter_models(all_models, build_selector(tags, filters, excludes))
+    models = select_models(all_models, build_selector(tags, filters, excludes))
 
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
