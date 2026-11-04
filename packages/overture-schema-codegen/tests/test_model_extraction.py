@@ -1,5 +1,6 @@
 """Tests for `extract_model`."""
 
+from collections.abc import Callable
 from typing import Annotated, Optional
 
 import pytest
@@ -17,7 +18,9 @@ from overture.schema.codegen.extraction.field import (
 from overture.schema.codegen.extraction.field_walk import terminal_of
 from overture.schema.codegen.extraction.length_constraints import ArrayMinLen
 from overture.schema.codegen.extraction.model_extraction import extract_model
+from overture.schema.common.scoping import Scope, scoped
 from overture.schema.common.scoping.vehicle import VehicleSelector
+from overture.schema.system.model_constraint import no_extra_fields
 
 
 def test_extract_model_populates_union_terminal() -> None:
@@ -287,6 +290,29 @@ def test_model_deprecation_does_not_inherit_to_subclasses() -> None:
 
     assert getattr(CurrentFeature, "__deprecated__", None) is not None
     assert extract_model(CurrentFeature).deprecated is None
+    assert extract_model(OldFeature).deprecated == "Use `NewFeature` instead."
+
+
+@pytest.mark.parametrize(
+    "decorator",
+    [no_extra_fields, scoped(Scope.HEADING)],
+    ids=["no_extra_fields", "scoped"],
+)
+def test_model_deprecation_survives_a_decorator_applied_over_it(
+    decorator: Callable[[type[BaseModel]], type[BaseModel]],
+) -> None:
+    """A decorator applied over `@deprecated` keeps the model deprecated.
+
+    Model-constraint decorators and `@scoped` return a new subclass of the
+    class they decorate. That subclass is the class the module exports, so
+    the deprecation the author declared has to be declared on it too.
+    """
+
+    @decorator
+    @deprecated("Use `NewFeature` instead.")
+    class OldFeature(BaseModel):
+        name: str
+
     assert extract_model(OldFeature).deprecated == "Use `NewFeature` instead."
 
 

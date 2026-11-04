@@ -72,10 +72,13 @@ def _model_deprecation(model_class: type[BaseModel]) -> str | None:
 
     [PEP 702](https://peps.python.org/pep-0702/)'s `@deprecated("message")`
     sets `__deprecated__` on the decorated class, and `message` is a required
-    argument, so there is no bare-flag form to normalize. Read from
-    `__dict__` rather than with `getattr`: attribute lookup walks the MRO, so
-    a subclass of a deprecated model would report its parent's message and
-    render a deprecation it never declared.
+    argument, so there is no bare-flag form to normalize. Deprecation belongs
+    to the class that declares it, as at runtime: instantiating a subclass of
+    a deprecated class raises no warning. So read from `__dict__` rather than
+    with `getattr`, which walks the MRO and would report a parent's message
+    on a subclass that never declared one. A decorator that returns a new
+    subclass (`@no_extra_fields`, `@scoped`) re-declares its input's
+    deprecation, so decorator order does not change the answer.
     """
     deprecated = model_class.__dict__.get("__deprecated__")
     return deprecated if isinstance(deprecated, str) else None
