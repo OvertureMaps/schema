@@ -18,10 +18,11 @@ jobs:
     name: Cleanup
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       id-token: write # Required for OIDC authentication to AWS
     env:
-      AWS_ROLE_ARN: arn:aws:iam::763944545891:role/pages-staging-oidc-overturemaps
+      AWS_ROLE_ARN: arn:aws:iam::763944545891:role/pages-staging-scoped-oidc-overturemaps
       AWS_REGION: us-west-2
 
     steps:
