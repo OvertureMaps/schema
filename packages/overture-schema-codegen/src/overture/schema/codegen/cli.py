@@ -23,12 +23,13 @@ from .layout.module_layout import (
 from .markdown.pipeline import generate_markdown_pages
 from .pyspark.pipeline import generate_pyspark_modules
 from .spec_discovery import extract_alias_spec, extract_model_spec
+from .stac_table_columns.pipeline import generate_table_columns_documents
 
 log = logging.getLogger(__name__)
 
 __all__ = ["cli"]
 
-_OUTPUT_FORMATS = ("markdown", "pyspark")
+_OUTPUT_FORMATS = ("markdown", "pyspark", "stac-table-columns")
 
 _FEATURE_FRONTMATTER = "---\nsidebar_position: 1\n---\n\n"
 
@@ -42,7 +43,10 @@ def _write_output(
     if output_dir:
         file_path = output_dir / output_path
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path.write_text(content)
+        # UTF-8, not the locale's encoding: generated Python is decoded as
+        # UTF-8 (PEP 3120) and JSON is UTF-8 by RFC 8259, and on an ASCII
+        # locale the default raises on the first em-dash in a description.
+        file_path.write_text(content, encoding="utf-8")
     else:
         click.echo(content)
         click.echo()  # separate entries with a blank line in stdout mode
@@ -121,6 +125,8 @@ def generate(
 
     if output_format == "pyspark":
         _generate_pyspark(model_specs, output_dir, test_output_dir)
+    elif output_format == "stac-table-columns":
+        _generate_table_columns(model_specs, output_dir)
     else:
         # RootModel entry points yield no ModelSpec, so they document as
         # named aliases -- reachable no other way, since a RootModel field
@@ -176,6 +182,22 @@ def _generate_pyspark(
             _write_output(mod.content, test_output_dir, mod.path)
 
 
+def _generate_table_columns(
+    model_specs: list[ModelSpec],
+    output_dir: Path | None,
+) -> None:
+    """Generate one STAC `table:` properties fragment per model.
+
+    Every model emits, including the discriminated-union root: a flat column
+    list is what a columnar sink stores for a union. The gap count is logged
+    per model because it, not the fragment, is what a flattening target has to
+    be judged on.
+    """
+    for doc in generate_table_columns_documents(model_specs):
+        _write_output(doc.stac, output_dir, doc.stac_path)
+        log.info("%s: %d gaps", doc.model, len(doc.gaps))
+
+
 def _ancestor_dirs(paths: set[PurePosixPath]) -> set[PurePosixPath]:
     """Collect all ancestor directories for a set of file paths."""
     dirs: set[PurePosixPath] = set()
@@ -216,7 +238,7 @@ def _write_category_files(
 
         file_path = output_dir / dir_path / "_category_.json"
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path.write_text(json.dumps(category, indent=2) + "\n")
+        file_path.write_text(json.dumps(category, indent=2) + "\n", encoding="utf-8")
 
 
 def main() -> None:

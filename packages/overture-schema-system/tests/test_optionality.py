@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 from types import NoneType
 from typing import Annotated, Any, cast
 
@@ -8,6 +10,22 @@ from pydantic.json_schema import JsonDict
 from util import assert_subset
 
 from overture.schema.system.optionality import Omitable
+
+
+def test_omitable_import_without_warnings() -> None:
+    """Check a fresh import before pytest can cache modules or filter warnings."""
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "-W",
+            "error",
+            "-c",
+            "from overture.schema.system.optionality import Omitable",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
 
 
 @pytest.mark.parametrize(

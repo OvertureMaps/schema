@@ -53,6 +53,7 @@ files = ["packages/**/*.py", "tests/**/*.py"]
 mypy_path = "packages/overture-schema-pyspark/tests"
 namespace_packages = true
 plugins = ["pydantic.mypy"]
+# Match the running Python version. CI checks Python 3.10 compatibility.
 warn_return_any = true
 warn_unused_configs = true
 
