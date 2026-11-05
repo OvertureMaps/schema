@@ -1311,7 +1311,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.1" },
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
-    { name = "pydantic", specifier = ">=2.13.0" },
+    { name = "pydantic", specifier = ">=2.14.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "rich", specifier = ">=13.0" },
     { name = "yamlcore", specifier = ">=0.0.4" },
@@ -1392,7 +1392,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
-    { name = "pydantic", specifier = ">=2.13.0" },
+    { name = "pydantic", specifier = ">=2.14.0" },
     { name = "shapely", specifier = ">=2.1.1" },
 ]
 
@@ -1450,7 +1450,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pydantic", specifier = ">=2.13.0" },
+    { name = "pydantic", specifier = ">=2.14.0" },
     { name = "shapely", specifier = ">=2.0.0" },
     { name = "typing-extensions", specifier = ">=4.16" },
 ]
@@ -1476,7 +1476,7 @@ dependencies = [
 requires-dist = [
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
-    { name = "pydantic", specifier = ">=2.13.0" },
+    { name = "pydantic", specifier = ">=2.14.0" },
 ]
 
 [[package]]
@@ -1493,7 +1493,7 @@ dependencies = [
 requires-dist = [
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
-    { name = "pydantic", specifier = ">=2.13.0" },
+    { name = "pydantic", specifier = ">=2.14.0" },
 ]
 
 [[package]]
@@ -1510,7 +1510,7 @@ dependencies = [
 requires-dist = [
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
-    { name = "pydantic", specifier = ">=2.13.0" },
+    { name = "pydantic", specifier = ">=2.14.0" },
 ]
 
 [[package]]
@@ -1527,7 +1527,7 @@ dependencies = [
 requires-dist = [
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
-    { name = "pydantic", specifier = ">=2.13.0" },
+    { name = "pydantic", specifier = ">=2.14.0" },
 ]
 
 [[package]]
@@ -1544,7 +1544,7 @@ dependencies = [
 requires-dist = [
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
-    { name = "pydantic", extras = ["email"], specifier = ">=2.13.0" },
+    { name = "pydantic", extras = ["email"], specifier = ">=2.14.0" },
 ]
 
 [[package]]
@@ -1561,7 +1561,7 @@ dependencies = [
 requires-dist = [
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
-    { name = "pydantic", specifier = ">=2.13.0" },
+    { name = "pydantic", specifier = ">=2.14.0" },
 ]
 
 [[package]]
@@ -1584,7 +1584,7 @@ dev = [
 requires-dist = [
     { name = "overture-schema-common", editable = "packages/overture-schema-common" },
     { name = "overture-schema-system", editable = "packages/overture-schema-system" },
-    { name = "pydantic", specifier = ">=2.12.0" },
+    { name = "pydantic", specifier = ">=2.14.0" },
 ]
 
 [package.metadata.requires-dev]

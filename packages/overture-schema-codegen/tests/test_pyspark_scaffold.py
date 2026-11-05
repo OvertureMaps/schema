@@ -294,6 +294,15 @@ def _base_rows_and_adapter(spec: ModelSpec) -> tuple[dict[str, dict[str, Any]], 
     return {"": generate_base_row(spec)}, TypeAdapter(spec.source_type)
 
 
+@pytest.fixture(scope="module", params=_VALID_ROW_MODELS)
+def model_case(
+    request: pytest.FixtureRequest,
+) -> tuple[ModelSpec, dict[str, dict[str, Any]], Any]:
+    spec = discover_feature(request.param)
+    arm_rows, adapter = _base_rows_and_adapter(spec)
+    return spec, arm_rows, adapter
+
+
 class TestScaffoldsProduceValidRows:
     """Ground truth for finding #1: a scaffold merged onto the base row is valid.
 
@@ -306,14 +315,6 @@ class TestScaffoldsProduceValidRows:
     merged row against the Pydantic schema directly: the scaffold must reach
     the target while keeping every model on the path valid.
     """
-
-    @pytest.fixture(scope="module", params=_VALID_ROW_MODELS)
-    def model_case(
-        self, request: pytest.FixtureRequest
-    ) -> tuple[ModelSpec, dict[str, dict[str, Any]], Any]:
-        spec = discover_feature(request.param)
-        arm_rows, adapter = _base_rows_and_adapter(spec)
-        return spec, arm_rows, adapter
 
     def test_field_scaffolds_validate(
         self, model_case: tuple[ModelSpec, dict[str, dict[str, Any]], Any]

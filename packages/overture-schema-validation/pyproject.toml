@@ -15,7 +15,7 @@ readme = "README.md"
 dependencies = [
     "overture-schema-common>=2.0.0",
     "overture-schema-system>=2.0.0",
-    "pydantic>=2.12.0",
+    "pydantic>=2.14.0",
 ]
 
 [project.urls]
