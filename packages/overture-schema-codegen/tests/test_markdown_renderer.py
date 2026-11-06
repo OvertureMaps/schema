@@ -25,6 +25,7 @@ from codegen_test_support import (
     spec_for_model,
 )
 from pydantic import BaseModel, Field
+from typing_extensions import deprecated
 
 from overture.schema.codegen.extraction.examples import ExampleRecord
 from overture.schema.codegen.extraction.model_extraction import extract_model
@@ -1479,3 +1480,100 @@ class TestRenderPydanticType:
         result = render_pydantic_type(HTTP_URL_SPEC, link_ctx=ctx, used_by=used_by)
         assert "## Used By" in result
         assert "Place" in result
+
+
+class TestRenderFeatureDeprecation:
+    """Tests for deprecation rendering (OvertureMaps/schema#674).
+
+    One deprecated field and one deprecated model, defined locally so
+    neither reaches the published schema -- the fixture the issue asks
+    for. Each positive assertion is paired with a control on an
+    undeprecated sibling field/model, per the issue's fourth acceptance
+    criterion: nothing changes for the un-deprecated case.
+    """
+
+    def test_field_with_deprecation_message_renders_note_and_tag(self) -> None:
+        """A `Field(deprecated="...")` field gets the note and the `(deprecated)` tag."""
+
+        class ModelWithDeprecatedField(BaseModel):
+            """Model with one deprecated field and one current field."""
+
+            old_field: str | None = Field(
+                default=None,
+                deprecated="Use `new_field` instead. Deprecated in v1.18.0.",
+            )
+            new_field: str | None = Field(default=None, description="The replacement.")
+
+        spec = extract_model(ModelWithDeprecatedField)
+        result = render_model(spec)
+
+        lines = result.splitlines()
+        old_line = next(line for line in lines if "| `old_field` |" in line)
+        new_line = next(line for line in lines if "| `new_field` |" in line)
+
+        assert "(optional, deprecated)" in old_line
+        assert (
+            "**Deprecated:** Use `new_field` instead. Deprecated in v1.18.0."
+            in old_line
+        )
+        # Control: the current field gets neither the tag nor a note.
+        assert "deprecated" not in new_line
+        assert "Deprecated" not in new_line
+
+    def test_bare_deprecated_true_renders_generic_message(self) -> None:
+        """`deprecated=True` with no message still renders a note, not silence."""
+
+        class ModelWithBareDeprecation(BaseModel):
+            """Model with a bare-flagged deprecated field."""
+
+            old_field: str | None = Field(default=None, deprecated=True)
+
+        spec = extract_model(ModelWithBareDeprecation)
+        result = render_model(spec)
+
+        lines = result.splitlines()
+        old_line = next(line for line in lines if "| `old_field` |" in line)
+
+        assert "(optional, deprecated)" in old_line
+        assert "**Deprecated:** This field is deprecated." in old_line
+
+    def test_deprecated_model_renders_banner(self) -> None:
+        """A `@deprecated(...)`-decorated model renders a banner at the page top.
+
+        Docusaurus renders the generated reference, so the banner is an
+        admonition. Blank lines inside the directive keep Prettier from
+        collapsing it into invalid syntax.
+        """
+
+        @deprecated("Use `NewFeature` instead. Deprecated in v1.18.0.")
+        class OldFeature(BaseModel):
+            """An old feature, kept only to be deprecated."""
+
+            name: str
+
+        spec = extract_model(OldFeature)
+        result = render_model(spec)
+
+        assert (
+            ":::warning[Deprecated]\n\n"
+            "Use `NewFeature` instead. Deprecated in v1.18.0.\n\n"
+            ":::" in result
+        )
+        # The banner precedes the docstring description.
+        banner_idx = result.index(":::warning[Deprecated]")
+        description_idx = result.index("An old feature, kept only to be deprecated.")
+        assert banner_idx < description_idx
+
+    def test_current_model_renders_no_banner(self) -> None:
+        """The control: an undeprecated model gets no banner at all."""
+
+        class CurrentFeature(BaseModel):
+            """A current feature."""
+
+            name: str
+
+        spec = extract_model(CurrentFeature)
+        result = render_model(spec)
+
+        assert ":::warning[Deprecated]" not in result
+        assert "Deprecated" not in result
