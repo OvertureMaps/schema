@@ -19,6 +19,7 @@ from overture.schema.system.ref import Reference
 from .docstring import first_docstring_line
 from .length_constraints import ArrayMaxLen, ArrayMinLen, ScalarMaxLen, ScalarMinLen
 from .literal_alternatives import LiteralAlternatives
+from .plain_value import plain_value
 from .specs import TypeIdentity
 from .type_analyzer import ConstraintSource
 
@@ -113,7 +114,9 @@ def describe_field_constraint(
     if isinstance(constraint, (ArrayMaxLen, ScalarMaxLen)):
         return f"Maximum length: {constraint.max_length}"
     if isinstance(constraint, LiteralAlternatives):
-        return "Also accepts: " + ", ".join(f"`{v!r}`" for v in constraint.values)
+        return "Also accepts: " + ", ".join(
+            f"`{plain_value(v)!r}`" for v in constraint.values
+        )
 
     if _is_opaque_constraint(constraint):
         return f"`{type(constraint).__name__}`"

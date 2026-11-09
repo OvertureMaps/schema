@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import Enum
 from typing import Annotated, get_args, get_origin
 
 from pydantic import BaseModel
@@ -25,6 +24,7 @@ from .field import (
 )
 from .field_walk import list_depth, terminal_of, walk_shape
 from .model_extraction import extract_model, resolve_field_alias
+from .plain_value import plain_value
 from .specs import AnnotatedField, FieldSpec, MemberSpec, UnionSpec, is_model_class
 from .type_analyzer import (
     capture_union_members,
@@ -91,7 +91,7 @@ def extract_discriminator(
         if field_info and field_info.annotation is not None:
             lit_val = single_literal_value(field_info.annotation)
             if lit_val is not None:
-                key = lit_val.value if isinstance(lit_val, Enum) else str(lit_val)
+                key = str(plain_value(lit_val))
                 mapping[key] = member
 
     return disc_field_name, mapping or None

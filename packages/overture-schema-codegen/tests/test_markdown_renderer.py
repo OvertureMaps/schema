@@ -16,6 +16,7 @@ from codegen_test_support import (
     FeatureWithAddress,
     FeatureWithSources,
     Instrument,
+    QualifiedFormatKind,
     SimpleModel,
     SourceItem,
     Sources,
@@ -1030,6 +1031,14 @@ class TestFormatExampleValue:
         assert _format_example_value(0) == "`0`"
         assert _format_example_value(-17) == "`-17`"
 
+    def test_int_enum_member_renders_value(self) -> None:
+        """An `(int, Enum)` member renders its value, not `Class.MEMBER`."""
+
+        class Level(int, Enum):
+            ONE = 1
+
+        assert _format_example_value(Level.ONE) == "`1`"
+
     def test_float_has_backticks(self) -> None:
         """Floats render with backticks."""
 
@@ -1099,6 +1108,14 @@ class TestRenderFeatureWithExamples:
         assert "| `count` | `42` |" in result
         # Should NOT have "Example 1" heading
         assert "### Example 1" not in result
+
+    def test_enum_example_value_renders_member_value(self) -> None:
+        """A validated example holds enum members; the table shows their values."""
+        spec = extract_model(SimpleModel)
+        examples = [ExampleRecord(rows=[("name", QualifiedFormatKind.SMALL)])]
+
+        result = render_model(spec, examples=examples)
+        assert "| `name` | `small` |" in result
 
     def test_renders_multiple_examples_with_headings(self) -> None:
         """Multiple examples render with 'Example N' headings."""

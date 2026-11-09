@@ -20,6 +20,7 @@ from ..extraction.field import (
     Scalar,
     UnionRef,
 )
+from ..extraction.plain_value import plain_value
 from ..extraction.specs import FieldSpec, TypeIdentity, is_pydantic_sourced
 from ..extraction.type_registry import (
     get_type_mapping,
@@ -82,8 +83,8 @@ def _peel_arrays(shape: FieldShape) -> tuple[int, FieldShape]:
 def _format_literal(values: tuple[object, ...]) -> str:
     """Format Literal values for display."""
     if len(values) == 1:
-        return f'`"{values[0]}"`'
-    return r" \| ".join(f'`"{v}"`' for v in values)
+        return f'`"{plain_value(values[0])}"`'
+    return r" \| ".join(f'`"{plain_value(v)}"`' for v in values)
 
 
 def _format_union_members(
@@ -294,7 +295,7 @@ def _format_shape(
     match inner:
         case LiteralScalar(values=values):
             if outer_depth > 0:
-                inside = " | ".join(f'"{v}"' for v in values)
+                inside = " | ".join(f'"{plain_value(v)}"' for v in values)
                 return _plain_list_type(inside, outer_depth)
             return _format_literal(values)
 

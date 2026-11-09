@@ -104,6 +104,22 @@ class SimpleKind(str, Enum):
     LARGE = "large"
 
 
+class QualifiedFormatKind(str, DocumentedEnum):
+    """A `(str, DocumentedEnum)` that formats as `Class.MEMBER` on every Python.
+
+    Python 3.11 changed `format()` of a mixed-in Enum member to return
+    `Class.MEMBER` instead of its value. This enum does so on 3.10 too, so a
+    test that interpolates a member where its value belongs fails on every
+    interpreter. It is a `DocumentedEnum` because most schema enums are.
+    """
+
+    SMALL = ("small", "A small one.")
+    LARGE = ("large", "A large one.")
+
+    def __format__(self, format_spec: str) -> str:
+        return f"{type(self).__name__}.{self.name}"
+
+
 class Instrument(
     IdentifiedFeature[Literal["music"], Literal["instrument"]],
 ):
@@ -327,6 +343,29 @@ class BikeVariant(SegmentBase):
 TestEnumDiscriminatorUnion = Annotated[
     CarVariant | BikeVariant,
     Field(description="Union with enum-valued discriminator", discriminator="subtype"),
+]
+
+
+class LaneCount(int, Enum):
+    """Integer-valued discriminator, to pin enum keys against plain literal keys."""
+
+    ONE = 1
+    TWO = 2
+
+
+class OneLaneVariant(SegmentBase):
+    lanes: Literal[LaneCount.ONE]
+
+
+class TwoLaneVariant(SegmentBase):
+    lanes: Literal[LaneCount.TWO]
+
+
+TestIntEnumDiscriminatorUnion = Annotated[
+    OneLaneVariant | TwoLaneVariant,
+    Field(
+        description="Union with int-valued enum discriminator", discriminator="lanes"
+    ),
 ]
 
 

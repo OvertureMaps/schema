@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Callable
-from enum import Enum
 from typing import Any
 
 from overture.schema.common.scoping.lr import LinearReferenceRangeConstraint
@@ -48,6 +47,7 @@ from ...extraction.field_walk import (
     terminal_scalar,
 )
 from ...extraction.length_constraints import ArrayMinLen
+from ...extraction.plain_value import plain_value
 from ...extraction.specs import FieldSpec, ModelSpec, RecordSpec, UnionSpec
 from ...extraction.type_registry import primitive_spark_category
 from .._primitive_fill import PRIMITIVE_FILL_TABLE
@@ -269,8 +269,7 @@ def _condition_value(field_eq: FieldEq) -> object:
     Row dicts store raw scalar values, so an `Enum`-typed condition value is
     compared and written as its underlying `.value`.
     """
-    value = field_eq.value
-    return value.value if isinstance(value, Enum) else value
+    return plain_value(field_eq.value)
 
 
 def _row_satisfies_condition(row: dict[str, Any], condition: object) -> bool:
@@ -684,8 +683,7 @@ def _value_for_shape(
             return {map_key: map_value}
 
         case LiteralScalar(values=values):
-            val = values[0]
-            return val.value if isinstance(val, Enum) else val
+            return plain_value(values[0])
 
         case Primitive() as p if (enum_cls := enum_source(p)) is not None:
             return list(enum_cls)[0].value

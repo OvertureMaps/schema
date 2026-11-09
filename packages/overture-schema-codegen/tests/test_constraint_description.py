@@ -3,6 +3,7 @@
 import re
 
 from annotated_types import Ge, Gt, Interval, Le, Lt, MultipleOf
+from codegen_test_support import QualifiedFormatKind
 
 from overture.schema.codegen.extraction.field_constraints import (
     constraint_display_text,
@@ -186,6 +187,13 @@ class TestLiteralAlternativesProse:
         result = describe_field_constraint(LiteralAlternatives(("a", "b")))
         assert result == "Also accepts: `'a'`, `'b'`"
 
+    def test_enum_member_literal_renders_member_value(self) -> None:
+        """`repr` of a member shows `<Kind.SMALL: 'small'>` on every Python."""
+        result = describe_field_constraint(
+            LiteralAlternatives((QualifiedFormatKind.SMALL,))
+        )
+        assert result == "Also accepts: `'small'`"
+
 
 class TestConsolidation:
     """Consolidation of same-field conditional constraints."""
@@ -245,6 +253,33 @@ class TestConsolidation:
 
         assert result == [
             "`secret` is forbidden when `role` is one of: `guest`, `anonymous`"
+        ]
+
+
+class TestEnumConditionValues:
+    """Enum condition values render as their value, not `Class.MEMBER`."""
+
+    def test_single_condition_renders_member_value(self) -> None:
+        constraint = RequireIfConstraint._create_internal(
+            "@require_if",
+            ["size_cm"],
+            FieldEqCondition("kind", QualifiedFormatKind.SMALL),
+        )
+        result = describe_model_constraints((constraint,))
+
+        assert result == ["`size_cm` is required when `kind` = `small`"]
+
+    def test_consolidated_conditions_render_member_values(self) -> None:
+        constraints = tuple(
+            RequireIfConstraint._create_internal(
+                "@require_if", ["size_cm"], FieldEqCondition("kind", member)
+            )
+            for member in QualifiedFormatKind
+        )
+        result = describe_model_constraints(constraints)
+
+        assert result == [
+            "`size_cm` is required when `kind` is one of: `small`, `large`"
         ]
 
 

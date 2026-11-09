@@ -12,6 +12,7 @@ from codegen_test_support import (
     SegmentBase,
     ShortNamesSegment,
     TestEnumDiscriminatorUnion,
+    TestIntEnumDiscriminatorUnion,
     TestSegment,
     TestSegmentDivergingConstraints,
     TestSegmentEqualConstraints,
@@ -133,6 +134,14 @@ class TestExtractDiscriminatorWithEnumLiterals:
         """Mapping keys must be the Parquet-serialized string values, not enum repr."""
         assert spec.discriminator_mapping is not None
         assert set(spec.discriminator_mapping.keys()) == {"car", "bike"}
+
+    def test_int_enum_keys_match_plain_literal_keys(self) -> None:
+        """An `(int, Enum)` discriminator keys by `str` of its value, as `Literal[1]` does."""
+        spec = extract_union(
+            "TestIntEnumDiscriminatorUnion", TestIntEnumDiscriminatorUnion
+        )
+        assert spec.discriminator_mapping is not None
+        assert set(spec.discriminator_mapping.keys()) == {"1", "2"}
 
 
 class TestDivergingConstraints:

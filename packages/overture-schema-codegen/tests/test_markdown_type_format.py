@@ -5,7 +5,7 @@ from pathlib import PurePosixPath
 from typing import Any, Literal, NewType
 
 import pytest
-from codegen_test_support import placeholder_union
+from codegen_test_support import QualifiedFormatKind, placeholder_union
 from pydantic import BaseModel, HttpUrl
 
 from overture.schema.codegen.extraction.field import (
@@ -68,6 +68,22 @@ class TestFormatType:
             format_type(_make_field(Literal["a", "b", "c"]))
             == '`"a"` \\| `"b"` \\| `"c"`'
         )
+
+    def test_enum_member_literal_renders_member_value(self) -> None:
+        field = _make_field(Literal[QualifiedFormatKind.SMALL])
+        assert format_type(field) == '`"small"`'
+
+    def test_multi_member_literal_renders_member_values(self) -> None:
+        field = _make_field(
+            Literal[QualifiedFormatKind.SMALL, QualifiedFormatKind.LARGE]
+        )
+        assert format_type(field) == '`"small"` \\| `"large"`'
+
+    def test_list_of_enum_member_literal_renders_member_values(self) -> None:
+        field = _make_field(
+            list[Literal[QualifiedFormatKind.SMALL, QualifiedFormatKind.LARGE]]
+        )
+        assert format_type(field) == '`list<"small" | "large">`'
 
     def test_enum_without_context_renders_as_code(self) -> None:
         class Color(str, Enum):
