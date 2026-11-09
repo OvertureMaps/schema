@@ -23,6 +23,7 @@ from ..extraction.field_walk import (
     terminal_model_ref,
 )
 from ..extraction.model_constraints import analyze_model_constraints
+from ..extraction.plain_value import plain_value
 from ..extraction.specs import (
     AnnotatedField,
     EnumSpec,
@@ -172,6 +173,7 @@ def _format_example_value(value: object) -> str:
     All non-empty values render in backticks for consistent monospace
     formatting. Long representations are truncated before wrapping.
     """
+    value = plain_value(value)
     if value is None:
         return "`null`"
 

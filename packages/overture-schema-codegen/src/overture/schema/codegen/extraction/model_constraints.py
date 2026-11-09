@@ -22,6 +22,8 @@ from overture.schema.system.model_constraint import (
     RequireIfConstraint,
 )
 
+from .plain_value import plain_value
+
 __all__ = ["analyze_model_constraints"]
 
 _ConditionalConstraint = RequireIfConstraint | ForbidIfConstraint
@@ -68,7 +70,7 @@ def _describe_condition(condition: object) -> str:
     if unwrapped is not None:
         field_eq, negated = unwrapped
         op = "≠" if negated else "="
-        return f"`{field_eq.field_name}` {op} `{field_eq.value}`"
+        return f"`{field_eq.field_name}` {op} `{plain_value(field_eq.value)}`"
     return str(condition)
 
 
@@ -120,7 +122,7 @@ def _describe_consolidated(
     fields = _backtick_join(first.field_names)
     verb = _conditional_verb(first)
     cond_field = _as_field_eq(first).field_name
-    values = ", ".join(f"`{_as_field_eq(c).value}`" for c in constraints)
+    values = ", ".join(f"`{plain_value(_as_field_eq(c).value)}`" for c in constraints)
     return (
         f"{fields} {_plural_verb(first.field_names)} {verb} "
         f"when `{cond_field}` is one of: {values}"

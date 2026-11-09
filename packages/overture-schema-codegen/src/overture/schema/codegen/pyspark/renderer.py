@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
-from enum import Enum
 
 from overture.schema.system.field_path import (
     ArraySegment,
@@ -17,6 +16,7 @@ from overture.schema.system.field_path import (
 )
 from overture.schema.system.geometric import GeometryType
 
+from ..extraction.plain_value import plain_value
 from ._render_common import (
     FieldCheckRow,
     ModelCheckRow,
@@ -93,9 +93,7 @@ _SPARK_TYPES = frozenset(
 
 def _render_condition_desc(parsed: FieldEq) -> str:
     """Render a parsed condition to a human-readable error-message description."""
-    display = repr(
-        parsed.value.value if isinstance(parsed.value, Enum) else parsed.value
-    )
+    display = repr(plain_value(parsed.value))
     op = "!=" if parsed.negated else "="
     return f"{parsed.field_name} {op} {display}"
 
