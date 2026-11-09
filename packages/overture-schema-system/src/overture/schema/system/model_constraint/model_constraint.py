@@ -11,10 +11,9 @@ Interfaces for constraints that apply to an entire Pydantic model, not just one 
 
 from abc import ABC, abstractmethod
 from collections import Counter
-from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, cast, final
+from typing import cast, final
 
 from pydantic import (
     BaseModel,
@@ -123,7 +122,7 @@ class ModelConstraint:
         model_constraints = (*ModelConstraint.get_model_constraints(model_class), self)
         metadata[_MODEL_CONSTRAINT_KEY] = model_constraints
         # Capture the constraint in a closure rather than passing a bound method.
-        # Some Pydantic versions unwrap bound methods passed through __validators__
+        # Some Pydantic versions unwrap bound methods placed in the class namespace
         # and rebind `self` to the model instance, breaking the dispatch.
         constraint = self
         # Pydantic keys model validators by attribute name, and a subclass's validator replaces an
@@ -141,11 +140,8 @@ class ModelConstraint:
             __doc__=model_class.__doc__,
             __base__=model_class,
             __module__=model_class.__module__,
-            __validators__={
-                validator_key: cast(
-                    Callable[..., Any],
-                    model_validator(mode="after")(_after_validator),
-                )
+            __namespace__={
+                validator_key: model_validator(mode="after")(_after_validator)
             },
             __metadata__=metadata,
         )
