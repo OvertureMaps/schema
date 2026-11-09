@@ -2,7 +2,6 @@
 Dynamic Pydantic model creation with preservation of Overture metadata.
 """
 
-from collections.abc import Callable
 from typing import Any, TypeVar, cast
 
 import pydantic
@@ -21,7 +20,7 @@ def create_model(
     __doc__: str | None = None,
     __base__: type[ModelT] | tuple[type[ModelT], ...] | None = None,
     __module__: str | None = None,
-    __validators__: dict[str, Callable[..., Any]] | None = None,
+    __namespace__: dict[str, Any] | None = None,
     __cls_kwargs__: dict[str, Any] | None = None,
     __qualname__: str | None = None,
     __metadata__: Metadata | None = None,
@@ -47,7 +46,7 @@ def create_model(
         __doc__=__doc__,
         __base__=__base__,  # type: ignore[arg-type]
         __module__=__module__,  # type: ignore[arg-type]
-        __validators__=__validators__,
+        __namespace__=__namespace__,
         __cls_kwargs__=__cls_kwargs__,
         __qualname__=__qualname__,
         # mypy checks an unpacked dict against every keyword parameter, `__base__` included,
