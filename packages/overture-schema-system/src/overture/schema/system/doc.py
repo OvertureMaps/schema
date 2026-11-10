@@ -6,9 +6,7 @@ for.
 """
 
 from enum import Enum
-from typing import TypeVar, cast
-
-T = TypeVar("T", bound="DocumentedEnum")
+from typing import TYPE_CHECKING, Any, ClassVar, Self
 
 
 class DocumentedEnum(Enum):
@@ -43,6 +41,14 @@ class DocumentedEnum(Enum):
     >>> Status.PENDING.__doc__
     'Request is awaiting review'
 
+    A member mixed with a data type formats as that type does, as `StrEnum` and `IntEnum` do, so
+    `str()` and f-strings give the value:
+
+    >>> f"{Status.PENDING}"
+    'pending'
+    >>> str(Status.APPROVED)
+    'approved'
+
     Documentation is optional on a per-member basis:
 
     >>> class ConnectionState(str, DocumentedEnum):
@@ -64,25 +70,48 @@ class DocumentedEnum(Enum):
     ...     LOW = 1
     ...     MEDIUM = 5
     ...     HIGH = (10, "High priority should only be used by system processes.")
+    >>> f"{Priority.HIGH}"
+    '10'
+    >>> f"{Priority.HIGH:03d}"
+    '010'
 
-    Or it can be of no particular type:
+    Or it can be of no particular type, in which case members format as `Enum` members do:
 
     >>> class HttpStatus(DocumentedEnum):
     ...     OK = (200, "The request succeeded")
     ...     NOT_FOUND = (404, "The server cannot find the requested resource")
     ...     INTERNAL_SERVER_ERROR = (500, "The server encountered an unexpected condition")
+    >>> str(HttpStatus.OK)
+    'HttpStatus.OK'
     """
 
-    def __new__(cls: type, value: object, doc: str | None = None) -> "DocumentedEnum":
-        if len(cls.__bases__) == 2:
-            base_cls = next(base for base in cls.__bases__ if base != Enum)
-            obj = cast(DocumentedEnum, base_cls.__new__(cls, value))
-        elif len(cls.__bases__) > 2:
-            raise TypeError(
-                f"too many base classes: only 1-2 are supported, but `{cls.__name__}` has {len(cls.__bases__)}: {repr(cls.__bases__)}"
-            )
+    if TYPE_CHECKING:
+        # The data type the enum machinery resolves from the class's bases: `str` for a
+        # `(str, DocumentedEnum)` class or any subclass of one, `object` for a plain
+        # `DocumentedEnum`. The standard library's type stubs omit it, so mypy needs this
+        # declaration to accept `cls._member_type_` below.
+        _member_type_: ClassVar[Any]
+
+    def __new__(cls, value: object, doc: str | None = None) -> Self:
+        if cls._member_type_ is object:
+            obj = object.__new__(cls)
         else:
-            obj = cast(DocumentedEnum, object.__new__(cls))
+            obj = cls._member_type_.__new__(cls, value)
         obj._value_ = value
         obj.__doc__ = doc
-        return cast(DocumentedEnum, obj)
+        return obj
+
+    def __str__(self) -> str:
+        member_type = type(self)._member_type_
+        if member_type is object:
+            return Enum.__str__(self)
+        # An int-like type has no `__str__` of its own; `ReprEnum` falls back to `__repr__`.
+        if member_type.__str__ is object.__str__:
+            return str(member_type.__repr__(self))
+        return str(member_type.__str__(self))
+
+    def __format__(self, format_spec: str) -> str:
+        member_type = type(self)._member_type_
+        if member_type is object:
+            return Enum.__format__(self, format_spec)
+        return str(member_type.__format__(self, format_spec))
