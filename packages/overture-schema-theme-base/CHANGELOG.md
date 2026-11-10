@@ -1,3 +1,15 @@
+## [2.0.1] - 2026-11-10
+
+### Documentation
+
+- Explained in the `Water` docstring that `"physical"` water features overlap `"ocean"` and other water features by design, and fixed the `subytpe` typo. ([#780](https://github.com/OvertureMaps/schema/issues/780))
+- Wrote the types of documented parameters and return values in numpydoc form, matching their annotations, and replaced the underlined `Ocean`, `Physical` and `Inland Water` headings in the `Water` description with bold headings. ([#804](https://github.com/OvertureMaps/schema/issues/804))
+
+### Miscellaneous
+
+- Raised the minimum pydantic version to 2.14, matching `overture-schema-system`. ([#810](https://github.com/OvertureMaps/schema/issues/810))
+
+
 ## [2.0.0] - 2026-09-02
 
 ### Breaking Changes
