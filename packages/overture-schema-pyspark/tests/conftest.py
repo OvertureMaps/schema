@@ -3,11 +3,20 @@
 import os
 import socket
 import sys
+import warnings
 from collections.abc import Callable
 from typing import Any
 
 import pytest
-from pyspark.sql import SparkSession
+
+# PySpark 3.4 (the declared minimum) imports `typing.io`, which warns on
+# Python 3.11. With -W error the warning aborts collection. 3.5 dropped the
+# import, and 3.4 has no wheels for 3.12+, where `typing.io` is gone.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", message="typing.io is deprecated", category=DeprecationWarning
+    )
+    from pyspark.sql import SparkSession
 
 # Ensure PySpark workers use the same Python as the driver to avoid
 # version mismatch errors when a different system Python is on PATH.
