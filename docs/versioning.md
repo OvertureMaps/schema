@@ -15,6 +15,7 @@ Reference and how-to for package versions and releases. Branch mechanics and the
   - [Changelog quick start](#changelog-quick-start)
   - [Add a changelog fragment](#add-a-changelog-fragment)
   - [Cut a release](#cut-a-release)
+  - [Keep a release PR's changelogs current](#keep-a-release-prs-changelogs-current)
 - [Why](#why)
 
 ## Reference
@@ -175,18 +176,23 @@ changes that package, whether or not it bumps the version.
 
 ### Cut a release
 
-1. Bump the version in the package's `pyproject.toml`, then fold its fragments
-   into `CHANGELOG.md` from the repo root:
+1. Bump the version in each released package's `pyproject.toml`, then fold the
+   fragments of every package at that version into its `CHANGELOG.md` from the
+   repo root:
 
    ```bash
-   uv run towncrier build --config pyproject.toml --dir packages/<package> --version <version>
+   make changelog VERSION=<version> [PACKAGE=<package>] [DATE=<yyyy-mm-dd>]
    ```
 
-   `--version` is required: towncrier only discovers a version from its
+   The target runs `uv run towncrier build --config pyproject.toml --dir
+   packages/<package> --version <version> --yes` for each package whose
+   `pyproject.toml` version is `<version>`; `PACKAGE` restricts it to one
+   package under `packages/`, which must be at `<version>`. The version is
+   passed explicitly because towncrier only discovers one from its
    [config file](https://towncrier.readthedocs.io/en/stable/configuration.html)
    (`version` or `package` key), and our config is the shared root
    `pyproject.toml`, which deliberately has neither so one number can't stamp
-   every package. Pass the version you just bumped to.
+   every package. `DATE` stamps the sections with a day other than today.
 
    Patch and minor bumps target `main`; major bumps go via `vnext` and reach
    `main` through a release merge.
@@ -212,6 +218,59 @@ flowchart LR
     B --> G[docs-publish:<br/>overture-schema vanity tag] --> H[docs site rebuild]
     I[no-bump merge] --> F[.postN internal build<br/>CodeArtifact only]
 ```
+
+### Keep a release PR's changelogs current
+
+A release PR opened ahead of the release has the built changelogs, so reviewers
+read them next to the version bumps. A build consumes fragments, so a change that
+lands on `main` afterward is handled by rebuilding, never by running the build
+again on top. Keep the build in the last commit of the branch,
+`chore(release): draft <version> changelogs`, so it can be dropped and redone.
+
+1. Record the branch tip (`OLD`), drop the drafted commit and rebase onto the new
+   `main`. Consumed fragments come back to `changelog.d/`, next to the ones `main`
+   gained:
+
+   ```bash
+   git rev-parse <release-branch>
+   git fetch origin
+   git switch <release-branch>
+   git switch -C <release-branch> HEAD~1
+   git rebase origin/main
+   ```
+
+2. Reconcile the bump table. For each package, compare
+   `git log <package>-v<last-released>..origin/main -- packages/<package>` with its
+   fragments. A package that gained a change and is not bumped needs its
+   `pyproject.toml` version set to `<version>` and `uv lock`.
+3. Rebuild and commit:
+
+   ```bash
+   make changelog VERSION=<version> [DATE=<yyyy-mm-dd>]
+   git add -A packages
+   git commit --signoff -m "chore(release): draft <version> changelogs"
+   ```
+
+4. A change that needs this release, such as a raised workspace floor, lands as a PR
+   stacked on this branch. It adds fragments, and a version bump for a package this
+   branch does not yet bump, but builds nothing: a second build at `<version>` writes
+   a second section. After each rebuild of this branch, move it onto the new tip:
+
+   ```bash
+   git rebase --onto <release-branch> OLD <stacked-branch>
+   ```
+
+   Once it merges into this branch, its fragments sit after the drafted commit. Drop
+   that commit, then rebuild as in step 3:
+
+   ```bash
+   git rebase --onto <drafted-commit>~1 <drafted-commit>
+   ```
+
+Two conflicts to expect: a change to a fragment this branch deleted gives a
+modify/delete conflict in step 1 (keep the file, then rebuild), and a `main` commit
+that edits a drafted `CHANGELOG.md` conflicts there too (take `main`'s side, then
+rebuild).
 
 ## Why
 
