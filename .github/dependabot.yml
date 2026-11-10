@@ -16,7 +16,7 @@ updates:
       - "bot"
       - "automation 🦾" # Required for enforce-change-type-label.yaml check
     commit-message:
-      prefix: "[CHORE](deps)"
+      prefix: "chore"
       include: "scope"
     cooldown:
       default-days: 7
@@ -44,7 +44,7 @@ updates:
       - "bot"
       - "automation 🦾" # Required for enforce-change-type-label.yaml check
     commit-message:
-      prefix: "[CHORE](deps)"
+      prefix: "chore"
       include: "scope"
     cooldown:
       default-days: 7
