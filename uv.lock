@@ -1600,6 +1600,7 @@ source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "markdown-it-py" },
     { name = "mypy" },
     { name = "pdoc" },
     { name = "pydoclint" },
@@ -1615,6 +1616,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "markdown-it-py", specifier = ">=4.0.0" },
     { name = "mypy", specifier = ">=2.2.0" },
     { name = "pdoc", specifier = ">=15.0.4" },
     { name = "pydoclint", specifier = ">=0.11.0" },

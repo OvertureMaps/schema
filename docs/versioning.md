@@ -159,7 +159,9 @@ packages/<package>/changelog.d/<issue-or-pr>.<type>.md
 | `misc` | Tooling / internal changes |
 
 The file body is the note itself, written in past tense
-(e.g. `Added `provider` to the sources resource.`). Preview the rendered section:
+(e.g. `Added `provider` to the sources resource.`). Wrap it or not: `make changelog`
+joins each paragraph onto one line before the build, since GitHub renders every newline
+in a release's notes as a line break. Preview the rendered section:
 
 ```bash
 # from the repo root
