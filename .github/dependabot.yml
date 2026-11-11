@@ -11,6 +11,12 @@ updates:
       actions:
         patterns:
           - "actions/*"
+      omf-workflows:
+        patterns:
+          - "OvertureMaps/workflows*"
+        update-types:
+          - "minor"
+          - "patch"
     open-pull-requests-limit: 5
     labels:
       - "bot"

@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-slim
     permissions:
       contents: read
+      id-token: write # Required for OIDC authentication to AWS
     steps:
       # The default GITHUB_TOKEN can't clear the required "OMF PR Check" linked-issue
       # check -- a scheduled lockfile refresh has no issue to link. The
@@ -34,12 +35,14 @@ jobs:
       # triggers CI normally, unlike a GITHUB_TOKEN-authored PR.
       - name: Generate app token
         id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: OvertureMaps/workflows/.github/actions/releaser-token@9ddbb7ea0b8d5b08d0cee86823605c4b1202864c # v1.0.0
         with:
+          role-to-assume: arn:aws:iam::816069134238:role/gha-pull-requester-secrets-reader
+          secret-id: omf-github-terraform/pull-requester/pem
           client-id: Iv23liiN80WEARreTV7m
-          private-key: ${{ secrets.OVERTURE_PULL_REQUESTER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
           permission-contents: write
           permission-pull-requests: write
+          clear-aws-credentials: true # Later steps run third-party code
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
