@@ -1,3 +1,15 @@
+## [2.0.1] - 2026-11-10
+
+### Documentation
+
+- Converted the CLI's `Args` docstring sections to numpydoc `Parameters`, with types copied from the annotations. ([#804](https://github.com/OvertureMaps/schema/issues/804))
+
+### Miscellaneous
+
+- Typed `introspect_union`'s argument as `TypeForm[object]`, [PEP 747](https://peps.python.org/pep-0747/)'s type for a type expression, instead of `Any`. ([#794](https://github.com/OvertureMaps/schema/issues/794))
+- Raised the minimum pydantic version to 2.14, matching `overture-schema-system`. ([#810](https://github.com/OvertureMaps/schema/issues/810))
+
+
 ## [2.0.0] - 2026-09-02
 
 ### Bug Fixes

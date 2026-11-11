@@ -1,4 +1,4 @@
-.PHONY: default uv-sync clean-pyspark generate-pyspark check check-namespace test-all test test-only docformat docformat-only doclint doclint-only doctest doctest-only mypy mypy-only lint-only format update-baselines
+.PHONY: default uv-sync clean-pyspark generate-pyspark check check-namespace test-all test test-only docformat docformat-only doclint doclint-only doctest doctest-only mypy mypy-only lint-only format update-baselines changelog
 
 TESTMON ?= --testmon
 
@@ -77,7 +77,7 @@ docformat-only:
 doclint: uv-sync doclint-only
 
 doclint-only:
-	@uv run pydoclint --quiet packages/ tests/
+	@uv run pydoclint --quiet packages/ tests/ scripts/
 	@git grep -nE '^[[:space:]]+(Args|Arguments|Returns|Raises|Yields):[[:space:]]*$$' -- '*.py'; \
 		test $$? -eq 1 || { echo "Google-style docstring sections above; use numpydoc" >&2; exit 1; }
 
@@ -110,17 +110,39 @@ mypy-only:
 	@for d in packages/*/tests tests; do find "$$d" -name "*.py" | sort | xargs uv run mypy --no-error-summary || exit 1; done
 
 lint-only:
-	@uv run ruff check -q packages/ tests/ .github/scripts/
-	@uv run ruff format --check packages/ tests/ .github/scripts/
+	@uv run ruff check -q packages/ tests/ scripts/ .github/scripts/
+	@uv run ruff format --check packages/ tests/ scripts/ .github/scripts/
 	@# Python embedded in Markdown -- keeps documented snippets in the
 	@# same style as the code they describe.
 	@git ls-files -z '*.md' | xargs -0 --no-run-if-empty uv run ruff format -q --check
 
 # The fixing counterpart to lint-only: what to run when that gate fires.
 format:
-	@uv run ruff check -q --fix packages/ tests/ .github/scripts/
-	@uv run ruff format -q packages/ tests/ .github/scripts/
+	@uv run ruff check -q --fix packages/ tests/ scripts/ .github/scripts/
+	@uv run ruff format -q packages/ tests/ scripts/ .github/scripts/
 	@git ls-files -z '*.md' | xargs -0 --no-run-if-empty uv run ruff format -q
 
 update-baselines:
 	@uv run pytest --update-baselines -m baseline -q packages/
+
+# Fold changelog.d/ fragments into CHANGELOG.md for every package whose
+# pyproject.toml version is VERSION -- the release-time step in
+# docs/versioning.md. PACKAGE=<dir under packages/> restricts the build to that
+# package, which must be at VERSION. towncrier takes the version from the
+# command line (the shared config has none), and consumes the fragments, so run
+# it once per package per release; a second run writes a second section. DATE
+# defaults to today. Each fragment's paragraphs are joined onto one line first,
+# so a wrapped fragment and an unwrapped one render alike in the release notes.
+changelog:
+	@test -n "$(VERSION)" || { echo "usage: make changelog VERSION=x.y.z [PACKAGE=<package>] [DATE=yyyy-mm-dd]" >&2; exit 1; }
+	@found=; \
+	for d in packages/$(if $(PACKAGE),$(PACKAGE),*)/; do \
+		test -f "$$d/pyproject.toml" || { echo "ERROR: no package at $$d" >&2; exit 1; }; \
+		grep -qFx 'version = "$(VERSION)"' "$$d/pyproject.toml" || { \
+			test -z "$(PACKAGE)" || { echo "ERROR: $(PACKAGE) is not at version $(VERSION)" >&2; exit 1; }; \
+			continue; }; \
+		found=1; \
+		uv run --script scripts/unwrap_fragments.py "$$d/changelog.d" || exit 1; \
+		uv run towncrier build --config pyproject.toml --dir "$$d" --version $(VERSION) --yes $(if $(DATE),--date $(DATE)) || exit 1; \
+	done; \
+	test -n "$$found" || { echo "ERROR: no package is at version $(VERSION)" >&2; exit 1; }

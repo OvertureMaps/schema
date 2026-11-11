@@ -1,3 +1,16 @@
+## [2.0.1] - 2026-11-10
+
+### Documentation
+
+- Wrote the types of documented parameters and return values in numpydoc form, matching their annotations. ([#804](https://github.com/OvertureMaps/schema/issues/804))
+
+### Miscellaneous
+
+- Published the package README as the PyPI project description. ([#734](https://github.com/OvertureMaps/schema/issues/734))
+- Removed the duplicate `@no_extra_fields` from the five vehicle selector models: `ModelConstraint.get_model_constraints` lists it once for each, and validation and JSON Schema output are unchanged. ([#786](https://github.com/OvertureMaps/schema/issues/786))
+- Raised the minimum pydantic version to 2.14, matching `overture-schema-system`. ([#810](https://github.com/OvertureMaps/schema/issues/810))
+
+
 ## [2.0.0] - 2026-09-02
 
 ### Breaking Changes

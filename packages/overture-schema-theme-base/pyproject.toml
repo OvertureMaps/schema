@@ -8,7 +8,7 @@ dependencies = [
     "pydantic>=2.14.0",
 ]
 description = "Overture Maps base theme shared structures and models (bathymetry, infrastructure, land, land_cover, land_use, water)"
-version = "2.0.0"
+version = "2.0.1"
 license = "MIT"
 name = "overture-schema-theme-base"
 readme = "README.md"
