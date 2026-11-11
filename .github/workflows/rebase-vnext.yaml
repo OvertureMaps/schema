@@ -28,13 +28,16 @@ jobs:
     permissions:
       contents: read
       issues: write # Required to open a failure issue when the rebase conflicts
+      id-token: write # Required for OIDC authentication to AWS
     steps:
       - name: Generate app token
         id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: OvertureMaps/workflows/.github/actions/releaser-token@9ddbb7ea0b8d5b08d0cee86823605c4b1202864c # v1.0.0
         with:
+          role-to-assume: arn:aws:iam::816069134238:role/gha-pull-requester-secrets-reader
+          secret-id: omf-github-terraform/pull-requester/pem
           client-id: Iv23liiN80WEARreTV7m
-          private-key: ${{ secrets.OVERTURE_PULL_REQUESTER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
+          clear-aws-credentials: true # Later steps run third-party code
           # Explicitly scope the app token instead of inheriting all installation permissions.
           permission-contents: write        # force-push the rebased vnext; clone/fetch
           permission-issues: write          # open a failure issue on rebase conflict

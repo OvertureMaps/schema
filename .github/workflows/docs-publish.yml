@@ -22,32 +22,16 @@ jobs:
     name: Dispatch docs production build
     runs-on: ubuntu-slim
     permissions:
+      contents: read # Required by the releaser-token action
       id-token: write # Required for OIDC authentication to AWS
     steps:
-      # Narrow OIDC role that can only read the releaser app's PEM secret.
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
-        with:
-          aws-region: us-west-2
-          role-to-assume: arn:aws:iam::816069134238:role/gha-releaser-secrets-reader
-          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
-
-      # Exports the PEM as env.RELEASE_PUBLISHER_APP_PEM, masked (incl. multi-line).
-      - name: Fetch releaser PEM from Secrets Manager
-        uses: aws-actions/aws-secretsmanager-get-secrets@2297f9a879480a9e3af9b293ed15c70caf8e1c88 # v3.0.2
-        with:
-          secret-ids: |
-            RELEASE_PUBLISHER_APP_PEM, omf-github-terraform/releaser/pem
-
       - name: Generate docs publisher app token
         id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: OvertureMaps/workflows/.github/actions/releaser-token@9ddbb7ea0b8d5b08d0cee86823605c4b1202864c # v1.0.0
         with:
-          client-id: Iv23lijru2e660v1zJQO # overture-releaser app client ID, not sensitive
-          private-key: ${{ env.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
-          owner: OvertureMaps
           repositories: docs
           permission-actions: write # Required to dispatch a workflow run on OvertureMaps/docs
+          permission-contents: ""
 
       - name: Trigger docs production build
         env:

@@ -21,9 +21,7 @@ name: Publish GitHub release
 # `release: published` events, which release-publish.yaml needs to pick up
 # each release individually. See #637 for provisioning that app.
 #
-# The app's PEM lives in AWS Secrets Manager (omf-github-terraform), fetched
-# here via the narrowly-scoped gha-releaser-secrets-reader OIDC role -- same
-# pattern as the safe-settings and project-manager app PEMs.
+# The token comes from the releaser-token action (OIDC role + Secrets Manager).
 
 on:
   push:
@@ -73,29 +71,9 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.detect.outputs.bumps) }}
     steps:
-      # Narrow OIDC role (omf-github-terraform's oidc-aws.tf) that can only
-      # read the releaser app's PEM secret.
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
-        with:
-          aws-region: us-west-2
-          role-to-assume: arn:aws:iam::816069134238:role/gha-releaser-secrets-reader
-          role-session-name: GitHubActions_${{github.job}}_${{github.run_id}}
-
-      # Exports the PEM as env.RELEASE_PUBLISHER_APP_PEM, masked (incl. multi-line).
-      - name: Fetch releaser PEM from Secrets Manager
-        uses: aws-actions/aws-secretsmanager-get-secrets@2297f9a879480a9e3af9b293ed15c70caf8e1c88 # v3.0.2
-        with:
-          secret-ids: |
-            RELEASE_PUBLISHER_APP_PEM, omf-github-terraform/releaser/pem
-
       - name: Generate app token
         id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          client-id: Iv23lijru2e660v1zJQO # overture-release-publisher app ID, not sensitive
-          private-key: ${{ env.RELEASE_PUBLISHER_APP_PEM }} # zizmor: ignore[secrets-outside-env]
-          permission-contents: write
+        uses: OvertureMaps/workflows/.github/actions/releaser-token@9ddbb7ea0b8d5b08d0cee86823605c4b1202864c # v1.0.0
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
