@@ -4,7 +4,7 @@
 Detect packages affected by a no-bump push to main.
 
 Composes `package_versions.py diff`'s version-diff JSON with a JSON array of
-changed package directories (tj-actions/changed-files' `dir_names` output) to
+changed package directories (are-we-changed `dir_names` output) to
 find packages whose directory changed without also changing their
 pyproject.toml version. Those need an internal `.postN` build (see
 docs/versioning.md). Packages with a version bump in the same range are
