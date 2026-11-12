@@ -6,9 +6,9 @@ for.
 """
 
 from enum import Enum
-from typing import TypeVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar
 
-T = TypeVar("T", bound="DocumentedEnum")
+from typing_extensions import Self
 
 
 class DocumentedEnum(Enum):
@@ -73,16 +73,18 @@ class DocumentedEnum(Enum):
     ...     INTERNAL_SERVER_ERROR = (500, "The server encountered an unexpected condition")
     """
 
-    def __new__(cls: type, value: object, doc: str | None = None) -> "DocumentedEnum":
-        if len(cls.__bases__) == 2:
-            base_cls = next(base for base in cls.__bases__ if base != Enum)
-            obj = cast(DocumentedEnum, base_cls.__new__(cls, value))
-        elif len(cls.__bases__) > 2:
-            raise TypeError(
-                f"too many base classes: only 1-2 are supported, but `{cls.__name__}` has {len(cls.__bases__)}: {repr(cls.__bases__)}"
-            )
+    if TYPE_CHECKING:
+        # The data type the enum machinery resolves from the class's bases: `str` for a
+        # `(str, DocumentedEnum)` class or any subclass of one, `object` for a plain
+        # `DocumentedEnum`. The standard library's type stubs omit it, so mypy needs this
+        # declaration to accept `cls._member_type_` below.
+        _member_type_: ClassVar[Any]
+
+    def __new__(cls, value: object, doc: str | None = None) -> Self:
+        if cls._member_type_ is object:
+            obj = object.__new__(cls)
         else:
-            obj = cast(DocumentedEnum, object.__new__(cls))
+            obj = cls._member_type_.__new__(cls, value)
         obj._value_ = value
         obj.__doc__ = doc
-        return cast(DocumentedEnum, obj)
+        return obj

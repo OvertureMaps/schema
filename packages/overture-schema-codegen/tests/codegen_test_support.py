@@ -105,19 +105,24 @@ class SimpleKind(str, Enum):
 
 
 class QualifiedFormatKind(str, DocumentedEnum):
-    """A `(str, DocumentedEnum)` that formats as `Class.MEMBER` on every Python.
+    """A `(str, DocumentedEnum)` whose `str()` and `format()` give `Class.MEMBER`.
 
-    Python 3.11 changed `format()` of a mixed-in Enum member to return
-    `Class.MEMBER` instead of its value. This enum does so on 3.10 too, so a
-    test that interpolates a member where its value belongs fails on every
-    interpreter. It is a `DocumentedEnum` because most schema enums are.
+    A caller that needs a member's value must ask for it (`plain_value`), not
+    format the member. This enum fixes `str()`, f-strings and `format()` to
+    `Class.MEMBER` regardless of what `DocumentedEnum`, the mixed-in type or
+    the Python version would give, so a test that formats a member where its
+    value belongs fails whatever those do. It is a `DocumentedEnum` because
+    most schema enums are.
     """
 
     SMALL = ("small", "A small one.")
     LARGE = ("large", "A large one.")
 
-    def __format__(self, format_spec: str) -> str:
+    def __str__(self) -> str:
         return f"{type(self).__name__}.{self.name}"
+
+    def __format__(self, format_spec: str) -> str:
+        return str(self)
 
 
 class Instrument(
