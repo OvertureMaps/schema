@@ -164,6 +164,7 @@ from . import (
 )
 from .create_model import create_model
 from .feature import Feature
+from .plain_value import plain_value
 
 __all__ = [
     "create_model",
@@ -177,6 +178,7 @@ __all__ = [
     "model_constraint",
     "numeric",
     "optionality",
+    "plain_value",
     "ref",
     "string",
 ]

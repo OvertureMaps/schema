@@ -14,6 +14,8 @@ from annotated_types import Interval
 from jinja2 import Environment, FileSystemLoader
 from typing_extensions import NotRequired
 
+from overture.schema.system import plain_value
+
 from ..extraction.examples import ExampleRecord
 from ..extraction.field import ConstraintSource
 from ..extraction.field_constraints import constraint_display_text
@@ -24,7 +26,6 @@ from ..extraction.field_walk import (
     terminal_model_ref,
 )
 from ..extraction.model_constraints import analyze_model_constraints
-from ..extraction.plain_value import plain_value
 from ..extraction.specs import (
     UNDEFINED,
     AnnotatedField,

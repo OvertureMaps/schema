@@ -13,13 +13,13 @@ from collections.abc import Callable
 
 from annotated_types import Ge, Gt, Interval, Le, Lt, MultipleOf
 
+from overture.schema.system import plain_value
 from overture.schema.system.geometric import GeometryTypeConstraint
 from overture.schema.system.ref import Reference
 
 from .docstring import first_docstring_line
 from .length_constraints import ArrayMaxLen, ArrayMinLen, ScalarMaxLen, ScalarMinLen
 from .literal_alternatives import LiteralAlternatives
-from .plain_value import plain_value
 from .specs import TypeIdentity
 from .type_analyzer import ConstraintSource
 
