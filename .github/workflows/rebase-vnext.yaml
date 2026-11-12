@@ -76,9 +76,15 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
 
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        if: steps.skip.outputs.skip != 'true'
+
       - name: Rebase vnext onto new main HEAD
         if: steps.skip.outputs.skip != 'true'
         id: rebase
+        env:
+          # uv.lock is generated; regenerate it on conflict rather than open an issue.
+          REGENERATE_LOCK: "true"
         run: |
           git config user.email "overture-pull-requester[bot]@users.noreply.github.com"
           git config user.name  "overture-pull-requester[bot]"
@@ -86,7 +92,7 @@ jobs:
           git fetch origin vnext
           git checkout -b rebase-vnext FETCH_HEAD
 
-          if git rebase origin/main 2>&1; then
+          if .github/scripts/rebase-regenerating-lock.sh origin/main 2>&1; then
             if git push --force-with-lease origin rebase-vnext:vnext 2>&1; then
               echo "success=true" >> "$GITHUB_OUTPUT"
               echo "vnext successfully rebased and force-pushed."
