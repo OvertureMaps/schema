@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from typing_extensions import TypeForm
 
+from overture.schema.system import plain_value
 from overture.schema.system.feature import resolve_discriminator_field_name
 
 from .field import (
@@ -24,7 +25,6 @@ from .field import (
 )
 from .field_walk import list_depth, terminal_of, walk_shape
 from .model_extraction import extract_model, resolve_field_alias
-from .plain_value import plain_value
 from .specs import AnnotatedField, FieldSpec, MemberSpec, UnionSpec, is_model_class
 from .type_analyzer import (
     capture_union_members,

@@ -14,6 +14,7 @@ from collections.abc import Callable
 from typing import Any
 
 from overture.schema.common.scoping.lr import LinearReferenceRangeConstraint
+from overture.schema.system import plain_value
 from overture.schema.system.geometric.geom import (
     Geometry,
     GeometryType,
@@ -47,7 +48,6 @@ from ...extraction.field_walk import (
     terminal_scalar,
 )
 from ...extraction.length_constraints import ArrayMinLen
-from ...extraction.plain_value import plain_value
 from ...extraction.specs import FieldSpec, ModelSpec, RecordSpec, UnionSpec
 from ...extraction.type_registry import primitive_spark_category
 from .._primitive_fill import PRIMITIVE_FILL_TABLE
