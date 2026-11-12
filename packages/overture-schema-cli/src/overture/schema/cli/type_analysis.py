@@ -8,6 +8,7 @@ from typing import Annotated as AnnotatedType
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
+from overture.schema.system import plain_value
 from overture.schema.system.feature import resolve_discriminator_field_name
 
 from .types import ErrorLocation, ValidationErrorDict
@@ -41,7 +42,7 @@ def _extract_literal_value(model: type[BaseModel], field_name: str) -> str | Non
         return None
     if get_origin(field_info.annotation) is Literal:
         args = get_args(field_info.annotation)
-        return str(args[0]) if args else None
+        return str(plain_value(args[0])) if args else None
     return None
 
 
