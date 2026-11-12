@@ -17,6 +17,7 @@ from .type_analysis import (
     get_item_index,
     get_or_create_structural_tuple,
     infer_model_from_error,
+    models_in_path,
 )
 from .types import ErrorLocation, ValidationErrorDict
 
@@ -519,20 +520,8 @@ def format_validation_error(
     # Determine which model was selected for this error
     selected_model = None
     if metadata is not None and show_model_hint:
-        try:
-            structural = get_or_create_structural_tuple(loc, metadata, structural_cache)
-
-            # Look for discriminator value in the location path
-            for element, struct_type in zip(loc, structural, strict=False):
-                if struct_type == "discriminator" and isinstance(element, str):
-                    selected_model = metadata.discriminator_to_model.get(element)
-                    break
-                elif struct_type == "model" and isinstance(element, str):
-                    selected_model = metadata.model_name_to_model.get(element)
-                    break
-        except (KeyError, TypeError, IndexError):
-            # Structural analysis can fail for unexpected error path formats
-            pass
+        models = models_in_path(loc, metadata, structural_cache)
+        selected_model = models[0] if models else None
 
     # Filter out union markers from the path using structural analysis
     if metadata is not None:

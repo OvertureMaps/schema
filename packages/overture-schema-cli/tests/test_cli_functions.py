@@ -3,25 +3,29 @@
 import io
 import json
 from pathlib import Path
-from typing import Literal, cast
+from typing import Annotated, Any, Literal, cast, get_args
 
 import pytest
 import yaml
 from click.exceptions import UsageError
 from click.testing import CliRunner
 from conftest import build_feature
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
+from overture.schema.base import Infrastructure, Land, Water
 from overture.schema.cli.commands import (
     _best_fit_model,
+    _discriminated_union,
     _revalidate_undiscriminatable_items,
     load_input,
     perform_validation,
     resolve_types,
 )
-from overture.schema.cli.type_analysis import get_item_index
+from overture.schema.cli.type_analysis import get_item_index, introspect_union
 from overture.schema.cli.types import ValidationErrorDict
 from overture.schema.system.discovery import TagSelector
+from overture.schema.system.json_schema import json_schema
+from overture.schema.transportation.segment import Segment
 
 
 class TestLoadInput:
@@ -404,3 +408,66 @@ class TestBestFitModel:
         # _Building needs only 'type'; _Place needs 'type' and 'name'.
         assert model is _Building
         assert len(errs) < 2
+
+
+class TestFeatureTypeUnionMarker:
+    """The Pydantic behaviors the feature union's marker validator relies on.
+
+    Each test pins one, so a Pydantic release that changes it fails here by name
+    rather than as a mistyped feature in `TestSharedDiscriminatorValue`.
+    """
+
+    # Three base types and the three segment subtypes: unions of one shape.
+    TYPES = ("water", "land", "infrastructure", "segment")
+
+    @staticmethod
+    def _feature_union() -> Any:  # noqa: ANN401
+        return _discriminated_union((Infrastructure, Land, Water))
+
+    @classmethod
+    def _unwrapped_feature_union(cls) -> Any:  # noqa: ANN401
+        """Return the feature union without its marker validator."""
+        inner, field_info, _ = get_args(cls._feature_union())
+        return Annotated[inner, field_info]  # type: ignore[valid-type]
+
+    def test_tagged_union_title_is_built_from_member_validators(self) -> None:
+        """Without the wrapper, the feature union and `Segment` share a title."""
+        assert (
+            TypeAdapter(self._unwrapped_feature_union()).validator.title
+            == TypeAdapter(Segment).validator.title
+        )
+
+    def test_after_validator_title_names_its_function(self) -> None:
+        """The wrapper's title names `_feature_type_union`, which `Segment`'s does not."""
+        title = TypeAdapter(self._feature_union()).validator.title
+
+        assert title.startswith("function-after[_feature_type_union(), tagged-union[")
+        assert title != TypeAdapter(Segment).validator.title
+
+    def test_error_location_marker_is_the_member_validator_title(self) -> None:
+        """Each nested union's errors sit under the marker `introspect_union` keys it by."""
+        union = resolve_types(type_names=self.TYPES)
+        metadata = introspect_union(union)
+        water = build_feature(theme="base", type="water", geometry_type="LineString")
+        water["properties"]["class"] = "not-a-class"
+        segment = build_feature(
+            theme="transportation",
+            type="segment",
+            geometry_type="LineString",
+            subtype="water",
+            version=-1,
+        )
+
+        with pytest.raises(ValidationError) as excinfo:
+            TypeAdapter(list[union]).validate_json(  # type: ignore[valid-type]
+                json.dumps([water, segment])
+            )
+        markers = {error["loc"][1] for error in excinfo.value.errors()}
+
+        assert markers == set(metadata.nested_unions)
+        assert len(markers) == 2
+
+    def test_after_validator_leaves_the_json_schema_unchanged(self) -> None:
+        assert json_schema(self._feature_union()) == json_schema(
+            self._unwrapped_feature_union()
+        )
