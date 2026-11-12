@@ -4,7 +4,8 @@ name: vnext compatibility check
 # required status check without hanging PRs whose base isn't main. Simulates
 # squashing the PR onto main, then attempts a dry-run rebase of vnext onto the
 # result. If vnext would conflict, the check fails and posts a comment with
-# exact commands to resolve it.
+# exact commands to resolve it. A conflict confined to uv.lock does not count:
+# the rebase regenerates the lock, as rebase-vnext.yaml will after the merge.
 #
 # Only PRs targeting main do that real work — compat-check is a no-op for
 # anything else (including vnext→main release PRs, head_ref == 'vnext'). The
@@ -36,11 +37,16 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+
       - name: Simulate squash onto main, then rebase vnext
         id: compat
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          # A uv.lock conflict is regenerated, as rebase-vnext.yaml does after the
+          # merge. A fork PR's pyproject.toml files are untrusted input to uv.
+          REGENERATE_LOCK: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -54,7 +60,7 @@ jobs:
 
           # Attempt to rebase vnext onto the squash commit.
           git checkout -b sim-vnext origin/vnext
-          if git rebase sim-main 2>&1; then
+          if .github/scripts/rebase-regenerating-lock.sh sim-main 2>&1; then
             echo "compatible=true" >> "$GITHUB_OUTPUT"
           else
             CONFLICTS=$(git diff --name-only --diff-filter=U 2>/dev/null || true)
