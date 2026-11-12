@@ -3,7 +3,8 @@
 from typing import Annotated, Literal
 
 import pytest
-from pydantic import BaseModel, Discriminator, Field
+from pydantic import BaseModel, Discriminator, Field, TypeAdapter, ValidationError
+from typing_extensions import TypeForm
 
 from overture.schema.cli.type_analysis import (
     StructuralTuple,
@@ -12,6 +13,15 @@ from overture.schema.cli.type_analysis import (
     get_or_create_structural_tuple,
     introspect_union,
 )
+from overture.schema.system.doc import DocumentedEnum
+from overture.schema.transportation.segment import RoadSegment, Segment
+
+
+def _error_tags(union: TypeForm[object], data: dict[str, object]) -> set[object]:
+    """Return the discriminator tags Pydantic writes into *data*'s error locations."""
+    with pytest.raises(ValidationError) as excinfo:
+        TypeAdapter(union).validate_python(data)
+    return {error["loc"][0] for error in excinfo.value.errors()}
 
 
 class TestStructuralTuples:
@@ -257,6 +267,45 @@ class TestDiscriminatorDiscovery:
         assert metadata.discriminator_field == "kind"
         assert metadata.discriminator_to_model["cat"] == Cat
         assert metadata.discriminator_to_model["dog"] == Dog
+
+    def test_enum_discriminator_keyed_by_error_location_tag(self) -> None:
+        """An enum-valued arm is keyed by the value Pydantic puts in error locations.
+
+        `Kind` formats as `Class.MEMBER` through `str()` and `format()`, so the
+        key matches the location only if it is built from the member's value.
+        """
+
+        class Kind(str, DocumentedEnum):
+            CAT = ("cat", "A cat.")
+            DOG = ("dog", "A dog.")
+
+            def __str__(self) -> str:
+                return f"{type(self).__name__}.{self.name}"
+
+            def __format__(self, format_spec: str) -> str:
+                return str(self)
+
+        class Cat(BaseModel):
+            kind: Literal[Kind.CAT]
+            indoor: bool
+
+        class Dog(BaseModel):
+            kind: Literal[Kind.DOG]
+            breed: str
+
+        UnionType = Annotated[Cat | Dog, Field(discriminator="kind")]
+        metadata = introspect_union(UnionType)
+
+        assert _error_tags(UnionType, {"kind": "cat"}) == {"cat"}
+        assert metadata.discriminator_to_model.get("cat") is Cat
+        assert metadata.discriminator_to_model.get("dog") is Dog
+
+    def test_segment_subtype_keyed_by_error_location_tag(self) -> None:
+        """Segment's arms are keyed `road`, the tag in a road segment's error locations."""
+        metadata = introspect_union(Segment)
+
+        assert _error_tags(Segment, {"subtype": "road"}) == {"road"}
+        assert metadata.discriminator_to_model.get("road") is RoadSegment
 
     def test_non_discriminator_literal_fields_excluded(self) -> None:
         """Literal fields that aren't the discriminator are not in the mapping."""
