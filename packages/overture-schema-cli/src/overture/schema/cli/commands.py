@@ -12,7 +12,7 @@ from typing import Annotated, Any, Literal, cast, get_args, get_origin
 
 import click
 import yaml
-from pydantic import BaseModel, Field, Tag, TypeAdapter, ValidationError
+from pydantic import AfterValidator, BaseModel, Field, Tag, TypeAdapter, ValidationError
 from rich.console import Console
 from rich.text import Text
 from yamlcore import CoreLoader  # type: ignore
@@ -97,7 +97,20 @@ def _discriminated_union(feature_classes: tuple[type[OvertureFeature], ...]) -> 
             (Annotated[f, Tag(cast(str, _type_literal(f)))] for f in feature_classes),
         ),
         Field(discriminator=Feature.field_discriminator("type", *feature_classes)),
+        AfterValidator(_feature_type_union),
     ]
+
+
+def _feature_type_union(feature: OvertureFeature) -> OvertureFeature:
+    """Return *feature* unchanged; the validator's name is the union's error marker.
+
+    Pydantic marks an error location with the title of the union member that
+    raised it. A tagged union's title lists its members' validators, so this union
+    and a schema union of the same shape (three base types against the three
+    segment subtypes) would share a marker. Wrapping this one in a named validator
+    gives it a title no schema union has.
+    """
+    return feature
 
 
 def create_union_type_from_models(
@@ -621,7 +634,7 @@ def handle_validation_error(
     errors, best_fit_item_types = _revalidate_undiscriminatable_items(
         e.errors(),
         original_data,
-        tuple(dict.fromkeys(metadata.discriminator_to_model.values())),
+        metadata.models(),
     )
 
     # Group errors by discriminator path and select most likely group(s)

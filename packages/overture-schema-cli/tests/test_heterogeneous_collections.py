@@ -173,3 +173,72 @@ class TestHeterogeneousCollections:
         assert "[2]" in stderr_output
         # Should show at least some field errors
         assert "required" in stderr_output.lower() or "missing" in stderr_output.lower()
+
+
+class TestSharedDiscriminatorValue:
+    """A value two nested unions share names a different type in each.
+
+    Base `water` is discriminated on `type`, and transportation's water segment on
+    `subtype`; both take the value "water".
+    """
+
+    @pytest.mark.parametrize(
+        "selection",
+        [
+            pytest.param([], id="every_type"),
+            # Three base types and the three segment subtypes: the feature union
+            # and the segment union then have validators of the same shape.
+            pytest.param(
+                [
+                    *("--type", "water"),
+                    *("--type", "land"),
+                    *("--type", "infrastructure"),
+                    *("--type", "segment"),
+                ],
+                id="unions_of_one_shape",
+            ),
+        ],
+    )
+    def test_items_typed_by_their_own_union(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO, selection: list[str]
+    ) -> None:
+        water = build_feature(
+            id="water-1",
+            theme="base",
+            type="water",
+            geometry_type="LineString",
+            subtype="river",
+        )
+        water["properties"]["class"] = "not-a-class"
+        water_segment = build_feature(
+            id="segment-1",
+            theme="transportation",
+            type="segment",
+            geometry_type="LineString",
+            version=-1,
+            subtype="water",
+            connectors=[{"connector_id": "a", "at": 0}, {"connector_id": "b", "at": 1}],
+        )
+        result = cli_runner.invoke(
+            cli,
+            ["validate", *selection, "-"],
+            input=json.dumps([water, water_segment]),
+        )
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        assert "[0] (Water)" in stderr_output
+        assert "[1] (WaterSegment)" in stderr_output
+
+    def test_both_types_are_best_fit_candidates(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO
+    ) -> None:
+        # With neither `type` nor `subtype`, no union can select a branch, so the
+        # item is re-validated against every candidate model.
+        water = build_feature(id="water-1", theme="base", geometry_type="LineString")
+        water["properties"]["class"] = "river"
+        del water["properties"]["type"]
+        result = cli_runner.invoke(cli, ["validate", "-"], input=json.dumps([water]))
+        assert result.exit_code == 1
+
+        assert "[0] (Water)" in stderr_buffer.getvalue()
