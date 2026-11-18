@@ -430,7 +430,9 @@ def create_extended_model(
         extended = create_extended_model(tp, extensions, _seen)
         if extended is tp:
             return model
-        return Annotated.__class_getitem__((extended, *metadata))  # type: ignore[attr-defined]
+        # Subscript with a tuple: `Annotated.__class_getitem__` is gone on Python 3.13+.
+        params = (extended, *metadata)
+        return Annotated[params]  # type: ignore[valid-type]
 
     if origin is Union or origin is types.UnionType:
         args = get_args(model)
