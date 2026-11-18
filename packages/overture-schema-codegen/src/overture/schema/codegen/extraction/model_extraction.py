@@ -169,8 +169,8 @@ def extract_model(
 
     The caller must not pass a `RootModel`: it serializes as its bare
     root value and has no record structure, so walking its fields yields
-    only a spurious `root` column. `extract_model_spec` filters RootModel
-    entry points before they reach here, and a RootModel reached as a
+    only a spurious `root` column. `extract_model_spec` passes a RootModel
+    entry point's denoted model here instead, and a RootModel reached as a
     field is unwrapped to its bare shape by `analyze_type`.
     """
     return _extract_model_recursive(
