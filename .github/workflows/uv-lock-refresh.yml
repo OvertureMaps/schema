@@ -35,7 +35,7 @@ jobs:
       # triggers CI normally, unlike a GITHUB_TOKEN-authored PR.
       - name: Generate app token
         id: app-token
-        uses: OvertureMaps/workflows/.github/actions/releaser-token@9ddbb7ea0b8d5b08d0cee86823605c4b1202864c # v1.0.0
+        uses: OvertureMaps/workflows/.github/actions/releaser-token@af9d437f174f972cb4dcb2a7f980f7fe5384f4a9 # v1.0.1
         with:
           role-to-assume: arn:aws:iam::816069134238:role/gha-pull-requester-secrets-reader
           secret-id: omf-github-terraform/pull-requester/pem
