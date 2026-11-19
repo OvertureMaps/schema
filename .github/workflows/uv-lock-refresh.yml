@@ -78,10 +78,11 @@ jobs:
           author: overture-pull-requester[bot] <overture-pull-requester[bot]@users.noreply.github.com>
           committer: overture-pull-requester[bot] <overture-pull-requester[bot]@users.noreply.github.com>
           commit-message: |
-            [CHORE](deps) refresh uv.lock
+            chore(deps): refresh uv.lock
 
             Signed-off-by: overture-pull-requester[bot] <overture-pull-requester[bot]@users.noreply.github.com>
           branch: uv-lock-refresh
-          title: "[CHORE](deps) weekly uv.lock refresh"
+          # The PR title check requires Conventional Commits: type(scope): description.
+          title: "chore(deps): weekly uv.lock refresh"
           labels: "bot,automation 🦾"
           body-path: ${{ runner.temp }}/pr-body.md
