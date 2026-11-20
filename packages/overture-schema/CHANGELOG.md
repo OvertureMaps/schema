@@ -1,3 +1,11 @@
+## [2.0.1] - 2026-11-10
+
+### Bug Fixes
+
+- Raised the minimum `overture-schema-theme-divisions` to 2.0.1, so installing `overture-schema` alone enforces the `admin_level` rules on divisions features.
+- Raised the minimum `overture-schema-validation` to 2.0.1, so installing `overture-schema` alone includes the fix that rejects `None` in `validate()` and `validate_json()`.
+
+
 ## [2.0.0] - 2026-09-02
 
 ### Features

@@ -1,3 +1,10 @@
+## [2.0.1] - 2026-11-10
+
+### Miscellaneous
+
+- Raised the minimum pydantic version to 2.14, matching `overture-schema-system`. ([#810](https://github.com/OvertureMaps/schema/issues/810))
+
+
 ## [2.0.0] - 2026-09-02
 
 ### Miscellaneous

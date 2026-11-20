@@ -1,3 +1,14 @@
+## [2.0.1] - 2026-11-10
+
+### Documentation
+
+- Wrote the types of documented parameters and return values in numpydoc form, matching their annotations. ([#804](https://github.com/OvertureMaps/schema/issues/804))
+
+### Miscellaneous
+
+- Published the package README as the PyPI project description, and added maintainers and project URLs to the package metadata. ([#734](https://github.com/OvertureMaps/schema/issues/734))
+
+
 ## [2.0.0] - 2026-09-02
 
 ### Bug Fixes
