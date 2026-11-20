@@ -53,6 +53,27 @@ class TestLoadInput:
 
         assert "is not a file" in str(exc_info.value)
 
+    @pytest.mark.parametrize("content", ["", "\n  \n"], ids=["empty", "whitespace"])
+    def test_load_input_empty_stdin(
+        self, content: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test that load_input raises UsageError naming stdin when it is empty."""
+        monkeypatch.setattr("sys.stdin", io.StringIO(content))
+
+        with pytest.raises(UsageError, match="no input received on <stdin>"):
+            load_input(Path("-"))
+
+    @pytest.mark.parametrize("content", ["", "\n  \n"], ids=["empty", "whitespace"])
+    def test_load_input_empty_file(self, content: str, cli_runner: CliRunner) -> None:
+        """Test that load_input raises UsageError naming the file when it is empty.
+
+        Note: cli_runner provides isolated filesystem for test file creation.
+        """
+        Path("empty.json").write_text(content)
+
+        with pytest.raises(UsageError, match="no input received on empty.json"):
+            load_input(Path("empty.json"))
+
     def test_load_input_invalid_yaml(self, cli_runner: CliRunner) -> None:
         """Test that load_input raises YAMLError for invalid YAML.
 
