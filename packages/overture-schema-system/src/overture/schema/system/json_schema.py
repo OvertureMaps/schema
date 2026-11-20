@@ -107,7 +107,20 @@ class GenerateOmitNullableOptionalJsonSchema(GenerateJsonSchema):
     1. The JSON Schema type `null` is removed as an allowed type from the field's schema, which will
        usually result in eliminating the `"anyOf"` composition keyword from the field's schema.
     2. If the field's default value is `None` (JSON `null`), the default value is removed.
+
+    **Deprecation.** A model's schema is marked `"deprecated": true` only when the model declares a
+    PEP 702 `@deprecated` itself. Pydantic finds `__deprecated__` by attribute lookup, which marks
+    every subclass of a deprecated model too; but a subclass is not deprecated at runtime
+    (instantiating it raises no warning), and the schema follows the runtime.
     """
+
+    @override
+    def model_schema(self, schema: core_schema.ModelSchema) -> JsonSchemaValue:
+        json_schema = super().model_schema(schema)
+        cls = schema["cls"]
+        if hasattr(cls, "__deprecated__") and "__deprecated__" not in cls.__dict__:
+            self.resolve_ref_schema(json_schema).pop("deprecated", None)
+        return json_schema
 
     @override
     def default_schema(self, schema: core_schema.WithDefaultSchema) -> JsonSchemaValue:
