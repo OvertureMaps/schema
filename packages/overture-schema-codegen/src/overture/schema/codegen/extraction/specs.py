@@ -162,6 +162,7 @@ class FieldSpec:
     is_required: bool = True
     is_optional: bool = False
     default: Any = UNDEFINED
+    is_extension: bool = False
 
 
 @dataclass
