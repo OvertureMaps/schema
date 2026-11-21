@@ -17,6 +17,7 @@ from .type_analysis import (
     get_item_index,
     get_or_create_structural_tuple,
     infer_model_from_error,
+    models_in_path,
 )
 from .types import ErrorLocation, ValidationErrorDict
 
@@ -165,22 +166,43 @@ def analyze_collection_heterogeneity(
     return item_types, is_heterogeneous
 
 
+# Tag errors in rising order of how much they say about the item: a missing tag, then
+# a tag the union does not know. Any other error says more than both.
+_TAG_ERROR_RANK = {"union_tag_not_found": 0, "union_tag_invalid": 1}
+
+
+def _tag_noise_rank(disc_path: ErrorLocation, error: ValidationErrorDict) -> int:
+    # Only a tag error with no discriminator path comes from a sibling union. One under a
+    # discriminator value is inside the branch the item matched, and is a real error.
+    if disc_path:
+        return len(_TAG_ERROR_RANK)
+    return _TAG_ERROR_RANK.get(error.get("type", ""), len(_TAG_ERROR_RANK))
+
+
 def _suppress_sibling_tag_noise(
     error_groups: dict[ErrorLocation, list[ValidationErrorDict]],
 ) -> dict[ErrorLocation, list[ValidationErrorDict]]:
-    """Drop `union_tag_not_found` noise for items that already matched a type.
+    """Drop discriminator noise from sibling branches for items that matched a type.
 
     When validating against a union that mixes a tagged-union with other
     (also discriminated) members, an item that cleanly matches one branch still
-    produces a `union_tag_not_found` error from every *sibling* branch whose
-    discriminator it fails to satisfy. Those errors carry an empty discriminator
-    path `()`, forming a spurious group that can tie with the real match and
-    trigger a false "Ambiguous" warning.
+    produces a tag error from every *sibling* branch whose discriminator it fails
+    to satisfy: `union_tag_not_found` when the item lacks the sibling's
+    discriminator field, `union_tag_invalid` when it has the field with a value
+    the sibling does not know (a segment's `type` is "segment", which the union
+    discriminated on `type` does not list). Those errors carry an empty
+    discriminator path `()`, forming a spurious group that can tie with the real
+    match and trigger a false "Ambiguous" warning, or, having fewer errors, hide
+    the real match entirely.
 
-    This helper removes such noise for any list item that already has a concrete
-    (non-`union_tag_not_found`) error. Items whose *only* errors are
-    `union_tag_not_found` are left untouched, so genuinely undiscriminatable
-    input is still reported. Groups left empty after filtering are dropped.
+    Only a tag error in the `()` group is sibling noise. One under a discriminator
+    value comes from a union inside the branch the item matched (a road segment's
+    `vehicle` selector with an unknown `dimension`) and counts as any other error.
+    This helper removes a noise `union_tag_not_found` for any list item that has
+    another kind of error, and a noise `union_tag_invalid` for any list item that
+    has an error other than a noise tag error. Items whose only errors are noise
+    tag errors keep their `union_tag_invalid` errors, so input that selects no
+    branch is still reported. Groups left empty after filtering are dropped.
 
     Parameters
     ----------
@@ -210,6 +232,21 @@ def _suppress_sibling_tag_noise(
         >>> list(cleaned.keys())  # the () noise group is gone
         [('building',)]
 
+        >>> # Item 0 matched road segment, and the sibling union discriminated on
+        >>> # 'type' emitted union_tag_invalid, because it lists no 'segment' type.
+        >>> error_groups = {
+        ...     ('road',): [
+        ...         {'loc': (0, 'tagged-union[subtype]', 'road', 'class'),
+        ...          'msg': 'Input should be ...', 'type': 'enum'},
+        ...     ],
+        ...     (): [
+        ...         {'loc': (0, 'tagged-union[type]'),
+        ...          'msg': "Input tag 'segment' ...", 'type': 'union_tag_invalid'},
+        ...     ],
+        ... }
+        >>> list(_suppress_sibling_tag_noise(error_groups).keys())
+        [('road',)]
+
         >>> # An item whose ONLY error is union_tag_not_found is preserved.
         >>> error_groups = {
         ...     (): [
@@ -220,22 +257,21 @@ def _suppress_sibling_tag_noise(
         >>> _suppress_sibling_tag_noise(error_groups) == error_groups
         True
     """
-    # Identify which items have at least one concrete (non tag-not-found) error.
-    items_with_concrete_error: set[int | None] = set()
-    for errors in error_groups.values():
+    # The highest-ranked error each item has; its lower-ranked tag errors are noise.
+    item_rank: dict[int | None, int] = {}
+    for disc_path, errors in error_groups.items():
         for error in errors:
-            if error.get("type") != "union_tag_not_found":
-                items_with_concrete_error.add(get_item_index(error["loc"]))
+            item = get_item_index(error["loc"])
+            rank = _tag_noise_rank(disc_path, error)
+            item_rank[item] = max(item_rank.get(item, 0), rank)
 
     cleaned: dict[ErrorLocation, list[ValidationErrorDict]] = {}
     for disc_path, errors in error_groups.items():
         kept = [
             error
             for error in errors
-            if not (
-                error.get("type") == "union_tag_not_found"
-                and get_item_index(error["loc"]) in items_with_concrete_error
-            )
+            if _tag_noise_rank(disc_path, error)
+            == item_rank[get_item_index(error["loc"])]
         ]
         if kept:
             cleaned[disc_path] = kept
@@ -519,20 +555,8 @@ def format_validation_error(
     # Determine which model was selected for this error
     selected_model = None
     if metadata is not None and show_model_hint:
-        try:
-            structural = get_or_create_structural_tuple(loc, metadata, structural_cache)
-
-            # Look for discriminator value in the location path
-            for element, struct_type in zip(loc, structural, strict=False):
-                if struct_type == "discriminator" and isinstance(element, str):
-                    selected_model = metadata.discriminator_to_model.get(element)
-                    break
-                elif struct_type == "model" and isinstance(element, str):
-                    selected_model = metadata.model_name_to_model.get(element)
-                    break
-        except (KeyError, TypeError, IndexError):
-            # Structural analysis can fail for unexpected error path formats
-            pass
+        models = models_in_path(loc, metadata, structural_cache)
+        selected_model = models[0] if models else None
 
     # Filter out union markers from the path using structural analysis
     if metadata is not None:

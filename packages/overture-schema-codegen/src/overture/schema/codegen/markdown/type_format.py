@@ -8,6 +8,8 @@ from enum import Enum
 from pydantic import BaseModel
 from typing_extensions import assert_never
 
+from overture.schema.system import plain_value
+
 from ..extraction.field import (
     AnyScalar,
     ArrayOf,
@@ -20,7 +22,6 @@ from ..extraction.field import (
     Scalar,
     UnionRef,
 )
-from ..extraction.plain_value import plain_value
 from ..extraction.specs import FieldSpec, TypeIdentity, is_pydantic_sourced
 from ..extraction.type_registry import (
     get_type_mapping,
