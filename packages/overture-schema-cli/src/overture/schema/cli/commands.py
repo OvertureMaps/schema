@@ -642,7 +642,6 @@ def handle_validation_error(
     filtered_errors, is_tied, is_heterogeneous, item_types = select_most_likely_errors(
         error_groups,
         metadata=metadata,
-        all_errors=errors,
         structural_cache=structural_cache,
     )
 
@@ -671,8 +670,8 @@ def handle_validation_error(
                 items_without_errors, type_counts, items_with_errors_by_type, stderr
             )
 
-    # Show tie indicator if multiple groups had same error count
-    elif is_tied:
+    # Show tie indicator if some item's groups ranked the same
+    if is_tied:
         stderr.print(
             "  ⚠ Ambiguous: Data matches multiple types equally. Consider:",
             style="yellow",

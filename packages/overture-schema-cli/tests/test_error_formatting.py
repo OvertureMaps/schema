@@ -9,8 +9,10 @@ from click.testing import CliRunner
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 from rich.console import Console
 
-from overture.schema.cli.commands import cli
+from overture.schema.cli.commands import cli, handle_validation_error
 from overture.schema.cli.error_formatting import (
+    _branch_rejections,
+    _is_redundant_tag_error,
     format_path,
     group_errors_by_discriminator,
     select_most_likely_errors,
@@ -322,6 +324,268 @@ properties:
         assert "ambiguous" not in stderr_output.lower()
         # Should show the missing 'id' error
         assert "id" in stderr_output.lower()
+
+
+class _Water(BaseModel):
+    theme: Literal["base"]
+    type: Literal["water"]
+    subtype: str
+
+
+class _Building(BaseModel):
+    theme: Literal["buildings"]
+    type: Literal["building"]
+
+
+class _RoadSegment(BaseModel):
+    theme: Literal["transportation"]
+    type: Literal["segment"]
+    subtype: Literal["road"]
+
+
+class _WaterSegment(BaseModel):
+    theme: Literal["transportation"]
+    type: Literal["segment"]
+    subtype: Literal["water"]
+
+
+# The shape of the feature union: types discriminated on `type` beside segments
+# discriminated on `subtype`, two siblings that share the value "water".
+_TypeUnion = Annotated[_Water | _Building, Field(discriminator="type")]
+_SegmentUnion = Annotated[_RoadSegment | _WaterSegment, Field(discriminator="subtype")]
+_FeatureUnion = _TypeUnion | _SegmentUnion
+_TYPE_UNION = TypeAdapter(_TypeUnion).validator.title
+_SEGMENT_UNION = TypeAdapter(_SegmentUnion).validator.title
+
+
+def _select(data: dict) -> tuple[list[ValidationErrorDict], bool]:
+    metadata = introspect_union(_FeatureUnion)
+    with pytest.raises(ValidationError) as raised:
+        TypeAdapter(_FeatureUnion).validate_python(data)
+    errors = cast(list[ValidationErrorDict], raised.value.errors())
+    groups = group_errors_by_discriminator(errors, metadata)
+    selected, is_tied, _, _ = select_most_likely_errors(groups, metadata)
+    return selected, is_tied
+
+
+def _error(loc: ErrorLocation, error_type: str, **ctx: str) -> ValidationErrorDict:
+    return cast(ValidationErrorDict, {"loc": loc, "type": error_type, "ctx": ctx})
+
+
+class TestUnionMetadataTags:
+    def test_tag_values_name_each_literal_field(self) -> None:
+        metadata = introspect_union(_FeatureUnion)
+        # `_Water.subtype` is a plain str, so only segments name a subtype.
+        assert metadata.tag_values == {
+            "theme": {"base", "buildings", "transportation"},
+            "type": {"water", "building", "segment"},
+            "subtype": {"road", "water"},
+        }
+
+    def test_tag_values_without_literal_fields(self) -> None:
+        class Untagged(BaseModel):
+            name: str
+
+        assert introspect_union(Untagged).tag_values == {}
+
+    @pytest.mark.parametrize(
+        "union_marker,field",
+        [
+            pytest.param(_TYPE_UNION, "type", id="type_union"),
+            pytest.param(_SEGMENT_UNION, "subtype", id="segment_union"),
+            pytest.param(None, None, id="outer_union"),
+            pytest.param("unknown-marker", None, id="unknown_marker"),
+        ],
+    )
+    def test_discriminator_field_for(
+        self, union_marker: str | None, field: str | None
+    ) -> None:
+        metadata = introspect_union(_FeatureUnion)
+        assert metadata.discriminator_field_for(union_marker) == field
+
+
+class TestSiblingTagErrors:
+    """A tag error from a sibling union prints only when nothing states it better."""
+
+    def test_a_misspelled_type_a_branch_corrects(self) -> None:
+        # The road segment rejects only `type`, the field the type union reads.
+        selected, is_tied = _select(
+            {"theme": "transportation", "type": "segmnt", "subtype": "road"}
+        )
+        assert not is_tied
+        assert [(e["type"], e["loc"][-1]) for e in selected] == [
+            ("literal_error", "type")
+        ]
+
+    def test_a_misspelled_type_no_branch_accepts(self) -> None:
+        # The water segment rejects `theme` too: the item is no segment.
+        selected, is_tied = _select(
+            {"theme": "base", "type": "watr", "subtype": "water"}
+        )
+        assert not is_tied
+        assert [(e["type"], e.get("ctx", {}).get("tag")) for e in selected] == [
+            ("union_tag_invalid", "watr")
+        ]
+
+    def test_a_valid_tag_beside_a_missing_one(self) -> None:
+        # "segment" is a type some model takes; the missing subtype is the mistake.
+        selected, _ = _select({"theme": "transportation", "type": "segment"})
+        assert [e["type"] for e in selected] == ["union_tag_not_found"]
+
+    @pytest.mark.parametrize(
+        "rejected,redundant",
+        [
+            pytest.param(set(), True, id="branch_accepts_the_item"),
+            pytest.param({"type"}, True, id="branch_rejects_the_same_field"),
+            pytest.param({"theme", "type"}, False, id="branch_rejects_another_field"),
+        ],
+    )
+    def test_redundant_by_branch_rejections(
+        self, rejected: set[str], redundant: bool
+    ) -> None:
+        error = _error((_TYPE_UNION,), "union_tag_invalid", tag="segmnt")
+        metadata = introspect_union(_FeatureUnion)
+        assert _is_redundant_tag_error(error, [rejected], metadata) is redundant
+
+    def test_redundant_without_metadata_only_when_a_branch_accepts(self) -> None:
+        error = _error((_TYPE_UNION,), "union_tag_invalid", tag="segment")
+        assert _is_redundant_tag_error(error, [set()], None)
+        assert not _is_redundant_tag_error(error, [{"type"}], None)
+        assert not _is_redundant_tag_error(error, [], None)
+
+    def test_branch_rejections_count_literal_errors_on_tag_fields(self) -> None:
+        error_groups: dict[ErrorLocation, list[ValidationErrorDict]] = {
+            ("_RoadSegment",): [
+                _error((0, _SEGMENT_UNION, "road", "type"), "literal_error"),
+                _error((0, _SEGMENT_UNION, "road", "kind"), "literal_error"),
+                _error(
+                    (0, _SEGMENT_UNION, "road", "rules", 0, "theme"), "literal_error"
+                ),
+                _error((1, _SEGMENT_UNION, "road", "class"), "enum"),
+            ],
+            ("_WaterSegment",): [
+                _error((0, _SEGMENT_UNION, "water", "theme"), "literal_error"),
+                _error((0, _SEGMENT_UNION, "water", "type"), "literal_error"),
+            ],
+            (): [_error((0, _TYPE_UNION), "union_tag_invalid", tag="segmnt")],
+        }
+        rejections = _branch_rejections(error_groups, introspect_union(_FeatureUnion))
+        assert rejections == {
+            0: {
+                ("_RoadSegment",): {"type"},
+                ("_WaterSegment",): {"theme", "type"},
+                (): set(),
+            },
+            1: {("_RoadSegment",): set()},
+        }
+
+
+class TestPerItemSelection:
+    """Each list item's most likely group is chosen from its own errors."""
+
+    def test_a_tie_in_one_item_leaves_another_alone(self) -> None:
+        error_groups: dict[ErrorLocation, list[ValidationErrorDict]] = {
+            ("Building",): [
+                _error((0, "tagged-union[type]", "building", "id"), "missing"),
+                _error((1, "tagged-union[type]", "building", "id"), "missing"),
+            ],
+            ("BuildingPart",): [
+                _error((0, "tagged-union[type]", "building_part", "id"), "missing"),
+                _error((1, "tagged-union[type]", "building_part", "id"), "missing"),
+                _error((1, "tagged-union[type]", "building_part", "x"), "missing"),
+            ],
+        }
+        selected, is_tied, _, _ = select_most_likely_errors(error_groups)
+        assert is_tied
+        assert [e["loc"] for e in selected] == [
+            (0, "tagged-union[type]", "building", "id"),
+            (0, "tagged-union[type]", "building_part", "id"),
+            (1, "tagged-union[type]", "building", "id"),
+        ]
+
+    def test_a_small_group_in_one_item_hides_no_other_item(self) -> None:
+        error_groups: dict[ErrorLocation, list[ValidationErrorDict]] = {
+            ("Building",): [
+                _error((0, "tagged-union[type]", "building", "id"), "missing"),
+            ],
+            ("BuildingPart",): [
+                _error((1, "tagged-union[type]", "building_part", "id"), "missing"),
+                _error((1, "tagged-union[type]", "building_part", "x"), "missing"),
+            ],
+        }
+        selected, is_tied, _, _ = select_most_likely_errors(error_groups)
+        assert not is_tied
+        assert [e["loc"] for e in selected] == [
+            (0, "tagged-union[type]", "building", "id"),
+            (1, "tagged-union[type]", "building_part", "id"),
+            (1, "tagged-union[type]", "building_part", "x"),
+        ]
+
+    def test_a_branch_that_rejects_the_items_tags_loses_to_one_with_more_errors(
+        self,
+    ) -> None:
+        # A base water with `subtype: water` selects the water segment too, which
+        # rejects its theme and type: it is not the item's type, however few
+        # errors it has.
+        water_errors = [
+            _error((0, _TYPE_UNION, "water", field), "enum")
+            for field in ("class", "level", "is_salt", "is_intermittent")
+        ]
+        error_groups: dict[ErrorLocation, list[ValidationErrorDict]] = {
+            ("_Water",): water_errors,
+            ("_WaterSegment",): [
+                _error((0, _SEGMENT_UNION, "water", "theme"), "literal_error"),
+                _error((0, _SEGMENT_UNION, "water", "type"), "literal_error"),
+                _error((0, _SEGMENT_UNION, "water", "connectors"), "missing"),
+            ],
+        }
+        metadata = introspect_union(_FeatureUnion)
+        selected, is_tied, _, item_types = select_most_likely_errors(
+            error_groups, metadata
+        )
+        assert not is_tied
+        assert selected == water_errors
+        assert item_types == {0: _Water}
+
+    def test_item_types_name_each_items_selected_type(self) -> None:
+        error_groups: dict[ErrorLocation, list[ValidationErrorDict]] = {
+            ("_Building",): [
+                _error((0, _TYPE_UNION, "building", "id"), "missing"),
+                _error((2, _TYPE_UNION, "building", "id"), "missing"),
+            ],
+            ("_RoadSegment",): [
+                _error((1, _SEGMENT_UNION, "road", "class"), "enum"),
+                _error((2, _SEGMENT_UNION, "road", "class"), "enum"),
+            ],
+        }
+        metadata = introspect_union(_FeatureUnion)
+        _, is_tied, is_heterogeneous, item_types = select_most_likely_errors(
+            error_groups, metadata
+        )
+        # Item 2 ties, so it has no type.
+        assert is_tied
+        assert is_heterogeneous
+        assert item_types == {0: _Building, 1: _RoadSegment, 2: None}
+
+
+class TestHandleValidationError:
+    def test_a_tie_in_a_mixed_list_is_reported_as_ambiguous(self) -> None:
+        data = [
+            {"theme": "base", "type": "water"},
+            {"theme": "buildings", "type": "segment", "subtype": "road"},
+            # Water rejects the theme, a road segment the type: a tie.
+            {"theme": "transportation", "type": "water", "subtype": "road"},
+        ]
+        with pytest.raises(ValidationError) as raised:
+            TypeAdapter(list[_FeatureUnion]).validate_python(data)
+        buffer = StringIO()
+        console = Console(file=buffer, force_terminal=False, width=200)
+
+        handle_validation_error(raised.value, _FeatureUnion, console, data)
+
+        output = buffer.getvalue()
+        assert "Heterogeneous collection" in output
+        assert "Ambiguous" in output
 
 
 class TestFormatPath:

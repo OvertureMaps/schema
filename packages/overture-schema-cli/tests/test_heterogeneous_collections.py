@@ -60,6 +60,21 @@ def heterogeneous_with_missing_fields_json() -> str:
     return json.dumps([building1, building2, building3, place])
 
 
+def _base_water_with_bad_fields(count: int) -> dict:
+    """Build a base water with `subtype: water` and *count* invalid fields."""
+    water = build_feature(
+        theme="base", type="water", geometry_type="LineString", subtype="water"
+    )
+    invalid = [
+        ("class", "not-a-class"),
+        ("level", "x"),
+        ("is_salt", "q"),
+        ("is_intermittent", "q"),
+    ]
+    water["properties"].update(invalid[:count])
+    return water
+
+
 class TestHeterogeneousCollections:
     """Tests for heterogeneous collection handling."""
 
@@ -229,6 +244,12 @@ class TestSharedDiscriminatorValue:
         stderr_output = stderr_buffer.getvalue()
         assert "[0] (Water)" in stderr_output
         assert "[1] (WaterSegment)" in stderr_output
+        # Item 0's only error is its class; the water segment's complaints about it
+        # (theme, type, connectors) belong to a type it is not.
+        item0 = stderr_output.split("[1] (WaterSegment)")[0]
+        assert "not-a-class" in item0
+        assert "Field required" not in item0
+        assert "Input should be 'segment'" not in item0
 
     def test_both_types_are_best_fit_candidates(
         self, cli_runner: CliRunner, stderr_buffer: StringIO
@@ -242,3 +263,106 @@ class TestSharedDiscriminatorValue:
         assert result.exit_code == 1
 
         assert "[0] (Water)" in stderr_buffer.getvalue()
+
+    @pytest.mark.parametrize("bad_fields", [1, 3, 4])
+    def test_a_base_water_keeps_only_its_own_errors(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO, bad_fields: int
+    ) -> None:
+        # The water segment always has three errors (theme, type, connectors), but
+        # it rejects the item's theme and type, so it loses however many of its
+        # own fields the base water gets wrong.
+        water = _base_water_with_bad_fields(bad_fields)
+        result = cli_runner.invoke(cli, ["validate", "-"], input=json.dumps(water))
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        assert "not-a-class" in stderr_output
+        assert "Ambiguous" not in stderr_output
+        assert "Field required" not in stderr_output
+        assert "Input should be 'segment'" not in stderr_output
+
+    def test_a_base_water_in_a_mixed_list_is_titled_by_its_own_type(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO
+    ) -> None:
+        building = build_feature(id="building-1", theme="buildings", type="building")
+        building["properties"]["height"] = -1
+        water = _base_water_with_bad_fields(4)
+        result = cli_runner.invoke(
+            cli, ["validate", "-"], input=json.dumps([building, water])
+        )
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        assert "[0] (Building)" in stderr_output
+        assert "[1] (Water)" in stderr_output
+        assert "WaterSegment" not in stderr_output
+        assert "Input should be 'segment'" not in stderr_output
+
+
+class TestSelectionOfOneTypeAndSegment:
+    """A lone selected type is validated as a plain model, not a tagged-union arm."""
+
+    # Without connectors the road branch has as many errors as the connector branch
+    # it is validated against too; the connector branch rejects its type and loses.
+    @pytest.mark.parametrize("with_connectors", [True, False])
+    def test_every_item_keeps_its_errors(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO, with_connectors: bool
+    ) -> None:
+        connector = build_feature(
+            id="connector-1",
+            theme="transportation",
+            type="connector",
+            geometry_type="Point",
+            version=-1,
+        )
+        road = build_feature(
+            id="road-1",
+            theme="transportation",
+            type="segment",
+            geometry_type="LineString",
+            subtype="road",
+        )
+        road["properties"]["class"] = "sidewalk"
+        if with_connectors:
+            road["properties"]["connectors"] = [
+                {"connector_id": "a", "at": 0},
+                {"connector_id": "b", "at": 1},
+            ]
+        result = cli_runner.invoke(
+            cli,
+            ["validate", "--tag", "overture:theme=transportation", "-"],
+            input=json.dumps([connector, road]),
+        )
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        assert "[0]" in stderr_output
+        assert "greater than or equal to 0" in stderr_output
+        assert "[1] (RoadSegment)" in stderr_output
+        assert "Input should be 'motorway'" in stderr_output
+        assert "Ambiguous" not in stderr_output
+
+    def test_a_misspelled_segment_type_stays_a_segment(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO
+    ) -> None:
+        # Base water, the plain model beside the segment union, rejects theme and
+        # type; the road segment rejects only type.
+        road = build_feature(
+            theme="transportation",
+            type="segmnt",
+            geometry_type="LineString",
+            subtype="road",
+            connectors=[{"connector_id": "a", "at": 0}, {"connector_id": "b", "at": 1}],
+        )
+        road["properties"]["class"] = "motorway"
+        result = cli_runner.invoke(
+            cli,
+            ["validate", "--type", "water", "--type", "segment", "-"],
+            input=json.dumps(road),
+        )
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        assert "Input should be 'segment'" in stderr_output
+        assert "Input should be 'base'" not in stderr_output
+        assert "Ambiguous" not in stderr_output

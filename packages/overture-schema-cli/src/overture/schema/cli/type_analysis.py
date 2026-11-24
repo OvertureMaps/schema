@@ -2,6 +2,7 @@
 
 import inspect
 from dataclasses import dataclass
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, Literal, get_args, get_origin
 from typing import Annotated as AnnotatedType
 
@@ -58,6 +59,37 @@ class UnionMetadata:
         if nested is not None:
             return nested.discriminator_to_model.get(value)
         return self.discriminator_to_model.get(value)
+
+    def discriminator_field_for(self, union_marker: str | None) -> str | None:
+        """Return the field that the union *union_marker* names discriminates on.
+
+        Parameters
+        ----------
+        union_marker : str | None
+            A union marker from an error location, if any
+
+        Returns
+        -------
+        str | None
+            The discriminator field, or None if that union has none
+        """
+        nested = self.nested_unions.get(union_marker) if union_marker else None
+        return (nested or self).discriminator_field
+
+    @cached_property
+    def tag_values(self) -> dict[str, set[str]]:
+        """Map each field a reachable model fixes to a `Literal` to the values taken.
+
+        A field typed otherwise (an enum, a `str`) names no tag, even where it
+        discriminates a union.
+        """
+        values: dict[str, set[str]] = {}
+        for model in self.models():
+            for field_name in model.model_fields:
+                value = _extract_literal_value(model, field_name)
+                if value is not None:
+                    values.setdefault(field_name, set()).add(value)
+        return values
 
     def models(self) -> tuple[type[BaseModel], ...]:
         """Return every model reachable through a discriminator, without duplicates."""
