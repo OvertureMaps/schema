@@ -13,9 +13,9 @@ def plain_value(value: object) -> object:
     an enum member, so the parameter is `object` and non-members pass
     through unchanged.
 
-    A member must not be formatted directly. `str()`, `format()` and
-    f-strings of a member of a mixed-in enum such as `class Kind(str, Enum)`,
-    a `DocumentedEnum` included, give `Kind.ROAD` rather than `road`, and
-    `repr()` gives `<Kind.ROAD: 'road'>`.
+    A member must not be formatted directly. `str()` of a member of a mixed-in
+    enum such as `class Kind(str, Enum)`, a `DocumentedEnum` included, gives
+    `Kind.ROAD` rather than `road`, as do `format()` and f-strings from
+    Python 3.11, and `repr()` gives `<Kind.ROAD: 'road'>`.
     """
     return value.value if isinstance(value, Enum) else value
