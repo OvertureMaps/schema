@@ -1,11 +1,13 @@
 import itertools
 import re
+import warnings
 from typing import Annotated, cast, get_args, get_origin
 
 import pytest
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
+from typing_extensions import deprecated
 
 from overture.schema.common.scoping import (
     Heading,
@@ -17,6 +19,7 @@ from overture.schema.common.scoping import (
     scoped,
 )
 from overture.schema.system.field_constraint import UniqueItemsConstraint
+from overture.schema.system.json_schema import json_schema
 from overture.schema.system.model_constraint import (
     ModelConstraint,
     RequireAnyOfConstraint,
@@ -306,3 +309,24 @@ class TestScoped:
         side_field_info = Complex.model_fields[Scope.SIDE._field_name]
         assert side_field_info.is_required()
         assert side_field_info.annotation is Side
+
+
+class TestScopedOverDeprecated:
+    """`@scoped` returns a new subclass; applied over `@deprecated`, that class declares it."""
+
+    MESSAGE = "Use `NewModel` instead."
+
+    def test_no_warning_at_definition_and_warns_on_instantiate(self) -> None:
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+
+            @scoped(Scope.HEADING)
+            @deprecated(self.MESSAGE)
+            class OldModel(BaseModel):
+                name: str
+
+        assert [w for w in caught if issubclass(w.category, DeprecationWarning)] == []
+        assert OldModel.__dict__.get("__deprecated__") == self.MESSAGE
+        with pytest.warns(DeprecationWarning, match="NewModel"):
+            OldModel(name="x")
+        assert json_schema(OldModel).get("deprecated") is True

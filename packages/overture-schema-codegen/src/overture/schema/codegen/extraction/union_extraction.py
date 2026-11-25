@@ -98,7 +98,7 @@ def extract_discriminator(
 
 
 _TypeShape = tuple[object, ...]
-_FieldKey = tuple[str, _TypeShape, frozenset[object]]
+_FieldKey = tuple[str, _TypeShape, frozenset[object], tuple[bool, str | None]]
 
 
 def _structural_fingerprint(spec: FieldSpec) -> _TypeShape:
@@ -182,6 +182,21 @@ def _constraints_fingerprint(spec: FieldSpec) -> frozenset[object]:
     return frozenset(keys)
 
 
+def _deprecation(spec: FieldSpec) -> tuple[bool, str | None]:
+    """Return a field's deprecation as a comparable value."""
+    return spec.is_deprecated, spec.deprecation_message
+
+
+def _field_key(spec: FieldSpec) -> _FieldKey:
+    """Return the key under which members' declarations of a field share a row."""
+    return (
+        spec.name,
+        _structural_fingerprint(spec),
+        _constraints_fingerprint(spec),
+        _deprecation(spec),
+    )
+
+
 def extract_union(
     name: str,
     annotation: TypeForm[BaseModel],
@@ -216,21 +231,33 @@ def extract_union(
         )
 
     base_spec = extract_model(common_base)
-    shared_field_names = {f.name for f in base_spec.fields}
+    base_fields = {f.name: f for f in base_spec.fields}
 
     member_specs = [MemberSpec(m, extract_model(m)) for m in members]
 
-    annotated_fields: list[AnnotatedField] = []
+    # A base field stays one untagged row unless a member redeclares it with
+    # a deprecation of its own; then it splits per member like a field the
+    # base never declared, so that member's deprecation is not hidden behind
+    # the base's declaration.
+    redeprecated = {
+        fs.name
+        for member in member_specs
+        for fs in member.spec.fields
+        if fs.name in base_fields
+        and _deprecation(fs) != _deprecation(base_fields[fs.name])
+    }
 
-    for fs in base_spec.fields:
-        annotated_fields.append(AnnotatedField(field_spec=fs, variant_sources=None))
-
-    seen: dict[_FieldKey, AnnotatedField] = {}
+    # One group per field name, in base-then-first-seen order, so the rows a
+    # field splits into stay adjacent.
+    groups: dict[str, dict[_FieldKey, AnnotatedField]] = {
+        name: {} if name in redeprecated else {_field_key(fs): AnnotatedField(fs, None)}
+        for name, fs in base_fields.items()
+    }
 
     for member in member_specs:
         member_cls = member.member_cls
         for fs in member.spec.fields:
-            if fs.name in shared_field_names:
+            if fs.name in base_fields and fs.name not in redeprecated:
                 continue
             # The key includes the constraints fingerprint alongside the
             # structural one: two arms with the same name and shape but
@@ -243,16 +270,20 @@ def extract_union(
             # that already handles a field present on only some arms
             # (`check_builder._field_checks_for_union`), and the renderer's
             # collision resolver already disambiguates multiple `Check`s
-            # landing on the same field label.
-            key = (fs.name, _structural_fingerprint(fs), _constraints_fingerprint(fs))
-            existing = seen.get(key)
+            # landing on the same field label. Deprecation splits rows the
+            # same way: members that disagree on whether, or why, a field is
+            # deprecated each keep their own, so no member's deprecation is
+            # lost to, or lent to, another's.
+            group = groups.setdefault(fs.name, {})
+            key = _field_key(fs)
+            existing = group.get(key)
             prior_sources = existing.variant_sources or () if existing else ()
-            seen[key] = AnnotatedField(
+            group[key] = AnnotatedField(
                 field_spec=fs,
                 variant_sources=(*prior_sources, member_cls),
             )
 
-    annotated_fields.extend(seen.values())
+    annotated_fields = [af for group in groups.values() for af in group.values()]
 
     disc_field, disc_mapping = extract_discriminator(annotation, members)
 

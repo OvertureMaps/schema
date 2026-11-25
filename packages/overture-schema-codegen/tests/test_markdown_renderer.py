@@ -1,9 +1,10 @@
 """Tests for Markdown renderer."""
 
+import re
 from collections.abc import Callable
 from enum import Enum
 from pathlib import PurePosixPath
-from typing import Annotated, Literal, NewType
+from typing import Annotated, Any, Literal, NewType, Union, cast
 
 import pytest
 from annotated_types import Ge, Interval
@@ -26,6 +27,7 @@ from codegen_test_support import (
     spec_for_model,
 )
 from pydantic import BaseModel, Field
+from typing_extensions import deprecated
 
 from overture.schema.codegen.extraction.examples import ExampleRecord
 from overture.schema.codegen.extraction.model_extraction import extract_model
@@ -39,6 +41,7 @@ from overture.schema.codegen.extraction.specs import (
     TypeIdentity,
 )
 from overture.schema.codegen.extraction.type_analyzer import ConstraintSource
+from overture.schema.codegen.extraction.union_extraction import extract_union
 from overture.schema.codegen.markdown.link_computation import LinkContext
 from overture.schema.codegen.markdown.renderer import (
     _format_constraint,
@@ -1589,3 +1592,291 @@ class TestRenderPydanticType:
         result = render_pydantic_type(HTTP_URL_SPEC, link_ctx=ctx, used_by=used_by)
         assert "## Used By" in result
         assert "Place" in result
+
+
+class TestRenderFeatureDeprecation:
+    """Tests for deprecation rendering.
+
+    One deprecated field and one deprecated model, defined locally so
+    neither reaches the published schema. Each positive assertion is
+    paired with a control on an undeprecated sibling field or model, so
+    the undeprecated case renders unchanged.
+    """
+
+    def test_field_with_deprecation_message_renders_note_and_tag(self) -> None:
+        """A `Field(deprecated="...")` field gets the note and the `(deprecated)` tag."""
+
+        class ModelWithDeprecatedField(BaseModel):
+            """Model with one deprecated field and one current field."""
+
+            old_field: str | None = Field(
+                default=None,
+                deprecated="Use `new_field` instead. Deprecated in v1.18.0.",
+            )
+            new_field: str | None = Field(default=None, description="The replacement.")
+
+        spec = extract_model(ModelWithDeprecatedField)
+        result = render_model(spec)
+
+        lines = result.splitlines()
+        old_line = next(line for line in lines if "| `old_field` |" in line)
+        new_line = next(line for line in lines if "| `new_field` |" in line)
+
+        assert "(optional, deprecated)" in old_line
+        assert (
+            "**Deprecated:** Use `new_field` instead. Deprecated in v1.18.0."
+            in old_line
+        )
+        # Control: the current field gets neither the tag nor a note.
+        assert "deprecated" not in new_line
+        assert "Deprecated" not in new_line
+
+    def test_bare_deprecated_true_renders_generic_message(self) -> None:
+        """`deprecated=True` with no message still renders a note, not silence."""
+
+        class ModelWithBareDeprecation(BaseModel):
+            """Model with a bare-flagged deprecated field."""
+
+            old_field: str | None = Field(default=None, deprecated=True)
+
+        spec = extract_model(ModelWithBareDeprecation)
+        result = render_model(spec)
+
+        lines = result.splitlines()
+        old_line = next(line for line in lines if "| `old_field` |" in line)
+
+        assert "(optional, deprecated)" in old_line
+        assert "**Deprecated:** This field is deprecated." in old_line
+
+    def test_deprecated_model_renders_banner(self) -> None:
+        """A `@deprecated(...)`-decorated model renders a banner at the page top.
+
+        Docusaurus renders the generated reference, so the banner is an
+        admonition. Blank lines inside the directive keep Prettier from
+        collapsing it into invalid syntax.
+        """
+
+        @deprecated("Use `NewFeature` instead. Deprecated in v1.18.0.")
+        class OldFeature(BaseModel):
+            """An old feature, kept only to be deprecated."""
+
+            name: str
+
+        spec = extract_model(OldFeature)
+        result = render_model(spec)
+
+        assert (
+            ":::warning[Deprecated]\n\n"
+            "Use `NewFeature` instead. Deprecated in v1.18.0.\n\n"
+            ":::" in result
+        )
+        # The banner precedes the docstring description.
+        banner_idx = result.index(":::warning[Deprecated]")
+        description_idx = result.index("An old feature, kept only to be deprecated.")
+        assert banner_idx < description_idx
+
+    def test_current_model_renders_no_banner(self) -> None:
+        """The control: an undeprecated model gets no banner at all."""
+
+        class CurrentFeature(BaseModel):
+            """A current feature."""
+
+            name: str
+
+        spec = extract_model(CurrentFeature)
+        result = render_model(spec)
+
+        assert ":::warning[Deprecated]" not in result
+        assert "Deprecated" not in result
+
+    def test_deprecation_message_is_sanitized_for_the_table_cell(self) -> None:
+        """A message with a pipe or newlines cannot break the row it sits in.
+
+        The message goes through the same sanitizer as descriptions: pipes are
+        escaped, a single newline unwraps to a space, and a paragraph break
+        becomes `<br/><br/>`. Inline Markdown passes through, as it does in
+        descriptions, so a backticked replacement name still renders as code.
+        """
+
+        class ModelWithUnsafeMessage(BaseModel):
+            """Model whose deprecation message would break a table cell."""
+
+            old_field: str | None = Field(
+                default=None,
+                deprecated="Use `a|b` instead\nof this.\n\nGone in v2.",
+            )
+
+        result = render_model(extract_model(ModelWithUnsafeMessage))
+
+        old_line = next(
+            line for line in result.splitlines() if "| `old_field` |" in line
+        )
+        assert (
+            "**Deprecated:** Use `a\\|b` instead of this.<br/><br/>Gone in v2."
+            in old_line
+        )
+        # Escaped pipes only: the row still has exactly four cell delimiters.
+        assert old_line.replace("\\|", "").count("|") == 4
+
+
+class _ShapeBase(BaseModel):
+    """Common base for the deprecation union fixtures."""
+
+    kind: str
+
+
+def _shape_member(
+    class_name: str, kind: str, deprecation: str | None
+) -> type[_ShapeBase]:
+    """Build a union member declaring `width`, deprecated with *deprecation*."""
+    width = (
+        Field(default=None)
+        if deprecation is None
+        else Field(default=None, deprecated=deprecation)
+    )
+    member = type(
+        class_name,
+        (_ShapeBase,),
+        {
+            "__annotations__": {"kind": Literal[kind], "width": float | None},
+            "width": width,
+        },
+    )
+    return cast(type[_ShapeBase], member)
+
+
+def _render_union_rows(members: list[type[BaseModel]]) -> list[str]:
+    """Render the union of *members* as `Shape` and return its field-table rows."""
+    # Built at runtime from *members*, so mypy cannot see it as a type form.
+    union = cast(Any, Annotated[Union[tuple(members)], Field()])  # noqa: UP007
+    result = render_model(extract_union("Shape", union))
+    return [line for line in result.splitlines() if line.startswith("| `")]
+
+
+def _tagged_rows(members: list[type[BaseModel]], field: str) -> dict[str, str]:
+    """Map each variant-tagged row for *field* to its line, keyed by the tag."""
+    rows = {}
+    for line in _render_union_rows(members):
+        match = re.match(rf"\| `{field}` \*\(([^)]*)\)\* \|", line)
+        if match:
+            rows[match.group(1)] = line
+    return rows
+
+
+def _width_rows(members: list[type[_ShapeBase]]) -> dict[str, str]:
+    """Map each variant-tagged `width` row to its line, keyed by the tag."""
+    return _tagged_rows(list(members), "width")
+
+
+class TestRenderUnionDeprecation:
+    """A field several union members declare shows each member's deprecation.
+
+    Members that agree on a field's deprecation share a row; members that
+    disagree get one row each, tagged with the members it covers -- the same
+    split diverging constraints get. No row's deprecation depends on which
+    member came last.
+    """
+
+    @pytest.mark.parametrize(
+        "order",
+        [["Circle", "Square", "Triangle"], ["Square", "Triangle", "Circle"]],
+        ids=["deprecated-first", "deprecated-last"],
+    )
+    def test_one_deprecated_member_gets_its_own_row(self, order: list[str]) -> None:
+        """Only the deprecating member's row says so, whatever the member order."""
+        deprecations = {"Circle": "Use `radius` instead.", "Square": None}
+        members = [
+            _shape_member(f"{name}Shape", name.lower(), deprecations.get(name))
+            for name in order
+        ]
+
+        rows = _width_rows(members)
+
+        assert set(rows) == {"Circle", "Square, Triangle"}
+        assert "(optional, deprecated)" in rows["Circle"]
+        assert "**Deprecated:** Use `radius` instead." in rows["Circle"]
+        # Control: the members that do not deprecate `width` say nothing of it.
+        assert "deprecated" not in rows["Square, Triangle"].lower()
+
+    def test_members_with_different_messages_each_show_their_own(self) -> None:
+        """Every distinct message renders, each beside the member that states it."""
+        members = [
+            _shape_member("CircleShape", "circle", "Use `radius` instead."),
+            _shape_member("SquareShape", "square", "Use `side` instead."),
+            _shape_member("TriangleShape", "triangle", "Use `side` instead."),
+        ]
+
+        rows = _width_rows(members)
+
+        assert set(rows) == {"Circle", "Square, Triangle"}
+        assert "**Deprecated:** Use `radius` instead." in rows["Circle"]
+        assert "**Deprecated:** Use `side` instead." in rows["Square, Triangle"]
+        assert "side" not in rows["Circle"]
+        assert "radius" not in rows["Square, Triangle"]
+
+    @pytest.mark.parametrize("deprecating_first", [True, False])
+    def test_redeclared_base_field_keeps_the_member_deprecation(
+        self, deprecating_first: bool
+    ) -> None:
+        """A member deprecating a field it inherits gets its own deprecated row.
+
+        The field is on the common base, so without a deprecation of its own
+        it would render as one untagged row; the members that keep the base's
+        declaration share a row tagged with their names.
+        """
+
+        class ShapeBase(BaseModel):
+            kind: str
+            shared: int | None = None
+
+        class CircleShape(ShapeBase):
+            kind: Literal["circle"]
+            shared: int | None = Field(default=None, deprecated="Circles drop it.")
+
+        class SquareShape(ShapeBase):
+            kind: Literal["square"]
+
+        members: list[type[BaseModel]] = [CircleShape, SquareShape]
+        if not deprecating_first:
+            members.reverse()
+
+        rows = _tagged_rows(members, "shared")
+
+        assert set(rows) == {"Circle", "Square"}
+        assert "**Deprecated:** Circles drop it." in rows["Circle"]
+        assert "deprecated" not in rows["Square"].lower()
+        untagged = [r for r in _render_union_rows(members) if "| `shared` |" in r]
+        assert untagged == []
+
+    def test_split_model_field_expands_its_sub_model_once_beside_its_rows(
+        self,
+    ) -> None:
+        """Rows split only by deprecation stay adjacent and share one expansion."""
+
+        class Addr(BaseModel):
+            street: str
+
+        class ShapeBase(BaseModel):
+            kind: str
+
+        class CircleShape(ShapeBase):
+            kind: Literal["circle"]
+            addr: Addr | None = None
+            n: int | None = None
+
+        class SquareShape(ShapeBase):
+            kind: Literal["square"]
+            addr: Addr | None = Field(default=None, deprecated="Gone.")
+
+        names = [
+            row.split("|")[1].strip()
+            for row in _render_union_rows([CircleShape, SquareShape])
+        ]
+
+        assert names == [
+            "`kind`",
+            "`addr` *(Circle)*",
+            "`addr` *(Square)*",
+            "`addr.street`",
+            "`n` *(Circle)*",
+        ]
