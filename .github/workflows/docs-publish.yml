@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Generate docs publisher app token
         id: app-token
-        uses: OvertureMaps/workflows/.github/actions/releaser-token@af9d437f174f972cb4dcb2a7f980f7fe5384f4a9 # v1.0.1
+        uses: OvertureMaps/workflows/.github/actions/releaser-token@754f4f6b2363ac487906c4551a48700f5755fd70 # v1.0.2
         with:
           repositories: docs
           permission-actions: write # Required to dispatch a workflow run on OvertureMaps/docs
