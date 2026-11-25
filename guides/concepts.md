@@ -1,28 +1,25 @@
 # Concepts
 
-Background on why the Overture schema looks the way it does. **None of this is needed to
-get work done** — [SCHEMA_GUIDE.md](SCHEMA_GUIDE.md) is the path through the examples,
-and it stands on its own. Read a section here when you hit something whose *why* you want.
-
-Not to be confused with [GLOSSARY.md](GLOSSARY.md), which defines the same vocabulary in a
-sentence or two each. If you want to know what *envelope* or *workspace* or *tag* means,
-the glossary is faster. This page is for why they exist.
+Read this page when you want to know why the schema works the way it does. You don't
+need it to get work done: [the schema guides](README.md) stand on their own. Each
+section answers one question, such as why the schema uses Pydantic or why GeoJSON puts
+most fields under `properties`. For a short definition of a term instead, see
+[Glossary](glossary.md).
 
 | Question | Section |
 |---|---|
 | What principles is the schema designed under? | [The tenets](#the-tenets) |
 | Why have a schema at all? | [Beyond raw data](#beyond-raw-data) |
-| Why Pydantic instead of JSON Schema? | [Why Pydantic](#why-pydantic-rather-than-json-schema) |
-| Why is the schema split into a dozen packages? | [Many packages](#why-the-schema-is-many-packages) |
-| What is an "envelope"? Why do Overture fields sit under `properties`? | [The GeoJSON envelope](#the-geojson-envelope) |
+| Why Pydantic instead of JSON Schema? | [Pydantic rather than JSON Schema](#pydantic-rather-than-json-schema) |
+| Why is the schema split into a dozen packages? | [Many packages](#many-packages) |
+| What is an "envelope"? Why are Overture fields under `properties`? | [The GeoJSON envelope](#the-geojson-envelope) |
 | Why does `type` appear three times in one file? | [Three keys named `type`](#three-keys-named-type) |
-| If the schema is Pydantic now, why does it still look like GeoJSON? | [Why there's an envelope at all](#why-theres-an-envelope-at-all) |
+| If the schema is Pydantic now, why does it still look like GeoJSON? | [Reasons for the envelope](#reasons-for-the-envelope) |
 | Why can a model be named two ways? | [Two names per model](#two-names-per-model) |
-| What decides whether a field is required? | [What makes a field required](#what-makes-a-field-required) |
-| What are those `overture:theme=` tags? | [How tags work](#how-tags-work) |
-| What is the example file the guide validates? | [The example file](#what-the-example-file-actually-is) |
-| Why are the examples YAML? | [Why examples are YAML](#why-examples-are-yaml) |
-| Why isn't the generated PySpark code in git? | [Generated code](#why-generated-code-is-gitignored) |
+| What decides whether a field is required? | [Required fields](#required-fields) |
+| What are those `overture:theme=` tags? | [Tags](#tags) |
+| What is the example file the guide validates? | [The example file](#the-example-file) |
+| Why isn't the generated PySpark code in git? | [Generated code](#generated-code-and-git) |
 
 ---
 
@@ -30,13 +27,13 @@ the glossary is faster. This page is for why they exist.
 
 Six principles the schema is designed under, set down by the working group early in the
 project under the heading *"These are our tenets unless you know better ones"*. They still
-decide arguments, so they are worth knowing before you propose a change.
+decide arguments, so read them before you propose a change.
 
 1. **Address the core, enable the periphery.** The Overture schema doesn't solve every
    problem. It describes fully-formed solutions only for the most fundamental use cases
    ("the core") while enabling less common use cases ("the periphery") via extensibility.
-2. **Invent across the gap.** Many excellent solutions — published standards, best
-   practices, open-source tools — already exist and are well understood in the community.
+2. **Invent across the gap.** Many excellent solutions, such as published standards, best
+   practices, and open-source tools, already exist and are well understood in the community.
    The Overture schema reuses them to maximize compatibility and to focus effort on
    unaddressed high-priority pain points.
 3. **Backward-compatible is forward-compatible.** No design is future-proof, but good
@@ -44,8 +41,8 @@ decide arguments, so they are worth knowing before you propose a change.
 4. **The world is neither flat nor still.** The Overture schema links representations of
    2- and 3-dimensional objects in space and time.
 5. **Empower, don't dictate.** The schema provides a framework that lets users bring
-   together the data they need for their own use cases — Overture and non-Overture
-   sources alike — according to their own viewpoints and perspectives.
+   together the data they need for their own use cases, from Overture and non-Overture
+   sources alike, according to their own viewpoints and perspectives.
 6. **Always open, never closed.** The schema and format aim for compatibility with free
    and open-source tools, and avoid depending on closed-source or proprietary ones.
 
@@ -53,15 +50,15 @@ Where they show up in this repository:
 
 | Tenet | In practice |
 |---|---|
-| Address the core, enable the periphery | Your own feature types register through entry points and become first-class — nothing in the tooling special-cases Overture. See [AUTHORING.md](AUTHORING.md#register-your-own-feature-types). |
-| Invent across the gap | JSON Schema, OGC geometries, GeoJSON, GeoParquet, and Pydantic are all reused rather than reinvented. See [Why Pydantic](#why-pydantic-rather-than-json-schema) and [The GeoJSON envelope](#the-geojson-envelope). |
-| Backward-compatible is forward-compatible | Backward-compatible changes land in both the Pydantic models and the deprecated YAML while both are live; major changes wait for `vnext`. See [CONTRIBUTING.md](CONTRIBUTING.md). |
-| Always open, never closed | Every published artifact — JSON Schema, PySpark expressions, documentation — is generated by open tooling in this repository. |
+| Address the core, enable the periphery | Your own feature types register through entry points and become first-class. Nothing in the tooling special-cases Overture. See [Writing models](writing-models.md#package-and-register-your-models). |
+| Invent across the gap | JSON Schema, OGC geometries, GeoJSON, GeoParquet, and Pydantic are all reused rather than reinvented. See [Pydantic rather than JSON Schema](#pydantic-rather-than-json-schema) and [The GeoJSON envelope](#the-geojson-envelope). |
+| Backward-compatible is forward-compatible | Backward-compatible changes land in both the Pydantic models and the deprecated YAML while both are live; major changes wait for `vnext`. See [CONTRIBUTING.md](../CONTRIBUTING.md). |
+| Always open, never closed | Every published artifact, including JSON Schema, PySpark expressions, and documentation, is generated by open tooling in this repository. |
 
 The doctrine the working group built on these tenets in 2023 is recorded in the
-[project history](README.md#the-tenets-and-the-doctrine).
+[project history](../README.md#the-tenets-and-the-doctrine).
 
-## Why this exists
+## Purpose
 
 This project provides type-safe Python models for validating and working with
 [Overture](https://overturemaps.org/) data. Use these schemas to:
@@ -83,8 +80,8 @@ guessing from column names.
 
 Compare this to OpenStreetMap's approach: features use well-known key/value pairs like
 `building=residential` or `addr:housenumber=42` that have semantic meaning and can be
-looked up on the OSM wiki. This creates a step toward a schema - shared vocabulary with
-documented semantics used across a vast dataset. However, OSM tags remain free-form:
+looked up on the OSM wiki. That's a step toward a schema: a shared vocabulary with
+documented meanings, used across a very large dataset. However, OSM tags remain free-form:
 multiple valid ways to express the same concept, no built-in validation, and complex
 downstream validation because of undocumented keys that might have meaning to someone,
 somewhere. A schema provides the structured alternative: explicit types, clear
@@ -95,7 +92,7 @@ metadata files typically focus on how data was collected and encoded, not on sem
 meaning or validation rules. Data consumers struggle to understand what datasets contain
 and which columns they need for their goals.
 
-## Why Pydantic rather than JSON Schema
+## Pydantic rather than JSON Schema
 
 We initially chose JSON Schema because it aligned with our mental model and promised to
 solve our problems as we understood them. But JSON Schema surfaced several pain points:
@@ -119,26 +116,28 @@ expectations, users can focus on their actual goals: analysis, visualization,
 integration. Quality improves because validation happens automatically rather than
 through manual inspection.
 
-The fundamental approach - human-readable authoring that generates machine-actionable
-outputs - has broader applications beyond Overture and geospatial data. We hope others
+The approach, human-readable authoring that generates machine-readable
+outputs, has broader applications beyond Overture and geospatial data. We hope others
 will adapt these patterns for linking with Overture data or modeling their own domains
 entirely.
 
 ---
 
-## Why the schema is many packages
+## Many packages
 
-> **Why split the schema into so many packages?** Because *what you install determines what
+> [!NOTE]
+> The schema is split into many packages because *what you install determines what
 > exists at runtime*. The models register themselves through Python entry points, so
-> installing only the buildings theme means the CLI only knows about buildings. That's
-> the extension mechanism — see [Using the packages from your own project](SCHEMA_GUIDE.md#7-using-the-packages-from-your-own-project) and
-> [Register your own feature types](AUTHORING.md#register-your-own-feature-types). If you just want everything, that's fine too.
+> installing only the buildings package means the CLI only knows about buildings. That's
+> the extension mechanism. See [Using the packages in your own project](working-with-features.md#installing-only-some-themes) and
+> [Register your own feature types](writing-models.md#package-and-register-your-models). If you just want everything, that's fine too.
 
-### What "workspace" means
+### The uv workspace
 
 A **uv workspace** is one repository containing several packages that are developed
 together, sharing **one lockfile** and **one virtual environment**. If you've used Cargo
-workspaces, npm workspaces, or a monorepo, it's the same idea.
+workspaces, npm workspaces, or a monorepo, it's the same idea. You only meet the
+workspace if you install from a clone. A PyPI install never sees it.
 
 The root `pyproject.toml` declares it:
 
@@ -151,13 +150,13 @@ version = "0.0.0"
 members = ["packages/*"]               # ← every directory under packages/ is a member
 ```
 
-Two things follow from this:
+Because the repo is a workspace:
 
 **1. You never install or import `overture-schema-workspace`.** It's scaffolding. It
 exists so `uv` knows which directories are members. There is no `import
 overture_schema_workspace`.
 
-**2. The packages depend on each other *locally*, not through PyPI.** Look at
+**2. Inside the repo, the packages depend on each other *locally*, not through PyPI.** Look at
 `packages/overture-schema-cli/pyproject.toml`:
 
 ```toml
@@ -166,32 +165,36 @@ overture-schema-common = { workspace = true }
 overture-schema-system = { workspace = true }
 ```
 
-`workspace = true` means "use the copy in this repo." This is why none of this needs to
-be published to PyPI for you to work with it — the packages find each other.
+`workspace = true` means "use the copy in this repo." That's why a clone works without
+fetching any Overture package from an index: the packages find each other. The published
+packages don't include `[tool.uv.sources]`. They declare ordinary version ranges, such as
+`overture-schema-common>=2.0.0`, and resolve from PyPI like any other dependency.
 
 ---
 
 ## The GeoJSON envelope
 
-An **envelope** is an outer wrapper that carries a payload plus a little standard
+An **envelope** is an outer wrapper around a payload plus a little standard
 information about it. The term is borrowed from mail: the address and stamp go on the
 outside and are the same on every envelope; the letter inside is whatever you wrote.
 
-GeoJSON works exactly that way. Every GeoJSON Feature has the same four outer keys, fixed
-by RFC 7946 — that's the envelope. Everything specific to *your* data goes in one of them,
-`properties` — that's the payload.
+GeoJSON works the same way. RFC 7946 sets the outer keys of a GeoJSON Feature: `type`,
+`geometry`, and `properties` are required, and `id` and `bbox` are optional. Those outer
+keys are the envelope. Everything specific to *your* data goes in one of them,
+`properties`. That's the payload.
 
 ```json
 {
-  "type": "Feature",                          <- envelope: what kind of object this is
-  "id": "overture:buildings:building:1234",   <- envelope: identity
-  "geometry": { "type": "Polygon", ... },     <- envelope: where it is
-  "properties": {                             <- envelope: the pocket for everything else
-      "theme": "buildings",                       payload: Overture's fields
+  "type": "Feature",                             <- envelope: what kind of object this is
+  "id": "0e8abfe5-a7f3-4e8e-b6f0-db1fb0bb5b0c",  <- envelope: identity
+  "bbox": [-73.9865036, 40.7479248, ...],        <- envelope: the bounding box
+  "geometry": { "type": "Polygon", ... },        <- envelope: where it is
+  "properties": {                                <- envelope: the pocket for everything else
+      "theme": "buildings",                          payload: Overture's fields
       "type": "building",
-      "height": 21.34,
-      "num_floors": 4,
-      "class": "parking"
+      "height": 443.2,
+      "num_floors": 102,
+      "class": "office"
   }
 }
 ```
@@ -199,11 +202,11 @@ by RFC 7946 — that's the envelope. Everything specific to *your* data goes in 
 Split them apart for yourself:
 
 ```python
-import json, yaml
+import json
 from overture.schema.buildings import Building
 
 b = Building.model_validate_json(
-    json.dumps(yaml.safe_load(open("examples/buildings/building-polygon.yaml")))
+    open("guides/examples/buildings/empire-state-building.json").read()
 )
 gj = b.model_dump(mode="json", by_alias=True, exclude_none=True)
 
@@ -212,28 +215,27 @@ print("payload keys :", sorted(gj["properties"]))
 ```
 
 ```
-envelope keys: ['geometry', 'id', 'properties', 'type']
-payload keys : ['class', 'ext_bar', 'ext_foo', 'height', 'is_underground', 'level',
-                'num_floors', 'num_floors_underground', 'sources', 'subtype',
-                'theme', 'type', 'version']
+envelope keys: ['bbox', 'geometry', 'id', 'properties', 'type']
+payload keys : ['class', 'has_parts', 'height', 'is_underground', 'names', 'num_floors',
+                'sources', 'subtype', 'theme', 'type', 'version']
 ```
 
-Four keys outside, thirteen inside. **A GeoJSON Feature for a road, a lake, or a mailbox
-has the same four outer keys** — that's what makes it universally readable. Only the
-payload differs.
+Five keys outside, eleven inside. **Every Overture feature, whether it's a road, a lake, or
+a building, has the same five outer keys**, which is why any GeoJSON tool can read it. Only
+the payload differs.
 
-So when this guide says "the envelope owns `id` and `geometry`," it means those two are
-outer keys, placed there by GeoJSON's rules rather than by Overture's. And "the fields are
-nested under the envelope" means the Overture fields sit inside `properties` rather than
+So when this guide says "the envelope owns `id` and `geometry`," it means those are
+outer keys, along with `bbox`, placed there by GeoJSON's rules rather than by Overture's. And "the fields are
+nested under the envelope" means the Overture fields are inside `properties` rather than
 at the top.
 
-One consequence worth carrying forward: **the envelope only exists in the GeoJSON
-rendering.** In the Pydantic model, and in Parquet, there is no envelope — `id`,
+Keep one consequence in mind: **the envelope only exists in the GeoJSON
+rendering.** In the Pydantic model, and in Parquet, there is no envelope. `id`,
 `geometry`, and `height` are all just fields side by side.
 
 ### Three keys named `type`
 
-A **key** is a field name — the part left of the colon. This file uses the key `type`
+A **key** is a field name, the part left of the colon. This file uses the key `type`
 three times, at three nesting levels, meaning three unrelated things:
 
 | Where | Value | Comes from | Means |
@@ -245,9 +247,9 @@ three times, at three nesting levels, meaning three unrelated things:
 List them yourself:
 
 ```python
-import yaml
+import json
 
-d = yaml.safe_load(open("examples/buildings/building-polygon.yaml"))
+d = json.load(open("guides/examples/buildings/empire-state-building.json"))
 print("type            =", d["type"])
 print("geometry.type   =", d["geometry"]["type"])
 print("properties.type =", d["properties"]["type"])
@@ -261,17 +263,17 @@ properties.type = building
 
 Only the third is Overture's. The first two belong to GeoJSON, the envelope Overture data
 is wrapped in when written as JSON. Whenever this guide says "the feature's type" it means
-`properties.type` — the one holding `building`, `place`, or `segment`.
+`properties.type`, the one whose value is `building`, `place`, or `segment`.
 
-That layering is the single most confusing thing about this data, and section 3 is largely
-about it.
+This layering confuses people more than anything else about the data, and section 3 is
+largely about it.
 
-**"Validating" means:** the CLI parses the file, reads `theme: buildings` and
-`type: building` to decide *which model* to check against, then checks every field
-against that model — types, numeric bounds, enum membership, required fields, and
+**"Validating" means:** the CLI parses the file, reads `"theme": "buildings"` and
+`"type": "building"` to decide *which model* to check against, then checks every field
+against that model: types, numeric bounds, enum membership, required fields, and
 cross-field rules.
 
-You can watch it pick the model. Delete the `theme:` line and it no longer knows:
+You can watch it pick the model. Delete the `theme` property and it no longer knows:
 
 ```
 ⚠ Ambiguous: Data matches multiple types equally. Consider:
@@ -279,41 +281,41 @@ You can watch it pick the model. Delete the `theme:` line and it no longer knows
   • Adding discriminator fields to clarify intent
 ```
 
-### Why there's an envelope at all
+### Reasons for the envelope
 
 If the schema is now Pydantic, why does any of this still look like GeoJSON? Because those
 two things answer different questions, and only one of them changed.
 
 | | What it is | Did it change? |
 |---|---|---|
-| **Pydantic** | How the schema is *authored and enforced*, in Python | **Yes** — it replaced hand-written JSON Schema YAML |
-| **GeoJSON** | One way a feature can be *written out as JSON*, per RFC 7946 | **No** — it's an interchange format, not an authoring choice |
+| **Pydantic** | How the schema is *authored and enforced*, in Python | **Yes.** It replaced hand-written JSON Schema YAML |
+| **GeoJSON** | One way a feature can be *written out as JSON*, per RFC 7946 | **No.** It's an interchange format, not an authoring choice |
 
 Pydantic replaced JSON Schema as the authoring language. It has nothing to say about how
 data is serialized, so GeoJSON was never in scope to replace.
 
-**But GeoJSON is not how Overture ships bulk data — Parquet is.** The release bucket is
+**But Overture ships bulk data as Parquet, not GeoJSON.** The release bucket is
 Hive-partitioned Parquet:
 
 ```
-s3a://overturemaps-us-west-2/release/2026-07-22.0/theme=buildings/type=building/
+s3a://overturemaps-us-west-2/release/<release>/theme=buildings/type=building/
 ```
 
-That is a columnar table: `id`, `geometry`, `height`, and the rest are *columns*, flat, no
-envelope. It's what `overture-validate` reads, what DuckDB attaches to, and what you'd
+That is a columnar table: `id`, `geometry`, `height`, and the rest are *columns*, all at the top
+level, with no envelope. It's what `overture-validate` reads, what DuckDB attaches to, and what you'd
 query for anything at scale.
 
 So why does GeoJSON appear at all? Because **JSON Schema describes JSON documents**, and
 when a geospatial feature is written as a single JSON document, GeoJSON is the format
-every GIS tool already reads. Parquet has no JSON representation to describe — it has a
+every GIS tool already reads. Parquet has no JSON representation to describe. It has a
 columnar schema instead, which is exactly what
-[section 6](SCHEMA_GUIDE.md#6-converting-the-schema-to-other-formats) generates as a Spark `StructType`.
+[section 5](generating-other-formats.md) generates as a Spark `StructType`.
 
 The honest summary is that there are two serializations and neither is subordinate:
 
 | Serialization | Shape | Pydantic mode | Where you meet it |
 |---|---|---|---|
-| **Parquet** | flat / columnar | `python` | the release bucket, Spark, DuckDB — all bulk data |
+| **Parquet** | flat / columnar | `python` | the release bucket, Spark, DuckDB: all bulk data |
 | **GeoJSON** | nested envelope | `json` | single features, extracts, examples in this repo, web tooling |
 
 The model supports both deliberately. The JSON Schema you're reading in this subsection
@@ -323,7 +325,7 @@ describes the second one, which is the only reason an envelope shows up here at 
 
 An **interchange format** is one whose job is handing data to a program you didn't write.
 It's optimized for being *understood by anything*, not for being stored efficiently. A
-**storage format** is the opposite: optimized for holding a lot of data and querying it
+**storage format** is the opposite: optimized for storing a lot of data and querying it
 fast, at the cost of needing specific software to read it at all.
 
 | | GeoJSON | Parquet |
@@ -331,50 +333,49 @@ fast, at the cost of needing specific software to read it at all.
 | Optimized for | being read by anything | storing and scanning millions of rows |
 | Text or binary | plain text | binary, columnar, compressed |
 | Read it with | any JSON parser | a Parquet library |
-| Self-describing | yes — the file says what it is | schema in the footer, not human-readable |
+| Self-describing | yes, the file says what it is | schema in the footer, not human-readable |
 | Good at | one feature, an extract, a web map | a whole theme, a whole planet |
 
 The cost of being universally readable is that GeoJSON repeats every field name on every
 feature:
 
 ```python
-import json, yaml
+import json
 from overture.schema.buildings import Building
 
 b = Building.model_validate_json(
-    json.dumps(yaml.safe_load(open("examples/buildings/building-polygon.yaml")))
+    open("guides/examples/buildings/empire-state-building.json").read()
 )
 gj = b.model_dump(mode="json", by_alias=True, exclude_none=True)
 flat = b.model_dump(mode="python", by_alias=True, exclude_none=True)
-flat["geometry"] = str(flat["geometry"])
 
 n = 10_000
 doc = json.dumps({"type": "FeatureCollection", "features": [gj] * n})
 cols = list(flat)
-tbl = json.dumps({"columns": cols, "rows": [[flat[k] for k in cols]] * n})
+tbl = json.dumps({"columns": cols, "rows": [[flat[k] for k in cols]] * n}, default=str)
 print(f"{n:,} features as GeoJSON      : {len(doc):>10,} bytes")
 print(f"{n:,} features, names stored once: {len(tbl):>10,} bytes")
 ```
 
 ```
-10,000 features as GeoJSON      :  7,040,043 bytes
-10,000 features, names stored once:  4,520,199 bytes
+10,000 features as GeoJSON      : 16,030,043 bytes
+10,000 features, names stored once: 13,760,172 bytes
 ```
 
-A 1.56x penalty before compression even enters the picture, and that comparison is still
-generous to GeoJSON — real Parquet also compresses each column and lets a reader skip
+A 1.16x penalty before compression even enters the picture, and that comparison is still
+generous to GeoJSON. Real Parquet also compresses each column and lets a reader skip
 columns it doesn't need. Multiply by a planet's worth of buildings and the reason bulk
 data isn't shipped as GeoJSON is obvious.
 
 "Interchange" is a role, not a ranking. GeoJSON is the right tool for handing one feature
 to a web map; Parquet is the right tool for handing a continent to Spark.
 
-### Is Pydantic wrapped around GeoJSON?
+### Pydantic and GeoJSON
 
 Short answer: **no.** But the question has three reasonable readings, and one of them is a
-qualified yes, so it's worth taking them separately.
+qualified yes, so this section takes them one at a time.
 
-**"Is the model built on top of a GeoJSON structure?"** No. A model is a flat list of
+**"Is the model built on top of a GeoJSON structure?"** No. A model is a list of
 fields, declared one at a time in Python. You can build one and use it without JSON ever
 entering the picture:
 
@@ -402,7 +403,7 @@ my-building-1 12.5
 No GeoJSON was parsed, produced, or consulted. If GeoJSON were the substrate, that
 wouldn't be possible.
 
-**"Is there GeoJSON code inside the Pydantic classes?"** Yes — in exactly one of them.
+**"Is there GeoJSON code inside the Pydantic classes?"** Yes, in exactly one of them.
 Counting mentions across everything `Building` inherits from:
 
 ```
@@ -415,18 +416,18 @@ Stacked              (level     )  0
 Appearance           (_common   )  0
 ```
 
-All of it lives in `Feature`, in one serializer and one validator — the code that reads
+All of it lives in `Feature`, in one serializer and one validator: the code that reads
 GeoJSON in and writes GeoJSON out. Zero mentions in the six classes that actually define
 what a building *is*. GeoJSON is an I/O concern parked at the base of the hierarchy, not a
 structure the schema is built on.
 
 **"Is GeoJSON what's really being validated?"** No. What gets validated is the model. A
-GeoJSON document is one accepted *input shape* — a flat dict is the other, and both end up
+GeoJSON document is one accepted *input shape*. A flat dict is the other, and both end up
 as the same Python object.
 
 An analogy: a word processor's document isn't "wrapped around `.docx`." It has a document
 model, and it can read and write `.docx`. Deleting that import/export code would not
-change what a document is. Same here — delete the ten lines below and Overture models
+change what a document is. Overture models work the same way: delete the ten lines below and Overture models
 still work; they just stop speaking GeoJSON.
 
 
@@ -457,7 +458,7 @@ function move `id`, `bbox`, and `geometry` to the top and sweep the remainder in
 So the layering is:
 
 ```
-            Pydantic model  (flat — the actual schema)
+            Pydantic model  (flat: the actual schema)
                    |
         +----------+----------+
         |                     |
@@ -469,7 +470,7 @@ So the layering is:
 
 GeoJSON is a costume the model puts on for one specific audience. It isn't the body.
 
-**The Pydantic model itself has no envelope.** In Python it's completely flat:
+**The Pydantic model itself has no envelope.** In Python, every field is at the top level:
 
 ```python
 from overture.schema.buildings import Building
@@ -485,18 +486,18 @@ geometry in model_fields : True
 a 'properties' field?    : False
 ```
 
-There is no `properties` field on `Building`, and `id` and `geometry` sit alongside
-`height` and `num_floors` like any other field. The envelope is **not part of the model**.
+There is no `properties` field on `Building`, and `id` and `geometry` are ordinary fields,
+like `height` and `num_floors`. The envelope is **not part of the model**.
 It appears only when serializing to JSON, because that is what GeoJSON requires.
 
 You can watch the same object take both shapes:
 
 ```python
-import json, yaml
+import json
 from overture.schema.buildings import Building
 
 b = Building.model_validate_json(
-    json.dumps(yaml.safe_load(open("examples/buildings/building-polygon.yaml")))
+    open("guides/examples/buildings/empire-state-building.json").read()
 )
 
 print(
@@ -509,11 +510,11 @@ print(
 ```
 
 ```
-python mode: ['class', 'ext_bar', 'ext_foo', 'geometry', 'height', 'id', 'is_underground', 'level']
-json mode  : ['geometry', 'id', 'properties', 'type']
+python mode: ['bbox', 'class', 'geometry', 'has_parts', 'height', 'id', 'is_underground', 'names']
+json mode  : ['bbox', 'geometry', 'id', 'properties', 'type']
 ```
 
-One model, two renderings — and the flat one is the shape of the data you'd actually
+One model, two renderings, and the flat one matches the data you'd actually
 download. Neither is more "real"; the model is what's real, and both are projections of
 it.
 
@@ -527,8 +528,8 @@ The JSON Schema's two `required` arrays are that same list, split across the env
 because that's where those fields land *in that particular output format*. Nobody decided
 `geometry` belongs somewhere different from `theme`; GeoJSON did, in 2016.
 
-This distinction is the single most important thing in this guide, and it returns in force
-in [section 3](SCHEMA_GUIDE.md#3-writing-code-against-the-models) — where using the wrong mode for your
+This distinction matters more than anything else here, and it comes up again in
+[section 3](working-with-features.md), where using the wrong mode for your
 data shape is the most common way to get a confusing `ValidationError`.
 
 ---
@@ -538,7 +539,7 @@ data shape is the most common way to get a confusing `ValidationError`.
 Because the registry has to stay correct when packages it has never heard of register
 their own models.
 
-The **canonical key is the entry-point string** — `overture.schema.buildings:Building`.
+The **canonical key is the entry-point string**, such as `overture.schema.buildings:Building`.
 It includes the module path, so it is globally unique: no two packages can collide.
 
 The **short name is a derived alias**. It is just the class name after the colon,
@@ -552,9 +553,9 @@ entry_point_class_alias("overture.schema.places:Place")  # 'place'
 ```
 
 Short names are *not* guaranteed unique. Anyone can
-[register their own feature types](AUTHORING.md#register-your-own-feature-types), and nothing
+[register their own feature types](writing-models.md#package-and-register-your-models), and nothing
 stops a third party from shipping its own `Place`. So the short name can't be the
-identity — it's a convenience, because
+identity. It's a convenience, because
 `validate_model(df, "overture.schema.buildings:Building")` is miserable to type.
 
 **The nice part is how it degrades.** The alias is offered only while it stays
@@ -570,31 +571,31 @@ resolve_entry_point_key("place", registry)
 # ValueError: Entry-point alias 'place' is ambiguous.
 #             Specify one of: acme.parks:Place, overture.schema.places:Place
 
-resolve_entry_point_key(
-    "acme.parks:Place", registry
-)  # 'acme.parks:Place' — always works
+resolve_entry_point_key("acme.parks:Place", registry)  # 'acme.parks:Place' always works
 ```
 
 Install a package that collides and `place` simply stops being accepted, with an error
-naming both candidates — rather than silently validating against the wrong model. The
+naming both candidates, rather than silently validating against the wrong model. The
 fully-qualified key never stops working.
 
-Two functions expose the two views:
+Use `model_keys()` for the canonical keys, or `model_names()` for every name
+`validate_model` accepts:
 
 | Function | Returns | Use when |
 |---|---|---|
 | `model_keys()` | the 15 canonical entry-point keys | you want the authoritative list |
 | `model_names()` | all 30 accepted names | you want everything `validate_model` will take |
 
+> [!WARNING]
 > **Skipping this step does not produce an error message.** It produces an empty
 > registry. If `validate_model(df, "building")` raises a `KeyError`, or `model_names()`
 > is empty, this is why.
 
 ---
 
-## What makes a field required
+## Required fields
 
-Nobody maintains a list of required fields. **It's derived** — in Pydantic, a field with
+Nobody maintains a list of required fields. **It's derived.** In Pydantic, a field with
 no default is required, and a field with a default is optional:
 
 ```python
@@ -646,24 +647,24 @@ type: TypeT
 version: FeatureVersion
 ```
 
-None carries `= None`, so all four are mandatory. `Building` adds only `geometry`,
+None has `= None`, so all four are mandatory. `Building` adds only `geometry`,
 narrowing the inherited one to the polygon types a building may have.
 
-In the generated JSON Schema those same five get split across the GeoJSON envelope — `id`
-and `geometry` at the top, `theme`, `type`, and `version` inside `properties` — which is
+In the generated JSON Schema those same five get split across the GeoJSON envelope, with `id`
+and `geometry` at the top and `theme`, `type`, and `version` inside `properties`. That's
 why that document appears to have two answers to one question. It doesn't; it has one
-answer written in the shape GeoJSON demands.
+answer written the way GeoJSON requires.
 
 **The human answer:** the Overture Schema Working Group decides, and changes go through
-the process in [CONTRIBUTING.md](CONTRIBUTING.md) — a PR plus a changelog fragment. Making
+the process in [CONTRIBUTING.md](../CONTRIBUTING.md): a PR plus a changelog fragment. Making
 a field required is a breaking change, so it targets the `vnext` branch and waits for a
 major release; making one optional is not, and can go to `main`.
 
 ---
 
-## How tags work
+## Tags
 
-Every feature type carries a handful of **tags**, and `overture-schema list-types` prints
+Every feature type has a handful of **tags**, and `overture-schema list-types` prints
 them after the type name:
 
 ```
@@ -677,117 +678,152 @@ belongs to.
 **Why a tag rather than a field called `theme`?** Because the tooling has to work on
 feature types it has never heard of. A field named `theme` would only mean something to
 code that already knows Overture has themes; the CLI would have to hardcode that. A tag is
-just a label the type declares about itself, and the CLI's job is only to match labels —
+just a label the type declares about itself, and the CLI's job is only to match labels,
 so `--tag overture:theme=buildings` and `--tag acme:product=parks` go through exactly the
 same code path.
 
 The `namespace:key=value` shape exists so that two organizations can both tag their types
 without colliding. Everything Overture defines is namespaced under `overture:`; if you
-register your own feature types, you pick your own namespace and your tags sit alongside
-Overture's rather than competing with them. That is the whole extension mechanism — see
-[Register your own feature types](AUTHORING.md#register-your-own-feature-types).
+register your own feature types, you pick your own namespace and your tags appear alongside
+Overture's rather than competing with them. That's how extension works. See
+[Register your own feature types](writing-models.md#package-and-register-your-models).
 
 The bare tags (`feature`, `overture`) have no namespace because they are not claims about
-a vendor's taxonomy — they are the two facts every Overture feature type shares.
+a vendor's taxonomy. They are the two facts every Overture feature type shares.
 
 ---
 
-## What the example file actually is
+## Sources
 
-The guide validates `examples/buildings/building-polygon.yaml` as its first real command.
-`examples/buildings/building-polygon.yaml` is a file **in the repo you just cloned**. It
-is not data you downloaded. The `examples/` tree is the project's own corpus of
-hand-written sample features, used as test fixtures and pulled into the documentation
-site. This one describes a single building — a parking structure in Washington DC:
+Every Overture feature has a `sources` field: a list of records that say where the
+feature's data came from. Overture assembles features from many datasets, and one feature
+can combine several of them. A place can take most of its fields from one data provider,
+its `confidence` from Overture's own calculation, and its `operating_status` from a
+third source. You read `sources` to find out which is which.
 
-```yaml
-id: overture:buildings:building:1234
-type: Feature                      # ← GeoJSON envelope
-geometry:
-  type: Polygon
-  coordinates: [[ [-77.036873, 38.897804], ... ]]
-properties:
-  ext_foo: I am a customer user property.   # ← custom, non-Overture
-  theme: buildings                 # ← which theme
-  type: building                   # ← which feature type
-  version: 1
-  height: 21.34
-  num_floors: 4
-  subtype: transportation
-  class: parking
-  sources:
-  - property: ""
-    dataset: microsoftMLBuildings
+Each source record names a dataset and, usually, the record in that dataset:
+
+- `dataset` is the dataset's name, such as `OpenStreetMap` or `Uberall`.
+- `record_id` identifies the record in that dataset. Each dataset has its own format.
+  OpenStreetMap IDs start with `w` for a way, `r` for a relation, or `n` for a node, and
+  end with `@` and the version, so `w34633854@78` is version 78 of way 34633854.
+- `update_time` is when the source record last changed.
+- `license` is the source data's license, and `confidence` is the source's own confidence
+  score, when it has one.
+- `provider` and `resource` say who contributed the data and what kind of data it is, and
+  `version` identifies the snapshot of that data Overture used.
+
+When `dataset` is `Overture`, Overture calculated the value itself, so the source has no
+record ID. Places in the current release have a source like this for their `confidence`.
+
+### Which part a source covers
+
+A source's `property` is a [JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901) that
+names the part of the feature the source covers. The empty pointer, `""`, covers the whole
+feature, except any parts that have a source of their own. Any other pointer covers one
+field, such as `/properties/confidence`.
+
+Overture data writes these pointers two ways. Some point into the GeoJSON form of the
+feature, where most fields are under `properties`: places use `/properties/confidence`,
+for example. Others point into the flat form, where every field is at the top level:
+segments use `/routes`. Division sources also use `/properties/geometry`, although
+`geometry` isn't under `properties` in GeoJSON. If you write code that reads `sources`,
+accept both forms.
+
+### Sources along a segment
+
+A segment can come from different source records along its length. Each of its sources
+can have `between`, a pair of numbers from 0 to 1 that gives the stretch of the segment the
+source covers, as a fraction of the segment's length. West 34th Street, in front of the
+Empire State Building, has two sources. One OpenStreetMap way covers `[0.0, 0.124866651]`,
+the first 12.5% of the segment, and another covers `[0.124866651, 1.0]`, the rest.
+
+To print a feature's sources in a readable form, follow
+[Building a command-line tool on the models](building-a-command-line-tool.md).
+
+---
+
+## The example file
+
+The guide validates `guides/examples/buildings/empire-state-building.json` as its first
+real command. It's one of the sample files written for the guides. If you installed from a
+clone, it's already in your checkout. If you installed from PyPI, you downloaded it in
+[Get the sample files](getting-started-with-the-schema.md#get-the-sample-files).
+
+The file is the Empire State Building's record from the `2026-11-18.0` Overture release,
+written out as GeoJSON. The `guides/examples/` folder is separate from the test fixtures in
+`reference/examples/`, so the guides don't change when someone edits a test. Here's the
+file, with the coordinates and the `names` and `sources` details shortened:
+
+```json
+{
+  "type": "Feature",
+  "id": "0e8abfe5-a7f3-4e8e-b6f0-db1fb0bb5b0c",
+  "bbox": [-73.98650360107422, 40.7479248046875, -73.98480987548828, 40.748958587646484],
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[[-73.9864839, 40.7485145], ...]]
+  },
+  "properties": {
+    "theme": "buildings",
+    "type": "building",
+    "version": 6,
+    "subtype": "commercial",
+    "class": "office",
+    "names": { "primary": "Empire State Building", "common": { "en": "Empire State Building", ... } },
+    "height": 443.2,
+    "num_floors": 102,
+    "has_parts": true,
+    "is_underground": false,
+    "sources": [{ "dataset": "OpenStreetMap", "record_id": "w34633854@78", ... }]
+  }
+}
 ```
 
-### See it actually catch something
+`theme` says which theme, and `type` says which feature type. The outer `type` and the
+`type` inside `geometry` belong to GeoJSON; see [Three keys named `type`](#three-keys-named-type).
+
+### Breaking the example
 
 A success message proves the command ran, not that it's checking anything. Copy the file
 and break it:
 
 ```bash
-cp examples/buildings/building-polygon.yaml /tmp/broken.yaml
+cp guides/examples/buildings/empire-state-building.json /tmp/broken.json
 ```
 
-Change `class: parking` to `class: skyscraper`:
+Change `"class": "office"` to `"class": "skyscraper"`:
 
 ```
 class "skyscraper" ← Input should be 'agricultural', 'allotment_house',
                      'apartments', 'barn', 'beach_hut', ...
 ```
 
-Change `height: 21.34` to `height: -5`:
+Change `"height": 443.2` to `"height": -5`:
 
 ```
 height -5 ← Input should be greater than 0
 ```
 
-Change `num_floors: 4` to `num_floors: 4.7`:
+Change `"num_floors": 102` to `"num_floors": 102.5`:
 
 ```
-num_floors 4.7 ← Input should be a valid integer, got a number with a
-                 fractional part
+num_floors 102.5 ← Input should be a valid integer, got a number with a
+                   fractional part
 ```
 
-Enum membership, numeric bounds, integer-ness — each from the model definition, none of
-it written by hand for this file.
+Enum membership, numeric bounds, integer-ness: each comes from the model definition, and
+none of it was written by hand for this file.
 
-> **What it does not catch:** free-form string fields accept any string. The real
-> `building-polygon.yaml` in the repo has a stray trailing comma —
-> `dataset: microsoftMLBuildings,` — which YAML reads as part of the value. It parses to
-> the string `'microsoftMLBuildings,'` and validates clean, because `dataset` has no
-> constraint beyond "is a string." Validation enforces the schema, not your typing.
+> [!NOTE]
+> **What it does not catch:** free-form string fields accept any string. Change
+> `"dataset": "OpenStreetMap"` to `"dataset": "OpenStreetMapp"` and the file still
+> validates, because `dataset` has no constraint beyond "is a string." Validation enforces
+> the schema, not your typing.
 
 ---
 
-## Why examples are YAML
-
-**No — real Overture data is GeoJSON or Parquet.** YAML here is purely an authoring
-convenience for the example files: it allows comments (`# Custom user properties.`) and
-is easier to hand-edit than JSON.
-
-The CLI accepts **JSON, YAML, and GeoJSON**, and YAML is a superset of JSON, so the
-format is irrelevant to the validation. Convert the same file to JSON and you get the
-same result:
-
-```bash
-uv run python -c "
-import json, yaml
-json.dump(yaml.safe_load(open('examples/buildings/building-polygon.yaml')),
-          open('/tmp/same-building.json','w'), indent=2)"
-
-uv run overture-schema validate /tmp/same-building.json
-```
-```
-✓ Successfully validated /tmp/same-building.json
-```
-
-Same bytes of meaning, different serialization, identical outcome. Pick whichever is
-convenient — you'll mostly hand JSON or GeoJSON to this command in real use.
-
----
-
-## Why generated code is gitignored
+## Generated code and git
 
 Not because it's optional, and not because it's for a subset of users. **It's build
 output.** The commit that introduced the package says so directly:
@@ -796,18 +832,18 @@ output.** The commit that introduced the package says so directly:
 > regenerable output of `make generate-pyspark` and are not tracked in git; `make check`
 > and `make test-all` regenerate before running.
 
-Three reasons that's the right call:
+It stays out of git for these reasons:
 
 **One source of truth.** The Pydantic models define the schema; these expressions are a
 derivative of them. Committing the derivative creates a second copy that can silently
-drift — change a constraint, forget to regenerate, and the committed expressions keep
+drift: change a constraint, forget to regenerate, and the committed expressions keep
 enforcing the old rule. Deleting them from git makes that failure impossible.
 
 **Scale.** A full generation is **32 files and roughly 23,000 lines**:
 
 ```
 15 expression modules   (one per feature type)
-17 test modules         (conformance tests, split per union arm)
+17 test modules         (conformance tests, one per model in each union)
 ```
 
 Every schema change would produce a mechanical diff of that size, burying the actual
@@ -819,10 +855,9 @@ from the current models every time, so a committed copy would never be read.
 
 It's the same reasoning that keeps `dist/`, `*.o`, and `node_modules/` out of git.
 
-### "Gitignored" does not mean "not shipped"
+### Generated code in published packages
 
-This is the part worth being clear about, since it sounds like these files are somehow
-optional for users. **They are not.** Published wheels contain them.
+Gitignored can sound like these files are optional for users. **They are not.** Published wheels contain them.
 
 Both publish workflows (`.github/workflows/main-publish.yaml` and
 `release-publish.yaml`) run a package's prebuild script, if it has one, before
@@ -854,8 +889,19 @@ fi
 Every other package simply has no `prebuild.sh`, so the step is a no-op for them.
 
 So the only people who ever run `make generate-pyspark` are people working **from a git
-clone** — because a clone is the one place these files don't already exist. Install from
+clone**, because a clone is the one place these files don't already exist. Install from
 a package index and they arrive with the package, like any other module.
 
-
 ---
+
+## Next steps
+
+On this page, you read the reasons behind the schema's design: its tenets, why it's
+written in Pydantic and split into many packages, why GeoJSON wraps most fields in an
+envelope, how models get two names, what makes a field required, how tags work, what a
+feature's sources record, and why generated code isn't in git.
+
+- To put these ideas to work, follow [the schema guides](README.md).
+- To write models of your own, read [Writing models](writing-models.md).
+- For a short definition of a term, look it up in [Glossary](glossary.md).
+- To ask a question or suggest a change to this page, post in [GitHub Discussions](https://github.com/orgs/OvertureMaps/discussions).

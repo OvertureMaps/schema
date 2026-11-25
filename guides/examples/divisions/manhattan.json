@@ -1,0 +1,121 @@
+{
+  "type": "Feature",
+  "id": "84d8a97e-4624-43a4-9c7f-5c853ac90703",
+  "bbox": [
+    -73.98553466796875,
+    40.75795364379883,
+    -73.98551940917969,
+    40.75796127319336
+  ],
+  "geometry": {
+    "type": "Point",
+    "coordinates": [
+      -73.9855319,
+      40.7579554
+    ]
+  },
+  "properties": {
+    "theme": "divisions",
+    "type": "division",
+    "version": 6,
+    "cartography": {
+      "prominence": 55
+    },
+    "names": {
+      "primary": "Manhattan",
+      "common": {
+        "kaa": "Manhettan",
+        "hr": "Manhattan",
+        "uk": "Мангеттен",
+        "br": "Manhattan",
+        "el": "Μανχάταν",
+        "vi": "Manhattan",
+        "zh-Hans": "曼哈顿",
+        "ko": "맨해튼",
+        "ru": "Манхэттен",
+        "sr-Cyrl": "Менхетн",
+        "en": "Manhattan",
+        "he": "מנהטן",
+        "umu": "Manaháhtaan",
+        "be": "Манхэтэн",
+        "pl": "Manhattan"
+      },
+      "rules": [
+        {
+          "value": "Манхеттен",
+          "variant": "alternate",
+          "language": "uk"
+        },
+        {
+          "value": "Manhattan",
+          "variant": "official"
+        },
+        {
+          "value": "Mã Nhật Tân",
+          "variant": "alternate",
+          "language": "vi"
+        },
+        {
+          "value": "Манхаттан",
+          "variant": "alternate",
+          "language": "ru"
+        }
+      ]
+    },
+    "subtype": "locality",
+    "country": "US",
+    "hierarchies": [
+      [
+        {
+          "division_id": "f39eb4af-5206-481b-b19e-bd784ded3f05",
+          "subtype": "country",
+          "name": "United States"
+        },
+        {
+          "division_id": "af4de2ef-11a7-45a8-a0a1-cfa91a8c6b16",
+          "subtype": "region",
+          "name": "New York"
+        },
+        {
+          "division_id": "a4c73b33-ce85-45ac-99e5-44abe35b6732",
+          "subtype": "locality",
+          "name": "New York"
+        },
+        {
+          "division_id": "84d8a97e-4624-43a4-9c7f-5c853ac90703",
+          "subtype": "locality",
+          "name": "Manhattan"
+        }
+      ]
+    ],
+    "parent_division_id": "a4c73b33-ce85-45ac-99e5-44abe35b6732",
+    "local_type": {
+      "en": "locality"
+    },
+    "region": "US-NY",
+    "population": 1694251,
+    "wikidata": "Q11299",
+    "sources": [
+      {
+        "property": "",
+        "dataset": "OpenStreetMap",
+        "license": "ODbL-1.0",
+        "record_id": "r8398124@51",
+        "update_time": "2026-11-02T02:46:22Z",
+        "provider": "osm",
+        "resource": "planet",
+        "version": "2026-11-09T00:00:00Z"
+      },
+      {
+        "property": "/properties/geometry",
+        "dataset": "OpenStreetMap",
+        "license": "ODbL-1.0",
+        "record_id": "n357644127@48",
+        "update_time": "2026-01-30T14:56:20Z",
+        "provider": "osm",
+        "resource": "planet",
+        "version": "2026-11-09T00:00:00Z"
+      }
+    ]
+  }
+}

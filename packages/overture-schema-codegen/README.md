@@ -1,6 +1,7 @@
 # Overture Schema Codegen
 
-Generates documentation from Overture Maps Pydantic schema definitions.
+Generates documentation and PySpark validation expressions from Overture Maps Pydantic
+schema definitions.
 
 Pydantic's `model_json_schema()` flattens the schema's domain vocabulary into JSON
 Schema primitives. NewType names disappear, constraint provenance is lost (which NewType
@@ -14,6 +15,17 @@ wrappers, union filtering, generic resolution -- is complex. The codegen does it
 target-independent representation. Extractors build specs from `FieldShape`. Renderers
 consume specs without touching the type system. New output targets (Arrow schemas,
 PySpark expressions) add renderers, not extraction logic.
+
+## Installation
+
+```bash
+pip install overture-schema-codegen
+```
+
+The generator works on whatever models are installed, and this package installs none.
+Install it alongside the theme packages you want to document, or alongside the
+`overture-schema` metapackage for all of them. With no themes installed,
+`overture-codegen list` prints nothing.
 
 ## Usage
 
@@ -91,11 +103,11 @@ assert nullable is False
 
 `FieldShape` is a tree, not a flat record: `NewTypeShape`, `ArrayOf`, and `MapOf`
 wrap an inner shape, and the three terminals (`Primitive`, `LiteralScalar`,
-`AnyScalar`) sit at the leaves. Nesting order is meaningful --
+`AnyScalar`) are the leaves. Nesting order is meaningful --
 `NewTypeShape(inner=ArrayOf(...))` is a NewType over `list[X]`, while
 `ArrayOf(element=NewTypeShape(...))` is a list of NewType-wrapped values.
 
-Constraints attach to the layer they target and carry the NewType that
+Constraints attach to the layer they target and record the NewType that
 contributed them:
 
 ```python
@@ -134,7 +146,7 @@ the theme's `pyproject.toml`.
 
 ## Further reading
 
-- [Design document](docs/design.md) -- architecture, extension points, data flow
+- [Design document](https://github.com/OvertureMaps/schema/blob/main/packages/overture-schema-codegen/docs/design.md) -- architecture, extension points, data flow
   diagrams
-- [Walkthrough](docs/walkthrough.md) -- module-by-module narrative tracing Segment
+- [Walkthrough](https://github.com/OvertureMaps/schema/blob/main/packages/overture-schema-codegen/docs/walkthrough.md) -- module-by-module narrative tracing Segment
   through the full pipeline

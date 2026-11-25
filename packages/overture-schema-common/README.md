@@ -23,7 +23,7 @@ class Park(OvertureFeature[Literal["places"], Literal["park"]]):
 
 ## Scoping
 
-Many Overture values only apply under specific conditions -- a speed limit that holds during rush hour, along a sub-segment, in the forward direction. The `@scoped` decorator adds conditional fields to any Pydantic model:
+Many Overture values only apply under specific conditions -- a speed limit that applies during rush hour, along a sub-segment, in the forward direction. The `@scoped` decorator adds conditional fields to any Pydantic model:
 
 ```python
 from pydantic import BaseModel

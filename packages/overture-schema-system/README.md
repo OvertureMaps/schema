@@ -62,7 +62,7 @@ Types: `Geometry`, `BBox`, `GeometryType`, `GeometryTypeConstraint`.
 
 ## String Types
 
-Validated string types that carry their constraints into generated JSON Schemas and downstream code generation. Using `CountryCodeAlpha2` instead of `str` means Pydantic rejects `"USA"` at validation time, JSON Schema gets the right pattern, and codegen tools produce typed output:
+Validated string types whose constraints pass through to generated JSON Schemas and downstream code generation. Using `CountryCodeAlpha2` instead of `str` means Pydantic rejects `"USA"` at validation time, JSON Schema gets the right pattern, and codegen tools produce typed output:
 
 ```python
 from overture.schema.system.string import CountryCodeAlpha2, LanguageTag
@@ -113,14 +113,14 @@ class Contact(BaseModel):
 - `@require_any_of("a", "b", ...)` -- at least one field must be non-None
 - `@require_any_true(cond1, cond2, ...)` -- at least one condition must evaluate to true
 - `@radio_group("a", "b", ...)` -- at most one field may be truthy
-- `@require_if("target", condition)` -- field required when condition holds
-- `@forbid_if("target", condition)` -- field forbidden when condition holds
+- `@require_if("target", condition)` -- field required when the condition is true
+- `@forbid_if("target", condition)` -- field forbidden when the condition is true
 - `@min_fields_set(n, "a", "b", ...)` -- at least *n* fields must be set
 - `@no_extra_fields` -- reject unrecognized fields (equivalent to `model_config = ConfigDict(extra="forbid")`)
 
 ## References
 
-Foreign-key-style annotations that describe relationships between models. These carry no runtime enforcement but provide metadata for code generation and documentation tools:
+Foreign-key-style annotations that describe relationships between models. These have no runtime enforcement but provide metadata for code generation and documentation tools:
 
 ```python
 from typing import Annotated
@@ -147,7 +147,7 @@ building_part = "overture.schema.buildings:BuildingPart"
 
 `discover_models()` walks the group, loads each entry point, and returns a dict keyed by `ModelKey`. Consumers iterate over the result without knowing which package owns any given model -- the CLI and codegen tools both run discovery to assemble their working set.
 
-A `ModelKey` carries the entry point `name`, its `entry_point` value (`"module:Class"`), and a `frozenset[str]` of tags. [Tagging](#tagging) is how those tags get attached.
+A `ModelKey` has the entry point `name`, its `entry_point` value (`"module:Class"`), and a `frozenset[str]` of tags. [Tagging](#tagging) is how those tags get attached.
 
 ## Tagging
 
@@ -246,7 +246,7 @@ An empty selector returns the input unchanged.
 ## Also Included
 
 - **Optionality** -- `Omitable[T]` models JSON Schema's "may be absent but not null" semantics, which Pydantic's `T | None` conflates with nullable.
-- **DocumentedEnum** -- base class for enumerations whose members carry their own docstrings, enabling code generation tools to produce documented output.
+- **DocumentedEnum** -- base class for enumerations whose members have their own docstrings, enabling code generation tools to produce documented output.
 - **Metadata** -- internal key-value store used by model constraints to attach data to classes.
 - **JSON Schema** -- schema generator that treats `T | None = None` as "omit when unset" rather than Pydantic's default "nullable with null default." Also handles unions of models.
 
