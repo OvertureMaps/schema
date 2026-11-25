@@ -299,6 +299,11 @@ def _expandable_list_suffix(field_spec: FieldSpec) -> str:
     return "[]" * depth if depth > 0 else ""
 
 
+def _extension_tag(field_spec: FieldSpec) -> str:
+    """Return an italic ` *(extension)*` tag for extension-contributed fields, else ""."""
+    return " *(extension)*" if field_spec.is_extension else ""
+
+
 def _expand_sub_model(
     field_spec: FieldSpec,
     name: str,
@@ -348,7 +353,13 @@ def _expand_model_fields(
     for field_spec in fields:
         row = _field_template_context(field_spec, ctx)
         name = f"{prefix}{field_spec.name}" if prefix else field_spec.name
-        row["name"] = f"{name}{_expandable_list_suffix(field_spec)}"
+        display_name = f"{name}{_expandable_list_suffix(field_spec)}"
+        tag = _extension_tag(field_spec)
+        if tag:
+            row["name"] = f"`{display_name}`{tag}"
+            row["pre_formatted"] = True
+        else:
+            row["name"] = display_name
         _annotate_default(row, field_spec)
         if not prefix:
             _annotate_field_constraints(row, field_spec, ctx)
@@ -389,10 +400,10 @@ def _short_variant_name(class_name: str, union_name: str) -> str:
     return class_name
 
 
-def _variant_tag(annotated: AnnotatedField, union_name: str) -> str | None:
-    """Return an italic variant tag like `*(Road, Water)*`, or None for shared fields."""
+def _variant_tag(annotated: AnnotatedField, union_name: str) -> str:
+    """Return an italic variant tag like `*(Road, Water)*`, or "" for shared fields."""
     if annotated.variant_sources is None:
-        return None
+        return ""
     short_names = [
         _short_variant_name(v.__name__, union_name) for v in annotated.variant_sources
     ]
@@ -412,21 +423,21 @@ def _expand_union_fields(
     result: list[_FieldRow] = []
     for annotated in spec.annotated_fields:
         field_spec = annotated.field_spec
-        row = _field_template_context(field_spec, ctx)
         name = field_spec.name
-        suffix = _expandable_list_suffix(field_spec)
+        display_name = f"{name}{_expandable_list_suffix(field_spec)}"
+        row = _field_template_context(field_spec, ctx)
 
         _annotate_default(row, field_spec)
         _annotate_field_constraints(row, field_spec, ctx)
-        if constraint_notes and field_spec.name in constraint_notes:
-            _annotate_notes(row, constraint_notes[field_spec.name])
+        if constraint_notes and name in constraint_notes:
+            _annotate_notes(row, constraint_notes[name])
 
-        tag = _variant_tag(annotated, spec.name)
-        if tag is not None:
-            row["name"] = f"`{name}{suffix}`{tag}"
+        tags = _variant_tag(annotated, spec.name) + _extension_tag(field_spec)
+        if tags:
+            row["name"] = f"`{display_name}`{tags}"
             row["pre_formatted"] = True
         else:
-            row["name"] = f"{name}{suffix}"
+            row["name"] = display_name
 
         result.append(row)
         _expand_sub_model(field_spec, name, ctx, result)

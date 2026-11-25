@@ -10,6 +10,7 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 from typing_extensions import TypeForm
 
+from overture.schema.system.extension import applied_extensions
 from overture.schema.system.model_constraint import ModelConstraint
 
 from .docstring import clean_docstring
@@ -210,6 +211,7 @@ def _extract_model_recursive(
     descendant_ancestors = ancestors | {model_class}
 
     model_resolver, union_resolver = _make_resolvers(cache, descendant_ancestors)
+    extensions = applied_extensions(model_class)
 
     fields: list[FieldSpec] = []
     for field_name in _field_order(model_class):
@@ -238,6 +240,7 @@ def _extract_model_recursive(
                 is_required=_is_field_required(field_info, is_optional),
                 is_optional=is_optional,
                 default=_field_default(field_info),
+                is_extension=field_name in extensions,
             )
         )
 
