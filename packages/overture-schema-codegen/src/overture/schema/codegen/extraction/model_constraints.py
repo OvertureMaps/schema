@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from overture.schema.system import plain_value
 from overture.schema.system.model_constraint import (
     FieldEqCondition,
     ForbidIfConstraint,
@@ -21,8 +22,6 @@ from overture.schema.system.model_constraint import (
     RequireAnyTrueConstraint,
     RequireIfConstraint,
 )
-
-from .plain_value import plain_value
 
 __all__ = ["analyze_model_constraints"]
 

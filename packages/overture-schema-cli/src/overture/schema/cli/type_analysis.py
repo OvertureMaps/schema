@@ -2,12 +2,14 @@
 
 import inspect
 from dataclasses import dataclass
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, Literal, get_args, get_origin
 from typing import Annotated as AnnotatedType
 
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 from pydantic.fields import FieldInfo
 
+from overture.schema.system import plain_value
 from overture.schema.system.feature import resolve_discriminator_field_name
 
 from .types import ErrorLocation, ValidationErrorDict
@@ -26,12 +28,75 @@ class UnionMetadata:
 
     is_discriminated: bool
     discriminator_field: str | None
-    # Map discriminator values to their corresponding model types
+    # Map discriminator values to their corresponding model types, across this union
+    # and every union nested in it. Nested unions can share a value ("water" is both a
+    # base type and a segment subtype); for those, resolve_discriminator is the lookup.
     discriminator_to_model: dict[str, type[BaseModel]]
     # Map model class names to their types (for non-discriminated unions)
     model_name_to_model: dict[str, type[BaseModel]]
-    # Nested union metadata for union members that are themselves unions
+    # Metadata for union members that are themselves unions, keyed by the marker
+    # Pydantic puts in an error location for that member (e.g. "tagged-union[...]")
     nested_unions: dict[str, "UnionMetadata"]
+
+    def resolve_discriminator(
+        self, union_marker: str | None, value: str
+    ) -> type[BaseModel] | None:
+        """Return the model that *value* selects in the union *union_marker* names.
+
+        Parameters
+        ----------
+        union_marker : str | None
+            The union marker preceding *value* in an error location, if any
+        value : str
+            A discriminator value from the same error location
+
+        Returns
+        -------
+        type[BaseModel] | None
+            The model, or None if *value* selects none
+        """
+        nested = self.nested_unions.get(union_marker) if union_marker else None
+        if nested is not None:
+            return nested.discriminator_to_model.get(value)
+        return self.discriminator_to_model.get(value)
+
+    def discriminator_field_for(self, union_marker: str | None) -> str | None:
+        """Return the field that the union *union_marker* names discriminates on.
+
+        Parameters
+        ----------
+        union_marker : str | None
+            A union marker from an error location, if any
+
+        Returns
+        -------
+        str | None
+            The discriminator field, or None if that union has none
+        """
+        nested = self.nested_unions.get(union_marker) if union_marker else None
+        return (nested or self).discriminator_field
+
+    @cached_property
+    def tag_values(self) -> dict[str, set[str]]:
+        """Map each field a reachable model fixes to a `Literal` to the values taken.
+
+        A field typed otherwise (an enum, a `str`) names no tag, even where it
+        discriminates a union.
+        """
+        values: dict[str, set[str]] = {}
+        for model in self.models():
+            for field_name in model.model_fields:
+                value = _extract_literal_value(model, field_name)
+                if value is not None:
+                    values.setdefault(field_name, set()).add(value)
+        return values
+
+    def models(self) -> tuple[type[BaseModel], ...]:
+        """Return every model reachable through a discriminator, without duplicates."""
+        found = dict.fromkeys(self.discriminator_to_model.values())
+        for nested in self.nested_unions.values():
+            found.update(dict.fromkeys(nested.models()))
+        return tuple(found)
 
 
 def _extract_literal_value(model: type[BaseModel], field_name: str) -> str | None:
@@ -41,7 +106,7 @@ def _extract_literal_value(model: type[BaseModel], field_name: str) -> str | Non
         return None
     if get_origin(field_info.annotation) is Literal:
         args = get_args(field_info.annotation)
-        return str(args[0]) if args else None
+        return str(plain_value(args[0])) if args else None
     return None
 
 
@@ -84,7 +149,7 @@ def _process_union_member(
         if has_discriminator or get_origin(member_args[0]) is not None:
             # Nested union (with or without discriminator)
             nested_metadata = introspect_union(member)
-            nested_unions[str(member)] = nested_metadata
+            nested_unions[TypeAdapter(member).validator.title] = nested_metadata
             discriminator_to_model.update(nested_metadata.discriminator_to_model)
             # The nested union's discriminator_to_model uses the nested discriminator
             # field (e.g. "subtype"). Re-extract using the parent discriminator field
@@ -382,29 +447,58 @@ def infer_model_from_error(
     type[BaseModel] | None
         The inferred model type, or None if it cannot be determined
     """
-    loc = error["loc"]
+    models = models_in_path(error["loc"], metadata, structural_cache)
+    return models[-1] if models else None
+
+
+def models_in_path(
+    loc: ErrorLocation,
+    metadata: UnionMetadata,
+    structural_cache: dict[ErrorLocation, StructuralTuple] | None = None,
+) -> list[type[BaseModel]]:
+    """List the models an error location selects, outermost first.
+
+    Each discriminator value is resolved in the union named by the nearest union
+    marker before it, so a value that two nested unions share resolves to the model
+    of the union the error came from.
+
+    Parameters
+    ----------
+    loc : ErrorLocation
+        The location tuple from a Pydantic validation error
+    metadata : UnionMetadata
+        Pre-computed UnionMetadata from introspect_union()
+    structural_cache : dict[ErrorLocation, StructuralTuple] | None
+        Optional cache for structural tuple computation
+
+    Returns
+    -------
+    list[type[BaseModel]]
+        The models named by discriminator values and model names in *loc*
+    """
     try:
         structural = get_or_create_structural_tuple(loc, metadata, structural_cache)
-
-        # Look for discriminator value or model name in the location path
-        # Use the LAST one found (most specific) rather than the first
-        inferred_model = None
-        for element, struct_type in zip(loc, structural, strict=False):
-            if struct_type == "discriminator" and isinstance(element, str):
-                model = metadata.discriminator_to_model.get(element)
-                if model is not None:
-                    inferred_model = model
-            elif struct_type == "model" and isinstance(element, str):
-                model = metadata.model_name_to_model.get(element)
-                if model is not None:
-                    inferred_model = model
-
-        return inferred_model
     except (KeyError, TypeError, IndexError):
         # Structural analysis can fail for unexpected error path formats
-        pass
+        return []
 
-    return None
+    models = []
+    union_marker = None
+    for element, struct_type in zip(loc, structural, strict=False):
+        if not isinstance(element, str):
+            continue
+        if struct_type == "union":
+            union_marker = element
+            continue
+        if struct_type == "discriminator":
+            model = metadata.resolve_discriminator(union_marker, element)
+        elif struct_type == "model":
+            model = metadata.model_name_to_model.get(element)
+        else:
+            continue
+        if model is not None:
+            models.append(model)
+    return models
 
 
 def extract_discriminator_path(

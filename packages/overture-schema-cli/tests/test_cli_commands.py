@@ -544,3 +544,141 @@ def test_list_types_wires_tag_combinator_flag(
     """list-types wires --filter/--exclude through to the tag selector."""
     result = cli_runner.invoke(cli, ["list-types", "--tag", "feature", flag, value])
     assert result.exit_code == 0
+
+
+class TestSegmentErrors:
+    """A segment's errors come from the `subtype` union nested in the feature union."""
+
+    @pytest.mark.parametrize(
+        "properties",
+        [
+            pytest.param({"class": "sidewalk"}, id="one_error"),
+            pytest.param(
+                {"class": "sidewalk", "speed_limits": "fast"}, id="two_errors"
+            ),
+        ],
+    )
+    def test_reports_the_road_segment_errors(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO, properties: dict
+    ) -> None:
+        segment = build_feature(
+            theme="transportation",
+            type="segment",
+            geometry_type="LineString",
+            subtype="road",
+            connectors=[{"connector_id": "a", "at": 0}, {"connector_id": "b", "at": 1}],
+            **properties,
+        )
+        result = cli_runner.invoke(cli, ["validate", "-"], input=json.dumps(segment))
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        assert "Input should be 'motorway'" in stderr_output
+        # The feature union's complaint that it has no "segment" type is noise.
+        assert "Input tag 'segment'" not in stderr_output
+        assert "Ambiguous" not in stderr_output
+        # The subtype value is a discriminator, not a missing field.
+        assert not re.search(r"\broad\s+<missing>", stderr_output)
+
+    @pytest.mark.parametrize(
+        "properties",
+        [
+            pytest.param({}, id="only_the_tag_error"),
+            pytest.param({"class": "sidewalk"}, id="with_a_field_error"),
+        ],
+    )
+    def test_reports_a_tag_error_inside_the_road_segment(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO, properties: dict
+    ) -> None:
+        """A bad tag in a union inside the segment is an error, not sibling noise."""
+        bad_vehicle = {
+            "dimension": "axle_cnt",
+            "comparison": "greater_than_equal",
+            "value": 5,
+        }
+        segment = build_feature(
+            theme="transportation",
+            type="segment",
+            geometry_type="LineString",
+            subtype="road",
+            connectors=[{"connector_id": "a", "at": 0}, {"connector_id": "b", "at": 1}],
+            access_restrictions=[
+                {
+                    "access_type": "denied",
+                    "when": {"mode": ["hgv"], "vehicle": [bad_vehicle]},
+                }
+            ],
+            **{"class": "motorway", **properties},
+        )
+        result = cli_runner.invoke(cli, ["validate", "-"], input=json.dumps(segment))
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        # The message wraps beside the value column, so match its tag alone.
+        assert "'axle_cnt'" in stderr_output
+        assert "Input tag 'segment'" not in stderr_output
+        assert "Ambiguous" not in stderr_output
+        if properties:
+            assert re.search(r'"sidewalk"\s+← Input should be', stderr_output)
+
+
+class TestFeatureTagErrors:
+    """A tag error names the feature's own `type` or `subtype` only when it is wrong."""
+
+    def test_reports_a_misspelled_type(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO
+    ) -> None:
+        # "water" is a segment subtype, so the segment union selects its water
+        # segment, which rejects the feature's `theme` as well as its `type`.
+        water = build_feature(
+            theme="base",
+            type="watr",
+            geometry_type="LineString",
+            subtype="water",
+        )
+        water["properties"]["class"] = "lake"
+        result = cli_runner.invoke(cli, ["validate", "-"], input=json.dumps(water))
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        assert "Input tag 'watr'" in stderr_output
+        assert "Input should be 'segment'" not in stderr_output
+
+    def test_reports_a_misspelled_segment_type_once(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO
+    ) -> None:
+        # The road segment rejects only the `type`, the field the feature union
+        # reads, and names the value it expects.
+        segment = build_feature(
+            theme="transportation",
+            type="segmnt",
+            geometry_type="LineString",
+            subtype="road",
+            connectors=[{"connector_id": "a", "at": 0}, {"connector_id": "b", "at": 1}],
+        )
+        segment["properties"]["class"] = "residential"
+        result = cli_runner.invoke(cli, ["validate", "-"], input=json.dumps(segment))
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        assert re.search(r'"segmnt"\s+← Input should be .segment.', stderr_output)
+        assert "Input tag 'segmnt'" not in stderr_output
+        assert "Ambiguous" not in stderr_output
+
+    def test_reports_a_missing_subtype(
+        self, cli_runner: CliRunner, stderr_buffer: StringIO
+    ) -> None:
+        segment = build_feature(
+            theme="transportation",
+            type="segment",
+            geometry_type="LineString",
+            connectors=[{"connector_id": "a", "at": 0}, {"connector_id": "b", "at": 1}],
+        )
+        result = cli_runner.invoke(cli, ["validate", "-"], input=json.dumps(segment))
+        assert result.exit_code == 1
+
+        stderr_output = stderr_buffer.getvalue()
+        # The segment union cannot read the missing subtype; the feature union's
+        # complaint that it has no "segment" type is noise.
+        assert "Unable to extract tag" in stderr_output
+        assert "Input tag 'segment'" not in stderr_output

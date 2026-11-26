@@ -6,6 +6,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from overture.schema.system import plain_value
 from overture.schema.system.field_path import (
     ArraySegment,
     Direct,
@@ -16,7 +17,6 @@ from overture.schema.system.field_path import (
 )
 from overture.schema.system.geometric import GeometryType
 
-from ..extraction.plain_value import plain_value
 from ._render_common import (
     FieldCheckRow,
     ModelCheckRow,

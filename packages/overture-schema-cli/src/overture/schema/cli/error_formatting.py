@@ -1,5 +1,7 @@
 """Error formatting and grouping for validation errors."""
 
+from collections import defaultdict
+from collections.abc import Iterable
 from typing import Any
 
 from pydantic import BaseModel
@@ -17,6 +19,7 @@ from .type_analysis import (
     get_item_index,
     get_or_create_structural_tuple,
     infer_model_from_error,
+    models_in_path,
 )
 from .types import ErrorLocation, ValidationErrorDict
 
@@ -26,12 +29,12 @@ def group_errors_by_discriminator(
     metadata: UnionMetadata,
     structural_cache: dict[ErrorLocation, StructuralTuple] | None = None,
 ) -> dict[ErrorLocation, list[ValidationErrorDict]]:
-    """Group validation errors by their discriminator path.
+    """Group validation errors by the model variant they belong to.
 
-    Errors are grouped by which model variant they're associated with, as indicated
-    by their discriminator path. This allows the CLI to show only errors for the most
-    likely intended type, rather than overwhelming the user with errors from all
-    possible union variants.
+    Errors are grouped by which model variant they're associated with: the names of
+    the models their location selects, or their discriminator path when it selects
+    none. This allows the CLI to show only errors for the most likely intended type,
+    rather than overwhelming the user with errors from all possible union variants.
 
     Parameters
     ----------
@@ -45,7 +48,7 @@ def group_errors_by_discriminator(
     Returns
     -------
     dict[ErrorLocation, list[ValidationErrorDict]]
-        Dictionary mapping discriminator paths to lists of errors
+        Dictionary mapping group keys to lists of errors
 
     Examples
     --------
@@ -66,8 +69,8 @@ def group_errors_by_discriminator(
         >>> metadata = introspect_union(BuildingUnion)
         >>> groups = group_errors_by_discriminator(errors, metadata)
         >>> list(groups.keys())
-        [('building',)]
-        >>> len(groups[('building',)])
+        [('Building',)]
+        >>> len(groups[('Building',)])
         3
 
         >>> # Errors from ambiguous data matching multiple types
@@ -78,9 +81,9 @@ def group_errors_by_discriminator(
         >>> groups = group_errors_by_discriminator(errors, metadata)
         >>> len(groups)  # Two groups - one for each potential type
         2
-        >>> ('building',) in groups
+        >>> ('Building',) in groups
         True
-        >>> ('building_part',) in groups
+        >>> ('BuildingPart',) in groups
         True
     """
     groups: dict[ErrorLocation, list[ValidationErrorDict]] = {}
@@ -89,13 +92,13 @@ def group_errors_by_discriminator(
         loc = error["loc"]
         try:
             structural = get_or_create_structural_tuple(loc, metadata, structural_cache)
-            disc_path = extract_discriminator_path(loc, structural)
-            if disc_path not in groups:
-                groups[disc_path] = []
-            groups[disc_path].append(error)
+            group_key = _group_key(loc, structural, metadata, structural_cache)
+            if group_key not in groups:
+                groups[group_key] = []
+            groups[group_key].append(error)
         except (KeyError, TypeError, IndexError):
             # Structural analysis can fail for unexpected error path formats
-            # (e.g., new Pydantic union markers). Group under empty path as fallback.
+            # (e.g., new Pydantic union markers). Group under the empty key as fallback.
             if () not in groups:
                 groups[()] = []
             groups[()].append(error)
@@ -103,89 +106,161 @@ def group_errors_by_discriminator(
     return groups
 
 
-def analyze_collection_heterogeneity(
-    errors: list[ValidationErrorDict],
+def _group_key(
+    loc: ErrorLocation,
+    structural: StructuralTuple,
     metadata: UnionMetadata,
+    structural_cache: dict[ErrorLocation, StructuralTuple] | None,
+) -> ErrorLocation:
+    # Two nested unions can share a discriminator value ("water" is a base type and a
+    # segment subtype), so the value alone would put both types' errors in one group.
+    # Name the models the value resolves to instead.
+    models = models_in_path(loc, metadata, structural_cache)
+    if models:
+        return tuple(model.__name__ for model in models)
+    return extract_discriminator_path(loc, structural)
+
+
+# How much an error says about its item, lowest first: a sibling union's tag error
+# that `_is_redundant_tag_error` finds redundant, a missing tag, any other error.
+_REDUNDANT_TAG_RANK = 0
+_MISSING_TAG_RANK = 1
+_ERROR_RANK = 2
+
+
+def _branch_rejections(
+    error_groups: dict[ErrorLocation, list[ValidationErrorDict]],
+    metadata: UnionMetadata | None,
     structural_cache: dict[ErrorLocation, StructuralTuple] | None = None,
-) -> tuple[dict[int, type[BaseModel] | None], bool]:
-    """Analyze a collection to detect type heterogeneity.
+) -> dict[int | None, dict[ErrorLocation, set[str]]]:
+    """Map each item's branches to the tag fields each rejected the item on.
+
+    A branch rejects an item's tag with a `literal_error` on one of the branch's
+    own tag fields (`theme`, `type`, a segment's `subtype`), not on a nested
+    field of the same name. A branch that rejected none accepted the item as its
+    type, and only its other fields are wrong.
 
     Parameters
     ----------
-    errors : list[ValidationErrorDict]
-        List of Pydantic validation error dicts
-    metadata : UnionMetadata
-        Pre-computed UnionMetadata from introspect_union()
+    error_groups : dict[ErrorLocation, list[ValidationErrorDict]]
+        Mapping of group keys to their error lists
+    metadata : UnionMetadata | None
+        The union the items were validated against, which names the tag fields
     structural_cache : dict[ErrorLocation, StructuralTuple] | None
         Optional cache for structural tuple computation
 
     Returns
     -------
-    tuple[dict[int, type[BaseModel] | None], bool]
-        Tuple of (item_types, is_heterogeneous) where:
-        - item_types: Dict mapping item index to inferred model type
-        - is_heterogeneous: True if collection contains multiple model types
+    dict[int | None, dict[ErrorLocation, set[str]]]
+        For each item, the rejected tag fields of each branch that has errors
     """
-    # Group errors by item index
-    item_errors: dict[int | None, list[ValidationErrorDict]] = {}
-    for error in errors:
-        item_idx = get_item_index(error["loc"])
-        if item_idx not in item_errors:
-            item_errors[item_idx] = []
-        item_errors[item_idx].append(error)
+    rejections: dict[int | None, dict[ErrorLocation, set[str]]] = defaultdict(dict)
+    for group_key, errors in error_groups.items():
+        for error in errors:
+            loc = error["loc"]
+            rejected = rejections[get_item_index(loc)].setdefault(group_key, set())
+            if metadata is not None and _rejects_branch_tag(
+                error, metadata, structural_cache
+            ):
+                rejected.add(str(loc[-1]))
+    return rejections
 
-    # Infer the most likely type for each item
-    # Use heuristic: type with FEWEST errors is most likely correct
-    item_types: dict[int, type[BaseModel] | None] = {}
-    for item_idx, item_error_list in item_errors.items():
-        if item_idx is None:
-            continue
 
-        # Group this item's errors by inferred type
-        errors_by_type: dict[type[BaseModel], list[ValidationErrorDict]] = {}
-        for error in item_error_list:
-            inferred_type = infer_model_from_error(error, metadata, structural_cache)
-            if inferred_type is not None:
-                if inferred_type not in errors_by_type:
-                    errors_by_type[inferred_type] = []
-                errors_by_type[inferred_type].append(error)
+def _rejects_branch_tag(
+    error: ValidationErrorDict,
+    metadata: UnionMetadata,
+    structural_cache: dict[ErrorLocation, StructuralTuple] | None,
+) -> bool:
+    """Whether *error* rejects the item's value for a top-level tag field of a branch."""
+    loc = error["loc"]
+    if error.get("type") != "literal_error" or loc[-1] not in metadata.tag_values:
+        return False
+    structural = get_or_create_structural_tuple(loc, metadata, structural_cache)
+    return len(structural) >= 2 and structural[-2] in (
+        "model",
+        "discriminator",
+        "union",
+    )
 
-        if errors_by_type:
-            # Select the type with the FEWEST errors (smallest edit distance)
-            item_types[item_idx] = min(
-                errors_by_type.keys(), key=lambda t: len(errors_by_type[t])
-            )
-        else:
-            item_types[item_idx] = None
 
-    # Check if the collection is heterogeneous
-    unique_types = {t for t in item_types.values() if t is not None}
-    is_heterogeneous = len(unique_types) > 1
+def _is_redundant_tag_error(
+    error: ValidationErrorDict,
+    item_rejections: Iterable[set[str]],
+    metadata: UnionMetadata | None,
+) -> bool:
+    """Whether a sibling union's `union_tag_invalid` adds nothing to the item's errors.
 
-    return item_types, is_heterogeneous
+    It adds nothing when some model takes the rejected tag in the union's field, or
+    when a branch rejected none of the item's tags but that field: the branch then
+    accepted the item, or names the value it expects there (`type` "segmnt" on a
+    road segment). A branch that also rejects another tag (a water segment rejecting
+    a base water's `theme`) is not the item's type, and the tag error states the
+    mistake. Without *metadata* the union's field and the tags models take are
+    unknown, so only a branch that rejected nothing makes the error redundant.
+
+    Parameters
+    ----------
+    error : ValidationErrorDict
+        A `union_tag_invalid` error from a sibling union
+    item_rejections : Iterable[set[str]]
+        The tag fields each branch rejected the item on
+    metadata : UnionMetadata | None
+        The union the item was validated against
+
+    Returns
+    -------
+    bool
+        True if the error is redundant
+    """
+    field = None
+    known_tags: set[str] = set()
+    if metadata is not None:
+        loc = error["loc"]
+        union_marker = loc[-1] if loc and isinstance(loc[-1], str) else None
+        field = metadata.discriminator_field_for(union_marker)
+        known_tags = metadata.tag_values.get(field, set()) if field else set()
+    if error.get("ctx", {}).get("tag") in known_tags:
+        return True
+    return any(rejected <= {field} for rejected in item_rejections)
 
 
 def _suppress_sibling_tag_noise(
     error_groups: dict[ErrorLocation, list[ValidationErrorDict]],
+    metadata: UnionMetadata | None = None,
+    structural_cache: dict[ErrorLocation, StructuralTuple] | None = None,
 ) -> dict[ErrorLocation, list[ValidationErrorDict]]:
-    """Drop `union_tag_not_found` noise for items that already matched a type.
+    """Drop discriminator noise from sibling branches for items that matched a type.
 
     When validating against a union that mixes a tagged-union with other
     (also discriminated) members, an item that cleanly matches one branch still
-    produces a `union_tag_not_found` error from every *sibling* branch whose
-    discriminator it fails to satisfy. Those errors carry an empty discriminator
-    path `()`, forming a spurious group that can tie with the real match and
-    trigger a false "Ambiguous" warning.
+    produces a tag error from every *sibling* branch whose discriminator it fails
+    to satisfy: `union_tag_not_found` when the item lacks the sibling's
+    discriminator field, `union_tag_invalid` when it has the field with a value
+    the sibling does not know (a segment's `type` is "segment", which the union
+    discriminated on `type` does not list). Those errors carry an empty group
+    key `()`, forming a spurious group that can tie with the real match and
+    trigger a false "Ambiguous" warning, or, having fewer errors, hide the real
+    match entirely.
 
-    This helper removes such noise for any list item that already has a concrete
-    (non-`union_tag_not_found`) error. Items whose *only* errors are
-    `union_tag_not_found` are left untouched, so genuinely undiscriminatable
-    input is still reported. Groups left empty after filtering are dropped.
+    Only a tag error in the `()` group is sibling noise. One under a group key
+    comes from a union inside the branch the item matched (a road segment's
+    `vehicle` selector with an unknown `dimension`) and counts as any other
+    error. So does a `union_tag_invalid` that is not redundant (see
+    `_is_redundant_tag_error`): the item's own `type` or `subtype` is wrong, and
+    the tag error names the mistake. This helper keeps, for each list item, only its
+    errors of the highest rank: any other error, then `union_tag_not_found`, then
+    a redundant `union_tag_invalid`. Groups left empty after filtering are
+    dropped.
 
     Parameters
     ----------
     error_groups : dict[ErrorLocation, list[ValidationErrorDict]]
-        Mapping of discriminator paths to their error lists.
+        Mapping of group keys to their error lists.
+    metadata : UnionMetadata | None
+        The union the items were validated against, which names the tag fields
+        and the tags its models take.
+    structural_cache : dict[ErrorLocation, StructuralTuple] | None
+        Optional cache for structural tuple computation.
 
     Returns
     -------
@@ -194,10 +269,10 @@ def _suppress_sibling_tag_noise(
 
     Examples
     --------
-        >>> # Item 0 matched 'building' but the sibling 'segment' branch emitted
+        >>> # Item 0 matched Building but the sibling segment union emitted
         >>> # a union_tag_not_found error, creating a spurious () group.
         >>> error_groups = {
-        ...     ('building',): [
+        ...     ('Building',): [
         ...         {'loc': (0, 'tagged-union[type]', 'building', 'id'),
         ...          'msg': 'Field required', 'type': 'missing'},
         ...     ],
@@ -208,7 +283,22 @@ def _suppress_sibling_tag_noise(
         ... }
         >>> cleaned = _suppress_sibling_tag_noise(error_groups)
         >>> list(cleaned.keys())  # the () noise group is gone
-        [('building',)]
+        [('Building',)]
+
+        >>> # Item 0 matched RoadSegment, and the sibling union discriminated on
+        >>> # 'type' emitted union_tag_invalid, because it lists no 'segment' type.
+        >>> error_groups = {
+        ...     ('RoadSegment',): [
+        ...         {'loc': (0, 'tagged-union[subtype]', 'road', 'class'),
+        ...          'msg': 'Input should be ...', 'type': 'enum'},
+        ...     ],
+        ...     (): [
+        ...         {'loc': (0, 'tagged-union[type]'),
+        ...          'msg': "Input tag 'segment' ...", 'type': 'union_tag_invalid'},
+        ...     ],
+        ... }
+        >>> list(_suppress_sibling_tag_noise(error_groups).keys())
+        [('RoadSegment',)]
 
         >>> # An item whose ONLY error is union_tag_not_found is preserved.
         >>> error_groups = {
@@ -220,60 +310,70 @@ def _suppress_sibling_tag_noise(
         >>> _suppress_sibling_tag_noise(error_groups) == error_groups
         True
     """
-    # Identify which items have at least one concrete (non tag-not-found) error.
-    items_with_concrete_error: set[int | None] = set()
-    for errors in error_groups.values():
-        for error in errors:
-            if error.get("type") != "union_tag_not_found":
-                items_with_concrete_error.add(get_item_index(error["loc"]))
+    rejections = _branch_rejections(error_groups, metadata, structural_cache)
+
+    def rank(group_key: ErrorLocation, error: ValidationErrorDict) -> int:
+        # Only a tag error with an empty group key comes from a sibling union. One
+        # under a group key is inside the branch the item matched.
+        if group_key:
+            return _ERROR_RANK
+        error_type = error.get("type", "")
+        if error_type == "union_tag_not_found":
+            return _MISSING_TAG_RANK
+        if error_type != "union_tag_invalid":
+            return _ERROR_RANK
+        item_rejections = rejections.get(get_item_index(error["loc"]), {})
+        # A plain model's errors have no group key; only a named branch can make a
+        # sibling union's tag error redundant.
+        named = [rejected for key, rejected in item_rejections.items() if key]
+        if _is_redundant_tag_error(error, named, metadata):
+            return _REDUNDANT_TAG_RANK
+        return _ERROR_RANK
+
+    ranked = [
+        (group_key, error, rank(group_key, error))
+        for group_key, errors in error_groups.items()
+        for error in errors
+    ]
+
+    # The highest-ranked error each item has; its lower-ranked tag errors are noise.
+    item_rank: dict[int | None, int] = {}
+    for _, error, error_rank in ranked:
+        item = get_item_index(error["loc"])
+        item_rank[item] = max(item_rank.get(item, 0), error_rank)
 
     cleaned: dict[ErrorLocation, list[ValidationErrorDict]] = {}
-    for disc_path, errors in error_groups.items():
-        kept = [
-            error
-            for error in errors
-            if not (
-                error.get("type") == "union_tag_not_found"
-                and get_item_index(error["loc"]) in items_with_concrete_error
-            )
-        ]
-        if kept:
-            cleaned[disc_path] = kept
-
+    for group_key, error, error_rank in ranked:
+        if error_rank == item_rank[get_item_index(error["loc"])]:
+            cleaned.setdefault(group_key, []).append(error)
     return cleaned
 
 
 def select_most_likely_errors(
     error_groups: dict[ErrorLocation, list[ValidationErrorDict]],
     metadata: UnionMetadata | None = None,
-    all_errors: list[ValidationErrorDict] | None = None,
     structural_cache: dict[ErrorLocation, StructuralTuple] | None = None,
 ) -> tuple[list[ValidationErrorDict], bool, bool, dict[int, type[BaseModel] | None]]:
     """Select the error group(s) most likely to be the intended model.
 
-    Uses heuristic: the group with the fewest errors is most likely correct,
-    as it requires the fewest changes to make the data valid.
+    Each item is judged on its own errors, so one item's choice never hides another
+    item. An item's most likely group is the one whose branch rejected the fewest
+    of the item's tag fields (see `_branch_rejections`), then the one with the
+    fewest errors: it requires the fewest changes to make the data valid.
 
-    When multiple groups have the same minimum error count (a tie), returns
-    all tied groups to indicate ambiguity to the user.
+    When an item's groups share the best rank (a tie), returns all its tied groups
+    to indicate ambiguity to the user, and the item has no type.
 
-    Before tie detection, sibling-branch `union_tag_not_found` noise is
-    suppressed for any item that already matched a concrete type (see
-    `_suppress_sibling_tag_noise`), so a clean match is not falsely
-    reported as ambiguous. Items whose only errors are `union_tag_not_found`
-    are left intact.
-
-    For heterogeneous collections, returns ALL errors since different items
-    may have different intended types.
+    Before ranking, tag errors from sibling unions are suppressed for any item that
+    has a more telling error (see `_suppress_sibling_tag_noise`), so a clean match
+    is not falsely reported as ambiguous.
 
     Parameters
     ----------
     error_groups : dict[ErrorLocation, list[ValidationErrorDict]]
-        Dictionary mapping discriminator paths to error lists
+        Dictionary mapping group keys to error lists
     metadata : UnionMetadata | None
-        Optional UnionMetadata for heterogeneity detection
-    all_errors : list[ValidationErrorDict] | None
-        Optional list of all errors for heterogeneity analysis
+        Optional UnionMetadata for tag suppression and item types
     structural_cache : dict[ErrorLocation, StructuralTuple] | None
         Optional cache for structural tuple computation
 
@@ -281,61 +381,58 @@ def select_most_likely_errors(
     -------
     tuple[list[ValidationErrorDict], bool, bool, dict[int, type[BaseModel] | None]]
         Tuple of (errors_list, is_tied, is_heterogeneous, item_types) where:
-        - errors_list: List of errors to display
-        - is_tied: True if multiple groups had the same minimum error count
-        - is_heterogeneous: True if collection contains multiple model types
-        - item_types: Dict mapping item index to inferred model type
+        - errors_list: List of errors to display, in item order
+        - is_tied: True if some item's groups tied for the best rank
+        - is_heterogeneous: True if the items' types differ
+        - item_types: Dict mapping list item index to its selected model type
     """
     if not error_groups:
         return [], False, False, {}
 
-    # Check for heterogeneous collections
-    is_heterogeneous = False
-    _item_types: dict[int, type[BaseModel] | None] = {}
-    if metadata is not None and all_errors is not None:
-        _item_types, is_heterogeneous = analyze_collection_heterogeneity(
-            all_errors, metadata, structural_cache
-        )
+    rejections = _branch_rejections(error_groups, metadata, structural_cache)
+    error_groups = _suppress_sibling_tag_noise(error_groups, metadata, structural_cache)
 
-    # For heterogeneous collections, return only errors matching each item's inferred type
-    if is_heterogeneous and all_errors is not None:
-        filtered_errors = []
-        for error in all_errors:
-            item_idx = get_item_index(error["loc"])
-            if item_idx is not None and item_idx in _item_types:
-                # Only include this error if it matches the inferred type for this item
-                if metadata is not None:
-                    error_type = infer_model_from_error(
-                        error, metadata, structural_cache
-                    )
-                    if error_type == _item_types[item_idx]:
-                        filtered_errors.append(error)
-            else:
-                # Non-list errors or items without inferred type - include them
-                filtered_errors.append(error)
+    groups_by_item: dict[int | None, dict[ErrorLocation, list[ValidationErrorDict]]]
+    groups_by_item = defaultdict(lambda: defaultdict(list))
+    for group_key, errors in error_groups.items():
+        for error in errors:
+            groups_by_item[get_item_index(error["loc"])][group_key].append(error)
 
-        return filtered_errors, False, True, _item_types
+    selected: list[ValidationErrorDict] = []
+    is_tied = False
+    item_types: dict[int, type[BaseModel] | None] = {}
+    # Sort by index: the groups visit items in the order each group first appears.
+    for item in sorted(groups_by_item, key=lambda i: -1 if i is None else i):
+        item_groups = groups_by_item[item]
+        item_rejections = rejections.get(item, {})
+        ranks = {
+            group_key: (len(item_rejections.get(group_key, set())), len(errors))
+            for group_key, errors in item_groups.items()
+        }
+        best = min(ranks.values())
+        tied_groups = [
+            errors
+            for group_key, errors in item_groups.items()
+            if ranks[group_key] == best
+        ]
+        is_tied = is_tied or len(tied_groups) > 1
+        selected.extend(error for group in tied_groups for error in group)
+        if item is not None:
+            item_types[item] = _selected_type(tied_groups, metadata, structural_cache)
 
-    # Suppress sibling-branch discriminator noise before tie detection.
-    error_groups = _suppress_sibling_tag_noise(error_groups)
-    if not error_groups:
-        return [], False, is_heterogeneous, _item_types
+    item_type_set = {t for t in item_types.values() if t is not None}
+    return selected, is_tied, len(item_type_set) > 1, item_types
 
-    # Find the minimum error count
-    min_error_count = min(len(errors) for errors in error_groups.values())
 
-    # Get all groups with the minimum error count
-    tied_groups = [
-        errors for errors in error_groups.values() if len(errors) == min_error_count
-    ]
-
-    # Flatten all errors from tied groups
-    flattened_errors = [error for group in tied_groups for error in group]
-
-    # Indicate if there was a tie
-    is_tied = len(tied_groups) > 1
-
-    return flattened_errors, is_tied, is_heterogeneous, _item_types
+def _selected_type(
+    tied_groups: list[list[ValidationErrorDict]],
+    metadata: UnionMetadata | None,
+    structural_cache: dict[ErrorLocation, StructuralTuple] | None,
+) -> type[BaseModel] | None:
+    """Return the model an item's one selected group names, if it names one."""
+    if metadata is None or len(tied_groups) != 1:
+        return None
+    return infer_model_from_error(tied_groups[0][0], metadata, structural_cache)
 
 
 def format_path(filtered_loc: list[str | int]) -> str:
@@ -519,20 +616,8 @@ def format_validation_error(
     # Determine which model was selected for this error
     selected_model = None
     if metadata is not None and show_model_hint:
-        try:
-            structural = get_or_create_structural_tuple(loc, metadata, structural_cache)
-
-            # Look for discriminator value in the location path
-            for element, struct_type in zip(loc, structural, strict=False):
-                if struct_type == "discriminator" and isinstance(element, str):
-                    selected_model = metadata.discriminator_to_model.get(element)
-                    break
-                elif struct_type == "model" and isinstance(element, str):
-                    selected_model = metadata.model_name_to_model.get(element)
-                    break
-        except (KeyError, TypeError, IndexError):
-            # Structural analysis can fail for unexpected error path formats
-            pass
+        models = models_in_path(loc, metadata, structural_cache)
+        selected_model = models[0] if models else None
 
     # Filter out union markers from the path using structural analysis
     if metadata is not None:
