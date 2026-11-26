@@ -1260,7 +1260,7 @@ wheels = [
 
 [[package]]
 name = "overture-schema"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema" }
 dependencies = [
     { name = "overture-schema-cli" },
@@ -1287,7 +1287,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-cli"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-cli" }
 dependencies = [
     { name = "click" },
@@ -1326,7 +1326,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-codegen"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-codegen" }
 dependencies = [
     { name = "click" },
@@ -1371,7 +1371,7 @@ test = [
 
 [[package]]
 name = "overture-schema-common"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-common" }
 dependencies = [
     { name = "overture-schema-system" },
@@ -1406,7 +1406,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-pyspark"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-pyspark" }
 dependencies = [
     { name = "click" },
@@ -1433,7 +1433,7 @@ provides-extras = ["spark"]
 
 [[package]]
 name = "overture-schema-system"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-system" }
 dependencies = [
     { name = "pydantic" },
@@ -1465,7 +1465,7 @@ dev = [
 
 [[package]]
 name = "overture-schema-theme-addresses"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-theme-addresses" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1482,7 +1482,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-base"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-theme-base" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1499,7 +1499,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-buildings"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-theme-buildings" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1516,7 +1516,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-divisions"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-theme-divisions" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1533,7 +1533,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-places"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-theme-places" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1550,7 +1550,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-theme-transportation"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-theme-transportation" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1567,7 +1567,7 @@ requires-dist = [
 
 [[package]]
 name = "overture-schema-validation"
-version = "2.0.0"
+version = "2.0.1"
 source = { editable = "packages/overture-schema-validation" }
 dependencies = [
     { name = "overture-schema-common" },
@@ -1601,6 +1601,7 @@ source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "markdown-it-py" },
     { name = "mypy" },
     { name = "pdoc" },
     { name = "pydoclint" },
@@ -1617,6 +1618,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "markdown-it-py", specifier = ">=4.0.0" },
     { name = "mypy", specifier = ">=2.2.0" },
     { name = "pdoc", specifier = ">=15.0.4" },
     { name = "pydoclint", specifier = ">=0.11.0" },

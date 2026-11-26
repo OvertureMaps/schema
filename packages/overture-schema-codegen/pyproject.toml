@@ -14,7 +14,7 @@ dependencies = [
 ]
 description = "Code generator that produces documentation and code from Pydantic models"
 readme = "README.md"
-version = "2.0.0"
+version = "2.0.1"
 license = "MIT"
 name = "overture-schema-codegen"
 maintainers = [
