@@ -45,7 +45,7 @@ In the Overture schema, all features have a unique `id` called a [GERS ID](https
 | --- | --- | --- |
 | **id** | *string* | an Overture feature's unique id, part of the Global Entity Reference System (GERS) |
 | **geometry** | *binary* | well-known binary (WKB) representation of the feature geometry |
-| **bbox** | *struct\<xmin: float, ymin: float, xmax: float, ymax: float\>* | area defined by two longitudes and two latitudes: latitude is a decimal number between -90.0 and 90.0; longitude is a decimal number between -180.0 and 180.0. |
+| **bbox** | *struct\<xmin: double, ymin: double, xmax: double, ymax: double\>* | area defined by two longitudes and two latitudes: latitude is a decimal number between -90.0 and 90.0; longitude is a decimal number between -180.0 and 180.0. |
 | **theme** | *string* | one of six Overture data themes |
 | **type** | *string* | one of 14 Overture feature types | 
 | **version** | *int32* | version number of the feature, incremented in each Overture release where the geometry or attributes of this feature changed |
