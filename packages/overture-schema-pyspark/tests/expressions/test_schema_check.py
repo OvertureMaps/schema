@@ -10,10 +10,29 @@ from pyspark.sql.types import (
     StructType,
 )
 
+from overture.schema.pyspark.expressions._schema_structs import BBOX_STRUCT
 from overture.schema.pyspark.schema_check import (
     SchemaMismatch,
     compare_schemas,
 )
+
+
+class TestBBoxStruct:
+    def test_fields_follow_geoparquet_order(self) -> None:
+        """GeoParquet 1.1 requires `xmin, ymin, xmax, ymax`."""
+        assert BBOX_STRUCT.fieldNames() == ["xmin", "ymin", "xmax", "ymax"]
+
+    def test_data_in_the_old_field_order_still_matches(self) -> None:
+        """Files written before the reorder must keep passing the schema check."""
+        old_order = StructType(
+            [
+                StructField(name, DoubleType(), True)
+                for name in ("xmin", "xmax", "ymin", "ymax")
+            ]
+        )
+        actual = StructType([StructField("bbox", old_order, True)])
+        expected = StructType([StructField("bbox", BBOX_STRUCT, True)])
+        assert compare_schemas(actual, expected) == []
 
 
 class TestIdenticalSchemas:
