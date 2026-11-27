@@ -1506,7 +1506,7 @@ type(struct).__name__  # 'StructType'
 
 ```
 [('id', 'string'),
- ('bbox', 'struct<xmin:double,xmax:double,ymin:double,ymax:double>'),
+ ('bbox', 'struct<xmin:double,ymin:double,xmax:double,ymax:double>'),
  ('geometry', 'binary'),
  ('theme', 'string'),
  ('type', 'string')]

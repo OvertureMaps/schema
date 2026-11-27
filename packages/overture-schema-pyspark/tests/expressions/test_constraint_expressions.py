@@ -1481,22 +1481,37 @@ _CASES: list[_Case] = [
     # --- check_bbox_completeness (bbox struct column) -------------------------
     _Case(
         "bbox_valid",
-        "struct<xmin:double,xmax:double,ymin:double,ymax:double>",
-        {"xmin": 0.0, "xmax": 1.0, "ymin": 0.0, "ymax": 1.0},
+        "struct<xmin:double,ymin:double,xmax:double,ymax:double>",
+        {"xmin": 0.0, "ymin": 0.0, "xmax": 1.0, "ymax": 1.0},
         lambda f: check_bbox_completeness(F.col(f)),
         lambda r: r is None,
     ),
     _Case(
         "bbox_null_passes",
-        "struct<xmin:double,xmax:double,ymin:double,ymax:double>",
+        "struct<xmin:double,ymin:double,xmax:double,ymax:double>",
         None,
         lambda f: check_bbox_completeness(F.col(f)),
         lambda r: r is None,
     ),
     _Case(
         "bbox_null_subfield_fails",
+        "struct<xmin:double,ymin:double,xmax:double,ymax:double>",
+        {"xmin": None, "ymin": 0.0, "xmax": 1.0, "ymax": 1.0},
+        lambda f: check_bbox_completeness(F.col(f)),
+        lambda r: r is not None,
+    ),
+    # Files written before the GeoParquet 1.1 reorder keep the old field order.
+    _Case(
+        "bbox_old_field_order_valid",
         "struct<xmin:double,xmax:double,ymin:double,ymax:double>",
-        {"xmin": None, "xmax": 1.0, "ymin": 0.0, "ymax": 1.0},
+        {"xmin": 0.0, "xmax": 1.0, "ymin": 0.0, "ymax": 1.0},
+        lambda f: check_bbox_completeness(F.col(f)),
+        lambda r: r is None,
+    ),
+    _Case(
+        "bbox_old_field_order_null_subfield_fails",
+        "struct<xmin:double,xmax:double,ymin:double,ymax:double>",
+        {"xmin": 0.0, "xmax": 1.0, "ymin": None, "ymax": 1.0},
         lambda f: check_bbox_completeness(F.col(f)),
         lambda r: r is not None,
     ),

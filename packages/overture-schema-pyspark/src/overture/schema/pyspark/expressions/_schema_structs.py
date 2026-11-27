@@ -15,8 +15,8 @@ from pyspark.sql.types import DoubleType, StructField, StructType
 BBOX_STRUCT = StructType(
     [
         StructField("xmin", DoubleType(), True),
-        StructField("xmax", DoubleType(), True),
         StructField("ymin", DoubleType(), True),
+        StructField("xmax", DoubleType(), True),
         StructField("ymax", DoubleType(), True),
     ]
 )

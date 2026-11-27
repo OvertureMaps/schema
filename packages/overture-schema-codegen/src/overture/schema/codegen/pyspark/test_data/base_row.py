@@ -103,7 +103,7 @@ _PRIMITIVE_DEFAULTS: dict[str, object] = {
 
 
 def _bbox_value() -> dict[str, float]:
-    return {"xmin": 0.0, "xmax": 1.0, "ymin": 0.0, "ymax": 1.0}
+    return {"xmin": 0.0, "ymin": 0.0, "xmax": 1.0, "ymax": 1.0}
 
 
 # Field-name overrides applied before any shape-based value generation in
