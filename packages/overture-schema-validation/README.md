@@ -10,6 +10,10 @@ This package provides `validate` and `validate_json`, which check a Python objec
 pip install overture-schema-validation
 ```
 
+This package doesn't include any feature types. It validates against whatever theme
+packages are installed alongside it. To get all six themes and validation together,
+install the `overture-schema` metapackage instead.
+
 ## Usage
 
 ```python

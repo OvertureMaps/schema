@@ -1,0 +1,175 @@
+{
+  "type": "Feature",
+  "id": "e0fe7f44-2ba6-44bf-ae1e-797e39a04485",
+  "bbox": [
+    -73.98774719238281,
+    40.74844741821289,
+    -73.98454284667969,
+    40.74980163574219
+  ],
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [
+        -73.9845455,
+        40.7484537
+      ],
+      [
+        -73.9846794,
+        40.7485082
+      ],
+      [
+        -73.9849473,
+        40.7486189
+      ],
+      [
+        -73.9874153,
+        40.7496595
+      ],
+      [
+        -73.9876472,
+        40.7497588
+      ],
+      [
+        -73.9877463,
+        40.7498011
+      ]
+    ]
+  },
+  "properties": {
+    "theme": "transportation",
+    "type": "segment",
+    "version": 9,
+    "subtype": "road",
+    "class": "primary",
+    "names": {
+      "primary": "West 34th Street",
+      "common": {
+        "ru": "Западная 34-я стрит"
+      },
+      "rules": [
+        {
+          "value": "West 34th Street",
+          "variant": "common"
+        }
+      ]
+    },
+    "connectors": [
+      {
+        "connector_id": "5f05c1a9-1dd0-4c59-825c-617f40a63b6a",
+        "at": 0.0
+      },
+      {
+        "connector_id": "dd8b7ed5-b753-4b16-aa5e-d1269c22af94",
+        "at": 0.041512532
+      },
+      {
+        "connector_id": "6e7123ba-32d0-4451-b878-c528d2470f2c",
+        "at": 0.968937469
+      },
+      {
+        "connector_id": "785ca35d-ccca-43a4-8211-899b7d2a0210",
+        "at": 1.0
+      }
+    ],
+    "road_surface": [
+      {
+        "value": "paved"
+      }
+    ],
+    "speed_limits": [
+      {
+        "max_speed": {
+          "value": 25,
+          "unit": "mph"
+        }
+      }
+    ],
+    "access_restrictions": [
+      {
+        "access_type": "allowed",
+        "between": [
+          0.0,
+          0.124866651
+        ]
+      },
+      {
+        "access_type": "designated",
+        "when": {
+          "mode": [
+            "foot",
+            "hgv"
+          ]
+        }
+      }
+    ],
+    "prohibited_transitions": [
+      {
+        "sequence": [
+          {
+            "connector_id": "5f05c1a9-1dd0-4c59-825c-617f40a63b6a",
+            "segment_id": "e0fe7f44-2ba6-44bf-ae1e-797e39a04485"
+          }
+        ],
+        "final_heading": "forward",
+        "when": {
+          "heading": "backward"
+        }
+      },
+      {
+        "sequence": [
+          {
+            "connector_id": "785ca35d-ccca-43a4-8211-899b7d2a0210",
+            "segment_id": "e0fe7f44-2ba6-44bf-ae1e-797e39a04485"
+          }
+        ],
+        "final_heading": "backward",
+        "when": {
+          "heading": "forward"
+        }
+      },
+      {
+        "sequence": [
+          {
+            "connector_id": "785ca35d-ccca-43a4-8211-899b7d2a0210",
+            "segment_id": "f24366bc-53b9-4907-b16d-d52a45413e8d"
+          }
+        ],
+        "final_heading": "forward",
+        "when": {
+          "heading": "forward"
+        }
+      }
+    ],
+    "sources": [
+      {
+        "property": "",
+        "dataset": "OpenStreetMap",
+        "license": "ODbL-1.0",
+        "record_id": "w1088325196@27",
+        "update_time": "2026-05-02T05:21:33Z",
+        "provider": "osm",
+        "resource": "planet",
+        "version": "2026-11-07",
+        "between": [
+          0.0,
+          0.124866651
+        ]
+      },
+      {
+        "property": "",
+        "dataset": "OpenStreetMap",
+        "license": "ODbL-1.0",
+        "record_id": "w5670600@68",
+        "update_time": "2026-08-27T22:53:00Z",
+        "provider": "osm",
+        "resource": "planet",
+        "version": "2026-11-07",
+        "between": [
+          0.124866651,
+          1.0
+        ]
+      }
+    ]
+  }
+}

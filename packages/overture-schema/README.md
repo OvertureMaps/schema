@@ -15,6 +15,10 @@ validation library and the CLI, and ships no code of its own. `overture.schema`
 is a namespace root, so import from the theme and system packages rather than
 from `overture.schema` directly.
 
+The metapackage doesn't include `overture-schema-codegen` (documentation
+generation) or `overture-schema-pyspark` (validation at scale with Spark). Install
+those separately. See [Install from PyPI](https://github.com/OvertureMaps/schema/blob/main/guides/getting-started-with-the-schema.md#install-from-pypi) in Getting started with the schema.
+
 ## Usage
 
 Import models from the theme package that defines them:
@@ -123,5 +127,5 @@ schema = json_schema(Building)
 union_schema = json_schema(Building | Place)  # emits an anyOf
 ```
 
-See the [`overture-schema-system` README](../overture-schema-system/README.md)
+See the [`overture-schema-system` README](https://github.com/OvertureMaps/schema/blob/main/packages/overture-schema-system/README.md)
 for tag format, tag providers, and the discovery API in full.

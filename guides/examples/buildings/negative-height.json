@@ -1,0 +1,91 @@
+{
+  "type": "Feature",
+  "id": "0e8abfe5-a7f3-4e8e-b6f0-db1fb0bb5b0c",
+  "bbox": [
+    -73.98650360107422,
+    40.7479248046875,
+    -73.98480987548828,
+    40.748958587646484
+  ],
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -73.9864839,
+          40.7485145
+        ],
+        [
+          -73.9865012,
+          40.748491
+        ],
+        [
+          -73.9851602,
+          40.7479255
+        ],
+        [
+          -73.9848166,
+          40.7483931
+        ],
+        [
+          -73.9861574,
+          40.7489585
+        ],
+        [
+          -73.9863252,
+          40.7487301
+        ],
+        [
+          -73.9863554,
+          40.748689
+        ],
+        [
+          -73.9864839,
+          40.7485145
+        ]
+      ]
+    ]
+  },
+  "properties": {
+    "theme": "buildings",
+    "type": "building",
+    "version": 6,
+    "subtype": "commercial",
+    "class": "office",
+    "names": {
+      "primary": "Empire State Building",
+      "common": {
+        "uk": "Емпайр-Стейт-Білдінг",
+        "ko": "엠파이어 스테이트 빌딩",
+        "en": "Empire State Building",
+        "zh": "帝国大厦",
+        "es": "Edificio Empire State",
+        "he": "בניין אמפייר סטייט",
+        "ru": "Эмпайр-Стейт-Билдинг",
+        "hi": "एम्पायर स्टेट बिल्डिंग"
+      },
+      "rules": [
+        {
+          "value": "ESB",
+          "variant": "short"
+        }
+      ]
+    },
+    "height": -5,
+    "num_floors": 102,
+    "has_parts": true,
+    "is_underground": false,
+    "sources": [
+      {
+        "property": "",
+        "dataset": "OpenStreetMap",
+        "license": "ODbL-1.0",
+        "record_id": "w34633854@78",
+        "update_time": "2026-09-07T14:55:45Z",
+        "provider": "osm",
+        "resource": "planet",
+        "version": "2026-11-01T00:00:00.000Z"
+      }
+    ]
+  }
+}
